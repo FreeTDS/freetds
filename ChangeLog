@@ -1,3 +1,8 @@
+Thu Feb 27 16:04:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/funccall.c (added):
+	- added test for call syntax and function
+
 Thu Feb 27 20:50:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: small change
 	* src/tds/mem.c: fix wrong memory clean causing core
