@@ -22,6 +22,8 @@ DBPROCESS       *dbproc;
 
     tdsdump_open(NULL);
 
+    memset(&params, '\0', sizeof(PARAMDATA));
+
     if (process_parameters(argc, argv, &params ) == FALSE )
     {
        pusage();
