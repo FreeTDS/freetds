@@ -1,3 +1,6 @@
+Thu Jan 23 10:56:06 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt: update ODBC status
+
 Wed Jan 22 15:56:39 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/api_status.txt updated db-lib status with Sybase's functions
 

@@ -86,71 +86,71 @@ odbc	(all)	SQLAllocStmt	OK
 odbc	(all)	SQLBindCol	OK
 odbc	(all)	SQLBindParam	
 odbc	(all)	SQLBindParameter	OK
-odbc	(all)	SQLBrowseConnect	stub
+odbc	(all)	SQLBrowseConnect	
 odbc	(all)	SQLCancel	OK
 odbc	(all)	SQLCloseCursor	
 odbc	(all)	SQLColAttribute	
 odbc	(all)	SQLColAttributes	OK
-odbc	(all)	SQLColumnPrivileges	stub
-odbc	(all)	SQLColumns	stub
+odbc	(all)	SQLColumnPrivileges	
+odbc	(all)	SQLColumns	OK
 odbc	(all)	SQLConnect	OK
 odbc	(all)	SQLCopyDesc	
 odbc	(all)	SQLDescribeCol	OK
-odbc	(all)	SQLDescribeParam	stub
-odbc	(all)	SQLDisconnect	stub
+odbc	(all)	SQLDescribeParam	
+odbc	(all)	SQLDisconnect	partial
 odbc	(all)	SQLDriverConnect	OK
-odbc	(all)	SQLEndTran	
+odbc	(all)	SQLEndTran	OK
 odbc	(all)	SQLError	OK
 odbc	(all)	SQLExecDirect	OK
 odbc	(all)	SQLExecute	OK
-odbc	(all)	SQLExtendedFetch	stub
+odbc	(all)	SQLExtendedFetch	
 odbc	(all)	SQLFetch	OK
 odbc	(all)	SQLFetchScroll	
-odbc	(all)	SQLForeignKeys	stub
+odbc	(all)	SQLForeignKeys	
 odbc	(all)	SQLFreeConnect	OK
 odbc	(all)	SQLFreeEnv	OK
 odbc	(all)	SQLFreeHandle	OK
 odbc	(all)	SQLFreeStmt	OK
 odbc	(all)	SQLGetConnectAttr	
 odbc	(all)	SQLGetConnectOption	OK
-odbc	(all)	SQLGetCursorName	stub
+odbc	(all)	SQLGetCursorName	
 odbc	(all)	SQLGetData	OK
 odbc	(all)	SQLGetDescField	
 odbc	(all)	SQLGetDescRec	
-odbc	(all)	SQLGetDiagField	
-odbc	(all)	SQLGetDiagRec	
+odbc	(all)	SQLGetDiagField	OK
+odbc	(all)	SQLGetDiagRec	OK
 odbc	(all)	SQLGetEnvAttr	
 odbc	(all)	SQLGetFunctions	OK
-odbc	(all)	SQLGetInfo	OK
+odbc	(all)	SQLGetInfo	partial
 odbc	(all)	SQLGetStmtAttr	partial
 odbc	(all)	SQLGetStmtOption	partial
 odbc	(all)	SQLGetTypeInfo	OK
 odbc	(all)	SQLMoreResults	OK
-odbc	(all)	SQLNativeSql	stub
+odbc	(all)	SQLNativeSql	
 odbc	(all)	SQLNumParams	OK
 odbc	(all)	SQLNumResultCols	OK
 odbc	(all)	SQLParamData	OK
-odbc	(all)	SQLParamOptions	stub
+odbc	(all)	SQLParamOptions	
 odbc	(all)	SQLPrepare	OK
-odbc	(all)	SQLPrimaryKeys	stub
-odbc	(all)	SQLProcedureColumns	stub
-odbc	(all)	SQLProcedures	stub
+odbc	(all)	SQLPrimaryKeys	
+odbc	(all)	SQLProcedureColumns	
+odbc	(all)	SQLProcedures	
 odbc	(all)	SQLPutData	OK
 odbc	(all)	SQLRowCount	OK
-odbc	(all)	SQLSetConnectAttr	
-odbc	(all)	SQLSetConnectOption	stub
-odbc	(all)	SQLSetCursorName	stub
+odbc	(all)	SQLSetConnectAttr	partial
+odbc	(all)	SQLSetConnectOption	partial
+odbc	(all)	SQLSetCursorName	
 odbc	(all)	SQLSetDescField	
 odbc	(all)	SQLSetDescRec	
-odbc	(all)	SQLSetEnvAttr	stub
-odbc	(all)	SQLSetPos	stub
-odbc	(all)	SQLSetParam	stub
+odbc	(all)	SQLSetEnvAttr	partial
+odbc	(all)	SQLSetPos	
+odbc	(all)	SQLSetParam	
 odbc	(all)	SQLSetScrollOption	
 odbc	(all)	SQLSetStmtAttr	
-odbc	(all)	SQLSetStmtOption	stub
-odbc	(all)	SQLSpecialColumns	stub
-odbc	(all)	SQLStatistics	stub
-odbc	(all)	SQLTablePrivileges	stub
+odbc	(all)	SQLSetStmtOption	partial
+odbc	(all)	SQLSpecialColumns	
+odbc	(all)	SQLStatistics	
+odbc	(all)	SQLTablePrivileges	
 odbc	(all)	SQLTables	OK
 odbc	(all)	SQLTransact	OK
 dblib	(none)   	n/a				db12hour	
