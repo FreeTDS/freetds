@@ -1,3 +1,7 @@
+Thu Sep 04 10:56:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/type.c src/tds/unittests/t0003.c:
+	- remove warnings
+
 Wed Sep 03 20:55:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/connectparams.h:
 	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.12 2003-06-06 09:19:19 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.13 2003-09-04 08:57:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -29,7 +29,6 @@ main(int argc, char **argv)
 	TDSSOCKET *tds;
 	int verbose = 0;
 	int rc;
-	TDS_INT result_type;
 
 	fprintf(stdout, "%s: Testing DB change -- 'use tempdb'\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
