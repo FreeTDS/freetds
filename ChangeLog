@@ -1,3 +1,11 @@
+Sun Jan 12 15:48:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	* include/Makefile.am:
+	- don't install freetds_sysconfdir.h, because no public headers
+	  reference it.
+	- Add a check for automake 1.53 to include/Makefile.am because of
+	  'nodist_include_HEADERS', to avoid accidental partial-builds
+	  with incompatible versions of automake.
+
 Sun Jan 12 12:27:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	* src/ctlib/Makefile.am:
 	- bump sover due to structure and constants changed in
