@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.100 2003-06-11 20:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.101 2003-07-01 13:42:41 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -475,7 +475,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	CS_CONTEXT *ctx;
 	TDSCONNECTINFO *connect_info;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L ct_connect() servername = %s\n", servername);
+	tdsdump_log(TDS_DBG_FUNC, "%L ct_connect() servername = %s\n", 
+		servername ? servername : "NULL");
 
 	if (snamelen == 0 || snamelen == CS_UNUSED) {
 		server = NULL;

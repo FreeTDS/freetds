@@ -1,3 +1,6 @@
+Tue Jul  1 09:41:12 EDT 2003	Mark Lilback <mark@lilback.com>
+	* src/ctlib/ct.c added null check to tdsdump_log call in ct_connect
+
 Tue Jul  1 01:28:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsiconv.h 
 	* src/tds/encodings.h src/tds/encodings.pl src/tds/iconv.c
