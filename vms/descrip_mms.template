@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.6 2004-11-07 08:59:34 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.6.2.1 2004-12-02 06:20:50 jklowden Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -60,11 +60,9 @@ DBOPENOBJ =
 .ENDIF
 
 .IFDEF MSDBLIB
-MSDBLIB_DEFINE = define
-MSDBLIB_TRUE = 1
+DBLIB_DEFINE = define MSDBLIB 1
 .ELSE
-MSDBLIB_DEFINE = undef
-MSDBLIB_TRUE =
+DBLIB_DEFINE = define SYBDBLIB 1
 .ENDIF
 
 CC = CC/DECC
@@ -209,7 +207,7 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_intptr_type@"",""int"");"
 	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-	@ write vmsconfigtmp "eve_global_replace(""@msdblib_define@"",""#$(MSDBLIB_DEFINE) MSDBLIB $(MSDBLIB_TRUE)"");"
+	@ write vmsconfigtmp "eve_global_replace(""@dblib_define@"",""#$(DBLIB_DEFINE)"");"
 	@ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 	@ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 	@ write vmsconfigtmp "quit;"

@@ -1,3 +1,6 @@
+Thu Dec  2 01:19:30 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* vms/descrip_mms.template s/msdblib_define/dblib_define/
+	
 Tue Nov 30 22:50:51 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h include/sybdb.h
 	* src/dblib/dblib.c src/dblib/rpc.c
