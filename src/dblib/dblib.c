@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.102 2002-11-10 18:06:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.103 2002-11-12 22:09:00 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -328,9 +328,10 @@ static void buffer_set_buffering(
 
    if (buf_size < 0)
    {
-      /* XXX is it okay to ignore this? */
+	buf_size = 100; /* the default according to Microsoft */
    }
-   else if (buf_size == 0)
+
+   if (buf_size == 0)
    {
       buf->buffering_on = 0;
       buf->elcount = 1;
@@ -2829,6 +2830,7 @@ char *cmd;
 		/* requires param "0" to "2147483647" */
 		/* XXX should be more robust than just a atoi() */
 		buffer_set_buffering(&(dbproc->row_buf), atoi(char_param));
+		return SUCCEED;
 		break;
 	case DBPRCOLSEP:
 	case DBPRLINELEN:

@@ -1,3 +1,5 @@
+Tue Nov 12 16:58:27 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c	dbsetopt DBBUFFER fix
 Sun Nov 10 19:07:58 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* threadsafe.c:
 	- Ansify declaration of tds_get_home()
