@@ -4,7 +4,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: common.c,v 1.25 2004-02-12 16:55:29 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.26 2004-02-14 18:52:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -57,6 +57,9 @@ read_login_info(void)
 	int len;
 
 	in = fopen("../../../PWD", "r");
+	if (!in)
+		in = fopen("PWD", "r");
+
 	if (!in) {
 		fprintf(stderr, "Can not open PWD file\n\n");
 		return 1;

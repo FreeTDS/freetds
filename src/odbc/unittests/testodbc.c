@@ -6,12 +6,11 @@
 /* 
  * TODO
  * remove Northwind dependency
- * remove CREATE DATABASE clause
  */
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.1 2004-02-12 17:33:53 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.2 2004-02-14 18:52:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -276,7 +275,28 @@ TestRawODBCPreparedQuery(void)
 
 	/* MAKE QUERY */
 
-	strcpy((char *) (queryString), "SELECT * FROM Products WHERE SupplierID = ?");
+	Command(Statement, "CREATE TABLE #Products ("
+		"ProductID int IDENTITY (1, 1) NOT NULL ,"
+		"ProductName nvarchar (40) ,"
+		"SupplierID int NULL ,"
+		"CategoryID int NULL ,"
+		"QuantityPerUnit nvarchar (20)  ,"
+		"UnitPrice money NULL ,"
+		"UnitsInStock smallint NULL ,"
+		"UnitsOnOrder smallint NULL ,"
+		"ReorderLevel smallint NULL ,"
+		"Discontinued bit NOT NULL "
+		") "
+		"SET IDENTITY_INSERT #Products ON SET NOCOUNT ON "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(9,'Mishi Kobe Niku',4,6,'18 - 500 g pkgs.',97.00,29,0,0,1) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(10,'Ikura',4,8,'12 - 200 ml jars',31.00,31,0,0,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(74,'Longlife Tofu',4,7,'5 kg pkg.',10.00,4,20,5,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(11,'Queso Cabrales',5,4,'1 kg pkg.',21.00,22,30,30,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0) "
+		"SET IDENTITY_INSERT #Products OFF");
+	SQLCloseCursor(Statement);
+
+	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
@@ -348,7 +368,28 @@ TestRawODBCDirectQuery(void)
 
 	/* MAKE QUERY */
 
-	strcpy((char *) (queryString), "SELECT * FROM Products WHERE SupplierId = ?");
+	Command(Statement, "CREATE TABLE #Products ("
+		"ProductID int IDENTITY (1, 1) NOT NULL ,"
+		"ProductName nvarchar (40) ,"
+		"SupplierID int NULL ,"
+		"CategoryID int NULL ,"
+		"QuantityPerUnit nvarchar (20)  ,"
+		"UnitPrice money NULL ,"
+		"UnitsInStock smallint NULL ,"
+		"UnitsOnOrder smallint NULL ,"
+		"ReorderLevel smallint NULL ,"
+		"Discontinued bit NOT NULL "
+		") "
+		"SET IDENTITY_INSERT #Products ON SET NOCOUNT ON "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(1,'Chai',1,1,'10 boxes x 20 bags',18.00,39,0,10,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(2,'Chang',1,1,'24 - 12 oz bottles',19.00,17,40,25,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(3,'Aniseed Syrup',1,2,'12 - 550 ml bottles',10.00,13,70,25,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(4,'Chef Anton''s Cajun Seasoning',2,2,'48 - 6 oz jars',22.00,53,0,0,0) "
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) "
+		"SET IDENTITY_INSERT #Products OFF");
+	SQLCloseCursor(Statement);
+
+	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierId = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
@@ -415,37 +456,22 @@ TestRawODBCGuid(void)
 
 	Connect();
 
-	AB_PRINT(("Creating database menagerie"));
-	strcpy((char *) (queryString), "CREATE DATABASE menagerie");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS && status != SQL_SUCCESS_WITH_INFO) {
-		AB_ERROR(("Create database failed"));
-		goto odbcfail;
-	}
+	AB_PRINT(("Creating #pet table"));
 
-	AB_PRINT(("Using database menagerie"));
-	strcpy((char *) (queryString), "USE menagerie");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS && status != SQL_SUCCESS_WITH_INFO) {
-		AB_ERROR(("Use menagerie failed"));
-		goto odbcfail;
-	}
-
-	AB_PRINT(("Creating pet table"));
-
-	strcpy((char *) (queryString), "CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), \
-                              species VARCHAR(20), sex CHAR(1), age INTEGER, \
-                              guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ");
+	strcpy((char *) (queryString), "CREATE TABLE #pet (name VARCHAR(20), owner VARCHAR(20), "
+	       "species VARCHAR(20), sex CHAR(1), age INTEGER, " "guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Create table failed"));
 		goto odbcfail;
 	}
 
+	CommandWithResult(Statement, "DROP PROC GetGUIDRows");
+
 	AB_PRINT(("Creating stored proc GetGUIDRows"));
 
 	strcpy((char *) (queryString), "CREATE PROCEDURE GetGUIDRows (@guidpar uniqueidentifier) AS \
-                SELECT name, guid FROM pet WHERE guid = @guidpar");
+                SELECT name, guid FROM #pet WHERE guid = @guidpar");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Create table failed"));
@@ -454,7 +480,7 @@ TestRawODBCGuid(void)
 
 	AB_PRINT(("Insert row 1"));
 
-	strcpy((char *) (queryString), "INSERT INTO pet( name, owner, species, sex, age ) \
+	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age ) \
                          VALUES ( 'Fang', 'Mike', 'dog', 'm', 12 );");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
@@ -467,7 +493,7 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with explicit GUID, but parameterised age.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO pet( name, owner, species, sex, age, guid ) \
+	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
                          VALUES ( 'Splash', 'Dan', 'fish', 'm', ?, \
                          '12345678-1234-1234-1234-123456789012' );");
 
@@ -493,7 +519,7 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO pet( name, owner, species, sex, age, guid ) \
+	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
                          VALUES ( 'Woof', 'Tom', 'cat', 'f', 2, ? );");
 
 	lenOrInd = SQL_NTS;
@@ -514,7 +540,7 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO pet( name, owner, species, sex, age, guid ) \
+	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
                          VALUES ( 'Spike', 'Diane', 'pig', 'f', 4, ? );");
 
 	lenOrInd = SQL_NTS;
@@ -535,7 +561,7 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO pet( name, owner, species, sex, age, guid ) \
+	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
                          VALUES ( 'Fluffy', 'Sam', 'dragon', 'm', 16, ? );");
 
 	sqlguid.Data1 = 0xaabbccdd;
@@ -568,7 +594,7 @@ TestRawODBCGuid(void)
 	 * Now retrieve rows - especially GUID column values.
 	 */
 	AB_PRINT(("retrieving name and guid"));
-	strcpy((char *) (queryString), "SELECT name, guid FROM pet");
+	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("SELECT failed"));
@@ -610,7 +636,7 @@ TestRawODBCGuid(void)
 	 */
 
 	AB_PRINT(("retrieving name and guid again"));
-	strcpy((char *) (queryString), "SELECT name, guid FROM pet");
+	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("SELECT failed"));
@@ -700,32 +726,8 @@ TestRawODBCGuid(void)
 		goto odbcfail;
 	}
 
-	/*
-	 * Now switch to using the master database, so that we can drop the
-	 * menagerie database. (Can't drop menagerie if we are still using it.)
-	 */
-	AB_PRINT(("Using database master"));
-	strcpy((char *) (queryString), "USE master");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS && status != SQL_SUCCESS_WITH_INFO) {
-		AB_ERROR(("Use master failed"));
-		goto odbcfail;
-	}
-
-	AB_PRINT(("Dropping database menagerie"));
-	strcpy((char *) (queryString), "DROP DATABASE menagerie");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if ((status != SQL_SUCCESS) && (status != SQL_SUCCESS_WITH_INFO)) {
-		AB_ERROR(("Drop database failed"));
-		goto odbcfail;
-	}
-
-	/* Finally close out the last ODBC statement structure. */
-
-	if (SQLFreeStmt(Statement, SQL_CLOSE) != SQL_SUCCESS) {
-		AB_ERROR(("Free statement failed (5)"));
-		goto odbcfail;
-	}
+	/* cleanup */
+	CommandWithResult(Statement, "DROP PROC GetGUIDRows");
 
 	/* CLOSEDOWN */
 
@@ -764,9 +766,9 @@ static DbTestEntry *tests = _dbTests;
 static int
 RunTests(void)
 {
-	uint i;
-	uint passes = 0;
-	uint fails = 0;
+	unsigned int i;
+	unsigned int passes = 0;
+	unsigned int fails = 0;
 
 	i = 0;
 	while (tests[i].testFn) {

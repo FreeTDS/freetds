@@ -1,3 +1,8 @@
+#ifdef WIN32
+#include <windows.h>
+#include <direct.h>
+#endif
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -16,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.11 2004-02-12 16:55:29 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.12 2004-02-14 18:52:15 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern HENV Environment;

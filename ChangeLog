@@ -1,3 +1,9 @@
+Sat Feb 14 19:55:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	- fix for win32
+	* src/odbc/unittests/testodbc.c:
+	- start removing dependency from Northwind
+
 Fri Feb 13 21:44:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: some comments
 
