@@ -23,13 +23,13 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.4 2001-11-08 17:50:24 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-extern int (*g_dblib_msg_handler)();
-extern int (*g_dblib_err_handler)();
+extern int (*g_dblib_msg_handler)(DBPROCESS*,TDS_SMALLINT,TDS_SMALLINT,TDS_SMALLINT,TDS_CHAR*,TDS_CHAR*,TDS_CHAR*);
+extern int (*g_dblib_err_handler)(DBPROCESS*,TDS_SMALLINT,TDS_SMALLINT,TDS_SMALLINT,TDS_CHAR*,TDS_CHAR*);
 
 /* The next 2 functions will be the reciever for the info and error messages
  * that come from the TDS layer.  The address of this function is passed to
