@@ -17,8 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#include <stdio.h>
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>

@@ -1,3 +1,7 @@
+Fri Oct 11 11:03:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/freebcp.c src/apps/tsql.c:
+	- Include config.h properly.
+
 Fri Oct 11 10:48:13 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/asprintf.c:
 	- #if HAVE_CONFIG_H instead of #ifdef HAVE_CONFIG_H for

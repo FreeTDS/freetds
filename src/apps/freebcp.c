@@ -17,6 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
@@ -25,7 +29,7 @@
 #include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.9 2002-10-01 16:42:55 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.10 2002-10-11 15:04:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
