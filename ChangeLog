@@ -1,3 +1,8 @@
+Mon Mar 06 20:43:22 EST 2002	Mark Lilback <mark@lilback.com>
+
+	* src/tds/config.c: does not do a lookup if passed an ip address. 
+	compile flag added to not do reverse lookups on ip addresses.
+
 Wed Feb 20 16:12:58 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* src/odbc/odbc.c: added SQL_DESC_TYPE to switch statement
