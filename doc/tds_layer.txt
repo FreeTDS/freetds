@@ -1,4 +1,4 @@
-TDS Library Docuemtation v0.1
+TDS Library Documentation v0.1
 
 *********************************************************
 
@@ -28,7 +28,7 @@ tds_init_write_buffer to initialize the outgoing buffer.
 *********************************************************
 void tds_free_socket(TDSSOCKET *tds)
 
-This funtion frees incoming and outgoing buffers, the TDSMSGINFO structure and 
+This function frees incoming and outgoing buffers, the TDSMSGINFO structure and 
 then the TDSSOCKET structure.
 
 *********************************************************
@@ -36,7 +36,7 @@ void tds_free_msg(TDSMSGINFO *msg_info)
 
 This function releases all variable length data related to the TDSMSGINFO 
 structure, but does NOT free the TDSMSGINFO structure itself.  TDSMSGINFO is
-released by tds_free_socket. This fuction is called by the function receiving
+released by tds_free_socket. This function is called by the function receiving
 the message, so that it may be reused for the next message.
 
 *********************************************************
@@ -47,7 +47,7 @@ This function allocates a TDSRESULTINFO structure used to stored a result set.
 It allocates memory for 'num_cols' TDSCOLINFO structures and initializes 
 TDSCOMPUTEINFO.num_cols to that number. It also determines the number of bytes 
 to allocate for storing NULL information (1 bit per column). This value is then
-stored in TDSRESULTINO.null_info_size. TDSRESULTINFO.row_size is initialized 
+stored in TDSRESULTINFO.null_info_size. TDSRESULTINFO.row_size is initialized 
 with this value as well, indicating the position within the row buffer to start
 storing data.
 
@@ -55,7 +55,7 @@ storing data.
 void tds_free_results(TDSRESULTINFO *res_info)
 Status: Internal
 
-This fuctions frees a TDSRESULTINFO structure, all associated TDSCOLINFO
+This function frees a TDSRESULTINFO structure, all associated TDSCOLINFO
 structures, and the row buffer if presented.
 
 *********************************************************
@@ -80,7 +80,7 @@ TDSCOMPUTEINFO.num_cols to that number.
 void tds_free_compute_results(TDSCOMPUTEINFO *comp_info)
 Status: Internal
 
-This fuctions frees a TDSCOMPUTEINFO structure and all associated TDSCOLINFO
+This function frees a TDSCOMPUTEINFO structure and all associated TDSCOLINFO
 structures.
 
 *********************************************************
@@ -102,7 +102,7 @@ void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver)
 void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, 
       int size)
 
-These convience functions set items in the TDSLOGIN structure to be passed to 
+These convenience functions set items in the TDSLOGIN structure to be passed to 
 the server upon login. You must call tds_alloc_login prior to using these
 routines
 

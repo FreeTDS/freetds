@@ -40,7 +40,7 @@ doesn't!?), any bug submissions (to the mailing list or the bug
 tracking system) should include the following.
 
 1) a small program demonstrating the problem.  This can be in C, PHP,
-   Perl, or simply the SQL if it is reproducable in SQSH.
+   Perl, or simply the SQL if it is reproducible in SQSH.
 
 2) The DDL for your table(s) from the SQL above.  A lot of bugs can be
    particular to one datatype and without this information it'll be
@@ -50,7 +50,7 @@ tracking system) should include the following.
    will do this nicely)
 
 3) The version of FreeTDS you are running, but in general try to get
-   the lastest snapshot or CVS version before reporting a bug.
+   the latest snapshot or CVS version before reporting a bug.
 
 4) The TDS protocol version.  It's the --with-tdsver flag you
    configured with 5.0 as the default.  Many bugs are protocol
@@ -75,7 +75,7 @@ Notes to Developers
 
 The code is split into several pieces.
 
-1) tds directory is the wire level stuff, it should be independant of
+1) tds directory is the wire level stuff, it should be independent of
    the library using it, this will allow DB-Lib, CT-Lib, and ODBC to
    sit on top.
 

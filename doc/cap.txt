@@ -25,7 +25,7 @@ The capabilities field looks like:
 |   id   |  size  |    bitmask    |
 +--------+--------+---------------+
 
-1) For id 1 seems to signify request capabilties and 2 is response capabilities.
+1) For id 1 seems to signify request capabilities and 2 is response capabilities.
 2) The size represents the size of the bitmask (7 for all I've seen).
 3) The bitmask is is a bitset mask denoting values set by ct_capability()
    or similar call.  It is packed from the low order bit to high order bit.

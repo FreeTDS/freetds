@@ -24,7 +24,7 @@ has three CLIs: dblib, the original Sybase API; ctlib, the newer Sybase API; and
 ODBC, the non-database specific API.
 
 Currently dblib is the most robust CLI we have, followed by ctlib, which is 
-quite usuable none-the-less. ODBC is a late starter, but has been improved
+quite usable none-the-less. ODBC is a late starter, but has been improved
 recently.  The ODBC CLI is built using a driver manager (either iODBC or 
 unixODBC), so you will need one of those to build it with.
 
@@ -45,7 +45,7 @@ structure.  Please refer to src/tds/login.c for a complete listing of options.
 
 Once username, password, server, and other options are set a call can be made to
 tds_connect(). This will allocate a TDS_SOCKET structure and open a socket 
-connection to the specified server (or NULL on failure). The TDS_SOCKET is then passed as an arguement to all future TDS functions.
+connection to the specified server (or NULL on failure). The TDS_SOCKET is then passed as an argument to all future TDS functions.
 
 At this point the only really useful thing to do is to call tds_submit_query()
 and then process the returning rows using tds_process_results() and company.

@@ -7,7 +7,7 @@
 </head>
 
 <body>
-Ok, here's a second shot at documenting the TDS protocol.
+OK, here's a second shot at documenting the TDS protocol.
 This document attempts to cover TDS 4.2 (Sybase SQLServer <= 10?, MS SQLServer6.5),
 TDS 5.0 (Sybase SQLServer >= 11?), and TDS 7.0 (MS SQLServer7).
 <p>
@@ -34,7 +34,7 @@ Variable types used in this document:
   INT16    16-bit int
   UTF16    Unicode in UTF16 format
 </pre>
-Note:  freeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.
+Note:  FreeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.
 
 <p>
 <a name="examples"></a>
@@ -162,10 +162,10 @@ byte   var type    description
  488   CHAR[30]    language           /* e.g. "us-english" */
  518   INT8        language_length
  519   ?           magic7[1]          /*  mystery stuff */
- 520   INT16       old_secure         /* explaination? */
+ 520   INT16       old_secure         /* explanation? */
  522   INT8        encrypted          /*  1 means encrypted all password fields blank */
  523   ?           magic8[1]          /*  no clue... zeros */
- 524   CHAR        sec_spare[9]       /* explaination? */
+ 524   CHAR        sec_spare[9]       /* explanation? */
  533   CHAR[30]    char_set           /* e.g. "iso_1" */
  563   INT8        char_set_length
  564   INT8        magic9[1]          /* 1 */ 
@@ -244,7 +244,7 @@ That implies there are at least 3 more strings that could be defined.
 <a name="responses"></a>
 <b class="section">Server Responses</b>
 <p>
-Responses from the server start with a single octet (token) indentifying
+Responses from the server start with a single octet (token) identifying
 its type. If variable length, they generally have the length as the second
 and third bytes
 <p>
@@ -317,7 +317,7 @@ The return value of a stored procedure.
 | process number |
 +----------------+
 </pre>
-Presumeably the process ID number for an executing stored procedure.
+Presumably the process ID number for an executing stored procedure.
 (I'm not sure how this would ever be used by a client.  *mjs*)
 
 <a name="129">&nbsp;</a> <hr>
@@ -396,7 +396,7 @@ column type        (need an appendix for discussion of column types)
 column size        not present for fixed size columns
 precision          present only for SYBDECIMAL and SYBNUMERIC
 scale              present only for SYBDECIMAL and SYBNUMERIC
-t length           present only for SYBTEXT and SYBIMAGE, lenght of table name
+t length           present only for SYBTEXT and SYBIMAGE, length of table name
 table name         present only for SYBTEXT and SYBIMAGE
 unknown            always 0x00
 </pre>
@@ -550,7 +550,7 @@ magic		?
 +----------+--------------------+
 </pre>
 Row data starts with one byte (decimal 209), for variable length types,
-a one byte length field preceeds the data, for fixed length records just
+a one byte length field precedes the data, for fixed length records just
 the data appears.
 <br><i>Note:</i> nullable integers and floats are variable length.
 <p>
@@ -588,7 +588,7 @@ No information
 | length | capabilities |
 +--------+--------------+
 
-length		Length of capabilty string
+length		Length of capability string
 capabilities	Server capabilities?  Related to login magic?
 </pre>
 

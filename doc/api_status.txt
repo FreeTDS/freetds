@@ -18,7 +18,7 @@
 #	Name:		self-explanatory
 #	Status:		*OK	 thought to working
 #			*stub	 present but non-functional
-#			*(blank) Mentioned in vendor documentaion but
+#			*(blank) Mentioned in vendor documentation but
 #				 not in the FreeTDS C code.  
 #			Other statuses are acceptable if you see a need.
 #	Comments:	Whatever you'd like to say about the function

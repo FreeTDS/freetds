@@ -30,13 +30,13 @@ Bytes	Value	Desc
 		unknown
 2	##	position of hostname (of client)
 2	##	length of hostname
-2	##	postion of username
+2	##	position of username
 2	##	length of username
-2	##	postion of password
+2	##	position of password
 2	##	length of password
-2	##	postion of app name
+2	##	position of app name
 2	##	length of app name
-2	##	postion of server name
+2	##	position of server name
 2	##	length of server name
 4	0's	unknown
 2	##	position of library name
@@ -50,7 +50,7 @@ Bytes	Value	Desc
 	0x6b 0x50
 		MAC address of client
 2	##	position of auth portion
-1	0x30	lenght of auth portion
+1	0x30	length of auth portion
 2	##	size of payload (same as first two bytes)
                 (perhaps some other part)
 2       0's	unknown
