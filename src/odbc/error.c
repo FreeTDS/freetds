@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.13 2003-03-24 16:58:35 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.14 2003-03-25 14:04:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -375,11 +375,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			return SQL_ERROR;
 
 		/* TODO */
-		if (buffer)
-			*(char *) buffer = 0;
-		if (pcbBuffer)
-			*pcbBuffer = 0;
-		return SQL_SUCCESS;
+		return odbc_set_string(buffer, cbBuffer, pcbBuffer, "", 0);
 
 	case SQL_DIAG_DYNAMIC_FUNCTION_CODE:
 		*(SQLINTEGER *) buffer = 0;
@@ -390,7 +386,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_RETURNCODE:
-		/* TODO */
+		/* TODO check if all warnings or not */
 		if (errs->num_errors > 0)
 			*(SQLRETURN *) buffer = SQL_ERROR;
 		else
@@ -439,16 +435,10 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 	case SQL_DIAG_CLASS_ORIGIN:
 	case SQL_DIAG_SUBCLASS_ORIGIN:
-		/* FIXME copy partial string if not enogh space */
-		if (cbBuffer >= 8) {
-			if (odbc_ver < 3)
-				strcpy(buffer, "ISO 9075");
-			else
-				strcpy(buffer, "ODBC 3.0");
-		}
-
-		if (pcbBuffer)
-			*pcbBuffer = 8;
+		if (odbc_ver < 3)
+			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ISO 9075", -1);
+		else
+			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1);
 		break;
 
 	case SQL_DIAG_COLUMN_NUMBER:
@@ -479,17 +469,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		else
 			cplen = 0;
 
-		if (pcbBuffer)
-			*pcbBuffer = cplen;
-
-		if (cbBuffer > 0) {
-			if (cplen >= cbBuffer) {
-				cplen = cbBuffer - 1;
-				result = SQL_SUCCESS_WITH_INFO;
-			}
-			strncpy(buffer, tmp, cplen);
-			((char *) buffer)[cplen] = '\0';
-		}
+		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, cplen);
 		break;
 
 	case SQL_DIAG_MESSAGE_TEXT:
@@ -497,17 +477,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		if (!msg)
 			msg = errs->errs[numRecord].err->msg;
 
-		cplen = strlen(msg);
-		if (pcbBuffer)
-			*pcbBuffer = cplen;
-		if (cplen >= cbBuffer) {
-			cplen = cbBuffer - 1;
-			result = SQL_SUCCESS_WITH_INFO;
-		}
-		if (buffer && cplen >= 0) {
-			strncpy((char *) buffer, msg, cplen);
-			((char *) buffer)[cplen] = 0;
-		}
+		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
 		break;
 
 	case SQL_DIAG_NATIVE:
@@ -518,13 +488,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		/* FIXME connect_info, as documented (or should be) is always NULL */
 		if (dbc && dbc->tds_socket && dbc->tds_socket->connect_info != NULL) {
 			if ((msg = dbc->tds_socket->connect_info->server_name) != NULL) {
-				cplen = strlen(msg);
-				if (pcbBuffer)
-					*pcbBuffer = cplen;
-				if (cplen > cbBuffer)
-					cplen = cbBuffer - 1;
-				strncpy(buffer, msg, cplen);
-				((char *) buffer)[cplen] = '\0';
+				result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
 			} else {
 				if (pcbBuffer)
 					*pcbBuffer = 0;
@@ -545,17 +509,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		else
 			msg = errs->errs[numRecord].err->state2;
 
-		cplen = 5;
-		if (pcbBuffer)
-			*pcbBuffer = cplen;
-		if (cplen >= cbBuffer) {
-			cplen = cbBuffer - 1;
-			result = SQL_SUCCESS_WITH_INFO;
-		}
-		if (buffer && cplen >= 0) {
-			strncpy((char *) buffer, msg, cplen);
-			((char *) buffer)[cplen] = 0;
-		}
+		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, 5);
 		break;
 
 	default:

@@ -38,11 +38,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.22 2003-03-01 20:18:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.23 2003-03-25 14:04:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
-odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
+odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
 {
 	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
@@ -57,7 +57,7 @@ odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
 	if (stmt->query)
 		free(stmt->query);
 
-	stmt->query = (char*) malloc(sql_len + 1);
+	stmt->query = (char *) malloc(sql_len + 1);
 	if (!stmt->query)
 		return SQL_ERROR;
 
@@ -73,7 +73,7 @@ odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
 
 
 int
-odbc_set_stmt_prepared_query(TDS_STMT *stmt, const char *sql, int sql_len)
+odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 {
 	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
@@ -88,7 +88,7 @@ odbc_set_stmt_prepared_query(TDS_STMT *stmt, const char *sql, int sql_len)
 	if (stmt->prepared_query)
 		free(stmt->prepared_query);
 
-	stmt->prepared_query = (char*) malloc(sql_len + 1);
+	stmt->prepared_query = (char *) malloc(sql_len + 1);
 	if (!stmt->prepared_query)
 		return SQL_ERROR;
 
@@ -158,7 +158,7 @@ odbc_get_string_size(int size, SQLCHAR * str)
 		return 0;
 	}
 	if (size == SQL_NTS) {
-		return strlen((const char*) str);
+		return strlen((const char *) str);
 	} else {
 		return size;
 	}
@@ -296,4 +296,25 @@ odbc_sql_to_c_type_default(int sql_type)
 	default:
 		return 0;
 	}
+}
+
+SQLRETURN
+odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len)
+{
+	SQLRETURN result = SQL_SUCCESS;
+
+	if (len < 0)
+		len = strlen(s);
+
+	if (pcbBuffer)
+		*pcbBuffer = len;
+	if (len >= cbBuffer) {
+		len = cbBuffer - 1;
+		result = SQL_SUCCESS_WITH_INFO;
+	}
+	if (buffer && len >= 0) {
+		strncpy((char *) buffer, s, len);
+		((char *) buffer)[len] = 0;
+	}
+	return result;
 }

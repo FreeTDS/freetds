@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.68 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.69 2003-03-25 14:04:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -149,7 +149,7 @@ int opened = 0;
 	}
 
 	if (parse_server_name_for_port(connect_info, login)) {
-		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", connect_info->server_name, login->port);
+		tdsdump_log(TDS_DBG_INFO1, "%L Parsed servername, now %s on %d.\n", connect_info->server_name, login->port);
 	}
 
 	tds_fix_connect(connect_info);

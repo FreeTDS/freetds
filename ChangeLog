@@ -1,3 +1,10 @@
+Tue Mar 25 15:03:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- new function odbc_set_string, use it
+	- fix some problem with error
+	* src/tds/config.c:
+	- add time to log
+
 Tue Mar 25 02:26:10 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* tds.dox doc/Makefile.am
 	- completed first cut of doxygen comment-based documentation.
