@@ -1,3 +1,9 @@
+Mon Mar 24 23:43:42 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/dblib.c src/pool/member.c src/tds/config.c:
+	* src/tds/login.c src/tds/mem.c src/tds/unittests/common.c:
+	- use client_charset member for client charset
+
 Mon Mar 24 17:58:35 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c: fix SQLError
 

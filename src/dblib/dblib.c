@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.135 2003-03-20 07:17:51 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.136 2003-03-24 22:44:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -543,7 +543,7 @@ dblogin(void)
 
 	/* set default values for loginrec */
 	tds_set_library(loginrec->tds_login, "DB-Library");
-	/* tds_set_charset(loginrec->tds_login, "iso_1"); */
+	/* tds_set_client_charset(loginrec->tds_login, "iso_1"); */
 	/* tds_set_packet(loginrec->tds_login, TDS_DEF_BLKSZ); */
 
 	return loginrec;
@@ -593,7 +593,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return SUCCEED;
 		break;
 	case DBSETCHARSET:
-		tds_set_charset(login->tds_login, value);
+		tds_set_client_charset(login->tds_login, value);
 		return SUCCEED;
 		break;
 	case DBSETNATLANG:

@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.85 2003-03-13 10:08:25 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.86 2003-03-24 22:45:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -155,9 +155,9 @@ tds_set_library(TDSLOGIN * tds_login, const char *library)
 }
 
 void
-tds_set_charset(TDSLOGIN * tds_login, const char *charset)
+tds_set_client_charset(TDSLOGIN * tds_login, const char *charset)
 {
-	tds_dstr_copy(&tds_login->char_set, charset);
+	tds_dstr_copy(&tds_login->client_charset, charset);
 }
 
 void

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.86 2003-03-20 16:07:24 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.87 2003-03-24 22:44:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -189,7 +189,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 
 	/* set default values */
 	tds_set_library((*con)->tds_login, "CT-Library");
-	/* tds_set_charset((*con)->tds_login, "iso_1"); */
+	/* tds_set_client_charset((*con)->tds_login, "iso_1"); */
 	/* tds_set_packet((*con)->tds_login, TDS_DEF_BLKSZ); */
 	return CS_SUCCEED;
 }

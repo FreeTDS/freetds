@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.62 2003-03-24 10:03:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.63 2003-03-24 22:45:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -566,6 +566,7 @@ char *tdsver;
 	tds_dstr_init(&tds_login->user_name);
 	tds_dstr_init(&tds_login->password);
 	tds_dstr_init(&tds_login->library);
+	tds_dstr_init(&tds_login->client_charset);
 	if ((tdsver=getenv("TDSVER"))) {
 		if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
 			tds_login->major_version=4;
@@ -601,6 +602,7 @@ void tds_free_login(TDSLOGIN *login)
 		tds_dstr_free(&login->app_name);
 		tds_dstr_free(&login->user_name);
 		tds_dstr_free(&login->library);
+		tds_dstr_free(&login->client_charset);
 		free(login);
 	}
 }

@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.20 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: member.c,v 1.21 2003-03-24 22:44:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -86,7 +86,7 @@ char hostname[MAXHOSTNAMELEN];
 	tds_set_host(login, hostname);
 	tds_set_library(login, "TDS-Library");
 	tds_set_server(login, pool->server);
-	tds_set_charset(login, "iso_1");
+	tds_set_client_charset(login, "iso_1");
 	tds_set_language(login, "us_english");
 	tds_set_packet(login, 512);
 	context = tds_alloc_context();

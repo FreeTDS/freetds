@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.95 2003-03-23 21:03:37 freddy77 Exp $";
+	"$Id: tds.h,v 1.96 2003-03-24 22:44:25 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -539,6 +539,7 @@ typedef struct tds_login {
 	void (*longquery_func)(long lHint);
 	long longquery_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
+	char *client_charset;
 } TDSLOGIN;
 
 typedef struct tds_connect_info {
@@ -565,13 +566,12 @@ typedef struct tds_connect_info {
 	void (*longquery_func)(long lHint);
 	long longquery_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-
+	char *client_charset;
 
 	char *ip_addr;     /**< ip of server */
 	char *database;
 	char *dump_file;
 	char *default_domain;
-	char *client_charset;
 	int timeout;
 	int debug_level;
 	int text_size;
@@ -866,7 +866,7 @@ void tds_set_app(TDSLOGIN *tds_login, const char *application);
 void tds_set_host(TDSLOGIN *tds_login, const char *hostname);
 void tds_set_library(TDSLOGIN *tds_login, const char *library);
 void tds_set_server(TDSLOGIN *tds_login, const char *server);
-void tds_set_charset(TDSLOGIN *tds_login, const char *charset);
+void tds_set_client_charset(TDSLOGIN *tds_login, const char *charset);
 void tds_set_language(TDSLOGIN *tds_login, const char *language);
 void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
 void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);

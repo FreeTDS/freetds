@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.65 2003-02-11 05:20:02 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.66 2003-03-24 22:45:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -479,6 +479,9 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 	}
 	if (!tds_dstr_isempty(&login->char_set)) {
 		tds_dstr_copy(&connect_info->char_set, login->char_set);
+	}
+	if (!tds_dstr_isempty(&login->client_charset)) {
+		tds_dstr_copy(&connect_info->client_charset, login->client_charset);
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
 		tds_dstr_copy(&connect_info->host_name, login->host_name);
