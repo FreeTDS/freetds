@@ -1,31 +1,18 @@
-README for FreeTDS
+README for FreeTDS 0.62  
+Saturday, 10 January 2004
 
 * to build FreeTDS read the file INSTALL,
 * see also the FreeTDS Users Guide,
   http://www.freetds.org/userguide/
 
 FreeTDS is a free (open source) implementation of Sybase's db-lib,
-ct-lib, and ODBC libraries. Currently, db-lib and ct-lib are most
-mature.  Both of these libraries have several programs known to
-compile and run against them.  ODBC is not quite as mature, but may
-work depending on your needs.
+ct-lib, and ODBC libraries. FreeTDS builds and runs on every flavor of
+unix-like systems we've heard of, as well as Win32 (with or without
+Cygwin), VMS, and Mac OS X.  Failure to build on your system is probably
+considered a bug.  It has C language bindings, and works also with Perl
+and PHP, among others.  
 
-A copy of the userguide, in sgml and html form, is included in this 
-distribution.  It is an ordinary tarball; "make install" does not 
-install the html onto your system.  You may wish to do this yourself.  
-
-FreeTDS builds and runs on every flavor of unix-like systems we've heard of, as
-well as Win32 (with or without Cygwin), and Mac OS X.  Failure to build on your
-system is probably considered a bug.  
-
-Submissions of test programs (self-contained programs that demonstrate
-functionality or problems) are greatly appreciated.  They should
-create any tables needed (since we obviously don't have access to your
-database) and populate them.  One possible exception is test code that
-works against the pubs2 database. Unit tests for any of the libraries
-is appreciated
-
-FreeTDS is licensed under the Gnu LGPL license. See COPYING.LIB for
+FreeTDS is licensed under the GNU LGPL license. See COPYING.LIB for
 details.  
 
 Other files you might want to peruse:
@@ -43,48 +30,133 @@ Also, doc/api_status.txt shows which functions are implemented.
 ** Warning regarding Sybase 12.5! **
 ************************************
 
-Do Not Use FreeTDS 0.61 with TDS version 4.2 to connect to Sybase 12.5. 
-Please!  
+Do Not Use TDS version 4.2 to connect to Sybase 12.5. Please!  
 
-While we don't like to put the bad news first, neither do we want you to hurt
-your server.  Late in the release cycle, we found that our implementation of
-TDS 4.2 gives Sybase 12.5 a bad case of heartburn.  In short: it crashed the
-server.  
+While we don't like to put the bad news first, neither do we want you to
+hurt your server.  We know that our implementation of TDS 4.2 gives
+Sybase 12.5 a bad case of heartburn.  In short: it crashes the server.  
 
-We don't know what it is about our version of TDS 4.2 that Sybase 12.5 doesn't
-like, and we'll be looking closely at that question.  But in the meanwhile,
-until we can find the problem and fix it, please don't use that combination. 
-Unless you want to help us test it, that is.  
+We don't know what it is about our version of TDS 4.2 that Sybase 12.5
+doesn't like, and we'd like to figure it out eventually.  But in the
+meanwhile, until we can find the problem and fix it, please don't use
+that combination.  Unless you want to help us test it, that is.  
 
-FreeTDS 0.61 works fine with Sybase 12.5 if you use TDS version 5.0.  
+FreeTDS 0.62 works fine with Sybase 12.5 if you use TDS version 5.0.  
 
-If you are using Sybase 12.5 and anything above is not clear to you, please
-see the User Guide.  If it is still not clear after that, please write to the
-FreeTDS mailing list.  We'd rather answer your questions while your server is
-still running.  
+If you are using Sybase 12.5 and anything above is not clear to you,
+please see the User Guide.  If it is still not clear after that, please
+write to the FreeTDS mailing list.  We'd rather answer your questions
+while your server is still running.  
 
 Thank you.  We return now to your regularly scheduled README, already in
-progress.  
+progress. 
 
-New location of installed files!
-================================
+Threadsafe by default
+=====================
 
-With version 0.60, FreeTDS by default installed itself in the 
-/usr/local tree.  You can of course override this location using the 
---prefix parameter of the configure script.  
+FreeTDS detects the presence of threadsafe functions on your system, and
+attempts to use them if found.  This is new behavior.  If your compilation
+fails, try configure's --disable-threadsafe option.  
 
-Rationale:  Although we're not very passionate on the subject, we feel the new
-installation directory will be easier for new users to use, because they won't
-have to make adjustments to the runtime linking behavior.  
+iconv by default
+================
 
-Prior to 0.60, FreeTDS installed into /usr/local/freetds.  If you wish to
-preserve that behavior, build 0.61 with your prefix set to the old location. 
+FreeTDS detects the presence of libiconv on your system, and attempts to
+use it if found.  If your compilation fails, try configure's
+--disable-libiconv option.  This option restricts FreeTDS to using its
+built-in character set conversion feature.  
+
+FreeTDS includes its own minimal built-in libiconv, capable of converting
+among ISO 8859-1, UCS-2, and UTF-8.  This is sufficient for many purposes,
+including all languages that use the Roman alphabet.
+
+We claim to support any client character set that does not embed binary
+zeros in the data.  In particular, we believe we can support any UTF-8
+client, and we know we *cannot* support a UCS-2 client.  Note, these are
+client encodings we're referring to.  To the best of our knowledge, we
+support all server encodings.  
+
+
+ODBC by golly
+=============
+
+FreeTDS detects the presence of ODBC headers on your system, and compiles
+the ODBC driver if found.  This is new behavior.  You do not need a driver
+manager (although they're supported); the headers themselves are enough.  
+
+MAC OS X comes with an ODBC installation that seems not to be well
+documented or very functional.  Nevertheless, configure will detect it and
+attempt to build the ODBC driver.  That will probably fail.  Use
+configure's --disable-odbc to defeat.  Refer to the User Guide for
+instructions on telling configure where your good ODBC headers are.  
+
+The ODBC specification has some flaws regarding 64-bit systems.  
+
+FreeTDS has been carefully tested with unixODBC.  Use unixODBC-2.2.6, not
+unixODBC-2.2.7!  Success has also been reported with version 2.2.3;
+version 2.0.x does not close transactions quite correctly.  
+
+Much improved ODBC and ct-lib
+=============================
+
+These two libararies saw the most improvements in this release.   Here's
+a comparison of completed functions, by library and version:
+
+ library         nFunctions  v61         v62        
+ --------------- ----------- ----------- -----------
+ ctlib                    90          33          37
+ dblib                   254         117         118
+ odbc                     74          36          63
+
+ct-lib is somewhat under-represented, in that ct-lib functions tend to
+take a great many options, not all of which FreeTDS implements. 
+Implementation of cursors and dynamic SQL in ct-lib required many options
+in only a few functions.  
+
+As you can see, ODBC is no longer an immature driver.  Here is a list of
+functions mentioned in the ChangeLog for this release:
+
+SQL(Driver)Connect	SQLGetStmtAttr
+SQLBindParam		SQLGetStmtOption
+SQLCloseCursor		SQLMoreResults
+SQLColAttribute 	SQLNativeSql
+SQLColumnPrivileges	SQLParamOptions
+SQLColumns		SQLPrepare
+SQLCopyDesc		SQLPrimaryKeys
+SQLDriverConnect	SQLProcedureColumns
+SQLEndTran		SQLProcedures
+SQLError		SQLPutData
+SQLExecDirect		SQLRowCount
+SQLExecute		SQLSetCursorName
+SQLFetchScroll		SQLSetDescField
+SQLForeignKeys		SQLSetDescRec
+SQLGetConnectAttr	SQLSetParam
+SQLGetCursorName	SQLSetStmtAttr
+SQLGetData		SQLSpecialColumns
+SQLGetDescField 	SQLStatistics
+SQLGetDescRec		SQLTablePrivileges
+SQLGetEnvAttr		SQLTables
+SQLGetInfo
+
+One of the more popular uses of ct-lib is with Perl, in DBD::Sybase.  This
+version works with DBD::Sybase 0.95 and later; we recommend at least
+version 1.01.  
+
+Unfortunately, placeholder support in FreeTDS is not yet sufficient for
+use with DBD::Sybase. 
+
+Location of installed files
+===========================
+
+FreeTDS by default installs itself in the /usr/local tree.  Prior to
+0.60, FreeTDS installed into /usr/local/freetds.  If you wish to preserve
+that behavior, build 0.62 with your prefix set to the old location. 
 Example: ./configure --prefix=/usr/local/freetds/
 
-If you have a version older than 0.60 installed, and want to "get with the
-program" (use the new default locations), you will want to be sure that the
-old configuration files are preserved, and the old binaries are removed.  To
-do that, follow these steps:
+If you have a version older than 0.60 installed, and want to "get with
+the program" (use the new default locations), you will want to be sure
+that the old configuration files are preserved, and the old binaries are
+removed.  To do that, follow these steps:
 
 1) move your configuration files to the new location. Example:
 	cp /usr/local/freetds/etc/*.conf /usr/local/etc/
@@ -95,51 +167,31 @@ do that, follow these steps:
 3) if you have modified your /etc/ld.so.conf file to include 
 /usr/local/freetds/lib, remove this and rerun "ldconfig"
 
-4) if you have modified startup scripts for apache or similar applications 
-to include /usr/local/freetds/lib in the LD_LIBRARY_PATH, be sure to 
-remove them now.
+4) if you have modified startup scripts for apache or similar
+applications  to include /usr/local/freetds/lib in the LD_LIBRARY_PATH,
+be sure to  remove them now.
 
-Once you have installed FreeTDS and taken these steps, your new installation
-should work at least as well as your old one.  You may wish to try out "tsql" to
-test things.  See "man tsql" (!) for details.  
+Once you have installed FreeTDS and taken these steps, your new
+installation should work at least as well as your old one.  You may wish
+to try out "tsql" to test things.  See "man tsql" (!) for details.  
 
-Bug Submissions
----------------
+Documentation
+=============
 
-If you want your bugs actually fixed in a timely manner (and who
-doesn't!?), any bug submissions (to the mailing list or the bug
-tracking system) should include the following.
+A User Guide, in sgml and html form, is included in this distribution. 
+Also included is a reference manual, generated in HTML with Doxygen. 
+"make install" installs the HTML documentation, by default to
+/usr/local/share/doc/freetds-0.62.  
 
-1) a small program demonstrating the problem.  This can be in C, PHP,
-   Perl, or simply the SQL if it is reproducible in SQSH.
 
-2) The DDL for your table(s) from the SQL above.  A lot of bugs can be
-   particular to one datatype and without this information it'll be
-   hard to determine your problem.  A simple list of column names,
-   datatypes, and lengths would also be acceptable if you can't get or
-   don't know how to produce the DDL. (output from sp_help <tablename>
-   will do this nicely)
+Note to Users
+-------------
 
-3) The version of FreeTDS you are running, but in general try to get
-   the latest snapshot or CVS version before reporting a bug.
-
-4) The TDS protocol version.  It's the --with-tdsver flag you
-   configured with 5.0 as the default.  Many bugs are protocol
-   specific and you may just get a 'works for me' if you don't say
-   which version.
-
-5) Your platform e.g. Redhat 7.0, Solaris 2.6, Linux 2.2.14, anything
-   close will do.  This is especially important if you are on a big
-   endian platform (Power/PowerPC, Sparc, etc... ), a 64bit platform
-   (Alpha), or you are experiencing an bus error because of unaligned
-   access (Sparc mostly).  'uname -a' should produce this info.
-
-6) The type and version of the server you are connecting to.  You can
-   send the query 'select @@version' to get this information.
-
-Also, be sure to check the FAQ (http://www.freetds.org/faq.html) and
-mailing list archive
-(http://lists.ibiblio.org/mailman/listinfo/freetds)
+Submissions of test programs (self-contained programs that demonstrate
+functionality or problems) are greatly appreciated.  They should
+create any tables needed (since we obviously don't have access to your
+database) and populate them.  Unit tests for any of the libraries
+is appreciated
 
 Notes to Developers
 -------------------
@@ -162,7 +214,8 @@ The code is split into several pieces.
    unixODBC as a driver manager.  You need to have one of those if you
    are using the ODBC CLI.
 
-6) unittests directories. Test harness code for ct-lib, db-lib and tds.
+6) unittests directories. Test harness code for ct-lib, db-lib, ODBC and
+   libtds.
 
 6) samples directories. Sample code for getting started with Perl,
    PHP, etc...
@@ -175,7 +228,7 @@ The code is split into several pieces.
 Please look at doc/getting_started.txt for a description of what is
 going on in the code.
 
-Side note: Brian, as many free software authors, appreciates postcards from
-all over. So if you live someplace neat (read: not Michigan) and want
-to send one, email him (camber@ais.org) for his current snail mail
+Side note: Brian, as many free software authors, appreciates postcards
+from all over. So if you live someplace neat (read: not Michigan) and
+want to send one, email him (brian@bruns.org) for his current snail mail
 address.
