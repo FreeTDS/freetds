@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.4 2001-11-08 19:04:55 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -313,7 +313,7 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 }
 static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 {
-	if (strlen(login->server_name)) {
+	if (login->server_name && strlen(login->server_name)) {
 		if (config->server_name) free(config->server_name);
 		config->server_name = strdup(login->server_name);
 	}	
@@ -321,31 +321,35 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		config->major_version = login->major_version;
 		config->minor_version = login->minor_version;
 	}
-        if (strlen(login->language)) {
+        if (login->language && strlen(login->language)) {
 		if (config->language) free(config->language);
 		config->language = strdup(login->language);
 	}
-        if (strlen(login->char_set)) {
+        if (login->char_set && strlen(login->char_set)) {
 		if (config->char_set) free(config->char_set);
 		config->char_set = strdup(login->char_set);
 	}
-        if (strlen(login->host_name)) {
+        if (login->host_name && strlen(login->host_name)) {
 		if (config->host_name) free(config->host_name);
 		config->host_name = strdup(login->host_name);
+		/* should work with IP (mlilback, 11/7/01) */
+		if (config->ip_addr) free(config->ip_addr);
+		config->ip_addr = calloc(sizeof(char),18);
+		lookup_host(config->host_name, NULL, config->ip_addr, NULL);
 	}
-        if (strlen(login->app_name)) {
+        if (login->app_name && strlen(login->app_name)) {
 		if (config->app_name) free(config->app_name);
 		config->app_name = strdup(login->app_name);
 	}
-        if (strlen(login->user_name)) {
+        if (login->user_name && strlen(login->user_name)) {
 		if (config->user_name) free(config->user_name);
 		config->user_name = strdup(login->user_name);
 	}
-        if (strlen(login->password)) {
+        if (login->password && strlen(login->password)) {
 		if (config->password) free(config->password);
 		config->password = strdup(login->password);
 	}
-        if (strlen(login->library)) {
+        if (login->library && strlen(login->library)) {
 		if (config->library) free(config->library);
 		config->library = strdup(login->library);
 	}
@@ -382,7 +386,7 @@ static void tds_config_env_tdsdump(TDSCONFIGINFO *config)
 {
 char *s;
 char path[255];
-pid_t pid;
+pid_t pid=0;
 
         if (s=getenv("TDSDUMP")) {
                 if (!strlen(s)) {
