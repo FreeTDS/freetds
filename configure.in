@@ -7,7 +7,7 @@ AC_INIT(src/dblib/dblib.c)
 AM_INIT_AUTOMAKE(freetds, 0.60)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREFIX_DEFAULT(/usr/local)
-sysconfdir=$(prefix)/etc/freetds
+sysconfdir=${prefix}/etc/freetds
 dnl ------------------------------------------------------------
 dnl Checks for programs.
 dnl ------------------------------------------------------------
