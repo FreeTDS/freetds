@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+"$Id: sybdb.h,v 1.2 2001-11-07 20:42:13 mlilback Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -105,6 +105,12 @@ void	*tds_login ;
 
 typedef unsigned char BYTE;
 
+typedef struct  dbtypeinfo
+{
+        DBINT   precision;
+        DBINT   scale;
+} DBTYPEINFO;
+
 typedef struct tag_DBPROC_ROWBUF
 {
    int      buffering_on;    /* (boolean) is row buffering turned on?     */
@@ -161,6 +167,7 @@ typedef struct {
    TDS_INT         bcp_direction;
    TDS_INT         bcp_colcount;
    BCP_COLINFO     **bcp_columns;
+   DBTYPEINFO      typeinfo;
 } DBPROCESS;
 
 typedef struct dbdaterec
@@ -189,12 +196,6 @@ typedef struct dbdaterec
 	DBINT	tzone;
 #endif
 } DBDATEREC;
-
-typedef struct  dbtypeinfo
-{
-        DBINT   precision;
-        DBINT   scale;
-} DBTYPEINFO;
 
 typedef int (*EHANDLEFUNC) (DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
@@ -459,6 +460,7 @@ extern  RETCODE	   dbcmd(DBPROCESS *dbproc, char *cmdstring);
 extern  RETCODE    dbsqlexec(DBPROCESS *dbproc);
 extern  int        dbnumcols(DBPROCESS *dbproc);
 extern  DBINT      dbcollen(DBPROCESS *dbproc, int column);
+extern  DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column);
 extern  char      *dbprtype(int token);
 extern  RETCODE    dbbind(DBPROCESS *dbproc, int column, int vartype, 
                           DBINT varlen, BYTE *varaddr);
@@ -479,6 +481,15 @@ extern  RETCODE dbsprline(DBPROCESS *dbproc,char *buffer, DBINT buf_len,
 extern  RETCODE dbsprhead(DBPROCESS *dbproc,char *buffer, DBINT buf_len);
 extern  char *dbversion();
 extern  RETCODE dbcanquery(DBPROCESS *dbproc);
+
+/* added to allow propery error handling (mlilback, 11/17/01)*/
+typedef int (*dberrhandle_func)(DBPROCESS *dbproc, int severity, int dberr, 
+      int oserr, char *dberrstr, char *oserrstr);
+typedef int (*dbmsghandle_func)(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, 
+      char *msgtext, char *srvname, char *procname, int line);
+
+extern        dberrhandle_func        dberrhandler(dberrhandle_func handler);
+extern        dbmsghandle_func        dbmsghandler(dbmsghandle_func handler);
 
 #ifdef __cplusplus
 #if 0
