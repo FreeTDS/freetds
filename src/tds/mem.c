@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.130 2005-01-31 10:01:50 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.131 2005-02-01 13:01:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -308,7 +308,7 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 2\n");
 
 	if (by_cols) {
-		TEST_CALLOC(info->bycolumns, TDS_TINYINT, by_cols);
+		TEST_CALLOC(info->bycolumns, TDS_SMALLINT, by_cols);
 		tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.204 2005-01-31 10:01:45 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.205 2005-02-01 13:01:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4147,6 +4147,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	TDSSOCKET *tds = dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
 	int i;
+	const TDS_SMALLINT byte_flag = 0x8000;
 
 	tdsdump_log(TDS_DBG_FUNC, "in dbbylist() \n");
 
@@ -4163,7 +4164,24 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 
 	if (size)
 		*size = info->by_cols;
-	return info->bycolumns;
+
+	/*
+	 * libTDS store this information using TDS_SMALLINT so we 
+	 * have to convert it. We can do this cause libTDS just
+	 * store these informations
+	 */
+	if (info->by_cols > 1 && info->bycolumns[0] != byte_flag) {
+		unsigned int n;
+		TDS_TINYINT *p = (TDS_TINYINT *) malloc(sizeof(info->bycolumns[0]) + info->by_cols);
+		if (!p)
+			return NULL;
+		for (n = 0; n < info->by_cols; ++n)
+			p[sizeof(info->bycolumns[0]) + n] = info->bycolumns[n] > 255 ? 255 : info->bycolumns[n];
+		*((TDS_SMALLINT *)p) = byte_flag;
+		free(info->bycolumns);
+		info->bycolumns = (TDS_SMALLINT *) p;
+	}
+	return (BYTE *) (&info->bycolumns[1]);
 }
 
 /** \internal

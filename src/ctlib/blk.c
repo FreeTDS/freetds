@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.22 2005-01-20 14:38:27 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.23 2005-02-01 13:01:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -75,18 +75,16 @@ CS_RETCODE
 blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen, CS_SMALLINT * indicator)
 {
 	TDSCOLUMN *colinfo;
-	TDSSOCKET *tds;
-	CS_CONNECTION *con = blkdesc->con;
+	CS_CONNECTION *con;
 	CS_INT bind_count;
 	int i;
-
-	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_bind()\n");
 
 	if (!blkdesc) {
 		return CS_FAIL;
 	}
+	con = blkdesc->con;
 
 	if (item == CS_UNUSED) {
 		/* clear all bindings */
@@ -108,7 +106,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 	/* check item value */
 
 	if (item < 1 || item > blkdesc->bindinfo->num_cols) {
-		_ctclient_msg(blkdesc->con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_ctclient_msg(con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -183,12 +181,10 @@ blk_default(CS_BLKDESC * blkdesc, CS_INT colnum, CS_VOID * buffer, CS_INT buflen
 CS_RETCODE
 blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 {
-	TDSSOCKET *tds;
 	TDSCOLUMN *curcol;
 	int len;
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_describe()\n");
-	tds = blkdesc->con->tds_socket;
 
 	if (item < 1 || item > blkdesc->bindinfo->num_cols) {
 		_ctclient_msg(blkdesc->con, "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
@@ -384,6 +380,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 	/* string can be no-nul terminated so copy with memcpy */
 	blkdesc->tablename = (char *) malloc(tnamelen + 1);
+	/* FIXME malloc can fail */
 	memcpy(blkdesc->tablename, tablename, tnamelen);
 	blkdesc->tablename[tnamelen] = 0;
 
@@ -621,10 +618,10 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_out()\n");
 
-	if (!blkdesc)
+	if (!blkdesc || !blkdesc->con)
 		return CS_FAIL;
 
-	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
+	tds = blkdesc->con->tds_socket;
 
 	/*
 	 * the first time blk_xfer called after blk_init()
@@ -695,12 +692,12 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 	TDSSOCKET *tds;
 	TDS_INT each_row;
 	TDS_INT record_len;
-	unsigned char row_token = 0xd1;
+	const unsigned char row_token = 0xd1;
 
 	if (!blkdesc)
 		return CS_FAIL;
 
-	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
+	tds = blkdesc->con->tds_socket;
 
 	/*
 	 * the first time blk_xfer called after blk_init()
@@ -827,7 +824,7 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 			bcpcol = blkdesc->bindinfo->columns[i];
 
 			/*
-			 * work out storage required for thsi datatype
+			 * work out storage required for this datatype
 			 * blobs always require 16, numerics vary, the
 			 * rest can be taken from the server
 			 */
@@ -1104,6 +1101,7 @@ _blk_send_colmetadata(CS_BLKDESC * blkdesc)
 			tds_put_smallint(tds, strlen(blkdesc->tablename));
 			tds_put_string(tds, blkdesc->tablename, strlen(blkdesc->tablename));
 		}
+		/* FIXME support multibyte string */
 		tds_put_byte(tds, bcpcol->column_namelen);
 		tds_put_string(tds, bcpcol->column_name, bcpcol->column_namelen);
 

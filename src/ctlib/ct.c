@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.139 2005-01-31 10:01:41 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.140 2005-02-01 13:01:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1980,7 +1980,7 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 	TDSCOLUMN *curcol;
 	CS_INT int_val;
 	CS_SMALLINT *dest_by_col_ptr;
-	CS_TINYINT *src_by_col_ptr;
+	TDS_SMALLINT *src_by_col_ptr;
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_compute_info() type = %d, colnum = %d\n", type, colnum);

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.211 2005-01-31 10:01:38 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.212 2005-02-01 13:01:05 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -897,7 +897,7 @@ typedef struct tds_result_info
 	TDS_INT row_count;
 	TDS_SMALLINT computeid;
 	TDS_TINYINT more_results;
-	TDS_TINYINT *bycolumns;
+	TDS_SMALLINT *bycolumns;
 	TDS_SMALLINT by_cols;
 } TDSRESULTINFO;
 

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.283 2005-01-31 10:01:52 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.284 2005-02-01 13:01:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1405,7 +1405,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	int hdrsize;
 	int col, num_cols;
 	TDS_TINYINT by_cols = 0;
-	TDS_TINYINT *cur_by_col;
+	TDS_SMALLINT *cur_by_col;
 	TDS_SMALLINT compute_id = 0;
 	TDSCOLUMN *curcol;
 	TDSCOMPUTEINFO *info;
@@ -1498,10 +1498,10 @@ tds_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result. by_cols = %d\n", by_cols);
 
 	if (by_cols) {
-		if ((info->bycolumns = (TDS_TINYINT *) malloc(by_cols)) == NULL)
+		if ((info->bycolumns = (TDS_SMALLINT *) malloc(by_cols * sizeof(TDS_SMALLINT))) == NULL)
 			return TDS_FAIL;
 
-		memset(info->bycolumns, '\0', by_cols);
+		memset(info->bycolumns, '\0', by_cols * sizeof(TDS_SMALLINT));
 	}
 	info->by_cols = by_cols;
 
@@ -1717,6 +1717,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 		}
 		break;
 	case 2:
+		/* assure > 0 */
 		curcol->column_size = tds_get_smallint(tds);
 		break;
 	case 1:
@@ -2088,7 +2089,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		colsize = tds_get_size_by_type(curcol->column_type);
 		break;
 	default:
-		colsize = 0;
+		colsize = -1;
 		break;
 	}
 	if (IS_TDSDEAD(tds))
@@ -3207,7 +3208,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 {
 	int col, num_cols;
 	TDS_TINYINT by_cols;
-	TDS_TINYINT *cur_by_col;
+	TDS_SMALLINT *cur_by_col;
 	TDS_SMALLINT compute_id;
 	TDSCOLUMN *curcol;
 	TDSCOMPUTEINFO *info;
@@ -3261,7 +3262,6 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 	cur_by_col = info->bycolumns;
 	for (col = 0; col < by_cols; col++) {
-		/* FIXME *cur_by_col is smaller... */
 		*cur_by_col = tds_get_smallint(tds);
 		cur_by_col++;
 	}

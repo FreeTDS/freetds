@@ -49,14 +49,6 @@
 #include <dmalloc.h>
 #endif
 
-/*    was hard coded as 32768, but that made the local stack data size > 32K,
-    which is not allowed on Mac OS 8/9. (mlilback, 11/7/01) */
-#ifdef TARGET_API_MAC_OS8
-#define ROWBUF_SIZE 31000
-#else
-#define ROWBUF_SIZE 32768
-#endif
-
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 
@@ -75,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.115 2005-01-31 10:01:42 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.116 2005-02-01 13:01:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
