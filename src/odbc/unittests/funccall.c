@@ -16,14 +16,13 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.1 2003-02-27 15:06:05 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.2 2003-03-01 20:18:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	char buf[128];
-	SQLINTEGER ind, ind2, output;
+	SQLINTEGER input, ind, ind2, output;
 	const char *command;
 
 	Connect();
@@ -42,7 +41,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, buf, 128, &ind2) != SQL_SUCCESS) {
+	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind2) != SQL_SUCCESS) {
 		printf("Unable to bind input parameter\n");
 		exit(1);
 	}
@@ -52,8 +51,8 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	strcpy(buf, "123");
-	ind2 = SQL_NTS;
+	input = 123;
+	ind2 = sizeof(input);
 	output = 0xdeadbeef;
 	if (SQLExecute(Statement) != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
@@ -61,6 +60,29 @@ main(int argc, char *argv[])
 	}
 
 	if (output != 123) {
+		printf("Invalid result\n");
+		exit(1);
+	}
+
+	/* should return "Invalid cursor state" */
+	if (SQLFetch(Statement) != SQL_ERROR) {
+		printf("Data not expected\n");
+		exit(1);
+	}
+
+	/* just to reset some possible buffers */
+	Command(Statement, "DECLARE @i INT");
+
+	/* same test but with SQLExecDirect and same bindings */
+	input = 567;
+	ind2 = sizeof(input);
+	output = 0xdeadbeef;
+	if (SQLExecDirect(Statement, (SQLCHAR *) "{?=call simpleresult(?)}", SQL_NTS) != SQL_SUCCESS) {
+		printf("Unable to execure direct statement\n");
+		exit(1);
+	}
+
+	if (output != 567) {
 		printf("Invalid result\n");
 		exit(1);
 	}

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.21 2003-01-11 16:40:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.22 2003-03-01 20:18:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -48,6 +48,11 @@ odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
 		sql_len = strlen(sql);
 	else if (sql_len <= 0)
 		return SQL_ERROR;
+
+	if (stmt->prepared_query) {
+		free(stmt->prepared_query);
+		stmt->prepared_query = NULL;
+	}
 
 	if (stmt->query)
 		free(stmt->query);
@@ -74,6 +79,11 @@ odbc_set_stmt_prepared_query(TDS_STMT *stmt, const char *sql, int sql_len)
 		sql_len = strlen(sql);
 	else if (sql_len <= 0)
 		return SQL_ERROR;
+
+	if (stmt->query) {
+		free(stmt->query);
+		stmt->query = NULL;
+	}
 
 	if (stmt->prepared_query)
 		free(stmt->prepared_query);
