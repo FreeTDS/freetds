@@ -8,12 +8,13 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.19 2002-12-04 21:48:39 castellano Exp $
+To Do List	$Id: TODO,v 1.20 2002-12-10 03:21:51 jklowden Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
 
 For 0.61 version:
+. RPC stuff not implemented (work in progress, libtds ok)
 
 For future versions:
 . numeric conversions (optimize).
@@ -24,7 +25,6 @@ For future versions:
   passwords (checks).
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . Array binding for ctlib not working
-. RPC stuff not implemented (work in progress, libtds ok)
 . All manner of unimplemented functions
 . ct_dynamic and friends needed for DBD::Sybase placeholder support 
   (work in progress)
