@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.5 2002-09-17 00:30:27 castellano Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.6 2002-09-17 00:33:46 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,9 +42,8 @@ vasprintf(char **ret, const char *fmt, va_list ap)
     len = vsnprintf((void *) buf, buflen, fmt, ap);
     if (len >= buflen) {
       free(buf);
-      chunks++;
-      buflen = chunks * CHUNKSIZE;
-      if (buflen < len) {
+      buflen = (++chunks) * CHUNKSIZE;
+      if (len >= buflen) {
         buflen = len + 1;
       }
     } else {
