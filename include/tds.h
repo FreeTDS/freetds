@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.137 2003-08-05 04:02:08 jklowden Exp $";
+	"$Id: tds.h,v 1.138 2003-08-06 15:50:33 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -210,11 +210,21 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_DONEINPROC_RESULT 4054
 
 enum tds_end {
-	TDS_DONE_FINAL = 0,
-	TDS_DONE_MORE_RESULTS = 1,
-	TDS_DONE_ERROR = 2,
-	TDS_DONE_COUNT = 16,
-	TDS_DONE_CANCELLED = 32
+	  TDS_DONE_FINAL         = 0x00	/* final result set, command completed successfully. */
+	, TDS_DONE_MORE_RESULTS  = 0x01	/* more results follow */
+	, TDS_DONE_ERROR         = 0x02	/* error occurred */
+	, TDS_DONE_INXACT        = 0x04	/* transaction in progress */
+	, TDS_DONE_PROC          = 0x08	/* results are from a stored procedure */
+	, TDS_DONE_COUNT         = 0x10	/* count field in packet is valid */
+	, TDS_DONE_CANCELLED     = 0x20	/* acknowledging an attention command (usually a cancel) */
+	, TDS_DONE_EVENT         = 0x40	/* part of an event notification. */
+
+	/* after the above flags, a TDS_DONE packet has a field describing the state of the transaction */
+	, TDS_DONE_NO_TRAN  	 = 0 	/* No transaction in effect */
+	, TDS_DONE_TRAN_SUCCEED  = 1 	/* Transaction completed successfully */
+	, TDS_DONE_TRAN_PROGRESS = 2 	/* Transaction in progress */
+	, TDS_DONE_STMT_ABORT    = 3 	/* A statement aborted */
+	, TDS_DONE_TRAN_ABORT    = 4 	/* Transaction aborted */
 };
 
 
