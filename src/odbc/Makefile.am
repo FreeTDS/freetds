@@ -9,9 +9,9 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	prepare_query.h
 EXTRA_DIST = tables.sql
 if UNIXODBC
-libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lglib -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
+libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
 else
-libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lglib $(NETWORK_LIBS)
+libtdsodbc_la_LIBADD=	$(TDSOBJECTS) $(NETWORK_LIBS)
 endif
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 
