@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-06-25 21:07:04 $</date>
-		<releaseinfo>$Revision: 1.58 $</releaseinfo>
+		<date>$Date: 2003-06-30 04:59:59 $</date>
+		<releaseinfo>$Revision: 1.59 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -33,6 +33,7 @@
 	</bookinfo>
 
 	<toc></toc>
+<!-- nettiquette quoting: http://www.netmeister.org/news/learn2quote.html-->
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<preface><title>About this User Guide</title>
 			<para>
@@ -47,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.58 $</>
-<member>$Date: 2003-06-25 21:07:04 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.58 2003-06-25 21:07:04 jklowden Exp $.</>
+<member>$Revision: 1.59 $</>
+<member>$Date: 2003-06-30 04:59:59 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.59 2003-06-30 04:59:59 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
