@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.113 2003-11-16 18:10:18 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.114 2003-11-22 22:54:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -108,6 +108,9 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char 
 	const char *ib;
 	char *ob;
 	size_t il, ol;
+	
+	/* iconv_info is only mostly const */
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv_info->suppress;
 
 	if (len < 0)
 		len = strlen(s);
@@ -125,7 +128,8 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char 
 	ib = s;
 	il = len;
 	ob = buf;
-	if (tds_iconv(tds, iconv_info, to_server, &ib, &il, &ob, &ol) == (size_t) - 1) {
+	memset(suppress, 0, sizeof(iconv_info->suppress));
+	if (tds_iconv(tds, iconv_info, to_server, &ib, &il, &ob, &ol) == (size_t)-1) {
 		free(buf);
 		return NULL;
 	}
@@ -561,6 +565,7 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = params->columns[i]->column_namelen;
 		ob = param_str + l;
 		ol = size - l;
+		memset(&tds->iconv_info[client2ucs2]->suppress, 0, sizeof(tds->iconv_info[client2ucs2]->suppress));
 		if (tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;
@@ -577,6 +582,7 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = strlen(declaration);
 		ob = param_str + l;
 		ol = size - l;
+		memset(&tds->iconv_info[iso2server_metadata]->suppress, 0, sizeof(tds->iconv_info[iso2server_metadata]->suppress));
 		if (tds_iconv(tds, tds->iconv_info[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;

@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.73 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.74 2003-11-22 22:54:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -586,12 +586,14 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 	 * This also avoids any memory allocation error.  
 	 */
 	const char *bufp;
-	size_t i, bufleft = 0;
-	size_t partial_character_length = 0;
+	size_t bufleft = 0;
 	const size_t max_output = *outbytesleft;
 
-	const TDS_ENCODING *input_charset = (io == to_server)? &iconv_info->client_charset : &iconv_info->server_charset;
+	/* cast away const for message suppression sub-structure */
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv_info->suppress;
 
+	memset(suppress, 0, sizeof(iconv_info->suppress));
+	
 	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
 		assert(bufp >= temp);
 		/* read a chunk of data */
@@ -602,24 +604,9 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		*wire_size -= bufleft;
 		bufleft += bufp - temp;
 
-		/* TODO: Determine charset, and do not ask tds_iconv to convert a partial character.  */
-		/*       loop compiles but never executes */
-		for (i=1; tds_is_utf8(input_charset) && i <= 4 && i <= bufleft; i++) {
-			partial_character_length = 0;
-			if (temp[bufleft - i] & 0xC0) { /* guard byte is binary 11xxxxxx */
-				/* Count the number of characters to come. If not partial, do not exclude. */
-				int len; char mask = 0x40;
-				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); ++len);
-				if (len == i) 
-					break;
-				partial_character_length = i;
-				bufleft -= partial_character_length;
-				break;
-			}
-		}
-
 		/* Convert chunk and write to dest. */
 		bufp = temp; /* always convert from start of buffer */
+		suppress->eilseq = *wire_size > 0; /* EILSEQ matters only on the last chunk. */
 		if( io == to_client && temp[0] == 'E') { /* debugging tds/unitest/utf_1 */
 			tdsdump_log(TDS_DBG_NETWORK, "\tDebugging: bufleft %d, outbytesleft %u\n", bufleft, *outbytesleft);
 			tdsdump_log(TDS_DBG_NETWORK, "\tDebugging: tds_iconv input buffer:\n\t%D", bufp, bufleft);
@@ -627,37 +614,22 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		}		
 		if (-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
-			if (bufleft) {
+			if (errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "
 							     "Gave up converting %d bytes due to error %d.\n", bufleft, errno);
 				tdsdump_log(TDS_DBG_NETWORK, "\tTroublesome bytes:\n\t%D\n", bufp, bufleft);
-				if (bufleft)
-					tdsdump_log(TDS_DBG_NETWORK, "%L Continuing with remaining %d bytes.\n", *wire_size);
-				bufp += bufleft;
-				bufleft = 0;
 			}
-		}
 
-		/* 
-		 * Update for next chunk.  The buffer looks something like this (not to scale):
-		 *
-		 *	|...converted...|...partial...|...(unused portion on last iteration)...|
-		 *	^               ^	      ^                                        ^ end of buffer
-		 *	+- &temp[0]     |	      +- bufp: end of data on good last iteration
-		 *	                +- bufp if no error, but partial character
-		 *
-		 * The count of "partial" is in partial_character_length.
-		 *
-		 * bufp points to the end (+1) of the converted data.  
-		 * bufleft should always be zero.  Anything else is an error.  
-		 *
-		 * We now move any partial character data at bufp to &temp[0], then read in another
-		 * chunk immediately following those bytes, convert that buffer, and come back here.  
-		 */
-
-		if (partial_character_length) { /* always false */
-			memmove(temp + bufleft, bufp, partial_character_length);
-			bufleft = partial_character_length;
+			if (bufp == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
+				tdsdump_log(TDS_DBG_NETWORK, "%L No conversion possible: draining remaining %d bytes.\n", *wire_size);
+				tds_get_n(tds, NULL, *wire_size); /* perhaps we should read unconverted data into outbuf? */
+				*wire_size = 0;
+				break;
+			}
+				
+			if (bufleft) {
+				memmove(temp, bufp, bufleft);
+			}
 		}
 	}
 

@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.50 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.51 2003-11-22 22:54:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -148,16 +148,14 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 
 	max_iconv_input = sizeof(outbuf) * client->min_bytes_per_char / server->max_bytes_per_char;
 
-	/* FIXME chunking logic doesn't address character alignment.  Partial sequences may be presented to tds_iconv. */
-	/* Write a function: int tds_chunklen(TDS_ENCODING *, char* buf, int max)
-	 *      returns length of subset of buf that fits in max without splitting a character
-	 */
+	memset(&tds->iconv_info[client2ucs2]->suppress, 0, sizeof(tds->iconv_info[client2ucs2]->suppress));
 	while (len > 0) {
 		inbytesleft = (len > max_iconv_input) ? max_iconv_input : len;
 		len -= inbytesleft;
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
+		tds->iconv_info[client2ucs2]->suppress.eilseq = len > 0; /* EILSEQ matters only on the last chunk. */
 		if (-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))
 			break;
 		len += inbytesleft;

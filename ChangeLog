@@ -1,3 +1,10 @@
+Sat Nov 22 17:49:12 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tdsiconv.h
+	* src/tds/iconv.c src/tds/login.c src/tds/query.c
+	* src/tds/read.c src/tds/write.c
+	- Add message suppression to TDSICONVINFO. utf_[12] unit tests now pass.  
+	* src/server/login.c move tds_iconv() call out of assert.  
+	
 Sat Nov 22 18:16:25 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/odbc_checks.c src/odbc/odbc_util.c:

@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.25 2003-11-16 08:19:34 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.26 2003-11-22 22:54:16 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -97,6 +97,12 @@ typedef struct _character_set_alias
 	int canonic;
 } CHARACTER_SET_ALIAS;
 
+typedef struct _tds_errno_message_flags {
+	unsigned int e2big:1;
+	unsigned int eilseq:1;
+	unsigned int einval:1;
+} TDS_ERRNO_MESSAGE_FLAGS;
+
 struct tdsiconvinfo
 {
 	TDS_ENCODING client_charset;
@@ -112,6 +118,16 @@ struct tdsiconvinfo
 
 	iconv_t to_wire2;	/* conversion from client charset to server's format - indirect */
 	iconv_t from_wire2;	/* conversion from server's format to client charset - indirect */
+	
+	/* 
+	 * Suppress error messages that would otherwise be emitted by tds_iconv().
+	 * Functions that process large buffers ask tds_iconv to convert it in "chunks".
+	 * We don't want to emit spurious EILSEQ errors or multiple errors for one 
+	 * buffer.  tds_iconv() checks this structure before emiting a message, and 
+	 * adds to it whenever it emits one.  Callers that handle a particular situation themselves
+	 * can prepopulate it.  
+	 */ 
+	TDS_ERRNO_MESSAGE_FLAGS suppress;
 };
 
 /* We use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
