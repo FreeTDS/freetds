@@ -1,3 +1,8 @@
+Tue Oct  8 10:42:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Add some CFLAGS on OSF1 hosts that are required to set the
+	  build environment properly.
+
 Mon Oct  8 09:55:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: do not overwrite correct hostname
 
