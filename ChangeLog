@@ -1,3 +1,7 @@
+Sun Jan 30 12:46:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: updated
+	* doc/api_status.txt: add view source
+
 Sun Jan 30 11:09:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: updates
 	* src/tds/net.c: small improve and comments

@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-11-30 01:26:07 $</date>
-		<releaseinfo>$Revision: 1.87 $</releaseinfo>
+		<date>$Date: 2005-01-30 11:46:46 $</date>
+		<releaseinfo>$Revision: 1.88 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.87 $</>
-<member>$Date: 2004-11-30 01:26:07 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.87 2004-11-30 01:26:07 jklowden Exp $.</>
+<member>$Revision: 1.88 $</>
+<member>$Date: 2005-01-30 11:46:46 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.88 2005-01-30 11:46:46 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -536,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-11-30 01:26:07 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-01-30 11:46:46 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -875,6 +875,13 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>4,294,967,295</entry>
 	<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
 	<entry>0 to 4,294,967,295</entry>
+	</row>
+	<row>
+	<entry>instance</entry>
+	<entry>none</entry>
+	<entry>instance name of Microsoft SQL Server to connect to. Port will be detected automatically.
+		NOTE: this require an extra round-trip with server and can slow down connection.</entry>
+	<entry>instance name</entry>
 	</row>
 </tbody>
 </tgroup>
@@ -1454,7 +1461,16 @@ src/tds/unittests
 The unit tests rely on the <filename>PWD</> file in root of the FreeTDS source tree.  
 <filename>PWD</> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</>.  			</para>
 			<para>
-To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available dataserver in <filename>PWD</>. 
+To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available dataserver in <filename>PWD</>.
+Some tests require some special access in order to create store procedure on server.
+			</para>
+			<para>
+ODBC tests can require additional setup in order to execute correctly tests.
+This cause SRV entry in PWD file specify DSN entry in your <filename>odbc.ini</>.
+All ODBC tests build their own <filename>odbc.ini</> and try to redirect DM to this file however this it's very DM dependent so it can fail if you don't have either iODBC or unixODBC.
+			</para>
+			<para>
+As of 0.63 you can have some problems running tests under Mac OS X (executable cannot find some library). Setting DYLD_LIBRARY_PATH environment to paths to source compiler libraries fix the problem.
 			</para>
 			<para>
 <tip><para>
@@ -1581,7 +1597,12 @@ The following table defines all possible ODBC connection attributes for the <pro
 	</row>
 	<row>
 	<entry><literal>Server</></entry>
-	<entry>Hostname of a server. Used in an ODBC-only configuration.</entry>
+	<entry>Hostname of a server. Used in an ODBC-only configuration.
+		As of version 0.64 you can use syntax server\instance to specify
+		a Microsoft SQL Server instance. Note that using this type of
+		specification instead of specific port require an extra round trip
+		during connection. Ask to your administrator to get port number.
+	</entry>
 	<entry>A server name or (ip) address</entry>
 	<entry>none</entry>
 	<entry>yes</entry>
@@ -1644,7 +1665,9 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<row>
 	<entry><literal>Address</></entry>
 	<entry>IP address of the dataserver. 
-		Useful if you want to specify a server by address, rather than by name.</entry>
+		Useful if you want to specify a server by address, rather than by name.
+		Syntax should be ip,port or just ip.
+	</entry>
 	<entry>Any</entry>
 	<entry>none</entry>
 	<entry>yes</entry>
