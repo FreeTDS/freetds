@@ -1,10 +1,9 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.28 2003-12-21 08:06:34 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.29 2003-12-22 10:03:17 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
-RELEASE = $(VERSION)
-DOCDIR = doc/freetds-$(RELEASE)
+DOCDIR = doc/freetds-$(VERSION)
 PRODUCT = FreeTDS
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
@@ -19,10 +18,10 @@ dist:	man
 man:	freebcp.1 tsql.1
 
 freebcp.1: freebcp.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
+	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >freebcp.1
 	
 tsql.1: tsql.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
+	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >tsql.1
 
 nobase_dist_data_DATA	= $(DOCDIR)/userguide/* $(DOCDIR)/reference/*
 
@@ -30,10 +29,10 @@ nobase_dist_data_DATA	= $(DOCDIR)/userguide/* $(DOCDIR)/reference/*
 $(DOCDIR)/userguide/*: $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl
-	-mkdir doc
-	-mkdir $(DOCDIR)
-	-mkdir $(DOCDIR)/userguide
-	-rm $(DOCDIR)/userguide/*.htm
+	test -e doc || mkdir doc
+	test -e $(DOCDIR) || mkdir $(DOCDIR)
+	test -e $(DOCDIR)/userguide || mkdir $(DOCDIR)/userguide
+	rm -f $(DOCDIR)/userguide/*.htm
 	cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
 	        openjade -d ../../../userguide.dsl -t sgml ../../../$(srcdir)/userguide.sgml; \
@@ -49,23 +48,15 @@ userguide.dsl: $(srcdir)/userguide.dsl.in
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl
 	
-reference::
-	cd .. && make doxy
-	
 # below is a trick to be sure reference is up-to-date
 $(DOCDIR)/reference/*: $(DOCDIR)/reference/index.html
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
-	-mkdir doc
-	-mkdir $(DOCDIR)
-	-mkdir $(DOCDIR)/reference
-	-rm -rf $(DOCDIR)/reference
 	cd .. && $(MAKE) doxy
-	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi
 
 install-data-local: $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
-	-mkdir doc
-	-mkdir $(DOCDIR)
+	test -e doc || mkdir doc
+	test -e $(DOCDIR) || mkdir $(DOCDIR)
 	if test ! -e $(DOCDIR)/reference; then cd $(DOCDIR) && ln -s ../../$(srcdir)/$(DOCDIR)/reference reference; fi
 	if test ! -e $(DOCDIR)/userguide; then cd $(DOCDIR) && ln -s ../../$(srcdir)/$(DOCDIR)/userguide userguide; fi
 

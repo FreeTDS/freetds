@@ -1,3 +1,8 @@
+Mon Dec 22 11:02:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: update
+	* Makefile.am doc/.cvsignore doc/Makefile.am:
+	- small updates
+
 Sun Dec 21 09:02:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am doc/Makefile.am:
 	- do not build reference if doxygen is not installed

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.85 2003-12-06 17:03:50 freddy77 Exp $
+To Do List	$Id: TODO,v 1.86 2003-12-22 10:03:16 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -78,6 +78,7 @@ For future versions (in priority order within library):
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
 . support encrypted connections
 . read on partial packet, do not wait entire one
+. net.c file with all network stuff
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 

@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.33 2003-12-21 08:06:34 freddy77 Exp $
+# version $Id: Makefile.am,v 1.34 2003-12-22 10:03:16 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -10,7 +10,8 @@ EXTRA_DIST	=	interfaces PWD.in BUGS \
 		autogen.sh freetds.spec.in freetds.spec vms \
 		tds.dox
 
-ETC            =       $(DESTDIR)$(sysconfdir)
+ETC		=	$(DESTDIR)$(sysconfdir)
+DOCDIR		=	doc/doc/freetds-$(VERSION)
 
 install-data-local:
 	$(mkinstalldirs) $(ETC)
@@ -49,10 +50,17 @@ if HAVE_DOXYGEN
 ## The doxygen configuration file understands environment variables.  
 
 doxy: $(SUBDIRS)
+	test -e doc/doc || mkdir doc/doc
+	test -e $(DOCDIR) || mkdir $(DOCDIR)
+	test -e $(DOCDIR)/reference || mkdir $(DOCDIR)/reference
+	rm -rf $(DOCDIR)/reference
 	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
+	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi
 else
 doxy:
-	-mkdir doc/doc/freetds-$(VERSION)/reference
-	touch doc/doc/freetds-$(VERSION)/reference/index.html
+	test -e doc/doc || mkdir doc/doc
+	test -e $(DOCDIR) || mkdir $(DOCDIR)
+	test -e $(DOCDIR)/reference || mkdir $(DOCDIR)/reference
+	touch $(DOCDIR)/reference/index.html
 endif
 
