@@ -1,3 +1,6 @@
+Fri Nov  5 09:16:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: enable some more warnings for gcc compiler
+
 Fri Nov  5 09:05:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- renamed ALIGN_SIZE to TDS_ALIGN_SIZE and moved to tds.h
