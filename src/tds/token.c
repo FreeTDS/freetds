@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.204 2003-08-04 12:45:19 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.205 2003-08-06 15:50:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1881,7 +1881,12 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	done_count_valid = (tmp & TDS_DONE_COUNT) != 0;
 
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() more_results = %d, was_cancelled = %d \n", more_results, was_cancelled);
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end: more_results = %d\n"
+	                          "%L                  was_cancelled = %d\n"
+	                          "%L                  error = %d\n"
+	                          "%L                  done_count_valid = %d\n"
+	            , more_results, was_cancelled, error, done_count_valid);
+
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
 		if (tds->curr_resinfo == NULL)
@@ -1901,9 +1906,10 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	/* rows affected is in the tds struct because a query may affect rows but
 	 * have no result set. */
 
-	if (done_count_valid)
+	if (done_count_valid) {
 		tds->rows_affected = tds_get_int(tds);
-	else {
+		tdsdump_log(TDS_DBG_FUNC, "%L                  rows_affected = %d\n", tds->rows_affected);
+	} else {
 		tmp = tds_get_int(tds);	/* throw it away */
 		tds->rows_affected = TDS_NO_COUNT;
 	}
