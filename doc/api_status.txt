@@ -1,3 +1,4 @@
+#!/usr/pkg/bin/perl
 # API status document
 #
 # This tab-delimited file is a database of the "readiness" of the various
@@ -25,6 +26,34 @@
 #	Comments:	Whatever you'd like to say about the function
 #			(none present as of this writing)
 #
+
+# This little bit of perl will product a data file suitable for uploading into a table thus:
+# create table api
+#	( name	char(15)	NOT NULL
+#	, section char(15) 	    NULL
+#	, function varchar(30)	NOT NULL
+#	, status char(10)	    NULL
+#	, comment varchar(80)       NULL
+#	)
+while( <DATA> ) {
+	chomp;
+	next if /^\s*$/;	#skip blank lines
+	@row = split /\t/, $_;
+	$row[1] =~ s/\(all\)//;	#nullify "all"
+	if( $row[0] eq 'ctlib' && @row < 5 ) {
+		if( length($row[-1]) > 10 ) { 	# missing status
+			pop @row;
+			push @row, ("", $_);
+		}
+	}
+	while( @row < 5 ) {
+		push @row, "";
+	}
+	print join ("\t", @row), $/;
+}
+
+# edit the data below the following line
+__DATA__
 odbc	(all)	SQLAllocConnect	OK
 odbc	(all)	SQLAllocEnv	OK
 odbc	(all)	SQLAllocHandle	OK

@@ -1,3 +1,7 @@
+Mon Dec  9 12:40:48 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* doc/api_status.txt	added perl to output bcp-ready format
+	* src/tds/login.c 	added TDS version to log file
+
 Mon Dec 09 17:39:21 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/replacements/vasprintf.c:
 	- improve win32 compile
