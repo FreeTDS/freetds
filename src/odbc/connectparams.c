@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.58 2005-01-24 15:07:23 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.59 2005-01-24 20:07:48 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -96,6 +96,25 @@ static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR
 #define FILENAME_MAX 512
 #endif
 
+static int
+parse_server(char *server, TDSCONNECTION * connection)
+{
+	char ip[64];
+	char *p = (char *) strchr(server, '\\');
+
+	if (p) {
+		if (!tds_dstr_copy(&connection->instance_name, p+1))
+			return 0;
+		*p = 0;
+	}
+
+	tds_lookup_host(server, ip);
+	if (!tds_dstr_copy(&connection->ip_addr, ip))
+		return 0;
+
+	return 1;
+}
+
 /** 
  * Read connection information from given DSN
  * @param DSN           DSN name
@@ -131,8 +150,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 		if (SQLGetPrivateProfileString(DSN, "Server", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 			tds_dstr_copy(&connection->server_name, tmp);
 			if (!address_specified) {
-				tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
-				if (!tds_dstr_copy(&connection->ip_addr, tmp))
+				if (!parse_server(tmp, connection))
 					return 0;
 			}
 		}
@@ -255,8 +273,8 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 			/* ignore if servername or DSN specified */
 			if (!reparse) {
 				dest_s = &connection->server_name;
-				tds_lookup_host(tds_dstr_cstr(&value), tmp);
-				if (!tds_dstr_copy(&connection->ip_addr, tmp)) {
+				/* not that safe cast but works -- freddy77 */
+				if (!parse_server((char *) tds_dstr_cstr(&value), connection)) {
 					tds_dstr_free(&value);
 					return 0;
 				}

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.207 2005-01-24 15:07:22 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.208 2005-01-24 20:07:47 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -664,6 +664,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define TDS_STR_LANGUAGE	"language"
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
+#define TDS_STR_INSTANCE "instance"
 
 /* TODO do a better check for alignment than this */
 typedef union
@@ -729,6 +730,7 @@ typedef struct tds_connection
 	DSTR client_charset;
 
 	DSTR ip_addr;	  /**< ip of server */
+	DSTR instance_name;
 	DSTR database;
 	DSTR dump_file;
 	DSTR default_domain;

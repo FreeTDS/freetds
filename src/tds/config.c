@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.102 2005-01-20 16:18:59 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.103 2005-01-24 20:07:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -455,6 +455,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_dstr_copy(&connection->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
 		tds_g_append_mode = tds_config_boolean(value);
+	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
+		tds_dstr_copy(&connection->instance_name, value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s'...ignoring.\n", option);
 	}
@@ -523,6 +525,7 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	}
 	if (login->port) {
 		connection->port = login->port;
+		tds_dstr_copy(&connection->instance_name, "");
 	}
 	if (login->connect_timeout)
 		connection->connect_timeout = login->connect_timeout;
@@ -578,6 +581,7 @@ tds_config_env_tdsport(TDSCONNECTION * connection)
 
 	if ((s = getenv("TDSPORT"))) {
 		connection->port = atoi(s);
+		tds_dstr_copy(&connection->instance_name, "");
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'port' to %s from $TDSPORT.\n", s);
 	}
 	return;
@@ -1009,6 +1013,7 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 
 		/* modify connection-> && login->server_name & ->port */
 		login->port = connection->port = atoi(pSep + 1);
+		tds_dstr_copy(&connection->instance_name, "");
 		*pSep = 0;
 
 		/* connection->ip_addr needed */

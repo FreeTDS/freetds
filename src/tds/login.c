@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.131 2005-01-20 16:19:00 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.132 2005-01-24 20:07:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -193,12 +193,20 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* verify that ip_addr is not NULL */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
-		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is NULL\n");
+		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
 		if (connection->server_name) {
 			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
+		return TDS_FAIL;
+	}
+
+	if (!IS_TDS50(tds) && !tds_dstr_isempty(&connection->instance_name))
+		connection->port = tds7_get_instance_port(tds_dstr_cstr(&connection->ip_addr), tds_dstr_cstr(&connection->instance_name));
+
+	if (connection->port < 1) {
+		tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
 		return TDS_FAIL;
 	}
 

@@ -1,3 +1,8 @@
+Mon Jan 24 21:07:36 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
+	* src/tds/login.c src/tds/mem.c:
+	- implement named instance in libTDS and ODBC
+
 Mon Jan 24 19:37:48 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/timeout.c: comment
 	* src/tds/token.c: do set wrong state processing tokens

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.128 2005-01-20 16:19:00 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.129 2005-01-24 20:07:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -586,6 +586,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	tds_dstr_init(&connection->dump_file);
 	tds_dstr_init(&connection->default_domain);
 	tds_dstr_init(&connection->client_charset);
+	tds_dstr_init(&connection->instance_name);
 
 	/* fill in all hardcoded defaults */
 	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
@@ -870,6 +871,7 @@ tds_free_connection(TDSCONNECTION * connection)
 	tds_dstr_zero(&connection->password);
 	tds_dstr_free(&connection->password);
 	tds_dstr_free(&connection->library);
+	tds_dstr_free(&connection->instance_name);
 	free(connection);
 }
 
