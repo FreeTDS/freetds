@@ -53,11 +53,10 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.32 2004-12-13 19:24:25 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.33 2004-12-14 00:46:27 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
-static void pool_free_member(TDS_POOL_MEMBER * pmbr);
 
 /*
  * pool_mbr_login open a single pool login, to be call at init time or
@@ -126,7 +125,31 @@ pool_mbr_login(TDS_POOL * pool)
 	return tds;
 }
 
-static void
+void
+pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
+{
+       pmbr->current_user = puser;
+       puser->assigned_member = pmbr;
+}
+void
+pool_deassign_member(TDS_POOL_MEMBER * pmbr)
+{
+       if (pmbr->current_user)
+               pmbr->current_user->assigned_member = NULL;
+       pmbr->current_user = NULL;
+}
+/*
+ * if a dead connection on the client side left this member in a questionable
+ * state, let's clean it up.
+ */
+void
+pool_reset_member(TDS_POOL_MEMBER * pmbr)
+{
+       pool_free_member(pmbr);
+}
+
+
+void
 pool_free_member(TDS_POOL_MEMBER * pmbr)
 {
 	if (!IS_TDSDEAD(pmbr->tds)) {
@@ -183,7 +206,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 	TDS_POOL_MEMBER *pmbr;
 	TDS_POOL_USER *puser;
 	TDSSOCKET *tds;
-	int i, age;
+	int i, age, ret;
 	int cnt = 0;
 	unsigned char *buf;
 	time_t time_now;
@@ -208,9 +231,11 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 				/* mark as dead */
 				pool_free_member(pmbr);
 			} else if (tds->in_len == -1) {
+				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				perror("read");
+				pool_free_member(pmbr);
 			} else {
-				fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i);
+				/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i); */
 				if (pmbr->current_user) {
 					puser = pmbr->current_user;
 					buf = tds->in_buf;
@@ -224,11 +249,20 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 					if (buf[1]) {
 					/* if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) { */
 						/* we are done...deallocate member */
-						pmbr->current_user = NULL;
+						fprintf(stdout, "deassigning user from member %d\n",i);
+						pool_deassign_member(pmbr);
+
 						pmbr->state = TDS_IDLE;
 						puser->user_state = TDS_SRV_IDLE;
 					}
-					write(puser->tds->s, buf, tds->in_len);
+					/* write(puser->tds->s, buf, tds->in_len); */
+					ret = send(puser->tds->s, buf, tds->in_len, MSG_NOSIGNAL);
+					if (ret==-1) { /* couldn't write, ditch the user */
+						fprintf(stdout, "member %d received error while writing\n",i);
+						pool_free_user(pmbr->current_user);
+						pool_deassign_member(pmbr);
+						pool_reset_member(pmbr);
+					}
 				}
 			}
 		}

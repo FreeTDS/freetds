@@ -20,7 +20,7 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Id: pool.h,v 1.12 2004-12-13 19:24:25 freddy77 Exp $";
+static char rcsid_pool_h[] = "$Id: pool.h,v 1.13 2004-12-14 00:46:27 brianb Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H
@@ -56,14 +56,19 @@ typedef enum
 	TDS_SRV_DEAD
 } TDS_USER_STATE;
 
+/* forward declaration */
+typedef struct tds_pool_member TDS_POOL_MEMBER;
+
+
 typedef struct tds_pool_user
 {
 	TDSSOCKET *tds;
 	TDS_USER_STATE user_state;
+	TDS_POOL_MEMBER *assigned_member;
 }
 TDS_POOL_USER;
 
-typedef struct tds_pool_member
+struct tds_pool_member
 {
 	TDSSOCKET *tds;
 	/* sometimes we get a partial packet */
@@ -77,8 +82,7 @@ typedef struct tds_pool_member
 	 */
 	int num_bytes_left;
 	unsigned char fragment[PGSIZ];
-}
-TDS_POOL_MEMBER;
+};
 
 typedef struct tds_pool
 {
@@ -108,6 +112,10 @@ int pool_process_members(TDS_POOL * pool, fd_set * fds);
 TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
 TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool);
 void pool_mbr_init(TDS_POOL * pool);
+void pool_free_member(TDS_POOL_MEMBER * pmbr);
+void pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);
+void pool_deassign_member(TDS_POOL_MEMBER * pmbr);
+void pool_reset_member(TDS_POOL_MEMBER * pmbr);
 
 /* user.c */
 int pool_process_users(TDS_POOL * pool, fd_set * fds);

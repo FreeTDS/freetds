@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.22 2004-12-13 19:24:25 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.23 2004-12-14 00:46:27 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
@@ -235,6 +235,7 @@ void
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
+	TDS_POOL_MEMBER *pmbr;
 
 	tds = puser->tds;
 	/* FIXME read entire packet !!! */
@@ -245,6 +246,14 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		return;
 	} else if (tds->in_len == -1) {
 		perror("read");
+		fprintf(stderr, "cleaning up user\n");
+		if (puser->assigned_member) {
+			fprintf(stderr, "user has assigned member, freeing\n");
+			pmbr = puser->assigned_member;
+			pool_deassign_member(pmbr);
+			pool_reset_member(pmbr);
+		}
+		pool_free_user(puser);
 	} else {
 		dump_buf(tds->in_buf, tds->in_len);
 		/* language packet or TDS5 language packet */
@@ -264,7 +273,8 @@ void
 pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDS_POOL_MEMBER *pmbr;
-
+	int ret;
+	
 	puser->user_state = TDS_SRV_QUERY;
 	pmbr = pool_find_idle_member(pool);
 	if (!pmbr) {
@@ -277,7 +287,13 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		waiters++;
 	} else {
 		pmbr->state = TDS_QUERYING;
-		pmbr->current_user = puser;
-		write(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len);
+		pool_assign_member(pmbr, puser);
+		/* write(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len); */
+		ret = send(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len, MSG_NOSIGNAL);
+		/* write failed, cleanup member */
+		if (ret==-1) {
+			pool_free_member(pmbr);
+		}
+
 	}
 }

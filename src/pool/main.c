@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.18 2004-12-12 15:27:11 brianb Exp $";
+static char software_version[] = "$Id: main.c,v 1.19 2004-12-14 00:46:27 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this will go away...starting with just 1 global pool */
@@ -179,7 +179,7 @@ pool_main_loop(TDS_POOL * pool)
 	maxfd = s;
 
 	while (!term) {
-		fprintf(stderr, "waiting for a connect\n");
+		/* fprintf(stderr, "waiting for a connect\n"); */
 		retval = select(maxfd + 1, &rfds, NULL, NULL, NULL);
 		if (term)
 			continue;
