@@ -4,7 +4,6 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-#if !HAVE_VASPRINTF
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -16,16 +15,17 @@
 #include <unistd.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.7 2002-09-17 01:40:12 castellano Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.8 2002-09-22 21:43:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-#define CHUNKSIZE 512
 
+#if !HAVE_VASPRINTF
+#define CHUNKSIZE 512
 int
 vasprintf(char **ret, const char *fmt, va_list ap)
 {
-#ifdef HAVE_VSNPRINTF
+#if HAVE_VSNPRINTF
   int chunks;
   size_t buflen;
   int fit = 0;
@@ -57,7 +57,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   }
   *ret = buf;
   return len;
-#else
+#else /* HAVE_VSNPRINTF */
   FILE *fp;
   int len;
   char *buf;
@@ -76,9 +76,11 @@ vasprintf(char **ret, const char *fmt, va_list ap)
     return -1;
   *ret = buf;
   return len;
-#endif
+#endif /* HAVE_VSNPRINTF */
 }
+#endif /* !HAVE_VASPRINTF */
 
+#if !HAVE_ASPRINTF
 int
 asprintf(char **ret, const char *fmt, ...)
 {
@@ -90,4 +92,4 @@ asprintf(char **ret, const char *fmt, ...)
   va_end(ap);
   return len;
 }
-#endif /* HAVE_VASPRINTF */
+#endif /* !HAVE_ASPRINTF */

@@ -140,11 +140,8 @@ AC_C_BIGENDIAN
 dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
+AC_CHECK_FUNCS(asprintf vasprintf vsnprintf atoll)
 
-AC_CHECK_FUNCS(vasprintf)
-AC_CHECK_FUNCS(vsnprintf)
-
-AC_CHECK_FUNCS(atoll)
 AC_MSG_CHECKING(if 64-bit arithmetic is available)
 AC_EGREP_CPP(yes,
 [#if HAVE_ATOLL || SIZEOF_LONG == 8
