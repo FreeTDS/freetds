@@ -5,8 +5,7 @@ SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.60.1
 PRODUCT = FreeTDS
-DOCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
-#DOCBOOK_DSL = ${DOCBOOK}/dsssl/modular/html/docbook.dsl
+DOCBOOK_DSL = $DOCBOOK_DSL 
 
 man_MANS	= freebcp.1 tsql.1
 

@@ -1,6 +1,7 @@
 Thu Sep 19 00:51:19 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/Makefile.am: add version, set to 0.1.0
 	* src/tds/Makefile.am: 	add version, set to 1.0.0
+	* doc/Makefile.am	rely on $DOCBOOK_DSL
 
 Wed Sep 18 13:19:24 CDT 2002    Steve Langasek <vorlon@netexpress.net>
 	* prepare 0.60.1 release, branched from 0.60: increment the
