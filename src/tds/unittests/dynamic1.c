@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.7 2003-04-21 16:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.8 2003-04-30 13:49:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -45,6 +45,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 
 	curcol = params->columns[0];
 	curcol->column_type = SYBINTN;
+	curcol->on_server.column_type = SYBINTN;
 	curcol->column_size = sizeof(TDS_INT);
 	curcol->column_varint_size = 1;
 	curcol->column_cur_size = sizeof(TDS_INT);
@@ -59,6 +60,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 
 	curcol = params->columns[1];
 	curcol->column_type = SYBVARCHAR;
+	curcol->on_server.column_type = SYBVARCHAR;
 	curcol->column_size = 40;
 	curcol->column_varint_size = 1;
 	curcol->column_cur_size = len;
@@ -94,7 +96,7 @@ main(int argc, char **argv)
 		fatal_error("already a dynamic query??");
 
 	/* prepare to insert */
-	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL, &dyn) != TDS_SUCCEED)
+	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL, &dyn, NULL) != TDS_SUCCEED)
 		fatal_error("tds_submit_prepare() error");
 	if (discard_result(tds) != TDS_SUCCEED)
 		fatal_error("tds_submit_prepare() output error");

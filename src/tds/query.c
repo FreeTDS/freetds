@@ -40,13 +40,14 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.84 2003-04-30 13:13:41 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.85 2003-04-30 13:49:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
+static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
 
 #define TDS_PUT_DATA_USE_NAME 1
 
@@ -111,13 +112,38 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds->out_flag = 0x01;
 		tds_put_string(tds, query, query_len);
 	} else {
+		int definition_len;
+		char *param_definition = tds_build_params_definition(tds, params, &definition_len);
+
+		/* out of memory or invalid parameters ?? */
+		if (!param_definition)
+			return TDS_FAIL;
+
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
 		tds_put_smallint(tds, 13);
 		tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
 		tds_put_smallint(tds, 0);
 
-		tds7_put_query_params(tds, query, params);
+		/* string with sql statement */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
+		tds_put_int(tds, query_len * 2);
+		tds_put_int(tds, query_len * 2);
+		tds_put_string(tds, query, query_len);
+
+		/* params definitions */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
+		tds_put_int(tds, definition_len * 2);
+		tds_put_int(tds, definition_len * 2);
+		tds_put_string(tds, param_definition, definition_len);
 
 		for (i = 0; i < params->num_cols; i++) {
 			param = params->columns[i];
@@ -319,20 +345,20 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLINFO * curcol, char *out)
 }
 
 /**
- * Return string with declared parameters
+ * Return string with parameters definition
  * \param paramss parameters to build declaration
  * \param out_len length in buffer
  * \return allocated and filled string or NULL on failure
  */
 static char *
-tds_build_params_string(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
+tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
 {
 	int size = 512;
 
 	/* TODO check out of memory */
 	char *param_str = (char *) malloc(512);
 	char *p;
-	int l = 0;
+	int l = 0, i;
 
 	if (!param_str)
 		return NULL;
@@ -341,8 +367,11 @@ tds_build_params_string(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
 		if (l > 0)
 			param_str[l++] = ',';
 
+		/* FIXME why ??? */
+		params->columns[i]->column_namelen = strlen(params->columns[i]->column_name);
+
 		/* realloc on insufficient space */
-		if (l < (size - 24)) {
+		while ((l + 24 + params->columns[i]->column_namelen) > size) {
 			p = (char *) realloc(param_str, size += 512);
 			if (!p) {
 				free(param_str);
@@ -350,6 +379,11 @@ tds_build_params_string(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
 			}
 			param_str = p;
 		}
+
+		/* FIXME this part of buffer can be not-ascii compatible, use all ucs2... */
+		memcpy(param_str + l, params->columns[i]->column_name, params->columns[i]->column_namelen);
+		l += params->columns[i]->column_namelen;
+		param_str[l++] = ' ';
 
 		/* append this parameter */
 		tds_get_column_declaration(tds, params->columns[i], param_str + l);

@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.2 2003-04-29 19:37:17 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.3 2003-04-30 13:49:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -94,7 +94,8 @@ test_insert(void *buf, SQLINTEGER buflen)
 
 	strlen_or_ind = buflen;
 	err = SQLBindParameter(stmt_handle,
-			       1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_BINARY, (SQLUINTEGER) (-1), 0, buf, buflen, &strlen_or_ind);
+			       1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, (SQLUINTEGER) (-1), 0, buf, buflen,
+			       &strlen_or_ind);
 
 	if (!sqlreturn_noerr(err)) {
 		show_error("test_insert(): binding to parameter", get_odbc_error(stmt_handle), err);

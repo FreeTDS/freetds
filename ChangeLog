@@ -1,3 +1,10 @@
+Wed Apr 30 15:48:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/binary_test.c:
+	- use SQL_LONGVARBINARY, not SQL_BINARY
+	* src/tds/query.c:
+	- improve dynamic (pass param name for parameter definition)
+	* src/tds/unittests/dynamic1.c: fix and update
+
 Wed Apr 30 15:12:16 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/odbc/odbc.c src/tds/query.c:
 	- improve dynamic query (not finished)
