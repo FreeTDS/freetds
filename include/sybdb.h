@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.12 2002-08-29 22:01:25 jklowden Exp $";
+"$Id: sybdb.h,v 1.13 2002-08-30 18:42:54 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -509,9 +509,10 @@ int dbretlen(DBPROCESS *dbproc, int retnum);
 char *dbretname(DBPROCESS *dbproc, int retnum);
 DBINT dbretstatus(DBPROCESS *dbproc);
 int dbrettype(DBPROCESS *dbproc, int retnum);
-#define   DBROWS(x) dbrows((x))
 RETCODE dbrows(DBPROCESS *dbproc);
-STATUS DBROWTYPE(DBPROCESS *dbprocess);
+#define DBROWS(x) dbrows((x))
+STATUS dbrowtype(DBPROCESS *dbprocess);
+#define DBROWTYPE(x) dbrowtype((x))
 RETCODE dbrpcinit(DBPROCESS *dbproc, char *rpcname, DBSMALLINT options);
 RETCODE dbrpcparam(DBPROCESS *dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE *value);
 RETCODE dbrpcsend(DBPROCESS *dbproc);

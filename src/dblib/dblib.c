@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.42 2002-08-30 04:54:18 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.43 2002-08-30 18:42:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2188,17 +2188,22 @@ DBBOOL dbisopt(DBPROCESS *dbproc,int option, char *param)
 }
 DBINT dbcurrow(DBPROCESS *dbproc)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURROW()\n");
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcurrow()\n");
 	return 0;
+}
+STATUS dbrowtype(DBPROCESS *dbproc)
+{
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrowtype()\n");
+	return NO_MORE_ROWS;
 }
 int dbcurcmd(DBPROCESS *dbproc)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURCMD()\n");
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcurcmd()\n");
 	return 0;
 }
 RETCODE dbmorecmds(DBPROCESS *dbproc)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBMORECMDS()\n");
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmorecmds()\n");
 	return SUCCEED;
 }
 int dbrettype(DBPROCESS *dbproc,int retnum)
