@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.183 2003-04-30 09:00:36 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.184 2003-04-30 18:51:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -117,7 +117,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_process_end(tds, marker, &done_flags);
 		if (!(done_flags & TDS_DONE_MORE_RESULTS)) {
 			tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() setting state to COMPLETED\n");
-			tds->state = TDS_COMPLETED;
+			tds->state = TDS_IDLE;
 		}
 		break;
 	case TDS_PROCID_TOKEN:
@@ -465,7 +465,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 	int marker;
 	int done_flags;
 
-	if (tds->state == TDS_COMPLETED) {
+	if (tds->state == TDS_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_result_tokens() state is COMPLETED\n");
 		*result_type = TDS_CMD_DONE;
 		return TDS_NO_MORE_RESULTS;
@@ -635,7 +635,7 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
 	int marker;
 
-	if (tds->state == TDS_COMPLETED) {
+	if (tds->state == TDS_IDLE) {
 		*rowtype = TDS_NO_MORE_ROWS;
 		tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_row_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_ROWS;
@@ -712,7 +712,7 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_trailing_tokens() \n");
 
-	while (tds->state != TDS_COMPLETED) {
+	while (tds->state != TDS_IDLE) {
 
 		marker = tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_INFO1, "%L processing trailing tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
@@ -1869,7 +1869,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		*flags_parm = tmp;
 
 	if (was_cancelled || !(more_results)) {
-		tds->state = TDS_COMPLETED;
+		tds->state = TDS_IDLE;
 	}
 
 	tds_get_smallint(tds);
@@ -2159,7 +2159,7 @@ tds_process_cancel(TDSSOCKET * tds)
 			tds_process_default_tokens(tds, marker);
 		}
 	} while (!(done_flags & TDS_DONE_CANCELLED));
-	tds->state = TDS_COMPLETED;
+	tds->state = TDS_IDLE;
 
 	/* TODO clear cancelled results */
 

@@ -1,3 +1,13 @@
+Wed Apr 30 20:49:56 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/pool/main.c src/pool/member.c:
+	* src/pool/pool.h src/tds/token.c:
+	- renamed TDS_COMPLETED in TDS_IDLE
+	* src/tds/query.c:
+	- changed idle test to tds->state != TDS_IDLE
+	- add some (many?) FIXME and TODO comments
+	* src/odbc/prepare_query.c:
+	- handle image/text in emulated prepared query
+	
 Wed Apr 30 17:28:26 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/tds/query.c:
 	- continue on dynamic work

@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.22 2003-04-03 09:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.23 2003-04-30 18:51:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -137,7 +137,7 @@ pool_free_member(TDS_POOL_MEMBER * pmbr)
 	 */
 	if (pmbr->current_user)
 		pool_free_user(pmbr->current_user);
-	pmbr->state = TDS_COMPLETED;
+	pmbr->state = TDS_IDLE;
 }
 
 void
@@ -164,7 +164,7 @@ pool_mbr_init(TDS_POOL * pool)
 				exit(1);
 			}
 		}
-		pmbr->state = TDS_COMPLETED;
+		pmbr->state = TDS_IDLE;
 	}
 }
 
@@ -213,7 +213,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 					if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) {
 						/* we are done...deallocate member */
 						pmbr->current_user = NULL;
-						pmbr->state = TDS_COMPLETED;
+						pmbr->state = TDS_IDLE;
 						puser->user_state = TDS_SRV_IDLE;
 					}
 					write(puser->tds->s, buf, tds->in_len);
@@ -231,7 +231,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 
 /*
 ** pool_find_idle_member
-** returns the first pool member in TDS_COMPLETED (idle) state
+** returns the first pool member in TDS_IDLE state
 */
 TDS_POOL_MEMBER *
 pool_find_idle_member(TDS_POOL * pool)
@@ -244,7 +244,7 @@ pool_find_idle_member(TDS_POOL * pool)
 		pmbr = &pool->members[i];
 		if (pmbr->tds) {
 			active_members++;
-			if (pmbr->state == TDS_COMPLETED) {
+			if (pmbr->state == TDS_IDLE) {
 				/* make sure member wasn't idle more that the timeout 
 				 * ** otherwise it'll send the query and close leaving a
 				 * ** hung client */

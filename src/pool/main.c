@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.15 2003-04-03 09:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: main.c,v 1.16 2003-04-30 18:51:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this will go away...starting with just 1 global pool */
@@ -119,7 +119,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 	free_mbrs = 0;
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
-		if (pmbr->tds && pmbr->state == TDS_COMPLETED)
+		if (pmbr->tds && pmbr->state == TDS_IDLE)
 			free_mbrs++;
 	}
 

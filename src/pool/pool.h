@@ -20,7 +20,7 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.7 2003-02-26 04:26:03 jklowden Exp $";
+static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.8 2003-04-30 18:51:38 freddy77 Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H
@@ -66,7 +66,7 @@ typedef struct tds_pool_member
 	TDS_POOL_USER *current_user;
 	/* 
 	 * ** these variables are used for tracking the state of the TDS protocol 
-	 * ** so we know when to return the state to TDS_COMPLETED.
+	 * ** so we know when to return the state to TDS_IDLE.
 	 */
 	int num_bytes_left;
 	unsigned char fragment[PGSIZ];

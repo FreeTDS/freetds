@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.116 2003-04-30 13:12:56 freddy77 Exp $";
+	"$Id: tds.h,v 1.117 2003-04-30 18:51:35 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -751,7 +751,7 @@ typedef struct tds_result_info {
 enum {
 	TDS_QUERYING,
 	TDS_PENDING,
-	TDS_COMPLETED,
+	TDS_IDLE,
 	TDS_CANCELED,
 	TDS_DEAD
 };

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.86 2003-04-30 15:29:10 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.87 2003-04-30 18:51:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -84,7 +84,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	/* Jeff's hack to handle long query timeouts */
 	tds->queryStarttime = time(NULL);
 
-	if (tds->state == TDS_PENDING) {
+	if (tds->state != TDS_IDLE) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
@@ -100,7 +100,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
-		/* FIXME use converted size, not input size and convert string */
+		/* FIXME ICONV use converted size, not input size and convert string */
 		tds_put_int(tds, query_len + 1);
 		tds_put_byte(tds, params ? 1 : 0);	/* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
@@ -131,6 +131,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
+		/* FIXME ICONV use converted size */
 		tds_put_int(tds, query_len * 2);
 		tds_put_int(tds, query_len * 2);
 		tds_put_string(tds, query, query_len);
@@ -141,6 +142,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
+		/* FIXME ICONV someone should change results from tds_build_params_definition to ucs2 and use provided length */
 		tds_put_int(tds, definition_len * 2);
 		tds_put_int(tds, definition_len * 2);
 		tds_put_string(tds, param_definition, definition_len);
@@ -360,6 +362,10 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 	char *p;
 	int l = 0, i;
 
+	/* FIXME ICONV return ucs2, see above */
+
+	assert(IS_TDS7_PLUS(tds));
+
 	if (!param_str)
 		return NULL;
 	param_str[0] = 0;
@@ -380,12 +386,13 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 			param_str = p;
 		}
 
-		/* FIXME this part of buffer can be not-ascii compatible, use all ucs2... */
+		/* FIXME ICONV this part of buffer can be not-ascii compatible, use all ucs2... */
 		memcpy(param_str + l, params->columns[i]->column_name, params->columns[i]->column_namelen);
 		l += params->columns[i]->column_namelen;
 		param_str[l++] = ' ';
 
 		/* append this parameter */
+		/* FIXME ICONV convert to ucs2... */
 		tds_get_column_declaration(tds, params->columns[i], param_str + l);
 		if (!param_str[l]) {
 			free(param_str);
@@ -407,6 +414,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	const char *s, *e;
 	char buf[24];
 
+	assert(IS_TDS7_PLUS(tds));
+
 	/* TODO placeholder should be same number as parameters in definition ??? */
 
 	/* string with parameters types */
@@ -423,6 +432,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 		len += n - i + 1;
 	}
 	if (!param_definition) {
+		/* TODO put this code in caller and pass param_definition */
 		tds_put_int(tds, len * 2);
 		tds_put_int(tds, len * 2);
 		for (i = 1; i <= n; ++i) {
@@ -430,7 +440,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 			tds_put_string(tds, buf, -1);
 		}
 	} else {
-		/* FIXME just to add some incompatibility with charset... */
+		/* FIXME ICONV just to add some incompatibility with charset... see above */
 		i = strlen(param_definition);
 		tds_put_int(tds, i * 2);
 		tds_put_int(tds, i * 2);
@@ -445,6 +455,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
 	len = (len + 1 - 14 * n) + strlen(query);
+	/* FIXME ICONV use converted size. Perhaps we should construct entire string ? */
 	tds_put_int(tds, len * 2);
 	tds_put_int(tds, len * 2);
 	s = query;
@@ -482,7 +493,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tdsdump_log(TDS_DBG_ERROR, "Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
 		return TDS_FAIL;
 	}
-	if (tds->state == TDS_PENDING) {
+	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
@@ -562,6 +573,8 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	tds_put_byte(tds, 0x00);
 	tds_put_byte(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);
+	/* FIXME ICONV use converted size */
+	/* TODO how to pass parameters type? like store procedures ? */
 	tds_put_smallint(tds, query_len + id_len + 16);
 	tds_put_n(tds, "create proc ", 12);
 	tds_put_n(tds, dyn->id, id_len);
@@ -587,6 +600,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		/* TODO use column_namelen ?? */
 		len = strlen(curcol->column_name);
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting param_name \n");
+		/* FIXME ICONV use converted size */
 		tds_put_byte(tds, len);	/* param name len */
 		tds_put_string(tds, curcol->column_name, len);
 	} else {
@@ -649,6 +663,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
 #endif
 
+	/* FIXME ICONV use converted size */
 	if (flags & TDS_PUT_DATA_USE_NAME)
 		/* TODO use column_namelen ? */
 		len += strlen(curcol->column_name);
@@ -688,6 +703,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
 
+	/* FIXME ICONV handle charset conversions for data */
 
 	if (IS_TDS7_PLUS(tds)) {
 		src = &(current_row[curcol->column_offset]);
@@ -744,7 +760,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_n(tds, num->array, colsize);
 			} else if (is_blob_type(curcol->column_type)) {
 				blob_info = (TDSBLOBINFO *) src;
-				/* FIXME support conversions */
+				/* FIXME ICONV support conversions */
 				tds_put_n(tds, blob_info->textvalue, colsize);
 			} else {
 #ifdef WORDS_BIGENDIAN
@@ -812,7 +828,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_n(tds, num->array, colsize);
 		} else if (is_blob_type(curcol->column_type)) {
 			blob_info = (TDSBLOBINFO *) src;
-			/* FIXME handle conversion when needed */
+			/* FIXME ICONV handle conversion when needed */
 			tds_put_n(tds, blob_info->textvalue, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
@@ -848,7 +864,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute()\n");
 
-	if (tds->state == TDS_PENDING) {
+	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
@@ -980,7 +996,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n", dyn->id);
 
-	if (tds->state == TDS_PENDING) {
+	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
@@ -1048,7 +1064,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	assert(tds);
 	assert(rpc_name);
 
-	if (tds->state == TDS_PENDING) {
+	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
@@ -1065,6 +1081,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
+		/* FIXME ICONV use converted size */
 		tds_put_smallint(tds, rpc_name_len);
 		tds_put_string(tds, rpc_name, rpc_name_len);
 		/* TODO support flags
@@ -1087,6 +1104,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		/* DBRPC */
 		tds_put_byte(tds, TDS_DBRPC_TOKEN);
+		/* FIXME ICONV use converted size */
 		tds_put_smallint(tds, rpc_name_len + 3);
 		tds_put_byte(tds, rpc_name_len);
 		tds_put_string(tds, rpc_name, rpc_name_len);
