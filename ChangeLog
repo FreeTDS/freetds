@@ -1,3 +1,9 @@
+Thu Mar 25 11:00:20 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c src/dblib/unittests/rpc.c
+	- fetch return status & output parameters from stream
+	- when client requests the data, instead of waiting for 
+	- end-of-results.  
+
 Thu Mar 25 00:37:43 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/mem.c src/tds/token.c
 	- additional logging to trace rpc

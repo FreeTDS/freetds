@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.11 2004-03-25 04:51:14 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.12 2004-03-25 16:03:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -33,6 +33,7 @@ static const char procedure_sql[] =
 		"AS \n"
 		"BEGIN \n"
 			"select distinct convert(varchar(30), name) as 'type'  from systypes \n"
+				"where name like '%%int%%' \n"
 			"select @nrows = @@rowcount \n"
 			"select distinct convert(varchar(30), name) as name  from sysobjects where type = 'S'"
 			"return 42 \n"
@@ -158,9 +159,10 @@ main(int argc, char **argv)
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
 		if (erc == SUCCEED) {
 			const int ncols = dbnumcols(dbproc);
-			printf("bound 1 of %d columns in result %d.\n", ncols, ++r);
+			printf("bound 1 of %d columns ('%s') in result %d.\n", ncols, dbcolname(dbproc, 1), ++r);
 			dbbind(dbproc, 1, STRINGBIND, -1, (BYTE *) teststr);
 			
+			printf("\t%s\n\t-----------\n", dbcolname(dbproc, 1));
 			while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 				if (row_code == REG_ROW) {
 					printf("\t%s\n", teststr);
@@ -198,25 +200,29 @@ main(int argc, char **argv)
 			}
 		} else {
 			add_bread_crumb();
-			fprintf(stdout, "Was expecting a result set.\n");
+			fprintf(stdout, "Expected a result set.\n");
 			exit(1);
 		}
 	} /* while dbresults */
 	
 	if ((retname == NULL) || strcmp(retname, param)) {
-		fprintf(stdout, "Was expecting a retname to be '%s'.\n", param);
+		fprintf(stdout, "Expected retname to be '%s', got ", param);
+		if (retname == NULL) 
+			fprintf(stdout, "<NULL> instead.\n");
+		else
+			fprintf(stdout, "'%s' instead.\n", retname);
 		exit(1);
 	}
-	if (strcmp(teststr, "42")) {
-		fprintf(stdout, "Was expecting a retdata to be 42.\n");
+	if (strcmp(teststr, "3")) {
+		fprintf(stdout, "Expected retdata to be 3.\n");
 		exit(1);
 	}
 	if (rettype != SYBINT4) {
-		fprintf(stdout, "Was expecting a rettype to be SYBINT4 was %d.\n", rettype);
+		fprintf(stdout, "Expected rettype to be SYBINT4 was %d.\n", rettype);
 		exit(1);
 	}
 	if (retlen != 4) {
-		fprintf(stdout, "Was expecting a retlen to be 4.\n");
+		fprintf(stdout, "Expected retlen to be 4.\n");
 		exit(1);
 	}
 

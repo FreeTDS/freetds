@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.169 2004-02-09 23:03:57 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.170 2004-03-25 16:03:27 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3248,43 +3248,6 @@ dbsetlogintime(int seconds)
 	return SUCCEED;
 }
 
-/**
- * \ingroup dblib_api
- * \brief Determine if query generated a return status number.
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \retval TRUE fetch return status with dbretstatus().  
- * \retval FALSE no return status.  
- * \sa dbnextrow(), dbresults(), dbretdata(), dbretstatus(), dbrpcinit(), dbrpcparam(), dbrpcsend().
- */
-DBBOOL
-dbhasretstat(DBPROCESS * dbproc)
-{
-	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
-
-	if (tds->has_status) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
-}
-
-/**
- * \ingroup dblib_api
- * \brief Fetch status value returned by query or remote procedure call.
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \return return value 
- * \sa dbhasretstat(), dbnextrow(), dbresults(), dbretdata(), dbrpcinit(), dbrpcparam(), dbrpcsend().
- */
-DBINT
-dbretstatus(DBPROCESS * dbproc)
-{
-	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
-
-	return tds->ret_status;
-}
-
 /** \internal
  * \ingroup dblib_internal
  * \brief See if the current command can return rows.
@@ -3757,6 +3720,47 @@ dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC
 
 /**
  * \ingroup dblib_api
+ * \brief Determine if query generated a return status number.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \retval TRUE fetch return status with dbretstatus().  
+ * \retval FALSE no return status.  
+ * \sa dbnextrow(), dbresults(), dbretdata(), dbretstatus(), dbrpcinit(), dbrpcparam(), dbrpcsend().
+ */
+DBBOOL
+dbhasretstat(DBPROCESS * dbproc)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
+
+	dbnumrets(dbproc);
+
+	if (tds->has_status) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+/**
+ * \ingroup dblib_api
+ * \brief Fetch status value returned by query or remote procedure call.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \return return value 
+ * \sa dbhasretstat(), dbnextrow(), dbresults(), dbretdata(), dbrpcinit(), dbrpcparam(), dbrpcsend().
+ */
+DBINT
+dbretstatus(DBPROCESS * dbproc)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
+
+	dbnumrets(dbproc);
+
+	return tds->ret_status;
+}
+
+/**
+ * \ingroup dblib_api
  * \brief Get count of output parameters filled by a stored procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3771,6 +3775,12 @@ dbnumrets(DBPROCESS * dbproc)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
+	tdsdump_log(TDS_DBG_FUNC, "%L dbnumrets() finds %d columns\n", (tds->param_info? tds->param_info->num_cols : 0));
+
+	/* try to fetch output parameters and return status, if we have not already done so */
+	if (!tds->param_info) 
+		tds_process_trailing_tokens(tds);
+		
 	if (!tds->param_info)
 		return 0;
 
@@ -3791,6 +3801,8 @@ dbretname(DBPROCESS * dbproc, int retnum)
 {
 	TDSSOCKET *tds;
 	TDSPARAMINFO *param_info;
+
+	dbnumrets(dbproc);
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
@@ -3817,6 +3829,8 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 	TDSPARAMINFO *param_info;
 	TDSSOCKET *tds;
 
+	dbnumrets(dbproc);
+
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
 	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
@@ -3842,6 +3856,8 @@ dbretlen(DBPROCESS * dbproc, int retnum)
 	TDSCOLUMN *colinfo;
 	TDSPARAMINFO *param_info;
 	TDSSOCKET *tds;
+
+	dbnumrets(dbproc);
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
