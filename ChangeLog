@@ -2,6 +2,7 @@ Fri Nov 30 18:41:10 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/odbc/odbc.c: Change missing "Database" parameter to Servername.
 	Force SQLGetFunctions to return SQL_FALSE for ODBC3
+	* Makefile.am: No longer install interfaces file by default
 
 Thu Nov 29 18:13:01 EST 2001	Brian Bruns <camber@ais.org>
 
