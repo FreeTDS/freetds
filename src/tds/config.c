@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.55 2002-11-08 02:05:06 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.56 2002-11-10 12:40:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -536,9 +536,8 @@ pid_t pid=0;
         if ((s=getenv("TDSDUMP"))) {
                 if (!strlen(s)) {
                         pid = getpid();
-			/* FIXME check out of memory */
-			asprintf(&path, "/tmp/freetds.log.%d", pid);
-			tds_dstr_set(&connect_info->dump_file,path);
+			if (asprintf(&path, "/tmp/freetds.log.%d", pid) >= 0)
+				tds_dstr_set(&connect_info->dump_file,path);
 		} else {
 			tds_dstr_copy(&connect_info->dump_file,s);
 		}

@@ -1,3 +1,9 @@
+Sun Nov 10 13:38:58 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c src/tds/query.c  src/tds/token.c:
+	- fix some FIXME in code
+	* src/tds/read.c src/tds/write.c:
+	- use chunk conversion for unicode<->ascii to avoid memory problems
+
 Sun Nov 10 11:52:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/server/login.c src/tds/iconv.c src/tds/token.c:
 	- unicode2ascii and tds_get_string never terminate output strings

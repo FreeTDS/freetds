@@ -59,7 +59,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: write.c,v 1.24 2002-11-01 20:55:54 castellano Exp $";
+	"$Id: write.c,v 1.25 2002-11-10 12:40:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -97,15 +97,20 @@ const unsigned char *bufp = buf;
 int tds_put_string(TDSSOCKET *tds, const char *s, int len)
 {
 int res;
-char *temp;
+char temp[256];
+const char *p;
+unsigned int bytes_left;
 	
 	if (len < 0) len = strlen(s);
 	if (IS_TDS7_PLUS(tds)) {
-		/* FIXME handle allocation error, use chunk conversions */
-		temp = (char *) malloc(len*2);
-		tds7_ascii2unicode(tds, s, temp, len*2);
-		res = tds_put_n(tds, temp, len*2);
-		free(temp);
+		p = s;
+		while(len > 0) {
+			bytes_left = len > (sizeof(temp)/2) ? (sizeof(temp)/2) : len;
+			tds7_ascii2unicode(tds, p, temp, bytes_left*2);
+			res = tds_put_n(tds, temp, bytes_left*2);
+			p += bytes_left;
+			len -= bytes_left;
+		}
 		return res;
 		
 	}

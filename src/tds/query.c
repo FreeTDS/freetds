@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.39 2002-11-08 19:07:39 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.40 2002-11-10 12:40:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -234,7 +234,6 @@ int id_len, query_len;
 	id_len = strlen(id);
 	query_len = strlen(query);
 
-	/* FIXME add support for mssql, use RPC and sp_prepare */
 	if (IS_TDS7_PLUS(tds)) {
 		int len,i,n;
 		const char *s,*e;
@@ -339,7 +338,6 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 		tds_put_byte(tds, curcol->column_prec);
 		tds_put_byte(tds, curcol->column_scale);
 	}
-	/* FIXME handle larger types */
 	switch(curcol->column_varint_size) {
 	case 0:
 		break;
@@ -434,7 +432,7 @@ int is_null;
 		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
 		tds_put_n(tds, blob_info->textvalue, colsize);
 	} else {
-		/* FIXME problem with big endia, swap data */
+		/* FIXME problem with big endian, swap data */
 		dest = &(current_row[curcol->column_offset]);
 		tds_put_n(tds,dest,colsize);
 	}
@@ -473,7 +471,6 @@ int i, len;
 	if (elem < 0) return TDS_FAIL;
 	dyn = tds->dyns[elem];
 
-	/* FIXME add support for mssql, use RPC and sp_prepare */
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
 		tds->out_flag = 3; /* RPC */

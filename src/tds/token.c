@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.100 2002-11-10 10:55:23 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.101 2002-11-10 12:40:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1059,13 +1059,15 @@ int colnamelen;
 			/* junk the table name -- for now */
 			tds_get_n(tds,NULL,tds_get_smallint(tds));
 			break;
+		case 2: 
+			curcol->column_size = tds_get_smallint(tds);
+			break;
 		case 1: 
 			curcol->column_size = tds_get_byte(tds);
 			break;
 		case 0: 
 			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
-		/* FIXME can varint_size be 2 ?? */
 	}
 	tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
 

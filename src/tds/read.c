@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: read.c,v 1.30 2002-11-08 15:57:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.31 2002-11-10 12:40:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -219,7 +219,9 @@ unsigned char bytes[4];
  */
 char *tds_get_string(TDSSOCKET *tds, void *dest, int need)
 {
-char *temp;
+char temp[256];
+char *p;
+unsigned int bytes_left;
 
 	/*
 	** FIX: 02-Jun-2000 by Scott C. Gray (SCG)
@@ -235,15 +237,18 @@ char *temp;
 			tds_get_n(tds,NULL,need*2);
 			return(NULL);
 		}
-		/* FIXME handle allocation error, use chunk conversions */
-		temp = (char *) malloc(need*2);
-		tds_get_n(tds,temp,need*2);
-		tds7_unicode2ascii(tds,temp,dest,need);
-		free(temp);
+		p = (char*) dest;
+		while(need > 0) {
+			bytes_left = need > (sizeof(temp)/2) ? (sizeof(temp)/2) : need;
+			tds_get_n(tds, temp, bytes_left*2);
+			tds7_unicode2ascii(tds, temp, p, bytes_left);
+			p += bytes_left;
+			need -= bytes_left;
+		}
 		return(dest);
 		
 	} else {
-		return tds_get_n(tds,dest,need);	
+		return tds_get_n(tds,dest,need);
 	}
 }
 /*
