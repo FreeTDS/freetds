@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.89 2003-04-01 10:17:15 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.90 2003-04-01 19:16:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -644,34 +644,27 @@ static int
 tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 {
 	int rc;
-	static const unsigned char magic1_domain[] = { 
-		0x0, 0x0, 0x0,	/* ?? */
-		/* the 0x80 in the third byte controls whether this is a domain login 
-		 * or not  0x80 = yes, 0x00 = no */
-		0x0, 0xe0, 0x83, 0x0,	/* Connection ID of the Primary Server (?) */
-		0x0,		/* Option Flags 1 */
-		0x68,		/* Option Flags 2 */
-		0x01,
-		0x00,
-		0x00, 0x09, 0x04, 0x00,
-		0x00
-	};
-	static const unsigned char magic1_server[] = {
-		0x0, 0x0, 0x0,	/* ?? */
-		0x0, 0xe0, 0x03, 0x0,	/* Connection ID of the Primary Server (?) */
-		0x0,		/* Option Flags 1 */
-		0x88,		/* Option Flags 2 */
-		0xff,		/* Type Flags     */
-		0xff,		/* reserved Flags */
-		0xff, 0x36, 0x04, 0x00,
-		0x00
-	};
-	unsigned const char *magic1 = magic1_server;
+
+	static const unsigned char client_progver[] = { 6, 0x83, 0xf2, 0xf8 };
+
+	static const unsigned char tds7Version[] = { 0x00, 0x00, 0x00, 0x70 };
+	static const unsigned char tds8Version[] = { 0x01, 0x00, 0x00, 0x71 };
+
+	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
+	unsigned char option_flag1 = 0x00;
+	unsigned char option_flag2 = 0x00;
+	static const unsigned char sql_type_flag = 0x00;
+	static const unsigned char reserved_flag = 0x00;
+
+	static const unsigned char time_zone[] = { 0x88, 0xff, 0xff, 0xff };
+	static const unsigned char collation[] = { 0x36, 0x04, 0x00, 0x00 };
+
 	unsigned char hwaddr[6];
 
 	/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 	char unicode_string[256];
 	int packet_size;
+	int block_size;
 	int current_pos;
 	static const unsigned char ntlm_id[] = "NTLMSSP";
 	int domain_login = connect_info->try_domain_login ? 1 : 0;
@@ -707,24 +700,49 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	packet_size = 86 + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 	if (domain_login) {
-		magic1 = magic1_domain;
 		auth_len = 32 + host_name_len + domain_len;
 		packet_size += auth_len;
 	} else
 		packet_size += (user_name_len + password_len) * 2;
 
-	tds_put_smallint(tds, packet_size);
-	tds_put_n(tds, NULL, 5);
+	tds_put_int(tds, packet_size);
 	if (IS_TDS80(tds)) {
-		tds_put_byte(tds, 0x80);
+		tds_put_n(tds, tds8Version, 4);
 	} else {
-		tds_put_byte(tds, 0x70);
+		tds_put_n(tds, tds7Version, 4);
 	}
-	tds_put_n(tds, NULL, 3);	/* rest of TDSVersion which is a 4 byte field    */
-	tds_put_n(tds, NULL, 4);	/* desired packet size being requested by client */
-	tds_put_byte(tds, 6); /* ? */
-	tds_put_int(tds, getpid());
-	tds_put_n(tds, magic1, 16);
+
+	if (connect_info->block_size < 1000000)
+		block_size = connect_info->block_size;
+	else
+		block_size = 4096;	/* SQL server default */
+	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
+
+	tds_put_n(tds, client_progver, 4);	/* client program version ? */
+
+	tds_put_int(tds, getpid());	/* process id of this process */
+
+	tds_put_n(tds, connection_id, 4);
+
+	option_flag1 |= 0x80;	/* enable warning messages if SET LANGUAGE issued   */
+	option_flag1 |= 0x40;	/* change to initial database must succeed          */
+	option_flag1 |= 0x20;	/* enable warning messages if USE <database> issued */
+
+	tds_put_byte(tds, option_flag1);
+
+	if (domain_login)
+		option_flag2 |= 0x80;	/* enable domain login security                     */
+
+	option_flag2 |= 0x02;	/* client is an ODBC driver                         */
+	option_flag2 |= 0x01;	/* change to initial language must succeed          */
+
+	tds_put_byte(tds, option_flag2);
+
+	tds_put_byte(tds, sql_type_flag);
+	tds_put_byte(tds, reserved_flag);
+
+	tds_put_n(tds, time_zone, 4);
+	tds_put_n(tds, collation, 4);
 
 	current_pos = 86;	/* ? */
 	/* host name */

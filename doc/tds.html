@@ -186,16 +186,24 @@ Any help with the magic numbers would be most appreciated.
 <pre>
 byte  var type  description
 ---------------------------
-  0   INT16	total packet size
-  2   INT8[5]?	00000
-  7   INT8	TDS Version?	0x70 for TDS7, 0x80 for TDS8
-  8   INT8[7]?	0000000
- 15   INT8	magic   0x06
+  0   INT32	total packet size
+  4   INT[4]	TDS Version	0x00000070 for TDS7, 0x01000071 for TDS8
+  8   INT32	packet size (default 4096)
+ 12   INT8[4]	client program version
  16   INT32	PID of client
- 20   INT8[4]   0x00000000
- 24   INT8[12]  magic  0xe003000088ffffff36040000 
-                (seen  0xe0030000c4ffffff10040000)
-                second byte is 0x83 for NT authentication
+ 20   INT32	connection id (usually 0)
+ 24   INT8	option flags 1
+                0x80 enable warning messages if SET LANGUAGE issued
+                0x40 change to initial database must succeed
+                0x20 enable warning messages if USE <database> issued
+ 25   INT8	option flags 2
+                0x80 enable domain login security
+                0x02 client is an ODBC driver
+                0x01 change to initial language must succeed
+ 26   INT8	sql type flags (0)
+ 27   INT8	reserved flags (must be 0)
+ 28   INT8[4]	time zone (0x88ffffff ???)
+ 32   INT8[4]	collation information
  36   INT16	position of client hostname (86)
  38   INT16	hostname lenght
  40   INT16	position of username

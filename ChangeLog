@@ -1,3 +1,10 @@
+Tue Apr 01 21:14:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html: updated from Bill info
+	* src/ctlib/ct.c: applied Bill patch on writetext
+	* src/tds/login.c::
+	- Applied Bill patch
+	 - clarify tds7_send_login
+
 Tue Apr 01 13:59:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/lang_error.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.87 2003-03-24 22:44:26 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.88 2003-04-01 19:16:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1385,6 +1385,8 @@ TDSCOLINFO *curcol;
 		datafmt->status |= CS_CANBENULL;
 	if (curcol->column_identity)
 		datafmt->status |= CS_IDENTITY;
+	if (strcmp(datafmt->name,"txts") == 0)
+		datafmt->status |= CS_TIMESTAMP;
 
 	datafmt->count = 1;
 	datafmt->locale = NULL;
@@ -1767,10 +1769,10 @@ char hex2[3];
 		}
 
 		cmd->send_data_started = 1;
+		tds->out_flag = 0x07;
+		tds_put_int(tds, cmd->iodesc->total_txtlen);
 	}
 
-	tds->out_flag = 0x07;
-	tds_put_int(tds, buflen);
 	tds_put_bulk_data(tds, buffer, buflen);
 
 	return CS_SUCCEED;
