@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.144 2003-05-22 18:53:37 castellano Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.145 2003-05-28 13:59:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3832,7 +3832,7 @@ dbsqlok(DBPROCESS * dbproc)
 
 	unsigned char marker;
 	int done = 0;
-	int done_flags = 0;
+	TDS_INT result_type;
 
 	RETCODE rc = SUCCEED;
 
@@ -3854,7 +3854,38 @@ dbsqlok(DBPROCESS * dbproc)
 	/* we're looking for a result token or a done token.         */
 
 	while (!done) {
+/*
+		switch (tds_process_result_tokens(tds, &result_type)) {
+		case TDS_NO_MORE_RESULTS:
+			return rc;
+			break;
+	
+		case TDS_FAIL:
+			return FAIL;
+			break;
 
+		case TDS_SUCCEED:
+			switch (result_type) {
+			case TDS_ROWFMT_RESULT:
+				dbproc->dbresults_state = DBRESINIT;
+				buffer_clear(&(dbproc->row_buf));
+				return buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
+				break;
+			case TDS_COMPUTE_RESULT:
+			case TDS_ROW_RESULT:
+			case TDS_COMPUTEFMT_RESULT:
+				return SUCCEED;
+				break;
+			case TDS_CMD_FAIL:
+				return FAIL;
+				break;
+			case TDS_CMD_DONE:
+				return SUCCEED;
+				break;		
+			}
+			break;
+		}
+*/	
 		marker = tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %x\n", marker);
 
@@ -3877,7 +3908,7 @@ dbsqlok(DBPROCESS * dbproc)
 		else if (is_end_token(marker)) {
 
 			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found end token\n");
-			if (tds_process_end(tds, marker, &done_flags) != TDS_SUCCEED) {
+			if (tds_process_end(tds, marker, NULL) != TDS_SUCCEED) {
 				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
 				rc = FAIL;
 			} else {
@@ -5200,6 +5231,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
 	int marker;
+	TDS_INT result_type;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return FAIL;
@@ -5220,16 +5252,9 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	}
 
 	/* read the end token */
-	marker = tds_get_byte(dbproc->tds_socket);
-
-	if (marker != TDS_DONE_TOKEN) {
+	if (tds_process_simple_query(dbproc->tds_socket, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
 		return FAIL;
-	}
-
-	if (tds_process_end(dbproc->tds_socket, marker, NULL) != TDS_SUCCEED) {
-		return FAIL;
-	}
-
+		
 	dbproc->tds_socket->out_flag = 0x07;
 	tds_put_int(dbproc->tds_socket, size);
 

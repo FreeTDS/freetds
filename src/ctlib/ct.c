@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.95 2003-05-22 18:41:54 castellano Exp $";
+static char software_version[] = "$Id: ct.c,v 1.96 2003-05-28 13:59:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1713,6 +1713,7 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	char writetext_cmd[512];
 	unsigned char marker;
+	TDS_INT result_type;
 
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
@@ -1766,15 +1767,8 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		}
 
 		/* read the end token */
-		marker = tds_get_byte(tds);
-
-		if (marker != TDS_DONE_TOKEN) {
+		if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
 			return CS_FAIL;
-		}
-
-		if (tds_process_end(tds, marker, NULL) != TDS_SUCCEED) {
-			return CS_FAIL;
-		}
 
 		cmd->send_data_started = 1;
 		tds->out_flag = 0x07;
@@ -2432,8 +2426,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		CS_INT option;
 		TDS_OPTION tds_option;
 	}
-	tds_bool_option_map[] =
-	{
+	tds_bool_option_map[] = {
 		{
 		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
 		, {
