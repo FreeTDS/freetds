@@ -1,3 +1,7 @@
+Sun Sep 22 22:50:14 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/Makefile.am:
+	- Include replacement function source files in distribution.
+
 Sun Sep 22 22:44:54 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/convert.c:
 	- Check specifically for the existence of a "long long" type when
