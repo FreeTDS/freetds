@@ -9,7 +9,8 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 
-int read_login_info()
+int
+read_login_info(void)
 {
 FILE *in;
 char line[512];
@@ -37,7 +38,8 @@ char *s1, *s2;
 	return 0;
 }
 
-void CheckReturn() 
+void
+CheckReturn(void)
 { 
     SQLSMALLINT         handletype; 
     SQLHANDLE           handle; 
@@ -62,7 +64,8 @@ void CheckReturn()
 } 
 
 
-int Connect() 
+int
+Connect(void)
 {
 
 int res; 
@@ -114,7 +117,8 @@ SQLCHAR command[512];
     return 0;
 }
 
-int Disconnect()
+int
+Disconnect(void)
 {
     SQLDisconnect( Connection ); 
     SQLFreeConnect( Connection ); 
@@ -122,10 +126,11 @@ int Disconnect()
     return 0;
 } 
 
-void Command(HSTMT stmt, const char* command)
+void
+Command(HSTMT stmt, const char *command)
 {
 	printf("%s\n",command);
-	if( SQLExecDirect( stmt, command, SQL_NTS )
+	if( SQLExecDirect( stmt, (SQLCHAR *) command, SQL_NTS )
 		!= SQL_SUCCESS ) {
 		printf( "Unable to execute statement\n" );
 		CheckReturn();

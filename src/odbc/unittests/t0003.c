@@ -4,14 +4,8 @@
 
 int main( int argc, char * argv[] ) 
 { 
-
-int res; 
-int i;
-
-SQLINTEGER cnamesize; 
-
+/* int res; */
 SQLCHAR command[512]; 
-SQLCHAR output [256];
 
     setenv("TDSDUMP","",1);
 

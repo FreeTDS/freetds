@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.8 2002-10-02 20:38:55 castellano Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.9 2002-10-03 19:07:32 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -49,7 +49,8 @@ void odbc_LogError (const char* error)
 }
 
 
-const char *odbc_GetLastError()
+const char *
+odbc_GetLastError(void)
 {
     return lastError;
 }
@@ -109,7 +110,9 @@ void odbc_set_return_status(struct _hstmt *stmt)
 {
     TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
 	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+#if 0
 	TDSLOCINFO *locale = context->locale;
+#endif
 
         if (stmt->prepared_query_is_func && tds->has_status){
                 struct _sql_param_info *param;

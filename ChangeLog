@@ -1,3 +1,9 @@
+Thu Oct  3 15:06:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h
+	  src/odbc/unittests/common.c src/odbc/unittests/common.h
+	  src/odbc/unittests/t0002.c src/odbc/unittests/t0003.c:
+	- Clean up warnings in odbc code.
+
 Thu Oct  3 14:43:29 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/unittests/common.c src/ctlib/unittests/t0001.c
 	  src/ctlib/unittests/t0002.c src/ctlib/unittests/t0003.c

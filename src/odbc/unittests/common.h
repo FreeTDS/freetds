@@ -14,13 +14,9 @@ extern char SERVER[512];
 extern char PASSWORD[512];
 extern char DATABASE[512];
 
-int read_login_info();
-
-void CheckReturn(); 
-
-int Connect(); 
-
-int Disconnect();
-
+int read_login_info(void);
+void CheckReturn(void); 
+int Connect(void); 
+int Disconnect(void);
 void Command(HSTMT stmt, const char* command);
 

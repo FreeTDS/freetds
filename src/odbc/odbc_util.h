@@ -30,12 +30,12 @@
 #endif
 
 static char  rcsid_odbc_util_h [ ] =
-         "$Id: odbc_util.h,v 1.3 2002-06-09 13:50:38 brianb Exp $";
+         "$Id: odbc_util.h,v 1.4 2002-10-03 19:07:32 castellano Exp $";
 static void *no_unused_odbc_util_h_warn[]={rcsid_odbc_util_h, 
                                          no_unused_odbc_util_h_warn};
 
 void odbc_LogError (const char* error);
-const char *odbc_GetLastError ();
+const char *odbc_GetLastError(void);
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
 int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len);
