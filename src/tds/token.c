@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.25 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.26 2002-07-05 13:18:21 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1315,6 +1315,8 @@ int marker, cancelled=0;
 		marker=tds_get_byte(tds);
 		if (marker==TDS_DONE_TOKEN) {
 			tds_process_end(tds, marker, NULL, &cancelled);
+		} else if (marker==0) {
+			cancelled = 1;
 		} else {
 			tds_process_default_tokens(tds,marker);
 		}

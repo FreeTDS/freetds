@@ -1,3 +1,9 @@
+Fri Jul  5 07:39:04 EDT 2002
+	*src/tds/token.c(tds_process_msg): (from lirm604) check for closed 
+		connection
+	*src/dblib/dblib.c: (from lirm604 mods by me) test return from 
+		tds_process_default_tokens
+
 Thu Jul  4 08:29:22 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/tds/*.c: add ifdef DMALLOC
 	*src/tds/mem.c: remove possible free of NULL pointer
