@@ -1,3 +1,15 @@
+Fri Aug 16 19:09:43 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c:
+	- finished trusted tds7 login
+	* src/tds/challenge.c:
+	- implement nt_resp
+	- return result filling parameter
+	* include/tds.h.in:
+	- added member config to TDSSOCKET
+	- declare tds_answer_challenge stuff
+	* src/tds/token.c:
+	- finished trusted tds7 login
+
 Fri Aug 16 18:21:32 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	+ include/Makefile.am:
 	- add tdsiconv.h to distribution

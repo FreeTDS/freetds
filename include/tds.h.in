@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.31 2002-08-16 16:45:20 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.32 2002-08-16 17:10:52 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -600,6 +600,9 @@ typedef struct tds_socket {
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
 	void *iconv_info;
+
+	/** config for login stuff. After login this field is NULL */
+	TDSCONFIGINFO *config;
 } TDSSOCKET;
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
@@ -685,6 +688,13 @@ struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *resu
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct servent *tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen);
 char *tds_strtok_r(char *s, const char *delim, char **ptrptr);
+
+typedef struct tds_answer
+{
+	unsigned char lm_resp[24];
+	unsigned char nt_resp[24];
+} TDSANSWER;
+void tds_answer_challenge(char *passwd, char *challenge,TDSANSWER* answer);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.32 2002-08-09 02:55:49 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.33 2002-08-16 17:10:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -180,6 +180,7 @@ char *tmpbuf;
 		switch(marker) {
 			case TDS_AUTH_TOKEN:
 				tds_process_auth(tds);
+				break;
 			case TDS_LOGIN_ACK_TOKEN:
 				len = tds_get_smallint(tds);
 				ack = tds_get_byte(tds);
@@ -221,36 +222,34 @@ char nonce[10];
 char domain[30];
 int where = 0;
 
-	pdu_size = tds_get_smallint(tds); where += 2;
+	pdu_size = tds_get_smallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
 
-	tds_get_ntstring(tds, NULL, 0); /* NTLMSSP\0 */ 
+	tds_get_n(tds, NULL, 8); /* NTLMSSP\0 */ 
 	where += 8;
-	tds_get_byte(tds); /* sequence -> 2 */
-	where++;
-	tds_get_n(tds, NULL, 7); /* ? */
-	where += 7;
-	ntlm_size = tds_get_smallint(tds); /* size of remainder of ntlmssp packet */
-	where += 2;
+	tds_get_int(tds); /* sequence -> 2 */
+	where += 4;
+	tds_get_n(tds, NULL, 4); /* domain len (2 time) */
+	where += 4;
+	ntlm_size = tds_get_int(tds); /* size of remainder of ntlmssp packet */
+	where += 4;
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN NTLMSSP size %d\n", ntlm_size);
-	tds_get_n(tds, NULL, 2); /* ? */
-	tds_get_n(tds, NULL, 2); /* ? */
-	tds_get_n(tds, NULL, 2); /* ? */
-	where += 6;
+	tds_get_n(tds, NULL, 4); /* flags */
+	where += 4;
 	tds_get_n(tds, nonce, 8); 
 	where += 8;
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce\n");
 	tdsdump_dump_buf(nonce, 8);
-	tds_get_n(tds, NULL, 16); 
-	where += 16;
+	tds_get_n(tds, NULL, 8); 
+	where += 8;
 	
 	//tds_get_ntstring(tds, domain, 30); 
 	//tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
 	//where += strlen(domain);
 	
 
-	tds_get_n(tds, NULL, pdu_size - ntlm_size); 
-	tdsdump_log(TDS_DBG_INFO1,"%L Draining %d bytes\n", pdu_size - ntlm_size);
+	tds_get_n(tds, NULL, pdu_size - where); 
+	tdsdump_log(TDS_DBG_INFO1,"%L Draining %d bytes\n", pdu_size - where);
 
 	tds7_send_auth(tds, nonce);
 

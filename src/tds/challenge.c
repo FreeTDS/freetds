@@ -21,6 +21,7 @@
 #include "tds.h"
 #ifdef HAVE_SSL
 #include <openssl/des.h>
+#include <openssl/md4.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -34,16 +35,18 @@ static void tds_convert_key(unsigned char *key_56, des_key_schedule ks);
 
 #define MAX_PW_SZ 14
 
-char *tds_answer_challenge(char *passwd, char *challenge)
+void tds_answer_challenge(char *passwd, char *challenge, TDSANSWER* answer)
 {
 int   len;
 int i;
-const_des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
-des_cblock lo_in, lo_out, hi_in, hi_out;
+static const_des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 des_key_schedule ks;
 unsigned char hash[24];
 unsigned char passwd_up[MAX_PW_SZ];
-static unsigned char answer[24];
+unsigned char nt_pw[256];
+MD4_CTX context;
+
+	memset(answer,0,sizeof(TDSANSWER));
 
 	/* convert password to upper and pad to 14 chars */
 	memset(passwd_up, 0, MAX_PW_SZ);
@@ -52,25 +55,40 @@ static unsigned char answer[24];
 	for (i=0; i<len; i++)
 		passwd_up[i] = toupper(passwd[i]);
 
-
 	/* hash the first 7 characters */
-	memset(lo_in, 0, 8);
-	memcpy(lo_in, passwd_up, 7);
-	tds_convert_key(lo_in, ks);
-	des_ecb_encrypt(&magic, &lo_out, ks, DES_ENCRYPT);
+	tds_convert_key(passwd_up, ks);
+	des_ecb_encrypt(&magic, (des_cblock*)(hash+0), ks, DES_ENCRYPT);
 
 	/* hash the second 7 characters */
-	memset(hi_in, 0, 8);
-	memcpy(hi_in, &passwd_up[7], 7);
-	tds_convert_key(hi_in, ks);
-	des_ecb_encrypt(&magic, &hi_out, ks, DES_ENCRYPT);
+	tds_convert_key(passwd_up+7, ks);
+	des_ecb_encrypt(&magic, (des_cblock*)(hash+8), ks, DES_ENCRYPT);
 
-	memset(hash, 0, 24);
-	memcpy(hash, lo_out, 8);
-	memcpy(&hash[8], hi_out, 8);
+	memset(hash+16, 0, 5);
 
-	tds_encrypt_answer(hash, challenge, answer);
-	return answer;
+	tds_encrypt_answer(hash, challenge, answer->lm_resp);
+
+	/* NT resp */
+	len = strlen(passwd);
+	if (len > 128) len = 128;
+	for(i=0;i<len;++i)
+	{
+		nt_pw[2*i] = passwd[i];
+		nt_pw[2*i+1] = 0;
+	}
+	
+	MD4_Init(&context);
+	MD4_Update(&context, nt_pw, len*2);
+	MD4_Final(hash,&context);
+
+	memset(hash+16, 0, 5);
+	tds_encrypt_answer(hash, challenge, answer->nt_resp);
+
+	/* with security is best be pedantic */
+	memset(&ks,0,sizeof(ks));
+	memset(hash,0,sizeof(hash));
+	memset(passwd_up,0,sizeof(passwd_up));
+	memset(nt_pw,0,sizeof(nt_pw));
+	memset(&context,0,sizeof(context));
 }
 
 
@@ -91,6 +109,8 @@ des_key_schedule ks;
 
 	tds_convert_key(&hash[14], ks);
 	des_ecb_encrypt((des_cblock*) challenge, (des_cblock*) (&answer[16]), ks, DES_ENCRYPT);
+
+	memset(&ks,0,sizeof(ks));
 }
 
 
@@ -113,6 +133,8 @@ des_cblock key;
 
 	des_set_odd_parity(&key);
 	des_set_key(&key, ks);
+
+	memset(&key, 0, sizeof(key));
 }
 
 #endif /* HAVE_SSL */
