@@ -36,8 +36,8 @@
 #include "tds.h"
 #include "des.h"
 
-static void permute_ip(char *inblock, DES_KEY *key, char *outblock);
-static void permute_fp(char *inblock, DES_KEY *key, char *outblock);
+static void permute_ip(des_cblock inblock, DES_KEY *key, des_cblock outblock);
+static void permute_fp(des_cblock inblock, DES_KEY *key, des_cblock outblock);
 static void perminit_ip(DES_KEY *key);
 static void spinit(DES_KEY *key);
 static void perminit_fp(DES_KEY *key);
@@ -46,7 +46,7 @@ static TDS_UINT f(DES_KEY *key, register TDS_UINT r, register char *subkey);
 void des_set_odd_parity(des_cblock key) {
 
 	int i;
-	char parity;
+	unsigned char parity;
 
 	for (i = 0; i < 8; i++) {
 		parity = key[i];
@@ -229,7 +229,7 @@ static int des_init(DES_KEY * key)
 
 
 /* Set key (initialize key schedule array) */
-    int des_set_key(DES_KEY * dkey, char *user_key, int len)
+int des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 {
 	char pc1m[56];		/* place to modify pc1 into */
 	char pcr[56];		/* place to rotate pc1 into */
@@ -269,13 +269,13 @@ static int des_init(DES_KEY * key)
 }
 
 /* In-place encryption of 64-bit block */
-void des_encrypt(DES_KEY * key, des_cblock *block)
+void des_encrypt(DES_KEY * key, des_cblock block)
 {
 	register TDS_UINT left, right;
 	register char *knp;
 	TDS_UINT work[2];		/* Working data storage */
 
-	permute_ip(block, key, (char *) work);	/* Initial Permutation */
+	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
 #ifndef	WORDS_BIGENDIAN
 	left = byteswap32(work[0]);
 	right = byteswap32(work[1]);
@@ -330,7 +330,7 @@ void des_encrypt(DES_KEY * key, des_cblock *block)
 	work[0] = right;
 	work[1] = left;
 #endif
-	permute_fp((char *) work, key, block);	/* Inverse initial permutation */
+	permute_fp((unsigned char *) work, key, block);	/* Inverse initial permutation */
 }
 
 /* In-place decryption of 64-bit block. This function is the mirror
@@ -343,7 +343,7 @@ void _mcrypt_decrypt(DES_KEY * key, char *block)
 	register char *knp;
 	TDS_UINT work[2];		/* Working data storage */
 
-	permute_ip(block, key, (char *) work);	/* Initial permutation */
+	permute_ip(block, key, (unsigned char *) work);	/* Initial permutation */
 
 	/* Left/right half swap, plus byte swap if little-endian */
 #ifndef	WORDS_BIGENDIAN
@@ -398,13 +398,13 @@ void _mcrypt_decrypt(DES_KEY * key, char *block)
 	work[0] = left;
 	work[1] = right;
 #endif
-	permute_fp((char *) work, key, block);	/* Inverse initial permutation */
+	permute_fp((unsigned char *) work, key, block);	/* Inverse initial permutation */
 }
 
 /* Permute inblock with perm */
-static void permute_ip(char *inblock, DES_KEY * key, char *outblock)
+static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
-	register char *ib, *ob;	/* ptr to input or output block */
+	register unsigned char *ib, *ob;	/* ptr to input or output block */
 	register char *p, *q;
 	register int j;
 
@@ -429,7 +429,7 @@ static void permute_ip(char *inblock, DES_KEY * key, char *outblock)
 }
 
 /* Permute inblock with perm */
-static void permute_fp(char *inblock, DES_KEY * key, char *outblock)
+static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
 	register char *ib, *ob;	/* ptr to input or output block */
 	register char *p, *q;
@@ -595,10 +595,10 @@ static void spinit(DES_KEY * key)
 
 /* ECB MODE */
 
-int des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock *output)
+int des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock output)
 {
 	int j;
-	const char *plain = plaintext;
+	const unsigned char *plain = plaintext;
 
 	for (j = 0; j < len / 8; j++) {
 		memcpy(&output[j*8], &plain[j*8], 8);

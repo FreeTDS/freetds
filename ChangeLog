@@ -1,3 +1,8 @@
+Mon Oct  2 11:49:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/des.h src/tds/challenge.c src/tds/des.c:
+	- fixed warnings compiling
+	- used all unsigned char for portability
+
 Tue Oct  1 12:41:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/freebcp.c src/apps/tsql.c:
 	- Correct existing prototypes, add missing prototypes.

@@ -71,11 +71,11 @@ MD4_CTX context;
 
 	/* hash the first 7 characters */
 	tds_convert_key(passwd_up, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (des_cblock *)(hash+0));
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash+0));
 
 	/* hash the second 7 characters */
 	tds_convert_key(passwd_up+7, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (des_cblock *)(hash+8));
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash+8));
 
 	memset(hash+16, 0, 5);
 
@@ -116,13 +116,13 @@ static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challen
 DES_KEY ks;
 
 	tds_convert_key(hash, &ks);
-	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) answer);
+	des_ecb_encrypt(challenge, 8, &ks, answer);
 
 	tds_convert_key(&hash[7], &ks);
-	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) &answer[8]);
+	des_ecb_encrypt(challenge, 8, &ks, &answer[8]);
 
 	tds_convert_key(&hash[14], &ks);
-	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) &answer[16]);
+	des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
 
 	memset(&ks,0,sizeof(ks));
 }
@@ -146,7 +146,7 @@ des_cblock key;
 	key[7] =  (key_56[6] << 1) & 0xFF;
 
 	des_set_odd_parity(key);
-	des_set_key(ks, &key, sizeof(key));
+	des_set_key(ks, key, sizeof(key));
 
 	memset(&key, 0, sizeof(key));
 }
