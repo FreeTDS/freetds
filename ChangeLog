@@ -1,3 +1,7 @@
+Fri Jan 09 00:08:44 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/transaction.c:
+	- add a fix for old unixODBC
+
 Thu Jan 08 11:25:40 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	- fix SQL_DESC_TYPE_NAME results for timestamp type

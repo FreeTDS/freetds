@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.2 2003-12-29 21:44:57 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.3 2004-01-08 23:08:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -55,6 +55,8 @@ main(int argc, char *argv[])
 		retcode = 1;
 		goto cleanup;
 	}
+
+	SQLCloseCursor(Statement);
 
 	/* Start transaction */
 	result = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0);
