@@ -1,3 +1,6 @@
+Fri Nov 29 20:44:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c: enable RPC check for Sybase
+
 Fri Nov 29 17:01:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- add support for RPC using TDS5 (not tested)

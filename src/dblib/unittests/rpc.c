@@ -21,8 +21,44 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.6 2002-11-25 21:59:49 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.7 2002-11-29 19:45:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static char cmd[512];
+
+int
+init_proc(DBPROCESS * dbproc, const char *name)
+{
+	int res = 0;
+
+	fprintf(stdout, "Dropping proc\n");
+	add_bread_crumb();
+	sprintf(cmd, "drop proc %s", name);
+	dbcmd(dbproc, cmd);
+	add_bread_crumb();
+	dbsqlexec(dbproc);
+	add_bread_crumb();
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+	add_bread_crumb();
+
+	fprintf(stdout, "creating proc\n");
+	sprintf(cmd, "create proc %s (@b int out) as\nbegin\n select @b = 42\nend\n", name);
+	dbcmd(dbproc, cmd);
+	if (dbsqlexec(dbproc) == FAIL) {
+		add_bread_crumb();
+		res = 1;
+		if (name[0] == '#')
+			fprintf(stdout, "Failed to create proc %s. Wrong permission or not MSSQL.\n", name);
+		else
+			fprintf(stdout, "Failed to create proc %s. Wrong permission.\n", name);
+	}
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+	return res;
+}
 
 int
 main(int argc, char **argv)
@@ -35,6 +71,7 @@ main(int argc, char **argv)
 	char *retname = NULL;
 	int rettype = 0, retlen = 0, retval = 0xdeadbeef;
 	char proc[] = "#t0022", param[] = "@b";
+	const char *proc_name = proc;
 	RETCODE erc;
 
 	set_malloc_options();
@@ -68,47 +105,39 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
-	fprintf(stdout, "Dropping proc\n");
-	add_bread_crumb();
-	dbcmd(dbproc, "drop proc #t0022");
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
-	add_bread_crumb();
-
-	fprintf(stdout, "creating proc\n");
-	dbcmd(dbproc, "create proc #t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
-	if (dbsqlexec(dbproc) == FAIL) {
-		add_bread_crumb();
-		fprintf(stdout, "Failed to create proc #t0022. Wrong permission or not MSSQL.\n");
-		if (DBTDS(dbproc) == DBTDS_7_0 || DBTDS(dbproc) == DBTDS_8_0)
+	if (init_proc(dbproc, proc_name))
+		if (init_proc(dbproc, ++proc_name))
 			exit(1);
-		exit(0);
-	}
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
-	
+
 	/* set up and send the rpc */
-	erc = dbrpcinit  (dbproc, proc, 0); /* no options */
+	erc = dbrpcinit(dbproc, proc_name, 0);	/* no options */
 	printf("executing dbrpcinit\n");
-	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcinit\n");
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcinit\n");
+		failed = 1;
+	}
 
 	printf("executing dbrpcparam\n");
-	erc = dbrpcparam (dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen=*/ -1, sizeof(retval), (BYTE*)&retval);
-	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcparam\n");
+	erc = dbrpcparam(dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, sizeof(retval), (BYTE *) & retval);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcparam\n");
+		failed = 1;
+	}
 
 	printf("executing dbrpcsend\n");
-	erc = dbrpcsend (dbproc);
-	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcsend\n");
+	erc = dbrpcsend(dbproc);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcsend\n");
+		failed = 1;
+	}
 
 	/* wait for it to execute */
 	printf("executing dbsqlok\n");
-	erc = dbsqlok (dbproc);
-	if (erc == FAIL) fprintf(stderr, "Failed: dbsqlok\n");
+	erc = dbsqlok(dbproc);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbsqlok\n");
+		failed = 1;
+	}
 
 	add_bread_crumb();
 
@@ -120,7 +149,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	printf("done\n");
-	
+
 	add_bread_crumb();
 
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
@@ -154,7 +183,8 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	dbcmd(dbproc, "drop proc #t0022");
+	sprintf(cmd, "drop proc %s", proc_name);
+	dbcmd(dbproc, cmd);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
