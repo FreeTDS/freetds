@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.244 2003-12-30 14:45:03 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.245 2004-01-10 19:09:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2319,6 +2319,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	int rc;
 	int len;
 	int len_sqlstate;
+	int status;
 	TDSMSGINFO msg_info;
 
 	/* make sure message has been freed */
@@ -2360,9 +2361,10 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		if (strcmp(msg_info.sql_state, "ZZZZZ") == 0)
 			TDS_ZERO_FREE(msg_info.sql_state);
 
+		/* if status = 1, extended error data follows */
+		status = tds_get_byte(tds);
+
 		/* junk status and transaction state */
-		/* TODO if status == 1 clear cur_dyn and param_info ?? */
-		tds_get_byte(tds);
 		tds_get_smallint(tds);
 		break;
 	case TDS_INFO_TOKEN:
@@ -2396,6 +2398,12 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	 * TDS_EED_TOKEN is not being called for me. */
 	if (msg_info.sql_state == NULL)
 		msg_info.sql_state = tds_alloc_lookup_sqlstate(tds, msg_info.msg_number);
+
+
+	/* In case extended error data is sent, we just try to discard it */
+	if (1 == status) {
+		tds_process_trailing_tokens(tds);
+	}
 
 	/* call the msg_handler that was set by an upper layer 
 	 * (dblib, ctlib or some other one).  Call it with the pointer to 

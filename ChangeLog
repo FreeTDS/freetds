@@ -1,3 +1,6 @@
+Sat Jan 10 14:02:39 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/token.c Alex Kiesel patch: segfault on foreign key violation
+	
 Sat Jan 10 13:58:03 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* AUTHORS Added contibutors to 0.62, at Frediano's suggestion
 	
