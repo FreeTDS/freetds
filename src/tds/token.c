@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.177 2003-04-28 10:06:40 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.178 2003-04-28 19:35:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1276,6 +1276,8 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	/* TODO check if all flags are the same for all TDS versions */
+	curcol->column_hidden = curcol->column_flags & 0x1;
+	curcol->column_key = (curcol->column_flags & 0x2) > 1;
 	curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
 	curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
 	curcol->column_identity = (curcol->column_flags & 0x40) > 1;
@@ -1450,9 +1452,11 @@ tds5_process_result(TDSSOCKET * tds)
 
 		/* flags (4 bytes) */
 		curcol->column_flags = tds_get_int(tds);
-		curcol->column_writeable = (curcol->column_flags & 0x10) > 0;
-		curcol->column_nullable = (curcol->column_flags & 0x20) > 0;
-		curcol->column_identity = (curcol->column_flags & 0x40) > 0;
+		curcol->column_hidden = curcol->column_flags & 0x1;
+		curcol->column_key = (curcol->column_flags & 0x2) > 1;
+		curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
+		curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
+		curcol->column_identity = (curcol->column_flags & 0x40) > 1;
 
 		curcol->column_usertype = tds_get_int(tds);
 

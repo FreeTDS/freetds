@@ -1,3 +1,8 @@
+Mon Apr 28 21:35:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c src/tds/unittests/.cvsignore:
+	* src/tds/unittests/Makefile.am src/tds/unittests/flags.c(added):
+	- check flags detected by libTDS (not finished)
+
 Mon Apr 28 12:05:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: workaround for buggy sybase server
 
