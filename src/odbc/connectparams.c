@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.59 2005-01-24 20:07:48 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.60 2005-01-27 09:28:23 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -227,7 +227,6 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 	DSTR *dest_s, value;
 	int reparse = 0;	/* flag for indicate second parse of string */
 	char option[16];
-	char tmp[256];
 
 	tds_dstr_init(&value);
 	for (p = connect_string; p && *p;) {
