@@ -1,3 +1,8 @@
+Tue Apr  1 16:32:59 EST 2003	JK Lowden <jklowden@schemamania.org>	
+	* doc/Makefile.am fix installation, I hope
+	* src/dblib/dblib.c fix bug #709430 in dbcolname
+	* src/odbc/connectparams.c fix bug #702588, writing to input
+
 Tue Apr 01 21:14:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds.html: updated from Bill info
 	* src/ctlib/ct.c: applied Bill patch on writetext
