@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.33 2002-07-05 19:06:14 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.34 2002-07-05 19:11:05 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1487,7 +1487,7 @@ SQLRETURN SQL_API SQLColumns(
         bNeedComma = 1;
     }
 
-printf( "[PAH][%s][%d]%s\n", __FILE__, __LINE__, szQuery );
+/* printf( "[PAH][%s][%d]%s\n", __FILE__, __LINE__, szQuery ); */
 
     if ( SQL_SUCCESS != odbc_set_stmt_query( stmt, szQuery, strlen( szQuery ) ) )
         return SQL_ERROR;
@@ -2093,6 +2093,7 @@ SQLRETURN SQL_API SQLTables(
     ttlen = odbc_get_string_size(cbTableType, szTableType);
 
     querylen = strlen(sptables) + clen + slen + tlen + ttlen + 40; /* a little padding for quotes and commas */
+printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
     query = (char *) malloc(querylen);
     if (!query)
         return SQL_ERROR;
