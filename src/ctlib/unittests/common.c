@@ -10,8 +10,9 @@
 
 #include <ctpublic.h>
 #include "common.h"
+#include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.11 2003-02-12 06:16:16 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.12 2004-01-07 18:04:53 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -72,6 +73,7 @@ try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int ver
 {
 CS_RETCODE ret;
 char query[30];
+TDSCONTEXT *tds_ctx;
 
 	/* read login information from PWD file */
 	ret = read_login_info();
@@ -88,6 +90,14 @@ char query[30];
 		}
 		return ret;
 	}
+
+	/* Force default date format, some tests rely on it */
+	tds_ctx = (TDSCONTEXT *) (*ctx)->tds_ctx;
+	if (tds_ctx && tds_ctx->locale && tds_ctx->locale->date_fmt) {
+		free(tds_ctx->locale->date_fmt);
+		tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
+	}
+
 	ret = ct_init(*ctx, CS_VERSION_100);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
