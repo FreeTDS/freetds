@@ -1,3 +1,10 @@
+Thu Nov 21 11:47:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/connect.c src/odbc/unittests/Makefile.am:
+	- added test to test connections
+	* src/odbc/unittests/common.c:
+	- improve Disconnect
+	* src/odbc/connectparams.c: reindented
+
 Thu Nov 21 11:18:03 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/odbc.c:
 	- handle DSN option in connectstring 
