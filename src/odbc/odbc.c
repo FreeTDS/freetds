@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.17 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.18 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -135,11 +135,12 @@ static SQLRETURN do_connect (
 )
 {
    struct _hdbc *dbc = (struct _hdbc *) hdbc;
+   struct _henv *env = dbc->env;
 
    tds_set_server (dbc->tds_login, server);
    tds_set_user   (dbc->tds_login, user);
    tds_set_passwd (dbc->tds_login, passwd);
-   dbc->tds_socket = (void *) tds_connect(dbc->tds_login, (void *)dbc);
+   dbc->tds_socket = (void *) tds_connect(dbc->tds_login, env->locale, (void *)dbc);
 
    if (dbc->tds_socket == NULL)
    {
@@ -512,8 +513,9 @@ static SQLRETURN SQL_API _SQLAllocEnv(
 {
 struct _henv *env;
 
-        env = (SQLHENV) malloc(sizeof(struct _henv));
-        memset(env,'\0',sizeof(struct _henv));
+	env = (SQLHENV) malloc(sizeof(struct _henv));
+	memset(env,'\0',sizeof(struct _henv));
+	env->locale = tds_get_locale();
 	*phenv=env;
 	return SQL_SUCCESS;
 }

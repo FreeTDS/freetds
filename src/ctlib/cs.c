@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.4 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.5 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -30,11 +30,16 @@ CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 {
 	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
 	memset(*ctx,'\0',sizeof(CS_CONTEXT));
+	/* find our default locale and read it */
+	(*ctx)->locale = tds_get_locale();
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)
 {
-	if (ctx) free(ctx);
+	if (ctx) {
+		if (ctx->locale) tds_free_locale(ctx->locale);
+		free(ctx);
+	}
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
@@ -43,13 +48,18 @@ CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *b
 }
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen)
 {
-int src_type, dest_type;
+int src_type, dest_type, len = 0;
 
 	src_type = _ct_get_server_type(srcfmt->datatype);
 	dest_type = _ct_get_server_type(destfmt->datatype);
 
-	tds_convert(NULL, src_type, srcdata, srcfmt ? srcfmt->maxlength : 0, 
-		dest_type, destdata, destfmt ? destfmt->maxlength : 0);
+	len = tds_convert(ctx->locale, src_type, srcdata, 
+		srcfmt ? srcfmt->maxlength : 0, dest_type, destdata, 
+		destfmt ? destfmt->maxlength : 0);
+
+	if (resultlen)
+		*resultlen = len;
+
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_dt_crack(CS_CONTEXT *ctx, CS_INT datetype, CS_VOID *dateval, CS_DATEREC *daterec)

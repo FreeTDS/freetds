@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.11 2002-02-15 03:18:14 brianb Exp $";
+	 "$Id: tds.h.in,v 1.12 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -393,8 +393,13 @@ typedef struct tds_config_info {
 	   int suppress_language;
 	   int encrypted;
         char *client_charset;
-        char *date_fmt;
 } TDSCONFIGINFO;
+
+typedef struct tds_loc_info {
+        char *language;
+        char *char_set;
+        char *date_fmt;
+} TDSLOCINFO;
 
 /* structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
@@ -554,6 +559,7 @@ typedef struct tds_socket {
 
 typedef struct tds_context {
 	TDSSOCKET *connection_list[TDS_MAX_CONN];
+	TDSLOCINFO *locale;
 } TDSCONTEXT;
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
@@ -583,13 +589,15 @@ extern char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
 extern TDSRESULTINFO *tds_alloc_results(int num_cols);
 extern TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
 extern TDSSOCKET *tds_alloc_socket(int bufsize);
-extern TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login);
+extern TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
+extern TDSLOCINFO *tds_get_locale();
 extern void *tds_alloc_row(TDSRESULTINFO *res_info);
 extern char *tds_msg_get_proc_name(TDSSOCKET *tds);
 extern TDSLOGIN *tds_alloc_login();
 extern void tds_free_login(TDSLOGIN *login);
-extern TDSCONFIGINFO *tds_alloc_config();
-extern TDSSOCKET *tds_connect(TDSLOGIN *login, void *parent);
+extern TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
+extern TDSLOCINFO *tds_alloc_locale();
+extern TDSSOCKET *tds_connect(TDSLOGIN *login, TDSLOCINFO *locale, void *parent);
 extern void tds_set_packet(TDSLOGIN *tds_login, short packet_size);
 extern void tds_set_port(TDSLOGIN *tds_login, int port);
 extern void tds_set_passwd(TDSLOGIN *tds_login, char *password);

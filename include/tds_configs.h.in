@@ -21,7 +21,7 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h.in,v 1.2 2002-01-23 03:54:35 brianb Exp $";
+	 "$Id: tds_configs.h.in,v 1.3 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus
@@ -31,6 +31,7 @@ extern "C" {
 #define FREETDS_SYSCONFDIR "%SYSCONFDIR%"
 #define FREETDS_SYSCONFFILE "%SYSCONFDIR%/freetds.conf"
 #define FREETDS_POOLCONFFILE "%SYSCONFDIR%/pool.conf"
+#define FREETDS_LOCALECONFFILE "%SYSCONFDIR%/locales.conf"
 
 #ifdef __cplusplus
 }

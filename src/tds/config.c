@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.10 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.11 2002-02-17 20:23:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -82,13 +82,13 @@ static char interf_file[MAXPATH];
 ** .tdsrc and freetds.conf have been added to make the package easier to 
 ** integration with various Linux and *BSD distributions.
 */ 
-TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login)
+TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale)
 {
 TDSCONFIGINFO *config;
 
 
 	/* allocate a new structure with hard coded and build-time defaults */
-	config = tds_alloc_config();
+	config = tds_alloc_config(locale);
 
 #if DEBUG_CONFIG
 	tdsdump_open("/tmp/tdsconfig.log");
@@ -304,9 +304,6 @@ int found = 0;
 				config->language = strdup(value);
 			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
 				g_append_mode = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_DATEFMT)) {
-				if (config->date_fmt) free(config->date_fmt);
-				config->date_fmt = strdup(value);
 			}
 		}
 

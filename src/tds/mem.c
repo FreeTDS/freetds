@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.8 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.9 2002-02-17 20:23:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -262,7 +262,16 @@ void tds_free_column(TDSCOLINFO *column)
 	if (column->column_textvalue) TDS_ZERO_FREE(column->column_textvalue);
 	TDS_ZERO_FREE(column);
 }
-TDSCONFIGINFO *tds_alloc_config()
+TDSLOCINFO *tds_alloc_locale()
+{
+TDSLOCINFO *locale;
+
+	locale = (TDSLOCINFO *) malloc(sizeof(TDSLOCINFO));
+	memset(locale, '\0', sizeof(TDSLOCINFO));
+
+	return locale;
+}
+TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale)
 {
 TDSCONFIGINFO *config;
 char hostname[30];
@@ -276,8 +285,16 @@ char hostname[30];
 	config->minor_version = TDS_DEF_MINOR;
 	config->port = TDS_DEF_PORT;
 	config->block_size = TDS_DEF_BLKSZ;
-        config->language = strdup(TDS_DEF_LANG);
-        config->char_set = strdup(TDS_DEF_CHARSET);
+	if (locale) {
+		if (locale->language) 
+        		config->language = strdup(locale->language);
+		else 
+        		config->language = strdup(TDS_DEF_LANG);
+		if (locale->char_set) 
+        		config->char_set = strdup(locale->char_set);
+		else 
+        		config->char_set = strdup(TDS_DEF_CHARSET);
+	}
 	config->try_server_login = 1;
 	memset(hostname,'\0', 30);
 	gethostname(hostname,30);
@@ -356,6 +373,13 @@ void tds_free_socket(TDSSOCKET *tds)
 		TDS_ZERO_FREE(tds);
 	}
 }
+void tds_free_locale(TDSLOCINFO *locale)
+{
+	if (locale->language) free(locale->language);
+	if (locale->char_set) free(locale->char_set);
+	if (locale->date_fmt) free(locale->date_fmt);
+	TDS_ZERO_FREE(locale);
+}
 void tds_free_config(TDSCONFIGINFO *config)
 {
         if (config->server_name) free(config->server_name);
@@ -367,7 +391,6 @@ void tds_free_config(TDSCONFIGINFO *config)
         if (config->dump_file) free(config->dump_file);
         if (config->default_domain) free(config->default_domain);
         if (config->client_charset) free(config->client_charset);
-        if (config->date_fmt) free(config->date_fmt);
 	TDS_ZERO_FREE(config);
 }
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)

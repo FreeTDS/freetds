@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.15 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.16 2002-02-17 20:23:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -105,7 +105,7 @@ extern void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilitie
 		size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
 }
 
-TDSSOCKET *tds_connect(TDSLOGIN *login, void *parent) 
+TDSSOCKET *tds_connect(TDSLOGIN *login, TDSLOCINFO *locale, void *parent) 
 {
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
@@ -124,7 +124,7 @@ char *tmpstr;
 FD_ZERO (&fds);                                    
 /* end */
 
-	config = tds_get_config(NULL, login);
+	config = tds_get_config(NULL, login, locale);
 
 	/*
 	** If a dump file has been specified, start logging
@@ -157,9 +157,11 @@ FD_ZERO (&fds);
 	}
 
 	/* specified a date format? */
+	/*
 	if (config->date_fmt) {
 		tds->date_fmt=strdup(config->date_fmt);
 	}
+	*/
 
 	/* Jeff's hack - begin */
 	tds->timeout = (login->connect_timeout) ? login->query_timeout : 0;        

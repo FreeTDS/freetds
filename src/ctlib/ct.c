@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.14 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.15 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -289,6 +289,7 @@ CS_RETCODE ct_connect(CS_CONNECTION *con, CS_CHAR *servername, CS_INT snamelen)
 {
 char *server;
 int needfree=0;
+CS_CONTEXT *ctx;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_connect() servername = %s\n", servername);
 
@@ -303,7 +304,8 @@ int needfree=0;
 		server[snamelen]='\0';
 	}
         tds_set_server(con->tds_login,server);
-        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, (void *) con))) {
+	   ctx = con->ctx;
+        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, ctx->locale, (void *) con))) {
 		if (needfree) free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
@@ -520,6 +522,7 @@ TDSRESULTINFO *resinfo = tds->res_info;
 unsigned char *src;
 unsigned char *dest;
 TDS_INT srctype, srclen, desttype, destlen, len;
+CS_CONTEXT *ctx = cmd->con->ctx;
 
    tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_bind_data()\n");
 
@@ -552,7 +555,7 @@ TDS_INT srctype, srclen, desttype, destlen, len;
             srclen = curcol->column_size;
          }
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d\n", i, srclen);
-         len = tds_convert(tds, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+         len = tds_convert(ctx->locale, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
          tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
    
          /* XXX need utf16 support (NCHAR,NVARCHAR,NTEXT) */

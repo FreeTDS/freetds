@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.10 2002-02-15 03:18:14 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.11 2002-02-17 20:23:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -58,7 +58,6 @@ int g_dblib_version = DBVERSION_46;
 #ifdef TDS70
 int g_dblib_version = DBVERSION_70;
 #endif
-
 
 static void buffer_init(DBPROC_ROWBUF *buf)
 {
@@ -367,16 +366,19 @@ static void buffer_transfer_bound_data(
 
 RETCODE dbinit()
 {
-   /* set the functions in the TDS layer to point to the correct info/err
-    * message handler functions */
-   g_tds_msg_handler = dblib_handle_info_message;
-   g_tds_err_handler = dblib_handle_err_message;
-   /* TDSCONTEXT stores a list of current connections so they may be closed
-   ** with dbexit() */
-   g_tds_context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
-   memset(g_tds_context,'\0',sizeof(TDSCONTEXT));
-   
-   return SUCCEED;
+	/* set the functions in the TDS layer to point to the correct info/err
+	* message handler functions */
+	g_tds_msg_handler = dblib_handle_info_message;
+	g_tds_err_handler = dblib_handle_err_message;
+
+	/* TDSCONTEXT stores a list of current connections so they may be closed
+	** with dbexit() */
+	g_tds_context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
+	memset(g_tds_context,'\0',sizeof(TDSCONTEXT));
+
+	g_tds_context->locale = tds_get_locale(g_tds_context->locale);
+
+	return SUCCEED;
 }
 LOGINREC *dblogin()
 {
@@ -439,7 +441,7 @@ DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
    memset(dbproc,'\0',sizeof(DBPROCESS));
    tds_set_server(login->tds_login,server);
    
-   dbproc->tds_socket = (void *) tds_connect(login->tds_login, (void *)dbproc);
+   dbproc->tds_socket = (void *) tds_connect(login->tds_login, g_tds_context->locale, (void *)dbproc);
    dbproc->dbbuf = NULL;
    dbproc->dbbufsz = 0;
 
@@ -611,6 +613,7 @@ int i;
 			dbclose(dbproc);
 		}
 	}
+	tds_free_locale(g_tds_context->locale);
 }
 
 
@@ -869,7 +872,7 @@ TDSSOCKET *tds = NULL;
 	}
 
 	if (srclen==-1) srclen = strlen((char *)src);
-	return tds_convert(tds, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+	return tds_convert(g_tds_context->locale, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
 }
 RETCODE dbbind(
    DBPROCESS *dbproc,
@@ -1988,8 +1991,8 @@ char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	tds_convert(tds, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
-	tds_convert(tds, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+	tds_convert(g_tds_context->locale, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
+	tds_convert(g_tds_context->locale, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
 	sprintf(query, "writetext bulk %s %s timestamp = %s",
 		objname, textptr_string, timestamp_string); 
 	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {

@@ -1,3 +1,19 @@
+Sun Feb 17 15:14:20 EST 2002	Brian Bruns	<camber@ais.org>
+	* include/tds.h.in: add TDSLOCINFO structure and move date format stuff 
+	to there.
+	* include/cspublic.h: add locale pointer to CS_CONNECTION
+	* include/tdsodbc.h: add locale pointer to _henv structure
+	* src/tds/convert.c: strftime return not checked, broke sqsh
+	* src/tds/login.c: tds_connect now takes locale parameter
+	* src/tds/mem.c: add locales
+	* src/dblib/dblib.c: fix call to tds_connect
+	* src/dblib/ct.c: fix call to tds_connect
+	* src/dblib/cs.c: add locales
+	* src/pool/member.c: fix call to tds_connect
+	* src/odbc/odbc.c: fix call to tds_connect
+	* src/tds/locale.c: first implementation of locale conf file
+	* locales.conf: sample locales.conf file
+
 Thu Feb 14 22:08:17 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* include/tds.h.in: add date format config option
