@@ -233,7 +233,7 @@ dblib	core	dbsetlapp	OK
 dblib	core	dbsetlfallback	
 dblib	core	dbsetlhost	OK
 dblib	core	dbsetlnatlang	OK
-dblib	core	dbsetlogintime	stub
+dblib	core	dbsetlogintime	OK
 dblib	core	dbsetlpacket	OK
 dblib	core	dbsetlpwd	OK
 dblib	core	dbsetlsecure	
