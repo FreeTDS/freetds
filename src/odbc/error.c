@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.26 2003-08-04 09:13:24 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.27 2003-08-27 13:07:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -546,7 +546,6 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
 	char tmp[16];
-	SQLRETURN lastrc;
 
 	if (cbBuffer < 0)
 		return SQL_ERROR;
@@ -560,20 +559,17 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		dbc = stmt->hdbc;
 		env = dbc->henv;
 		errs = &stmt->errs;
-		lastrc = stmt->lastrc;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
 		env = dbc->henv;
 		errs = &dbc->errs;
-		lastrc = dbc->lastrc;
 		break;
 
 	case SQL_HANDLE_ENV:
 		env = ((TDS_ENV *) handle);
 		errs = &env->errs;
-		lastrc = env->lastrc;
 		break;
 
 	default:
@@ -599,7 +595,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_RETURNCODE:
-		*(SQLRETURN *) buffer = lastrc;
+		*(SQLRETURN *) buffer = errs->lastrc;
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_CURSOR_ROW_COUNT:

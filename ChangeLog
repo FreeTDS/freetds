@@ -1,3 +1,11 @@
+Wed Aug 27 15:06:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c: 
+	- move lastrc in sql_errors structure
+	* src/odbc/odbc.c: small comment fix
+	* src/odbc/checkexport.sh vms/odbc_driver_axp.opt:
+	* win32/FreeTDS.def:
+	- update exports from system that require explicit symbols list
+
 Wed Aug 27 11:53:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- continue merging Steve Murphree patch

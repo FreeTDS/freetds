@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.222 2003-08-27 09:53:59 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.223 2003-08-27 13:07:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2773,7 +2773,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	resinfo = tds->res_info;
 	if (resinfo == NULL) {
 		/* 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
-		 * ** generating queries such as 'drop table' */
+		 * generating queries such as 'drop table' */
 		*pccol = 0;
 		ODBC_RETURN(stmt, SQL_SUCCESS);
 	}

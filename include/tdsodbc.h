@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.45 2003-08-26 15:50:42 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.46 2003-08-27 13:07:52 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -62,11 +62,12 @@ struct _sql_error
 
 struct _sql_errors
 {
+	SQLRETURN lastrc;
 	int num_errors;
 	struct _sql_error *errs;
 };
 
-#define ODBC_RETURN(handle, rc)       { return (handle->lastrc = (rc)); }
+#define ODBC_RETURN(handle, rc)       { return (handle->errs.lastrc = (rc)); }
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
@@ -135,7 +136,6 @@ struct _hdesc
 	struct _dheader header;
 	struct _drecord *records;
 	struct _sql_errors errs;
-	SQLRETURN lastrc;
 };
 
 typedef struct _hdesc TDS_DESC;
@@ -164,7 +164,6 @@ struct _henv
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
 	struct _heattr attr;
-	SQLRETURN lastrc;
 };
 
 struct _hcattr
@@ -205,7 +204,6 @@ struct _hdbc
 	struct _sql_errors errs;
 	struct _hcattr attr;
 	TDS_DESC *uad[MAX_APP_DESC];
-	SQLRETURN lastrc;
 };
 
 struct _hstmt
@@ -233,7 +231,6 @@ struct _hstmt
 	TDSDYNAMIC *dyn;
 	struct _sql_errors errs;
 	TDS_DESC *ard, *ird, *apd, *ipd;
-	SQLRETURN lastrc;
 };
 
 struct _sql_param_info
