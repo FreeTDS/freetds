@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.39 2002-09-05 12:22:08 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.40 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -116,9 +116,9 @@ void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int 
 		size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
 }
 
-TDSSOCKET *tds_connect(TDSLOGIN *login, TDSCONTEXT *context, void *parent) 
+int
+tds_connect(TDSSOCKET *tds, TDSLOGIN *login)
 {
-TDSSOCKET	*tds;
 struct sockaddr_in      sin;
 /* Jeff's hack - begin */
 unsigned long ioctl_blocking = 1;                      
@@ -131,12 +131,14 @@ TDSCONFIGINFO *config;
 char query[30];
 char *tmpstr;
 int connect_timeout = 0;
+TDSLOCINFO *locale = NULL;
 
+	FD_ZERO(&fds);
 
-FD_ZERO (&fds);                                    
-/* end */
-
-	config = tds_get_config(NULL, login, context->locale);
+	if (tds->tds_ctx) {
+		locale = tds->tds_ctx->locale;
+	}
+	config = tds_get_config(NULL, login, locale);
 
 	/*
 	** If a dump file has been specified, start logging
@@ -145,13 +147,6 @@ FD_ZERO (&fds);
    		tdsdump_open(config->dump_file);
 	}
 
-	/* 
-	** The initial login packet must have a block size of 512.
-	** Once the connection is established the block size can be changed
-	** by the server with TDS_ENV_CHG_TOKEN
-	*/
-	tds = tds_alloc_socket(context, 512);
-	tds_set_parent(tds, parent);
 	tds->config = config;
 
 	tds->major_version=config->major_version;
@@ -203,14 +198,14 @@ FD_ZERO (&fds);
 		}
 		tds_free_config(config);
 		tds_free_socket(tds);
-		return NULL;
+		return TDS_FAIL;
 	}
 	sin.sin_addr.s_addr = inet_addr(config->ip_addr);
 	if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
 		tds_free_config(config);
 		tds_free_socket(tds);
-		return NULL;
+		return TDS_FAIL;
 	}
 
        	sin.sin_family = AF_INET;
@@ -223,7 +218,7 @@ FD_ZERO (&fds);
                 perror ("socket");
 		tds_free_config(config);
 		tds_free_socket(tds);
-		return NULL;
+		return TDS_FAIL;
         }
 
     /* Jeff's hack *** START OF NEW CODE *** */
@@ -233,7 +228,7 @@ FD_ZERO (&fds);
 		if (IOCTL(tds->s, FIONBIO, &ioctl_blocking) < 0) {
 			tds_free_config(config);
 			tds_free_socket(tds);
-			return NULL;
+			return TDS_FAIL;
 		}
 		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
 		if (retval < 0 && errno == EINPROGRESS) retval = 0;
@@ -241,7 +236,7 @@ FD_ZERO (&fds);
 			perror("src/tds/login.c: tds_connect (timed)");
 			tds_free_config(config);
 			tds_free_socket(tds);
-			return NULL;
+			return TDS_FAIL;
 		}
           /* Select on writeability for connect_timeout */
 		now = start;
@@ -260,7 +255,7 @@ FD_ZERO (&fds);
 				"Server is unavailable or does not exist.");
 			tds_free_config(config);
 			tds_free_socket(tds);
-			return NULL;
+			return TDS_FAIL;
 		}
 	} else {
         if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) <0) {
@@ -272,7 +267,7 @@ FD_ZERO (&fds);
 			"Server is unavailable or does not exist.");
 		tds_free_config(config);
 		tds_free_socket(tds);
-		return NULL;
+		return TDS_FAIL;
         }
 	}
 	/* END OF NEW CODE */
@@ -285,12 +280,13 @@ FD_ZERO (&fds);
 		tds_send_login(tds,config);	
 	}
 	if (!tds_process_login_tokens(tds)) {
+		close(tds->s);
+		tds->s = 0;
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, 
 			"Login incorrect.");
 		tds_free_config(config);
 		tds_free_socket(tds);
-		tds = NULL;
-		return NULL;
+		return TDS_FAIL;
 	}
 	if (tds && config->text_size) {
 		sprintf(query,"set textsize %d", config->text_size);
@@ -300,9 +296,9 @@ FD_ZERO (&fds);
    		}
 	}
 
-    tds->config = NULL;
+	tds->config = NULL;
 	tds_free_config(config);
-	return tds;
+	return TDS_SUCCEED;
 }
 int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	

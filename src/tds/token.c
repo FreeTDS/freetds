@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.47 2002-09-06 21:13:27 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.48 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1276,17 +1276,18 @@ int len_sqlstate;
 	} else {
 		rc = TDS_SUCCEED;
 	}
-	/* call the global_tds_msg_handler that was set by an upper layer 
+	/* call the msg_handler that was set by an upper layer 
 	** (dblib, ctlib or some other one).  Call it with the pointer to 
 	** the "parent" structure.
 	*/
 
-	if(tds->msg_info->priv_msg_type
-	                   ? tds->tds_ctx->err_handler : tds->tds_ctx->msg_handler) {
-		if (tds->msg_info->priv_msg_type)
-			tds->tds_ctx->err_handler(tds->tds_ctx, tds, tds->msg_info);
-		else
-			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, tds->msg_info);
+	if (tds->tds_ctx->msg_handler) {
+	  /* First, invoke the message handler. */
+	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, tds->msg_info);
+
+	  /* Next, invoke the error handler to indicate that a msg was sent */
+	  tds_client_msg(tds->tds_ctx, tds, 20018, 5, -1, 1,
+			 "General SQL Server error: Check messages from the SQL Server.");
 	} else {
 		if(tds->msg_info->msg_number)
 			tdsdump_log(TDS_DBG_WARN,

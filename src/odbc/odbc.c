@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.47 2002-09-06 07:23:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.48 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -136,10 +136,9 @@ static SQLRETURN do_connect (
     tds_set_server (dbc->tds_login, (char*)server);
     tds_set_user   (dbc->tds_login, (char*)user);
     tds_set_passwd (dbc->tds_login, (char*)passwd);
-    dbc->tds_socket = (void *) tds_connect(dbc->tds_login, env->tds_ctx, (void *)dbc);
-
-    if (dbc->tds_socket == NULL)
-    {
+    dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
+    tds_set_parent(dbc->tds_socket, (void *) dbc);
+    if (tds_connect(dbc->tds_socket, dbc->tds_login) == TDS_FAIL) {
         odbc_LogError ("tds_connect failed");
         return SQL_ERROR;
     }

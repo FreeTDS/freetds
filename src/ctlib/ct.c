@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.26 2002-09-05 12:22:07 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.27 2002-09-12 19:26:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -284,7 +284,8 @@ char *set_buffer = NULL;
 	return CS_SUCCEED;
 }
 
-CS_RETCODE ct_connect(CS_CONNECTION *con, CS_CHAR *servername, CS_INT snamelen)
+CS_RETCODE
+ct_connect(CS_CONNECTION *con, CS_CHAR *servername, CS_INT snamelen)
 {
 char *server;
 int needfree=0;
@@ -303,14 +304,14 @@ CS_CONTEXT *ctx;
 		server[snamelen]='\0';
 	}
         tds_set_server(con->tds_login,server);
-	   ctx = con->ctx;
-        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, ctx->tds_ctx, (void *) con))) {
+	ctx = con->ctx;
+	con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512);
+	tds_set_parent(con->tds_socket, (void *) con);
+	if (tds_connect(con->tds_socket, con->tds_login) == TDS_FAIL) {
 		if (needfree) free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
 	}
-
-        /* tds_set_parent( con->tds_socket, con); */
 
 	if (needfree) free(server);
 

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: common.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.5 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -74,8 +74,9 @@ TDSCONTEXT *context;
   
    if (verbose)	{ fprintf(stdout, "Connecting to database\n"); }
    context = tds_alloc_context();
-   *tds = tds_connect(*login, context, NULL);
-   if (! *tds) {
+   *tds = tds_alloc_socket(context, 512);
+   tds_set_parent(*tds, NULL);
+   if (tds_connect(*tds, *login) == TDS_FAIL) {
       fprintf(stderr, "tds_connect() failed\n");
       return TDS_FAIL;
    }

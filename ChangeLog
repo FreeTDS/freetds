@@ -1,3 +1,20 @@
+Thu Sep 12 15:17:01 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/tds_layer.txt include/tds.h.in src/apps/tsql.c src/ctlib/ct.c
+	  src/dblib/dblib.c src/dblib/unittests/common.c src/odbc/odbc.c
+	  src/pool/member.c src/pool/user.c src/tds/login.c src/tds/mem.c
+	  src/tds/token.c src/tds/unittests/common.c:
+	- When the server sends a message, first invoke the message handler
+	  with the specified message.  Then invoke the error handler with
+	  error #20028 (SYBESMSG).  This gives us the behavior that Sybase's
+	  libraries produce.
+	- This change required modification to the API for
+	  tds_connect().  It is now necessary for the caller to allocate a
+	  TDSSOCKET with tds_alloc_socket(), and set its parent with
+	  tds_set_parent().
+	- Fix existing tds_alloc() calls in the pool program.
+	- Fix tds_alloc_config() so it can work when a NULL locale is
+	  provided.
+	
 Thu Sep 12 20:59:06 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4: fix compile on Solaris 5.8
 

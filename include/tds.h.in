@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.39 2002-08-30 20:23:00 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.40 2002-09-12 19:26:59 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -653,7 +653,7 @@ void tds_free_login(TDSLOGIN *login);
 TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
 TDSLOCINFO *tds_alloc_locale();
 void tds_free_locale(TDSLOCINFO *locale);
-TDSSOCKET *tds_connect(TDSLOGIN *login, TDSCONTEXT *context, void *parent);
+int tds_connect(TDSSOCKET *tds, TDSLOGIN *login);
 TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
 void tds_set_packet(TDSLOGIN *tds_login, short packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);

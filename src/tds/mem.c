@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.19 2002-09-05 12:22:08 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.20 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -306,15 +306,19 @@ char hostname[30];
 	config->minor_version = TDS_DEF_MINOR;
 	config->port = TDS_DEF_PORT;
 	config->block_size = TDS_DEF_BLKSZ;
+	config->language = NULL;
+	config->char_set = NULL;
 	if (locale) {
 		if (locale->language) 
         		config->language = strdup(locale->language);
-		else 
-        		config->language = strdup(TDS_DEF_LANG);
 		if (locale->char_set) 
         		config->char_set = strdup(locale->char_set);
-		else 
-        		config->char_set = strdup(TDS_DEF_CHARSET);
+	}
+	if (config->language == NULL) {
+		config->language = strdup(TDS_DEF_LANG);
+	}
+	if (config->char_set == NULL) {
+		config->char_set = strdup(TDS_DEF_CHARSET);
 	}
 	config->try_server_login = 1;
 	memset(hostname,'\0', 30);

@@ -50,7 +50,8 @@ int     len, i;
 		perror("accept");
 		return NULL;
 	}
-	puser->tds = tds_alloc_socket(BLOCKSIZ);
+	puser->tds = tds_alloc_socket(NULL, BLOCKSIZ);
+	tds_set_parent(puser->tds, NULL);
 	/* FIX ME - little endian emulation should be config file driven */
 	puser->tds->emul_little_endian = 1;
         puser->tds->in_buf = (unsigned char *)malloc(BLOCKSIZ);

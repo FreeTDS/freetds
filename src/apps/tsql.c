@@ -220,7 +220,9 @@ int  opt;
 }
 int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-     if( msg->msg_number > 0  && msg->msg_number != 5701) {
+     if (msg->msg_number > 0
+	 && msg->msg_number != 5701
+	 && msg->msg_number != 20018) {
 		fprintf (stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
                          msg->msg_number,
                          msg->msg_level,
@@ -263,9 +265,9 @@ TDSCONTEXT *context;
 	populate_login(login, argc, argv);
 
 	/* Try to open a connection*/
-	tds = tds_connect(login, context, NULL); 
-
-	if (!tds) {
+	tds = tds_alloc_socket(context, 512);
+	tds_set_parent(tds, NULL);
+	if (tds_connect(tds, login) == TDS_FAIL) {
 		/* FIX ME -- need to hook up message/error handlers */
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);

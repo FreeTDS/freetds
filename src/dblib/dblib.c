@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.52 2002-09-10 14:38:32 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.53 2002-09-12 19:26:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -520,7 +520,8 @@ RETCODE dbsetlbool(LOGINREC *login, int value, int which)
 	
 }
 
-DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
+DBPROCESS *
+tdsdbopen(LOGINREC *login,char *server)
 {
 DBPROCESS *dbproc;
    
@@ -529,23 +530,27 @@ DBPROCESS *dbproc;
 	dbproc->avail_flag = TRUE;
 	
 	tds_set_server(login->tds_login,server);
-   
-   dbproc->tds_socket = (void *) tds_connect(login->tds_login, g_dblib_ctx->tds_ctx, (void *)dbproc);
-   dbproc->dbbuf = NULL;
-   dbproc->dbbufsz = 0;
+  	 
+	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx->tds_ctx, 512);
+	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
+	if (tds_connect(dbproc->tds_socket, login->tds_login) == TDS_FAIL) {
+		return NULL;
+	}
+	dbproc->dbbuf = NULL;
+	dbproc->dbbufsz = 0;
 
-   if(dbproc->tds_socket) {
-      /* tds_set_parent( dbproc->tds_socket, dbproc); */
-      dblib_add_connection(g_dblib_ctx, dbproc->tds_socket);
-   } else {
-      fprintf(stderr,"DB-Library: Login incorrect.\n");
-      free(dbproc); /* memory leak fix (mlilback, 11/17/01) */
-      return NULL;
-   }
+	if(dbproc->tds_socket) {
+		/* tds_set_parent( dbproc->tds_socket, dbproc); */
+		dblib_add_connection(g_dblib_ctx, dbproc->tds_socket);
+	} else {
+		fprintf(stderr,"DB-Library: Login incorrect.\n");
+		free(dbproc); /* memory leak fix (mlilback, 11/17/01) */
+		return NULL;
+	}
    
-   buffer_init(&(dbproc->row_buf));
+	buffer_init(&(dbproc->row_buf));
    
-   return dbproc;
+	return dbproc;
 }
 
 RETCODE dbfcmd(DBPROCESS *dbproc, char *fmt, ...)

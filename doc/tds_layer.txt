@@ -107,17 +107,21 @@ the server upon login. You must call tds_alloc_login prior to using these
 routines
 
 *********************************************************
-TDSSOCKET *tds_connect(TDSLOGIN *login)
+int tds_connect(TDSSOCKET *tds, TDSLOGIN *login)
 
-This function calls tds_alloc_socket to initialize a TDSSOCKET structure which
-is returned to the calling function. It does a lookup on the servername using
-get_server_info and establishes a socket connection which is stored in 
-TDSSOCKET.s 
+This function connects a TDSSOCKET structure to the database server.
+The TDSSOCKET must be allocated and initialized by the caller, by calling
+tds_alloc_socket() and tds_set_parent().
+
+It does a lookup on the servername using get_server_info and establishes
+a socket connection which is stored in TDSSOCKET.s
 
 The tds->out_flag (which is a packet type indicator) is set to 0x02 (login 
 packet) and tds_send_login is invoked.  tds_process_login_tokens is called
-to process the response from the server and if login failed a NULL is returned
-otherwise the TDSSOCKET structure is returned.
+to process the response from the server.
+
+If the connection is successful, TDS_SUCCEED is returned.
+Otherwise, TDS_FAIL is returned.
 
 *********************************************************
 int tds_send_login(TDSSOCKET tds, TDS_LOGIN *login)

@@ -43,8 +43,9 @@ char *query;
 	tds_set_charset(login,"iso_1");
 	tds_set_language(login,"us_english");
 	tds_set_packet(login,512);
-  
-  	if (!(tds = tds_connect(login, NULL, NULL))) {
+	tds = tds_alloc_socket(NULL, 512);
+	tds_set_parent(tds, NULL);
+  	if (tds_connect(tds, login) == TDS_FAIL) {
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n",pool->server);
 		return NULL;

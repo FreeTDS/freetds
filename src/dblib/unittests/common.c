@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.1 2001-10-12 23:29:11 brianb Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.2 2002-09-12 19:27:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -168,14 +168,14 @@ int syb_err_handler(
    char         *oserrstr)
 {
 
-#if 0
       /*
-       * For fatal server messages, cancel the query and rely on the
+       * For server messages, cancel the query and rely on the
        * message handler to spew the appropriate error messages out.
        */
-      if (severity == EXSERVER )
+      if (dberr == SYBESMSG)
               return INT_CANCEL ;
 
+#if 0
       /*
        * For any other type of severity (that is not a server
        * message), we increment the batch_failcount.
