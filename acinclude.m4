@@ -1,7 +1,30 @@
 #serial AM2
 
-dnl From Bruno Haible.
+AC_DEFUN(AC_HAVE_INADDR_NONE,
+[AC_CACHE_CHECK([whether INADDR_NONE is defined], ac_cv_have_inaddr_none,
+ [AC_TRY_COMPILE([
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+],[
+unsigned long foo = INADDR_NONE;
+],
+  ac_cv_have_inaddr_none=yes,
+  ac_cv_have_inaddr_none=no)])
+ if test $ac_cv_have_inaddr_none != yes; then
+   AC_DEFINE(INADDR_NONE, 0xffffffff)
+ fi])
 
+dnl From Bruno Haible.
 AC_DEFUN([AM_ICONV],
 [
   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
