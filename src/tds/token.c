@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.162 2003-03-29 19:32:13 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.163 2003-03-29 20:07:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1161,12 +1161,12 @@ int colnamelen;
 		tds_get_n(tds, curcol->column_collation, 5);
 
 	if (is_blob_type(curcol->column_type)) {
-		curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name));
+		curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name)-1);
 	}
 
 	/* under 7.0 lengths are number of characters not 
 	 * number of bytes...tds_get_string handles this */
-	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name));
+	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name)-1);
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
@@ -1250,7 +1250,7 @@ static int
 tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 
-	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name));
+	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name)-1);
 	curcol->column_name[curcol->column_namelen] = '\0';
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
@@ -1267,7 +1267,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	switch (curcol->column_varint_size) {
 	case 4:
 		curcol->column_size = tds_get_int(tds);
-		curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name));
+		curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name)-1);
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
@@ -1382,7 +1382,7 @@ tds5_process_result(TDSSOCKET * tds)
 		curcol = info->columns[col];
 
 		/* label */
-		curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name));
+		curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name)-1);
 		curcol->column_name[curcol->column_namelen] = '\0';
 
 		/* TODO add these field again */
@@ -2210,7 +2210,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* TODO reuse tds_get_data_info code, sligthly different */
 
 		/* column name */
-		curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name));
+		curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name)-1);
 		curcol->column_name[curcol->column_namelen] = '\0';
 
 		/* column status */
@@ -2234,7 +2234,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
 				curcol->column_size = tds_get_int(tds);
 				/* read table name */
-				curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name));
+				curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name)-1);
 			} else
 				tdsdump_log(TDS_DBG_INFO1, "%L UNHANDLED TYPE %x\n", curcol->column_type);
 			break;
@@ -2499,7 +2499,7 @@ struct namelist *freeptr = NULL;
 		if (namelen == 0)
 			strcpy(curptr->name, "");
 		else {
-			namelen = tds_get_string(tds, namelen, curptr->name, sizeof(curptr->name));
+			namelen = tds_get_string(tds, namelen, curptr->name, sizeof(curptr->name)-1);
 			curptr->name[namelen] = 0;
 			remainder -= namelen;
 		}

@@ -1,3 +1,6 @@
+Sat Mar 29 21:06:55 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: fixed introduced buffer overflows
+
 Sat Mar 29 20:32:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- add support for PARAMFMT2 token (from Sybase patch)
