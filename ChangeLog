@@ -1,3 +1,6 @@
+Mon Mar  3 13:32:04 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c bcp out of null datetime writes nothing.
+
 Sun Mar 02 21:32:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/numeric.c src/tds/unittests/t0008.c:
 	- new implementation for tds_numeric_to_string

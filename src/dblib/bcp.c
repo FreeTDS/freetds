@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.53 2003-02-12 06:14:31 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.54 2003-03-03 18:36:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -679,6 +679,7 @@ int rows_written;
 				}
 
 				outbuf = (BYTE *) malloc(buflen);
+				buflen = 0; /* so far: will hold size of output of dbconvert() */
 
 				/* if we are converting datetime to string, need to override any 
 				 * date time formats already established
@@ -686,8 +687,11 @@ int rows_written;
 				if ((bcpcol->db_type == SYBDATETIME || bcpcol->db_type == SYBDATETIME4)
 				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 					memset(&when, 0, sizeof(when));
-					tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
-					buflen = tds_strftime((char *) outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
+					tdsdump_log(TDS_DBG_FUNC, "%L buflen is %d\n", buflen);
+					if (bcpcol->data_size > 0) {
+						tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
+						buflen = tds_strftime((char *) outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
+					}
 				} else {
 					/* 
 					 * For null columns, the above work to determine the output buffer size is moot, 
