@@ -1,3 +1,8 @@
+Thu Mar 28 00:10:46 EST 2002	Mark Lilback <mark@lilback.com>
+
+	* src/tds/token.c: recognizes extra column info when processing
+	result sets via tds7 (writeable, nullable, identity)
+
 Wed Mar 27 16:00:00 CST 2002    Steve Langasek <vorlon@netexpress.net>
 
 	* src/tds/read.c: commit a fix for goodread() that I've been
