@@ -49,7 +49,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.14 2002-09-14 20:37:00 jklowden Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.15 2002-09-17 17:56:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -378,10 +378,10 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
             fputc(*ptr, dumpfile);
          }
       }
-   }
-   fflush(dumpfile);
-   if (g_append_mode && ret) {
-      fclose(dumpfile);
+      fflush(dumpfile);
+      if (g_append_mode && ret) {
+         fclose(dumpfile);
+      }
    }
 } /* tdsdump_log()  */
 

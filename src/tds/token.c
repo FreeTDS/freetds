@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.53 2002-09-16 19:48:08 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.54 2002-09-17 17:56:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -981,7 +981,14 @@ int len;
 				tds_get_n(tds,varbin->array,colsize);
 			} else if (is_blob_type(curcol->column_type)) {
 				if (curcol->column_unicodedata) colsize /= 2;
-				curcol->column_textvalue = realloc(curcol->column_textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
+				if (curcol->column_textvalue == NULL) {
+					curcol->column_textvalue = malloc(colsize+1); /* FIXME +1 needed by tds_get_string */
+				} else {
+					curcol->column_textvalue = realloc(curcol->column_textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
+				}
+				if (curcol->column_textvalue == NULL) {
+					return TDS_FAIL;
+				}
 				curcol->column_cur_size = colsize;
 				if (curcol->column_unicodedata) {
 					tds_get_string(tds,curcol->column_textvalue,colsize);
