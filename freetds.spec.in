@@ -39,8 +39,8 @@ the FreeTDS libraries.
 The freetds-unixodbc package contains ODBC driver build for unixODBC.
 
 %description doc
-The freetds-doc package contains the useguide of FreeTDS and can be installed 
-even if FreeTDS main package is not installed
+The freetds-doc package contains the useguide and reference of FreeTDS 
+and can be installed even if FreeTDS main package is not installed
 
 %prep
 %setup 
@@ -53,6 +53,7 @@ make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
 gunzip -c doc/userguide.tgz | tar x
+gunzip -c doc/reference.tgz | tar x
 
 %post 
 /sbin/ldconfig 
@@ -91,9 +92,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files doc
 %defattr (-,root,root)
-%doc userguide
+%doc userguide reference
  
 %changelog 
+* Sun Mar 30 2003 Frediano Ziglio <freddy77@angelfire.com>
+- add reference to doc package
+
 * Wed Feb  5 2003 Ian Grant <Ian.Grant@cl.cam.ac.uk>
 - 0.61 tweaked. Added libtdssrv libraries and tools in /usr/bin + man pages
 
