@@ -1,3 +1,21 @@
+Sat Nov  8 18:51:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c:
+	* src/odbc/sql2tds.c:
+	- some fix for numeric parameters
+	* src/odbc/odbc.c: indent(1)
+	* src/odbc/odbc_util.c: note
+	* src/odbc/unittests/common.c: indent(1)
+	* src/odbc/unittests/date.c src/odbc/unittests/funccall.c:
+	* src/odbc/unittests/lang_error.c:
+	* src/odbc/unittests/norowset.c src/odbc/unittests/params.c:
+	* src/odbc/unittests/print.c src/odbc/unittests/raiseerror.c:
+	* src/odbc/unittests/t0001.c src/odbc/unittests/t0002.c:
+	- reuse some code
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/genparams.c(added):
+	- added test for parameters
+	* src/tds/token.c: applied Bill Thompson patch
+	
 Thu Nov  6 12:19:15 EST 2003	JK Lowden <jklowden@schemamania.org>
 	- Applied Frediano's patches.
 	* src/odbc/connectparams.c fix FILENAME_MAX define under HP/UX
