@@ -1,3 +1,7 @@
+Sun Jan  9 14:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c src/tds/convert.c:
+	- fix output parameter on mssql
+
 Fri Jan  7 11:56:52 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c src/dblib/unittests/t0002.c
 	- SYBVARBINARY  and patch #1083180

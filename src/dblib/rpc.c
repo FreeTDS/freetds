@@ -39,6 +39,7 @@
 #include <assert.h>
 
 #include "tds.h"
+#include "tdsconvert.h"
 #include "sybfront.h"
 #include "sybdb.h"
 #include "dblib.h"
@@ -47,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.36 2005-01-06 03:09:09 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.37 2005-01-09 13:25:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -337,52 +338,29 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 		params = new_params;
 
-		/* Determine whether an input parameter is NULL
+		/*
+		 * Determine whether an input parameter is NULL
 		 * or not.
 		 */
 
 		param_is_null = 0;
-		temp_datalen = 0;
 		temp_type = p->type;
+		temp_value = p->value;
+		temp_datalen = p->datalen;
 
 		if (p->datalen == 0)
 			param_is_null = 1; 
 
 		tdsdump_log(TDS_DBG_INFO1, "parm_info_alloc(): parameter null-ness = %d\n", param_is_null);
 
-		if (param_is_null) {
-			temp_datalen = 0;
-			temp_value = NULL;
-			switch (temp_type) {
-			case SYBINT1:
-			case SYBINT2:
-			case SYBINT4:
-				temp_type = SYBINTN;
-				break;
-			case SYBDATETIME:
-			case SYBDATETIME4:
-				temp_type = SYBDATETIMN;
-				break;
-			case SYBFLT8:
-				temp_type = SYBFLTN;
-				break;
-			case SYBBIT:
-				temp_type = SYBBITN;
-				break;
-			case SYBMONEY:
-			case SYBMONEY4:
-				temp_type = SYBMONEYN;
-				break;
-			default:
-				break;
+		if (param_is_null || (p->status & DBRPCRETURN)) {
+			if (param_is_null) {
+				temp_datalen = 0;
+				temp_value = NULL;
 			}
-		} else {
-			temp_value = p->value;
-			if (is_fixed_type(temp_type)) {
-				temp_datalen = tds_get_size_by_type(temp_type);
-			} else {
-				temp_datalen = p->datalen;
-			}
+			temp_type = tds_get_null_type(temp_type);
+		} else if (is_fixed_type(temp_type)) {
+			temp_datalen = tds_get_size_by_type(temp_type);
 		}
 
 		pcol = params->columns[i];
