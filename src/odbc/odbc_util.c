@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.62 2004-02-13 10:59:31 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.63 2004-04-11 13:07:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -699,7 +699,7 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 
 /** Return length of parameter from parameter information */
 SQLINTEGER
-odbc_get_param_len(TDSSOCKET * tds, struct _drecord *drec_apd, struct _drecord *drec_ipd)
+odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struct _drecord *drec_ipd)
 {
 	SQLINTEGER len;
 	int size;

@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.41 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.42 2004-04-11 13:07:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -457,7 +457,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 			return SQL_ERROR;
 		}
 
-		/* add a columns to parameters */
+		/* add a column to parameters */
 		if (!(temp_params = tds_alloc_param_result(stmt->params))) {
 			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 			return SQL_ERROR;

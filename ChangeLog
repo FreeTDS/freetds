@@ -1,3 +1,9 @@
+Sun Apr 11 15:20:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	* src/odbc/sql2tds.c src/odbc/sql2tds.h:
+	- constify
+	* src/odbc/prepare_query.c: fix typo
+
 Fri Apr 09 16:21:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix problem rebinding parameters
 

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.33 2004-02-19 15:34:57 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.34 2004-04-11 13:07:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -101,7 +101,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
 SQLRETURN
-sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam)
+sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam)
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
