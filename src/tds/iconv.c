@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.65 2003-05-13 02:54:01 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.66 2003-05-13 08:58:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -598,18 +598,16 @@ lcid2charset(int lcid)
 
 	char *cp = NULL;
 
-	/* TODO consider only lower 16 bit ?? */
-	switch (lcid) {
-	case 0x1040e:		/* FIXME check, in neither table but returned from mssql2k */
+	switch (lcid & 0xffff) {
 	case 0x405:
-	case 0x40e:
+	case 0x40e:		/* 0x1040e */
 	case 0x415:
 	case 0x418:
 	case 0x41a:
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
-		/* case 0x81a: *//* seem wrong in XP table TODO check */
+		/* case 0x81a: seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
 		cp = "CP1250";
 		break;
@@ -636,8 +634,6 @@ lcid2charset(int lcid)
 	case 0x1409:
 	case 0x140a:
 	case 0x140c:
-	case 0x10407:
-	case 0x10437:
 	case 0x1809:
 	case 0x180a:
 	case 0x180c:
@@ -660,7 +656,7 @@ lcid2charset(int lcid)
 	case 0x400a:
 	case 0x403:
 	case 0x406:
-	case 0x407:
+	case 0x407:		/* 0x10407 */
 	case 0x409:
 	case 0x40a:
 	case 0x40b:
@@ -674,8 +670,9 @@ lcid2charset(int lcid)
 	case 0x421:
 	case 0x42d:
 	case 0x436:
+	case 0x437:		/* 0x10437 */
 	case 0x438:
-		/*case 0x439:  *//*??? Unicode only */
+		/*case 0x439:  ??? Unicode only */
 	case 0x43e:
 	case 0x440a:
 	case 0x441:
@@ -742,22 +739,18 @@ lcid2charset(int lcid)
 	case 0x41e:
 		cp = "CP874";
 		break;
-	case 0x411:
-	case 0x10411:
+	case 0x411:		/* 0x10411 */
 		cp = "CP932";
 		break;
 	case 0x1004:
-	case 0x20804:
-	case 0x804:
+	case 0x804:		/* 0x20804 */
 		cp = "CP936";
 		break;
-	case 0x10412:		/* FIXME check, in neither table but returned from mssql2k */
-	case 0x412:
+	case 0x412:		/* 0x10412 */
 		cp = "CP949";
 		break;
 	case 0x1404:
-	case 0x30404:
-	case 0x404:
+	case 0x404:		/* 0x30404 */
 	case 0xc04:
 		cp = "CP950";
 		break;

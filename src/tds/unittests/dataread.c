@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.2 2003-04-21 19:32:37 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.3 2003-05-13 08:58:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -166,7 +166,12 @@ main(int argc, char **argv)
 	test("DATETIME", "2003-04-21 17:50:03", NULL);
 	test("SMALLDATETIME", "2003-04-21 17:50:03", "2003-04-21 17:50:00");
 
-	/* TODO GUID and others... */
+	if (IS_TDS7_PLUS(tds)) {
+		test("UNIQUEIDENTIFIER", "12345678-1234-A234-9876-543298765432", NULL);
+		test("NVARCHAR(20)", "Excellent test", NULL);
+		test("NCHAR(20)", "Excellent test", "Excellent test      ");
+		test("NTEXT", "Excellent test", NULL);
+	}
 
 	try_tds_logout(login, tds, 0);
 	return g_result;

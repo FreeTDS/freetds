@@ -1,3 +1,7 @@
+Tue May 13 10:57:44 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c: use only 16bit of LCID
+	* src/tds/unittests/dataread.c: test tds7+ types (ntext fail)
+
 Tue May 13 10:33:39 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/alternative_character_sets.h:
 	* src/tds/character_sets.h:
