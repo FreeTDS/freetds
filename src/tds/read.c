@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.9 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.10 2002-08-22 19:12:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -319,7 +319,7 @@ int           x = 0, have, need;
 */
 	if (IS_TDS42(tds)) {
 		if (header[0]!=0x04) {
-			fprintf(stderr, "Invalid packet header %d\n", header[0]);
+			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
 			/*  Not sure if this is the best way to do the error 
 			**  handling here but this is the way it is currently 
 			**  being done. */

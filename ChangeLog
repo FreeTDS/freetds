@@ -1,3 +1,7 @@
+Thu Aug 22 21:06:01 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c src/tds/login.c src/tds/read.c src/tds/token.c src/tds/write.c:
+	- changed all print to stderr to log
+
 Thu Aug 22 18:10:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- added cases for SYBUNIQUE, do not warn on disallowed conversion

@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.10 2002-08-16 16:45:20 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.11 2002-08-22 19:12:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -174,7 +174,7 @@ int retval;
 		retval = WRITE(tds->s,p,left);
 
 		if (retval <= 0) {
-			fprintf(stderr, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
+			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
 			tds_client_msg(tds->tds_ctx, tds, 10018, 9, 0, 0, "The connection was closed");
 			tds->in_pos=0;
 			tds->in_len=0;
@@ -204,15 +204,14 @@ void (*oldsig)(int);
 	tdsdump_log(TDS_DBG_NETWORK, "Sending packet @ %L\n%D\n", tds->out_buf, tds->out_pos);
 
 	oldsig=signal (SIGPIPE, SIG_IGN);
-	/* FIXME remove all print from a library, log only if enable */
 	if (oldsig==SIG_ERR) {
-		fprintf(stderr, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
 	}
 
 	retcode=goodwrite(tds);
 
 	if (signal(SIGPIPE, oldsig)==SIG_ERR) {
- 		fprintf(stderr, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
 /* GW added in check for write() returning <0 and SIGPIPE checking */
 	return retcode;

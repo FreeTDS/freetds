@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.36 2002-08-21 20:08:46 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.37 2002-08-22 19:12:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -146,11 +146,11 @@ int   cancelled;
       case TDS5_DYN_TOKEN:
       case TDS5_DYNRES_TOKEN:
       case TDS5_DYN3_TOKEN:
-         fprintf(stderr, "eating token %d\n",marker);
+	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;
       default:
-         fprintf(stderr,"Unknown marker: %d!!\n",marker); 
+	 tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d!!\n",marker); 
          return TDS_FAIL;
    }	
    return TDS_SUCCEED;
@@ -534,7 +534,7 @@ char ci_flags[4];
 	/* get the rest of the bytes */
 	rest = hdrsize - bytes_read;
 	if (rest > 0) {
-		fprintf(stderr,"NOTE:tds_process_col_info: draining %d bytes\n", rest);
+		tdsdump_log(TDS_DBG_INFO1,"NOTE:tds_process_col_info: draining %d bytes\n", rest);
 		tds_get_n(tds, NULL, rest);
 	}
 
@@ -1255,7 +1255,7 @@ int len_sqlstate;
 	} else if (marker==TDS_ERR_TOKEN) {
 		tds->msg_info->priv_msg_type = 1;
 	} else {
-		fprintf(stderr,"tds_process_msg() called with unknown marker!\n");
+		tdsdump_log(TDS_DBG_ERROR,"tds_process_msg() called with unknown marker!\n");
 		return TDS_FAIL;
 	}
 
@@ -1522,7 +1522,7 @@ int drain = 0;
 	subtoken[0] = tds_get_byte(tds);
 	subtoken[1] = tds_get_byte(tds);
 	if (subtoken[0]!=0x20 || subtoken[1]!=0x00) {
-		fprintf(stderr,"Unrecognized TDS5_DYN subtoken %02x%02x\n",
+		tdsdump_log(TDS_DBG_ERROR,"Unrecognized TDS5_DYN subtoken %x,%x\n",
 		        subtoken[0], subtoken[1]);
 		tds_get_n(tds, NULL, token_sz-2);
 		return -1;

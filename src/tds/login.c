@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.33 2002-08-21 12:42:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.34 2002-08-22 19:12:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -366,7 +366,7 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       memcpy(protocol_version,"\005\000\000\000",4);
       memcpy(program_version,"\005\000\000\000",4);
    } else {
-      fprintf(stderr,"Unknown protocol version!");
+      tdsdump_log(TDS_DBG_SEVERE,"Unknown protocol version!\n");
       exit(1);
    }
    /*

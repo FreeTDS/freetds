@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.21 2002-08-22 05:24:20 jklowden Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.22 2002-08-22 19:12:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -155,8 +155,7 @@ int found = 0;
 		/* FIXME use getpwent for security */
 		home = getenv("HOME");
 		if (home!=NULL && home[0]!='\0') {
-			/* FIXME check buffer of use open fchdir fopen 
-			 * to not allocate buffer */
+			/* FIXME check buffer */
 			path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
 			sprintf(path,"%s/.freetds.conf",home);
 			in = fopen(path, "r");
