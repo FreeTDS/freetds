@@ -1,3 +1,6 @@
+Tue Feb 18 12:42:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: merged fix for bcp and terminator
+
 Tue Feb 18 11:30:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/FreeTDS.def: add SQLGetDiag* exports
 
