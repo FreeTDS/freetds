@@ -30,7 +30,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.6 2002-09-12 14:18:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.7 2002-09-13 05:58:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -81,7 +81,7 @@ struct tm res;
 # define SOCK_REENTRANT 1
 #else
 /* tru64 and win32 "normal" api are reentrant */
-# if defined (__digital__) && defined (__unix__)
+# if (defined (__digital__) || defined(__osf__)) && defined (__unix__)
 #  define SOCK_REENTRANT 1
 # endif
 # if defined(_WIN32) || defined(__WIN32__)
