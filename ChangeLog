@@ -1,26 +1,34 @@
+Wed Dec  5 15:45:49 2001  James Cameron  <quozl@us.netrek.org>
+
+	* doc/userguide.sgml: describe precise sequence to turn on SQL
+	Server authentication under Microsoft SQL Server 7.  Still need
+	description for Microsoft SQL Server 2000.  Wrapped ChangeLog.
+
 Sun Dec  2 11:10:24 EST 2001	Brian Bruns <camber@ais.org>
+	
 	* src/odbc/odbc.c: Implemented SQLGetFunctions
-	* include/tds.h.in: Added TDSINPUTPARAM structure, added num_params and 
-	params array to TDSDYNAMIC
-	* src/tds/mem.c: Added tds_add_input_param() and tds_free_input_params() 
-	functions.  Added call to tds_free_input_params to tds_free_socket()
-	* src/tds/query.c: Added tds_submit_execute() for dynamic placeholder 
-	suport.
-	* src/tds/convert.c: Added tds_get_null_type to convert fixed datatypes to
-	their nullable type.
+	* include/tds.h.in: Added TDSINPUTPARAM structure, added
+	num_params and params array to TDSDYNAMIC
+	* src/tds/mem.c: Added tds_add_input_param() and
+	tds_free_input_params() functions.  Added call to
+	tds_free_input_params to tds_free_socket()
+	* src/tds/query.c: Added tds_submit_execute() for dynamic
+	placeholder suport.
+	* src/tds/convert.c: Added tds_get_null_type to convert fixed
+	datatypes to their nullable type.
 	* src/ctlib/ct.c: Added CS_EXECUTE support to ct_send and ct_param
 
 Fri Nov 30 18:41:10 EST 2001	Brian Bruns <camber@ais.org>
 
-	* src/odbc/odbc.c: Change missing "Database" parameter to Servername.
-	Force SQLGetFunctions to return SQL_FALSE for ODBC3
+	* src/odbc/odbc.c: Change missing "Database" parameter to
+	Servername.  Force SQLGetFunctions to return SQL_FALSE for ODBC3
 	* Makefile.am: No longer install interfaces file by default
 
 Thu Nov 29 18:13:01 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/dblib/unittests/t0009.c: changed varchar(10) to char(10)
-	* src/ctlib/unittests/t0004.c: fixed results order for update and added 
-	insert and select
+	* src/ctlib/unittests/t0004.c: fixed results order for update and
+	added insert and select
 
 Mon Nov 26 16:06:05 EST 2001	Brian Bruns <camber@ais.org>
 	
@@ -36,16 +44,17 @@ Sun Nov 25 18:02:24 CST 2001    Steve Langasek <vorlon@netexpress.net>
 
 Sun Nov 25 13:45:45 EST 2001	Brian Bruns <camber@ais.org>
 
-	* include/tds.h.in: add TDS_STR_CLCHARSET define and all client_charset to
-	the TDSCONFIG structure.
+	* include/tds.h.in: add TDS_STR_CLCHARSET define and all
+	client_charset to the TDSCONFIG structure.
 	* src/tds/mem.c(tds_free_config): free client_charset 
 	* src/tds/mem.c(tds_free_socket): call tds_iconv_close()
 	* src/tds/config.c: check for 'client charset' in freetds.conf
-	* src/tds/iconv.c: set tds->use_iconv on successful loading of iconv 
-	routines
-	* src/tds/login.c(tds_connect): call tds_iconv_open() if client_charset is
-	* doc/userguide.sgml: add 'client charset' description to freetds.conf 
-	table
+	* src/tds/iconv.c: set tds->use_iconv on successful loading of
+	iconv routines
+	* src/tds/login.c(tds_connect): call tds_iconv_open() if
+	client_charset is
+	* doc/userguide.sgml: add 'client charset' description to
+	freetds.conf table
 
 Thu Nov 22 18:26:34 EST 2001	Brian Bruns <camber@ais.org>
 
