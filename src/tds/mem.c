@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.139 2005-02-11 13:15:55 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.140 2005-03-12 11:48:52 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -900,22 +900,44 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 	if (TDS_IS_MSSQL(tds)) {
 		switch (msgnum) {	/* MSSQL Server */
 
-			SQLS_ENTRY(3621, "01000");
-			SQLS_ENTRY(8153, "01003");	/* Null in aggregate */
+			SQLS_ENTRY(3621,"01000");
+			SQLS_ENTRY(8153,"01003");	/* Null in aggregate */
 			SQLS_ENTRY(911, "08004");	/* Server rejected connection */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
 			SQLS_ENTRY(109, "21S01");
 			SQLS_ENTRY(110, "21S01");
-			SQLS_ENTRY(1774, "21S02");	/* Ref column mismatch */
-			SQLS_ENTRY(8152, "22001");	/* String data would be truncated */
-			SQLS_ENTRY(5146, "22003");	/* Numeric value out of range */
-			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
+			SQLS_ENTRY(1774,"21S02");	/* Ref column mismatch */
+			SQLS_ENTRY(8152,"22001");	/* String data would be truncated */
+			SQLS_ENTRY(5146,"22003");	/* Numeric value out of range */
+			SQLS_ENTRY(168,	"22003");	/* Arithmetic overflow */
+			SQLS_ENTRY(220, "22003");
 			SQLS_ENTRY(232, "22003");
-			SQLS_ENTRY(168, "22003");
-			SQLS_ENTRY(1007, "22003");
-			SQLS_ENTRY(3606, "22003");
-			SQLS_ENTRY(8115, "22003");
+			SQLS_ENTRY(234, "22003");
+			SQLS_ENTRY(236, "22003");
+			SQLS_ENTRY(238, "22003");
+			SQLS_ENTRY(244, "22003");
+			SQLS_ENTRY(246, "22003");
+			SQLS_ENTRY(248, "22003");
+			SQLS_ENTRY(519, "22003");
+			SQLS_ENTRY(520, "22003");
+			SQLS_ENTRY(521, "22003");
+			SQLS_ENTRY(522, "22003");
+			SQLS_ENTRY(523, "22003");
+			SQLS_ENTRY(524, "22003");
+			SQLS_ENTRY(1007,"22003");
+			SQLS_ENTRY(3606,"22003");
+			SQLS_ENTRY(8115,"22003");
+			SQLS_ENTRY(206, "22005");	/* Error in assignment */
+			SQLS_ENTRY(235, "22005");
+			SQLS_ENTRY(247, "22005");
+			SQLS_ENTRY(249, "22005");
+			SQLS_ENTRY(256, "22005");
+			SQLS_ENTRY(257, "22005");
+			SQLS_ENTRY(305, "22005");
+			SQLS_ENTRY(409, "22005");
+			SQLS_ENTRY(518, "22005");
+			SQLS_ENTRY(529, "22005");
 			SQLS_ENTRY(210, "22007");	/* Invalid datetime format */
 			SQLS_ENTRY(241, "22007");
 			SQLS_ENTRY(295, "22007");
@@ -930,6 +952,14 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(2627, "23000");	/* Constraint violation */
 			SQLS_ENTRY(515, "23000");
+			SQLS_ENTRY(233,	"23000");
+			SQLS_ENTRY(273,	"23000");
+			SQLS_ENTRY(530,	"23000");
+			SQLS_ENTRY(2601,"23000");
+			SQLS_ENTRY(2615,"23000");
+			SQLS_ENTRY(2626,"23000");
+			SQLS_ENTRY(3604,"23000");
+			SQLS_ENTRY(3605,"23000");
 			SQLS_ENTRY(544, "23000");
 			SQLS_ENTRY(547, "23000");
 			SQLS_ENTRY(550, "23000");
@@ -949,6 +979,11 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(16946, "24000");
 			SQLS_ENTRY(16950, "24000");
 			SQLS_ENTRY(266, "25000");	/* Invalid transaction state */
+			SQLS_ENTRY(277,"25000");
+			SQLS_ENTRY(611,"25000");
+			SQLS_ENTRY(3906,"25000");
+			SQLS_ENTRY(3908,"25000");
+			SQLS_ENTRY(6401,"25000");
 			SQLS_ENTRY(626, "25000");
 			SQLS_ENTRY(627, "25000");
 			SQLS_ENTRY(628, "25000");
@@ -967,6 +1002,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
 			SQLS_ENTRY(8114, "37000");
 			SQLS_ENTRY(131, "37000");
+			SQLS_ENTRY(137, "37000");
 			SQLS_ENTRY(170, "37000");
 			SQLS_ENTRY(174, "37000");
 			SQLS_ENTRY(201, "37000");
@@ -1035,8 +1071,28 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(168, "22003");
 			SQLS_ENTRY(227, "22003");
 			SQLS_ENTRY(232, "22003");
+			SQLS_ENTRY(234, "22003");
+			SQLS_ENTRY(236, "22003");
+			SQLS_ENTRY(238, "22003");
+			SQLS_ENTRY(244, "22003");
+			SQLS_ENTRY(246, "22003");
 			SQLS_ENTRY(247, "22003");
+			SQLS_ENTRY(248, "22003");
+			SQLS_ENTRY(519, "22003");
+			SQLS_ENTRY(520, "22003");
+			SQLS_ENTRY(521, "22003");
+			SQLS_ENTRY(522, "22003");
+			SQLS_ENTRY(523, "22003");
+			SQLS_ENTRY(524, "22003");
 			SQLS_ENTRY(3606, "22003");
+			SQLS_ENTRY(206, "22005");	/* Error in assignment */
+			SQLS_ENTRY(235, "22005");
+			SQLS_ENTRY(249, "22005");
+			SQLS_ENTRY(256, "22005");
+			SQLS_ENTRY(305, "22005");
+			SQLS_ENTRY(409, "22005");
+			SQLS_ENTRY(518, "22005");
+			SQLS_ENTRY(529, "22005");
 			SQLS_ENTRY(535, "22008");	/* Datetime out of range */
 			SQLS_ENTRY(542, "22008");
 			SQLS_ENTRY(517, "22008");
@@ -1044,6 +1100,13 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(544, "23000");	/* Constraint violation */
 			SQLS_ENTRY(233, "23000");
+			SQLS_ENTRY(273,	"23000");
+			SQLS_ENTRY(530,	"23000");
+			SQLS_ENTRY(2601,"23000");
+			SQLS_ENTRY(2615,"23000");
+			SQLS_ENTRY(2626,"23000");
+			SQLS_ENTRY(3604,"23000");
+			SQLS_ENTRY(3605,"23000");
 			SQLS_ENTRY(545, "23000");
 			SQLS_ENTRY(546, "23000");
 			SQLS_ENTRY(547, "23000");
@@ -1061,7 +1124,10 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(6260, "24000");
 			SQLS_ENTRY(562, "24000");
 			SQLS_ENTRY(277, "25000");	/* Invalid transaction state */
-			SQLS_ENTRY(611, "25000");
+			SQLS_ENTRY(611,"25000");
+			SQLS_ENTRY(3906,"25000");
+			SQLS_ENTRY(3908,"25000");
+			SQLS_ENTRY(6401,"25000");
 			SQLS_ENTRY(627, "25000");
 			SQLS_ENTRY(628, "25000");
 			SQLS_ENTRY(641, "25000");
@@ -1071,6 +1137,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(3903, "25000");
 			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
 			SQLS_ENTRY(102, "37000");
+			SQLS_ENTRY(137, "37000");
 			SQLS_ENTRY(7327, "37000");
 			SQLS_ENTRY(201, "37000");
 			SQLS_ENTRY(257, "37000");
