@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.136 2003-03-24 22:44:26 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.137 2003-03-25 04:29:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -66,19 +66,30 @@ static char *_dbprdate(char* timestr);
 static void _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen);
 
 /**
+ * @file dblib.c
+ * Main implementation file for \c db-lib.
+ */
+/**
+ * @file bcp.c
+ * Implementation of \c db-lib bulk copy functions.
+ */
+/**
  * \defgroup dblib_api db-lib API
- * Functions callable by db-lib client programs
+ * Functions callable by \c db-lib client programs
  *
- * The db_lib interface is implemented by both Sybase and Microsoft.  FreeTDS seeks to implement 
+ * The \c db_lib interface is implemented by both Sybase and Microsoft.  FreeTDS seeks to implement 
  * first the intersection of the functions defined by the vendors.  
  */
-
 /**
+ * \ingroup dblib_api
  * \defgroup dblib_internal db-lib internals
- * Functions called within db-lib for self-help.  
- *
- *   
+ * Functions called within \c db-lib for self-help.  
  */
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_bcp db-lib bulk copy functions.  
+ * Functions to bulk-copy (a/k/a \em bcp) data to/from the database.  
+*/
 
 /* info/err message handler functions (or rather pointers to them) */
 MHANDLEFUNC _dblib_msg_handler = NULL;
@@ -1280,7 +1291,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
  * \brief Ascertain the results of a query.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \retval SUCCEED results pending; fetch with dbresults().
+ * \retval SUCCEED results pending; fetch with dbnextrow().
  * \retval FAIL typically due to a runtime error.
  * \retval NO_MORE_RESULTS commands in the buffer have already been processed. 
  * \retval NO_MORE_RPC_RESULTS \no futher results from dbrpcsend().
@@ -1326,9 +1337,9 @@ dbnumcols(DBPROCESS * dbproc)
  * \brief Return name of a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param column the column number, starting with 1.  
+ * \param column Nth in the result set, starting with 1.  
  * \return pointer to ASCII null-terminated string, the name of the column. 
- * \retval NULL column number is not in range.
+ * \retval NULL \a column is not in range.
  * \sa dbcollen(), dbcoltype(), dbdata(), dbdatlen(), dbnumcols().
  */
 char *
@@ -1558,7 +1569,7 @@ _db_get_server_type(int bindtype)
  * tds_convert() copies from src to dest and returns the output data length,
  * period.  All padding and termination is the responsibility of the API library
  * and is done post-conversion.  The peculiar rule in dbconvert() is that
- * a destlen of -1 and a desttype of \c SYBCHAR means the output buffer
+ * a \a destlen of -1 and a \a desttype of \c SYBCHAR means the output buffer
  * should be null-terminated.
  *  
  * \sa dbaltbind(), dbaltbind_ps(), dbbind(), dbbind_ps(), dbconvert_ps(), dberrhandle(), dbsetnull(), dbsetversion(), dbwillconvert().
@@ -2122,13 +2133,13 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
  * \ingroup dblib_api
  * \brief Test whether or not a datatype can be converted to another datatype
  * 
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param srctype type converting from
  * \param desttype type converting to
  * \remarks dbwillconvert() lies sometimes.  Some datatypes \em should be convertible but aren't yet in
- our implementation.  For these, dbwillconvert() returns \em TRUE and dbconvert() returns FAIL.  
- * \sa dbaltbind(), dbbind(), dbconvert(), dbconvert_ps(), \c src/dblib/unittests/convert.c.
+ our implementation.  
+ * \retval TRUE convertible, or should be. Legal unimplemented conversions return \em TRUE.  
+ * \retval FAIL not convertible.  
+ * \sa dbaltbind(), dbbind(), dbconvert(), dbconvert_ps(), \c src/dblib/unittests/convert().c().
  */
 DBBOOL
 dbwillconvert(int srctype, int desttype)
@@ -2444,6 +2455,8 @@ dbspr1rowlen(DBPROCESS * dbproc)
  * 
  * Fills a buffer with one data row, represented as a null-terminated ASCII string.  Helpful for debugging.  
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param buffer \em output: Address of a buffer to hold ASCII null-terminated string.
+ * \param buf_len size of \a buffer, in bytes. 
  * \retval SUCCEED on success.
  * \retval FAIL trouble encountered.  
  * \sa dbclropt(), dbisopt(), dbprhead(), dbprrow(), dbspr1rowlen(), dbsprhead(), dbsprline().
@@ -2814,7 +2827,7 @@ _get_printable_size(TDSCOLINFO * colinfo)
  * \param buf_len size of \a buffer
  * \param line_char character to use to represent underlining.
  * \retval SUCCEED \a buffer filled.
- * \retval FAIL insufficient spaace in \a buffer, usually.
+ * \retval FAIL insufficient space in \a buffer, usually.
  * \sa dbprhead(), dbprrow(), dbspr1row(), dbspr1rowlen(), dbsprhead(). 
  */
 RETCODE
@@ -3631,6 +3644,8 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
  * \brief Set interrupt handler for db-lib to use while blocked against a read from the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param ckintr
+ * \param hndlintr
  * \sa dbcancel(), dbgetuserdata(), dbsetuserdata(), dbsetbusy(), dbsetidle().
  * \todo Unimplemented.
  */
@@ -4146,7 +4161,7 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param mnyptr \em input the money amount, \em and \em output: \a mnyptr divided by 10.  
- * \param value the character value (between '0' and '9') of the rightmost digit in \a mnyptr.  
+ * \param digit the character value (between '0' and '9') of the rightmost digit in \a mnyptr.  
  * \param zero \em output: \c TRUE if \a mnyptr is zero on output, else \c FALSE.  
  * \retval SUCCEED Always.  
  * \sa dbconvert(), dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
@@ -4154,7 +4169,7 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
  * \todo Unimplemented.
  */
 RETCODE
-dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * amount, DBBOOL * zero)
+dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyndigit()\n");
 	return SUCCEED;
@@ -4431,7 +4446,7 @@ dbmny4cmp(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2)
  * \param src address of a DBMONEY4 structure.  
  * \param dest \em output: new money. 
  * \retval SUCCEED always.  
- * \sa dbmnycopy, dbmnyminus, dbmny4minus. 
+ * \sa dbmnycopy(), dbmnyminus(), dbmny4minus(). 
  */
 RETCODE
 dbmny4copy(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest)
@@ -4492,7 +4507,7 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
  * \param datetime \em input: \c DBDATETIME to be converted.
  * \retval SUCCEED always.
  * \remarks The members of \a di have different names, depending on whether \c --with-msdblib was configured. 
- * \sa dbconvert, dbdata, dbdatechar, dbdatename, dbdatepart.
+ * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart().
  */
 RETCODE
 dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
@@ -4530,7 +4545,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
  * \brief Clear remote passwords from the LOGINREC structure.
  * 
  * \param login structure to pass to dbopen().
- * \sa dblogin, dbopen, dbrpwset, DBSETLAPP, DBSETLHOST, DBSETLPWD, DBSETLUSER.  
+ * \sa dblogin(), dbopen(), dbrpwset(), DBSETLAPP(), DBSETLHOST(), DBSETLPWD(), DBSETLUSER().  
  * \remarks Useful for remote stored procedure calls, but not in high demand from FreeTDS.  
  * \todo Unimplemented.
  */
@@ -4549,7 +4564,7 @@ dbrpwclr(LOGINREC * login)
  * \param password you guessed it, let's hope no else does.  
  * \param pwlen count of \a password, in bytes.
  * \remarks Useful for remote stored procedure calls, but not in high demand from FreeTDS.  
- * \sa dblogin, dbopen, dbrpwclr, DBSETLAPP, DBSETLHOST, DBSETLPWD, DBSETLUSER.  
+ * \sa dblogin(), dbopen(), dbrpwclr(), DBSETLAPP(), DBSETLHOST(), DBSETLPWD(), DBSETLUSER().  
  * \todo Unimplemented.
  */
 RETCODE
@@ -4561,15 +4576,16 @@ dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen)
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Get server process ID for a \c DBPROCESS.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return \em "spid", the server's process ID.  
+ * \sa dbopen().  
  */
 int
 dbspid(DBPROCESS * dbproc)
 {
-TDSSOCKET *tds;
+	TDSSOCKET *tds;
 
 	if (dbproc == NULL) {
 		_dblib_client_msg(dbproc, SYBESPID, EXPROGRAM, "Called dbspid() with a NULL dbproc.");
@@ -4584,11 +4600,15 @@ TDSSOCKET *tds;
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Associate client-allocated (and defined) data with a \c DBPROCESS.   
  * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \param ptr address of client-defined data.
+ * \remarks \a ptr is the location of user data that \c db-lib will associate with \a dbproc. 
+ * The client allocates the buffer addressed by \a ptr.  \c db-lib never examines or uses the information; 
+ * it just stashes the pointer for later retrieval by the application with \c dbgetuserdata().  
+ * \sa dbgetuserdata().  
  */
 void
 dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr)
@@ -4599,11 +4619,13 @@ dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr)
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Get address of user-allocated data from a \c DBPROCESS.   
  * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return address of user-defined data that \c db-lib associated with \a dbproc when the client called  dbsetuserdata(). 
+ * \retval undefined (probably \c NULL) dbsetuserdata() was not previously called.  
+ * \sa dbsetuserdata().  
  */
 BYTE *
 dbgetuserdata(DBPROCESS * dbproc)
@@ -4613,10 +4635,11 @@ dbgetuserdata(DBPROCESS * dbproc)
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Specify a db-lib version level.
  * 
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param version anything, really. 
+ * \retval SUCCEED Always.  
+ * \remarks No effect on behavior of \c db-lib in \c FreeTDS.  
  * \sa 
  */
 RETCODE
@@ -4649,8 +4672,7 @@ dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Cancel the query currently being retrieved, discarding all pending rows.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \sa 
@@ -4658,10 +4680,10 @@ dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 RETCODE
 dbcanquery(DBPROCESS * dbproc)
 {
-TDSSOCKET *tds;
-int rc;
-TDS_INT rowtype;
-TDS_INT computeid;
+	TDSSOCKET *tds;
+	int rc;
+	TDS_INT rowtype;
+	TDS_INT computeid;
 
 	if (dbproc == NULL)
 		return FAIL;
@@ -4681,11 +4703,11 @@ TDS_INT computeid;
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Erase the command buffer, in case \c DBNOAUTOFREE was set with dbsetopt(). 
  * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa dbcmd(), dbfcmd(), dbgetchar(), dbsqlexec(), dbsqlsend(), dbsetopt(), dbstrcpy(), dbstrlen().  
  */
 void
 dbfreebuf(DBPROCESS * dbproc)
@@ -4706,7 +4728,7 @@ dbfreebuf(DBPROCESS * dbproc)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param option to be turned off.
  * \param param clearing some options requires a parameter, believe it or not.  
- * \retval SUCCEED option and parameter seem sane.
+ * \retval SUCCEED \a option and \a parameter seem sane.
  * \retval FAIL no such \a option.
  * \remarks Only the following options are recognized:
 	- DBARITHABORT
@@ -4762,7 +4784,7 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param option the option
  * \param param a parameter to \a option. 
- * \sa dbclropt, dbsetopt.
+ * \sa dbclropt(), dbsetopt().
  */
 DBBOOL
 dbisopt(DBPROCESS * dbproc, int option, char *param)
@@ -4773,13 +4795,15 @@ dbisopt(DBPROCESS * dbproc, int option, char *param)
 	return dbproc->dbopts[option].optactive;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get number of the row currently being read.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return ostensibly the row number, or 0 if no rows have been read yet.  
+ * \retval 0 Always.  
+ * \sa DBCURROW(), dbclrbuf(), DBFIRSTROW(), dbgetrow(), DBLASTROW(), dbnextrow(), dbsetopt(),.  
+ * \todo Unimplemented.
  */
 DBINT
 dbcurrow(DBPROCESS * dbproc)
@@ -4788,13 +4812,13 @@ dbcurrow(DBPROCESS * dbproc)
 	return 0;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get returned row's type.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa DBROWTYPE().  
+ * \todo Unimplemented.
  */
 STATUS
 dbrowtype(DBPROCESS * dbproc)
@@ -4803,13 +4827,14 @@ dbrowtype(DBPROCESS * dbproc)
 	return NO_MORE_ROWS;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get number of the row just returned.
  * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa DBCURROW().
+ * \todo Unimplemented.
  */
 int
 dbcurcmd(DBPROCESS * dbproc)
@@ -4818,13 +4843,12 @@ dbcurcmd(DBPROCESS * dbproc)
 	return 0;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief See if more commands are to be processed.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa DBMORECMDS(). DBCMDROW(), dbresults(), DBROWS(), DBROWTYPE().  
  */
 RETCODE
 dbmorecmds(DBPROCESS * dbproc)
@@ -4840,7 +4864,7 @@ dbmorecmds(DBPROCESS * dbproc)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param retnum Nth return parameter, between 1 and \c dbnumrets().  
  * \return SYB* datatype token, or -1 if \a retnum is out of range. 
- * \sa dbnextrow, dbnumrets, dbprtype, dbresults, dbretdata, dbretlen, dbretname, dbrpcinit, dbrpcparam. 
+ * \sa dbnextrow(), dbnumrets(), dbprtype(), dbresults(), dbretdata(), dbretlen(), dbretname(), dbrpcinit(), dbrpcparam(). 
  */
 int
 dbrettype(DBPROCESS * dbproc, int retnum)
@@ -4864,7 +4888,7 @@ dbrettype(DBPROCESS * dbproc, int retnum)
  * \brief Get size of the command buffer, in bytes. 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa dbcmd, dbfcmd, dbfreebuf, dbgetchar, dbstrcpy. 
+ * \sa dbcmd(), dbfcmd(), dbfreebuf(), dbgetchar(), dbstrcpy(). 
  */
 int
 dbstrlen(DBPROCESS * dbproc)
@@ -4879,7 +4903,7 @@ dbstrlen(DBPROCESS * dbproc)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param pos offset within the command buffer, starting at \em 0.   
  * \remarks A bit overspecialized, this one.  
- * \sa dbcmd, dbfcmd, dbfreebuf, dbstrcpy, dbstrlen,
+ * \sa dbcmd(), dbfcmd(), dbfreebuf(), dbstrcpy(), dbstrlen(),
  */
 char *
 dbgetchar(DBPROCESS * dbproc, int pos)
@@ -4896,11 +4920,20 @@ dbgetchar(DBPROCESS * dbproc, int pos)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Get a copy of a chunk of the command buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \param start position in the command buffer to start copying from, starting from \em 0.  
+ *  	If start is past the end of the command buffer, dbstrcpy() inserts a null terminator at dest[0].
+ * \param numbytes number of bytes to copy. 
+ 	- If -1, dbstrcpy() copies the whole command buffer.  
+	- If  0 dbstrcpy() writes a \c NULL to dest[0]. 
+	- If the command buffer contains fewer than \a numbytes (taking \a start into account) dbstrcpy() 
+	copies the rest of it.  
+ * \param dest \em output: the buffer to write to.  Make sure it's big enough.  
+ * \retval SUCCEED the inputs were valid and \a dest was affected.  
+ * \retval FAIL \a start < 0 or \a numbytes < -1.  
+ * \sa dbcmd(), dbfcmd(), dbfreebuf(), dbgetchar(), dbstrlen().  
  */
 RETCODE
 dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest)
@@ -4939,7 +4972,7 @@ dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest)
 	- \c DBBOTH   Doubles all single and double quotes.
  * \retval SUCCEED everything worked.
  * \retval FAIL no such \a quotetype, or insufficient room in \a dest.
- * \sa dbcmd, dbfcmd. 
+ * \sa dbcmd(), dbfcmd(). 
  */
 RETCODE
 dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
@@ -4997,7 +5030,7 @@ dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT d
  * \param token server SYB* value, e.g. SYBINT.  
 
  * \return ASCII null-terminated string.  
- * \sa dbaltop, dbalttype, dbcoltype, dbrettype.
+ * \sa dbaltop(), dbalttype(), dbcoltype(), dbrettype().
  */
 const char *
 dbprtype(int token)
@@ -5009,18 +5042,19 @@ dbprtype(int token)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Get text timestamp for a column in the current row.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \param column number of the column in the \c SELECT statement, starting at 1.
+ * \return timestamp for \a column, may be NULL.
+ * \sa dbtxptr(), dbwritetext().  
  */
 DBBINARY *
 dbtxtimestamp(DBPROCESS * dbproc, int column)
 {
-TDSSOCKET *tds;
-TDSRESULTINFO *resinfo;
-TDSBLOBINFO *blob_info;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+	TDSBLOBINFO *blob_info;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (!tds->res_info)
@@ -5035,12 +5069,21 @@ TDSBLOBINFO *blob_info;
 	return (DBBINARY *) blob_info->timestamp;
 }
 
+/**
+ * \ingroup dblib_api
+ * \brief Get text pointer for a column in the current row.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param column number of the column in the \c SELECT statement, starting at 1.
+ * \return text pointer for \a column, may be NULL.
+ * \sa dbtxtimestamp(), dbwritetext(). 
+ */
 DBBINARY *
 dbtxptr(DBPROCESS * dbproc, int column)
 {
-TDSSOCKET *tds;
-TDSRESULTINFO *resinfo;
-TDSBLOBINFO *blob_info;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+	TDSBLOBINFO *blob_info;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (!tds->res_info)
@@ -5057,19 +5100,27 @@ TDSBLOBINFO *blob_info;
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Send text or image data to the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \param objname table name
+ * \param textptr text pointer to be modified, obtained from dbtxptr(). 
+ * \param textptrlen \em Ignored.  Supposed to be \c DBTXPLEN.
+ * \param timestamp text timestamp to be modified, obtained from dbtxtimestamp() or dbtxtsnewval(), may be \c NULL.
+ * \param log \c TRUE if the operation is to be recorded in the transaction log.
+ * \param size overall size of the data (in total, not just for this call), in bytes.  A guideline, must not overstate the case.  
+ * \param text the chunk of data to write.  
+ * \retval SUCCEED everything worked.
+ * \retval FAIL not sent, possibly because \a timestamp is invalid or was changed in the database since it was fetched.  
+ * \sa dbmoretext(), dbtxptr(), dbtxtimestamp(), dbwritetext(), dbtxtsput().  
  */
 RETCODE
 dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT textptrlen, DBBINARY * timestamp, DBBOOL log,
 	    DBINT size, BYTE * text)
 {
-char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
-char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
-int marker;
+	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
+	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
+	int marker;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return FAIL;
@@ -5134,7 +5185,7 @@ int marker;
 	- \c  0 end of row.  
 	- \c -1 \em error, no result set ready for \dbproc.
 	- \c NO_MORE_ROWS all rows read, no further data. 
- * \sa dbmoretext, dbnextrow, dbwritetext. 
+ * \sa dbmoretext(), dbnextrow(), dbwritetext(). 
  */
 STATUS
 dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
@@ -5188,7 +5239,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
  * \param size count of bytes to send.  
  * \param text textpointer, obtained from dbtxptr.
  * \retval SUCCEED always.
- * \sa dbtxptr, dbtxtimestamp, dbwritetext. 
+ * \sa dbtxptr(), dbtxtimestamp(), dbwritetext(). 
  * \todo Check return value of called functions and return \c FAIL if appropriate. 
  */
 RETCODE
@@ -5206,7 +5257,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
  * 
  * \param filename name of file to write to. 
  * \remarks Files are named \em filename.n, where n is an integer, starting with 0, and incremented with each callto dbopen().  
- * \sa dbopen(), TDSDUMP environment variable. 
+ * \sa dbopen(), TDSDUMP environment variable(). 
  */
 void
 dbrecftos(char *filename)
@@ -5218,22 +5269,23 @@ dbrecftos(char *filename)
 	}
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get the TDS version in use for \a dbproc.  
  * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \return a \c DBTDS* token.  
  * \remarks The integer values of the constants are counterintuitive.  
- * \sa 
+ * \sa DBTDS().
  */
 int
-dbtds(DBPROCESS * dbprocess)
+dbtds(DBPROCESS * dbproc)
 {
-	if (dbprocess && dbprocess->tds_socket) {
-		switch (dbprocess->tds_socket->major_version) {
+	if (dbproc && dbproc->tds_socket) {
+		switch (dbproc->tds_socket->major_version) {
 		case 4:
-			switch (dbprocess->tds_socket->minor_version) {
+			switch (dbproc->tds_socket->minor_version) {
 			case 2:
 				return DBTDS_4_2;
 			case 6:
@@ -5270,10 +5322,10 @@ dbversion()
 
 /**
  * \ingroup dblib_api
- * \brief 
+ * \brief Set the default character set.  
  * 
  * \param charset null-terminated ASCII string, matching a row in master..syscharsets.  
- * \sa dbsetdeflang, dbsetdefcharset, dblogin, dbopen. 
+ * \sa dbsetdeflang(), dbsetdefcharset(), dblogin(), dbopen(). 
  * \todo Unimplemented.
  */
 RETCODE
@@ -5290,7 +5342,7 @@ dbsetdefcharset(char *charset)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param procedure_name to call.
  * \param namelen size of \a procedure_name, in bytes.
- * \sa dbregparam, dbregexec, dbregwatch, dbreglist, dbregwatchlist
+ * \sa dbregparam(), dbregexec(), dbregwatch(), dbreglist(), dbregwatchlist
  * \todo Unimplemented.
  */
 RETCODE
@@ -5305,7 +5357,7 @@ dbreginit(DBPROCESS * dbproc, DBCHAR * procedure_name, DBSMALLINT namelen)
  * \brief Get names of Open Server registered procedures.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa dbregparam, dbregexec, dbregwatch, dbreglist, dbregwatchlist. 
+ * \sa dbregparam(), dbregexec(), dbregwatch(), dbreglist(), dbregwatchlist(). 
  * \todo Unimplemented.
  */
 RETCODE
@@ -5324,7 +5376,7 @@ dbreglist(DBPROCESS * dbproc)
  * \param type \c SYB* datatype. 
  * \param datalen size of \a data.
  * \param data address of buffer holding value for the parameter.  
- * \sa dbreginit, dbregexec, dbnpdefine, dbnpcreate, dbregwatch. 
+ * \sa dbreginit(), dbregexec(), dbnpdefine(), dbnpcreate(), dbregwatch(). 
  * \todo Unimplemented.
  */
 RETCODE
@@ -5340,7 +5392,7 @@ dbregparam(DBPROCESS * dbproc, char *param_name, int type, DBINT datalen, BYTE *
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param options
- * \sa dbreginit, dbregparam, dbregwatch, dbregnowatch
+ * \sa dbreginit(), dbregparam(), dbregwatch(), dbregnowatch
  * \todo Unimplemented.
  */
 RETCODE
@@ -5359,7 +5411,7 @@ dbregexec(DBPROCESS * dbproc, DBUSMALLINT options)
  * \param monthnum number of the month, starting with 1.
  * \param shortform set to \c TRUE for a three letter output ("Jan" - "Dec"), else zero.  
  * \return address of null-terminated ASCII string, or \c NULL on error. 
- * \sa db12hour, dbdateorder, dbdayname, DBSETLNATLANG, dbsetopt.  
+ * \sa db12hour(), dbdateorder(), dbdayname(), DBSETLNATLANG(), dbsetopt().  
  */
 const char *
 dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform)
@@ -5373,11 +5425,12 @@ dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief See if a command caused the current database to change.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return name of new database, if changed, as a null-terminated ASCII string, else \c NULL.
+
+ * \sa dbname(), dbresults(), dbsqlexec(), dbsqlsend(), dbuse().  
  */
 char *
 dbchange(DBPROCESS * dbproc)
@@ -5391,11 +5444,11 @@ dbchange(DBPROCESS * dbproc)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Get name of current database.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return current database name, as null-terminated ASCII string.
+ * \sa dbchange(), dbuse().  
  */
 char *
 dbname(DBPROCESS * dbproc)
@@ -5406,11 +5459,11 @@ dbname(DBPROCESS * dbproc)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Get \c syscharset name of the server character set.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \return name of server's charset, as null-terminated ASCII string.
+ * \sa dbcharsetconv(), dbgetcharset(), DBSETLCHARSET().  
  */
 char *
 dbservcharset(DBPROCESS * dbproc)
@@ -5421,11 +5474,13 @@ dbservcharset(DBPROCESS * dbproc)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Transmit the command buffer to the server.  \em Non-blocking, does not wait for a response.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \retval SUCCEED SQL sent.
+ * \retval FAIL protocol problem, unless dbsqlsend() when it's not supposed to be (in which case a db-lib error
+ message will be emitted).  
+ * \sa dbcmd(), dbfcmd(), DBIORDESC(), DBIOWDESC(), dbnextrow(), dbpoll(), dbresults(), dbsettime(), dbsqlexec(), dbsqlok().  
  */
 RETCODE
 dbsqlsend(DBPROCESS * dbproc)
@@ -5578,7 +5633,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 	- \c DBINTERRUPT operating-system interrupt occurred before the server responded.
  * \retval SUCCEED everything worked.
  * \retval FAIL a server connection died.
- * \sa  DBIORDESC, DBRBUF, dbresults, dbreghandle, dbsqlok. 
+ * \sa  DBIORDESC(), DBRBUF(), dbresults(), dbreghandle(), dbsqlok(). 
  * \todo Unimplemented.
  */
 RETCODE
@@ -5588,19 +5643,18 @@ dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *re
 	return SUCCEED;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get number of the last row in the row buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa DBLASTROW(), dbclrbuf(), DBCURROW(), DBFIRSTROW(), dbgetrow(), dbnextrow(), dbsetopt(). 
  */
 DBINT
 dblastrow(DBPROCESS * dbproc)
 {
-TDSRESULTINFO *resinfo;
-TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+	TDSSOCKET *tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -5619,18 +5673,17 @@ TDSSOCKET *tds;
 #endif
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get number of the first row in the row buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa DBFIRSTROW(), dbclrbuf(), DBCURROW(), dbgetrow(), DBLASTROW(), dbnextrow(), dbsetopt(). 
  */
 DBINT
 dbfirstrow(DBPROCESS * dbproc)
 {
-DBINT result;
+	DBINT result;
 
 	if (dbproc->row_buf.rows_in_buf == 0) {
 		result = 0;
@@ -5640,13 +5693,12 @@ DBINT result;
 	return result;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get file descriptor of the socket used by a \c DBPROCESS to read data coming from the server. (!)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa dbcmd(), DBIORDESC(), DBIOWDESC(), dbnextrow(), dbpoll(), DBRBUF(), dbresults(), dbsqlok(), dbsqlsend().  
  */
 int
 dbiordesc(DBPROCESS * dbproc)
@@ -5654,13 +5706,12 @@ dbiordesc(DBPROCESS * dbproc)
 	return dbproc->tds_socket->s;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get file descriptor of the socket used by a \c DBPROCESS to write data coming to the server. (!)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \sa dbcmd(), DBIORDESC(), DBIOWDESC(), dbnextrow(), dbpoll(), DBRBUF(), dbresults(), dbsqlok(), dbsqlsend().  
  */
 int
 dbiowdesc(DBPROCESS * dbproc)
@@ -5697,13 +5748,17 @@ _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen)
 	}
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief See if a \c DBPROCESS is marked "available".
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \remarks Basically bogus.  \c FreeTDS behaves the way Sybase's implementation does, but so what?  
+ 	Many \c db-lib functions set the \c DBPROCESS to "not available", but only 
+	dbsetavail() resets it to "available".  
+ * \retval TRUE \a dbproc is "available".   
+ * \retval FALSE \a dbproc is not "available".   
+ * \sa DBISAVAIL(). DBSETAVAIL().
  */
 DBBOOL
 dbisavail(DBPROCESS * dbproc)
@@ -5711,13 +5766,15 @@ dbisavail(DBPROCESS * dbproc)
 	return dbproc->avail_flag;
 }
 
-/**
- * \ingroup dblib_api
- * \brief 
- * 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Mark a \c DBPROCESS as "available".
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \remarks Basically bogus.  \c FreeTDS behaves the way Sybase's implementation does, but so what?  
+ 	Many \c db-lib functions set the \c DBPROCESS to "not available", but only 
+	dbsetavail() resets it to "available".  
+ * \sa DBISAVAIL(). DBSETAVAIL().
  */
 void
 dbsetavail(DBPROCESS * dbproc)
@@ -5727,11 +5784,19 @@ dbsetavail(DBPROCESS * dbproc)
 
 /**
  * \ingroup dblib_api
- * \brief 
- * 
+ * \brief Build a printable string from text containing placeholders for variables.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa 
+ * \param charbuf \em output: buffer that will contain the ASCII null-terminated string built by \c dbstrbuild().
+ * \param bufsize size of \a charbuf, in bytes. 
+ * \param text null-terminated ASCII string, with \em placeholders for variables. \em A Placeholder is a
+ * 	three-byte string, made up of: 
+ 	- '%' a percent sign
+	- 0-9 an integer (designates the argument number to use, starting with 1.)
+	- '!' an exclamation point
+ * \param formats null-terminated ASCII sprintf-style string.  Has one format specifier for each placeholder in \a text.
+ * \remarks Following \a formats are the arguments, the values to substitute for the placeholders.  
+ * \sa dbconvert(), dbdatename(), dbdatepart().  
  */
 int
 dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *formats, ...)
@@ -5747,6 +5812,17 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	return rc;
 }
 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Pass a server-generated error message to the client's installed handler.  
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param dberr error number
+ * \param severity severity level
+ * \param dberrstr null-terminated ASCII string, the error message.  
+ * \return Propogates return code of tds_client_msg().  
+ * \sa tds_client_msg().  
+ */
 int
 _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr)
 {
