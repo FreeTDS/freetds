@@ -1,3 +1,7 @@
+Tue Oct 15 08:14:41 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/vasprintf.c:
+	- Restore missing close brace.
+
 Tue Oct 15 07:50:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/login.c:
 	- Use tds_submit_queryf() to set textsize.

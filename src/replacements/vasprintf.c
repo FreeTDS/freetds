@@ -18,7 +18,7 @@
 #endif /* HAVE_PATHS_H */
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.7 2002-10-11 19:29:58 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.8 2002-10-15 12:29:11 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -46,6 +46,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
     len = vsnprintf(buf, buflen, fmt, ap);
     if (len >=0 && len < buflen) {
       break;
+    }
     free(buf);
     buflen = (++chunks) * CHUNKSIZE;
     if (len >= buflen) {
@@ -57,9 +58,9 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 #else /* HAVE_VSNPRINTF */
 #ifdef _REENTRANT
   FILE *fp;
-#else
+#else /* !_REENTRANT */
   static FILE *fp = NULL;
-#endif
+#endif /* !_REENTRANT */
   int len;
   char *buf;
 
@@ -68,17 +69,17 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 #ifdef _REENTRANT
   if ((fp = fopen(_PATH_DEVNULL, "w")) == NULL)
     return -1;
-#else
+#else /* !_REENTRANT */
   if ((fp == NULL) && ((fp = fopen(_PATH_DEVNULL, "w")) == NULL))
     return -1;
-#endif
+#endif /* !_REENTRANT */
 
   len = vfprintf(fp, fmt, ap);
 
 #ifdef _REENTRANT
   if (fclose(fp) != 0)
     return -1;
-#endif
+#endif /* _REENTRANT */
 
   if (len < 0)
     return len;
