@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.109 2003-01-03 14:37:17 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.110 2003-01-03 14:54:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -505,17 +505,17 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 static SQLRETURN SQL_API
 _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 {
-	struct _hdbc *dbc;
+	TDS_DBC *dbc;
 
 	INIT_HENV;
 
-	dbc = (struct _hdbc *) malloc(sizeof(struct _hdbc));
+	dbc = (TDS_DBC*) malloc(sizeof(TDS_DBC));
 	if (!dbc) {
 		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
 	}
 
-	memset(dbc, '\0', sizeof(struct _hdbc));
+	memset(dbc, '\0', sizeof(TDS_DBC));
 	dbc->henv = env;
 	dbc->tds_login = (void *) tds_alloc_login();
 	*phdbc = (SQLHDBC) dbc;
@@ -574,16 +574,16 @@ SQLAllocEnv(SQLHENV FAR * phenv)
 static SQLRETURN SQL_API
 _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
-	struct _hstmt *stmt;
+	TDS_STMT *stmt;
 
 	INIT_HDBC;
 
-	stmt = (struct _hstmt *) malloc(sizeof(struct _hstmt));
+	stmt = (TDS_STMT *) malloc(sizeof(TDS_STMT));
 	if (!stmt) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
 	}
-	memset(stmt, '\0', sizeof(struct _hstmt));
+	memset(stmt, '\0', sizeof(TDS_STMT));
 	stmt->hdbc = dbc;
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -772,7 +772,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	TDSSOCKET *tds;
 	TDSCOLINFO *colinfo;
 	int cplen, len = 0;
-	struct _hdbc *dbc;
+	TDS_DBC *dbc;
 
 	INIT_HSTMT;
 
@@ -1018,16 +1018,13 @@ myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 }
 
 static SQLRETURN SQL_API
-_SQLExecute(SQLHSTMT hstmt)
+_SQLExecute(TDS_STMT *stmt)
 {
-	struct _hstmt *stmt = (struct _hstmt *) hstmt;
 	int ret;
 	TDSSOCKET *tds = stmt->hdbc->tds_socket;
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	SQLRETURN result = SQL_SUCCESS;
-
-	CHECK_HSTMT;
 
 	stmt->row = 0;
 
@@ -1085,7 +1082,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	if (SQL_SUCCESS != prepare_call(stmt))
 		return SQL_ERROR;
 
-	return _SQLExecute(hstmt);
+	return _SQLExecute(stmt);
 }
 
 SQLRETURN SQL_API
@@ -1201,7 +1198,7 @@ SQLExecute(SQLHSTMT hstmt)
 			return res;
 	}
 
-	return _SQLExecute(hstmt);
+	return _SQLExecute(stmt);
 }
 
 SQLRETURN SQL_API
@@ -1341,9 +1338,8 @@ static SQLRETURN SQL_API
 _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 {
 	TDSSOCKET *tds;
-	struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
-	CHECK_HSTMT;
+	INIT_HSTMT;
 
 	/* check if option correct */
 	if (fOption != SQL_DROP && fOption != SQL_CLOSE && fOption != SQL_UNBIND && fOption != SQL_RESET_PARAMS) {
@@ -1647,7 +1643,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, szQuery, strlen(szQuery)))
 		return SQL_ERROR;
 
-	return _SQLExecute(hstmt);
+	return _SQLExecute(stmt);
 }
 
 SQLRETURN SQL_API
@@ -2070,7 +2066,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	}
 
       redo:
-	res = _SQLExecute(hstmt);
+	res = _SQLExecute(stmt);
 
 	odbc_upper_column_names(stmt->hdbc->tds_socket);
 
@@ -2145,7 +2141,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 			return res;
 	}
 
-	return _SQLExecute(hstmt);
+	return _SQLExecute(stmt);
 }
 
 
@@ -2303,7 +2299,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	}
 	free(query);
 
-	result = _SQLExecute(hstmt);
+	result = _SQLExecute(stmt);
 
 	/* Sybase seem to return column name in lower case, 
 	 * transform to uppercase 
