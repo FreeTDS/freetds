@@ -1,3 +1,7 @@
+Tue Nov  9 10:53:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c:
+	- fix possible compile error including both regex.h and libgen.h
+
 Sun Nov  7 10:35:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c:
 	- set correctly TDSCONNECTION->server_name

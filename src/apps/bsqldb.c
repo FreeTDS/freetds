@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -44,10 +45,6 @@
 #include <libgen.h>
 #endif
 
-#if HAVE_REGEX_H
-#include <regex.h>
-#endif
-
 #if ! HAVE_BASENAME
 char *basename(char *path);
 #endif
@@ -56,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.11 2004-11-07 08:59:33 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.12 2004-11-09 09:54:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -69,7 +66,7 @@ static int get_printable_size(int type, int size);
 static void usage(const char invoked_as[]);
 
 struct METADATA { char *name, *format_string; const char *source; int type, size; };
-int set_format_string(struct METADATA * meta, const char separator[]);
+static int set_format_string(struct METADATA * meta, const char separator[]);
 
 typedef struct _options 
 { 
@@ -204,15 +201,9 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-int
+static int
 next_query(DBPROCESS *dbproc)
 {
-#if HAVE_REGEX_H
-	regex_t reg;
-	const int reg_flags = REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE;
-#else
-	static const char go[] = "go\n";
-#endif
 	char query_line[4096];
 	RETCODE erc;
 	
@@ -233,16 +224,14 @@ next_query(DBPROCESS *dbproc)
 	
 	while (fgets(query_line, sizeof(query_line), stdin)) {
 		/* 'go' or 'GO' separates command batches */
-#if HAVE_REGEX_H
-		erc = regcomp(&reg, "^go[[:space:]]*$", reg_flags);
-		assert(erc == 0);
-		if( 0 == regexec(&reg, query_line, 0, NULL, 0))
-			return 1;
-#else
-		if (0 == strcasecmp(query_line, go))
-			return 1;
-#endif
-			
+		const char *p = query_line;
+		if (strncasecmp(p, "go", 2) == 0) {
+			while(isspace(*p))
+				++p;
+			if (strcmp(p, "\n") == 0)
+				return 1;
+		}
+
 		fprintf(options.verbose, "\t%s", query_line);
 		
 		/* Add the query line to the command to be sent to the server */
@@ -265,7 +254,7 @@ next_query(DBPROCESS *dbproc)
 	return 1;
 }
 
-void
+static void
 print_results(DBPROCESS *dbproc) 
 {
 	static const char empty_string[] = "";
@@ -670,7 +659,7 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
  * This is just one solution to the question, "How wide should my columns be when I print them out?"
  */
 #define is_character_data(x)   (x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
-int
+static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
 	int width, ret;
