@@ -1,3 +1,6 @@
+Thu Feb 27 20:48:48 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml: ASA footnote
+
 Thu Feb 27 20:50:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: small change
 	* src/tds/mem.c: fix wrong memory clean causing core

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-02-27 11:16:35 $</date>
-		<releaseinfo>$Revision: 1.51.2.5 $</releaseinfo>
+		<date>$Date: 2003-02-28 03:27:40 $</date>
+		<releaseinfo>$Revision: 1.51.2.6 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -47,9 +47,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.51.2.5 $</>
-<member>$Date: 2003-02-27 11:16:35 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.51.2.5 2003-02-27 11:16:35 freddy77 Exp $.</>
+<member>$Revision: 1.51.2.6 $</>
+<member>$Date: 2003-02-28 03:27:40 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.51.2.6 2003-02-28 03:27:40 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -576,7 +576,13 @@ the file can be controlled by an environment variable).  Its format
 is similar to Samba's modified
 <quote><filename>win.ini</filename></quote> format.  Its foremost job
 is to relate  <emphasis>dataserver</emphasis> names, as known to your
-programs, to  <emphasis>machine</emphasis> names, as known your
+programs<footnote>
+	<para>In general, the dataserver name is arbitrary and local; it's used only by your client programs to tell <productname>FreeTDS</productname> which server to connect to.  You can choose any name you like.  </para>
+	<para><productname>Sybase SQL Anywhere</productname> (a/k/a Sybase ASA), however, is fussy.  You must use the database's name as your dataserver name.  Otherwise, the server will refuse your connection.  </para>
+</footnote>
+
+
+, to  <emphasis>machine</emphasis> names, as known your
 network.  That is, while your machines have names known to the
 network, the dataservers on your machines have names known only to
 your  <productname>FreeTDS</productname> client programs.  The
