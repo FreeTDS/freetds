@@ -119,7 +119,7 @@ odbc	(all)	SQLGetDescField
 odbc	(all)	SQLGetDescRec	
 odbc	(all)	SQLGetDiagField	OK
 odbc	(all)	SQLGetDiagRec	OK
-odbc	(all)	SQLGetEnvAttr	
+odbc	(all)	SQLGetEnvAttr	OK
 odbc	(all)	SQLGetFunctions	OK
 odbc	(all)	SQLGetInfo	partial
 odbc	(all)	SQLGetStmtAttr	partial

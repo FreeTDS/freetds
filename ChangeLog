@@ -1,3 +1,10 @@
+Sun Jul 27 14:06:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt include/tdsodbc.h src/odbc/error.c:
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	- continue merging Steve patch:
+	 - used attribute structure for environment
+	 - add SQLGetEnvAttr
+
 Sun Jul 27 13:25:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: update version
 	* src/odbc/odbc.c:

@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.189 2003-07-27 11:27:02 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.190 2003-07-27 12:08:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -96,6 +96,7 @@ static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 #define CHECK_HDBC  if ( SQL_NULL_HDBC  == hdbc || !IS_HDBC(hdbc) ) return SQL_INVALID_HANDLE;
 #define CHECK_HSTMT if ( SQL_NULL_HSTMT == hstmt || !IS_HSTMT(hstmt) ) return SQL_INVALID_HANDLE;
 #define CHECK_HENV  if ( SQL_NULL_HENV  == henv || !IS_HENV(henv) ) return SQL_INVALID_HANDLE;
+#define CHECK_HDESC if ( SQL_NULL_HDESC == hdesc || !IS_HDESC(hdesc) ) return SQL_INVALID_HANDLE;
 
 #define INIT_HSTMT \
 	TDS_STMT *stmt = (TDS_STMT*)hstmt; \
@@ -112,6 +113,12 @@ static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 	CHECK_HENV; \
 	odbc_errs_reset(&env->errs); \
 
+#define INIT_HDESC \
+	TDS_DESC *desc = (TDS_DESC*)hdesc; \
+	CHECK_HDESC; \
+	odbc_errs_reset(&desc->errs); \
+
+#define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
 
 /*
 **
@@ -291,7 +298,7 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -334,7 +341,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 				  "@pktable_name", szPkTableName, cbPkTableName,
 				  "@fktable_qualifier", szFkCatalogName, cbFkCatalogName,
 				  "@fktable_owner", szFkSchemaName, cbFkSchemaName, "@fktable_name", szFkTableName, cbFkTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PKTABLE_CAT");
 		odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
 		odbc_col_setname(stmt, 5, "FKTABLE_CAT");
@@ -459,7 +466,7 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 		odbc_stat_execute(stmt, "sp_pkeys ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -480,7 +487,7 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@procedure_qualifier", szCatalogName, cbCatalogName,
 				  "@procedure_owner", szSchemaName, cbSchemaName,
 				  "@procedure_name", szProcName, cbProcName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 		odbc_col_setname(stmt, 8, "COLUMN_SIZE");
@@ -503,7 +510,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		odbc_stat_execute(stmt, "sp_stored_procedures ", 3,
 				  "@sp_name", szProcName, cbProcName,
 				  "@sp_owner", szSchemaName, cbSchemaName, "@sp_qualifier", szCatalogName, cbCatalogName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 	}
@@ -532,7 +539,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 		odbc_stat_execute(stmt, "sp_table_privileges ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -549,20 +556,78 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 {
 	INIT_HENV;
 	switch (Attribute) {
+	case SQL_ATTR_CONNECTION_POOLING:
+	case SQL_ATTR_CP_MATCH:
+		/* TODO */
+		/* odbc_errs_ms_add(&env->errs, 0, "HYC00", NULL, NULL); */
+		ODBC_RETURN(env, SQL_ERROR);
+		break;
 	case SQL_ATTR_ODBC_VERSION:
 		switch ((SQLULEN) Value) {
 		case SQL_OV_ODBC3:
-			env->odbc_ver = 3;
-			ODBC_RETURN(env, SQL_SUCCESS);
 		case SQL_OV_ODBC2:
-			env->odbc_ver = 2;
-			ODBC_RETURN(env, SQL_SUCCESS);
+			break;
+		default:
+			/* TODO */
+			/* odbc_errs_ms_add(&env->errs, 0, "HY024", NULL, NULL); */
+			ODBC_RETURN(env, SQL_ERROR);
 		}
+		env->attr.attr_odbc_version = (SQLINTEGER) Value;
+		ODBC_RETURN(env, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_OUTPUT_NTS:
+		env->attr.attr_output_nts = (SQLINTEGER) Value;
+		/* TODO - Make this really work */
+		env->attr.attr_output_nts = SQL_TRUE;
+		ODBC_RETURN(env, SQL_SUCCESS);
 		break;
 	}
 	odbc_errs_add(&env->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetEnvAttr: function not implemented");
 	ODBC_RETURN(env, SQL_ERROR);
 }
+
+SQLRETURN SQL_API
+SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+{
+	size_t size;
+	void *src;
+
+	INIT_HENV;
+
+	switch (Attribute) {
+	case SQL_ATTR_CONNECTION_POOLING:
+		src = &env->attr.attr_connection_pooling;
+		size = sizeof(env->attr.attr_connection_pooling);
+		break;
+	case SQL_ATTR_CP_MATCH:
+		src = &env->attr.attr_cp_match;
+		size = sizeof(env->attr.attr_cp_match);
+		break;
+	case SQL_ATTR_ODBC_VERSION:
+		src = &env->attr.attr_odbc_version;
+		size = sizeof(env->attr.attr_odbc_version);
+		break;
+	case SQL_ATTR_OUTPUT_NTS:
+		/* TODO handle output_nts flags */
+		env->attr.attr_output_nts = SQL_TRUE;
+		src = &env->attr.attr_output_nts;
+		size = sizeof(env->attr.attr_output_nts);
+		break;
+	default:
+		/* TODO */
+		/* odbc_errs_ms_add(&env->errs, 0, "HY092", NULL, NULL); */
+		ODBC_RETURN(env, SQL_ERROR);
+		break;
+	}
+
+	if (StringLength) {
+		*StringLength = size;
+	}
+	memcpy(Value, src, size);
+
+	ODBC_RETURN(env, SQL_SUCCESS);
+}
+
 #endif
 
 SQLRETURN SQL_API
@@ -704,7 +769,9 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	memset(env, '\0', sizeof(TDS_ENV));
 
 	env->htype = SQL_HANDLE_ENV;
-	env->odbc_ver = 2;
+	env->attr.attr_odbc_version = SQL_OV_ODBC2;
+	env->attr.attr_output_nts = SQL_TRUE;
+
 	ctx = tds_alloc_context();
 	if (!ctx) {
 		free(env);
@@ -916,7 +983,8 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 		*pcbColName = strlen(colinfo->column_name);
 	}
 	if (pfSqlType) {
-		*pfSqlType = odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->odbc_ver);
+		*pfSqlType =
+			odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
 	}
 
 	if (pcbColDef) {
@@ -998,9 +1066,11 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		break;
 	case SQL_COLUMN_TYPE:
 	case SQL_DESC_TYPE:
-		*pfDesc = odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->odbc_ver);
-		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: colinfo->column_type = %d,"
-			    " colinfo->column_size = %d," " *pfDesc = %d\n", colinfo->column_type, colinfo->column_size, *pfDesc);
+		*pfDesc =
+			odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		tdsdump_log(TDS_DBG_INFO2,
+			    "odbc:SQLColAttributes: colinfo->column_type = %d," " colinfo->column_size = %d," " *pfDesc = %d\n",
+			    colinfo->column_type, colinfo->column_size, *pfDesc);
 		break;
 	case SQL_COLUMN_PRECISION:	/* this section may be wrong */
 		switch (colinfo->column_type) {
@@ -1027,7 +1097,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		*pfDesc = colinfo->column_size;
 		break;
 	case SQL_COLUMN_DISPLAY_SIZE:
-		switch (odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->odbc_ver)) {
+		switch (odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version)) {
 		case SQL_CHAR:
 		case SQL_VARCHAR:
 		case SQL_LONGVARCHAR:
@@ -1077,7 +1147,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			tdsdump_log(TDS_DBG_INFO1,
 				    "SQLColAttributes(%d,SQL_COLUMN_DISPLAY_SIZE): unknown client type %d\n",
 				    icol, odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size,
-							       stmt->hdbc->henv->odbc_ver)
+							       stmt->hdbc->henv->attr.attr_odbc_version)
 				);
 			break;
 		}
@@ -1968,7 +2038,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 				  "@table_name", szTableName, cbTableName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 7, "COLUMN_SIZE");
@@ -2142,7 +2212,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
-		API3_(SQL_API_SQLGETENVATTR);
+		API3X(SQL_API_SQLGETENVATTR);
 		API_X(SQL_API_SQLGETFUNCTIONS);
 		API_X(SQL_API_SQLGETINFO);
 		API3X(SQL_API_SQLGETSTMTATTR);
@@ -2234,7 +2304,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
-		API3_(SQL_API_SQLGETENVATTR);
+		API3X(SQL_API_SQLGETENVATTR);
 		API_X(SQL_API_SQLGETFUNCTIONS);
 		API_X(SQL_API_SQLGETINFO);
 		API3X(SQL_API_SQLGETSTMTATTR);
@@ -2323,7 +2393,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
-		API3_(SQL_API_SQLGETENVATTR);
+		API3X(SQL_API_SQLGETENVATTR);
 		API_X(SQL_API_SQLGETFUNCTIONS);
 		API_X(SQL_API_SQLGETINFO);
 		API3X(SQL_API_SQLGETSTMTATTR);
@@ -2572,7 +2642,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	/* FIXME what about early Sybase products ? */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	sprintf(sql, sql_templ, fSqlType);
-	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->odbc_ver == 3)
+	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3)
 		strcat(sql, ",3");
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -2787,7 +2857,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 				  "@owner", szSchemaName, cbSchemaName,
 				  "@qualifier", szCatalogName, cbCatalogName,
 				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
@@ -2847,7 +2917,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 8, "ORDINAL_POSITION");
@@ -2871,7 +2941,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 				  "@table_name", szTableName, cbTableName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType, cbTableType);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}

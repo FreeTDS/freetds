@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.30 2003-07-03 19:28:33 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.31 2003-07-27 12:08:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -282,7 +282,7 @@ odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 	case SYBDATETIME4:
 	case SYBDATETIMN:
 #if (ODBCVER >= 0x0300)
-		if (odbc_ver == 3)
+		if (odbc_ver == SQL_OV_ODBC3)
 			return SQL_TYPE_TIMESTAMP;
 #endif
 		return SQL_TIMESTAMP;

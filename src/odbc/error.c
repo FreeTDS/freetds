@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.19 2003-06-12 14:01:22 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.20 2003-07-27 12:08:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -216,7 +216,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	SQLRETURN result;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
-	unsigned char odbc_ver = 2;
+	unsigned char odbc_ver = SQL_OV_ODBC2;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
@@ -246,7 +246,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	default:
 		return SQL_INVALID_HANDLE;
 	}
-	odbc_ver = env->odbc_ver;
+	odbc_ver = env->attr.attr_odbc_version;
 
 	if (numRecord > errs->num_errors)
 		return SQL_NO_DATA_FOUND;
@@ -255,9 +255,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	if (szSqlState) {
 		if (*errs->errs[numRecord].sqlstate != '\0') {
 			strcpy(szSqlState, errs->errs[numRecord].sqlstate);
-			if (odbc_ver == 3)
+			if (odbc_ver == SQL_OV_ODBC3)
 				sqlstate2to3(szSqlState);
-		} else if (odbc_ver == 3)
+		} else if (odbc_ver == SQL_OV_ODBC3)
 			strcpy((char *) szSqlState, errs->errs[numRecord].err->state3);
 		else
 			strcpy((char *) szSqlState, errs->errs[numRecord].err->state2);
@@ -323,7 +323,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	SQLRETURN result = SQL_SUCCESS;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
-	unsigned char odbc_ver = 2;
+	unsigned char odbc_ver = SQL_OV_ODBC2;
 	int cplen;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
@@ -356,7 +356,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	default:
 		return SQL_INVALID_HANDLE;
 	}
-	odbc_ver = env->odbc_ver;
+	odbc_ver = env->attr.attr_odbc_version;
 
 	/* header (numRecord ignored) */
 	switch (diagIdentifier) {
@@ -425,7 +425,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 	case SQL_DIAG_CLASS_ORIGIN:
 	case SQL_DIAG_SUBCLASS_ORIGIN:
-		if (odbc_ver < 3)
+		if (odbc_ver == SQL_OV_ODBC2)
 			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ISO 9075", -1);
 		else
 			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1);
@@ -492,9 +492,9 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	case SQL_DIAG_SQLSTATE:
 		msg = errs->errs[numRecord].sqlstate;
 		if (*msg != '\0') {
-			if (odbc_ver == 3)
+			if (odbc_ver == SQL_OV_ODBC3)
 				sqlstate2to3(errs->errs[numRecord].sqlstate);
-		} else if (odbc_ver == 3)
+		} else if (odbc_ver == SQL_OV_ODBC3)
 			msg = errs->errs[numRecord].err->state3;
 		else
 			msg = errs->errs[numRecord].err->state2;

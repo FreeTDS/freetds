@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.31 2003-07-12 15:32:13 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.32 2003-07-27 12:08:57 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -104,6 +104,14 @@ void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, con
 void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate,
 			 int msgnum, unsigned short linenum, int msgstate);
 
+struct _heattr
+{
+	SQLUINTEGER attr_connection_pooling;
+	SQLUINTEGER attr_cp_match;
+	SQLINTEGER attr_odbc_version;
+	SQLINTEGER attr_output_nts;
+};
+
 struct _hchk
 {
 	SQLSMALLINT htype;      /* do not reorder this field */
@@ -114,7 +122,7 @@ struct _henv
 	SQLSMALLINT htype;      /* do not reorder this field */
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
-	unsigned char odbc_ver;
+	struct _heattr attr;
 	SQLRETURN lastrc;
 };
 
