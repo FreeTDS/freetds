@@ -17,12 +17,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.2 2001-10-16 21:57:37 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

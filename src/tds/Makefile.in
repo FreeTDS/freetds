@@ -86,11 +86,12 @@ libtds_la_SOURCES = mem.c token.c util.c login.c read.c write.c convert.c numeri
 INCLUDES = -I$(top_srcdir)/include
 LIBS = @LIBICONV@
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../../include/config.h
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 libtds_la_LDFLAGS = 

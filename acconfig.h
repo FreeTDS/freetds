@@ -1,0 +1,2 @@
+
+#undef BSD_COMP

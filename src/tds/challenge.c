@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include "tds.h"
 #ifdef HAVE_OPENSSL
 #include <openssl/des.h>

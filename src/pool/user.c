@@ -17,6 +17,7 @@
  *
  */
 
+#include <config.h>
 #include "pool.h"
 
 extern int waiters;

@@ -89,11 +89,12 @@ libsybdb_la_LIBADD = $(patsubst %, $(TDSDIR)/%, 				$(patsubst %.c, %.lo, $(TDSS
 
 INCLUDES = -I$(top_srcdir)/include
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../../include/config.h
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

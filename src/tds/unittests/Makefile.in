@@ -93,9 +93,10 @@ LIBS = ../libtds.la @NETWORK_LIBS@
 INCLUDES = -I$(top_srcdir)/include
 include_HEADERS = common.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../../../include/config.h
 CONFIG_CLEAN_FILES = 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I../../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 t0001_OBJECTS =  t0001.o common.o

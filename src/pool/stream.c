@@ -22,6 +22,7 @@
 ** Description: Controls the result stream processing.
 */
 
+#include <config.h>
 #include "pool.h"
 
 struct tmp_col_struct {

@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -44,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.2 2001-10-20 14:31:56 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

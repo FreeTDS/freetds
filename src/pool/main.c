@@ -23,6 +23,7 @@
 ** pool member.
 */
 
+#include <config.h>
 #include "pool.h"
 #include <signal.h>
 

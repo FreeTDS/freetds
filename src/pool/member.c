@@ -17,6 +17,7 @@
  *
  */
 
+#include <config.h>
 #include "pool.h"
 
 int pool_packet_read(TDS_POOL_MEMBER *pmbr);

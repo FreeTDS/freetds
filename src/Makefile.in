@@ -81,6 +81,7 @@ smallint = @smallint@
 @ODBC_TRUE@SUBDIRS = tds ctlib dblib odbc server
 @ODBC_FALSE@SUBDIRS = tds ctlib dblib server
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
 

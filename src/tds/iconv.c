@@ -22,6 +22,7 @@
 ** all over the other code
 */
 
+#include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
 #if HAVE_ICONV

@@ -17,10 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.2 2001-10-24 03:42:04 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

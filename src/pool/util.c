@@ -17,6 +17,7 @@
  *
  */
 
+#include <config.h>
 #include "pool.h"
 
 void dump_buf(const void *buf,int length)  
