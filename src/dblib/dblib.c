@@ -17,9 +17,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* Needed for the vasprintf prototype in glibc */
-#define _GNU_SOURCE
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -49,7 +46,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.74 2002-10-02 20:38:54 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.75 2002-10-07 20:55:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

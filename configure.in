@@ -11,6 +11,8 @@ AC_PREFIX_DEFAULT(/usr/local)
 
 dnl configuration directory will be /usr/local/etc
 
+AC_GNU_SOURCE
+
 dnl ------------------------------------------------------------
 dnl Checks for programs.
 dnl ------------------------------------------------------------

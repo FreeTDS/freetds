@@ -32,9 +32,6 @@
  *
  ***************************************************************/
 
-/* Needed for the asprintf prototype in glibc */
-#define _GNU_SOURCE
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -62,7 +59,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.61 2002-09-27 03:09:52 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.62 2002-10-07 20:55:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 

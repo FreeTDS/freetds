@@ -1,3 +1,8 @@
+Mon Oct  7 16:53:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/dblib/dblib.c src/odbc/odbc.c:
+	- Use AC_GNU_SOURCE in configure.in instead of defining
+	  _GNU_SOURCE ourselves.
+
 Mon Oct  7 22:03:26 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/t0004.c: correct test
 
