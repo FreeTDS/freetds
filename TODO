@@ -8,11 +8,35 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.50 2003-05-04 19:40:45 freddy77 Exp $
+To Do List	$Id: TODO,v 1.51 2003-05-05 00:11:52 jklowden Exp $
 ------------
 Broken:
+. Undelimited data files should be read w/ tds_iconv_fread().
+. src/dblib/unittests/t0017.c (bcp) is broken, perhaps for above reason.
+. Change tds_get_char_data() per Frediano's suggestion, ML 2 May 2003, "tds_get_char_data and iconv".
+. Rewrite tds_iconv (again):
+	* use iconv() signature.
+	* rely on TDSCOLINFO::iconv_info for conversion descriptor, instead 
+	  of inferring it from the column sizes.  
+	* On read error, emit Msg 2403, Severity 16 (EX_INFO):
+		"WARNING! Some character(s) could not be converted into client's character set. Unconverted bytes were changed to question marks ('?')."
+	* On write error emit Msg 2402, Severity 16 (EX_USER):
+		"Error converting client characters into server's character set. Some character(s) could not be converted."
+	  and return an error code.  Do not proceed.  
+	* Cf. ML 16 Apr 2003. "conversion error management".
+. Extend TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
+  server charsets.  Every TDSCOLINFO holding character data should point to one of
+  these elements.  
+. Write functions to append to and search the TDSSOCKET::iconv_info array.  
 
 For 0.62 version:
+. add test for locale_charset() to configure.in.  Use it if available instead
+  of nl_langinfo, because it implies we're using GNU iconv.  
+. Walk through charset name initialization.  Make sure it works in the absence
+  of an entry in freetds.conf
+. Pass any internal hard-coded charset names through tds_canonical_charset_name().  
+  The supporting .h file will need adjustment for non-GNU iconv.
+  Input name "ASCII" must always have a canonical form.  
 . Move website docs (not UG) to doc/htdoc, put in CVS
 . add doc/htdoc/Makefile with "publish" target to commit cvs and update freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
