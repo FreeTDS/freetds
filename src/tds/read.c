@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.63 2003-09-23 18:56:22 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.64 2003-09-28 23:26:15 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -100,7 +100,8 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	/* nsc 20030326 The tds->timeout stuff is flawed and should probably just be removed. */
 	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
 		assert(tds);
-		assert(!TDS_IS_SOCKET_INVALID(tds->s));
+		if (IS_TDSDEAD(tds))
+			return -1;
 
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = 1;
