@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.2 2004-04-26 12:01:36 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.3 2004-06-12 16:24:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -63,7 +63,9 @@ main(int argc, char **argv)
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("?", SQL_INTEGER, "'foo'", SQL_LONGVARCHAR);
 	Test("?", SQL_INTEGER, "?", SQL_VARCHAR);
+#ifdef ENABLE_DEVELOPING
 	Test("?", SQL_VARCHAR, "?", SQL_LONGVARCHAR);
+#endif
 
 	Disconnect();
 

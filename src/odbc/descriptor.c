@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 2003  Steve Murphree
+ * Copyright (C) 2004  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -162,6 +163,8 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 {
 	int i;
 
+	/* first clear all records to free all strings */
+	desc_free_records(dest);
 	if (desc_alloc_records(dest, src->header.sql_desc_count) != SQL_SUCCESS)
 		return SQL_ERROR;
 	dest->header.sql_desc_bind_type = src->header.sql_desc_bind_type;
@@ -180,9 +183,20 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		desc_free_record(dest_rec);
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
+		/* reinitialize string, avoid doubling pointers */
+#define CINIT(name) tds_dstr_init(&dest_rec->name);
+		CINIT(sql_desc_base_column_name);
+		CINIT(sql_desc_base_table_name);
+		CINIT(sql_desc_catalog_name);
+		CINIT(sql_desc_label);
+		CINIT(sql_desc_local_type_name);
+		CINIT(sql_desc_name);
+		CINIT(sql_desc_schema_name);
+		CINIT(sql_desc_table_name);
+#undef CINIT
+
 		/* copy strings */
-		/* FIXME on memory error free allocated strings */
-#define CCOPY(name) tds_dstr_init(&dest_rec->name); if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) return SQL_ERROR;
+#define CCOPY(name) if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) return SQL_ERROR;
 		CCOPY(sql_desc_base_column_name);
 		CCOPY(sql_desc_base_table_name);
 		CCOPY(sql_desc_catalog_name);
