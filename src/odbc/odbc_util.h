@@ -32,12 +32,10 @@
 #include "isqlext.h"
 #endif
 
-static char  rcsid_odbc_util_h [ ] =
-         "$Id: odbc_util.h,v 1.5 2002-10-11 15:21:13 castellano Exp $";
-static void *no_unused_odbc_util_h_warn[]={rcsid_odbc_util_h, 
-                                         no_unused_odbc_util_h_warn};
+static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.6 2002-11-08 16:08:43 freddy77 Exp $";
+static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
-void odbc_LogError (const char* error);
+void odbc_LogError(const char *error);
 const char *odbc_GetLastError(void);
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
@@ -45,10 +43,9 @@ int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_l
 void odbc_set_return_status(struct _hstmt *stmt);
 
 SQLSMALLINT odbc_get_client_type(int col_type, int col_size);
-int odbc_get_string_size(int size, SQLCHAR *str);
+int odbc_get_string_size(int size, SQLCHAR * str);
 
-struct _sql_param_info * 
-odbc_find_param(struct _hstmt *stmt, int param_num);
+struct _sql_param_info *odbc_find_param(struct _hstmt *stmt, int param_num);
 
 
 #endif
