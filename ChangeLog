@@ -1,3 +1,9 @@
+Wed Jan 26 09:29:03 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/FreeTDS.dsp win32/msvc6/dblib.dsp:
+	* win32/msvc6/libTDS.dsp:
+	- use Multithreaded DLL as default (as Frank M. Kromann 
+	  suggested)
+
 Wed Jan 26 09:17:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds_ssl.html(added) doc/Makefile.am:
 	- add doc for mssql and encryption
