@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.178 2004-05-17 15:17:01 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.179 2004-05-27 14:50:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1064,6 +1064,7 @@ struct tds_socket
 	unsigned out_pos;
 	unsigned in_len;
 	unsigned out_len;
+	unsigned char in_flag;
 	unsigned char out_flag;
 	unsigned char last_packet;
 	void *parent;

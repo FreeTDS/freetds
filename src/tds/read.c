@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.87 2004-04-07 07:47:20 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.88 2004-05-27 14:50:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -551,6 +551,7 @@ tds_read_packet(TDSSOCKET * tds)
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "Received header @ %L\n%D\n", header, sizeof(header));
 
+#if 0
 	/*
 	 * Note:
 	 * this was done by Gregg, I don't think its the real solution (it breaks
@@ -568,6 +569,7 @@ tds_read_packet(TDSSOCKET * tds)
 			return (-1);
 		}
 	}
+#endif
 
 	/* Convert our packet length from network to host byte order */
 	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
@@ -634,6 +636,9 @@ tds_read_packet(TDSSOCKET * tds)
 	} else {
 		tds->last_packet = 0;
 	}
+
+	/* set the received packet type flag */
+	tds->in_flag = header[0];
 
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = have;

@@ -49,7 +49,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.38 2004-04-07 07:47:19 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.39 2004-05-27 14:50:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -255,4 +255,68 @@ tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
 
 	tds_dstr_set(s, tempbuf);
 	return tempbuf;
+}
+
+
+/**
+ * Allocate a TDSLOGIN structure, read a login packet into it, and return it.
+ * This is smart enough to distinguish between TDS4/5 or TDS7.  The calling
+ * function should call tds_free_login() on the returned structure when it is
+ * no longer needed.
+ * \param tds  The socket to read from
+ * \return  Returns NULL if no login was received.  The calling function can
+ * use IS_TDSDEAD(tds) to distinguish between an error/shutdown on the socket,
+ * or the receipt of an unexpected packet type.  In the latter case,
+ * tds->in_flag will indicate the return type.
+ */
+TDSLOGIN *
+tds_alloc_read_login(TDSSOCKET * tds)
+{
+	TDSLOGIN * login;
+
+	/*
+	 * This should only be done on a server connection, and the server
+	 * always sends 0x04 packets.
+	 */
+	tds->out_flag = 0x04;
+
+	/* Pre-read the next packet so we know what kind of packet it is */
+	if (tds_read_packet(tds) < 1) {
+		return NULL;
+	}
+
+	/* Allocate the login packet */
+	login = tds_alloc_login();
+
+	/* Use the packet type to determine which login format to expect */
+	switch (tds->in_flag) {
+	case 0x02: /* TDS4/5 login */
+		tds_read_login(tds, login);
+		if (login->block_size == 0) {
+			login->block_size = 512;
+		}
+		break;
+
+	case 0x10: /* TDS7+ login */
+		tds7_read_login(tds, login);
+		break;
+
+	case 0x12: /* TDS7+ prelogin, hopefully followed by a login */
+		tds7_read_login(tds, login);
+		tds_send_253_token(tds, TDS_DONE_FINAL, 0);
+		tds_flush_packet(tds);
+		if (tds_read_packet(tds) < 0 || tds->in_flag != 0x10) {
+			return NULL;
+		}
+		tds7_read_login(tds, login);
+		break;
+
+	default:
+		/* unexpected packet */
+		tds_free_login(login);
+		return NULL;
+	}
+
+	/* Return it */
+	return login;
 }

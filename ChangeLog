@@ -1,3 +1,8 @@
+Thu May 27 16:48:57 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdssrv.h src/tds/read.c src/server/login.c:
+	* src/server/query.c src/server/server.c:
+	- applied Steve Kirkendall patch for server support
+
 Sat May 22 19:24:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/error.c:
 	- return correctly error sending queries

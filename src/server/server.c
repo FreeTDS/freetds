@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.18 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: server.c,v 1.19 2004-05-27 14:50:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -38,10 +38,20 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 {
 	TDS_SMALLINT totsize;
 
-	tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
+	/* If oldvalue is NULL, treat it like "" */
+	if (oldvalue == NULL)
+		oldvalue = "";
+
+	/*
+	 * NOTE: I don't know why each type of environment value has a different
+	 * format.  According to the TDS5 specifications, they should all use
+	 * the same format.   The code for the TDS_ENV_CHARSET case *should*
+	 * work for all environment values.  -- Steve Kirkendall
+	 */
+
 	switch (type) {
-		/* database */
-	case 1:
+	case TDS_ENV_DATABASE:
+		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
 		totsize = strlen(oldvalue) + strlen(newvalue) + 3;
 		tds_put_smallint(tds, totsize);
@@ -51,8 +61,8 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 		tds_put_byte(tds, strlen(oldvalue));
 		tds_put_n(tds, oldvalue, strlen(oldvalue));
 		break;
-		/* language */
-	case 2:
+	case TDS_ENV_LANG:
+		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + len + string + \0 */
 		totsize = strlen(newvalue) + 3;
 		tds_put_smallint(tds, totsize);
@@ -61,9 +71,8 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 		tds_put_n(tds, newvalue, strlen(newvalue));
 		tds_put_byte(tds, '\0');
 		break;
-		/* code page would be 3 */
-		/* packet size */
-	case 4:
+	case TDS_ENV_PACKSIZE:
+		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + len + string + \0 */
 		totsize = strlen(newvalue) + 3;
 		tds_put_smallint(tds, totsize);
@@ -72,6 +81,23 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 		tds_put_n(tds, newvalue, strlen(newvalue));
 		tds_put_byte(tds, '\0');
 		break;
+	case TDS_ENV_LCID:
+	case TDS_ENV_SQLCOLLATION:
+	case TDS_ENV_CHARSET:
+#if 1
+		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
+		/* totsize = type + len + oldvalue + len + newvalue */
+		totsize = 3 + strlen(newvalue) + strlen(oldvalue);
+		tds_put_smallint(tds, totsize);
+		tds_put_byte(tds, type);
+		tds_put_byte(tds, strlen(newvalue));
+		tds_put_n(tds, newvalue, strlen(newvalue));
+		tds_put_byte(tds, strlen(oldvalue));
+		tds_put_n(tds, oldvalue, strlen(oldvalue));
+		break;
+#endif
+	default:
+		tdsdump_log(TDS_DBG_WARN, "tds_env_change() ignoring unsupported environment code #%d", type);
 	}
 }
 
@@ -187,15 +213,37 @@ tds_send_capabilities_token(TDSSOCKET * tds)
 	tds_put_byte(tds, 0);
 }
 
+/**
+ * Send a "done" token, marking the end of a table, stored procedure, or query.
+ * \param tds		Where the token will be written to.
+ * \param token		The appropriate type of "done" token for this context:
+ *			TDS_DONE_TOKEN outside a stored procedure,
+ *			TDS_DONEINPROC_TOKEN inside a stored procedure, or
+ *			TDS_DONEPROC_TOKEN at the end of a stored procedure.
+ * \param flags		Bitwise-OR of flags in the "enum tds_end" data type.
+ *			TDS_DONE_FINAL for the last statement in a query,
+ *			TDS_DONE_MORE_RESULTS if not the last statement,
+ *			TDS_DONE_ERROR if the statement had an error,
+ *			TDS_DONE_INXACT if a transaction is  pending,
+ *			TDS_DONE_PROC inside a stored procedure,
+ *			TDS_DONE_COUNT if a table was sent (and rows counted)
+ *			TDS_DONE_CANCELLED if the query was canceled, and
+ *			TDS_DONE_EVENT if the token marks an event.
+ * \param numrows	Number of rows, if flags has TDS_DONE_COUNT.
+ */
 void
-tds_send_253_token(TDSSOCKET * tds, TDS_TINYINT flags, TDS_INT numrows)
+tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows)
 {
-	tds_put_byte(tds, 253);
-	tds_put_byte(tds, flags);
-	tds_put_byte(tds, 0);
-	tds_put_byte(tds, 2);
-	tds_put_byte(tds, 0);
+	tds_put_byte(tds, token);
+	tds_put_smallint(tds, flags);
+	tds_put_smallint(tds, 2); /* are these two bytes the transaction status? */
 	tds_put_int(tds, numrows);
+}
+
+void
+tds_send_253_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows)
+{
+	tds_send_done(tds, 253, flags, numrows);
 }
 
 void
@@ -219,15 +267,15 @@ tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
 		assert(strlen(curcol->column_name) == curcol->column_namelen);
-		hdrsize += curcol->column_namelen + 2;
+		hdrsize += curcol->column_namelen + 1;
 	}
 
 	tds_put_smallint(tds, hdrsize);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
 		tds_put_byte(tds, curcol->column_namelen);
-		/* include the null */
-		tds_put_n(tds, curcol->column_name, curcol->column_namelen + 1);
+		/* exclude the null */
+		tds_put_n(tds, curcol->column_name, curcol->column_namelen);
 	}
 }
 void
@@ -288,6 +336,97 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 			tds_put_byte(tds, curcol->column_size);
 		}
 		tds_put_byte(tds, 0);
+	}
+}
+
+void
+tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
+{
+	int i, j;
+	TDSCOLUMN *curcol;
+
+	/* TDS7+ uses TDS7_RESULT_TOKEN to send column names and info */
+	tds_put_byte(tds, TDS7_RESULT_TOKEN);
+
+	/* send the number of columns */
+	tds_put_smallint(tds, resinfo->num_cols);
+
+	/* send info about each column */
+	for (i = 0; i < resinfo->num_cols; i++) {
+
+		/* usertype, flags, and type */
+		curcol = resinfo->columns[i];
+		tds_put_smallint(tds, curcol->column_usertype);
+		tds_put_smallint(tds, curcol->column_flags);
+		tds_put_byte(tds, curcol->column_type); /* smallint? */
+
+		/* bytes in "size" field varies */
+		if (is_blob_type(curcol->column_type)) {
+			tds_put_int(tds, curcol->column_size);
+		} else if (curcol->column_type>=128) { /*is_large_type*/
+			tds_put_smallint(tds, curcol->column_size);
+		} else {
+			tds_put_tinyint(tds, curcol->column_size);
+		}
+
+		/* some types have extra info */
+		if (is_numeric_type(curcol->column_type)) {
+			tds_put_tinyint(tds, curcol->column_prec);
+			tds_put_tinyint(tds, curcol->column_scale);
+		} else if (is_blob_type(curcol->column_type)) {
+			tds_put_smallint(tds, 2 * strlen(curcol->table_name));
+			for (j = 0; curcol->table_name[j] != '\0'; j++){
+				tds_put_byte(tds, curcol->table_name[j]);
+				tds_put_byte(tds, 0);
+			}
+		}
+
+		/* finally the name, in UCS16 format */
+		assert(strlen(curcol->column_name) == curcol->column_namelen);
+		tds_put_byte(tds, curcol->column_namelen);
+		for (j = 0; j < curcol->column_namelen; j++) {
+			tds_put_byte(tds, curcol->column_name[j]);
+			tds_put_byte(tds, 0);
+		}
+	}
+}
+
+/**
+ * Send any tokens that mark the start of a table.  This automatically chooses
+ * the right tokens for this client's version of the TDS protocol.  In other
+ * words, it is a wrapper around tds_send_col_name(), tds_send_col_info(),
+ * tds_send_result(), and tds7_send_result().
+ * \param tds		The socket to which the tokens will be written.  Also,
+ *			it contains the TDS protocol version number.
+ * \param resinfo	Describes the table to be send, especially the number
+ *			of columns and the names & data types of each column.
+ */
+void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
+{
+	switch (tds->major_version) {
+	case 4:
+		/*
+		 * TDS4 uses TDS_COLNAME_TOKEN to send column names, and
+		 * TDS_COLFMT_TOKEN to send column info.  The number of columns
+		 * is implied by the number of column names.
+		 */
+		tds_send_col_name(tds, resinfo);
+		tds_send_col_info(tds, resinfo);
+		break;
+
+	case 5:
+		/* TDS5 uses a TDS_RESULT_TOKEN to send all column information */
+		tds_send_result(tds, resinfo);
+		break;
+
+	case 7:
+	case 8:
+		/*
+		 * TDS7+ uses a TDS7_RESULT_TOKEN to send all column
+		 * information.
+		 */
+		tds7_send_result(tds, resinfo);
+		break;
 	}
 }
 
