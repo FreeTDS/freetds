@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.167 2003-04-06 09:20:55 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.168 2003-04-06 10:00:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -86,6 +86,7 @@ static void tds5_process_dyn_result2(TDSSOCKET * tds);
  * tds_process_default_tokens() is a catch all function that is called to
  * process tokens not known to other tds_process_* routines
  */
+/* TODO should be static ?? */
 int
 tds_process_default_tokens(TDSSOCKET * tds, int marker)
 {
@@ -208,6 +209,9 @@ tds_set_spid(TDSSOCKET * tds)
 	TDS_INT compute_id;
 	TDSCOLINFO *curcol;
 
+	/* TODO add test if TDS4.2 and SQL7 for bad date 
+	 * select @@pid, convert(datetime,'....') */
+
 	if (tds_submit_query(tds, "select @@spid", NULL) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
@@ -315,6 +319,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			break;
 		}
 	} while (marker != TDS_DONE_TOKEN);
+	/* TODO why ?? */
 	tds->spid = tds->rows_affected;
 	if (tds->spid == 0) {
 		if (tds_set_spid(tds) != TDS_SUCCEED) {
@@ -343,6 +348,7 @@ tds_process_auth(TDSSOCKET * tds)
 	pdu_size = tds_get_smallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
 
+	/* TODO check first 2 values */
 	tds_get_n(tds, NULL, 8);	/* NTLMSSP\0 */
 	where += 8;
 	tds_get_int(tds);	/* sequence -> 2 */
@@ -351,6 +357,7 @@ tds_process_auth(TDSSOCKET * tds)
 	where += 4;
 	tds_get_int(tds);	/* domain offset */
 	where += 4;
+	/* TODO use them */
 	tds_get_n(tds, NULL, 4);	/* flags */
 	where += 4;
 	tds_get_n(tds, nonce, 8);
@@ -413,12 +420,12 @@ tds_process_auth(TDSSOCKET * tds)
  *    <td>A single row of compute data can now be retrieved</td>
  *   </tr><tr>
  *    <td>TDS_PARAM_RESULT</td><td>Return parameter results</td>
- *    <td></td>
+ *    <td>param_info or cur_dyn->params contain returned parameters</td>
  *   </tr><tr>
  *    <td>TDS_STATUS_RESULT</td><td>Stored procedure status results</td>
  *    <td>tds->ret_status contain the returned code</td>
  *  </tr></table>
- * @todo Complete TDS_DESCRIBE_RESULT and TDS_PARAM_RESULT description
+ * @todo Complete TDS_DESCRIBE_RESULT description
  * @retval TDS_SUCCEED if a result set is available for processing.
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
  * @par Examples
@@ -507,7 +514,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 			return TDS_SUCCEED;
 			break;
 		case TDS5_DYNAMIC_TOKEN:
-			/* TODO correct? */
+			/* process acknowledge dynamic */
 			tds->cur_dyn = tds_process_dynamic(tds);
 			break;
 		case TDS5_PARAMFMT_TOKEN:
@@ -629,7 +636,7 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
 		case TDS_DONEINPROC_TOKEN:
-
+			/* FIXME should we just return without reading token ?? */
 			tds_process_end(tds, marker, NULL);
 			*rowtype = TDS_NO_MORE_ROWS;
 			return TDS_NO_MORE_ROWS;
@@ -800,6 +807,8 @@ tds_process_col_name(TDSSOCKET * tds)
 	 * by the size of the message. So, I use a link list to get the
 	 * colum names and then allocate the result structure, copy
 	 * and delete the linked list */
+	/* TODO: reallocate columns
+	 * TODO code similar below, function to reuse */
 	while (len < hdrsize) {
 		prev = cur;
 		cur = (struct tmp_col_struct *)
@@ -881,6 +890,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
+	/* TODO use curr_resinfo instead of res_info ?? */
 	info = tds->res_info;
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -1715,6 +1725,7 @@ tds_process_row(TDSSOCKET * tds)
 	TDSCOLINFO *curcol;
 	TDSRESULTINFO *info;
 
+	/* TODO use curr_resinfo ?? */
 	info = tds->res_info;
 	if (!info)
 		return TDS_FAIL;
@@ -1737,6 +1748,7 @@ tds_process_row(TDSSOCKET * tds)
  * @param flags_parm filled with bit flags (see TDS_DONE_ constants). 
  *        Is NULL nothing is returned
  */
+/* FIXME this should be static, not public */
 TDS_INT
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
@@ -1779,7 +1791,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		tds->rows_affected = TDS_NO_COUNT;
 	}
 
-
+	/* TODO return only success and client should check flags */
 	if (error)
 		return TDS_FAIL;
 	else
@@ -1818,6 +1830,7 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 		/* message handler returned FAIL/CS_FAIL
 		 * mark socket as dead */
 		if (ret && tds) {
+			/* TODO close socket too ?? */
 			tds->state = TDS_DEAD;
 		}
 	}
@@ -1954,6 +1967,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 			TDS_ZERO_FREE(msg_info.sql_state);
 
 		/* junk status and transaction state */
+		/* TODO if status == 1 clear cur_dyn and param_info ?? */
 		tds_get_byte(tds);
 		tds_get_smallint(tds);
 
@@ -2056,6 +2070,8 @@ tds_process_cancel(TDSSOCKET * tds)
 	} while (!(done_flags & TDS_DONE_CANCELLED));
 	tds->state = TDS_COMPLETED;
 
+	/* TODO clear cancelled results */
+
 	return 0;
 }
 
@@ -2099,6 +2115,11 @@ tds_get_null(unsigned char *current_row, int column)
 	return (current_row[bytenum] >> bit) & 1;
 }
 
+/**
+ * Find a dynamic given string id
+ * @return dynamic or NULL is not found
+ * @param id   dynamic id to search
+ */
 TDSDYNAMIC *
 tds_lookup_dynamic(TDSSOCKET * tds, char *id)
 {
@@ -2292,6 +2313,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 int
 tds_get_token_size(int marker)
 {
+	/* TODO finish */
 	switch (marker) {
 	case TDS_DONE_TOKEN:
 	case TDS_DONEPROC_TOKEN:
@@ -2333,6 +2355,8 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 		tds_swap_bytes(buf, 2);
 		tds_swap_bytes(&buf[2], 2);
 		break;
+	/* should we place numeric conversion in another place ??
+	 * this is not used for big/little-endian conversion... */
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		num = (TDS_NUMERIC *) buf;

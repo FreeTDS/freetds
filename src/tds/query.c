@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.79 2003-04-03 19:38:26 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.80 2003-04-06 10:00:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -972,5 +972,11 @@ tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 {
 	return tds_quote(tds, buffer, '\'', str, len < 0 ? strlen(str) : len);
 }
+
+/* TODO add function to return type suitable for param
+ * ie:
+ * sybvarchar -> sybvarchar / xsybvarchar
+ * sybint4 -> sybintn
+ */
 
 /** \@} */

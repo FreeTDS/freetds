@@ -1,3 +1,11 @@
+Thu Apr 03 22:16:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: add a possible test to odbc
+	* include/tds.h src/tds/query.c: add comment
+	* src/tds/mem.c src/tds/iconv.c src/tds/des.c: indent(1)
+	* src/tds/token.c:
+	- indent(1)
+	- added many comments
+
 Fri Apr  4 15:27:39 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/dblib.c implement dbmorecmds(). 
 

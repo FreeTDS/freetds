@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.45 2003-03-30 14:51:04 freddy77 Exp $
+To Do List	$Id: TODO,v 1.46 2003-04-06 10:00:00 freddy77 Exp $
 ------------
 Broken:
 
@@ -90,6 +90,10 @@ For future versions (in priority order within library):
 . SQLNativeSql and fill SQLGetInfo according
 . configure should detect iODBC or unixODBC automatically
 . autoinstall for RPM
+. test: what happen on:
+  - "select id,name from sysobjects where name = 'sysobjects'"
+  - SQLMoreResults
+  - SQLMoreResults 
 
   pool
 . get connection pooling working with all protocol versions
@@ -118,4 +122,3 @@ Done (removed from above):
 Done in 0.62
 . ODBC: improve, best error report (finish and test, see error.c FIXME and TODO)
 . ct-lib: support ct_diag (for Python)
-

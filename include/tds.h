@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.104 2003-04-03 19:38:20 freddy77 Exp $";
+	"$Id: tds.h,v 1.105 2003-04-06 10:00:00 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -790,7 +790,10 @@ struct tds_socket {
 	unsigned char out_flag;
 	unsigned char last_packet;
 	void *parent;
-	/* info about current query */
+	/* info about current query. 
+	 * Contain information in process, even normal results and compute.
+	 * This pointer shouldn't be freed.
+	 */
 	TDSRESULTINFO *curr_resinfo;
 	TDSRESULTINFO *res_info;
 	TDS_INT        num_comp_info;
