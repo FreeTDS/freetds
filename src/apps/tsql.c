@@ -28,6 +28,13 @@
 #include "tdsconvert.h"
 #include "tdsutil.h"
 
+enum {
+	OPT_VERSION   = 0x01,
+	OPT_TIMER     = 0x02,
+	OPT_NOFOOTER  = 0x04,
+	OPT_NOHEADER  = 0x08
+};
+
 #ifndef HAVE_READLINE
 char *
 readline(char *prompt)
@@ -57,14 +64,18 @@ add_history(const char *s)
 }
 #endif
 
-int do_query(TDSSOCKET *tds, char *buf)
+int do_query(TDSSOCKET *tds, char *buf, int opt_flags)
 {
+int rows;
 int rc, i;
 TDSCOLINFO *col;
 int ctype;
 CONV_RESULT dres;
 unsigned char *src;
 TDS_INT srclen;
+struct timeval start, stop;
+int print_rows=1;
+char message[128];
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -73,20 +84,27 @@ TDS_INT srclen;
 	}
 
 	while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-		if (tds->res_info) {
+		if (opt_flags & OPT_TIMER) {
+			gettimeofday(&start,NULL);
+			print_rows = 0;
+		}
+		if ((!(opt_flags & OPT_NOHEADER)) && tds->res_info) {
 			for (i=0; i<tds->res_info->num_cols; i++) {
 				fprintf(stdout, "%s\t", tds->res_info->columns[i]->column_name);
 			}
 			fprintf(stdout,"\n");
 		}
+
+		rows = 0;
 		while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+			rows++;
 
 			if (!tds->res_info) 
 				continue;
 
 			for (i=0; i<tds->res_info->num_cols; i++) {
 				if (tds_get_null(tds->res_info->current_row, i)) {
-					fprintf(stdout,"NULL\t");
+					if (print_rows) fprintf(stdout,"NULL\t");
 					continue;
 				}
 				col = tds->res_info->columns[i];
@@ -107,11 +125,28 @@ TDS_INT srclen;
 					SYBVARCHAR,
 					&dres) < 0)
 			    continue;
-				fprintf(stdout,"%s\t",dres.c);
+				if (print_rows) fprintf(stdout,"%s\t",dres.c);
 				free(dres.c);
 			}
-			fprintf(stdout,"\n");
+			if (print_rows) fprintf(stdout,"\n");
          }
+		 if (opt_flags & OPT_VERSION) {
+			char version[64];
+			int line = 0;
+			line = tds_version( tds, version );
+			if (line) {
+				sprintf(message, "using TDS version %s", version);
+				tds_client_msg(tds->tds_ctx, tds, line, line, line, line, message);
+			}
+		 }
+		 if (opt_flags & OPT_TIMER) {
+			gettimeofday(&stop,NULL);
+			sprintf(message,"Total time for processing %d rows: %d msecs\n", 
+				rows, 
+				((stop.tv_sec - start.tv_sec) * 1000) + 
+				((stop.tv_usec -  start.tv_usec) / 1000));
+			tds_client_msg(tds->tds_ctx, tds, 1, 1, 1, 1, message);
+		 }
 	}
 	return 0;
 }
@@ -119,6 +154,44 @@ TDS_INT srclen;
 void print_usage(char *progname)
 {
 			fprintf(stderr,"Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n",progname);
+}
+
+int get_opt_flags(char *s, int *opt_flags) 
+{
+char **argv;
+char argc=0;
+char *t;
+int opt;
+
+	/* make sure we have enough elements */
+	argv = malloc(sizeof(char *) * strlen(s));
+	if (!argv) return 0;
+
+	/* parse the command line and assign to argv */
+	argv[argc++] = strtok(s," ");
+	if (argv[0])
+		while (argv[argc++] = strtok(NULL, " "));
+
+	argv[argc]=NULL;
+
+	optind = 0; /* reset getopt */
+	while ((opt=getopt(argc - 1, argv, "fhtv"))!=-1) {
+          switch (opt) {
+          case 'f':
+               *opt_flags |= OPT_NOFOOTER;
+          break;
+          case 'h':
+               *opt_flags |= OPT_NOHEADER;
+          break;
+          case 't':
+               *opt_flags |= OPT_TIMER;
+          break;
+          case 'v':
+               *opt_flags |= OPT_VERSION;
+          break;
+		}
+	}
+	return *opt_flags;
 }
 void populate_login(TDSLOGIN *login, int argc, char **argv)
 {
@@ -237,7 +310,7 @@ int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
                          msg->message);
 	}
 
-	return 1;
+	return 0;
 }
 
 int 
@@ -251,6 +324,7 @@ int bufsz = 4096;
 TDSSOCKET *tds;
 TDSLOGIN *login;
 TDSCONTEXT *context;
+int opt_flags = 0;
 
 	/* grab a login structure */
 	login = (void *) tds_alloc_login();
@@ -295,18 +369,10 @@ TDSCONTEXT *context;
 			mybuf[0] = '\0';
 			continue;
 		}
-		if (!strcmp(s, "GO")) {
-			char version[64], message[128];
-			strcpy(s, "go");
-			line = tds_version( tds, version );
-			if( line ) {
-				sprintf( message, "using TDS version %s", version );
-				tds_client_msg(context, tds, line, line, line, line, message);
-			}
-		}
-		if (!strcmp(s, "go")) {
+		if (! strncmp(s,"go",2)) {
 			line = 0;
-			do_query(tds, mybuf);
+			get_opt_flags(s, &opt_flags);
+			do_query(tds, mybuf, opt_flags);
 			mybuf[0]='\0';
 		} else if (!strcmp(s, "reset")) {
 			line = 0;

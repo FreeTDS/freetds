@@ -1,3 +1,7 @@
+Fri Sep 27 09:52:43 EDT 2002	Brian Bruns <camber@ais.org>
+	* src/apps/tsql.c: change handler return from 1 to 0, added sqsh-style 
+	  arguments to "go", added -t timer feature.
+
 Fri Sep 27 11:39:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- split reading data information in separate function to 
