@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.38 2004-03-08 12:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.39 2004-03-08 19:11:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -75,6 +75,9 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 		if (is_numeric_type(srctype)) {
 			desttype = SQL_C_NUMERIC;
+			/* prevent buffer overflow */
+			if (destlen < sizeof(SQL_NUMERIC_STRUCT))
+				return TDS_CONVERT_FAIL;
 		} else {
 			ret = srclen;
 			if (destlen > 0) {

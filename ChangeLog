@@ -1,3 +1,6 @@
+Mon Mar 08 20:20:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_tds2sql.c: fix buffer overflow
+
 Mon Mar 08 19:46:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/data.c: Sybase compatibility
 
