@@ -33,6 +33,7 @@
 #endif
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 #include "tds.h"
 #include "tdsconvert.h"
 #include "tdsutil.h"
@@ -41,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.88 2002-10-02 20:38:56 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.89 2002-10-02 21:00:33 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -23,6 +23,7 @@
 
 #include "tds.h"
 #include "tdsutil.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -33,7 +34,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.51 2002-09-30 20:18:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.52 2002-10-02 21:00:33 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

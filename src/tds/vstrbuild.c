@@ -22,10 +22,11 @@
 #endif
 
 #include <stdarg.h>
+#include <string.h>
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.3 2002-10-02 14:55:13 castellano Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.4 2002-10-02 21:00:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

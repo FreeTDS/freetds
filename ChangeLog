@@ -1,3 +1,8 @@
+Wed Oct  2 16:59:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/cs.c src/tds/config.c src/tds/convert.c
+	  src/tds/login.c src/tds/query.c src/tds/vstrbuild.c:
+	- Include some additional headers for prototypes.
+
 Wed Oct  2 16:36:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in include/tdsutil.h src/ctlib/cs.c
 	  src/dblib/dblib.c src/odbc/convert_sql2string.c
