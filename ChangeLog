@@ -1,3 +1,7 @@
+Thu Dec 18 20:34:45 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/tdsodbc.h:
+	- remove a warning if iODBC is used
+
 Thu Dec 18 14:36:33 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/bcp.c enabled call to bcp_batch()
 	* src/tds/token.c tds_client_msg() does not mark session dead.
