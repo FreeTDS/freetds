@@ -1,3 +1,8 @@
+Wed Jan  1 20:53:32 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h  changed values of datafmt.status bitmasks
+	* src/ctlib/ct.c  minor bugs
+	* src/tds/token.c  set TDS_CMD_DONE for TDS_NO_MORE_RESULTS
+
 Wed Jan  1 17:59:12 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/unittests/t0002.c  added test for return status
 	
