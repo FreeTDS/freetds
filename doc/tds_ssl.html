@@ -71,7 +71,7 @@ REGEDIT4
   instance name (2) start from 0x1c length 0x0c
  </td><td>
   "MSSQLServer\0"
-  (\0 padding ???)
+  (as you note string is null terminated)
  </td></tr>
  <tr><td>
   03 00 28 00 04
@@ -126,7 +126,7 @@ REGEDIT4
  </td><td>
    instance name (2) start from 0x1c length 0x01
  </td><td>
-   "\0" (yes, perhaps it's just null terminated)
+   "\0" (still null terminatted)
  </td></tr>
  <tr><td>
    03 00 1d 00 00 
@@ -148,9 +148,9 @@ REGEDIT4
 <ul>
 <li>0x02, no certificate, no encryption required
   just do normal jobs (like FreeTDS)
-<li>0x00, certificate, no force
+<li>0x00, certificate, no force flag on server,
   prelogin to see certificate (TLS 1.0, not SSL 2 or 3 !!)
-  login encrypted, after login changed crypt and do normal TDS (not
+  login encrypted, after login do normal TDS (not
   encrypted)
 <li>0x01, certificate, high encryption required by client
   prelogin to see certificate
@@ -159,6 +159,8 @@ perhaps a configuration problem...)
 <li>0x03, certificate enabled, force encryption configured on server
   prelogin like 0x00, remains in SSL after login
 </ul>
+
+<p>Note that mssql2k unpatched do not set last packet flag (byte 2) for this packet.
 
 <p>Following a valid encrypted connection (0x00 from server, no force)
 
@@ -189,7 +191,9 @@ perhaps a configuration problem...)
 ... omissis...
 </pre>
 
-<p>normal reply packet (0x4), ServerHello(2), content TLS (certificate)
+<p>normal reply packet (0x4), ServerHello(2), content TLS (certificate).
+
+<p>NOTE: if server send certificate request client (MS ODBC) crash so I think this is not supported.
 
 <p>&gt;From client to server
 <pre>
@@ -201,7 +205,7 @@ perhaps a configuration problem...)
 000000CA  c9 c6 4a 11 b1 36 87 84  f2 96 82 d0 19 8a dd dc ..J..6.. ........
 000000DA  d1 32 6a 32 ab 73 47 76  58 69 16 fd 9f 0b bd d7 .2j2.sGv Xi......
 000000EA  72 79 a7 86 9a 71 2b 70  9a d1 8f e2 54 63 46 81 ry...q+p ....TcF.
-000000FA  3e 6d 8a f7 8d 2e 26 02  3f 2d 0c a1 bc 63 ac 0a >m....&. ?-...c..
+000000FA  3e 6d 8a f7 8d 2e 26 02  3f 2d 0c a1 bc 63 ac 0a &gt;m....&amp;. ?-...c..
 0000010A  8a 38 0e 14 03 01 00 01  01 16 03 01 00 28 12 09 .8...... .....(..
 0000011A  d5 2d 93 8c 60 aa ae ec  e3 9b 2b 3c 27 63 46 ad .-..`... ..+&lt;'cF.
 0000012A  b1 b9 3d 1e 06 60 18 49  6d bb 76 80 8b 7b 51 70 ..=..`.I m.v..{Qp
@@ -209,8 +213,7 @@ perhaps a configuration problem...)
 </pre>
 
 <p>prelogin (0x12), still TLS handshake, client_key_exchange (??) (0x16,
-0x10), change crypt (0x14), handshake (I don't understand what type...
-perhaps crypted)
+0x10), change crypt (0x14), handshake (crypted)
 
 <p>&gt;From server to client
 <pre>
@@ -222,8 +225,7 @@ perhaps crypted)
 
 <p>normal reply (0x4), still TLS
 
-<p>0x14 means change crypt, followed by 0x16 (handshake crypted), this
-change crypt method (always after login success)
+<p>0x14 means change crypt, followed by 0x16 (handshake crypted).
 
 <p>&gt;From client to server
 <pre>
@@ -232,7 +234,7 @@ change crypt method (always after login success)
 00000160  72 75 72 23 c2 11 20 7d  5c b1 be e7 ac 72 ac b3 rur#.. } \....r..
 00000170  47 41 4f 45 d8 fa 22 2b  94 b1 67 a5 7f de af 96 GAOE.."+ ..g.....
 00000180  05 ad bb fc e4 33 66 3a  a2 f1 8d c5 5f 84 8b 38 .....3f: ...._..8
-00000190  86 b0 df e8 87 e7 2c 26  e6 c0 66 2e b1 53 86 40 ......,& ..f..S.@
+00000190  86 b0 df e8 87 e7 2c 26  e6 c0 66 2e b1 53 86 40 ......,&amp; ..f..S.@
 000001A0  98 0d 9e 2f 49 0b 17 b2  9d 55 d3 e3 7e 08 ca b9 .../I... .U..~...
 000001B0  de 62 87 23 14 98 6e 10  d0 dd c2 94 70 4c 33 4b .b.#..n. ....pL3K
 000001C0  09 8d b8 46 e5 a2 31 52  4d 89 06 b2 10 a8 ed b0 ...F..1R M.......
@@ -246,8 +248,8 @@ change crypt method (always after login success)
 00000240  37 58 8a ba 4f 38 f6 00  23 24 56 c2 35          7X..O8.. #$V.5
 </pre>
 
-<p>Well... you can note that this it's not a TDS packet !!! This should be
-a fully crypted packet (in this case I suppose a login)
+<p>Well... you can note that this it's not a TDS packet !!! This is
+a fully crypted packet (login packet).
 
 <p>&gt;From server to client
 <pre>
@@ -261,10 +263,13 @@ a fully crypted packet (in this case I suppose a login)
 ... omissis ...
 </pre>
 
-<p>well... this should be know :)
+<p>Now normal data follow. In this case server used flag 0 (see above).
 
 <p>With force login (0x03 from server) after crypted login packet server
 and client continue to keep encrypting full packets
+
+<p>Note that uncrypted packets are still splitted using packet size selected during
+login (that is usually 4096 bytes).
 
 </body>
 </html>
