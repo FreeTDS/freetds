@@ -18,7 +18,7 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0017.c,v 1.8 2002-10-14 00:00:36 castellano Exp $";
+static char  software_version[]   = "$Id: t0017.c,v 1.9 2002-11-01 09:58:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 #if 0
    char         *out_file = "t0017.out";
 #endif
-   char         *in_file = "t0017.in";
+   char         *in_file = FREETDS_SRCDIR "/t0017.in";
    char         *err_file = "t0017.err";
    DBINT        rows_copied;
    int          num_cols;

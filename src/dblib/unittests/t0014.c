@@ -18,14 +18,14 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.10 2002-10-17 14:51:01 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.11 2002-11-01 09:58:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
 
-char *testargs[] = { "", "data.bin", "t0014.out" };
+char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
 
 int main(int argc, char *argv[])
 {

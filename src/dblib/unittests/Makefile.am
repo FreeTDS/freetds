@@ -33,9 +33,4 @@ LIBS		=	../libsybdb.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
 EXTRA_DIST	=	t0016.in t0017.in data.bin
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out
-
-all:
-	if test ! -f t0016.in; then cp $(srcdir)/t0016.in t0016.in; fi
-	if test ! -f t0017.in; then cp $(srcdir)/t0017.in t0017.in; fi
-	if test ! -f data.bin; then cp $(srcdir)/data.bin data.bin;  fi
-
+AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\"

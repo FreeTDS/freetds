@@ -1,3 +1,9 @@
+Fri Nov  1 10:56:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am include/Makefile.am src/dblib/unittests/Makefile.am:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c:
+	- make distcheck now work correctly and without particular settings
+
 Thu Oct 31 16:14:50 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Make the definition of _XOPEN_SOURCE_EXTENDED and _POSIX_C_SOURCE
