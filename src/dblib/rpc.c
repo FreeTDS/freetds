@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.40 2005-02-09 16:15:15 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.41 2005-04-03 13:37:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -116,7 +116,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 
 	/* store */
 	(*rpc)->options = options & DBRPCRECOMPILE;
-	(*rpc)->param_list = (DBREMOTE_PROC_PARAM *) NULL;
+	(*rpc)->param_list = NULL;
 
 	/* completed */
 	tdsdump_log(TDS_DBG_INFO1, "dbrpcinit() added rpcname \"%s\"\n", rpcname);
@@ -199,7 +199,7 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	}
 
 	/* initialize */
-	param->next = (DBREMOTE_PROC_PARAM *) NULL;	/* NULL signifies end of linked list */
+	param->next = NULL;	/* NULL signifies end of linked list */
 	param->name = name;
 	param->status = status;
 	param->type = type;

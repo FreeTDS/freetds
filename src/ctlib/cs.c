@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.57 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.58 2005-04-03 13:37:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -366,7 +366,7 @@ CS_RETCODE ret;
 
 		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srcdata is null\n");
 		memset(dest, '\0', destlen);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 0;
 		return CS_SUCCEED;
 
@@ -391,13 +391,13 @@ CS_RETCODE ret;
 					memcpy(dest, srcdata, src_len);
 					for (i = src_len; i < destlen; i++)
 						dest[i] = '\0';
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = destlen;
 					ret = CS_SUCCEED;
 					break;
 				case CS_FMT_UNUSED:
 					memcpy(dest, srcdata, src_len);
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = src_len;
 					ret = CS_SUCCEED;
 					break;
@@ -425,7 +425,7 @@ CS_RETCODE ret;
 					} else {
 						memcpy(dest, srcdata, src_len);
 						dest[src_len] = '\0';
-						if (resultlen != (CS_INT *) NULL)
+						if (resultlen != NULL)
 							*resultlen = src_len + 1;
 						ret = CS_SUCCEED;
 					}
@@ -435,7 +435,7 @@ CS_RETCODE ret;
 					memcpy(dest, srcdata, src_len);
 					for (i = src_len; i < destlen; i++)
 						dest[i] = ' ';
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = destlen;
 					ret = CS_SUCCEED;
 					break;
@@ -444,13 +444,13 @@ CS_RETCODE ret;
 					memcpy(dest, srcdata, src_len);
 					for (i = src_len; i < destlen; i++)
 						dest[i] = '\0';
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = destlen;
 					ret = CS_SUCCEED;
 					break;
 				case CS_FMT_UNUSED:
 					memcpy(dest, srcdata, src_len);
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = src_len;
 					ret = CS_SUCCEED;
 					break;
@@ -473,7 +473,7 @@ CS_RETCODE ret;
 		case SYBDATETIME:
 		case SYBDATETIME4:
 			memcpy(dest, srcdata, _cs_datatype_length(src_type));
-			if (resultlen != (CS_INT *) NULL)
+			if (resultlen != NULL)
 				*resultlen = _cs_datatype_length(src_type);
 			ret = CS_SUCCEED;
 			break;
@@ -486,7 +486,7 @@ CS_RETCODE ret;
 				ret = CS_FAIL;
 			} else {
 				memcpy(dest, srcdata, src_len);
-				if (resultlen != (CS_INT *) NULL)
+				if (resultlen != NULL)
 					*resultlen = src_len;
 				ret = CS_SUCCEED;
 			}
@@ -559,7 +559,7 @@ CS_RETCODE ret;
 			free(cres.ib);
 			for (i = len; i < destlen; i++)
 				dest[i] = '\0';
-			if (resultlen != (CS_INT *) NULL)
+			if (resultlen != NULL)
 				*resultlen = destlen;
 			ret = CS_SUCCEED;
 		}
@@ -569,37 +569,37 @@ CS_RETCODE ret;
 		/* fall trough, act same way of TINYINT */
 	case SYBINT1:
 		memcpy(dest, &(cres.ti), 1);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 1;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT2:
 		memcpy(dest, &(cres.si), 2);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 2;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT4:
 		memcpy(dest, &(cres.i), 4);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 4;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT8:
 		memcpy(dest, &(cres.bi), 8);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 8;
 		ret = CS_SUCCEED;
 		break;
 	case SYBFLT8:
 		memcpy(dest, &(cres.f), 8);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 8;
 		ret = CS_SUCCEED;
 		break;
 	case SYBREAL:
 		memcpy(dest, &(cres.r), 4);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = 4;
 		ret = CS_SUCCEED;
 		break;
@@ -607,25 +607,25 @@ CS_RETCODE ret;
 
 		tdsdump_log(TDS_DBG_FUNC, "cs_convert() copying %d bytes to src\n", (int) sizeof(TDS_MONEY));
 		memcpy(dest, &(cres.m), sizeof(TDS_MONEY));
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = sizeof(TDS_MONEY);
 		ret = CS_SUCCEED;
 		break;
 	case SYBMONEY4:
 		memcpy(dest, &(cres.m4), sizeof(TDS_MONEY4));
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = sizeof(TDS_MONEY4);
 		ret = CS_SUCCEED;
 		break;
 	case SYBDATETIME:
 		memcpy(dest, &(cres.dt), sizeof(TDS_DATETIME));
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = sizeof(TDS_DATETIME);
 		ret = CS_SUCCEED;
 		break;
 	case SYBDATETIME4:
 		memcpy(dest, &(cres.dt4), sizeof(TDS_DATETIME4));
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = sizeof(TDS_DATETIME4);
 		ret = CS_SUCCEED;
 		break;
@@ -633,7 +633,7 @@ CS_RETCODE ret;
 	case SYBDECIMAL:
 		src_len = tds_numeric_bytes_per_prec[cres.n.precision] + 2;
 		memcpy(dest, &(cres.n), src_len);
-		if (resultlen != (CS_INT *) NULL)
+		if (resultlen != NULL)
 			*resultlen = src_len;
 		ret = CS_SUCCEED;
 		break;
@@ -654,7 +654,7 @@ CS_RETCODE ret;
 				} else {
 					memcpy(dest, cres.c, len);
 					dest[len] = 0;
-					if (resultlen != (CS_INT *) NULL)
+					if (resultlen != NULL)
 						*resultlen = len + 1;
 					ret = CS_SUCCEED;
 				}
@@ -666,7 +666,7 @@ CS_RETCODE ret;
 				memcpy(dest, cres.c, len);
 				for (i = len; i < destlen; i++)
 					dest[i] = ' ';
-				if (resultlen != (CS_INT *) NULL)
+				if (resultlen != NULL)
 					*resultlen = destlen;
 				ret = CS_SUCCEED;
 				break;
@@ -677,14 +677,14 @@ CS_RETCODE ret;
 				memcpy(dest, cres.c, len);
 				for (i = len; i < destlen; i++)
 					dest[i] = '\0';
-				if (resultlen != (CS_INT *) NULL)
+				if (resultlen != NULL)
 					*resultlen = destlen;
 				ret = CS_SUCCEED;
 				break;
 			case CS_FMT_UNUSED:
 				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
 				memcpy(dest, cres.c, len);
-				if (resultlen != (CS_INT *) NULL)
+				if (resultlen != NULL)
 					*resultlen = len;
 				ret = CS_SUCCEED;
 				break;
@@ -933,7 +933,7 @@ CS_INT msg_count = 0;
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (*curptr != (struct cs_diag_msg *)NULL) {
+	while (*curptr != NULL) {
 		msg_count++;
 		curptr = &((*curptr)->next);
 	}
@@ -947,12 +947,12 @@ CS_INT msg_count = 0;
 	}
 
 	*curptr = (struct cs_diag_msg *) malloc(sizeof(struct cs_diag_msg));
-	if (*curptr == (struct cs_diag_msg *)NULL) { 
+	if (*curptr == NULL) { 
 		return CS_FAIL;
 	} else {
-		(*curptr)->next = (struct cs_diag_msg *)NULL;
+		(*curptr)->next = NULL;
 		(*curptr)->msg  = malloc(sizeof(CS_CLIENTMSG));
-		if ((*curptr)->msg == (CS_CLIENTMSG *) NULL) {
+		if ((*curptr)->msg == NULL) {
 			return CS_FAIL;
 		} else {
 			memcpy((*curptr)->msg, message, sizeof(CS_CLIENTMSG));
@@ -974,7 +974,7 @@ CS_INT msg_count = 0, msg_found = 0;
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (curptr != (struct cs_diag_msg *)NULL) {
+	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
 			msg_found++;
@@ -999,7 +999,7 @@ struct cs_diag_msg *curptr, *freeptr;
 	curptr = context->msgstore;
 	context->msgstore = NULL;
 
-	while (curptr != (struct cs_diag_msg *)NULL ) {
+	while (curptr != NULL ) {
         	freeptr = curptr;
 		curptr = freeptr->next;
         	if (freeptr->msg)
@@ -1017,7 +1017,7 @@ CS_INT msg_count = 0;
 
 	curptr = context->msgstore;
 
-	while (curptr != (struct cs_diag_msg *)NULL) {
+	while (curptr != NULL) {
 		msg_count++;
 		curptr = curptr->next;
 	}

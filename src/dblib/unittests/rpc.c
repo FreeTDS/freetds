@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.19 2005-02-08 09:23:36 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.20 2005-04-03 13:37:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 	}
 
 	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param0, DBRPCRETURN, SYBCHAR, /*maxlen= */ -1, /* datlen= */ 0, (BYTE *) NULL);
+	erc = dbrpcparam(dbproc, param0, DBRPCRETURN, SYBCHAR, /*maxlen= */ -1, /* datlen= */ 0, NULL);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcparam\n");
 		failed = 1;

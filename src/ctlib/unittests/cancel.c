@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.6 2005-02-18 12:56:52 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.7 2005-04-03 13:37:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -27,7 +27,7 @@ catch_alrm(int sig_num)
 	fprintf(stdout, "- SIGALRM\n");
 
 	/* Cancel current command */
-	ct_cancel((CS_CONNECTION *) NULL, (CS_COMMAND *) g_cmd, CS_CANCEL_ATTN);
+	ct_cancel(NULL, (CS_COMMAND *) g_cmd, CS_CANCEL_ATTN);
 
 	fflush(stdout);
 }

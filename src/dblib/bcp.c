@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.120 2005-02-09 16:15:13 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.121 2005-04-03 13:37:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -102,7 +102,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	/* check validity of parameters */
 
-	if (tblname == (char *) NULL) {
+	if (tblname == NULL) {
 		_bcp_err_handler(dbproc, SYBEBCITBNM);
 		return (FAIL);
 	}
@@ -117,13 +117,13 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return (FAIL);
 	}
 
-	if (hfile != (char *) NULL) {
+	if (hfile != NULL) {
 
 		dbproc->hostfileinfo = calloc(1, sizeof(BCP_HOSTFILEINFO));
 
 		dbproc->hostfileinfo->hostfile = strdup(hfile);
 
-		if (errfile != (char *) NULL)
+		if (errfile != NULL)
 			dbproc->hostfileinfo->errorfile = strdup(errfile);
 	} else {
 		dbproc->hostfileinfo = NULL;
@@ -1518,7 +1518,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		if (row_error) {
 
-			if (errfile != (FILE *) NULL) {
+			if (errfile != NULL) {
 
 				for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 					hostcol = dbproc->hostfileinfo->host_columns[i];
@@ -2102,8 +2102,8 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 		BCP_HOSTCOLINFO colinfo;
 	};
 
-	struct fflist *topptr = (struct fflist *) NULL;
-	struct fflist *curptr = (struct fflist *) NULL;
+	struct fflist *topptr = NULL;
+	struct fflist *curptr = NULL;
 
 	BCP_HOSTCOLINFO *hostcol;
 
@@ -2112,28 +2112,28 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 		return FAIL;
 	}
 
-	if ((ffile = fopen(filename, "r")) == (FILE *) NULL) {
+	if ((ffile = fopen(filename, "r")) == NULL) {
 		_bcp_err_handler(dbproc, SYBEBUOF);
 		return (FAIL);
 	}
 
-	if ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
+	if ((fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
 		lf_version = atof(buffer);
 	}
 
-	if ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
+	if ((fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
 		li_numcols = atoi(buffer);
 	}
 
-	while ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
+	while ((fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 
 		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
 
 
-		if (topptr == (struct fflist *) NULL) {	/* first time */
-			if ((topptr = (struct fflist *) malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
+		if (topptr == NULL) {	/* first time */
+			if ((topptr = (struct fflist *) malloc(sizeof(struct fflist))) == NULL) {
 				fprintf(stderr, "out of memory\n");
 				return (FAIL);
 			}
@@ -2144,7 +2144,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 			else
 				return (FAIL);
 		} else {
-			if ((curptr->nextptr = (struct fflist *) malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
+			if ((curptr->nextptr = (struct fflist *) malloc(sizeof(struct fflist))) == NULL) {
 				fprintf(stderr, "out of memory\n");
 				return (FAIL);
 			}
@@ -2169,7 +2169,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 		return (FAIL);
 	}
 
-	for (curptr = topptr; curptr->nextptr != (struct fflist *) NULL; curptr = curptr->nextptr) {
+	for (curptr = topptr; curptr->nextptr != NULL; curptr = curptr->nextptr) {
 		hostcol = &(curptr->colinfo);
 		if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
 			       hostcol->prefix_len, hostcol->column_len,
@@ -2210,7 +2210,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 	tok = strtok(buf, " \t");
 	whichcol = HOST_COLUMN;
 
-	while (tok != (char *) NULL && whichcol != NO_MORE_COLS) {
+	while (tok != NULL && whichcol != NO_MORE_COLS) {
 		switch (whichcol) {
 
 		case HOST_COLUMN:
@@ -2322,7 +2322,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 			break;
 
 		}
-		tok = strtok((char *) NULL, " \t");
+		tok = strtok(NULL, " \t");
 	}
 	if (whichcol == NO_MORE_COLS)
 		return (TRUE);
@@ -2448,8 +2448,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		return FAIL;
 	}
 
-	if (varaddr == (BYTE *) NULL && (prefixlen != 0 || termlen != 0)
-		) {
+	if (varaddr == NULL && (prefixlen != 0 || termlen != 0)) {
 		_bcp_err_handler(dbproc, SYBEBCBNPR);
 		return FAIL;
 	}

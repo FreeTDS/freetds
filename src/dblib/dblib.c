@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.209 2005-03-30 15:12:35 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.210 2005-04-03 13:37:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -979,13 +979,13 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	buffer_init(&(dbproc->row_buf));
 
-	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
+	if (g_dblib_ctx.recftos_filename != NULL) {
 		char *temp_filename = NULL;
 		const int len = asprintf(&temp_filename, "%s.%d", 
 					 g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
 		if (len >= 0) {
 			dbproc->ftos = fopen(temp_filename, "w");
-			if (dbproc->ftos != (FILE *) NULL) {
+			if (dbproc->ftos != NULL) {
 				fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
 				fflush(dbproc->ftos);
 				g_dblib_ctx.recftos_filenum++;
@@ -1194,7 +1194,7 @@ dbclose(DBPROCESS * dbproc)
 		tds_free_socket(tds);
 	}
 
-	if (dbproc->ftos != (FILE *) NULL) {
+	if (dbproc->ftos != NULL) {
 		fprintf(dbproc->ftos, "/* dbclose() at %s */\n", _dbprdate(timestr));
 		fclose(dbproc->ftos);
 	}
@@ -2043,7 +2043,7 @@ dbconvert_ps(DBPROCESS * dbproc,
 	DBNUMERIC *d;
 
 	if (is_numeric_type(desttype)) {
-		if (typeinfo == (DBTYPEINFO *) NULL) {
+		if (typeinfo == NULL) {
 			if (is_numeric_type(srctype)) {
 				s = (DBNUMERIC *) src;
 				d = (DBNUMERIC *) dest;
@@ -3650,7 +3650,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 
 	/* if either the compute id or the column number are invalid, return -1 */
 	if (column < 1 || column > info->num_cols)
-		return (BYTE *) NULL;
+		return NULL;
 
 	colinfo = info->columns[column - 1];
 
@@ -4157,7 +4157,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 		if (i >= tds->num_comp_info) {
 			if (size)
 				*size = 0;
-			return (BYTE *) NULL;
+			return NULL;
 		}
 		info = tds->comp_info[i];
 		if (info->computeid == computeid)
@@ -5217,9 +5217,9 @@ dbgetchar(DBPROCESS * dbproc, int pos)
 		if (pos >= 0 && pos < dbproc->dbbufsz)
 			return (char *) &dbproc->dbbuf[pos];
 		else
-			return (char *) NULL;
+			return NULL;
 	} else
-		return (char *) NULL;
+		return NULL;
 }
 
 /**
@@ -5577,7 +5577,7 @@ void
 dbrecftos(char *filename)
 {
 	g_dblib_ctx.recftos_filename = malloc(strlen(filename) + 1);
-	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
+	if (g_dblib_ctx.recftos_filename != NULL) {
 		strcpy(g_dblib_ctx.recftos_filename, filename);
 		g_dblib_ctx.recftos_filenum = 0;
 	}
@@ -5845,7 +5845,7 @@ dbsqlsend(DBPROCESS * dbproc)
 	}
 	dbproc->more_results = TRUE;
 
-	if (dbproc->ftos != (FILE *) NULL) {
+	if (dbproc->ftos != NULL) {
 		fprintf(dbproc->ftos, "%s\n", dbproc->dbbuf);
 		fprintf(dbproc->ftos, "go /* %s */\n", _dbprdate(timestr));
 		fflush(dbproc->ftos);
@@ -6168,7 +6168,7 @@ _dbprdate(char *timestr)
 {
 	time_t currtime;
 
-	currtime = time((time_t *) NULL);
+	currtime = time(NULL);
 
 	strcpy(timestr, asctime(gmtime(&currtime)));
 	timestr[strlen(timestr) - 1] = '\0';	/* remove newline */

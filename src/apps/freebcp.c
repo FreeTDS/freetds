@@ -46,7 +46,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.38 2005-02-09 16:15:11 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.39 2005-04-03 13:37:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -177,7 +177,7 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 
 	/* argument 1 - the database object */
 	pdata->dbobject = (char *) malloc(strlen(argv[1]) + 1);
-	if (pdata->dbobject != (char *) NULL)
+	if (pdata->dbobject != NULL)
 		strcpy(pdata->dbobject, argv[1]);
 
 	/* argument 2 - the direction */
@@ -365,7 +365,7 @@ login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
 	 * ** Get a connection to the database.
 	 */
 
-	if ((*pdbproc = dbopen(login, pdata->server)) == (DBPROCESS *) NULL) {
+	if ((*pdbproc = dbopen(login, pdata->server)) == NULL) {
 		fprintf(stderr, "Can't connect to server \"%s\".\n", pdata->server);
 		return (FALSE);
 	}
@@ -547,7 +547,7 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		li_coltype = dbcoltype(dbproc, i);
 		li_collen = dbcollen(dbproc, i);
 
-		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, (BYTE *) NULL, -1, i) == FAIL) {
+		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, NULL, -1, i) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}

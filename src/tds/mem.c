@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.140 2005-03-12 11:48:52 ppeterd Exp $";
+static char software_version[] = "$Id: mem.c,v 1.141 2005-04-03 13:37:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -730,7 +730,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->in_buf_max = 0;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize);
 
-	tds_socket->parent = (char *) NULL;
+	tds_socket->parent = NULL;
 	tds_socket->option_flag2 = 0x03;	/* TDS 7.0: 0x02 indicates ODBC driver; 
 						 * 0x01 means change to initial language must succeed */
 	tds_socket->env.block_size = bufsize;

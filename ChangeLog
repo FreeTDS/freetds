@@ -1,3 +1,11 @@
+Sun Apr  3 15:36:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/freebcp.c src/ctlib/cs.c src/ctlib/ct.c:
+	* src/ctlib/unittests/cancel.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/rpc.c:
+	* src/dblib/unittests/rpc.c src/tds/convert.c:
+	* src/tds/mem.c src/tds/token.c:
+	- removed NULL casts
+
 Sun Apr  3 11:21:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am configure.in vms/Makefile.am(added):
 	- make VMS distribution as subdirectory do not include everything

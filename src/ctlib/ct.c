@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.146 2005-03-30 10:58:02 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.147 2005-04-03 13:37:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -298,7 +298,7 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			return CS_SUCCEED;
 		default:
 			fprintf(stderr, "Unknown callback %d\n", type);
-			*(void **) func = (CS_VOID *) NULL;
+			*(void **) func = NULL;
 			return CS_SUCCEED;
 		}
 	}
@@ -378,7 +378,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			if (!host || !port)
 				return CS_FAIL;
 
-			portno= (int)strtol(port, (char **)NULL, 10);
+			portno= (int)strtol(port, NULL, 10);
 			tds_set_server_addr(tds_login, host);
 			tds_set_port(tds_login, portno);
 			break;
@@ -637,7 +637,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 	command_list->cmd = *cmd;
 	command_list->next = NULL;
 
-	if ( con->cmds == (CS_COMMAND_LIST *) NULL ) {
+	if ( con->cmds == NULL ) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc() : allocating command list to head\n");
 		con->cmds = command_list;
 	} else {
@@ -723,18 +723,18 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 			return CS_FAIL;
 
 		cmd->rpc = (CSREMOTE_PROC *) malloc(sizeof(CSREMOTE_PROC));
-		if (cmd->rpc == (CSREMOTE_PROC *) NULL)
+		if (cmd->rpc == NULL)
 			return CS_FAIL;
 
 		memset(cmd->rpc, 0, sizeof(CSREMOTE_PROC));
 
 		if (buflen == CS_NULLTERM) {
 			cmd->rpc->name = strdup(buffer);
-			if (cmd->rpc->name == (char *) NULL)
+			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
 			cmd->rpc->name = (char *) malloc(buflen + 1);
-			if (cmd->rpc->name == (char *) NULL)
+			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 			memset(cmd->rpc->name, 0, buflen + 1);
 			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
@@ -4179,7 +4179,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID 
 	} else {
 		if (datafmt->namelen == CS_NULLTERM) {
 			param->name = strdup(datafmt->name);
-			if (param->name == (char *) NULL)
+			if (param->name == NULL)
 				return CS_FAIL;
 		} else if (datafmt->namelen > 0) {
 			param->name = malloc(datafmt->namelen + 1);
@@ -4397,7 +4397,7 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (*curptr != (struct cs_diag_msg_client *) NULL) {
+	while (*curptr != NULL) {
 		msg_count++;
 		curptr = &((*curptr)->next);
 	}
@@ -4413,7 +4413,7 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	/* are simply discarded */
 
 	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
-		while (*scurptr != (struct cs_diag_msg_svr *) NULL) {
+		while (*scurptr != NULL) {
 			msg_count++;
 			scurptr = &((*scurptr)->next);
 		}
@@ -4423,12 +4423,12 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	}
 
 	*curptr = (struct cs_diag_msg_client *) malloc(sizeof(struct cs_diag_msg_client));
-	if (*curptr == (struct cs_diag_msg_client *) NULL) {
+	if (*curptr == NULL) {
 		return CS_FAIL;
 	} else {
-		(*curptr)->next = (struct cs_diag_msg_client *) NULL;
+		(*curptr)->next = NULL;
 		(*curptr)->clientmsg = malloc(sizeof(CS_CLIENTMSG));
-		if ((*curptr)->clientmsg == (CS_CLIENTMSG *) NULL) {
+		if ((*curptr)->clientmsg == NULL) {
 			return CS_FAIL;
 		} else {
 			memcpy((*curptr)->clientmsg, message, sizeof(CS_CLIENTMSG));
@@ -4452,7 +4452,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (*curptr != (struct cs_diag_msg_svr *) NULL) {
+	while (*curptr != NULL) {
 		msg_count++;
 		curptr = &((*curptr)->next);
 	}
@@ -4468,7 +4468,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	/* are simply discarded...                  */
 
 	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
-		while (*ccurptr != (struct cs_diag_msg_client *) NULL) {
+		while (*ccurptr != NULL) {
 			msg_count++;
 			ccurptr = &((*ccurptr)->next);
 		}
@@ -4478,12 +4478,12 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	}
 
 	*curptr = (struct cs_diag_msg_svr *) malloc(sizeof(struct cs_diag_msg_svr));
-	if (*curptr == (struct cs_diag_msg_svr *) NULL) {
+	if (*curptr == NULL) {
 		return CS_FAIL;
 	} else {
-		(*curptr)->next = (struct cs_diag_msg_svr *) NULL;
+		(*curptr)->next = NULL;
 		(*curptr)->servermsg = malloc(sizeof(CS_SERVERMSG));
-		if ((*curptr)->servermsg == (CS_SERVERMSG *) NULL) {
+		if ((*curptr)->servermsg == NULL) {
 			return CS_FAIL;
 		} else {
 			memcpy((*curptr)->servermsg, message, sizeof(CS_SERVERMSG));
@@ -4504,7 +4504,7 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (curptr != (struct cs_diag_msg_client *) NULL) {
+	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
 			msg_found++;
@@ -4531,7 +4531,7 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (curptr != (struct cs_diag_msg_svr *) NULL) {
+	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
 			msg_found++;
@@ -4558,7 +4558,7 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 		curptr = context->clientstore;
 		context->clientstore = NULL;
 
-		while (curptr != (struct cs_diag_msg_client *) NULL) {
+		while (curptr != NULL) {
 			freeptr = curptr;
 			curptr = freeptr->next;
 			if (freeptr->clientmsg)
@@ -4571,7 +4571,7 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 		scurptr = context->svrstore;
 		context->svrstore = NULL;
 
-		while (scurptr != (struct cs_diag_msg_svr *) NULL) {
+		while (scurptr != NULL) {
 			sfreeptr = scurptr;
 			scurptr = sfreeptr->next;
 			if (sfreeptr->servermsg)
@@ -4593,7 +4593,7 @@ ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
 		curptr = context->clientstore;
 
-		while (curptr != (struct cs_diag_msg_client *) NULL) {
+		while (curptr != NULL) {
 			msg_count++;
 			curptr = curptr->next;
 		}
@@ -4602,7 +4602,7 @@ ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 	if (type == CS_SERVERMSG_TYPE || type == CS_ALLMSG_TYPE) {
 		scurptr = context->svrstore;
 
-		while (scurptr != (struct cs_diag_msg_svr *) NULL) {
+		while (scurptr != NULL) {
 			msg_count++;
 			scurptr = scurptr->next;
 		}

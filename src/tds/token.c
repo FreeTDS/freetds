@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.289 2005-03-14 12:49:40 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.290 2005-04-03 13:37:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -501,7 +501,7 @@ int
 tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags)
 {
 	int marker;
-	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
+	TDSPARAMINFO *pinfo = NULL;
 	TDSCOLUMN   *curcol;
 	TDS_INT rc;
 	int saved_rows_affected = tds->rows_affected;
@@ -3173,7 +3173,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 	while (remainder) {
 		namelen = tds_get_byte(tds);
 		remainder--;
-		if (topptr == (struct namelist *) NULL) {
+		if (topptr == NULL) {
 			if ((topptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
 				memrc = -1;
 				break;

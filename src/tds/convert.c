@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.152 2005-03-28 08:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.153 2005-04-03 13:37:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1704,7 +1704,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 	current_state = GOING_IN_BLIND;
 
-	while (tok != (char *) NULL) {
+	while (tok != NULL) {
 
 		tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: current_state = %d\n", current_state);
 		switch (current_state) {
@@ -1889,7 +1889,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 			return TDS_CONVERT_SYNTAX;
 		}
 
-		tok = strtok_r((char *) NULL, " ,", &lasts);
+		tok = strtok_r(NULL, " ,", &lasts);
 	}
 
 	i = (t->tm_mon - 13) / 12;
@@ -2576,7 +2576,7 @@ store_time(char *datestr, struct tds_time *t)
 	int ret = 1;
 	int ms_len = 0;
 
-	for (s = datestr; *s && strchr("apmAPM", (int) *s) == (char *) NULL; s++) {
+	for (s = datestr; *s && strchr("apmAPM", (int) *s) == NULL; s++) {
 		if (*s == ':' || *s == '.') {
 			last_sep = *s;
 			state++;
