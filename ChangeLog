@@ -1,3 +1,6 @@
+Tue Dec 23 20:08:55 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO things to fix before the release.  
+	
 Tue Dec 23 22:13:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/odbc/unittests/common.c:
 	* src/odbc/unittests/common.h:

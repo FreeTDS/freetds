@@ -8,12 +8,14 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.89 2003-12-23 21:24:50 freddy77 Exp $
+To Do List	$Id: TODO,v 1.90 2003-12-24 01:10:43 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
+. bigint trouble with TDS 8.0?
 
 For 0.62 version:
+. log and call error handler on problems with tds_iconv_init().
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . FAQ
   - multiple statemets question
