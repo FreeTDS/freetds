@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.176 2004-04-07 07:47:18 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.177 2004-04-26 23:48:08 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -570,7 +570,6 @@ enum TDS_OPT_ISOLATION_CHOICE
                      x==SYBFLTN      || \
                      x==SYBMONEYN    || \
                      x==SYBDATETIMN  || \
-                     x==SYBCHAR      || \
                      x==SYBVARCHAR   || \
                      x==SYBBINARY    || \
                      x==SYBVARBINARY || \

@@ -1,3 +1,8 @@
+Mon Apr 26 19:02:25 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h SYBCHAR is not a nullable type (per se)
+	* doc/userguide.sgml ocaml binding reference
+	* src/dblib/dblib.c s/sprintf/snprintf/; FIXME--
+	
 Mon Apr 26 14:00:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/convert_error.c:
 	- cleanup and fix
