@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.89 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.90 2003-10-25 05:09:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -590,7 +590,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 
-	iconv_t cd = invalid, cd2;
+	iconv_t cd = invalid, cd2 = invalid;
 	iconv_t error_cd = invalid;
 
 	char quest_mark[] = "?";	/* best to leave non-const; implementations vary */
@@ -786,27 +786,35 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 {
 	char buffer[16000];
 	char *ib;
-	size_t isize, nonreversible_conversions = 0;
+	size_t isize = 0, nonreversible_conversions = 0;
 
 	/*
 	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
 	 */
 	if (cd == (iconv_t) - 1 || cd == NULL) {
 		assert(field_len <= *outbytesleft);
-		if (1 != fread(outbuf, field_len, 1, stream)) {
-			return field_len + term_len;
+		if (field_len > 0) {
+			if (1 != fread(outbuf, field_len, 1, stream)) {
+				return field_len + term_len;	/* unable to read */
+			}
 		}
 
-		/* toss any terminator, set up next field */
-		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
-			return term_len;
-		}
+		/* prepare to read the terminator and return */
+		*outbytesleft -= field_len;	/* as iconv would have done */
+		isize = 0;			/* as iconv would have done */
+		field_len = 0;			/* as the loop would have done */
 
-		*outbytesleft -= field_len;
-
-		return 0;
+		goto READ_TERMINATOR;
 	}
-
+	
+	/*
+	 * Read in chunks.  
+	 * 	field_len  is the total size to read
+	 * 	isize	   is the size of the current chunk (which might be the whole thing).
+	 * They are decremented as they are successfully processed.  
+	 * On success, we exit the loop with both equal to zero, indicating nothing we
+	 * were asked to read remains unread.
+	 */
 	isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 
 	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
@@ -827,7 +835,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 					isize = field_len;
 				continue;
 			case E2BIG:	/* insufficient room in output buffer */
-			case EILSEQ:	/*    invalid multibyte sequence encountered in input */
+			case EILSEQ:	/* invalid multibyte sequence encountered in input */
 			default:
 				/* FIXME: emit message */
 				tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: error %d: %s.\n", errno, strerror(errno));
@@ -836,9 +844,14 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 		}
 		isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 	}
+	
+	READ_TERMINATOR:
 
-	if (!feof(stream)) {
-		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
+	if (term_len > 0 && !feof(stream)) {
+		isize += term_len;
+		if (term_len && 1 == fread(buffer, term_len, 1, stream)) {
+			isize -= term_len;
+		} else {
 			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
 		}
 	}
