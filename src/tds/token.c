@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.138 2003-01-05 13:42:00 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.139 2003-01-05 15:50:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -615,8 +615,11 @@ int i;
 /**
  * Process results for simple query as "SET TEXTSIZE" or "USE dbname"
  * If you issue a statement that return some results all results are
- * discarded
- * All results are readed until error or failure
+ * discarded.
+ * This function was written for avoiding calls to tds_process_default_tokens
+ * directly (causing some problem like query error ignoring or other)
+ * All results are readed until idle state or severe failure (do not stop for 
+ * statement failure).
  * @param result_type hold results type
  *        (only TDS_CMD_SUCCEED or TDS_CMD_FAIL should return)
  * @return see tds_process_result_tokens for results (TDS_NO_MORE_RESULTS is never returned)
@@ -629,6 +632,7 @@ TDS_INT res_type;
 TDS_INT rowtype;
 int tdsret;
 
+	*result_type = TDS_CMD_FAIL;
 	for (;;) {
 		switch (tdsret=tds_process_result_tokens(tds, &res_type)) {
 		case TDS_SUCCEED:
