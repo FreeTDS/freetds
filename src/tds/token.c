@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.240 2003-12-16 16:01:38 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.241 2003-12-18 20:05:48 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2176,12 +2176,29 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 			msg_info.sql_state = tds_alloc_client_sqlstate(msg_info.msg_number);
 		ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		tds_free_msg(&msg_info);
+#if 1
+		/*
+		 * error handler may return: 
+		 * INT_EXIT -- Print an error message, and exit application, . returning an error to the OS.  
+		 * INT_CANCEL -- Return FAIL to the db-lib function that caused the error. 
+		 * For SQLETIME errors only, call dbcancel() to try to cancel the current command batch 
+		 * 	and flush any pending results. Break the connection if dbcancel() times out, 
+		 * INT_CONTINUE -- For SQLETIME, wait for one additional time-out period, then call the error handler again. 
+		 *  	Else treat as INT_CANCEL. 
+		 */
+#else
+		/* This was bogus afaict.  
+		   Definitely, it's a mistake to set the state to TDS_DEAD for information messages when the handler  
+		   returns INT_CANCEL, at least according to Microsoft's documentation.  
+		  --jkl
+		 */  
 		/* message handler returned FAIL/CS_FAIL
 		 * mark socket as dead */
 		if (ret && tds) {
 			/* TODO close socket too ?? */
 			tds->state = TDS_DEAD;
 		}
+#endif
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgnum, message, tds ? (int)tds->state : -1);
