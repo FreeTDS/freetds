@@ -1,3 +1,6 @@
+Sun Dec 15 12:24:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: do not export unimplemented functions
+
 Sat Dec 14 15:12:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0009.c src/tds/mem.c src/tds/token.c:
 	- fix error in ctlib test t0009 (we didn't reserve space for

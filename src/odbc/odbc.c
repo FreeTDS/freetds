@@ -68,7 +68,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: odbc.c,v 1.101 2002-12-14 15:05:23 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.102 2002-12-15 11:24:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -251,6 +251,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	return SQL_SUCCESS;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut)
@@ -280,7 +281,6 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 	return SQL_ERROR;
 }
 
-/*
 SQLRETURN SQL_API SQLExtendedFetch(
                                   SQLHSTMT           hstmt,
                                   SQLUSMALLINT       fFetchType,
@@ -292,7 +292,7 @@ SQLRETURN SQL_API SQLExtendedFetch(
     odbc_LogError ("SQLExtendedFetch: function not implemented");
     return SQL_ERROR;
 }
-*/
+
 SQLRETURN SQL_API
 SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCatalogName, SQLCHAR FAR * szPkSchemaName,
 	       SQLSMALLINT cbPkSchemaName, SQLCHAR FAR * szPkTableName, SQLSMALLINT cbPkTableName, SQLCHAR FAR * szFkCatalogName,
@@ -303,6 +303,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	odbc_LogError("SQLForeignKeys: function not implemented");
 	return SQL_ERROR;
 }
+#endif 
 
 SQLRETURN SQL_API
 SQLMoreResults(SQLHSTMT hstmt)
@@ -353,6 +354,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	return SQL_ERROR;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStrMax,
 	     SQLINTEGER FAR * pcbSqlStr)
@@ -361,6 +363,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	odbc_LogError("SQLNativeSql: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
@@ -372,6 +375,7 @@ SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 	return SQL_SUCCESS;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLParamOptions(SQLHSTMT hstmt, SQLUINTEGER crow, SQLUINTEGER FAR * pirow)
 {
@@ -424,6 +428,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 	odbc_LogError("SQLTablePrivileges: function not implemented");
 	return SQL_ERROR;
 }
+#endif 
 
 /*
 SQLRETURN SQL_API SQLSetEnvAttr (
@@ -1395,6 +1400,7 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 	}
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax, SQLSMALLINT FAR * pcbCursor)
 {
@@ -1402,6 +1408,7 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 	odbc_LogError("SQLGetCursorName: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
@@ -1482,6 +1489,7 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	return SQL_SUCCESS;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
@@ -1489,7 +1497,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 	odbc_LogError("SQLSetCursorName: function not implemented");
 	return SQL_ERROR;
 }
-
+#endif
 
 /* TODO join all this similar function... */
 /* spinellia@acm.org : copied shamelessly from change_database */
@@ -1539,7 +1547,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 
 /* end of transaction support */
 
-
+#if 0
 SQLRETURN SQL_API
 SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLUINTEGER cbParamDef,
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER FAR * pcbValue)
@@ -1548,6 +1556,7 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 	odbc_LogError("SQLSetParam: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 /************************
  * SQLColumns
@@ -1742,70 +1751,6 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
                 pfExists[i] = 0xFFFF;
             }
 */
-#if 0
-		_set_func_exists(pfExists, SQL_API_SQLALLOCCONNECT);
-		_set_func_exists(pfExists, SQL_API_SQLALLOCENV);
-		_set_func_exists(pfExists, SQL_API_SQLALLOCHANDLE);
-		_set_func_exists(pfExists, SQL_API_SQLALLOCSTMT);
-		_set_func_exists(pfExists, SQL_API_SQLBINDCOL);
-		_set_func_exists(pfExists, SQL_API_SQLBINDPARAMETER);
-		_set_func_exists(pfExists, SQL_API_SQLCANCEL);
-		_set_func_exists(pfExists, SQL_API_SQLCLOSECURSOR);
-		_set_func_exists(pfExists, SQL_API_SQLCOLATTRIBUTE);
-		_set_func_exists(pfExists, SQL_API_SQLCOLUMNS);
-		_set_func_exists(pfExists, SQL_API_SQLCONNECT);
-		_set_func_exists(pfExists, SQL_API_SQLCOPYDESC);
-		_set_func_exists(pfExists, SQL_API_SQLDATASOURCES);
-		_set_func_exists(pfExists, SQL_API_SQLDESCRIBECOL);
-		_set_func_exists(pfExists, SQL_API_SQLDISCONNECT);
-		_set_func_exists(pfExists, SQL_API_SQLENDTRAN);
-		_set_func_exists(pfExists, SQL_API_SQLERROR);
-		_set_func_exists(pfExists, SQL_API_SQLEXECDIRECT);
-		_set_func_exists(pfExists, SQL_API_SQLEXECUTE);
-		_set_func_exists(pfExists, SQL_API_SQLFETCH);
-		_set_func_exists(pfExists, SQL_API_SQLFETCHSCROLL);
-		_set_func_exists(pfExists, SQL_API_SQLFREECONNECT);
-		_set_func_exists(pfExists, SQL_API_SQLFREEENV);
-		_set_func_exists(pfExists, SQL_API_SQLFREEHANDLE);
-		_set_func_exists(pfExists, SQL_API_SQLFREESTMT);
-		_set_func_exists(pfExists, SQL_API_SQLGETCONNECTATTR);
-		_set_func_exists(pfExists, SQL_API_SQLGETCONNECTOPTION);
-		_set_func_exists(pfExists, SQL_API_SQLGETCURSORNAME);
-		_set_func_exists(pfExists, SQL_API_SQLGETDATA);
-		_set_func_exists(pfExists, SQL_API_SQLGETDESCFIELD);
-		_set_func_exists(pfExists, SQL_API_SQLGETDESCREC);
-		_set_func_exists(pfExists, SQL_API_SQLGETDIAGFIELD);
-		_set_func_exists(pfExists, SQL_API_SQLGETDIAGREC);
-		_set_func_exists(pfExists, SQL_API_SQLGETENVATTR);
-		_set_func_exists(pfExists, SQL_API_SQLGETFUNCTIONS);
-		_set_func_exists(pfExists, SQL_API_SQLGETINFO);
-		_set_func_exists(pfExists, SQL_API_SQLGETSTMTATTR);
-		_set_func_exists(pfExists, SQL_API_SQLGETSTMTOPTION);
-		_set_func_exists(pfExists, SQL_API_SQLGETTYPEINFO);
-		_set_func_exists(pfExists, SQL_API_SQLMORERESULTS);
-		_set_func_exists(pfExists, SQL_API_SQLNUMPARAMS);
-		_set_func_exists(pfExists, SQL_API_SQLNUMRESULTCOLS);
-		_set_func_exists(pfExists, SQL_API_SQLPARAMDATA);
-		_set_func_exists(pfExists, SQL_API_SQLPREPARE);
-		_set_func_exists(pfExists, SQL_API_SQLPUTDATA);
-		_set_func_exists(pfExists, SQL_API_SQLROWCOUNT);
-		_set_func_exists(pfExists, SQL_API_SQLSETCONNECTATTR);
-		_set_func_exists(pfExists, SQL_API_SQLSETCONNECTOPTION);
-		_set_func_exists(pfExists, SQL_API_SQLSETCURSORNAME);
-		_set_func_exists(pfExists, SQL_API_SQLSETDESCFIELD);
-		_set_func_exists(pfExists, SQL_API_SQLSETDESCREC);
-		_set_func_exists(pfExists, SQL_API_SQLSETENVATTR);
-		_set_func_exists(pfExists, SQL_API_SQLSETPARAM);
-		_set_func_exists(pfExists, SQL_API_SQLSETSTMTATTR);
-		_set_func_exists(pfExists, SQL_API_SQLSETSTMTOPTION);
-		_set_func_exists(pfExists, SQL_API_SQLSPECIALCOLUMNS);
-		_set_func_exists(pfExists, SQL_API_SQLSTATISTICS);
-		_set_func_exists(pfExists, SQL_API_SQLTABLES);
-		_set_func_exists(pfExists, SQL_API_SQLTRANSACT);
-
-		return SQL_SUCCESS;
-		break;
-#endif
 	case SQL_API_ALL_FUNCTIONS:
 		tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetFunctions: " "fFunction is SQL_API_ALL_FUNCTIONS\n");
 
@@ -1818,7 +1763,6 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		_set_func_exists(pfExists, SQL_API_SQLCOLUMNS);
 		_set_func_exists(pfExists, SQL_API_SQLCONNECT);
 		_set_func_exists(pfExists, SQL_API_SQLDRIVERCONNECT);
-		_set_func_exists(pfExists, SQL_API_SQLDATASOURCES);
 		_set_func_exists(pfExists, SQL_API_SQLDESCRIBECOL);
 		_set_func_exists(pfExists, SQL_API_SQLDISCONNECT);
 		_set_func_exists(pfExists, SQL_API_SQLERROR);
@@ -1829,7 +1773,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		_set_func_exists(pfExists, SQL_API_SQLFREEENV);
 		_set_func_exists(pfExists, SQL_API_SQLFREESTMT);
 		_set_func_exists(pfExists, SQL_API_SQLGETCONNECTOPTION);
-/*			_set_func_exists(pfExists,SQL_API_SQLGETCURSORNAME); */
+/*		_set_func_exists(pfExists,SQL_API_SQLGETCURSORNAME); */
 		_set_func_exists(pfExists, SQL_API_SQLGETDATA);
 		_set_func_exists(pfExists, SQL_API_SQLGETFUNCTIONS);
 		_set_func_exists(pfExists, SQL_API_SQLGETINFO);
@@ -1843,15 +1787,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		_set_func_exists(pfExists, SQL_API_SQLPUTDATA);
 		_set_func_exists(pfExists, SQL_API_SQLROWCOUNT);
 		_set_func_exists(pfExists, SQL_API_SQLSETCONNECTOPTION);
-/*
-            _set_func_exists(pfExists,SQL_API_SQLSETCURSORNAME);
-            _set_func_exists(pfExists,SQL_API_SQLSETPARAM);
-*/
+/*		_set_func_exists(pfExists,SQL_API_SQLSETCURSORNAME);
+		_set_func_exists(pfExists,SQL_API_SQLSETPARAM); */
 		_set_func_exists(pfExists, SQL_API_SQLSETSTMTOPTION);
-/*
-            _set_func_exists(pfExists,SQL_API_SQLSPECIALCOLUMNS);
-            _set_func_exists(pfExists,SQL_API_SQLSTATISTICS);
-*/
+/*		_set_func_exists(pfExists,SQL_API_SQLSPECIALCOLUMNS);
+		_set_func_exists(pfExists,SQL_API_SQLSTATISTICS); */
 		_set_func_exists(pfExists, SQL_API_SQLTABLES);
 		_set_func_exists(pfExists, SQL_API_SQLTRANSACT);
 		return SQL_SUCCESS;
@@ -1877,7 +1817,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	case SQL_API_SQLFREEENV:
 	case SQL_API_SQLFREESTMT:
 	case SQL_API_SQLGETCONNECTOPTION:
-/*		case SQL_API_SQLGETCURSORNAME : */
+/*	case SQL_API_SQLGETCURSORNAME: */
 	case SQL_API_SQLGETDATA:
 	case SQL_API_SQLGETFUNCTIONS:
 	case SQL_API_SQLGETINFO:
@@ -1892,43 +1832,32 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	case SQL_API_SQLPUTDATA:
 	case SQL_API_SQLROWCOUNT:
 	case SQL_API_SQLSETCONNECTOPTION:
-/*
-        case SQL_API_SQLSETCURSORNAME :
-        case SQL_API_SQLSETPARAM :
-*/
+/*	case SQL_API_SQLSETCURSORNAME:
+	case SQL_API_SQLSETPARAM: */
 	case SQL_API_SQLSETSTMTOPTION:
-/*
-        case SQL_API_SQLSPECIALCOLUMNS :
-        case SQL_API_SQLSTATISTICS :
-*/
+/*	case SQL_API_SQLSPECIALCOLUMNS:
+	case SQL_API_SQLSTATISTICS: */
 	case SQL_API_SQLTABLES:
 	case SQL_API_SQLTRANSACT:
 #if (ODBCVER >= 0x300)
 	case SQL_API_SQLALLOCHANDLE:
-/*
-        case SQL_API_SQLCLOSECURSOR :
-        case SQL_API_SQLCOPYDESC :
-        case SQL_API_SQLENDTRAN :
-        case SQL_API_SQLFETCHSCROLL :
-        case SQL_API_SQLGETCONNECTATTR :
-*/
+/*	case SQL_API_SQLCLOSECURSOR:
+	case SQL_API_SQLCOPYDESC:
+	case SQL_API_SQLENDTRAN:
+	case SQL_API_SQLFETCHSCROLL:
+	case SQL_API_SQLGETCONNECTATTR: */
 	case SQL_API_SQLFREEHANDLE:
-/*
-        case SQL_API_SQLGETDESCFIELD :
-        case SQL_API_SQLGETDESCREC :
-        case SQL_API_SQLGETDIAGFIELD :
-        case SQL_API_SQLGETDIAGREC :
-        case SQL_API_SQLGETENVATTR :
-        case SQL_API_SQLGETSTMTATTR :
-*/
+/*	case SQL_API_SQLGETDESCFIELD:
+	case SQL_API_SQLGETDESCREC:
+	case SQL_API_SQLGETDIAGFIELD:
+	case SQL_API_SQLGETDIAGREC:
+	case SQL_API_SQLGETENVATTR:
+	case SQL_API_SQLGETSTMTATTR: */
 	case SQL_API_SQLSETCONNECTATTR:
-/*
-        case SQL_API_SQLSETDESCFIELD :
-        case SQL_API_SQLSETDESCREC :
-        case SQL_API_SQLSETENVATTR :
-        case SQL_API_SQLSETSTMTATTR :
-*/
-
+/*	case SQL_API_SQLSETDESCFIELD:
+	case SQL_API_SQLSETDESCREC:
+	case SQL_API_SQLSETENVATTR:
+	case SQL_API_SQLSETSTMTATTR: */
 #endif
 		*pfExists = 1;	/* SQL_TRUE */
 		return SQL_SUCCESS;
@@ -2261,6 +2190,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 	return SQL_SUCCESS;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName,
 		  SQLCHAR FAR * szSchemaName, SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName,
@@ -2280,6 +2210,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	odbc_LogError("SQLStatistics: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
