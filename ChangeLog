@@ -1,3 +1,7 @@
+Tue Apr 22 20:47:23 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- improve GetInfo to make StarOffice more happy (I hope..)
+
 Tue Apr 22 11:02:42 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsstring.h:
 	- fix compile error if not --enable-extra-checks

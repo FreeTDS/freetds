@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.151 2003-04-21 09:05:55 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.152 2003-04-22 18:55:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2252,13 +2252,34 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 {
 	const char *p = NULL;
 	SQLSMALLINT *siInfoValue = (SQLSMALLINT *) rgbInfoValue;
+	SQLUSMALLINT *usiInfoValue = (SQLUSMALLINT *) rgbInfoValue;
 	SQLUINTEGER *uiInfoValue = (SQLUINTEGER *) rgbInfoValue;
 
 	INIT_HDBC;
 
 	switch (fInfoType) {
-		/* TODO dbms name and version can be safed from login... */
+	case SQL_ACTIVE_STATEMENTS:
+		*siInfoValue = 1;
+		break;
+	case SQL_ALTER_TABLE:
+		*uiInfoValue = SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT
+			| SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT
+			| SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
+		break;
+	case SQL_CATALOG_USAGE:
+		*uiInfoValue = SQL_CU_DML_STATEMENTS | SQL_CU_PROCEDURE_INVOCATION | SQL_CU_TABLE_DEFINITION;
+		break;
+	case SQL_CURSOR_COMMIT_BEHAVIOR:
+		/* currently cursors are not supported however sql server close automaticly cursors on commit */
+		*usiInfoValue = SQL_CB_CLOSE;
+		break;
+	case SQL_DATA_SOURCE_READ_ONLY:
+		/* TODO: determine the right answer from connection 
+		 * attribute SQL_ATTR_ACCESS_MODE */
+		*uiInfoValue = 0;	/* false, writable */
+		break;
 	case SQL_DBMS_NAME:
+		/* TODO dbms name and version can be safed from login... */
 		if (dbc->tds_socket && TDS_IS_MSSQL(dbc->tds_socket))
 			p = "Microsoft SQL Server";
 		else
@@ -2266,6 +2287,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_DBMS_VER:
 		p = "unknown version";
+		break;
+	case SQL_DEFAULT_TXN_ISOLATION:
+		*uiInfoValue = SQL_TXN_READ_COMMITTED;
 		break;
 	case SQL_DRIVER_VER:
 		p = VERSION;
@@ -2276,8 +2300,43 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_DRIVER_ODBC_VER:
 		p = "03.00";
 		break;
-	case SQL_ACTIVE_STATEMENTS:
-		*siInfoValue = 1;
+#if (ODBCVER >= 0x0300)
+	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
+	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
+		/* Cursors not supported yet */
+		*uiInfoValue = 0;
+		break;
+#endif
+	case SQL_FILE_USAGE:
+		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
+		break;
+#if (ODBCVER >= 0x0300)
+	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
+	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
+		/* Cursors not supported yet */
+		*uiInfoValue = 0;
+		break;
+#endif
+	case SQL_IDENTIFIER_QUOTE_CHAR:
+		p = "\"";
+		break;
+	case SQL_KEYSET_CURSOR_ATTRIBUTES1:
+	case SQL_KEYSET_CURSOR_ATTRIBUTES2:
+		/* Cursors not supported yet */
+		*uiInfoValue = 0;
+		break;
+	case SQL_NEED_LONG_DATA_LEN:
+		/* current implementation do not require length, however future will, so is correct to return yes */
+		p = "Y";
+		break;
+	case SQL_QUOTED_IDENTIFIER_CASE:
+		/* TODO usually insensitive */
+		*usiInfoValue = SQL_IC_MIXED;
+		break;
+	case SQL_SCHEMA_USAGE:
+		*uiInfoValue =
+			SQL_OU_DML_STATEMENTS | SQL_OU_INDEX_DEFINITION | SQL_OU_PRIVILEGE_DEFINITION | SQL_OU_PROCEDURE_INVOCATION
+			| SQL_OU_TABLE_DEFINITION;
 		break;
 	case SQL_SCROLL_OPTIONS:
 		*uiInfoValue = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
@@ -2285,38 +2344,21 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_SCROLL_CONCURRENCY:
 		*uiInfoValue = SQL_SCCO_READ_ONLY;
 		break;
-	case SQL_TXN_CAPABLE:
-		/* transaction for DML and DDL */
-		*siInfoValue = SQL_TC_ALL;
-		break;
-	case SQL_DEFAULT_TXN_ISOLATION:
-		*uiInfoValue = SQL_TXN_READ_COMMITTED;
-		break;
-	case SQL_FILE_USAGE:
-		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
-		break;
-	case SQL_ALTER_TABLE:
-		*uiInfoValue = SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT
-			| SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT
-			| SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
-		break;
-	case SQL_DATA_SOURCE_READ_ONLY:
-		/* TODO: determine the right answer from connection 
-		 * attribute SQL_ATTR_ACCESS_MODE */
-		*uiInfoValue = 0;	/* false, writable */
+	case SQL_SPECIAL_CHARACTERS:
+		/* TODO others ?? */
+		p = "\'\"[]{}";
 		break;
 #if (ODBCVER >= 0x0300)
-	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
-	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
-	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
-	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
 	case SQL_STATIC_CURSOR_ATTRIBUTES1:
 	case SQL_STATIC_CURSOR_ATTRIBUTES2:
 		/* Cursors not supported yet */
 		*uiInfoValue = 0;
 		break;
 #endif
-
+	case SQL_TXN_CAPABLE:
+		/* transaction for DML and DDL */
+		*siInfoValue = SQL_TC_ALL;
+		break;
 		/* TODO support for other options */
 	default:
 		log_unimplemented_type("SQLGetInfo", fInfoType);
@@ -2332,7 +2374,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 
 			if (len >= cbInfoValueMax) {
 				odbc_errs_add(&dbc->errs, ODBCERR_DATATRUNCATION, NULL);
-				return (SQL_SUCCESS_WITH_INFO);
+				return SQL_SUCCESS_WITH_INFO;
 			}
 		}
 		if (pcbInfoValue)
