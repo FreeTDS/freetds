@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.149 2004-12-06 13:29:40 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.150 2004-12-06 14:38:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1663,13 +1663,18 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_declare() cursor id = %d\n", cursor->cursor_id);
 
-	if (tds_to_quering(tds) == TDS_FAIL)
-		return TDS_FAIL;
-
-	tds->queryStarttime = time(NULL);
 
 	if (IS_TDS50(tds)) {
-		tds->out_flag = 0x0F;
+		if (!*something_to_send) {
+			if (tds_to_quering(tds) == TDS_FAIL)
+				return TDS_FAIL;
+
+			tds->out_flag = 0x0F;
+			tds->queryStarttime = time(NULL);
+		}
+		if (tds->state != TDS_QUERYING || tds->out_flag != 0x0F)
+			return TDS_FAIL;
+
 		tds_put_byte(tds, TDS_CURDECLARE_TOKEN);
 
 		/* length of the data stream that follows */
@@ -1703,10 +1708,15 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_open() cursor id = %d\n", cursor->cursor_id);
 
-	if (tds_to_quering(tds) == TDS_FAIL)
+	if (!*something_to_send) {
+		if (tds_to_quering(tds) == TDS_FAIL)
+			return TDS_FAIL;
+
+		tds->queryStarttime = time(NULL);
+	}
+	if (tds->state != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->queryStarttime = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -1787,14 +1797,18 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_setrows() cursor id = %d\n", cursor->cursor_id);
 
-	if (tds_to_quering(tds) == TDS_FAIL)
-		return TDS_FAIL;
-
-	tds->queryStarttime = time(NULL);
-	tds->cur_cursor = cursor;
-
 	if (IS_TDS50(tds)) {
-		tds->out_flag = 0x0F;
+		if (!*something_to_send) {
+			if (tds_to_quering(tds) == TDS_FAIL)
+				return TDS_FAIL;
+
+			tds->out_flag = 0x0F;
+			tds->queryStarttime = time(NULL);
+		}
+		if (tds->state != TDS_QUERYING  || tds->out_flag != 0x0F)
+			return TDS_FAIL;
+
+		tds->cur_cursor = cursor;
 		tds_put_byte(tds, TDS_CURINFO_TOKEN);
 
 		/*      tds_put_smallint(tds, 8);
