@@ -1,3 +1,6 @@
+Mon Aug 18 20:42:37 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c: small DATE fix
+
 Mon Aug 18 11:51:47 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c:
 	- code for resize descriptor
