@@ -24,7 +24,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.9 2002-08-23 19:36:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.10 2002-08-29 21:56:42 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -56,6 +56,7 @@ int ctlib_handle_err_message(TDSCONTEXT *ctx_tds, TDSSOCKET *tds, TDSMSGINFO *ms
 CS_SERVERMSG errmsg;
 CS_CONNECTION *con = NULL;
 CS_CONTEXT *ctx = NULL;
+int ret = (int) CS_FAIL;
 
 	if (tds && tds->parent) {
 		con = (CS_CONNECTION *)tds->parent;
@@ -79,15 +80,12 @@ CS_CONTEXT *ctx = NULL;
 	if (!con) {
 		ctx = (CS_CONTEXT *) ctx_tds->parent;
 		if (ctx->_servermsg_cb) 
-			ctx->_servermsg_cb(con->ctx,con,&errmsg);
-		tds_reset_msg_info(msg);
-		return;
-	}
-
-	if (con->_servermsg_cb)
-		con->_servermsg_cb(con->ctx,con,&errmsg);
+			ret = ctx->_servermsg_cb(con->ctx,con,&errmsg);
+	} else if (con->_servermsg_cb)
+		ret = con->_servermsg_cb(con->ctx,con,&errmsg);
 	else if (con->ctx->_servermsg_cb)
-		con->ctx->_servermsg_cb(con->ctx,con,&errmsg);
+		ret = con->ctx->_servermsg_cb(con->ctx,con,&errmsg);
 	
 	tds_reset_msg_info(msg);
+	return ret;
 }
