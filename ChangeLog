@@ -1,3 +1,13 @@
+Thu Aug 29 01:31:20 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* configure.in	Add 	--enable-sybase-compat, Fix ordering of threading test
+	* include/sybdb.h 	#undef STATUS, lowercase dbrows()
+	* include/tds.h.in	remove old-fashioned externs
+	* src/ctlib/unittests/common.c	close FILE * that reads password info	
+	* src/dblib/Makefile.am	support --enable-sybase-compat
+	* src/dblib/dblib.c	lowercase dbrows()
+	* src/tds/iconv.c	fix iconv input declaration warnings
+	* src/tds/unittests/t0002.c	better error message
+
 Wed Aug 28 21:20:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c:
 	- fix handling EINTR in goodread (possible buffer underrun and single
