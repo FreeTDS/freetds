@@ -248,9 +248,9 @@ dblib	procedure	dbretname	OK
 dblib	procedure	dbretstatus	OK
 dblib	procedure	dbrettype	OK
 dblib	procedure	dbrpcexec	
-dblib	procedure	dbrpcinit	stub
+dblib	procedure	dbrpcinit	OK
 dblib	procedure	dbrpcparam	OK
-dblib	procedure	dbrpcsend	stub
+dblib	procedure	dbrpcsend	OK
 dblib	text	dbmoretext	OK
 dblib	text	dbreadtext	OK
 dblib	text	dbtxptr	OK
