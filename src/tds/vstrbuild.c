@@ -23,8 +23,9 @@
 
 #include <stdarg.h>
 #include "tds.h"
+#include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.2 2002-09-27 03:09:55 castellano Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.3 2002-10-02 14:55:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
