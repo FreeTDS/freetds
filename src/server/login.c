@@ -49,7 +49,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.33 2003-11-22 22:56:03 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.34 2003-12-10 11:21:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -159,8 +159,9 @@ int
 tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int a;
-	int host_name_len, user_name_len, password_len, app_name_len, server_name_len;
-	int library_name_len, language_name_len, unicode_len;
+	int host_name_len, user_name_len, app_name_len, server_name_len;
+	int library_name_len, language_name_len;
+	size_t unicode_len, password_len;
 	char *unicode_string;
 	char *buf, *pbuf;
 

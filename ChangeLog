@@ -1,3 +1,8 @@
+Wed Dec 10 12:20:24 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/dblib/bcp.c src/odbc/error.c:
+	* src/server/login.c src/tds/iconv.c src/tds/write.c:
+	- fix some warnings under 64 bit platforms that can cause problems
+
 Wed Dec 10 11:25:17 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: fix for --disable-odbc option
 

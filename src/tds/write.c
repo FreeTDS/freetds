@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.53 2003-12-09 20:52:33 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.54 2003-12-10 11:21:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -124,7 +124,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
 	TDS_ENCODING *client, *server;
 	char outbuf[256], *poutbuf;
-	unsigned int inbytesleft, outbytesleft, bytes_out = 0;
+	size_t inbytesleft, outbytesleft, bytes_out = 0;
 	int max_iconv_input;
 
 	client = &tds->iconv_info[client2ucs2]->client_charset;
@@ -156,7 +156,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	while (len > 0) {
 		inbytesleft = (len > max_iconv_input) ? max_iconv_input : len;
 		len -= inbytesleft;
-		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", inbytesleft, s);
+		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", (int) inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		tds->iconv_info[client2ucs2]->suppress.einval = len > 0; /* EINVAL matters only on the last chunk. */
@@ -166,7 +166,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		bytes_out += poutbuf - outbuf;
 		tds_put_n(tds, outbuf, poutbuf - outbuf);
 	}
-	tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string wrote %d bytes\n", bytes_out);
+	tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string wrote %d bytes\n", (int) bytes_out);
 	return bytes_out;
 }
 

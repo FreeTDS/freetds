@@ -39,6 +39,7 @@
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsconvert.h"
+#include "replacements.h"
 #include "sybfront.h"
 #include "sybdb.h"
 #include "syberror.h"
@@ -62,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.78 2003-11-01 23:02:16 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.79 2003-12-10 11:21:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -912,7 +913,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 * and set collen to the field's post-iconv size.  
 		 */
 		if (hostcol->term_len > 0) {
-			int file_bytes_left, col_bytes_left;
+			int file_bytes_left;
+			size_t col_bytes_left;
 			iconv_t cd;
 
 			collen = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);

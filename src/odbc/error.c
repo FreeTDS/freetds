@@ -36,6 +36,7 @@
 
 #include "tds.h"
 #include "tdsstring.h"
+#include "replacements.h"
 #include "tdsodbc.h"
 #include "odbc_util.h"
 
@@ -47,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.30 2003-11-22 17:22:25 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.31 2003-12-10 11:21:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);

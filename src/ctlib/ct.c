@@ -36,11 +36,10 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 #include "tdsstring.h"
+#include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.109 2003-11-30 12:02:05 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: ct.c,v 1.110 2003-12-10 11:21:45 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 /**
