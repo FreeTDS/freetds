@@ -37,6 +37,11 @@ Thu Sep  5 22:42:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/userguide.sgml:
 	- fix some more spelling errors.
 
+Thu Sep  5 18:16:05 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c:	Applied Eric's ML patch of 9 September:
+	- added a -d option which only turns on the dumping if selected.
+	- malloc() bug  sometimes caused last character of a tablename to be truncated.
+
 Thu Sep  5  15:46:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: make --sysconfdir option work and make distcheck work
 
