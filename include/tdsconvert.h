@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.5 2002-06-10 02:23:22 jklowden Exp $";
+         "$Id: tdsconvert.h,v 1.6 2002-07-11 05:55:44 jklowden Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
@@ -44,6 +44,8 @@ extern TDS_INT _convert_flt8(int srctype,unsigned char *src,int desttype,unsigne
 extern TDS_INT _convert_datetime(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
 extern int _get_conversion_type(int srctype, int colsize);
 
+extern unsigned char tds_willconvert(int srctype, int desttype);
+
 TDS_INT tds_convert(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_CHAR *dest, TDS_UINT destlen);
 
@@ -62,3 +64,4 @@ struct tds_tm {
 	int milliseconds;
 };
 #endif
+

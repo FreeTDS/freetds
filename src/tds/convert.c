@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.22 2002-07-10 05:05:42 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.23 2002-07-11 05:55:44 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1984,4 +1984,77 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm 
 	free(our_format);
 	
 	return length;
+}
+
+/*
+	Try this: "perl -x convert.c > tds_willconvert.h"
+	(Perl will generate useful C from the data below.)  
+#!perl
+	$indent = "\t ";
+	while(<DATA>) {
+		next if /^\s+To\s+$/;
+		next if /^From/;
+		if( /^\s+CHAR TEXT/ ) {
+			@to = split;
+			next;
+		}
+		last if /^BOUNDARY/;
+		
+		@yn = split;
+		$from = shift @yn;
+		$i = 0;
+		foreach $to (@to) {
+			last if $to =~ /^BOUNDARY/;
+
+			$yn = $yn[$i];	# default
+			$yn = 1 if $yn[$i] eq 'T';
+			$yn = 0 if $yn[$i] eq 'F';
+			
+			printf "$indent %-30.30s, %s", "{ SYB${from}, SYB${to}", "$yn }\n"; 
+
+			$i++;
+			$indent = "\t,";
+		}
+	}
+
+__DATA__
+          To
+From
+          CHAR TEXT BINARY IMAGE INT1 INT2 INT4 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
+CHAR        T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+TEXT        T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+BINARY      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+IMAGE       T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT1        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT2        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT4        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+FLT8        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+REAL        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+NUMERIC     T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+DECIMAL     T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+BIT         T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+MONEY       T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+MONEY4      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+DATETIME    T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
+DATETIME4   T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
+BOUNDARY    T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         T       F
+SENSITIVITY T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         F       T
+*/
+unsigned char
+tds_willconvert(int srctype, int desttype)
+{
+typedef struct { int srctype; int desttype; int yn; } ANSWER;
+const static ANSWER answers[] = {
+#	include "tds_willconvert.h"
+};
+int i;
+	
+	for( i=0; i < sizeof(answers)/sizeof(ANSWER); i++ ){
+		if( srctype == answers[i].srctype 
+		 && desttype == answers[i].desttype ) 
+		 	return answers[i].yn;
+	}
+
+	return 0;
+
 }

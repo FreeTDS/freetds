@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.22 2002-07-10 05:06:41 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.23 2002-07-11 05:55:44 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1026,11 +1026,12 @@ void dbclrbuf(DBPROCESS *dbproc, DBINT n)
       }
    }
 }
+
 DBBOOL dbwillconvert(int srctype, int desttype)
 {
-   /* XXX */
-   return TRUE;
+   return tds_willconvert (srctype, desttype);
 }
+
 int dbcoltype(DBPROCESS *dbproc,int column)
 {
 TDSCOLINFO * colinfo;
