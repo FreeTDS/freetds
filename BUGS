@@ -10,6 +10,9 @@ Recently Fixed
 6. make clean doesn't do obdc or unittests directories
 7. make dist doesn't work right.
 8. Check int sizes in autoconf
+9. 20030123 make distclean doesn't handle unittest directories.
+10. 20030123 Stored procedure return statuses not propagated
+
 
 Believed Fixed
 --------------
@@ -26,8 +29,6 @@ Needs Fixing
    (I think dblib works, but ctlib needs work)
 2. Fix formatting of dbprhead/dbprrow...its a little off
    (Anybody care?)
-3. Stored procedure return statuses not propagated
-   (more detail?)
 4. text/image does not work for row buffering under dblib.
 5. Intermittant crash with PHP apache module. (Unknown marker messages
    appear in the log...)
@@ -40,5 +41,4 @@ Needs Fixing
 Reported but not confirmed
 --------------------------
 1. Insert/Update queries reported not to work on TDS 7. (couldn't confirm)
-2. make distclean doesn't handle unittest directories.
 
