@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.28 2002-10-23 05:42:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.29 2002-10-23 11:27:28 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -814,6 +814,9 @@ BYTE *coldata;
            else
               collen = bytes_read;
 
+		if (collen == 0)
+			data_is_null = 1;
+ 
            if (hostcol->tab_colnum)
            {
               if (data_is_null)
