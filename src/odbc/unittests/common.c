@@ -14,7 +14,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.15 2003-02-27 15:23:54 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.16 2003-03-27 10:00:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -108,7 +108,7 @@ Connect(void)
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
 
-	res = SQLConnect(Connection, (SQLCHAR*) SERVER, SQL_NTS, (SQLCHAR*) USER, SQL_NTS, (SQLCHAR*) PASSWORD, SQL_NTS);
+	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
 	if (!SQL_SUCCEEDED(res)) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
@@ -124,7 +124,7 @@ Connect(void)
 	sprintf(command, "use %s", DATABASE);
 	printf("%s\n", command);
 
-	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS))) {
+	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS))) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);

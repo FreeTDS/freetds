@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.15 2003-03-26 10:34:10 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.16 2003-03-27 10:00:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -70,7 +70,7 @@ void
 odbc_errs_reset(struct _sql_errors *errs)
 {
 	int i;
-	
+
 	if (errs->errs) {
 		for (i = 0; i < errs->num_errors; ++i) {
 			if (errs->errs[i].msg)
@@ -88,7 +88,7 @@ odbc_errs_pop(struct _sql_errors *errs)
 {
 	if (!errs || !errs->errs || errs->num_errors <= 0)
 		return;
-	
+
 	if (errs->num_errors == 1) {
 		odbc_errs_reset(errs);
 		return;
@@ -394,7 +394,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		if (stmt == NULL)
 			return SQL_ERROR;
 
-		/* FIXME I'm not sure this is correct.*/
+		/* FIXME I'm not sure this is correct. */
 		if (stmt->hdbc != NULL && stmt->hdbc->tds_socket != NULL) {
 			tsock = stmt->hdbc->tds_socket;
 			if (tsock->rows_affected == TDS_NO_COUNT) {

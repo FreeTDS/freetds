@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.28 2003-03-10 14:24:26 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.29 2003-03-27 10:00:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -67,7 +67,7 @@ odbc_get_server_type(int c_type)
 	switch (c_type) {
 	case SQL_C_BINARY:
 		return SYBBINARY;
-	/* TODO what happen if varchar is more than 255 characters long */
+		/* TODO what happen if varchar is more than 255 characters long */
 	case SQL_C_CHAR:
 		return SYBVARCHAR;
 	case SQL_C_FLOAT:
@@ -95,7 +95,7 @@ odbc_get_server_type(int c_type)
 	case SQL_C_STINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
-	/* ODBC date formats are completely differect from SQL one */
+		/* ODBC date formats are completely differect from SQL one */
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
@@ -103,10 +103,10 @@ odbc_get_server_type(int c_type)
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
 		return SYBDATETIME;
-	/* ODBC numeric/decimal formats are completely differect from tds one */
+		/* ODBC numeric/decimal formats are completely differect from tds one */
 	case SQL_C_NUMERIC:
 		break;
-	/* not supported */
+		/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
 	case SQL_C_INTERVAL_DAY:
@@ -115,7 +115,7 @@ odbc_get_server_type(int c_type)
 	case SQL_C_INTERVAL_SECOND:
 	case SQL_C_INTERVAL_YEAR_TO_MONTH:
 	case SQL_C_INTERVAL_DAY_TO_HOUR:
-	/* FIXME seems duplicate in mingw32 headers... */
+		/* FIXME seems duplicate in mingw32 headers... */
 #ifndef __MINGW32__
 	case SQL_C_INTERVAL_DAY_TO_MINUTE:
 	case SQL_C_INTERVAL_DAY_TO_SECOND:
@@ -207,10 +207,10 @@ TDS_INT
 convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_INT srclen,
 		   TDS_CHAR * dest, TDS_INT destlen, int param_lenbind)
 {
-int res;
-CONV_RESULT ores;
+	int res;
+	CONV_RESULT ores;
 
-static const char *str_null = "null";
+	static const char *str_null = "null";
 
 	if (SQL_NULL_DATA == param_lenbind) {
 		src = str_null;

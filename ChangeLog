@@ -1,3 +1,12 @@
+Thu Mar 27 11:00:49 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/error.c:
+	* src/odbc/unittests/common.c:
+	* src/odbc/unittests/connect.c:
+	* src/odbc/unittests/date.c src/odbc/unittests/print.c:
+	* src/odbc/unittests/t0001.c src/odbc/unittests/t0002.c:
+	* src/odbc/unittests/t0003.c src/odbc/unittests/t0004.c:
+	- indented
+
 Thu Mar 27 10:37:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/array_bind.c :
 	* src/ctlib/unittests/connect_fail.c:

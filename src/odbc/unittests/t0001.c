@@ -15,7 +15,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0001.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.11 2003-03-27 10:01:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 
 	sprintf(command, "drop table #odbctestdata");
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 	}
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)");
 
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')");
 
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 	sprintf(command, "select * from #odbctestdata");
 
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 		}
 
 		printf("output data >%s< len_or_ind = %d\n", output, (int) cnamesize);
-		if (cnamesize != strlen((char*) output))
+		if (cnamesize != strlen((char *) output))
 			return 1;
 	}
 
@@ -109,7 +109,7 @@ main(int argc, char *argv[])
 
 	sprintf(command, "drop table #odbctestdata");
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to drop table #odbctestdata \n");
 		CheckReturn();
