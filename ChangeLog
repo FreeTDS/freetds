@@ -1,3 +1,7 @@
+Sun Jan 12 16:13:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	* configure.in:
+	- add autoconf checks for nl_langinfo.
+
 Sun Jan 12 15:48:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	* include/Makefile.am:
 	- don't install freetds_sysconfdir.h, because no public headers
