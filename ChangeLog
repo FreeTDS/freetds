@@ -1,5 +1,6 @@
 Mon Apr 14 22:53:56 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/sybase_character_sets.h.pl utility script
+	* src/tds/Makefile.am
 	* src/tds/sybase_character_sets.h
 	- Sybase<->iconv charset name translation table
 	* src/tds/alternative_character_sets.h src/tds/iconv.c
