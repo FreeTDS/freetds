@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.100 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.101 2003-09-19 08:55:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -629,10 +629,10 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const c
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 	len = 2 * (len + 1 - 14 * num_placeholders) + query_len;
-	tds_put_int(tds, query_len);
+	tds_put_int(tds, len);
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
-	tds_put_int(tds, query_len);
+	tds_put_int(tds, len);
 	s = query;
 	/* TODO do a test with "...?" and "...?)" */
 	for (i = 1;; ++i) {
@@ -657,6 +657,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const c
  * \return TDS_FAIL or TDS_SUCCEED
  */
 /* TODO parse all results ?? */
+/* FIXME on error free dynamic */
 int
 tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
@@ -678,9 +679,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
 			return TDS_FAIL;
 		dyn = tds_alloc_dynamic(tds, tmp_id);
-		TDS_ZERO_FREE(tmp_id);
-		if (!dyn)
-			return TDS_FAIL;
+		free(tmp_id);
 	} else {
 		dyn = tds_alloc_dynamic(tds, id);
 	}

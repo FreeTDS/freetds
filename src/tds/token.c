@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.208 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.209 2003-09-19 08:55:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1067,7 +1067,9 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 
 	i = tds_get_data(tds, curparam, info->current_row, info->num_cols - 1);
 	/* is this the id of our prepared statement ?? */
-	if (IS_TDS7_PLUS(tds) && tds->cur_dyn && tds->cur_dyn->num_id == 0 && info->num_cols == 1) {
+	/* on error sp_prepare return a NULL id so ignore it instead of using garbage */
+	if (IS_TDS7_PLUS(tds) && tds->cur_dyn && tds->cur_dyn->num_id == 0 && info->num_cols == 1
+	    && !tds_get_null(info->current_row, 0)) {
 		tds->cur_dyn->num_id = *(TDS_INT *) (info->current_row + curparam->column_offset);
 	}
 	return i;

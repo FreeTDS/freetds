@@ -1,3 +1,8 @@
+Fri Sep 19 10:53:41 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: free dynamic on error preparing
+	* src/tds/query.c: fix prepared using TDS7+
+	* src/tds/token.c: do not save garbage as prepared id (TDS7+)
+
 Fri Sep 19 08:15:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c: revert, wrong type constant
 
