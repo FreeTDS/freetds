@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.116 2003-11-24 03:12:40 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.117 2003-11-28 16:53:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -50,6 +50,7 @@ static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
+static int tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 
 #define TDS_PUT_DATA_USE_NAME 1
 
@@ -712,6 +713,15 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	}
 	if (!dyn)
 		return TDS_FAIL;
+	
+	/* TDS5 sometimes cannot accept prepare so we need to store query */
+	if (IS_TDS50(tds)) {
+		dyn->query = strdup(query);
+		if (!dyn->query) {
+			tds_free_dynamic(tds, dyn);
+			return TDS_FAIL;
+		}
+	}
 
 	tds->cur_dyn = dyn;
 
@@ -1276,6 +1286,13 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		return tds_flush_packet(tds);
 	}
 
+	if (dyn->emulated)
+		return tds_submit_emulated_execute(tds, dyn);
+
+	/* query has been prepared successfully, discard original query */
+	if (dyn->query)
+		TDS_ZERO_FREE(dyn->query);
+
 	tds->out_flag = 0x0F;
 	/* dynamic id */
 	id_len = strlen(dyn->id);
@@ -1401,6 +1418,13 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_int(tds, dyn->num_id);
 
 		tds->internal_sp_called = TDS_SP_UNPREPARE;
+		return tds_flush_packet(tds);
+	}
+
+	if (dyn->emulated) {
+		tds->out_flag = 1;
+		/* just a dummy select to return some data */
+		tds_put_string(tds, "select 1 where 0=1", -1);
 		return tds_flush_packet(tds);
 	}
 
@@ -1957,6 +1981,117 @@ tds_cursor_dealloc(TDSSOCKET * tds)
 
 	return res;
 
+}
+
+static void
+tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
+{
+	char buf[256];
+	int i;
+	
+	for (i = 0; s != end; ++s) {
+		buf[i++] = *s;
+		if (*s == '\'')
+			buf[i++] = '\'';
+		if (i >= 254) {
+			tds_put_n(tds, buf, i);
+			i = 0;
+		}
+	}
+	tds_put_n(tds, buf, i);
+}
+
+static int
+tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
+{
+	TDSCOLINFO *curcol = params->columns[n];
+	CONV_RESULT cr;
+	TDS_INT res;
+	TDS_CHAR *src = &params->current_row[curcol->column_offset];
+	int src_len = curcol->column_cur_size;
+	
+	int i;
+	char buf[256];
+	static const char hex[16] = "0123456789ABCDEF";
+	
+	if (is_blob_type(curcol->column_type))
+		src = ((TDSBLOBINFO *)src)->textvalue;
+	
+	/* we could try to use only tds_convert but is not good in all cases */
+	switch (curcol->column_type) {
+	/* binary/char, do conversion in line */
+	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
+		tds_put_n(tds, "0x", 2);
+		for (i=0; src_len; ++src, --src_len) {
+			buf[i++] = hex[*src >> 4 & 0xF];
+			buf[i++] = hex[*src & 0xF];
+			if (i == 256) {
+				tds_put_n(tds, buf, i);
+				i = 0;
+			}
+		}
+		tds_put_n(tds, buf, i);
+		break;
+	/* char, quote as necessary */
+	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
+		tds_put_n(tds, "\'", 1);
+		tds_quote_and_put(tds, src, src + src_len);
+		tds_put_n(tds, "\'", 1);
+		break;
+	/* TODO date, use iso format */
+	case SYBDATETIME:
+	case SYBDATETIME4:
+	default:
+		res = tds_convert(tds->tds_ctx, curcol->column_type, src, src_len, SYBCHAR, &cr);
+		if (res < 0)
+			return TDS_FAIL;
+		tds_put_n(tds, "\'", 1);
+		tds_quote_and_put(tds, cr.c, cr.c + res);
+		tds_put_n(tds, "\'", 1);
+		free(cr.c);
+	}
+	return TDS_SUCCEED;
+}
+
+/**
+ * Emulate prepared execute traslating to a normal language
+ */
+static int
+tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+{
+	int num_placeholders, i;
+	const char *query = dyn->query, *s, *e;
+
+	assert(query && !IS_TDS7_PLUS(tds));
+
+
+	num_placeholders = tds_count_placeholders(query);
+	if (num_placeholders && num_placeholders > dyn->params->num_cols)
+		return TDS_FAIL;
+	
+	/* 
+	 * NOTE: even for TDS5 we use this packet so to avoid computing 
+	 * entire sql command
+	 */
+	tds->out_flag = 1;
+	if (!num_placeholders) {
+		tds_put_string(tds, dyn->query, -1);
+		return tds_flush_packet(tds);
+	}
+
+	s = query;
+	for (i = 0;; ++i) {
+		e = tds_next_placeholders(s);
+		tds_put_string(tds, s, e ? e - s : -1);
+		if (!e)
+			break;
+		/* now translate parameter in string */
+		tds_put_param_as_string(tds, dyn->params, i);
+
+		s = e + 1;
+	}
+	
+	return tds_flush_packet(tds);
 }
 
 /* TODO add function to return type suitable for param

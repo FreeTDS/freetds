@@ -1,3 +1,10 @@
+Fri Nov 28 17:52:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: updated to 0.62 version
+	* include/tds.h src/tds/mem.c src/tds/query.c:
+	* src/tds/token.c:
+	- fix for Sybase and prepare using blobs
+	  (emulate prepared statements)
+
 Tue Nov 25 16:41:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/tds/login.c:
 	- enable TCP_NODELAY options in socket

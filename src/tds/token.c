@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.228 2003-11-22 23:05:09 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.229 2003-11-28 16:53:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -643,6 +643,27 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		case TDS5_DYNAMIC_TOKEN:
 			/* process acknowledge dynamic */
 			tds->cur_dyn = tds_process_dynamic(tds);
+			/* special case, prepared statement cannot be prepared */
+			if (!tds->cur_dyn || tds->cur_dyn->emulated)
+				break;
+			marker = tds_get_byte(tds);
+			if (marker != TDS_EED_TOKEN) {
+				tds_unget_byte(tds);
+				break;
+			}
+			tds_process_msg(tds, marker);
+			if (!tds->cur_dyn->emulated)
+				break;
+			marker = tds_get_byte(tds);
+			if (marker != TDS_DONE_TOKEN) {
+				tds_unget_byte(tds);
+				break;
+			}
+			tds_process_end(tds, marker, done_flags);
+			if (done_flags)
+				*done_flags &= ~TDS_DONE_ERROR;
+			*result_type = TDS_DONE_RESULT;
+			return TDS_SUCCEED;
 			break;
 		case TDS5_PARAMFMT_TOKEN:
 			tds_process_dyn_result(tds);
@@ -2315,9 +2336,6 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		/* TODO if status == 1 clear cur_dyn and param_info ?? */
 		tds_get_byte(tds);
 		tds_get_smallint(tds);
-
-		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
-		tds->cur_dyn = NULL;
 		break;
 	case TDS_INFO_TOKEN:
 		msg_info.priv_msg_type = 0;
@@ -2360,16 +2378,24 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		tds_free_msg(&msg_info);
 		return TDS_ERROR;
 	}
-
-	if (tds->tds_ctx->msg_handler) {
-		tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg_info);
+	
+	/* special case, */
+	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg_info.msg_number == 2782) {
+		/* we must emulate prepare */
+		tds->cur_dyn->emulated = 1;
 	} else {
-		if (msg_info.msg_number)
+		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
+		tds->cur_dyn = NULL;
+
+		if (tds->tds_ctx->msg_handler) {
+			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg_info);
+		} else if (msg_info.msg_number) {
 			tdsdump_log(TDS_DBG_WARN,
 				    "%L Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
 				    msg_info.msg_number,
 				    msg_info.msg_level,
 				    msg_info.msg_state, msg_info.server, msg_info.line_number, msg_info.message);
+		}
 	}
 	tds_free_msg(&msg_info);
 	return TDS_SUCCEED;

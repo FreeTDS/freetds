@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.156 2003-11-24 19:57:36 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.157 2003-11-28 16:53:14 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -992,6 +992,9 @@ typedef struct tds_dynamic
 	TDS_INT num_id;
 	TDSPARAMINFO *res_info;
 	TDSPARAMINFO *params;
+	int emulated;
+	/** saved query, we need to know original query if prepare is impossible*/
+	char *query;
 } TDSDYNAMIC;
 
 /* forward declaration */
