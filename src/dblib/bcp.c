@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.85 2004-01-05 05:53:36 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.86 2004-01-06 02:40:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -914,7 +914,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		if (hostcol->tab_colnum) {
 			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
 			if (bcpcol->tab_colnum != hostcol->tab_colnum) {
-				tdsdump_log(TDS_DBG_FUNC, "cant relate host column to tabel column!\n");
+				tdsdump_log(TDS_DBG_FUNC, "%L error: can't relate host column to table column\n");
 				return FAIL;
 			}
 		}
@@ -994,6 +994,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					return (FAIL);
 				}
 				collen = len;
+				if (collen == -1) {
+					collen = 0;
+					data_is_null = 1;
+				}
 			}
 			coldata = (BYTE *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
@@ -1003,6 +1007,15 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			}
 
 			if (collen) {
+				/* 
+				 * Read and convert the data
+				 * TODO: Call tds_iconv_fread() instead of fread(3).  
+				 *       The columns should each have their iconv cd set, and noncharacter data
+				 *       should have -1 as the iconv cd, causing tds_iconv_fread() to not attempt
+				 * 	 any conversion.  We do not need a datatype switch here to decide what to do.  
+				 *	 As of 0.62, this *should* actually work.  All that remains is to change the
+				 *	 call and test it. 
+				 */
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					_bcp_err_handler(dbproc, SYBEBCRE);
 					free(coldata);
@@ -1018,7 +1031,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 */
 		if (i == 0 && collen == 0 && feof(hostfile)) {
 			free(coldata);
-			tdsdump_log(TDS_DBG_FUNC, "id == 0 and collen == 0 and feof!\n");
+			tdsdump_log(TDS_DBG_FUNC, "%L Normal end-of-file reached while loading bcp data file.\n");
 			return (FAIL);
 		}
 
@@ -1064,6 +1077,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				if (converted_data_size == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
+					tdsdump_log(TDS_DBG_FUNC, 
+						    "%L _bcp_read_hostfile (bcp.c:%d) failed to convert %d bytes at offset 0x%x in the data file.\n", 
+						    __LINE__, collen, ftell(hostfile) - collen);
 				}
 
 				if (desttype == SYBVARCHAR) {
@@ -1275,9 +1291,12 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start, int *
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
 				/* compute the length to copy to the row ** buffer */
-
-				cpbytes = bcpcol->data_size > bcpcol->db_length ? bcpcol->db_length : bcpcol->data_size;
-				memcpy(&rowbuffer[row_pos], bcpcol->data, cpbytes);
+				if (bcpcol->data_size == -1) {
+					cpbytes = 0;
+				} else {
+					cpbytes = bcpcol->data_size > bcpcol->db_length ? bcpcol->db_length : bcpcol->data_size;
+					memcpy(&rowbuffer[row_pos], bcpcol->data, cpbytes);
+				}
 
 			}
 
