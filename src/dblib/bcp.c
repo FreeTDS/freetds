@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.42 2002-11-21 22:34:11 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.43 2002-11-23 17:10:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2463,6 +2463,7 @@ static int
 _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 {
 	const char *errmsg;
+	char *p;
 	int severity;
 	int erc;
 
@@ -2568,10 +2569,10 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		break;
 
 	case SYBEBUOE:
-		erc = asprintf( &errmsg, "Unable to open bcp error file \"%s\".", dbproc->bcp_errorfile );
-		if (errmsg && erc != -1) {
-			erc = _dblib_client_msg(dbproc, bcp_errno, EXRESOURCE, errmsg);
-			free (errmsg);
+		erc = asprintf( &p, "Unable to open bcp error file \"%s\".", dbproc->bcp_errorfile );
+		if (p && erc != -1) {
+			erc = _dblib_client_msg(dbproc, bcp_errno, EXRESOURCE, p);
+			free (p);
 			return;
 		}
 		/* try to print silly message if unable to allocate memory */

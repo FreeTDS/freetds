@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.93 2002-11-23 13:47:34 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.94 2002-11-23 17:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1227,7 +1227,6 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 #ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
 
-	fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 	if (stmt->param_count > 0) {
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
@@ -1254,11 +1253,9 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 			for(i=0; i < stmt->param_count; ++i) {
 				param = odbc_find_param(stmt, i+1);
 				if (!param) return SQL_ERROR;
-				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 				if (!(params=tds_alloc_param_result(dyn->params)))
 					return SQL_ERROR;
 				dyn->params = params;
-				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 				/* add another type and copy data */
 				curcol = params->columns[i];
 				/* FIXME run only with VARCHAR */
@@ -1822,8 +1819,6 @@ SQLRETURN SQL_API SQLColumns(
         strcat( szQuery, "'" );
         bNeedComma = 1;
     }
-
-/* printf( "[PAH][%s][%d]%s\n", __FILE__, __LINE__, szQuery ); */
 
     if ( SQL_SUCCESS != odbc_set_stmt_query( stmt, szQuery, strlen( szQuery ) ) )
         return SQL_ERROR;

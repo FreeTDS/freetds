@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0016.c,v 1.15 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.16 2002-11-23 17:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 	const char *in_file = FREETDS_SRCDIR "/t0016.in";
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
-	int num_cols;
+	int num_cols = 0;
 
 	set_malloc_options();
 

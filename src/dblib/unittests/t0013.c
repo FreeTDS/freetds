@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.14 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.15 2002-11-23 17:10:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -27,7 +27,7 @@ int failed = 0;
 const char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 	FILE *fp;
 	long result, isiz;
 	char *blob, *rblob;
-	unsigned char *textPtr, *timeStamp;
+	unsigned char *textPtr = NULL, *timeStamp = NULL;
 	char objname[256];
 	char sqlCmd[256];
 	char rbuf[BLOB_BLOCK_SIZE];

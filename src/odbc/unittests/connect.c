@@ -11,10 +11,12 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.2 2002-11-22 15:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.3 2002-11-23 17:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-void
+static void init_connect(void);
+
+static void
 init_connect(void)
 {
 	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {

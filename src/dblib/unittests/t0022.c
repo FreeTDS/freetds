@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0022.c,v 1.13 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.14 2002-11-23 17:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -33,7 +33,7 @@ main(int argc, char **argv)
 	char teststr[1024];
 	int failed = 0;
 	char *retname = NULL;
-	int rettype, retlen;
+	int rettype = 0, retlen = 0;
 
 	set_malloc_options();
 

@@ -21,20 +21,19 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.3 2002-11-23 16:44:58 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.4 2002-11-23 17:10:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char **argv)
 {
-	char cmd[1024];
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i;
 	char teststr[1024];
 	int failed = 0;
 	char *retname = NULL;
-	int rettype, retlen, retval = 0xdeadbeef;
+	int rettype = 0, retlen = 0, retval = 0xdeadbeef;
 	char proc[] = "#t0022", param[] = "@b";
 	RETCODE erc;
 
@@ -97,7 +96,7 @@ main(int argc, char **argv)
 	erc = dbrpcinit  (dbproc, proc, 0); /* no options */
 	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcinit\n");
 
-	erc = dbrpcparam (dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen=*/ -1, sizeof(retval), &retval);
+	erc = dbrpcparam (dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen=*/ -1, sizeof(retval), (BYTE*)&retval);
 	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcparam\n");
 
 	erc = dbrpcsend (dbproc);
