@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.45 2004-04-29 03:08:50 jklowden Exp $
+# version: $Id: Makefile.am,v 1.46 2004-05-03 18:44:52 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -230,7 +230,7 @@ odbc.api.sgml: odbc.api
 # Let's hope they don't change their site too often.  
 	sed -e' s!^odbc[	]!<row><entry>!; \
 		s![	][	]*!</> <entry>!g; \
-		s![[:<:]]\(SQL[[:alpha:]]*\)[[:>:]]!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
+		s!\<\(SQL[[:alpha:]]*\)\>!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
 		s!$$!</></row>!; \
 	      ' odbc.api \
 			> .odbc.api.body
