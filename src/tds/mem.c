@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.83 2003-05-13 10:24:45 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.84 2003-05-14 18:49:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -661,6 +661,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	{ iconv_info_count = 3 };
 	TDSSOCKET *tds_socket;
 	TDSICONVINFO *iconv_info;
+	int i;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
@@ -677,8 +678,10 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->iconv_info_count = iconv_info_count;
 #if HAVE_ICONV
 	/* an iconv conversion descriptor of -1 means we don't use iconv. */
-	iconv_info->to_wire = (iconv_t) - 1;
-	iconv_info->from_wire = (iconv_t) - 1;
+	for (i = 0; i < iconv_info_count; ++i) {
+		iconv_info[i].to_wire = (iconv_t) - 1;
+		iconv_info[i].from_wire = (iconv_t) - 1;
+	}
 #endif
 
 	/* Jeff's hack, init to no timeout */
