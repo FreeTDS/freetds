@@ -4,7 +4,8 @@ EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
 		samples/README samples/dyntest.c samples/odbc.ini \
 		samples/odbctest.php samples/odbctest.pl samples/test.php \
 		samples/test.pl \
-		freetds.conf locales.conf acconfig.h
+		freetds.conf locales.conf acconfig.h \
+		autogen.sh freetds.spec.in freetds.spec
 
 DEFDIR		=	$(prefix)
 ETC		=	$(sysconfdir)
