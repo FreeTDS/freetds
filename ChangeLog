@@ -1,3 +1,8 @@
+Mon Aug  4 21:22:21 EDT 2003    JK Lowden <jklowden@schemamania.org>
+	* TODO marked website tasks as done.
+	* doc/htdoc/faq.html 
+	- linked to which_api and removed stale questions.
+
 Mon Aug 04 17:12:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merge from Steve patch:
