@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.82 2003-01-29 05:09:42 jklowden Exp $
+dnl $Id: configure.in,v 1.83 2003-02-05 18:33:20 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -186,6 +186,7 @@ dnl ------------------------------------------------------------
 dnl Checks for compiler characteristics.
 dnl ------------------------------------------------------------
 AC_C_BIGENDIAN
+AC_C_CONST
 
 dnl ------------------------------------------------------------
 dnl Checks for library functions.

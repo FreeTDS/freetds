@@ -1,3 +1,7 @@
+Wed Feb  5 13:30:29 EST 2003	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Add autoconf check for ANSI-compliant const.
+
 Tue Feb  4 22:32:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	- adjust the dblib version string, since we're
 	  backwards-compatible with 0.60.1
