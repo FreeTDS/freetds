@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.27 2004-06-13 23:43:36 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.28 2004-07-08 09:41:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -241,12 +241,12 @@ dbrpcsend(DBPROCESS * dbproc)
 		int erc;
 		TDSPARAMINFO *pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
 
-		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
-		;
-		/* TODO free parameters */
-		if (erc == TDS_FAIL) {
+		if (!pparam_info)
 			return FAIL;
-		}
+		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
+		tds_free_param_results(pparam_info);
+		if (erc == TDS_FAIL)
+			return FAIL;
 	}
 
 	/* free up the memory */
@@ -280,7 +280,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	int i;
 	DBREMOTE_PROC_PARAM *p;
 	TDSCOLUMN *pcol;
-	TDSPARAMINFO *params = NULL;
+	TDSPARAMINFO *params = NULL, *new_params;
 
 	/* sanity */
 	if (rpc == NULL)
@@ -291,10 +291,12 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	for (i = 0, p = rpc->param_list; p != NULL; p = p->next, i++) {
 		const unsigned char *prow;
 
-		if (!(params = tds_alloc_param_result(params))) {
+		if (!(new_params = tds_alloc_param_result(params))) {
+			tds_free_param_results(params);
 			fprintf(stderr, "out of rpc memory!");
 			return NULL;
 		}
+		params = new_params;
 
 		pcol = params->columns[i];
 
@@ -310,6 +312,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 				tdsdump_log(TDS_DBG_FUNC, "%L param_info_alloc(): p->maxlen is %d"
 							     "parameters of variable-size datatypes "
 							     "require a non-negative input length\n", p->maxlen);
+				tds_free_param_results(params);
 				return NULL;
 			}
 			pcol->column_size = p->maxlen;
@@ -322,6 +325,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		prow = param_row_alloc(params, pcol, p->value, pcol->column_cur_size);
 
 		if (!prow) {
+			tds_free_param_results(params);
 			fprintf(stderr, "out of memory for rpc row!");
 			return NULL;
 		}
