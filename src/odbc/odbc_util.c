@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.50 2003-11-04 19:01:47 jklowden Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.51 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -479,11 +479,12 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
-		/* FIXME why ? */
+		return SQL_C_CHAR;
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
+		return SQL_C_NUMERIC;
 	case SQL_GUID:
-		return SQL_C_CHAR;
+		return SQL_C_GUID;
 	case SQL_BIT:
 		return SQL_C_BIT;
 	case SQL_TINYINT:
@@ -501,13 +502,13 @@ odbc_sql_to_c_type_default(int sql_type)
 		return SQL_C_DOUBLE;
 	case SQL_DATE:
 	case SQL_TYPE_DATE:
-		return SQL_C_DATE;
+		return SQL_C_TYPE_DATE;
 	case SQL_TIME:
 	case SQL_TYPE_TIME:
-		return SQL_C_TIME;
+		return SQL_C_TYPE_TIME;
 	case SQL_TIMESTAMP:
 	case SQL_TYPE_TIMESTAMP:
-		return SQL_C_TIMESTAMP;
+		return SQL_C_TYPE_TIMESTAMP;
 	case SQL_BINARY:
 	case SQL_VARBINARY:
 	case SQL_LONGVARBINARY:

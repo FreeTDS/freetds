@@ -20,29 +20,16 @@
 #ifndef CONNECTPARAMS_H
 #define CONNECTPARAMS_H
 
-static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.10 2003-09-03 19:04:14 freddy77 Exp $";
+static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.11 2003-11-05 17:31:30 jklowden Exp $";
 static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unused_connectparams_h_warn };
 
-/*****************************
- * odbc_parse_connect_string
- *
- * PURPOSE
- *
- *  Parses a connection string for SQLDriverConnect().
- *
- * ARGS
- *
- *  see ODBC documentation
- *                      
- * RETURNS
- *
- *  see ODBC documentation
- *
- * NOTE
- *
- *  - I doubt pszDataSourceName is useful here?
- *
- *****************************/
+/**
+ * Parses a connection string for SQLDriverConnect().
+ * \param connect_string      point to connection string
+ * \param connect_string_end  point to end of connection string
+ * \param connect_info        structure where to store informations
+ * \return 0 if error, 1 otherwise
+ */
 int odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info);
 
 int odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info);

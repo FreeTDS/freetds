@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.36 2003-11-03 16:46:08 jklowden Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.37 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -72,6 +72,7 @@ _get_sql_textsize(struct _drecord *drec_ipd, SQLINTEGER sql_len)
 		len = 6;
 		break;
 	case SQL_TIMESTAMP:
+	case SQL_TYPE_TIMESTAMP:
 		len = 22;
 		break;
 	case SQL_NUMERIC:
@@ -170,6 +171,9 @@ _need_comma(struct _drecord *drec_ipd)
 	case SQL_DATE:
 	case SQL_TIME:
 	case SQL_TIMESTAMP:
+	case SQL_TYPE_DATE:
+	case SQL_TYPE_TIME:
+	case SQL_TYPE_TIMESTAMP:
 	case SQL_GUID:
 		return 1;
 	}

@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.37 2003-09-22 20:12:50 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.38 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -170,7 +170,7 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 		strcpy(dfmt, "%Y-%m-%d %H:%M:%S");
 		break;
 	default:
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 	}
 
 	/* TODO add fraction precision, use tds version */
@@ -192,7 +192,7 @@ convert_text2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS_I
 		srclen = strlen(src);
 
 	if (destlen >= 0 && destlen < srclen)
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 
 	memcpy(dest, src, srclen);
 
@@ -210,11 +210,11 @@ convert_binary2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS
 	const int deststrlen = 2 * srclen + 1;
 
 	if (srclen < 0)
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 
 
 	if (destlen >= 0 && destlen < deststrlen)
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 
 	/* hex-encode (base16) binary buffer */
 	for (i = 0; i < srclen; i++) {

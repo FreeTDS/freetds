@@ -20,18 +20,24 @@
 #ifndef ODBC_CHECKS_H
 #define ODBC_CHECKS_H
 
-static char rcsid_odbc_checks_h[] = "$Id: odbc_checks.h,v 1.1 2003-08-30 10:04:32 freddy77 Exp $";
+static char rcsid_odbc_checks_h[] = "$Id: odbc_checks.h,v 1.2 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_odbc_checks_h_warn[] = { rcsid_odbc_checks_h, no_unused_odbc_checks_h_warn };
 
 #if ENABLE_EXTRA_CHECKS
 /* macro */
+#define CHECK_ENV_EXTRA(env) odbc_check_env_extra(env)
+#define CHECK_DBC_EXTRA(dbc) odbc_check_dbc_extra(dbc)
 #define CHECK_STMT_EXTRA(stmt) odbc_check_stmt_extra(stmt)
 #define CHECK_DESC_EXTRA(desc) odbc_check_desc_extra(desc)
 /* declarations*/
+void odbc_check_env_extra(TDS_ENV * env);
+void odbc_check_dbc_extra(TDS_DBC * dbc);
 void odbc_check_stmt_extra(TDS_STMT * stmt);
 void odbc_check_desc_extra(TDS_DESC * desc);
 #else
 /* macro */
+#define CHECK_ENV_EXTRA(env)
+#define CHECK_DBC_EXTRA(dbc)
 #define CHECK_STMT_EXTRA(stmt)
 #define CHECK_DESC_EXTRA(desc)
 #endif

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.34 2003-09-03 19:04:14 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.35 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -86,6 +86,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
 
 		ret = nRetVal;
+		/* TODO handle not terminated configuration */
 		if (destlen > 0) {
 			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
 			assert(cplen >= 0);

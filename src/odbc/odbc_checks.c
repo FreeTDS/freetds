@@ -42,10 +42,22 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.7 2003-11-04 19:01:47 jklowden Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.8 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
+
+void
+odbc_check_env_extra(TDS_ENV * env)
+{
+	assert(env && env->htype == SQL_HANDLE_ENV);
+}
+
+void
+odbc_check_dbc_extra(TDS_DBC * dbc)
+{
+	assert(dbc && dbc->htype == SQL_HANDLE_DBC);
+}
 
 void
 odbc_check_stmt_extra(TDS_STMT * stmt)
@@ -95,8 +107,10 @@ odbc_check_struct_extra(void *p)
 
 	switch (((struct _hchk *) p)->htype) {
 	case SQL_HANDLE_ENV:
+		odbc_check_env_extra((TDS_ENV *) p);
 		break;
 	case SQL_HANDLE_DBC:
+		odbc_check_dbc_extra((TDS_DBC *) p);
 		break;
 	case SQL_HANDLE_STMT:
 		odbc_check_stmt_extra((TDS_STMT *) p);

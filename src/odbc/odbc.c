@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/***************************************************************
+/*
  * PROGRAMMER   NAME            CONTACT
  *==============================================================
  * BSB          Brian Bruns     camber@ais.org
@@ -31,8 +31,7 @@
  *                          Original.
  * 03.FEB.02    PAH         Started adding use of SQLGetPrivateProfileString().
  * 04.FEB.02	PAH         Fixed small error preventing SQLBindParameter from being called
- *
- ***************************************************************/
+ */
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -70,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.261 2003-11-04 19:01:46 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.262 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -129,11 +128,13 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define INIT_HDBC \
 	TDS_DBC *dbc = (TDS_DBC*)hdbc; \
 	CHECK_HDBC; \
+	CHECK_DBC_EXTRA(dbc); \
 	odbc_errs_reset(&dbc->errs); \
 
 #define INIT_HENV \
 	TDS_ENV *env = (TDS_ENV*)henv; \
 	CHECK_HENV; \
+	CHECK_ENV_EXTRA(env); \
 	odbc_errs_reset(&env->errs); \
 
 #define INIT_HDESC \
@@ -145,7 +146,6 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
 
 /*
- *
  * Note: I *HATE* hungarian notation, it has to be the most idiotic thing
  * I've ever seen. So, you will note it is avoided other than in the function
  * declarations. "Gee, let's make our code totally hard to read and they'll
@@ -192,8 +192,10 @@ change_autocommit(TDS_DBC * dbc, int state)
 	 * may not initialized.
 	 */
 	if (tds) {
-		/* mssql: SET IMPLICIT_TRANSACTION ON
-		 * sybase: SET CHAINED ON */
+		/*
+		 * mssql: SET IMPLICIT_TRANSACTION ON
+		 * sybase: SET CHAINED ON
+		 */
 
 		/* implicit transactions are on if autocommit is off :-| */
 		if (TDS_IS_MSSQL(tds))
@@ -281,7 +283,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 }
 
 static SQLRETURN
-do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
+odbc_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 {
 	TDS_ENV *env = dbc->henv;
 
@@ -296,6 +298,8 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 	dbc->tds_socket->env_chg_func = odbc_env_change;
 
 	tds_fix_connect(connect_info);
+
+	connect_info->connect_timeout = dbc->attr.attr_connection_timeout;
 
 	/* fix login type */
 	if (!connect_info->try_domain_login) {
@@ -373,7 +377,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	if ((ret = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
+	if ((ret = odbc_connect(dbc, connect_info)) != SQL_SUCCESS) {
 		tds_free_connect(connect_info);
 		ODBC_RETURN(dbc, ret);
 	}
@@ -822,7 +826,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-	/* TODO other types ?? */
+	/* TODO other types ?? handle SQL_C_DEFAULT */
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -905,11 +909,13 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.attr_access_mode = SQL_MODE_READ_WRITE;
 	dbc->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
 	dbc->attr.attr_auto_ipd = SQL_FALSE;
-	/* spinellia@acm.org
-	 * after login is enabled autocommit */
+	/*
+	 * spinellia@acm.org
+	 * after login is enabled autocommit
+	 */
 	dbc->attr.attr_autocommit = SQL_AUTOCOMMIT_ON;
 	dbc->attr.attr_connection_dead = SQL_CD_TRUE;	/* No connection yet */
-	dbc->attr.attr_connection_timeout = 0;	/* TODO */
+	dbc->attr.attr_connection_timeout = 0;
 	/* This is set in the environment change function */
 	tds_dstr_init(&dbc->attr.attr_current_catalog);
 	dbc->attr.attr_login_timeout = 0;	/* TODO */
@@ -951,6 +957,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 
 	env->htype = SQL_HANDLE_ENV;
 	env->attr.attr_odbc_version = SQL_OV_ODBC2;
+	/* TODO use it */
 	env->attr.attr_output_nts = SQL_TRUE;
 
 	ctx = tds_alloc_context();
@@ -1250,8 +1257,10 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	/* username/password are never saved to ini file, 
-	 * so you do not check in ini file */
+	/*
+	 * username/password are never saved to ini file,
+	 * so you do not check in ini file
+	 */
 	/* user id */
 	if (szUID && (*szUID)) {
 		if (!tds_dstr_copyn(&connect_info->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID))) {
@@ -1271,7 +1280,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	/* DO IT */
-	if ((result = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
+	if ((result = odbc_connect(dbc, connect_info)) != SQL_SUCCESS) {
 		tds_free_connect(connect_info);
 		ODBC_RETURN(dbc, result);
 	}
@@ -1322,8 +1331,10 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 		szColName[cplen] = '\0';
 	}
 	if (pcbColName) {
-		/* return column name length (without terminator) 
-		 * as specification return full length, not copied length */
+		/*
+		 * return column name length (without terminator)
+		 * as specification return full length, not copied length
+		 */
 		*pcbColName = strlen(drec->sql_desc_name);
 	}
 	if (pfSqlType) {
@@ -1980,13 +1991,12 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
-		if (desc->type == DESC_IPD) {
-			if ((result = odbc_set_concise_sql_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
-				odbc_errs_add(&desc->errs, "HY021", "Descriptor type read only", NULL);
-		} else {
-			if ((result = odbc_set_concise_c_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
-			odbc_errs_add(&desc->errs, "HY021", "Descriptor type read only", NULL);
-		}
+		if (desc->type == DESC_IPD)
+			result = odbc_set_concise_sql_type((SQLSMALLINT) (int) Value, drec, 0);
+		else
+			result = odbc_set_concise_c_type((SQLSMALLINT) (int) Value, drec, 0);
+		if (result != SQL_SUCCESS)
+			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
 		break;
 	case SQL_DESC_DATA_PTR:
 		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
@@ -2107,13 +2117,18 @@ SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
 
 	INIT_HDESC;
 
-	/* TODO test target not an IRD */
 	if (SQL_NULL_HDESC == htarget || !IS_HDESC(htarget))
 		return SQL_INVALID_HANDLE;
 	target = (TDS_DESC *) htarget;
 	CHECK_DESC_EXTRA(target);
 
-	ODBC_RETURN(desc, desc_copy(target, desc));
+	/* do not write on IRD */
+	if (target->type == DESC_IRD) {
+		odbc_errs_add(&target->errs, "HY016", NULL, NULL);
+		ODBC_RETURN(target, SQL_ERROR);
+	}
+
+	ODBC_RETURN(target, desc_copy(target, desc));
 }
 
 /* TODO remove this ugly functions */
@@ -2475,7 +2490,7 @@ SQLFetch(SQLHSTMT hstmt)
 	TDSCONTEXT *context;
 	TDS_INT rowtype;
 	TDS_INT computeid;
-
+	SQLUINTEGER dummy, *fetched_ptr;
 
 	INIT_HSTMT;
 
@@ -2496,6 +2511,11 @@ SQLFetch(SQLHSTMT hstmt)
 
 	stmt->row++;
 
+	fetched_ptr = &dummy;
+	if (stmt->ird->header.sql_desc_rows_processed_ptr)
+		fetched_ptr = stmt->ird->header.sql_desc_rows_processed_ptr;
+	*fetched_ptr = 0;
+		
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
 
@@ -2517,6 +2537,8 @@ SQLFetch(SQLHSTMT hstmt)
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
 		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 	}
+	/* we got a row, return a row readed even if error (for ODBC specifications) */
+	++(*fetched_ptr);
 	for (i = 0; i < resinfo->num_cols; i++) {
 		colinfo = resinfo->columns[i];
 		colinfo->column_text_sqlgetdatapos = 0;
@@ -2549,10 +2571,6 @@ SQLFetch(SQLHSTMT hstmt)
 		}
 		if (drec->sql_desc_octet_length_ptr)
 			*drec->sql_desc_octet_length_ptr = len;
-	}
-	if (stmt->ird->header.sql_desc_rows_processed_ptr) {
-		++(*(stmt->ird->header.sql_desc_rows_processed_ptr));
-		tdsdump_log(TDS_DBG_INFO1, "Got row (%d)\n", (int) *(stmt->ird->header.sql_desc_rows_processed_ptr));
 	}
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_SUCCESS;
@@ -2666,8 +2684,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		SQLRETURN retcode;
 
 		tds = stmt->hdbc->tds_socket;
-		/* 
-		 * FIX ME -- otherwise make sure the current statement is complete
+		/*
+		 * FIXME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
 		if (tds->state != TDS_IDLE && stmt->hdbc->current_statement == stmt) {
@@ -2952,8 +2970,10 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 
 	IRD_CHECK;
 
-	/* 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
-	 * generating queries such as 'drop table' */
+	/*
+	 * 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
+	 * generating queries such as 'drop table'
+	 */
 	*pccol = stmt->ird->header.sql_desc_count;
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -3033,9 +3053,11 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 }
 
 /* TODO join all this similar function... */
-/* spinellia@acm.org : copied shamelessly from change_database */
-/* transaction support */
-/* 1 = commit, 0 = rollback */
+/*
+ * spinellia@acm.org : copied shamelessly from change_database
+ * transaction support
+ * 1 = commit, 0 = rollback
+ */
 static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
@@ -3098,9 +3120,8 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 				 SQL_SETPARAM_VALUE_MAX, pcbValue);
 }
 
-/************************
+/**
  * SQLColumns
- ************************
  *
  * Return column information for a table or view. This is
  * mapped to a call to sp_columns which - lucky for us - returns
@@ -3112,7 +3133,7 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
  *                 [ , [ @column_name = ] column ] 
  *                 [ , [ @ODBCVer = ] ODBCVer ] 
  *
- ************************/
+ */
 SQLRETURN SQL_API
 SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	   SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,	/* object_owner */
@@ -3278,7 +3299,10 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-		/* TODO add support for SQL_C_DEFAULT */
+		/* TODO this cause double conversion in convert_tds2sql and should be avoided */
+		if (fCType == SQL_C_DEFAULT)
+			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
+		assert(fCType);
 		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
 		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
@@ -3287,9 +3311,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			/* calc how many bytes was readed */
 			int readed = cbValueMax;
 
-			/* TODO char is not always terminated... */
 			/* FIXME test on destination char ??? */
-			if (nSybType == SYBTEXT && readed > 0)
+			if (stmt->hdbc->henv->attr.attr_output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;
@@ -3317,7 +3340,8 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 			pfExists[i] = 0;
 		}
 
-		/* every api available are contained in a macro 
+		/*
+		 * every api available are contained in a macro
 		 * all these macro begin with API followed by 2 letter
 		 * first letter mean pre ODBC 3 (_) or ODBC 3 (3)
 		 * second letter mean implemented (X) or unimplemented (_)
@@ -3534,7 +3558,6 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLCLOSECURSOR);
 #endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
-		/* TODO strange... */
 #if SQL_API_SQLCOLATTRIBUTE != SQL_API_SQLCOLATTRIBUTES
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 #endif
@@ -3929,9 +3952,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		USIVAL = SQL_FILE_NOT_SUPPORTED;
 		break;
 	case SQL_FETCH_DIRECTION:
-		/* TODO not supported
+		/*
+		 * TODO not supported
 		 * UIVAL = SQL_FD_FETCH_ABSOLUTE | SQL_FD_FETCH_BOOKMARK | SQL_FD_FETCH_FIRST | SQL_FD_FETCH_LAST | SQL_FD_FETCH_NEXT
-		 * | SQL_FD_FETCH_PRIOR | SQL_FD_FETCH_RELATIVE; */
+		 * | SQL_FD_FETCH_PRIOR | SQL_FD_FETCH_RELATIVE;
+		 */
 		UIVAL = 0;
 		break;
 #if (ODBCVER >= 0x0300)
@@ -3995,8 +4020,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "Y";
 		break;
 	case SQL_LOCK_TYPES:
-		/* TODO we do not support SQLSetPos
-		 * IVAL = SQL_LCK_NO_CHANGE; */
+		/*
+		 * TODO we do not support SQLSetPos
+		 * IVAL = SQL_LCK_NO_CHANGE;
+		 */
 		IVAL = 0;
 		break;
 #if (ODBCVER >= 0x0300)
@@ -4142,8 +4169,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_POS_OPERATIONS:
-		/* TODO SQLSetPos not supported
-		 * UIVAL = SQL_POS_ADD | SQL_POS_DELETE | SQL_POS_POSITION | SQL_POS_REFRESH | SQL_POS_UPDATE; */
+		/*
+		 * TODO SQLSetPos not supported
+		 * UIVAL = SQL_POS_ADD | SQL_POS_DELETE | SQL_POS_POSITION | SQL_POS_REFRESH | SQL_POS_UPDATE;
+		 */
 		IVAL = 0;
 		break;
 	case SQL_POSITIONED_STATEMENTS:
@@ -4380,8 +4409,10 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
 		ODBC_RETURN(stmt, res);
 
-	/* Sybase return first nvarchar for char... and without length !!! */
-	/* Some program use first entry so we discard all entry bfore varchar */
+	/*
+	 * Sybase return first nvarchar for char... and without length !!!
+	 * Some program use first entry so we discard all entry bfore varchar
+	 */
 	n = 0;
 	while (tds->res_info) {
 		TDSRESULTINFO *resinfo;
@@ -4464,7 +4495,6 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN(dbc, change_autocommit(dbc, u_value));
 		break;
 	case SQL_ATTR_CONNECTION_TIMEOUT:
-		/* TODO set socket options ??? */
 		dbc->attr.attr_connection_timeout = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;

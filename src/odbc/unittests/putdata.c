@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.3 2003-06-03 06:26:21 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.4 2003-11-05 17:31:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -78,14 +78,6 @@ main(int argc, char *argv[])
 	for (i = 0; i < 255; ++i)
 		buf[i] = BYTE_AT(i);
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER) 123, 0, &ind) !=
-	    SQL_SUCCESS) {
-		printf("Unable to bind output parameter\n");
-		exit(1);
-	}
-	/* length required */
-	ind = SQL_LEN_DATA_AT_EXEC(len);
-
 	/* 
 	 * test for binary 
 	 */
@@ -132,7 +124,11 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	/* check state  and reset some possible buffers */
+	Command(Statement, "DECLARE @i2 INT");
+
 	/* TODO check inserts ... */
+	/* TODO test cancel inside SQLExecute */
 
 	Disconnect();
 
