@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.92 2003-03-07 16:46:02 freddy77 Exp $";
+	"$Id: tds.h,v 1.93 2003-03-11 20:30:55 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -926,6 +926,7 @@ int tds_process_cancel(TDSSOCKET *tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET *tds);
+int tds_process_trailing_tokens(TDSSOCKET * tds);
 void tds_set_column_type(TDSCOLINFO *curcol, int type);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
