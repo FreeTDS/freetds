@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.42 2002-08-16 14:19:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.43 2002-08-18 09:19:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -75,6 +75,9 @@ extern int g__numeric_bytes_per_prec[];
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
+/* f77: I don't write -2147483648, some compiler seem to have some problem 
+ * with this constant although is a valid 32bit value */
+#define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -613,7 +616,7 @@ TDS_CHAR tmp_str[16];
 			break;
 		case SYBMONEY:
 			cr->m.mny = buf * 10000;
-			return 8;
+			return sizeof(TDS_MONEY);
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -675,7 +678,7 @@ TDS_CHAR tmp_str[16];
 			break;
 		case SYBMONEY:
 			cr->m.mny = (TDS_INT8)buf * 10000;
-			return 8;
+			return sizeof(TDS_MONEY);
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -726,13 +729,12 @@ tds_convert_money4(int srctype,TDS_CHAR *src, int srclen,
 TDS_MONEY4 mny;
 long dollars, fraction;
 char tmp_str[33];
-TDS_INT8 mymoney;
 
+	memcpy(&mny, src, sizeof(mny));
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBTEXT:
 		case SYBVARCHAR:
-			memcpy(&mny, src, sizeof(mny));
 			dollars  = mny.mny4 / 10000;
 			fraction = mny.mny4 % 10000;
 			if (fraction < 0)	{ fraction = -fraction; }
@@ -742,24 +744,39 @@ TDS_INT8 mymoney;
 			strcpy(cr->c, tmp_str);
 			return strlen(tmp_str);
 			break;
-		/* FIXME add int types */
+		case SYBINT1:
+			dollars  = mny.mny4 / 10000;
+			if (!IS_TINYINT(dollars))
+				return TDS_FAIL;
+			cr->ti = dollars;
+			return 1;
+			break;
+		case SYBINT2:
+			dollars  = mny.mny4 / 10000;
+			if (!IS_SMALLINT(dollars))
+				return TDS_FAIL;
+			cr->si = dollars;
+			return 2;
+			break;
+		case SYBINT4:
+			cr->i = mny.mny4 / 10000;
+			return 4;
+			break;
 		case SYBBIT:
 		case SYBBITN:
-			memcpy(&mny, src, sizeof(mny));
 			cr->ti = mny.mny4 ? 1 : 0;
 			return 1;
 			break;
-		/* FIXME add conversion to REAL */
 		case SYBFLT8:
-			/* FIXME dollars can be 64 bit while src 32 */
-			memcpy(&dollars, src, sizeof(dollars));
-			cr->f = ((TDS_FLOAT)dollars) / 10000;
+			cr->f = ((TDS_FLOAT)mny.mny4) / 10000.0;
             return 8;
 			break;
+		case SYBREAL:
+			cr->r = ((TDS_REAL)mny.mny4) / 10000.0;
+			return 4;
+			break;
 		case SYBMONEY:
-			memcpy(&mny, src, sizeof(mny));
-            mymoney = mny.mny4; 
-			memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY));
+			cr->m.mny = (TDS_INT8)mny.mny4; 
 			return sizeof(TDS_MONEY);
             break;
 		case SYBMONEY4:
@@ -778,10 +795,9 @@ tds_convert_money(int srctype,TDS_CHAR *src,
 {
 TDS_INT high;
 TDS_UINT low;
-double dmoney;
 char *s;
 
-TDS_INT8 mymoney;
+TDS_INT8 mymoney,dollars;
 
 char rawlong[64];
 int  rawlen;
@@ -830,19 +846,25 @@ int i;
             break;
 
 		case SYBINT1:
-			/* FIXME check overflow */
-			cr->ti = mymoney / 10000;
-            return 1;
+			dollars  = mymoney / 10000;
+			if (!IS_TINYINT(dollars))
+				return TDS_FAIL;
+			cr->ti = dollars;
+			return 1;
 			break;
 		case SYBINT2:
-			/* FIXME check overflow */
-			cr->si = mymoney / 10000;
-            return 2;
+			dollars  = mymoney / 10000;
+			if (!IS_SMALLINT(dollars))
+				return TDS_FAIL;
+			cr->si = dollars;
+			return 2;
 			break;
 		case SYBINT4:
-			/* FIXME check overflow */
-			cr->i = mymoney / 10000;
-            return 4;
+			dollars  = mymoney / 10000;
+			if (!IS_INT(dollars))
+				return TDS_FAIL;
+			cr->i = dollars;
+			return 4;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -850,11 +872,11 @@ int i;
 			return 1;
 			break;
 		case SYBFLT8:
-            cr->f  = (float) (mymoney / 10000.0);
+			cr->f  = ((TDS_FLOAT)mymoney) / 10000.0;
             return 8;
 			break;
 		case SYBREAL:
-			cr->r  = (float) (mymoney / 10000.0);
+			cr->r  = ((TDS_REAL)mymoney) / 10000.0;
             return 4;
 			break;
 		/* FIXME add conversion to MONEY4 */

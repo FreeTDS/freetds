@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.32 2002-08-16 05:10:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.33 2002-08-18 09:19:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -593,6 +593,7 @@ char query[255];
 /* int retval; */
 
    if (dbproc == NULL) return FAIL;
+   /* FIXME quote if needed, check for overflow*/
    sprintf(query,"use %s",dbname);
    dbcmd(dbproc,query);
    dbsqlexec(dbproc);

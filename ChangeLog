@@ -1,3 +1,12 @@
+Fri Aug 18 10:52:03 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- return sizeof(TDS_MONEY) instead of 8 (not always 8 byte long)
+	- add conversion from money4 to int type
+	- add conversion from money4 to real type
+	- fix bug converting from money4 to float on 64bit machine
+	- fix possible precision loss converting from money to float
+	- check overflow converting from money to int
+
 Fri Aug 17 16:17:09 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/Makefile.am src/dblib/Makefile.am src/odbc/Makefile.am:
 	- add link to iconv library if needed
