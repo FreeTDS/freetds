@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.1 2003-07-24 10:38:14 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.2 2003-07-24 13:18:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 	}
 
 	OutString[0] = '\0';
-	strcpy((char *) OutString, "Test");	// Comment this line and we get an error!  Why?
+	strcpy((char *) OutString, "Test");	/* Comment this line and we get an error!  Why? */
 	if (SQLBindParameter
 	    (Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 	     &cbOutString) != SQL_SUCCESS) {
