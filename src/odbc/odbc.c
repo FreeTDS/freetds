@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.90 2002-11-21 12:50:13 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.91 2002-11-21 14:19:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2305,6 +2305,28 @@ SQLRETURN SQL_API SQLGetStmtOption(
     return SQL_SUCCESS;
 }
 
+static void
+odbc_upper_column_names(TDSSOCKET *tds)
+{
+	TDSRESULTINFO * resinfo;
+	TDSCOLINFO *colinfo;
+	int icol;
+	char *p;
+
+	if (!tds->res_info)
+		return;
+
+	resinfo = tds->res_info;
+	for(icol=0; icol < resinfo->num_cols; ++icol) {
+		colinfo = resinfo->columns[icol];
+		/* upper case */
+		/* TODO procedure */
+		for(p = colinfo->column_name; *p; ++p)
+			if ('a' <= *p && *p <= 'z')
+				*p = *p & (~0x20);
+	}
+}
+
 SQLRETURN SQL_API SQLGetTypeInfo(
                                 SQLHSTMT           hstmt,
                                 SQLSMALLINT        fSqlType)
@@ -2340,6 +2362,8 @@ int varchar_pos = -1,n;
 
 redo:
 	res = _SQLExecute(hstmt);
+	
+	odbc_upper_column_names(stmt->hdbc->tds_socket);
 
 	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS) 
 		return res;
@@ -2542,7 +2566,6 @@ SQLRETURN SQL_API SQLTables(
     int first = 1;
     struct _hstmt *stmt;
     SQLRETURN result;
-    TDSSOCKET *tds;
 
     CHECK_HSTMT;
 
@@ -2605,27 +2628,12 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
 
     result  = _SQLExecute(hstmt);
     
-    /* Sybase seem to return column name in lower case, 
-     * transform to uppercase 
-     * specification of ODBC and Perl test require these name be uppercase */
-    tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
-    if (tds->res_info) {
-	TDSRESULTINFO * resinfo;
-	TDSCOLINFO *colinfo;
-        int icol;
+	/* Sybase seem to return column name in lower case, 
+	 * transform to uppercase 
+	 * specification of ODBC and Perl test require these name be uppercase */
+	odbc_upper_column_names(stmt->hdbc->tds_socket);
 
-	resinfo = tds->res_info;
-	for(icol=0; icol < resinfo->num_cols; ++icol) {
-		colinfo = resinfo->columns[icol];
-		/* upper case */
-		/* TODO procedure */
-		for(p = colinfo->column_name; *p; ++p)
-			if ('a' <= *p && *p <= 'z')
-				*p = *p & (~0x20);
-	}
-    }
-
-    return result;
+	return result;
 }
 static int sql_to_c_type_default ( int sql_type )
 {
