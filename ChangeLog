@@ -1,3 +1,10 @@
+Mon Sep 23 18:55:48 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/util.c:
+	- in tdsdump_close(), make it allowable to close even if not
+	  already opened.
+	- in tdsdump_open(), always try to close before opening so
+	  we don't leak file descriptors.
+
 Mon Sep 23 11:09:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/server/server.h:
 	- standardize format of server.h include file.

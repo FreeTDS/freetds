@@ -49,14 +49,14 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.15 2002-09-17 17:56:17 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.16 2002-09-23 22:57:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* for now all messages go to the log */
 int g_debug_lvl = 99;
 int g_append_mode = 0;
-static char *g_dump_filename;
+static char *g_dump_filename = NULL;
 static int   write_dump = 0;      /* is TDS stream debug log turned on? */
 static FILE *dumpfile   = NULL;   /* file pointer for dump log          */
 
@@ -167,6 +167,7 @@ int tdsdump_open(const char *filename)
 {
 int   result;   /* really should be a boolean, not an int */
 
+   tdsdump_close();
    if (filename == NULL || filename[0]=='\0') {
       filename = "tdsdump.out";
    }
@@ -230,6 +231,7 @@ void tdsdump_close()
    }
    if (g_dump_filename) {
       free(g_dump_filename);
+      g_dump_filename = NULL;
    }
 } /* tdsdump_close()  */
 
