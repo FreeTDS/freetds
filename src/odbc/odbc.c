@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.52 2002-09-16 20:05:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.53 2002-09-18 23:08:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -122,6 +122,42 @@ static SQLRETURN change_database (SQLHDBC hdbc, SQLCHAR *database)
     } while (marker!=TDS_DONE_TOKEN);
 
     return SQL_SUCCESS;
+}
+
+/* spinellia@acm.org : copied shamelessly from change_database */
+static SQLRETURN change_autocommit (SQLHDBC hdbc, int state)
+{
+SQLRETURN ret;
+TDSSOCKET *tds;
+int marker;
+char query[80];
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+
+	tds = (TDSSOCKET *) dbc->tds_socket;
+	
+	/* TODO finish
+	 * mssql: SET IMPLICIT_TRANSACTION ON
+	 * sybase: SET CHAINED ON */
+	
+	/* implicit transactions are on if autocommit is off :-| */
+	sprintf(query,"set implicit_transactions %s", (state?"off":"on"));
+
+	tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
+
+	ret = tds_submit_query(tds,query);
+	if (ret != TDS_SUCCEED) {
+		odbc_LogError ("Could not change transaction status");
+		return SQL_ERROR;
+	}
+
+	dbc->autocommit_state = state;
+	/* FIXME should check result ? */
+	do {
+		marker=tds_get_byte(tds);
+		tds_process_default_tokens(tds,marker);
+	} while (marker!=TDS_DONE_TOKEN);
+
+	return SQL_SUCCESS;
 }
 
 static SQLRETURN do_connect (
@@ -515,6 +551,9 @@ static SQLRETURN SQL_API _SQLAllocConnect(
     dbc->hdbc.henv=env;
     dbc->hdbc.tds_login= (void *) tds_alloc_login();
     *phdbc = (SQLHDBC)dbc;
+    /* spinellia@acm.org
+     * after login is enabled autocommit */
+    dbc->hdbc.autocommit_state = 1;
 
     return SQL_SUCCESS;
 }
@@ -925,8 +964,10 @@ SQLRETURN SQL_API SQLColAttributes(
 	    *pfDesc = 19;
 	    break;
 	case SQL_TYPE_TIMESTAMP:
+	case SQL_TIMESTAMP:
 	    *pfDesc = 24; /* FIXME check, always format 
 			     yyyy-mm-dd hh:mm:ss[.fff] ?? */
+	    /* spinellia@acm.org: int token.c it is 30 should we comply? */
 	    break;
         case SQL_FLOAT:
         case SQL_REAL:
@@ -939,6 +980,11 @@ SQLRETURN SQL_API SQLColAttributes(
 	default:
 	    /* FIXME TODO finish, should support ALL types (interval) */
 	    *pfDesc = 40;
+	    tdsdump_log( TDS_DBG_INFO1,
+			    "SQLColAttributes(%d,SQL_COLUMN_DISPLAY_SIZE): unknown client type %d\n",
+			    icol, 
+			    odbc_get_client_type(colinfo->column_type, colinfo->column_size)
+			    );
 	    break;
         }
         break;
@@ -978,6 +1024,7 @@ SQLRETURN SQL_API SQLError(
 
     if (strlen (odbc_GetLastError()) > 0)
     {
+	/* change all error handling, error should be different.. */
         strcpy (szSqlState, "08001");
         strcpy (szErrorMsg, odbc_GetLastError());
         if (pcbErrorMsg)
@@ -992,6 +1039,55 @@ SQLRETURN SQL_API SQLError(
     return result;
 }
 
+static int mymessagehandler( 
+	TDSCONTEXT* ctx,
+	TDSSOCKET* tds,
+	TDSMSGINFO* msg
+)
+{
+char *p;
+
+	if (asprintf( &p,
+		" Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+		msg->msg_number,
+		msg->msg_level,
+		msg->msg_state,
+		msg->server,
+		msg->line_number,
+		msg->message
+	) < 0) return 0;
+	/* latest_msg_number = msg->msg_number; */
+	odbc_LogError( p );
+	free(p);
+	/* FIXME free ?? */
+	tds_free_msg( msg );
+	return 1;
+}
+
+static int myerrorhandler( 
+	TDSCONTEXT* ctx,
+	TDSSOCKET* tds,
+	TDSMSGINFO* msg
+)
+{
+char *p;
+
+	if (asprintf( &p,
+		" Err %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+		msg->msg_number,
+		msg->msg_level,
+		msg->msg_state,
+		msg->server,
+		msg->line_number,
+		msg->message
+	) < 0) return 0;
+	odbc_LogError( p );
+	free(p);
+	/* FIXME free ?? */
+	tds_free_msg( msg );
+	return 1;
+}
+
 static SQLRETURN SQL_API 
 _SQLExecute( SQLHSTMT hstmt)
 {
@@ -1004,6 +1100,10 @@ _SQLExecute( SQLHSTMT hstmt)
 
     stmt->row = 0;
 
+    /* FIXME init ctx here ?? */
+    tds->tds_ctx->msg_handler = mymessagehandler;
+    tds->tds_ctx->err_handler = myerrorhandler;
+
     if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED))
     {
         odbc_LogError (tds->msg_info->message);
@@ -1012,16 +1112,12 @@ _SQLExecute( SQLHSTMT hstmt)
     stmt->hdbc->current_statement = stmt;
 
     ret = tds_process_result_tokens(tds);
-    if (ret==TDS_NO_MORE_RESULTS)
-    {
+    if (ret==TDS_NO_MORE_RESULTS) {
         return SQL_SUCCESS;
-    }
-    else if (ret==TDS_SUCCEED)
-    {
+    } else if (ret==TDS_SUCCEED) {
         return SQL_SUCCESS;
-    }
-    else
-    {
+    } else {
+	tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n" );
         return SQL_ERROR;
     }
 }
@@ -1114,13 +1210,13 @@ SQLRETURN SQL_API SQLFetch(
     stmt->row++;
 
     ret = tds_process_row_tokens(stmt->hdbc->tds_socket);
-    if (ret==TDS_NO_MORE_ROWS)
-    {
+    if (ret==TDS_NO_MORE_ROWS) {
+	tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n" );
         return SQL_NO_DATA_FOUND;
     }
     resinfo = tds->res_info;
-    if (!resinfo)
-    {
+    if (!resinfo) {
+	tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n" );
         return SQL_NO_DATA_FOUND;
     }
     for (i=0;i<resinfo->num_cols;i++)
@@ -1154,10 +1250,10 @@ SQLRETURN SQL_API SQLFetch(
             	*((SQLINTEGER *)colinfo->column_lenbind)=len;
         }
     }
-    if (ret==TDS_SUCCEED)
+    if (ret==TDS_SUCCEED) {
         return SQL_SUCCESS;
-    else
-    {
+    } else {
+	tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !TDS_SUCCEED (%d)\n", ret );
         return SQL_ERROR;
     }
 }
@@ -1168,6 +1264,8 @@ SQLRETURN SQL_API SQLFreeHandle(
                                SQLSMALLINT HandleType,
                                SQLHANDLE Handle)
 {
+    tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, 0x%x)\n", HandleType, Handle);
+
     switch (HandleType)
     {
     case SQL_HANDLE_STMT:
@@ -1436,16 +1534,56 @@ SQLRETURN SQL_API SQLSetCursorName(
     return SQL_ERROR;
 }
 
+
+/* TODO join all this similar function... */
+/* spinellia@acm.org : copied shamelessly from change_database */
+/* transaction support */
+/* 1 = commit, 0 = rollback */
+static SQLRETURN change_transaction (SQLHDBC hdbc, int state)
+{
+SQLRETURN ret;
+TDSSOCKET *tds;
+int marker;
+char query[256];
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+SQLRETURN cc = SQL_SUCCESS;
+
+	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n",
+		       hdbc, state );
+
+	tds = (TDSSOCKET *) dbc->tds_socket;
+	strcpy( query, ( state ? "commit" : "rollback" ));
+	ret = tds_submit_query(tds,query);
+	if (ret != TDS_SUCCEED) {
+		odbc_LogError ("Could not perform COMMIT or ROLLBACK");
+		cc = SQL_ERROR;
+	}
+
+	do {
+		marker=tds_get_byte(tds);
+		tds_process_default_tokens(tds,marker);
+	} while (marker!=TDS_DONE_TOKEN);
+
+	return cc;
+}
+
 SQLRETURN SQL_API SQLTransact(
                              SQLHENV            henv,
                              SQLHDBC            hdbc,
                              SQLUSMALLINT       fType)
 {
-    CHECK_HENV;
-    CHECK_HDBC;
-    odbc_LogError ("SQLTransact: function not implemented");
-    return SQL_ERROR;
+int op = ( fType == SQL_COMMIT ? 1 : 0 );
+
+	/* I may live without a HENV */
+	/*     CHECK_HENV; */
+	/* ..but not without a HDBC! */
+	CHECK_HDBC;
+
+	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%x,0x%x,%d)\n",
+			henv, hdbc, fType );
+	return change_transaction( hdbc, op );
 }
+/* end of transaction support */
 
 
 SQLRETURN SQL_API SQLSetParam(            /*      Use SQLBindParameter */
@@ -1554,13 +1692,19 @@ SQLRETURN SQL_API SQLGetConnectOption(
                                      SQLUSMALLINT       fOption,
                                      SQLPOINTER         pvParam)
 {
+    struct _hdbc *dbc = (struct _hdbc *) hdbc;
     SQLUINTEGER *piParam = (SQLUINTEGER *) pvParam;
 
+    /* TODO implement more options
+     * AUTOCOMMIT required by DBD::ODBC
+     */
     CHECK_HDBC;
     switch (fOption)
     {
-/*		case :
-            break; */
+    case SQL_AUTOCOMMIT:
+	/* FIXME: sure of int* */
+	* ( (int *) pvParam ) = dbc->autocommit_state;
+	return SQL_SUCCESS;
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");
@@ -1788,7 +1932,7 @@ SQLRETURN SQL_API SQLGetFunctions(
             _set_func_exists(pfExists,SQL_API_SQLSTATISTICS);
 */
         _set_func_exists(pfExists,SQL_API_SQLTABLES);
-/*			_set_func_exists(pfExists,SQL_API_SQLTRANSACT); */
+	_set_func_exists(pfExists,SQL_API_SQLTRANSACT);
         return SQL_SUCCESS;
         break;
     case SQL_API_SQLALLOCCONNECT :
@@ -1836,7 +1980,7 @@ SQLRETURN SQL_API SQLGetFunctions(
         case SQL_API_SQLSTATISTICS :
 */
     case SQL_API_SQLTABLES :
-/*		case SQL_API_SQLTRANSACT : */
+    case SQL_API_SQLTRANSACT :
 #if (ODBCVER >= 0x300)
     case SQL_API_SQLALLOCHANDLE :
 /*
@@ -2006,8 +2150,8 @@ SQLRETURN SQL_API SQLGetTypeInfo(
     }
     else
     {
-        static const char *sql_templ = "EXEC sp_datatype_info %d";
-        char sql[sizeof(*sql_templ)+20];
+        static const char sql_templ[] = "EXEC sp_datatype_info %d";
+        char sql[sizeof(sql_templ)+20];
         sprintf(sql, sql_templ, fSqlType);
         if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))
             return SQL_ERROR;
@@ -2069,9 +2213,11 @@ SQLRETURN SQL_API SQLSetConnectOption(
     switch (fOption)
     {
 	case SQL_AUTOCOMMIT:
+		/* spinellia@acm.org */
 		if (vParam == SQL_AUTOCOMMIT_ON)
-			return SQL_SUCCESS;
-		/* if off fall through */
+			return change_autocommit( hdbc, 1);
+		return change_autocommit( hdbc, 0);
+		break;
 		/* TODO implement 
 		 * mssql: SET IMPLICIT_TRANSACTION ON
 		 * sybase: SET CHAINED ON */
@@ -2149,7 +2295,7 @@ SQLRETURN SQL_API SQLTables(
                            SQLSMALLINT        cbTableType)
 {
     char *query, *p;
-    char *sptables = "exec sp_tables ";
+    static const char sptables[] = "exec sp_tables ";
     int querylen, clen, slen, tlen, ttlen;
     int first = 1;
     struct _hstmt *stmt;
@@ -2173,7 +2319,7 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
     p = query;
 
     strcpy(p, sptables);
-    p += strlen(sptables);
+    p += sizeof(sptables)-1;
 
     if (tlen)
     {
@@ -2217,7 +2363,9 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
 
     result  = _SQLExecute(hstmt);
     
-    /* Sybase seem to return column in lower case, transform to uppercase */
+    /* Sybase seem to return column name in lower case, 
+     * transform to uppercase 
+     * specification of ODBC and Perl test require these name be uppercase */
     tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
     if (tds->res_info) {
 	TDSRESULTINFO * resinfo;

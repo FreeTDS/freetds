@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.10 2002-09-15 16:08:24 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.11 2002-09-18 23:08:37 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
@@ -40,6 +40,9 @@ struct _hdbc {
 	TDSSOCKET *tds_socket;
 	/** statement executing */
 	struct _hstmt *current_statement;
+	/* spinellia@acm.org */
+	/** 0 = OFF, 1 = ON, -1 = UNKNOWN */
+	int	autocommit_state;
 };
 struct _hstmt {
 	struct _hdbc *hdbc;

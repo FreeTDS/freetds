@@ -1,4 +1,11 @@
 Wed Sep 18 10:25:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c: (from Andrea Spinelli)
+	- support autocommit option on mssql
+	- return error/info information to client
+	- support SQLTransact
+	
+
+Wed Sep 18 10:25:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* applied patch #610810 from Ross Simpson (slightly modified)
 
 Tue Sep 17 18:03:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
