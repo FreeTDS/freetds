@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.10 2002-08-23 19:36:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.11 2002-09-22 08:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -66,6 +66,7 @@ TDS_INT bufsize2;
 	if (IS_TDS50(tds)) {
 		bufsize = strlen(query)+6;
 		buf = (unsigned char *) malloc(bufsize);
+		if (!buf) return TDS_FAIL;
 		memset(buf,'\0',bufsize);
 		buf[0]=TDS_LANG_TOKEN; 
 
@@ -77,12 +78,14 @@ TDS_INT bufsize2;
 	} else if (IS_TDS70(tds) || IS_TDS80(tds)) {
 		bufsize = strlen(query)*2;
 		buf = (unsigned char *) malloc(bufsize);
+		if (!buf) return TDS_FAIL;
 		memset(buf,'\0',bufsize);
 		tds7_ascii2unicode(tds,query, buf, bufsize);
 		tds->out_flag=0x01;
 	} else { /* 4.2 */
 		bufsize = strlen(query);
 		buf = (unsigned char *) malloc(bufsize);
+		if (!buf) return TDS_FAIL;
 		memset(buf,'\0',bufsize);
 		memcpy(&buf[0],query,strlen(query));
 		tds->out_flag=0x01;

@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.76 2002-09-22 00:53:40 vorlon Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.77 2002-09-22 08:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1595,7 +1595,7 @@ TDS_VARBINARY *varbin;
 
 /* fix MONEY case */
 #if !defined(WORDS_BIGENDIAN) && defined(HAVE_INT64)
-	if (length != TDS_FAIL && desttype == SYBMONEY) {
+	if (length > 0 && desttype == SYBMONEY) {
 		cr->m.mny = 
 			((TDS_UINT8)cr->m.mny) >> 32 | (cr->m.mny << 32);
 	}

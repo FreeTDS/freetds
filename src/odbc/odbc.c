@@ -59,7 +59,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.55 2002-09-22 00:53:40 vorlon Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.56 2002-09-22 08:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -342,6 +342,8 @@ SQLRETURN SQL_API SQLMoreResults(
         odbc_set_return_status(stmt);
         return SQL_NO_DATA_FOUND;
     case TDS_SUCCEED:
+	/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result chenged */
+	stmt->row = 0;
         return SQL_SUCCESS;
     }
     return SQL_ERROR;
@@ -2135,11 +2137,15 @@ SQLRETURN SQL_API SQLGetTypeInfo(
                                 SQLHSTMT           hstmt,
                                 SQLSMALLINT        fSqlType)
 {
-    struct _hstmt *stmt;
+struct _hstmt *stmt;
+SQLRETURN res;
+TDSSOCKET *tds = (TDSSOCKET*)stmt->hdbc->tds_socket;
+int varchar_pos = -1,n;
 
     CHECK_HSTMT;
 
     stmt = (struct _hstmt *) hstmt;
+
     /* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
     /* FIXME what about early Sybase products ? */
     if (!fSqlType)
@@ -2157,7 +2163,44 @@ SQLRETURN SQL_API SQLGetTypeInfo(
             return SQL_ERROR;
     }
 
-    return _SQLExecute(hstmt);
+redo:
+	res = _SQLExecute(hstmt);
+
+	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS) 
+		return res;
+
+	/* Sybase return first nvarchar for char... and without length !!! */
+	/* Some program use first entry so we discard all entry bfore varchar */
+	n = 0;
+	while(tds->res_info) {
+		TDSRESULTINFO *resinfo;
+		TDSCOLINFO *colinfo;
+		char *name;
+		/* if next is varchar leave next for SQLFetch */
+		if (n == (varchar_pos-1))
+			break;
+
+		switch(tds_process_row_tokens(stmt->hdbc->tds_socket)) {
+		case TDS_NO_MORE_ROWS:
+			while(tds->state==TDS_PENDING)
+				tds_process_default_tokens(tds,tds_get_byte(tds));
+			printf("vcp %d n %d\n",varchar_pos,n);
+			if (n>=varchar_pos && varchar_pos>0)
+				goto redo;
+			break;
+		}
+		if (!tds->res_info) break;
+		++n;
+		
+		resinfo = tds->res_info;
+		colinfo = resinfo->columns[0];
+		name = (char*)(resinfo->current_row+colinfo->column_offset);
+		/* skip nvarchar and sysname */
+		if (strcmp("varchar",name)==0) {
+			varchar_pos = n;
+		}
+	}
+	return res;
 }
 
 SQLRETURN SQL_API SQLParamData(

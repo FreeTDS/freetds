@@ -8,11 +8,13 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.8 2002-09-15 16:08:22 freddy77 Exp $
+To Do List	$Id: TODO,v 1.9 2002-09-22 08:01:46 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
 . Domain support for MS SQL (verify)
+. thorough rototilling of the code for cleanliness, I would like it to 
+  build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
 For future versions:
 . test conversion from char. Does libraries append blank to reach column_size ?
   same problem for binary (padded with zeroes) ?
@@ -40,6 +42,7 @@ For future versions:
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . Someone broke early binding in ODBC
+. Autodetect TDS protocol when connecting (and cache somewhere?)
 
 (f77) Those was collected from ML...
 . ODBC: get a solid corpus of unittests for ODBC, and have it become a 
@@ -54,8 +57,8 @@ For future versions:
   compatiblity with windows one
 . dynamic query (even for mssql)
 . cursor support
-. more solid. handle out of memory conditions
+. more solid. handle out of memory conditions (started, we must test all 
+  allocation and all function that return allocated data and be able to 
+  rollback to a safe state)
 . limit copy of data (now wire -> tds -> temp -> client)
-. thorough rototilling of the code for cleanliness, I would like it to 
-  build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
 

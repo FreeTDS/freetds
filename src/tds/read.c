@@ -32,7 +32,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.18 2002-09-13 18:03:24 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.19 2002-09-22 08:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -213,6 +213,7 @@ char *temp;
 			tds_get_n(tds,NULL,need*2);
 			return(NULL);
 		}
+		/* FIXME handle allocation error, use chunk conversions */
 		temp = (char *) malloc(need*2);
 		tds_get_n(tds,temp,need*2);
 		tds7_unicode2ascii(tds,temp,dest,need);

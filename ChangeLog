@@ -1,3 +1,15 @@
+Sun Sep 22 09:55:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: fixed script for guide build
+	* src/odbc/odbc.c:
+	- fix bind for SQLMoreResults
+	- workaround for Sybase: return varchar as first datatype from 
+	  SQLGetTypeInfo if SQL_VARCHAR requested
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/t0003.c:
+	- test SQLMoreResults on empty recordset
+	* src/tds/convert.c: fix swap of money
+	* src/tds/query.c: handle some out of memory conditions
+	* src/tds/token.c: do not skip empty recordset
+
 Sat Sep 21 03:38:09 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/pool/main.c:
 	- Use IS_TDSDEAD() for all dead socket checks.
