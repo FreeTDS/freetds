@@ -33,8 +33,7 @@
 #endif
 
 
-static const char rcsid_prepare_query_h[] = "$Id: prepare_query.h,v 1.10 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_prepare_query_h_warn[] = { rcsid_prepare_query_h, no_unused_prepare_query_h_warn };
+/* $Id: prepare_query.h,v 1.11 2004-12-02 11:29:43 freddy77 Exp $ */
 
 
 SQLRETURN prepare_call(struct _hstmt *stmt);

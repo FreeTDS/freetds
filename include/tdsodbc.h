@@ -54,8 +54,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.74 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
+/* $Id: tdsodbc.h,v 1.75 2004-12-02 11:29:43 freddy77 Exp $ */
 
 struct _sql_error
 {

@@ -20,9 +20,7 @@
 #ifndef CONVERT_TDS2SQL_h
 #define CONVERT_TDS2SQL_h
 
-static const char rcsid_convert_tds2sql_h[] = "$Id: convert_tds2sql.h,v 1.4 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_convert_tds2sql_h_warn[] = { rcsid_convert_tds2sql_h, no_unused_convert_tds2sql_h_warn };
-
+/* $Id: convert_tds2sql.h,v 1.5 2004-12-02 11:29:43 freddy77 Exp $ */
 
 
 TDS_INT convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest,

@@ -20,8 +20,7 @@
 #ifndef CONNECTPARAMS_H
 #define CONNECTPARAMS_H
 
-static const char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.14 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unused_connectparams_h_warn };
+/* $Id: connectparams.h,v 1.15 2004-12-02 11:29:43 freddy77 Exp $ */
 
 /**
  * Parses a connection string for SQLDriverConnect().

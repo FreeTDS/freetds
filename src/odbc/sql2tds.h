@@ -20,8 +20,7 @@
 #ifndef SQL2TDS_H
 #define SQL2TDS_H
 
-static const char rcsid_sql2tds_h[] = "$Id: sql2tds.h,v 1.8 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_sql2tds_h_warn[] = { rcsid_sql2tds_h, no_unused_sql2tds_h_warn };
+/* $Id: sql2tds.h,v 1.9 2004-12-02 11:29:43 freddy77 Exp $ */
 
 SQLRETURN sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
 		  int compute_row);

@@ -1,6 +1,13 @@
+Thu Dec 02 12:28:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h include/tdsstring.h src/odbc/connectparams.h:
+	* src/odbc/convert_sql2string.h src/odbc/convert_tds2sql.h:
+	* src/odbc/odbc_checks.h src/odbc/odbc_util.h:
+	* src/odbc/prepare_query.h src/odbc/sql2tds.h:
+	- change $Id to comment inside code
+
 Thu Dec  2 01:19:30 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* vms/descrip_mms.template s/msdblib_define/dblib_define/
-	
+
 Wed Dec  1 17:34:40 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c begin to support other column separators
 

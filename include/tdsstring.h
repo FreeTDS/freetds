@@ -20,8 +20,7 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-static const char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.13 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_tdsstring_h_warn[] = { rcsid_tdsstring_h, no_unused_tdsstring_h_warn };
+/* $Id: tdsstring.h,v 1.14 2004-12-02 11:29:43 freddy77 Exp $ */
 
 extern char tds_str_empty[];
 
