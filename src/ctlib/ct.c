@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.63 2002-12-31 22:43:38 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.64 2003-01-02 01:59:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -592,6 +592,7 @@ CS_INT res_type;
 				break;
 
 
+			case CS_STATUS_RESULT:
 			default:
 				*result_type = res_type;
 				return CS_SUCCEED;
@@ -1030,10 +1031,13 @@ TDSCOLINFO *curcol;
 	datafmt->usertype = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
+	
 	/* FIX ME -- TDS 5.0 has status information in the results 
 	 ** however, this will work for 4.2 as well */
+	datafmt->status = 0;
 	if (is_nullable_type(curcol->column_type))
 		datafmt->status |= CS_CANBENULL;
+		
 	datafmt->count = 1;
 	datafmt->locale = NULL;
 
