@@ -287,7 +287,7 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				</varlistentry>
 
 			<varlistentry>
-				<term><Parameter>--enable-mdblib</Parameter></term>
+				<term><Parameter>--enable-msdblib</Parameter></term>
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase.  Typically only needed for porting Win32 applications to Unix.</para>
 					</listitem>
 				</varlistentry>
@@ -619,7 +619,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>emulate little endian</entry>
 	<entry>no</entry>
-	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0/8.0 on big end hosts</entry>
+	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0/8.0 on big endian hosts</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
@@ -931,9 +931,11 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<para>
 			You will find 
 			<simplelist type=vert columns=1>
-			<member>freetds/work/freetds/README</>
-			<member>freetds/work/freetds/include/README</>
-			<member>freetds/work/freetds/src/dblib/unittests/README</>
+			<member>freetds/README</>
+			<member>freetds/include/README</>
+			<member>freetds/samples/README</>
+			<member>freetds/src/dblib/unittests/README</>
+			<member>freetds/src/pool/README</>
 			</simplelist>
 			</para>
 			<para>
@@ -1221,7 +1223,7 @@ Just like the <filename>freetds.conf</filename> file there are two types of sect
 		</para>
 		<para>
 <table>
-<title>freetds.conf settings</title>
+<title>pool.conf settings</title>
 <tgroup cols="4">
 <thead>
 	<row>
