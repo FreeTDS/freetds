@@ -1,3 +1,8 @@
+Thu May 22 16:36:36 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h src/tds/config.c src/tds/iconv.c src/tds/mem.c
+	  src/tds/write.c:
+	- const cleanups.
+
 Thu May 22 15:31:31 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
 	- Remove unused variable "buf".

@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.40 2003-05-05 00:27:12 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.41 2003-05-22 20:37:44 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -114,7 +114,8 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		} else {
 			if (client->min_bytes_per_char == 2 && client->max_bytes_per_char == 2) {	/* UCS-2 or variant */
 
-				TDS_SMALLINT *p = (TDS_SMALLINT *) s;
+				/* FIXME alignment */
+				const TDS_SMALLINT *p = (const TDS_SMALLINT *) s;
 
 				for (len = 0; p && p[len]; len++);
 				len *= sizeof(TDS_SMALLINT);

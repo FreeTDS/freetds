@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.126 2003-05-22 18:32:44 castellano Exp $";
+	"$Id: tds.h,v 1.127 2003-05-22 20:37:42 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -51,13 +51,13 @@ extern "C" {
  
 typedef struct _tds_compiletime_settings
 {
-	char *freetds_version;		/* release version of FreeTDS */
-	char *last_update;	/* latest software_version date among the modules */
+	const char *freetds_version;		/* release version of FreeTDS */
+	const char *last_update;	/* latest software_version date among the modules */
 	int msdblib;		/* for MS style dblib */
 	int sybase_compat;	/* enable increased Open Client binary compatibility */
 	int threadsafe; 	/* compile for thread safety default=no */
 	int libiconv;     	/* search for libiconv in DIR/include and DIR/lib */
-	char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/8.0) 5.0 */
+	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/8.0) 5.0 */
 	int iodbc;		/* build odbc driver against iODBC in DIR */
 	int unixodbc; 		/* build odbc driver against unixODBC in DIR */
 

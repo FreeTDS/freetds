@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.85 2003-05-19 17:49:06 castellano Exp $";
+static char software_version[] = "$Id: mem.c,v 1.86 2003-05-22 20:37:44 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -824,7 +824,8 @@ tds_free_msg(TDSMSGINFO * msg_info)
 char *
 tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 {
-	char *p = NULL;
+	const char *p = NULL;
+	char *q = NULL;
 
 	if (TDS_IS_MSSQL(tds)) {
 		switch (msgnum) {	/* MSSQL Server */
@@ -976,13 +977,13 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 		}
 	}
 
-	if (p != NULL && (p = strdup(p)) != NULL) {
+	if (p != NULL && (q = strdup(p)) != NULL) {
 		/* FIXME correct here ?? */
 		/* Convert known ODBC 3.x states listed above to 2.x */
-		if (memcmp(p, "42S", 3) == 0)
-			memcpy(p, "S00", 3);
+		if (memcmp(q, "42S", 3) == 0)
+			memcpy(q, "S00", 3);
 
-		return p;
+		return q;
 	}
 	return NULL;
 }

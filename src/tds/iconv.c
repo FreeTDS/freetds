@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.72 2003-05-15 13:32:08 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.73 2003-05-22 20:37:43 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -54,7 +54,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 static int bytes_per_char(TDS_ENCODING * charset);
-static char *lcid2charset(int lcid);
+static const char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
 static int tds_charset_name_compare(const char *name1, const char *name2);
 static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name);
@@ -467,7 +467,7 @@ size_t
 tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
 {
 	char buffer[16000];
-	ICONV_CONST char *ib;
+	char *ib;
 	size_t isize, nonreversible_conversions = 0;
 
 	/*
@@ -491,13 +491,13 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 #if HAVE_ICONV
 	isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 
-	for (ib = buffer; isize && 1 == fread((char *) ib, isize, 1, stream);) {
+	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
 
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n", isize, field_len,
 			    *outbytesleft);
 		field_len -= isize;
 
-		nonreversible_conversions += iconv(cd, &ib, &isize, &outbuf, outbytesleft);
+		nonreversible_conversions += iconv(cd, (const char **) &ib, &isize, &outbuf, outbytesleft);
 
 		if (isize != 0) {
 			switch (errno) {
@@ -764,14 +764,14 @@ tds_charset_name_compare(const char *name1, const char *name2)
 	return -1;		/* not equal; also not accurate */
 }
 
-static char *
+static const char *
 lcid2charset(int lcid)
 {
 	/* The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
 
-	char *cp = NULL;
+	const char *cp = NULL;
 
 	switch (lcid & 0xffff) {
 	case 0x405:
