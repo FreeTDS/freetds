@@ -1,3 +1,7 @@
+Tue Oct 15 10:07:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/prepare_query.c:
+	- use ' to quote strings (work on Sybase and mssql)
+
 Tue Oct 15 00:11:15 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/pool/member.c:
 	- Set appname and hostname properly for the pool server.

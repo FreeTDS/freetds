@@ -35,7 +35,7 @@
 #include "odbc_util.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.10 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.11 2002-10-15 08:08:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -285,7 +285,7 @@ static int _get_len_data_at_exec(struct _sql_param_info *param)
 	return len;
 }
 
-static const char comma = '"';
+static const char comma = '\'';
 
 static char *_get_last_comma(char *s, int len)
 {
@@ -432,9 +432,9 @@ int start_parse_prepared_query(struct _hstmt *stmt)
 
 	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, 0, 
 		    strlen(stmt->prepared_query)+1
-		    +stmt->param_count*2 /* reserve space for "" */
+		    +stmt->param_count*2 /* reserve space for '' */
 		    +len                 /* reserve space for parameters */
-		    +len/2               /* reserve space for " inside strings */
+		    +len/2               /* reserve space for ' inside strings */
 		    ))
 		return SQL_ERROR;
 
