@@ -1,3 +1,9 @@
+Sun Nov 30 14:23:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/preperror.c(added):
+	- added a test from Nathaniel Talbott issue
+	* src/tds/token.c: fixed core
+
 Sun Nov 30 13:42:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am src/tds/encodings.h:
 	- updated encodings.h
