@@ -240,7 +240,7 @@ dblib	core	dbsetlsecure
 dblib	core	dbsetltime	
 dblib	core	dbsetluser	OK
 dblib	core	dbsetlversion	
-dblib	core	dbsetmaxprocs	stub
+dblib	core	dbsetmaxprocs	OK
 dblib	core	dbsetnull	
 dblib	core	dbsetopt	partial
 dblib	core	dbsettime	stub
