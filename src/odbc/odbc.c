@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.288.2.5 2004-03-29 10:59:25 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.288.2.6 2004-04-01 14:25:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2361,6 +2361,7 @@ _SQLExecute(TDS_STMT * stmt)
 		if (!stmt->dyn) {
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			/* TODO use tds_submit_prepexec */
+			stmt->dbc->current_statement = stmt;
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
@@ -4402,6 +4403,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	TDSRESULTINFO *resinfo;
 	TDSCOLINFO *colinfo;
 	TDSSOCKET *tds;
+	char *p;
 #endif
 	int icol;
 	TDS_DESC *ird;

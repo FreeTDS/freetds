@@ -2,14 +2,16 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.2 2003-12-20 12:38:37 freddy77 Exp $";
+static char software_version[] = "$Id: preperror.c,v 1.2.2.1 2004-04-01 14:25:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
 	SQLINTEGER cbInString = SQL_NTS;
-	char buf[128];
+	char buf[256];
+	SQLRETURN ret;
+	unsigned char sqlstate[6];
 
 	Connect();
 
@@ -35,9 +37,32 @@ main(int argc, char *argv[])
 	}
 
 	if (SQLExecute(Statement) != SQL_ERROR) {
-		fprintf(stderr, "SQLExecute succeeded instead of failing!\n");
+		fprintf(stderr, "SQLExecute succeeded instead of failing! (line %d)\n", __LINE__);
 		return 1;
 	}
+
+	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
+		return 1;
+	}
+	printf("err=%s\n", buf);
+
+	/* try to prepare and execute a statement with error (from DBD::ODBC test) */
+	SQLPrepare(Statement, (SQLCHAR *) "SELECT XXNOTCOLUMN FROM sysobjects", SQL_NTS);
+
+	if (SQLExecute(Statement) != SQL_ERROR) {
+		fprintf(stderr, "SQLExecute succeeded instead of failing! (line %d)\n", __LINE__);
+		return 1;
+	}
+
+	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+		fprintf(stderr, "Error not set (line %d) ret=%d\n", __LINE__, (int)ret);
+		return 1;
+	}
+	printf("err=%s\n", buf);
+
 
 	Disconnect();
 

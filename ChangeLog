@@ -1,3 +1,8 @@
+Thu Apr 01 16:35:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/preperror.c:
+	* src/tds/token.c:
+	- backported patch for SQLExecute not returning error
+
 Mon Mar 29 13:09:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: backported small patch for DBD::ODBC
 
