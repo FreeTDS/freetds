@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.49 2005-01-17 19:13:06 freddy77 Exp $s
+# $Id: api_status.txt,v 1.50 2005-01-30 11:24:40 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -40,6 +40,46 @@
 #	, status char(20)	    NULL
 #	, comment varchar(160)      NULL
 #	)
+
+# create view vapi
+# as
+#
+# select  *, Total - OK as ToDo, 100 * OK / Total as 'Done%'
+# from (
+#         select    name
+#                 , count(*) as Total
+#                 , sum(case status when 'OK'
+#                                         then 1 else 0 end) as OK
+#                 , sum(case status when 'partial'
+#                                         then 1 else 0 end) as Partial
+#                 , sum(case status when 'stub'
+#                                         then 1 else 0 end) as Stub
+#         from api
+#         group by name
+# ) as API
+#
+# go
+
+# create view vapisection
+# as
+#
+# select  *, Total - OK as ToDo, 100 * OK / Total as 'Done%'
+# from (
+#        select    name
+#                , section
+#                , count(*) as Total
+#                , sum(case status when 'OK'
+#                                        then 1 else 0 end) as OK
+#                , sum(case status when 'partial'
+#                                        then 1 else 0 end) as Partial
+#                , sum(case status when 'stub'
+#                                        then 1 else 0 end) as Stub
+#        from api
+#        group by name, section
+# ) as API
+#
+# go
+
 while( <DATA> ) {
 	chomp;
 	next if /^\s*$/;	#skip blank lines
