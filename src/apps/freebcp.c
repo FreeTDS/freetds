@@ -42,7 +42,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.31 2004-06-17 15:39:57 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.32 2004-06-19 05:56:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -63,14 +63,11 @@ main(int argc, char **argv)
 {
 	PARAMDATA params;
 	DBPROCESS *dbproc;
-	DBINT direction;
 	int ok = FALSE;
 
 	memset(&params, '\0', sizeof(PARAMDATA));
 
-	/* our default text size is 4K */
-
-	params.textsize = 4096;
+	params.textsize = 4096;	/* our default text size is 4K */
 
 	if (process_parameters(argc, argv, &params) == FALSE) {
 		exit(1);
@@ -78,16 +75,6 @@ main(int argc, char **argv)
 
 	if (login_to_database(&params, &dbproc) == FALSE) {
 		exit(1);
-	}
-
-	if (strcmp(params.dbdirection, "in") == 0) {
-		direction = DB_IN;
-	}
-	if (strcmp(params.dbdirection, "out") == 0) {
-		direction = DB_OUT;
-	}
-	if (strcmp(params.dbdirection, "queryout") == 0) {
-		direction = DB_QUERYOUT;
 	}
 
 	if (dbfcmd(dbproc, "set textsize %d", params.textsize) == FAIL) {
@@ -103,11 +90,11 @@ main(int argc, char **argv)
 	while (NO_MORE_RESULTS != dbresults(dbproc));
 
 	if (params.cflag) {	/* character format file */
-		ok = file_character(&params, dbproc, direction);
+		ok = file_character(&params, dbproc, params.direction);
 	} else if (params.nflag) {	/* native format file    */
-		ok = file_native(&params, dbproc, direction);
+		ok = file_native(&params, dbproc, params.direction);
 	} else if (params.fflag) {	/* formatted file        */
-		ok = file_formatted(&params, dbproc, direction);
+		ok = file_formatted(&params, dbproc, params.direction);
 	} else {
 		ok = FALSE;
 	}
@@ -192,9 +179,13 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 
 	strcpy(pdata->dbdirection, argv[2]);
 
-	if (strcmp(pdata->dbdirection, "in") != 0 && 
-		strcmp(pdata->dbdirection, "out") != 0 &&
-		strcmp(pdata->dbdirection, "queryout") != 0) {
+	if (strcmp(pdata->dbdirection, "in") == 0) {
+		pdata->direction = DB_IN;
+	} else if (strcmp(pdata->dbdirection, "out") == 0) {
+		pdata->direction = DB_OUT;
+	} else if (strcmp(pdata->dbdirection, "queryout") == 0) {
+		pdata->direction = DB_QUERYOUT;
+	} else {
 		fprintf(stderr, "Copy direction must be either 'in', 'out' or 'queryout'.\n");
 		return (FALSE);
 	}

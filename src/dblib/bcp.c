@@ -45,6 +45,10 @@
 #include "syberror.h"
 #include "dblib.h"
 
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
 /*    was hard coded as 32768, but that made the local stack data size > 32K,
     which is not allowed on Mac OS 8/9. (mlilback, 11/7/01) */
 #ifdef TARGET_API_MAC_OS8
@@ -66,13 +70,17 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.97 2004-06-17 15:39:58 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.98 2004-06-19 05:56:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static RETCODE _bcp_start_copy_in(DBPROCESS *);
+static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
 static RETCODE _bcp_build_bulk_insert_stmt(TDS_PBCB *, TDSCOLUMN *, int);
-static RETCODE _bcp_start_new_batch(DBPROCESS *);
+static RETCODE _bcp_free_storage(DBPROCESS * dbproc);
+static RETCODE _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
+static RETCODE _bcp_start_copy_in(DBPROCESS *);
+static RETCODE _bcp_start_new_batch(DBPROCESS *);
+
 static int rtrim(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
@@ -92,7 +100,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	TDSCOLUMN *curcol;
 
 	TDS_INT result_type;
-	int i, rc, colsize;
+	int i, rc;
 
 	/* free allocated storage in dbproc & initialise flags, etc. */
 
@@ -223,8 +231,6 @@ RETCODE
 bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 {
 	TDSCOLUMN *curcol;
-	int i;
-	int col_found = 0;
 
 	if (dbproc->bcpinfo == NULL) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
@@ -451,7 +457,6 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 RETCODE
 bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 {
-	int i;
 	TDSCOLUMN *curcol;
 
 	if (dbproc->bcpinfo == NULL) {
@@ -490,7 +495,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSCOLUMN *bcpcol = NULL;
 	TDSCOLUMN *curcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 	BYTE *src;
@@ -691,15 +695,11 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		     && (dbproc->hostfileinfo->lastrow > 0 && row_of_query <= dbproc->hostfileinfo->lastrow))
 			) {
 
-			/* go through the hostfile columns, finding those that relate */
-			/* to database columns...                                     */
-
+			/* Go through the hostfile columns, finding those that relate to database columns. */
 			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 		
 				hostcol = dbproc->hostfileinfo->host_columns[i];
-				if ((hostcol->tab_colnum < 1)
-				    || (hostcol->tab_colnum > resinfo->num_cols)
-		           ) {
+				if (hostcol->tab_colnum < 1 || hostcol->tab_colnum > resinfo->num_cols) {
 					continue;
 				}
 		
@@ -713,9 +713,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
-				if (tds_get_null(resinfo->current_row, hostcol->tab_colnum - 1))
+				if (tds_get_null(resinfo->current_row, hostcol->tab_colnum - 1)) {
+					srclen = 0;
 					hostcol->bcp_column_data->null_column = 1;
-				else {
+				} else {
 					if (is_numeric_type(curcol->column_type))
 						srclen = sizeof(TDS_NUMERIC);
 					else
@@ -744,17 +745,14 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 						 * For null columns, the above work to determine the output buffer size is moot, 
 						 * because bcpcol->data_size is zero, so dbconvert() won't write anything, and returns zero. 
 						 */
-						buflen =  dbconvert(dbproc,
-							   				srctype, src, srclen, 
-											hostcol->datatype, hostcol->bcp_column_data->data, hostcol->bcp_column_data->datalen);
-
-
-						/* Special case: when outputting database varchar data  */
-						/* (either varchar or nullable char) dbconvert may have */
-						/* trimmed trailing blanks such that nothing is left.   */
-						/* in this case we need to putput a single blank to the */
-						/* output file...                                       */
-	
+						buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype, 
+								    hostcol->bcp_column_data->data, hostcol->bcp_column_data->datalen);
+						/* 
+						 * Special case:  When outputting database varchar data 
+						 * (either varchar or nullable char) dbconvert may have
+						 * trimmed trailing blanks such that nothing is left.  
+						 * In this case we need to put a single blank to the output file.
+						 */
 						if (( curcol->column_type == SYBVARCHAR || 
 							 (curcol->column_type == SYBCHAR && curcol->column_nullable)
 						    ) && srclen > 0 && buflen == 0) {
@@ -764,9 +762,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 				}
 
-				/* FIX ME -- does not handle prefix_len == -1 */
 				/* The prefix */
-
 				if ((plen = hostcol->prefix_len) == -1) {
 					if (!(is_fixed_type(hostcol->datatype)))
 						plen = 2;
@@ -793,7 +789,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				}
 
 				/* The data */
-
 				if (hostcol->column_len != -1) {
 					buflen = buflen > hostcol->column_len ? hostcol->column_len : buflen;
 				}
@@ -1422,19 +1417,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 {
 
 	TDSSOCKET *tds = dbproc->tds_socket;
-	BCP_COLINFO *bcpcol;
 	int record_len;
-
-	int i, ret;
-
-	/* FIX ME -- calculate dynamically */
-	unsigned char rowbuffer[ROWBUF_SIZE];
-	int row_pos;
-	int row_sz_pos;
-	TDS_SMALLINT row_size;
-
-	int blob_cols = 0;
-	int var_cols_written = 0;
 
 	unsigned char row_token = 0xd1;
 
@@ -1495,24 +1478,12 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
 	FILE *hostfile, *errfile = NULL;
 	TDSSOCKET *tds = dbproc->tds_socket;
-	TDSCOLUMN *bcpcol;
 	BCP_HOSTCOLINFO *hostcol;
 
-	/* FIX ME -- calculate dynamically */
-	unsigned char rowbuffer[ROWBUF_SIZE];
-	int row_pos;
-
-	/* end of data pointer...the last byte of var data before the adjust table */
-
-	int row_sz_pos;
-	TDS_SMALLINT row_size;
-
-	int i, ret;
-	int blob_cols = 0;
+	int i;
 	int record_len;
 	int row_of_hostfile;
 	int rows_written_so_far;
-	int var_cols_written   = 0;
 
 	int row_error, row_error_count;
 	long row_start, row_end;
@@ -2696,7 +2667,7 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 				bindcol = dbproc->bcpinfo->bindinfo->columns[i];
 				if (is_blob_type(bindcol->column_type)) {
 					if (behaviour == BCP_REC_FETCH_DATA) { 
-						if ((_bcp_get_col_data(dbproc->bcpinfo, bindcol)) != SUCCEED) {
+						if ((_bcp_get_col_data(dbproc, bindcol)) != SUCCEED) {
 				 			return FAIL;
 						}
 					}
@@ -2724,10 +2695,9 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
  * For a bcp in from program variables, get the data from 
  * the host variable
  */
-RETCODE
+static RETCODE
 _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 {
-	int i;
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
@@ -2858,7 +2828,7 @@ rtrim(char *istr, int ilen)
 	return olen;
 }
 
-RETCODE
+static RETCODE
 _bcp_free_storage(DBPROCESS * dbproc)
 {
 

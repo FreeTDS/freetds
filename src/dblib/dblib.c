@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.180 2004-06-17 15:39:58 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.181 2004-06-19 05:56:30 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -392,7 +392,6 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 	int srctype;
 	BYTE *src;
 	int desttype;
-	int destlen;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (rowtype == TDS_REG_ROW) {

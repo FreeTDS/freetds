@@ -1,3 +1,8 @@
+Sat Jun 19 01:53:01 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c src/apps/freebcp.h
+	* src/dblib/bcp.c src/dblib/dblib.c
+	- fixed warnings, and some cleanup
+	
 Thu Jun 17 17:38:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/dblib.h include/sybdb.h include/tds.h:
 	* src/apps/freebcp.c src/apps/freebcp.h src/ctlib/blk.c:
