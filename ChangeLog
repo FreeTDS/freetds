@@ -1,3 +1,7 @@
+Fri Jan 16 22:09:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/Makefile.am src/tds/util.c src/tds/net.c(added):
+	- added net.c
+
 Fri Jan 16 22:02:42 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/util.c:
 	- fix problem setting TDSDUMP=stdout and appending mode

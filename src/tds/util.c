@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.45 2004-01-16 21:03:17 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.46 2004-01-16 21:09:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -402,14 +402,3 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 	}
 }				/* tdsdump_log()  */
 
-int
-tds_close_socket(TDSSOCKET * tds)
-{
-	int rc = -1;
-
-	if (!IS_TDSDEAD(tds)) {
-		rc = CLOSESOCKET(tds->s);
-		tds->s = INVALID_SOCKET;
-	}
-	return rc;
-}
