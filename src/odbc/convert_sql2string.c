@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.26 2003-01-11 16:40:30 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.27 2003-02-21 09:46:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -115,11 +115,14 @@ odbc_get_server_type(int c_type)
 	case SQL_C_INTERVAL_SECOND:
 	case SQL_C_INTERVAL_YEAR_TO_MONTH:
 	case SQL_C_INTERVAL_DAY_TO_HOUR:
+	/* FIXME seems duplicate in mingw32 headers... */
+#ifndef __MINGW32__
 	case SQL_C_INTERVAL_DAY_TO_MINUTE:
 	case SQL_C_INTERVAL_DAY_TO_SECOND:
 	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
 	case SQL_C_INTERVAL_HOUR_TO_SECOND:
 	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
+#endif
 #ifdef SQL_C_WCHAR
 	case SQL_C_WCHAR:
 #endif

@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x410 /d "NDEBUG"
@@ -68,7 +68,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x410 /d "_DEBUG"
@@ -107,11 +107,11 @@ SOURCE=..\..\src\odbc\error.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\FreeTDS.def
+SOURCE=..\FreeTDS.def
 # End Source File
 # Begin Source File
 
-SOURCE=.\initnet.c
+SOURCE=..\initnet.c
 # End Source File
 # Begin Source File
 
@@ -139,7 +139,7 @@ SOURCE=..\..\src\odbc\sql2tds.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\config.h
+SOURCE=..\config.h
 # End Source File
 # Begin Source File
 
@@ -159,11 +159,7 @@ SOURCE=..\..\include\des.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\freetds_sysconfdir.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\freetds_sysconfdir.h
+SOURCE=..\freetds_sysconfdir.h
 # End Source File
 # Begin Source File
 
@@ -199,11 +195,7 @@ SOURCE=..\..\include\tds_sysdep_private.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\tds_sysdep_public.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\tds_sysdep_public.h
+SOURCE=..\tds_sysdep_public.h
 # End Source File
 # Begin Source File
 

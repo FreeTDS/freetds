@@ -1,0 +1,126 @@
+# Project: FreeTDS
+# Makefile created by Dev-C++ 4.9.7.6
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = 
+OBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o $(RES)
+LINKOBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o $(RES)
+LIBS =  -L"C:/Dev-Cpp/lib" -lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -s --def ../FreeTds.def 
+INCS =  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
+CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
+BIN  = FreeTDS.dll
+CXXFLAGS = $(CXXINCS)-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS   -fexpensive-optimizations -O2
+CFLAGS = $(INCS)-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS   -fexpensive-optimizations -O2
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before FreeTDS.dll all-after
+
+
+clean: clean-custom
+	rm -f $(OBJ) $(BIN)
+
+DLLWRAP=dllwrap.exe
+DEFFILE=libFreeTDS.def
+STATICLIB=libFreeTDS.a
+
+$(BIN): $(LINKOBJ)
+	$(DLLWRAP) --output-def $(DEFFILE) --driver-name c++ --implib $(STATICLIB) $(LINKOBJ) $(LIBS) -o $(BIN)
+
+../../src/odbc/connectparams.o: ../../src/odbc/connectparams.c
+	$(CC) -c ../../src/odbc/connectparams.c -o ../../src/odbc/connectparams.o $(CFLAGS)
+
+../../src/odbc/convert_sql2string.o: ../../src/odbc/convert_sql2string.c
+	$(CC) -c ../../src/odbc/convert_sql2string.c -o ../../src/odbc/convert_sql2string.o $(CFLAGS)
+
+../../src/odbc/convert_tds2sql.o: ../../src/odbc/convert_tds2sql.c
+	$(CC) -c ../../src/odbc/convert_tds2sql.c -o ../../src/odbc/convert_tds2sql.o $(CFLAGS)
+
+../../src/odbc/error.o: ../../src/odbc/error.c
+	$(CC) -c ../../src/odbc/error.c -o ../../src/odbc/error.o $(CFLAGS)
+
+../initnet.o: ../initnet.c
+	$(CC) -c ../initnet.c -o ../initnet.o $(CFLAGS)
+
+../../src/odbc/native.o: ../../src/odbc/native.c
+	$(CC) -c ../../src/odbc/native.c -o ../../src/odbc/native.o $(CFLAGS)
+
+../../src/odbc/odbc.o: ../../src/odbc/odbc.c
+	$(CC) -c ../../src/odbc/odbc.c -o ../../src/odbc/odbc.o $(CFLAGS)
+
+../../src/odbc/odbc_util.o: ../../src/odbc/odbc_util.c
+	$(CC) -c ../../src/odbc/odbc_util.c -o ../../src/odbc/odbc_util.o $(CFLAGS)
+
+../../src/odbc/prepare_query.o: ../../src/odbc/prepare_query.c
+	$(CC) -c ../../src/odbc/prepare_query.c -o ../../src/odbc/prepare_query.o $(CFLAGS)
+
+../../src/odbc/sql2tds.o: ../../src/odbc/sql2tds.c
+	$(CC) -c ../../src/odbc/sql2tds.c -o ../../src/odbc/sql2tds.o $(CFLAGS)
+
+../../src/replacements/asprintf.o: ../../src/replacements/asprintf.c
+	$(CC) -c ../../src/replacements/asprintf.c -o ../../src/replacements/asprintf.o $(CFLAGS)
+
+../../src/replacements/strtok_r.o: ../../src/replacements/strtok_r.c
+	$(CC) -c ../../src/replacements/strtok_r.c -o ../../src/replacements/strtok_r.o $(CFLAGS)
+
+../../src/replacements/vasprintf.o: ../../src/replacements/vasprintf.c
+	$(CC) -c ../../src/replacements/vasprintf.c -o ../../src/replacements/vasprintf.o $(CFLAGS)
+
+../../src/tds/challenge.o: ../../src/tds/challenge.c
+	$(CC) -c ../../src/tds/challenge.c -o ../../src/tds/challenge.o $(CFLAGS)
+
+../../src/tds/config.o: ../../src/tds/config.c
+	$(CC) -c ../../src/tds/config.c -o ../../src/tds/config.o $(CFLAGS)
+
+../../src/tds/convert.o: ../../src/tds/convert.c
+	$(CC) -c ../../src/tds/convert.c -o ../../src/tds/convert.o $(CFLAGS)
+
+../../src/tds/des.o: ../../src/tds/des.c
+	$(CC) -c ../../src/tds/des.c -o ../../src/tds/des.o $(CFLAGS)
+
+../../src/tds/getmac.o: ../../src/tds/getmac.c
+	$(CC) -c ../../src/tds/getmac.c -o ../../src/tds/getmac.o $(CFLAGS)
+
+../../src/tds/iconv.o: ../../src/tds/iconv.c
+	$(CC) -c ../../src/tds/iconv.c -o ../../src/tds/iconv.o $(CFLAGS)
+
+../../src/tds/locale.o: ../../src/tds/locale.c
+	$(CC) -c ../../src/tds/locale.c -o ../../src/tds/locale.o $(CFLAGS)
+
+../../src/tds/login.o: ../../src/tds/login.c
+	$(CC) -c ../../src/tds/login.c -o ../../src/tds/login.o $(CFLAGS)
+
+../../src/tds/md4.o: ../../src/tds/md4.c
+	$(CC) -c ../../src/tds/md4.c -o ../../src/tds/md4.o $(CFLAGS)
+
+../../src/tds/mem.o: ../../src/tds/mem.c
+	$(CC) -c ../../src/tds/mem.c -o ../../src/tds/mem.o $(CFLAGS)
+
+../../src/tds/numeric.o: ../../src/tds/numeric.c
+	$(CC) -c ../../src/tds/numeric.c -o ../../src/tds/numeric.o $(CFLAGS)
+
+../../src/tds/query.o: ../../src/tds/query.c
+	$(CC) -c ../../src/tds/query.c -o ../../src/tds/query.o $(CFLAGS)
+
+../../src/tds/read.o: ../../src/tds/read.c
+	$(CC) -c ../../src/tds/read.c -o ../../src/tds/read.o $(CFLAGS)
+
+../../src/tds/tdsstring.o: ../../src/tds/tdsstring.c
+	$(CC) -c ../../src/tds/tdsstring.c -o ../../src/tds/tdsstring.o $(CFLAGS)
+
+../../src/tds/threadsafe.o: ../../src/tds/threadsafe.c
+	$(CC) -c ../../src/tds/threadsafe.c -o ../../src/tds/threadsafe.o $(CFLAGS)
+
+../../src/tds/token.o: ../../src/tds/token.c
+	$(CC) -c ../../src/tds/token.c -o ../../src/tds/token.o $(CFLAGS)
+
+../../src/tds/util.o: ../../src/tds/util.c
+	$(CC) -c ../../src/tds/util.c -o ../../src/tds/util.o $(CFLAGS)
+
+../../src/tds/vstrbuild.o: ../../src/tds/vstrbuild.c
+	$(CC) -c ../../src/tds/vstrbuild.c -o ../../src/tds/vstrbuild.o $(CFLAGS)
+
+../../src/tds/write.o: ../../src/tds/write.c
+	$(CC) -c ../../src/tds/write.c -o ../../src/tds/write.o $(CFLAGS)
