@@ -1,3 +1,8 @@
+Sat Jun 07 20:23:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/sybase_character_sets.h:
+	* src/tds/sybase_character_sets.h.pl:
+	- rebuild file due to update, some fixes
+
 Fri Jun  6 15:10:58 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c src/tds/token.c
 	- introduce tds_do_until_done() for bcp as workaround. 
