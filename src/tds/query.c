@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.47 2002-11-22 22:11:56 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.48 2002-11-23 09:42:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -146,8 +146,10 @@ tds_next_placeholders(const char* start)
 
 	if (!p) return NULL;
 
-	for(;*p;) {
+	for(;;) {
 		switch(*p) {
+		case '\0':
+			return NULL;
 		case '\'':
 		case '\"':
 		case '[':
@@ -160,7 +162,6 @@ tds_next_placeholders(const char* start)
 			break;
 		}
 	}
-	return NULL;
 }
 
 /**
@@ -179,11 +180,12 @@ tds_count_placeholders(const char *query)
 
 /**
  * tds_submit_prepare() creates a temporary stored procedure in the server.
- * Currently works only with TDS 5.0 (work in progress for TDS7+)
+ * Currently works with TDS 5.0 and TDS7+
  * @param query language query with given placeholders (?)
  * @param id string to identify the dynamic query. Pass NULL for automatic generation.
  * @return TDS_FAIL or TDS_SUCCEED
  */
+/* TODO return dynamic and parse all results ?? */
 int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id)
 {
 int id_len, query_len;
@@ -270,6 +272,7 @@ TDSDYNAMIC *dyn;
 		tds_put_int(tds,len*2);
 		tds_put_int(tds,len*2);
 		s = query;
+		/* TODO do a test with "...?" and "...?)" */
 		for(i=1;;++i) {
 			char buf[24];
 			e = tds_next_placeholders(s);
@@ -316,6 +319,7 @@ TDSDYNAMIC *dyn;
  * @param curcol column where to store information
  * @return TDS_SUCCEED or TDS_FAIL
  */
+/* TODO add a flag for select if named used or not ?? */
 static int 
 tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 {
@@ -359,8 +363,13 @@ tds_put_data_info_length(TDSSOCKET *tds, TDSCOLINFO *curcol)
 {
 int len = 8;
 
+#ifdef ENABLE_EXTRA_CHECKS
+	if (IS_TDS7_PLUS(tds))
+		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
+#endif
+
 	if (is_numeric_type(curcol->column_type))
-		++len;
+		len += 2;
 	return len + curcol->column_varint_size;
 }
 
@@ -463,7 +472,7 @@ int i, len;
 		/* procedure name */
 		tds_put_smallint(tds,10);
 		tds_put_n(tds,"s\0p\0_\0e\0x\0e\0c\0u\0t\0e",20);
-		tds_put_smallint(tds,0); 
+		tds_put_smallint(tds,0); /* flags */
 		
 		/* id of prepared statement */
 		tds_put_byte(tds,0);
@@ -483,7 +492,7 @@ int i, len;
 	}
 
 	tds->out_flag=0x0F;
-/* dynamic id */
+	/* dynamic id */
 	id_len = strlen(dyn->id);
 
 	tds_put_byte(tds,TDS5_DYN_TOKEN); 
@@ -494,6 +503,8 @@ int i, len;
 	tds_put_n(tds, dyn->id, id_len);
 	tds_put_byte(tds,0x00); 
 	tds_put_byte(tds,0x00); 
+
+	/* TODO use this code in RPC too ?? */
 
 	/* column descriptions */
 	tds_put_byte(tds,TDS5_PARAMFMT_TOKEN); 
@@ -545,7 +556,7 @@ int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n", dyn->id);
 
-	/* TODO continue ...*/
+	/* TODO continue ... reset dynamic, free structure, unprepare to server */
 	return TDS_FAIL;
 }
 
@@ -599,15 +610,17 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
  * tds_send_cancel() sends an empty packet (8 byte header only)
  * tds_process_cancel should be called directly after this.
  */
-int tds_send_cancel(TDSSOCKET *tds)
+int 
+tds_send_cancel(TDSSOCKET *tds)
 {
 	/* TODO discard any partial packet here */
 	/* tds_init_write_buf(tds); */
 
-        tds->out_flag=0x06;
-        tds_flush_packet(tds);
+	tds->out_flag=0x06;
+	/* TODO make this function return TDS_FAIL or TDS_SUCCEED from TDS state and return this status */
+	tds_flush_packet(tds);
 
-        return 0;
+	return 0;
 }
 
 /** \@} */

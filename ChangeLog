@@ -1,3 +1,6 @@
+Sat Nov 23 10:42:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: some comment and fix for numeric parameters
+
 Sat Nov 23 01:32:44 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/rpc.c src/dblib/unittests/rpc.c
 	- more db-lib rpc preparation
