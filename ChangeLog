@@ -1,3 +1,8 @@
+Wed Oct 13 20:05:39 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/typeinfo.c:
+	- fix problem with SQLGetTypeInfo and sybase
+	* src/tds/query.c: small optimization
+
 Wed Oct 13 15:46:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
 	* src/odbc/unittests/Makefile.am src/tds/unittests/Makefile.am:

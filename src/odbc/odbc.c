@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.343 2004-09-23 11:10:20 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.344 2004-10-13 18:06:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4729,6 +4729,16 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	/* TODO what about early Sybase products ? */
 	/* TODO Does Sybase return all ODBC3 columns? Add them if not */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
+	if (TDS_IS_SYBASE(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
+		switch (fSqlType) {
+		case SQL_TYPE_TIMESTAMP:
+			fSqlType = SQL_TIMESTAMP;
+			break;
+		case SQL_TIMESTAMP:
+			fSqlType = SQL_TYPE_TIMESTAMP;
+			break;
+		}
+	}
 	sprintf(sql, sql_templ, fSqlType);
 	if (TDS_IS_MSSQL(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 		strcat(sql, ",3");
