@@ -1,3 +1,6 @@
+Mon Oct  8 20:56:14 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am: fix make dist
+
 Tue Oct  8 10:59:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0022.c:
 	- If we don't see the output parameter from the server,

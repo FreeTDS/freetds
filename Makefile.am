@@ -1,11 +1,11 @@
-# version $Id: Makefile.am,v 1.17 2002-09-28 12:47:01 freddy77 Exp $
+# version $Id: Makefile.am,v 1.18 2002-10-08 18:56:34 freddy77 Exp $
 SUBDIRS		=	include src doc
 
 EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
 		samples/README samples/dyntest.c samples/odbc.ini \
 		samples/odbctest.php samples/odbctest.pl samples/test.php \
 		samples/test.pl \
-		freetds.conf locales.conf acconfig.h \
+		freetds.conf locales.conf \
 		autogen.sh freetds.spec.in freetds.spec
 
 ETC            =       $(DESTDIR)/$(sysconfdir)
