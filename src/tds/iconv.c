@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.103 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.104 2004-01-09 05:00:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -958,6 +958,12 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 #if HAVE_ICONV_ALWAYS
 	TDSICONVINFO *iconv_info = tds->iconv_info[client2server_chardata];
 	const char *canonic_charset = tds_canonical_charset_name(charset);
+
+	/* ignore request to change to unknown charset */
+	if (!canonic_charset) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_srv_charset_changed: what is charset \"%s\"?\n", charset);
+		return;
+	}
 
 	if (strcmp(canonic_charset, iconv_info->server_charset.name) == 0)
 		return;
