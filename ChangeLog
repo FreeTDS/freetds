@@ -1,3 +1,6 @@
+Thu May 15 15:19:32 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/locale.c: merged fix and cleanup from 0.62 branch
+
 Fri May 09 10:59:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4: merged fix for HP/UX 11
 
