@@ -40,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.71 2002-09-30 16:36:13 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.72 2002-09-30 16:38:56 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -60,23 +60,23 @@ typedef struct dblib_context {
 
 static DBLIBCONTEXT *g_dblib_ctx = NULL;
 #ifdef TDS42
-int g_dblib_version = DBVERSION_42;
+static int g_dblib_version = DBVERSION_42;
 #endif
 #ifdef TDS50
-int g_dblib_version = DBVERSION_100;
+static int g_dblib_version = DBVERSION_100;
 #endif
 #ifdef TDS46
-int g_dblib_version = DBVERSION_46;
+static int g_dblib_version = DBVERSION_46;
 #endif
 /* I'm taking some liberties here, there is no such thing as
  * DBVERSION_70 or DBVERSION_80 in the real world,
  * so we make it up as we go along
  */
 #ifdef TDS70
-int g_dblib_version = DBVERSION_70;
+static int g_dblib_version = DBVERSION_70;
 #endif
 #ifdef TDS80
-int g_dblib_version = DBVERSION_80;
+static int g_dblib_version = DBVERSION_80;
 #endif
 
 static int dblib_add_connection(DBLIBCONTEXT *ctx, TDSSOCKET *tds)

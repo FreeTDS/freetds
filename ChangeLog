@@ -1,3 +1,8 @@
+Mon Sep 30 12:37:41 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- Namespace cleanup, make g_dblib_version static since it is only
+	  needed in dblib.c.
+
 Mon Sep 30 12:34:22 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbutil.c:
 	- Namespace cleanup, rename g_dblib_msg_handler to _dblib_msg_handler,
