@@ -38,7 +38,7 @@ href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.13 2002-07-03 06:17:09 jklowden Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.14 2002-07-03 06:43:32 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -173,7 +173,7 @@ Problems Running<ul>
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-<hr size="1" />
+<hr size="1">
 <h2>General Questions</h2>
 
 <a name="What is FreeTDS"></a>
@@ -317,7 +317,7 @@ list, where someone with the available time and expertise can help you.</p>
 <td>TDS 7.0 numeric support and bug fixes</td>
 </tr>
 <tr>
-<td><a href="mailto:bkline@nospam.rksystems.com>">Bob Kline</a></td>
+<td><a href="mailto:bkline@nospam.rksystems.com">Bob Kline</a></td>
 <td>NTEXT support</td>
 </tr>
 <tr>
@@ -407,13 +407,13 @@ involves running the <tt>autogen.sh</tt> script to generate and run
 
 <p>
 When you untar the package you will need to run:
-<br /><tt>$ ./configure</tt></p>
+<br><tt>$ ./configure</tt></p>
 <p>You also have the following options you can add to the configure
 statement:</p>
 <dl><!-- second level list of terms -->
 	<dt><tt>--with-tdsver=VERSION</tt></dt>
 	<dd>specify the fallback TDS version 
-	<br />(4.2, 4.6, 5.0, or 7.0) [default is 5.0].</dd>
+	<br>(4.2, 4.6, 5.0, or 7.0) [default is 5.0].</dd>
 	<dt><tt>--enable-msdblib</tt></dt>
 	<dd>enable Microsoft APIs and behavior for DBLib (useful only for porting Win32 dblib apps)</dd>
 	<dt><tt>--enable-dbmfix</tt></dt>
@@ -519,7 +519,7 @@ or MSSQL database, DBD::Sybase, DBD::ODBC, DBD::FreeTDS, and Sybperl.
 </p>
 <p>
 From Mark Schaal:
-<br />
+<br>
 <p>DBD::Sybase is the recommended option, and yes it does work with MSSQL.
 You will need to install the perl DBI module and the FreeTDS package, particularly
 the CTLib portion. Set your SYBASE environment variable to /usr/local/freetds
@@ -534,14 +534,14 @@ functional but it is considered alpha software and is not being actively
 developed.
 </p>
 <p>From Michael Peppler (mpeppler@peppler.org):
-<br />Sybperl is a thin wrapper around the Sybase C APIs. It's a lot more
+<br>Sybperl is a thin wrapper around the Sybase C APIs. It's a lot more
 mature than DBI/DBD::Sybase (I've been working on it for 9 years :-) and
 it's maybe more natural to use for someone who already knows the Sybase
 APIs (or MS's DBlibrary). It's a little more powerful/flexible than DBI,
 though obviously less portable. It's still actively maintained and developed
 (by yours truly)
 </p>
-<p>From Brian:<br />
+<p>From Brian:<br>
 DBD::ODBC is the newest option available.  Its primary advantage is not having to load another DBI driver if you already have DBI::ODBC load for other systems.  On the downside, it may be a little less robust than DBD::Sybase.
 </p>
 
@@ -791,9 +791,9 @@ your account has permissions in the database to execute your query.&nbsp;</li>
 <p>Steps:</p>
 <ol>
 <li>
-Try <tt>telnet &lt;hostmachine> &lt;port></tt> and see if it's listening.
+Try <tt>telnet &lt;hostmachine&gt; &lt;port&gt;</tt> and see if it's listening.
 You should get some form of response from the server (actual text varies
-by vendor &amp; version).<br />&nbsp;</li>
+by vendor &amp; version).<br>&nbsp;</li>
 
 <li>
 Check the interfaces file (<tt>$SYBASE/interfaces</tt>)&nbsp;</li>
@@ -801,13 +801,13 @@ Check the interfaces file (<tt>$SYBASE/interfaces</tt>)&nbsp;</li>
 
 <ul>
 <li>
-You should see something like:<br />
+You should see something like:<br>
 <pre>
 myserver
 	query tcp ether 127.0.0.1 4000
 	master tcp ether 127.0.0.1 4000
 </pre>
-A lot of people overlook the port number (<i>4000</i> in this example).<br /></li>
+A lot of people overlook the port number (<i>4000</i> in this example).<br></li>
 <li>
 The default port for TDS 4.2/7.0 is 1433.</li>
  
@@ -815,7 +815,7 @@ The default port for TDS 4.2/7.0 is 1433.</li>
 The default port for TDS 5.0 is 4000.</li>
 
 <li>
-Oh, and replace <tt>127.0.0.1</tt> with the name/address of <tt>myserver</tt>.<br />&nbsp;</li>
+Oh, and replace <tt>127.0.0.1</tt> with the name/address of <tt>myserver</tt>.<br>&nbsp;</li>
 
 <li>
 Check your ./configure and
@@ -953,14 +953,14 @@ function. For example:  </p>
 <!-- example convert  -->
 <pre class="screen"><tt class="userinput">
 
-1> select convert( varchar(30), getdate(), 120 ) as Now
-2> go
+1&gt; select convert( varchar(30), getdate(), 120 ) as Now
+2&gt; go
  Now
  ------------------------------
  2002-07-02 12:36:31
 </tt></pre>
 
-<p>As of version 0.60, the default datetime->string conversion is controlled by the <code>locale.conf</code> file.  See the User Guide for details.  
+<p>As of version 0.60, the default datetime-&gt;string conversion is controlled by the <code>locale.conf</code> file.  See the User Guide for details.  
 
 <p>There are two other date issues.  
 <ol>
@@ -971,12 +971,7 @@ function. For example:  </p>
 </p>
 
 		<!-- footer -->
-</td>
-</tr>
-<tr>
-<td colspan="2">
-<hr size="1" /><font size="-1">Updates and comments <a href="mailto:jklowden@speakeasy.org">FreeTDS FAQ Master</a></font></td>
-</tr>
-</table>
+<hr size="1"><font size="-1">Updates and comments <a href="mailto:jklowden@speakeasy.org">FreeTDS FAQ Master</a></font>
+
 </body>
 </html>
