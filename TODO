@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.44 2003-03-30 05:11:07 jklowden Exp $
+To Do List	$Id: TODO,v 1.45 2003-03-30 14:51:04 freddy77 Exp $
 ------------
 Broken:
 
@@ -88,6 +88,8 @@ For future versions (in priority order within library):
 . Check (and fix if needed) call to {?=store(?)} does it bind correctly?
   seem not replace first parameters
 . SQLNativeSql and fill SQLGetInfo according
+. configure should detect iODBC or unixODBC automatically
+. autoinstall for RPM
 
   pool
 . get connection pooling working with all protocol versions

@@ -33,11 +33,12 @@
 
 #include "tds.h"
 #include "tdsconvert.h"
+#include "tdsiconv.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.163 2003-03-29 20:07:03 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.164 2003-03-30 14:51:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1238,7 +1239,7 @@ tds_set_column_type(TDSCOLINFO * curcol, int type)
 
 	/* check for unicode */
 	curcol->column_unicodedata = 0;
-	if (is_unicode(type))
+	if (is_unicode_type(type))
 		curcol->column_unicodedata = 1;
 }
 
@@ -1432,7 +1433,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
 		/* are we dealing with Unicode data */
-		if (is_unicode(curcol->column_type))
+		if (is_unicode_type(curcol->column_type))
 			curcol->column_unicodedata = 1;
 		else
 			curcol->column_unicodedata = 0;

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.102 2003-03-29 18:58:48 freddy77 Exp $";
+	"$Id: tds.h,v 1.103 2003-03-30 14:51:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -459,9 +459,10 @@ enum TDS_OPT_ISOLATION_CHOICE {
 /* large type means it has a two byte size field */
 #define is_large_type(x) (x>128)
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
-#define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
+#define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
+#define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
 
 #define TDS_MAX_CAPABILITY	22
 #define MAXPRECISION 		80
