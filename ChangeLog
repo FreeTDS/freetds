@@ -1,3 +1,6 @@
+Sat Apr  3 13:30:02 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/docs.html added links to other documentation
+	
 Thu Apr 01 20:46:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: update
 	* include/sybdb.h: fix for PHP
