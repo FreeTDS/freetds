@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-11-03 05:07:04 $</date>
-		<releaseinfo>$Revision: 1.66 $</releaseinfo>
+		<date>$Date: 2003-11-03 05:45:51 $</date>
+		<releaseinfo>$Revision: 1.67 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.66 $</>
-<member>$Date: 2003-11-03 05:07:04 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.66 2003-11-03 05:07:04 jklowden Exp $.</>
+<member>$Revision: 1.67 $</>
+<member>$Date: 2003-11-03 05:45:51 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.67 2003-11-03 05:45:51 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -250,13 +250,11 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 	
 	<chapter id="build">
 		<title>Build <productname>FreeTDS</productname></title>
-		<para>
-<blockquote>
+<epigraph>
 <para>
 If you build it they will come.
 </para>
-</blockquote>
-		</para>
+</epigraph>
 		<sect1 id="gnu">
 			<title>The <acronym>GNU</> World</title>
 			<para>
@@ -447,7 +445,7 @@ With any luck, you've built and installed the <productname>FreeTDS</productname>
 			<simplelist>
 				<member><application>gunzip</></member>
 				<member><application>vmstar</></member>
-				<member><application>MMS</> or <application>MMK<</></member>
+				<member><application>MMS</> or <application>MMK</></member>
 			</simplelist>
 			</para>
     
@@ -475,7 +473,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X &reg;</title>
-			<para>As of this writing ($Date: 2003-11-03 05:07:04 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-11-03 05:45:51 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -490,12 +488,12 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 	
 	<chapter id="install">
 		<title>Install <productname>FreeTDS</productname></title>
-		<para>
-<blockquote>
+<epigraph>
 <para>
 If you install it they will stay?
 </para>
-</blockquote>
+</epigraph>
+		<para>
 		</para>
 <Note><title>Confusing terminology</title>
 			<para>
@@ -1234,7 +1232,7 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<para>
 The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to see if it's your dataserver that's not responding, or your configuration files that are messed up. </para> 
 
-			<formalpara><title>Using <filename>freetds.conf</></title>
+			<bridgehead renderas='sect3'>Using <filename>freetds.conf</>:</bridgehead>
 			<para>
 <cmdsynopsis label="Syntax synopsis for tsql">
   <command>tsql</command> 
@@ -1244,9 +1242,8 @@ The <application><firstterm>tsql</></application> utility is provided as part of
 	<arg choice='opt'>-C</arg>
 </cmdsynopsis>
 			</para>
-			</formalpara>
 
-			<formalpara><title>Bypassing <filename>freetds.conf</></title>
+			<bridgehead renderas='sect3'>Bypassing <filename>freetds.conf</>:</bridgehead>
 			<para>
 <cmdsynopsis label="Syntax synopsis for tsql">
   <command>tsql</command> 
@@ -1257,7 +1254,6 @@ The <application><firstterm>tsql</></application> utility is provided as part of
 	<arg choice='opt'>-C</arg>
 </cmdsynopsis>
 			</para>
-			</formalpara>
 
 <example>
 <title>Failing to connect with tsql</title>
@@ -1792,7 +1788,8 @@ Finally, you can use <systemitem class="library">Sybperl</systemitem>.  Scripts 
 		</sect2>
 		<sect2><title>Building and using the Perl modules</title>
 			<para>
-Building <systemitem class="library">DBD::Sybase</systemitem>
+			
+<example><title>Building <systemitem class="library">DBD::Sybase</systemitem></title>
 <screen>
 <prompt>$ </prompt><userinput>cd DBD-Sybase-0.91</userinput>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
@@ -1802,10 +1799,14 @@ Building <systemitem class="library">DBD::Sybase</systemitem>
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
+</example>
+
 There will be some output about missing libraries after <userinput>perl Makefile.PL</userinput>. These are normal.
 			</para>
 			<para>
-The following example will attach to the  <acronym>JDBC</> server (from the <filename>interfaces</filename> file) and run a simple query (it can be found in <filename>samples/test.pl</filename>):
+The following example will attach to Sybase's public <acronym>JDBC</> server and run a simple query (it can be found in <filename>samples/test.pl</filename>):
+
+<example><title>Connect to a server with <systemitem class="library">DBD::Sybase</systemitem></title>
 <programlisting>
 #!/usr/local/bin/perl
 #
@@ -1826,9 +1827,10 @@ if($sth->execute) {
     }
 }
 </programlisting>
+</example>
 			</para>
 			<para>
-Building <systemitem class="library">DBD::ODBC</systemitem>
+<example><title>Building <systemitem class="library">DBD::ODBC</systemitem></title>
 <screen>
 <prompt>$ </prompt><userinput>cd DBD-ODBC-0.28</userinput>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
@@ -1842,9 +1844,11 @@ Building <systemitem class="library">DBD::ODBC</systemitem>
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
-<note><para>I've used the public  <acronym>JDBC</> server logins for my configuration here, you should replace these with ones suitable to your environment.</para></note>
+</example>
+<note><para>We used the public  <acronym>JDBC</> server logins for our configuration here.  You'll want to replace these with ones suitable to your environment.</para></note>
 		</para>
 		<para>
+<example><title>Connect to a server with <systemitem class="library">DBD::ODBC</systemitem></title>
 <programlisting>
 #!/usr/local/bin/perl
 #
@@ -1865,6 +1869,7 @@ if($sth->execute) {
     }
 }
 </programlisting>
+</example>
 You'll note this is the same program as for <systemitem class="library">DBD::Sybase</systemitem> with the exception of the <function>connect</function> statement, welcome to the magic of DBI!
 			</para>
 		</sect2>
@@ -2268,12 +2273,10 @@ Next, try <command>isql -v <replaceable>dsn</> <replaceable>username</> <replace
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="troubleshooting">
 		<title>Troubleshooting</title>
-    		<para>
-<blockquote>
+<epigraph>
 <attribution>Jason Mewes (Mall Rats)</attribution>
 <para>He's like motherf**king McGuiver, no he's better than McGuiver!</para>
-</blockquote>
-		</para>
+</epigraph>
 		<sect1 id="knownissues">
 			<title>Known Issues</title>
 			<sect2>
@@ -2656,11 +2659,11 @@ do this.</para>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="contrib">
 		<title>Helping</title>
-<blockquote>
+<epigraph>
 <para>
 	Rage, rage against the dark!
 </para>
-</blockquote>
+</epigraph>
 		<para>
 <productname>FreeTDS</productname> is a cooperative, volunteer effort.  The list traffic is not always warm and cuddly, but flame wars are unknown and the signal to noise ratio is pretty high for its venue.  Many people have contributed patches, and few have been turned away.  
 		</para>
