@@ -5,9 +5,9 @@ SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.60
 PRODUCT = FreeTDS
-DOCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
-#DOCBOOK_DSL = ${DOCBOOK}/dsssl/modular/html/docbook.dsl
-
+#OCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
+#OCBOOK_DSL = ${DOCBOOK}/dsssl/modular/html/docbook.dsl
+DOCBOOK_DSL = $DOCBOOK_DSL 
 man_MANS	= freebcp.1 tsql.1
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
@@ -35,10 +35,10 @@ userguide.tgz: $(srcdir)/userguide.sgml
 
 man:	freebcp.1 tsql.1
 
-freebcp.1:
+freebcp.1: freebcp.txt
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
 	
-tsql.1:
+tsql.1: tsql.txt
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
 
 
