@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.68 2003-11-13 19:15:41 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.69 2003-11-13 21:04:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -587,38 +587,64 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);
-	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
+	/* temp (above) is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
-	 * and there's no advantage to allocating dynamically 
+	 * and there's no advantage to allocating dynamically.  
 	 * This also avoids any memory allocation error.  
 	 */
-	const char *ptemp;
-	size_t templeft = 0;
+	const char *bufp;
+	size_t i, bufleft = 0;
+	const char * partial_character = NULL;
+	size_t partial_character_length = 0;
 	const size_t max_output = *outbytesleft;
 
-	for (ptemp = temp; *wire_size > 0 && *outbytesleft > 0; ptemp = temp + templeft) {
-		assert(ptemp >= temp);
-		/* read a chunk of data */
-		templeft = (*wire_size > TEMP_SIZE - templeft) ? TEMP_SIZE : *wire_size;
-		tds_get_n(tds, (char *) ptemp, templeft - (ptemp - temp));
+	static const short UTF8 = 0; /* for now */
 
-		/* convert chunk, write to dest */
-		ptemp = temp;
-		if (-1 == tds_iconv(tds, iconv_info, to_client, &ptemp, &templeft, outbuf, outbytesleft)) {
+	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
+		assert(bufp >= temp);
+		/* read a chunk of data */
+		bufleft = (*wire_size > TEMP_SIZE - bufleft) ? TEMP_SIZE : *wire_size;
+		tds_get_n(tds, (char *) bufp, bufleft - (bufp - temp));
+
+		/* TODO: Determine charset, and do not ask tds_iconv to convert a partial character.  */
+		/*       loop compiles but never executes */
+		for (i=1; UTF8 && i <= 4; i++) {
+			if (temp[bufleft - i] & 0xC0) { /* guard byte is binary 11xxxxxx */
+				/* for interest, we can count the number of characters to come */
+				int len; char mask = 0x40;
+				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); len++);
+				partial_character = &temp[bufleft - i];
+				partial_character_length = i;
+				bufleft =- partial_character_length;
+				break;
+			}
+		}
+
+		/* 
+		 * Convert chunk and write to dest.
+		 */
+		bufp = temp; /* always convert from start of buffer */
+		if (-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
 			/* FIXME do not use errno, thread problems */
 			if (errno != EINVAL)
 				break;
 		}
 
 		/* update for next chunk */
-		*wire_size -= ptemp - temp;
-		if (templeft) {
-			if (templeft >= 4) {
+		*wire_size -= bufp - temp;
+		if (bufleft) {
+			if (bufleft >= 4) {
 				tdsdump_log(TDS_DBG_NETWORK, "read_and_convert: EINVAL: "
-					    "incomplete sequence at %d from end\n", *wire_size + (ptemp - temp));
+					    "incomplete sequence at %d from end\n", *wire_size + (bufp - temp));
 				break;
 			}
-			memmove(temp, &temp[templeft], templeft);
+			memmove(temp, &bufp, bufleft);
+		}
+		
+		if (partial_character) { /* always false */
+			memmove(temp + bufleft, partial_character, partial_character_length);
+			bufleft += partial_character_length;
+			partial_character = NULL;
 		}
 	}
 
