@@ -1,4 +1,4 @@
-$Id: README,v 1.10.2.2 2005-02-07 10:54:33 jklowden Exp $
+$Id: README,v 1.10.2.3 2005-03-29 17:02:25 jklowden Exp $
 README for FreeTDS 0.63
 Saturday, 27 November 2004
 
@@ -83,15 +83,15 @@ pages for details.
 l18n
 ----
  - remove duplicate conversion warnings
- - better collate support
- - improved errors report
+ - better collation support
+ - improved error reporting
  
 Support
 -------
 - OpenOffice
 - Oracle connector
 - DBD::ODBC improved
-- HP-UX and Mac OS X should compile flawlessly now
+- HP-UX and Mac OS X should compile flawlessly now.
 
 
 Technical

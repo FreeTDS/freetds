@@ -1,3 +1,7 @@
+Tue Mar 29 11:58:15 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* README small changes for idiom.
+	* configure.in 0.63RC11
+
 Sun Feb 27 09:47:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c:
 	- make sure we don't core if server charset is not supported
