@@ -1,3 +1,6 @@
+Thu Jul 22 15:08:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: small test fix
+
 Wed Jul 21 21:26:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h src/ctlib/ct.c:
 	- fix free invalid pointer

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.333 2004-07-21 15:20:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.334 2004-07-22 13:09:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2702,7 +2702,7 @@ _SQLFetch(TDS_STMT * stmt)
 						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
 						break;
 					}
-					if (len <= 0) {
+					if (len < 0) {
 						row_status = SQL_ROW_ERROR;
 						break;
 					}
