@@ -1,3 +1,23 @@
+* Jan 2004
+- Version 0.62
+- supports UTF-8 and most other client-side character sets
+- ODBC driver is ODBC 3.0 compliant.   
+- uses threadsafe functions by default, if available. 
+- 64-bit clean, subject to vagueness in the ODBC standard.  
+- vastly improved ODBC, several thousand lines of code
+- vastly improved ct-lib, over 4000 lines of code, including
+    cursors, array binding, dynamic SQL, and RPC support
+- freebcp: -e, -A, & -T options, see man page
+- tsql: :r & -C options, see man page
+- removed several bcp constraints, better null handling
+- better, faster datatype conversions
+- fixed old problem with stored procedures that didn't return a rowset
+- improved network performance through better socket and packet handling.
+- more Win32 development choices
+- full support for Sybase ASA
+- VMS support
+- User Guide installs automatically, also new reference manual
+
 * Jan 2003
 - Version 0.61
 - Dynamic SQL

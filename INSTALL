@@ -1,9 +1,9 @@
 FreeTDS Installation
 
-   For complete instructions, see the FreeTDS Users Guide.  It is 
-   included in the distribution as "doc/userguide.tgz"; simply untar and
-   enjoy.  It is also online:
-   
+	For complete instructions, see the FreeTDS Users Guide.   
+	"make install" installs the HTML documentation, by default to
+	/usr/local/share.  It is also online:
+
    	http://www.freetds.org/userguide/
 
 Brief Instructions
@@ -13,7 +13,7 @@ Brief Instructions
    $ make install
 
    Edit the /usr/local/etc/freetds.conf file to add servers.
-   Test the connection with /usr/local/tsql.  
+   Test the connection with /usr/local/bin/tsql.  
    Build and test the package that requires FreeTDS.
 
 ------
