@@ -1,6 +1,8 @@
-FreeTDS 0.53
+README for FreeTDS
 
-To build FreeTDS read the file INSTALL.
+* to build FreeTDS read the file INSTALL,
+* see also the FreeTDS Users Guide,
+http://www.freetds.org/userguide/book1.htm
 
 FreeTDS is a free (open source) implementation of Sybase's db-lib,
 ct-lib, and ODBC libraries. Currently, dblib and ctlib are most
