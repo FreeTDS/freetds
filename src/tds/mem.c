@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.9 2002-02-17 20:23:38 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.10 2002-05-25 01:20:52 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -130,6 +130,7 @@ TDSPARAMINFO *param_info;
 		param_info->num_cols=1;
 		param_info->columns = (TDSCOLINFO **) 
 			malloc(sizeof(TDSCOLINFO *));
+		param_info->columns[0] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
 		memset(param_info->columns[0],'\0',sizeof(TDSCOLINFO));
 	} else {
 		param_info = old_param;
@@ -137,6 +138,8 @@ TDSPARAMINFO *param_info;
 		param_info->columns = (TDSCOLINFO **) 
 			realloc(param_info->columns, 
 			sizeof(TDSCOLINFO *) * param_info->num_cols);
+		param_info->columns[param_info->num_cols-1] =
+		        (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
 		memset(param_info->columns[param_info->num_cols-1],'\0',
 			sizeof(TDSCOLINFO));
 	}

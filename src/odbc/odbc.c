@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.23 2002-05-20 01:22:02 jklowden Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.24 2002-05-25 01:20:52 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -238,6 +238,7 @@ SQLRETURN SQL_API SQLBrowseConnect(
     SQLSMALLINT FAR   *pcbConnStrOut)
 {
 	CHECK_HDBC;
+	LogError ("SQLBrowseConnect: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -253,6 +254,7 @@ SQLRETURN SQL_API SQLColumnPrivileges(
     SQLSMALLINT        cbColumnName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLColumnPrivileges: function not implemented");
 	/* FIXME: error HYC00, Driver not capable */
 	return SQL_ERROR;
 }
@@ -266,6 +268,7 @@ SQLRETURN SQL_API SQLDescribeParam(
     SQLSMALLINT FAR   *pfNullable)
 {
 	CHECK_HSTMT;
+	LogError ("SQLDescribeParam: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -277,6 +280,7 @@ SQLRETURN SQL_API SQLExtendedFetch(
     SQLUSMALLINT FAR  *rgfRowStatus)
 {
 	CHECK_HSTMT;
+	LogError ("SQLExtendedFetch: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -296,6 +300,7 @@ SQLRETURN SQL_API SQLForeignKeys(
     SQLSMALLINT        cbFkTableName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLForeignKeys: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -334,6 +339,7 @@ SQLRETURN SQL_API SQLNativeSql(
     SQLINTEGER FAR    *pcbSqlStr)
 {
 	CHECK_HDBC;
+	LogError ("SQLNativeSql: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -354,6 +360,7 @@ SQLRETURN SQL_API SQLParamOptions(
     SQLUINTEGER FAR   *pirow)
 {
 	CHECK_HSTMT;
+	LogError ("SQLParamOptions: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -367,6 +374,7 @@ SQLRETURN SQL_API SQLPrimaryKeys(
     SQLSMALLINT        cbTableName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLPrimaryKeys: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -382,6 +390,7 @@ SQLRETURN SQL_API SQLProcedureColumns(
     SQLSMALLINT        cbColumnName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLProcedureColumns: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -395,6 +404,7 @@ SQLRETURN SQL_API SQLProcedures(
     SQLSMALLINT        cbProcName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLProcedures: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -405,6 +415,7 @@ SQLRETURN SQL_API SQLSetPos(
     SQLUSMALLINT       fLock)
 {
 	CHECK_HSTMT;
+	LogError ("SQLSetPos: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -418,6 +429,7 @@ SQLRETURN SQL_API SQLTablePrivileges(
     SQLSMALLINT        cbTableName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLTablePrivileges: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -428,6 +440,8 @@ SQLRETURN SQL_API SQLSetEnvAttr (
     SQLINTEGER StringLength)
 {
 	CHECK_HENV;
+	LogError ("SQLDrivers: function not implemented");
+	LogError ("SQLSetEnvAttr: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -448,7 +462,7 @@ TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
 struct _hstmt *stmt;
-struct _sql_param_info *cur, *prev, *newitem;
+struct _sql_param_info *cur, *newitem;
 
 	CHECK_HSTMT;
 	if (ipar == 0)
@@ -457,13 +471,7 @@ struct _sql_param_info *cur, *prev, *newitem;
 	stmt = (struct _hstmt *) hstmt;
 
 	/* find available item in list */
-	cur = stmt->param_head;
-	while (cur) {
-		if (cur->param_number==ipar) 
-			break;
-		prev = cur;
-		cur = cur->next;
-	}
+	cur = odbc_find_param(stmt, ipar);
 	
 	if (!cur)
 	{
@@ -474,15 +482,11 @@ struct _sql_param_info *cur, *prev, *newitem;
 			return SQL_ERROR;
 		memset(newitem, 0, sizeof(struct _sql_param_info));
 		newitem->param_number = ipar;
-		/* if there's no head yet */
-		if (!stmt->param_head) {
-			stmt->param_head = newitem;
-		} else {
-			prev->next = newitem;
-		}
-		cur = newitem;	
+		cur = newitem;
+		cur->next = stmt->param_head;
+		stmt->param_head = cur;
 	}
-	
+
 	cur->param_type = fParamType;
 	cur->param_bindtype = fCType;
 	cur->param_sqltype = fSqlType;
@@ -821,7 +825,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		*pcbColName = strlen(colinfo->column_name);
 	}
 	if (pfSqlType) {
-		*pfSqlType=_odbc_get_client_type(colinfo->column_type, colinfo->column_size);
+		*pfSqlType=odbc_get_client_type(colinfo->column_type, colinfo->column_size);
 	}
 
 	if (pcbColDef) {
@@ -904,13 +908,34 @@ struct _hdbc *dbc;
 			break;
 		case SQL_COLUMN_TYPE:
 		case SQL_DESC_TYPE:
-			*pfDesc=_odbc_get_client_type(colinfo->column_type, colinfo->column_size);
+			*pfDesc=odbc_get_client_type(colinfo->column_type, colinfo->column_size);
+			tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: colinfo->column_type = %d,"
+						   " colinfo->column_size = %d,"
+						   " *pfDesc = %d\n"
+						   , colinfo->column_type, colinfo->column_size, *pfDesc);
+			break;
+		case SQL_COLUMN_PRECISION:
+		case SQL_DESC_PRECISION:  // this section may be wrong
+			switch (colinfo->column_type){
+			case SYBNUMERIC:
+			case SYBDECIMAL:
+			    *pfDesc = colinfo->column_prec;
+			    break;
+			case SYBCHAR:
+			    *pfDesc = colinfo->column_size;
+			    break;
+			case SYBDATETIME:
+			case SYBDATETIME4:
+			case SYBDATETIMN:
+			    *pfDesc = 30;
+			    break;
+			}
 			break;
 		case SQL_COLUMN_LENGTH:
 			*pfDesc = colinfo->column_size;
 			break;
 		case SQL_COLUMN_DISPLAY_SIZE:
-			switch(_odbc_get_client_type(colinfo->column_type, colinfo->column_size)) {
+			switch(odbc_get_client_type(colinfo->column_type, colinfo->column_size)) {
 				case SQL_CHAR:
 				case SQL_VARCHAR:
 					*pfDesc = colinfo->column_size;
@@ -979,18 +1004,13 @@ TDSCOLINFO *colinfo;
 
 	CHECK_HSTMT;
 
-	_odbc_fix_literals(stmt);
-	if (stmt->param_head) {
-		_odbc_fixup_sql(stmt);
-	}
-	/* fprintf(stderr,"query = %s\n",stmt->query); */
-
 	stmt->row = 0;
 
 	if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED)) {
 		LogError (tds->msg_info->message);
 		return SQL_ERROR;
 	}
+
 	/* does anyone know how ODBC deals with multiple result sets? */
 	ret = tds_process_result_tokens(tds);
 	
@@ -1023,7 +1043,19 @@ int ret;
 SQLRETURN SQL_API SQLExecute(
     SQLHSTMT           hstmt)
 {
-   return _SQLExecute(hstmt);
+	struct _hstmt *stmt = (struct _hstmt *) hstmt;
+
+	CHECK_HSTMT;
+	if (SQL_SUCCESS!=odbc_fix_literals(stmt))
+		return SQL_ERROR;
+
+	if (stmt->prepared_query) {
+		SQLRETURN res = start_parse_prepared_query(stmt);
+		if (SQL_SUCCESS!=res)
+			return res;
+	}
+
+	return _SQLExecute(hstmt);
 }
 
 SQLRETURN SQL_API SQLFetch(
@@ -1039,12 +1071,15 @@ SQLINTEGER len=0;
 unsigned char *src;
 int srclen;
 struct _sql_bind_info *cur;
+TDSLOCINFO *locale;
 
 	CHECK_HSTMT;
 
 	stmt=(struct _hstmt *)hstmt;
 
 	tds = stmt->hdbc->tds_socket;
+
+	locale = stmt->hdbc->henv->locale;
 	
 	/* if we bound columns, transfer them to res_info now that we have one */
 	if (stmt->row==0) {
@@ -1083,11 +1118,11 @@ struct _sql_bind_info *cur;
 				src = &resinfo->current_row[colinfo->column_offset];
 				srclen = -1;
 			}
-			len = tds_convert(tds, 
+			len = convert_tds2sql(locale, 
          		tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 			src,
 			srclen, 
-			_odbc_get_server_type(colinfo->column_bindtype), 
+			colinfo->column_bindtype, 
 			colinfo->varaddr, 
 			colinfo->column_bindlen);
 /*
@@ -1219,6 +1254,10 @@ struct _hstmt *stmt=(struct _hstmt *)hstmt;
 	/* free it */
 	if (fOption == SQL_DROP)
 	{
+		if (stmt->query)
+		    free(stmt->query);
+		if (stmt->prepared_query)
+		    free(stmt->prepared_query);
 		free(stmt);
 	}
 	return SQL_SUCCESS;
@@ -1238,6 +1277,7 @@ SQLRETURN SQL_API SQLGetStmtAttr (
     SQLINTEGER * StringLength)
 {
 	CHECK_HSTMT;
+	LogError ("SQLGetStmtAttr: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1248,6 +1288,7 @@ SQLRETURN SQL_API SQLGetCursorName(
     SQLSMALLINT FAR   *pcbCursor)
 {
 	CHECK_HSTMT;
+	LogError ("SQLGetCursorName: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1294,16 +1335,12 @@ SQLRETURN SQL_API SQLPrepare(
 
 	CHECK_HSTMT;
 
-	if (cbSqlStr!=SQL_NTS) {
-		strncpy(stmt->query, szSqlStr, cbSqlStr);
-		stmt->query[cbSqlStr]='\0';
-	} else {
-		strcpy(stmt->query, szSqlStr);
-	}
+	if (SQL_SUCCESS!=odbc_set_stmt_prepared_query(stmt, szSqlStr, cbSqlStr))
+		return SQL_ERROR;
    
 	/* count parameters */
 	stmt->param_count = 0;
-	for(p=stmt->query;*p;++p)
+	for(p=stmt->prepared_query;*p;++p)
 		switch(*p)
 		{
 		/* skip quoted chars */
@@ -1364,6 +1401,7 @@ SQLRETURN SQL_API SQLSetCursorName(
     SQLSMALLINT        cbCursor)
 {
 	CHECK_HSTMT;
+	LogError ("SQLSetCursorName: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1374,6 +1412,7 @@ SQLRETURN SQL_API SQLTransact(
 {
 	CHECK_HENV;
 	CHECK_HDBC;
+	LogError ("SQLTransact: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1389,6 +1428,7 @@ SQLRETURN SQL_API SQLSetParam(            /*      Use SQLBindParameter */
     SQLINTEGER FAR     *pcbValue)
 {
 	CHECK_HSTMT;
+	LogError ("SQLSetParam: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1404,6 +1444,7 @@ SQLRETURN SQL_API SQLColumns(
     SQLSMALLINT        cbColumnName)
 {
 	CHECK_HSTMT;
+	LogError ("SQLColumns: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1413,6 +1454,7 @@ SQLRETURN SQL_API SQLGetConnectOption(
     SQLPOINTER         pvParam)
 {
 	CHECK_HDBC;
+	LogError ("SQLGetConnectOption: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1430,11 +1472,14 @@ TDSSOCKET * tds;
 struct _hstmt *stmt;
 unsigned char *src;
 int srclen;
+TDSLOCINFO *locale;
+
 
 	CHECK_HSTMT;
 
 	stmt = (struct _hstmt *) hstmt;
 	tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+	locale = stmt->hdbc->henv->locale;
 	resinfo = tds->res_info;
 	if (icol == 0 || icol > tds->res_info->num_cols)
 	{
@@ -1447,25 +1492,34 @@ int srclen;
 		*pcbValue=SQL_NULL_DATA;
 	} else {
 		if (is_blob_type(colinfo->column_type)) {
-			src = colinfo->column_textvalue;
-			srclen = colinfo->column_textsize + 1;
+			src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
+			srclen = colinfo->column_textsize + 1 - colinfo->column_text_sqlgetdatapos;
 		} else {
 			src = &resinfo->current_row[colinfo->column_offset];
 			srclen = -1;
 		}
-		*pcbValue=tds_convert(tds, 
-      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+
+		*pcbValue=convert_tds2sql(locale, 
+		tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 		src,
 		srclen, 
-		_odbc_get_server_type(fCType), 
+		fCType, 
 		rgbValue,
 		cbValueMax);
+
+		if (is_blob_type(colinfo->column_type)){
+			colinfo->column_text_sqlgetdatapos += *pcbValue;
+			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
+				colinfo->column_text_sqlgetdatapos = 0;
+			else
+				return SQL_SUCCESS_WITH_INFO;
+		}
 	}
 	/*
 	memcpy(rgbValue,&resinfo->current_row[colinfo->column_offset],
 		colinfo->column_size);
 	*/
-	return 0;
+	return SQL_SUCCESS;
 }
 
 static void _set_func_exists(SQLUSMALLINT FAR *pfExists, SQLUSMALLINT fFunction)
@@ -1533,6 +1587,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTATTR);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
+			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
 			_set_func_exists(pfExists,SQL_API_SQLPREPARE);
@@ -1581,6 +1636,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLGETINFO);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
+			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
 			_set_func_exists(pfExists,SQL_API_SQLPREPARE);
@@ -1654,7 +1710,7 @@ int len;
 			p = "libtdsodbc.so";
 			break;
 		case SQL_DRIVER_ODBC_VER:
-			p = "1.0";
+			p = "01.00";
 			break;
 		case SQL_ACTIVE_STATEMENTS:
 			si = 1;
@@ -1688,6 +1744,7 @@ SQLRETURN SQL_API SQLGetStmtOption(
     SQLPOINTER         pvParam)
 {
 	CHECK_HSTMT;
+	LogError ("SQLGetStmtOption: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1702,9 +1759,15 @@ struct _hstmt *stmt;
 	stmt = (struct _hstmt *) hstmt;
 	/* TODO for MSSQL6.5 + use sp_datatype_info fSqlType */
 	if (!fSqlType) {
-   		strcpy(stmt->query, "SELECT * FROM tds_typeinfo");
+		const char *sql = "SELECT * FROM tds_typeinfo";
+		if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))
+			return SQL_ERROR;
 	} else {
-			sprintf(stmt->query, "SELECT * FROM tds_typeinfo WHERE SQL_DATA_TYPE = %d", fSqlType);
+		const char *sql_templ = "SELECT * FROM tds_typeinfo WHERE SQL_DATA_TYPE = %d";
+		char sql[sizeof(*sql_templ)+20];
+		sprintf(sql, sql_templ, fSqlType);
+		if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))
+			return SQL_ERROR;
 	}
 		
 	return _SQLExecute(hstmt);
@@ -1714,8 +1777,22 @@ SQLRETURN SQL_API SQLParamData(
     SQLHSTMT           hstmt,
     SQLPOINTER FAR    *prgbValue)
 {
+	struct _hstmt *stmt;
+	struct _sql_param_info *param;
+
 	CHECK_HSTMT;
-	return SQL_ERROR;
+
+	stmt = (struct _hstmt *) hstmt;
+	if (stmt->prepared_query_need_bytes){
+		param = odbc_find_param(stmt, stmt->prepared_query_param_num);
+		if (!param)
+			return SQL_ERROR;
+
+		*prgbValue = param->varaddr;
+		return SQL_NEED_DATA;
+	}
+
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLPutData(
@@ -1723,8 +1800,18 @@ SQLRETURN SQL_API SQLPutData(
     SQLPOINTER         rgbValue,
     SQLINTEGER         cbValue)
 {
+	struct _hstmt *stmt = (struct _hstmt *) hstmt;
+
 	CHECK_HSTMT;
-	return SQL_ERROR;
+	if (stmt->prepared_query && stmt->param_head) {
+		SQLRETURN res = continue_parse_prepared_query(stmt, rgbValue, cbValue);
+		if (SQL_NEED_DATA==res)
+			return SQL_SUCCESS;
+		if (SQL_SUCCESS!=res)
+			return res;
+	}
+
+	return _SQLExecute(hstmt);
 }
 
 SQLRETURN SQL_API SQLSetConnectOption(
@@ -1733,6 +1820,7 @@ SQLRETURN SQL_API SQLSetConnectOption(
     SQLUINTEGER        vParam)
 {
 	CHECK_HDBC;
+	LogError ("SQLSetConnectOption: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1742,6 +1830,7 @@ SQLRETURN SQL_API SQLSetStmtOption(
     SQLUINTEGER        vParam)
 {
 	CHECK_HSTMT;
+	LogError ("SQLSetStmtOption: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1758,6 +1847,7 @@ SQLRETURN SQL_API SQLSpecialColumns(
     SQLUSMALLINT       fNullable)
 {
 	CHECK_HSTMT;
+	LogError ("SQLSpecialColumns: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1773,6 +1863,7 @@ SQLRETURN SQL_API SQLStatistics(
     SQLUSMALLINT       fAccuracy)
 {
 	CHECK_HSTMT;
+	LogError ("SQLStatistics: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -1797,10 +1888,10 @@ struct _hstmt *stmt;
 
 	stmt = (struct _hstmt *) hstmt;
 
-	clen = _odbc_get_string_size(cbCatalogName, szCatalogName);
-	slen = _odbc_get_string_size(cbSchemaName, szSchemaName);
-	tlen = _odbc_get_string_size(cbTableName, szTableName);
-	ttlen = _odbc_get_string_size(cbTableType, szTableType);
+	clen  = odbc_get_string_size(cbCatalogName, szCatalogName);
+	slen  = odbc_get_string_size(cbSchemaName, szSchemaName);
+	tlen  = odbc_get_string_size(cbTableName, szTableName);
+	ttlen = odbc_get_string_size(cbTableType, szTableType);
 
 	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 40; /* a little padding for quotes and commas */
 	query = (char *) malloc(querylen);
@@ -1841,7 +1932,8 @@ struct _hstmt *stmt;
 	*p++ = '\0';
 	/* fprintf(stderr,"\nquery = %s\n",query); */
 
-	strcpy(stmt->query, query);
+	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, query, strlen(query)))
+		return SQL_ERROR;
 	return _SQLExecute(hstmt);
 }
 

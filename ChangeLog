@@ -1,3 +1,72 @@
+Fri May 24 21:18:20 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
+	* include/tds.h.in:
+	- Add field TDS_INT column_text_sqlgetdatapos to TDSCOLINFO. We use it
+	in SQLGetData() when user get long data in parts
+	* include/tdsodbc.h:
+	- struct _hstmt: change query from array to pointer, add some members
+	to parse prepared query in SQLExecute(), SQLPutData()
+	* src/odbc/Makefile.am:
+	- Add new sources: convert_tds2sql.c, convert_sql2string.c,
+	prepare_query.c, odbc_util.c
+	- link $(LIBICONV) to libtdsodbc
+	* src/odbc/convert_sql2string.h:
+	- declare convert_sql2string() function, which convert sql data to
+	string while parsing prepared query
+	* src/odbc/convert_sql2string.c:
+	- implementation of convert_sql2string(), you can add more conversions
+	here
+	* src/odbc/convert_tds2sql.h:
+	- declare convert_tds2sql() function, which convert tds data to sql
+	data while SQLFetch() and SQLGetData()
+	* src/odbc/convert_tds2sql.c:
+	- implementation of convert_tds2sql(), you can add more conversions here
+	* src/odbc/odbc_util.h:
+	- declare odbc_set_stmt_query() function which allocate query in struct
+	_hstmt
+	- declare odbc_set_stmt_prepared_query() function which allocate
+	prepared_query in struct _hstmt
+	- declare odbc_get_client_type()
+	- declare odbc_fix_literals()
+	- declare odbc_get_string_size()
+	* src/odbc/odbc_util.c:
+	- implement declared in src/odbc/odbc_util.h functions
+	* src/odbc/prepare_query.h:
+	- declare start_parse_prepared_query(), which called from SQLExecute()
+	- declare continue_parse_prepared_query(), which called from
+	SQLPutData()
+	* src/odbc/prepare_query.c:
+	- implement parsing of prepared query
+	* src/odbc/odbc.c:
+	- move _odbc_XXXXXXXXXX() functions to separate files and remove first
+	'_' from they names
+	- _odbc_fixup_sql() replaced by start_parse_prepared_query() and
+	continue_parse_prepared_query() from src/odbc/prepare_query.h
+	- Insert LogError ("FuncName: function not implemented") calls to every
+	non implemented function. It makes debugging of applications uses
+	tdsodbc more convenient
+	- SQLBindParameter(): use odbc_find_param() to find _sql_param_info,
+	insert new _sql_param_info in the beggining of list - it is just easy
+	and allow to use odbc_find_param() before
+	- move odbc_fix_literals() from _SQLExecute() to SQLExecDirect() and
+	SQLExecute()
+	- remove _odbc_fixup_sql() from _SQLExecute() and use
+	start_parse_prepared_query() in SQLExecute()
+	- now we set query in _hstmt only by odbc_set_stmt_query()
+	- SQLFetch() and SQLGetData(): use convert_tds2sql() instead of
+	tds_convert(), parse locale not tds to convert_tds2sql()
+	- _SQLFreeStmt(): free stmt->query and stmt->prepared_query
+	- SQLGetData(): now you can get long data in parts
+	- SQLGetFunctions(): set SQL_API_SQLNUMPARAMS as exists
+	- SQLGetInfo(): fix return value for SQL_DRIVER_ODBC_VER
+	- implement SQLParamData()
+	- implement SQLPutData()
+	* src/tds/convert.c:
+	- fix tds_convert_text() function
+	- fix tds_convert_char() function: make correct building of
+	any.dt.dttime and any.dt4.minutes
+	* src/tds/mem.c:
+	- fix tds_alloc_param_result() function
+
 Sun May 19 21:41:21 2002  James K. Lowden <jklowden@speakeasy.org>
 	Applied patch from Harry Felder for more flexible logging.
 

@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.12 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.13 2002-05-25 01:20:52 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -118,17 +118,15 @@ int cplen;
 
    switch(desttype) {
       case SYBTEXT:
-	 cplen = srclen > destlen ? destlen : srclen;
-         memcpy(dest, src, cplen);
-         /* 2001-06-15 Deutsch changed [cplen-1] to [cplen] */
-         dest[cplen] = '\0';
-         return strlen(dest);
       case SYBCHAR:
 	 cplen = srclen > destlen ? destlen : srclen;
-	 /* if (cplen>255) cplen=255; */
          memcpy(dest, src, cplen);
-		dest[cplen]='\0';
+         dest[cplen-1] = '\0';
          return strlen(dest);
+      case SYBBINARY:
+	 cplen = srclen > destlen ? destlen : srclen;
+         memcpy(dest, src, cplen);
+         return cplen;
    }
    return 0;
 }

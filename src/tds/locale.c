@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: locale.c,v 1.1 2002-02-17 20:23:38 brianb Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.2 2002-05-25 01:20:52 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -61,7 +61,6 @@ FILE *in;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	locale = tds_alloc_locale();
-
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read locales.conf file\n");
 
 	in = fopen(FREETDS_LOCALECONFFILE, "r");
