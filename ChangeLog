@@ -1,3 +1,6 @@
+Tue Dec 16 17:00:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: do not write time more and more
+
 Tue Dec 16 12:03:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix severe BUG in big-endian machines
 	* src/tds/iconv.c: fix core due to recent optimization

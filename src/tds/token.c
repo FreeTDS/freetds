@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.239 2003-12-16 11:05:27 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.240 2003-12-16 16:01:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2104,9 +2104,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end: more_results = %d\n"
-		    "%L                  was_cancelled = %d\n"
-		    "%L                  error = %d\n"
-		    "%L                  done_count_valid = %d\n", more_results, was_cancelled, error, done_count_valid);
+		    "\t\twas_cancelled = %d\n"
+		    "\t\terror = %d\n"
+		    "\t\tdone_count_valid = %d\n", more_results, was_cancelled, error, done_count_valid);
 
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
