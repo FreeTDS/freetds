@@ -140,7 +140,8 @@ AC_C_BIGENDIAN
 dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
-AC_CHECK_FUNCS(asprintf vasprintf vsnprintf atoll)
+AC_CHECK_FUNCS(vsnprintf atoll)
+AC_REPLACE_FUNCS(asprintf vasprintf)
 
 AC_MSG_CHECKING(if 64-bit arithmetic is available)
 AC_EGREP_CPP(yes,
@@ -222,6 +223,14 @@ AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 AC_raf_FUNC_WHICH_GETSERVBYNAME_R
 AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
 
+dnl ------------------------------------------------------------
+dnl LTLIBOBJS hacks from libtool info page
+dnl ------------------------------------------------------------
+LTLIBOBJS=`echo "$LIBOBJS" | sed 's/\.o/.lo/g'`
+AC_SUBST(LTLIBOBJS)
+LTALLOCA=`echo "$ALLOCA" | sed 's/\.o/.lo/g'`
+AC_SUBST(LTALLOCA)
+
 AC_MSG_RESULT(done)
 dnl ------------------------------------------------------------
 dnl Final output
@@ -234,6 +243,7 @@ AC_OUTPUT(include/tdsver.h include/tds.h \
 		src/tds/Makefile src/tds/unittests/Makefile \
 		src/dblib/Makefile src/dblib/unittests/Makefile \
 		src/ctlib/Makefile src/ctlib/unittests/Makefile \
+		src/replacements/Makefile \
 	src/server/Makefile \
 	src/pool/Makefile \
 	src/odbc/Makefile \

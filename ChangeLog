@@ -1,3 +1,18 @@
+Sun Sep 22 22:07:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/Makefile.am src/ctlib/Makefile.am
+	  src/dblib/Makefile.am src/dblib/dblib.c src/odbc/Makefile.am
+	  src/odbc/odbc.c src/tds/Makefile.am src/tds/config.c
+	  include/replacements.h (added)
+	  src/replacements/.cvsignore (added)
+	  src/replacements/Makefile.am (added)
+	  src/replacements/asprintf.c (added)
+	  src/replacements/vasprintf.c (added)
+	  src/tds/asprintf.c (removed):
+	- Migrate asprintf() and vasprintf() replacement functions to a
+	  libtool convenience library.  Use AC_REPLACE_FUNCS() autoconf
+	  macro to test for them.  Add and use a header replacements.h
+	  with replacement prototypes.
+
 Sun Sep 22 17:52:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/config.c:
 	- Print correct location of found configuration file in

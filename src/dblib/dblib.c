@@ -34,14 +34,11 @@
 #include "syberror.h"
 #include "dblib.h"
 #include "tdsconvert.h"
+#include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.64 2002-09-22 00:53:40 vorlon Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.65 2002-09-23 02:13:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
-
-#if	!HAVE_VASPRINTF
-int vasprintf(char **ret, const char *fmt, va_list ap);
-#endif
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);

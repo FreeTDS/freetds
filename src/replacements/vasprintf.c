@@ -1,5 +1,5 @@
 /*
- * vasprintf(3), asprintf(3)
+ * vasprintf(3)
  * 20020809 entropy@tappedin.com
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
@@ -14,13 +14,13 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include "replacements.h"
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.8 2002-09-22 21:43:18 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.1 2002-09-23 02:13:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-#if !HAVE_VASPRINTF
 #define CHUNKSIZE 512
 int
 vasprintf(char **ret, const char *fmt, va_list ap)
@@ -78,18 +78,3 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   return len;
 #endif /* HAVE_VSNPRINTF */
 }
-#endif /* !HAVE_VASPRINTF */
-
-#if !HAVE_ASPRINTF
-int
-asprintf(char **ret, const char *fmt, ...)
-{
-  int len;
-  va_list ap;
-
-  va_start(ap, fmt);
-  len = vasprintf(ret, fmt, ap);
-  va_end(ap);
-  return len;
-}
-#endif /* !HAVE_ASPRINTF */

@@ -58,8 +58,9 @@
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
+#include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.56 2002-09-22 08:01:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.57 2002-09-23 02:13:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
