@@ -1,3 +1,22 @@
+/* FreeTDS - Library of routines accessing Sybase and Microsoft databases
+ * Copyright (C) 1998-1999  Brian Bruns
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
@@ -5,6 +24,10 @@
 #include <sybdb.h>
 
 #include "freebcp.h"
+
+static char  software_version[]   = "$Id: freebcp.c,v 1.3 2002-08-22 03:25:18 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version,
+                                     no_unused_var_warn};
 
 void pusage();
 int process_parameters(int , char **, struct pd *);
@@ -26,7 +49,6 @@ DBPROCESS       *dbproc;
 
     if (process_parameters(argc, argv, &params ) == FALSE )
     {
-       pusage();
        exit(1);
     }
 
@@ -90,9 +112,20 @@ int i ;
 
 char arg[FILENAME_MAX + 1];
 
-
-    if (argc < 6)
+     if (argc == 0) {
+       pusage();
        return(FALSE);
+     }
+
+     if (*(1+argv[1]) == 'v') {
+		printf ("freebcp version %s\n", software_version); 
+		return(FALSE);
+     }
+
+	if (argc < 6) {
+		fprintf(stderr,"A minimum of 6 parameters must be supplied.\n");
+		return(FALSE);
+	}
 
     /* set some defaults */
 
@@ -129,11 +162,18 @@ char arg[FILENAME_MAX + 1];
 
            case GET_NEXTARG : 
 
-                if (arg[0] != '-')
+   	        if (arg[0] != '-') {
+                   fprintf(stderr,"Parse error: expected parameter %d to begin with a '-' instead of '%c'.\n",i,arg[0]);
                    return(FALSE);
+                }
 
                 switch (arg[1]) {
 
+                   case 'v': 
+                   case 'V':
+		   			printf ("freebcp version %s\n", software_version); 
+					return FALSE;
+                        break;
                    case 'm': 
                         pdata->mflag++;
                         if (strlen(arg) > 2)
@@ -240,6 +280,7 @@ char arg[FILENAME_MAX + 1];
                            state = GET_SERVER;
                         break;
                    default:
+                        fprintf(stderr,"Unknown option '%c'.\n",arg[1]);
                         return(FALSE);
 
                 }
@@ -303,13 +344,19 @@ char arg[FILENAME_MAX + 1];
 
        }
    }
+
+
    /* these must be specified */
-   if ( !pdata->Uflag || !pdata->Pflag || !pdata->Sflag )
+   if ( !pdata->Uflag || !pdata->Pflag || !pdata->Sflag ) {
+      fprintf(stderr,"All 3 options -U, -P, -S must be supplied.\n");
       return(FALSE);
+   }
 
    /* only one of these can be specified */
-   if ( pdata->cflag + pdata->nflag + pdata->fflag  != 1)
+   if ( pdata->cflag + pdata->nflag + pdata->fflag  != 1) {
+      fprintf(stderr,"Exactly one of options -c, -n, -f must be supplied.\n");
       return(FALSE);
+   }
 
    /* character mode file */
    if (pdata->cflag)
@@ -555,6 +602,7 @@ void pusage()
    fprintf(stderr,"        [-A packet size] [-J client character set]\n");
    fprintf(stderr,"        [-T text or image size] [-E] [-N] [-X]  [-y sybase_dir]\n");
    fprintf(stderr,"        [-Mlabelname labelvalue] [-labeled]\n");
+   fprintf(stderr,"example: bcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
 
 int err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr)
