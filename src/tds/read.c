@@ -59,12 +59,20 @@
 
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: read.c,v 1.26 2002-10-18 17:04:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.27 2002-10-18 18:26:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+/**
+ * \defgroup network Network functions
+ * Functions for reading or writing from network.
+ */
 
-/** 
+/** \addtogroup network
+ *  \@{ 
+ */
+
+/**
  * Loops until we have received buflen characters 
  * return -1 on failure 
  */
@@ -103,7 +111,7 @@ struct timeval selecttimeout;
 			len = READSOCKET(tds->s, buf+got, buflen);
 			if (len <= 0) {
 				if (len < 0 && errno == EINTR) len = 0;
-				else return (-1); /* SOCKET_ERROR); */
+				else return (-1); /* SOCKET_ERROR */
 			}
 
 			buflen -= len;
@@ -125,7 +133,7 @@ struct timeval selecttimeout;
 			len = READSOCKET(tds->s, buf + got, buflen - got);
 			if (len <= 0) {
 				if (len < 0 && (errno == EINTR || errno == EINPROGRESS)) len = 0;
-				else return (-1); /* SOCKET_ERROR); */
+				else return (-1); /* SOCKET_ERROR */
 			}  
 			got += len;
 		}
@@ -311,7 +319,7 @@ tds_get_size_by_type(int servertype)
  * Read in one 'packet' from the server.  This is a wrapped outer packet of
  * the protocol (they bundle resulte packets into chunks and wrap them at
  * what appears to be 512 bytes regardless of how that breaks internal packet
- * up.   (tetherow@nol.org)
+ * up.   (tetherow\@nol.org)
  * @return bytes readed or -1 on failure
  */
 int tds_read_packet (TDSSOCKET *tds)
@@ -427,3 +435,4 @@ int           x = 0, have, need;
 
 	return (tds->in_len);
 }
+/** \@} */

@@ -60,11 +60,15 @@
 #endif
 
 static char software_version[] =
-	"$Id: write.c,v 1.22 2002-10-14 13:36:55 castellano Exp $";
+	"$Id: write.c,v 1.23 2002-10-18 18:26:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
+
+/** \addtogroup network
+ *  \@{ 
+ */
 
 /*
  * CRE 01262002 making buf a void * means we can put any type without casting
@@ -285,3 +289,4 @@ tds_flush_packet(TDSSOCKET *tds)
 	/* GW added check for tds->s */
 	return 0;
 }
+/** \@} */

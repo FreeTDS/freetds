@@ -8,11 +8,10 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.9 2002-09-22 08:01:46 freddy77 Exp $
+To Do List	$Id: TODO,v 1.10 2002-10-18 18:26:12 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
-. Domain support for MS SQL (verify)
 . thorough rototilling of the code for cleanliness, I would like it to 
   build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
 For future versions:
@@ -28,12 +27,9 @@ For future versions:
 . Array binding for ctlib not working
 . RPC stuff not implemented
 . All manner of unimplemented functions
-. Need a way to track problems with running apache/PHP, may have many apache 
-  children going. (done, see append mode)
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (partly done)
 . Server API needs more work, especially for TDS 5.0/7.0
 . Add support for TDS 8.0 (login works)
-. TDS 7 support on big endian clients (done)
 . add textsize option for TDS 7 to freetds.conf (done)
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
 . tdsping program for testing purposes
@@ -54,7 +50,7 @@ For future versions:
 . ODBC: dynamic query (need rewrite SQLPrepare and related)
 . ODBC: improve, best error report (even multiple)
 . ODBC: be able to ignore freetds.conf using SQLDriverConnect, more
-  compatiblity with windows one
+  compatiblity with windows one (finish)
 . dynamic query (even for mssql)
 . cursor support
 . more solid. handle out of memory conditions (started, we must test all 

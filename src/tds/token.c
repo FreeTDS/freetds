@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.73 2002-10-15 18:38:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.74 2002-10-18 18:26:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -65,11 +65,19 @@ static int tds_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol);
 */
 extern const int g__numeric_bytes_per_prec[];
 
+/**
+ * \defgroup token Token processing
+ * Handle tokens in packets. Many PDU (packets data unit) contain tokens.
+ * (like result description, rows, data, errors and many other).
+ */
 
 /* XXX do a best check for alignment than this */
 union { void *p; int i; } align_struct;
 #define ALIGN_SIZE sizeof(align_struct)
 
+/** \addtogroup token
+ *  \@{ 
+ */
 
 /**
  * tds_process_default_tokens() is a catch all function that is called to
@@ -1817,3 +1825,4 @@ static int tds_get_cardinal_type(int datatype)
 	}
 	return datatype;
 }
+/** \@} */

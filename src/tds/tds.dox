@@ -4,7 +4,8 @@ GENERATE_LATEX   = NO
 GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
-INPUT            = mem.c challenge.c query.c iconv.c
+INPUT            = mem.c challenge.c query.c iconv.c read.c write.c token.c \
+		tdsstring.c ../../include/tdsstring.h
 QUIET            = YES
 JAVADOC_AUTOBRIEF = YES
 PREDEFINED 	 = HAVE_SSL

@@ -44,14 +44,14 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.24 2002-10-18 17:04:37 freddy77 Exp $";
+	"$Id: iconv.c,v 1.25 2002-10-18 18:26:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
 /**
- * \defgroup conv Conversion
+ * \defgroup conv Charset conversion
  * Convert between different charsets
  */
 

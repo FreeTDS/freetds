@@ -1,3 +1,12 @@
+Fri Oct 18 20:25:42 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* include/tdsstring.h src/tds/tdsstring.c:
+	- fix portability problem (static inline in include)
+	- fix side effect using macros
+	* src/tds/iconv.c src/tds/read.c src/tds/tds.dox:
+	* src/tds/token.c src/tds/write.c:
+	- update documentation
+
 Fri Oct 18 13:34:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds_sysdep_public.h.in:
 	- Better guess at 64-bit int for win32 native,
