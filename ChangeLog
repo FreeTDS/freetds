@@ -1,3 +1,8 @@
+Sat Aug 30 12:03:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/Makefile.am src/odbc/odbc.c:
+	* src/odbc/odbc_checks.c(added) src/odbc/odbc_checks.h(added):
+	- add some deep check (using --enable-extra-checks)
+
 Fri Aug 29 22:35:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/odbc_util.h src/odbc/prepare_query.c:

@@ -63,12 +63,13 @@
 #include "sql2tds.h"
 #include "prepare_query.h"
 #include "replacements.h"
+#include "odbc_checks.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.233 2003-08-29 20:37:47 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.234 2003-08-30 10:04:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -123,6 +124,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define INIT_HSTMT \
 	TDS_STMT *stmt = (TDS_STMT*)hstmt; \
 	CHECK_HSTMT; \
+	CHECK_STMT_EXTRA(stmt); \
 	odbc_errs_reset(&stmt->errs); \
 
 #define INIT_HDBC \
@@ -138,6 +140,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define INIT_HDESC \
 	TDS_DESC *desc = (TDS_DESC*)hdesc; \
 	CHECK_HDESC; \
+	CHECK_DESC_EXTRA(desc); \
 	odbc_errs_reset(&desc->errs); \
 
 #define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
@@ -820,7 +823,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	} else {
 		drec->sql_desc_type = fCType;
 	}
-	if (drec->sql_desc_type == SQL_C_CHAR)
+	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_indicator_ptr = pcbValue;
 	drec->sql_desc_octet_length_ptr = pcbValue;
