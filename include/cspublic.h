@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.46 2003-12-19 23:25:59 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.47 2004-01-06 09:29:25 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -76,7 +76,7 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_TP_SIZE  16		/* text pointer */
 #define CS_TS_SIZE  8		/* length of timestamp */
 
-typedef struct cs_config
+typedef struct _cs_config
 {
 	short cs_expose_formats;
 } CS_CONFIG;
@@ -149,7 +149,7 @@ struct cs_diag_msg
 	struct cs_diag_msg *next;
 };
 
-typedef struct cs_locale
+typedef struct _cs_locale
 {
 	char *language;
 	char *charset;
@@ -194,7 +194,7 @@ typedef struct _cs_iodesc
 /* Structure CS_COMMAND changed for RPC functionality -SUHA */
 /* Added CSREMOTE_PROC *rpc to CS_COMMAND structure */
 
-typedef struct cs_command
+typedef struct _cs_command
 {
 	CS_CHAR *query;
 	CS_INT command_type;
@@ -233,7 +233,7 @@ typedef struct cs_command
 
 #define CS_SRC_VALUE   -2562
 
-typedef struct cs_datafmt
+typedef struct _cs_datafmt
 {
 	int datatype;
 	int format;

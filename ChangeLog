@@ -1,8 +1,12 @@
+Tue Jan 06 10:29:25 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* include/cspublic.h: fix for C++ compile
+
 Mon Jan  5 21:35:58 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in new candidate 0.62rc3
 	* src/dblib/bcp.c
 	- Applied ML patch from Christos.  Added/fixed other comments.
-	
+
 Mon Jan  5 17:19:54 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/api_status.txt SQLFetchScroll is not OK.  
 
@@ -16,7 +20,7 @@ Mon Jan  5 00:45:00 EST 2004	JK Lowden <jklowden@schemamania.org>
 	- announce 0.62 release candidate availability
 	* src/dblib/bcp.c src/tds/write.c
 	- completed patch from Christos for native bcp null handling
-	
+
 Sat Jan 03 20:31:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
 	- applied Craig A. Berry patch for VMS
