@@ -6,7 +6,9 @@
 
 #include <ctype.h>
 
-static char software_version[] = "$Id: common.c,v 1.32 2004-05-02 07:30:40 freddy77 Exp $";
+#include "tds_sysdep_private.h"
+
+static char software_version[] = "$Id: common.c,v 1.33 2004-05-04 07:45:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;

@@ -1,3 +1,6 @@
+Tue May 04 09:44:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c: fix compile
+
 Mon May 03 22:02:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/threadsafe.c win32/winlogin.c win32/winsetup.c:
 	- use correct directories under windows
