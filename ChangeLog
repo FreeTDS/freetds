@@ -1,3 +1,7 @@
+Mon Jan 31 14:06:33 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/utf8_3.c: small fix
+	* src/tds/net.c: use always no-blocking socket
+
 Mon Jan 31 10:54:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
 	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:

@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.10 2005-01-30 10:09:41 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.11 2005-01-31 13:08:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -165,37 +165,38 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 #endif
 	
 	/* Jeff's hack *** START OF NEW CODE *** */
-	if (timeout) {
-		start = time(NULL);
-		ioctl_blocking = 1;	/* ~0; //TRUE; */
-		if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0)
-			return TDS_FAIL;
+	if (!timeout)
+		/* I don't think anybody complains... */
+		timeout = 90000;
 
-		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
-		if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
+	start = time(NULL);
+	ioctl_blocking = 1;	/* ~0; //TRUE; */
+	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
+		tds_close_socket(tds);
+		return TDS_FAIL;
+	}
+
+	retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
+	if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
+		retval = 0;
+	/* if retval < 0 (error) fall through */
+
+	/* Select on writeability for connect_timeout */
+	now = start;
+	while ((retval == 0) && ((now - start) < timeout)) {
+		FD_SET(tds->s, &fds);
+		selecttimeout.tv_sec = timeout - (now - start);
+		selecttimeout.tv_usec = 0;
+		retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
+		/* on interrupt ignore */
+		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
 			retval = 0;
-		if (retval < 0) {
-			tdsdump_log(TDS_DBG_ERROR, "tds_open_socket (timed): %s\n", strerror(sock_errno));
-			return TDS_FAIL;
-		}
-		/* Select on writeability for connect_timeout */
-		now = start;
-		while ((retval == 0) && ((now - start) < timeout)) {
-			FD_SET(tds->s, &fds);
-			selecttimeout.tv_sec = timeout - (now - start);
-			selecttimeout.tv_usec = 0;
-			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-			if (retval < 0 && sock_errno == TDSSOCK_EINTR)
-				retval = 0;
-			now = time(NULL);
-		}
+		now = time(NULL);
+	}
 
-		if ((now - start) >= timeout) {
-			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
-			return TDS_FAIL;
-		}
-	} else if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+	if (retval < 0 || (now - start) >= timeout) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(sock_errno));
+		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
 		return TDS_FAIL;
 	}

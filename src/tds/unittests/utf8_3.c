@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.2 2005-01-31 10:16:25 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.3 2005-01-31 13:08:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -121,10 +121,10 @@ test(const char *buf)
 		TDSCOLUMN *curcol = tds->current_results->columns[0];
 
 		if (strlen(tmp) != curcol->column_namelen || strncmp(tmp, curcol->column_name, curcol->column_namelen) != 0) {
-			int l = curcol->column_cur_size;
+			int l = curcol->column_namelen;
 
-			if (l > 200)
-				l = 200;
+			if (l > (sizeof(query) -1))
+				l = (sizeof(query) -1);
 			strncpy(query, curcol->column_name, l);
 			query[l] = 0;
 			fprintf(stderr, "Wrong result Got: '%s' len %d\n Expected: '%s' len %u\n", query,
