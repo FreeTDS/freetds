@@ -1,3 +1,9 @@
+Fri Jan 10 21:04:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/login.c:
+	- some comment added
+	* src/tds/query.c:
+	- allow params in tds_submit_rpc to be NULL
+
 Fri Jan 10 13:09:26 EST 2003    JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c  Bill's varchar patch, see ML
 	* src/dblib/dblib.c log marker in hex format, not decimal.

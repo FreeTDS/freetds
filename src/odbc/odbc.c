@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.123 2003-01-10 12:25:22 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.124 2003-01-10 20:04:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -356,6 +356,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName)
 {
 	INIT_HSTMT;
+	/* TODO use sp_stored_procedures for getting store procedures */
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLProcedures: function not implemented");
 	return SQL_ERROR;
 }

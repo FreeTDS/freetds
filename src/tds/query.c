@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.67 2003-01-05 14:29:39 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.68 2003-01-10 20:04:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -692,17 +692,17 @@ int id_len;
 /**
  * tds_submit_rpc() call a RPC from server. Output parameters will be stored in tds->param_info
  * @param rpc_name name of RPC
- * @param params   parameters informations
+ * @param params   parameters informations. NULL for no parameters
  */
 int
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
 	TDSCOLINFO *param;
 	int rpc_name_len, i;
+	int num_params = params ? params->num_cols : 0;
 
 	assert(tds);
 	assert(rpc_name);
-	assert(params);
 
 	if (tds->state == TDS_PENDING) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
@@ -729,7 +729,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		 * (I don't know meaning of "no metadata") */
 		tds_put_smallint(tds, 0);
 
-		for (i = 0; i < params->num_cols; i++) {
+		for (i = 0; i < num_params; i++) {
 			param = params->columns[i];
 			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
 			tds_put_data(tds, param, params->current_row, i);
@@ -747,9 +747,9 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		tds_put_byte(tds, rpc_name_len);
 		tds_put_string(tds, rpc_name, rpc_name_len);
 		/* TODO flags */
-		tds_put_smallint(tds, params->num_cols ? 2 : 0);
+		tds_put_smallint(tds, num_params ? 2 : 0);
 
-		if (params->num_cols)
+		if (num_params)
 			tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME);
 
 		/* send it */
