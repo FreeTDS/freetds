@@ -1,3 +1,6 @@
+Thu Dec 11 23:05:06 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/utf8_2.c: a bit more verbose
+
 Thu Dec 11 12:24:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am: do not create an unneeded file
 	* src/ctlib/ct.c: column name from ct_describe must be null-terminated
