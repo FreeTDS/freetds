@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.34 2002-08-18 12:50:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.35 2002-08-21 12:19:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1405,7 +1405,7 @@ TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
 DBINT ret;
 
-	/* FIX ME -- this is the columns info, need per row info */
+	/* FIXME -- this is the columns info, need per row info */
 	/* Fixed by adding cur_row_size to colinfo, filled in by process_row
 		in token.c. (mlilback, 11/7/01) */
 	tds = (TDSSOCKET *) dbproc->tds_socket;

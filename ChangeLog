@@ -1,3 +1,12 @@
+Fri Aug 21 14:00:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0007.c src/ctlib/unittests/Makefile.am:
+	* src/ctlib/unittests/t0003.c:
+	- test for string length
+	* src/ctlib/ct.c:
+	- do not return garbage data on string
+	* src/tds/token.c:
+	- fixed set of cur_row_size for TDS_NUMERIC data
+
 Fri Aug 21 13:38:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c include/tds.h.in:
 	- temporary fix for password limit length

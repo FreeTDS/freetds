@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.21 2002-08-17 10:00:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.22 2002-08-21 12:19:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -548,7 +548,7 @@ CS_DATAFMT srcfmt, destfmt;
             srclen = curcol->column_textsize;
          } else {
             src = &(resinfo->current_row[curcol->column_offset]);
-            srclen = curcol->column_size;
+	    srclen = curcol->cur_row_size;
          }
 
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, curcol->column_bindlen);
@@ -562,6 +562,7 @@ CS_DATAFMT srcfmt, destfmt;
          destfmt.locale    = cmd->con->locale;
          destfmt.format    = curcol->column_bindfmt;
 
+	 /* FIXME if convert return FAIL no action taken ?? */
          cs_convert(ctx, &srcfmt, (CS_VOID *)src, &destfmt, (CS_VOID *)dest, &len);
 
          if (curcol->column_lenbind) {

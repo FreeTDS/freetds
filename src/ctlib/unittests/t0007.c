@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.3 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.1 2002-08-21 12:19:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -24,18 +24,10 @@ int main()
    CS_INT count, row_count = 0;
  
    CS_CHAR name[1024];
-   char large_sql[1024];
-   char len600[601];
    char temp[11];
-   len600[0] = 0;
    name[0] = 0;
-   for (i = 0; i<60; i++) {
-     sprintf(temp, "_abcde_%03d", (i+1)*10);
-     strcat(len600, temp);
-   }
-   len600[600] = '\0';
    
-   fprintf(stdout, "%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
+   fprintf(stdout, "%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);
    if (verbose)         { fprintf(stdout, "Trying login\n"); }
    ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
    if (ret != CS_SUCCEED) {
@@ -43,20 +35,8 @@ int main()
      return 1;
    }
 
-   ret = run_command(cmd, "DROP TABLE test_table");
-   if (ret != CS_SUCCEED) return 1;
-   ret = run_command(cmd, "CREATE TABLE test_table (id int, name text)");
-   if (ret != CS_SUCCEED) return 1;
-/*
-   ret = run_command(cmd, "INSERT test_table (id, name) VALUES (1, 'name1')");
-   if (ret != CS_SUCCEED) return 1;
-*/
-   sprintf(large_sql, "INSERT test_table (id, name) VALUES (2, '%s')", len600);
-   ret = run_command(cmd, large_sql);
-   if (ret != CS_SUCCEED) return 1;
-
    ret = ct_command(cmd, CS_LANG_CMD,
-         "SELECT name FROM test_table", CS_NULLTERM, CS_UNUSED);
+         "SELECT CONVERT(VARCHAR(7),'1234') AS test", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {
      fprintf(stderr, "ct_command() failed\n");
      return 1;
@@ -91,6 +71,7 @@ int main()
                return 1;
             }
             datafmt.format = CS_FMT_NULLTERM;
+	    ++datafmt.maxlength;
             if (datafmt.maxlength > 1024) {
                datafmt.maxlength = 1024;
             }
@@ -111,15 +92,14 @@ int main()
                }
                else {  /* ret == CS_SUCCEED */
                   if (verbose) { fprintf(stdout, "name = '%s'\n", name); }
-                  if (strcmp(name, len600)) {
-                     fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name, len600);
+                  if (strcmp(name, "1234")) {
+                     fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name, "1234");
                      return 1;
                   }
-		  if (datalength != strlen(name)+1) {
-			  fprintf(stderr, "Bad count:\n'%d'\n! =\n'%d'\n", 
-					  strlen(name)+1, count);
-			  return 1;
-		  }
+                  if (datalength != strlen(name)+1) {
+                     fprintf(stderr, "Bad count:\n'%d'\n! =\n'%d'\n", strlen(name)+1, count);
+                     return 1;
+                  }
                }
             }
             switch ((int)ret) {

@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.33 2002-08-16 17:10:53 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.34 2002-08-21 12:19:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -475,8 +475,9 @@ TDSRESULTINFO *info;
 TDS_SMALLINT tabnamesize;
 int bytes_read = 0;
 int rest;
-/* XXX this 4 should be a machine dependent #define */
-int align = 4;
+/* XXX do a best check for alignment than this */
+union { void *p; int i; } align_struct;
+const int align = sizeof(align_struct);
 int remainder;
 char ci_flags[4];
 
@@ -947,6 +948,8 @@ int len;
 				num->scale = curcol->column_scale;
 
 				tds_get_n(tds,num->array,colsize);
+				/* corrected colsize for cur_row_size */
+				colsize = sizeof(TDS_NUMERIC);
 		        if (IS_TDS70(tds) || IS_TDS80(tds)) 
                 {
 				   tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
@@ -976,6 +979,7 @@ int len;
 				} else {
 					tds_get_n(tds,dest,colsize);
 				}
+				/* FIXME correct for unicode ? */
 				dest[colsize]='\0';
 				if (curcol->column_type == SYBDATETIME4) {
 					tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
