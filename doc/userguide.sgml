@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-02-08 21:48:49 $</date>
-		<releaseinfo>$Revision: 1.90 $</releaseinfo>
+		<date>$Date: 2005-04-05 08:36:56 $</date>
+		<releaseinfo>$Revision: 1.91 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.90 $</>
-<member>$Date: 2005-02-08 21:48:49 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.90 2005-02-08 21:48:49 jklowden Exp $.</>
+<member>$Revision: 1.91 $</>
+<member>$Date: 2005-04-05 08:36:56 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.91 2005-04-05 08:36:56 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -537,7 +537,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-02-08 21:48:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-04-05 08:36:56 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -866,12 +866,6 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<entry>yes/no</entry>
 	</row>
 	<row>
-	<entry>debug level</entry>
-	<entry>99</entry>
-	<entry>Sets granularity of logging. Higher number catches more.</entry>
-	<entry>0-99</entry>
-	</row>
-	<row>
 	<entry>timeout</entry>
 	<entry>none</entry>
 	<entry>Sets period to wait for response of query before timing out.</entry>
@@ -909,8 +903,74 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 		NOTE: this require an extra round-trip with server and can slow down connection.</entry>
 	<entry>instance name</entry>
 	</row>
+	<row>
+	<entry>debug flags</entry>
+	<entry>0x4fff</entry>
+	<entry>Sets granularity of logging. A set of bit that specify levels and informations.
+	See table below for bit specification.</entry>
+	<entry>any number even in hex or octal notation</entry>
+	</row>
 </tbody>
 </tgroup>
+</table>
+
+<table>
+<title>Explanations of bit in debug flags entry</title>
+	<tgroup cols="2">
+	<thead>
+	  <row>
+	    <entry>Value</entry>
+	    <entry>Meaning</entry>
+	  </row>
+	</thead>
+
+	<tbody>
+	<row>
+	  <entry>0x80</entry>
+	  <entry>function trace and info</entry>
+	</row>
+	<row>
+	  <entry>0x40</entry>
+	  <entry>information level 2</entry>
+	</row>
+	<row>
+	  <entry>0x20</entry>
+	  <entry>information level 1</entry>
+	</row>
+	<row>
+	  <entry>0x10</entry>
+	  <entry>network</entry>
+	</row>
+	<row>
+	  <entry>0x08</entry>
+	  <entry>warning</entry>
+	</row>
+	<row>
+	  <entry>0x04</entry>
+	  <entry>error</entry>
+	</row>
+	<row>
+	  <entry>0x02</entry>
+	  <entry>severe error</entry>
+	</row>
+	<row>
+	  <entry>0x1000</entry>
+	  <entry>show pid</entry>
+	</row>
+	<row>
+	  <entry>0x2000</entry>
+	  <entry>show time</entry>
+	</row>
+	<row>
+	  <entry>0x4000</entry>
+	  <entry>show source level info (source file and line)</entry>
+	</row>
+	<row>
+	  <entry>0x8000</entry>
+	  <entry>thread id (not implemented)</entry>
+	</row>
+	</tbody>
+	</tgroup>
 </table>
 	<para>As of version 0.62 the following options are deprecated and supported only for backward compatibility.</para>
 <table id="tab.freetds.conf.deprecated">
@@ -955,6 +1015,12 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.
 	</entry>
 	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>debug level</entry>
+	<entry>99</entry>
+	<entry>Sets granularity of logging. Higher number catches more.</entry>
+	<entry>0-99</entry>
 	</row>
 </tbody>
 </tgroup>
