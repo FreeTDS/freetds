@@ -21,11 +21,12 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.4 2003-07-28 15:10:38 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.5 2003-08-06 15:50:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
-const static char sp_help[] = "execute master..sp_help sp_help";
+const static char query[] = "select count(*) from sysusers\n"
+			    "select name from sysobjects compute count(name)\n";
 int
 main(int argc, char **argv)
 {
@@ -131,8 +132,8 @@ main(int argc, char **argv)
 
 	dbcancel(dbproc);
 
-	fprintf(stdout, sp_help);
-	dbcmd(dbproc, sp_help);
+	fprintf(stdout, query);
+	dbcmd(dbproc, query);
 	dbsqlexec(dbproc);
 
 	nresults = 0;
@@ -145,10 +146,10 @@ main(int argc, char **argv)
 	}
 
 	/* dbmorecmds should return success 2 times for select 2 */
-	if (nresults != 3) {	/* two results sets plus a return code */
+	if (nresults != 2) {	/* two results sets plus a return code */
 		add_bread_crumb();
 		failed = 1;
-		fprintf(stdout, "nresults was %d; was expecting nresults = 3.\n", nresults);
+		fprintf(stdout, "nresults was %d; was expecting nresults = 2.\n", nresults);
 		exit(1);
 	}
 

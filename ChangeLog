@@ -1,3 +1,8 @@
+Wed Aug  6 11:45:57 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/dbmorecmds.c use query instead of sp_help
+	* include/tds.h better enumerated flags for TDS_DONE
+	* src/tds/token.c better logging of tds_process_end
+
 Wed Aug 06 14:33:30 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/connectparams.h:
 	* src/odbc/odbc.c:
