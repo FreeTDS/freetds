@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.13 2002-04-05 01:49:53 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.14 2002-04-06 20:20:28 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2240,16 +2240,22 @@ static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int 
 	switch (datatype) {
 		case SYBINT4:
 			memset(varaddr,'\0',4);
+			break;
 		case SYBINT2:
 			memset(varaddr,'\0',2);
+			break;
 		case SYBINT1:
 			memset(varaddr,'\0',1);
+			break;
 		case SYBFLT8:
 			memset(varaddr,'\0',8);
+			break;
 		case SYBREAL:
 			memset(varaddr,'\0',4);
+			break;
 		case SYBCHAR:
 		case SYBVARCHAR:
 			varaddr[0]='\0';
+			break;
 	}
 }
