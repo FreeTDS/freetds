@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.18 2003-07-05 15:09:15 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.19 2003-08-01 15:24:47 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -49,8 +49,6 @@ extern "C"
 #endif
 
 #if ! HAVE_ICONV
-	typedef struct tdsiconvinfo TDSICONVINFO;
-	typedef struct tds_socket  TDSSOCKET;
 
 	/* FYI, the first 4 entries look like this:
 	 * 	{"ISO-8859-1",	1, 1}, -> 0

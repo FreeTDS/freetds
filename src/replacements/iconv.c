@@ -55,7 +55,7 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.3 2003-07-04 23:15:52 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.4 2003-08-01 15:23:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -134,10 +134,9 @@ iconv_close (iconv_t cd)
 size_t 
 iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
 {
-	enum {FALSE, TRUE};
 	int copybytes;
 	const char *p;
-	int finvalid = FALSE;
+	int finvalid = 0;
 	
 	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
 	assert(inbuf && inbytesleft && outbuf && outbytesleft);
@@ -150,7 +149,7 @@ iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, siz
 			if (!isascii(*p)) {
 				errno = EINVAL;
 				copybytes = p - *inbuf;
-				finvalid = TRUE;
+				finvalid = 1;
 				break;
 			}
 		}
