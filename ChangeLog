@@ -1,3 +1,6 @@
+Tue Apr 13 11:03:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* test-other.sh: initial shell script for additional tests
+
 Mon Apr 12 16:34:46 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/Makefile.am src/apps/defncopy.c added defncopy
 	* src/apps/bsqldb.c left justify character data
