@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.14 2005-02-22 16:04:36 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.15 2005-03-12 11:49:16 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -134,7 +134,11 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	fd_set fds;
 	time_t start, now;
 	int len, retval;
+#ifdef WIN32
+	int FAR optlen;
+#else
 	socklen_t optlen;
+#endif
 
 	FD_ZERO(&fds);
 
@@ -192,7 +196,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = timeout - (now - start);
 		selecttimeout.tv_usec = 0;
-		retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
+		retval = select(tds->s + 1, NULL, &fds, &fds, &selecttimeout);
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
 			retval = 0;
