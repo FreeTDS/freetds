@@ -1,3 +1,7 @@
+Thu Oct 17 16:31:56 EDT 2002    nsc <Nicholas_Castellano@acml.com>
+	* doc/faq.html:
+	- Small grammar fix.
+
 Thu Oct 17 21:43:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am include/tds.h include/tdssrv.h:
 	* src/server/login.c src/tds/Makefile.am src/tds/config.c:
