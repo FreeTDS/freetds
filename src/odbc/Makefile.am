@@ -1,6 +1,6 @@
 include_HEADERS = connectparams.h
 TDSDIR		=	../tds
-TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c
+TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c locale.c
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c

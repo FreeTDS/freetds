@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.18 2002-02-17 20:23:37 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.19 2002-02-20 21:14:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -135,7 +135,7 @@ static SQLRETURN do_connect (
 )
 {
    struct _hdbc *dbc = (struct _hdbc *) hdbc;
-   struct _henv *env = dbc->env;
+   struct _henv *env = dbc->henv;
 
    tds_set_server (dbc->tds_login, server);
    tds_set_user   (dbc->tds_login, user);
@@ -858,6 +858,7 @@ struct _hdbc *dbc;
 			}
 			break;
 		case SQL_COLUMN_TYPE:
+		case SQL_DESC_TYPE:
 			*pfDesc=_odbc_get_client_type(colinfo->column_type);
 			break;
 		case SQL_COLUMN_LENGTH:
