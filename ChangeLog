@@ -1,3 +1,8 @@
+Tue Nov 13 16:04:54 2001  James Cameron  <quozl@us.netrek.org>
+
+	* doc/faq.html: add MAC OS X build FAQ entry, make a few language
+	adjustments to text.
+
 Fri Nov  9 20:16:21 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/tds/util.c: Add 'append mode' for logging

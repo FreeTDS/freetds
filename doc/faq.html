@@ -26,7 +26,21 @@ h1 { text-align: center; }
 
 <h1>FAQ</h1>
 
-<p><font size="-1">The "official" FreeTDS documentation is the <a href="http://www.freetds.org/userguide/book1.htm">User Guide</a>.  This list of frequently asked questions may help newcomers get acquainted with the system, and is where we try to document any issues that have arisen since the last release.  Questions about the questions (or answers) may be directed to the address at the bottom of the page. </font> </p>
+<p><font size="-1">
+
+This is a list of frequently asked questions and answers about
+FreeTDS.  It is updated between releases of FreeTDS to cover problems
+since the last release.
+<p>
+
+On the other hand, the <a
+href="http://www.freetds.org/userguide/book1.htm">FreeTDS User
+Guide</a>, included in each release, is the appropriate place for new
+users to start.<p>
+
+<div align=right><i>$Id: faq.html,v 1.4 2001-11-13 05:09:38 quozl Exp $</i></div><p>
+
+</font> </p>
 
 <dl>
 <dt>
@@ -126,6 +140,10 @@ TDS?</a></dd>
 
 <dd>
 <a href="#DBD_Sybase093">4.5 <tt>DBD::Sybase 0.93</tt> doesn't compile.</a></dd>
+
+<dd>
+<a href="#build_macosx">4.6 Getting it to work on MAC OS X</a></dd>
+
 <dt>
 
 5. The CVS Repository</dt>
@@ -167,13 +185,14 @@ that is used by Sybase and Microsoft for their database products. It currently
 implements TDS 4.2, 5.0 and 7.0, so it should be able to communicate with
 any Sybase products and Microsoft SQL Server.
 
-<p>FreeTDS comes with a low level library (the TDS layer) along with
-a number of CLIs (Call Level Interfaces). The current CLIs are DB-Lib and
-CT-Lib as defined by Sybase, and an ODBC interface.</p>
+<p>FreeTDS comes with a low level library (the TDS layer) along with a
+number of CLIs (Call Level Interfaces). The current CLIs are DB-Lib,
+CT-Lib (as defined by Sybase), and ODBC.</p>
 
-<p>A JDBC driver and Perl DBI driver (see <a href="#34">Question 3.4</a>) have also been
-contributed under a BSDish license and are available from the download
-page. These do not require the FreeTDS C libraries.</p>
+<p>A JDBC driver and Perl DBI driver (see <a href="#34">Question
+3.4</a>) have also been contributed under a BSDish license and are
+available from the download page. These do not require the FreeTDS C
+libraries.</p>
 </dd>
 
 <dt>
@@ -213,11 +232,10 @@ version. See <a href="#Do I need to configure anything">Question 2.2</a>. </dd>
 
 <dd>
 <p>
-I chose LGPL because if you want a commercial client, you can buy them
+LGPL was chosen because if you want a commercial client, you can buy them
 from Sybase, Microsoft or others. I do believe BSDish licenses are better
 in some cases, but not for something like this.</p>
 
-<p>'nuff said.&nbsp;</p>
 </dd>
 
 <dt>
@@ -296,6 +314,7 @@ in some cases, but not for something like this.</p>
 </tr>
 <tr>
 <td colspan="2">
+
 Thanks go to the folks at A2i, Inc. <a href="http://www.a2i.com">http://www.a2i.com</a> for funding the development of dblib host file bulk copy and writetext support, and to Dave 
 Poyourow there for helping with the debugging.
 
@@ -310,7 +329,7 @@ Poyourow there for helping with the debugging.
 <a name="17"></a>
 <b>1.7 Is there a mailing list?</b></dt>
 
-<dd>Naturally.  See 
+<dd>Yes, see 
 <a href="http://www.freetds.org/contact.html">Contacts</a> to sign up.  There's an 
 <a href="http://franklin.oit.unc.edu/cgi-bin/lyris.pl?visit=freetds">archive</a> too.  
 </dd>
@@ -320,28 +339,36 @@ Poyourow there for helping with the debugging.
 <b>1.8 How do I get off the mailing list?</b></dt>
 
 <dd>
-Each list subscriber has a specific "unsubscribe address" based on a sort of
-User ID kept by the list server.  Yours was sent to you when you subscribed.  If
-you don't have that message anymore, send a "Thanks for the memories" message to
-<a href="mailto:lyris@franklin.oit.unc.edu">the list</a>, and look for your own
-message.  Your "unsubscribe address" will be appended at the bottom of it.  
+At the end of each list message is an address that you can send mail
+to that will remove you from the list.
 </dd>
 
 <dt>
 <a name="19"></a>
 <b>1.9 Is there other documentation I should know about?</b></dt>
 
-<dd>Indeed there is.
+<dd>
 <ul>
-	<li>The FreeTDS <a href="http://www.freetds.org/userguide/book1.htm">User Guide</a> is here, 
-		and you can get your own
-		<a href="http://www.freetds.org/userguide.tgz">tarball</a>of it if you like.</li>
-	<li>Try Microsoft's <a href="http://www.microsoft.com/sql/productdoc/">
-			Books Online</a>.</li>
-	<li>A clever enterprising individual converted the 
-		<a href="http://larr.unm.edu/~owen/SQLBOL70/index.html">MS docs</a> 
-			to ordinary HTML and documented how.</li>
-	<li>Don't overlook <a href="http://www.sybase.com/support/manuals">Sybase's documentation</a>.</li>
+	<li>FreeTDS Users Guide, on <a
+	href="http://www.freetds.org/userguide/book1.htm">the web</a>
+	or as a <a
+	href="http://www.freetds.org/userguide.tgz">tarball</a>.</li>
+
+	<li><a
+	href="http://www.microsoft.com/sql/productdoc/">Microsoft's
+	Books Online</a>.</li>
+	<!-- goes to http://www.microsoft.com/sql/techinfo/productdoc/2000/default.asp -->
+	<!-- valid as at 12th november 2001 -->
+
+	<li><a
+	href="http://larr.unm.edu/~owen/SQLBOL70/index.html">Microsoft
+	Documentation</a> converted to HTML.</li>
+	<!-- you don't have permission, as at 12th november 2001 -->
+
+	<li><a href="http://www.sybase.com/support/manuals">Sybase's
+	Product Manuals</a>.</li>
+	<!-- valid as at 12th november 2001 -->
+
 </ul>
 </dd>
 
@@ -360,10 +387,11 @@ message.  Your "unsubscribe address" will be appended at the bottom of it.
 You can get the latest FreeTDS from Metalab or its mirrors. Visit our 
 <a href="http://www.freetds.org/download.html">download page</a> for a direct link.</p>
 
-<p>A note on packages (RPMs, etc.)  Your favorite OS vendor/organization may have a package of some
-kind available.  You might want to check there.  Occasionally someone
-contributes a package here, which we keep around.  Post a message to the list if
-you're looking for one and don't find one in the usual places. </p>
+<p>Your favorite operating system may have a package of some kind
+available.  You might want to check there.  Occasionally someone
+contributes a package here, which we keep around.  Post a message to
+the list if you're looking for one and don't find one in the usual
+places. </p>
 
 <p>If your firewall prevents FTP access, you can download the jdbc 
 <a href="http://www.rksystems.com/freetds_jdbc.jar">jar file</a> via http.  </p>
@@ -397,9 +425,9 @@ statement:</p>
 </dl> <!-- end nested dictionary list -->
 
 <p>
-<b>IMPORTANT</b> You must build with TDS version 4.2 to access a MSSQL
-server or Sybase prior to 10.0! TDS 7.0 may also be used to talk to MS
-SQL 7 and above.</p>
+<b>IMPORTANT</b> You must build with TDS version 4.2 to access Microsoft SQL
+Server or Sybase prior to 10.0! TDS 7.0 may also be used to talk to Microsoft
+SQL Server 7 and above.</p>
 </dd>
 
 <dt><a name="SYBASE"></a>
@@ -407,10 +435,12 @@ SQL 7 and above.</p>
 
 <dd>
 <p>
-Many programs look for the SYBASE environment variable in order to find
-the libraries home. You will want to set this to the main tds directory.
-For example if your tds installation is in <tt>/usr/local</tt>, then your SYBASE
-variable would be set to <tt>/usr/local/freetds</tt>.</p>
+Many programs look for the SYBASE environment variable in order to
+find the libraries home. You will want to set this to the main tds
+directory.  For example if your tds installation is in
+<tt>/usr/local</tt>, then your SYBASE variable would be set to
+<tt>/usr/local/freetds</tt>.</p>
+
 </dd>
 
 <dt><a name="other_environment_variables"></a>
@@ -423,7 +453,7 @@ and 70</p>
 
 <p>
 TDSDUMP will specify a location for a log file for debugging. Beware that
-your passwords may be listed in this file. The default is /tmp/freetds.log</p>
+your database login passwords may be listed in this file.</p>
 
 <p>
 TDSPORT will override the default port for the server. Defaults are 1433
@@ -625,9 +655,9 @@ not soon).</dd>
 <b>4.1 I get a message 'AM_PROG_LIBTOOL' not found</b></dt>
 
 <dd>
-Since CVS is diff based, the <tt>aclocal.m4</tt> file doesn't get the right date
-on it. Do a <kbd>touch aclocal.m4</kbd> and then do the make. This was fixed
-in the 0.50 release.</dd>
+Since CVS is diff based, the <tt>aclocal.m4</tt> file doesn't get the
+right date on it. Do a <kbd>touch aclocal.m4</kbd> and then do the
+<kbd>make</kbd>. This was fixed in the 0.50 release.</dd>
 
 
 <dt><a name="42"></a>
@@ -647,6 +677,8 @@ with
 	typedef unsigned int TDS_UINT;
 </pre></dd>
 
+<!-- fixed in 0.53? -->
+
 <dt>
 <a name="43"></a>
 <b>4.3 Apache/PHP core dumps on start up</b></dt>
@@ -661,6 +693,8 @@ replace with "tdsdbopen", then compile and run etc...
 <p>The reason for this is that Apache is linked against DBM which includes
 a function named dbopen() too.</p>
 </dd>
+
+<!-- fixed in 0.53? -->
 
 <dt>
 <a name="autoconf_problem"></a>
@@ -692,6 +726,17 @@ If you have a Solaris machine and the requisite <tt>autoconf</tt> skills to fix 
 in FreeTDS, we are working on adding them.  Until then, try DBD::Sybase
 0.91 which should work fine.  
 </dd>
+
+<dt>
+<a name="build_macosx"></a>
+<b>4.6 Getting it to work on MAC OS X.</b></dt>
+
+<dd>FreeTDS prior to 0.53pre2 fails to build, reporting malloc.h as
+being unavailable.  Solved in CVS on 8th November 2001.  Workaround is
+to remove the <tt>#include</tt> of malloc.h from
+<tt>include/tds.h.in</tt>
+</dd>
+
 </dl>
 		<!-- CVS -->
 
@@ -743,7 +788,7 @@ checkout freetds</small></pre>
 <a name="unknownmarker"></a>
 <b>6.1 What does this <tt>unknown marker</tt> message mean?</b></dt>
 <dd>
-<p>Most of the time, it means you're not using the right protocol version.  That <i>can</i> happen even if your <tt>./configure</tt> was done correctly.  Try setting the <tt>$TDSVER</tt> to 70.  If that works, double check your work.  If your interfaces file and ./configure were right, but you needed the environment variable anyway, please post a message to the list and help us track it down.  </p>
+<p>Most of the time, it means you're not using the right protocol version.  That <i>can</i> happen even if your <tt>./configure</tt> was done correctly.  Try setting the <tt>TDSVER</tt> to 70.  If that works, double check your work.  If your interfaces file and ./configure were right, but you needed the environment variable anyway, please post a message to the list and help us track it down.  </p>
 </dd>
 </dl>
 
