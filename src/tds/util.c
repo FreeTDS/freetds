@@ -35,12 +35,13 @@
 #include <windows.h>
 #include <stdio.h>
 #define PATH_MAX 255
-#endif
-#ifndef WIN32
+#define CLOSESOCKET(a) closesocket(a)
+#else
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#define CLOSESOCKET(a) close(a)
 #endif
 #include "tdsutil.h"
 #ifdef DMALLOC
@@ -48,7 +49,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.12 2002-09-09 01:34:33 jklowden Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.13 2002-09-13 18:03:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -381,4 +382,14 @@ int tds_msleep(long usec)         /* returns 0 if ok, else -1 */
     }
 /* Jeff's hack ***NEW CODE END**** */
 
+int
+tds_close_socket(TDSSOCKET *tds)
+{
+int rc = -1;
 
+        if (!IS_TDSDEAD(tds)) {
+                rc = CLOSESOCKET(tds->s);
+                tds->s = -1;
+        }
+        return rc;
+}

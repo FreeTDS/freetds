@@ -1,3 +1,17 @@
+Fri Sep 13 13:57:42 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in src/ctlib/ct.c src/dblib/dblib.c
+	  src/pool/main.c src/pool/member.c src/tds/login.c
+	  src/tds/mem.c src/tds/read.c src/tds/token.c src/tds/util.c
+	  src/tds/write.c:
+	- Implement tds_close_socket() as requested by Brian.
+	- Use same throughout the codebase, wherever a socket is closed.
+	- Use -1 instead of 0 as the file descriptor to indicate a closed
+	  socket.  0 is a perfectly valid fd, so using it to indicate a
+	  closed socket is bad.
+	- Use a new macro IS_TDSDEAD(tds) throughout the codebase to check
+	  for closed sockets, instead of adhoc expressions like
+	  "if (tds && tds->s) { ... }"
+
 Fri Sep 13 10:43:28 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0022.c:
 	- Check status of dbsqlexec() when trying to create procedure in t0022.

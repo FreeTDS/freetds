@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.13 2002-09-06 11:42:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.14 2002-09-13 18:03:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -188,8 +188,7 @@ int retval;
 			tds_client_msg(tds->tds_ctx, tds, 10018, 9, 0, 0, "The connection was closed");
 			tds->in_pos=0;
 			tds->in_len=0;
-			close(tds->s);
-			tds->s=0;
+			tds_close_socket(tds);
 			result = 0;
 			break;
 		}
@@ -226,9 +225,11 @@ void (*oldsig)(int);
 /* GW added in check for write() returning <0 and SIGPIPE checking */
 	return retcode;
 }
-int tds_flush_packet(TDSSOCKET *tds)
+
+int
+tds_flush_packet(TDSSOCKET *tds)
 {
-	if (tds->s) {
+	if (!IS_TDSDEAD(tds)) {
 		tds_write_packet(tds,0x01);
 		tds_init_write_buf(tds);
 	}

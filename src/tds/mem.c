@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.21 2002-09-13 12:36:29 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.22 2002-09-13 18:03:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -431,6 +431,7 @@ TDSICONVINFO *iconv;
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                
 	tds_init_write_buf(tds_socket);
+	tds_socket->s = -1;
 	return tds_socket;
 }
 TDSSOCKET *tds_realloc_socket(int bufsize)
@@ -451,7 +452,7 @@ TDSICONVINFO *iconv_info;
 		}
 		if (tds->in_buf) TDS_ZERO_FREE(tds->in_buf);
 		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
-		if (tds->s) close(tds->s);
+		tds_close_socket(tds);
 		if (tds->date_fmt) free(tds->date_fmt);
 		if (tds->iconv_info) {
 			iconv_info = (TDSICONVINFO *) tds->iconv_info;

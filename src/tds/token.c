@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.49 2002-09-12 23:31:46 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.50 2002-09-13 18:03:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -67,7 +67,7 @@ int   cancelled;
 
    tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() marker is %x\n", marker);
 
-   if (!tds->s) {
+   if (IS_TDSDEAD(tds)) {
         tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_default_tokens() connection dead\n");
 	tds->state=TDS_DEAD;
 	return TDS_FAIL;

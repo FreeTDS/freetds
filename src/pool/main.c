@@ -176,16 +176,16 @@ fd_set rfds;
 	close(s);
 	for (i=0;i<pool->max_users;i++) {
 		puser = (TDS_POOL_USER *) &pool->users[i];
-		if (puser->tds && puser->tds->s) {
+		if (!IS_TDSDEAD(puser->tds)) {
 			fprintf(stderr,"Closing user %d\n",i);	
-			close(puser->tds->s);
+			tds_close_socket(puser->tds);
 		}
 	}
 	for (i=0;i<pool->num_members;i++) {
 		pmbr = (TDS_POOL_MEMBER *) &pool->members[i];
-		if (pmbr->tds && pmbr->tds->s) {
+		if (!IS_TDSDEAD(pmbr->tds) {
 			fprintf(stderr,"Closing member %d\n",i);	
-			close(pmbr->tds->s);
+			tds_close_socket(pmbr->tds);
 		}
 	}
 }

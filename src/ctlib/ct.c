@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.27 2002-09-12 19:26:59 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.28 2002-09-13 18:03:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -251,7 +251,7 @@ char *set_buffer = NULL;
 				memcpy(buffer, con->userdata, maxcp);
 				break;
 			case CS_CON_STATUS:
-				if (tds && tds->s) 
+				if (!(IS_TDSDEAD(tds)))
 					intval |= CS_CONSTAT_CONNECTED;
 				else 
 					intval &= ~CS_CONSTAT_CONNECTED;

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.56 2002-09-13 12:55:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.57 2002-09-13 18:03:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -610,7 +610,7 @@ TDSSOCKET *tds;
       return FAIL;
    }
    tds = (TDSSOCKET *) dbproc->tds_socket;
-   if (!tds || !tds->s) return FAIL;
+   if (IS_TDSDEAD(tds)) return FAIL;
 
    if (tds->res_info && tds->res_info->more_results) 
    /* if (dbproc->more_results && tds_is_end_of_results(dbproc->tds_socket)) */
@@ -723,7 +723,7 @@ TDSSOCKET *tds;
    buffer_clear(&(dbproc->row_buf));
 
    tds = dbproc->tds_socket;
-   if (!tds || !tds->s) return FAIL;
+   if (IS_TDSDEAD(tds)) return FAIL;
 
    retcode = tds_process_result_tokens(tds);
 
@@ -822,7 +822,7 @@ RETCODE dbnextrow(DBPROCESS *dbproc)
 
    if (dbproc == NULL) return FAIL;
    tds = (TDSSOCKET *) dbproc->tds_socket;
-   if (!tds || !tds->s) {
+   if (IS_TDSDEAD(tds)) {
       tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n",FAIL);
       return FAIL;
    }
@@ -2027,14 +2027,14 @@ dbbylist(DBPROCESS *dbproc, int computeid, int *size)
 	if (size) *size = 0;
 	return NULL;
 }
-DBBOOL dbdead(DBPROCESS *dbproc)
+
+DBBOOL
+dbdead(DBPROCESS *dbproc)
 {
-	if(dbproc &&
-	dbproc->tds_socket &&
-	dbproc->tds_socket->s)
-		return FALSE;
-	else
+	if ((dbproc == NULL) || IS_TDSDEAD(dbproc->tds_socket))
 		return TRUE;
+	else
+		return FALSE;
 }
 
 EHANDLEFUNC
@@ -2262,7 +2262,7 @@ RETCODE dbcanquery(DBPROCESS *dbproc)
 	if (dbproc == NULL)
 		return FAIL;
 	tds = (TDSSOCKET *) dbproc->tds_socket;
-	if (!tds || !tds->s) 
+	if (IS_TDSDEAD(tds)) 
 		return FAIL;
 
 	/*
@@ -2507,7 +2507,7 @@ TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	/* read the end token */
 	marker = tds_get_byte(dbproc->tds_socket);
 
-   	if (!dbproc->tds_socket->s) return FAIL;
+   	if (IS_TDSDEAD(dbproc->tds_socket)) return FAIL;
 
 	tds_process_default_tokens(dbproc->tds_socket, marker);
 	if (marker != TDS_DONE_TOKEN) {

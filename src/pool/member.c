@@ -76,9 +76,8 @@ char *query;
 }
 void pool_free_member(TDS_POOL_MEMBER *pmbr)
 {
-	if (pmbr->tds) {
-		if (pmbr->tds->s) close(pmbr->tds->s);
-		pmbr->tds->s = 0;
+	if (!IS_TDSDEAD(pmbr->tds)) {
+		tds_close_socket(pmbr->tds);
 	}
 	pmbr->tds = NULL;
 	/* if he is allocated disconnect the client 

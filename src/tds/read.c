@@ -24,17 +24,15 @@
 #endif
 
 #ifdef WIN32
-#define CLOSE(a) closesocket(a)
 #define READ(a,b,c) recv (a, b, c, 0L);
 #else
-#define CLOSE(a) close(a)
 #define READ(a,b,c) read (a, b, c);
 #endif
 
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.17 2002-09-10 01:37:36 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.18 2002-09-13 18:03:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -113,13 +111,15 @@ struct timeval selecttimeout;
 /*
 ** Return a single byte from the input buffer
 */
-unsigned char tds_get_byte(TDSSOCKET *tds)
+unsigned char
+tds_get_byte(TDSSOCKET *tds)
 {
 int rc;
 
 	if (tds->in_pos >= tds->in_len) {
-		while (tds->s && (rc = tds_read_packet(tds)) == 0) ;
-		if(!tds->s || rc == -1) {
+		while (!IS_TDSDEAD(tds) && (rc = tds_read_packet(tds)) == 0)
+			;
+		if (IS_TDSDEAD(tds) || rc == -1) {
 			return 0;
 		}
 	}
@@ -301,8 +301,7 @@ int           x = 0, have, need;
 		if (len<0) {
 			/* FIX ME -- get the exact err num and text */
 			tds_client_msg(tds->tds_ctx, tds,10018, 9, 0, 0, "The connection was closed");
-			CLOSE(tds->s);
-			tds->s=0;
+			tds_close_socket(tds);
                 	tds->in_len=0;
 			tds->in_pos=0;
 			return -1;
@@ -315,8 +314,7 @@ int           x = 0, have, need;
 		tds->in_pos=0;
 		tds->last_packet=1;
 		if (len==0) {
-			CLOSE(tds->s);
-			tds->s=0;
+			tds_close_socket(tds);
 		}
 		return -1;
 	}
@@ -372,8 +370,7 @@ int           x = 0, have, need;
 			tds->in_pos=0;
 			tds->last_packet=1;
 			if (len==0) {
-				CLOSE(tds->s);
-				tds->s=0;
+				tds_close_socket(tds);
 			}
 			return(-1);
 		}

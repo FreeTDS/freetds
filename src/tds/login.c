@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.40 2002-09-12 19:27:00 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.41 2002-09-13 18:03:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -280,8 +280,7 @@ TDSLOCINFO *locale = NULL;
 		tds_send_login(tds,config);	
 	}
 	if (!tds_process_login_tokens(tds)) {
-		close(tds->s);
-		tds->s = 0;
+		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, 
 			"Login incorrect.");
 		tds_free_config(config);
