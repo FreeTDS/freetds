@@ -18,10 +18,12 @@ extern char tds_str_empty[];
 	{ char **p = (s); if (*p != tds_str_empty) free(*p); }
 
 /** copy a string from another */
-#define tds_dstr_copy(s,src) \
-	{ char **p = (s); \
-	if (*p != tds_str_empty) free(*p); \
-	*p = strdup(src); }
+static inline char* tds_dstr_copy(char **s,const char* src)
+{
+	if (*s != tds_str_empty)
+		free(*s);
+	return (*s = strdup(src));
+}
 
 /** set a string from another buffer */
 #define tds_dstr_set(s,src) \

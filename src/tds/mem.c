@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.35 2002-10-17 20:45:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.36 2002-10-17 22:36:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -418,32 +418,49 @@ char hostname[30];
 	
 	TEST_MALLOC(connect_info,TDSCONNECTINFO);
 	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
+	tds_dstr_init(&connect_info->server_name);
+	tds_dstr_init(&connect_info->language);
+	tds_dstr_init(&connect_info->char_set);
+	tds_dstr_init(&connect_info->host_name);
+	tds_dstr_init(&connect_info->app_name);
+	tds_dstr_init(&connect_info->user_name);
+	tds_dstr_init(&connect_info->password);
+	tds_dstr_init(&connect_info->library);
+	tds_dstr_init(&connect_info->ip_addr);
+	tds_dstr_init(&connect_info->database);
+	tds_dstr_init(&connect_info->dump_file);
+	tds_dstr_init(&connect_info->default_domain);
+	tds_dstr_init(&connect_info->client_charset);
 
 	/* fill in all hardcoded defaults */
-	TEST_STRDUP(connect_info->server_name,TDS_DEF_SERVER);
+	if (!tds_dstr_copy(&connect_info->server_name,TDS_DEF_SERVER))
+		goto Cleanup;
 	connect_info->major_version = TDS_DEF_MAJOR;
 	connect_info->minor_version = TDS_DEF_MINOR;
 	connect_info->port = TDS_DEF_PORT;
 	connect_info->block_size = TDS_DEF_BLKSZ;
-	connect_info->language = NULL;
-	connect_info->char_set = NULL;
 	if (locale) {
 		if (locale->language) 
-        		TEST_STRDUP(connect_info->language,locale->language);
+			if (!tds_dstr_copy(&connect_info->language,locale->language))
+				goto Cleanup;
 		if (locale->char_set) 
-        		TEST_STRDUP(connect_info->char_set,locale->char_set);
+			if (!tds_dstr_copy(&connect_info->char_set,locale->char_set))
+				goto Cleanup;
 	}
-	if (connect_info->language == NULL) {
-		TEST_STRDUP(connect_info->language,TDS_DEF_LANG);
+	if (tds_dstr_isempty(&connect_info->language)) {
+		if (!tds_dstr_copy(&connect_info->language,TDS_DEF_LANG))
+			goto Cleanup;
 	}
-	if (connect_info->char_set == NULL) {
-		TEST_STRDUP(connect_info->char_set,TDS_DEF_CHARSET);
+	if (tds_dstr_isempty(&connect_info->char_set)) {
+		if (!tds_dstr_copy(&connect_info->char_set,TDS_DEF_CHARSET))
+			goto Cleanup;
 	}
 	connect_info->try_server_login = 1;
 	memset(hostname,'\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
 	hostname[sizeof(hostname)-1]='\0'; /* make sure it's truncated */
-	TEST_STRDUP(connect_info->host_name,hostname);
+	if (!tds_dstr_copy(&connect_info->host_name,hostname))
+		goto Cleanup;
 	
 	return connect_info;
 Cleanup:
@@ -569,25 +586,21 @@ void tds_free_locale(TDSLOCINFO *locale)
 }
 void tds_free_connect(TDSCONNECTINFO *connect_info)
 {
-	if (connect_info->server_name) free(connect_info->server_name);
-	if (connect_info->host_name) free(connect_info->host_name);
-	if (connect_info->ip_addr) free(connect_info->ip_addr);
-	if (connect_info->language) free(connect_info->language);
-	if (connect_info->char_set) free(connect_info->char_set);
-	if (connect_info->database) free(connect_info->database);
-	if (connect_info->dump_file) free(connect_info->dump_file);
-	if (connect_info->default_domain) free(connect_info->default_domain);
-	if (connect_info->client_charset) free(connect_info->client_charset);
-	/* dnr */
-	if (connect_info->app_name) free(connect_info->app_name);
-	if (connect_info->user_name) free(connect_info->user_name);
-	if (connect_info->password) {
-		/* for security reason clear memory */
-		memset(connect_info->password,0,strlen(connect_info->password));
-		free(connect_info->password);
-	}
-	if (connect_info->library) free(connect_info->library);
-	/* !dnr */
+	tds_dstr_free(&connect_info->server_name);
+	tds_dstr_free(&connect_info->host_name);
+	tds_dstr_free(&connect_info->language);
+	tds_dstr_free(&connect_info->char_set);
+	tds_dstr_free(&connect_info->ip_addr);
+	tds_dstr_free(&connect_info->database);
+	tds_dstr_free(&connect_info->dump_file);
+	tds_dstr_free(&connect_info->default_domain);
+	tds_dstr_free(&connect_info->client_charset);
+	tds_dstr_free(&connect_info->app_name);
+	tds_dstr_free(&connect_info->user_name);
+	/* cleared for security reason */
+	tds_dstr_zero(&connect_info->password);
+	tds_dstr_free(&connect_info->password);
+	tds_dstr_free(&connect_info->library);
 	TDS_ZERO_FREE(connect_info);
 }
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)

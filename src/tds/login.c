@@ -74,7 +74,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.57 2002-10-17 21:21:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.58 2002-10-17 22:36:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -213,7 +213,7 @@ int connect_timeout = 0;
 	/* end */
 
 	/* verify that ip_addr is not NULL */
-	if (!connect_info->ip_addr) {
+	if (tds_dstr_isempty(&connect_info->ip_addr)) {
 		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
 		if (connect_info->server_name) {
 			tdsdump_log(TDS_DBG_ERROR, "%L Server %s not found!\n",

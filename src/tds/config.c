@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.46 2002-10-17 21:21:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.47 2002-10-17 22:36:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -340,13 +340,11 @@ int found = 0;
 			} else if (!strcmp(option,TDS_STR_TRYDOM)) {
 				connect_info->try_domain_login = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_DOMAIN)) {
-				if (connect_info->default_domain) free(connect_info->default_domain);
-				connect_info->default_domain = strdup(value);
+				tds_dstr_copy(&connect_info->default_domain,value);
 			} else if (!strcmp(option,TDS_STR_XDOMAUTH)) {
 				connect_info->xdomain_auth = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_DUMPFILE)) {
-				if (connect_info->dump_file) free(connect_info->dump_file);
-				connect_info->dump_file = strdup(value);
+				tds_dstr_copy(&connect_info->dump_file,value);
 			} else if (!strcmp(option,TDS_STR_DEBUGLVL)) {
 				if (atoi(value)) 
 					connect_info->debug_level = atoi(value);
@@ -359,8 +357,7 @@ int found = 0;
 			} else if (!strcmp(option,TDS_STR_HOST)) {
 				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
    				lookup_host(value, NULL, tmp, NULL);
-				if (connect_info->ip_addr) free(connect_info->ip_addr);
-				connect_info->ip_addr = strdup(tmp);
+				tds_dstr_copy(&connect_info->ip_addr,tmp);
 				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",connect_info->ip_addr);
 			} else if (!strcmp(option,TDS_STR_PORT)) {
 				if (atoi(value)) 
@@ -371,14 +368,11 @@ int found = 0;
 				if (atoi(value)) 
 					connect_info->text_size = atoi(value);
 			} else if (!strcmp(option,TDS_STR_CHARSET)) {
-				if (connect_info->char_set) free(connect_info->char_set);
-				connect_info->char_set = strdup(value);
+				tds_dstr_copy(&connect_info->char_set,value);
 			} else if (!strcmp(option,TDS_STR_CLCHARSET)) {
-				if (connect_info->client_charset) free(connect_info->client_charset);
-				connect_info->client_charset = strdup(value);
+				tds_dstr_copy(&connect_info->client_charset,value);
 			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
-				if (connect_info->language) free(connect_info->language);
-				connect_info->language = strdup(value);
+				tds_dstr_copy(&connect_info->language,value);
 			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
 				g_append_mode = tds_config_boolean(value);
 			}
@@ -397,10 +391,8 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 	/* This needs to be cleaned up */
 	get_server_info(server, ip_addr, ip_port, tds_ver);
 	if (strlen(ip_addr)) {
-		if (connect_info->ip_addr) free(connect_info->ip_addr);
-		/* FIXME check result, use strdup */
-		connect_info->ip_addr = (char *) malloc(strlen(ip_addr)+1);
-		strcpy(connect_info->ip_addr, ip_addr);
+		/* FIXME check result */
+		tds_dstr_copy(&connect_info->ip_addr, ip_addr);
 	}
 	if (atoi(ip_port)) {
 		connect_info->port = atoi(ip_port);
@@ -413,24 +405,20 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login)
 {
 	if (!tds_dstr_isempty(&login->server_name)) {
-		if (connect_info->server_name) free(connect_info->server_name);
-		connect_info->server_name = strdup(login->server_name);
+		tds_dstr_copy(&connect_info->server_name,login->server_name);
 	}	
 	if (login->major_version || login->minor_version) {
 		connect_info->major_version = login->major_version;
 		connect_info->minor_version = login->minor_version;
 	}
 	if (!tds_dstr_isempty(&login->language)) {
-		if (connect_info->language) free(connect_info->language);
-		connect_info->language = strdup(login->language);
+		tds_dstr_copy(&connect_info->language,login->language);
 	}
 	if (!tds_dstr_isempty(&login->char_set)) {
-		if (connect_info->char_set) free(connect_info->char_set);
-		connect_info->char_set = strdup(login->char_set);
+		tds_dstr_copy(&connect_info->char_set,login->char_set);
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
-		if (connect_info->host_name) free(connect_info->host_name);
-		connect_info->host_name = strdup(login->host_name);
+		tds_dstr_copy(&connect_info->host_name,login->host_name);
 		/* DBSETLHOST and it's equivilants are commentary fields
 		** they don't affect connect_info->ip_addr (the server) but they show
 		** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
@@ -443,24 +431,18 @@ static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login)
 		*/
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
-		if (connect_info->app_name) free(connect_info->app_name);
-		connect_info->app_name = strdup(login->app_name);
+		tds_dstr_copy(&connect_info->app_name,login->app_name);
 	}
 	if (!tds_dstr_isempty(&login->user_name)) {
-		if (connect_info->user_name) free(connect_info->user_name);
-		connect_info->user_name = strdup(login->user_name);
+		tds_dstr_copy(&connect_info->user_name,login->user_name);
 	}
 	if (!tds_dstr_isempty(&login->password)) {
-		if (connect_info->password) {
-			/* for security reason clear memory */
-			memset(connect_info->password,0,strlen(connect_info->password));
-			free(connect_info->password);
-		}
-		connect_info->password = strdup(login->password);
+		/* for security reason clear memory */
+		tds_dstr_zero(&connect_info->password);
+		tds_dstr_copy(&connect_info->password,login->password);
 	}
 	if (!tds_dstr_isempty(&login->library)) {
-		if (connect_info->library) free(connect_info->library);
-		connect_info->library = strdup(login->library);
+		tds_dstr_copy(&connect_info->library,login->library);
 	}
 	if (login->encrypted) {
 		connect_info->encrypted = 1;
@@ -494,16 +476,14 @@ char *s;
 
 	if ((s=getenv("TDSQUERY"))) {
 		if (s && strlen(s)) {
-			if (connect_info->server_name) free(connect_info->server_name);
-			connect_info->server_name = strdup(s);
+			tds_dstr_copy(&connect_info->server_name,s);
 			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n",s);
 		} 
 		return;
 	}
 	if ((s=getenv("DSQUERY"))) {
 		if (s && strlen(s)) {
-			if (connect_info->server_name) free(connect_info->server_name);
-			connect_info->server_name = strdup(s);
+			tds_dstr_copy(&connect_info->server_name,s);
 			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n",s);
 		} 
 	}
@@ -517,13 +497,11 @@ pid_t pid=0;
         if ((s=getenv("TDSDUMP"))) {
                 if (!strlen(s)) {
                         pid = getpid();
-			if (connect_info->dump_file) free(connect_info->dump_file);
 			/* FIXME check out of memory */
 			asprintf(&path, "/tmp/freetds.log.%d", pid);
-			connect_info->dump_file = path;
+			tds_dstr_set(&connect_info->dump_file,path);
 		} else {
-			if (connect_info->dump_file) free(connect_info->dump_file);
-			connect_info->dump_file = strdup(s);
+			tds_dstr_copy(&connect_info->dump_file,s);
 		}
 		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'dump_file' to '%s' from $TDSDUMP.\n",connect_info->dump_file);
 	}
@@ -557,9 +535,7 @@ char tmp[256];
 
 	if ((tdshost=getenv("TDSHOST"))) {
 		lookup_host (tdshost, NULL, tmp, NULL);
-		if (connect_info->ip_addr)
-			free (connect_info->ip_addr);
-		connect_info->ip_addr = strdup (tmp);
+		tds_dstr_copy(&connect_info->ip_addr,tmp);
                 tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n",tmp, tdshost);
 
 	}
@@ -951,8 +927,7 @@ static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *l
     
     if(( pSep < pEnd )&&( pSep != login->server_name ))/* yes, i found it! */
     {
-		if( connect_info->server_name ) free( connect_info->server_name );
-		connect_info->server_name = strdup( login->server_name );
+		tds_dstr_copy(&connect_info->server_name,login->server_name );
 
 		/* modify connect_info-> && login->server_name & ->port */
 		login->port = connect_info->port = atoi( pSep + 1 );
@@ -964,9 +939,7 @@ static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *l
             char tmp[256];
 
 		lookup_host (connect_info->server_name, NULL, tmp, NULL);
-		if (connect_info->ip_addr)
-			free (connect_info->ip_addr);
-		connect_info->ip_addr = strdup (tmp);
+		tds_dstr_copy(&connect_info->ip_addr,tmp);
         }
 
         return 1;/* TRUE */
