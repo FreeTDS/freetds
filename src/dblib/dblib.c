@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.87 2002-10-25 23:38:53 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.88 2002-10-27 07:07:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -398,7 +398,7 @@ int            matched_compute_id = 0;
 				*((DBINT *)curcol->column_nullbind)=0;
 			}
 		}
-		if (curcol->varaddr) {
+		if (curcol->column_varaddr) {
  			DBINT srclen = -1;
 			int   index = buffer_index_of_resultset_row(buf, row_num);
          
@@ -417,7 +417,7 @@ int            matched_compute_id = 0;
 				curcol->column_size);
 
 			if (tds_get_null(resinfo->current_row,i)) {
-				_set_null_value(dbproc, curcol->varaddr, desttype, 
+				_set_null_value(dbproc, curcol->column_varaddr, desttype, 
 					curcol->column_bindlen);
 	  		} else {
 
@@ -433,7 +433,7 @@ int            matched_compute_id = 0;
 					      src,			/* src      */
 					      srclen,			/* srclen   */
 					      desttype,			/* desttype */
-					      (BYTE *)curcol->varaddr,	/* dest     */
+					      (BYTE *)curcol->column_varaddr,	/* dest     */
 					      destlen);       	/* destlen  */
 			} /* else not null */
 		}
@@ -1594,7 +1594,7 @@ RETCODE dbbind(
 	}
 
 	if (okay) {   
-		colinfo->varaddr         = (char *)varaddr;
+		colinfo->column_varaddr         = (char *)varaddr;
 		colinfo->column_bindtype = vartype;
 		colinfo->column_bindlen  = varlen;
 	}
@@ -2668,7 +2668,7 @@ int            matched_compute_id = 0;
 	}
 
 	if (okay) {   
-		colinfo->varaddr         = (char *)varaddr;
+		colinfo->column_varaddr         = (char *)varaddr;
 		colinfo->column_bindtype = vartype;
 		colinfo->column_bindlen  = varlen;
 	}

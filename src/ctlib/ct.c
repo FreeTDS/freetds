@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.40 2002-10-25 22:52:26 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.41 2002-10-27 07:07:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -548,7 +548,7 @@ TDSSOCKET * tds;
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
 		return CS_FAIL;
    colinfo = resinfo->columns[item-1];
-   colinfo->varaddr = (char *)buffer;
+   colinfo->column_varaddr = (char *)buffer;
    colinfo->column_bindtype = datafmt->datatype;
    colinfo->column_bindfmt = datafmt->format;
    tdsdump_log(TDS_DBG_INFO1, "%L inside ct_bind() item = %d datafmt->datatype = %d\n", item, datafmt->datatype);
@@ -642,7 +642,7 @@ CS_DATAFMT srcfmt, destfmt;
    
       srctype = curcol->column_type;
       desttype = _ct_get_server_type(curcol->column_bindtype);
-      dest = (unsigned char *)curcol->varaddr;
+      dest = (unsigned char *)curcol->column_varaddr;
   
       if (dest && !tds_get_null(resinfo->current_row,i)) {
 

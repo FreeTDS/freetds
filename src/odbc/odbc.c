@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.74 2002-10-24 12:20:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.75 2002-10-27 07:07:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1266,7 +1266,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				}
 				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 				dynparam->column_type    = SYBVARCHAR; /* FIXME */
-				dynparam->varaddr        = param->varaddr;
+				dynparam->column_varaddr        = param->varaddr;
 				dynparam->column_bindlen = *(SQLINTEGER*)param->param_lenbind;
 				dynparam->is_null        = 0;
 			}
@@ -1342,7 +1342,7 @@ SQLRETURN SQL_API SQLFetch(
                 cur->column_number <= tds->res_info->num_cols)
             {
                 colinfo = tds->res_info->columns[cur->column_number-1];
-                colinfo->varaddr = cur->varaddr;
+                colinfo->column_varaddr = cur->varaddr;
                 colinfo->column_bindtype = cur->column_bindtype;
                 colinfo->column_bindlen = cur->column_bindlen;
                 colinfo->column_lenbind = cur->column_lenbind;
@@ -1370,7 +1370,7 @@ SQLRETURN SQL_API SQLFetch(
     {
         colinfo = resinfo->columns[i];
         colinfo->column_text_sqlgetdatapos = 0;
-        if (colinfo->varaddr && !tds_get_null(resinfo->current_row, i))
+        if (colinfo->column_varaddr && !tds_get_null(resinfo->current_row, i))
         {
             if (is_blob_type(colinfo->column_type))
             {
@@ -1386,7 +1386,7 @@ SQLRETURN SQL_API SQLFetch(
                                   src,
                                   srclen, 
                                   colinfo->column_bindtype, 
-                                  colinfo->varaddr, 
+                                  colinfo->column_varaddr, 
                                   colinfo->column_bindlen);
         }
         if (colinfo->column_lenbind)

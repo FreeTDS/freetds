@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.28 2002-10-24 10:31:54 freddy77 Exp $";
+	"$Id: tds.h,v 1.29 2002-10-27 07:07:15 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -445,42 +445,58 @@ typedef struct tds_loc_info {
         char *date_fmt;
 } TDSLOCINFO;
 
-/* structure for storing data about regular and compute rows */ 
+/** structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
-    TDS_TINYINT  column_operator;
-    TDS_SMALLINT column_operand;
+	/** type of data, this type can be different from wire type because 
+	 *conversion can be applied (like Unicode->Single byte characters) */
 	TDS_SMALLINT column_type;
+	/** type of data, saved from wire */
 	TDS_SMALLINT column_type_save;
 	TDS_INT column_usertype;
 	TDS_SMALLINT column_flags;
+	/** maximun size of data. For fixed is the size. */
 	TDS_INT column_size;
-	/** size written in variable (ie: char, text, binary) */
-	TDS_INT column_cur_size;
-	/* FIXME use a pointer to allocated buffer like column_textvalue avoiding multiple variable ?? */ 
-	TDS_INT column_offset;
-	TDS_TINYINT column_namelen;
+	/** size of length when reading from wire (0, 1, 2 or 4) */
 	TDS_TINYINT column_varint_size;
+	/** precision for decimal/numeric */
+	TDS_TINYINT column_prec;
+	/** scale for decimal/numeric */
+	TDS_TINYINT column_scale;
+	/** length of column name */
+	TDS_TINYINT column_namelen;
 	/* FIXME why 256. bigger limit is 128 ucs2 character ....*/
+	/** column name */
 	TDS_CHAR column_name[256];
-	TDS_SMALLINT column_bindtype;
-	TDS_SMALLINT column_bindfmt;
-	TDS_UINT column_bindlen;
-	TDS_CHAR *column_nullbind;
-	TDS_CHAR *varaddr;
-	TDS_CHAR *column_lenbind;
-	/* FIXME should be changed to tinyint ?? */
-	TDS_SMALLINT column_prec;
-	TDS_SMALLINT column_scale;
-	TDS_INT column_textpos;
-	TDS_INT column_text_sqlgetdatapos;
-	TDS_CHAR column_textptr[16];
-	TDS_CHAR column_timestamp[8];
-	TDS_CHAR *column_textvalue;
+	/** offset into row buffer for store data */
+	TDS_INT column_offset;
 	TDS_TINYINT column_nullable;
 	TDS_TINYINT column_writeable;
 	TDS_TINYINT column_identity;
 	TDS_TINYINT column_unicodedata;
-	TDS_CHAR    collation[5];
+	TDS_CHAR    column_collation[5];
+
+	/* additional fields flags for compute results */
+	TDS_TINYINT  column_operator;
+	TDS_SMALLINT column_operand;
+
+	/* FIXME this is data related, not column */
+	/** size written in variable (ie: char, text, binary) */
+	TDS_INT column_cur_size;
+	/* FIXME those 3 fields are data related, not column related */
+	TDS_CHAR column_textptr[16];
+	TDS_CHAR column_timestamp[8];
+	TDS_CHAR *column_textvalue;
+
+	/* related to binding or info stored by client libraries */
+	/* FIXME find a best place to store these data, some are unused */
+	TDS_SMALLINT column_bindtype;
+	TDS_SMALLINT column_bindfmt;
+	TDS_UINT column_bindlen;
+	TDS_CHAR *column_nullbind;
+	TDS_CHAR *column_varaddr;
+	TDS_CHAR *column_lenbind;
+	TDS_INT column_textpos;
+	TDS_INT column_text_sqlgetdatapos;
 } TDSCOLINFO;
 
 typedef struct tds_result_info {

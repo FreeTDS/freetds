@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.30 2002-10-23 18:44:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.31 2002-10-27 07:07:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -187,7 +187,7 @@ int rc;
               bcpcol->db_type_save   = resinfo->columns[i]->column_type_save;
               bcpcol->db_prec        = resinfo->columns[i]->column_prec;
               bcpcol->db_scale       = resinfo->columns[i]->column_scale;
-              memcpy(bcpcol->db_collate, resinfo->columns[i]->collation, 5);
+              memcpy(bcpcol->db_collate, resinfo->columns[i]->column_collation, 5);
               strcpy(bcpcol->db_name, resinfo->columns[i]->column_name);
               bcpcol->db_varint_size = resinfo->columns[i]->column_varint_size;
               bcpcol->db_unicodedata = resinfo->columns[i]->column_unicodedata;
