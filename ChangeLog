@@ -1,3 +1,6 @@
+Tue Sep 23 13:37:28 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/odbc.c fix-ups to previous patch for SQLSetStmtAttr.
+
 Tue Sep 23 11:29:22 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsodbc.h src/odbc/odbc.c
 	- Applied patch by Frediano from ML today.

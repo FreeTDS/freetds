@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.249 2003-09-23 15:42:03 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.250 2003-09-23 17:39:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -91,6 +91,7 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
+static void longquery_cancel(long hint);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -2223,7 +2224,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
-void
+static void
 longquery_cancel(long hint)
 {
 TDS_STMT *stmt = (TDS_STMT *)hint;
@@ -2938,7 +2939,9 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->ard->header.sql_desc_bind_offset_ptr);
 		src = &stmt->ard->header.sql_desc_bind_offset_ptr;
 		break;
+#if SQL_BIND_TYPE != SQL_ATTR_ROW_BIND_TYPE
 	case SQL_BIND_TYPE: /* although this is ODBC2 we must support this attribute */
+#endif
 	case SQL_ATTR_ROW_BIND_TYPE:
 		size = sizeof(stmt->ard->header.sql_desc_bind_type);
 		src = &stmt->ard->header.sql_desc_bind_type;
@@ -4757,7 +4760,9 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
 		stmt->ard->header.sql_desc_bind_offset_ptr = uip;
 		break;
+#if SQL_BIND_TYPE != SQL_ATTR_ROW_BIND_TYPE
 	case SQL_BIND_TYPE: /* although this is ODBC2 we must support this attribute */
+#endif
 	case SQL_ATTR_ROW_BIND_TYPE:
 		stmt->ard->header.sql_desc_bind_type = ui;
 		break;
