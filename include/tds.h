@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.35 2002-11-01 22:51:33 castellano Exp $";
+	"$Id: tds.h,v 1.36 2002-11-03 10:13:06 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -753,6 +753,7 @@ int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id);
 int tds_submit_execute(TDSSOCKET *tds, char *id);
 int tds_send_cancel(TDSSOCKET *tds);
 const char *tds_next_placeholders(const char *start);
+int tds_count_placeholders(const char *query);
 int tds_get_dynid(TDSSOCKET *tds, char **id);
 int tds_submit_unprepare(TDSSOCKET *tds, char *id);
 

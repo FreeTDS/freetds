@@ -1,3 +1,8 @@
+Fri Nov  3 11:11:35 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/odbc.c src/tds/query.c:
+	- applied updated Alex Hornby patch
+	- reuse of query.c code for placeholders counting
+
 Fri Nov  3 10:43:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/.indent.pro: update from ML thread
 

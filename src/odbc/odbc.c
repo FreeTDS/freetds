@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.80 2002-11-01 22:06:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.81 2002-11-03 10:13:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1223,11 +1223,16 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
 	CHECK_HSTMT;
 
+	/* translate to native format */
+	if (SQL_SUCCESS!=prepare_call(stmt))
+		return SQL_ERROR;
+
 #if 0 /* developing... */
 	tds = stmt->hdbc->tds_socket;
 
 	fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 	if (stmt->param_count > 0) {
+		/* prepare dynamic query (only for first SQLExecute call) */
 		if( !stmt->dynid  ){
 			char *id = NULL;
 			tdsdump_log(TDS_DBG_INFO1,"Creating prepared statement\n");
@@ -1311,9 +1316,6 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		return SQL_SUCCESS;
 	}
 #endif
-
-	if (SQL_SUCCESS!=prepare_call(stmt))
-		return SQL_ERROR;
 
 	if (stmt->prepared_query)
 	{
@@ -1572,9 +1574,13 @@ SQLRETURN SQL_API SQLGetStmtAttr (
                                  SQLINTEGER BufferLength,
                                  SQLINTEGER * StringLength)
 {
-    CHECK_HSTMT;
-    odbc_LogError ("SQLGetStmtAttr: function not implemented");
-    return SQL_ERROR;
+	CHECK_HSTMT;
+
+	if ( BufferLength == SQL_IS_UINTEGER ) {
+		return SQLGetStmtOption(hstmt, Attribute, Value);
+	} else {
+		return SQL_ERROR;
+	}
 }
 
 SQLRETURN SQL_API SQLGetCursorName(
@@ -1626,36 +1632,17 @@ SQLRETURN SQL_API SQLPrepare(
                             SQLCHAR FAR       *szSqlStr,
                             SQLINTEGER         cbSqlStr)
 {
-    char quoting,*p;
-    struct _hstmt *stmt=(struct _hstmt *)hstmt;
+	struct _hstmt *stmt=(struct _hstmt *)hstmt;
 
     CHECK_HSTMT;
 
     if (SQL_SUCCESS!=odbc_set_stmt_prepared_query(stmt, (char*)szSqlStr, cbSqlStr))
         return SQL_ERROR;
 
-    /* count parameters */
-    stmt->param_count = 0;
-    for (p=stmt->prepared_query;*p;++p)
-        switch (*p)
-        {
-        /* skip quoted chars */
-        case '\'':
-        case '"':
-            quoting = *p;
-            while (*++p)
-                if (*p == quoting)
-                {
-                    ++p;
-                    break;
-                }
-            break;
-        case '?':
-            ++stmt->param_count;
-            break;
-        }
+	/* count parameters */
+	stmt->param_count = tds_count_placeholders(stmt->prepared_query);
 
-    return SQL_SUCCESS;
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLRowCount(
@@ -1868,10 +1855,13 @@ SQLRETURN SQL_API SQLGetConnectOption(
     CHECK_HDBC;
     switch (fOption)
     {
-    case SQL_AUTOCOMMIT:
-	* ( (SQLUINTEGER*) pvParam ) = dbc->autocommit_state;
-	return SQL_SUCCESS;
-    default:
+	case SQL_AUTOCOMMIT:
+		* ( (SQLUINTEGER*) pvParam ) = dbc->autocommit_state;
+		return SQL_SUCCESS;
+	case SQL_TXN_ISOLATION:
+		* ( (SQLUINTEGER*) pvParam ) = SQL_TXN_READ_COMMITTED;
+		return SQL_SUCCESS;
+	default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");
         return SQL_ERROR;
@@ -2260,7 +2250,14 @@ SQLRETURN SQL_API SQLGetInfo(
         break;
     case SQL_SCROLL_CONCURRENCY:
         *uiInfoValue  = SQL_SCCO_READ_ONLY;
-        break;
+		break;
+	case SQL_TXN_CAPABLE:
+		/* transaction for DML and DDL */
+		*siInfoValue = SQL_TC_ALL;
+		break;
+	case SQL_DEFAULT_TXN_ISOLATION:
+		*uiInfoValue  = SQL_TXN_READ_COMMITTED;
+		break;
 	/* TODO support for other options */
 	default:
 		/* error HYC00*/

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.34 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.35 2002-11-03 10:13:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -175,7 +175,7 @@ tds_next_placeholders(const char* start)
 /**
  * Count the number of placeholders in query
  */
-static int 
+int 
 tds_count_placeholders(const char *query)
 {
 	const char *p = query-1;
