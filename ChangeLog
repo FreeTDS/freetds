@@ -1,3 +1,8 @@
+Mon Nov  5 18:47:08 EST 2001  Brian Bruns <camber@ais.org>
+
+	* src/tds/token.c(tds7_send_login): Precompute the lengths of login field 
+	and check for null strings.
+
 Sun Nov  4 00:21:46 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/tds/token.c(tds_client_msg): Client messages were not updated to pass

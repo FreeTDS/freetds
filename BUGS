@@ -17,6 +17,8 @@ Believed Fixed
 2. text values getting truncated to 255 bytes under TDS 7. (can someone
    provide more detail?)
 3. code to send COL_NAME and COL_INFO tokens are not in the server stuff.
+4. tds_get_*int() and tds_put_*int() should handle either endianess on any 
+   platform. Breaks TDS 7.0 under big end machines.
 
 Needs Fixing
 ------------
@@ -30,12 +32,10 @@ Needs Fixing
 5. Intermittant crash with PHP apache module. (Unknown marker messages
    appear in the log...)
 6. dbwritetext() and friends do not work under TDS 7.0
-7. tds_get_*int() and tds_put_*int() should handle either endianess on any 
-   platform. Breaks TDS 7.0 under big end machines.
-8. There is a bug with the order of returns from ct_results() such that rows
+7. There is a bug with the order of returns from ct_results() such that rows
    affected doesn't show up in sqsh.
-9. dbsqlexec() needs a dbresults() loop on error and shouldn't
-10. freetds.conf requires server names to be lower case.
+8. dbsqlexec() needs a dbresults() loop on error and shouldn't
+9. freetds.conf requires server names to be lower case.
 
 Reported but not confirmed
 --------------------------

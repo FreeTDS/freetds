@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.7 2001-10-30 01:16:58 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.8 2001-11-06 00:01:55 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -415,21 +415,30 @@ int size1;
 int current_pos;
 int domain_login = 0;
 
+int user_name_len = config->user_name ? strlen(config->user_name) : 0;
+int host_name_len = config->host_name ? strlen(config->host_name) : 0;
+int app_name_len = config->app_name ? strlen(config->app_name) : 0;
+int password_len = config->password ? strlen(config->password) : 0;
+int server_name_len = config->server_name ? strlen(config->server_name) : 0;
+int library_len = config->library ? strlen(config->library) : 0;
+int language_len = config->language ? strlen(config->language) : 0;
 
    if (!domain_login) {
-   	size1 = 86 + (strlen(config->host_name) +
-			strlen(config->user_name) + 
-			strlen(config->app_name) +
-			strlen(config->password) +
-			strlen(config->server_name) +
-			strlen(config->library) +
-			strlen(config->language))*2;
+   	size1 = 86 + (
+			host_name_len +
+			user_name_len +
+			app_name_len +
+			password_len +
+			server_name_len +
+			library_len +
+			language_len)*2;
    } else {
-   	size1 = 86 + (strlen(config->host_name) +
-			strlen(config->app_name) +
-			strlen(config->server_name) +
-			strlen(config->library) +
-			strlen(config->language))*2;
+   	size1 = 86 + (
+			host_name_len +
+			app_name_len +
+			server_name_len +
+			library_len +
+			language_len)*2;
    }
    packet_size = size1 + 48;
    tds_put_smallint(tds,packet_size);
@@ -445,17 +454,17 @@ int domain_login = 0;
    current_pos = 86; /* ? */
    /* host name */
    tds_put_smallint(tds,current_pos); 
-   tds_put_smallint(tds,strlen(config->host_name)); 
-   current_pos += strlen(config->host_name)*2;
+   tds_put_smallint(tds,host_name_len);
+   current_pos += host_name_len * 2;
    if (!domain_login) {
    	/* username */
    	tds_put_smallint(tds,current_pos);
-   	tds_put_smallint(tds,strlen(config->user_name)); 
-   	current_pos += strlen(config->user_name)*2;
+   	tds_put_smallint(tds,user_name_len);
+   	current_pos += user_name_len * 2;
    	/* password */
    	tds_put_smallint(tds,current_pos);
-   	tds_put_smallint(tds,strlen(config->password)); 
-   	current_pos += strlen(config->password)*2;
+   	tds_put_smallint(tds,password_len);
+   	current_pos += password_len * 2;
    } else {
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
@@ -464,23 +473,23 @@ int domain_login = 0;
    }
    /* app name */
    tds_put_smallint(tds,current_pos);
-   tds_put_smallint(tds,strlen(config->app_name)); 
-   current_pos += strlen(config->app_name)*2;
+   tds_put_smallint(tds,app_name_len);
+   current_pos += app_name_len * 2;
    /* server name */
    tds_put_smallint(tds,current_pos);
-   tds_put_smallint(tds,strlen(config->server_name)); 
-   current_pos += strlen(config->server_name)*2;
+   tds_put_smallint(tds,server_name_len);
+   current_pos += server_name_len * 2;
    /* unknown */
    tds_put_smallint(tds,0); 
    tds_put_smallint(tds,0); 
    /* library name */
    tds_put_smallint(tds,current_pos);
-   tds_put_smallint(tds,strlen(config->library)); 
-   current_pos += strlen(config->library)*2;
+   tds_put_smallint(tds,library_len);
+   current_pos += library_len * 2;
    /* language  - kostya@warmcat.excom.spb.su */
    tds_put_smallint(tds,current_pos); 
-   tds_put_smallint(tds,strlen(config->language)); 
-   current_pos += strlen(config->language)*2;
+   tds_put_smallint(tds,language_len);
+   current_pos += language_len * 2;
    /* database name */
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,0); 
@@ -492,22 +501,22 @@ int domain_login = 0;
    tds_put_smallint(tds, 0); 
 
    tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
-   tds_put_n(tds,unicode_string,strlen(config->host_name)*2);
+   tds_put_n(tds,unicode_string,host_name_len * 2);
    if (!domain_login) {
    	tds7_ascii2unicode(tds,config->user_name, unicode_string, 255);
-   	tds_put_n(tds,unicode_string,strlen(config->user_name)*2);
+   	tds_put_n(tds,unicode_string,user_name_len * 2);
    	tds7_ascii2unicode(tds,config->password, unicode_string, 255);
-   	tds7_crypt_pass(unicode_string, strlen(config->password)*2, unicode_string);
-   	tds_put_n(tds,unicode_string,strlen(config->password)*2);
+   	tds7_crypt_pass(unicode_string, password_len * 2, unicode_string);
+   	tds_put_n(tds,unicode_string,password_len * 2);
    }
    tds7_ascii2unicode(tds,config->app_name, unicode_string, 255);
-   tds_put_n(tds,unicode_string,strlen(config->app_name)*2);
+   tds_put_n(tds,unicode_string,app_name_len * 2);
    tds7_ascii2unicode(tds,config->server_name, unicode_string, 255);
-   tds_put_n(tds,unicode_string,strlen(config->server_name)*2);
+   tds_put_n(tds,unicode_string,server_name_len * 2);
    tds7_ascii2unicode(tds,config->library, unicode_string, 255);
-   tds_put_n(tds,unicode_string,strlen(config->library)*2);
+   tds_put_n(tds,unicode_string,library_len * 2);
    tds7_ascii2unicode(tds,config->language, unicode_string, 255);
-   tds_put_n(tds,unicode_string,strlen(config->language)*2);
+   tds_put_n(tds,unicode_string,language_len * 2);
 
    /* from here to the end of the packet is totally unknown */
    tds_put_n(tds,magic3,7);
