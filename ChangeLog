@@ -1,3 +1,7 @@
+Tue Feb 18 11:28:43 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/Makefile.am: export only needed symbols
+	* win32/msvc6/FreeTDS.def: add SQLGetDiag* exports
+
 Tue Feb 18 10:54:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/replacements/asprintf.c: add some include for portability
 

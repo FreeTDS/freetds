@@ -5,55 +5,58 @@ EXPORTS
 	SQLAllocStmt
 	SQLBindCol
 	SQLBindParameter
-	SQLBrowseConnect
+;	SQLBrowseConnect
 	SQLCancel
 	SQLColAttributes
-	SQLColumnPrivileges
+;	SQLColumnPrivileges
 	SQLColumns
 	SQLConnect
 	SQLDescribeCol
-	SQLDescribeParam
+;	SQLDescribeParam
 	SQLDisconnect
 	SQLDriverConnect
+	SQLEndTran
 	SQLError
 	SQLExecDirect
 	SQLExecute
-;	SQLExtendedFetch 
+;	SQLExtendedFetch
 	SQLFetch
-	SQLForeignKeys
+;	SQLForeignKeys
 	SQLFreeConnect
 	SQLFreeEnv
 	SQLFreeHandle
 	SQLFreeStmt
 	SQLGetConnectOption
-	SQLGetCursorName
+;	SQLGetCursorName
 	SQLGetData
+	SQLGetDiagField
+	SQLGetDiagRec
 	SQLGetFunctions
 	SQLGetInfo
 	SQLGetStmtAttr
 	SQLGetStmtOption
 	SQLGetTypeInfo
 	SQLMoreResults
-	SQLNativeSql
+;	SQLNativeSql
 	SQLNumParams
 	SQLNumResultCols
 	SQLParamData
-	SQLParamOptions
+;	SQLParamOptions
 	SQLPrepare
-	SQLPrimaryKeys
-	SQLProcedureColumns
-	SQLProcedures
+;	SQLPrimaryKeys
+;	SQLProcedureColumns
+;	SQLProcedures
 	SQLPutData
 	SQLRowCount
 	SQLSetConnectAttr
 	SQLSetConnectOption
-	SQLSetCursorName
+;	SQLSetCursorName
 	SQLSetEnvAttr
-	SQLSetParam
-	SQLSetPos
+;	SQLSetParam
+;	SQLSetPos
 	SQLSetStmtOption
-	SQLSpecialColumns
-	SQLStatistics
-	SQLTablePrivileges
+;	SQLSpecialColumns
+;	SQLStatistics
+;	SQLTablePrivileges
 	SQLTables
 	SQLTransact
