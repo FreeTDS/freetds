@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.62 2002-12-28 11:33:53 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.63 2002-12-31 22:43:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1078,6 +1078,7 @@ CS_INT int_val;
 		} else {
 			int_val = resinfo->num_cols;
 		}
+		tdsdump_log(TDS_DBG_FUNC, "%L ct_res_info(): Number of columns is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	case CS_ROW_COUNT:
@@ -1087,6 +1088,7 @@ CS_INT int_val;
 		} else {
 			int_val = tds->rows_affected;
 		}
+		tdsdump_log(TDS_DBG_FUNC, "%L ct_res_info(): Number of rows is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	default:
