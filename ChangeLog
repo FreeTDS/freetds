@@ -1,6 +1,10 @@
+Mon Mar 31 11:11:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- applyed Peter Deacon patch for SQLRowCount
+
 Mon Mar 31 10:54:20 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
-	- apply Peter Deacon patch to provide better sql state if
+	- applyed Peter Deacon patch to provide better sql state if
 	  default (ZZZZZ) is returned
 
 Sun Mar 30 17:39:27 CET 2003  Frediano Ziglio <freddy77@angelfire.com>

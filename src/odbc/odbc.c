@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.142 2003-03-25 16:05:49 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.143 2003-03-31 09:13:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1579,25 +1579,14 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 
 	INIT_HSTMT;
 
-/* 7/28/2001 begin l@poliris.com */
 	tds = stmt->hdbc->tds_socket;
-	resinfo = tds->res_info;
-	if (resinfo == NULL) {
-		*pcrow = 0;
-		return SQL_SUCCESS;
-/*
-        if (tds && tds->msg_info && tds->msg_info->message)
-            odbc_LogError (tds->msg_info->message);
-        else
-            odbc_LogError ("SQLRowCount: resinfo is NULL");
-    
-        return SQL_ERROR;
-*/
+	*pcrow = -1;
+	if (tds->rows_affected == TDS_NO_COUNT) {
+		if (tds->res_info != NULL && tds->res_info->row_count != 0)
+			*pcrow = tds->res_info->row_count;
+	} else {
+		*pcrow = tds->rows_affected;
 	}
-	*pcrow = resinfo->row_count;
-
-/* end l@poliris.com */
-
 	return SQL_SUCCESS;
 }
 
