@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.16 2002-02-17 20:23:38 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.17 2002-04-08 02:49:48 quozl Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -182,12 +182,14 @@ FD_ZERO (&fds);
 			tds_client_msg(tds, 10020, 9, 0, 0, "No server specified!");
 		}
 		tds_free_config(config);
+		tds_free_socket(tds);
 		return NULL;
 	}
 	sin.sin_addr.s_addr = inet_addr(config->ip_addr);
 	if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
 		tds_free_config(config);
+		tds_free_socket(tds);
 		return NULL;
 	}
 
@@ -200,6 +202,7 @@ FD_ZERO (&fds);
         if ((tds->s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
                 perror ("socket");
 		tds_free_config(config);
+		tds_free_socket(tds);
 		return NULL;
         }
 
@@ -209,15 +212,22 @@ FD_ZERO (&fds);
 		ioctl_blocking = 1; /* ~0; //TRUE; */
 		if (IOCTL(tds->s, FIONBIO, &ioctl_blocking) < 0) {
 			tds_free_config(config);
+			tds_free_socket(tds);
 			return NULL;
 		}
-		connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
+		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
+		if (retval < 0 && errno == EINPROGRESS) retval = 0;
+		if (retval < 0) {
+			perror("src/tds/login.c: tds_connect");
+			tds_free_config(config);
+			tds_free_socket(tds);
+			return NULL;
+		}
           /* Select on writeability for connect_timeout */
 		selecttimeout.tv_sec = 0;
 		selecttimeout.tv_usec = 0;
 
 		FD_SET (tds->s, &fds);
-		retval = 0;
 		retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
 		/* patch from Kostya Ivanov <kostya@warmcat.excom.spb.su> */
 		if (retval < 0 && errno == EINTR)
@@ -237,12 +247,14 @@ FD_ZERO (&fds);
 
 		if ((now-start) > login->connect_timeout) {
 			tds_free_config(config);
+			tds_free_socket(tds);
 			return NULL;
 		}
 	} else {
         if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) <0) {
-                perror("connect");
+                perror("src/tds/login.c: tds_connect");
 		tds_free_config(config);
+		tds_free_socket(tds);
 		return NULL;
         }
 	}

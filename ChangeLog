@@ -1,3 +1,13 @@
+Mon Apr  8 12:38:12 2002  James Cameron  <quozl@us.netrek.org>
+
+	* src/tds/login.c (tds_connect): Add more context to connection
+	failure message as written to stderr.  Call tds_free_socket()
+	before returning NULL in each case, to prevent a socket leak.
+	Added code to test for a failure on connect() in non-blocking
+	mode, as it can return an error that will prevent the following
+	select() from ever returning.  Removed unnecessary clearing of
+	retval prior to select() call.
+
 Thu Apr  4 18:08:42 EST 2002	Brian Bruns	<camber@ais.org>
 
 	*src/odbc/odbc.c(SQLFetch): missed last column when transfering binds
