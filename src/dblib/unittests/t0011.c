@@ -17,7 +17,7 @@
  */
 
 
-static char  software_version[]   = "$Id: t0011.c,v 1.1 2001-10-12 23:29:12 brianb Exp $";
+static char  software_version[]   = "$Id: t0011.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -55,7 +55,7 @@ fprintf(stdout, "About to open\n");
    if (strlen(DATABASE)) dbuse(dbproc,DATABASE);
 
    fprintf(stdout, "Dropping table\n");
-   dbcmd(dbproc, "drop table dblib0011");
+   dbcmd(dbproc, "drop table #dblib0011");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -63,7 +63,7 @@ fprintf(stdout, "About to open\n");
    }
 
    fprintf(stdout, "creating table\n");
-   dbcmd(dbproc, "create table dblib0011 (i int not null, c1 char(200) not null, c2 char(200) null, vc varchar(200) null)");
+   dbcmd(dbproc, "create table #dblib0011 (i int not null, c1 char(200) not null, c2 char(200) null, vc varchar(200) null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -72,11 +72,11 @@ fprintf(stdout, "About to open\n");
 
    fprintf(stdout, "insert\n");
 
-   sprintf(cmd, "insert into dblib0011 values (1, '%s','%s','%s')", long_column, long_column, long_column);
+   sprintf(cmd, "insert into #dblib0011 values (1, '%s','%s','%s')", long_column, long_column, long_column);
    insert_row(dbproc,cmd);
-   sprintf(cmd, "insert into dblib0011 values (2, '%s','%s','%s')", short_column, short_column, short_column);
+   sprintf(cmd, "insert into #dblib0011 values (2, '%s','%s','%s')", short_column, short_column, short_column);
    insert_row(dbproc,cmd);
-   sprintf(cmd, "insert into dblib0011 values (3, '%s',NULL,NULL)", short_column);
+   sprintf(cmd, "insert into #dblib0011 values (3, '%s',NULL,NULL)", short_column);
    insert_row(dbproc,cmd);
 
    failed = select_rows(dbproc, STRINGBIND);
@@ -99,7 +99,7 @@ int select_rows(DBPROCESS *dbproc, int bind_type)
 
 
    fprintf(stdout, "select\n");
-   dbcmd(dbproc,"select * from dblib0011 order by i");
+   dbcmd(dbproc,"select * from #dblib0011 order by i");
    dbsqlexec(dbproc);
 
 

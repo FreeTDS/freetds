@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.3 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.4 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -43,20 +43,20 @@ int main()
      return 1;
    }
 
-   ret = run_command(cmd, "DROP TABLE test_table");
-   if (ret != CS_SUCCEED) return 1;
-   ret = run_command(cmd, "CREATE TABLE test_table (id int, name text)");
+   /* do not test error */
+   ret = run_command(cmd, "DROP TABLE #test_table");
+   ret = run_command(cmd, "CREATE TABLE #test_table (id int, name text)");
    if (ret != CS_SUCCEED) return 1;
 /*
-   ret = run_command(cmd, "INSERT test_table (id, name) VALUES (1, 'name1')");
+   ret = run_command(cmd, "INSERT #test_table (id, name) VALUES (1, 'name1')");
    if (ret != CS_SUCCEED) return 1;
 */
-   sprintf(large_sql, "INSERT test_table (id, name) VALUES (2, '%s')", len600);
+   sprintf(large_sql, "INSERT #test_table (id, name) VALUES (2, '%s')", len600);
    ret = run_command(cmd, large_sql);
    if (ret != CS_SUCCEED) return 1;
 
    ret = ct_command(cmd, CS_LANG_CMD,
-         "SELECT name FROM test_table", CS_NULLTERM, CS_UNUSED);
+         "SELECT name FROM #test_table", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {
      fprintf(stderr, "ct_command() failed\n");
      return 1;

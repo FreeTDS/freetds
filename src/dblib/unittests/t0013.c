@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0013.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
+static char  software_version[]   = "$Id: t0013.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   fclose (fp);
 
   fprintf(stdout, "Dropping table\n");
-  dbcmd(dbproc, "drop table dblib0013");
+  dbcmd(dbproc, "drop table #dblib0013");
   dbsqlexec(dbproc);
   while (dbresults(dbproc)!=NO_MORE_RESULTS)
   {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table dblib0013 (i int not null, PigTure image not null)");
+         "create table #dblib0013 (i int not null, PigTure image not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "insert\n");
 
-   sprintf(cmd, "insert into dblib0013 values (1, '')");
+   sprintf(cmd, "insert into #dblib0013 values (1, '')");
    fprintf(stdout, "%s\n",cmd);
    dbcmd(dbproc, cmd);
    dbsqlexec(dbproc);
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
       /* nop */
    }
 
-   sprintf(sqlCmd, "SELECT PigTure FROM dblib0013 WHERE i = 1");
+   sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = 1");
    dbcmd(dbproc, sqlCmd); 
    dbsqlexec(dbproc);			 
    if (dbresults(dbproc) != SUCCEED) {
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
    while ((result = dbnextrow(dbproc)) != NO_MORE_ROWS) {
    	result = REG_ROW ;
    	result = DBTXPLEN;
-   	strcpy(objname, "dblib0013.PigTure");
+   	strcpy(objname, "#dblib0013.PigTure");
    	textPtr = dbtxptr(dbproc, 1);
    	timeStamp = dbtxtimestamp(dbproc, 1);
    }
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "select\n");
 
-   dbcmd(dbproc,"select * from dblib0013 order by i");
+   dbcmd(dbproc,"select * from #dblib0013 order by i");
    dbsqlexec(dbproc);
 
    if (dbresults(dbproc)!=SUCCEED)
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
 			
    fprintf(stdout, "select 2\n");
 
-   sprintf(sqlCmd, "SELECT PigTure FROM dblib0013 WHERE i = 1");
+   sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = 1");
    dbcmd(dbproc, sqlCmd); 
    dbsqlexec(dbproc);			 
    if (dbresults(dbproc) != SUCCEED) {

@@ -16,7 +16,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0006.c,v 1.1 2001-10-12 23:29:11 brianb Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -116,7 +116,7 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "Dropping table\n");
    add_bread_crumb();
-   dbcmd(dbproc, "drop table dblib0006");
+   dbcmd(dbproc, "drop table #dblib0006");
    add_bread_crumb();
    dbsqlexec(dbproc);
    add_bread_crumb();
@@ -128,7 +128,7 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table dblib0006 (i int not null, s char(10) not null)");
+         "create table #dblib0006 (i int not null, s char(10) not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -140,7 +140,7 @@ fprintf(stdout, "About to open\n");
    {
       char   cmd[1024];
 
-      sprintf(cmd, "insert into dblib0006 values (%d, 'row %04d')", i, i);
+      sprintf(cmd, "insert into #dblib0006 values (%d, 'row %04d')", i, i);
       dbcmd(dbproc, cmd);
       dbsqlexec(dbproc);
       while (dbresults(dbproc)!=NO_MORE_RESULTS)
@@ -151,7 +151,7 @@ fprintf(stdout, "About to open\n");
 
    fprintf(stdout, "first select\n");
    if (SUCCEED != dbcmd(dbproc,
-                        "select * from dblib0006 where i<50 order by i"))
+                        "select * from #dblib0006 where i<50 order by i"))
    {
       fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
       failed = 1;
@@ -193,7 +193,7 @@ fprintf(stdout, "About to open\n");
    testint = -1;
    strcpy(teststr, "bogus");
    fprintf(stdout, "second select\n");
-   dbcmd(dbproc,"select * from dblib0006 where i>=25 order by i");
+   dbcmd(dbproc,"select * from #dblib0006 where i>=25 order by i");
    dbsqlexec(dbproc);
    add_bread_crumb();
 

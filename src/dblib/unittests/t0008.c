@@ -13,7 +13,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0008.c,v 1.1 2001-10-12 23:29:11 brianb Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -76,7 +76,7 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "Dropping table\n");
    add_bread_crumb();
-   dbcmd(dbproc, "drop table dblib0008");
+   dbcmd(dbproc, "drop table #dblib0008");
    add_bread_crumb();
    dbsqlexec(dbproc);
    add_bread_crumb();
@@ -88,7 +88,7 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table dblib0008 (i int not null, s char(10) not null)");
+         "create table #dblib0008 (i int not null, s char(10) not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -100,7 +100,7 @@ fprintf(stdout, "About to open\n");
    {
       char   cmd[1024];
 
-      sprintf(cmd, "insert into dblib0008 values (%d, 'row %03d')", i, i);
+      sprintf(cmd, "insert into #dblib0008 values (%d, 'row %03d')", i, i);
       dbcmd(dbproc, cmd);
       dbsqlexec(dbproc);
       while (dbresults(dbproc)!=NO_MORE_RESULTS)
@@ -110,7 +110,7 @@ fprintf(stdout, "About to open\n");
    }
 
    fprintf(stdout, "select\n");
-   dbcmd(dbproc,"select * from dblib0008 order by i");
+   dbcmd(dbproc,"select * from #dblib0008 order by i");
    dbsqlexec(dbproc);
    add_bread_crumb();
 

@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.2 2001-11-29 23:28:37 brianb Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* protos */
@@ -41,12 +41,12 @@ int main()
      return 1;
    }
 
-   ret = run_command(cmd, "DROP TABLE t0004");
-   if (ret != CS_SUCCEED) return 1;
-   ret = run_command(cmd, "CREATE TABLE t0004 (id int)");
+   /* do not test error */
+   ret = run_command(cmd, "DROP TABLE #t0004");
+   ret = run_command(cmd, "CREATE TABLE #t0004 (id int)");
    if (ret != CS_SUCCEED) return 1;
    for (i=0;i<NUMROWS;i++) {
-		sprintf(query,"INSERT t0004 (id) VALUES (%d)",i);
+		sprintf(query,"INSERT #t0004 (id) VALUES (%d)",i);
 
    	ret = ct_command(cmd, CS_LANG_CMD,
          query, CS_NULLTERM, CS_UNUSED);
@@ -75,7 +75,7 @@ int main()
    }
 
    ret = ct_command(cmd, CS_LANG_CMD,
-         "UPDATE t0004 SET id = id + 1", CS_NULLTERM, CS_UNUSED);
+         "UPDATE #t0004 SET id = id + 1", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {
      fprintf(stderr, "ct_command() failed\n");
      return 1;
@@ -101,7 +101,7 @@ int main()
    
 	/* single row select */
    ret = ct_command(cmd, CS_LANG_CMD,
-         "SELECT * FROM t0004 WHERE id = 1", CS_NULLTERM, CS_UNUSED);
+         "SELECT * FROM #t0004 WHERE id = 1", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {
      fprintf(stderr, "ct_command() failed\n");
      return 1;

@@ -1,3 +1,19 @@
+Thu Aug 29 11:53:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c:
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c:
+	* src/dblib/unittests/t0003.c src/dblib/unittests/t0004.c:
+	* src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c:
+	* src/dblib/unittests/t0007.c src/dblib/unittests/t0008.c:
+	* src/dblib/unittests/t0009.c src/dblib/unittests/t0010.c:
+	* src/dblib/unittests/t0011.c src/dblib/unittests/t0012.c:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c:
+	* src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c:
+	- use temporary table for test (do not waste server space
+	  and work on full server and less permission)
+
 Thu Aug 29 01:31:20 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* configure.in	Add 	--enable-sybase-compat, Fix ordering of threading test
 	* include/sybdb.h 	#undef STATUS, lowercase dbrows()

@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0017.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
+static char  software_version[]   = "$Id: t0017.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
    fprintf(stdout, "After logon\n");
 
    fprintf(stdout, "Dropping table\n");
-   dbcmd(dbproc, "drop table dblib0017");
+   dbcmd(dbproc, "drop table #dblib0017");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
    }
 
    fprintf(stdout, "Creating table\n");
-   dbcmd(dbproc, "create table dblib0017 (c1 int, c2 text)");
+   dbcmd(dbproc, "create table #dblib0017 (c1 int, c2 text)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
 
    /* BCP in */
 
-   ret = bcp_init(dbproc, "tempdb..dblib0017", in_file, err_file, DB_IN);
+   ret = bcp_init(dbproc, "#dblib0017", in_file, err_file, DB_IN);
     
    fprintf(stderr, "select\n");
-   dbcmd(dbproc, "select * from dblib0017 where 0=1"); 
+   dbcmd(dbproc, "select * from #dblib0017 where 0=1"); 
    dbsqlexec(dbproc);			 
    if (dbresults(dbproc) != FAIL) {
       num_cols = dbnumcols(dbproc);
@@ -119,10 +119,10 @@ int main(int argc, char *argv[])
 
 #if 0
    /* BCP out */
-   ret = bcp_init(dbproc, "dblib0017", out_file, err_file, DB_OUT);
+   ret = bcp_init(dbproc, "#dblib0017", out_file, err_file, DB_OUT);
 
    fprintf(stderr, "select\n");
-   dbcmd(dbproc, "select * from dblib0017 where 0=1"); 
+   dbcmd(dbproc, "select * from #dblib0017 where 0=1"); 
    dbsqlexec(dbproc);			 
    while (dbresults(dbproc) == SUCCEED) {
       num_cols = dbnumcols(dbproc);

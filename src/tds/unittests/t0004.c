@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: t0004.c,v 1.1 2001-10-12 23:29:03 brianb Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char *varchar_as_string(
@@ -48,7 +48,7 @@ int main()
 
    char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
    char long_query[1000];
-   sprintf(long_query, "SELECT name FROM longquerytest WHERE (name = 'A%s' OR name = 'B%s' OR name = 'C%s' OR name = 'correct')", len200, len200, len200);
+   sprintf(long_query, "SELECT name FROM #longquerytest WHERE (name = 'A%s' OR name = 'B%s' OR name = 'C%s' OR name = 'correct')", len200, len200, len200);
 
    fprintf(stdout, "%s: Test large (>512 bytes) queries\n", __FILE__);
    rc = try_tds_login(&login, &tds, __FILE__, verbose);
@@ -57,13 +57,13 @@ int main()
       return 1;
    }
 
-   rc = run_query(tds, "DROP TABLE longquerytest");
+   /* do not check error here, if TABLE is not create this give error */
+   rc = run_query(tds, "DROP TABLE #longquerytest");
+   rc = run_query(tds, "CREATE TABLE #longquerytest (name varchar(255))");
    if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "CREATE TABLE longquerytest (name varchar(255))");
+   rc = run_query(tds, "INSERT #longquerytest (name) VALUES ('incorrect')");
    if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "INSERT longquerytest (name) VALUES ('incorrect')");
-   if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "INSERT longquerytest (name) VALUES ('correct')");
+   rc = run_query(tds, "INSERT #longquerytest (name) VALUES ('correct')");
    if (rc != TDS_SUCCEED) { return 1; }
 
    /*
@@ -98,6 +98,9 @@ int main()
    else if (rc != TDS_NO_MORE_RESULTS) {
       fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
    }
+
+   /* do not check error here, if TABLE is not create this give error */
+   rc = run_query(tds, "DROP TABLE #longquerytest");
 
    try_tds_logout(login, tds, verbose);
    return 0;

@@ -12,7 +12,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0007.c,v 1.1 2001-10-12 23:29:11 brianb Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -28,7 +28,7 @@ static void create_tables(
 
    fprintf(stdout, "Dropping table\n");
    add_bread_crumb();
-   dbcmd(dbproc, "drop table dblib0007");
+   dbcmd(dbproc, "drop table #dblib0007");
    add_bread_crumb();
    dbsqlexec(dbproc);
    add_bread_crumb();
@@ -40,7 +40,7 @@ static void create_tables(
    
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table dblib0007 (i int not null, s char(12) not null)");
+         "create table #dblib0007 (i int not null, s char(12) not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -50,7 +50,7 @@ static void create_tables(
    fprintf(stdout, "insert\n");
    for(i=1; i<rows_to_add; i++)
    {
-      sprintf(cmd, "insert into dblib0007 values (%d, 'row %07d')", i, i);
+      sprintf(cmd, "insert into #dblib0007 values (%d, 'row %07d')", i, i);
       fprintf(stdout, "%s\n",cmd);
       dbcmd(dbproc, cmd);
       dbsqlexec(dbproc);
@@ -148,7 +148,7 @@ fprintf(stdout, "About to open\n");
 
    create_tables(dbproc, 10);
 
-   if (!start_query(dbproc, "select * from dblib0007 where i<=5 order by i"))
+   if (!start_query(dbproc, "select * from #dblib0007 where i<=5 order by i"))
    {
        fprintf(stderr, "%s:%d: start_query failed\n", __FILE__, __LINE__);
        failed = 1;
@@ -202,7 +202,7 @@ fprintf(stdout, "About to open\n");
 
    fprintf(stdout, "second select\n");
 
-   if (start_query(dbproc, "select * from dblib0007 where i>=5 order by i"))
+   if (start_query(dbproc, "select * from #dblib0007 where i>=5 order by i"))
    {
       fprintf(stderr, "%s:%d: start_query should have failed but didn't\n", 
               __FILE__, __LINE__);

@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0012.c,v 1.3 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: t0012.c,v 1.4 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "Dropping table\n");
    add_bread_crumb();
-   dbcmd(dbproc, "drop table dblib0012");
+   dbcmd(dbproc, "drop table #dblib0012");
    add_bread_crumb();
    dbsqlexec(dbproc);
    add_bread_crumb();
@@ -84,14 +84,14 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table dblib0012 (dt datetime not null)");
+         "create table #dblib0012 (dt datetime not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)==SUCCEED)
    {
       /* nop */
    }
 
-   sprintf(cmd, "insert into dblib0012 values ('Feb 27 2001 10:24:35:056AM')");
+   sprintf(cmd, "insert into #dblib0012 values ('Feb 27 2001 10:24:35:056AM')");
    fprintf(stdout, "%s\n",cmd);
    dbcmd(dbproc, cmd);
    dbsqlexec(dbproc);
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
       /* nop */
    }
 
-   sprintf(cmd, "insert into dblib0012 values ('Dec 25 1898 07:30:00:567PM')");
+   sprintf(cmd, "insert into #dblib0012 values ('Dec 25 1898 07:30:00:567PM')");
    fprintf(stdout, "%s\n",cmd);
    dbcmd(dbproc, cmd);
    dbsqlexec(dbproc);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
    {
       /* nop */
    }
-   sprintf(sqlCmd, "SELECT dt FROM dblib0012");
+   sprintf(sqlCmd, "SELECT dt FROM #dblib0012");
    dbcmd(dbproc, sqlCmd);
    dbsqlexec(dbproc);
    dbresults(dbproc);

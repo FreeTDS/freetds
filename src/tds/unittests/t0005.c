@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: t0005.c,v 1.1 2001-10-12 23:29:03 brianb Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -44,25 +44,25 @@ int main()
       return 1;
    }
 
-   rc = run_query(tds, "DROP TABLE test_table");
-   if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "CREATE TABLE test_table (id int, name varchar(255))");
+   /* do not test error, remove always table */
+   rc = run_query(tds, "DROP TABLE #test_table");
+   rc = run_query(tds, "CREATE TABLE #test_table (id int, name varchar(255))");
    if (rc != TDS_SUCCEED) { return 1; }
 
-   sprintf(large_sql, "INSERT test_table (id, name) VALUES (0, 'A%s')", len200);
+   sprintf(large_sql, "INSERT #test_table (id, name) VALUES (0, 'A%s')", len200);
    rc = run_query(tds, large_sql);
    if (rc != TDS_SUCCEED) { return 1; }
-   sprintf(large_sql, "INSERT test_table (id, name) VALUES (1, 'B%s')", len200);
+   sprintf(large_sql, "INSERT #test_table (id, name) VALUES (1, 'B%s')", len200);
    rc = run_query(tds, large_sql);
    if (rc != TDS_SUCCEED) { return 1; }
-   sprintf(large_sql, "INSERT test_table (id, name) VALUES (2, 'C%s')", len200);
+   sprintf(large_sql, "INSERT #test_table (id, name) VALUES (2, 'C%s')", len200);
    rc = run_query(tds, large_sql);
    if (rc != TDS_SUCCEED) { return 1; }
 
    /*
     * The heart of the test
     */
-   rc = tds_submit_query(tds, "SELECT * FROM test_table");
+   rc = tds_submit_query(tds, "SELECT * FROM #test_table");
    while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
       while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
          for (i=0; i<tds->res_info->num_cols; i++) {
@@ -87,6 +87,9 @@ int main()
    else if (rc != TDS_NO_MORE_RESULTS) {
       fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
    }
+
+   /* do not test error, remove always table */
+   rc = run_query(tds, "DROP TABLE #test_table");
 
    try_tds_logout(login, tds, verbose);
    return 0;

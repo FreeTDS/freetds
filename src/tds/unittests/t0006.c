@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: t0006.c,v 1.2 2001-11-14 04:52:33 brianb Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -77,19 +77,19 @@ int main()
     ** SYBREAL tests
     **/
    if (verbose)  printf("Starting SYBREAL tests\n");
-   rc = run_query(tds, "DROP TABLE test_table");
+   rc = run_query(tds, "DROP TABLE #test_table");
    if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "CREATE TABLE test_table (id int, val real)");
+   rc = run_query(tds, "CREATE TABLE #test_table (id int, val real)");
    if (rc != TDS_SUCCEED) { return 1; }
 
    for (i=0; i<num_sybreal; i++) {
-     sprintf(sql, "INSERT test_table (id, val) VALUES (%d, %.8g)", i, sybreal[i]);
+     sprintf(sql, "INSERT #test_table (id, val) VALUES (%d, %.8g)", i, sybreal[i]);
      if (verbose)  printf("%s\n", sql);
      rc = run_query(tds, sql);
      if (rc != TDS_SUCCEED) { return 1; }
    }
 
-   rc = tds_submit_query(tds, "SELECT * FROM test_table");
+   rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 
    row_count = 0;
    while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
@@ -144,19 +144,19 @@ int main()
     ** SYBFLT8 tests
     **/
    if (verbose)  printf("Starting SYBFLT8 tests\n");
-   rc = run_query(tds, "DROP TABLE test_table");
+   rc = run_query(tds, "DROP TABLE #test_table");
    if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "CREATE TABLE test_table (id int, val float(48))");
+   rc = run_query(tds, "CREATE TABLE #test_table (id int, val float(48))");
    if (rc != TDS_SUCCEED) { return 1; }
 
    for (i=0; i<num_sybflt8; i++) {
-      sprintf(sql, "INSERT test_table (id, val) VALUES (%d, %.15g)", i, sybflt8[i]);
+      sprintf(sql, "INSERT #test_table (id, val) VALUES (%d, %.15g)", i, sybflt8[i]);
       if (verbose)  printf("%s\n", sql);
       rc = run_query(tds, sql);
       if (rc != TDS_SUCCEED) { return 1; }
    }
 
-   rc = tds_submit_query(tds, "SELECT * FROM test_table");
+   rc = tds_submit_query(tds, "SELECT * FROM #test_table");
    while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
       while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
          resinfo = tds->res_info;
