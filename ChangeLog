@@ -1,3 +1,7 @@
+Wed Oct 20 23:20:08 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in	test for basename(3)
+	* src/apps/bsqldb.c add basename replacement if unavailable
+	
 Tue Oct 19 13:13:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/dblib.h include/sybdb.h:
 	* include/tds_sysdep_public.h.in src/dblib/bcp.c:
