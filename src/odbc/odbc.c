@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.45 2002-09-05 11:04:34 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.46 2002-09-06 06:35:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -909,13 +909,13 @@ SQLRETURN SQL_API SQLColAttributes(
             *pfDesc = colinfo->column_size;
             break;
         case SQL_INTEGER:
-            *pfDesc = 8;
+            *pfDesc = 10; /* -1000000000 */
             break;
         case SQL_SMALLINT:
-            *pfDesc = 6;
+            *pfDesc = 6; /* -10000 */
             break;
         case SQL_TINYINT:
-            *pfDesc = 4;
+            *pfDesc = 3; /* 255 */
             break;
         case SQL_DATE:
             *pfDesc = 19;
@@ -1115,7 +1115,7 @@ SQLRETURN SQL_API SQLFetch(
             if (is_blob_type(colinfo->column_type))
             {
                 src = colinfo->column_textvalue;
-                srclen = colinfo->column_textsize + 1;
+                srclen = colinfo->column_textsize;
             }
             else
             {
@@ -1970,16 +1970,17 @@ SQLRETURN SQL_API SQLGetTypeInfo(
     CHECK_HSTMT;
 
     stmt = (struct _hstmt *) hstmt;
-    /* TODO for MSSQL6.5 + use sp_datatype_info fSqlType */
+    /* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
+    /* FIXME what about early Sybase products ? */
     if (!fSqlType)
     {
-        static const char *sql = "SELECT * FROM tds_typeinfo";
+        static const char *sql = "EXEC sp_datatype_info";
         if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))
             return SQL_ERROR;
     }
     else
     {
-        static const char *sql_templ = "SELECT * FROM tds_typeinfo WHERE SQL_DATA_TYPE = %d";
+        static const char *sql_templ = "EXEC sp_datatype_info %d";
         char sql[sizeof(*sql_templ)+20];
         sprintf(sql, sql_templ, fSqlType);
         if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))

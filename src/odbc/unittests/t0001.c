@@ -16,14 +16,14 @@ SQLCHAR output [256];
 
     Connect();
 
-    sprintf(command,"drop table odbctestdata");
+    sprintf(command,"drop table #odbctestdata");
     printf("%s\n",command);
     if( SQLExecDirect( Statement, command, SQL_NTS ) 
         != SQL_SUCCESS ) { 
         printf( "Unable to execute statement\n" ); 
     } 
 
-    sprintf(command,"create table odbctestdata ("
+    sprintf(command,"create table #odbctestdata ("
                     "col1 varchar(30) not null,"
                     "col2 int not null,"
                     "col3 float not null,"
@@ -38,7 +38,7 @@ SQLCHAR output [256];
         exit( 1 ); 
     } 
 
-    sprintf(command,"insert odbctestdata values ("
+    sprintf(command,"insert #odbctestdata values ("
                     "'ABCDEFGHIJKLMNOP',"
                     "123456,"
                     "1234.56,"
@@ -53,7 +53,7 @@ SQLCHAR output [256];
         exit( 1 ); 
     } 
 
-    sprintf(command,"select * from odbctestdata");
+    sprintf(command,"select * from #odbctestdata");
 
     printf("%s\n",command);
     if( SQLExecDirect( Statement, command, SQL_NTS ) 
@@ -97,11 +97,11 @@ SQLCHAR output [256];
 	    exit(1);
     }
 
-    sprintf(command,"drop table odbctestdata");
+    sprintf(command,"drop table #odbctestdata");
     printf("%s\n",command);
     if( SQLExecDirect( Statement, command, SQL_NTS ) 
         != SQL_SUCCESS ) { 
-        printf( "Unable to drop table odbctestdata \n"); 
+        printf( "Unable to drop table #odbctestdata \n"); 
         CheckReturn(); 
         exit( 1 ); 
     } 

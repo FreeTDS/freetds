@@ -1,3 +1,9 @@
+Fri Sep  6 08:33:37 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- fix column display for int (too short)
+	- use sp_datatype_info for retrieve odbc information
+	* src/odbc/unittests/t0001.c: use temporary table for test
+
 Thu Sep  5 23:23:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt:
 	- bring some entries up to date
