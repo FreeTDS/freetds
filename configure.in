@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.128 2004-01-11 13:23:10 freddy77 Exp $
+dnl $Id: configure.in,v 1.129 2004-01-14 11:17:44 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -30,6 +30,9 @@ case $host in
     ;;
   *-*-hpux11*)
     CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
+    netdb_reentrant=yes
+    ;;
+  *-*-cygwin*)
     netdb_reentrant=yes
     ;;
 esac

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.79 2004-01-11 21:45:28 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.80 2004-01-14 11:17:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -507,11 +507,15 @@ tds_read_packet(TDSSOCKET * tds)
 		return -1;
 	}
 
-	/* Read in the packet header.  We use this to figure out our packet 
-	 * length */
+	/*
+	 * Read in the packet header.  We use this to figure out our packet
+	 * length
+	 */
 
-	/* Cast to int are needed because some compiler seem to convert
-	 * len to unsigned (as FreeBSD 4.5 one)*/
+	/*
+	 * Cast to int are needed because some compiler seem to convert
+	 * len to unsigned (as FreeBSD 4.5 one)
+	 */
 	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
 		/* GW ADDED */
 		if (len < 0) {
@@ -523,9 +527,11 @@ tds_read_packet(TDSSOCKET * tds)
 		}
 
 		/* GW ADDED */
-		/*  Not sure if this is the best way to do the error 
-		 *  handling here but this is the way it is currently 
-		 *  being done. */
+		/*
+		 * Not sure if this is the best way to do the error
+		 * handling here but this is the way it is currently
+		 * being done.
+		 */
 
 		tds->in_len = 0;
 		tds->in_pos = 0;
@@ -537,10 +543,11 @@ tds_read_packet(TDSSOCKET * tds)
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "Received header @ %L\n%D\n", header, sizeof(header));
 
-/* Note:
- * this was done by Gregg, I don't think its the real solution (it breaks
- * under 5.0, but I haven't gotten a result big enough to test this yet.
- */
+	/*
+	 * Note:
+	 * this was done by Gregg, I don't think its the real solution (it breaks
+	 * under 5.0, but I haven't gotten a result big enough to test this yet.
+ 	 */
 	if (IS_TDS42(tds)) {
 		if (header[0] != 0x04 && header[0] != 0x0f) {
 			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
@@ -558,8 +565,10 @@ tds_read_packet(TDSSOCKET * tds)
 	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
 	need = len;
 
-	/* If this packet size is the largest we have gotten allocate 
-	 * space for it */
+	/*
+	 * If this packet size is the largest we have gotten allocate
+	 * space for it
+	 */
 	if (len > tds->in_buf_max) {
 		unsigned char *p;
 
@@ -582,13 +591,15 @@ tds_read_packet(TDSSOCKET * tds)
 	have = 0;
 	while (need > 0) {
 		if ((x = goodread(tds, tds->in_buf + have, need)) < 1) {
-			/*  Not sure if this is the best way to do the error 
-			 *  handling here but this is the way it is currently 
-			 *  being done. */
+			/*
+			 * Not sure if this is the best way to do the error
+			 * handling here but this is the way it is currently
+			 * being done.
+			 */
 			tds->in_len = 0;
 			tds->in_pos = 0;
 			tds->last_packet = 1;
-			/* XXX should this be "if (x == 0)" ? */
+			/* FIXME should this be "if (x == 0)" ? */
 			if (len == 0) {
 				tds_close_socket(tds);
 			}
@@ -598,8 +609,10 @@ tds_read_packet(TDSSOCKET * tds)
 		need -= x;
 	}
 	if (x < 1) {
-		/*  Not sure if this is the best way to do the error handling 
-		 *  here but this is the way it is currently being done. */
+		/*
+		 * Not sure if this is the best way to do the error handling
+		 * here but this is the way it is currently being done.
+		 */
 		tds->in_len = 0;
 		tds->in_pos = 0;
 		tds->last_packet = 1;

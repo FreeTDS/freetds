@@ -1,3 +1,9 @@
+Wed Jan 14 12:16:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: set NETDB_REENTRANT if cygwin
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- detect state testing active statement
+	* src/tds/read.c: updated comment style
+
 Tue Jan 13 20:54:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: discard EED info only
 

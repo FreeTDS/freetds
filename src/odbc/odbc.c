@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2002-2003  Frediano Ziglio
+ * Copyright (C) 2002-2004  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.288 2004-01-08 10:27:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.289 2004-01-14 11:17:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -478,6 +478,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	tds = stmt->dbc->tds_socket;
 
+	/* we already readed all results... */
 	if (stmt->dbc->current_statement != stmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 
@@ -1067,10 +1068,6 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 	/* do not free pstr tds_dstr_set do it if necessary */
-
-#ifdef TDS_NO_DM
-	stmt->cursor_state = TDS_CURSOR_CLOSED;
-#endif
 
 	/* allocate descriptors */
 	stmt->ird = desc_alloc(stmt, DESC_IRD, SQL_DESC_ALLOC_AUTO);
@@ -2439,16 +2436,10 @@ _SQLExecute(TDS_STMT * stmt)
 	case TDS_NO_MORE_RESULTS:
 		if (stmt->dbc->current_statement == stmt)
 			stmt->dbc->current_statement = NULL;
-#ifdef TDS_NO_DM
-		stmt->cursor_state = TDS_CURSOR_OPEN;
-#endif
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		ODBC_RETURN(stmt, result);
 	case TDS_SUCCEED:
-#ifdef TDS_NO_DM
-		stmt->cursor_state = TDS_CURSOR_OPEN;
-#endif
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		ODBC_RETURN(stmt, result);
@@ -3009,6 +3000,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
 	INIT_HSTMT;
 
+	/* TODO... correct or not... */
 #if !UNIXODBC
 	if (stmt->dbc->current_statement != stmt) {
 		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
@@ -3316,14 +3308,13 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	INIT_HSTMT;
 
-	IRD_CHECK;
-
-#ifdef TDS_NO_DM
-	if (stmt->cursor_state == TDS_CURSOR_CLOSED) {
+	/* read data from TDS only if current statement */
+	if (stmt->dbc->current_statement != stmt) {
 		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-#endif
+
+	IRD_CHECK;
 
 	if (!pcbValue)
 		pcbValue = &dummy_cb;
