@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.69 2003-11-13 21:04:11 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.70 2003-11-14 17:28:48 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -615,7 +615,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); len++);
 				partial_character = &temp[bufleft - i];
 				partial_character_length = i;
-				bufleft =- partial_character_length;
+				bufleft -= partial_character_length;
 				break;
 			}
 		}
