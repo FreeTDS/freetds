@@ -1,3 +1,6 @@
+Wed Oct 23 07:27:28 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c	Applied Bill's patch for missing column
+
 Wed Oct 23 07:41:51 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.hsrc/dblib/bcp.c src/tds/mem.c src/tds/token.c:
 	- some post Bill patches
