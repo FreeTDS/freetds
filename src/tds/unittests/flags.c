@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.6 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.7 2003-11-01 23:02:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -113,6 +113,7 @@ int
 main(int argc, char **argv)
 {
 	TDSRESULTINFO *info;
+    char mymsg[256];
 
 	fprintf(stdout, "%s: Testing flags from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCEED) {
@@ -130,8 +131,10 @@ main(int argc, char **argv)
 		test_begin("select * from #tmp1");
 		info = tds->curr_resinfo;
 
-		if (info->num_cols != 3)
-			fatal_error("wrong number or columns returned");
+		if (info->num_cols != 3) {
+            sprintf(mymsg,"wrong number of columns returned expected 3 got %d", info->num_cols);
+			fatal_error(mymsg);
+        }
 
 		check_flags(info->columns[0], 0, "identity");
 		check_flags(info->columns[1], 1, "nullable writable");
@@ -145,15 +148,22 @@ main(int argc, char **argv)
 	test_begin("select c, b from #tmp1 for browse");
 	info = tds->curr_resinfo;
 
-	if (info->num_cols != 3)
-		fatal_error("wrong number or columns returned");
+    if (IS_TDS7_PLUS(tds)) {
+		if (info->num_cols != 2)
+			fatal_error("wrong number or columns returned");
+	} else {
+		if (info->num_cols != 3)
+			fatal_error("wrong number or columns returned");
+	}
 
 	check_flags(info->columns[0], 0, "writable");
-	if (!IS_TDS42(tds))
+
+	if (!IS_TDS42(tds)) {
 		check_flags(info->columns[1], 1, "nullable writable");
-	else
+	}
+	else {
 		check_flags(info->columns[1], 1, "writable");
-	check_flags(info->columns[2], 2, "writable key hidden-writable identity key hidden");
+	}
 
 	test_end();
 

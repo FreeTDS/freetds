@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.155 2003-09-25 21:14:24 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.156 2003-11-01 23:02:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1173,27 +1173,27 @@ dbclose(DBPROCESS * dbproc)
 		fclose(dbproc->ftos);
 	}
 
-	if (dbproc->bcp_tablename)
-		free(dbproc->bcp_tablename);
-	if (dbproc->bcp_hostfile)
-		free(dbproc->bcp_hostfile);
-	if (dbproc->bcp_errorfile)
-		free(dbproc->bcp_errorfile);
-	if (dbproc->bcp_columns) {
-		for (i = 0; i < dbproc->bcp_colcount; i++) {
-			if (dbproc->bcp_columns[i]->data)
-				free(dbproc->bcp_columns[i]->data);
-			free(dbproc->bcp_columns[i]);
+	if (dbproc->bcp.tablename)
+		free(dbproc->bcp.tablename);
+	if (dbproc->bcp.hostfile)
+		free(dbproc->bcp.hostfile);
+	if (dbproc->bcp.errorfile)
+		free(dbproc->bcp.errorfile);
+	if (dbproc->bcp.db_columns) {
+		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+			if (dbproc->bcp.db_columns[i]->data)
+				free(dbproc->bcp.db_columns[i]->data);
+			free(dbproc->bcp.db_columns[i]);
 		}
-		free(dbproc->bcp_columns);
+		free(dbproc->bcp.db_columns);
 	}
-	if (dbproc->host_columns) {
-		for (i = 0; i < dbproc->host_colcount; i++) {
-			if (dbproc->host_columns[i]->terminator)
-				free(dbproc->host_columns[i]->terminator);
-			free(dbproc->host_columns[i]);
+	if (dbproc->bcp.host_columns) {
+		for (i = 0; i < dbproc->bcp.host_colcount; i++) {
+			if (dbproc->bcp.host_columns[i]->terminator)
+				free(dbproc->bcp.host_columns[i]->terminator);
+			free(dbproc->bcp.host_columns[i]);
 		}
-		free(dbproc->host_columns);
+		free(dbproc->bcp.host_columns);
 	}
 
 	for (i = 0; i < DBNUMOPTIONS; i++) {
@@ -1663,6 +1663,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		/* FIX set appropriate NULL value for destination type */
 		if (destlen > 0)
 			memset(dest, '\0', destlen);
+		if (destlen == -1 || destlen == -2)
+			*dest = '\0';
 		return 0;
 	}
 
@@ -5241,6 +5243,15 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE *) timestamp_string, -1);
 
 	dbproc->dbresults_state = DBRESINIT;
+
+    if (dbproc->tds_socket->state == TDS_PENDING) {
+
+        if (tds_process_trailing_tokens(dbproc->tds_socket) != TDS_SUCCEED) {
+            _dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+            dbproc->command_state = DBCMDSENT;
+            return FAIL;
+        }
+    }
 
 	if (tds_submit_queryf(dbproc->tds_socket,
 			      "writetext bulk %s 0x%s timestamp = 0x%s %s",

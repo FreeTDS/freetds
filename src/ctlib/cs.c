@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.41 2003-05-22 18:41:54 castellano Exp $";
+static char software_version[] = "$Id: cs.c,v 1.42 2003-11-01 23:02:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -247,19 +247,15 @@ CS_INT maxcp;
 			*(void **) buffer = (void*) ctx->_cslibmsg_cb;
 			return CS_SUCCEED;
 		case CS_USERDATA:
-
-		  /* code changes start here - CS_CONFIG - 01*/
-		  	tdsdump_log(TDS_DBG_INFO2, "%L fetching userdata %d\n", ctx->userdata);
 			maxcp = ctx->userdata_len;
 			if (outlen)
 				*outlen = maxcp;
 			if (maxcp > buflen)
 				maxcp = buflen;
-			tdsdump_log(TDS_DBG_INFO2, "%L maxcp= %d len=%d, outlen =%d\n", maxcp,buflen,*outlen);
+
 			memcpy(buffer, ctx->userdata, maxcp); 
 			
 			return CS_SUCCEED;
-		/* code changes end here - CS_CONFIG - 01*/
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
@@ -277,18 +273,20 @@ CS_INT maxcp;
 		ctx->cs_errhandletype = _CS_ERRHAND_CB;
 		return CS_SUCCEED;
 	case CS_USERDATA:
-	  /* code changes start here - CS_CONFIG - 02*/
 	   	if (ctx->userdata) {
 		     free(ctx->userdata);
 		}
 
-		ctx->userdata = (void *) malloc(buflen + 1);
-		tdsdump_log(TDS_DBG_INFO2, "%L setting userdata orig %d new %d\n", buffer, ctx->userdata);
-		ctx->userdata_len = buflen;
+		if (buflen == CS_NULLTERM) {
+			maxcp = strlen(buffer) + 1;
+		} else {
+			maxcp = buflen;
+		}
+		ctx->userdata = (void *) malloc(maxcp);
+		ctx->userdata_len = maxcp;
 
-		memcpy(ctx->userdata, buffer, buflen);
+		memcpy(ctx->userdata, buffer, maxcp);
 		return CS_SUCCEED;
-	       /* code changes end here - CS_CONFIG - 02*/
 
 	case CS_EXTRA_INF:
 	case CS_LOC_PROP:

@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: challenge.c,v 1.20 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: challenge.c,v 1.21 2003-11-01 23:02:18 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -163,8 +163,8 @@ tds_convert_key(unsigned char *key_56, DES_KEY * ks)
 	key[6] = ((key_56[5] << 2) & 0xFF) | (key_56[6] >> 6);
 	key[7] = (key_56[6] << 1) & 0xFF;
 
-	des_set_odd_parity(key);
-	des_set_key(ks, key, sizeof(key));
+	tds_des_set_odd_parity(key);
+	tds_des_set_key(ks, key, sizeof(key));
 
 	memset(&key, 0, sizeof(key));
 }

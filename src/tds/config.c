@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.83 2003-09-30 19:06:45 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.84 2003-11-01 23:02:18 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -229,6 +229,7 @@ int
 tds_read_conf_file(TDSCONNECTINFO * connect_info, const char *server)
 {
 	char *path = NULL;
+	char *eptr = NULL;
 	int found = 0;
 
 	if (interf_file) {
@@ -241,7 +242,18 @@ tds_read_conf_file(TDSCONNECTINFO * connect_info, const char *server)
 		if (path) {
 			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, connect_info);
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDSCONF not set.  Trying $HOME.\n");
+			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDSCONF not set.  Trying $FREETDS/etc.\n");
+		}
+	}
+
+	/* FREETDS env var, Bill Thompson 16/07/03 */
+	if (!found) {
+		eptr = getenv("FREETDS");
+		if (eptr) {
+			asprintf(&path, "%s/etc/freetds.conf", eptr);
+			found = tds_try_conf_file(path, "(from $FREETDS/etc)", server, connect_info);
+		} else {
+			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDS not set.  Trying $HOME.\n");
 		}
 	}
 

@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.41 2003-08-18 09:35:45 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.42 2003-11-01 23:02:07 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -227,7 +227,7 @@ typedef struct cs_command
 	short dynamic_cmd;
 	char *dyn_id;
 	int row_prefetched;
-	int empty_result;
+	int results_state;
 	int curr_result_type;
 	/* Array Binding Code changes start here */
 	int bind_count;
@@ -239,6 +239,15 @@ typedef struct cs_command
 	CSREMOTE_PROC *rpc;
 	CS_PARAM *input_params;
 } CS_COMMAND;
+
+/* values for cs_command.results_state */
+
+#define _CS_RES_INIT            0
+#define _CS_RES_RESULTSET_EMPTY 1
+#define _CS_RES_RESULTSET_ROWS  2
+#define _CS_RES_STATUS          3
+#define _CS_RES_CMD_DONE        4
+#define _CS_RES_CMD_SUCCEED     5
 
 #define CS_MAX_MSG 1024
 #define CS_MAX_NAME 132
@@ -429,6 +438,8 @@ enum
 #define CS_APPNAME CS_APPNAME
 	CS_HOSTNAME,
 #define CS_HOSTNAME CS_HOSTNAME
+	CS_SERVERNAME,
+#define CS_SERVERNAME CS_SERVERNAME
 	CS_PACKETSIZE,
 #define CS_PACKETSIZE CS_PACKETSIZE
 	CS_SEC_ENCRYPTION,
@@ -497,6 +508,25 @@ enum
 /* CS_CON_STATUS read-only property bit mask values */
 #define CS_CONSTAT_CONNECTED	0x01
 #define CS_CONSTAT_DEAD 	0x02
+
+/* Code added for CURSOR support */
+/* types accepted by ct_cursor */
+
+#define CS_CURSOR_DECLARE  1
+#define CS_CURSOR_OPEN     2
+#define CS_CURSOR_ROWS     3
+#define CS_CURSOR_OPTION   4
+#define CS_CURSOR_UPDATE   5
+#define CS_CURSOR_DELETE   6
+#define CS_CURSOR_DEALLOC  7
+#define CS_IMPLICIT_CURSOR 8
+#define CS_CURSOR_CLOSE    9
+
+/* internal defines for cursor processing */
+
+#define _CS_CURS_TYPE_UNACTIONED 0
+#define _CS_CURS_TYPE_REQUESTED  1
+#define _CS_CURS_TYPE_SENT       2
 
 /* options accepted by ct_options() */
 #define CS_OPT_ANSINULL		1
@@ -585,9 +615,9 @@ enum
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
 #define CS_END_ITEM 11
-#define CS_CMD_SUCCEED	4047
-#define CS_CMD_FAIL	4048
-#define CS_CMD_DONE	4046
+#define CS_CMD_SUCCEED	TDS_CMD_SUCCEED
+#define CS_CMD_FAIL	TDS_CMD_FAIL
+#define CS_CMD_DONE	TDS_CMD_DONE
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
@@ -666,6 +696,7 @@ enum
 #define CS_MSGTYPE 123
 #define CS_VERSION	9114
 #define CS_EXTRA_INF	9121
+#define CS_CUR_CMD 133
 
 /* result_types */
 #define CS_COMPUTE_RESULT	TDS_COMPUTE_RESULT

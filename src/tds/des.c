@@ -43,7 +43,7 @@
 #include "tds.h"
 #include "des.h"
 
-static char software_version[] = "$Id: des.c,v 1.11 2003-04-21 09:05:58 freddy77 Exp $";
+static char software_version[] = "$Id: des.c,v 1.12 2003-11-01 23:02:19 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -57,7 +57,7 @@ static void perminit_fp(DES_KEY * key);
 static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey);
 
 void
-des_set_odd_parity(des_cblock key)
+tds_des_set_odd_parity(des_cblock key)
 {
 
 	int i;
@@ -246,7 +246,7 @@ des_init(DES_KEY * key)
 
 /* Set key (initialize key schedule array) */
 int
-des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
+tds_des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 {
 	char pc1m[56];		/* place to modify pc1 into */
 	char pcr[56];		/* place to rotate pc1 into */
@@ -285,7 +285,7 @@ des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 
 /* In-place encryption of 64-bit block */
 void
-des_encrypt(DES_KEY * key, des_cblock block)
+tds_des_encrypt(DES_KEY * key, des_cblock block)
 {
 	register TDS_UINT left, right;
 	register unsigned char *knp;
@@ -616,7 +616,7 @@ tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, des_cblock o
 
 	for (j = 0; j < len / 8; j++) {
 		memcpy(&output[j * 8], &plain[j * 8], 8);
-		des_encrypt(akey, &output[j * 8]);
+		tds_des_encrypt(akey, &output[j * 8]);
 	}
 	if (j == 0 && len != 0)
 		return -1;	/* no blocks were encrypted */

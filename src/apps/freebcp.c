@@ -40,7 +40,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.26 2003-10-31 18:55:57 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.27 2003-11-01 23:02:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -78,9 +78,9 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	dbproc->firstrow = params.firstrow;
-	dbproc->lastrow = params.lastrow;
-	dbproc->maxerrs = params.maxerrors;
+	dbproc->bcp.firstrow = params.firstrow;
+	dbproc->bcp.lastrow = params.lastrow;
+	dbproc->bcp.maxerrs = params.maxerrors;
 
 	if (strcmp(params.dbdirection, "in") == 0) {
 		direction = DB_IN;
@@ -531,34 +531,32 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	while (NO_MORE_RESULTS != dbresults(dbproc));
-	{
 
-		if (0 == (li_numcols = dbnumcols(dbproc))) {
-			printf("Error in dbnumcols\n");
+	if (0 == (li_numcols = dbnumcols(dbproc))) {
+		printf("Error in dbnumcols\n");
+		return FALSE;
+	}
+
+	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
+		return FALSE;
+
+	if (bcp_columns(dbproc, li_numcols) == FAIL) {
+		printf("Error in bcp_columns.\n");
+		return FALSE;
+	}
+
+	for (i = 1; i <= li_numcols - 1; i++) {
+		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
+			       strlen(pdata->fieldterm), i) == FAIL) {
+			printf("Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}
+	}
 
-		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
-			return FALSE;
-
-		if (bcp_columns(dbproc, li_numcols) == FAIL) {
-			printf("Error in bcp_columns.\n");
-			return FALSE;
-		}
-
-		for (i = 1; i <= li_numcols - 1; i++) {
-			if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
-				       strlen(pdata->fieldterm), i) == FAIL) {
-				printf("Error in bcp_colfmt col %d\n", i);
-				return FALSE;
-			}
-		}
-
-		if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
-			       strlen(pdata->rowterm), li_numcols) == FAIL) {
-			printf("Error in bcp_colfmt col %d\n", li_numcols);
-			return FALSE;
-		}
+	if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
+		       strlen(pdata->rowterm), li_numcols) == FAIL) {
+		printf("Error in bcp_colfmt col %d\n", li_numcols);
+		return FALSE;
 	}
 
 	bcp_control(dbproc, BCPBATCH, pdata->batchsize);
@@ -595,31 +593,28 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	while (NO_MORE_RESULTS != dbresults(dbproc));
-	{
 
-		if (0 == (li_numcols = dbnumcols(dbproc))) {
-			printf("Error in dbnumcols\n");
+	if (0 == (li_numcols = dbnumcols(dbproc))) {
+		printf("Error in dbnumcols\n");
+		return FALSE;
+	}
+
+	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
+		return FALSE;
+
+	if (bcp_columns(dbproc, li_numcols) == FAIL) {
+		printf("Error in bcp_columns.\n");
+		return FALSE;
+	}
+
+	for (i = 1; i <= li_numcols; i++) {
+		li_coltype = dbcoltype(dbproc, i);
+		li_collen = dbcollen(dbproc, i);
+
+		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, (BYTE *) NULL, -1, i) == FAIL) {
+			printf("Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}
-
-		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
-			return FALSE;
-
-		if (bcp_columns(dbproc, li_numcols) == FAIL) {
-			printf("Error in bcp_columns.\n");
-			return FALSE;
-		}
-
-		for (i = 1; i <= li_numcols; i++) {
-			li_coltype = dbcoltype(dbproc, i);
-			li_collen = dbcollen(dbproc, i);
-
-			if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, (BYTE *) NULL, -1, i) == FAIL) {
-				printf("Error in bcp_colfmt col %d\n", i);
-				return FALSE;
-			}
-		}
-
 	}
 
 	printf("\nStarting copy...\n\n");

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.220 2003-10-28 17:29:13 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.221 2003-11-01 23:02:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -52,6 +52,7 @@ static int tds_process_col_name(TDSSOCKET * tds);
 static int tds_process_col_fmt(TDSSOCKET * tds);
 static int tds_process_colinfo(TDSSOCKET * tds);
 static int tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
+static int tds_process_cursor_tokens(TDSSOCKET * tds);
 static int tds_process_row(TDSSOCKET * tds);
 static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
@@ -71,6 +72,7 @@ static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * cur
 static int determine_adjusted_size(const TDSICONVINFO * iconv_info, int size);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
+static int _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token);
 
 
 /**
@@ -197,6 +199,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		/* save params */
 		return tds_process_params_result_token(tds);
 		break;
+	case TDS_CURINFO_TOKEN:
+		return tds_process_cursor_tokens(tds);
+		break;
 	case TDS5_DYNAMIC_TOKEN:
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
@@ -226,38 +231,52 @@ static int
 tds_set_spid(TDSSOCKET * tds)
 {
 	TDS_INT result_type;
+	TDS_INT done_flags;
 	TDS_INT row_type;
 	TDS_INT compute_id;
+	TDS_INT rc;
 	TDSCOLINFO *curcol;
-
-	/* TODO add test if TDS4.2 and SQL7 for bad date 
-	 * select @@pid, convert(datetime,'....') */
 
 	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
-		return TDS_FAIL;
+
+	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+
+		switch (result_type) {
+
+			case TDS_ROWFMT_RESULT:
+				if (tds->res_info->num_cols != 1) 
+					return TDS_FAIL;
+				break;
+
+			case TDS_ROW_RESULT:
+				while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED);
+
+				if (rc != TDS_NO_MORE_ROWS)
+					return TDS_FAIL;
+
+				curcol = tds->res_info->columns[0];
+				if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
+					tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
+				} else if (curcol->column_type == SYBINT4 || (curcol->column_type == SYBINTN && curcol->column_size == 4)) {
+					tds->spid = *((TDS_UINT *) (tds->res_info->current_row + curcol->column_offset));
+				} else
+					return TDS_FAIL;
+				break;
+
+			case TDS_DONE_RESULT:
+				if ((done_flags & TDS_DONE_ERROR) != 0)
+					return TDS_FAIL;
+				break;
+
+			default:
+				break;
+		}
 	}
-	if (tds->res_info->num_cols != 1) {
+	if (rc != TDS_NO_MORE_RESULTS) 
 		return TDS_FAIL;
-	}
-	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_SUCCEED) {
-		return TDS_FAIL;
-	}
-	curcol = tds->res_info->columns[0];
-	if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
-		tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
-	} else if (curcol->column_type == SYBINT4 || (curcol->column_type == SYBINTN && curcol->column_size == 4)) {
-		tds->spid = *((TDS_UINT *) (tds->res_info->current_row + curcol->column_offset));
-	} else
-		return TDS_FAIL;
-	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_NO_MORE_ROWS) {
-		return TDS_FAIL;
-	}
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_NO_MORE_RESULTS) {
-		return TDS_FAIL;
-	}
+
 	return TDS_SUCCEED;
 }
 
@@ -462,6 +481,10 @@ int
 tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags)
 {
 	int marker;
+	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
+	TDSCOLINFO   *curcol;
+	int saved_rows_affected = TDS_NO_COUNT;
+	int saved_return_status = 0;
 	int rc;
 
 	if (tds->state == TDS_IDLE) {
@@ -479,25 +502,45 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		switch (marker) {
 		case TDS7_RESULT_TOKEN:
 			rc = tds7_process_result(tds);
-			*result_type = TDS_ROWFMT_RESULT;
-			/* handle browse information (if presents) */
-			/* TODO copied from below, function or put in results process */
-			marker = tds_get_byte(tds);
-			if (marker != TDS_TABNAME_TOKEN) {
-				tds_unget_byte(tds);
-				return TDS_SUCCEED;
-			}
-			tds_process_default_tokens(tds, marker);
-			marker = tds_get_byte(tds);
-			if (marker != TDS_COLINFO_TOKEN) {
-				tds_unget_byte(tds);
-				return TDS_SUCCEED;
-			}
-			if (rc == TDS_FAIL)
-				return TDS_FAIL;
-			else {
-				tds_process_colinfo(tds);
-				return TDS_SUCCEED;
+
+			/* If we're processing the results of a cursor fetch */
+			/* from sql server we don't want to pass back the    */
+			/* TDS_ROWFMT_RESULT to the calling API              */
+
+			if (tds->internal_sp_called == TDS_SP_CURSORFETCH) {
+				marker = tds_get_byte(tds);
+				if (marker != TDS_TABNAME_TOKEN) {
+					tds_unget_byte(tds);
+				} else {
+					tds_process_default_tokens(tds, marker);
+					marker = tds_get_byte(tds);
+					if (marker != TDS_COLINFO_TOKEN) {
+						tds_unget_byte(tds);
+					} else {
+						tds_process_colinfo(tds);
+					}
+				}
+			} else {
+				*result_type = TDS_ROWFMT_RESULT;
+				/* handle browse information (if presents) */
+				/* TODO copied from below, function or put in results process */
+				marker = tds_get_byte(tds);
+				if (marker != TDS_TABNAME_TOKEN) {
+					tds_unget_byte(tds);
+					return TDS_SUCCEED;
+				}
+				tds_process_default_tokens(tds, marker);
+				marker = tds_get_byte(tds);
+				if (marker != TDS_COLINFO_TOKEN) {
+					tds_unget_byte(tds);
+					return TDS_SUCCEED;
+				}
+				if (rc == TDS_FAIL)
+					return TDS_FAIL;
+				else {
+					tds_process_colinfo(tds);
+					return TDS_SUCCEED;
+				}
 			}
 			break;
 		case TDS_RESULT_TOKEN:
@@ -535,9 +578,30 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
-			tds_process_param_result_tokens(tds);
-			*result_type = TDS_PARAM_RESULT;
-			return TDS_SUCCEED;
+			if (tds->internal_sp_called) {
+				tdsdump_log(TDS_DBG_FUNC, "%L processing parameters for sp %d\n", tds->internal_sp_called);
+				while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
+					tdsdump_log(TDS_DBG_INFO1, "%L calling tds_process_param_result\n");
+					tds_process_param_result(tds, &pinfo);
+				}
+				tds_unget_byte(tds);
+				tdsdump_log(TDS_DBG_FUNC, "%L no of hidden return parameters %d\n", pinfo->num_cols);
+				if(tds->internal_sp_called == TDS_SP_CURSOROPEN) {
+					curcol = pinfo->columns[0];
+					tds->cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+				}
+				if(tds->internal_sp_called == TDS_SP_PREPARE) {
+					curcol = pinfo->columns[0];
+					if (tds->cur_dyn && tds->cur_dyn->num_id == 0 && !tds_get_null(pinfo->current_row, 0)) {
+						tds->cur_dyn->num_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+					}
+				}
+				tds_free_param_results(pinfo);
+			} else {
+				tds_process_param_result_tokens(tds);
+				*result_type = TDS_PARAM_RESULT;
+				return TDS_SUCCEED;
+			}
 			break;
 		case TDS_COMPUTE_NAMES_TOKEN:
 			return tds_process_compute_names(tds);
@@ -566,10 +630,14 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			return TDS_SUCCEED;
 			break;
 		case TDS_RETURNSTATUS_TOKEN:
-			tds->has_status = 1;
-			tds->ret_status = tds_get_int(tds);
-			*result_type = TDS_STATUS_RESULT;
-			return TDS_SUCCEED;
+			if (tds->internal_sp_called) {
+				saved_return_status = tds_get_int(tds);
+			} else {
+				tds->has_status = 1;
+				tds->ret_status = tds_get_int(tds);
+				*result_type = TDS_STATUS_RESULT;
+				return TDS_SUCCEED;
+			}
 			break;
 		case TDS5_DYNAMIC_TOKEN:
 			/* process acknowledge dynamic */
@@ -590,19 +658,33 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			*result_type = TDS_PARAM_RESULT;
 			return TDS_SUCCEED;
 			break;
+		case TDS_CURINFO_TOKEN:
+			tds_process_cursor_tokens(tds);
+			break;
 		case TDS_DONE_TOKEN:
 			tds_process_end(tds, marker, done_flags);
 			*result_type = TDS_DONE_RESULT;
 			return TDS_SUCCEED;
 		case TDS_DONEPROC_TOKEN:
 			tds_process_end(tds, marker, done_flags);
-			*result_type = TDS_DONEPROC_RESULT;
+			if (tds->internal_sp_called) {
+				*result_type       = TDS_DONE_RESULT;
+				tds->rows_affected = saved_rows_affected;
+			} else {
+				*result_type = TDS_DONEPROC_RESULT;
+			}
 			return TDS_SUCCEED;
 		case TDS_DONEINPROC_TOKEN:
 			/* FIXME should we free results ?? */
 			tds_process_end(tds, marker, done_flags);
-			*result_type = TDS_DONEINPROC_RESULT;
-			return TDS_SUCCEED;
+			if (tds->internal_sp_called) {
+				if (tds->rows_affected != TDS_NO_COUNT) {
+					saved_rows_affected = tds->rows_affected;
+				} 
+			} else {
+				*result_type = TDS_DONEINPROC_RESULT;
+				return TDS_SUCCEED;
+			}
 			break;
 		default:
 			if (tds_process_default_tokens(tds, marker) == TDS_FAIL) {
@@ -640,6 +722,23 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
  */
 int
 tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
+{
+	/* call internal function, with last parameter 1 */
+	/* meaning read & process the end token          */
+
+	return _tds_process_row_tokens(tds, rowtype, computeid, 1);
+}
+int
+tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
+{
+	/* call internal function, with last parameter 0 */
+	/* meaning DON'T read & process the end token    */
+
+	return _tds_process_row_tokens(tds, rowtype, computeid, 0);
+}
+
+static int
+_tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token)
 {
 	int marker;
 
@@ -682,11 +781,13 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
 		case TDS_DONEINPROC_TOKEN:
+			if (read_end_token) {
+				if (tds_process_end(tds, marker, NULL) == TDS_FAIL)
+					return TDS_FAIL;
+			} else {
+				tds_unget_byte(tds);
+			}
 			*rowtype = TDS_NO_MORE_ROWS;
-			if (tds_process_end(tds, marker, NULL) == TDS_FAIL)
-				return TDS_FAIL;
-/*			tds_unget_byte(tds);
-			*rowtype = TDS_END_ROW; */
 			return TDS_NO_MORE_ROWS;
 
 		default:
@@ -774,20 +875,21 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 int
 tds_process_simple_query(TDSSOCKET * tds)
 {
-	TDS_INT res_type;
-	TDS_INT rowtype;
-	int tdsret, done_flags;
+TDS_INT res_type;
+TDS_INT done_flags;
+TDS_INT row_type;
+int     rc;
 
-	for (;;) {
-		switch (tdsret = tds_process_result_tokens(tds, &res_type, &done_flags)) {
-		case TDS_SUCCEED:
-			switch (res_type) {
+	while ((rc = tds_process_result_tokens(tds, &res_type, &done_flags)) == TDS_SUCCEED) {
+		switch (res_type) {
+
 			case TDS_ROW_RESULT:
 			case TDS_COMPUTE_RESULT:
-				/* discard all this information */
-				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
 
-				if (tdsret == TDS_FAIL)
+				/* discard all this information */
+				while ((rc = tds_process_row_tokens(tds, &row_type, NULL)) == TDS_SUCCEED);
+
+				if (rc != TDS_NO_MORE_ROWS)
 					return TDS_FAIL;
 
 				break;
@@ -795,30 +897,20 @@ tds_process_simple_query(TDSSOCKET * tds)
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
 			case TDS_DONEINPROC_RESULT:
-				/* some command went wrong */
-				if (done_flags & TDS_DONE_ERROR)
+                if ((done_flags & TDS_DONE_ERROR) != 0) 
 					return TDS_FAIL;
 				break;
 
-				/* ignore */
-			case TDS_COMPUTEFMT_RESULT:
-			case TDS_ROWFMT_RESULT:
-			case TDS_DESCRIBE_RESULT:
-			case TDS_STATUS_RESULT:
-			case TDS_PARAM_RESULT:
 			default:
 				break;
-			}
-			break;
-
-		case TDS_NO_MORE_RESULTS:
-			return TDS_SUCCEED;
-
-		default:
-			return tdsret;
-			break;
 		}
 	}
+	if (rc != TDS_NO_MORE_RESULTS) {
+		return TDS_FAIL;
+	}
+
+    return TDS_SUCCEED;
+
 }
 
 /** 
@@ -1101,12 +1193,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	i = tds_get_data(tds, curparam, info->current_row, info->num_cols - 1);
-	/* is this the id of our prepared statement ?? */
-	/* on error sp_prepare return a NULL id so ignore it instead of using garbage */
-	if (IS_TDS7_PLUS(tds) && tds->cur_dyn && tds->cur_dyn->num_id == 0 && info->num_cols == 1
-	    && !tds_get_null(info->current_row, 0)) {
-		tds->cur_dyn->num_id = *(TDS_INT *) (info->current_row + curparam->column_offset);
-	}
+
 	return i;
 }
 
@@ -1356,11 +1443,20 @@ tds7_process_result(TDSSOCKET * tds)
 	TDSCOLINFO *curcol;
 	TDSRESULTINFO *info;
 
+	/* read number of columns and allocate the columns structure */
+
+	num_cols = tds_get_smallint(tds);
+
+	/* This can be a DUMMY results token from a cursor fetch */
+
+	if (num_cols == -1) {
+		tdsdump_log(TDS_DBG_INFO1, "%L processing TDS7 result. no meta data\n");
+		return TDS_SUCCEED;
+	}
+
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
-	/* read number of columns and allocate the columns structure */
-	num_cols = tds_get_smallint(tds);
 	if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
 		return TDS_FAIL;
 	info = tds->res_info;
@@ -1959,6 +2055,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		*flags_parm = tmp;
 
 	if (was_cancelled || !(more_results)) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() state set to TDS_IDLE\n");
 		tds->state = TDS_IDLE;
 	}
 
@@ -2857,6 +2954,41 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	else
 		return TDS_FAIL;
 }
+
+static int 
+tds_process_cursor_tokens(TDSSOCKET * tds)
+{
+	TDS_SMALLINT hdrsize;
+	TDS_INT rowcount;
+	TDS_INT cursor_id;
+	TDS_TINYINT namelen;
+	char name[30];	
+	unsigned char cursor_cmd;
+	TDS_SMALLINT cursor_status;
+	
+	hdrsize  = tds_get_smallint(tds);
+	cursor_id = tds_get_int(tds);
+	hdrsize  -= sizeof(TDS_INT);
+	if (cursor_id == 0){
+		namelen = (int)tds_get_byte(tds);
+		hdrsize -= 1;
+		tds_get_n(tds, name, namelen);
+		hdrsize -= namelen;
+	}
+	cursor_cmd    = tds_get_byte(tds);
+	cursor_status = tds_get_smallint(tds);
+	hdrsize -= 3;
+
+	if (hdrsize == sizeof(TDS_INT))
+		rowcount = tds_get_int(tds); 
+
+	if (tds->cursor) {
+		tds->cursor->cursor_id = cursor_id;
+	}
+
+	return TDS_SUCCEED;
+}
+
 
 int
 tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * ptds_argument,

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.103 2003-10-22 05:53:17 ppeterd Exp $";
+static char software_version[] = "$Id: mem.c,v 1.104 2003-11-01 23:02:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -621,9 +621,41 @@ tds_alloc_connect(TDSLOCALE * locale)
 
 	memcpy(connect_info->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return connect_info;
-      Cleanup:
+Cleanup:
 	tds_free_connect(connect_info);
 	return NULL;
+}
+
+TDS_CURSOR *
+tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen)
+{
+
+	TDS_CURSOR *cursor;
+
+	TEST_MALLOC(cursor, TDS_CURSOR);
+	memset(cursor,'\0',sizeof(TDS_CURSOR));
+
+	TEST_CALLOC(cursor->cursor_name, char, namelen);
+	strcpy(cursor->cursor_name, name);
+	cursor->cursor_name_len = namelen;
+
+	TEST_CALLOC(cursor->query, char, querylen);
+	strcpy(cursor->query, query);
+	cursor->query_len = querylen;
+	return cursor;
+
+Cleanup:
+	tds_free_cursor(cursor);
+	return NULL;
+}
+
+void tds_free_cursor(TDS_CURSOR *cursor)
+{
+	if (cursor) {
+		if (cursor->cursor_name) free(cursor->cursor_name);
+		if (cursor->query) free(cursor->query);
+		free(cursor);
+	}
 }
 
 TDSLOGIN *

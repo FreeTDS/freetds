@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.150 2003-10-24 10:11:11 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.151 2003-11-01 23:02:08 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -204,6 +204,9 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_STATUS_RESULT     4043
 #define TDS_MSG_RESULT        4044
 #define TDS_COMPUTE_RESULT    4045
+#define TDS_CMD_DONE          4046
+#define TDS_CMD_SUCCEED       4047
+#define TDS_CMD_FAIL          4048
 #define TDS_ROWFMT_RESULT     4049
 #define TDS_COMPUTEFMT_RESULT 4050
 #define TDS_DESCRIBE_RESULT   4051
@@ -276,6 +279,24 @@ enum tds_end
 #define TDS_DONEPROC_TOKEN        254	/* 0xFE    TDS_DONEPROC              */
 #define TDS_DONEINPROC_TOKEN      255	/* 0xFF    TDS_DONEINPROC            */
 
+/* CURSOR support: TDS 5.0 only*/
+#define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
+#define TDS_CURINFO_TOKEN         131  /* 0x83    TDS 5.0 only              */
+#define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */
+#define TDS_CURFETCH_TOKEN        130  /* 0x82    TDS 5.0 only              */
+#define TDS_CURCLOSE_TOKEN        128  /* 0x80    TDS 5.0 only              */
+
+/* Cursor Declare, SetRows, Open and Close all return 0x83 token. 
+   But only SetRows includes the rowcount (4 byte) in the stream. 
+   So for Setrows we read the rowcount from the stream and not for others. 
+   These values are useful to determine when to read the rowcount from the packet
+*/
+
+#define IS_DECLARE  100
+#define IS_CURROW   200
+#define IS_OPEN     300
+#define IS_CLOSE    400
+
 /* states for tds_process_messages() */
 #define PROCESS_ROWS    0
 #define PROCESS_RESULTS 1
@@ -294,6 +315,23 @@ enum tds_end
 /* string types */
 #define TDS_NULLTERM -9
 
+/* Microsoft internal stored procedure id's */
+
+#define TDS_SP_CURSOR          1
+#define TDS_SP_CURSOROPEN      2
+#define TDS_SP_CURSORPREPARE   3
+#define TDS_SP_CURSOREXECUTE   4
+#define TDS_SP_CURSORPREPEXEC  5
+#define TDS_SP_CURSORUNPREPARE 6
+#define TDS_SP_CURSORFETCH     7
+#define TDS_SP_CURSOROPTION    8
+#define TDS_SP_CURSORCLOSE     9
+#define TDS_SP_EXECUTESQL      10
+#define TDS_SP_PREPARE         11
+#define TDS_SP_EXECUTE         12
+#define TDS_SP_PREPEXEC        13
+#define TDS_SP_PREPEXECRPC     14
+#define TDS_SP_UNPREPARE       15
 /* 
 <rant> Sybase does an awful job of this stuff, non null ints of size 1 2 
 and 4 have there own codes but nullable ints are lumped into INTN
@@ -884,6 +922,53 @@ typedef struct tds_msg_info
 	TDS_CHAR *sql_state;
 } TDSMSGINFO;
 
+typedef struct tds_upd_col
+{
+	struct tds_upd_col *next;	
+	TDS_INT colnamelength;
+	char * columnname;
+} TDSUPDCOL;
+
+typedef enum {
+	  TDS_CURSOR_STATE_UNACTIONED = 0
+	, TDS_CURSOR_STATE_REQUESTED = 1	/* called by ct_cursor */ 
+	, TDS_CURSOR_STATE_SENT = 2		/* sent to server and ack */
+} TDS_CURSOR_STATE;
+
+typedef struct _tds_cursor_status
+{
+	TDS_CURSOR_STATE declare;
+	TDS_CURSOR_STATE cursor_row;
+	TDS_CURSOR_STATE open;
+	TDS_CURSOR_STATE fetch;
+	TDS_CURSOR_STATE close; 
+	TDS_CURSOR_STATE dealloc;
+} TDS_CURSOR_STATUS;
+
+typedef struct _tds_cursor 
+{
+	TDS_INT length;		         /* total length of the remaining datastream */
+	TDS_TINYINT cursor_name_len; /* length of cursor name > 0 and <= 30  */
+	char *cursor_name;	         /* name of the cursor */
+	TDS_INT cursor_id;           /* cursor id returned by the server after cursor declare */
+	TDS_TINYINT options;		 /* read only|updatable */
+	TDS_TINYINT hasargs;		 /* cursor parameters exists ? */
+	TDS_USMALLINT query_len;	 /* SQL query length */
+	char *query;                 /* SQL query */
+	/* TODO for updatable columns */
+	TDS_TINYINT number_upd_cols; /* number of updatable columns */
+	TDS_INT cursor_rows;         /* number of cursor rows to fetch */
+	/*TODO when cursor has parameters*/
+	/*TDS_PARAM *param_list;	 cursor parameter */
+	TDSUPDCOL *cur_col_list;	/* updatable column list */
+	TDS_SMALLINT declare_status;    /* 0 - Initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
+	TDS_SMALLINT cursor_row_status; /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
+	TDS_SMALLINT open_status;       /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
+	TDS_SMALLINT fetch_status;      /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
+	TDS_SMALLINT close_status; 
+	TDS_SMALLINT dealloc_status;
+} TDS_CURSOR;
+
 /*
 ** This is the current environment as reported by the server
 */
@@ -954,6 +1039,7 @@ struct tds_socket
 	TDS_INT num_comp_info;
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
+	TDS_CURSOR *cursor;
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
 	TDS_TINYINT state;
@@ -982,6 +1068,7 @@ struct tds_socket
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int (*chkintr) (TDSSOCKET * tds);
 	int (*hndlintr) (TDSSOCKET * tds);
+    int internal_sp_called;
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *param), void *longquery_param);
@@ -994,6 +1081,7 @@ void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMSGINFO * msg_info);
+void tds_free_cursor(TDS_CURSOR *cursor);
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
 int tds_put_string(TDSSOCKET * tds, const char *buf, int len);
 int tds_put_int(TDSSOCKET * tds, TDS_INT i);
@@ -1065,6 +1153,7 @@ void tds_free_login(TDSLOGIN * login);
 TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCALE * locale);
+TDS_CURSOR * tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge);
@@ -1098,6 +1187,12 @@ int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
+int tds_cursor_declare(TDSSOCKET * tds, int *send);
+int tds_cursor_setrows(TDSSOCKET * tds, int *send);
+int tds_cursor_open(TDSSOCKET * tds, int *send);
+int tds_cursor_fetch(TDSSOCKET * tds);
+int tds_cursor_close(TDSSOCKET * tds);
+int tds_cursor_dealloc(TDSSOCKET * tds);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);
@@ -1110,6 +1205,7 @@ int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION 
 			TDS_INT * tds_argsize);
 int tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags);
 int tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid);
+int tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET * tds);
 int tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message);
 int tds_do_until_done(TDSSOCKET * tds);

@@ -62,7 +62,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.77 2003-10-29 15:30:17 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.78 2003-11-01 23:02:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -95,19 +95,19 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	if (hfile != (char *) NULL) {
 
-		dbproc->bcp_hostfile = (char *) malloc(strlen(hfile) + 1);
-		strcpy(dbproc->bcp_hostfile, hfile);
+		dbproc->bcp.hostfile = (char *) malloc(strlen(hfile) + 1);
+		strcpy(dbproc->bcp.hostfile, hfile);
 
 		if (errfile != (char *) NULL) {
-			dbproc->bcp_errorfile = (char *) malloc(strlen(errfile) + 1);
-			strcpy(dbproc->bcp_errorfile, errfile);
+			dbproc->bcp.errorfile = (char *) malloc(strlen(errfile) + 1);
+			strcpy(dbproc->bcp.errorfile, errfile);
 		} else {
-			dbproc->bcp_errorfile = (char *) NULL;
+			dbproc->bcp.errorfile = (char *) NULL;
 		}
 
 	} else {
-		dbproc->bcp_hostfile = (char *) NULL;
-		dbproc->bcp_errorfile = (char *) NULL;
+		dbproc->bcp.hostfile = (char *) NULL;
+		dbproc->bcp.errorfile = (char *) NULL;
 		dbproc->sendrow_init = 0;
 	}
 
@@ -121,18 +121,18 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return (FAIL);
 	}
 
-	dbproc->bcp_tablename = (char *) malloc(strlen(tblname) + 1);
-	strcpy(dbproc->bcp_tablename, tblname);
+	dbproc->bcp.tablename = (char *) malloc(strlen(tblname) + 1);
+	strcpy(dbproc->bcp.tablename, tblname);
 
 	if (direction == DB_IN || direction == DB_OUT)
-		dbproc->bcp_direction = direction;
+		dbproc->bcp.direction = direction;
 	else {
 		_bcp_err_handler(dbproc, SYBEBDIO);
 		return (FAIL);
 	}
 
-	if (dbproc->bcp_direction == DB_IN) {
-		if (tds_submit_queryf(tds, "select * from %s where 0 = 1", dbproc->bcp_tablename) == TDS_FAIL) {
+	if (dbproc->bcp.direction == DB_IN) {
+		if (tds_submit_queryf(tds, "select * from %s where 0 = 1", dbproc->bcp.tablename) == TDS_FAIL) {
 			return FAIL;
 		}
 
@@ -149,13 +149,13 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 		resinfo = tds->res_info;
 
-		dbproc->bcp_colcount = resinfo->num_cols;
-		dbproc->bcp_columns = (BCP_COLINFO **) malloc(resinfo->num_cols * sizeof(BCP_COLINFO *));
+		dbproc->bcp.db_colcount = resinfo->num_cols;
+		dbproc->bcp.db_columns = (BCP_COLINFO **) malloc(resinfo->num_cols * sizeof(BCP_COLINFO *));
 
 
-		for (i = 0; i < dbproc->bcp_colcount; i++) {
-			dbproc->bcp_columns[i] = (BCP_COLINFO *) malloc(sizeof(BCP_COLINFO));
-			bcpcol = dbproc->bcp_columns[i];
+		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+			dbproc->bcp.db_columns[i] = (BCP_COLINFO *) malloc(sizeof(BCP_COLINFO));
+			bcpcol = dbproc->bcp.db_columns[i];
 			memset(bcpcol, '\0', sizeof(BCP_COLINFO));
 
 			bcpcol->tab_colnum = i + 1;	/* turn offset into ordinal */
@@ -203,13 +203,13 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 		if (hfile == (char *) NULL) {
 
-			dbproc->host_colcount = dbproc->bcp_colcount;
-			dbproc->host_columns = (BCP_HOSTCOLINFO **) malloc(dbproc->host_colcount * sizeof(BCP_HOSTCOLINFO *));
+			dbproc->bcp.host_colcount = dbproc->bcp.db_colcount;
+			dbproc->bcp.host_columns = (BCP_HOSTCOLINFO **) malloc(dbproc->bcp.host_colcount * sizeof(BCP_HOSTCOLINFO *));
 
-			for (i = 0; i < dbproc->host_colcount; i++) {
-				dbproc->host_columns[i] = (BCP_HOSTCOLINFO *)
+			for (i = 0; i < dbproc->bcp.host_colcount; i++) {
+				dbproc->bcp.host_columns[i] = (BCP_HOSTCOLINFO *)
 					malloc(sizeof(BCP_HOSTCOLINFO));
-				memset(dbproc->host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
+				memset(dbproc->bcp.host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
 			}
 		}
 	}
@@ -223,20 +223,20 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 {
 	BCP_HOSTCOLINFO *hostcol;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_direction != DB_IN) {
+	if (dbproc->bcp.direction != DB_IN) {
 		_bcp_err_handler(dbproc, SYBEBCPN);
 		return FAIL;
 	}
 
-	if (table_column > dbproc->host_colcount)
+	if (table_column > dbproc->bcp.host_colcount)
 		return FAIL;
 
-	hostcol = dbproc->host_columns[table_column - 1];
+	hostcol = dbproc->bcp.host_columns[table_column - 1];
 
 	hostcol->column_len = varlen;
 
@@ -250,11 +250,11 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 
 	int i;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
-	if (dbproc->bcp_hostfile == (char *) NULL) {
+	if (dbproc->bcp.hostfile == (char *) NULL) {
 		_bcp_err_handler(dbproc, SYBEBIVI);
 		return FAIL;
 	}
@@ -264,12 +264,12 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 		return FAIL;
 	}
 
-	dbproc->host_colcount = host_colcount;
-	dbproc->host_columns = (BCP_HOSTCOLINFO **) malloc(host_colcount * sizeof(BCP_HOSTCOLINFO *));
+	dbproc->bcp.host_colcount = host_colcount;
+	dbproc->bcp.host_columns = (BCP_HOSTCOLINFO **) malloc(host_colcount * sizeof(BCP_HOSTCOLINFO *));
 
 	for (i = 0; i < host_colcount; i++) {
-		dbproc->host_columns[i] = (BCP_HOSTCOLINFO *) malloc(sizeof(BCP_HOSTCOLINFO));
-		memset(dbproc->host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
+		dbproc->bcp.host_columns[i] = (BCP_HOSTCOLINFO *) malloc(sizeof(BCP_HOSTCOLINFO));
+		memset(dbproc->bcp.host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
 	}
 
 	return SUCCEED;
@@ -286,17 +286,17 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	if (host_termlen == 0)
 		host_termlen = -1;
 #endif
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_hostfile == (char *) NULL) {
+	if (dbproc->bcp.hostfile == (char *) NULL) {
 		_bcp_err_handler(dbproc, SYBEBIVI);
 		return FAIL;
 	}
 
-	if (dbproc->host_colcount == 0) {
+	if (dbproc->bcp.host_colcount == 0) {
 		_bcp_err_handler(dbproc, SYBEBCBC);
 		return FAIL;
 	}
@@ -335,7 +335,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	assert((host_termlen > 0) ? (host_term != NULL) : 1);
 
 
-	hostcol = dbproc->host_columns[host_colnum - 1];
+	hostcol = dbproc->bcp.host_columns[host_colnum - 1];
 
 	hostcol->host_column = host_colnum;
 	hostcol->datatype = host_type;
@@ -357,7 +357,7 @@ RETCODE
 bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 	      int host_prefixlen, DBINT host_collen, BYTE * host_term, int host_termlen, int table_colnum, DBTYPEINFO * typeinfo)
 {
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
@@ -369,7 +369,7 @@ bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 RETCODE
 bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 {
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
@@ -377,16 +377,16 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	switch (field) {
 
 	case BCPMAXERRS:
-		dbproc->maxerrs = value;
+		dbproc->bcp.maxerrs = value;
 		break;
 	case BCPFIRST:
-		dbproc->firstrow = value;
+		dbproc->bcp.firstrow = value;
 		break;
 	case BCPLAST:
-		dbproc->firstrow = value;
+		dbproc->bcp.firstrow = value;
 		break;
 	case BCPBATCH:
-		dbproc->bcpbatch = value;
+		dbproc->bcp.batch = value;
 		break;
 
 	default:
@@ -446,19 +446,19 @@ bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 {
 	BCP_HOSTCOLINFO *hostcol;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
-	if (dbproc->bcp_direction != DB_IN) {
+	if (dbproc->bcp.direction != DB_IN) {
 		_bcp_err_handler(dbproc, SYBEBCPN);
 		return FAIL;
 	}
 
-	if (table_column > dbproc->host_colcount)
+	if (table_column > dbproc->bcp.host_colcount)
 		return FAIL;
 
-	hostcol = dbproc->host_columns[table_column - 1];
+	hostcol = dbproc->bcp.host_columns[table_column - 1];
 
 	hostcol->host_var = colptr;
 
@@ -504,16 +504,19 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	int row_of_query;
 	int rows_written;
+	char *bcpdatefmt = NULL;
 
 	tds = dbproc->tds_socket;
 	assert(tds);
 
-	if (!(hostfile = fopen(dbproc->bcp_hostfile, "w"))) {
+	if (!(hostfile = fopen(dbproc->bcp.hostfile, "w"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
 		return FAIL;
 	}
 
-	if (tds_submit_queryf(tds, "select * from %s", dbproc->bcp_tablename)
+	bcpdatefmt = getenv("FREEBCP_DATEFMT");
+
+	if (tds_submit_queryf(tds, "select * from %s", dbproc->bcp.tablename)
 	    == TDS_FAIL) {
 		return FAIL;
 	}
@@ -529,20 +532,22 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	resinfo = tds->res_info;
 
-	dbproc->bcp_colcount = resinfo->num_cols;
-	dbproc->bcp_columns = (BCP_COLINFO **) malloc(resinfo->num_cols * sizeof(BCP_COLINFO *));
+	dbproc->bcp.db_colcount = resinfo->num_cols;
+	dbproc->bcp.db_columns = (BCP_COLINFO **) malloc(resinfo->num_cols * sizeof(BCP_COLINFO *));
 
 	for (i = 0; i < resinfo->num_cols; i++) {
-		dbproc->bcp_columns[i] = (BCP_COLINFO *) malloc(sizeof(BCP_COLINFO));
-		memset(dbproc->bcp_columns[i], '\0', sizeof(BCP_COLINFO));
-		dbproc->bcp_columns[i]->tab_colnum = i + 1;	/* turn offset into ordinal */
-		dbproc->bcp_columns[i]->db_type = resinfo->columns[i]->column_type;
-		dbproc->bcp_columns[i]->db_length = resinfo->columns[i]->column_size;
+		dbproc->bcp.db_columns[i] = (BCP_COLINFO *) malloc(sizeof(BCP_COLINFO));
+		memset(dbproc->bcp.db_columns[i], '\0', sizeof(BCP_COLINFO));
+		dbproc->bcp.db_columns[i]->tab_colnum = i + 1;	/* turn offset into ordinal */
+		dbproc->bcp.db_columns[i]->db_type = resinfo->columns[i]->column_type;
+		dbproc->bcp.db_columns[i]->db_length = resinfo->columns[i]->column_size;
 		if (is_numeric_type(resinfo->columns[i]->column_type))
-			dbproc->bcp_columns[i]->data = (BYTE *) malloc(sizeof(TDS_NUMERIC));
+			dbproc->bcp.db_columns[i]->data = (BYTE *) malloc(sizeof(TDS_NUMERIC));
 		else
-			dbproc->bcp_columns[i]->data = (BYTE *) malloc(dbproc->bcp_columns[i]->db_length);
-		dbproc->bcp_columns[i]->data_size = 0;
+			dbproc->bcp.db_columns[i]->data = (BYTE *) malloc(dbproc->bcp.db_columns[i]->db_length);
+
+		dbproc->bcp.db_columns[i]->db_nullable = resinfo->columns[i]->column_nullable;
+		dbproc->bcp.db_columns[i]->data_size = 0;
 	}
 
 	row_of_query = 0;
@@ -552,14 +557,14 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		row_of_query++;
 
-		if ((dbproc->firstrow == 0 && dbproc->lastrow == 0) ||
+		if ((dbproc->bcp.firstrow == 0 && dbproc->bcp.lastrow == 0) ||
 	   /** FIX this! */
-		    ((dbproc->firstrow > 0 && row_of_query >= dbproc->firstrow)
-		     && (dbproc->lastrow > 0 && row_of_query <= dbproc->lastrow))
+		    ((dbproc->bcp.firstrow > 0 && row_of_query >= dbproc->bcp.firstrow)
+		     && (dbproc->bcp.lastrow > 0 && row_of_query <= dbproc->bcp.lastrow))
 			) {
-			for (i = 0; i < dbproc->bcp_colcount; i++) {
+			for (i = 0; i < dbproc->bcp.db_colcount; i++) {
 
-				bcpcol = dbproc->bcp_columns[i];
+				bcpcol = dbproc->bcp.db_columns[i];
 				curcol = resinfo->columns[bcpcol->tab_colnum - 1];
 
 				src = &resinfo->current_row[curcol->column_offset];
@@ -588,17 +593,17 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 
-			for (i = 0; i < dbproc->host_colcount; i++) {
+			for (i = 0; i < dbproc->bcp.host_colcount; i++) {
 
-				hostcol = dbproc->host_columns[i];
+				hostcol = dbproc->bcp.host_columns[i];
 				if ((hostcol->tab_colnum < 1)
-				    || (hostcol->tab_colnum > dbproc->bcp_colcount)) {
+				    || (hostcol->tab_colnum > dbproc->bcp.db_colcount)) {
 					continue;
 				}
 
 				if (hostcol->tab_colnum) {
 
-					bcpcol = dbproc->bcp_columns[hostcol->tab_colnum - 1];
+					bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
 					curcol = resinfo->columns[bcpcol->tab_colnum - 1];
 
 					if (bcpcol->tab_colnum != hostcol->tab_colnum) {
@@ -655,6 +660,12 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 						destlen = -1;
 						break;
 					case SYBCHAR:
+						buflen = curcol->column_cur_size + 1;
+						if (bcpcol->db_nullable)
+							destlen = -1;
+						else
+							destlen = -2;
+						break;
 					case SYBTEXT:
 						buflen = curcol->column_cur_size + 1;
 						destlen = -2;
@@ -710,7 +721,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					tdsdump_log(TDS_DBG_FUNC, "%L buflen is %d\n", buflen);
 					if (bcpcol->data_size > 0) {
 						tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
-						buflen = tds_strftime((char *) outbuf, 256, "%Y-%m-%d %H:%M:%S.%z", &when);
+						if (bcpdatefmt) 
+							buflen = tds_strftime((char *) outbuf, 256, bcpdatefmt, &when);
+						else
+							buflen = tds_strftime((char *) outbuf, 256, "%Y-%m-%d %H:%M:%S.%z", &when);
 					}
 				} else {
 					/* 
@@ -720,6 +734,21 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					buflen = dbconvert(dbproc,
 							   bcpcol->db_type,
 							   bcpcol->data, bcpcol->data_size, hostcol->datatype, outbuf, destlen);
+
+					/* Special case: when outputting database varchar data  */
+					/* (either varchar or nullable char) dbconvert may have */
+					/* trimmed trailing blanks such that nothing is left.   */
+					/* in this case we need to putput a single blank to the */
+					/* output file...                                       */
+
+					if (( bcpcol->db_type == SYBVARCHAR ||   /* database column variable char  */
+						(bcpcol->db_type == SYBCHAR && bcpcol->db_nullable)
+					   ) &&
+						bcpcol->data_size > 0         &&   /* we had some data in the column */
+						buflen == 0) {                     /* but we now don't have data...  */
+						strcpy ((char *)outbuf, " ");
+						buflen = 1;
+					}
 				}
 
 				/* FIX ME -- does not handle prefix_len == -1 */
@@ -769,8 +798,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		return (FAIL);
 	}
 
-	printf("firstrow = %d row_of_query = %d rows written %d\n", dbproc->firstrow, row_of_query, rows_written);
-	if (dbproc->firstrow > 0 && row_of_query < dbproc->firstrow) {
+	printf("firstrow = %d row_of_query = %d rows written %d\n", dbproc->bcp.firstrow, row_of_query, rows_written);
+	if (dbproc->bcp.firstrow > 0 && row_of_query < dbproc->bcp.firstrow) {
 		/* The table which bulk-copy is attempting to
 		 * copy to a host-file is shorter than the
 		 * number of rows which bulk-copy was instructed
@@ -801,9 +830,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
-	for (i = 0; i < dbproc->host_colcount; i++) {
+	for (i = 0; i < dbproc->bcp.host_colcount; i++) {
 		tdsdump_log(TDS_DBG_FUNC, "%L parsing host column %d\n", i + 1);
-		hostcol = dbproc->host_columns[i];
+		hostcol = dbproc->bcp.host_columns[i];
 
 		data_is_null = 0;
 		collen = 0;
@@ -870,8 +899,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		/* find the right element in the table/column list */
 
 		if (hostcol->tab_colnum) {
-			bcpcol = dbproc->bcp_columns[hostcol->tab_colnum - 1];
+			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
 			if (bcpcol->tab_colnum != hostcol->tab_colnum) {
+				tdsdump_log(TDS_DBG_FUNC, "cant relate host column to tabel column!\n");
 				return FAIL;
 			}
 		}
@@ -888,10 +918,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			collen = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
 			if (collen == -1) {
 				*row_error = TRUE;
+				tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned -1!\n");
 				/* FIXME emit message? _bcp_err_handler(dbproc, SYBEMEM); */
 				return (FAIL);
 			}
 
+			tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned %d\n", collen);
 			/* 
 			 * Allocate a column buffer guaranteed to be big enough hold the post-iconv data.
 			 */
@@ -906,6 +938,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			coldata = (BYTE *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
+				tdsdump_log(TDS_DBG_FUNC, "calloc returned NULL pointer!\n");
 				_bcp_err_handler(dbproc, SYBEMEM);
 				return (FAIL);
 			}
@@ -918,7 +951,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			collen -= col_bytes_left;
 
 			if (file_bytes_left != 0) {
-				tdsdump_log(TDS_DBG_FUNC, "Error in %s, col %d: %d of %d bytes unread\n", 
+				tdsdump_log(TDS_DBG_FUNC, "Error in %s, col %d: %d of %d bytes unread\nfile_bytes_left != 0!\n", 
 							__FILE__, (i+1), file_bytes_left, collen);
 				*row_error = TRUE;
 				free(coldata);
@@ -957,6 +990,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 */
 		if (i == 0 && collen == 0 && feof(hostfile)) {
 			free(coldata);
+			tdsdump_log(TDS_DBG_FUNC, "id == 0 and collen == 0 and feof!\n");
 			return (FAIL);
 		}
 
@@ -1121,10 +1155,10 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 	BCP_COLINFO *bcpcol;
 	int cpbytes;
 
-	int i;
+	int i, j;
 
-	for (i = 0; i < dbproc->bcp_colcount; i++) {
-		bcpcol = dbproc->bcp_columns[i];
+	for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+		bcpcol = dbproc->bcp.db_columns[i];
 
 
 		if (!is_nullable_type(bcpcol->db_type) && !(bcpcol->db_nullable)) {
@@ -1141,14 +1175,15 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 			} else {
 				cpbytes = bcpcol->data_size > bcpcol->db_length ? bcpcol->db_length : bcpcol->data_size;
 				memcpy(&rowbuffer[row_pos], bcpcol->data, cpbytes);
-			}
 
-			/* Bill T commenting this out. It always seems to print 
-			 * This error message regardless...
-			 * if (row_pos != bcpcol->db_offset) {
-			 * fprintf(stderr,"Error: computed offset does not match one returned from database engine\n");
-			 * }
-			 */
+				/* CHAR data may need padding out to the database length with blanks */
+
+				if (bcpcol->db_type == SYBCHAR && cpbytes < bcpcol->db_length) {
+					for (j = cpbytes; j <  bcpcol->db_length; j++)
+						rowbuffer[row_pos + j] = ' ';
+
+				}
+			}
 
 			row_pos += bcpcol->db_length;
 		}
@@ -1161,26 +1196,43 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 */
 
 static int
-_bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
+_bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start, int *var_cols)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_COLINFO *bcpcol;
 	TDS_NUMERIC *num;
-	int row_pos = start;
+	int row_pos;
 	int cpbytes;
-	int eod_ptr;
+
 	BYTE offset_table[256];
-	int offset_pos = 0;
 	BYTE adjust_table[256];
-	int adjust_pos = 0;
-	int num_cols = 0;
 
-	int i;
+	int offset_pos     = 0;
+	int adjust_pos     = 0;
+	int num_cols       = 0;
+	int last_adjustment_increment = 0;
+	int this_adjustment_increment = 0;
 
-	for (i = 0; i < dbproc->bcp_colcount; i++) {
-		bcpcol = dbproc->bcp_columns[i];
+	int i, adjust_table_entries_required;
+
+	/* Skip over two bytes. These will be used to hold the entire record length */
+	/* once the record has been completely built.                               */
+
+	row_pos = start + 2;
+
+	/* for each column in the target table */
+
+	for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+
+		bcpcol = dbproc->bcp.db_columns[i];
+
+		/* is this column of "variable" type, i.e. NULLable */
+		/* or naturally variable length e.g. VARCHAR        */
 
 		if (is_nullable_type(bcpcol->db_type) || bcpcol->db_nullable) {
+
+			/* but if its a NOT NULL column, and we have no data */
+			/* throw an error                                    */
 
 			if (!(bcpcol->db_nullable) && bcpcol->data_size == 0) {
 				_bcp_err_handler(dbproc, SYBEBCNN);
@@ -1188,12 +1240,8 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 			}
 
 			if (is_blob_type(bcpcol->db_type)) {
-
-				/* no need to copy they are all zero bytes */
-
 				cpbytes = 16;
-				/* save for data write */
-				bcpcol->txptr_offset = row_pos;
+				bcpcol->txptr_offset = row_pos;               /* save for data write */
 			} else if (is_numeric_type(bcpcol->db_type)) {
 				num = (TDS_NUMERIC *) bcpcol->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
@@ -1206,40 +1254,81 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 
 			}
 
-			/* update offset and adjust tables (if necessary) */
-			offset_table[offset_pos++] = row_pos % 256;
-			if (row_pos > 255 && (adjust_pos == 0 || row_pos / 256 != adjust_table[adjust_pos])) {
-				adjust_table[adjust_pos++] = row_pos / 256;
-			}
+			/* if we have written data to the record for this column */
 
-			num_cols++;
-			row_pos += cpbytes;
+			if (cpbytes > 0) {
+
+				/* update offset table. Each entry in the offset table is a single byte */
+				/* so can only hold a maximum value of 255. If the real offset is more  */
+				/* than 255 we will have to add one or more entries in the adjust table */
+
+				offset_table[offset_pos++] = row_pos % 256;
+
+				/* increment count of variable columns added to the record */
+
+				num_cols++;
+
+				/* how many times does 256 have to be added to the one byte offset to   */
+				/* calculate the REAL offset...                                         */
+
+				this_adjustment_increment = row_pos / 256;
+
+				/* has this changed since we did the last column...      */
+
+				if (this_adjustment_increment > last_adjustment_increment) {
+
+					/* add n entries to the adjust table. each entry represents */
+					/* an adjustment of 256 bytes, and each entry holds the     */
+					/* column number for which the adjustment needs to be made  */
+
+					for ( adjust_table_entries_required = this_adjustment_increment - last_adjustment_increment;
+						  adjust_table_entries_required > 0;
+						  adjust_table_entries_required-- ) {
+							adjust_table[adjust_pos++] = num_cols;
+					}
+					last_adjustment_increment = this_adjustment_increment;
+				}
+
+				row_pos += cpbytes;
+			}
 		}
 	}
 
-	eod_ptr = row_pos;
+	/* if we have written any variable columns to the record */
 
+	if (num_cols) {
 
-	/* write the marker */
-	if (IS_TDS50(tds))
-		rowbuffer[row_pos++] = num_cols + 1;
+		/* add entries to the offset and adjust tables */
+		/* for the end of data offset (as above)....   */
 
-	/* write the adjust table (right to left) */
-	for (i = adjust_pos - 1; i >= 0; i--) {
-		/* fprintf(stderr,"adjust %d\n",adjust_table[i]); */
-		rowbuffer[row_pos++] = adjust_table[i];
+		offset_table[offset_pos++] = row_pos % 256;
+
+		/* ...and write the offset data etc. */
+		/* to the end of the record          */
+
+		/* first a count of variable columns */
+		/* (plus 1 for the eod offset)       */
+
+		if (IS_TDS50(tds))
+			rowbuffer[row_pos++] = num_cols + 1;
+	
+		/* write the adjust table (right to left) */
+		for (i = adjust_pos - 1; i >= 0; i--) {
+			rowbuffer[row_pos++] = adjust_table[i];
+		}
+	
+		/* write the offset table (right to left) */
+		for (i = offset_pos - 1; i >= 0; i--) {
+			rowbuffer[row_pos++] = offset_table[i];
+		}
 	}
 
-	/* the EOD (end of data) pointer */
-	rowbuffer[row_pos++] = eod_ptr;
+	*var_cols = num_cols;
 
-	/* write the offset table (right to left) */
-	for (i = offset_pos - 1; i >= 0; i--) {
-		/* fprintf(stderr,"offset %d\n",offset_table[i]); */
-		rowbuffer[row_pos++] = offset_table[i];
-	}
-
-	return row_pos;
+	if (num_cols == 0) /* we haven't vwritten anything */
+		return start;
+	else
+		return row_pos;
 }
 
 RETCODE
@@ -1258,19 +1347,20 @@ bcp_sendrow(DBPROCESS * dbproc)
 	TDS_SMALLINT row_size;
 
 	int blob_cols = 0;
+	int var_cols_written = 0;
 
 	unsigned char row_token = 0xd1;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
-	if (dbproc->bcp_hostfile != (char *) NULL) {
+	if (dbproc->bcp.hostfile != (char *) NULL) {
 		_bcp_err_handler(dbproc, SYBEBCPB);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_direction != DB_IN) {
+	if (dbproc->bcp.direction != DB_IN) {
 		_bcp_err_handler(dbproc, SYBEBCPN);
 		return FAIL;
 	}
@@ -1304,10 +1394,10 @@ bcp_sendrow(DBPROCESS * dbproc)
 		if (IS_TDS7_PLUS(tds)) {
 			tds_put_byte(tds, row_token);	/* 0xd1 */
 
-			for (i = 0; i < dbproc->bcp_colcount; i++) {
+			for (i = 0; i < dbproc->bcp.db_colcount; i++) {
 
 				/* send the data for each column */
-				ret = tds7_put_bcpcol(tds, dbproc->bcp_columns[i]);
+				ret = tds7_put_bcpcol(tds, dbproc->bcp.db_columns[i]);
 
 				if (ret == TDS_FAIL) {
 					_bcp_err_handler(dbproc, SYBEBCNN);
@@ -1323,28 +1413,25 @@ bcp_sendrow(DBPROCESS * dbproc)
 			/* offset 1 = row number.  zeroed (datasever assigns) */
 			row_pos = 2;
 
-			rowbuffer[0] = dbproc->var_cols;
-
 			if ((row_pos = _bcp_add_fixed_columns(dbproc, rowbuffer, row_pos)) == FAIL)
 				return (FAIL);
 
-
 			row_sz_pos = row_pos;
 
+			/* potential variable columns to write */
 
 			if (dbproc->var_cols) {
 
-				row_pos += 2;	/* skip over row length */
-
-				if ((row_pos = _bcp_add_variable_columns(dbproc, rowbuffer, row_pos)) == FAIL)
+				if ((row_pos = _bcp_add_variable_columns(dbproc, rowbuffer, row_pos, &var_cols_written)) == FAIL)
 					return (FAIL);
 			}
 
 			row_size = row_pos;
 
-
-			if (dbproc->var_cols)
+			if (var_cols_written) {
 				memcpy(&rowbuffer[row_sz_pos], &row_size, sizeof(row_size));
+				rowbuffer[0] = var_cols_written;
+			}
 
 			tds_put_smallint(tds, row_size);
 			tds_put_n(tds, rowbuffer, row_size);
@@ -1353,8 +1440,8 @@ bcp_sendrow(DBPROCESS * dbproc)
 
 			blob_cols = 0;
 
-			for (i = 0; i < dbproc->bcp_colcount; i++) {
-				bcpcol = dbproc->bcp_columns[i];
+			for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+				bcpcol = dbproc->bcp.db_columns[i];
 				if (is_blob_type(bcpcol->db_type)) {
 					/* unknown but zero */
 					tds_put_smallint(tds, 0);
@@ -1398,19 +1485,20 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	int row_of_hostfile;
 	int rows_written_so_far;
 	int rows_copied_so_far = 0;
+	int var_cols_written   = 0;
 
 	int row_error, row_error_count;
 	long row_start, row_end;
 	int error_row_size;
 	char *row_in_error;
 
-	if (!(hostfile = fopen(dbproc->bcp_hostfile, "r"))) {
+	if (!(hostfile = fopen(dbproc->bcp.hostfile, "r"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_errorfile) {
-		if (!(errfile = fopen(dbproc->bcp_errorfile, "w"))) {
+	if (dbproc->bcp.errorfile) {
+		if (!(errfile = fopen(dbproc->bcp.errorfile, "w"))) {
 			_bcp_err_handler(dbproc, SYBEBUOE);
 			return FAIL;
 		}
@@ -1440,8 +1528,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 			if (errfile != (FILE *) NULL) {
 
-				for (i = 0; i < dbproc->host_colcount; i++) {
-					hostcol = dbproc->host_columns[i];
+				for (i = 0; i < dbproc->bcp.host_colcount; i++) {
+					hostcol = dbproc->bcp.host_columns[i];
 					if (hostcol->column_error == HOST_COL_CONV_ERROR) {
 						fprintf(errfile, "#@ data conversion error on host data file Row %d Column %d\n",
 							row_of_hostfile, i + 1);
@@ -1469,13 +1557,13 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				free(row_in_error);
 			}
 			row_error_count++;
-			if (row_error_count > dbproc->maxerrs)
+			if (row_error_count > dbproc->bcp.maxerrs)
 				break;
 		} else {
 
-			if ((dbproc->firstrow == 0 && dbproc->lastrow == 0) ||
-			    ((dbproc->firstrow > 0 && row_of_hostfile >= dbproc->firstrow) &&
-			     (dbproc->lastrow > 0 && row_of_hostfile <= dbproc->lastrow)
+			if ((dbproc->bcp.firstrow == 0 && dbproc->bcp.lastrow == 0) ||
+			    ((dbproc->bcp.firstrow > 0 && row_of_hostfile >= dbproc->bcp.firstrow) &&
+			     (dbproc->bcp.lastrow > 0 && row_of_hostfile <= dbproc->bcp.lastrow)
 			    )
 				) {
 
@@ -1483,10 +1571,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 					tds_put_byte(tds, TDS_ROW_TOKEN);	/* 0xd1 */
 
-					for (i = 0; i < dbproc->bcp_colcount; i++) {
+					for (i = 0; i < dbproc->bcp.db_colcount; i++) {
 
 						/* send the data for each column */
-						ret = tds7_put_bcpcol(tds, dbproc->bcp_columns[i]);
+						ret = tds7_put_bcpcol(tds, dbproc->bcp.db_columns[i]);
 
 						if (ret == TDS_FAIL) {
 							_bcp_err_handler(dbproc, SYBEBCNN);
@@ -1495,33 +1583,32 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				} else {	/* Not TDS 7 or 8 */
 
 					memset(rowbuffer, '\0', ROWBUF_SIZE);	/* zero the rowbuffer */
+					var_cols_written = 0;
 
 					/* offset 0 = number of var columns */
 					/* offset 1 = row number.  zeroed (datasever assigns) */
 
 					row_pos = 2;
 
-					rowbuffer[0] = dbproc->var_cols;
-
 					if ((row_pos = _bcp_add_fixed_columns(dbproc, rowbuffer, row_pos)) == FAIL)
 						return (FAIL);
 
 					row_sz_pos = row_pos;
 
+			        /* potential variable columns to write */
+
 					if (dbproc->var_cols) {
 
-						row_pos += 2;	/* skip over row length */
-
-						if ((row_pos = _bcp_add_variable_columns(dbproc, rowbuffer, row_pos))
-						    == FAIL)
+						if ((row_pos = _bcp_add_variable_columns(dbproc, rowbuffer, row_pos, &var_cols_written)) == FAIL)
 							return (FAIL);
 					}
 
 					row_size = row_pos;
 
-
-					if (dbproc->var_cols)
+					if (var_cols_written) {
 						memcpy(&rowbuffer[row_sz_pos], &row_size, sizeof(row_size));
+						rowbuffer[0] = var_cols_written;
+					}
 
 					tds_put_smallint(tds, row_size);
 					tds_put_n(tds, rowbuffer, row_size);
@@ -1530,8 +1617,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 					blob_cols = 0;
 
-					for (i = 0; i < dbproc->bcp_colcount; i++) {
-						bcpcol = dbproc->bcp_columns[i];
+					for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+						bcpcol = dbproc->bcp.db_columns[i];
 						if (is_blob_type(bcpcol->db_type)) {
 							/* unknown but zero */
 							tds_put_smallint(tds, 0);
@@ -1549,10 +1636,12 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				rows_written_so_far++;
 
-				if (dbproc->bcpbatch > 0 && rows_written_so_far == dbproc->bcpbatch) {
+				if (dbproc->bcp.batch > 0 && rows_written_so_far == dbproc->bcp.batch) {
 					rows_written_so_far = 0;
 
 					tds_flush_packet(tds);
+
+                    tds->state = TDS_QUERYING;
 
 					if (tds_process_simple_query(tds) != TDS_SUCCEED)
 						return FAIL;
@@ -1577,13 +1666,12 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	tds_flush_packet(tds);
 
-#if _SIMPLE_QUERY_EXPERIMENT_
+    tds->state = TDS_QUERYING;
+
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
+
 	rows_copied_so_far += tds->rows_affected;
-#else
-	rows_copied_so_far += tds_do_until_done(tds);
-#endif
 	*rows_copied = rows_copied_so_far;
 
 	return SUCCEED;
@@ -1592,16 +1680,16 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 RETCODE
 bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
-	if (dbproc->bcp_hostfile) {
+	if (dbproc->bcp.hostfile) {
 		RETCODE ret = 0;
 
-		if (dbproc->bcp_direction == DB_OUT) {
+		if (dbproc->bcp.direction == DB_OUT) {
 			ret = _bcp_exec_out(dbproc, rows_copied);
-		} else if (dbproc->bcp_direction == DB_IN) {
+		} else if (dbproc->bcp.direction == DB_IN) {
 			ret = _bcp_exec_in(dbproc, rows_copied);
 		}
 		_bcp_clear_storage(dbproc);
@@ -1637,8 +1725,8 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 
 		firstcol = 1;
 
-		for (i = 0; i < dbproc->bcp_colcount; i++) {
-			bcpcol = dbproc->bcp_columns[i];
+		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+			bcpcol = dbproc->bcp.db_columns[i];
 
 			if (IS_TDS7_PLUS(tds)) {
 				_bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
@@ -1656,7 +1744,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		if (!hint)
 			return FAIL;
 
-		erc = asprintf(&query, "insert bulk %s (%s)%s", dbproc->bcp_tablename, colclause.pb, hint);
+		erc = asprintf(&query, "insert bulk %s (%s)%s", dbproc->bcp.tablename, colclause.pb, hint);
 
 		free(hint);
 		if (colclause.pb != clause_buffer) {
@@ -1669,7 +1757,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		}
 
 	} else {
-		if (asprintf(&query, "insert bulk %s", dbproc->bcp_tablename) < 0) {
+		if (asprintf(&query, "insert bulk %s", dbproc->bcp.tablename) < 0) {
 			return FAIL;
 		}
 	}
@@ -1678,7 +1766,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 
 	/* save the statement for later... */
 
-	dbproc->bcp_insert_stmt = query;
+	dbproc->bcp.insert_stmt = query;
 
 	/* In TDS 5 we get the column information as a */
 	/* result set from the "insert bulk" command.  */
@@ -1692,9 +1780,9 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 
 	dbproc->var_cols = 0;
 
-	for (i = 0; i < dbproc->bcp_colcount; i++) {
+	for (i = 0; i < dbproc->bcp.db_colcount; i++) {
 
-		bcpcol = dbproc->bcp_columns[i];
+		bcpcol = dbproc->bcp.db_columns[i];
 		if (is_nullable_type(bcpcol->db_type) || bcpcol->db_nullable) {
 			dbproc->var_cols++;
 		}
@@ -1861,7 +1949,7 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 
 	_bcp_err_handler(dbproc, SYBEBBCI);
 
-	tds_submit_query(tds, dbproc->bcp_insert_stmt);
+	tds_submit_query(tds, dbproc->bcp.insert_stmt);
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
@@ -1891,11 +1979,11 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 
 		tds_put_byte(tds, colmetadata_token);	/* 0x81 */
 
-		tds_put_smallint(tds, dbproc->bcp_colcount);
+		tds_put_smallint(tds, dbproc->bcp.db_colcount);
 
 
-		for (i = 0; i < dbproc->bcp_colcount; i++) {
-			bcpcol = dbproc->bcp_columns[i];
+		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+			bcpcol = dbproc->bcp.db_columns[i];
 			tds_put_smallint(tds, bcpcol->db_usertype);
 			tds_put_smallint(tds, bcpcol->db_flags);
 			tds_put_byte(tds, bcpcol->on_server.column_type);
@@ -1925,8 +2013,8 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 				tds_put_n(tds, bcpcol->db_collate, 5);
 			}
 			if (is_blob_type(bcpcol->db_type)) {
-				tds_put_smallint(tds, strlen(dbproc->bcp_tablename));
-				tds_put_string(tds, dbproc->bcp_tablename, strlen(dbproc->bcp_tablename));
+				tds_put_smallint(tds, strlen(dbproc->bcp.tablename));
+				tds_put_string(tds, dbproc->bcp.tablename, strlen(dbproc->bcp.tablename));
 			}
 			tds_put_byte(tds, strlen(bcpcol->db_name));
 # if 0
@@ -1962,7 +2050,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 
 	BCP_HOSTCOLINFO *hostcol;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
@@ -2187,7 +2275,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 RETCODE
 bcp_writefmt(DBPROCESS * dbproc, char *filename)
 {
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
@@ -2197,7 +2285,7 @@ bcp_writefmt(DBPROCESS * dbproc, char *filename)
 RETCODE
 bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 {
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
@@ -2210,7 +2298,7 @@ bcp_batch(DBPROCESS * dbproc)
 	TDSSOCKET *tds = dbproc->tds_socket;
 	int rows_copied = 0;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return -1;
 	}
@@ -2235,7 +2323,7 @@ bcp_done(DBPROCESS * dbproc)
 	TDSSOCKET *tds = dbproc->tds_socket;
 	int rows_copied = -1;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return -1;
 	}
@@ -2260,17 +2348,17 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 
 	BCP_HOSTCOLINFO *hostcol;
 
-	if (dbproc->bcp_direction == 0) {
+	if (dbproc->bcp.direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_hostfile != (char *) NULL) {
+	if (dbproc->bcp.hostfile != (char *) NULL) {
 		_bcp_err_handler(dbproc, SYBEBCPB);
 		return FAIL;
 	}
 
-	if (dbproc->bcp_direction != DB_IN) {
+	if (dbproc->bcp.direction != DB_IN) {
 		_bcp_err_handler(dbproc, SYBEBCPN);
 		return FAIL;
 	}
@@ -2293,7 +2381,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		return FAIL;
 	}
 
-	if (table_column > dbproc->host_colcount) {
+	if (table_column > dbproc->bcp.host_colcount) {
 		return FAIL;
 	}
 
@@ -2304,7 +2392,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	}
 
 
-	hostcol = dbproc->host_columns[table_column - 1];
+	hostcol = dbproc->bcp.host_columns[table_column - 1];
 
 	hostcol->host_var = varaddr;
 	hostcol->datatype = type;
@@ -2342,9 +2430,9 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
-	for (i = 0; i < dbproc->host_colcount; i++) {
+	for (i = 0; i < dbproc->bcp.host_colcount; i++) {
 
-		hostcol = dbproc->host_columns[i];
+		hostcol = dbproc->bcp.host_columns[i];
 
 		dataptr = (BYTE *) hostcol->host_var;
 
@@ -2403,7 +2491,7 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 		/* find the right element in the table/column list */
 
 		if (hostcol->tab_colnum) {
-			bcpcol = dbproc->bcp_columns[hostcol->tab_colnum - 1];
+			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
 			if (bcpcol->tab_colnum != hostcol->tab_colnum) {
 				return FAIL;
 			}
@@ -2523,59 +2611,59 @@ _bcp_clear_storage(DBPROCESS * dbproc)
 
 	int i;
 
-	if (dbproc->bcp_hostfile) {
-		free(dbproc->bcp_hostfile);
-		dbproc->bcp_hostfile = (char *) NULL;
+	if (dbproc->bcp.hostfile) {
+		free(dbproc->bcp.hostfile);
+		dbproc->bcp.hostfile = (char *) NULL;
 	}
 
-	if (dbproc->bcp_errorfile) {
-		free(dbproc->bcp_errorfile);
-		dbproc->bcp_errorfile = (char *) NULL;
+	if (dbproc->bcp.errorfile) {
+		free(dbproc->bcp.errorfile);
+		dbproc->bcp.errorfile = (char *) NULL;
 	}
 
-	if (dbproc->bcp_tablename) {
-		free(dbproc->bcp_tablename);
-		dbproc->bcp_tablename = (char *) NULL;
+	if (dbproc->bcp.tablename) {
+		free(dbproc->bcp.tablename);
+		dbproc->bcp.tablename = (char *) NULL;
 	}
 
-	if (dbproc->bcp_insert_stmt) {
-		free(dbproc->bcp_insert_stmt);
-		dbproc->bcp_insert_stmt = (char *) NULL;
+	if (dbproc->bcp.insert_stmt) {
+		free(dbproc->bcp.insert_stmt);
+		dbproc->bcp.insert_stmt = (char *) NULL;
 	}
 
-	dbproc->bcp_direction = 0;
+	dbproc->bcp.direction = 0;
 
-	if (dbproc->bcp_columns) {
-		for (i = 0; i < dbproc->bcp_colcount; i++) {
-			if (dbproc->bcp_columns[i]->data) {
-				free(dbproc->bcp_columns[i]->data);
-				dbproc->bcp_columns[i]->data = NULL;
+	if (dbproc->bcp.db_columns) {
+		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
+			if (dbproc->bcp.db_columns[i]->data) {
+				free(dbproc->bcp.db_columns[i]->data);
+				dbproc->bcp.db_columns[i]->data = NULL;
 			}
-			free(dbproc->bcp_columns[i]);
-			dbproc->bcp_columns[i] = NULL;
+			free(dbproc->bcp.db_columns[i]);
+			dbproc->bcp.db_columns[i] = NULL;
 		}
-		free(dbproc->bcp_columns);
-		dbproc->bcp_columns = NULL;
+		free(dbproc->bcp.db_columns);
+		dbproc->bcp.db_columns = NULL;
 	}
 
-	dbproc->bcp_colcount = 0;
+	dbproc->bcp.db_colcount = 0;
 
 	/* free up storage that holds details of hostfile columns */
 
-	if (dbproc->host_columns) {
-		for (i = 0; i < dbproc->host_colcount; i++) {
-			if (dbproc->host_columns[i]->terminator) {
-				free(dbproc->host_columns[i]->terminator);
-				dbproc->host_columns[i]->terminator = NULL;
+	if (dbproc->bcp.host_columns) {
+		for (i = 0; i < dbproc->bcp.host_colcount; i++) {
+			if (dbproc->bcp.host_columns[i]->terminator) {
+				free(dbproc->bcp.host_columns[i]->terminator);
+				dbproc->bcp.host_columns[i]->terminator = NULL;
 			}
-			free(dbproc->host_columns[i]);
-			dbproc->host_columns[i] = NULL;
+			free(dbproc->bcp.host_columns[i]);
+			dbproc->bcp.host_columns[i] = NULL;
 		}
-		free(dbproc->host_columns);
-		dbproc->host_columns = NULL;
+		free(dbproc->bcp.host_columns);
+		dbproc->bcp.host_columns = NULL;
 	}
 
-	dbproc->host_colcount = 0;
+	dbproc->bcp.host_colcount = 0;
 
 	dbproc->var_cols = 0;
 	dbproc->sendrow_init = 0;
@@ -2701,7 +2789,7 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		break;
 
 	case SYBEBUOE:
-		erc = asprintf(&p, "Unable to open bcp error file \"%s\".", dbproc->bcp_errorfile);
+		erc = asprintf(&p, "Unable to open bcp error file \"%s\".", dbproc->bcp.errorfile);
 		if (p && erc != -1) {
 			erc = _dblib_client_msg(dbproc, bcp_errno, EXRESOURCE, p);
 			free(p);

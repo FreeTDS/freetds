@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.1 2003-03-06 23:58:40 mlilback Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.2 2003-11-01 23:02:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -281,11 +281,19 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 			fprintf(stderr, "ct_results returned CS_CMD_FAIL.\n");
 			break;
 
+		case CS_STATUS_RESULT:
+			/*
+			 * ** The server encountered an error while
+			 * ** processing our command.
+			 */
+			fprintf(stderr, "ct_results returned CS_STATUS_RESULT.\n");
+			break;
+
 		default:
 			/*
 			 * ** We got something unexpected.
 			 */
-			fprintf(stderr, "ct_results returned unexpected result type.\n");
+			fprintf(stderr, "ct_results returned unexpected result type %d\n", res_type);
 			return 1;
 		}
 	}

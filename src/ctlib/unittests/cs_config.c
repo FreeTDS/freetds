@@ -7,147 +7,107 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_config.c,v 1.1 2003-04-14 03:06:37 jklowden Exp $";
+static char software_version[] = "$Id: cs_config.c,v 1.2 2003-11-01 23:02:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char **argv)
 {
 	int verbose = 1;
-	CS_CONTEXT *ctx,*ctx1;
-	CS_CHAR *name1, *name2;
-	CS_INT len,len1, ret_len, ret_len2;
-	CS_VOID *return_name,*return_name2, *return_name_1, *return_name_2, *return_name_3;
+	CS_CONTEXT *ctx;
+
+    CS_CHAR string_in[16], string_out[16];
+    CS_INT  int_in,        int_out;
+	CS_INT len, len1, ret_len, ret_len2;
+	CS_CHAR return_name[16], return_name2[16], return_name_1[16], return_name_2[16], return_name_3[16];
 
 	if (verbose) {
-		fprintf(stdout, "Trying cs_config with cs_userdata\n\n");
+		fprintf(stdout, "Trying cs_config with CS_USERDATA\n\n");
 	}
+
 	if (cs_ctx_alloc(CS_VERSION_100, &ctx) != CS_SUCCEED) {
 		fprintf(stderr, "cs_ctx_alloc() for first context failed\n");
 	}
 	if (ct_init(ctx, CS_VERSION_100) != CS_SUCCEED) {
 		fprintf(stderr, "ct_init() for first context failed\n");
 	}
-	if (cs_ctx_alloc(CS_VERSION_100, &ctx1) != CS_SUCCEED) {
-		fprintf(stderr, "cs_ctx_alloc() for 2nd context failed\n");
-	}
-	if (ct_init(ctx1, CS_VERSION_100) != CS_SUCCEED) {
-		fprintf(stderr, "ct_init() for 2nd context failed\n");
-	}
 
-	fprintf(stdout, "Testing with first context\n");
+	fprintf(stdout, "Testing CS_SET/GET USERDATA with char array\n");
 
-	name1="FreeTDS";
-	len=8;
+	strcpy(string_in,"FreeTDS");
 
-	fprintf(stdout, "expected value = %s ", name1);
-
-	if (cs_config(ctx, CS_SET, CS_USERDATA,(CS_VOID *)&name1, len, NULL)
+	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() set failed\n");
 		return 1;
 	}
-	if (cs_config(ctx, CS_GET, CS_USERDATA, &return_name, len, &ret_len)
+	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 16, &ret_len)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() get failed\n");
 		return 1;
 	}
 
-	fprintf(stdout, "returned value = %s\n", (char *)return_name);
+	if (strcmp(string_in, string_out)) {
+		fprintf(stdout, "returned value >%s< not as stored >%s<\n", (char *)string_out, (char *)string_in);
+		return 1;
+	}
+    if (ret_len != (strlen(string_in) + 1)) {
+		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, (strlen(string_in) + 1));
+		return 1;
+	}
 
-	len1=0;
+	fprintf(stdout, "Testing CS_SET/GET USERDATA with char array\n");
 
-	fprintf(stderr, "expected value = <empty string> ");
+	strcpy(string_in,"FreeTDS");
 
-	if (cs_config(ctx, CS_SET, CS_USERDATA,(CS_VOID *) &name1, len, NULL)
+	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() set failed\n");
 		return 1;
 	}
-	
-	if (cs_config(ctx, CS_GET, CS_USERDATA, &return_name2, len1, &ret_len2)
+
+    strcpy(string_out,"XXXXXXXXXXXXXXX");
+
+	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 4, &ret_len)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() get failed\n");
 		return 1;
 	}
 
-	fprintf(stderr, "returned value = %s \n", (char *)return_name2);
+	if (strcmp(string_out, "FreeXXXXXXXXXXX")) {
+		fprintf(stdout, "returned value >%s< not as expected >%s<\n", (char *)string_out, "FreeXXXXXXXXXXX");
+		return 1;
+	}
+    if (ret_len != (strlen(string_in) + 1)) {
+		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, (strlen(string_in) + 1));
+		return 1;
+	}
 
-	name1 =NULL;
+	fprintf(stdout, "Testing CS_SET/GET USERDATA with int\n");
 
-	if (cs_config(ctx, CS_SET, CS_USERDATA,(CS_VOID *) &name1, len, NULL)
+    int_in = 255;
+
+	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)&int_in,  sizeof(int), NULL)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() set failed\n");
 		return 1;
 	}
-	if (cs_config(ctx, CS_GET, CS_USERDATA, &return_name2, len, &ret_len2)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
-		return 1;
-	}
-	if(return_name2) {
-	  fprintf(stderr, "Error: Expecting a NULL value but returned value is = %s\n", (char *)return_name2);
-	}
-	else {
-	  	fprintf(stderr, "expected value is <NULL> returned value is <NULL>\n");
-	}
-
-	fprintf(stdout, "Testing with second context\n");
-
-	name2="FPRINTF";
-	len=8;
-
-	fprintf(stdout, "expected value = %s ", name2);
-
-	if (cs_config(ctx1, CS_SET, CS_USERDATA,(CS_VOID *)&name2, len, NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
-		return 1;
-	}
-	if (cs_config(ctx1, CS_GET, CS_USERDATA, &return_name_1, len, &ret_len)
+	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)&int_out, sizeof(int), &ret_len)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() get failed\n");
 		return 1;
 	}
 
-	fprintf(stdout, "returned value = %s\n", (char *)return_name_1);
-	
-	len1=0;
-
-	fprintf(stderr, "expected value = <empty string> ");
-
-	if (cs_config(ctx1, CS_SET, CS_USERDATA,(CS_VOID *) &name2, len, NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
+	if (int_in != int_out) {
+		fprintf(stdout, "returned value >%d< not as stored >%d<\n", int_out, int_in);
 		return 1;
 	}
-	
-	if (cs_config(ctx1, CS_GET, CS_USERDATA, &return_name_3, len1, &ret_len2)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
+    if (ret_len != (sizeof(int))) {
+		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, sizeof(int));
 		return 1;
 	}
 
-	fprintf(stderr, "returned value = %s \n", (char *)return_name_3);
 
-	name2 =NULL;
 
-	if (cs_config(ctx1, CS_SET, CS_USERDATA,(CS_VOID *) &name2, len, NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
-		return 1;
-	}
-	if (cs_config(ctx1, CS_GET, CS_USERDATA, &return_name_2, len, &ret_len2)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
-		return 1;
-	}
-	if(return_name2) {
-	  fprintf(stderr, "Error: Expecting a NULL value but returned value is = %s\n", (char *)return_name_2);
-	}
-	else {
-	  	fprintf(stderr, "expected value is <NULL> returned value is <NULL>\n");
-	}
-
-return 0;
+    return 0;
 }

@@ -1,3 +1,17 @@
+Sat Nov  1 17:45:03 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h include/des.h
+	* include/sybdb.h include/tds.h
+	* src/apps/freebcp.c
+	* src/ctlib/cs.c src/ctlib/ct.c
+	* src/ctlib/unittests/cs_config.c src/ctlib/unittests/lang_ct_param.c
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/unittests/t0016.c
+	* src/tds/challenge.c src/tds/config.c src/tds/des.c
+	* src/tds/mem.c src/tds/query.c src/tds/token.c
+	* src/tds/unittests/flags.c
+	- ct-lib cursors!  Bill Thompson's 4043-line patch.  
+	- Some updates to the patch remain pending.  
+	* TODO removed ct-lib cursor entry.  
+	
 Fri Oct 31 13:49:02 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c fix line 128
 

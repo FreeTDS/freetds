@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.105 2003-10-18 22:57:46 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.106 2003-11-01 23:02:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -47,6 +47,7 @@ static void *no_unused_var_warn[] = { software_version,
  * Read a row of data
  * @return 0 on success
  */
+static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
 static int _ct_bind_data(CS_COMMAND * cmd, CS_INT offset);
 static int _ct_get_client_type(int datatype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
@@ -389,6 +390,15 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->host_name), maxcp);
 			((char *) buffer)[maxcp] = '\0';
 			break;
+		case CS_SERVERNAME:
+			maxcp = tds_dstr_len(&tds_login->server_name);
+			if (out_len)
+				*out_len = maxcp;
+			if (maxcp >= buflen)
+				maxcp = buflen - 1;
+			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->server_name), maxcp);
+			((char *) buffer)[maxcp] = '\0';
+			break;
 		case CS_LOC_PROP:
 			buffer = (CS_VOID *) con->locale;
 			break;
@@ -683,6 +693,9 @@ ct_send(CS_COMMAND * cmd)
 
 	tds = cmd->con->tds_socket;
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_send()\n");
+
+	cmd->results_state = _CS_RES_INIT;
+
 	if (cmd->dynamic_cmd)
 		return ct_send_dyn(cmd);
 
@@ -728,6 +741,87 @@ ct_send(CS_COMMAND * cmd)
 			return CS_SUCCEED;
 		}
 	}
+
+	/* Code added for CURSOR support */
+
+	if (cmd->command_type == CS_CUR_CMD) {
+		/* sanity */
+		/* ct_cursor declare should allocate cursor pointer 
+		   cursor stmt cannot be NULL 
+		   cursor name cannot be NULL  */ 
+
+		int something_to_send = 0;
+		int cursor_open_sent  = 0;
+
+		if (cmd == NULL || tds->cursor == NULL  || 
+			tds->cursor->query == NULL || tds->cursor->cursor_name == NULL ) { 
+			return CS_FAIL;  
+		}
+
+		if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED) {
+			ret =  tds_cursor_declare(tds, &something_to_send);
+			if (ret == CS_SUCCEED){
+				tds->cursor->declare_status = _CS_CURS_TYPE_SENT; /* Cursor is declared */
+			}
+			else {
+				tdsdump_log(TDS_DBG_WARN, "%L ct_send(): cursor declare failed \n");		  
+				return CS_FAIL;
+			}
+		}
+	
+		if (tds->cursor->cursor_row_status == _CS_CURS_TYPE_REQUESTED && 
+			tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+
+ 			ret = tds_cursor_setrows(tds, &something_to_send);
+			if (ret == CS_SUCCEED){
+				tds->cursor->cursor_row_status = _CS_CURS_TYPE_SENT; /* Cursor rows set */
+			}
+			else {
+				tdsdump_log(TDS_DBG_WARN, "%L ct_send(): cursor set rows failed\n");
+				return CS_FAIL;
+			}
+		}
+
+		if (tds->cursor->open_status == _CS_CURS_TYPE_REQUESTED && 
+			tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+
+			ret = tds_cursor_open(tds, &something_to_send);
+ 			if (ret == CS_SUCCEED){
+				tds->cursor->open_status = _CS_CURS_TYPE_SENT;
+				cursor_open_sent = 1;
+			}
+			else {
+				tdsdump_log(TDS_DBG_WARN, "%L ct_send(): cursor open failed\n");
+				return CS_FAIL;
+			}
+		}
+
+		if (something_to_send) {
+			tdsdump_log(TDS_DBG_WARN, "%L ct_send(): sending cursor commands\n");
+			tds->state = TDS_QUERYING;
+			tds_flush_packet(tds);
+			something_to_send = 0;
+
+			/* reinsert ct-send_cursor handling here */
+
+			return CS_SUCCEED;
+		}
+
+		if (tds->cursor->close_status == _CS_CURS_TYPE_REQUESTED){
+			ret = tds_cursor_close(tds);
+			tds->cursor->close_status = _CS_CURS_TYPE_SENT;
+			if (tds->cursor->dealloc_status == _CS_CURS_TYPE_REQUESTED)
+				tds->cursor->dealloc_status = _CS_CURS_TYPE_SENT;
+		}
+
+		if (tds->cursor->dealloc_status == _CS_CURS_TYPE_REQUESTED){
+			ret = tds_cursor_dealloc(tds);
+			tds_free_all_results(tds);
+		}
+		
+		return CS_SUCCEED;
+	}
+
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
 		tds->state = TDS_QUERYING;
 		tds_flush_packet(tds);
@@ -767,8 +861,8 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	int tdsret;
 	int rowtype;
 	int computeid;
-	int done_flags;
 	CS_INT res_type;
+	CS_INT done_flags;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_results()\n");
 
@@ -780,15 +874,26 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 		return ct_results_dyn(cmd, result_type);
 	}
 
-	if (cmd->empty_result) {
-		cmd->empty_result = 0;
-		*result_type = CS_CMD_DONE;
-		return CS_SUCCEED;
-	}
-
 	tds = cmd->con->tds_socket;
-
 	cmd->row_prefetched = 0;
+
+	/* depending on the current results state, we may */
+	/* not need to call tds_process_result_tokens...  */
+
+	switch (cmd->results_state) {
+	case _CS_RES_CMD_SUCCEED:
+		*result_type = CS_CMD_SUCCEED;
+		cmd->results_state = _CS_RES_CMD_DONE;
+		return CS_SUCCEED;
+	case _CS_RES_CMD_DONE:
+		*result_type = CS_CMD_DONE;
+		cmd->results_state = _CS_RES_INIT;
+		return CS_SUCCEED;
+	case _CS_RES_INIT:				/* first time in after ct_send */
+	case _CS_RES_RESULTSET_EMPTY:	/* we returned a format result */
+	default:
+		break;
+	}
 
 	/* see what "result" tokens we have. a "result" in ct-lib terms also  */
 	/* includes row data. Some result types always get reported back  to  */
@@ -799,21 +904,48 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 		tdsret = tds_process_result_tokens(tds, &res_type, &done_flags);
 
-		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() process_result_tokens returned %d (type %d) \n", tdsret, res_type);
+		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() process_result_tokens returned %d (type %d) \n",
+			    tdsret, res_type);
 
 		switch (tdsret) {
+
 		case TDS_SUCCEED:
 
 			cmd->curr_result_type = res_type;
 
 			switch (res_type) {
+
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
+
+				/* set results state to indicate that we     */
+				/* have a result set (empty for the moment)  */
+				/* If the CS_EXPOSE_FMTS  property has been  */
+				/* set in ct_config(), we need to return an  */
+				/* appropraite format result, otherwise just */
+				/* carry on and get the next token.....      */
+
+				cmd->results_state = _CS_RES_RESULTSET_EMPTY;
 
 				if (context->config.cs_expose_formats) {
 					*result_type = res_type;
 					return CS_SUCCEED;
 				}
+				break;
+
+			case CS_ROW_RESULT:
+
+				/* we've hit a data row. pass back that fact */
+				/* to the calling program. set results state */
+				/* to show that the result set has rows...   */
+
+				cmd->results_state = _CS_RES_RESULTSET_ROWS;
+				if (cmd->command_type == CS_CUR_CMD) {
+					*result_type = CS_CURSOR_RESULT;
+				} else {
+					*result_type = CS_ROW_RESULT;
+				}
+				return CS_SUCCEED;
 				break;
 
 			case CS_COMPUTE_RESULT:
@@ -823,7 +955,22 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				/* result format...the user may call ct_res_info() & friends */
 				/* after getting back a compute "result".                    */
 
+				/* but first, if we've hit this compute row without having   */
+				/* hit a data row first, we need to return a  CS_ROW_RESULT  */
+				/* before letting them have the compute row...               */
+
+				if (cmd->results_state == _CS_RES_RESULTSET_EMPTY) {
+					*result_type = CS_ROW_RESULT;
+					tds->curr_resinfo = tds->res_info;
+					cmd->results_state = _CS_RES_RESULTSET_ROWS;
+					return CS_SUCCEED;
+				}
+
 				tdsret = tds_process_row_tokens(tds, &rowtype, &computeid);
+
+				/* set results state to show that the result set has rows... */
+
+				cmd->results_state = _CS_RES_RESULTSET_ROWS;
 
 				*result_type = res_type;
 				if (tdsret == TDS_SUCCEED) {
@@ -839,33 +986,96 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				break;
 
 			case TDS_DONE_RESULT:
-			case TDS_DONEPROC_RESULT:
+
+				/* A done token signifies the end of a logical */
+				/* command. There are three possibilities...   */
+				/* 1. Simple command with no result set, i.e.  */
+				/*    update, delete, insert                   */
+				/* 2. Command with result set but no rows      */ 
+				/* 3. Command with result set and rows         */ 
+				/* in these cases we need to:                  */
+				/* 1. return CS_CMD_FAIL/SUCCED depending on   */
+				/*    the status returned in done_flags        */
+				/* 2. "manufacture" a CS_ROW_RESULT return,    */ 
+				/*    and set the results state to DONE        */
+				/* 3. return with CS_CMD_DONE and reset the    */ 
+				/*    results_state                            */ 
+
+				tdsdump_log(TDS_DBG_FUNC, "%L ct_results() results state = %d\n",cmd->results_state);
+				switch (cmd->results_state) {
+
+				case _CS_RES_INIT:  
+				case _CS_RES_STATUS:  
+					if (done_flags & TDS_DONE_ERROR)
+						*result_type = CS_CMD_FAIL;
+					else
+						*result_type = CS_CMD_SUCCEED;
+					cmd->results_state = _CS_RES_CMD_DONE;
+					break;
+
+				case _CS_RES_RESULTSET_EMPTY:
+					if (cmd->command_type == CS_CUR_CMD) {
+						*result_type = CS_CURSOR_RESULT;
+						cmd->results_state = _CS_RES_RESULTSET_ROWS;
+					} else {
+						*result_type = CS_ROW_RESULT;
+						cmd->results_state = _CS_RES_CMD_DONE;
+					}
+					break;
+
+				case _CS_RES_RESULTSET_ROWS:
+					*result_type = CS_CMD_DONE;
+					cmd->results_state = _CS_RES_INIT;
+					break;
+
+				}
+				return CS_SUCCEED;
+				break;
+				 
 			case TDS_DONEINPROC_RESULT:
 
-				/* there's a distinction in ct-library     */
-				/* depending on whether a command returned */
-				/* results or not...                          */
+				/* A doneinproc token may signify the end of a */
+				/* logical command if the command had a result */
+				/* set. Otherwise it is ignored....            */
 
-				if (done_flags & TDS_DONE_ERROR) {
-					*result_type = CS_CMD_FAIL;
-				} else if (tds->res_info) {
-					if (!tds->res_info->rows_exist) {
-						if (cmd->empty_result) {
-							cmd->empty_result = 0;
-							*result_type = CS_CMD_DONE;
-						} else {
-							cmd->empty_result = 1;
-							*result_type = CS_ROW_RESULT;
-						}
+				switch (cmd->results_state) {
+				case _CS_RES_INIT:   /* command had no result set */
+					break;
+				case _CS_RES_RESULTSET_EMPTY:
+					if (cmd->command_type == CS_CUR_CMD) {
+						*result_type = CS_CURSOR_RESULT;
 					} else {
-						/* No new results have been returned, check next token */
-						*result_type= CS_ROW_RESULT;
-						break;
+						*result_type = CS_ROW_RESULT;
 					}
-				} else
-					*result_type = CS_CMD_SUCCEED;
+					cmd->results_state = _CS_RES_CMD_DONE;
+					return CS_SUCCEED;
+					break;
+				case _CS_RES_RESULTSET_ROWS:
+					*result_type = CS_CMD_DONE;
+					cmd->results_state = _CS_RES_INIT;
+					return CS_SUCCEED;
+					break;
+				}
+				break;
 
-				return CS_SUCCEED;
+			case TDS_DONEPROC_RESULT:
+
+				/* A DONEPROC result means the end of a logical */
+				/* command only if it was one of the commands   */
+				/* directly sent from ct_send, not as a result  */
+				/* of a nested stored procedure call. We know   */
+				/* if this is the case if a STATUS_RESULT was   */
+				/* received immediately prior to the DONE_PROC  */
+
+				if (cmd->results_state == _CS_RES_STATUS) { 
+					if (done_flags & TDS_DONE_ERROR)
+						*result_type = CS_CMD_FAIL;
+					else
+						*result_type = CS_CMD_SUCCEED;
+					cmd->results_state = _CS_RES_CMD_DONE;
+					return CS_SUCCEED;
+				}
+
 				break;
 
 			case CS_PARAM_RESULT:
@@ -877,22 +1087,30 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 			case CS_STATUS_RESULT:
 				_ct_process_return_status(tds);
 				cmd->row_prefetched = 1;
-				/* fall through */
+				*result_type = res_type;
+				cmd->results_state = _CS_RES_STATUS;
+				return CS_SUCCEED;
+				break;
+				
 			default:
 				*result_type = res_type;
 				return CS_SUCCEED;
 				break;
 			}
+
 			break;
+
 		case TDS_NO_MORE_RESULTS:
 			return CS_END_RESULTS;
 			break;
+
 		case TDS_FAIL:
 		default:
 			return CS_FAIL;
 			break;
-		}
-	}
+
+		}  /* switch (tdsret) */
+	}      /* for (;;)        */
 }
 
 
@@ -960,11 +1178,21 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_fetch()\n");
 
+	/* We'll call a special function for fetches from a cursor            */
+	/* the processing is too incompatible to patch into a single function */
+
+	if (cmd->command_type == CS_CUR_CMD) {
+		return _ct_fetch_cursor(cmd, type, offset, option, rows_read);
+	}
+
 	if (rows_read)
 		*rows_read = 0;
 
 	/* taking a copy of the cmd->bind_count value. */
 	temp_count = cmd->bind_count;
+
+	if ( cmd->bind_count == CS_UNUSED ) 
+		cmd->bind_count = 1;
 
 	/* compute rows and parameter results have been pre-fetched by ct_results() */
 
@@ -979,49 +1207,46 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		return CS_SUCCEED;
 	}
 
-	if (cmd->empty_result) {
+	if (cmd->results_state == _CS_RES_CMD_DONE)
 		return CS_END_DATA;
-	}
 	if (cmd->curr_result_type == CS_COMPUTE_RESULT)
 		return CS_END_DATA;
 	if (cmd->curr_result_type == CS_CMD_FAIL)
 		return CS_CMD_FAIL;
 
+
 	marker = tds_peek(cmd->con->tds_socket);
 	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) ||
-	    (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN))
+		(cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
 		return CS_END_DATA;
 
 	/* Array Binding Code changes start here */
 
-	if (cmd->bind_count == CS_UNUSED)
-		cmd->bind_count = 1;
-
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		ret = tds_process_row_tokens(cmd->con->tds_socket, &rowtype, &computeid);
+		ret = tds_process_row_tokens_ct(cmd->con->tds_socket, &rowtype, &computeid);
 
-		tdsdump_log(TDS_DBG_FUNC, "%L ct_fetch()process_row_tokens returned %d\n", ret);
+		tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
-		case TDS_SUCCEED:
-			cmd->get_data_item = 0;
-			cmd->get_data_bytes_returned = 0;
-			if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
-				if (_ct_bind_data(cmd, temp_count))
-					return CS_ROW_FAIL;
-				if (rows_read)
-					*rows_read = *rows_read + 1;
-			}
-			break;
+			case TDS_SUCCEED: 
+				cmd->get_data_item = 0;
+				cmd->get_data_bytes_returned = 0;
+				if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+					if (_ct_bind_data(cmd, temp_count))
+						return CS_ROW_FAIL;
+					if (rows_read)
+						*rows_read = *rows_read + 1;
+				}
+				break;
+		
+			case TDS_NO_MORE_ROWS: 
+				return CS_END_DATA;
+				break;
 
-		case TDS_NO_MORE_ROWS:
-			return CS_END_DATA;
-			break;
-
-		default:
-			return CS_FAIL;
-			break;
+			default:
+				return CS_FAIL;
+				break;
 		}
 
 		/* have we reached the end of the rows ? */
@@ -1031,12 +1256,99 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
 			break;
 
-	}
+	} 
 
 	/* Array Binding Code changes end here */
 
 	return CS_SUCCEED;
 }
+
+static CS_RETCODE
+_ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read)
+{
+	TDSSOCKET * tds;
+	TDS_INT restype;
+	TDS_INT rowtype;
+	TDS_INT computeid;
+	TDS_INT ret;
+	TDS_INT temp_count;
+	TDS_INT done_flags;
+	TDS_INT rows_this_fetch = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L _ct_fetch_cursor()\n");
+
+	tds = cmd->con->tds_socket;
+
+	if (rows_read)
+		*rows_read = 0;
+
+	/* taking a copy of the cmd->bind_count value. */
+	temp_count = cmd->bind_count;
+
+	if ( cmd->bind_count == CS_UNUSED ) 
+		cmd->bind_count = 1;
+
+	/* currently we are placing this restriction on cursor fetches.  */
+	/* the alternatives are too awful to contemplate at the moment   */
+	/* i.e. buffering all the rows from the fetch internally...      */
+
+	if (cmd->bind_count < tds->cursor->cursor_rows) {
+		tdsdump_log(TDS_DBG_WARN, "%L _ct_fetch_cursor(): bind count must equal cursor rows \n");
+		return CS_FAIL;
+	}
+
+	if ( tds_cursor_fetch(tds) == CS_SUCCEED) {
+		tds->cursor->fetch_status = _CS_CURS_TYPE_SENT;
+	}
+	else {
+		tdsdump_log(TDS_DBG_WARN, "%L ct_fetch(): cursor fetch failed\n");
+		return CS_FAIL;
+	}
+
+	while ((tds_process_result_tokens(tds, &restype, &done_flags)) == TDS_SUCCEED) {
+		switch (restype) {
+			case CS_ROWFMT_RESULT:
+				break;
+			case CS_ROW_RESULT:
+				for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
+			
+					ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
+			
+					tdsdump_log(TDS_DBG_FUNC, "%L _ct_fetch_cursor() tds_process_row_tokens returned %d\n", ret);
+			
+					if (ret == TDS_SUCCEED) {
+						cmd->get_data_item = 0;
+						cmd->get_data_bytes_returned = 0;
+						if (rowtype == TDS_REG_ROW) {
+							if (_ct_bind_data(cmd, temp_count))
+								return CS_ROW_FAIL;
+							if (rows_read)
+								*rows_read = *rows_read + 1;
+							rows_this_fetch++;
+						}
+					}
+					else {
+						if (ret == TDS_NO_MORE_ROWS) {
+							break;
+						} else {
+							return CS_FAIL;
+						}
+					}
+				} 
+				break;
+			case TDS_DONE_RESULT:
+				break;
+		}
+	}
+	if (rows_this_fetch)
+		return CS_SUCCEED;
+	else {
+		cmd->results_state = _CS_RES_CMD_SUCCEED;
+		return CS_END_DATA;
+	}
+
+}
+
 
 static int
 _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
@@ -1056,6 +1368,10 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
+
+		if (curcol->column_hidden) 
+			continue;
+
 		if (curcol->column_nullbind) {
 			if (tds_get_null(resinfo->current_row, i)) {
 				*((CS_SMALLINT *) curcol->column_nullbind) = -1;
@@ -1437,7 +1753,9 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	TDSCOLINFO *curcol;
 	CS_INT int_val;
+	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_res_info()\n");
 	if (cmd->dynamic_cmd) {
@@ -1445,10 +1763,14 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 	}
 	switch (type) {
 	case CS_NUMDATA:
-		if (!resinfo) {
-			int_val = 0;
-		} else {
-			int_val = resinfo->num_cols;
+		int_val = 0;
+		if (resinfo) {
+			for (i = 0; i < resinfo->num_cols; i++) {
+				curcol = resinfo->columns[i];
+				if (!curcol->column_hidden) {
+					int_val++;
+				}
+			}
 		}
 		tdsdump_log(TDS_DBG_FUNC, "%L ct_res_info(): Number of columns is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
@@ -1464,6 +1786,7 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		break;
 	}
 	return CS_SUCCEED;
+
 }
 
 CS_RETCODE
@@ -2689,12 +3012,103 @@ ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CO
 CS_RETCODE
 ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option)
 {
-	/* this call resets the command, clearing any params */
-	if (cmd->input_params) {
-		param_clear(cmd->input_params);
-		cmd->input_params = NULL;
+	TDSSOCKET *tds;
+
+	tds = cmd->con->tds_socket;
+	cmd->command_type = CS_CUR_CMD;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L ct_cursor() : type = %d \n", type);
+
+	switch (type) {
+	case CS_CURSOR_DECLARE:
+
+		tds->cursor = tds_alloc_cursor( name, namelen == CS_NULLTERM ? strlen(name) + 1 : namelen,
+						text, tlen == CS_NULLTERM ? strlen(text) + 1 : tlen);
+		if (tds->cursor) {
+
+	  		tds->cursor->cursor_rows = 1;
+	   		tds->cursor->options = option;
+			tds->cursor->declare_status    = _CS_CURS_TYPE_REQUESTED;
+			tds->cursor->cursor_row_status = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->open_status       = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->fetch_status      = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->close_status      = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->dealloc_status    = _CS_CURS_TYPE_UNACTIONED;
+			return CS_SUCCEED;
+		} else {
+			return CS_FAIL;
+		}
+		break;
+		
+ 	case CS_CURSOR_ROWS:
+	
+		if (tds->cursor != NULL) {
+
+			if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED || 
+				tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+
+				tds->cursor->cursor_rows = option;
+				tds->cursor->cursor_row_status = _CS_CURS_TYPE_REQUESTED;
+				
+				return CS_SUCCEED;
+			}
+			else {
+				tds->cursor->cursor_row_status  = _CS_CURS_TYPE_UNACTIONED;
+				tdsdump_log(TDS_DBG_FUNC, "%L ct_cursor() : cursor not declared\n");
+				return CS_FAIL;
+			}
+		}
+		break;
+
+	case CS_CURSOR_OPEN:
+
+		if (tds->cursor != NULL) {
+			if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED || 
+				tds->cursor->declare_status == _CS_CURS_TYPE_SENT ) {
+	
+				tds->cursor->open_status  = _CS_CURS_TYPE_REQUESTED;
+		
+				return CS_SUCCEED;
+			}
+			else {
+				tds->cursor->open_status = _CS_CURS_TYPE_UNACTIONED;
+				tdsdump_log(TDS_DBG_FUNC, "%L ct_cursor() : cursor not declared\n");
+				return CS_FAIL;
+			}
+		}
+		break;
+
+	case CS_CURSOR_CLOSE:
+
+		tds->cursor->cursor_row_status = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->open_status       = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->fetch_status      = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->close_status      = _CS_CURS_TYPE_REQUESTED;
+		if (option == CS_DEALLOC) {
+		 	tds->cursor->dealloc_status   = _CS_CURS_TYPE_REQUESTED;
+		}
+		return CS_SUCCEED;
+
+	case CS_CURSOR_DEALLOC:
+
+		tds->cursor->dealloc_status   = _CS_CURS_TYPE_REQUESTED;
+		return CS_SUCCEED;
+
+	case CS_IMPLICIT_CURSOR:
+		tdsdump_log(TDS_DBG_INFO1, "CS_IMPLICIT_CURSOR: Option not implemented\n");
+		return CS_FAIL;
+	case CS_CURSOR_OPTION:
+		tdsdump_log(TDS_DBG_INFO1, "CS_CURSOR_OPTION: Option not implemented\n");
+		return CS_FAIL;
+	case CS_CURSOR_UPDATE:
+		tdsdump_log(TDS_DBG_INFO1, "CS_CURSOR_UPDATE: Option not implemented\n");
+		return CS_FAIL;
+	case CS_CURSOR_DELETE:
+		tdsdump_log(TDS_DBG_INFO1, "CS_CURSOR_DELETE: Option not implemented\n");
+		return CS_FAIL;
+
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED ct_cursor()\n");
+
 	return CS_FAIL;
 }
 

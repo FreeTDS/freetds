@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.53 2003-08-18 09:16:44 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.54 2003-11-01 23:02:08 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -278,38 +278,22 @@ typedef struct _DBREMOTE_PROC_PARAM
 	BYTE *value;
 } DBREMOTE_PROC_PARAM;
 
-/*
- * TODO: DBPROCESS has an implicit substructure of bcp-related
- * variables.  Go through bcp.c et. al. changing e.g.:
- * 
- * 	dbproc->bcp_direction
- * to
- * 	dbproc->bcp.direction
- *
- * When all references are changed, delete the DBPROCESS member.  
- */
-
-#define MOVED_ALL_REFERENCES_FROM_DBPROCESS 1
 typedef struct
 {
-#	if MOVED_ALL_REFERENCES_FROM_DBPROCESS
 	char *hint;
-#else
-	/* The members below still need work, see TODO, above.  */
 	TDS_CHAR *hostfile;
 	TDS_CHAR *errorfile;
 	TDS_CHAR *tablename;
 	TDS_CHAR *insert_stmt;
 	TDS_INT direction;
-	TDS_INT colcount;
+	TDS_INT db_colcount;
 	TDS_INT host_colcount;
-	BCP_COLINFO **columns;
+	BCP_COLINFO **db_columns;
 	BCP_HOSTCOLINFO **host_columns;
 	TDS_INT firstrow;
 	TDS_INT lastrow;
 	TDS_INT maxerrs;
 	TDS_INT batch;
-#	endif
 } DBBULKCOPY;
 
 typedef struct _DBREMOTE_PROC
@@ -337,20 +321,7 @@ typedef struct
 	int command_state;
 	TDS_INT text_size;
 	TDS_INT text_sent;
-	TDS_CHAR *bcp_hostfile;
-	TDS_CHAR *bcp_errorfile;
 	FILE *bcp_errfileptr;
-	TDS_CHAR *bcp_tablename;
-	TDS_CHAR *bcp_insert_stmt;
-	TDS_INT bcp_direction;
-	TDS_INT bcp_colcount;
-	TDS_INT host_colcount;
-	BCP_COLINFO **bcp_columns;
-	BCP_HOSTCOLINFO **host_columns;
-	TDS_INT firstrow;
-	TDS_INT lastrow;
-	TDS_INT maxerrs;
-	TDS_INT bcpbatch;
 	TDS_INT sendrow_init;
 	TDS_INT var_cols;
 	DBTYPEINFO typeinfo;
