@@ -20,7 +20,6 @@ AC_PROG_INSTALL
 AC_ARG_PROGRAM
 AM_PROG_LIBTOOL
 AM_ICONV
-CHECK_SSL
 dnl test if we have doxygen installed
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])

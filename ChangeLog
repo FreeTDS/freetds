@@ -1,3 +1,8 @@
+Mon Sep 30 11:47:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in doc/userguide.sgml include/des.h:
+	- remove --with-ssl parameter (not used)
+	- update documentation
+
 Sun Sep 29 15:43:00 CDT 2002	Steve Langasek <vorlon@netexpress.net>
 	* include/des.h src/tds/des.c src/tds/challenge.c src/tds/login.c
 	  acinclude.m4:

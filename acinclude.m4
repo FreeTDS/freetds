@@ -96,16 +96,6 @@ size_t iconv();
 ])
 
 
-
-dnl SSL check
-
-AC_DEFUN([CHECK_SSL],
-[AC_ARG_WITH(ssl,
-[  --with-ssl enable ssl [will check /usr/local/ssl
-                            /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr ]
-])])
-
-
 dnl Found on autoconf archive
 dnl Based on Caolan McNamara's gethostbyname_r macro. 
 dnl Based on David Arnold's autoconf suggestion in the threads faq.
@@ -183,7 +173,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.8 2002-09-29 20:54:43 vorlon Exp $
+dnl @version $Id: acinclude.m4,v 1.9 2002-09-30 09:49:49 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-09 08:27:31 $</date>
-		<releaseinfo>$Revision: 1.33 $</releaseinfo>
+		<date>$Date: 2002-09-30 09:49:50 $</date>
+		<releaseinfo>$Revision: 1.34 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -202,9 +202,9 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 			<title>Status of this document</title>
 			<para>
 The document you are reading is version 
-$Revision: 1.33 $
+$Revision: 1.34 $
 , dated 
-$Date: 2002-09-09 08:27:31 $
+$Date: 2002-09-30 09:49:50 $
 .  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>
@@ -333,11 +333,6 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--enable-msdblib</Parameter></term>
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
-					</listitem>
-				</varlistentry>
-			<varlistentry>
-				<term><Parameter>--with-ssl</Parameter></term>
-				<listitem><para>Enable support of OpenSSL library.  This dependency is required for those wishing to use domain logins.</para>
 					</listitem>
 				</varlistentry>
 			<varlistentry>
@@ -624,7 +619,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>try domain login</entry>
 	<entry>yes</entry>
-	<entry>(Experimental) Attempt a domain login (requires OpenSSL).  
+	<entry>(Experimental) Attempt a domain login.  
 		<emphasis> Setting try domain login has the effect 
 				of disallowing server logins!</emphasis></entry>
 	<entry>yes/no</entry>
@@ -1229,16 +1224,6 @@ It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any
 			<title>Domain Logins</title>
 			<para>
 As mentioned in the installation chapter, <productname>SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
-			</para>
-			<para>
-To use NTLM authentication, <productname>FreeTDS</productname> needs the support of an encryption library <productname>OpenSSL</productname>, and must be configured using the --with-ssl flag.
-<screen>
-<prompt>$ </prompt><userinput>./configure --with-ssl=/usr/local</userinput>
-<prompt>$ </prompt><userinput>make</userinput> 
-<prompt>$ </prompt><userinput>su -</userinput> 
-<prompt>Password: </prompt>
-<prompt># </prompt><userinput>make install</userinput> 
-</screen>
 			</para>
 			<para>
 <example>
