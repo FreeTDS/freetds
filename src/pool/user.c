@@ -22,7 +22,7 @@
 
 extern int waiters;
 
-int pool_user_init(TDS_POOL *pool)
+void pool_user_init(TDS_POOL *pool)
 {
 	/* allocate room for pool users */
 
@@ -40,7 +40,7 @@ TDS_POOL_USER *pool_user_create(TDS_POOL *pool, int s, struct sockaddr_in *sin)
 {
 TDS_POOL_USER *puser;
 int     fd;
-int     len, i;
+int     len;
 
 	/* FIX ME -- the accepted connections just grow until we run out */
 	puser = (TDS_POOL_USER *) &pool->users[pool->max_users];
@@ -124,7 +124,6 @@ int pool_user_login(TDS_POOL *pool, TDS_POOL_USER *puser)
 {
 TDSSOCKET *tds;
 TDSLOGIN login;
-TDSRESULTINFO *resinfo;
 /* FIX ME */
 char msg[256];
 
@@ -166,8 +165,6 @@ char msg[256];
 */
 void pool_user_read(TDS_POOL *pool, TDS_POOL_USER *puser)  
 {
-unsigned char buf[BUFSIZ];
-int len,i;
 TDSSOCKET *tds;
 
 	tds = puser->tds;

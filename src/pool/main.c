@@ -26,6 +26,7 @@
 #include <config.h>
 #include "pool.h"
 #include <signal.h>
+#include "tdsutil.h"
 
 /* this will go away...starting with just 1 global pool */
 TDS_POOL *g_pool = NULL;
@@ -46,10 +47,7 @@ void term_handler(int sig)
 */
 TDS_POOL *pool_init(char *name)
 {
-int failed = 0;
 TDS_POOL *pool;
-TDS_POOL_MEMBER *pmbr;
-int i;
 
 	/* initialize the pool */
 
@@ -102,13 +100,13 @@ int i, free_mbrs;
 ** Accept new connections from clients, and handle all input from clients and
 ** pool members.
 */
-int pool_main_loop(TDS_POOL *pool)
+void
+pool_main_loop(TDS_POOL *pool)
 {
 TDS_POOL_USER *puser;
 TDS_POOL_MEMBER *pmbr;
 struct sockaddr_in sin;
-int     s, maxfd, fd;
-int     len, i;
+int     s, maxfd, i;
 int	retval;
 fd_set rfds;
 
@@ -183,13 +181,14 @@ fd_set rfds;
 	}
 	for (i=0;i<pool->num_members;i++) {
 		pmbr = (TDS_POOL_MEMBER *) &pool->members[i];
-		if (!IS_TDSDEAD(pmbr->tds) {
+		if (!IS_TDSDEAD(pmbr->tds)) {
 			fprintf(stderr,"Closing member %d\n",i);	
 			tds_close_socket(pmbr->tds);
 		}
 	}
 }
 
+int
 main(int argc, char **argv)
 {
 TDS_POOL *pool;
@@ -203,6 +202,8 @@ TDS_POOL *pool;
 	pool = pool_init(argv[1]);
 	pool_main_loop(pool);
 	fprintf(stdout,"tdspool Shutdown\n");
+	exit(EXIT_SUCCESS);
+	return 0;
 }
 
 

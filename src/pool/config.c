@@ -19,8 +19,9 @@
 
 #include "pool.h"
 #include <tds_configs.h>
+#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.2 2002-01-23 03:54:35 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.3 2002-09-20 20:50:58 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -66,6 +67,8 @@ int i, found = 0;
 
 	return found;
 }
+
+#if 0
 static int pool_config_boolean(char *value) 
 {
 	if (!strcmp(value, "yes") ||
@@ -77,6 +80,7 @@ static int pool_config_boolean(char *value)
 		return 0;
 	}
 }
+#endif
 
 static int pool_read_conf_section(FILE *in, char *section, TDS_POOL *pool)
 {
@@ -84,7 +88,6 @@ char line[256], option[256], value[256], *s;
 int i;
 char p;
 int insection = 0;
-char tmp[256];
 int found = 0;
 
 	while (fgets(line, 256, in)) {

@@ -20,8 +20,10 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char  rcsid_pool [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.3 2002-09-05 12:22:08 brianb Exp $";
+static char rcsid_pool_h [ ] =
+         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.4 2002-09-20 20:50:58 castellano Exp $";
+static void *no_unused_var_warn_pool_h[] = {rcsid_pool_h,
+					    no_unused_var_warn_pool_h};
 
 /* includes */
 #include <stdio.h>
@@ -87,32 +89,37 @@ typedef struct tds_pool {
 
 /* prototypes */
 /* main.c */
-extern TDS_POOL *pool_init(char *name);
-extern int pool_main_loop(TDS_POOL *pool);
+TDS_POOL *pool_init(char *name);
+void pool_main_loop(TDS_POOL *pool);
 
 /* member.c */
-extern int pool_process_members(TDS_POOL *pool, fd_set *fds);
-extern TDSSOCKET *pool_mbr_login(TDS_POOL *pool);
-extern TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL *pool);
+int pool_process_members(TDS_POOL *pool, fd_set *fds);
+TDSSOCKET *pool_mbr_login(TDS_POOL *pool);
+TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL *pool);
+void pool_mbr_init(TDS_POOL *pool);
 
 /* user.c */
-extern int pool_process_users(TDS_POOL *pool, fd_set *fds);
-extern int pool_user_init(TDS_POOL *pool);
-extern TDS_POOL_USER *pool_user_create(TDS_POOL *pool, int s, struct sockaddr_in *sin);
-extern void pool_free_user(TDS_POOL_USER *puser);
-extern void pool_user_read(TDS_POOL *pool, TDS_POOL_USER *puser);
-extern int pool_user_login(TDS_POOL *pool, TDS_POOL_USER *puser);
-extern void pool_user_query(TDS_POOL *pool, TDS_POOL_USER *puser);
+int pool_process_users(TDS_POOL *pool, fd_set *fds);
+void pool_user_init(TDS_POOL *pool);
+TDS_POOL_USER *pool_user_create(TDS_POOL *pool, int s, struct sockaddr_in *sin);
+void pool_free_user(TDS_POOL_USER *puser);
+void pool_user_read(TDS_POOL *pool, TDS_POOL_USER *puser);
+int pool_user_login(TDS_POOL *pool, TDS_POOL_USER *puser);
+void pool_user_query(TDS_POOL *pool, TDS_POOL_USER *puser);
 
 /* util.c */
-extern void dump_buf(const void *buf,int length);
-extern void dump_login(TDSLOGIN *login);
-extern void die_if(int expr, const char *msg);
+void dump_buf(const void *buf,int length);
+void dump_login(TDSLOGIN *login);
+void die_if(int expr, const char *msg);
 
 /* stream.c */
-extern int pool_find_end_token(TDS_POOL_MEMBER *pmbr,
+int pool_find_end_token(TDS_POOL_MEMBER *pmbr,
 	const unsigned char *buf,
 	int len);
+
+/* config.c */
+int pool_read_conf_file(char *poolname, TDS_POOL *pool);
+
 
 #endif
 

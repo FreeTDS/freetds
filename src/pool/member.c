@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "pool.h"
+#include "tdsutil.h"
 
 int pool_packet_read(TDS_POOL_MEMBER *pmbr);
 
@@ -86,7 +87,9 @@ void pool_free_member(TDS_POOL_MEMBER *pmbr)
 	if (pmbr->current_user) pool_free_user(pmbr->current_user);
 	pmbr->state = TDS_COMPLETED;
 }
-int pool_mbr_init(TDS_POOL *pool)
+
+void
+pool_mbr_init(TDS_POOL *pool)
 {
 TDS_POOL_MEMBER *pmbr;
 int i;
@@ -124,7 +127,7 @@ int pool_process_members(TDS_POOL *pool, fd_set *fds)
 TDS_POOL_MEMBER *pmbr;
 TDS_POOL_USER *puser;
 TDSSOCKET *tds;
-int i, len, age;
+int i, age;
 int cnt = 0;
 unsigned char *buf;
 time_t time_now;

@@ -1,3 +1,9 @@
+Fri Sep 20 16:49:25 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in src/pool/config.c src/pool/main.c
+	  src/pool/member.c src/pool/pool.h src/pool/stream.c
+	  src/pool/user.c:
+	- Clean up some warnings and mistakes in the pool server.
+
 Fri Sep 20 16:14:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/convert.c:
 	- Always return TDS_CONVERT_NOAVAIL for unimplemented conversions

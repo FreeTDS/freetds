@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.49 2002-09-19 15:53:27 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.50 2002-09-20 20:50:58 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -719,6 +719,7 @@ int tds_send_cancel(TDSSOCKET *tds);
 /* token.c */
 int tds_process_cancel(TDSSOCKET *tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
+int tds_get_token_size(int marker);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);

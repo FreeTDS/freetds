@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include "pool.h"
+#include "tds.h"
 
 struct tmp_col_struct {
         char *column_name;
@@ -87,7 +88,6 @@ static int read_variable_token(TDS_POOL_MEMBER *pmbr,
 	int *bytes_read) 
 {
 TDS_SMALLINT sz;
-int marker;
 int pos = 0;
 
 	if (bytes_left(pmbr, buf, pos, maxlen, 3)) {
@@ -283,7 +283,7 @@ static int pool_is_end_token(TDS_POOL_MEMBER *pmbr,
 {
 TDS_SMALLINT sz;
 int marker;
-int pos = 0, ret;
+int ret;
 
 	if (maxlen == 0) return 0;
 
