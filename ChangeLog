@@ -1,3 +1,6 @@
+Tue May 11 21:55:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c: remove a warning
+
 Tue May 11 16:50:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/Makefile.am: fix compile under Sun OS
 
