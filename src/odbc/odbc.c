@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.185 2003-07-11 15:08:11 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.186 2003-07-12 15:32:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -92,9 +92,9 @@ static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int npara
 
 
 /* utils to check handles */
-#define CHECK_HDBC  if ( SQL_NULL_HDBC  == hdbc  ) return SQL_INVALID_HANDLE;
-#define CHECK_HSTMT if ( SQL_NULL_HSTMT == hstmt ) return SQL_INVALID_HANDLE;
-#define CHECK_HENV  if ( SQL_NULL_HENV  == henv  ) return SQL_INVALID_HANDLE;
+#define CHECK_HDBC  if ( SQL_NULL_HDBC  == hdbc || !IS_HDBC(hdbc) ) return SQL_INVALID_HANDLE;
+#define CHECK_HSTMT if ( SQL_NULL_HSTMT == hstmt || !IS_HSTMT(hstmt) ) return SQL_INVALID_HANDLE;
+#define CHECK_HENV  if ( SQL_NULL_HENV  == henv || !IS_HENV(henv) ) return SQL_INVALID_HANDLE;
 
 #define INIT_HSTMT \
 	TDS_STMT *stmt = (TDS_STMT*)hstmt; \
@@ -657,6 +657,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	/* initialize DBC structure */
 	memset(dbc, '\0', sizeof(TDS_DBC));
+	dbc->htype = SQL_HANDLE_DBC;
 	tds_dstr_init(&dbc->current_database);
 	dbc->henv = env;
 
@@ -686,6 +687,8 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 		return SQL_ERROR;
 
 	memset(env, '\0', sizeof(TDS_ENV));
+
+	env->htype = SQL_HANDLE_ENV;
 	env->odbc_ver = 2;
 	ctx = tds_alloc_context();
 	if (!ctx) {
@@ -726,6 +729,8 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 	memset(stmt, '\0', sizeof(TDS_STMT));
+
+	stmt->htype = SQL_HANDLE_STMT;
 	stmt->hdbc = dbc;
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -1618,6 +1623,9 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		if (stmt->hdbc->current_statement == stmt)
 			stmt->hdbc->current_statement = NULL;
 		free(stmt);
+		
+		/* NOTE we freed stmt, do not use ODBC_RETURN */
+		return SQL_SUCCESS;
 	}
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }

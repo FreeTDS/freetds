@@ -1,3 +1,8 @@
+Sat Jul 12 17:31:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merging Steve Murphree patch (#757369)
+	- fix memory corruption after merge
+
 Fri Jul 11 17:07:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- start merging Steve Murphree patch (#757369)

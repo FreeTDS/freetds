@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.30 2003-07-11 15:08:11 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.31 2003-07-12 15:32:13 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -104,8 +104,14 @@ void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, con
 void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate,
 			 int msgnum, unsigned short linenum, int msgstate);
 
+struct _hchk
+{
+	SQLSMALLINT htype;      /* do not reorder this field */
+};
+
 struct _henv
 {
+	SQLSMALLINT htype;      /* do not reorder this field */
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
 	unsigned char odbc_ver;
@@ -115,6 +121,7 @@ struct _henv
 struct _hstmt;
 struct _hdbc
 {
+	SQLSMALLINT htype;      /* do not reorder this field */
 	struct _henv *henv;
 	TDSSOCKET *tds_socket;
 	/** statement executing */
@@ -130,6 +137,7 @@ struct _hdbc
 
 struct _hstmt
 {
+	SQLSMALLINT htype;      /* do not reorder this field */
 	struct _hdbc *hdbc;
 	char *query;
 	/* begin prepared query stuff */
@@ -181,6 +189,12 @@ struct _sql_bind_info
 typedef struct _henv TDS_ENV;
 typedef struct _hdbc TDS_DBC;
 typedef struct _hstmt TDS_STMT;
+typedef struct _hchk TDS_CHK;
+
+#define IS_HENV(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_ENV)
+#define IS_HDBC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DBC)
+#define IS_HSTMT(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_STMT)
+#define IS_HDESC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DESC)
 
 #ifdef __cplusplus
 #if 0
