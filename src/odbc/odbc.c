@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.287 2003-12-30 12:44:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.288 2004-01-08 10:27:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2274,9 +2274,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = NULL;
-		if ((drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
-									    col->column_size,
-									    stmt->dbc->env->attr.odbc_version)) == NULL) {
+		if ((drec->sql_desc_type_name = odbc_server_to_sql_typename(col, stmt->dbc->env->attr.odbc_version)) == NULL) {
 			return SQL_ERROR;
 		}
 		/* TODO perhaps TINYINY and BIT.. */

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.56 2004-01-07 10:38:45 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.57 2004-01-08 10:27:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -393,13 +393,12 @@ odbc_c_to_server_type(int c_type)
 	return TDS_FAIL;
 }
 
-/* TODO return just constant buffer ?? */
+/* TODO return just constant buffer */
 char *
-odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
+odbc_server_to_sql_typename(TDSCOLINFO * col, int odbc_ver)
 {
 	/* FIXME finish */
-	/* TODO use a function to clash nullable type ?? */
-	switch (col_type) {
+	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
 		return (strdup("char"));
@@ -422,42 +421,21 @@ odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
 		return (strdup("smallint"));
 	case SYBINT1:
 		return (strdup("tinyint"));
-	case SYBINTN:
-		switch (col_size) {
-		case 1:
-			return (strdup("tinyint"));
-		case 2:
-			return (strdup("smallint"));
-		case 4:
-			return (strdup("int"));
-#if (ODBCVER >= 0x0300)
-		case 8:
-			return (strdup("bigint"));
-#endif
-		}
-		break;
 	case SYBREAL:
 		return (strdup("real"));
 	case SYBFLT8:
 		return (strdup("float"));
-	case SYBFLTN:
-		switch (col_size) {
-		case 4:
-			return (strdup("real"));
-		case 8:
-			return (strdup("float"));
-		}
-		break;
 	case SYBMONEY:
 	case SYBMONEY4:
-	case SYBMONEYN:
 		return (strdup("money"));
 		break;
 	case SYBDATETIME:
 	case SYBDATETIME4:
-	case SYBDATETIMN:
 		return (strdup("datetime"));
 	case SYBBINARY:
+		/* handle TIMESTAMP using usertype */
+		if (col->column_usertype == 80)
+			return strdup("timestamp");
 		return (strdup("binary"));
 	case SYBIMAGE:
 		return (strdup("image"));
@@ -467,6 +445,11 @@ odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
 		return (strdup("numeric"));
 	case SYBDECIMAL:
 		return (strdup("decimal"));
+	case SYBINTN:
+	case SYBDATETIMN:
+	case SYBFLTN:
+	case SYBMONEYN:
+		assert(0);
 	case SYBNTEXT:
 	case SYBVOID:
 	case SYBNVARCHAR:

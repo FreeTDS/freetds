@@ -1,3 +1,7 @@
+Thu Jan 08 11:25:40 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- fix SQL_DESC_TYPE_NAME results for timestamp type
+
 Wed Jan 07 22:51:08 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/Makefile.am:
 	- disable flags test
