@@ -1,3 +1,10 @@
+Sun Nov 10 18:33:11 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/tds/config.c src/tds/threadsafe.c:
+	* src/tds/write.c:
+	- small fix to a fast change
+	- use tds_get_homedir in odbc code
+	- remove a warning
+
 Sun Nov 10 18:21:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/tds.h src/tds/config.c src/tds/threadsafe.c:
 	- add tds_get_homedir function for reading home directory location

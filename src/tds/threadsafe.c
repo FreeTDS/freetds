@@ -55,7 +55,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.18 2002-11-10 17:22:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.19 2002-11-10 17:34:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -198,6 +198,10 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 #endif
 }
 
+/**
+ * Get user home directory
+ * @return home directory or NULL if error. Should be freed with free
+ */
 char *
 tds_get_homedir()
 {

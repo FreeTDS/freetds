@@ -59,7 +59,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: write.c,v 1.25 2002-11-10 12:40:49 freddy77 Exp $";
+	"$Id: write.c,v 1.26 2002-11-10 17:34:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -104,6 +104,7 @@ unsigned int bytes_left;
 	if (len < 0) len = strlen(s);
 	if (IS_TDS7_PLUS(tds)) {
 		p = s;
+		res = 0;
 		while(len > 0) {
 			bytes_left = len > (sizeof(temp)/2) ? (sizeof(temp)/2) : len;
 			tds7_ascii2unicode(tds, p, temp, bytes_left*2);

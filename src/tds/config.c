@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.58 2002-11-10 17:22:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.59 2002-11-10 17:34:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -211,7 +211,7 @@ char *home, *path;
 	if (!home)
 		return NULL;
 	if (asprintf(&path, "%s/%s", home, file) < 0)
-		path = NULL
+		path = NULL;
 	free(home);
 	return path;
 }

@@ -33,7 +33,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.21 2002-11-08 15:57:42 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.22 2002-11-10 17:34:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -239,23 +239,25 @@ static FILE *
 tdoGetIniFileName()
 {
 FILE *ret = NULL;
-char *pszEnvVar;
+char *p;
 
 	/*
 	 * First, try the ODBCINI environment variable
 	 */
-	if ((pszEnvVar = getenv("ODBCINI")) != NULL)
-		ret = fopen(pszEnvVar, "r");
+	if ((p = getenv("ODBCINI")) != NULL)
+		ret = fopen(p, "r");
 
 	/*
 	 * Second, try the HOME environment variable
 	 */
-	if (!ret && (pszEnvVar = getenv("HOME")) != NULL) {
+	if (!ret && (p = tds_get_homedir()) != NULL) {
 char pszFileName[FILENAME_MAX + 1];
 
-		sprintf(pszFileName, "%s/.odbc.ini", pszEnvVar);
+		/* FIXME fix possible buffer overflow */
+		sprintf(pszFileName, "%s/.odbc.ini", p);
 
 		ret = fopen(pszFileName, "r");
+		free(p);
 	}
 
 	/*
