@@ -1,3 +1,7 @@
+Fri Nov  5 14:10:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: 
+	- fix some configuration string and cleanup
+
 Fri Nov  5 09:16:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: enable some more warnings for gcc compiler
 

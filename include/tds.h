@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.38 2002-11-05 08:06:57 freddy77 Exp $";
+	"$Id: tds.h,v 1.39 2002-11-05 13:11:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -349,11 +349,11 @@ sheesh! </rant>
 #define TDS_STR_VERSION  "tds version"
 #define TDS_STR_BLKSZ    "initial block size"
 #define TDS_STR_SWAPDT   "swap broken dates"
-#define TDS_STR_SWAPMNY  "tds version"
+#define TDS_STR_SWAPMNY  "swap broken money"
 #define TDS_STR_TRYSVR   "try server login"
 #define TDS_STR_TRYDOM   "try domain login"
 #define TDS_STR_DOMAIN   "nt domain"
-#define TDS_STR_XDOMAUTH "cross domain auth"
+#define TDS_STR_XDOMAUTH "cross domain login"
 #define TDS_STR_DUMPFILE "dump file"
 #define TDS_STR_DEBUGLVL "debug level"
 #define TDS_STR_TIMEOUT  "timeout"
@@ -375,7 +375,6 @@ typedef union { void *p; int i; } tds_align_struct;
 #define TDS_ALIGN_SIZE sizeof(tds_align_struct)
 
 #define TDS_MAX_LOGIN_STR_SZ 30
-#define TDS_MAX_LIBRARY_STR_SZ 11
 typedef struct tds_login {
 	char *server_name;
 	int port;
