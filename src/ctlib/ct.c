@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.8 2001-11-08 03:34:39 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.9 2001-12-03 00:06:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -349,6 +349,12 @@ CS_RETCODE ct_send_dyn(CS_COMMAND *cmd)
 	if (cmd->dynamic_cmd==CS_PREPARE) {
 		cmd->dynamic_cmd=0;
 		if (tds_submit_prepare(cmd->con->tds_socket, cmd->query, cmd->dyn_id)==TDS_FAIL)
+			return CS_FAIL;
+		else 
+			return CS_SUCCEED;
+	} else if (cmd->dynamic_cmd==CS_EXECUTE) {
+		cmd->dynamic_cmd=0;
+		if (tds_submit_execute(cmd->con->tds_socket, cmd->dyn_id)==TDS_FAIL)
 			return CS_FAIL;
 		else 
 			return CS_SUCCEED;
@@ -1256,6 +1262,9 @@ CS_RETCODE ct_dynamic(CS_COMMAND *cmd, CS_INT type, CS_CHAR *id, CS_INT idlen, C
 {
 static int stmt_no=1;
 int query_len, id_len;
+TDSDYNAMIC *dyn;
+TDSSOCKET *tds;
+int elem;
 
 	cmd->dynamic_cmd=type;
 	switch(type) {
@@ -1288,6 +1297,21 @@ int query_len, id_len;
 		case CS_DESCRIBE_INPUT:
 			break;
 		case CS_EXECUTE:
+			/* store away the id */
+		     if (idlen==CS_NULLTERM) {
+				id_len = strlen(id);
+        		} else {
+				id_len = idlen;
+			}
+			if (cmd->dyn_id) free(cmd->dyn_id);
+			cmd->dyn_id = (char *) malloc(id_len + 1);
+			strncpy(cmd->dyn_id,(char *)id,id_len);
+			cmd->dyn_id[id_len]='\0';
+
+			/* free any input parameters */
+			tds = cmd->con->tds_socket;
+			elem = tds_lookup_dynamic(tds, cmd->dyn_id);
+			dyn = tds->dyns[elem];
 			break;
 	}
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_dynamic()\n");
@@ -1295,7 +1319,28 @@ int query_len, id_len;
 }
 CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT datalen, CS_SMALLINT indicator)
 {
+TDSSOCKET *tds;
+TDSDYNAMIC *dyn;
+TDSINPUTPARAM *param;
+int elem;
+
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
+
+	tds = cmd->con->tds_socket;
+
+	elem = tds_lookup_dynamic(tds, cmd->dyn_id);
+	dyn = tds->dyns[elem];
+	param = tds_add_input_param(dyn);
+	param->column_type = _ct_get_server_type(datafmt->datatype);
+	param->varaddr = data;
+	if (datalen==CS_NULLTERM) {
+		param->column_bindlen = 0;
+	} else {
+		param->column_bindlen = datalen;
+	}
+	param->is_null = indicator;
+
+	return CS_SUCCEED;
 }
 CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen)
 {

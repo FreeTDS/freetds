@@ -1,5 +1,14 @@
 Sun Dec  2 11:10:24 EST 2001	Brian Bruns <camber@ais.org>
 	* src/odbc/odbc.c: Implemented SQLGetFunctions
+	* include/tds.h.in: Added TDSINPUTPARAM structure, added num_params and 
+	params array to TDSDYNAMIC
+	* src/tds/mem.c: Added tds_add_input_param() and tds_free_input_params() 
+	functions.  Added call to tds_free_input_params to tds_free_socket()
+	* src/tds/query.c: Added tds_submit_execute() for dynamic placeholder 
+	suport.
+	* src/tds/convert.c: Added tds_get_null_type to convert fixed datatypes to
+	their nullable type.
+	* src/ctlib/ct.c: Added CS_EXECUTE support to ct_send and ct_param
 
 Fri Nov 30 18:41:10 EST 2001	Brian Bruns <camber@ais.org>
 

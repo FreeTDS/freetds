@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.4 2001-11-07 20:46:19 mlilback Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.5 2001-12-03 00:06:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -864,3 +864,29 @@ int i=0;
 	return i;
 }
  
+TDS_INT tds_get_null_type(int srctype)
+{
+
+	switch(srctype) {
+		case SYBCHAR:
+			return SYBVARCHAR;
+			break;
+		case SYBINT1:
+		case SYBINT2:
+		case SYBINT4:
+			return SYBINTN;
+			break;
+		case SYBREAL:
+		case SYBFLT8:
+			return SYBFLTN;
+			break;
+		case SYBDATETIME:
+		case SYBDATETIME4:
+			return SYBDATETIMN;
+			break;
+		default:
+			return srctype;
+
+	}
+	return srctype;
+}

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.8 2001-11-25 19:11:39 brianb Exp $";
+	 "$Id: tds.h.in,v 1.9 2001-12-03 00:06:14 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -466,6 +466,13 @@ typedef struct tds_param_info {
 	unsigned char *current_row;
 } TDSPARAMINFO;
 
+typedef struct tds_input_param {
+	TDS_SMALLINT column_type;
+	TDS_CHAR *varaddr;
+	TDS_UINT column_bindlen;
+	TDS_CHAR is_null;
+} TDSINPUTPARAM;
+
 typedef struct tds_msg_info {
       TDS_SMALLINT priv_msg_type;
       TDS_SMALLINT line_number;
@@ -492,6 +499,8 @@ typedef struct tds_dynamic {
 	char id[30];
 	int dyn_state;
 	TDSRESULTINFO *res_info;
+	int num_params;
+	TDSINPUTPARAM **params;
 } TDSDYNAMIC;
 
 typedef struct tds_socket {
@@ -606,6 +615,7 @@ extern void tds_clr_null(unsigned char *current_row, int column);
 extern int tds_get_null(unsigned char *current_row, int column);
 extern int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
 extern char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
+int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);

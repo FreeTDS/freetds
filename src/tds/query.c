@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.4 2001-12-03 00:06:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -137,7 +137,79 @@ int id_len, query_len;
 
 	return TDS_SUCCEED;
 }
+/* 
+** tds_submit_execute() sends a previously prepared dynamic statement to the 
+** server.
+** Currently works only with TDS 5.0 
+*/
+int tds_submit_execute(TDSSOCKET *tds, char *id)
+{
+TDSDYNAMIC *dyn;
+TDSINPUTPARAM *param;
+int elem, id_len;
+int i;
 
+     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
+
+	id_len = strlen(id);
+
+     elem = tds_lookup_dynamic(tds, id);
+     dyn = tds->dyns[elem];
+
+/* dynamic id */
+	tds_put_byte(tds,0xe7); 
+	tds_put_smallint(tds,id_len + 5); 
+	tds_put_byte(tds,0x02); 
+	tds_put_byte(tds,0x01); 
+	tds_put_byte(tds,id_len); 
+	tds_put_n(tds, id, id_len);
+	tds_put_byte(tds,0x00); 
+	tds_put_byte(tds,0x00); 
+
+/* column descriptions */
+	tds_put_byte(tds,0xec); 
+	/* size */
+	tds_put_smallint(tds, 9 * dyn->num_params + 2); 
+	/* number of parameters */
+	tds_put_smallint(tds,dyn->num_params); 
+	/* column detail for each parameter */
+	for (i=0;i<dyn->num_params;i++) {
+		param = dyn->params[i];
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,tds_get_null_type(param->column_type)); 
+		if (param->column_bindlen) { 
+			tds_put_byte(tds,param->column_bindlen);
+		} else {
+			tds_put_byte(tds,0xff);
+		}
+		tds_put_byte(tds,0x00); 
+	}
+
+/* row data */
+	tds_put_byte(tds,0xd7); 
+	for (i=0;i<dyn->num_params;i++) {
+		param = dyn->params[i];
+		if (param->column_bindlen) {
+			tds_put_byte(tds,param->column_bindlen); 
+			tds_put_n(tds, param->varaddr,param->column_bindlen); 
+		} else {
+			tds_put_byte(tds,strlen(param->varaddr)); 
+			tds_put_n(tds, param->varaddr,strlen(param->varaddr)); 
+		}
+	}
+
+
+/* send it */
+	tds->out_flag=0x0F;
+	tds_flush_packet(tds);
+
+	return TDS_SUCCEED;
+}
 /*
 ** tds_send_cancel() sends an empty packet (8 byte header only)
 ** tds_process_cancel should be called directly after this.

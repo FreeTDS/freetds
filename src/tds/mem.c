@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.4 2001-11-25 19:11:39 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.5 2001-12-03 00:06:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -63,12 +63,49 @@ int i;
 	return tds->dyns[tds->num_dyns-1];
 }
 
-void tds_free_dynamic(TDSSOCKET *tds)
+TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
+{
+TDSINPUTPARAM *param;
+
+	if (!dyn->num_params) {
+		param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
+		memset(param,'\0',sizeof(TDSINPUTPARAM));
+		dyn->num_params=1;
+		dyn->params = (TDSINPUTPARAM **) 
+			malloc(sizeof(TDSINPUTPARAM *));
+		dyn->params[0] = param;
+	} else {
+		param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
+		memset(param,'\0',sizeof(TDSINPUTPARAM));
+		dyn->num_params++;
+		dyn->params = (TDSINPUTPARAM **) 
+			realloc(dyn->params, 
+			sizeof(TDSINPUTPARAM *) * dyn->num_params);
+		dyn->params[dyn->num_params-1] = param;
+	}
+	return param;
+}
+void tds_free_input_params(TDSDYNAMIC *dyn)
 {
 int i;
 
+	if (dyn->num_params) {
+		for (i=0;i<dyn->num_params;i++) {
+			free(dyn->params[i]);
+		}
+		free(dyn->params);
+		dyn->num_params = 0;
+	}
+}
+void tds_free_dynamic(TDSSOCKET *tds)
+{
+int i;
+TDSDYNAMIC *dyn;
+
 	for (i=0;i<tds->num_dyns;i++) {
-		free(tds->dyns[i]);
+		dyn = tds->dyns[i];
+		tds_free_input_params(dyn);
+		free(dyn);
 	}
 	free(tds->dyns);
 	tds->dyns = NULL;
@@ -76,7 +113,6 @@ int i;
 	
 	return;
 }
-
 /*
 ** tds_alloc_param_result() works a bit differently than the other alloc result
 ** functions.  Output parameters come in individually with no total number 
