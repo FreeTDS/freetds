@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.26 2002-09-16 19:48:04 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.27 2002-09-22 21:45:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -92,22 +92,28 @@ TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *local
 {
 TDSCONFIGINFO *config;
 char *s;
-char path[MAXPATH];
+char *path;
 pid_t pid;
+int opened = 0;
+
 	/* allocate a new structure with hard coded and build-time defaults */
 	config = tds_alloc_config(locale);
 
-        s=getenv("TDSDUMPCONFIG");
-        if (s)
-        {
-            if ( !*s)
-            {
-                pid = getpid();
-                sprintf(path,"/tmp/tdsconfig.log.%d",pid);
-                s = path;
-            }
-            tdsdump_open(s);
-        }
+	s = getenv("TDSDUMPCONFIG");
+	if (s) {
+		if (*s) {
+			opened = tdsdump_open(s);
+		} else {
+			pid = getpid();
+			asprintf(&path, "/tmp/tdsconfig.log.%d", pid);
+			if (path) {
+				if (*path) {
+					opened = tdsdump_open(path);
+				}
+				free(path);
+			}
+		}
+	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
 	if (! tds_read_conf_file(login->server_name, config)) {
@@ -130,7 +136,9 @@ pid_t pid;
 	/* And finally the login structure */
 	tds_config_login(config, login);
 
-        if ( s && *s) tdsdump_close();
+        if (opened) {
+		tdsdump_close();
+	}
 	return config;
 }        
 

@@ -1,3 +1,10 @@
+Sun Sep 22 17:41:32 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/tds/asprintf.c:
+	- Pull in asprintf() only if needed (don't overload HAVE_VASPRINTF)
+	* src/tds/config.c:
+	- Use asprintf() to avoid a potential buffer overrun.
+	- Clean up tdsdump_open/tds_dump_close during configuration
+
 Sun Sep 22 09:55:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: fixed script for guide build
 	* src/odbc/odbc.c:
