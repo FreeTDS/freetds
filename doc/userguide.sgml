@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-04 07:20:03 $</date>
-		<releaseinfo>$Revision: 1.26 $</releaseinfo>
+		<date>$Date: 2002-09-05 04:58:41 $</date>
+		<releaseinfo>$Revision: 1.27 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -2307,12 +2307,12 @@ The upshot is, there is no uniform standard, no agreement on the meaning of a by
 For more information, see <ulink url="http://czyborra.com/charsets/iso8859.html">ISO 8859 Alphabet Soup</ulink>.  Roman Czyborra's site is very informative; take your time there if you don't want your head to spin.  
 			</para>
 			<para>
-Database servers need to know what encoding standard to employ, too.  It's not obvious at first, but notions like <quote>uppercase</quote> and <quote>lowercase</quote>, trailing blanks, and colation rules all depend on what letter is meant by what number.  (Colation even depends on what culture is interpreting the letters.)  
+Database servers need to know what encoding standard to employ, too.  It's not obvious at first, but notions like <quote>uppercase</quote> and <quote>lowercase</quote>, trailing blanks, and collation rules all depend on what letter is meant by what number.  (Collation even depends on what culture is interpreting the letters.)  
 			</para>
 		</section>
 		<section id="Unicode"><title>Unicode: East meets West</title>
 			<para>
-<acronym>ASCII</> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nacent 32-bit forms, too, but they are neither complete nor in common use.  
+<acronym>ASCII</> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.  
 			</para>
 			<para>
 In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends the most prevelant <quote>8-bit <acronym>ASCII</></quote>,  <acronym>ISO-8859-1</>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO-8859-1</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.  

@@ -1,3 +1,7 @@
+Thu Sep  5 00:57:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/userguide.sgml:
+	- fix a few spelling errors
+
 Wed Sep  4 22:16:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/common.c:
 	* src/odbc/unittests/common.h src/odbc/unittests/t0001.c:
