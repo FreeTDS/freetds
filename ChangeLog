@@ -1,3 +1,6 @@
+Sat Aug  2 11:27:36 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* configure.in set version to 0.61.2 and release
+	
 Fri Aug 01 07:26:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: merge memory leak fix from 0.62
 
