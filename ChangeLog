@@ -1,4 +1,11 @@
-Wed Nov  5 12:19:23 EST 2003
+Thu Nov  6 12:19:15 EST 2003	JK Lowden <jklowden@schemamania.org>
+	- Applied Frediano's patches.
+	* src/odbc/connectparams.c fix FILENAME_MAX define under HP/UX
+	* src/odbc/odbc.c src/odbc/unittests/tables.c 
+	- fixed SQLTables
+	* src/tds/query.c added a note
+
+Wed Nov  5 12:19:23 EST 2003	JK Lowden <jklowden@schemamania.org>
 	- Applied Frediano's patch:
 	* src/odbc/connectparams.h src/odbc/connectparams.c
 	* src/odbc/convert_sql2string.c
