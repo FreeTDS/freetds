@@ -1,3 +1,7 @@
+Tue Dec 10 17:04:41 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c added dbsetmaxprocs
+	* doc/dblib_errors.txt new file
+
 Tue Dec 10 20:58:29 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c: fix connection timeout handling
 

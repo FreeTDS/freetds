@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.108 2002-12-09 22:27:25 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.109 2002-12-10 22:10:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -71,11 +71,13 @@ EHANDLEFUNC _dblib_err_handler = NULL;
 typedef struct dblib_context
 {
 	TDSCONTEXT *tds_ctx;
-	TDSSOCKET *connection_list[TDS_MAX_CONN];
+	TDSSOCKET **connection_list;
+	int connection_list_size;
+	int connection_list_size_represented;
 }
 DBLIBCONTEXT;
 
-static DBLIBCONTEXT *g_dblib_ctx = NULL;
+static DBLIBCONTEXT g_dblib_ctx;
 
 static int g_dblib_version = 
 
@@ -100,11 +102,12 @@ static int g_dblib_login_timeout = -1;  	/* not used unless positive */
 static int
 dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 {
-int i = 0;
+	int i = 0;
+	const int list_size = ctx->connection_list_size_represented;
 
-	while (i < TDS_MAX_CONN && ctx->connection_list[i])
+	while (i < list_size && ctx->connection_list[i])
 		i++;
-	if (i == TDS_MAX_CONN) {
+	if (i == list_size) {
 		fprintf(stderr, "Max connections reached, increase value of TDS_MAX_CONN\n");
 		return 1;
 	} else {
@@ -116,11 +119,12 @@ int i = 0;
 static void
 dblib_del_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 {
-int i = 0;
+	int i = 0;
+        const int list_size = ctx->connection_list_size;
 
-	while (i < TDS_MAX_CONN && ctx->connection_list[i] != tds)
+	while (i < list_size && ctx->connection_list[i] != tds)
 		i++;
-	if (i == TDS_MAX_CONN) {
+	if (i == list_size) {
 		/* connection wasn't on the free list...now what */
 	} else {
 		/* remove it */
@@ -451,25 +455,35 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 RETCODE
 dbinit(void)
 {
-	/* DBLIBCONTEXT stores a list of current connections so they may be closed
-	 * ** with dbexit() */
-	if ((g_dblib_ctx = (DBLIBCONTEXT *) malloc(sizeof(DBLIBCONTEXT))) == NULL) {
+	/* 
+	 * DBLIBCONTEXT stores a list of current connections so they may be closed
+	 * with dbexit() 
+	 */
+	memset(&g_dblib_ctx, '\0', sizeof(DBLIBCONTEXT));
+
+        g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET*));
+	if (g_dblib_ctx.connection_list == NULL) {
+		tdsdump_log(TDS_DBG_FUNC, "%L dbinit: out of memory\n");
 		return FAIL;
-	}
-	memset(g_dblib_ctx, '\0', sizeof(DBLIBCONTEXT));
-
-	g_dblib_ctx->tds_ctx = tds_alloc_context();
-	tds_ctx_set_parent(g_dblib_ctx->tds_ctx, g_dblib_ctx);
-
-	/* set the functions in the TDS layer to point to the correct info/err
-	 * * message handler functions */
-	g_dblib_ctx->tds_ctx->msg_handler = dblib_handle_info_message;
-	g_dblib_ctx->tds_ctx->err_handler = dblib_handle_err_message;
+        }
+	g_dblib_ctx.connection_list_size = TDS_MAX_CONN;
+	g_dblib_ctx.connection_list_size_represented = TDS_MAX_CONN;
 
 
-	if (g_dblib_ctx->tds_ctx->locale && !g_dblib_ctx->tds_ctx->locale->date_fmt) {
+	g_dblib_ctx.tds_ctx = tds_alloc_context();
+	tds_ctx_set_parent(g_dblib_ctx.tds_ctx, &g_dblib_ctx);
+
+	/* 
+	 * Set the functions in the TDS layer to point to the correct info/err
+	 * message handler functions 
+	 */
+	g_dblib_ctx.tds_ctx->msg_handler = dblib_handle_info_message;
+	g_dblib_ctx.tds_ctx->err_handler = dblib_handle_err_message;
+
+
+	if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		g_dblib_ctx->tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M:%S:%z%p");
+		g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M:%S:%z%p");
 	}
 
 	return SUCCEED;
@@ -770,14 +784,14 @@ TDSCONNECTINFO *connect_info;
 
 	tds_set_server(login->tds_login, server);
 
-	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx->tds_ctx, 512);
+	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
 	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
 	dbproc->tds_socket->env_chg_func = db_env_chg;
 	dbproc->envchange_rcv = 0;
 	dbproc->dbcurdb[0] = '\0';
 	dbproc->servcharset[0] = '\0';
 
-	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx->tds_ctx->locale);
+	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connect_info) return NULL;
 
         if (g_dblib_login_timeout >= 0) {
@@ -794,7 +808,7 @@ TDSCONNECTINFO *connect_info;
 
 	if (dbproc->tds_socket) {
 		/* tds_set_parent( dbproc->tds_socket, dbproc); */
-		dblib_add_connection(g_dblib_ctx, dbproc->tds_socket);
+		dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
 	} else {
 		fprintf(stderr, "DB-Library: Login incorrect.\n");
 		free(dbproc);	/* memory leak fix (mlilback, 11/17/01) */
@@ -955,7 +969,7 @@ int i;
 	dbstring_free(&(dbproc->dboptcmd));
 
 	dbfreebuf(dbproc);
-	dblib_del_connection(g_dblib_ctx, dbproc->tds_socket);
+	dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
 	free(dbproc);
 
 	return;
@@ -964,19 +978,21 @@ int i;
 void
 dbexit()
 {
-TDSSOCKET *tds;
-DBPROCESS *dbproc;
-int i;
+	TDSSOCKET *tds;
+	DBPROCESS *dbproc;
+	int i;
+	const int list_size = g_dblib_ctx.connection_list_size;
 
 	/* FIX ME -- this breaks if ctlib/dblib used in same process */
-	for (i = 0; i < TDS_MAX_CONN; i++) {
-		tds = g_dblib_ctx->connection_list[i];
+	for (i = 0; i < list_size; i++) {
+		tds = g_dblib_ctx.connection_list[i];
 		if (tds) {
 			dbproc = (DBPROCESS *) tds->parent;
 			dbclose(dbproc);
 		}
 	}
-	tds_free_context(g_dblib_ctx->tds_ctx);
+	free(g_dblib_ctx.connection_list);
+	tds_free_context(g_dblib_ctx.tds_ctx);
 }
 
 RETCODE
@@ -1400,7 +1416,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
 
-	len = tds_convert(g_dblib_ctx->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -2461,15 +2477,42 @@ TDSSOCKET *tds = dbproc->tds_socket;
 RETCODE
 dbsetmaxprocs(int maxprocs)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetmaxprocs()\n");
+	int i;
+	TDSSOCKET **old_list = g_dblib_ctx.connection_list;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNTESTED dbsetmaxprocs()\n");
+	/*
+ 	 * Don't reallocate less memory.  
+	 * If maxprocs is less than was initially allocated, just reduce the represented list size.  
+	 * If larger, reallocate and copy.
+	 * We probably should check for valid connections beyond the new max.
+	 */
+	if (maxprocs < g_dblib_ctx.connection_list_size) {
+		g_dblib_ctx.connection_list_size_represented = maxprocs;
+		return SUCCEED;
+	}
+
+	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(maxprocs, sizeof(TDSSOCKET*));
+
+	if (g_dblib_ctx.connection_list == NULL) {
+		g_dblib_ctx.connection_list = old_list;
+		return FAIL;
+	}
+	
+	for (i=0; i < g_dblib_ctx.connection_list_size; i++) {
+		g_dblib_ctx.connection_list[i] = old_list[i];
+	}
+
+	g_dblib_ctx.connection_list_size = maxprocs;
+	g_dblib_ctx.connection_list_size_represented = maxprocs;
+		
 	return SUCCEED;
 }
 
 int
 dbgetmaxprocs(void)
 {
-
-	return TDS_MAX_CONN;
+	return g_dblib_ctx.connection_list_size_represented;
 }
 
 RETCODE
@@ -4147,5 +4190,5 @@ _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberr
 
 	if (dbproc)
 		tds = dbproc->tds_socket;
-	return tds_client_msg(g_dblib_ctx->tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
+	return tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
 }
