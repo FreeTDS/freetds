@@ -1,3 +1,6 @@
+Mon Oct 14 21:08:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix error on PHP
+
 Mon Oct 14 11:35:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h src/dblib/bcp.c src/dblib/dblib.c src/tds/query.c:
 	- Implement a convenience function tds_submit_queryf() to

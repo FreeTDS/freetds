@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.65 2002-10-14 08:29:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.66 2002-10-14 19:09:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2166,10 +2166,12 @@ SQLRETURN SQL_API SQLGetInfo(
     case SQL_SCROLL_CONCURRENCY:
         *uiInfoValue  = SQL_SCCO_READ_ONLY;
         break;
-    default:
-        tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetInfo: "
-                    "info option %d not supported\n", fInfoType);
-        break;
+	/* TODO support for other options */
+	default:
+		/* error HYC00*/
+		tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetInfo: "
+			"info option %d not supported\n", fInfoType);
+		return SQL_ERROR;
     }
 
     if (p)
@@ -2186,6 +2188,8 @@ SQLRETURN SQL_API SQLGetInfo(
                 return( SQL_SUCCESS_WITH_INFO);
             }
         }
+		if (pcbInfoValue)
+			*pcbInfoValue = len;
     }
 
     return SQL_SUCCESS;
