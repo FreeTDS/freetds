@@ -452,23 +452,54 @@ The primary use of <envar>SYBASE</envar> is to locate the <filename>interfaces</
 			</sect3>
 			<sect3><title><parameter>TDSVER</parameter></title>
 			<para>
-The other environment variable, <parameter>TDSVER</parameter> governs the version of the TDS protocol used to connect to your server.  For a given server, FreeTDS ses three sources in the following order to determine which TDS protocol version to use. 
+The environment variable <parameter>TDSVER</parameter> governs the version of the TDS protocol used to connect to your server.  For a given server, FreeTDS inspects four sources in the following order to determine which TDS protocol version to use.
 			</para>
 			<orderedlist>
+				<listitem><para>The file specified in the <parameter>TDSVER</parameter> environment variable
+					</para></listitem>
+				<listitem><para>A freetds.conf file entry (see below)
+					</para></listitem>
 				<listitem><para>The Interfaces file entry (see below)
 					</para></listitem>
-				<listitem><para>The value of the TDSVER environment variable
-					</para></listitem>
 				<listitem><para>The --with-tdsver option passed to <command>configure</command>
-					</para></listitem>
-			</orderedlist>
-			</sect3>
-			</sect2>
-
+					</para></listitem
+          </orderedlist>
+        </sect3>
+        <sect3><title>The <parameter>TDSDUMP</parameter>, <parameter>TDSPORT</parameter>, <parameter>TDSQUERY</parameter> and <parameter>TDSHOST</parameter> environment variables</title>
+          <para>
+The environment variables <parameter>TDSDUMP</parameter>, <parameter>TDSPORT</parameter>, <parameter>TDSQUERY</parameter> and
+ <parameter>TDSHOST</parameter> may also be use to override or force certain key configuration parameters, namely the file to dump debugging information, the port to connect to, the server name, and the host to connect to.
+			</para>
+          <para>
+As with <parameter>TDSVER</parameter>, each of these environment variable override the corresponding line found in the freetds.conf or interfaces file.
+			</para>
+        </sect3>
+        <sect3><title>The <parameter>FREETDSCONF</parameter> environment variable></title>
+          <para>
+The  <parameter>FREETDSCONF</parameter> environment variable> may be
+used to specify a freetds.conf file, as discussed below.
+			</para>
+        </sect3>
+        <sect3><title>The <parameter>TDSDUMP</parameter> and <parameter>TDSDUMPCONFIG</parameter> environment variables</title>
+          <para>
+Unlike the above-discussed environment variables the <parameter>TDSDUMP</parameter> and <parameter>TDSDUMPCONFIG</parameter> variables are used to help diagnose problems in the operation of FreeTDS.
+            </para>
+            <para>
+Set <parameter>TDSDUMP</parameter> to a file to write debugging
+information to. Set <parameter>TDSDUMPCONFIG</parameter> to a file to
+write information to on how the configuration information is being
+obtained, e.g. from environment variables, a freetds.conf file, or interface file.
+          </para>
+          <para>
+For more information on logging, see the section below so titled.
+          </para>
+        </sect3>
+      </sect2>
 			<sect2>
-			<title>Setting the TDSVER and SYBASE environment variables</title>
+			<title>Setting environment variables</title>
 			<para>
-Of course, each shell is a little different.  In ksh or bash:
+Of course, each shell is a little different.  In ksh or bash, to set
+<parameter>SYBASE</parameter> and <parameter>TDSVER</parameter> do:
 <screen>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>  # (or your favorite directory)
 <prompt>$ </prompt><userinput>export TDSVER=42</userinput>
@@ -501,11 +532,19 @@ When you're done, you should see something very like this:
 			<para>
 There are two methods of configuring FreeTDS.  Under Sybase OpenClient there is a file called <filename>interfaces</filename> that defines servers available to the software.  FreeTDS inherited this file structure with minor alterations.  Starting with version 0.52, we felt that the file format could not support some of the more advanced options we needed.  Thus FreeTDS created a newer second format, loosely based on Samba's modified win ini format.  The <filename>interfaces</filename> remains supported for backward compatiblity and those running in a mixed FreeTDS/Sybase environment.
 			</para>
+           <para>
+The freetds.conf filename may be specified by the environment varible
+<parameter>FREETDSCONF</parameter>, or be found at
+<filename>~/.freetds.conf</filename>, or in sysconfdir
+(/usr/local/freetds/etc by default). The first properly
+configured (i.e., a readable file with a section for the server)
+freetds.conf file will be the only one used.
+           </para>
 			<para>
-The <filename>freetds.conf</filename> defines the dataservers available to freetds.  When FreeTDS receives a request to connect to a database server, it first looks up the servername in <filename>freetds.conf</filename>.  There, it finds a number of properties for the server such as the machine name (or address), port number to connect to, and the protocol version to use.
+The freetds.conf file defines the dataservers available to freetds.  When FreeTDS receives a request to connect to a database server, it first looks up the servername in freetds.conf.  There, it finds a number of properties for the server such as the machine name (or address), port number to connect to, and the protocol version to use.
 			</para>
 			<para>
-The conf file is composed of two types of sections a [global] section and one section for each dataserver listed.  Settings in the [global] section affect all dataservers and can be overridden in the dataserver section.  For example
+The freetds.conf file is composed of two types of sections a [global] section and one section for each dataserver listed.  Settings in the [global] section affect all dataservers and can be overridden in the dataserver section.  For example
 			</para>
 <example>
 <title>An <filename>freetds.conf</filename> file example</title>
@@ -1676,22 +1715,33 @@ Assuming both ping and telnet worked ok, the last possibility is that the SQL Se
 		<sect1>
 			<title>Logging</title>
 			<para>
-Log files can be turned on using the TDSDUMP environment variable.  For instance, setting the location of a dumpfile
+Log files can be turned on using the <parameter>TDSDUMP</parameter> environment variable.  For instance, setting the location of a dumpfile
 <screen>
 <prompt>$ </prompt><userinput>export TDSDUMP=/tmp/freetds.log</userinput>
 </screen>
 Will generate a log file named freetds.log in the /tmp directory.
 			</para>
 			<para>
-This works well when you run a FreeTDS program from the command line, but what if you were running Apache/PHP?  Apache has many children.  Setting the TDSDUMP variable with a blank will cause FreeTDS to open a log under every PID.
+This works well when you run a FreeTDS program from the command line,
+but what if you were running Apache/PHP?  Apache has many children.
+Setting the <parameter>TDSDUMP</parameter> variable to a null string will cause FreeTDS to open a log under every PID.
 <screen>
 <prompt>$ </prompt><userinput>export TDSDUMP=""</userinput>
 </screen>
-The log files will be named /tmp/freetds/freetds.log.9999 where 9999 is the pid number of the process generating the log.
+The log files will be named <filename>/tmp/freetds.log.9999</filename> where 9999 is the pid number of the process generating the log.
 			</para>
 			<para>
-A couple of important notes about using the logs with FreeTDS.  First, the logs tend to grow large, so trim or archive them often.  Secondly, FreeTDS will record certain network packets to the log, <emphasis>this includes login packets which can contain clear text or clear text equivelant passwords.</emphasis> So, if this is a concern (most likely is) make sure that the files are not world readable, and avoid posting them to mailing lists.
-			</para>
+A couple of important notes about using the logs with FreeTDS.  First,
+the logs tend to grow large, so trim or archive them often.  Secondly,
+FreeTDS will record certain network packets to the log, <emphasis>this
+includes login packets which can contain clear text or clear text
+equivelant passwords.</emphasis> So, if this is a concern (most likely
+is) make sure that the files are not world readable, and avoid posting
+them to mailing lists.
+		</para>
+      <para>
+To assist in determining how configuration files are processed, environment variable <parameter>TDSDUMPCONFIG</parameter> may be set to the name of a file to write configuration file processing information to. For obvious reasons, unlike <parameter>TDSDUMP</parameter>, this can only be set via the environment variable. If it is set to the null string the log file name will default to /tmp/tdsconfig.log.9999 where 9999 is the pid of the process generating the log.
+      </para>
 		</sect1>
 		<sect1 id="pagenodata">
 			<title>"Page contains no data"</title>
