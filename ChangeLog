@@ -1,3 +1,7 @@
+Mon Apr 12 16:34:46 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/Makefile.am src/apps/defncopy.c added defncopy
+	* src/apps/bsqldb.c left justify character data
+
 Mon Apr 12 19:21:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix return of SQLGetDescField
 	* src/odbc/odbc_checks.c: test too restrictive
