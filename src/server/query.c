@@ -20,11 +20,15 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.7 2002-10-14 03:16:49 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.8 2002-10-15 13:02:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -35,7 +39,7 @@ static unsigned char *query;
 static size_t query_buflen = 0;
 int len;
 
-	if (query_buflen = 0) {
+	if (query_buflen == 0) {
 		query_buflen = 1024;
 		query = malloc(query_buflen);
 	}

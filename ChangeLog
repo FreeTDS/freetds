@@ -1,3 +1,8 @@
+Tue Oct 15 09:00:25 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/server/query.c:
+	- Remove a bug I added recently.
+	- Fix prototype warnings.
+
 Tue Oct 15 08:40:06 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/atoll.c src/replacements/strtok_r.c
 	  src/replacements/vasprintf.c:
