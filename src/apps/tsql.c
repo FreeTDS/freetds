@@ -39,6 +39,10 @@
 #include <readline/history.h>
 #endif /* HAVE_READLINE */
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -62,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.54 2003-03-24 22:44:25 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.55 2003-03-27 07:33:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -78,6 +82,7 @@ void print_usage(char *progname);
 int get_opt_flags(char *s, int *opt_flags);
 void populate_login(TDSLOGIN * login, int argc, char **argv);
 int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg);
+void slurp_input_file(char * fname, char ** mybuf, int * bufsz, int * line);
 
 #ifndef HAVE_READLINE
 char *readline(char *prompt);
@@ -416,10 +421,36 @@ tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg)
 	return 0;
 }
 
+void
+slurp_input_file(char * fname, char ** mybuf, int * bufsz, int * line)
+{
+	FILE *fp = NULL;
+	register char *n;
+	char linebuf[1024];
+	char *s = NULL;
+
+	if ( (fp = fopen( fname, "r" )) == NULL ) {
+		fprintf(stderr, "Unable to open input file '%s': %s\n", fname, strerror(errno));
+		return;
+	}
+	while ( (s = fgets( linebuf, sizeof(linebuf), fp )) != NULL ) {
+		while (strlen(*mybuf) + strlen(s) + 2 > *bufsz) {
+			*bufsz *= 2;
+			*mybuf = (char *) realloc(*mybuf, *bufsz);
+		}
+		strcat(*mybuf, s);
+		n = strrchr(s, '\n');
+		if (n != NULL) *n = '\0';
+		add_history(s);
+		(*line)++;
+	}
+}
+
+
 int
 main(int argc, char **argv)
 {
-	char *s = NULL;
+	char *s = NULL, *s2 = NULL, *cmd = NULL;
 	char prompt[20];
 	int line = 0;
 	char *mybuf;
@@ -465,24 +496,32 @@ main(int argc, char **argv)
 		if (s)
 			free(s);
 		s = readline(prompt);
-		if (!s || !strcmp(s, "exit") || !strcmp(s, "quit") || !strcmp(s, "bye")) {
+		if (s != NULL) {
+			if (s2)
+				free(s2);
+			s2 = strdup(s);  /* copy that can be safely mangled by str functions */
+			cmd =  strtok(s2," \t");
+		}
+		if (!s || !strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
 			break;
 		}
-		if (!strcmp(s, "version")) {
+		if (!strcmp(cmd, "version")) {
 			tds_version(tds, mybuf);
 			printf("using TDS version %s\n", mybuf);
 			line = 0;
 			mybuf[0] = '\0';
 			continue;
 		}
-		if (!strncmp(s, "go", 2)) {
+		if (!strncmp(cmd, "go", 2)) {
 			line = 0;
 			get_opt_flags(s, &opt_flags);
 			do_query(tds, mybuf, opt_flags);
 			mybuf[0] = '\0';
-		} else if (!strcmp(s, "reset")) {
+		} else if (!strcmp(cmd, "reset")) {
 			line = 0;
 			mybuf[0] = '\0';
+		} else if (!strcmp(cmd, ":r")) {
+			slurp_input_file( strtok(NULL," \t"), &mybuf, &bufsz, &line );
 		} else {
 			while (strlen(mybuf) + strlen(s) + 2 > bufsz) {
 				bufsz *= 2;
