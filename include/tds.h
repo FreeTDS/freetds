@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.51 2002-11-17 08:38:30 freddy77 Exp $";
+	"$Id: tds.h,v 1.52 2002-11-18 20:09:20 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -117,6 +117,7 @@ typedef struct tdsunique
     TDS_UCHAR     Data4[8];
 } TDS_UNIQUE;
 
+/** information on data, used by tds_datecrack */ 
 typedef struct tdsdaterec
 {
 	TDS_INT   year;        /**< year */
