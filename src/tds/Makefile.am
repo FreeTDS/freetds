@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.46 2005-04-01 20:36:50 jklowden Exp $
+# $Id: Makefile.am,v 1.47 2005-04-01 20:43:25 jklowden Exp $
 
 SUBDIRS			=	unittests
 
@@ -50,9 +50,7 @@ charset:
 	perl encodings.pl > encodings.h
 
 ## We have to build num_limits.h because automake can't infer the
-## dependency (on numeric.pl).  By adding num_limits.h to libtds_la_SOURCES
-## and/or libtds_objects_la_SOURCES, we cause  "make dist" to include it in
-## the distribution tarball.
+## dependency (on numeric.pl).  
 
 EXTRA_DIST =    num_limits.h
 

@@ -1,3 +1,6 @@
+Fri Apr  1 15:42:22 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* configure.in src/tds/Makefile.am removed commented-out code.
+
 Fri Apr  1 15:33:17 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* autogen.sh use autoregen
 	* configure.in src/tds/Makefile.am 
