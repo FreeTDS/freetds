@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.34 2002-07-05 19:11:05 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.35 2002-07-06 18:34:51 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2133,10 +2133,13 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
         *p++ = '"';
         first = 0;
     }
-    *p++ = '\0';
+    *p = '\0';
     /* fprintf(stderr,"\nquery = %s\n",query); */
 
-    if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, query, strlen(query)))
+    if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, query, p-query)) {
+        free(query);
         return SQL_ERROR;
+    }
+    free(query);
     return _SQLExecute(hstmt);
 }

@@ -310,7 +310,7 @@ static int tdoFindSection( FILE *hFile, const char *pszSection )
         if ( strcmp( line, sectionPattern ) == 0 )
             return 1;
 
-        s = fgets( line, max_line, stream );
+        s = fgets( line, max_line, hFile );
     }
 
     return 0;
@@ -320,10 +320,10 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
 {
     char* s;
     int len;
-    char equals[] = "="; /* used for seperator for strtok */
+    char equals[] = "="; /* used for separator for strtok */
     char* token;
 
-    if ( pszName == NULL || pszValue == NULL)
+    if ( ppszKey == NULL || ppszValue == NULL)
     {
         fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Invalid argument.\n", __FILE__, __LINE__ );
         return 0;

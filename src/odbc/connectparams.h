@@ -26,7 +26,6 @@
     #endif
 #endif
 
-
 /*****************************
  * tdoParseConnectString
  *
