@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.224 2003-08-28 05:47:55 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.225 2003-08-28 15:13:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -83,8 +83,11 @@ static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
+
+#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
+#endif
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
@@ -962,7 +965,7 @@ _SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	INIT_HDBC;
 
-	for (i = 0; i < MAX_APP_DESC; ++i) {
+	for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 		if (dbc->uad[i] == NULL) {
 			dbc->uad[i] = desc_alloc(dbc, DESC_ARD, SQL_DESC_ALLOC_USER);
 			if (dbc->uad[i] == NULL) {
@@ -973,7 +976,7 @@ _SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		}
 	}
 
-	if (i == MAX_APP_DESC && desc == NULL) {
+	if (i == TDS_MAX_APP_DESC && desc == NULL) {
 		odbc_errs_add(&dbc->errs, "HY014", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1016,6 +1019,42 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+
+	/* set the default statement attributes */
+/*	stmt->attr.attr_app_param_desc = stmt->apd; */
+/*	stmt->attr.attr_app_row_desc = stmt->ard; */
+	stmt->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
+	stmt->attr.attr_concurrency = SQL_CONCUR_DEFAULT;
+	stmt->attr.attr_cursor_scrollable = SQL_NONSCROLLABLE;
+	stmt->attr.attr_cursor_sensitivity = SQL_UNSPECIFIED;
+	stmt->attr.attr_cursor_type = SQL_CURSOR_FORWARD_ONLY;
+	stmt->attr.attr_enable_auto_ipd = dbc->attr.attr_auto_ipd = SQL_FALSE;
+	stmt->attr.attr_fetch_bookmark_ptr = NULL;
+/*	stmt->attr.attr_imp_param_desc = stmt->ipd; */
+/*	stmt->attr.attr_imp_row_desc = stmt->ird; */
+	stmt->attr.attr_keyset_size = 0;
+	stmt->attr.attr_max_length = 0;
+	stmt->attr.attr_max_rows = 0;
+	stmt->attr.attr_metadata_id = dbc->attr.attr_metadata_id;
+	/* TODO check this flag in prepare_call */
+	stmt->attr.attr_noscan = SQL_NOSCAN_OFF;
+	assert(stmt->apd->header.sql_desc_bind_offset_ptr == NULL);
+	assert(stmt->apd->header.sql_desc_bind_type == SQL_PARAM_BIND_BY_COLUMN);
+	assert(stmt->apd->header.sql_desc_array_status_ptr == NULL);
+	assert(stmt->ipd->header.sql_desc_array_status_ptr == NULL);
+	assert(stmt->ipd->header.sql_desc_rows_processed_ptr == NULL);
+	assert(stmt->apd->header.sql_desc_array_size == 1);
+	stmt->attr.attr_query_timeout = 0;
+	stmt->attr.attr_retrieve_data = SQL_RD_ON;
+	assert(stmt->ard->header.sql_desc_array_size == 1);
+	assert(stmt->ard->header.sql_desc_bind_offset_ptr == NULL);
+	assert(stmt->ard->header.sql_desc_bind_type == SQL_BIND_BY_COLUMN);
+	stmt->attr.attr_row_number = 0;
+	assert(stmt->ard->header.sql_desc_array_status_ptr == NULL);
+	assert(stmt->ird->header.sql_desc_array_status_ptr == NULL);
+	assert(stmt->ird->header.sql_desc_rows_processed_ptr == NULL);
+	stmt->attr.attr_simulate_cursor = SQL_SC_NON_UNIQUE;
+	stmt->attr.attr_use_bookmarks = SQL_UB_OFF;
 
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -1230,7 +1269,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 
 /* TODO use these 3 functions when we'll populate IRD 
  * TODO update SQLGetFunctions */
-#if 0
+#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API
 _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
 		 SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc)
@@ -1420,8 +1459,9 @@ SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, (SQLINTEGER FAR *) pfDesc);
 }
 #endif
-#endif /* 0 */
+#endif /* ENABLE_DEVELOPING */
 
+#ifndef ENABLE_DEVELOPING
 SQLRETURN SQL_API
 SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
 		 SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
@@ -1526,6 +1566,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ODBC_RETURN(stmt, result);
 }
+#endif /* !ENABLE_DEVELOPING */
 
 SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)
@@ -2487,7 +2528,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	tds_dstr_free(&dbc->server);
 	tds_dstr_free(&dbc->dsn);
 
-	for (i = 0; i < MAX_APP_DESC; i++) {
+	for (i = 0; i < TDS_MAX_APP_DESC; i++) {
 		if (dbc->uad[i]) {
 			desc_free(dbc->uad[i]);
 		}
@@ -2626,7 +2667,7 @@ _SQLFreeDesc(SQLHDESC hdesc)
 	if (IS_HDBC(desc->parent)) {
 		dbc = (TDS_DBC *) desc->parent;
 
-		for (i = 0; i < MAX_APP_DESC; ++i) {
+		for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 			if (dbc->uad[i] == desc) {
 				desc_free(desc);
 				dbc->uad[i] = NULL;
@@ -2710,22 +2751,22 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 
 		/* This make MS ODBC not crash */
 	case SQL_ATTR_APP_ROW_DESC:
-		*(SQLPOINTER *) Value = &stmt->ard;
+		*(SQLHDESC *) Value = (SQLHDESC) stmt->ard;
 		*StringLength = sizeof(SQL_IS_POINTER);
 		break;
 
 	case SQL_ATTR_IMP_ROW_DESC:
-		*(SQLPOINTER *) Value = &stmt->ird;
+		*(SQLHDESC *) Value = (SQLHDESC) stmt->ird;
 		*StringLength = sizeof(SQL_IS_POINTER);
 		break;
 
 	case SQL_ATTR_APP_PARAM_DESC:
-		*(SQLPOINTER *) Value = &stmt->apd;
+		*(SQLHDESC *) Value = (SQLHDESC) stmt->apd;
 		*StringLength = sizeof(SQL_IS_POINTER);
 		break;
 
 	case SQL_ATTR_IMP_PARAM_DESC:
-		*(SQLPOINTER *) Value = &stmt->ipd;
+		*(SQLHDESC *) Value = (SQLHDESC) stmt->ipd;
 		*StringLength = sizeof(SQL_IS_POINTER);
 		break;
 
@@ -3431,7 +3472,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	char buf[32];
 	TDSSOCKET *tds;
 	int is_ms = -1;
-	unsigned int smajor;
+	unsigned int smajor = 6;
 	SQLUINTEGER mssql7plus_mask = 0;
 
 #define SIVAL *((SQLSMALLINT *) rgbInfoValue)

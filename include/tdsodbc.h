@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.46 2003-08-27 13:07:52 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.47 2003-08-28 15:13:52 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -189,7 +189,7 @@ struct _hcattr
 #endif
 };
 
-#define MAX_APP_DESC	100
+#define TDS_MAX_APP_DESC	100
 
 struct _hstmt;
 struct _hdbc
@@ -203,7 +203,58 @@ struct _hdbc
 	struct _hstmt *current_statement;
 	struct _sql_errors errs;
 	struct _hcattr attr;
-	TDS_DESC *uad[MAX_APP_DESC];
+	TDS_DESC *uad[TDS_MAX_APP_DESC];
+};
+
+struct _hsattr
+{
+	/* TODO remove IRD, ARD, IPD, APD from statement, do not duplicate */
+/*	TDS_DESC *attr_app_row_desc; */
+/*	TDS_DESC *attr_app_param_desc; */
+	SQLUINTEGER attr_async_enable;
+	SQLUINTEGER attr_concurrency;
+	SQLUINTEGER attr_cursor_scrollable;
+	SQLUINTEGER attr_cursor_sensitivity;
+	SQLUINTEGER attr_cursor_type;
+	SQLUINTEGER attr_enable_auto_ipd;
+	SQLPOINTER attr_fetch_bookmark_ptr;
+	SQLUINTEGER attr_keyset_size;
+	SQLUINTEGER attr_max_length;
+	SQLUINTEGER attr_max_rows;
+	SQLUINTEGER attr_metadata_id;
+	SQLUINTEGER attr_noscan;
+	/* APD - SQL_DESC_BIND_OFFSET_PTR */
+	/* SQLUINTEGER *attr_param_bind_offset_ptr; */
+	/* APD - SQL_DESC_BIND_TYPE */
+	/* SQLUINTEGER attr_param_bind_type; */
+	/* APD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* SQLUSMALLINT *attr_param_operation_ptr; */
+	/* IPD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* SQLUSMALLINT *attr_param_status_ptr; */
+	/* IPD - SQL_DESC_ROWS_PROCESSED_PTR */
+	/* SQLUSMALLINT *attr_params_processed_ptr; */
+	/* APD - SQL_DESC_ARRAY_SIZE */
+	/* SQLUINTEGER attr_paramset_size; */
+	SQLUINTEGER attr_query_timeout;
+	SQLUINTEGER attr_retrieve_data;
+	/* ARD - SQL_DESC_BIND_OFFSET_PTR */
+	/* SQLUINTEGER *attr_row_bind_offset_ptr; */
+	/* ARD - SQL_DESC_ARRAY_SIZE */
+	/* SQLUINTEGER attr_row_array_size; */
+	/* ARD - SQL_DESC_BIND_TYPE */
+	/* SQLUINTEGER attr_row_bind_type; */
+	SQLUINTEGER attr_row_number;
+	/* ARD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* SQLUINTEGER *attr_row_operation_ptr; */
+	/* IRD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* SQLUINTEGER *attr_row_status_ptr; */
+	/* IRD - SQL_DESC_ROWS_PROCESSED_PTR */
+	/* SQLUINTEGER *attr_rows_fetched_ptr; */
+	SQLUINTEGER attr_simulate_cursor;
+	SQLUINTEGER attr_use_bookmarks;
+	/* SQLGetStmtAttr only */
+/*	TDS_DESC *attr_imp_row_desc; */
+/*	TDS_DESC *attr_imp_param_desc; */
 };
 
 struct _hstmt
@@ -222,6 +273,7 @@ struct _hstmt
 	int prepared_query_is_func;
 	int prepared_query_is_rpc;
 	/* end prepared query stuff */
+	/* TODO remove (use IRD, ARD, etc) */
 	struct _sql_bind_info *bind_head;
 	struct _sql_param_info *param_head;
 	/** number of parameter in current query */
@@ -231,6 +283,7 @@ struct _hstmt
 	TDSDYNAMIC *dyn;
 	struct _sql_errors errs;
 	TDS_DESC *ard, *ird, *apd, *ipd;
+	struct _hsattr attr;
 };
 
 struct _sql_param_info

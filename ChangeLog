@@ -1,3 +1,9 @@
+Thu Aug 28 17:11:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - add statement attributes and initialize them
+	- rename a constant
+
 Thu Aug 28 07:45:55 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/odbc.c src/tds/mem.c:
 	* src/tds/token.c:
