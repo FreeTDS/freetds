@@ -1,3 +1,6 @@
+Wed Mar 12 17:36:51 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: applied some fix
+
 Wed Mar 12 01:05:34 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* TODO added freebcp switches
 	* src/apps/freebcp.c applied patch for interfaces file
