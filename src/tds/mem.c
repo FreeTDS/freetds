@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.112 2004-05-17 15:17:03 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.113 2004-07-26 14:39:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -336,7 +336,6 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
 
 	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
-	memset(info->columns, '\0', sizeof(TDSCOLUMN *) * num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
@@ -349,7 +348,6 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 
 	if (by_cols) {
 		TEST_CALLOC(info->bycolumns, TDS_TINYINT, by_cols);
-		memset(info->bycolumns, '\0', by_cols);
 		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}
@@ -1130,13 +1128,12 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 BCPCOLDATA *
 tds_alloc_bcp_column_data(int column_size)
 {
-BCPCOLDATA *coldata;
+	BCPCOLDATA *coldata;
 
 	TEST_MALLOC(coldata, BCPCOLDATA);
 	memset(coldata, '\0', sizeof(BCPCOLDATA));
 
 	TEST_CALLOC(coldata->data, unsigned char, column_size);
-	memset(coldata->data, '\0', column_size);
 
 	return coldata;
 Cleanup:
@@ -1150,9 +1147,8 @@ tds_free_bcp_column_data(BCPCOLDATA * coldata)
 	if (!coldata)
 		return;
 
-	if (coldata->data) {
+	if (coldata->data)
 		free(coldata->data);
-	}
 	free(coldata);
 }
 

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.183 2004-07-12 09:07:06 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.184 2004-07-26 14:39:40 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -857,37 +857,6 @@ typedef struct tds_column
 	TDS_CHAR *bcp_terminator;
 } TDSCOLUMN;
 
-typedef struct
-{
-	int tab_colnum;
-	char db_name[256];	/* column name */
-	TDS_SMALLINT db_minlen;
-	TDS_SMALLINT db_maxlen;
-	TDS_SMALLINT db_colcnt;	/* I don't know what this does */
-	TDS_TINYINT db_type;
-	struct
-	{
-		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
-		TDS_INT column_size;
-	} on_server;
-	const TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
-	TDS_SMALLINT db_usertype;
-	TDS_TINYINT db_varint_size;
-	TDS_INT db_length;	/* size of field according to database */
-	TDS_TINYINT db_nullable;
-	TDS_TINYINT db_status;
-	TDS_SMALLINT db_offset;
-	TDS_TINYINT db_default;
-	TDS_TINYINT db_prec;
-	TDS_TINYINT db_scale;
-	TDS_SMALLINT db_flags;
-	TDS_INT db_size;
-	char db_collate[5];
-	long data_size;
-	TDS_TINYINT *data;
-	int txptr_offset;
-} BCP_COLINFO;
-
 
 /** Hold information for any results */
 typedef struct tds_result_info
@@ -1270,7 +1239,6 @@ extern const char tds_hex_digits[];
 /* write.c */
 int tds_flush_packet(TDSSOCKET * tds);
 int tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize);
-int tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol);
 
 /* read.c */
 unsigned char tds_get_byte(TDSSOCKET * tds);

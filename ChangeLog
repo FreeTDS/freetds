@@ -1,3 +1,8 @@
+Mon Jul 26 16:38:30 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/mem.c src/tds/write.c:
+	- cleanup unused bcp code
+	- small optimization (calloc set memory to zero itself)
+
 Thu Jul 22 15:37:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/blk_in.c src/ctlib/unittests/cancel.c:
 	* src/dblib/unittests/bcp.c src/dblib/unittests/common.c:
