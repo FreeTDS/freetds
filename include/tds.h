@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.58 2002-11-23 13:47:34 freddy77 Exp $";
+	"$Id: tds.h,v 1.59 2002-11-24 10:22:36 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -664,7 +664,6 @@ struct tds_socket {
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
 void tds_set_timeouts(TDSLOGIN *tds_login, int connect_timeout, int query_timeout, int longquery_timeout);
-int tds_write_packet(TDSSOCKET *tds,unsigned char final);
 int tds_init_write_buf(TDSSOCKET *tds);
 void tds_free_result_info(TDSRESULTINFO *info);
 void tds_free_socket(TDSSOCKET *tds);

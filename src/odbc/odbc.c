@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.94 2002-11-23 17:11:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.95 2002-11-24 10:22:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1142,6 +1142,7 @@ _SQLExecute( SQLHSTMT hstmt)
     TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
     TDS_INT    result_type;
     TDS_INT    done = 0;
+	SQLRETURN result = SQL_SUCCESS;
 
     CHECK_HSTMT;
 
@@ -1162,7 +1163,10 @@ _SQLExecute( SQLHSTMT hstmt)
         case  TDS_PARAM_RESULT      :
         case  TDS_ROW_RESULT        :
         case  TDS_STATUS_RESULT     :
-        case  TDS_CMD_FAIL          :
+			done = 1;
+			break;
+		case  TDS_CMD_FAIL          :
+			result = SQL_ERROR;
               done = 1;
               break;
 
@@ -1178,12 +1182,12 @@ _SQLExecute( SQLHSTMT hstmt)
       if (done) break;
     }
     if (ret==TDS_NO_MORE_RESULTS) {
-        return SQL_SUCCESS;
+        return result;
     } else if (ret==TDS_SUCCEED) {
-        return SQL_SUCCESS;
+        return result;
     } else {
 	tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n" );
-        return SQL_ERROR;
+        return result;
     }
 }
 
@@ -1215,6 +1219,7 @@ int marker;
 struct _sql_param_info *param;
 TDS_INT  result_type;
 int ret, done;
+SQLRETURN result = SQL_SUCCESS;
 #endif 
 struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
@@ -1258,11 +1263,10 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				dyn->params = params;
 				/* add another type and copy data */
 				curcol = params->columns[i];
+				/* TODO handle bindings of char like "{d '2002-11-12'}" */
 				/* FIXME run only with VARCHAR */
-				curcol->column_type    = SYBVARCHAR;
-				curcol->column_size = *(SQLINTEGER*)param->param_lenbind;
-				curcol->column_varint_size = 1;
-				curcol->column_cur_size = *(SQLINTEGER*)param->param_lenbind;
+				tds_set_column_type(curcol, SYBVARCHAR);
+				curcol->column_cur_size = curcol->column_size = *(SQLINTEGER*)param->param_lenbind;
 				tds_alloc_param_row(params, curcol);
 				memcpy(&params->current_row[curcol->column_offset], param->varaddr, *(SQLINTEGER*)param->param_lenbind);
 			}
@@ -1281,7 +1285,10 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 			switch (result_type) {
 			case  TDS_COMPUTE_RESULT    :
 			case  TDS_ROW_RESULT        :
+				done = 1;
+				break;
 			case  TDS_CMD_FAIL          :
+				result = SQL_ERROR;
 				done = 1;
 				break;
 
@@ -1302,9 +1309,12 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		}
 		if (ret == TDS_NO_MORE_RESULTS) {
 			odbc_set_return_status(stmt);
+			if (result == SQL_ERROR) {
+				return SQL_ERROR;
+			}
 			return SQL_NO_DATA_FOUND;
 		}
-		return SQL_SUCCESS;
+		return result;
 	}
 #endif
 
@@ -2377,7 +2387,6 @@ redo:
 		case TDS_NO_MORE_ROWS:
 			while(tds->state==TDS_PENDING)
 				tds_process_default_tokens(tds,tds_get_byte(tds));
-			printf("vcp %d n %d\n",varchar_pos,n);
 			if (n>=varchar_pos && varchar_pos>0)
 				goto redo;
 			break;
@@ -2389,7 +2398,7 @@ redo:
 		colinfo = resinfo->columns[0];
 		name = (char*)(resinfo->current_row+colinfo->column_offset);
 		/* skip nvarchar and sysname */
-		if (strcmp("varchar",name)==0) {
+		if (colinfo->column_cur_size == 7 && memcmp("varchar", name, 7) == 0) {
 			varchar_pos = n;
 		}
 	}

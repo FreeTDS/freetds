@@ -1,3 +1,13 @@
+Sun Nov 24 11:20:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c src/tds/write.c:
+	- make tds_write_packet static
+	- tds_flush_packet return TDS_SUCCEED or TDS_FAIL
+	- use result of tds_flush_packet submitting query
+	* src/odbc/odbc.c:
+	- fix return for SQL_VARCHAR
+	- return SQL_ERROR if query fail
+	- use tds_set_column_size
+
 Sat Nov 23 15:41:34 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/rpc.c more attempted mating of dblib rpc to tds layer.
 	* src/dblib/dblib.c fixed a warning, return erc.  

@@ -59,11 +59,10 @@
 #endif
 
 static char software_version[] =
-	"$Id: write.c,v 1.26 2002-11-10 17:34:41 freddy77 Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+	"$Id: write.c,v 1.27 2002-11-24 10:22:36 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static int tds_write_packet(TDSSOCKET *tds, unsigned char final);
 
 /** \addtogroup network
  *  \@{ 
@@ -94,7 +93,8 @@ const unsigned char *bufp = buf;
  * @param s   string to write
  * @param len lenth of string or -1 for null terminated
  */
-int tds_put_string(TDSSOCKET *tds, const char *s, int len)
+int 
+tds_put_string(TDSSOCKET *tds, const char *s, int len)
 {
 int res;
 char temp[256];
@@ -227,7 +227,7 @@ goodwrite(TDSSOCKET *tds)
 {
 int left;
 char *p;
-int result = 1;
+int result = TDS_SUCCEED;
 int retval;
 
 	left = tds->out_pos;
@@ -247,7 +247,7 @@ int retval;
 			tds->in_pos=0;
 			tds->in_len=0;
 			tds_close_socket(tds);
-			result = 0;
+			result = TDS_FAIL;
 			break;
 		}
 		left -= retval;
@@ -255,7 +255,9 @@ int retval;
 	}
 	return result;
 }
-int tds_write_packet(TDSSOCKET *tds,unsigned char final)
+
+static int 
+tds_write_packet(TDSSOCKET *tds, unsigned char final)
 {
 int retcode;
 void (*oldsig)(int);
@@ -275,23 +277,30 @@ void (*oldsig)(int);
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
 	}
 
-	retcode=goodwrite(tds);
+	retcode = goodwrite(tds);
 
 	if (signal(SIGPIPE, oldsig)==SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
-/* GW added in check for write() returning <0 and SIGPIPE checking */
+
+	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return retcode;
 }
 
+/**
+ * Flush packet to server
+ * @return TDS_FAIL or TDS_SUCCEED
+ */
 int
 tds_flush_packet(TDSSOCKET *tds)
 {
+int result = TDS_FAIL;
+
+	/* GW added check for tds->s */
 	if (!IS_TDSDEAD(tds)) {
-		tds_write_packet(tds,0x01);
+		result = tds_write_packet(tds,0x01);
 		tds_init_write_buf(tds);
 	}
-	/* GW added check for tds->s */
-	return 0;
+	return result;
 }
 /** \@} */

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.49 2002-11-23 13:47:34 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.50 2002-11-24 10:22:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -93,9 +93,7 @@ int	query_len;
 		tds->out_flag = 0x01;
 		tds_put_string(tds, query, query_len);
 	}
-	tds_flush_packet(tds);
-
-	return TDS_SUCCEED;
+	return tds_flush_packet(tds);
 }
 
 int
@@ -186,7 +184,7 @@ tds_count_placeholders(const char *query)
  * @param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
  * @return TDS_FAIL or TDS_SUCCEED
  */
-/* TODO return dynamic and parse all results ?? */
+/* TODO parse all results ?? */
 int 
 tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out)
 {
@@ -294,9 +292,7 @@ TDSDYNAMIC *dyn;
 		tds_put_byte(tds,SYBINT4);
 		tds_put_int(tds,1);
 		
-		tds_flush_packet(tds);
-
-		return TDS_SUCCEED;
+		return tds_flush_packet(tds);
 	}
 
 	tds->out_flag=0x0F;
@@ -314,9 +310,7 @@ TDSDYNAMIC *dyn;
 	tds_put_n(tds, " as ", 4);
 	tds_put_n(tds, query, query_len);
 
-	tds_flush_packet(tds);
-
-	return TDS_SUCCEED;
+	return tds_flush_packet(tds);
 }
 
 /**
@@ -492,8 +486,7 @@ int i, len;
 			tds_put_data(tds, param, info->current_row, i);
 		}
 
-		tds_flush_packet(tds);
-		return TDS_SUCCEED;
+		return tds_flush_packet(tds);
 	}
 
 	tds->out_flag=0x0F;
@@ -533,10 +526,8 @@ int i, len;
 		tds_put_data(tds, info->columns[i], info->current_row, i);
 	}
 
-/* send it */
-	tds_flush_packet(tds);
-
-	return TDS_SUCCEED;
+	/* send it */
+	return tds_flush_packet(tds);
 }
 
 static volatile int inc_num = 1;
@@ -603,8 +594,7 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 			tds_put_data(tds, param, params->current_row, i);
 		}
 
-		tds_flush_packet(tds);
-		return TDS_SUCCEED;
+		return tds_flush_packet(tds);
 	}
 	
 	/* TODO continue, support for TDS5 */
@@ -622,10 +612,7 @@ tds_send_cancel(TDSSOCKET *tds)
 	/* tds_init_write_buf(tds); */
 
 	tds->out_flag=0x06;
-	/* TODO make this function return TDS_FAIL or TDS_SUCCEED from TDS state and return this status */
-	tds_flush_packet(tds);
-
-	return 0;
+	return tds_flush_packet(tds);
 }
 
 /** \@} */
