@@ -1,3 +1,10 @@
+Sun Oct 27  12:25:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/connectparams.c src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c src/tds/config.c src/tds/locale.c TODO:
+	- collect all code that read ini style file in config and use 
+	  this code instead of rewrite every time
+	- some TODO cleanup (some removed time ago...)
+
 Sun Oct 27  09:51:01 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: fix out of memory condition
 

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.49 2002-10-24 10:31:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.50 2002-10-27 10:26:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -77,9 +77,9 @@ static void tds_config_env_tdsver(TDSCONNECTINFO *connect_info);
 static void tds_config_env_tdsport(TDSCONNECTINFO *connect_info);
 static void tds_config_env_tdshost(TDSCONNECTINFO *connect_info);
 static int tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info);
-static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info);
+static void tds_parse_conf_section(const char* option, const char* value, void *param);
 static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info);
-static int tds_config_boolean(char *value);
+static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login );
 static int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
@@ -232,22 +232,23 @@ int found = 0;
 
 	return found;
 }
+
 static int tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info)
 {
 unsigned char *section;
 int i, found = 0;
 
-	tds_read_conf_section(in, "global", connect_info);
+	tds_read_conf_section(in, "global", tds_parse_conf_section, connect_info);
 	rewind(in);
 	section = strdup(server);
 	for (i = 0; i < strlen(section); i++)
 		section[i] = tolower(section[i]);
-	found = tds_read_conf_section(in, section, connect_info);
+	found = tds_read_conf_section(in, section, tds_parse_conf_section, connect_info);
 	free(section);
 
 	return found;
 }
-static int tds_config_boolean(char *value) 
+static int tds_config_boolean(const char *value) 
 {
 	if (!strcmp(value, "yes") ||
 		!strcmp(value, "on") ||
@@ -261,14 +262,14 @@ static int tds_config_boolean(char *value)
 	}
 }
 
-static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info)
+int 
+tds_read_conf_section(FILE *in, const char *section, TDSCONFPARSE tds_conf_parse, void *param)
 {
 char line[256], option[256], value[256];
 unsigned char *s;
 unsigned char p;
 int i;
 int insection = 0;
-char tmp[256];
 int found = 0;
 
         tdsdump_log(TDS_DBG_INFO1, "%L Looking for section %s.\n", section);
@@ -323,7 +324,7 @@ int found = 0;
 			}
                         tdsdump_log(TDS_DBG_INFO1, "%L ... Found section %s.\n", &option[1]);
 
-			if (!strcmp(section, &option[1])) {
+			if (!strcasecmp(section, &option[1])) {
 				tdsdump_log(TDS_DBG_INFO1, "%L Got a match.\n");
 				insection=1;
 				found=1;
@@ -331,63 +332,72 @@ int found = 0;
 				insection=0;
 			}
 		} else if (insection) {
-                    /* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
-                        tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
-			if (!strcmp(option,TDS_STR_VERSION)) {
-				tds_config_verstr(value, connect_info);
-			} else if (!strcmp(option,TDS_STR_BLKSZ)) {
-				if (atoi(value)) 
-					connect_info->block_size = atoi(value);
-			} else if (!strcmp(option,TDS_STR_SWAPDT)) {
-				connect_info->broken_dates = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_SWAPMNY)) {
-				connect_info->broken_money = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_TRYSVR)) {
-				connect_info->try_server_login = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_TRYDOM)) {
-				connect_info->try_domain_login = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_DOMAIN)) {
-				tds_dstr_copy(&connect_info->default_domain,value);
-			} else if (!strcmp(option,TDS_STR_XDOMAUTH)) {
-				connect_info->xdomain_auth = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_DUMPFILE)) {
-				tds_dstr_copy(&connect_info->dump_file,value);
-			} else if (!strcmp(option,TDS_STR_DEBUGLVL)) {
-				if (atoi(value)) 
-					connect_info->debug_level = atoi(value);
-			} else if (!strcmp(option,TDS_STR_TIMEOUT )) {
-				if (atoi(value)) 
-					connect_info->timeout = atoi(value);
-			} else if (!strcmp(option,TDS_STR_CONNTMOUT)) {
-				if (atoi(value)) 
-					connect_info->connect_timeout = atoi(value);
-			} else if (!strcmp(option,TDS_STR_HOST)) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
-   				tds_lookup_host(value, NULL, tmp, NULL);
-				tds_dstr_copy(&connect_info->ip_addr,tmp);
-				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",connect_info->ip_addr);
-			} else if (!strcmp(option,TDS_STR_PORT)) {
-				if (atoi(value)) 
-					connect_info->port = atoi(value);
-			} else if (!strcmp(option,TDS_STR_EMUL_LE)) {
-				connect_info->emul_little_endian = tds_config_boolean(value);
-			} else if (!strcmp(option,TDS_STR_TEXTSZ)) {
-				if (atoi(value)) 
-					connect_info->text_size = atoi(value);
-			} else if (!strcmp(option,TDS_STR_CHARSET)) {
-				tds_dstr_copy(&connect_info->char_set,value);
-			} else if (!strcmp(option,TDS_STR_CLCHARSET)) {
-				tds_dstr_copy(&connect_info->client_charset,value);
-			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
-				tds_dstr_copy(&connect_info->language,value);
-			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
-				g_append_mode = tds_config_boolean(value);
-			}
-                        else tdsdump_log(TDS_DBG_INFO1, "%L UNRECOGNIZED option '%s'...ignoring.\n", option);
+			tds_conf_parse(option, value, param);
 		}
 
 	}
 	return found;
+}
+
+static void tds_parse_conf_section(const char* option, const char* value, void *param)
+{
+	TDSCONNECTINFO *connect_info = (TDSCONNECTINFO*)param;
+	char tmp[256];
+
+	/* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
+	tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
+
+	if (!strcmp(option,TDS_STR_VERSION)) {
+		tds_config_verstr(value, connect_info);
+	} else if (!strcmp(option,TDS_STR_BLKSZ)) {
+		if (atoi(value)) 
+			connect_info->block_size = atoi(value);
+	} else if (!strcmp(option,TDS_STR_SWAPDT)) {
+		connect_info->broken_dates = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_SWAPMNY)) {
+		connect_info->broken_money = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_TRYSVR)) {
+		connect_info->try_server_login = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_TRYDOM)) {
+		connect_info->try_domain_login = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_DOMAIN)) {
+		tds_dstr_copy(&connect_info->default_domain,value);
+	} else if (!strcmp(option,TDS_STR_XDOMAUTH)) {
+		connect_info->xdomain_auth = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_DUMPFILE)) {
+		tds_dstr_copy(&connect_info->dump_file,value);
+	} else if (!strcmp(option,TDS_STR_DEBUGLVL)) {
+		if (atoi(value)) 
+			connect_info->debug_level = atoi(value);
+	} else if (!strcmp(option,TDS_STR_TIMEOUT )) {
+		if (atoi(value)) 
+			connect_info->timeout = atoi(value);
+	} else if (!strcmp(option,TDS_STR_CONNTMOUT)) {
+		if (atoi(value)) 
+			connect_info->connect_timeout = atoi(value);
+	} else if (!strcmp(option,TDS_STR_HOST)) {
+		tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
+		tds_lookup_host(value, NULL, tmp, NULL);
+		tds_dstr_copy(&connect_info->ip_addr,tmp);
+		tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",connect_info->ip_addr);
+	} else if (!strcmp(option,TDS_STR_PORT)) {
+		if (atoi(value)) 
+			connect_info->port = atoi(value);
+	} else if (!strcmp(option,TDS_STR_EMUL_LE)) {
+		connect_info->emul_little_endian = tds_config_boolean(value);
+	} else if (!strcmp(option,TDS_STR_TEXTSZ)) {
+		if (atoi(value)) 
+			connect_info->text_size = atoi(value);
+	} else if (!strcmp(option,TDS_STR_CHARSET)) {
+		tds_dstr_copy(&connect_info->char_set,value);
+	} else if (!strcmp(option,TDS_STR_CLCHARSET)) {
+		tds_dstr_copy(&connect_info->client_charset,value);
+	} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
+		tds_dstr_copy(&connect_info->language,value);
+	} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
+		g_append_mode = tds_config_boolean(value);
+	}
+	else tdsdump_log(TDS_DBG_INFO1, "%L UNRECOGNIZED option '%s'...ignoring.\n", option);
 }
 
 static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info)

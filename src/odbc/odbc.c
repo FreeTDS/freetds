@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.75 2002-10-27 07:07:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.76 2002-10-27 10:26:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -776,8 +776,6 @@ int	freetds_conf_less = 1;
 		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
 		tds_dstr_copy(&connect_info->ip_addr,tmp);
 	}
-	/* TODO support old style servername (using freetds.conf) */
-	/* if (SQLGetPrivateProfileString( DSN, "Servername", "", szServer, FILENAME_MAX, "odbc.ini" ) <= 0) { } */
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString( DSN, "Port", TO_STRING(TDS_DEF_PORT), tmp, FILENAME_MAX, "odbc.ini") > 0) {
@@ -793,8 +791,6 @@ int	freetds_conf_less = 1;
 	if (SQLGetPrivateProfileString( DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->language,tmp);
 	}
-
-	/* TODO support other options, some code should be putted in connectparams.c */
 
 	/* DO IT */
 	if ( (nRetVal = do_connect( hdbc, connect_info)) != SQL_SUCCESS )

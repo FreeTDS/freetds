@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <sqltypes.h>
 
@@ -31,6 +32,9 @@
 #include "tdsstring.h"
 #include "connectparams.h"
 #include "replacements.h"
+
+static char  software_version[]   = "$Id: connectparams.c,v 1.18 2002-10-27 10:26:31 freddy77 Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 #ifndef HAVEODBCINST
 
@@ -42,109 +46,23 @@
 #define SYS_ODBC_INI "/etc/odbc.ini"
 #endif
 
-/*
- * Internal buffer used when reading INI files. This should probably
- * be removed to make safer for threading.
+/**
+ * Call this to get the INI file containing Data Source Names.
+ * @note rules for determining the location of ODBC config may be different 
+ * then what you expect - at this time they differ from unixODBC 
+ *
+ * @return file opened or NULL if error
+ * @retval 1 worked
  */
-#define max_line 256
-static char line[max_line];
-
-static char  software_version[]   = "$Id: connectparams.c,v 1.17 2002-10-24 10:31:54 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
-
-/*****************************
- * tdoGetIniFileName
- *
- * PURPOSE
- *
- *  Call this to get the INI file name containing Data Source Names.
- *
- * ARGS
- *
- *  ppszFileName (W)    - send in a pointer with no allocation and get back
- *                        the file name - remember to free() it when done!
- *                      
- * RETURNS
- *
- *  0                   - failed
- *  1                   - worked
- *
- * NOTES:
- *
- *  - rules for determining the location of ODBC config may be different then what you    
- *    expect - at this time they differ from unixODBC 
- *
- *****************************/
-static int tdoGetIniFileName( char **ppszFileName );
-
-/*****************************
- * tdoFileExists
- *
- * PURPOSE
- *
- *  Call this to see if a file exists.
- *
- * ARGS
- *
- *  pszFileName (R)     - file to check for
- *                      
- * RETURNS
- *
- *  0                   - stat failed
- *  1                   - stat worked
- *
- *****************************/
-static int tdoFileExists    ( const char *pszFileName );
-
-/*****************************
- * tdoFindSection
- *
- * PURPOSE
- *
- *  Call this to goto a section in an INI file.
- *
- * ARGS
- *
- *  hFile (R)           - open file
- *  pszSection (R)      - desired section
- *                      
- * RETURNS
- *
- *  0                   - stat failed
- *  1                   - stat worked
- *
- *****************************/
-static int tdoFindSection   ( FILE *hFile, const char *pszSection );
-
-/*****************************
- * tdoGetNextEntry
- *
- * PURPOSE
- *
- *  Call this to goto, and read, the next entry in an INI file.
- *
- * ARGS
- *
- *  hFile (R)           - open file
- *  ppszKey (W)         - name of entry
- *  ppszValue (W)       - value of entry
- *                      
- * RETURNS
- *
- *  0                   - failed
- *  1                   - worked
- *
- * NOTE
- *
- *  - IF worked THEN ppszKey and ppszValue will be refs into an internal buffer
- *    as such they are not valid very long (after next call) and should not be 
- *    free()'d.
- *
- *****************************/
-static int tdoGetNextEntry  ( FILE *hFile, char **ppszKey, char **ppszValue );
+static FILE* tdoGetIniFileName();
 
 #endif
 
+/** 
+ * Parse connection string and fill connect_info according
+ * @param pszConnectString connect string
+ * @param connect_info     where to store connection info
+ * @return 1 if success 0 otherwhise */
 int tdoParseConnectString( char *pszConnectString, TDSCONNECTINFO* connect_info)
 {
 char *p,*end; /*,*dest; */
@@ -163,9 +81,6 @@ int reparse = 0; /* flag for indicate second parse of string */
 		tds_dstr_init(&tdsver);
 		tds_dstr_init(&server_name);
 		*end = 0;
-		/* TODO 
-		trusted_connection = yes/no
-		*/
 		if (strcasecmp(p,"SERVER")==0) {
 			/* ignore if servername specified */
 			if (reparse) dest_s = &connect_info->server_name;
@@ -203,10 +118,9 @@ int reparse = 0; /* flag for indicate second parse of string */
 		/* copy to destination */
 		if (dest_s) {
 			int cplen = end - p;
-			/* TODO check memory problems */
-			tds_dstr_copyn(dest_s,p,cplen);
+			if (!tds_dstr_copyn(dest_s,p,cplen))
+				return 0;
 		} else if (dest_i) {
-			/* TODO finish */
 			*dest_i = atoi(p);
 		}
 		if (dest_s == &tdsver) {
@@ -217,7 +131,8 @@ int reparse = 0; /* flag for indicate second parse of string */
 		if (dest_s == &connect_info->server_name) {
 			char tmp[256];
 			tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
-			tds_dstr_copy(&connect_info->ip_addr,tmp);
+			if (!tds_dstr_copy(&connect_info->ip_addr,tmp))
+				return 0;
 		}
 		if (dest_s == &server_name) {
 			tds_read_conf_file(connect_info, server_name);
@@ -240,6 +155,29 @@ int reparse = 0; /* flag for indicate second parse of string */
 /* TODO: now even iODBC support SQLGetPrivateProfileString, best check */
 #ifndef UNIXODBC
 
+typedef struct {
+	LPCSTR entry;
+	LPSTR buffer;
+	int buffer_len;
+	int ret_val;
+	int found;
+} ProfileParam;
+
+static void 
+tdoParseProfile(const char* option, const char* value, void *param)
+{
+	ProfileParam *p = (ProfileParam*)param;
+
+	if ( strcasecmp( p->entry, option ) == 0 )
+	{
+		strncpy( p->buffer, value, p->buffer_len);
+		p->buffer[p->buffer_len-1] = '\0';
+
+		p->ret_val = strlen( p->buffer );
+		p->found = 1;
+	}
+}
+
 int SQLGetPrivateProfileString( LPCSTR  pszSection,
                                 LPCSTR  pszEntry,
                                 LPCSTR  pszDefault,
@@ -249,10 +187,7 @@ int SQLGetPrivateProfileString( LPCSTR  pszSection,
                               )
 {
     FILE *  hFile;
-    char *  pszKey;
-    char *  pszValue;
-    char *  pszRealFileName;
-    int     nRetVal = 0;
+	ProfileParam param;
 
     if ( !pszSection )
     {
@@ -272,190 +207,67 @@ int SQLGetPrivateProfileString( LPCSTR  pszSection,
         fprintf( stderr, "[FreeTDS][ODBC][%s][%d] WARNING: No space to return a value because nRetBuffer < 1.\n", __FILE__, __LINE__ );
 
     if ( pszFileName && *pszFileName == '/' )
-        pszRealFileName = strdup( pszFileName );
-    else if ( tdoGetIniFileName( &pszRealFileName ) )
-        ;
-    else
+		hFile = fopen(pszFileName, "r");
+    else 
+		hFile = tdoGetIniFileName();
+
+    if ( hFile == NULL )
     {
-        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Unable to determine location of ODBC config data. Try setting ODBCINI environment variable.\n", __FILE__, __LINE__ );
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Could not open configuration file\n", __FILE__, __LINE__);
         return 0;
     }
 
-    if ( (hFile = fopen( pszRealFileName, "r" )) == NULL )
-    {
-        free( pszRealFileName );
-        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Could not open %s\n", __FILE__, __LINE__, pszRealFileName );
-        return 0;
-    }
+	param.entry = pszEntry;
+	param.buffer = pRetBuffer;
+	param.buffer_len = nRetBuffer;
+	param.ret_val = 0;
+	param.found = 0;
 
-    /* goto to start of section */
-    if ( !tdoFindSection( hFile, pszSection ) )
-    {
-        goto SQLGetPrivateProfileStringExit;
-    }
+	pRetBuffer[0] = 0;
+	tds_read_conf_section(hFile, pszSection, tdoParseProfile, &param);
 
-    /* scan entries for pszEntry */
-    while ( tdoGetNextEntry( hFile, &pszKey, &pszValue ) )
-    {
-        if ( strcasecmp( pszKey, pszEntry ) == 0 )
-        {
-            strncpy( pRetBuffer, pszValue, nRetBuffer );
-            pRetBuffer[nRetBuffer-1] = '\0';
-
-            nRetVal = strlen( pRetBuffer );
-            goto SQLGetPrivateProfileStringExit;
-        }
-    }
-
-    if ( pszDefault && nRetBuffer > 0 )
+	if ( pszDefault && !param.found )
     {
         strncpy( pRetBuffer, pszDefault, nRetBuffer );
         pRetBuffer[nRetBuffer-1] = '\0';
 
-        nRetVal = strlen( pRetBuffer );
-        goto SQLGetPrivateProfileStringExit;
+		param.ret_val = strlen( pRetBuffer );
     }
 
-SQLGetPrivateProfileStringExit:
-    free( pszRealFileName );
-    fclose( hFile );   
-    return nRetVal;
+	fclose( hFile );
+	return param.ret_val;
 }
 
-static int tdoGetIniFileName( char **ppszFileName )
+static FILE* tdoGetIniFileName()
 {
+	FILE* ret = NULL;
     char *pszEnvVar;
 
     /*
      * First, try the ODBCINI environment variable
      */
     if ( (pszEnvVar = getenv( "ODBCINI" )) != NULL)
-    {
-        if ( tdoFileExists( pszEnvVar ) )
-        {
-            *ppszFileName = strdup( pszEnvVar );
-            return 1;
-        }
-    }
+		ret = fopen(pszEnvVar, "r");
 
     /*
      * Second, try the HOME environment variable
      */
-    if ( (pszEnvVar = getenv( "HOME" )) != NULL)
+	if ( !ret && (pszEnvVar = getenv( "HOME" )) != NULL)
     {
         char pszFileName[FILENAME_MAX+1];
 
         sprintf( pszFileName, "%s/.odbc.ini", pszEnvVar );
 
-        if ( tdoFileExists( pszFileName ) )
-        {
-            *ppszFileName = strdup( pszFileName );
-            return 1;
-        }
+		ret = fopen(pszFileName, "r");
     }
 
     /*
      * As a last resort, try SYS_ODBC_INI
      */
-    if ( tdoFileExists( SYS_ODBC_INI ) )
-    {
-        *ppszFileName = strdup( SYS_ODBC_INI );
-        return 1;
-    }
+	if (!ret)
+		ret = fopen(SYS_ODBC_INI, "r");
 
-    return 0;
+	return ret;
 }
-
-static int tdoFileExists( const char *pszFileName )
-{
-    struct stat statFile;
-
-    return ( stat( pszFileName, &statFile ) == 0 );
-}
-
-static int tdoFindSection( FILE *hFile, const char *pszSection )
-{
-    char*   s;
-    char    sectionPattern[max_line];
-    int     len;
-
-    strcpy( sectionPattern, "[" );
-    strcat( sectionPattern, pszSection );
-    strcat( sectionPattern, "]" );
-
-    s = fgets( line, max_line, hFile );
-    while ( s != NULL )
-    {
-        /*
-         * Get rid of the newline character
-         */
-        len = strlen( line );
-        if (len > 0) line[strlen (line) - 1] = '\0';
-        /*
-         * look for the section header
-         */
-        if ( strcmp( line, sectionPattern ) == 0 )
-            return 1;
-
-        s = fgets( line, max_line, hFile );
-    }
-
-    return 0;
-}
-
-static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
-{
-    char* s;
-    int len;
-    char equals[] = "="; /* used for separator for strtok */
-    char* token;
-    char* ptr;
-
-    if ( ppszKey == NULL || ppszValue == NULL)
-    {
-        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Invalid argument.\n", __FILE__, __LINE__ );
-        return 0;
-    }
-
-    s = fgets( line, max_line, hFile );
-    if (s == NULL)
-    {
-        perror( "[FreeTDS][ODBC] ERROR: fgets" );
-        return 0;
-    }
-
-    /*
-     * Get rid of the newline character
-     */
-    len = strlen (line);
-    if (len > 0) line[strlen (line) - 1] = '\0';
-    /*
-     * Extract name from name = value
-     */
-    if ((token = strtok_r(line, equals, &ptr)) == NULL) return 0;
-
-    len = strlen (token);
-    while (len > 0 && isspace(token[len-1]))
-    {
-        len--;
-        token[len] = '\0';
-    }
-    *ppszKey = token;
-
-    /*
-     * extract value from name = value
-     */
-    token = strtok_r(NULL, equals, &ptr);
-    if (token == NULL) return 0;
-    while (*token && isspace(token[0]))
-        token++;
-
-    *ppszValue = token;
-
-    return 1;
-}
-
 
 #endif
-
-

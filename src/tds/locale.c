@@ -39,12 +39,12 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.12 2002-10-14 08:10:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.13 2002-10-27 10:26:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-static int tds_read_locale_section(FILE *in, char *section, TDSLOCINFO *config);
+static void tds_parse_locale(const char* option, const char* value, void *param);
 
 /**
  * Get locale information. 
@@ -66,13 +66,13 @@ FILE *in;
 
 	in = fopen(FREETDS_LOCALECONFFILE, "r");
 	if (in) {
-		tds_read_locale_section(in, "default", locale);
+		tds_read_conf_section(in, "default", tds_parse_locale, locale);
 
 		s = getenv("LANG");
 		if (s && strlen(s)) {
 			rewind(in);
 			for (i=0;i<strlen(s);i++) s[i]=tolower(s[i]);
-			tds_read_locale_section(in, s, locale);
+			tds_read_conf_section(in, s, tds_parse_locale, locale);
 		}
 
 		fclose(in);
@@ -80,84 +80,18 @@ FILE *in;
 	return locale;
 }
 
-static int tds_read_locale_section(FILE *in, char *section, TDSLOCINFO *locale)
+static void tds_parse_locale(const char* option, const char* value, void *param)
 {
-char line[256], option[256], value[256];
-unsigned char *s;
-unsigned char p;
-int i;
-int insection = 0;
-int found = 0;
+	TDSLOCINFO *locale = (TDSLOCINFO*)param;
 
-	while (fgets(line, 256, in)) {
-		s = line;
-
-		/* skip leading whitespace */
-		while (*s && isspace(*s)) s++;
-
-		/* skip it if it's a comment line */
-		if (*s==';' || *s=='#') continue;
-
-		/* read up to the = ignoring duplicate spaces */
-		p = 0; i = 0;
-		while (*s && *s!='=') {
-			if (!isspace(*s) && isspace(p)) 
-				option[i++]=' ';
-			if (!isspace(*s)) 
-				option[i++]=tolower(*s);
-			p = *s;
-			s++;
-		}
-		option[i]='\0';
-
-		/* skip the = */
-		if(*s) s++;
-
-		/* skip leading whitespace */
-		while (*s && isspace(*s)) s++;
-
-		/* read up to a # ; or null ignoring duplicate spaces */
-		p = 0; i = 0;
-		while (*s && *s!=';' && *s!='#') {
-			if (!isspace(*s) && isspace(p)) 
-				value[i++]=' ';
-			if (!isspace(*s)) 
-				value[i++]=*s;
-			p = *s;
-			s++;
-		}
-		value[i]='\0';
-		
-		if (!strlen(option)) 
-			continue;
-
-		if (option[0]=='[') {
-			s = &option[1];
-			while (*s) {
-				if (*s==']') *s='\0';
-				s++;
-			}
-			if (!strcmp(section, &option[1])) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching section\n");
-				insection=1;
-				found=1;
-			} else {
-				insection=0;
-			}
-		} else if (insection) {
-			if (!strcmp(option,TDS_STR_CHARSET)) {
-				if (locale->char_set) free(locale->char_set);
-				locale->char_set = strdup(value);
-			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
-				if (locale->language) free(locale->language);
-				locale->language = strdup(value);
-			} else if (!strcmp(option,TDS_STR_DATEFMT)) {
-				if (locale->date_fmt) free(locale->date_fmt);
-				locale->date_fmt = strdup(value);
-			}
-		}
-
+	if (!strcmp(option,TDS_STR_CHARSET)) {
+		if (locale->char_set) free(locale->char_set);
+		locale->char_set = strdup(value);
+	} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
+		if (locale->language) free(locale->language);
+		locale->language = strdup(value);
+	} else if (!strcmp(option,TDS_STR_DATEFMT)) {
+		if (locale->date_fmt) free(locale->date_fmt);
+		locale->date_fmt = strdup(value);
 	}
-	return found;
 }
-

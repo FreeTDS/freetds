@@ -37,7 +37,7 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.18 2002-10-18 17:04:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.19 2002-10-27 10:26:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -149,7 +149,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
                 ret = nRetVal;
              }
              else {
-		/* FIXME destlen == 0 is good... */
+		/* if destlen == 0 we return only length */
 		if (destlen == 0)
 			ret = nRetVal;
 		else
