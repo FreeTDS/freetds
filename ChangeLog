@@ -1,3 +1,6 @@
+Thu Mar 06 23:12:43 EST 2003  Mark Lilback <mark@lilback.com>
+	* src/ctlib/cs.c: cs_convert no longer requires destlen for fixed-len types
+
 Thu Mar 06 18:44:11 EST 2003  Mark Lilback <mark@lilback.com>
 	* include/cspublic.h:
 	* include/tds.h:

@@ -47,8 +47,39 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.34 2003-03-05 13:14:30 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.35 2003-03-07 04:13:35 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+
+/* 	returns the fixed length of the specified data type, or 0 if not a 
+	fixed length data type */
+int _cs_datatype_length(int dtype)
+{
+	switch (dtype) {
+		case SYBINT1:
+			return 1;
+		case SYBINT2:
+			return 2;
+		case SYBINT4:
+			return 4;
+		case SYBFLT8:
+			return 8;
+		case SYBREAL:
+			return 4;
+		case SYBBIT:
+			return 1;
+		case SYBMONEY:
+			return 8;
+		case SYBMONEY4:
+			return 4;
+		case SYBDATETIME:
+			return 8;
+		case SYBDATETIME4:
+			return 4;
+		default:
+			return 0;
+	}
+}
 
 static const char *
 _cs_get_layer(int layer)
@@ -251,7 +282,7 @@ CS_RETCODE ret;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() srctype = %d (%d) desttype = %d (%d)\n",
 		    src_type, src_len, desttype, destlen);
 
-	if (destlen <= 0)
+	if (!is_fixed_type(desttype) && (destlen <= 0))
 		return CS_SUCCEED;
 
 	dest = (unsigned char *) destdata;
@@ -359,21 +390,17 @@ CS_RETCODE ret;
 		case SYBFLT8:
 		case SYBREAL:
 		case SYBBIT:
-		case SYBBITN:
 		case SYBMONEY:
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
-			if (src_len > destlen) {
-				ret = CS_FAIL;
-			} else {
-				memcpy(dest, srcdata, src_len);
-				if (resultlen != (CS_INT *) NULL)
-					*resultlen = src_len;
-				ret = CS_SUCCEED;
-			}
+			memcpy(dest, srcdata, _cs_datatype_length(src_type));
+			if (resultlen != (CS_INT *) NULL)
+				*resultlen = _cs_datatype_length(src_type);
+			ret = CS_SUCCEED;
 			break;
 
+		case SYBBITN:
 		case SYBNUMERIC:
 		case SYBDECIMAL:
 			if (src_len > destlen) {
@@ -396,7 +423,7 @@ CS_RETCODE ret;
 	}
 
 
-	/* src type == dest type */
+	/* src type != dest type */
 	/* set the output precision/scale for conversions to numeric type */
 	if (is_numeric_type(desttype)) {
 		cres.n.precision = destfmt->precision;
