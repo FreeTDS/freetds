@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.9 2004-05-17 15:34:38 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.10 2004-05-18 08:08:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -55,10 +55,6 @@ static CS_RETCODE _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcp
 static CS_RETCODE _rowxfer_in_init(CS_BLKDESC * blkdesc);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
-int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
-int _ct_get_client_type(int datatype, int usertype, int size);
-void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
-		   const char *fmt, ...);
 
 CS_RETCODE
 blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
@@ -243,7 +239,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		tds_flush_packet(tds);
 		tds->state = TDS_QUERYING;
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -252,7 +248,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		
 		tds_submit_query(tds, blkdesc->insert_stmt);
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -269,7 +265,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		tds_flush_packet(tds);
 		tds->state = TDS_QUERYING;
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -348,12 +344,12 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	}
 
 	if (direction != CS_BLK_IN && direction != CS_BLK_OUT ) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 6, 1, 138);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 6, 1, 138, "");
 		return CS_FAIL;
 	}
 
 	if (!tablename) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 6, 1, 139);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 6, 1, 139, "");
 		return CS_FAIL;
 	}
 	if (tnamelen == CS_NULLTERM) {
@@ -393,7 +389,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	tds = blkdesc->con->tds_socket;
 
 	if (tds_submit_queryf(tds, "select * from %s where 0 = 1", blkdesc->tablename) == TDS_FAIL) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 
@@ -401,21 +397,21 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		   == TDS_SUCCEED) {
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 
 	/* copy the results info from the TDS socket into CS_BLKDESC structure */
 
 	if (!tds->res_info) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 
 	resinfo = tds->res_info;
 
 	if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 
@@ -461,7 +457,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	if (blkdesc->identity_insert_on) {
 
 		if (tds_submit_queryf(tds, "set identity_insert %s on", blkdesc->tablename) == TDS_FAIL) {
-			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 	
@@ -469,7 +465,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 			   == TDS_SUCCEED) {
 		}
 		if (rc != TDS_NO_MORE_RESULTS) {
-			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 	}
@@ -630,7 +626,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 		if (tds_submit_queryf(tds, "select * from %s", blkdesc->tablename)
 			== TDS_FAIL) {
-			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 	
@@ -640,7 +636,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		}
 	
 		if (ret != TDS_SUCCEED || result_type != TDS_ROW_RESULT) {
-			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140);
+			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -674,7 +670,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 				break;
 
 			default:
-				_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140);
+				_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 				return CS_FAIL;
 				break;
 		}
@@ -804,7 +800,7 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 	 * We're going to ignore it.  
 	 */
 	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-		_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140);
+		_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 

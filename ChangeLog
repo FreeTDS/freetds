@@ -1,3 +1,9 @@
+Tue May 18 10:07:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/ctlib.h src/ctlib/blk.c src/ctlib/unittests/blk_in.c:
+	* src/ctlib/unittests/blk_out.c src/ctlib/unittests/cancel.c:
+	- remove some warnings
+	- move declaration of no-static function in ctlib.h
+
 Mon May 17 17:15:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/tds.h src/ctlib/blk.c:
 	* src/ctlib/ct.c src/ctlib/unittests/Makefile.am:

@@ -19,8 +19,15 @@
 
 
 #include <ctpublic.h>
+#include <bkpublic.h>
 #include "common.h"
 #include "blk_in.h"
+
+static int
+do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen, 
+	void        *var_addr,
+	CS_INT      *var_len_addr,
+	CS_SMALLINT *var_ind_addr );
 
 static char command[512];
 
@@ -204,9 +211,7 @@ main(int argc, char **argv)
 	int verbose = 0;
 	int count = 0;
 	int ret = 0;
-
-	int i, rows_sent=0;
-	int failed = 0;
+	int i;
 
 	const char *table_name = "all_types_bcp_unittest";
 

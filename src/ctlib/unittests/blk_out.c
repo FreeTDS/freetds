@@ -8,9 +8,10 @@
 
 #include <stdio.h>
 #include <ctpublic.h>
+#include <bkpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: blk_out.c,v 1.1 2004-05-17 15:17:02 freddy77 Exp $";
+static char software_version[] = "$Id: blk_out.c,v 1.2 2004-05-18 08:08:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
@@ -24,15 +25,9 @@ main(int argc, char *argv[])
 	int verbose = 0;
 
 	CS_RETCODE ret;
-	CS_RETCODE results_ret;
-	CS_INT result_type;
-	CS_INT num_cols;
 
 	CS_DATAFMT datafmt;
-	CS_INT count, row_count = 0;
-	CS_INT cv;
-
-	CS_CHAR select[1024];
+	CS_INT count;
 
 	CS_INT  col1[2];
 	CS_CHAR col2[2][5];
