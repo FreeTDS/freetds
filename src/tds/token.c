@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.56 2002-09-20 14:37:53 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.57 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -961,6 +961,9 @@ int len;
 				break;
 			case 0: 
 				colsize = get_size_by_type(curcol->column_type);
+				break;
+			default:
+				colsize = 0;
 				break;
 		}
 

@@ -17,7 +17,16 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/* Needed for the vasprintf prototype in glibc */
+#define _GNU_SOURCE
 #include <config.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include <time.h>
+#include <stdarg.h>
+
 #include "tdsutil.h"
 #include "tds.h"
 #include "sybfront.h"
@@ -25,13 +34,8 @@
 #include "syberror.h"
 #include "dblib.h"
 #include "tdsconvert.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <time.h>
-#include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.63 2002-09-20 14:48:36 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.64 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1099,6 +1103,9 @@ DBNUMERIC   *num;
                ret = sizeof(DBNUMERIC);
                break;
 
+          default:
+               ret = -1;
+               break;
        }
        return ret;
     }          /* srctype == desttype */
@@ -1222,6 +1229,9 @@ DBNUMERIC   *num;
                 
              free(dres.c);
 
+             break;
+        default:
+             ret = -1;
              break;
 
      }

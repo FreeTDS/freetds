@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.75 2002-09-20 20:20:29 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.76 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -485,7 +485,7 @@ TDS_INT tds_i;
 		break;
 	 case SYBUNIQUE: {
 		int i;
-		unsigned n;
+		unsigned n = 0;
 		char c;
 		 /* parse formats like XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX 
 		  * or {XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX} 
@@ -2372,7 +2372,7 @@ enum {TDS_HOURS,
       TDS_FRACTIONS};
 
 int  state = TDS_HOURS;
-char last_sep;
+char last_sep = '\0';
 char *s;
 int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
 int ret = 1;

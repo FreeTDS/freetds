@@ -21,11 +21,12 @@
 #include <tds.h>
 #include <tdsodbc.h>
 #include "odbc_util.h"
+#include "convert_tds2sql.h"
 #include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.5 2002-09-14 13:49:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.6 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

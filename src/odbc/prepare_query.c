@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.6 2002-09-15 16:08:25 freddy77 Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.7 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -67,8 +67,8 @@ static void *no_unused_var_warn[] = {software_version,
 int prepare_call(struct _hstmt *stmt)
 {
         char *s, *d, *p;
-        int i, quoted = 0;
-        char	quote_char;
+        int quoted = 0;
+        char	quote_char = 0;
 	int	nest_syntax = 0;
 	/* list of bit, used as stack, is call ? FIXME limites size... */
 	unsigned long	is_calls = 0;
@@ -301,7 +301,7 @@ static int _fix_commas(char *s, int s_len)
 	buf_beg = s;
 	buf_end = s + s_len - 1;
 	len = s_len;
-	while(pcomma = memchr(buf_beg, comma, len)){
+	while((pcomma = memchr(buf_beg, comma, len))) {
 		++commas_cnt;
 		buf_beg = pcomma + 1;
 		len = buf_end-pcomma;
@@ -310,7 +310,7 @@ static int _fix_commas(char *s, int s_len)
 
 
 	buf_end = s + s_len;
-	for (len = s_len; pcomma = _get_last_comma(s, len); len = pcomma-s){
+	for (len = s_len; (pcomma = _get_last_comma(s, len)); len = pcomma-s){
 		memmove(pcomma+commas_cnt, pcomma, buf_end-pcomma);
 		buf_end = pcomma;
 		--commas_cnt;
@@ -330,7 +330,6 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 	char quote_char;
 	int quoted;
 	int len;
-	int res;
 	int need_comma;
 
 	context = stmt->hdbc->henv->tds_ctx;
@@ -341,6 +340,7 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 		d          = stmt->query;
                 param_num  = stmt->prepared_query_is_func?1:0;
 		quoted     = 0;
+		quote_char = 0;
 	}else{
 		/* load prepared_query parameters from stmt */
 		s          = stmt->prepared_query_s;

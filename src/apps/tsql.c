@@ -21,6 +21,7 @@
 #include <config.h>
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
+#include <readline/history.h>
 #endif
 #include <string.h>
 #include "tds.h"

@@ -24,7 +24,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.17 2002-09-16 19:47:59 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.18 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -366,6 +366,9 @@ CS_RETCODE ret;
                 }
              }
              free(cres.c);
+             break;
+        default:
+             ret = CS_FAIL;
              break;
     }
     tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() returning  %d\n", ret);

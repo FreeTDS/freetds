@@ -32,17 +32,23 @@
  *
  ***************************************************************/
 
+/* Needed for the asprintf prototype in glibc */
+#define _GNU_SOURCE
+
 #include <config.h>
 
 #ifdef UNIXODBC
     #include <sql.h>
     #include <sqlext.h>
+    #include <odbcinst.h>
 #else
     #include "isql.h"
     #include "isqlext.h"
 #endif
 
 #include <tdsodbc.h>
+#include <tdsutil.h>
+#include <tdsconvert.h>
 #include <tds.h>
 
 #include <string.h>
@@ -53,7 +59,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.54 2002-09-20 08:17:01 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.55 2002-09-22 00:53:40 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -468,9 +474,6 @@ SQLRETURN SQL_API SQLBindParameter(
                                   SQLINTEGER         cbValueMax,
                                   SQLINTEGER FAR    *pcbValue)
 {
-    TDSCOLINFO * colinfo;
-    TDSRESULTINFO * resinfo;
-    TDSSOCKET * tds;
     struct _hstmt *stmt;
     struct _sql_param_info *cur, *newitem;
 
@@ -639,11 +642,8 @@ SQLBindCol(
           SQLINTEGER         cbValueMax,
           SQLINTEGER FAR    *pcbValue)
 {
-    TDSCOLINFO * colinfo;
-    TDSRESULTINFO * resinfo;
-    TDSSOCKET * tds;
     struct _hstmt *stmt;
-    struct _sql_bind_info *cur, *prev, *newitem;
+    struct _sql_bind_info *cur, *prev = NULL, *newitem;
 
     CHECK_HSTMT;
     if (icol == 0)
@@ -771,9 +771,8 @@ SQLRETURN SQL_API SQLDescribeCol(
                                 SQLSMALLINT FAR   *pfNullable)
 {
     TDSSOCKET *tds;
-    TDSRESULTINFO * resinfo;
     TDSCOLINFO *colinfo;
-    int cplen, namelen, i;
+    int cplen, namelen;
     struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
     CHECK_HSTMT;
@@ -1104,7 +1103,6 @@ _SQLExecute( SQLHSTMT hstmt)
     struct _hstmt *stmt = (struct _hstmt *) hstmt;
     int ret;
     TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
-    TDSCOLINFO *colinfo;
 
     CHECK_HSTMT;
 
@@ -1134,7 +1132,6 @@ SQLRETURN SQL_API SQLExecDirect(
                                SQLINTEGER         cbSqlStr)
 {
     struct _hstmt *stmt = (struct _hstmt *) hstmt;
-    int ret;
 
     CHECK_HSTMT;
 
@@ -1699,7 +1696,6 @@ SQLRETURN SQL_API SQLGetConnectOption(
                                      SQLPOINTER         pvParam)
 {
     struct _hdbc *dbc = (struct _hdbc *) hdbc;
-    SQLUINTEGER *piParam = (SQLUINTEGER *) pvParam;
 
     /* TODO implement more options
      * AUTOCOMMIT required by DBD::ODBC
@@ -1808,7 +1804,6 @@ SQLRETURN SQL_API SQLGetFunctions(
                                  SQLUSMALLINT       fFunction,
                                  SQLUSMALLINT FAR  *pfExists)
 {
-    int i;
 
     CHECK_HDBC;
 
@@ -2373,7 +2368,7 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
 	TDSRESULTINFO * resinfo;
 	TDSCOLINFO *colinfo;
 
-        int i, icol;
+        int icol;
 	char *p;
 
 	resinfo = tds->res_info;
