@@ -1,4 +1,8 @@
-Thu Jul 28 12:21:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+Fri Jul 30 16:28:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO src/odbc/odbc.c:
+	- support for binding offset retrieving data
+
+Thu Jul 29 12:21:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/blk.c src/ctlib/cs.c:
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/dblib/rpc.c src/dblib/xact.c src/pool/config.c:
@@ -9,7 +13,7 @@ Thu Jul 28 12:21:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	- changed log system to vfprintf
 	- update ODBC for PARAMSET_SIZE
 
-Wed Jul 27 15:43:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+Wed Jul 28 15:43:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/blk.c: fix possible buffer overflow
 	* src/dblib/bcp.c: fix memory leak, use strdup
 

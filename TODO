@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.112 2004-06-05 16:45:29 freddy77 Exp $
+To Do List	$Id: TODO,v 1.113 2004-07-30 14:29:43 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -135,6 +135,14 @@ For future versions (in priority order within library):
   - what happen to SQL_DESC_DATETIME_INTERVAL_CODE and SQL_DESC_CONCISE_TYPE
     changing only SQL_DESC_TYPE (with SQLSetDescField)
 . test: set SQL_C_DEFAULT and call SQLFetch (numeric, others)
+. test: SQLGetStmtAttr(SQL_ATTR_ROW_NUMBER)
+  - all binded parameters
+  - no bind and sqlgetdata
+  - before first fetch
+  - after last fetch
+. bind offset + tests
+. PARAMSET_SIZE and related
+
 
   pool
 . get connection pooling working with all protocol versions

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.336 2004-07-29 11:23:23 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.337 2004-07-30 14:29:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2588,6 +2588,8 @@ _SQLFetch(TDS_STMT * stmt)
 
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	size_t row_offset = 0;
+	if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && stmt->ard->header.sql_desc_bind_offset_ptr)
+		row_offset = *stmt->ard->header.sql_desc_bind_offset_ptr;
 
 	ard = stmt->ard;
 
@@ -3086,6 +3088,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->ard->header.sql_desc_bind_type;
 		break;
 	case SQL_ATTR_ROW_NUMBER:
+		/* TODO update this value */
 		size = sizeof(stmt->attr.row_number);
 		src = &stmt->attr.row_number;
 		break;
@@ -5020,6 +5023,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.noscan = ui;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
+		/* TODO use it, test what happen with column-wise and row-wise bindings and SQLPutData */
 		stmt->apd->header.sql_desc_bind_offset_ptr = ip;
 		break;
 	case SQL_ATTR_PARAM_BIND_TYPE:
@@ -5068,6 +5072,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ard->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
+		/* TODO test what happen with column-wise and row-wise bindings and SQLGetData */
 		stmt->ard->header.sql_desc_bind_offset_ptr = ip;
 		break;
 #if SQL_BIND_TYPE != SQL_ATTR_ROW_BIND_TYPE
