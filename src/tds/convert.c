@@ -24,14 +24,14 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.11 2002-05-20 01:23:38 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.12 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef union dbany {
-        TDS_TINYINT	ti;
-        TDS_SMALLINT	si;
-        TDS_INT		i;
+	TDS_TINYINT	ti;
+	TDS_SMALLINT	si;
+	TDS_INT		i;
 	TDS_FLOAT		f;
 	TDS_REAL		r;
 	TDS_CHAR		*c;
@@ -39,19 +39,38 @@ typedef union dbany {
 	TDS_MONEY4	m4;
 	TDS_DATETIME	dt;
 	TDS_DATETIME4	dt4;
-/*
 	TDS_NUMERIC	n;
-*/
 } DBANY; 
+
+struct diglist {
+	short int dig;
+	short int carried;
+	struct diglist *nextptr;
+};
 
 typedef unsigned short utf16_t;
 
-static TDS_INT tds_convert_any(TDS_CHAR *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any);
-static int _string_to_tm(char *datestr, struct tm *t);
 static int _tds_pad_string(char *dest, int destlen);
 extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
+TDS_INT tds_convert_any(unsigned char *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any);
+static int string_to_datetime(char *datestr, int desttype, DBANY *);
+static int string_to_numeric(char *instr, DBANY *any);
+static int store_hour(char *, char *, struct tds_time *);
+static int store_time(char *, struct tds_time * );
+static int store_yymmdd_date(char *, struct tds_time *);
+static int store_monthname(char *, struct tds_time *);
+static int store_numeric_date(char *, struct tds_time *);
+static int store_mday(char *, struct tds_time *);
+static int store_year(int,  struct tds_time *);
+static int is_timeformat(char *);
+static int is_numeric(char *);
+static int is_alphabetic(char *);
+static int is_ampm(char *);
+static int is_monthname(char *);
+static int is_numeric_dateformat(char *);
 
+extern int g__numeric_bytes_per_prec[];
 
 /* 
 this needs to go... 
@@ -67,7 +86,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 	if (srctype == SYBINTN) {
 		if (colsize==8)
 			 return SYBINT8;
-		if (colsize==4)
+		else if (colsize==4)
 			 return SYBINT4;
 		else if (colsize==2)
 			 return SYBINT2;
@@ -218,20 +237,27 @@ TDS_VARBINARY *varbin;
 }
 
 static TDS_INT 
-tds_convert_char(int srctype,TDS_CHAR *src,
+tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 DBANY any;
-struct tm t;
 time_t secs_from_epoch;
+int    days_since_1970;
+int    secs_in_a_day = 60 * 60 * 24;
+int    ms;
+float  conv_ms;
+int    ret;
+
    
    switch(desttype) {
       case SYBCHAR:
       case SYBVARCHAR:
       case SYBNVARCHAR:
-         any.c = src;
-         break;
       case SYBTEXT:
+		any.c = malloc(srclen + 1);
+		memset(any.c, '\0', srclen + 1);
+		memcpy(any.c, src, srclen);
+		break;
          break;
       case SYBBINARY:
       case SYBIMAGE:
@@ -260,30 +286,34 @@ time_t secs_from_epoch;
       case SYBMONEY4:
          break;
       case SYBDATETIME:
-	 _string_to_tm(src, &t);
-	 secs_from_epoch = mktime(&t);
-	 any.dt.dtdays = (secs_from_epoch/60/60/24)+25567;
-	 any.dt.dttime = (secs_from_epoch%60%60%24)*300;
-         break;
+		string_to_datetime(src, SYBDATETIME, &any);
+		break;
       case SYBDATETIME4:
-	 _string_to_tm(src, &t);
-	 secs_from_epoch = mktime(&t);
-	 any.dt4.days = (secs_from_epoch/60/60/24)+25567;
-	 any.dt4.minutes = (secs_from_epoch%60%60%24)/60;
-         break;
+		string_to_datetime(src, SYBDATETIME4, &any);
+		break;
       case SYBNUMERIC:
       case SYBDECIMAL:
-         break;
+		any.n.precision = ((TDS_NUMERIC *)dest)->precision;
+		any.n.scale = ((TDS_NUMERIC *)dest)->scale;
+		string_to_numeric(src, &any);
+		break;
 /*
 		case SYBBOUNDRY:
 			break;
 		case SYBSENSITIVITY:
 			break;
 */
-      default:
-         return TDS_FAIL;
-   }
-   return tds_convert_any(dest, desttype, destlen, &any);
+		default:
+			return TDS_FAIL;
+	}
+	ret = tds_convert_any(dest, desttype, destlen, &any);
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBNVARCHAR:
+			free(any.c);
+	}
+	return(ret);
 }
 static TDS_INT 
 tds_convert_bit(int srctype,TDS_CHAR *src,
@@ -529,121 +559,196 @@ static TDS_INT
 tds_convert_datetime(TDSLOCINFO *locale, int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
-TDS_INT dtdays, dttime;
-time_t tmp_secs_from_epoch;
-char *dfmt;
-int ret;
-char tmpbuf[256];
-   
+
+DBANY any;
+
+unsigned int dt_days, dt_time;
+int  dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+int dty, years, months, days, hours, mins, secs, ms;
+
+char ampm[3];
+
+char whole_date_string[30];
+
+TDS_INT ret;
+
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-		/* FIX ME -- This fails for dates before 1902 or after 2038 */
-                        if (destlen < 0)
-                                destlen = 30;
-
-                        memset(dest,' ',destlen);
-
+		case SYBNVARCHAR:
+		case SYBTEXT:
 			if (!src) {
-				*dest='\0';
-				return 0;
-			}
-			memcpy(&dtdays, src, 4);
-			memcpy(&dttime, src+4, 4);
-			/* begin <lkrauss@wbs-blank.de> 2001-10-13 */
-			if (dtdays==0 && dttime==0) {
-				*dest='\0';
-				return 0;
-			}
-			/* end lkrauss */
-			if (locale && locale->date_fmt) {
-				dfmt = locale->date_fmt;
+				any.c = malloc(1);
+				*(any.c) = '\0';
 			} else {
-				dfmt = "%b %d %Y %I:%M%p";
+				memcpy(&dt_days, src, 4);
+				memcpy(&dt_time, src + 4, 4);
+
+				/* its a date before 1900 */
+				if (dt_days > 2958463) {
+					dt_days = (unsigned int)4294967295 - dt_days;
+					years = -1;
+					dty = days_this_year(years);
+					while ( dt_days >= dty ) {
+						years--;
+						dt_days -= dty;
+						dty = days_this_year(years);
+					}
+					if (dty == 366 )
+						dim[1] = 29;
+					else
+						dim[1] = 28;
+
+					months = 11;
+					while (dt_days > dim[months] ) {
+						dt_days -= dim[months];
+						months--;
+					}
+
+					days = dim[months] - dt_days;
+				} else {
+					dt_days++;
+					years = 0;
+					dty = days_this_year(years);
+					while ( dt_days > dty ) {
+						years++;
+						dt_days -= dty;
+						dty = days_this_year(years);
+					}
+
+					if (dty == 366 )
+						dim[1] = 29;
+					else
+						dim[1] = 28;
+
+					months = 0;
+					while (dt_days > dim[months] ) {
+						dt_days -= dim[months];
+						months++;
+					}
+					days = dt_days;
+				}
+				secs = dt_time / 300;
+				ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
+
+				hours = 0;
+				while ( secs >= 3600 ) {
+					hours++;
+					secs -= 3600;
+				}
+
+				if ( hours < 12 )
+					strcpy(ampm, "AM");
+				else
+					strcpy(ampm, "PM");
+
+				if ( hours == 0 )
+					hours = 12;
+	               if ( hours > 12 )
+					hours -= 12;
+
+				mins = 0;
+
+				while ( secs >= 60 ) {
+					mins++;
+					secs -= 60;
+				}
+
+				sprintf(whole_date_string,"%s %2d %d %02d:%02d:%02d:%03d%s",
+					mn[months], days, 1900 + years,
+					hours, mins, secs, ms, ampm );
+
+				any.c = malloc (strlen(whole_date_string) + 1);
+				strcpy(any.c , whole_date_string);
 			}
-			tmp_secs_from_epoch = ((dtdays - 25567)*24*60*60) + (dttime/300);
-			ret = strftime(tmpbuf, sizeof(tmpbuf), dfmt,
-				(struct tm*)gmtime(&tmp_secs_from_epoch));
-			if (!ret) {
-				dest[0]='\0';	/* set empty string and return */
-				return 0;
-			}
-			if (destlen<0) destlen = strlen(tmpbuf)+1;
-			if (destlen-1>ret) destlen = ret+1;
-			strncpy(dest,tmpbuf,destlen-1);
-			dest[destlen-1]='\0';
-			return destlen;
 			break;
 		case SYBDATETIME:
-			memcpy(dest,src,sizeof(TDS_DATETIME));
-			return sizeof(TDS_DATETIME);
+			memcpy(&dt_days, src, 4);
+			memcpy(&dt_time, src + 4, 4);
+			any.dt.dtdays = dt_days;
+			any.dt.dttime = dt_time;
 			break;
 		case SYBDATETIME4:
+			memcpy(&dt_days, src, 4);
+			memcpy(&dt_time, src + 4, 4);
+			any.dt4.days    = dt_days;
+			any.dt4.minutes = (dt_time / 300) / 60;
 			break;
 		default:
 			return TDS_FAIL;
 			break;
 	}
-	return TDS_FAIL;
+
+	ret = tds_convert_any(dest, desttype, destlen, &any);
+
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBNVARCHAR:
+		case SYBTEXT:
+			free(any.c);
+		}
+		return(ret);
 }
+
+int days_this_year (int years)
+{
+int year;
+
+   year = 1900 + years;
+   if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+      return 366;
+   else
+      return 365;
+}
+
 static TDS_INT 
 tds_convert_datetime4(TDSLOCINFO *locale, int srctype, TDS_CHAR *src,
 	int desttype, TDS_CHAR *dest,TDS_INT destlen)
 {
-TDS_USMALLINT days, minutes;
-time_t tmp_secs_from_epoch;
-char *dfmt;
-int ret;
-char tmpbuf[256];
-   
+   TDS_USMALLINT days, minutes;
+   time_t tmp_secs_from_epoch;
+  
    switch(desttype) {
       case SYBCHAR:
       case SYBVARCHAR:
-	if (destlen<0) {
-	 	memset(dest,' ',30);
-	} else {
-		memset(dest,' ',destlen);
-	}
-	if (!src) {
-		*dest='\0';
-		return 0;
-	}
-	memcpy(&days, src, 2);
-	memcpy(&minutes, src+2, 2);
-	if (days==0 && minutes==0) {
-		*dest='\0';
-		return 0;
-	}
-	tdsdump_log(TDS_DBG_INFO1, "%L inside tds_convert_datetime4() days = %d minutes = %d\n", days, minutes);
-
-	if (locale && locale->date_fmt) {
-		dfmt = locale->date_fmt;
-	} else {
-		dfmt = "%b %d %Y %I:%M%p";
-	}
-	tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
-    	ret = strftime(tmpbuf, sizeof(tmpbuf), dfmt,
-		(struct tm*)gmtime(&tmp_secs_from_epoch));
-	if (!ret) {
-		dest[0]='\0';	/* set empty string and return */
-		return 0;
-	}
-	if (destlen<0) destlen = strlen(tmpbuf)+1;
-	if (destlen-1>ret) destlen = ret+1;
-	strncpy(dest,tmpbuf,destlen-1);
-	dest[destlen-1]='\0';
-	return destlen;
-	break;
+     if (destlen<0) {
+          memset(dest,' ',30);
+     } else {
+          memset(dest,' ',destlen);
+     }
+     if (!src) {
+          *dest='\0';
+          return 0;
+     }
+     memcpy(&days, src, 2);
+     memcpy(&minutes, src+2, 2);
+     tdsdump_log(TDS_DBG_INFO1, "%L inside tds_convert_datetime4() days = %d minutes = %d\n", days, minutes);
+        tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
+        if (strlen(src)>destlen) {
+           strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
+                    (struct tm*)gmtime(&tmp_secs_from_epoch));
+           return destlen;
+        } else {
+           strftime(dest, 20, "%b %d %Y %I:%M%p",
+                    (struct tm*)gmtime(&tmp_secs_from_epoch));
+           return (strlen(dest));
+     }
+     break;
       case SYBDATETIME:
-	break;
+     break;
       case SYBDATETIME4:
-	memcpy(dest,src,sizeof(TDS_DATETIME4));
-	return(sizeof(TDS_DATETIME4));
+     memcpy(dest,src,sizeof(TDS_DATETIME4));
+     return(sizeof(TDS_DATETIME4));
       default:
          return TDS_FAIL;
-	break;
+     break;
    }
-	return TDS_FAIL;
+     return TDS_FAIL;
+
 }
 
 static TDS_INT 
@@ -702,29 +807,38 @@ TDS_FLOAT the_value;
    return TDS_FAIL;
 }
 
-static TDS_INT 
-tds_convert_any(TDS_CHAR *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any)
+TDS_INT 
+tds_convert_any(unsigned char *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any)
 {
 int i;
+int ret = TDS_FAIL;
 
 	switch(dtype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-			tdsdump_log(TDS_DBG_INFO1, "%L converting string dlen = %d dtype = %d string = %s\n",dlen,dtype,any->c);
-			if (dlen && strlen(any->c)>dlen) {
-				strncpy(dest,any->c,dlen-1);
-				dest[dlen-1]='\0';
-				for (i=strlen(dest)-1;dest[i]==' ';i--)
-					dest[i]='\0';
-				return dlen;
-			} else {
-				strcpy(dest, any->c);
-				for (i=strlen(dest)-1;dest[i]==' ';i--)
-					dest[i]='\0';
-				return strlen(dest);
-			}
-			break;
 		case SYBTEXT:
+			tdsdump_log(TDS_DBG_INFO1, "%L converting string dlen = %d dtype = %d string = %s\n",dlen,dtype,any->c);
+            if (dlen > 0) {
+               if (strlen(any->c) > dlen ) {
+                  strncpy(dest, any->c , dlen);
+               }
+               else {
+                  strcpy(dest, any->c);
+                  for ( i = strlen(dest); i < dlen; i++)
+                     dest[i] = ' ';
+               }
+               ret = dlen;
+            }
+            if (dlen == -1 ) {
+               strcpy(dest, any->c);
+                  for (i=strlen(dest)-1;dest[i]==' ';i--)
+                      dest[i]='\0';
+               ret = strlen(dest);
+            }
+            if (dlen == -2 ) {
+               strcpy(dest, any->c);
+               ret = strlen(dest);
+            }
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
@@ -760,12 +874,16 @@ int i;
 			break;
 		case SYBDATETIME:
 			memcpy(dest,&(any->dt),sizeof(TDS_DATETIME));
+			ret = sizeof(TDS_DATETIME);
 			break;
 		case SYBDATETIME4:
 			memcpy(dest,&(any->dt4),sizeof(TDS_DATETIME4));
+			ret = sizeof(TDS_DATETIME4);
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
+			memcpy(dest,&(any->n), sizeof(TDS_NUMERIC));
+			ret = sizeof(TDS_NUMERIC);
 			break;
 /*
 		case SYBBOUNDRY:
@@ -774,7 +892,7 @@ int i;
 			break;
 */
 	}
-	return TDS_FAIL;
+	return (ret);
 }
 
 TDS_INT 
@@ -787,7 +905,7 @@ TDS_VARBINARY *varbin;
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBNVARCHAR:
-			return tds_convert_char(srctype,src,
+			return tds_convert_char(srctype,src, srclen,
 				desttype,dest,destlen);
 			break;
 		case SYBMONEY4:
@@ -860,41 +978,456 @@ TDS_VARBINARY *varbin;
 	}
 	return TDS_FAIL;
 }
-static int _string_to_tm(char *datestr, struct tm *t)
+static int string_to_datetime(char *instr, int desttype,  DBANY *any)
 {
-enum {TDS_MONTH = 1, TDS_DAY, TDS_YEAR, TDS_HOUR, TDS_MIN, TDS_SEC, TDS_MILLI};
-int state = TDS_MONTH;
-char last_char=0, *s;
+enum states { GOING_IN_BLIND,
+              PUT_NUMERIC_IN_CONTEXT,
+              DOING_ALPHABETIC_DATE,
+              STRING_GARBLED };
 
-	memset(t,'\0',sizeof(struct tm));
+char *in;
+char *tok;
+char last_token[32];
+int   monthdone = 0;
+int   yeardone  = 0;
+int   mdaydone  = 0;
+int   timedone  = 0;
+int   ampmdone  = 0;
 
-	for (s=datestr;*s;s++) {
-		if (! isdigit(*s) && isdigit(last_char)) {
-			state++;
-		} else switch(state) {
-			case TDS_MONTH:
-				t->tm_mon = (t->tm_mon * 10) + (*s - '0');
-				break;
-			case TDS_DAY:
-				t->tm_mday = (t->tm_mday * 10) + (*s - '0');
-				break;
-			case TDS_YEAR:
-				t->tm_year = (t->tm_year * 10) + (*s - '0');
-				break;
-			case TDS_HOUR:
-				t->tm_hour = (t->tm_hour * 10) + (*s - '0');
-				break;
-			case TDS_MIN:
-				t->tm_min = (t->tm_min * 10) + (*s - '0');
-				break;
-			case TDS_SEC:
-				t->tm_sec = (t->tm_sec * 10) + (*s - '0');
-				break;
-		}
-		last_char=*s;
-	}
-	return 0;
+struct tds_time mytime;
+struct tds_time *t;
+
+unsigned int dt_days, dt_time;
+int          dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+int          dty, i;
+float        conv_ms;
+
+int current_state;
+
+	memset(&mytime, '\0', sizeof(struct tds_time));
+	t = &mytime;
+
+	in = (char *)malloc(strlen(instr));
+	strcpy (in , instr );
+
+	tok = strtok (in, " ,");
+
+	current_state = GOING_IN_BLIND;
+
+	while (tok != (char *) NULL) {
+		switch (current_state) {
+			case GOING_IN_BLIND :
+				/* If we have no idea of current context, then if we have */
+				/* encountered a purely alphabetic string, it MUST be an  */
+				/* alphabetic month name or prefix...                     */
+
+				if (is_alphabetic(tok)) {
+					if (is_monthname(tok)) {
+						store_monthname(tok, t);
+						monthdone++;
+						current_state = DOING_ALPHABETIC_DATE;
+					} else {
+						current_state = STRING_GARBLED;
+					}
+				}
+
+              /* ...whereas if it is numeric, it could be a number of   */
+              /* things...                                              */
+
+              else if (is_numeric(tok)) {
+                      switch(strlen(tok)) {
+                         /* in this context a 4 character numeric can   */
+                         /* ONLY be the year part of an alphabetic date */
+
+                         case 4:
+                            store_year(atoi(tok), t);
+                            yeardone++;
+                            current_state = DOING_ALPHABETIC_DATE;
+                            break;
+
+                         /* whereas these could be the hour part of a   */
+                         /* time specification ( 4 PM ) or the leading  */
+                         /* day part of an alphabetic date ( 15 Jan )   */
+
+                         case 2:
+                         case 1:
+                            strcpy(last_token, tok);
+                            current_state = PUT_NUMERIC_IN_CONTEXT;
+                            break;
+
+                         /* this must be a [YY]YYMMDD date             */
+
+                         case 6:
+                         case 8:
+                            if (store_yymmdd_date(tok, t))
+                               current_state = GOING_IN_BLIND;
+                            else
+                               current_state = STRING_GARBLED;
+                            break;
+
+                         /* anything else is nonsense...               */
+
+                         default:
+                            current_state = STRING_GARBLED;
+                            break;
+                      }
+                   }
+
+                   /* it could be [M]M/[D]D/[YY]YY format              */
+
+                   else if (is_numeric_dateformat(tok)) {
+                            store_numeric_date(tok, t);
+                            current_state = GOING_IN_BLIND;
+                   } else if (is_timeformat(tok)) {
+                                store_time(tok, t);
+                                current_state = GOING_IN_BLIND;
+                   } else {
+                                 current_state = STRING_GARBLED;
+						 }
+
+              break;   /* end of GOING_IN_BLIND */                               
+
+           case DOING_ALPHABETIC_DATE:
+
+              if (is_alphabetic(tok)) {
+                 if (!monthdone && is_monthname(tok)) {
+                     store_monthname(tok, t);
+                     monthdone++;
+                     if (monthdone && yeardone && mdaydone )
+                        current_state = GOING_IN_BLIND;
+                     else
+                        current_state = DOING_ALPHABETIC_DATE;
+                 } else {
+                     current_state = STRING_GARBLED;
+					  }
+              } else if (is_numeric(tok)) {
+                      if (mdaydone && yeardone)
+                          current_state = STRING_GARBLED;
+                      else switch(strlen(tok)) {
+                              case 4:
+                                 store_year(atoi(tok), t);
+                                 yeardone++;
+                                 if (monthdone && yeardone && mdaydone )
+                                    current_state = GOING_IN_BLIND;
+                                 else
+                                    current_state = DOING_ALPHABETIC_DATE;
+                                 break;
+
+                              case 2:
+                              case 1:
+                                 if (!mdaydone) {
+                                    store_mday(tok, t);
+
+                                    mdaydone++;
+                                    if (monthdone && yeardone && mdaydone )
+                                       current_state = GOING_IN_BLIND;
+                                    else
+                                       current_state = DOING_ALPHABETIC_DATE;
+                                 } else {
+                                    store_year(atoi(tok), t);
+                                    yeardone++;
+                                    if (monthdone && yeardone && mdaydone )
+                                       current_state = GOING_IN_BLIND;
+                                    else
+                                       current_state = DOING_ALPHABETIC_DATE;
+                                 }
+                                 break;
+
+                              default:
+                                 current_state = STRING_GARBLED;
+                           }
+                   } else {
+                     current_state = STRING_GARBLED;
+						 }
+
+              break;   /* end of DOING_ALPHABETIC_DATE */                        
+
+           case PUT_NUMERIC_IN_CONTEXT:
+
+              if (is_alphabetic(tok)) {
+                 if (is_monthname(tok)) {
+                     store_mday(last_token, t);
+                     mdaydone++;
+                     store_monthname(tok, t);
+                     monthdone++;
+                     if (monthdone && yeardone && mdaydone )
+                        current_state = GOING_IN_BLIND;
+                     else
+                        current_state = DOING_ALPHABETIC_DATE;
+                 } else if (is_ampm(tok)) {
+                     store_hour(last_token, tok, t);
+                     current_state = GOING_IN_BLIND;
+                 } else {
+                         current_state = STRING_GARBLED;
+					  }
+              } else if (is_numeric(tok)) {
+                      switch(strlen(tok)) {
+                         case 4:
+                         case 2:
+                           store_mday(last_token, t);
+                           mdaydone++;
+                           store_year(atoi(tok), t);
+                           yeardone++;
+
+                           if (monthdone && yeardone && mdaydone )
+                              current_state = GOING_IN_BLIND;
+                           else
+                              current_state = DOING_ALPHABETIC_DATE;
+                           break;
+
+                         default:
+                           current_state = STRING_GARBLED;
+                       }
+                } else {
+                   current_state = STRING_GARBLED;
+					 }
+
+              break;   /* end of PUT_NUMERIC_IN_CONTEXT */                       
+
+           case STRING_GARBLED:
+              return (0);
+        }
+
+        tok = strtok((char *)NULL, " ,");
+    }
+
+    /* 1900 or after */ 
+    if (t->tm_year >= 0) {
+       dt_days = 0;
+       for (i = 0; i < t->tm_year ; i++) {
+           dty = days_this_year(i);
+           dt_days += dty;
+       }
+
+       dty = days_this_year(i);
+       if (dty == 366 )
+           dim[1] = 29;
+       else
+           dim[1] = 28;
+       for (i = 0; i < t->tm_mon ; i++) {
+           dt_days += dim[i];
+       }
+
+       dt_days += (t->tm_mday - 1);
+
+    } else {
+       dt_days = 4294967295;  /* 0xffffffff */
+       for (i = -1; i > t->tm_year ; i--) {
+           dty = days_this_year(i);
+           dt_days -= dty;
+       }
+       dty = days_this_year(i);
+       if (dty == 366 )
+           dim[1] = 29;
+       else
+           dim[1] = 28;
+
+       for (i = 11; i > t->tm_mon ; i--) {
+           dt_days -= dim[i];
+       }
+
+       dt_days -= dim[i] - t->tm_mday;
+
+    }
+
+    if ( desttype == SYBDATETIME ) {
+       any->dt.dtdays = dt_days;
+
+       dt_time = 0;
+
+       for (i = 0; i < t->tm_hour ; i++)
+           dt_time += 3600;
+
+       for (i = 0; i < t->tm_min ; i++)
+           dt_time += 60;
+
+       dt_time += t->tm_sec;
+
+       any->dt.dttime = dt_time * 300;
+
+       conv_ms = ((float)t->tm_ms / 1000) * 300;
+       any->dt.dttime += conv_ms;
+    } else {
+       /* SYBDATETIME4 */ 
+       any->dt4.days = dt_days;
+
+       dt_time = 0;
+
+       for (i = 0; i < t->tm_hour ; i++)
+           dt_time += 60;
+
+       for (i = 0; i < t->tm_min ; i++)
+           dt_time += 1;
+
+        any->dt4.minutes = dt_time;
+
+    }
+
+    free(in);
+    return (1);
 }
+
+static int string_to_numeric(char *instr, DBANY *any)
+{
+
+char  mynumber[39];
+unsigned char  mynumeric[16]; 
+
+char *ptr;
+char c = '\0';
+
+unsigned char masks[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+
+short int  binarylist[128];
+short int  carry_on = 1;
+short int  i = 0;
+short int  j = 0;
+short int  x = 0;
+short int bits, bytes, places, point_found, sign;
+
+struct diglist *topptr = (struct diglist *)NULL;
+struct diglist *curptr = (struct diglist *)NULL;
+struct diglist *freeptr = (struct diglist *)NULL;
+
+  sign        = 0;
+  point_found = 0;
+  places      = 0;
+
+
+  if (any->n.precision == 0)
+     any->n.precision = 18; 
+
+
+  for (ptr = instr; *ptr == ' '; ptr++);  /* skip leading blanks */
+
+  if (*ptr == '-' || *ptr == '+')         /* deal with a leading sign */
+  {
+     if (*ptr == '-')
+        sign = 1;
+     ptr++;
+  }
+
+  for(; *ptr; ptr++)                      /* deal with the rest */
+  {
+     if (isdigit(*ptr))                   /* its a number */
+     {  
+        mynumber[i++] = *ptr;
+        if (point_found)                  /* if we passed a decimal point */
+           places++;                      /* count digits after that point  */
+     }
+     else if (*ptr == '.')                /* found a decimal point */
+          {
+             if (point_found)             /* already had one. lose the rest */
+                break;
+             if (any->n.scale == 0)       /* no scale...lose the rest  */
+                break;
+             point_found = 1;
+          }
+          else                            /* first invalid character */
+             break;                       /* lose the rest.          */
+  }
+
+
+  if (any->n.scale > 0)                   /* scale specified, pad out */
+  {                                       /* number with zeroes to the */
+                                          /* scale...                  */
+
+     for (j = 0 ; j < (any->n.scale - places) ; j++ )
+         mynumber[i++] = '0';
+
+  }
+
+  mynumber[i] = '\0';
+
+
+  if (strlen(mynumber) > any->n.precision )
+     strcpy(mynumber, &mynumber[strlen(mynumber) - any->n.precision]);
+ 
+  for (ptr = mynumber; *ptr; ptr++)
+  {
+      if (topptr == (struct diglist *)NULL)
+      {
+          topptr = (struct diglist *)malloc(sizeof(struct diglist));
+          curptr = topptr;
+          curptr->nextptr = NULL;
+          curptr->dig = *ptr - 48;
+          curptr->carried = 0;
+      }
+      else
+      {
+          curptr->nextptr = (struct diglist *)malloc(sizeof(struct diglist));
+          curptr = curptr->nextptr;
+          curptr->nextptr = NULL;
+          curptr->dig = *ptr - 48;
+          curptr->carried = 0;
+      }
+  }
+
+  memset(&binarylist[0], '\0',  sizeof(short int) * 128);
+  i = 127;
+
+  while (carry_on)
+  {
+     carry_on = 0;
+     for (curptr = topptr ; curptr != NULL; curptr = curptr->nextptr)
+     {
+         if (curptr->dig > 0)
+            carry_on = 1;
+     
+         if (curptr->nextptr != NULL )
+         {
+            curptr->nextptr->carried = ( ( curptr->carried * 10 ) + curptr->dig ) % 2;
+            curptr->dig =  ( ( curptr->carried * 10 ) + curptr->dig ) / 2;
+         }
+         else
+         {
+            if (carry_on)
+            {
+               binarylist[i--] = ( ( curptr->carried * 10 ) + curptr->dig ) % 2;
+            }
+            curptr->dig = ( ( curptr->carried * 10 ) + curptr->dig ) / 2;
+         }
+     }
+
+  }
+
+  memset(any->n.array, '\0', 17);
+  bits  = 0;
+  bytes = 1;
+
+  any->n.array[0] = sign;
+
+  x = g__numeric_bytes_per_prec[any->n.precision] - 1;
+
+  for (i = 128 - (x * 8); i < 128 ; i++)
+  {
+     if (binarylist[i])
+     {
+        c = c | masks[bits]; 
+     }
+     bits++;
+     if (bits == 8)
+     {
+        any->n.array[bytes] = c;
+
+        bytes++;
+        bits = 0;
+        c    = '\0';
+     }
+  }
+
+  curptr = topptr;
+  while (curptr != NULL)
+  {
+      freeptr = curptr;
+      curptr  = curptr->nextptr;
+      free(freeptr);
+  }
+}
+
+
+
+
 static int _tds_pad_string(char *dest, int destlen)
 {
 int i=0;
@@ -907,6 +1440,407 @@ int i=0;
 	return i;
 }
  
+
+static int is_numeric_dateformat(char *t)
+{
+char *instr ;
+int   ret   = 1;
+int   slashes  = 0;
+int   hyphens  = 0;
+int   periods  = 0;
+int   digits   = 0;
+
+    for (instr = t; *instr; instr++ )
+    {
+        if (!isdigit(*instr) && *instr != '/' && *instr != '-' && *instr != '.' )
+        {
+            ret = 0;
+            break;
+        }
+        if (*instr == '/' ) slashes++;
+        else if (*instr == '-' ) hyphens++;
+             else if (*instr == '.' ) periods++;
+                  else digits++;
+       
+    }
+    if (hyphens + slashes + periods != 2)
+       ret = 0;
+    if (hyphens == 1 || slashes == 1 || periods == 1)
+       ret = 0;
+
+    if (digits < 4 || digits > 8)
+       ret = 0;
+
+    return(ret);
+
+}
+
+static int is_monthname(char *datestr)
+{
+
+int ret = 0;
+
+    if (strlen(datestr) == 3)
+    {
+       if (strcasecmp(datestr,"jan") == 0) ret = 1;
+       else if (strcasecmp(datestr,"feb") == 0) ret = 1;
+       else if (strcasecmp(datestr,"mar") == 0) ret = 1;
+       else if (strcasecmp(datestr,"apr") == 0) ret = 1;
+       else if (strcasecmp(datestr,"may") == 0) ret = 1;
+       else if (strcasecmp(datestr,"jun") == 0) ret = 1;
+       else if (strcasecmp(datestr,"jul") == 0) ret = 1;
+       else if (strcasecmp(datestr,"aug") == 0) ret = 1;
+       else if (strcasecmp(datestr,"sep") == 0) ret = 1;
+       else if (strcasecmp(datestr,"oct") == 0) ret = 1;
+       else if (strcasecmp(datestr,"nov") == 0) ret = 1;
+       else if (strcasecmp(datestr,"dec") == 0) ret = 1;
+       else ret = 0;
+    }
+    else
+    {
+       if (strcasecmp(datestr,"january") == 0) ret = 1;
+       else if (strcasecmp(datestr,"february") == 0) ret = 1;
+       else if (strcasecmp(datestr,"march") == 0) ret = 1;
+       else if (strcasecmp(datestr,"april") == 0) ret = 1;
+       else if (strcasecmp(datestr,"june") == 0) ret = 1;
+       else if (strcasecmp(datestr,"july") == 0) ret = 1;
+       else if (strcasecmp(datestr,"august") == 0) ret = 1;
+       else if (strcasecmp(datestr,"september") == 0) ret = 1;
+       else if (strcasecmp(datestr,"october") == 0) ret = 1;
+       else if (strcasecmp(datestr,"november") == 0) ret = 1;
+       else if (strcasecmp(datestr,"december") == 0) ret = 1;
+       else ret = 0;
+
+    }
+    return(ret);
+
+}
+static int is_ampm(char *datestr)
+{
+
+int ret = 0;
+
+    if (strcasecmp(datestr,"am") == 0) ret = 1;
+    else if (strcasecmp(datestr,"pm") == 0) ret = 1;
+    else ret = 0;
+
+    return(ret);
+
+}
+
+static int is_alphabetic(char *datestr)
+{
+char *s;
+int  ret = 1;
+    for (s = datestr; *s; s++) {
+        if (!isalpha(*s))
+           ret = 0; 
+    }
+    return(ret);
+}
+
+static int is_numeric(char *datestr)
+{
+char *s;
+int  ret = 1;
+    for (s = datestr; *s; s++) {
+        if (!isdigit(*s))
+           ret = 0; 
+    }
+    return(ret);
+}
+
+static int is_timeformat(char *datestr)
+{
+char *s;
+int  ret = 1;
+    for (s = datestr; *s; s++) 
+    {
+        if (!isdigit(*s) && *s != ':' && *s != '.' )
+          break;
+    }
+    if ( *s )
+    {
+       if (strcasecmp(s, "am" ) != 0 && strcasecmp(s, "pm" ) != 0 )
+          ret = 0; 
+    }
+    
+
+    return(ret);
+}
+
+static int store_year(int year , struct tds_time *t)
+{
+
+    if ( year <= 0 )
+       return 0; 
+
+    if ( year < 100 )
+    {
+       if (year > 49)
+          t->tm_year = year;
+       else
+          t->tm_year = 100 + year ;
+       return (1);
+    }
+
+    if ( year < 1753 )
+       return (0);
+
+    if ( year <= 9999 )
+    {
+       t->tm_year = year - 1900;
+       return (1);
+    }
+
+    return (0);
+
+}
+static int store_mday(char *datestr , struct tds_time *t)
+{
+int  mday = 0;
+
+    mday = atoi(datestr);
+
+    if ( mday > 0 && mday < 32 )
+    {
+       t->tm_mday = mday;
+       return (1);
+    }
+    else
+       return 0; 
+}
+
+static int store_numeric_date(char *datestr , struct tds_time *t)
+{
+enum {TDS_MONTH, 
+      TDS_DAY, 
+      TDS_YEAR};
+
+int  state = TDS_MONTH;
+char last_char = 0; 
+char *s;
+int  month = 0, year = 0, mday = 0;
+
+    for (s = datestr; *s; s++) {
+        if (! isdigit(*s) && isdigit(last_char)) {
+            state++;
+        } else switch(state) {
+            case TDS_MONTH:
+                month = (month * 10) + (*s - '0');
+                break;
+            case TDS_DAY:
+                mday = (mday * 10) + (*s - '0');
+                break;
+            case TDS_YEAR:
+                year = (year * 10) + (*s - '0');
+                break;
+        }
+        last_char = *s;
+    }
+
+    if ( month > 0 && month < 13 )
+       t->tm_mon = month - 1;
+    else
+       return 0; 
+    if ( mday > 0 && mday < 32 )
+       t->tm_mday = mday;
+    else
+       return 0; 
+
+    return store_year(year, t);
+
+}
+
+static int store_monthname(char *datestr , struct tds_time *t)
+{
+
+int ret = 0;
+
+    if (strlen(datestr) == 3)
+    {
+       if (strcasecmp(datestr,"jan") == 0) t->tm_mon = 0;
+       else if (strcasecmp(datestr,"feb") == 0) t->tm_mon = 1;
+       else if (strcasecmp(datestr,"mar") == 0) t->tm_mon = 2;
+       else if (strcasecmp(datestr,"apr") == 0) t->tm_mon = 3;
+       else if (strcasecmp(datestr,"may") == 0) t->tm_mon = 4;
+       else if (strcasecmp(datestr,"jun") == 0) t->tm_mon = 5;
+       else if (strcasecmp(datestr,"jul") == 0) t->tm_mon = 6;
+       else if (strcasecmp(datestr,"aug") == 0) t->tm_mon = 7;
+       else if (strcasecmp(datestr,"sep") == 0) t->tm_mon = 8;
+       else if (strcasecmp(datestr,"oct") == 0) t->tm_mon = 9;
+       else if (strcasecmp(datestr,"nov") == 0) t->tm_mon = 10;
+       else if (strcasecmp(datestr,"dec") == 0) t->tm_mon = 11;
+       else ret = 0;
+    }
+    else
+    {
+       if (strcasecmp(datestr,"january") == 0) t->tm_mon = 0;
+       else if (strcasecmp(datestr,"february") == 0) t->tm_mon = 1;
+       else if (strcasecmp(datestr,"march") == 0) t->tm_mon = 2;
+       else if (strcasecmp(datestr,"april") == 0) t->tm_mon = 3;
+       else if (strcasecmp(datestr,"june") == 0) t->tm_mon = 5;
+       else if (strcasecmp(datestr,"july") == 0) t->tm_mon = 6;
+       else if (strcasecmp(datestr,"august") == 0) t->tm_mon = 7;
+       else if (strcasecmp(datestr,"september") == 0) t->tm_mon = 8;
+       else if (strcasecmp(datestr,"october") == 0) t->tm_mon = 9;
+       else if (strcasecmp(datestr,"november") == 0) t->tm_mon = 10;
+       else if (strcasecmp(datestr,"december") == 0) t->tm_mon = 11;
+       else ret = 0;
+
+    }
+    return(ret);
+
+}
+static int store_yymmdd_date(char *datestr , struct tds_time *t)
+{
+int  month = 0, year = 0, mday = 0;
+
+int wholedate;
+
+    wholedate = atoi(datestr);
+
+    year  = wholedate / 10000 ;
+    month = ( wholedate - (year * 10000) ) / 100 ; 
+    mday  = ( wholedate - (year * 10000) - (month * 100) );
+
+    if ( month > 0 && month < 13 )
+       t->tm_mon = month - 1;
+    else
+       return 0; 
+    if ( mday > 0 && mday < 32 )
+       t->tm_mday = mday;
+    else
+       return 0; 
+
+    return (store_year(year, t));
+
+}
+
+static int store_time(char *datestr , struct tds_time *t)
+{
+enum {TDS_HOURS, 
+      TDS_MINUTES, 
+      TDS_SECONDS,
+      TDS_FRACTIONS};
+
+int  state = TDS_HOURS;
+char last_char = 0; 
+char last_sep;
+char *s;
+int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
+int ret = 1;
+
+    for (s = datestr; 
+         *s && strchr("apmAPM" , (int) *s) == (char *)NULL; 
+         s++) 
+    {
+        if ( *s == ':' || *s == '.' ) {
+            last_sep = *s;
+            state++;
+        } else switch(state) {
+            case TDS_HOURS:
+                hours = (hours * 10) + (*s - '0');
+                break;
+            case TDS_MINUTES:
+                minutes = (minutes * 10) + (*s - '0');
+                break;
+            case TDS_SECONDS:
+                seconds = (seconds * 10) + (*s - '0');
+                break;
+            case TDS_FRACTIONS:
+                millisecs = (millisecs * 10) + (*s - '0');
+                break;
+        }
+        last_char = *s;
+    }
+    if (*s)
+    {
+       if(strcasecmp(s,"am") == 0)
+       {
+          if (hours == 12)
+              hours = 0;
+
+          t->tm_hour = hours;
+       }
+       if(strcasecmp(s,"pm") == 0)
+       {
+          if (hours == 0)
+              ret = 0;
+          if (hours > 0 && hours < 12)
+              t->tm_hour = hours + 12;
+          else
+              t->tm_hour = hours;
+       }
+    }
+    else
+    {
+      if (hours >= 0 && hours < 24 )
+         t->tm_hour = hours;
+      else
+         ret = 0;
+    }
+    if (minutes >= 0 && minutes < 60)
+      t->tm_min = minutes;
+    else
+      ret = 0;
+    if (seconds >= 0 && minutes < 60)
+      t->tm_sec = seconds;
+    else
+      ret = 0;
+    if (millisecs)
+    {
+      if (millisecs >= 0 && millisecs < 1000 )
+      {
+         if (last_sep == ':')
+            t->tm_ms = millisecs;
+         else
+         {
+
+            if (millisecs < 10)
+               t->tm_ms = millisecs * 100;
+            else if (millisecs < 100 )
+                    t->tm_ms = millisecs * 10;
+                 else 
+                    t->tm_ms = millisecs;
+         }
+      }
+      else
+        ret = 0;
+    }
+
+
+    return (ret);
+}
+static int store_hour(char *hour , char *ampm , struct tds_time *t)
+{
+int ret = 1;
+int  hours;
+
+    hours = atoi(hour);
+
+    if (hours >= 0 && hours < 24 )
+    {
+       if(strcasecmp(ampm,"am") == 0)
+       {
+          if (hours == 12)
+              hours = 0;
+
+          t->tm_hour = hours;
+       }
+       if(strcasecmp(ampm,"pm") == 0)
+       {
+          if (hours == 0)
+              ret = 0;
+          if (hours > 0 && hours < 12)
+              t->tm_hour = hours + 12;
+          else
+              t->tm_hour = hours;
+       }
+    }
+    return (ret);
+}
+
 TDS_INT tds_get_null_type(int srctype)
 {
 
@@ -933,3 +1867,4 @@ TDS_INT tds_get_null_type(int srctype)
 	}
 	return srctype;
 }
+ 

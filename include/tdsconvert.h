@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.3 2002-02-17 20:23:37 brianb Exp $";
+         "$Id: tdsconvert.h,v 1.4 2002-05-25 00:33:49 brianb Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
@@ -42,5 +42,15 @@ extern TDS_INT _convert_datetime(int srctype,unsigned char *src,int desttype,uns
 extern int _get_conversion_type(int srctype, int colsize);
 TDS_INT tds_convert(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_CHAR *dest, TDS_UINT destlen);
+
+struct  tds_time {
+int tm_year;
+int tm_mon;
+int tm_mday;
+int tm_hour;
+int tm_min;
+int tm_sec;
+int tm_ms;
+};
 
 #endif

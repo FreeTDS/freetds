@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.14 2002-04-06 20:20:28 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.15 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -581,13 +581,19 @@ int i;
 		free(dbproc->bcp_errorfile);
 	if (dbproc->bcp_columns) {
 		for (i=0;i<dbproc->bcp_colcount;i++) {
-			if (dbproc->bcp_columns[i]->terminator)
-				free(dbproc->bcp_columns[i]->terminator);
 			if (dbproc->bcp_columns[i]->data)
 				free(dbproc->bcp_columns[i]->data);
 			free(dbproc->bcp_columns[i]);
 		}
 		free(dbproc->bcp_columns);
+	}
+	if (dbproc->host_columns) {
+		for (i=0;i<dbproc->host_colcount;i++) {
+			if (dbproc->host_columns[i]->terminator)
+				free(dbproc->host_columns[i]->terminator);
+			free(dbproc->host_columns[i]);
+		}
+		free(dbproc->host_columns);
 	}
 
    	dbfreebuf(dbproc);
@@ -839,9 +845,36 @@ static int _db_get_server_type(int bindtype)
 		case TINYBIND:
 			return SYBINT1;
 			break;
-                default:
-                        return -1;
-                        break;
+          case DATETIMEBIND:
+               return SYBDATETIME;
+               break;
+          case SMALLDATETIMEBIND:
+               return SYBDATETIME4;
+               break;
+          case MONEYBIND:
+               return SYBMONEY;
+               break;
+          case SMALLMONEYBIND:
+               return SYBMONEY4;
+               break;
+          case BINARYBIND:
+               return SYBBINARY;
+               break;
+          case VARYCHARBIND:
+               return SYBVARCHAR;
+               break;
+          case BITBIND:
+               return SYBBIT;
+               break;
+          case NUMERICBIND:
+               return SYBNUMERIC;
+               break;
+          case DECIMALBIND:
+               return SYBDECIMAL;
+               break;
+          default:
+               return -1;
+               break;
 	}
 }
 /* Notes on changes:
@@ -1762,48 +1795,155 @@ RETCODE dbmny4cmp(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2)
 }
 RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbdatecmp()\n");
+	if (d1->dtdays == d2->dtdays ) {
+		if ( d1->dttime == d2->dttime )
+			return 0;
+		else
+			return d1->dttime > d2->dttime ? 1 : -1 ;
+	}
+
+	/* date 1 is before 1900 */
+	if (d1->dtdays > 2958463) {
+
+		if (d2->dtdays > 2958463) /* date 2 is before 1900 */
+			return d1->dtdays > d2->dtdays ? 1 : -1 ;
+		else
+			return -1;
+	} else {
+		/* date 1 is after 1900 */
+		if (d2->dtdays < 2958463) /* date 2 is after 1900 */
+			return d1->dtdays > d2->dtdays ? 1 : -1 ;
+		else
+			return 1;
+	}
 	return SUCCEED;
 }
 RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt)
 {
-struct tm *t;
-time_t secs_from_epoch;
-int millis;
+TDS_INT dt_days;
+TDS_INT dt_time;
 
-	secs_from_epoch = ((dt->dtdays - 25567)*24*60*60) + (dt->dttime/300);
-	/* Mac OS 8/9 uses Jan 1, 1904 as the epoch. (mlilback, 11/7/01) */
-#if TARGET_API_MAC_OS8
-	secs_from_epoch += ((365L * 66L) + 17) * 24L * 60L * 60L;
-#endif
-	millis = dt->dttime%300;
-	t = (struct tm *) gmtime(&secs_from_epoch);
+DBDATETIME *mydt;
+
+int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
+char *c;
+int i;
+
+
+	mydt = dt;
+	c = (char *)mydt;
+	for (i = 0; i < 8; i++) {
+		printf(">%x<\n", *c);
+		c++;
+	}
+	dt_days = dt->dtdays;
+	dt_time = dt->dttime;
+
+	if (dt_days > 2958463) /* its a date before 1900 */ {
+		dt_days = (unsigned int)4294967295 - dt_days;
+		wday = 7 - ( dt_days % 7); 
+		years = -1;
+		dty = days_this_year(years);
+
+		while ( dt_days >= dty ) {
+			years--; 
+			dt_days -= dty;
+			dty = days_this_year(years);
+		}
+		if (dty == 366 )
+			dim[1] = 29;
+		else
+			dim[1] = 28;
+
+		ydays = dty - dt_days;
+		months = 11;
+ 
+		while (dt_days > dim[months] ) {
+			dt_days -= dim[months];
+			months--;
+		}
+
+		days = dim[months] - dt_days;
+	} else {
+		wday = ( dt_days + 1 ) % 7; /* 'cos Jan 1 1900 was Monday */
+
+		dt_days++;
+		years = 0;
+		dty = days_this_year(years);
+		while ( dt_days > dty ) {
+			years++; 
+			dt_days -= dty;
+			dty = days_this_year(years);
+		}
+
+		if (dty == 366 )
+			dim[1] = 29;
+		else
+			dim[1] = 28;
+
+		ydays = dt_days;
+		months = 0;
+		while (dt_days > dim[months] ) {
+			dt_days -= dim[months];
+			months++;
+		}
+
+		days = dt_days;
+	}
+
+	secs = dt_time / 300;
+	ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
+
+	hours = 0;
+	while ( secs >= 3600 ) {
+		hours++; 
+		secs -= 3600;
+	}
+
+	mins = 0;
+
+	while ( secs >= 60 ) {
+		mins++; 
+		secs -= 60;
+	}
+
 #ifndef MSDBLIB
-	di->dateyear = t->tm_year + 1900;
-	di->datemonth = t->tm_mon;
-	di->datedmonth = t->tm_mday;
-	di->datedyear = t->tm_yday + 1;
-	di->datedweek = t->tm_wday;
-	di->datehour = t->tm_hour;
-	di->dateminute = t->tm_min;
-	di->datesecond = t->tm_sec;
-	di->datemsecond = (1000/300) * millis;
-	/* dblib manual indicates that tzone is not set by dbdate crack */
-	/* di->datetzone = 0; */
+	di->dateyear    = 1900 + years;
+	di->datemonth   = months;
+	di->datedmonth  = days;
+	di->datedyear   = ydays;
+	di->datedweek   = wday;
+	di->datehour    = hours;
+	di->dateminute  = mins;
+	di->datesecond  = secs;
+	di->datemsecond = ms;
 #else
-	di->year = t->tm_year + 1900;
-	di->month = t->tm_mon;
-	di->day = t->tm_mday;
-	di->dayofyear = t->tm_yday + 1;
-	di->weekday = t->tm_wday;
-	di->hour = t->tm_hour;
-	di->minute = t->tm_min;
-	di->second = t->tm_sec;
-	di->millisecond = (1000/300) * millis;
-	/* dblib manual indicates that tzone is not set by dbdate crack */
-	/* di->tzone = 0; */
+	di->year        = 1900 + years;
+	di->month       = months;
+	di->day         = days;
+	di->dayofyear   = ydays;
+	di->weekday     = wday;
+	di->hour        = hours;
+	di->minute      = mins;
+	di->second      = secs;
+	di->millisecond = ms;
 #endif
-	return SUCCEED;
+}
+
+static int days_this_year (int years)
+{
+
+int year;
+
+	year = 1900 + years;
+	if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+		return 366;
+	else
+		return 365;
 }
 void dbrpwclr(LOGINREC *login)
 {
@@ -1904,6 +2044,17 @@ int dbrettype(DBPROCESS *dbproc,int retnum)
 int dbstrlen(DBPROCESS *dbproc)
 {
 	return dbproc->dbbufsz;
+}
+char *dbgetchar(DBPROCESS *dbproc, int pos)
+{
+     if (dbproc->dbbufsz > 0) {
+       if (pos >= 0 && pos < dbproc->dbbufsz )
+            return (char*)&dbproc->dbbuf[pos];
+       else
+          return (char *)NULL;
+     }
+    else
+        return (char *)NULL;
 }
 RETCODE dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest)
 {

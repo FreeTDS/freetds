@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.16 2002-03-28 05:10:11 mlilback Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.17 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -354,7 +354,6 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x\n", marker)
 				break;
 		}
 	} 
-	/* make lint happy */
 	return TDS_SUCCEED;
 }
 
@@ -587,9 +586,11 @@ static int tds7_process_result(TDSSOCKET *tds)
 {
 int col, num_cols;
 int colnamelen;
+TDS_SMALLINT tabnamelen;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 char ci_flags[4];
+TDS_SMALLINT collate_type;
 
 	tds_free_all_results(tds);
 
@@ -606,49 +607,78 @@ char ci_flags[4];
 	for (col=0;col<num_cols;col++) {
 
 		curcol = info->columns[col];
+
+		/*  User defined data type of the column */
+		curcol->column_usertype = tds_get_smallint(tds);  
+
 		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
 			the data in them. (mlilback, 3/28/02) */
-		tds_get_n(tds, ci_flags, 4);
-		curcol->column_nullable = ci_flags[2] & 0x01;
-		curcol->column_writeable = (ci_flags[2] & 0x08) > 0;
-		curcol->column_identity = (ci_flags[2] & 0x10) > 0;
+		tds_get_n(tds, ci_flags, 2);
+		curcol->column_nullable = ci_flags[0] & 0x01;
+		curcol->column_writeable = (ci_flags[0] & 0x08) > 0;
+		curcol->column_identity = (ci_flags[0] & 0x10) > 0;
+
 		/* on with our regularly scheduled code (mlilback, 3/28/02) */
 		curcol->column_type = tds_get_byte(tds); 
 		
-		/* large types (2 byte size field) are the type + 128
-		** except for nvarchar which is a varchar under 4.2 and
-		** doesn't have its own value 
-		*/
-		if (is_large_type(curcol->column_type)) {
-			curcol->column_xtype = curcol->column_type;
-			curcol->column_type -= 128;
-			if (curcol->column_xtype==XSYBNVARCHAR)
-				curcol->column_type=SYBVARCHAR;
-			if (curcol->column_xtype==XSYBNCHAR)
-				curcol->column_type=SYBCHAR;
+          curcol->column_type_save = curcol->column_type;
+		collate_type = is_collate_type(curcol->column_type);
+		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
+
+		switch(curcol->column_varint_size) {
+			case 4: 
+				curcol->column_size = tds_get_int(tds);
+				break;
+			case 2: 
+				curcol->column_size = tds_get_smallint(tds);
+				break;
+			case 1: 
+				curcol->column_size = tds_get_byte(tds);
+				break;
+			case 0: 
+				curcol->column_size = get_size_by_type(curcol->column_type);
+				break;
 		}
 
-		/* text and image have 4 byte size field */
-		if (is_blob_type(curcol->column_type)) { 
-			curcol->column_size = tds_get_int(tds);
-			tds_get_string(tds,NULL,tds_get_smallint(tds));
-		/* fixed types have no size field */
-		} else if (is_fixed_type(curcol->column_type)) { 
-			curcol->column_size = 
-				get_size_by_type(curcol->column_type);
-		/* large char types have 2 byte field */
-		} else if (is_large_type(curcol->column_xtype)) {
-			curcol->column_size = tds_get_smallint(tds);
-		/* all others have 1 byte size */
-		} else { 
-			curcol->column_size = tds_get_byte(tds);
+		curcol->column_unicodedata = 0;
 
-			/* numeric and decimal have extra info */
-			if (is_numeric_type(curcol->column_type)) {
-				curcol->column_prec = tds_get_byte(tds); /* precision */
-				curcol->column_scale = tds_get_byte(tds); /* scale */
-			}
+		switch(curcol->column_type) {
+			case XSYBVARBINARY: 
+				curcol->column_type=SYBVARBINARY;
+				break;
+			case XSYBBINARY: 
+				curcol->column_type=SYBBINARY;
+				break;
+			case XSYBNVARCHAR: 
+				curcol->column_type=SYBVARCHAR;
+				curcol->column_unicodedata = 1;
+				break;
+			case XSYBVARCHAR: 
+				curcol->column_type=SYBVARCHAR;
+				break;
+			case XSYBNCHAR: 
+				curcol->column_type=SYBCHAR;
+				curcol->column_unicodedata = 1;
+				break;
+			case XSYBCHAR: 
+				curcol->column_type=SYBCHAR;
+				break;
+		}
 
+		/* numeric and decimal have extra info */
+		if (is_numeric_type(curcol->column_type)) {
+			curcol->column_prec = tds_get_byte(tds); /* precision */
+			curcol->column_scale = tds_get_byte(tds); /* scale */
+		}
+
+		if (IS_TDS80(tds)) {
+			if (collate_type) 
+				tds_get_n(tds, curcol->collation, 5);
+		}
+
+		if (is_blob_type(curcol->column_type)) {
+			tabnamelen = tds_get_smallint(tds);
+			tds_get_string(tds, NULL, tabnamelen);
 		}
 
 		/* under 7.0 lengths are number of characters not 
@@ -689,6 +719,7 @@ int col, num_cols;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 int remainder;
+unsigned char flags;
 
 	tds_free_all_results(tds);
 
@@ -712,21 +743,28 @@ int remainder;
 		tds_get_n(tds,curcol->column_name, colnamelen);
 		curcol->column_name[colnamelen]='\0';
 
-		tds_get_byte(tds); /* unknown */
+		flags = tds_get_byte(tds); /* flags */
+		curcol->column_nullable = (flags & 0x20) > 1;
+
 		curcol->column_usertype = tds_get_smallint(tds);
 		tds_get_smallint(tds);  /* another unknown */
 		curcol->column_type = tds_get_byte(tds);
 
-		if (is_blob_type(curcol->column_type)) {
-			curcol->column_size = tds_get_int(tds);
-			/* junk the table name -- for now */
-			tds_get_n(tds,NULL,tds_get_smallint(tds));
-		} else if (!is_fixed_type(curcol->column_type)) {
-			curcol->column_size = tds_get_byte(tds);
-		} else { 
-			curcol->column_size = get_size_by_type(curcol->column_type);
-		}
+		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 
+		switch(curcol->column_varint_size) {
+			case 4: 
+				curcol->column_size = tds_get_int(tds);
+				/* junk the table name -- for now */
+				tds_get_n(tds,NULL,tds_get_smallint(tds));
+				break;
+			case 1: 
+				curcol->column_size = tds_get_byte(tds);
+				break;
+			case 0: 
+				curcol->column_size = get_size_by_type(curcol->column_type);
+				break;
+		}
 
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
@@ -804,26 +842,30 @@ int len;
 		return TDS_FAIL;
 
 	info->row_count++;
-	for (i=0;i<info->num_cols;i++)
-	{
+	for (i=0;i<info->num_cols;i++) {
 		curcol = info->columns[i];
-		if (is_blob_type(curcol->column_type)) {
-			/* length is always 16, if not we are in trouble */
-			len = tds_get_byte(tds);
-			if (len == 16) { /*  Jeff's hack */
-				tds_get_n(tds,curcol->column_textptr,16);
-				tds_get_n(tds,curcol->column_timestamp,8);
-				colsize = tds_get_int(tds);
-			} else {
-				colsize = 0;
-			}
-		} else if (is_large_type(curcol->column_xtype)) {
-			colsize = tds_get_smallint(tds);
-			if (colsize==-1) colsize=0;
-		} else if (!is_fixed_type(curcol->column_type)) {
-			colsize = tds_get_byte(tds);
-		} else {
-			colsize = get_size_by_type(curcol->column_type);
+		switch (curcol->column_varint_size) {
+			case 4: /* Its a BLOB... */
+				len = tds_get_byte(tds);
+				if (len == 16) { /*  Jeff's hack */
+					tds_get_n(tds,curcol->column_textptr,16);
+					tds_get_n(tds,curcol->column_timestamp,8);
+					colsize = tds_get_int(tds);
+				} else {
+					colsize = 0;
+				}
+				break;
+			case 2: 
+				colsize = tds_get_smallint(tds);
+				if (colsize == -1)
+					colsize=0;
+				break;
+			case 1: 
+				colsize = tds_get_byte(tds);
+				break;
+			case 0: 
+				colsize = get_size_by_type(curcol->column_type);
+				break;
 		}
 
 		/* set NULL flag in the row buffer */
@@ -909,7 +951,7 @@ int len;
 				tds_get_n(tds,curcol->column_textvalue,colsize);
 			} else {
 				dest = &(info->current_row[curcol->column_offset]);
-				if (is_unicode(curcol->column_xtype)) {
+				if (curcol->column_unicodedata) {
 					tds_get_string(tds,dest,colsize/2);
 				} else {
 					tds_get_n(tds,dest,colsize);
@@ -1569,3 +1611,42 @@ TDS_NUMERIC *num;
 			tds_swap_bytes(num->array,num->precision); break;
 	}
 }
+/*
+** tds_get_varint_size() returns the size of a variable length integer
+** returned in a TDS 7.0 result string
+*/
+int tds_get_varint_size(int datatype)
+{
+	switch(datatype) {
+		case SYBTEXT:
+		case SYBNTEXT:
+		case SYBIMAGE:
+		case SYBVARIANT:
+			return 4;
+		case SYBVOID:
+		case SYBINT1:
+		case SYBBIT:
+		case SYBINT2:
+		case SYBINT4:
+		case SYBDATETIME4:
+		case SYBREAL:
+		case SYBMONEY:
+		case SYBDATETIME:
+		case SYBFLT8:
+		case SYBBITN:
+		case SYBMONEY4:
+		case SYBINT8:
+			return 0;
+		case XSYBNCHAR:
+		case XSYBNVARCHAR:
+		case XSYBCHAR:
+		case XSYBVARCHAR:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+			return 2;
+		default:
+			return 1;
+	}
+}
+
+

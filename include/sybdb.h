@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.5 2002-01-31 15:09:34 brianb Exp $";
+"$Id: sybdb.h,v 1.6 2002-05-25 00:33:48 brianb Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -47,6 +47,7 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBNOERR  -1
 
 #define INT_EXIT   0
+#define INT_CONTINUE 1
 #define INT_CANCEL 2
 
 #define DBMAXNUMLEN 33
@@ -68,6 +69,11 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define SYBAOPMAX  0x52
 
 #define DBTXPLEN 16
+
+#define BCPMAXERRS 1
+#define BCPFIRST 2
+#define BCPLAST 3
+#define BCPBATCH 4
 
 typedef int	 RETCODE;
 
@@ -134,27 +140,40 @@ typedef struct tag_DBPROC_ROWBUF
 } DBPROC_ROWBUF;
 
 typedef struct {
-	int	column;
-	int	datatype;
-	int	prefix_len;
+	int	    host_column;
+    void    *host_var;
+	int	    datatype;
+	int	    prefix_len;
 	DBINT   column_len;
 	BYTE	*terminator;
-	int	term_len;
+	int	    term_len;
+    int     tab_colnum;
+} BCP_HOSTCOLINFO;
+
+typedef struct {
+	int	         tab_colnum;
+	char	     db_name[256]; /* column name */
+	TDS_SMALLINT db_minlen;
+	TDS_SMALLINT db_maxlen;
+	TDS_SMALLINT db_colcnt; /* I dont know what this does */
+	TDS_TINYINT	 db_type;
+	TDS_TINYINT	 db_type_save;
+	TDS_SMALLINT db_usertype;
+	TDS_TINYINT	 db_varint_size;
+	TDS_INT		 db_length; /* size of field according to database */
+	TDS_TINYINT	 db_nullable;
+	TDS_TINYINT	 db_status;
+	TDS_SMALLINT db_offset;
+	TDS_TINYINT  db_default;
+	TDS_TINYINT  db_prec;
+	TDS_TINYINT  db_scale;
+    TDS_SMALLINT db_flags;
+	TDS_INT		 db_size; 
+	TDS_TINYINT  db_unicodedata;
+    char         db_collate[5];
 	long	data_size;
 	BYTE	*data;
-	int	txptr_offset;
-	/* fields below here comes from 'insert bulk' result set */
-	char	db_name[256]; /* column name */
-	TDS_SMALLINT	db_minlen;
-	TDS_SMALLINT	db_maxlen;
-	TDS_SMALLINT	db_colcnt; /* I dont know what this does */
-	TDS_TINYINT	db_type;
-	TDS_INT		db_length; /* size of field according to database */
-	TDS_TINYINT	db_status;
-	TDS_SMALLINT	db_offset;
-	TDS_TINYINT	db_default;
-	TDS_TINYINT	db_prec;
-	TDS_TINYINT	db_scale;
+	int	    txptr_offset;
 } BCP_COLINFO;
 
 typedef struct {
@@ -173,9 +192,18 @@ typedef struct {
    TDS_CHAR        *bcp_hostfile;
    TDS_CHAR        *bcp_errorfile;
    TDS_CHAR        *bcp_tablename;
+   TDS_CHAR        *bcp_insert_stmt;
    TDS_INT         bcp_direction;
    TDS_INT         bcp_colcount;
+   TDS_INT         host_colcount;
    BCP_COLINFO     **bcp_columns;
+   BCP_HOSTCOLINFO **host_columns;
+   TDS_INT         firstrow;
+   TDS_INT         lastrow;
+   TDS_INT         maxerrs;
+   TDS_INT         bcpbatch;
+   TDS_INT         sendrow_init;
+   TDS_INT         var_cols;
    DBTYPEINFO      typeinfo;
 } DBPROCESS;
 
@@ -503,6 +531,38 @@ extern DBBOOL dbtabbrowse(DBPROCESS *dbprocess, int tabnum);
 extern int dbtabcount(DBPROCESS *dbprocess);
 extern char *dbtabname(DBPROCESS *dbprocess, int tabnum);
 extern char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
+#define SYBESMSG        20018   
+#define SYBERPND        20019  
+#define SYBETIME        20003   /* SQL Server connection timed out. */
+#define SYBECLOS        20056   /* Error in closing network connection. */
+
+#define BCPETTS          80001
+#define BCPEBDIO         80002
+#define BCPEBCVH         80003
+#define BCPEBIVI         80004
+#define BCPEBCBC         80005
+#define BCPEBCFO         80006
+#define BCPEBCPB         80007
+#define BCPEBCPN         80008
+#define BCPEBCPI         80009
+#define BCPEBCITBNM      80010
+#define BCPEBCITBLEN     80011
+#define BCPEBCBNPR       80012
+#define BCPEBCBPREF      80013
+#define BCPEVDPT         80014
+#define BCPEBCPCTYP      80015
+#define BCPEBCHLEN       80016
+#define BCPEBCPREF       80017
+#define BCPEBCVLEN       80018
+#define BCPEBCUO         80019
+#define BCPEBUOF         80020
+#define BCPEBUDF         80021
+#define BCPEBIHC         80022
+#define BCPEBCUC         80023
+#define BCPEBUCF         80024
+#define BCPEIFNB         80025
+#define BCPEBCRE         80026
+#define BCPEBCNN         80027
 extern int DBTDS(DBPROCESS *dbprocess);
 extern DBINT dbtextsize(DBPROCESS *dbprocess);
 extern int dbtsnewlen(DBPROCESS *dbprocess);

@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.13 2002-05-20 01:11:43 jklowden Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.14 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -88,7 +88,7 @@ TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *local
 {
 TDSCONFIGINFO *config;
 char *s;
-char path[MAXPATHLEN];
+char path[MAXPATH];
 pid_t pid;
 	/* allocate a new structure with hard coded and build-time defaults */
 	config = tds_alloc_config(locale);

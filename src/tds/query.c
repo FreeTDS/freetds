@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.6 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.7 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -70,7 +70,7 @@ TDS_INT bufsize2;
 
 		memcpy(&buf[6],query,strlen(query));
 		tds->out_flag=0x0F;
-	} else if (IS_TDS70(tds)) {
+	} else if (IS_TDS70(tds) || IS_TDS80(tds)) {
 		bufsize = strlen(query)*2;
 		buf = (unsigned char *) malloc(bufsize);
 		memset(buf,'\0',bufsize);

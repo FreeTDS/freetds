@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.19 2002-04-16 02:22:04 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.20 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -457,16 +457,22 @@ int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	
 int rc;
 unsigned char magic1[] = 
-	{6,0x83,0xf2,0xf8,0xff,0x0,0x0,0x0,0x0,
-	0xe0,0x03,0x0,0x0,0x88,0xff,0xff,0xff,
-	0x36,0x04,0x00,0x00};
+	{6,0x83,0xf2,0xf8,  /* Client Program version */
+     0xff,0x0,0x0,0x0,  /* Client PID */
+     0x0,0xe0,0x03,0x0, /* Connection ID of the Primary Server (?) */
+     0x0,               /* Option Flags 1 */
+     0x88,              /* Option Flags 2 */
+     0xff,              /* Type Flags     */
+     0xff,              /* reserved Flags */
+     0xff,0x36,0x04,0x00,
+     0x00};
 /* also seen
 	{6,0x7d,0x0f,0xfd,0xff,0x0,0x0,0x0,0x0,
 	0xe0,0x83,0x0,0x0,0x68,0x01,0x00,0x00,
 	0x09,0x04,0x00,0x00};
 */
 unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
-/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00}; */
+/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 unsigned char magic3[] = "NTLMSSP";
 unsigned char unicode_string[255];
 int packet_size;
@@ -507,7 +513,8 @@ int language_len = config->language ? strlen(config->language) : 0;
    } else {
       tds_put_byte(tds,0x70);
    }
-   tds_put_n(tds,NULL,7);
+   tds_put_n(tds,NULL,3);       /* rest of TDSVersion which is a 4 byte field    */
+   tds_put_n(tds,NULL,4);       /* desired packet size being requested by client */
    tds_put_n(tds,magic1,21);
 
    current_pos = 86; /* ? */

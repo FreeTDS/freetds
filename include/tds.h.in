@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.12 2002-02-17 20:23:37 brianb Exp $";
+	 "$Id: tds.h.in,v 1.13 2002-05-25 00:33:49 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -96,7 +96,7 @@ typedef struct tdsnumeric
 {
         unsigned char         precision;
         unsigned char         scale;
-        unsigned char         array[33];
+        unsigned char         array[17];
 } TDS_NUMERIC;
 typedef struct tdsmoney
 {
@@ -174,7 +174,7 @@ typedef struct tdsvarchar
 /* states for tds_process_messages() */
 #define PROCESS_ROWS    0
 #define PROCESS_RESULTS 1
-#define CANCEL          2
+#define CANCEL_PROCESS  2
 #define GOTO_1ST_ROW    3
 #define LOGIN           4
 
@@ -215,10 +215,13 @@ sheesh! </rant>
 #define SYBFLTN      109  /* 0x6D */
 #define SYBMONEYN    110  /* 0x6E */
 #define SYBDATETIMN  111  /* 0x6F */
-#define XSYBCHAR     167  /* 0xA7 */
-#define XSYBVARCHAR  175  /* 0xAF */
+#define XSYBCHAR     175  /* 0xAF */
+#define XSYBVARCHAR  167  /* 0xA7 */
 #define XSYBNVARCHAR 231  /* 0xE7 */
 #define XSYBNCHAR    239  /* 0xEF */
+#define XSYBVARBINARY 165  /* 0xA5 */
+#define XSYBBINARY    173  /* 0xAD */
+
 #define SYBUNIQUE    0x24
 #define SYBVARIANT   0x62
 
@@ -278,6 +281,7 @@ sheesh! </rant>
 #define is_large_type(x) (x>128)
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
 #define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR)
+#define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x == XSYBNVARCHAR || x==SYBNTEXT)
 
 #define TDS_MAX_CAPABILITY	18
 #define MAXPRECISION 		50
@@ -404,11 +408,13 @@ typedef struct tds_loc_info {
 /* structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
 	TDS_SMALLINT column_type;
-	TDS_SMALLINT column_xtype;
+	TDS_SMALLINT column_type_save;
 	TDS_SMALLINT column_usertype;
+	TDS_SMALLINT column_flags;
 	TDS_INT column_size;
 	TDS_INT column_offset;
 	TDS_TINYINT column_namelen;
+	TDS_TINYINT column_varint_size;
 	TDS_CHAR column_name[256];
 	TDS_SMALLINT column_bindtype;
 	TDS_SMALLINT column_bindfmt;
@@ -426,6 +432,8 @@ typedef struct tds_column_info {
 	TDS_TINYINT column_nullable;
 	TDS_TINYINT column_writeable;
 	TDS_TINYINT column_identity;
+	TDS_TINYINT column_unicodedata;
+    TDS_CHAR    collation[5];
 	TDS_INT cur_row_size; /* size of this column in the current row */
 } TDSCOLINFO;
 

@@ -20,10 +20,10 @@
 #ifndef _tdsver_h_
 #define _tdsver_h_
 
-#define VERSION_NO "@PACKAGE@ v@VERSION@"
+#define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
 
 static char  rcsid_tdsver_h [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/include/tdsver.h.in,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+         "$Header: /tmp/gitout/git/../freetds/freetds/include/tdsver.h.in,v 1.2 2002-05-25 00:33:49 brianb Exp $";
 static void *no_unused_tdsver_h_warn[]={rcsid_tdsver_h, no_unused_tdsver_h_warn};
 
 #endif

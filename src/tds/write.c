@@ -28,7 +28,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.5 2002-02-11 03:01:39 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.6 2002-05-25 00:33:50 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -132,7 +132,7 @@ int retcode = 0;
 	tds->out_buf[1]=final;
 	tds->out_buf[2]=(tds->out_pos)/256;
 	tds->out_buf[3]=(tds->out_pos)%256;
-	if (IS_TDS70(tds)) {
+	if (IS_TDS70(tds) || IS_TDS80(tds)) {
 		tds->out_buf[6]=0x01;
 	}
 
