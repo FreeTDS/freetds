@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.192 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.193 2004-11-28 14:28:20 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1272,7 +1272,7 @@ int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size
 int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
-int tds_read_packet(TDSSOCKET * tds);
+
 
 /* util.c */
 void tds_set_parent(TDSSOCKET * tds, void *the_parent);
@@ -1292,7 +1292,12 @@ void tdsdump_log(int dbg_lvl, const char *fmt, ...)
 	__attribute__ ((__format__ (__printf__, 2, 3)))
 #endif
 ;
+
+/* net.c */
+int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
 int tds_close_socket(TDSSOCKET * tds);
+int tds_read_packet(TDSSOCKET * tds);
+int tds_write_packet(TDSSOCKET * tds, unsigned char final);
 
 /* vstrbuild.c */
 int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen,

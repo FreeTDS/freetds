@@ -21,23 +21,6 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-
-#if HAVE_ERRNO_H
-#include <errno.h>
-#endif
-
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -49,37 +32,9 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif /* HAVE_NETINET_IN_H */
-
-#if HAVE_NETINET_TCP_H
-#include <netinet/tcp.h>
-#endif /* HAVE_NETINET_TCP_H */
-
-#if HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif /* HAVE_ARPA_INET_H */
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
-
-#if HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif /* HAVE_SYS_IOCTL_H */
-
-#if HAVE_SELECT_H
-#include <sys/select.h>
-#endif /* HAVE_SELECT_H */
 
 #include "tds.h"
 #include "tdsiconv.h"
@@ -89,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.126 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.127 2004-11-28 14:28:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -199,21 +154,12 @@ tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size
 int
 tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	struct sockaddr_in sin;
-
-	/* Jeff's hack - begin */
-	unsigned long ioctl_blocking = 1;
-	struct timeval selecttimeout;
-	fd_set fds;
 	int retval;
-	time_t start, now;
 	int connect_timeout = 0;
 	int db_selected = 0;
 	char version[256];
 	char *str;
 	int len;
-
-	FD_ZERO(&fds);
 
 	/*
 	 * If a dump file has been specified, start logging
@@ -265,89 +211,17 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-	sin.sin_addr.s_addr = inet_addr(tds_dstr_cstr(&connection->ip_addr));
-	if (sin.sin_addr.s_addr == INADDR_NONE) {
-		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", tds_dstr_cstr(&connection->ip_addr));
-		tds_free_socket(tds);
-		return TDS_FAIL;
-	}
-
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(connection->port);
 
 	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
-
 
 	retval = tds_version(tds, version);
 	if (!retval)
 		version[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), version);
-	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
-		perror("socket");
+	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED) {
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-
-#ifdef SO_KEEPALIVE
-	len = 1;
-	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
-#endif
-
-#if defined(TCP_NODELAY) && (defined(IPPROTO_TCP) || defined(SOL_TCP))
-	len = 1;
-#ifdef SOL_TCP
-	setsockopt(tds->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
-#else
-	setsockopt(tds->s, IPPROTO_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
-#endif
-#endif
-	
-	/* Jeff's hack *** START OF NEW CODE *** */
-	if (connect_timeout) {
-		start = time(NULL);
-		ioctl_blocking = 1;	/* ~0; //TRUE; */
-		if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
-			tds_free_socket(tds);
-			return TDS_FAIL;
-		}
-		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
-		if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
-			retval = 0;
-		if (retval < 0) {
-			perror("src/tds/login.c: tds_connect (timed)");
-			tds_free_socket(tds);
-			return TDS_FAIL;
-		}
-		/* Select on writeability for connect_timeout */
-		now = start;
-		while ((retval == 0) && ((now - start) < connect_timeout)) {
-			FD_SET(tds->s, &fds);
-			selecttimeout.tv_sec = connect_timeout - (now - start);
-			selecttimeout.tv_usec = 0;
-			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-			if (retval < 0 && sock_errno == TDSSOCK_EINTR)
-				retval = 0;
-			now = time(NULL);
-		}
-
-		if ((now - start) >= connect_timeout) {
-			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
-			tds_free_socket(tds);
-			return TDS_FAIL;
-		}
-	} else if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-		char *message;
-
-		if (asprintf(&message, "src/tds/login.c: tds_connect: %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
-			perror(message);
-			free(message);
-		}
-		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
-		tds_free_socket(tds);
-		return TDS_FAIL;
-	}
-	/* END OF NEW CODE */
 
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag = 0x10;

@@ -23,23 +23,6 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
@@ -56,25 +39,14 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif /* HAVE_SYS_SELECT_H */
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
-
 #include "tds.h"
 #include "tdsiconv.h"
-#include <signal.h>		/* GW ADDED */
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.66 2004-07-29 10:22:42 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.67 2004-11-28 14:28:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
 
 /** \addtogroup network
  *  \@{ 
@@ -270,135 +242,6 @@ tds_init_write_buf(TDSSOCKET * tds)
 	memset(tds->out_buf, '\0', tds->env->block_size);
 	tds->out_pos = 8;
 	return 0;
-}
-
-/* TODO this code should be similar to read one... */
-static int
-tds_check_socket_write(TDSSOCKET * tds)
-{
-	int retcode = 0;
-	struct timeval selecttimeout;
-	time_t start, now;
-	fd_set fds;
-
-	/* Jeffs hack *** START OF NEW CODE */
-	FD_ZERO(&fds);
-
-	if (!tds->timeout) {
-		for (;;) {
-			FD_SET(tds->s, &fds);
-			retcode = select(tds->s + 1, NULL, &fds, NULL, NULL);
-			/* write available */
-			if (retcode >= 0)
-				return 0;
-			/* interrupted */
-			if (sock_errno == TDSSOCK_EINTR)
-				continue;
-			/* error, leave caller handle problems */
-			return -1;
-		}
-	}
-	start = time(NULL);
-	now = start;
-
-	while ((retcode == 0) && ((now - start) < tds->timeout)) {
-		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = tds->timeout - (now - start);
-		selecttimeout.tv_usec = 0;
-		retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-		if (retcode < 0 && sock_errno == TDSSOCK_EINTR) {
-			retcode = 0;
-		}
-
-		now = time(NULL);
-	}
-
-	return retcode;
-	/* Jeffs hack *** END OF NEW CODE */
-}
-
-/* goodwrite function adapted from patch by freddy77 */
-static int
-goodwrite(TDSSOCKET * tds)
-{
-	int left;
-	unsigned char *p;
-	int result = TDS_SUCCEED;
-	int retval;
-
-	left = tds->out_pos;
-	p = tds->out_buf;
-
-	while (left > 0) {
-		/*
-		 * If there's a timeout, we need to sit and wait for socket
-		 * writability
-		 * moved socket writability check to own function -- bsb
-		 */
-		/* 
-		 * TODO we can avoid calling select for every send using 
-		 * no-blocking socket... This will reduce syscalls
-		 */
-		tds_check_socket_write(tds);
-
-#ifndef MSG_NOSIGNAL
-		retval = WRITESOCKET(tds->s, p, left);
-#else
-		retval = send(tds->s, p, left, MSG_NOSIGNAL);
-#endif
-
-		if (retval <= 0) {
-			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", sock_errno,
-				    strerror(sock_errno));
-			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
-			tds->in_pos = 0;
-			tds->in_len = 0;
-			tds_close_socket(tds);
-			result = TDS_FAIL;
-			break;
-		}
-		left -= retval;
-		p += retval;
-	}
-	return result;
-}
-
-static int
-tds_write_packet(TDSSOCKET * tds, unsigned char final)
-{
-	int retcode;
-
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
-	void (*oldsig) (int);
-#endif
-
-	tds->out_buf[0] = tds->out_flag;
-	tds->out_buf[1] = final;
-	tds->out_buf[2] = (tds->out_pos) / 256u;
-	tds->out_buf[3] = (tds->out_pos) % 256u;
-	if (IS_TDS70(tds) || IS_TDS80(tds)) {
-		tds->out_buf[6] = 0x01;
-	}
-
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
-
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
-	oldsig = signal(SIGPIPE, SIG_IGN);
-	if (oldsig == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
-	}
-#endif
-
-	retcode = goodwrite(tds);
-
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
-	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
-	}
-#endif
-
-	/* GW added in check for write() returning <0 and SIGPIPE checking */
-	return retcode;
 }
 
 /**

@@ -1,3 +1,9 @@
+Sun Nov 28 15:27:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/login.c src/tds/net.c:
+	* src/tds/read.c src/tds/write.c:
+	- moved some stuff from login/read/write to net.c
+	- do some platform optimization to reduce network bandwidth
+
 Sun Nov 28 10:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/sybdb.h include/tds_sysdep_public.h.in:
 	* src/dblib/dblib.c src/dblib/dbopen.c:

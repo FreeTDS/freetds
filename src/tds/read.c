@@ -21,23 +21,6 @@
 #include <config.h>
 #endif
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
@@ -54,14 +37,6 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if HAVE_SELECT_H
-#include <sys/select.h>
-#endif /* HAVE_SELECT_H */
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
-
 #include <assert.h>
 
 #include "tds.h"
@@ -70,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.91 2004-10-14 08:16:44 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.92 2004-11-28 14:28:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -84,132 +59,6 @@ static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICO
 /** \addtogroup network
  *  \@{ 
  */
-
-/**
- * Loops until we have received buflen characters 
- * return -1 on failure 
- */
-static int
-goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
-{
-	int got = 0;
-	int len, retcode;
-	fd_set fds;
-	time_t start, now;
-	struct timeval selecttimeout;
-	struct timeval *timeout;
-
-	assert(tds);
-
-	FD_ZERO(&fds);
-	start = time(NULL);
-	now = start;
-	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
-		if (IS_TDSDEAD(tds))
-			return -1;
-
-		/* set right timeout */
-		FD_SET(tds->s, &fds);
-		timeout = NULL;
-		if (tds->chkintr || tds->timeout) {
-			selecttimeout.tv_sec = tds->chkintr ? 1 : tds->timeout - (now - start);
-			selecttimeout.tv_usec = 0;
-			timeout = &selecttimeout;
-		}
-
-		retcode = select(tds->s + 1, &fds, NULL, NULL, timeout);	/* retcode == 0 indicates a timeout, OK */
-
-		if( retcode != 0 ) {
-			if( retcode < 0 ) {
-				if (sock_errno != TDSSOCK_EINTR) {
-					char *msg = strerror(sock_errno);
-					tdsdump_log(TDS_DBG_NETWORK, "goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
-					return -1;
-				}
-				goto OK_TIMEOUT;
-			} 
-			/*
-			 * select succeeded: let's read.
-			 */
-#			ifndef MSG_NOSIGNAL
-			len = READSOCKET(tds->s, buf + got, buflen);
-# 			else
-			len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
-# 			endif
-
-			if (len < 0) {
-				char *msg = strerror(sock_errno);
-				tdsdump_log(TDS_DBG_NETWORK, "goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
-				
-				switch (sock_errno) {
-				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
-				case TDSSOCK_EINTR:		/* If interrupted by a signal before it reads any data. */
-				case TDSSOCK_EINPROGRESS:	/* A lengthy operation on a non-blocking object is in progress. */
-					/* EINPROGRESS is not a documented errno for read(2), afaict.  Remove following assert if it trips.  --jkl */
-					assert(sock_errno != TDSSOCK_EINPROGRESS);
-					goto OK_TIMEOUT; /* try again */
-					break;
-
-				case EBADF:
-				/*   EBADMSG: not always defined */
-				case EDEADLK:
-				case EFAULT:
-				case EINVAL:
-				case EIO:
-				case ENOLCK:
-				case ENOSPC:
-				case ENXIO:
-				default:
-					return -1;
-					break;
-				}
-			}
-
-			/* this means a disconnection from server, exit */
-			/* TODO close sockets too ?? */
-			if (len == 0) 
-				return -1;
-
-			buflen -= len;
-			got += len;
-		} 
-
-
-	OK_TIMEOUT:
-		now = time(NULL);
-		if (tds->longquery_func && tds->queryStarttime && tds->longquery_timeout) {
-			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
-				(*tds->longquery_func) (tds->longquery_param);
-				return got;
-			}
-		}
-		if ((tds->chkintr) && ((*tds->chkintr) (tds)) && (tds->hndlintr)) {
-			switch ((*tds->hndlintr) (tds)) {
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-				break;
-			case TDS_INT_CANCEL:
-				/* TODO should we process cancellation ?? */
-				tds_send_cancel(tds);
-				break;
-			case TDS_INT_CONTINUE:
-			default:
-				break;
-			}
-		}
-
-	}			/* while buflen... */
-
-	/* here buflen <= 0 || (tds->timeout != 0 && (now - start) >= tds->timeout) */
-		
-	/* TODO always false ?? */
-	if (tds->timeout > 0 && now - start < tds->timeout && buflen > 0)
-		return -1;
-
-	/* FIXME on timeout this assert got true... */
-	assert(buflen == 0);
-	return (got);
-}
 
 /*
 ** Return a single byte from the input buffer
@@ -228,7 +77,7 @@ tds_get_byte(TDSSOCKET * tds)
 	return tds->in_buf[tds->in_pos++];
 }
 
-/*+
+/**
  * Unget will always work as long as you don't call it twice in a row.  It
  * it may work if you call it multiple times as long as you don't backup
  * over the beginning of network packet boundary which can occur anywhere in
@@ -494,158 +343,6 @@ tds_get_size_by_type(int servertype)
 		return -1;
 		break;
 	}
-}
-
-/**
- * Read in one 'packet' from the server.  This is a wrapped outer packet of
- * the protocol (they bundle result packets into chunks and wrap them at
- * what appears to be 512 bytes regardless of how that breaks internal packet
- * up.   (tetherow\@nol.org)
- * @return bytes read or -1 on failure
- */
-int
-tds_read_packet(TDSSOCKET * tds)
-{
-	unsigned char header[8];
-	int len;
-	int x = 0, have, need;
-
-	if (IS_TDSDEAD(tds)) {
-		tdsdump_log(TDS_DBG_NETWORK, "Read attempt when state is TDS_DEAD");
-		return -1;
-	}
-
-	/*
-	 * Read in the packet header.  We use this to figure out our packet
-	 * length
-	 */
-
-	/*
-	 * Cast to int are needed because some compiler seem to convert
-	 * len to unsigned (as FreeBSD 4.5 one)
-	 */
-	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
-		/* GW ADDED */
-		if (len < 0) {
-			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
-			tds_close_socket(tds);
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			return -1;
-		}
-
-		/* GW ADDED */
-		/*
-		 * Not sure if this is the best way to do the error
-		 * handling here but this is the way it is currently
-		 * being done.
-		 */
-
-		tds->in_len = 0;
-		tds->in_pos = 0;
-		tds->last_packet = 1;
-		if (tds->state != TDS_IDLE && len == 0) {
-			tds_close_socket(tds);
-		}
-		return -1;
-	}
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received header", header, sizeof(header));
-
-#if 0
-	/*
-	 * Note:
-	 * this was done by Gregg, I don't think its the real solution (it breaks
-	 * under 5.0, but I haven't gotten a result big enough to test this yet.
- 	 */
-	if (IS_TDS42(tds)) {
-		if (header[0] != 0x04 && header[0] != 0x0f) {
-			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
-			/*  Not sure if this is the best way to do the error 
-			 *  handling here but this is the way it is currently 
-			 *  being done. */
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			tds->last_packet = 1;
-			return (-1);
-		}
-	}
-#endif
-
-	/* Convert our packet length from network to host byte order */
-	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
-	need = len;
-
-	/*
-	 * If this packet size is the largest we have gotten allocate
-	 * space for it
-	 */
-	if (len > tds->in_buf_max) {
-		unsigned char *p;
-
-		if (!tds->in_buf) {
-			p = (unsigned char *) malloc(len);
-		} else {
-			p = (unsigned char *) realloc(tds->in_buf, len);
-		}
-		if (!p)
-			return -1;	/* FIXME should close socket too */
-		tds->in_buf = p;
-		/* Set the new maximum packet size */
-		tds->in_buf_max = len;
-	}
-
-	/* Clean out the in_buf so we don't use old stuff by mistake */
-	memset(tds->in_buf, 0, tds->in_buf_max);
-
-	/* Now get exactly how many bytes the server told us to get */
-	have = 0;
-	while (need > 0) {
-		if ((x = goodread(tds, tds->in_buf + have, need)) < 1) {
-			/*
-			 * Not sure if this is the best way to do the error
-			 * handling here but this is the way it is currently
-			 * being done.
-			 */
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			tds->last_packet = 1;
-			/* FIXME should this be "if (x == 0)" ? */
-			if (len == 0) {
-				tds_close_socket(tds);
-			}
-			return (-1);
-		}
-		have += x;
-		need -= x;
-	}
-	if (x < 1) {
-		/*
-		 * Not sure if this is the best way to do the error handling
-		 * here but this is the way it is currently being done.
-		 */
-		tds->in_len = 0;
-		tds->in_pos = 0;
-		tds->last_packet = 1;
-		/* return 0 if header found but no payload */
-		return len ? -1 : 0;
-	}
-
-	/* Set the last packet flag */
-	if (header[1]) {
-		tds->last_packet = 1;
-	} else {
-		tds->last_packet = 0;
-	}
-
-	/* set the received packet type flag */
-	tds->in_flag = header[0];
-
-	/* Set the length and pos (not sure what pos is used for now */
-	tds->in_len = have;
-	tds->in_pos = 0;
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
-
-	return (tds->in_len);
 }
 
 /*
