@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.15 2004-10-13 13:48:13 freddy77 Exp $
+# $Id: Makefile.am,v 1.16 2005-01-13 15:18:32 freddy77 Exp $
 TESTS		=	t0001 t0002 t0003 t0004 \
 			t0005 t0006 t0007 t0008 \
 			dynamic1 convert dataread \
-			utf8_1 utf8_2
+			utf8_1 utf8_2 utf8_3
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -23,6 +23,7 @@ dataread_SOURCES	=	dataread.c common.c common.h
 # flags_SOURCES	=	flags.c common.c common.h
 utf8_1_SOURCES	=	utf8_1.c common.c common.h
 utf8_2_SOURCES	=	utf8_2.c common.c common.h
+utf8_3_SOURCES	=	utf8_3.c common.c common.h
 
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libtds.la @NETWORK_LIBS@

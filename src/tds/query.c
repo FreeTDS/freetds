@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.154 2004-12-15 15:03:19 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.155 2005-01-13 15:18:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -673,11 +673,11 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int pa
  * \return TDS_FAIL or TDS_SUCCEED
  */
 /* TODO parse all results ?? */
-/* FIXME on error free dynamic */
 int
 tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
 	int id_len, query_len;
+	int rc;
 	TDSDYNAMIC *dyn;
 
 	CHECK_TDS_EXTRA(tds);
@@ -721,7 +721,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	}
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
-		return TDS_FAIL;
+		goto failure;
 
 	query_len = strlen(query);
 
@@ -733,7 +733,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 		param_definition = tds_build_params_definition(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
 		if (!param_definition)
-			return TDS_FAIL;
+			goto failure;
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
@@ -766,27 +766,35 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_int(tds, 1);
 
 		tds->internal_sp_called = TDS_SP_PREPARE;
-		return tds_flush_packet(tds);
+	} else {
+
+		tds->out_flag = 0x0F;
+
+		id_len = strlen(dyn->id);
+		tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
+		tds_put_smallint(tds, query_len + id_len * 2 + 21);
+		tds_put_byte(tds, 0x01);
+		tds_put_byte(tds, 0x00);
+		tds_put_byte(tds, id_len);
+		tds_put_n(tds, dyn->id, id_len);
+		/* TODO ICONV convert string, do not put with tds_put_n */
+		/* TODO how to pass parameters type? like store procedures ? */
+		tds_put_smallint(tds, query_len + id_len + 16);
+		tds_put_n(tds, "create proc ", 12);
+		tds_put_n(tds, dyn->id, id_len);
+		tds_put_n(tds, " as ", 4);
+		tds_put_n(tds, query, query_len);
 	}
 
-	tds->out_flag = 0x0F;
-
-	id_len = strlen(dyn->id);
-	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
-	tds_put_smallint(tds, query_len + id_len * 2 + 21);
-	tds_put_byte(tds, 0x01);
-	tds_put_byte(tds, 0x00);
-	tds_put_byte(tds, id_len);
-	tds_put_n(tds, dyn->id, id_len);
-	/* TODO ICONV convert string, do not put with tds_put_n */
-	/* TODO how to pass parameters type? like store procedures ? */
-	tds_put_smallint(tds, query_len + id_len + 16);
-	tds_put_n(tds, "create proc ", 12);
-	tds_put_n(tds, dyn->id, id_len);
-	tds_put_n(tds, " as ", 4);
-	tds_put_n(tds, query, query_len);
-
-	return tds_flush_packet(tds);
+	rc = tds_flush_packet(tds);
+	if (rc != TDS_FAIL)
+		return rc;
+failure:
+	tds->cur_dyn = NULL;
+	tds_free_dynamic(tds, dyn);
+	if (dyn_out)
+		*dyn_out = NULL;
+	return TDS_FAIL;
 }
 
 /**

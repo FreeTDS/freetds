@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.203 2005-01-12 19:42:04 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.204 2005-01-13 15:18:30 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -826,8 +826,8 @@ typedef struct tds_column
 	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
-	TDS_TINYINT column_namelen;	/**< length of column name */
-	TDS_TINYINT table_namelen;
+	TDS_SMALLINT column_namelen;	/**< length of column name */
+	TDS_SMALLINT table_namelen;
 	struct
 	{
 		TDS_SMALLINT column_type;	/**< type of data, saved from wire */

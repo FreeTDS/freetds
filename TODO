@@ -8,11 +8,14 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.123 2005-01-13 10:08:01 freddy77 Exp $
+To Do List	$Id: TODO,v 1.124 2005-01-13 15:18:23 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
 . Passing invalid character set names to server with tsql?
+  tsql (and so libTDS) can pass invalid charset names to Sybase
+  libTDS assume Sybase can handle this charset but it's false
+  and doesn't convert correctly.
 
 Working in progress:
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
@@ -29,19 +32,13 @@ Postponed to 0.64 version
 . add doc/htdoc/Makefile with "publish" target to commit cvs and update 
   freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
-. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . be able to disable iconv for BCP (see Sybase documentation)
-. UTF-8 unit tests (libTDS)
-  - very large column name (128 on mssql), no-english to UTF-8 client
 . userguide
   - update table of working configurations
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
 
 Started in 0.63
-- rationalize libtds structure and *_alloc functions 
-  (ML 5 December 2002, sb:"names")
-  (remove INFO and others)
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
@@ -53,8 +50,6 @@ For future versions (in priority order within library):
   All:
 . fix timeout problem reported in ML
 . move error message macro/prototype to tds.h.in; use in dblib.c.
-. Remove old char(30) limitations to various sysnames e.g., tables, columns, 
-  passwords (checks).  Is this done?  
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character

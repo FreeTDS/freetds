@@ -1,3 +1,11 @@
+Thu Jan 13 16:17:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* include/tds.h:
+	- fix problem with long column name and multibyte charset
+	* src/tds/query.c: remove a FIXME
+	* src/tds/unittests/Makefile.am src/tds/unittests/utf8_3.c(added):
+	- add a test for long column name
+
 Thu Jan 13 11:07:27 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/odbc.c:
 	- updated TODO
