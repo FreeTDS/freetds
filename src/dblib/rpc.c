@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.11 2002-11-24 18:01:59 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.12 2002-11-25 10:45:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -69,13 +69,17 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	/* sanity */
 	if (dbproc == NULL || rpcname == NULL) return FAIL;
 	
+	/* FIXME this is a bit field */
 	switch (options) {
 	case DBRPCRECOMPILE:
 		break;
 	case DBRPCRESET:
 		rpc_clear(dbproc->rpc);
+		dbproc->rpc = NULL;
 		return SUCCEED;
 		break; /* OK */
+	case 0:
+		break;
 	default:
 		return FAIL;  
 	}
@@ -91,14 +95,15 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	/* allocate */
 	rpc = (DBREMOTE_PROC*) malloc(sizeof(DBREMOTE_PROC));
 	if (rpc == NULL) return FAIL;
+	memset(rpc, 0, sizeof(DBREMOTE_PROC));
 	
-	rpc->name = (char*) malloc(1 + strlen(rpcname));
+	rpc->name = strdup(rpcname);
 	if (rpc->name == NULL) return FAIL; 	
 	
 	/* store */
-	strcpy(rpc->name, rpcname);
-	rpc->options = options;
+	rpc->options = options & DBRPCRECOMPILE;
 	rpc->param_list = (DBREMOTE_PROC_PARAM*) NULL;
+	dbproc->rpc = rpc;
 
 	/* completed */
 	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcinit() added rpcname \"%s\"\n",rpcname);
@@ -116,19 +121,18 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC *rpc;
 	DBREMOTE_PROC_PARAM *p;
 	DBREMOTE_PROC_PARAM *pparam;
-	
+
 	/* sanity */
 	if (dbproc == NULL || value == NULL) return FAIL;
 	if (dbproc->rpc == NULL ) return FAIL;
-	
+
 	/* allocate */
 	pparam = (DBREMOTE_PROC_PARAM*) malloc(sizeof(DBREMOTE_PROC_PARAM));
 	if (pparam == NULL) return FAIL;
 
 	if(paramname) {
-		name = (char*) malloc(1 + strlen(paramname));
+		name = strdup(paramname);
 		if (name == NULL) return FAIL;
-		strcpy(name, paramname);
 	}
 	
 	/* initialize */
@@ -181,6 +185,7 @@ dbrpcsend(DBPROCESS * dbproc)
 		
 		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
 			;
+		/* TODO free parameters */
 		if (erc == TDS_FAIL) {
 			return FAIL;
 		}
@@ -188,6 +193,7 @@ dbrpcsend(DBPROCESS * dbproc)
 
 	/* free up the memory */
 	rpc_clear(dbproc->rpc);
+	dbproc->rpc = NULL;
 
 	return SUCCEED;
 }
@@ -199,6 +205,7 @@ static const unsigned char *
 param_row_alloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
+	if (!row) return NULL;
 	memcpy(&params->current_row[curcol->column_offset], value, size);
 	
 	return row;
@@ -233,9 +240,8 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		/* meta data */
 		if (p->name) 
 			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
-		pcol->column_type		= p->type;
+		tds_set_column_type(pcol, p->type);
 		pcol->column_size		= p->maxlen;
-		pcol->column_varint_size	= 1;
 		pcol->column_writeable		= p->status;	/* FIXME not sure what to do here */
 
 		/* actual data */
@@ -271,7 +277,6 @@ rpc_clear(DBREMOTE_PROC * rpc)
 	free(rpc->name);
 	
 	free(rpc);
-	rpc = (DBREMOTE_PROC*) NULL;
 }
 
 /**
