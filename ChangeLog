@@ -1,3 +1,8 @@
+Thu Apr 10 12:14:04 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c src/tds/unittests/common.c:
+	- set ISO-8859-1 as default client charset, this make work many 
+	  unittest
+
 Tue Apr  8 15:42:21 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/Makefile.am added character_sets.h
 
