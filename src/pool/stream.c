@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.19 2004-12-13 19:24:25 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.20 2005-01-12 19:32:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -350,10 +350,10 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 		if (is_numeric_type(curcol->column_type))
 			pos+=2;
 
-	      /* skip locale information */
-	      pos += buf[pos];
+		/* skip locale information */
+		pos += buf[pos];
 
-	      tds_add_row_column_size(info, curcol);
+		tds_add_row_column_size(info, curcol);
 	}
 	if ((info->current_row = tds_alloc_row(info)) != NULL)
 		return TDS_SUCCEED;

@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.24 2004-12-17 02:08:04 jklowden Exp $";
+static char software_version[] = "$Id: user.c,v 1.25 2005-01-12 19:32:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
@@ -67,27 +67,27 @@ pool_user_init(TDS_POOL * pool)
 static TDS_POOL_USER *
 pool_user_find_new(TDS_POOL * pool)
 {
-        TDS_POOL_USER *puser;
-        int i;
+	TDS_POOL_USER *puser;
+	int i;
 
-        /* first check for dead users to reuse */
-        for (i=0; i<pool->max_users; i++) {
-                puser = (TDS_POOL_USER *) & pool->users[i];
-                if (!puser->tds)
+	/* first check for dead users to reuse */
+	for (i=0; i<pool->max_users; i++) {
+		puser = (TDS_POOL_USER *) & pool->users[i];
+		if (!puser->tds)
 			return puser;
-        }
+	}
 
-        /* did we exhaust the number of concurrent users? */
-        if (pool->max_users >= MAX_POOL_USERS) {
-                fprintf(stderr, "Max concurrent users exceeded, increase in pool.h\n");
-                return NULL;
-        }
+	/* did we exhaust the number of concurrent users? */
+	if (pool->max_users >= MAX_POOL_USERS) {
+		fprintf(stderr, "Max concurrent users exceeded, increase in pool.h\n");
+		return NULL;
+	}
 
-        /* else take one off the top of the pool->users */
-        puser = (TDS_POOL_USER *) & pool->users[pool->max_users];
-        pool->max_users++;
+	/* else take one off the top of the pool->users */
+	puser = (TDS_POOL_USER *) & pool->users[pool->max_users];
+	pool->max_users++;
 
-        return puser;
+	return puser;
 }
 
 /*

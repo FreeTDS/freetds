@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.34 2004-12-17 02:08:04 jklowden Exp $";
+static char software_version[] = "$Id: member.c,v 1.35 2005-01-12 19:32:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -128,15 +128,15 @@ pool_mbr_login(TDS_POOL * pool)
 void
 pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 {
-       pmbr->current_user = puser;
-       puser->assigned_member = pmbr;
+	pmbr->current_user = puser;
+	puser->assigned_member = pmbr;
 }
 void
 pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 {
-       if (pmbr->current_user)
-               pmbr->current_user->assigned_member = NULL;
-       pmbr->current_user = NULL;
+	if (pmbr->current_user)
+		pmbr->current_user->assigned_member = NULL;
+	pmbr->current_user = NULL;
 }
 /*
  * if a dead connection on the client side left this member in a questionable
@@ -145,7 +145,7 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 void
 pool_reset_member(TDS_POOL_MEMBER * pmbr)
 {
-       pool_free_member(pmbr);
+	pool_free_member(pmbr);
 }
 
 
