@@ -1,3 +1,7 @@
+Fri Aug 17 16:17:09 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/Makefile.am src/dblib/Makefile.am src/odbc/Makefile.am:
+	- add link to iconv library if needed
+
 Fri Aug 17 11:56:48 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/cs.c:
 	- count terminator for resultlen if string terminated

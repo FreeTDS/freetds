@@ -17,7 +17,7 @@ EXTRA_DIST = tables.sql
 if UNIXODBC
 libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
 else
-libtdsodbc_la_LIBADD=	$(TDSOBJECTS) $(NETWORK_LIBS)
+libtdsodbc_la_LIBADD=	$(TDSOBJECTS) $(NETWORK_LIBS) $(LIBICONV)
 endif
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 
