@@ -18,7 +18,7 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.9 2002-10-14 00:00:35 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.10 2002-10-17 14:51:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -159,10 +159,10 @@ int main(int argc, char *argv[])
 	   Use #ifndef for big buffer version (32-bit) */
 #if 1
 /* DBWRITE_OK_FOR_OVER_4K */
-		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, blob) != SUCCEED)
+		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, blob) != SUCCEED)
 			return 5;
 #else
-		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
+		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, NULL) != SUCCEED)
 			return 15;
 		dbsqlok(blobproc);
 		dbresults(blobproc);

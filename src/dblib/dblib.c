@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.77 2002-10-14 15:41:03 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.78 2002-10-17 14:51:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2555,7 +2555,10 @@ int marker;
     dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, -1);
     dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, -1);
 
-        if (tds_submit_queryf(dbproc->tds_socket, "writetext bulk %s 0x%s timestamp = 0x%s", objname, textptr_string, timestamp_string)
+        if (tds_submit_queryf(dbproc->tds_socket,
+		"writetext bulk %s 0x%s timestamp = 0x%s %s",
+		objname, textptr_string, timestamp_string,
+		((log == TRUE) ? "with log" : ""))
 	    != TDS_SUCCEED) {
 		return FAIL;
 	}

@@ -1,3 +1,10 @@
+Thu Oct 17 10:15:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c src/dblib/unittests/t0014.c:
+	- Add support for logged bulk writetext requests.
+	- Use logged writetext in src/dblib/unittests/t0014 so that
+	  the unit test can pass even if the "select into/bulkcopy"
+	  option is not set on the database used for testing.
+
 Thu Oct 17 09:56:05 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in include/tds_sysdep_private.h.in src/tds/threadsafe.c:
 	- Rename SOCK_REENTRANT to NETDB_REENTRANT.
