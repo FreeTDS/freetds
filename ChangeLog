@@ -1,3 +1,10 @@
+Tue May 13 12:09:42 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c
+	- look up canonical charset before initializing iconv
+	* src/tds/alternative_character_sets.h src/tds/character_sets.h 
+	- rollback today's change
+	* src/apps/tsql.c make message a little clearer
+
 Tue May 13 17:42:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: enable thread-safe by default
 

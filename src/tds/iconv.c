@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.66 2003-05-13 08:58:22 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.67 2003-05-13 16:17:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -76,6 +76,7 @@ static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_nam
  *	2. Ascii  <-> server meta data	(ascii2server_metadata)
  * Other designs that use less data are possible, but these three conversion needs are 
  * very often needed.  By reserving them, we avoid searching the array for our most common purposes.  
+ * \todo make \a charset  const
  */
 void
 tds_iconv_open(TDSSOCKET * tds, char *charset)
@@ -135,24 +136,48 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 #endif
 }
 
+/**
+ * Open iconv descriptors to convert between character sets (both directions).
+ * 1.  Look up the canonical names of the character sets.
+ * 2.  Look up their widths.
+ * 3.  Ask iconv to open a conversion descriptor.
+ * 4.  Fail if any of the above offer any resistance.  
+ * \remarks The charset names written to \a iconv_info will be the canonical names, 
+ *          not necessarily the names passed in. 
+ */
 static int
 tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name)
 {
 	TDS_ENCODING *client = &iconv_info->client_charset;
 	TDS_ENCODING *server = &iconv_info->server_charset;
 
+	const char *server_canonical, *client_canonical;
+
 	assert(client_name && server_name);
 
-	SAFECPY(client->name, client_name);
-	SAFECPY(server->name, server_name);
+	client_canonical = tds_canonical_charset_name(client_name);
+	server_canonical = tds_canonical_charset_name(server_name);
 
-	if (!bytes_per_char(client)) {
+	if (!client_canonical) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
+	if (!server_canonical) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
+		return 0;
+	}
+
+	SAFECPY(client->name, client_canonical);
+	SAFECPY(server->name, server_canonical);
+
+	if (!bytes_per_char(client)) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" size unknown\n", client->name);
+		return 0;
+	}
+
 	if (!bytes_per_char(server)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" unrecognized\n", server->name);
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" size unknown\n", server->name);
 		return 0;
 	}
 
