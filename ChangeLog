@@ -1,3 +1,6 @@
+Wed Dec 03 11:01:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c: remove libgen dependency
+
 Wed Dec 03 10:34:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/odbc/Makefile.am:
 	- ODBC driver do not require ODBC DM library

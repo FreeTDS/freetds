@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <libgen.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -66,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.86 2003-12-03 08:38:43 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.87 2003-12-03 10:02:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -448,7 +447,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s'...ignoring.\n", option);
 		fprintf(stderr, "FreeTDS: %s:%d: ignoring unrecognized option '%s'\n", 
-				basename(__FILE__), __LINE__, option);
+				__FILE__, __LINE__, option);
 	}
 }
 
