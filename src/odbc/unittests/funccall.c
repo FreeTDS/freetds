@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.8 2004-01-09 20:28:28 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.9 2004-01-09 23:18:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -118,6 +118,8 @@ main(int argc, char *argv[])
 	ind2 = sizeof(input);
 	out1 = 888;
 	output = 0xdeadbeef;
+	ind3 = SQL_DATA_AT_EXEC;
+	ind4 = SQL_DEFAULT_PARAM;
 	if (SQLExecute(Statement) != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		exit(1);

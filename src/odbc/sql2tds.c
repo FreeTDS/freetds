@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.29 2003-12-09 13:41:02 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.30 2004-01-09 23:18:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -116,9 +116,6 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	SQLINTEGER sql_len;
 	int need_data = 0, i;
 
-	/* TODO procedure, macro ?? see prepare_query */
-	sql_len = odbc_get_param_len(dbc->tds_socket, drec_apd, drec_ipd);
-
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, drec_ipd->sql_desc_concise_type);
 
@@ -161,6 +158,12 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	src_type = drec_apd->sql_desc_concise_type;
 	if (src_type == SQL_C_DEFAULT)
 		src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+
+	/* if only output assume input is NULL */
+	if (drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT)
+		sql_len = SQL_NULL_DATA;
+	else
+		sql_len = odbc_get_param_len(dbc->tds_socket, drec_apd, drec_ipd);
 
 	/* compute source length */
 	switch (sql_len) {
@@ -215,7 +218,8 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	}
 
 	/* set null */
-	if (sql_len == SQL_NULL_DATA || drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
+	assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
+	if (sql_len == SQL_NULL_DATA) {
 		curcol->column_cur_size = 0;
 		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;
