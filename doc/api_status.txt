@@ -113,7 +113,7 @@ odbc	(all)	SQLFreeHandle	OK
 odbc	(all)	SQLFreeStmt	OK
 odbc	(all)	SQLGetConnectAttr	OK
 odbc	(all)	SQLGetConnectOption	OK
-odbc	(all)	SQLGetCursorName	
+odbc	(all)	SQLGetCursorName	OK
 odbc	(all)	SQLGetData	OK
 odbc	(all)	SQLGetDescField	OK
 odbc	(all)	SQLGetDescRec	OK
@@ -138,15 +138,15 @@ odbc	(all)	SQLProcedures	OK
 odbc	(all)	SQLPutData	OK
 odbc	(all)	SQLRowCount	OK
 odbc	(all)	SQLSetConnectAttr	OK
-odbc	(all)	SQLSetConnectOption	partial
-odbc	(all)	SQLSetCursorName	
+odbc	(all)	SQLSetConnectOption	OK
+odbc	(all)	SQLSetCursorName	OK
 odbc	(all)	SQLSetDescField	OK
 odbc	(all)	SQLSetDescRec	OK
 odbc	(all)	SQLSetEnvAttr	partial
 odbc	(all)	SQLSetPos	
 odbc	(all)	SQLSetParam	OK
 odbc	(all)	SQLSetScrollOption	
-odbc	(all)	SQLSetStmtAttr	
+odbc	(all)	SQLSetStmtAttr	OK
 odbc	(all)	SQLSetStmtOption	partial
 odbc	(all)	SQLSpecialColumns	OK
 odbc	(all)	SQLStatistics	OK

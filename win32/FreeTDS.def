@@ -31,7 +31,7 @@ EXPORTS
 	SQLFreeStmt
 	SQLGetConnectAttr
 	SQLGetConnectOption
-;	SQLGetCursorName
+	SQLGetCursorName
 	SQLGetData
 	SQLGetDescField
 	SQLGetDescRec
@@ -57,12 +57,13 @@ EXPORTS
 	SQLRowCount
 	SQLSetConnectAttr
 	SQLSetConnectOption
-;	SQLSetCursorName
+	SQLSetCursorName
 	SQLSetDescField
 	SQLSetDescRec
 	SQLSetEnvAttr
 	SQLSetParam
 ;	SQLSetPos
+	SQLSetStmtAttr
 	SQLSetStmtOption
 	SQLSpecialColumns
 	SQLStatistics
