@@ -1,3 +1,6 @@
+Wed May 05 10:26:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: full support for metadata_id attribute
+
 Tue May 04 11:53:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c win32/Makefile.am win32/winlogin.c:
 	* win32/winsetup.c:

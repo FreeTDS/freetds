@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.322 2004-05-04 09:55:03 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.323 2004-05-05 08:27:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -417,10 +417,9 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_column_privileges ", 4,
-				  "@table_qualifier", szCatalogName, cbCatalogName,
-				  "@table_owner", szSchemaName, cbSchemaName,
-				  "@table_name", szTableName, cbTableName, "@column_name", szColumnName, cbColumnName);
+		odbc_stat_execute(stmt, "sp_column_privileges ", 4, "O@table_qualifier", szCatalogName, cbCatalogName,
+				  "O@table_owner", szSchemaName, cbSchemaName, "O@table_name", szTableName, cbTableName,
+				  "P@column_name", szColumnName, cbColumnName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -458,12 +457,10 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_fkeys ", 6,
-				  "@pktable_qualifier", szPkCatalogName, cbPkCatalogName,
-				  "@pktable_owner", szPkSchemaName, cbPkSchemaName,
-				  "@pktable_name", szPkTableName, cbPkTableName,
-				  "@fktable_qualifier", szFkCatalogName, cbFkCatalogName,
-				  "@fktable_owner", szFkSchemaName, cbFkSchemaName, "@fktable_name", szFkTableName, cbFkTableName);
+		odbc_stat_execute(stmt, "sp_fkeys ", 6, "O@pktable_qualifier", szPkCatalogName, cbPkCatalogName, "O@pktable_owner",
+				  szPkSchemaName, cbPkSchemaName, "O@pktable_name", szPkTableName, cbPkTableName,
+				  "O@fktable_qualifier", szFkCatalogName, cbFkCatalogName, "O@fktable_owner", szFkSchemaName,
+				  cbFkSchemaName, "O@fktable_name", szFkTableName, cbFkTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PKTABLE_CAT");
 		odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
@@ -652,9 +649,8 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_pkeys ", 3,
-				  "@table_qualifier", szCatalogName, cbCatalogName,
-				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
+		odbc_stat_execute(stmt, "sp_pkeys ", 3, "O@table_qualifier", szCatalogName, cbCatalogName, "O@table_owner",
+				  szSchemaName, cbSchemaName, "O@table_name", szTableName, cbTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -672,10 +668,9 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_sproc_columns ", 4,
-				  "@procedure_qualifier", szCatalogName, cbCatalogName,
-				  "@procedure_owner", szSchemaName, cbSchemaName,
-				  "@procedure_name", szProcName, cbProcName, "@column_name", szColumnName, cbColumnName);
+		odbc_stat_execute(stmt, "sp_sproc_columns ", 4, "O@procedure_qualifier", szCatalogName, cbCatalogName,
+				  "P@procedure_owner", szSchemaName, cbSchemaName, "P@procedure_name", szProcName, cbProcName,
+				  "P@column_name", szColumnName, cbColumnName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
@@ -696,9 +691,8 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_stored_procedures ", 3,
-				  "@sp_name", szProcName, cbProcName,
-				  "@sp_owner", szSchemaName, cbSchemaName, "@sp_qualifier", szCatalogName, cbCatalogName);
+		odbc_stat_execute(stmt, "sp_stored_procedures ", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
+				  cbSchemaName, "O@sp_qualifier", szCatalogName, cbCatalogName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
@@ -725,9 +719,8 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_table_privileges ", 3,
-				  "@table_qualifier", szCatalogName, cbCatalogName,
-				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
+		odbc_stat_execute(stmt, "sp_table_privileges ", 3, "O@table_qualifier", szCatalogName, cbCatalogName,
+				  "P@table_owner", szSchemaName, cbSchemaName, "P@table_name", szTableName, cbTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -2912,7 +2905,10 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->attr.max_rows);
 		src = &stmt->attr.max_rows;
 		break;
-		/* TODO SQL_ATTR_METADATA_ID */
+	case SQL_ATTR_METADATA_ID:
+		size = sizeof(stmt->attr.metadata_id);
+		src = &stmt->attr.noscan;
+		break;
 	case SQL_ATTR_NOSCAN:
 		size = sizeof(stmt->attr.noscan);
 		src = &stmt->attr.noscan;
@@ -3312,10 +3308,9 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_columns ", 4,
-				  "@table_name", szTableName, cbTableName,
-				  "@table_owner", szSchemaName, cbSchemaName,
-				  "@table_qualifier", szCatalogName, cbCatalogName, "@column_name", szColumnName, cbColumnName);
+		odbc_stat_execute(stmt, "sp_columns ", 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
+				  cbSchemaName, "O@table_qualifier", szCatalogName, cbCatalogName, "P@column_name", szColumnName,
+				  cbColumnName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -4853,7 +4848,9 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		}
 		stmt->attr.max_rows = ui;
 		break;
-		/* TODO SQL_ATTR_METADATA_ID */
+	case SQL_ATTR_METADATA_ID:
+		stmt->attr.metadata_id = ui;
+		break;
 		/* TODO use it !!! */
 	case SQL_ATTR_NOSCAN:
 		stmt->attr.noscan = ui;
@@ -5016,10 +5013,8 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		col_type[0] = 'V';
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 6 : 4,
-				  "", szTableName, cbTableName,
-				  "@owner", szSchemaName, cbSchemaName,
-				  "@qualifier", szCatalogName, cbCatalogName,
+		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 6 : 4, "O", szTableName,
+				  cbTableName, "O", szSchemaName, cbSchemaName, "O@qualifier", szCatalogName, cbCatalogName,
 				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
@@ -5077,10 +5072,9 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		unique[0] = 'N';
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
-				  "@table_qualifier", szCatalogName, cbCatalogName,
-				  "@table_owner", szSchemaName, cbSchemaName,
-				  "@table_name", szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
+		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4, "O@table_qualifier",
+				  szCatalogName, cbCatalogName, "O@table_owner", szSchemaName, cbSchemaName, "O@table_name",
+				  szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -5161,10 +5155,9 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	}
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_tables ", 4,
-				  "@table_name", szTableName, cbTableName,
-				  "@table_owner", szSchemaName, cbSchemaName,
-				  "@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType, cbTableType);
+		odbc_stat_execute(stmt, "sp_tables ", 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
+				  cbSchemaName, "P@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType,
+				  cbTableType);
 	if (type)
 		free(type);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
@@ -5259,8 +5252,93 @@ odbc_log_unimplemented_type(const char function_name[], int fType)
 	return;
 }
 
-#define ODBC_MAX_STAT_PARAM 8
+static int
+odbc_quote_metadata(TDS_DBC * dbc, char type, char *dest, const char *s, int len)
+{
+	int unquote = 0;
+	char prev, buf[1200], *dst;
 
+	if (!type || (type == 'O' && dbc->attr.metadata_id == SQL_FALSE))
+		return tds_quote_string(dbc->tds_socket, dest, s, len);
+
+	/* where we can have ID or PV */
+	assert(type == 'P' || (type == 'O' && dbc->attr.metadata_id != SQL_FALSE));
+
+	/* ID ? */
+	if (dbc->attr.metadata_id != SQL_FALSE) {
+		/* strip leading and trailing spaces */
+		while (len > 0 && *s == ' ')
+			++s, --len;
+		while (len > 0 && s[len - 1] == ' ')
+			--len;
+		/* unquote if necessary */
+		if (len > 2 && *s == '\"' && s[len - 1] == '\"') {
+			++s, len -= 2;
+			unquote = 1;
+		}
+	}
+
+	/* limit string/id lengths */
+	if (len > 384)
+		len = 384;
+
+	if (!dest)
+		dest = buf;
+	dst = dest;
+
+	/*
+	 * handle patterns 
+	 * "'" -> "''" (normal string quoting)
+	 *
+	 * if metadata_id is FALSE
+	 * "\_" -> "[_]"
+	 * "\%" -> "[%]"
+	 * "[" -> "[[]"
+	 *
+	 * if metadata_id is TRUE
+	 * "\"\"" -> "\"" (if unquote id)
+	 * "_" -> "[_]"
+	 * "%" -> "[%]"
+	 * "[" -> "[[]"
+	 */
+	prev = 0;
+	*dst++ = '\'';
+	for (; --len >= 0; prev = *s++) {
+		switch (*s) {
+		case '\'':
+			*dst++ = '\'';
+			break;
+		case '\"':
+			if (unquote && prev == '\"') {
+				prev = 0;	/* avoid "\"\"\"" -> "\"" */
+				--dst;
+				continue;
+			}
+			break;
+		case '_':
+		case '%':
+			if (dbc->attr.metadata_id == SQL_FALSE) {
+				if (prev != '\\')
+					break;
+				--dst;
+			}
+		case '[':
+			if (type != 'P')
+				break;
+			/* quote search string */
+			*dst++ = '[';
+			*dst++ = *s;
+			*dst++ = ']';
+			prev = 0;
+			continue;
+		}
+		*dst++ = *s;
+	}
+	*dst++ = '\'';
+	return dst - dest;
+}
+
+#define ODBC_MAX_STAT_PARAM 8
 static SQLRETURN
 odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 {
@@ -5269,6 +5347,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		char *name;
 		SQLCHAR *value;
 		int len;
+		char type;
 	}
 	params[ODBC_MAX_STAT_PARAM];
 	int i, len;
@@ -5283,13 +5362,24 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	va_start(marker, nparams);
 	len = strlen(begin) + 2;
 	for (i = 0; i < nparams; ++i) {
-		params[i].name = va_arg(marker, char *);
+		p = va_arg(marker, char *);
+
+		switch (*p) {
+		case 'O':	/* ordinary arguments */
+		case 'P':	/* pattern value arguments */
+			params[i].type = *p++;
+			break;
+		default:
+			params[i].type = 0;	/* ordinary type */
+			break;
+		}
+		params[i].name = p;
 
 		params[i].value = va_arg(marker, SQLCHAR *);
 		params[i].len = odbc_get_string_size(va_arg(marker, int), params[i].value);
 
-		len += strlen(params[i].name) + tds_quote_string(stmt->dbc->tds_socket, NULL, (char *) params[i].value,
-								 params[i].len) + 3;
+		len += strlen(params[i].name) + odbc_quote_metadata(stmt->dbc, params[i].type, NULL, (char *) params[i].value,
+								    params[i].len) + 3;
 	}
 	va_end(marker);
 
@@ -5311,7 +5401,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 			p += strlen(params[i].name);
 			*p++ = '=';
 		}
-		p += tds_quote_string(stmt->dbc->tds_socket, p, (char *) params[i].value, params[i].len);
+		p += odbc_quote_metadata(stmt->dbc, params[i].type, p, (char *) params[i].value, params[i].len);
 		*p++ = ',';
 	}
 	*--p = '\0';
