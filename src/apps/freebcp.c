@@ -25,11 +25,11 @@
 #include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.8 2002-09-17 02:41:10 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.9 2002-10-01 16:42:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-void pusage();
+void pusage(void);
 int process_parameters(int , char **, struct pd *);
 int login_to_database(struct pd *, DBPROCESS **);
 
@@ -37,8 +37,8 @@ int file_character(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
 int file_native(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
 int file_formatted(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
 
-int err_handler();
-int msg_handler();
+int err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+int msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 
 int
 main (int argc, char **argv)
@@ -564,7 +564,8 @@ int li_rowsread;
      return TRUE;
 }
 
-void pusage()
+void
+pusage(void)
 {
    fprintf(stderr,"usage: bcp [[database_name.]owner.]table_name {in | out} datafile\n");
    fprintf(stderr,"        [-m maxerrors] [-f formatfile] [-e errfile]\n");
@@ -604,7 +605,6 @@ char            *oserrstr;
 
 int msg_handler(dbproc, msgno, msgstate, severity, msgtext, 
                 srvname, procname, line)
-
 DBPROCESS       *dbproc;
 DBINT           msgno;
 int             msgstate;
@@ -612,8 +612,7 @@ int             severity;
 char            *msgtext;
 char            *srvname;
 char            *procname;
-DBUSMALLINT     line;
-
+int             line;
 {
     /*
     ** If it's a database change message, we'll ignore it.

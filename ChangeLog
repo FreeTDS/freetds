@@ -1,3 +1,8 @@
+Tue Oct  1 12:41:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/freebcp.c src/apps/tsql.c:
+	- Correct existing prototypes, add missing prototypes.
+	- Fix type of "line" in message handler declaration.
+
 Tue Oct  1 12:24:54 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/des.h src/tds/des.c:
 	- Correct existing prototypes, add missing prototypes.

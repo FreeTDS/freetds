@@ -35,7 +35,16 @@ enum {
 	OPT_NOHEADER  = 0x08
 };
 
+int do_query(TDSSOCKET *tds, char *buf, int opt_flags);
+void print_usage(char *progname);
+int get_opt_flags(char *s, int *opt_flags);
+void populate_login(TDSLOGIN *login, int argc, char **argv);
+int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg);
+
 #ifndef HAVE_READLINE
+char *readline(char *prompt);
+void add_history(const char *s);
+
 char *
 readline(char *prompt)
 {
