@@ -3,6 +3,7 @@ Sun Jun  9 18:17:46 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/apps/freebcp.c: initial implementation (Bill Thompson)
 	* src/apps/freebcp.h: initial implementation (Bill Thompson)
 	* src/apps/tsql.c: initial implementation
+	* src/tds/token.c: remove check for parent on call to message handler
 
 Sun Jun  9 09:47:34 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
 	* src/odbc/convert_sql2string.c:

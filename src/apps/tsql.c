@@ -194,8 +194,8 @@ int tsql_handle_message(void *tdsptr)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
 
-     if( tds->msg_info->msg_number > 0 ) {
-		fprintf (stderr, "INFO..No User supplied info msg handler..Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+     if( tds->msg_info->msg_number > 0  && tds->msg_info->msg_number != 5701) {
+		fprintf (stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
                          tds->msg_info->msg_number,
                          tds->msg_info->msg_level,
                          tds->msg_info->msg_state,
@@ -228,7 +228,7 @@ TDSLOGIN *login;
 	populate_login(login, argc, argv);
 
 	/* Try to open a connection*/
-	tds = tds_connect(login, NULL, NULL); /* no locale, no parent structure */
+	tds = tds_connect(login, NULL, login); /* no locale */
 
 	if (!tds) {
 		/* FIX ME -- need to hook up message/error handlers */

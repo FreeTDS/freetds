@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.20 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.21 2002-06-10 03:08:21 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1017,7 +1017,7 @@ int tmp = tds_get_smallint(tds);
 int tds_client_msg(TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message)
 {
 int ret;
-        if(tds->parent && g_tds_err_handler) {
+        if(g_tds_err_handler) {
 		tds->msg_info->msg_number=msgnum;
         	tds->msg_info->msg_level=level; /* severity? */
         	tds->msg_info->msg_state=state;
@@ -1220,9 +1220,8 @@ int len_sqlstate;
 	** the "parent" structure.
 	*/
 
-	if(tds->parent && (tds->msg_info->priv_msg_type
-	                   ? g_tds_err_handler : g_tds_msg_handler))
-	{
+	if(tds->msg_info->priv_msg_type
+	                   ? g_tds_err_handler : g_tds_msg_handler) {
 		if (tds->msg_info->priv_msg_type)
 			g_tds_err_handler(tds);
 		else
