@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.104 2003-11-01 23:02:19 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.105 2003-11-03 16:46:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -344,9 +344,8 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 		info->by_cols = by_cols;
 	}
 
-	null_sz = (num_cols / 8) + 1;
-	if (null_sz % TDS_ALIGN_SIZE)
-		null_sz = ((null_sz / TDS_ALIGN_SIZE) + 1) * TDS_ALIGN_SIZE;
+	null_sz = (unsigned) (num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
+	null_sz = null_sz - null_sz % TDS_ALIGN_SIZE;
 	/* set the initial row size to the size of the null info */
 	info->row_size = info->null_info_size = null_sz;
 
@@ -406,9 +405,8 @@ tds_alloc_results(int num_cols)
 		memset(res_info->columns[col], '\0', sizeof(TDSCOLINFO));
 	}
 	res_info->num_cols = num_cols;
-	null_sz = (num_cols / 8) + 1;
-	if (null_sz % TDS_ALIGN_SIZE)
-		null_sz = ((null_sz / TDS_ALIGN_SIZE) + 1) * TDS_ALIGN_SIZE;
+	null_sz = (unsigned) (num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
+	null_sz = null_sz - null_sz % TDS_ALIGN_SIZE;
 	res_info->null_info_size = null_sz;
 	/* set the initial row size to the size of the null info */
 	res_info->row_size = res_info->null_info_size;
@@ -485,7 +483,7 @@ tds_free_results(TDSRESULTINFO * res_info)
 	if (res_info->num_cols && res_info->columns) {
 		for (i = 0; i < res_info->num_cols; i++)
 			if ((curcol = res_info->columns[i]) != NULL) {
-				if (res_info->current_row && is_blob_type(curcol->column_type)) {
+				if (res_info->current_row && is_blob_type(curcol->column_type) && curcol->column_offset) {
 					free(((TDSBLOBINFO *) (res_info->current_row + curcol->column_offset))->textvalue);
 				}
 				free(curcol);
@@ -621,7 +619,7 @@ tds_alloc_connect(TDSLOCALE * locale)
 
 	memcpy(connect_info->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return connect_info;
-Cleanup:
+      Cleanup:
 	tds_free_connect(connect_info);
 	return NULL;
 }
@@ -633,27 +631,32 @@ tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen)
 	TDS_CURSOR *cursor;
 
 	TEST_MALLOC(cursor, TDS_CURSOR);
-	memset(cursor,'\0',sizeof(TDS_CURSOR));
+	memset(cursor, '\0', sizeof(TDS_CURSOR));
 
-	TEST_CALLOC(cursor->cursor_name, char, namelen);
+	TEST_CALLOC(cursor->cursor_name, char, namelen + 1);
+
 	strcpy(cursor->cursor_name, name);
 	cursor->cursor_name_len = namelen;
 
-	TEST_CALLOC(cursor->query, char, querylen);
+	TEST_CALLOC(cursor->query, char, querylen + 1);
+
 	strcpy(cursor->query, query);
 	cursor->query_len = querylen;
 	return cursor;
 
-Cleanup:
+      Cleanup:
 	tds_free_cursor(cursor);
 	return NULL;
 }
 
-void tds_free_cursor(TDS_CURSOR *cursor)
+void
+tds_free_cursor(TDS_CURSOR * cursor)
 {
 	if (cursor) {
-		if (cursor->cursor_name) free(cursor->cursor_name);
-		if (cursor->query) free(cursor->query);
+		if (cursor->cursor_name)
+			free(cursor->cursor_name);
+		if (cursor->query)
+			free(cursor->query);
 		free(cursor);
 	}
 }
