@@ -47,8 +47,10 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.20 2004-12-11 13:32:42 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.21 2004-12-12 19:06:49 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 
 extern int waiters;
 
@@ -64,6 +66,36 @@ pool_user_init(TDS_POOL * pool)
 
 
 /*
+
+** pool_user_create
+** accepts a client connection and adds it to the users list and returns it
+*/
+TDS_POOL_USER *
+pool_user_find_new(TDS_POOL * pool)
+{
+        TDS_POOL_USER *puser;
+        int i;
+
+        /* first check for dead users to reuse */
+        for (i=0; i<pool->max_users; i++) {
+                puser = (TDS_POOL_USER *) & pool->users[i];
+                if (!puser->tds) return puser;
+        }
+
+        /* did we exhaust the number of concurrent users? */
+        if (pool->max_users >= MAX_POOL_USERS) {
+                fprintf(stderr, "Max concurrent users exceeded, increase in pool.h\n");
+                return NULL;
+        }
+
+        /* else take one off the top of the pool->users */
+        puser = (TDS_POOL_USER *) & pool->users[pool->max_users];
+        pool->max_users++;
+
+        return puser;
+}
+
+/*
  * pool_user_create
  * accepts a client connection and adds it to the users list and returns it
  */
@@ -74,8 +106,9 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	TDS_SYS_SOCKET fd;
 	socklen_t len;
 
-	/* FIX ME -- the accepted connections just grow until we run out */
-	puser = (TDS_POOL_USER *) & pool->users[pool->max_users];
+	puser = pool_user_find_new(pool);
+	if (!puser) return NULL;
+
 	fprintf(stderr, "accepting connection\n");
 	len = sizeof(struct sockaddr);
 	if ((fd = accept(s, (struct sockaddr *) sin, &len)) < 0) {
