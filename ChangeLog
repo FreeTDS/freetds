@@ -1,3 +1,9 @@
+Mon Sep 30 20:50:26 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/query.c:
+	- Revert to revision 1.20 (undo earlier cleanup of statically
+	  sized buffers in this module).  Freddy had some valid concerns
+	  the error handling here.  Will need to revisit this later.
+
 Mon Sep 30 22:15:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am: fix distribution
 	* src/tds/challenge.c src/tds/login.c:
