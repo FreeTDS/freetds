@@ -1,3 +1,8 @@
+Wed Oct 30 15:20:51 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/bcp.c:
+	- Eliminate a potential buffer overrun.  There's still
+	  another one lurking here (colclause) that needs attention...
+
 Wed Oct 30 14:35:40 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/ct.c:
 	- Add a default case in outer loop of ct_results().  Paranoia.

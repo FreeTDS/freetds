@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.31 2002-10-27 07:07:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.32 2002-10-30 20:23:11 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1572,7 +1572,7 @@ TDS_INT         computeid;
 int i;
 int marker;
 
-char query    [1024];
+char *query;
 char colclause[1024];
 
 int  firstcol;
@@ -1593,20 +1593,23 @@ int  firstcol;
            }
        }
 
-       sprintf(query,"insert bulk %s (%s)",dbproc->bcp_tablename, colclause );
+       if (asprintf(&query, "insert bulk %s (%s)", dbproc->bcp_tablename, colclause) < 0) {
+		return FAIL;
+	}
 
     }
     else
     {
-       sprintf(query,"insert bulk %s",dbproc->bcp_tablename);
+       if (asprintf(&query, "insert bulk %s", dbproc->bcp_tablename) < 0) {
+		return FAIL;
+	}
     }
 
-    tds_submit_query(tds,query);
+    tds_submit_query(tds, query);
 
     /* save the statement for later... */
 
-    dbproc->bcp_insert_stmt = (char *) malloc(strlen(query)+1);
-    strcpy(dbproc->bcp_insert_stmt, query);
+    dbproc->bcp_insert_stmt = query;
 
     /* In TDS 5 we get the column information as a */
     /* result set from the "insert bulk" command.  */
