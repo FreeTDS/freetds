@@ -1,3 +1,8 @@
+Fri Oct 11 10:48:13 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/asprintf.c:
+	- #if HAVE_CONFIG_H instead of #ifdef HAVE_CONFIG_H for
+	  consistency with other modules.
+
 Fri Oct 11 10:45:12 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/replacements/vasprintf.c:
 	- Add autoconf header test for paths.h.  Use _PATH_DEVNULL

@@ -4,14 +4,14 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-#ifdef HAVE_CONFIG_H
+#if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <stdarg.h>
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.2 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.3 2002-10-11 14:49:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
