@@ -36,7 +36,7 @@ echo "make distribution ok" >> "$LOG"
 
 # untar to test it, should already contains documentation
 DIR=`echo freetds-* | sed s,.tar.gz$,,g`
-tar zxf freetds-*.tar.gz
+gunzip -dc freetds-*.tar.gz | tar xf -
 test -d "$DIR"
 cd "$DIR"
 echo "untar ok" >> "$LOG"
@@ -61,6 +61,8 @@ INSTALLDIR="$PWD/install"
 mkdir build
 cd build
 ../configure --prefix="$INSTALLDIR"
+# make clean should not cause problems here
+make clean
 make install
 cd ..
 echo "direct make install ok" >> "$LOG"
@@ -77,10 +79,16 @@ cd ..
 rm -rf build
 echo "make dist ok" >> "$LOG"
 
+# test if make clean clean too much
+mkdir install
+./configure --prefix="$PWD/install"
+make clean
+make dist
+
 # finally big test. I hope you have a fast machine :)
 cd ..
 rm -rf "$DIR"
-tar zxf freetds-*.tar.gz
+gunzip -dc freetds-*.tar.gz | tar xf -
 cd "$DIR"
 ./configure
 if test ! -e PWD -a -e "$ORIGDIR/../PWD"; then

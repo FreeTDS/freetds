@@ -1,3 +1,7 @@
+Sat Oct 16 13:41:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am misc/test-dist.sh:
+	- allow make clean before another make
+
 Fri Oct 15 10:45:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/cs_config.c src/tds/unittests/utf8_1.c:
 	* src/tds/unittests/utf8_2.c:

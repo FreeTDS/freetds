@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.48 2004-06-15 00:39:10 jklowden Exp $
+# version: $Id: Makefile.am,v 1.49 2004-10-16 11:41:32 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -74,7 +74,7 @@ uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
 
 clean-local:
-	rm -rf userguide.dsl doc doxy.log userguide reference \
+	rm -rf userguide.dsl doxy.log userguide reference \
 		dblib.api	\
 		ctlib.api	\
 		 odbc.api	\
