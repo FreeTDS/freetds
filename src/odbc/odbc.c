@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.217 2003-08-25 21:13:51 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.218 2003-08-26 10:14:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1655,6 +1655,207 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #undef IOUT
 }
 
+SQLRETURN
+SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength)
+{
+	struct _drecord *drec;
+	SQLRETURN result = SQL_SUCCESS;
+
+	INIT_HDESC;
+
+#if ENABLE_EXTRA_CHECKS
+#define IIN(type, dest) do { \
+	/* trick warning if type wrong */ \
+	type *p_test = &dest; p_test = p_test; \
+	dest = (type)(int)Value; } while(0)
+#define PIN(type, dest) do { \
+	/* trick warning if type wrong */ \
+	type *p_test = &dest; p_test = p_test; \
+	dest = (type)Value; } while(0)
+#else
+#define IIN(type, dest) dest = (type)(int)Value
+#define PIN(type, dest) dest = (type)Value
+#endif
+
+	/* special case for IRD */
+	if (desc->type == DESC_IRD && fDescType != SQL_DESC_ARRAY_STATUS_PTR && fDescType != SQL_DESC_ROWS_PROCESSED_PTR) {
+		odbc_errs_add(&desc->errs, "HY016", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	/* dont check column index for these */
+	switch (fDescType) {
+	case SQL_DESC_ALLOC_TYPE:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+		break;
+	case SQL_DESC_ARRAY_SIZE:
+		IIN(SQLINTEGER, desc->header.sql_desc_array_size);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_ARRAY_STATUS_PTR:
+		PIN(SQLUSMALLINT *, desc->header.sql_desc_array_status_ptr);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_ROWS_PROCESSED_PTR:
+		PIN(SQLUINTEGER *, desc->header.sql_desc_rows_processed_ptr);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_BIND_TYPE:
+		IIN(SQLINTEGER, desc->header.sql_desc_bind_type);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_COUNT:
+		{
+			int n = (int) Value;
+
+			if (n <= 0 || n > 4000) {
+				odbc_errs_add(&desc->errs, "07009", NULL, NULL);
+				ODBC_RETURN(desc, SQL_ERROR);
+			}
+			result = desc_alloc_records(desc, n);
+			if (result == SQL_ERROR)
+				odbc_errs_add(&desc->errs, "HY001", NULL, NULL);
+			ODBC_RETURN(desc, result);
+		}
+		break;
+	}
+
+	if (!desc->header.sql_desc_count) {
+		odbc_errs_add(&desc->errs, "07005", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	if (icol <= 0 || icol > desc->header.sql_desc_count) {
+		odbc_errs_add(&desc->errs, "07009", "Column out of range", NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+	drec = &desc->records[icol - 1];
+
+	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLColAttributes: fDescType is %d\n", fDescType);
+
+	switch (fDescType) {
+	case SQL_DESC_AUTO_UNIQUE_VALUE:
+	case SQL_DESC_BASE_COLUMN_NAME:
+	case SQL_DESC_BASE_TABLE_NAME:
+	case SQL_DESC_CASE_SENSITIVE:
+	case SQL_DESC_CATALOG_NAME:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_CONCISE_TYPE:
+		IIN(SQLSMALLINT, drec->sql_desc_concise_type);
+		break;
+	case SQL_DESC_DATA_PTR:
+		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
+		break;
+		/* TODO SQL_DESC_DATETIME_INTERVAL_CODE */
+		/* TODO SQL_DESC_DATETIME_INTERVAL_PRECISION */
+	case SQL_DESC_DISPLAY_SIZE:
+	case SQL_DESC_FIXED_PREC_SCALE:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_INDICATOR_PTR:
+		PIN(SQLINTEGER *, drec->sql_desc_indicator_ptr);
+		break;
+	case SQL_DESC_LABEL:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_LENGTH:
+		IIN(SQLINTEGER, drec->sql_desc_length);
+		break;
+	case SQL_DESC_LITERAL_PREFIX:
+	case SQL_DESC_LITERAL_SUFFIX:
+	case SQL_DESC_LOCAL_TYPE_NAME:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_NAME:
+		{
+			/* TODO use our DSTR lib */
+			/* FIXME test len >= 0 */
+			int len = odbc_get_string_size(BufferLength, (SQLCHAR *) Value);
+			char *p = malloc(len + 1);
+
+			if (!p) {
+				odbc_errs_add(&desc->errs, "HY001", NULL, NULL);
+				result = SQL_ERROR;
+				break;
+			}
+			memcpy(p, Value, len);
+			p[len] = 0;
+			if (drec->sql_desc_name)
+				free(drec->sql_desc_name);
+			drec->sql_desc_name = p;
+		}
+		break;
+	case SQL_DESC_NULLABLE:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_NUM_PREC_RADIX:
+		IIN(SQLINTEGER, drec->sql_desc_num_prec_radix);
+		break;
+	case SQL_DESC_OCTET_LENGTH:
+		IIN(SQLINTEGER, drec->sql_desc_octet_length);
+		break;
+	case SQL_DESC_OCTET_LENGTH_PTR:
+		PIN(SQLINTEGER *, drec->sql_desc_octet_length_ptr);
+		break;
+	case SQL_DESC_PARAMETER_TYPE:
+		IIN(SQLSMALLINT, drec->sql_desc_parameter_type);
+		break;
+	case SQL_DESC_PRECISION:
+		/* TODO correct ?? */
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+			IIN(SQLSMALLINT, drec->sql_desc_precision);
+		else
+			IIN(SQLUINTEGER, drec->sql_desc_length);
+		break;
+	case SQL_DESC_ROWVER:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_SCALE:
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+			IIN(SQLSMALLINT, drec->sql_desc_scale);
+		else
+			drec->sql_desc_scale = 0;
+		break;
+	case SQL_DESC_SCHEMA_NAME:
+	case SQL_DESC_SEARCHABLE:
+	case SQL_DESC_TABLE_NAME:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_TYPE:
+		IIN(SQLSMALLINT, drec->sql_desc_type);
+		break;
+	case SQL_DESC_TYPE_NAME:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	case SQL_DESC_UNNAMED:
+		IIN(SQLSMALLINT, drec->sql_desc_unnamed);
+		break;
+	case SQL_DESC_UNSIGNED:
+	case SQL_DESC_UPDATABLE:
+		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
+		result = SQL_ERROR;
+		break;
+	default:
+		odbc_errs_add(&desc->errs, "HY091", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+		break;
+	}
+
+#undef IIN
+
+	ODBC_RETURN(desc, result);
+}
+
 static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2795,7 +2996,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3X(SQL_API_SQLSETCONNECTATTR);
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
-		API3_(SQL_API_SQLSETDESCFIELD);
+		API3X(SQL_API_SQLSETDESCFIELD);
 		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
@@ -2887,7 +3088,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3X(SQL_API_SQLSETCONNECTATTR);
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
-		API3_(SQL_API_SQLSETDESCFIELD);
+		API3X(SQL_API_SQLSETDESCFIELD);
 		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
@@ -2976,7 +3177,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3X(SQL_API_SQLSETCONNECTATTR);
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
-		API3_(SQL_API_SQLSETDESCFIELD);
+		API3X(SQL_API_SQLSETDESCFIELD);
 		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
