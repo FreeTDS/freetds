@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.53 2002-09-18 23:08:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.54 2002-09-20 08:17:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -65,6 +65,8 @@ static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
 static char *strncpy_null(char *dst, const char *src, int len);
 static int sql_to_c_type_default ( int sql_type );
+static int mymessagehandler(TDSCONTEXT* ctx, TDSSOCKET* tds, TDSMSGINFO* msg);
+static int myerrorhandler(TDSCONTEXT* ctx, TDSSOCKET* tds, TDSMSGINFO* msg);
 
 
 /* utils to check handles */
@@ -135,12 +137,14 @@ struct _hdbc *dbc = (struct _hdbc *) hdbc;
 
 	tds = (TDSSOCKET *) dbc->tds_socket;
 	
-	/* TODO finish
-	 * mssql: SET IMPLICIT_TRANSACTION ON
+	/* mssql: SET IMPLICIT_TRANSACTION ON
 	 * sybase: SET CHAINED ON */
-	
+
 	/* implicit transactions are on if autocommit is off :-| */
-	sprintf(query,"set implicit_transactions %s", (state?"off":"on"));
+	if (TDS_IS_MSSQL(tds))
+		sprintf(query,"set implicit_transactions %s", (state?"off":"on"));
+	else
+		sprintf(query,"set chained %s", (state?"off":"on"));
 
 	tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
@@ -568,17 +572,25 @@ static SQLRETURN SQL_API _SQLAllocEnv(
                                      SQLHENV FAR       *phenv)
 {
 struct _henv *env;
+TDSCONTEXT* ctx;
 
 	env = (struct _henv*) malloc(sizeof(struct _henv));
-
 	if (!env)
-        return SQL_ERROR;
+		return SQL_ERROR;
 
 	memset(env,'\0',sizeof(struct _henv));
-	env->tds_ctx = tds_alloc_context();
-	tds_ctx_set_parent(env->tds_ctx, env);
-	if (!env->tds_ctx->locale->date_fmt) {
-		env->tds_ctx->locale->date_fmt = strdup("%b %e %Y");
+	ctx = tds_alloc_context();
+	if (!ctx) {
+		free(env);
+		return SQL_ERROR;
+	}
+	env->tds_ctx = ctx;
+	tds_ctx_set_parent(ctx, env);
+	ctx->msg_handler = mymessagehandler;
+	ctx->err_handler = myerrorhandler;
+
+	if (!ctx->locale->date_fmt) {
+		ctx->locale->date_fmt = strdup("%Y-%m-%d");
 	}
 	*phenv = (SQLHENV)env;
 
@@ -1059,8 +1071,7 @@ char *p;
 	/* latest_msg_number = msg->msg_number; */
 	odbc_LogError( p );
 	free(p);
-	/* FIXME free ?? */
-	tds_free_msg( msg );
+	tds_reset_msg_info(msg);
 	return 1;
 }
 
@@ -1083,8 +1094,7 @@ char *p;
 	) < 0) return 0;
 	odbc_LogError( p );
 	free(p);
-	/* FIXME free ?? */
-	tds_free_msg( msg );
+	tds_reset_msg_info(msg);
 	return 1;
 }
 
@@ -1099,10 +1109,6 @@ _SQLExecute( SQLHSTMT hstmt)
     CHECK_HSTMT;
 
     stmt->row = 0;
-
-    /* FIXME init ctx here ?? */
-    tds->tds_ctx->msg_handler = mymessagehandler;
-    tds->tds_ctx->err_handler = myerrorhandler;
 
     if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED))
     {
@@ -1702,8 +1708,7 @@ SQLRETURN SQL_API SQLGetConnectOption(
     switch (fOption)
     {
     case SQL_AUTOCOMMIT:
-	/* FIXME: sure of int* */
-	* ( (int *) pvParam ) = dbc->autocommit_state;
+	* ( (SQLUINTEGER*) pvParam ) = dbc->autocommit_state;
 	return SQL_SUCCESS;
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetConnectOption: Statement option %d not implemented\n", fOption);
@@ -1895,7 +1900,7 @@ SQLRETURN SQL_API SQLGetFunctions(
         _set_func_exists(pfExists,SQL_API_SQLBINDCOL);
         _set_func_exists(pfExists,SQL_API_SQLCANCEL);
         _set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTES);
-		_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
+	_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
         _set_func_exists(pfExists,SQL_API_SQLCONNECT);
         _set_func_exists(pfExists,SQL_API_SQLDATASOURCES);
         _set_func_exists(pfExists,SQL_API_SQLDESCRIBECOL);
@@ -2218,9 +2223,6 @@ SQLRETURN SQL_API SQLSetConnectOption(
 			return change_autocommit( hdbc, 1);
 		return change_autocommit( hdbc, 0);
 		break;
-		/* TODO implement 
-		 * mssql: SET IMPLICIT_TRANSACTION ON
-		 * sybase: SET CHAINED ON */
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");

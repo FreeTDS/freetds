@@ -1,3 +1,10 @@
+Fri Sep 20 10:14:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- support autocommit in Sybase
+	- fix out of memory allocating environment
+	- use iso data (standard ODBC format)
+	- do not free message handling error/info
+
 Thu Sep 19 14:57:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
 	- Rearrange main loop.  Reduces code duplication, and makes it
