@@ -11,8 +11,10 @@ To Do List
 ------------
 Broken:
 For version 0.60:
+. test conversion from char. Does libraries append blank to reach column_size ?
+  same problem for binary (padded with zeroes) ?
 For future versions:
-. conversion from ucs2 to utf8, provide for 2+ bytes/character.  
+. conversion from ucs2 to utf8, provide for 2+ bytes/character.
 . Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords.  
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . Array binding for ctlib not working
@@ -23,7 +25,7 @@ For future versions:
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (partly done)
 . Server API needs more work, especially for TDS 5.0/7.0
 . Add support for TDS 8.0 (login works)
-. Domain support for MS SQL (partially done)
+. Domain support for MS SQL (verify)
 . TDS 7 support on big endian clients (done)
 . add textsize option for TDS 7 to freetds.conf (done)
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
