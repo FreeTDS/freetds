@@ -1,3 +1,7 @@
+Sat Sep 21 03:38:09 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/pool/main.c:
+	- Use IS_TDSDEAD() for all dead socket checks.
+
 Sat Sep 21 01:37:20 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/pool/main.c:
 	- If an invalid pool name parameter is given, print an error

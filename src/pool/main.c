@@ -160,7 +160,7 @@ fd_set rfds;
 		for (i=0;i<pool->max_users;i++) {
 			puser = (TDS_POOL_USER *) &pool->users[i];
 			/* skip dead connections */
-			if (puser->tds) {
+			if (!IS_TDSDEAD(puser->tds)) {
 				if (puser->tds->s > maxfd) maxfd = puser->tds->s;
 				FD_SET(puser->tds->s, &rfds);
 			}
@@ -169,7 +169,7 @@ fd_set rfds;
 		/* add the pool member sockets to the read list */
 		for (i=0;i<pool->num_members;i++) {
 			pmbr = (TDS_POOL_MEMBER *) &pool->members[i];
-			if (pmbr->tds) {
+			if (!IS_TDSDEAD(pmbr->tds)) {
 				if (pmbr->tds->s > maxfd) maxfd = pmbr->tds->s;
 				FD_SET(pmbr->tds->s, &rfds);
 			}
