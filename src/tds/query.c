@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.124 2003-12-28 17:53:55 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.124.2.1 2004-02-25 07:15:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -389,7 +389,7 @@ tds_skip_quoted_ucs2le(const char *s, const char *end)
 	for (; (p += 2) != end;) {
 		if (p[0] == quote && !p[1]) {
 			p += 2;
-			if (p[0] != quote || p[1])
+			if (p == end || p[0] != quote || p[1])
 				return p;
 		}
 	}

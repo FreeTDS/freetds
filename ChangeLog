@@ -1,3 +1,7 @@
+Wed Feb 25 08:20:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c:
+	- fixed buffer reading overflow (thanks to Matthew Davis)
+
 Mon Feb 09 16:35:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/numeric.c:
 	- fix a Bus Error on some architecture (like SPARC)
