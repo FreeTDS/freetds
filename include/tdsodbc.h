@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.69 2004-03-06 13:52:53 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.70 2004-04-09 08:57:53 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -149,7 +149,7 @@ struct _hdesc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	int type;
-	SQLHDESC parent;
+	SQLHANDLE parent;
 	struct _dheader header;
 	struct _drecord *records;
 	struct _sql_errors errs;
@@ -283,6 +283,7 @@ struct _hstmt
 	char *prepared_query;
 	unsigned prepared_query_is_func:1;
 	unsigned prepared_query_is_rpc:1;
+	unsigned need_reprepare:1;
 	/* end prepared query stuff */
 
 	/** parameters saved */
@@ -315,7 +316,7 @@ typedef struct _hchk TDS_CHK;
 #define IS_HSTMT(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_STMT)
 #define IS_HDESC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DESC)
 
-TDS_DESC *desc_alloc(SQLHDESC parent, int desc_type, int alloc_type);
+TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type);
 SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);

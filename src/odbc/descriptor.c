@@ -42,7 +42,7 @@
 static void desc_free_record(struct _drecord *drec);
 
 TDS_DESC *
-desc_alloc(SQLHDESC parent, int desc_type, int alloc_type)
+desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 {
 	TDS_DESC *desc;
 
@@ -181,7 +181,6 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
 		/* copy strings */
-		/* TODO avoid all this conversions */
 		/* FIXME on memory error free allocated strings */
 #define CCOPY(name) tds_dstr_init(&dest_rec->name); if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) return SQL_ERROR;
 		CCOPY(sql_desc_base_column_name);

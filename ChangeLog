@@ -1,3 +1,8 @@
+Fri Apr 09 11:09:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/descriptor.c:
+	- small updates
+	* src/odbc/unittests/rebindpar.c: improved
+
 Thu Apr 08 14:15:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/rebindpar.c(added):
