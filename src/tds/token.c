@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.242 2003-12-28 17:53:55 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.243 2003-12-29 15:54:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1980,8 +1980,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 	} else {		/* non-numeric and non-blob */
 		if (curcol->iconv_info) {
-			/* this shouldn't fail here */
-			tdsdump_log(TDS_DBG_INFO1, "%L curcol->iconv_info? %d\n", (int)curcol->iconv_info);
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {
