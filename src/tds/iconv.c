@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.49 2003-04-08 10:25:42 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.50 2003-04-08 11:10:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -180,6 +180,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 			input += input_charset->min_bytes_per_char;
 			input_size -= input_charset->min_bytes_per_char;
 		} else {
+			/* FIXME this do not work for many charset like UTF16, BIG5... */
 			/* deal with UTF-8.  Others will just break :-( 
 			 * bytes | bits | representation
 			 *     1 |    7 | 0vvvvvvv

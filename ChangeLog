@@ -1,3 +1,7 @@
+Tue Apr 08 13:08:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/iconv.c src/tds/login.c:
+	- fix some comments
+
 Tue Apr 08 12:24:53 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsiconv.h src/server/login.c:
 	* src/tds/iconv.c src/tds/login.c src/tds/mem.c:

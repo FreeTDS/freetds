@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.108 2003-04-08 10:25:41 freddy77 Exp $";
+	"$Id: tds.h,v 1.109 2003-04-08 11:08:56 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -631,7 +631,7 @@ enum {TDS_SYSNAME_SIZE= 512};
  * Metadata about columns in regular and compute rows 
  */ 
 typedef struct tds_column_info {
-	TDS_SMALLINT column_type;	/* This type can be different from wire type because 
+	TDS_SMALLINT column_type;	/**< This type can be different from wire type because 
 	 				 * conversion (e.g. UCS-2->Ascii) can be applied.    
 					 * I'm beginning to wonder about the wisdom of this, however. 
 					 * April 2003 jkl
@@ -639,24 +639,24 @@ typedef struct tds_column_info {
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
 	
-	TDS_INT column_size;		/* maximun size of data. For fixed is the size. */
+	TDS_INT column_size;		/**< maximun size of data. For fixed is the size. */
 	
-	TDS_TINYINT column_varint_size;	/* size of length when reading from wire (0, 1, 2 or 4) */
+	TDS_TINYINT column_varint_size;	/**< size of length when reading from wire (0, 1, 2 or 4) */
 	
-	TDS_TINYINT column_prec;	/* precision for decimal/numeric */
-	TDS_TINYINT column_scale;	/* scale for decimal/numeric */
+	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
+	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
-	TDS_TINYINT column_namelen;	/* length of column name */
+	TDS_TINYINT column_namelen;	/**< length of column name */
 	TDS_TINYINT table_namelen;
 	struct {
-		TDS_SMALLINT column_type;	/* type of data, saved from wire */
+		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
 
-	TDS_INT column_offset;		/* offset into row buffer for store data */
+	TDS_INT column_offset;		/**< offset into row buffer for store data */
 	unsigned int column_nullable:1;
 	unsigned int column_writeable:1;
 	unsigned int column_identity:1;
@@ -911,8 +911,8 @@ const char *tds_prtype(int token);
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
 void tds_iconv_close(TDSSOCKET *tds);
-//ar *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
-//t tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, int in_len, char *out_string, int out_len);
+/* char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen); */
+/* int tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, int in_len, char *out_string, int out_len); */
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
  
 /* threadsafe.c */
