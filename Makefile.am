@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.36 2003-12-23 16:29:10 freddy77 Exp $
+# version $Id: Makefile.am,v 1.37 2003-12-24 11:22:02 jklowden Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -28,7 +28,7 @@ DISTCHECK_CONFIGURE_FLAGS	=	\
 # do not uninstall configuration files (they may have been changed)
 if DISTCHECK_BUILD
 uninstall-local:
-	$(RM) $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
+	rm $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
 endif
 
 test:
@@ -49,7 +49,7 @@ snapshot:
 doxy: $(SUBDIRS)
 if HAVE_DOXYGEN
 	$(mkinstalldirs) $(DOCDIR)/reference
-	$(RM) -rf $(DOCDIR)/reference/*
+	rm -rf $(DOCDIR)/reference/*
 	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
 	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi
 else

@@ -1,3 +1,6 @@
+Wed Dec 24 06:19:50 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* Makefile.am doc/Makefile.am s/RM/rm/g because RM not always defined.
+
 Wed Dec 24 10:01:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in: use AC_HELP_STRING
 
