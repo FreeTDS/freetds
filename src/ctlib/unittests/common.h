@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.9 2004-03-22 20:41:23 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.10 2004-07-21 19:28:01 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern char SERVER[512];
@@ -29,8 +29,8 @@ extern int servermsg_cb_invoked;
 CS_RETCODE try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
 CS_RETCODE try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose);
 CS_RETCODE run_command(CS_COMMAND * cmd, const char *sql);
-CS_RETCODE cslibmsg_cb(CS_CLIENTMSG * errmsg);
-CS_RETCODE clientmsg_cb(CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
-CS_RETCODE servermsg_cb(CS_CONNECTION * connection, CS_COMMAND * cmd, CS_SERVERMSG * srvmsg);
+CS_RETCODE cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg);
+CS_RETCODE clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
+CS_RETCODE servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg);
 
 #endif

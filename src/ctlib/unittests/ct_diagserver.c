@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagserver.c,v 1.1 2003-04-03 10:37:10 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagserver.c,v 1.2 2004-07-21 19:28:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Server messages limit */
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 			return 1;
 		}
 
-		servermsg_cb(conn, cmd, &server_message);
+		servermsg_cb(ctx, conn, &server_message);
 
 	}
 

@@ -1,3 +1,12 @@
+Wed Jul 21 21:26:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/ctlib.h src/ctlib/ct.c:
+	- fix free invalid pointer
+	* src/ctlib/unittests/common.c src/ctlib/unittests/common.h:
+	* src/ctlib/unittests/cs_diag.c src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/ct_diagclient.c:
+	* src/ctlib/unittests/ct_diagserver.c:
+	- fix wrong function declaration that lead to core
+
 Wed Jul 21 16:50:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: some fix for SQLFetch and multiple rows
 

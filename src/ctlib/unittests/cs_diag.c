@@ -7,7 +7,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_diag.c,v 1.3 2004-03-22 20:41:23 freddy77 Exp $";
+static char software_version[] = "$Id: cs_diag.c,v 1.4 2004-07-21 19:28:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 			return 1;
 		}
 	
-	    cslibmsg_cb(&client_message);
+	    cslibmsg_cb(NULL, &client_message);
 	
 	}
 

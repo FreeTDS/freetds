@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.120 2004-05-17 15:34:38 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.121 2004-07-21 19:28:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -3450,8 +3450,11 @@ param_clear(CS_PARAM * pparam)
 		free(pparam->name);
 	if (pparam->param_by_value)
 		free(pparam->value);
-	free(pparam->datalen);
-	free(pparam->ind);
+	
+	/*
+	 * DO NOT free datalen or ind, they are just pointer 
+	 * to client data or private structure
+	 */
 
 	free(pparam);
 }
@@ -3493,16 +3496,10 @@ _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * 
 	param->param_by_value = byvalue;
 
 	if (byvalue) {
-		param->datalen = malloc(sizeof(CS_INT));
-		if (param->datalen == NULL)
-			return CS_FAIL;
-
+		param->datalen = &param->datalen_value;
 		*(param->datalen) = *datalen;
 
-		param->ind = malloc(sizeof(CS_INT));
-		if (param->ind == NULL)
-			return CS_FAIL;
-
+		param->ind = &param->indicator_value;
 		*(param->ind) = *indicator;
 
 		/* here's one way of passing a null parameter */
