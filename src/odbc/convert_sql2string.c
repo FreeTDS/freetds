@@ -48,11 +48,15 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.17 2002-11-08 16:13:54 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.18 2002-11-29 22:11:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static int
-_odbc_get_server_ctype(int c_type)
+/**
+ * Pass this an SQL_* type and get a SYB* type which most closely corresponds
+ * to the SQL_* type.
+ */
+int
+_odbc_get_server_type(int c_type)
 {
 	switch (c_type) {
 	case SQL_C_BINARY:
@@ -87,6 +91,7 @@ _odbc_get_server_ctype(int c_type)
 	case SQL_C_STINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
+	/* ODBC date formats are completely differect from SQL one */
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
@@ -226,7 +231,7 @@ static const char *str_null = "null";
 */
 	}
 
-	res = tds_convert(context, _odbc_get_server_ctype(srctype), src, srclen, SYBVARCHAR, &ores);
+	res = tds_convert(context, _odbc_get_server_type(srctype), src, srclen, SYBVARCHAR, &ores);
 
 	if (res < 0) {
 		fprintf(stderr, "convert_sql2string(): Attempting to convert unknown "

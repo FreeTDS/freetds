@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.13 2002-11-16 15:21:14 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.14 2002-11-29 22:11:04 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
@@ -69,8 +69,6 @@ struct _sql_param_info {
 	int param_type;
 	int param_bindtype;
 	int param_sqltype;
-	int param_col_size;
-	int param_scale;
 	char *varaddr;
 	int param_bindlen;
 	char *param_lenbind;

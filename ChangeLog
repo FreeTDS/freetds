@@ -1,3 +1,10 @@
+Fri Nov 29 23:08:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/t0004.c: fix fail for security
+	* include/tdsodbc.h: removed unused param fields
+	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:
+	* src/odbc/convert_tds2sql.c:
+	- collect _odbc_get_server_type and reuse it
+
 Fri Nov 29 20:51:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c: remove some warnings
 

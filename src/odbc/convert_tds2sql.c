@@ -34,67 +34,14 @@
 #include "tds.h"
 #include "tdsconvert.h"
 #include "convert_tds2sql.h"
+#include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.24 2002-11-21 21:31:05 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.25 2002-11-29 22:11:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 extern const int tds_numeric_bytes_per_prec[];
-
-/*
- * Pass this an SQL_* type and get a SYB* type which most closely corresponds
- * to the SQL_* type.
- *
- */
-static int
-_odbc_get_server_type(int clt_type)
-{
-	switch (clt_type) {
-
-	case SQL_C_CHAR:
-		return SYBCHAR;
-
-	case SQL_C_DATE:
-	case SQL_C_TIME:
-	case SQL_C_TIMESTAMP:
-		return SYBDATETIME;
-
-	case SQL_BIGINT:
-	case SQL_C_SBIGINT:
-	case SQL_C_UBIGINT:
-		return SYBINT8;
-
-	case SQL_C_LONG:
-	case SQL_C_ULONG:
-	case SQL_C_SLONG:
-		return SYBINT4;
-
-	case SQL_C_SHORT:
-	case SQL_C_USHORT:
-	case SQL_C_SSHORT:
-		return SYBINT2;
-
-	case SQL_C_TINYINT:
-	case SQL_C_UTINYINT:
-	case SQL_C_STINYINT:
-		return SYBINT1;
-
-	case SQL_C_DOUBLE:
-		return SYBFLT8;
-
-	case SQL_C_FLOAT:
-		return SYBREAL;
-
-	case SQL_C_NUMERIC:
-		return SYBNUMERIC;
-
-	case SQL_C_BIT:
-		return SYBBIT;
-
-	}
-	return TDS_FAIL;
-}
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, TDS_UINT destlen)
