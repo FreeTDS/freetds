@@ -164,7 +164,7 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, python, or oth
 				</varlistentry>
 				<varlistentry>
 					<term><systemitem class="library">ODBC</systemitem> bridge products</term>
-					<listitem><para>They use the <systemitem class="library">ODBC</systemitem> driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft<ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and 
+					<listitem><para>They use the <systemitem class="library">ODBC</systemitem> driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft</ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and 
 <Application><systemitem class="library">ODBC</systemitem> Router</Application> from <ulink url="http://www.augsoft.com/">August Software</ulink> Corporation.  
 </para>
 					</listitem>
@@ -702,7 +702,7 @@ The <envar>TDSQUERY</envar> environment variable provides a server name to conne
 		        </sect3>
         		 <sect3><title><envar>TDSHOST</envar></title>
         		 <para>
-The <envar>TDSHOST</envar> environment variable overrides the host specified in the <filename>freetds.conf</file>.
+The <envar>TDSHOST</envar> environment variable overrides the host specified in the <filename>freetds.conf</>.
 			</para>
 		        </sect3>
 			</sect2>
@@ -1724,18 +1724,6 @@ Assuming both <application>ping</application> and <application>telnet</applicati
 			</para>
         		<sect2><title>Environment Variables that Control Logging</title>
 <variablelist>
-	<varlistentry>
-		<term><envar>TDSDUMP</envar></term>
-		<listitem>
-			<para>the file to which to dump debugging information</para>
-		</listitem>
-	</varlistentry>	
-	<varlistentry>
-		<term><envar>TDSDUMPCONFIG</envar></term>
-		<listitem>
-			<para>the file to which to dump configuration lookup information</para>
-		</listitem>
-	</varlistentry>	
 	<varlistentry>
 		<term><envar>TDSDUMP</envar></term>
 		<listitem>

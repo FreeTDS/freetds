@@ -11,3 +11,12 @@ html::
 	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml
 
 #	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml
+
+clean::
+	rm html/*
+	
+dist::
+	if ! [ -L userguide ]; then \
+		ln -s html userguide; \
+	fi; \
+	tar zcf userguide.tgz userguide/* 

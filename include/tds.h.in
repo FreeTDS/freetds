@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.19 2002-07-07 22:42:42 jklowden Exp $";
+	 "$Id: tds.h.in,v 1.20 2002-07-10 05:10:56 jklowden Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -133,8 +133,7 @@ typedef struct tdsunique
     TDS_UINT      Data1;
     TDS_USMALLINT Data2;
     TDS_USMALLINT Data3;
-    TDS_UCHAR     Data4[2];
-    TDS_UCHAR     Data5[6];
+    TDS_UCHAR     Data4[8];
 } TDS_UNIQUE;
 
 #define TDS_NO_MORE_ROWS     -2

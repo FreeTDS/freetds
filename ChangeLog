@@ -1,3 +1,11 @@
+Tue Jul  9 23:16:12 EDT 2002 JK Lowden <jklowden@schemamania.org>
+	declare TDSUNIQUE in the same way as windows and unixodbc (Frediano):
+	+ include/tds.h.in, patch #579149.
+	+ src/tds/convert.c, patch #579149
+	* src/tds/convert.c, simplify tds_convert_text
+	* src/dblib/dblib.c, fix dbconvert to work with new tds_convert_text
+	* src/tds/token.c, tds_process_row, fix little endian numeric datatype (Bill Thompson)
+
 Mon Jul  8 19:03:33 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	* src/tds/convert.c: reverted tds_convert_text to 1.12 logic; 
 		1.13 patch was mistaken, per Brian.  
