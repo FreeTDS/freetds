@@ -58,6 +58,7 @@
 #include "../src/odbc/connectparams.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
+#include "replacements.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>

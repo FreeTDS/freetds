@@ -1,3 +1,9 @@
+Mon Aug 16 13:50:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/winlogin.c:
+	- remove warning
+	* win32/dev-cpp/FreeTDS.dev win32/dev-cpp/Makefile.win:
+	- optimize stack use
+
 Mon Aug 16 11:57:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds_sysdep_private.h:
 	- fix for connection time limit and win32
