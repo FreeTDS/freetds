@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.95 2002-11-04 19:49:19 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.96 2002-11-04 21:10:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -416,6 +416,9 @@ int            destlen;
 					curcol->column_bindlen);
 	  		} else {
 
+		/* FIXME use also curcol->column_bindlen, 
+		   for CHARBIND, curcol->column_bindlen < 0 use srclen
+		   check limit for other bind types */
             	if (curcol->column_bindtype == STRINGBIND)
 	               destlen = -2;
 	            else if (curcol->column_bindtype == NTBSTRINGBIND)
@@ -3526,7 +3529,7 @@ int squote = FALSE, dquote = FALSE;
 char *dbprtype(int token)
 {
 
-   return tds_prtype(token);
+   return (char*)tds_prtype(token);
 
 } 
 
@@ -3726,13 +3729,13 @@ RETCODE dbregexec(
 }
 char      *dbmonthname(DBPROCESS *dbproc,char *language,int monthnum,DBBOOL shortform)
 {
-const char *shortmon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-const char *longmon[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+static const char *shortmon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+static const char *longmon[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
 	if (shortform)
-		return shortmon[monthnum-1];
+		return (char*)shortmon[monthnum-1];
 	else
-		return longmon[monthnum-1];
+		return (char*)longmon[monthnum-1];
 }
 char      *dbname(DBPROCESS *dbproc)
 {

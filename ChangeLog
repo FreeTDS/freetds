@@ -1,3 +1,7 @@
+Fri Nov  4 22:09:37 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- remove some warnings
+
 Mon Nov  4 14:45:26 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h include/tdssrv.h src/apps/freebcp.c src/ctlib/cs.c
 	  src/ctlib/unittests/common.c src/ctlib/unittests/common.h
