@@ -1,3 +1,11 @@
+Wed Jan  8 11:30:12 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- cleanup
+	- workaround for a bug in MS ODBC DM
+	- avoiding pointer to garbage data
+	* src/tds/login.c:
+	- cleanup
+
 Tue Jan  7 21:34:56 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c src/odbc/odbc.c:
 	- do not compiler ODBC3 code if not ODBC3

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.119 2003-01-07 20:35:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.120 2003-01-08 10:32:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -110,12 +110,9 @@ static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static SQLRETURN
 change_autocommit(TDS_DBC * dbc, int state)
 {
-	SQLRETURN ret;
-	TDSSOCKET *tds;
+	TDSSOCKET *tds = dbc->tds_socket;
 	char query[80];
 	TDS_INT result_type;
-
-	tds = dbc->tds_socket;
 
 	/* mssql: SET IMPLICIT_TRANSACTION ON
 	 * sybase: SET CHAINED ON */
@@ -128,8 +125,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 	tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
-	ret = tds_submit_query(tds, query);
-	if (ret != TDS_SUCCEED) {
+	if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not change transaction status");
 		return SQL_ERROR;
 	}
@@ -1345,6 +1341,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		if (stmt->prepared_query)
 			free(stmt->prepared_query);
 		odbc_errs_reset(&stmt->errs);
+		if (stmt->hdbc->current_statement == stmt)
+			stmt->hdbc->current_statement = NULL;
 		free(stmt);
 	}
 	return SQL_SUCCESS;
@@ -1361,14 +1359,42 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 SQLRETURN SQL_API
 SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
+	SQLINTEGER tmp_len;
 	INIT_HSTMT;
 
+	if (!StringLength)
+		StringLength = &tmp_len;
+
+	switch(Attribute) {
+	/* This make MS ODBC not crash */
+	case SQL_ATTR_APP_ROW_DESC:
+		*(SQLPOINTER *)Value = &stmt->ard;
+		*StringLength = sizeof(SQL_IS_POINTER);
+		break;
+
+	case SQL_ATTR_IMP_ROW_DESC:
+		*(SQLPOINTER *)Value = &stmt->ird;
+		*StringLength = sizeof(SQL_IS_POINTER);
+		break;
+
+	case SQL_ATTR_APP_PARAM_DESC:
+		*(SQLPOINTER *)Value = &stmt->apd;
+		*StringLength = sizeof(SQL_IS_POINTER);
+		break;
+
+	case SQL_ATTR_IMP_PARAM_DESC:
+		*(SQLPOINTER *)Value = &stmt->ipd;
+		*StringLength = sizeof(SQL_IS_POINTER);
+		break;
+ 
+	default:
 	if (BufferLength == SQL_IS_UINTEGER) {
 		return SQLGetStmtOption(hstmt, Attribute, Value);
-	} else {
+		}
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
+	return SQL_SUCCESS;
 }
 #endif
 
@@ -1464,26 +1490,20 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
-	SQLRETURN ret;
-	TDSSOCKET *tds;
-	char query[256];
-	SQLRETURN cc = SQL_SUCCESS;
+	TDSSOCKET *tds = dbc->tds_socket;
 	TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
-	tds = dbc->tds_socket;
-	strcpy(query, (state ? "commit" : "rollback"));
-	ret = tds_submit_query(tds, query);
-	if (ret != TDS_SUCCEED) {
+	if (tds_submit_query(tds, state ? "commit" : "rollback") != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not perform COMMIT or ROLLBACK");
-		cc = SQL_ERROR;
+		return SQL_ERROR;
 	}
 
 	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
 		return SQL_ERROR;
 
-	return cc;
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API
@@ -1676,6 +1696,7 @@ SQLRETURN SQL_API
 SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExists)
 {
 	int i;
+
 	INIT_HDBC;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: fFunction is %d\n", fFunction);
@@ -1685,7 +1706,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		for (i = 0; i < SQL_API_ODBC3_ALL_FUNCTIONS_SIZE; ++i) {
 			pfExists[i] = 0;
 		}
-		
+
 		/* every api available are contained in a macro 
 		 * all these macro begin with API followed by 2 letter
 		 * first letter mean pre ODBC 3 (_) or ODBC 3 (3)
@@ -1784,7 +1805,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		for (i = 0; i < 100; ++i) {
 			pfExists[i] = SQL_FALSE;
 		}
-		
+
 #define API_X(n) if (n >= 0 && n < 100) pfExists[n] = SQL_TRUE;
 #define API__(n)
 #define API3X(n)
@@ -2332,7 +2353,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	ttlen = odbc_get_string_size(cbTableType, szTableType);
 
 	/* a little padding for quotes, commas and parameters names */
-	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 80;	
+	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 80;
 	query = (char *) malloc(querylen);
 	if (!query) {
 		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);

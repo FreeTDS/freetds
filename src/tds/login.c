@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.79 2003-01-05 15:49:11 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.81 2003-01-08 10:32:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -200,9 +200,11 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	int retval;
 	time_t start, now;
 	int connect_timeout = 0;
-	int result_type;
 	int db_selected = 0;
 	char version[256];
+	char *str;
+	int len;
+	TDS_INT restype;
 
 	FD_ZERO(&fds);
 
@@ -341,16 +343,29 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-	if (tds && connect_info->text_size) {
-		retval = tds_submit_queryf(tds, "set textsize %d", connect_info->text_size);
-		if (retval == TDS_SUCCEED) {
-			/* TODO a function is suitable */
-			while (tds_process_result_tokens(tds, &result_type) == TDS_SUCCEED);
+
+	if (connect_info->text_size || (!db_selected && !tds_dstr_isempty(&connect_info->database))) {
+		len = 64 + tds_quote_id(tds, NULL, connect_info->database);
+		str = (char*) malloc(len);
+		str[0] = 0;
+		if (connect_info->text_size) {
+			sprintf(str, "set textsize %d ", connect_info->text_size);
 		}
+		if (!db_selected && !tds_dstr_isempty(&connect_info->database)) {
+			strcat(str, "use ");
+			tds_quote_id(tds, strchr(str, 0), connect_info->database);
+		}
+		retval = tds_submit_query(tds, str);
+		free(str);
+		if (retval != TDS_SUCCEED) {
+			tds_free_socket(tds);
+			return TDS_FAIL;
 		}
 
-	/* TODO set also database */
-	if (!db_selected) {
+		if (tds_process_simple_query(tds, &restype) == TDS_FAIL || restype == TDS_CMD_FAIL) {
+			tds_free_socket(tds);
+			return TDS_FAIL;
+		}
 	}
 
 	tds->connect_info = NULL;
