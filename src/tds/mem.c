@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.106 2003-11-28 16:53:14 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.107 2003-12-06 20:20:53 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -872,6 +872,7 @@ tds_alloc_client_sqlstate(int msgnum)
 		SQLS_ENTRY(20004, "08S01");	/* Communication link failure */
 		SQLS_ENTRY(20006, "08S01");
 		SQLS_ENTRY(20009, "08S01");
+		SQLS_ENTRY(20020, "08S01");
 		SQLS_ENTRY(20019, "24000");	/* Invalid cursor state */
 		SQLS_ENTRY(20014, "28000");	/* Invalid authorization specification */
 		SQLS_ENTRY(2400, "42000");	/* Syntax error or access violation */

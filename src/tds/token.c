@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.234 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.235 2003-12-06 20:19:53 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -220,9 +220,11 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default:
+		tds_client_msg(tds->tds_ctx, tds, 20020, 9, 0, 0, "Unknown marker");
 		if (IS_TDSDEAD(tds))
 			tds->state = TDS_DEAD;
-		/* TODO perhaps is best to close this connection... */
+		else
+			tds_close_socket(tds);
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
 		return TDS_FAIL;
 	}
