@@ -1,3 +1,7 @@
+Wed Oct 23 09:46:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds_configs.h:
+	- Add missing path separator.
+
 Wed Oct 23 07:40:58 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* doc/CodingStyle	reflects tabstop of 5
 	- src/.indent.pro	added
