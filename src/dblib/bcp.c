@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.91 2004-03-12 04:04:30 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.92 2004-04-05 21:51:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1860,6 +1860,16 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/**
+ * \todo support timestamp columns.
+ * Things we know: 
+ *  1. usertype is 80 (0x50)
+ *  2. server type is 183 (0xAD)
+ *  3. Microsoft bcp.exe (TDS 7.0) uses SQL type "INT" in the bulk insert statement.
+ *  4. Library must send null; server sets timestamp on receipt.
+ *  5. FreeTDS will send null if data_size = -1.
+ *  6. Something is munging the server type from 183 to 179.  
+ */
 static RETCODE
 _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, BCP_COLINFO * bcpcol, int first)
 {

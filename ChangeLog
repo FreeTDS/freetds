@@ -1,3 +1,6 @@
+Mon Apr  5 17:52:47 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c added comments about timestamp
+
 Mon Apr 05 17:37:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/raiseerror.c src/tds/token.c:
 	- fix problem with RAISERROR
