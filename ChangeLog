@@ -1,3 +1,11 @@
+Fri Apr 26 19:04:55 2002  James Cameron  <quozl@us.netrek.org>
+
+	* doc/userguide.sgml: add link target to known issues section,
+	warn about posting TDSDUMP logs to mailing lists, add link target
+	to "Page contains no data" section, add description of how to make
+	a backtrace to determine cause of a segmentation fault, add link
+	target to mailing list section, add self to contributors list.
+
 Tue Apr 16 20:41:47 EDT 2002	Brian Bruns  <camber@ais.org>
 	* acinclude.m4: macro for have INADDR_NONE
 	* configure.in: Add call for macro and header checks

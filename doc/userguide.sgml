@@ -937,7 +937,7 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<para>
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="knownissues">
 			<title>Known Issues</title>
 			<sect2>
 				<title><type>Text</type> Fields</title>
@@ -1690,16 +1690,85 @@ This works well when you run a FreeTDS program from the command line, but what i
 The log files will be named /tmp/freetds/freetds.log.9999 where 9999 is the pid number of the process generating the log.
 			</para>
 			<para>
-A couple of important notes about using the logs with FreeTDS.  First, the logs tend to grow large, so trim or archive them often.  Secondly, FreeTDS will record certain network packets to the log, <emphasis>this includes login packets which can contain clear text or clear text equivelant passwords.</emphasis> So, if this is a concern (most likely is) make sure that the files are not world readable.
+A couple of important notes about using the logs with FreeTDS.  First, the logs tend to grow large, so trim or archive them often.  Secondly, FreeTDS will record certain network packets to the log, <emphasis>this includes login packets which can contain clear text or clear text equivelant passwords.</emphasis> So, if this is a concern (most likely is) make sure that the files are not world readable, and avoid posting them to mailing lists.
 			</para>
 		</sect1>
-		<sect1>
-			<title>"page contains no data"</title>
+		<sect1 id="pagenodata">
+			<title>"Page contains no data"</title>
 			<para>
-Web servers return this error when the underlying script didn't return any information.  The error could be in any of several places, of which FreeTDS is one.  To isolate the cause, turn on enough logs to see the query, and execute the query through SQSH (you did install SQSH, didn't you?)  If that works, the problem lies further up the food chain.  If it doesn't, take a look at known issues.  Lots of web queries these days deal with large text fields.  
+Web browsers display this error when the underlying script didn't return any information.  The error could be in any of several places, of which FreeTDS is one.  To isolate the cause, turn on enough logs to see the query, and execute the query through SQSH.  If that works, the problem lies further up the chain.  If it doesn't, take a look at the <link linkend="knownissues">known issues</link> section.  
 			</para>
 			<para>
+FreeTDS under PHP executing within an Apache process may abort with a segmentation fault.  The evidence of this is the words "Segmentation Fault" or "Bus Error" in the Apache error log, and a "Page contains no data" warning displayed by the web browser.  The unexpected termination of the process causes the connection to the client to be closed before any buffered data is sent.
 			</para>
+			<para>
+To diagnose this sort of problem, follow this procedure;
+			</para>
+			<itemizedlist mark=opencircle>
+<listitem><para>Compile PHP as a CGI binary.</para>
+<para>This should have been a side-effect of your build of PHP, look for an
+executable called php in the PHP build tree.  If you are using a
+packaged binary, look for a php-cgi package.</para>
+</listitem> 
+
+<listitem><para>Make a reproducer.</para>
+<para>Make a PHP script that reliably reproduces the segmentation
+fault via the web server, but with no arguments.  This is so that you
+can execute it using the PHP binary, thus excluding the web
+server as the cause of the problem.</para>
+</listitem>
+
+<listitem><para>Reproduce on command line.</para>
+
+<para>Reproduce the segmentation fault using PHP on the command line, by
+activating PHP with the script as first argument.  For example;</para>
+
+<screen>
+<prompt>% </prompt><userinput>php file.php</userinput>
+<prompt>Segmentation fault</prompt>
+<prompt>% </prompt>
+</screen> 
+
+<para>If this doesn't reproduce the segmentation fault, then there is
+something about the environment that differs, so look for the
+differences and resolve them.  Check environment variables,
+assumptions made by the script, the UID you are executing under, and
+the current working directory.</para>
+
+</listitem>
+
+<listitem><para>Reproduce using GDB.</para>
+
+<para>Now reproduce the segmentation fault using the debugger, GDB.
+Instead of aborting to the command line, GDB will stop executing the
+PHP program at the point of failure.  Use the <command>bt</command>
+command to determine the details and context.  This is called a
+backtrace.</para>
+
+<screen>
+<prompt>% </prompt><userinput>gdb php</userinput>
+<prompt>gdb> </prompt><userinput>run file.php</userinput>
+<prompt>gdb> </prompt><userinput>bt</userinput>
+</screen>
+</listitem> 
+
+<listitem><para>Analyse the backtrace.</para>
+
+<para>Read the backtrace to determine what the cause of the problem
+is.  Examine each line, assigning responsibility by component; some
+code is PHP, some is FreeTDS, and some may be glibc.  You will need
+the source code for each component, and software engineering debugging
+skills.</para>
+
+<para>If you cannot determine the cause yourself, send the backtrace
+to the <link linkend="mailinglist">mailing list</link>, along with the
+PHP script.  It helps to make the script as small as possible, but
+still fail.  It also helps to report the version numbers of PHP, and
+FreeTDS.</para>
+
+</listitem>
+</itemizedlist>
+
 		</sect1>
 	</chapter>
 	<chapter id="help">
@@ -1718,7 +1787,7 @@ Successful problem isolation will yield earliest resolution.  You (believe it or
 The FreeTDS mailing list <ulink url="http://franklin.oit.unc.edu/cgi-bin/lyris.pl?visit=freetds">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.  
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="mailinglist">
     			<title>Ask the list</title>
 			<para>
 Many of the original authors and anyone maintaining or extending the code reads the list.  The traffic tends to be bursty.  It usually focusses on build problems and troubleshooting.  Again, the more specific your question, the sooner you'll get a useful reply (if it comes).  
@@ -1730,7 +1799,7 @@ It's your subject line, <emphasis>Use it</emphasis>!  Try to convey source of th
 			</para>
 		</sect1>
 		<sect1>
-			<title>What to include when asking for help.</title>
+			<title>What to include when asking for help</title>
 			<para>
 The best possible senerio is you write a program similiar to the ones in the unittest directories. It should be small and demonstrate the problem.  These are usually fixed in a jiffy.
 			</para>
@@ -1739,8 +1808,13 @@ Moving down, Perl or PHP code provided it creates all the tables it needs and po
 			<tip><para>If you provide an SQL query in your question to the list, provide a table definition, too.  Problems are often related to specific datatypes, so a table definition is an absolute must.  You can run <command>sp_help <parameter>table</parameter></command> to generate one.  </para></tip>
 			</para>
 			<para>
-Be clear about your setup.  Which row of the <link linkend="configurations">Configurations Section</link>) represents yours?  Indicate whether you're using the JDBC or C libraries.  Try changing the value of <envar>TDSVER</envar>, to see if it is specifically related to the protocol level.  The server version would be helpful if known, you may execute <command>select @@version</command> to find it.  
+Be clear about your setup.  Which row of the <link linkend="configurations">Configurations Section</link> represents yours?  Indicate whether you're using the JDBC or C libraries.  Try changing the value of <envar>TDSVER</envar>, to see if it is specifically related to the protocol level.  The server version would be helpful if known, you may execute <command>select @@version</command> to find it.  
 			</para>
+<para>If the problem is a segmentation fault or bus error, obtain a
+backtrace and include it in your mail.  See the <link
+linkend=pagenodata>"Page contains no data"</link> section for how to
+do this.</para>
+
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
@@ -1884,6 +1958,7 @@ Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ul
 			</para>
 			<simplelist>
 				<member>Brian Bruns</>
+				<member>James Cameron</>
 				<member>Allen Grace</>
 				<member>James K. Lowden</>
 				<member>Rajkumar Seth [promised]</>
