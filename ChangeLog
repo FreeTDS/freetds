@@ -1,3 +1,6 @@
+Fri Apr 09 16:21:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix problem rebinding parameters
+
 Fri Apr 09 11:09:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/descriptor.c:
 	- small updates

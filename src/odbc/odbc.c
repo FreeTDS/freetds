@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.313 2004-03-28 18:34:17 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.314 2004-04-09 14:09:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -873,6 +873,9 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+
+	stmt->need_reprepare = 1;
+
 	/* TODO other types ?? handle SQL_C_DEFAULT */
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
@@ -1650,6 +1653,14 @@ odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	return 1;
 }
 
+#define DESC_SET_NEED_REPREPARE \
+	do {\
+		if (desc->type == DESC_IPD) {\
+			assert(IS_HSTMT(desc->parent));\
+			((TDS_STMT *) desc->parent)->need_reprepare = 1;\
+		 }\
+	} while(0)
+
 SQLRETURN SQL_API
 SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLSMALLINT nSubType, SQLINTEGER nLength,
 	      SQLSMALLINT nPrecision, SQLSMALLINT nScale, SQLPOINTER pData, SQLINTEGER * pnStringLength, SQLINTEGER * pnIndicator)
@@ -1672,10 +1683,12 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	drec = &desc->records[nRecordNumber];
 
 	/* check for valid types and return "HY021" if not */
-	if (desc->type == DESC_IPD)
+	if (desc->type == DESC_IPD) {
+		DESC_SET_NEED_REPREPARE;
 		concise_type = odbc_get_concise_sql_type(nType, nSubType);
-	else
+	} else {
 		concise_type = odbc_get_concise_c_type(nType, nSubType);
+	}
 	if (nType == SQL_INTERVAL || nType == SQL_DATETIME) {
 		if (!concise_type) {
 			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
@@ -2024,6 +2037,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
+		DESC_SET_NEED_REPREPARE;
 		if (desc->type == DESC_IPD)
 			result = odbc_set_concise_sql_type((SQLSMALLINT) (TDS_INTPTR) Value, drec, 0);
 		else
@@ -2049,6 +2063,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_LENGTH:
+		DESC_SET_NEED_REPREPARE;
 		IIN(SQLINTEGER, drec->sql_desc_length);
 		break;
 	case SQL_DESC_LITERAL_PREFIX:
@@ -2076,15 +2091,18 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IIN(SQLINTEGER, drec->sql_desc_num_prec_radix);
 		break;
 	case SQL_DESC_OCTET_LENGTH:
+		DESC_SET_NEED_REPREPARE;
 		IIN(SQLINTEGER, drec->sql_desc_octet_length);
 		break;
 	case SQL_DESC_OCTET_LENGTH_PTR:
 		PIN(SQLINTEGER *, drec->sql_desc_octet_length_ptr);
 		break;
 	case SQL_DESC_PARAMETER_TYPE:
+		DESC_SET_NEED_REPREPARE;
 		IIN(SQLSMALLINT, drec->sql_desc_parameter_type);
 		break;
 	case SQL_DESC_PRECISION:
+		DESC_SET_NEED_REPREPARE;
 		/* TODO correct ?? */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IIN(SQLSMALLINT, drec->sql_desc_precision);
@@ -2096,6 +2114,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_SCALE:
+		DESC_SET_NEED_REPREPARE;
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IIN(SQLSMALLINT, drec->sql_desc_scale);
 		else
@@ -2108,6 +2127,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_TYPE:
+		DESC_SET_NEED_REPREPARE;
 		IIN(SQLSMALLINT, drec->sql_desc_type);
 		/* FIXME what happen for interval/datetime ?? */
 		drec->sql_desc_concise_type = drec->sql_desc_type;
@@ -2321,7 +2341,15 @@ _SQLExecute(TDS_STMT * stmt)
 		TDSDYNAMIC *dyn;
 
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn) {
+		if (!stmt->dyn || stmt->need_reprepare) {
+
+			/* free previous prepared statement */
+			if (stmt->dyn) {
+				if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
+					ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			stmt->need_reprepare = 0;
+
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			/* TODO use tds_submit_prepexec (mssql2k, tds8) */
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
@@ -3052,6 +3080,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 		/* TODO use current parameter informations */
+		stmt->need_reprepare = 1;
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL) {
 			/* TODO ?? tds_free_param_results(params); */
 			ODBC_RETURN(stmt, SQL_ERROR);
