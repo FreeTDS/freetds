@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.2 2003-04-28 21:35:02 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.3 2003-04-29 06:05:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -62,13 +62,45 @@ check_flags(TDSCOLINFO * curcol, int n, const char *res)
 	}
 }
 
+static void
+test_begin(const char *cmd)
+{
+	TDS_INT result_type;
+
+	fprintf(stdout, "%s: Testing query\n", cmd);
+	if (tds_submit_query(tds, cmd, NULL) != TDS_SUCCEED)
+		fatal_error("tds_submit_query() failed");
+
+	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
+		fatal_error("tds_process_result_tokens() failed");
+
+	if (result_type != TDS_ROWFMT_RESULT)
+		fatal_error("expected row fmt() failed");
+
+	/* test columns results */
+	if (tds->curr_resinfo != tds->res_info)
+		fatal_error("wrong curr_resinfo");
+}
+
+static void
+test_end(void)
+{
+	TDS_INT result_type;
+
+	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
+		fatal_error("tds_process_result_tokens() failed");
+
+	if (result_type != TDS_CMD_DONE)
+		fatal_error("expected done failed");
+
+	if (tds_process_result_tokens(tds, &result_type) != TDS_NO_MORE_RESULTS)
+		fatal_error("tds_process_result_tokens() failed");
+}
+
 int
 main(int argc, char **argv)
 {
-	TDS_INT result_type;
-	TDSCOLINFO *curcol;
 	TDSRESULTINFO *info;
-	const char *cmd;
 
 	fprintf(stdout, "%s: Testing flags from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCEED) {
@@ -83,20 +115,7 @@ main(int argc, char **argv)
 	/* TDS 4.2 without FOR BROWSE clause seem to forget flags... */
 	if (!IS_TDS42(tds)) {
 		/* check select of all fields */
-		cmd = "select * from #tmp1";
-		fprintf(stdout, "%s: Testing query\n", cmd);
-		if (tds_submit_query(tds, cmd, NULL) != TDS_SUCCEED)
-			fatal_error("tds_submit_query() failed");
-
-		if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
-			fatal_error("tds_process_result_tokens() failed");
-
-		if (result_type != TDS_ROWFMT_RESULT)
-			fatal_error("expected row fmt() failed");
-
-		/* test columns results */
-		if (tds->curr_resinfo != tds->res_info)
-			fatal_error("wrong curr_resinfo");
+		test_begin("select * from #tmp1");
 		info = tds->curr_resinfo;
 
 		if (info->num_cols != 3)
@@ -106,55 +125,25 @@ main(int argc, char **argv)
 		check_flags(info->columns[1], 1, "nullable writable");
 		check_flags(info->columns[2], 2, "writable");
 
-		if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
-			fatal_error("tds_process_result_tokens() failed");
-
-		if (result_type != TDS_CMD_DONE)
-			fatal_error("expected done failed");
-
-		if (tds_process_result_tokens(tds, &result_type) != TDS_NO_MORE_RESULTS)
-			fatal_error("tds_process_result_tokens() failed");
+		test_end();
 	}
 
 
 	/* check select of 2 field */
-	cmd = "select c, b from #tmp1 for browse";
-	fprintf(stdout, "%s: Testing query\n", cmd);
-	if (tds_submit_query(tds, cmd, NULL) != TDS_SUCCEED)
-		fatal_error("tds_submit_query() failed");
-
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
-		fatal_error("tds_process_result_tokens() failed");
-
-	if (result_type != TDS_ROWFMT_RESULT)
-		fatal_error("expected row fmt() failed");
-
-	/* test columns results */
-	if (tds->curr_resinfo != tds->res_info)
-		fatal_error("wrong curr_resinfo");
+	test_begin("select c, b from #tmp1 for browse");
 	info = tds->curr_resinfo;
 
 	if (info->num_cols != 3)
 		fatal_error("wrong number or columns returned");
 
-	if (!IS_TDS42(tds)) {
-		check_flags(info->columns[0], 0, "writable");
+	check_flags(info->columns[0], 0, "writable");
+	if (!IS_TDS42(tds))
 		check_flags(info->columns[1], 1, "nullable writable");
-		check_flags(info->columns[2], 2, "writable key hidden");
-	} else {
-		check_flags(info->columns[0], 0, "");
-		check_flags(info->columns[1], 1, "");
-		check_flags(info->columns[2], 2, "key hidden");
-	}
+	else
+		check_flags(info->columns[1], 1, "writable");
+	check_flags(info->columns[2], 2, "writable key hidden");
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
-		fatal_error("tds_process_result_tokens() failed");
-
-	if (result_type != TDS_CMD_DONE)
-		fatal_error("expected done failed");
-
-	if (tds_process_result_tokens(tds, &result_type) != TDS_NO_MORE_RESULTS)
-		fatal_error("tds_process_result_tokens() failed");
+	test_end();
 
 	try_tds_logout(login, tds, 0);
 	return 0;

@@ -1,3 +1,7 @@
+Tue Apr 29 08:05:06 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c src/tds/unittests/flags.c:
+	- use expression flag in COLINFO
+
 Mon Apr 28 23:35:11 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c src/tds/unittests/flags.c:
 	- process correctly COLINFO (TDS 4.2)

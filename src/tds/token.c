@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.179 2003-04-28 21:35:02 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.180 2003-04-29 06:04:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -980,6 +980,7 @@ tds_process_colinfo(TDSSOCKET * tds)
 		bytes_read += 3;
 		if (info && col_info[0] > 0 && col_info[0] <= info->num_cols) {
 			curcol = info->columns[col_info[0] - 1];
+			curcol->column_writeable = (col_info[2] & 0x4) == 0;
 			curcol->column_key = (col_info[2] & 0x8) > 0;
 			curcol->column_hidden = (col_info[2] & 0x10) > 0;
 		}
