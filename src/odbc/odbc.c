@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.126 2003-01-11 18:13:49 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.127 2003-01-16 14:24:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -623,6 +623,9 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	cur->column_bindlen = cbValueMax;
 	cur->column_lenbind = (char *) pcbValue;
 	cur->varaddr = (char *) rgbValue;
+
+	/* force rebind */
+	stmt->row = 0;
 
 	return SQL_SUCCESS;
 }
@@ -1750,34 +1753,35 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (tds_get_null(resinfo->current_row, icol - 1)) {
 		*pcbValue = SQL_NULL_DATA;
 	} else {
-		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
-		if (is_blob_type(colinfo->column_type)) {
-			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-				return SQL_NO_DATA_FOUND;
-			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
-			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-		} else {
-			srclen = colinfo->column_cur_size;
-		}
-		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
-		if (*pcbValue < 0)
-			return SQL_ERROR;
+	src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
+	if (is_blob_type(colinfo->column_type)) {
+		if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+			return SQL_NO_DATA_FOUND;
+		src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+		srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
+	} else {
+		srclen = colinfo->column_cur_size;
+	}
+	nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+	/* TODO add support for SQL_C_DEFAULT */
+	*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
+	if (*pcbValue < 0)
+		return SQL_ERROR;
 
-		if (is_blob_type(colinfo->column_type)) {
-			/* calc how many bytes was readed */
-			int readed = cbValueMax;
+	if (is_blob_type(colinfo->column_type)) {
+		/* calc how many bytes was readed */
+		int readed = cbValueMax;
 
-			/* char is always terminated... */
-			/* FIXME test on destination char ??? */
-			if (nSybType == SYBTEXT)
-				--readed;
-			if (readed > *pcbValue)
-				readed = *pcbValue;
-			colinfo->column_text_sqlgetdatapos += readed;
-			/* not all readed ?? */
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
-				return SQL_SUCCESS_WITH_INFO;
+		/* char is always terminated... */
+		/* FIXME test on destination char ??? */
+		if (nSybType == SYBTEXT)
+			--readed;
+		if (readed > *pcbValue)
+			readed = *pcbValue;
+		colinfo->column_text_sqlgetdatapos += readed;
+		/* not all readed ?? */
+		if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
+			return SQL_SUCCESS_WITH_INFO;
 		}
 	}
 	return SQL_SUCCESS;
