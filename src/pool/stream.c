@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.14 2003-04-03 09:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.15 2003-09-21 18:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -216,6 +216,9 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 		strncpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
+		/* FIXME ucs2 client and others */
+		curcol->column_name[sizeof(curcol->column_name) - 1] = 0;
+		curcol->column_namelen = strlen(curcol->column_name);
 		prev = cur;
 		cur = cur->next;
 		free(prev->column_name);

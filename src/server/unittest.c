@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char software_version[] = "$Id: unittest.c,v 1.7 2003-03-24 23:08:20 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.8 2003-09-21 18:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void dump_login(TDSLOGIN * login);
@@ -63,6 +63,7 @@ main(int argc, char **argv)
 	resinfo->columns[0]->column_type = SYBVARCHAR;
 	resinfo->columns[0]->column_size = 30;
 	strcpy(resinfo->columns[0]->column_name, "name");
+	resinfo->columns[0]->column_namelen = 4;
 	resinfo->current_row = "pubs2";
 	tds_send_result(tds, resinfo);
 	tds_send_174_token(tds, 1);

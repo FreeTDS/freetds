@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.21 2003-05-08 08:15:26 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.22 2003-09-21 18:37:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -256,8 +256,11 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		pcol = params->columns[i];
 
 		/* meta data */
-		if (p->name)
+		if (p->name) {
 			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
+			pcol->column_name[sizeof(pcol->column_name) - 1] = 0;
+			pcol->column_namelen = strlen(pcol->column_name);
+		}
 		tds_set_param_type(tds, pcol, p->type);
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)

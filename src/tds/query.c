@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.101 2003-09-19 08:55:50 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.102 2003-09-21 18:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -236,6 +236,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 
 		for (i = 0; i < params->num_cols; i++) {
 			param = params->columns[i];
+			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
 			tds_put_data(tds, param, params->current_row, i);
 		}
@@ -503,9 +504,7 @@ static char *
 tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
 {
 	int size = 512;
-
-	/* TODO check out of memory */
-	char *param_str = (char *) malloc(512);
+	char *param_str;
 	char *p;
 	char declaration[24];
 	int l = 0, i;
@@ -513,9 +512,11 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 	assert(IS_TDS7_PLUS(tds));
 	assert(out_len);
 
+	param_str = (char *) malloc(512);
 	if (!param_str)
 		return NULL;
 	param_str[0] = 0;
+
 	for (i = 0; i < params->num_cols; ++i) {
 		const char *ib;
 		char *ob;
@@ -526,8 +527,8 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 			param_str[l++] = 0;
 		}
 
-		/* FIXME why ??? */
-		params->columns[i]->column_namelen = strlen(params->columns[i]->column_name);
+		/* TODO remove this assert for ucs2 client (when supported) */
+		assert(params->columns[i]->column_namelen == strlen(params->columns[i]->column_name));
 
 		/* realloc on insufficient space */
 		while ((l + (2 * 26) + 2 * params->columns[i]->column_namelen) > size) {
@@ -610,16 +611,16 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const c
 				tds_put_string(tds, buf, -1);
 			}
 		} else {
-			tds_put_int(tds, 0);
+			tds_put_int(tds, -1);
 			if (IS_TDS80(tds))
 				tds_put_n(tds, tds->collation, 5);
-			tds_put_int(tds, 0);
+			tds_put_int(tds, -1);
 		}
 	} else {
-		tds_put_int(tds, param_length);
+		tds_put_int(tds, param_length ? param_length : -1);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
-		tds_put_int(tds, param_length);
+		tds_put_int(tds, param_length ? param_length : -1);
 		tds_put_n(tds, param_definition, param_length);
 	}
 
@@ -789,12 +790,27 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 	int len;
 
 	if (flags & TDS_PUT_DATA_USE_NAME) {
-		/* TODO use column_namelen ?? */
-		len = strlen(curcol->column_name);
+		len = curcol->column_namelen;
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting param_name \n");
-		/* FIXME ICONV use converted size */
-		tds_put_byte(tds, len);	/* param name len */
-		tds_put_string(tds, curcol->column_name, len);
+
+		if (IS_TDS7_PLUS(tds)) {
+			int converted_param_len;
+			const char *converted_param;
+
+			/* TODO use a fixed buffer to avoid error ? */
+			converted_param =
+				tds_convert_string(tds, &tds->iconv_info[client2ucs2], curcol->column_name, len,
+						   &converted_param_len);
+			if (!converted_param)
+				return TDS_FAIL;
+			tds_put_byte(tds, converted_param_len / 2);
+			tds_put_n(tds, converted_param, converted_param_len);
+			tds_convert_string_free(curcol->column_name, converted_param);
+		} else {
+			/* TODO ICONV convert */
+			tds_put_byte(tds, len);	/* param name len */
+			tds_put_n(tds, curcol->column_name, len);
+		}
 	} else {
 		tds_put_byte(tds, 0x00);	/* param name len */
 	}
@@ -856,10 +872,9 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
 #endif
 
-	/* FIXME ICONV use converted size */
+	/* TODO ICONV convert string if needed (see also tds_put_data_info) */
 	if (flags & TDS_PUT_DATA_USE_NAME)
-		/* TODO use column_namelen ? */
-		len += strlen(curcol->column_name);
+		len += curcol->column_namelen;
 	if (is_numeric_type(curcol->on_server.column_type))
 		len += 2;
 	return len + curcol->column_varint_size;
@@ -881,8 +896,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	TDSBLOBINFO *blob_info;
 	int colsize;
 	int is_null;
-	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-	static const unsigned char GEN_NULL = 0x00;
 
 	is_null = tds_get_null(current_row, i);
 	colsize = curcol->column_cur_size;
@@ -904,12 +917,12 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			case XSYBNCHAR:
 			case XSYBNVARCHAR:
 				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting CHARBIN_NULL\n");
-				tds_put_n(tds, CHARBIN_NULL, 2);
+				tds_put_smallint(tds, -1);
 				break;
 			default:
 				/* FIXME good for all other types ??? */
 				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
-				tds_put_byte(tds, GEN_NULL);
+				tds_put_byte(tds, 0);
 				break;
 
 			}
@@ -1083,6 +1096,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		if (info)
 			for (i = 0; i < info->num_cols; i++) {
 				param = info->columns[i];
+				/* TODO check error */
 				tds_put_data_info(tds, param, 0);
 				tds_put_data(tds, param, info->current_row, i);
 			}
@@ -1284,6 +1298,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		for (i = 0; i < num_params; i++) {
 			param = params->columns[i];
+			/* TODO check error */
 			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
 			tds_put_data(tds, param, params->current_row, i);
 		}

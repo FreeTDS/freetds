@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.246 2003-09-19 08:55:49 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.247 2003-09-21 18:37:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -163,7 +163,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 #if ENABLE_EXTRA_CHECKS
 	if (colpos > 0 && stmt->hdbc->tds_socket != NULL && (resinfo = stmt->hdbc->tds_socket->res_info) != NULL) {
 		if (colpos <= resinfo->num_cols) {
-			/* TODO set column_namelen, see overflow */
+			/* TODO see overflow */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
 			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
 			retcode = 0;
@@ -4363,7 +4363,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 		colinfo = resinfo->columns[icol];
 		/* upper case */
 		/* TODO procedure */
-		for (p = colinfo->column_name; *p; ++p)
+		for (p = colinfo->column_name; p < (colinfo->column_name + colinfo->column_namelen); ++p)
 			if ('a' <= *p && *p <= 'z')
 				*p = *p & (~0x20);
 	}

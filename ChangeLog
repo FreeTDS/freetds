@@ -1,3 +1,12 @@
+Sun Sep 21 20:34:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/dblib/rpc.c src/odbc/odbc.c src/pool/stream.c:
+	* src/server/server.c src/server/unittest.c:
+	* src/tds/query.c src/tds/token.c:
+	- set always correctly column_namelen
+	- convert parameter name in query.c
+	- use NULL instead of '' for sp_prepare parameter definition
+
 Fri Sep 19 10:53:41 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: free dynamic on error preparing
 	* src/tds/query.c: fix prepared using TDS7+

@@ -25,10 +25,12 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.15 2003-04-03 09:13:01 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.16 2003-09-21 18:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -216,15 +218,16 @@ tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	tds_put_byte(tds, TDS_COLNAME_TOKEN);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
-		hdrsize += strlen(curcol->column_name) + 2;
+		assert(strlen(curcol->column_name) == curcol->column_namelen);
+		hdrsize += curcol->column_namelen + 2;
 	}
 
 	tds_put_smallint(tds, hdrsize);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
-		tds_put_byte(tds, strlen(curcol->column_name));
+		tds_put_byte(tds, curcol->column_namelen);
 		/* include the null */
-		tds_put_n(tds, curcol->column_name, strlen(curcol->column_name) + 1);
+		tds_put_n(tds, curcol->column_name, curcol->column_namelen + 1);
 	}
 }
 void
@@ -265,7 +268,8 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
 		totlen += 8;
-		totlen += strlen(curcol->column_name);
+		assert(strlen(curcol->column_name) == curcol->column_namelen);
+		totlen += curcol->column_namelen;
 		curcol = resinfo->columns[i];
 		if (!is_fixed_type(curcol->column_type)) {
 			totlen++;
@@ -275,8 +279,8 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	tds_put_smallint(tds, resinfo->num_cols);
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
-		tds_put_byte(tds, strlen(curcol->column_name));
-		tds_put_n(tds, curcol->column_name, strlen(curcol->column_name));
+		tds_put_byte(tds, curcol->column_namelen);
+		tds_put_n(tds, curcol->column_name, curcol->column_namelen);
 		tds_put_byte(tds, '0');
 		tds_put_int(tds, curcol->column_usertype);
 		tds_put_byte(tds, curcol->column_type);

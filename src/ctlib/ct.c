@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.102 2003-08-06 03:46:33 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.103 2003-09-21 18:37:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -475,8 +475,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	CS_CONTEXT *ctx;
 	TDSCONNECTINFO *connect_info;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L ct_connect() servername = %s\n", 
-		servername ? servername : "NULL");
+	tdsdump_log(TDS_DBG_FUNC, "%L ct_connect() servername = %s\n", servername ? servername : "NULL");
 
 	if (snamelen == 0 || snamelen == CS_UNUSED) {
 		server = NULL;
@@ -1366,6 +1365,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLINFO *curcol;
+	int len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_describe()\n");
 	tds = cmd->con->tds_socket;
@@ -1379,8 +1379,11 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	if (item < 1 || item > resinfo->num_cols)
 		return CS_FAIL;
 	curcol = resinfo->columns[item - 1];
-	strncpy(datafmt->name, curcol->column_name, CS_MAX_NAME);
-	datafmt->namelen = strlen(curcol->column_name);
+	len = curcol->column_namelen;
+	if (len > CS_MAX_NAME)
+		len = CS_MAX_NAME;
+	strncpy(datafmt->name, curcol->column_name, len);
+	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_size);
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
@@ -2429,22 +2432,22 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		CS_INT option;
 		TDS_OPTION tds_option;
 	} tds_bool_option_map[] = {
-		  { CS_OPT_ANSINULL, 		TDS_OPT_ANSINULL	}
-		, { CS_OPT_ANSINULL, 		TDS_OPT_ANSINULL	}
-		, { CS_OPT_CHAINXACTS, 		TDS_OPT_CHAINXACTS	}
-		, { CS_OPT_CURCLOSEONXACT,	TDS_OPT_CURCLOSEONXACT	}
-		, { CS_OPT_FIPSFLAG, 		TDS_OPT_FIPSFLAG	}
-		, { CS_OPT_FORCEPLAN, 		TDS_OPT_FORCEPLAN	}
-		, { CS_OPT_FORMATONLY, 		TDS_OPT_FORMATONLY	}
-		, { CS_OPT_GETDATA, 		TDS_OPT_GETDATA		}
-		, { CS_OPT_NOCOUNT, 		TDS_OPT_NOCOUNT		}
-		, { CS_OPT_NOEXEC, 		TDS_OPT_NOEXEC		}
-		, { CS_OPT_PARSEONLY, 		TDS_OPT_PARSEONLY	}
-		, { CS_OPT_QUOTED_IDENT, 	TDS_OPT_QUOTED_IDENT	}
-		, { CS_OPT_RESTREES, 		TDS_OPT_RESTREES	}
-		, { CS_OPT_SHOWPLAN, 		TDS_OPT_SHOWPLAN	}
-		, { CS_OPT_STATS_IO, 		TDS_OPT_STAT_IO		}
-		, { CS_OPT_STATS_TIME, 		TDS_OPT_STAT_TIME	}
+		  { CS_OPT_ANSINULL,       TDS_OPT_ANSINULL       }
+		, { CS_OPT_ANSINULL,       TDS_OPT_ANSINULL       }
+		, { CS_OPT_CHAINXACTS,     TDS_OPT_CHAINXACTS     }
+		, { CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT }
+		, { CS_OPT_FIPSFLAG,       TDS_OPT_FIPSFLAG       }
+		, { CS_OPT_FORCEPLAN,      TDS_OPT_FORCEPLAN      }
+		, { CS_OPT_FORMATONLY,     TDS_OPT_FORMATONLY     }
+		, { CS_OPT_GETDATA,        TDS_OPT_GETDATA        }
+		, { CS_OPT_NOCOUNT,        TDS_OPT_NOCOUNT        }
+		, { CS_OPT_NOEXEC,         TDS_OPT_NOEXEC         }
+		, { CS_OPT_PARSEONLY,      TDS_OPT_PARSEONLY      }
+		, { CS_OPT_QUOTED_IDENT,   TDS_OPT_QUOTED_IDENT   }
+		, { CS_OPT_RESTREES,       TDS_OPT_RESTREES       }
+		, { CS_OPT_SHOWPLAN,       TDS_OPT_SHOWPLAN       }
+		, { CS_OPT_STATS_IO,       TDS_OPT_STAT_IO        }
+		, { CS_OPT_STATS_TIME,     TDS_OPT_STAT_TIME      }
 	};
 
 	if (param == NULL)
@@ -2869,8 +2872,13 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol = params->columns[i];
 
 		/* meta data */
-		if (p->name)
+		pcol->column_namelen = 0;
+		if (p->name) {
+			/* TODO seem complicate ... routine or something ? */
 			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
+			pcol->column_name[sizeof(pcol->column_name) - 1] = 0;
+			pcol->column_namelen = strlen(pcol->column_name);
+		}
 
 		tds_set_param_type(tds, pcol, temp_type);
 
@@ -2889,9 +2897,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_cur_size = temp_datalen;
 		tdsdump_log(TDS_DBG_FUNC, "%L paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
 		tdsdump_log(TDS_DBG_FUNC,
-			    "%L paraminfoalloc: name = %s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
-			    pcol->column_name, pcol->column_varint_size, pcol->column_type, pcol->column_cur_size,
-			    pcol->column_output);
+			    "%L paraminfoalloc: name = %*.*s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
+			    pcol->column_namelen, pcol->column_namelen, pcol->column_name,
+			    pcol->column_varint_size, pcol->column_type, pcol->column_cur_size, pcol->column_output);
 		prow = paramrowalloc(params, pcol, temp_value, temp_datalen);
 		if (!prow) {
 			fprintf(stderr, "out of memory for rpc row!");

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.209 2003-09-19 08:55:50 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.210 2003-09-21 18:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -889,8 +889,9 @@ tds_process_col_name(TDSSOCKET * tds)
 	cur = head;
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
-		curcol->column_namelen = cur->column_namelen;
 		strncpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
+		curcol->column_name[sizeof(curcol->column_name) - 1] = 0;
+		curcol->column_namelen = strlen(curcol->column_name);
 		prev = cur;
 		cur = cur->next;
 		free(prev->column_name);
@@ -2655,7 +2656,8 @@ tds_process_compute_names(TDSSOCKET * tds)
 	for (col = 0; col < num_cols; col++) {
 		curcol = info->columns[col];
 
-		strcpy(curcol->column_name, curptr->name);
+		assert(strlen(curcol->column_name) == curcol->column_namelen);
+		memcpy(curcol->column_name, curptr->name, curptr->namelen + 1);
 		curcol->column_namelen = curptr->namelen;
 
 		freeptr = curptr;

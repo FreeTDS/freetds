@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.153 2003-07-30 06:18:59 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.154 2003-09-21 18:37:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -859,8 +859,8 @@ static const char *opttext[DBNUMOPTIONS] = {
 	"identity_insert",
 	"no_identity_column",
 	"cnv_date2char_short",
-	"client cursors", 
-	"set time", 
+	"client cursors",
+	"set time",
 	"quoted_identifier"
 };
 
@@ -935,7 +935,7 @@ tdsdbopen(LOGINREC * login, char *server)
 
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
 	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
-	dbproc->tds_socket->option_flag2 &= ~0x02; /* we're not an ODBC driver */
+	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
 	dbproc->tds_socket->env_chg_func = db_env_chg;
 	dbproc->envchange_rcv = 0;
 	dbproc->dbcurdb[0] = '\0';
@@ -1278,7 +1278,8 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 
 	if (dbproc->dbresults_state & DBRESCMDS) {
 		dbproc->dbresults_state &= ~DBRESCMDS;
-		tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r: cleared DBRESCMDS; dbproc->dbresults_state=%d \n", dbproc->dbresults_state);
+		tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r: cleared DBRESCMDS; dbproc->dbresults_state=%d \n",
+			    dbproc->dbresults_state);
 		return dbproc->dbresults_retcode;
 	}
 
@@ -1417,6 +1418,7 @@ dbcolname(DBPROCESS * dbproc, int column)
 	if (column < 1 || column > resinfo->num_cols)
 		return NULL;
 
+	assert(resinfo->columns[column - 1]->column_name[resinfo->columns[column - 1]->column_namelen] == 0);
 	return resinfo->columns[column - 1]->column_name;
 }
 
@@ -2317,6 +2319,7 @@ dbcolsource(DBPROCESS * dbproc, int colnum)
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
 	colinfo = resinfo->columns[colnum - 1];
+	assert(colinfo->column_name[colinfo->column_namelen] == 0);
 	return colinfo->column_name;
 }
 
@@ -2509,7 +2512,7 @@ dbspr1rowlen(DBPROCESS * dbproc)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		len += collen > namlen ? collen : namlen;
 	}
 	/* the space between each column */
@@ -2576,7 +2579,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		buffer += len;
 		buf_len -= len;
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		padlen = (collen > namlen ? collen : namlen) - len;
 		if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].optparam, 0)) == -1) {
 			c = ' ';
@@ -2675,7 +2678,7 @@ dbprrow(DBPROCESS * dbproc)
 
 				printf("%.*s", len, dest);
 				collen = _get_printable_size(colinfo);
-				namlen = strlen(colinfo->column_name);
+				namlen = colinfo->column_namelen;
 				padlen = (collen > namlen ? collen : namlen) - len;
 				c = dbstring_getchar(dbproc->dbopts[DBPRPAD].optparam, 0);
 				if (c == -1) {
@@ -2817,7 +2820,7 @@ dbprrow(DBPROCESS * dbproc)
 				}
 				printf("%.*s", len, dest);
 				collen = _get_printable_size(colinfo);
-				namlen = strlen(colinfo->column_name);
+				namlen = colinfo->column_namelen;
 				padlen = (collen > namlen ? collen : namlen) - len;
 				if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].optparam, 0)) == -1) {
 					c = ' ';
@@ -2916,7 +2919,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		len = collen > namlen ? collen : namlen;
 		for (i = 0; i < len; i++) {
 			if (buf_len < 1) {
@@ -2974,7 +2977,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		padlen = (collen > namlen ? collen : namlen) - namlen;
 		if (buf_len < namlen) {
 			return FAIL;
@@ -3038,9 +3041,9 @@ dbprhead(DBPROCESS * dbproc)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		padlen = (collen > namlen ? collen : namlen) - namlen;
-		printf("%s", colinfo->column_name);
+		printf("%*.*s", colinfo->column_namelen, colinfo->column_namelen, colinfo->column_name);
 
 		c = dbstring_getchar(dbproc->dbopts[DBPRPAD].optparam, 0);
 		if (c == -1) {
@@ -3064,7 +3067,7 @@ dbprhead(DBPROCESS * dbproc)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = strlen(colinfo->column_name);
+		namlen = colinfo->column_namelen;
 		len = collen > namlen ? collen : namlen;
 		for (i = 0; i < len; i++)
 			putchar('-');
@@ -3768,6 +3771,7 @@ dbretname(DBPROCESS * dbproc, int retnum)
 	param_info = tds->param_info;
 	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
+	assert(param_info->columns[retnum - 1]->column_name[param_info->columns[retnum - 1]->column_namelen] == 0);
 	return param_info->columns[retnum - 1]->column_name;
 }
 
@@ -4956,7 +4960,8 @@ dbmorecmds(DBPROCESS * dbproc)
 	dbproc->dbresults_state |= DBRESCMDS;
 	dbproc->dbresults_retcode = rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds: dbresults_state=%x, dbresults_retcode=%d\n", dbproc->dbresults_state, dbproc->dbresults_retcode);
+	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds: dbresults_state=%x, dbresults_retcode=%d\n", dbproc->dbresults_state,
+		    dbproc->dbresults_retcode);
 	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds() returns %s\n", (rc == SUCCEED) ? "SUCCEED" : "FAIL");
 
 	return (rc == SUCCEED) ? SUCCEED : FAIL;

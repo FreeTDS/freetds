@@ -62,7 +62,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.72 2003-06-11 20:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.73 2003-09-21 18:37:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -195,7 +195,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 				bcpcol->db_prec = resinfo->columns[i]->column_prec;
 				bcpcol->db_scale = resinfo->columns[i]->column_scale;
 				memcpy(bcpcol->db_collate, resinfo->columns[i]->column_collation, 5);
-				strcpy(bcpcol->db_name, resinfo->columns[i]->column_name);
+				memcpy(bcpcol->db_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
+				bcpcol->db_name[resinfo->columns[i]->column_namelen] = 0;
 				bcpcol->db_varint_size = resinfo->columns[i]->column_varint_size;
 			}
 		}
