@@ -1,3 +1,6 @@
+Wed Mar 19 01:36:04 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c add more doxygen comments, more indentation
+	
 Tue Mar 18 21:13:38 EST 2003	Mark Lilback <mark@lilback.com>
 	* src/ctlib/ct.c: ct_describe correctly sets the status flag 
 	-   for identity and nullable columns.
