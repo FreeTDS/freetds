@@ -1,3 +1,7 @@
+Sun Mar 30 10:47:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c:
+	- handle 2 other lcid
+
 Sun Mar 30 09:59:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c src/tds/iconv.c src/tds/login.c:
 	* src/tds/numeric.c src/tds/query.c src/tds/read.c:
