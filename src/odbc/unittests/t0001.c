@@ -12,7 +12,7 @@ SQLINTEGER cnamesize;
 SQLCHAR command[512]; 
 SQLCHAR output [256];
 
-    tdsdump_open(NULL);
+    setenv("TDSDUMP","",1);
 
     Connect();
 
@@ -89,6 +89,13 @@ SQLCHAR output [256];
         CheckReturn(); 
         exit( 1 ); 
     } 
+	
+    res = SQLCloseCursor(Statement);
+    if (!SQL_SUCCEEDED(res)) {
+	    printf("Unable to close cursr\n");
+	    CheckReturn();
+	    exit(1);
+    }
 
     sprintf(command,"drop table odbctestdata");
     printf("%s\n",command);
