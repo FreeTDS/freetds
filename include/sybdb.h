@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.7 2002-07-01 00:38:05 brianb Exp $";
+"$Id: sybdb.h,v 1.8 2002-07-09 02:10:01 brianb Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -217,6 +217,7 @@ typedef struct {
    TDS_INT         sendrow_init;
    TDS_INT         var_cols;
    DBTYPEINFO      typeinfo;
+   unsigned char   avail_flag;
 } DBPROCESS;
 
 typedef struct dbdaterec

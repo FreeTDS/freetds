@@ -3,6 +3,9 @@ Mon Jul  8 21:25:47 EDT 2002	Brian Bruns <camber@ais.org>
 	*configure.in: add macros
 	*src/tds/threadsafe.c: ifdef _r functions
 	*doc/userguide.sgml: minor expansion on some finer points
+	*include/sybdb.h: added avail_flag to DBPROCESS structure
+	*src/dblib/dblib.c:  added implementation of DBISAVAIL and dbsetavail, 
+		set avail_flag in dbsqlsend, dbbind, dbcmd, and dbfcmd.
 
 Sat Jul  6 15:20:06 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	Several patches from Frediano Ziglio:

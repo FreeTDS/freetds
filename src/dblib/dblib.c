@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.20 2002-07-06 18:31:25 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.21 2002-07-09 02:10:01 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -435,13 +435,15 @@ RETCODE DBSETLAPP(LOGINREC *login, char *application)
 }
 DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
 {
-   DBPROCESS *dbproc;
-   char	*envbuf;
-   int version_value;
+DBPROCESS *dbproc;
+char	*envbuf;
+int version_value;
    
-   dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
-   memset(dbproc,'\0',sizeof(DBPROCESS));
-   tds_set_server(login->tds_login,server);
+	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
+	memset(dbproc,'\0',sizeof(DBPROCESS));
+	dbproc->avail_flag = TRUE;
+	
+	tds_set_server(login->tds_login,server);
    
    dbproc->tds_socket = (void *) tds_connect(login->tds_login, g_tds_context->locale, (void *)dbproc);
    dbproc->dbbuf = NULL;
@@ -471,6 +473,8 @@ RETCODE ret;
 
         tmpstr = (char *)malloc (size);
 	if (!tmpstr) return FAIL;
+
+	dbproc->avail_flag = FALSE;
 
 	while (1) {
 		va_start(ap, fmt);
@@ -502,6 +506,8 @@ void *p;
 	if(dbproc == NULL) {
 		return FAIL;
 	}
+	dbproc->avail_flag = FALSE;
+
 	if(dbproc->dbbufsz == 0) {
 		dbproc->dbbuf = (unsigned char *) malloc(strlen(cmdstring)+1);
 		if(dbproc->dbbuf == NULL) {
@@ -922,6 +928,7 @@ RETCODE dbbind(
    int            srctype = -1;   
    int            okay    = TRUE; /* so far, so good */
 
+	dbproc->avail_flag = FALSE;
    /* 
     * Note on logic-  I'm using a boolean variable 'okay' to tell me if
     * everything that has happened so far has gone okay.  Basically if 
@@ -2279,9 +2286,10 @@ RETCODE dbsqlsend(DBPROCESS *dbproc)
 int   result = FAIL;
 TDSSOCKET *tds;
 
-   tds = (TDSSOCKET *) dbproc->tds_socket;
-   if (tds->res_info && tds->res_info->more_results)
-   {
+	dbproc->avail_flag = FALSE;
+
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	if (tds->res_info && tds->res_info->more_results) {
       /* 
        * XXX If I read the documentation correctly it gets a
        * bit more complicated than this.
@@ -2401,4 +2409,12 @@ static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int 
 			varaddr[0]='\0';
 			break;
 	}
+}
+DBBOOL DBISAVAIL(DBPROCESS *dbproc)
+{
+	return dbproc->avail_flag;
+}
+void dbsetavail(DBPROCESS *dbproc)
+{
+	dbproc->avail_flag = TRUE;
 }
