@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.30 2002-12-18 14:06:33 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.31 2002-12-18 15:39:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -325,7 +325,7 @@ char *fn;
 	if (!ret && (p = tds_get_homedir()) != NULL) {
 		fn = NULL;
 		if (vasprintf(&fn, "%s/.odbc.ini", p) > 0) {
-			ret = fopen(pszFileName, "r");
+			ret = fopen(fn, "r");
 			free(fn);
 		}
 		free(p);
