@@ -44,7 +44,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.14 2002-09-13 18:21:41 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.15 2002-09-13 19:25:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -484,7 +484,7 @@ int           rows_written;
                if (is_blob_type(curcol->column_type)) {
                    /* FIX ME -- no converts supported */
                    src = curcol->column_textvalue;
-                   len = curcol->column_textsize;
+                   len = curcol->column_cur_size;
                } 
                else 
                {

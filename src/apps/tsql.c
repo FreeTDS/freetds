@@ -90,11 +90,10 @@ TDS_INT len;
 
 				if (is_blob_type(col->column_type)) {
 					src = (unsigned char *)col->column_textvalue;
-					srclen = col->column_textsize;
 				} else {
 					src = &(tds->res_info->current_row[col->column_offset]);
-					srclen = col->cur_row_size;
 				}
+				srclen = col->column_cur_size;
 
 	 
                     if(tds_convert(tds->tds_ctx,

@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.48 2002-09-12 19:27:00 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.49 2002-09-13 19:25:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1114,13 +1114,12 @@ SQLRETURN SQL_API SQLFetch(
             if (is_blob_type(colinfo->column_type))
             {
                 src = colinfo->column_textvalue;
-                srclen = colinfo->column_textsize;
             }
             else
             {
                 src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
-                srclen = colinfo->cur_row_size;
             }
+            srclen = colinfo->column_cur_size;
             len = convert_tds2sql(context, 
                                   tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
                                   src,
@@ -1591,15 +1590,15 @@ SQLRETURN SQL_API SQLGetData(
     {
         if (is_blob_type(colinfo->column_type))
         {
-            if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
+            if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
                 return SQL_NO_DATA_FOUND;
             src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
-            srclen = colinfo->column_textsize - colinfo->column_text_sqlgetdatapos;
+            srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
         }
         else
         {
             src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
-            srclen = colinfo->cur_row_size;
+            srclen = colinfo->column_cur_size;
         }
         nSybType = tds_get_conversion_type( colinfo->column_type, colinfo->column_size );
         *pcbValue=convert_tds2sql(context, 
@@ -1620,7 +1619,7 @@ SQLRETURN SQL_API SQLGetData(
 		    readed = *pcbValue;
             colinfo->column_text_sqlgetdatapos += readed;
 	    /* not all readed ?? */
-	    if (colinfo->column_text_sqlgetdatapos < colinfo->column_textsize)
+	    if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
 		return SQL_SUCCESS_WITH_INFO;
         }
     }

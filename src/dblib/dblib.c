@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.57 2002-09-13 18:03:23 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.58 2002-09-13 19:25:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -363,7 +363,7 @@ int            destlen;
 				/* XXX now what? */
 				
 			if (is_blob_type(curcol->column_type)) {
-				srclen =  curcol->column_textsize;
+				srclen =  curcol->column_cur_size;
 				src = (BYTE *)curcol->column_textvalue;
 			} else {
 				src = ((BYTE *)buffer_row_address(buf, index)) 
@@ -1500,7 +1500,7 @@ DBINT ret;
 	if (tds_get_null(resinfo->current_row,column-1))
 		ret = 0;
 	else
-		ret = colinfo->cur_row_size;
+		ret = colinfo->column_cur_size;
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n",ret);
 	return ret;
 }
@@ -1958,7 +1958,7 @@ TDSSOCKET *tds;
 
         colinfo = param_info->columns[retnum-1];
 
-        return colinfo->cur_row_size;
+        return colinfo->column_cur_size;
 }
 RETCODE dbsqlok(DBPROCESS *dbproc)
 {
@@ -2550,7 +2550,7 @@ int cpbytes, bytes_avail, rc;
 	** set pos to 0 and return 0 to denote the end of the 
 	** text */
 	if (curcol->column_textpos &&
-	   curcol->column_textpos>=curcol->column_textsize) {
+	   curcol->column_textpos>=curcol->column_cur_size) {
 		curcol->column_textpos = 0;
 		return 0;
 	}
@@ -2565,7 +2565,7 @@ int cpbytes, bytes_avail, rc;
 	}
 
 	/* find the number of bytes to return */
-	bytes_avail = curcol->column_textsize - curcol->column_textpos;
+	bytes_avail = curcol->column_cur_size - curcol->column_textpos;
 	cpbytes = bytes_avail > bufsize ? bufsize : bytes_avail;
 	memcpy(buf,&curcol->column_textvalue[curcol->column_textpos],cpbytes);
 	curcol->column_textpos += cpbytes;

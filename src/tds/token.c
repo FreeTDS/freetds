@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.50 2002-09-13 18:03:24 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.51 2002-09-13 19:25:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,6 +52,7 @@ void tds_swap_datatype(int coltype, unsigned char *buf);
 ** precision.
 */
 extern const int g__numeric_bytes_per_prec[];
+
 
 
 /*
@@ -573,10 +574,10 @@ int name_len;
 		/* column size */
 		curparam->column_size = tds_get_byte(tds);
 		/* actual data size */
-		curparam->cur_row_size = tds_get_byte(tds);
+		curparam->column_cur_size = tds_get_byte(tds);
 	} else { 
 		curparam->column_size = get_size_by_type(curparam->column_type);
-		curparam->cur_row_size = curparam->column_size;
+		curparam->column_cur_size = curparam->column_size;
 	}
 
 	curparam->column_offset = tds->param_info->row_size;
@@ -593,7 +594,7 @@ int name_len;
 	/* copy data to row buffer */
 	tds_get_n(tds, 
 		&tds->param_info->current_row[curparam->column_offset],
-		curparam->cur_row_size);
+		curparam->column_cur_size);
 
 	return TDS_SUCCEED;
 }
@@ -960,7 +961,7 @@ int len;
 				num->scale = curcol->column_scale;
 
 				tds_get_n(tds,num->array,colsize);
-				/* corrected colsize for cur_row_size */
+				/* corrected colsize for column_cur_size */
 				colsize = sizeof(TDS_NUMERIC);
 		        if (IS_TDS70(tds) || IS_TDS80(tds)) 
                 {
@@ -983,7 +984,7 @@ int len;
 			} else if (is_blob_type(curcol->column_type)) {
 				if (curcol->column_unicodedata) colsize /= 2;
 				curcol->column_textvalue = realloc(curcol->column_textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
-				curcol->column_textsize = colsize;
+				curcol->column_cur_size = colsize;
 				if (curcol->column_unicodedata) {
 					tds_get_string(tds,curcol->column_textvalue,colsize);
 				} else {
@@ -1005,7 +1006,7 @@ int len;
 			}
 
 			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
-			curcol->cur_row_size = colsize;
+			curcol->column_cur_size = colsize;
 
 #ifdef WORDS_BIGENDIAN
 			/* MS SQL Server 7.0 has broken date types from big endian 

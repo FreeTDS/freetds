@@ -1,3 +1,10 @@
+Fri Sep 13 21:24:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/odbc.c:
+	* src/tds/token.c:
+	- unify column_textsize and cur_row_size in TDSCOLINFO
+	  (new name column_cur_size)
+
 Fri Sep 13 14:20:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h include/syberror.h src/dblib/bcp.c:
 	- relocate severity codes from sybdb.h to syberror.h
