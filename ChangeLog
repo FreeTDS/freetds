@@ -1,3 +1,15 @@
+Fri Sep 03 16:21:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	- check type in SQLBindParameter
+	- add some comments
+	- support for SQL_TIMESTAMP (ODBC 2.x) setting sql type (required
+	  for no-dm or DM 2.x compliant)
+	* src/odbc/odbc_checks.c: fix typo
+	* src/odbc/unittests/genparams.c src/odbc/unittests/putdata.c:
+	- reuse common macro and code
+	* src/odbc/unittests/type.c:
+	- support even ODBC 2.x types in SQLSetDescField
+
 Fri Sep 03 14:39:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c src/odbc/unittests/type.c:
 	- fix small memory leaks

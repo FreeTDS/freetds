@@ -3,7 +3,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.7 2004-03-08 12:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.8 2004-09-03 14:24:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -25,16 +25,12 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 
 	/* bind parameter */
 	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, 18, 0, out_buf, sizeof(out_buf), &out_len) !=
-	    SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		CheckReturn();
-	}
+	    SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
 	/* call store procedure */
-	if (SQLExecDirect(Statement, "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to execute store statement\n");
-		CheckReturn();
-	}
+	if (SQLExecDirect(Statement, "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to execute store statement");
 
 	/* test results */
 	sbuf[0] = 0;
@@ -79,18 +75,12 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s')", type, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
-	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		fprintf(stderr, "Expected row\n");
-		exit(1);
-	}
-	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Row not expected\n");
-		exit(1);
-	}
-	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Recordset not expected\n");
-		exit(1);
-	}
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Expected row");
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Row not expected");
+	if (SQLMoreResults(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Recordset not expected");
 
 	/* create a table with a column of that type */
 	SQLFreeStmt(Statement, SQL_UNBIND);
@@ -100,22 +90,16 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* insert data using prepared statements */
 	sprintf(sbuf, "INSERT INTO #tmp_insert VALUES(?)");
-	if (SQLPrepare(Statement, sbuf, SQL_NTS) != SQL_SUCCESS) {
-		fprintf(stderr, "SQLPrepare() failure!\n");
-		exit(1);
-	}
+	if (SQLPrepare(Statement, sbuf, SQL_NTS) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLPrepare() failure!");
 
 	out_len = 1;
 	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
-	    SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		CheckReturn();
-	}
+	    SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
-	if (SQLExecute(Statement) != SQL_SUCCESS) {
-		fprintf(stderr, "SQLExecute() failure!\n");
-		exit(1);
-	}
+	if (SQLExecute(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLExecute() failure!");
 
 	/* check is row is present */
 	SQLFreeStmt(Statement, SQL_UNBIND);
@@ -123,18 +107,12 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, value_to_convert);
 	Command(Statement, sbuf);
 
-	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		fprintf(stderr, "Expected row\n");
-		exit(1);
-	}
-	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Row not expected\n");
-		exit(1);
-	}
-	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Recordset not expected\n");
-		exit(1);
-	}
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Expected row");
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Row not expected");
+	if (SQLMoreResults(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Recordset not expected");
 	Command(Statement, "DROP TABLE #tmp_insert");
 }
 

@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.4 2004-09-03 12:40:37 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.5 2004-09-03 14:24:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -29,7 +29,9 @@ static const struct type types[] = {
 	TYPE_C(SQL_C_DEFAULT),
 	TYPE_C(SQL_C_DATE),
 	TYPE_C(SQL_C_TIME),
-	TYPE_C(SQL_C_TIMESTAMP),
+/* MS ODBC do not support SQL_TIMESTAMP for IPD type while we support it */
+/*	TYPE_C(SQL_C_TIMESTAMP), */
+	TYPE_BOTH(SQL_C_TIMESTAMP, SQL_TIMESTAMP),
 	TYPE_C(SQL_C_TYPE_DATE),
 	TYPE_C(SQL_C_TYPE_TIME),
 	TYPE_BOTH(SQL_C_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP),

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.340 2004-08-06 08:13:05 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.341 2004-09-03 14:24:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -816,7 +816,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 {
 	TDS_DESC *apd, *ipd;
 	struct _drecord *drec;
-	SQLSMALLINT orig_apd_size;
+	SQLSMALLINT orig_apd_size, orig_ipd_size;
 	int is_numeric = 0;
 
 	INIT_HSTMT;
@@ -887,6 +887,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	/* field IPD related fields */
 	ipd = stmt->ipd;
+	orig_ipd_size = ipd->header.sql_desc_count;
 	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS) {
 		desc_alloc_records(apd, orig_apd_size);
 		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
@@ -895,8 +896,12 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec = &ipd->records[ipar - 1];
 
 	drec->sql_desc_parameter_type = fParamType;
-	/* TODO test error */
-	odbc_set_concise_sql_type(fSqlType, drec, 0);
+	if (odbc_set_concise_sql_type(fSqlType, drec, 0) != SQL_SUCCESS) {
+		desc_alloc_records(ipd, orig_ipd_size);
+		desc_alloc_records(apd, orig_apd_size);
+		odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 	if (is_numeric) {
 		drec->sql_desc_precision = cbColDef;
 		drec->sql_desc_scale = ibScale;
@@ -4784,9 +4789,16 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 	if (stmt->params && stmt->param_num <= stmt->param_count) {
 		SQLRETURN res;
 
-		if (stmt->param_num <= 0 || stmt->param_num > stmt->apd->header.sql_desc_count)
+		if (stmt->param_num <= 0 || stmt->param_num > stmt->apd->header.sql_desc_count) {
+			/* TODO what error ?? */
 			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 
+		/*
+		 * FIXME compute output value with this formaula:
+		 * Bound Address + Binding Offset + ((Row Number – 1) x Element Size)
+		 * (see SQLParamData documentation)
+		 */
 		if (!stmt->param_data_called) {
 			stmt->param_data_called = 1;
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
@@ -4803,7 +4815,8 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 		ODBC_RETURN(stmt, res);
 	}
 
-	ODBC_RETURN(stmt, SQL_SUCCESS);
+	odbc_errs_add(&stmt->errs, "HY010", NULL, NULL);
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
 SQLRETURN SQL_API
@@ -4812,6 +4825,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 	INIT_HSTMT;
 
 	if (stmt->prepared_query) {
+		/* TODO do some more tests before setting this flag */
 		stmt->param_data_called = 1;
 		ODBC_RETURN(stmt, continue_parse_prepared_query(stmt, rgbValue, cbValue));
 	}

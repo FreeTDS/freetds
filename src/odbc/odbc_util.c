@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.65 2004-08-11 12:04:47 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.66 2004-09-03 14:24:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -795,6 +795,7 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 #define TYPE_NORMAL(t) case t: break;
 #define TYPE_VERBOSE_START(t)
 #define TYPE_VERBOSE_DATE(t, interval, concise, old) \
+	case old: concise_type = concise; \
 	case concise: type = t; interval_code = interval; break;
 #define TYPE_VERBOSE_END(t)
 
