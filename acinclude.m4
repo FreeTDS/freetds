@@ -1,6 +1,6 @@
 #serial AM2
 
-AC_DEFUN(AC_HAVE_INADDR_NONE,
+AC_DEFUN([AC_HAVE_INADDR_NONE],
 [AC_CACHE_CHECK([whether INADDR_NONE is defined], ac_cv_have_inaddr_none,
  [AC_TRY_COMPILE([
 #ifdef HAVE_SYS_TYPES_H
@@ -27,8 +27,9 @@ unsigned long foo = INADDR_NONE;
 
 
 
-dnl From Bruno Haible.
-
+##
+# From Bruno Haible.
+##
 AC_DEFUN([AM_ICONV],
 [
   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
@@ -96,9 +97,10 @@ size_t iconv();
 ])
 
 
-dnl Found on autoconf archive
-dnl Based on Caolan McNamara's gethostbyname_r macro. 
-dnl Based on David Arnold's autoconf suggestion in the threads faq.
+##
+# Found on autoconf archive
+# Based on Caolan McNamara's gethostbyname_r macro. 
+# Based on David Arnold's autoconf suggestion in the threads faq.
 
 AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
@@ -156,27 +158,27 @@ fi
 CFLAGS=$ac_save_CFLAGS
 ])
 
-
-dnl @synopsis AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
-dnl
-dnl Provides a test to determine the correct 
-dnl way to call gethostbyname_r
-dnl
-dnl defines HAVE_FUNC_GETHOSTBYNAME_R_6 if it needs 6 arguments (e.g linux)
-dnl defines HAVE_FUNC_GETHOSTBYNAME_R_5 if it needs 5 arguments (e.g. solaris)
-dnl defines HAVE_FUNC_GETHOSTBYNAME_R_3 if it needs 3 arguments (e.g. osf/1)
-dnl
-dnl if used in conjunction in gethostname.c the api demonstrated
-dnl in test.c can be used regardless of which gethostbyname_r 
-dnl exists. These example files found at
-dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
-dnl
-dnl @version $Id: acinclude.m4,v 1.24 2003-12-29 22:37:31 freddy77 Exp $
-dnl @author Caolan McNamara <caolan@skynet.ie>
-dnl
-dnl based on David Arnold's autoconf suggestion in the threads faq
-dnl
-AC_DEFUN(AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R,
+##
+# @synopsis AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
+#
+# Provides a test to determine the correct 
+# way to call gethostbyname_r
+#
+# defines HAVE_FUNC_GETHOSTBYNAME_R_6 if it needs 6 arguments (e.g linux)
+# defines HAVE_FUNC_GETHOSTBYNAME_R_5 if it needs 5 arguments (e.g. solaris)
+# defines HAVE_FUNC_GETHOSTBYNAME_R_3 if it needs 3 arguments (e.g. osf/1)
+#
+# if used in conjunction in gethostname.c the api demonstrated
+# in test.c can be used regardless of which gethostbyname_r 
+# exists. These example files found at
+# http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
+#
+# @version $Id: acinclude.m4,v 1.25 2004-12-07 22:07:23 jklowden Exp $
+# @author Caolan McNamara <caolan@skynet.ie>
+#
+# based on David Arnold's autoconf suggestion in the threads faq
+##
+AC_DEFUN([AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
@@ -234,9 +236,10 @@ CFLAGS=$ac_save_CFLAGS
 ])
 
 
-dnl based on gethostbyname_r check and snippits from curl's check
-
-AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
+##
+# based on gethostbyname_r check and snippits from curl's check
+##
+AC_DEFUN([AC_tds_FUNC_WHICH_GETHOSTBYADDR_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
@@ -308,7 +311,7 @@ fi
 CFLAGS=$ac_save_CFLAGS
 ])
 
-AC_DEFUN(AC_HAVE_MALLOC_OPTIONS,
+AC_DEFUN([AC_HAVE_MALLOC_OPTIONS],
  [AC_CACHE_CHECK([whether malloc_options variable is present],
    ac_cv_have_malloc_options,
    [AC_TRY_LINK([
@@ -323,16 +326,17 @@ malloc_options = "AJR";
    AC_DEFINE(HAVE_MALLOC_OPTIONS, 1, [Define to 1 if your system provides the malloc_options variable.])
   fi])
 
-dnl Check getpwuid_r parameters
-dnl There are three version of this function
-dnl   int  getpwuid_r(uid_t uid, struct passwd *result, char *buffer, int buflen);
-dnl   (hp/ux 10.20, digital unix 4)
-dnl   struct passwd *getpwuid_r(uid_t uid, struct passwd * pwd, char *buffer, int buflen);
-dnl   (SunOS 5.5, many other)
-dnl   int  getpwuid_r(uid_t uid, struct passwd *pwd, char *buffer, size_t buflen, struct passwd **result);
-dnl   (hp/ux 11, many other, posix compliant)
-
-AC_DEFUN(AC_tds_FUNC_WHICH_GETPWUID_R,
+##
+# Check getpwuid_r parameters
+# There are three version of this function
+#   int  getpwuid_r(uid_t uid, struct passwd *result, char *buffer, int buflen);
+#   (hp/ux 10.20, digital unix 4)
+#   struct passwd *getpwuid_r(uid_t uid, struct passwd * pwd, char *buffer, int buflen);
+#   (SunOS 5.5, many other)
+#   int  getpwuid_r(uid_t uid, struct passwd *pwd, char *buffer, size_t buflen, struct passwd **result);
+#   (hp/ux 11, many other, posix compliant)
+##
+AC_DEFUN([AC_tds_FUNC_WHICH_GETPWUID_R],
 [AC_CACHE_CHECK(for which type of getpwuid_r, ac_cv_func_which_getpwuid_r, [
 AC_TRY_COMPILE([
 #include <unistd.h>
@@ -376,7 +380,7 @@ elif test $ac_cv_func_which_getpwuid_r = five; then
 fi
 ])
 
-AC_DEFUN(AC_tds_FUNC_WHICH_LOCALTIME_R,
+AC_DEFUN([AC_tds_FUNC_WHICH_LOCALTIME_R],
 [AC_CACHE_CHECK(for which type of localtime_r, ac_cv_func_which_localtime_r, [
 	AC_TRY_COMPILE([
 #include <unistd.h>
@@ -396,7 +400,9 @@ else
 fi
 ])
 
-dnl This macro came from internet, appear in lftp, rsync and others..
+##
+# This macro came from internet, appear in lftp, rsync and others.
+##
 AC_DEFUN([TYPE_SOCKLEN_T],
 [
   AC_CHECK_TYPE([socklen_t], ,[

@@ -1,3 +1,7 @@
+Tue Dec  7 16:10:44 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* acinclude.m4 fix underquoting
+	- cf. info '(automake)Extending aclocal' (Autoconf 2.59)
+
 Tue Dec 07 18:48:27 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/Makefile.am src/ctlib/Makefile.am:
 	* src/dblib/Makefile.am src/odbc/Makefile.am:
