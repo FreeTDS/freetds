@@ -9,4 +9,5 @@ Makefile.in
 libtool
 ltmain.sh
 ltconfig
+ltcf-c.sh
 aclocal.m4
