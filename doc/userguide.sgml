@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-18 02:02:31 $</date>
-		<releaseinfo>$Revision: 1.37 $</releaseinfo>
+		<date>$Date: 2002-10-18 04:07:47 $</date>
+		<releaseinfo>$Revision: 1.38 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -33,6 +33,32 @@
 
 	<toc></toc>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
+	<preface><title>About this User Guide</title>
+			<para>
+This User Guide is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
+			</para>
+			<para>
+It is surprisingly hard, after a while, to remember how it can be for someone newly approaching a project to use it.  What seems as obvious as a fog horn to an old hand may be much more like the fog itself to the newcomer.  That can make installing and setting up new software a puzzling or frustrating experience.  You may have heard, <quote>It's easy if you know how.</quote>  Indeed it is, and that's our purpose here: to make it easy, by letting you know how.  
+			</para>
+			<para>
+This guide is here for you, and we hope that you will be here for it, that others might benefit from your experience or inexperience.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.  
+			</para>
+			<para>
+A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
+The document you are reading is version 
+$Revision: 1.38 $
+, dated 
+$Date: 2002-10-18 04:07:47 $ (CVS control number $Id: userguide.sgml,v 1.38 2002-10-18 04:07:47 jklowden Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
+			</para>
+			<para> 
+Enough.  Let's begin.  
+			</para>
+			<para> 
+			--jkl
+			</para>
+	</preface>
+
 	<chapter id="what">
 		<title>What is <productname>FreeTDS</productname>?</title>
 
@@ -197,17 +223,6 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 				</varlistentry>
 			</variablelist>
 		</sect2>
-		</sect1>
-		<sect1>
-			<title>Status of this document</title>
-			<para>
-The document you are reading is version 
-$Revision: 1.37 $
-, dated 
-$Date: 2002-10-18 02:02:31 $
-.  The most recent version can be found on the <productname>FreeTDS</productname> 
-<ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
-			</para>
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
