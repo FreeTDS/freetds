@@ -8,10 +8,9 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.36 2003-01-27 10:31:28 freddy77 Exp $
+To Do List	$Id: TODO,v 1.37 2003-01-28 06:58:01 freddy77 Exp $
 ------------
 Broken:
-. ctlib: null returns zero-length string(see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
 
 For 0.61 version:
 
@@ -103,4 +102,5 @@ Done (removed from above):
 . DBLIB: output params (tests)
 . set database during login process
 . libtds: dynamic query
+. ctlib: null returns zero-length string(see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
 

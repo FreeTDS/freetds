@@ -1,3 +1,6 @@
+Tue Jan 28 07:57:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0007.c: fixed test for TDS4.x and TDS5
+
 Mon Jan 27 18:07:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0007.c: check for NULL and empty strings
 

@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.7 2003-01-27 17:07:57 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.8 2003-01-28 06:57:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -146,7 +146,8 @@ main(int argc, char **argv)
 						fprintf(stderr, "Returned NULL\n");
 						return 1;
 					}
-					if (strcmp(name[1], "")) {
+					/* empty are retunerd as a single space in TDS4.x and TDS5 */
+					if (strcmp(name[1], "") && strcmp(name[1], " ")) {
 						fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name[1], "");
 						return 1;
 					}
