@@ -46,6 +46,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
@@ -62,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.135 2003-02-27 15:23:54 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.136 2003-03-02 09:47:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1052,8 +1054,26 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	stmt->param_count = 0;
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr))
 		return SQL_ERROR;
+
 	if (SQL_SUCCESS != prepare_call(stmt))
 		return SQL_ERROR;
+
+	/* count placeholders */
+	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
+	stmt->param_count = tds_count_placeholders(stmt->query);
+
+	if (stmt->param_count) {
+		SQLRETURN res;
+
+		assert(stmt->prepared_query == NULL);
+		stmt->prepared_query = stmt->query;
+		stmt->query = NULL;
+
+		res = start_parse_prepared_query(stmt);
+
+		if (SQL_SUCCESS != res)
+			return res;
+	}
 
 	return _SQLExecute(stmt);
 }

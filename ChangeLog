@@ -1,3 +1,6 @@
+Sun Mar 02 10:46:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: support placeholder with SQLExecDirect
+
 Sat Mar 01 21:17:29 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c src/odbc/prepare_query.c:
 	- free some unneeded memory
