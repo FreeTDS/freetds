@@ -17,26 +17,80 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _ODBC_INI_LOAD_
-#define _ODBC_INI_LOAD_
+#ifndef CONNECTPARAMS_H
+#define CONNECTPARAMS_H
 
-#include <glib.h>
+#ifdef UNIXODBC
+    #ifndef HAVEODBCINST
+        #define HAVEODBCINST
+    #endif
+#endif
 
-typedef struct
-{
-   GString* dsnName;
-   GString* iniFileName;
-   GHashTable* table;
-} ConnectParams;
 
-ConnectParams* NewConnectParams ();
-void FreeConnectParams (ConnectParams* params);
+/*****************************
+ * tdoParseConnectString
+ *
+ * PURPOSE
+ *
+ *  Parses a connection string for SQLDriverConnect().
+ *
+ * ARGS
+ *
+ *  see ODBC documentation
+ *                      
+ * RETURNS
+ *
+ *  see ODBC documentation
+ *
+ * NOTE
+ *
+ *  - I doubt pszDataSourceName is useful here?
+ *
+ *****************************/
+int tdoParseConnectString( char *pszConnectString, 
+                           char *pszDataSourceName, 
+                           char *pszServer, 
+                           char *pszDatabase, 
+                           char *pszUID, 
+                           char *pszPWD );
 
-gboolean LookupDSN        (ConnectParams* params, const gchar* dsnName);
-gchar*   GetConnectParam  (ConnectParams* params, const gchar* paramName);
-void     SetConnectString (ConnectParams* params, const gchar* connectString);
-void     DumpParams       (ConnectParams* params, FILE* output);
-
-gchar*   ExtractDSN (ConnectParams* params, const gchar* connectString);
+#ifndef HAVEODBCINST
+/*****************************
+ * SQLGetPrivateProfileString
+ *
+ * PURPOSE
+ *
+ *  This is an implementation of a common MS API call. This implementation 
+ *  should only be used if the ODBC sub-system/SDK does not have it.
+ *  For example; unixODBC has its own so those using unixODBC should NOT be
+ *  using this implementation because unixODBC;
+ *  - provides caching of ODBC config data 
+ *  - provides consistent interpretation of ODBC config data (i.e, location)
+ *
+ * ARGS
+ *
+ *  see ODBC documentation
+ *                      
+ * RETURNS
+ *
+ *  see ODBC documentation
+ *
+ * NOTES:
+ *
+ *  - the spec is not entirely implemented... consider this a lite version
+ *  - rules for determining the location of ODBC config may be different then what you 
+ *    expect see tdoGetIniFileName().
+ *
+ *****************************/
+int SQLGetPrivateProfileString( LPCSTR  pszSection,
+                                LPCSTR  pszEntry,
+                                LPCSTR  pszDefault,
+                                LPSTR   pRetBuffer,
+                                int     nRetBuffer,
+                                LPCSTR  pszFileName
+                              );
+#endif
 
 #endif
+
+

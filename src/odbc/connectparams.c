@@ -25,425 +25,349 @@
 
 #include "connectparams.h"
 
+#ifndef HAVEODBCINST
+
+/*
+ * Last resort place to check for INI file. This is usually set at compile time
+ * by build scripts.
+ */
 #ifndef SYS_ODBC_INI
 #define SYS_ODBC_INI "/etc/odbc.ini"
 #endif
 
+/*
+ * Internal buffer used when reading INI files. This should probably
+ * be removed to make safer for threading.
+ */
 #define max_line 256
 static char line[max_line];
 
-static guint HashFunction (const void *key);
-static GString* GetIniFileName ();
-static int FileExists (const gchar* name);
-static int FindSection (FILE* stream, const char* section);
-static int GetNextItem (FILE* stream, char** name, char** value);
+/*****************************
+ * tdoGetIniFileName
+ *
+ * PURPOSE
+ *
+ *  Call this to get the INI file name containing Data Source Names.
+ *
+ * ARGS
+ *
+ *  ppszFileName (W)    - send in a pointer with no allocation and get back
+ *                        the file name - remember to free() it when done!
+ *                      
+ * RETURNS
+ *
+ *  0                   - failed
+ *  1                   - worked
+ *
+ * NOTES:
+ *
+ *  - rules for determining the location of ODBC config may be different then what you    
+ *    expect - at this time they differ from unixODBC 
+ *
+ *****************************/
+static int tdoGetIniFileName( char **ppszFileName );
 
-static void visit (gpointer key, gpointer value, gpointer user_data);
-static gboolean cleanup (gpointer key, gpointer value, gpointer user_data);
+/*****************************
+ * tdoFileExists
+ *
+ * PURPOSE
+ *
+ *  Call this to see if a file exists.
+ *
+ * ARGS
+ *
+ *  pszFileName (R)     - file to check for
+ *                      
+ * RETURNS
+ *
+ *  0                   - stat failed
+ *  1                   - stat worked
+ *
+ *****************************/
+static int tdoFileExists    ( const char *pszFileName );
 
-/*
- * Allocate create a ConnectParams object
- */
+/*****************************
+ * tdoFindSection
+ *
+ * PURPOSE
+ *
+ *  Call this to goto a section in an INI file.
+ *
+ * ARGS
+ *
+ *  hFile (R)           - open file
+ *  pszSection (R)      - desired section
+ *                      
+ * RETURNS
+ *
+ *  0                   - stat failed
+ *  1                   - stat worked
+ *
+ *****************************/
+static int tdoFindSection   ( FILE *hFile, const char *pszSection );
 
-ConnectParams* NewConnectParams ()
+/*****************************
+ * tdoGetNextEntry
+ *
+ * PURPOSE
+ *
+ *  Call this to goto, and read, the next entry in an INI file.
+ *
+ * ARGS
+ *
+ *  hFile (R)           - open file
+ *  ppszKey (W)         - name of entry
+ *  ppszValue (W)       - value of entry
+ *                      
+ * RETURNS
+ *
+ *  0                   - failed
+ *  1                   - worked
+ *
+ * NOTE
+ *
+ *  - IF worked THEN ppszKey and ppszValue will be refs into an internal buffer
+ *    as such they are not valid very long (after next call) and should not be 
+ *    free()'d.
+ *
+ *****************************/
+static int tdoGetNextEntry  ( FILE *hFile, char **ppszKey, char **ppszValue );
+
+#endif
+
+int tdoParseConnectString( char *pszConnectString, 
+                           char *pszDataSourceName, 
+                           char *pszServer, 
+                           char *pszDatabase, 
+                           char *pszUID, 
+                           char *pszPWD )
 {
-   ConnectParams* params = malloc (sizeof (ConnectParams));
-   if (!params)
-      return params;
-   
-   params->dsnName = g_string_new ("");
-   params->iniFileName = NULL;
-   params->table = g_hash_table_new (HashFunction, g_str_equal);
+    *pszDataSourceName  = '\0'; 
+    *pszServer          = '\0';
+    *pszDatabase        = '\0';
+    *pszUID             = '\0';
+    *pszPWD             = '\0';
 
-   return params;
+    return 1;
 }
 
-/*
- * Destroy a ConnectParams object
- */
+#ifndef UNIXODBC
 
-void FreeConnectParams (ConnectParams* params)
+int SQLGetPrivateProfileString( LPCSTR  pszSection,
+                                LPCSTR  pszEntry,
+                                LPCSTR  pszDefault,
+                                LPSTR   pRetBuffer,
+                                int     nRetBuffer,
+                                LPCSTR  pszFileName
+                              )
 {
-   if (params)
-   {
-      if (params->dsnName)
-         g_string_free (params->dsnName, TRUE);
-      if (params->iniFileName)
-         g_string_free (params->iniFileName, TRUE);
-      if (params->table)
-      {
-		/* 2001-10-13 lkrauss */
-         /* g_hash_table_foreach_remove (params->table, cleanup, NULL); */
-         g_hash_table_destroy (params->table);
-      }
-   }
+    FILE *  hFile;
+    char *  pszKey;
+    char *  pszValue;
+    char *  pszRealFileName;
+    int     nRetVal = 0;
+
+    if ( !pszSection )
+    {
+        /* spec says return list of all section names - but we will just return nothing */
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] WARNING: Functionality for NULL pszSection not implemented.\n", __FILE__, __LINE__ );
+        return 0;
+    }
+
+    if ( !pszEntry )
+    {
+        /* spec says return list of all key names in section - but we will just return nothing */
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] WARNING: Functionality for NULL pszEntry not implemented.\n", __FILE__, __LINE__ );
+        return 0;
+    }
+
+    if ( nRetBuffer < 1 )
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] WARNING: No space to return a value because nRetBuffer < 1.\n", __FILE__, __LINE__ );
+
+    if ( pszFileName && *pszFileName == '/' )
+        pszRealFileName = strdup( pszFileName );
+    else if ( tdoGetIniFileName( &pszRealFileName ) )
+        ;
+    else
+    {
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Unable to determine location of ODBC config data. Try setting ODBCINI environment variable.\n", __FILE__, __LINE__ );
+        return 0;
+    }
+
+    if ( (hFile = fopen( pszRealFileName, "r" )) == NULL )
+    {
+        free( pszRealFileName );
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Could not open %s\n", __FILE__, __LINE__, pszRealFileName );
+        return 0;
+    }
+
+    /* goto to start of section */
+    if ( !tdoFindSection( hFile, pszSection ) )
+    {
+        goto SQLGetPrivateProfileStringExit;
+    }
+
+    /* scan entries for pszEntry */
+    while ( tdoGetNextEntry( hFile, &pszKey, &pszValue ) )
+    {
+        if ( strcasecmp( pszKey, pszEntry ) == 0 )
+        {
+            strncpy( pRetBuffer, pszValue, nRetBuffer );
+            pRetBuffer[nRetBuffer-1] = '\0';
+
+            nRetVal = strlen( pRetBuffer );
+            goto SQLGetPrivateProfileStringExit;
+        }
+    }
+
+    if ( pszDefault && nRetBuffer > 0 )
+    {
+        strncpy( pRetBuffer, pszDefault, nRetBuffer );
+        pRetBuffer[nRetBuffer-1] = '\0';
+
+        nRetVal = strlen( pRetBuffer );
+        goto SQLGetPrivateProfileStringExit;
+    }
+
+SQLGetPrivateProfileStringExit:
+    free( pszRealFileName );
+    fclose( hFile );   
+    return nRetVal;
 }
 
-/*
- * Find the settings for the specified ODBC DSN
- */
-
-gboolean LookupDSN (ConnectParams* params, const gchar* dsnName)
+static int tdoGetIniFileName( char **ppszFileName )
 {
-   if (!params) {
-      fprintf(stderr,"LookupDSN: no parameters, returning FALSE");
-      return FALSE;
-   }
-   /*
-    * Set the DSN name property
-    */
- /*  params->dsnName = g_string_assign (params->dsnName, dsnName); */
-   /*
-    * Search for the ODBC ini file
-    */
-   if (!(params->iniFileName = GetIniFileName ())) {
-      fprintf(stderr,"LookupDSN: GetIniFileName returned FALSE");
-      return FALSE;
-   }
+    char *pszEnvVar;
 
-   if (!LoadDSN (params->iniFileName->str, dsnName, params->table)) {
-      fprintf(stderr,"LookupDSN: LoadDSN returned FALSE");
-      return FALSE;
-   }
+    /*
+     * First, try the ODBCINI environment variable
+     */
+    if ( (pszEnvVar = getenv( "ODBCINI" )) != NULL)
+    {
+        if ( tdoFileExists( pszEnvVar ) )
+        {
+            *ppszFileName = strdup( pszEnvVar );
+            return 1;
+        }
+    }
 
-   return TRUE;
+    /*
+     * Second, try the HOME environment variable
+     */
+    if ( (pszEnvVar = getenv( "HOME" )) != NULL)
+    {
+        char pszFileName[FILENAME_MAX+1];
+
+        sprintf( pszFileName, "%s/.odbc.ini", pszEnvVar );
+
+        if ( tdoFileExists( pszFileName ) )
+        {
+            *ppszFileName = strdup( pszFileName );
+            return 1;
+        }
+    }
+
+    /*
+     * As a last resort, try SYS_ODBC_INI
+     */
+    if ( tdoFileExists( SYS_ODBC_INI ) )
+    {
+        *ppszFileName = strdup( SYS_ODBC_INI );
+        return 1;
+    }
+
+    return 0;
 }
 
-/*
- * Get the value of a given ODBC Connection Parameter
- */
-
-gchar* GetConnectParam (ConnectParams* params, const gchar* paramName)
+static int tdoFileExists( const char *pszFileName )
 {
-   if (!params || !params->table)
-      return NULL;
+    struct stat statFile;
 
-   return g_hash_table_lookup (params->table, paramName);
+    return ( stat( pszFileName, &statFile ) == 0 );
 }
 
-/*
- * Apply a connection string to the ODBC Parameter Settings
- */
-
-void SetConnectString (ConnectParams* params, const gchar* connectString)
+static int tdoFindSection( FILE *hFile, const char *pszSection )
 {
-   int end;
-   char *cs, *s, *p, *name, *value;
-   gpointer key;
-   gpointer oldvalue;
+    char*   s;
+    char    sectionPattern[max_line];
+    int     len;
 
-   if (!params) 
-      return;
-   /*
-    * Make a copy of the connection string so we can modify it
-    */
-   cs = strdup (connectString);
-   s = cs;
-   /*
-    * Loop over ';' seperated name=value pairs
-    */
-   p = strchr (s, '=');
-   while (p)
-   {
-      if (p) *p = '\0';
-      /*
-       * Extract name
-       */
-      name = s;
-      if (p) s = p + 1;
-      /*
-       * Extract value
-       */
-      p = strchr (s, ';');
-      if (p) *p = '\0';
-      value = s;
-      if (p) s = p + 1;
-      /*
-       * remove trailing spaces from name
-       */
-      end = strlen (name) - 1;
-      while (end > 0 && isspace(name[end]))
-	 name[end--] = '\0';
-      /*
-       * remove leading spaces from value
-       */
-      while (isspace(*value))
-	 value++;
+    strcpy( sectionPattern, "[" );
+    strcat( sectionPattern, pszSection );
+    strcat( sectionPattern, "]" );
 
-      if (g_hash_table_lookup_extended (params->table, name, &key, &oldvalue))
-      {
-	 /* 
-	  * remove previous value 
-	  */
-	 g_hash_table_remove (params->table, key);
-	 /* 
-	  * cleanup strings 
-	  */
-	 free (key);
-	 free (oldvalue);
-      }
-      /*
-       * Insert the name/value pair into the hash table.
-       *
-       * Note that these strdup allocations are freed in cleanup,
-       * which is called by FreeConnectParams.
-       */
-      g_hash_table_insert (params->table, strdup (name), strdup (value));
+    s = fgets( line, max_line, hFile );
+    while ( s != NULL )
+    {
+        /*
+         * Get rid of the newline character
+         */
+        len = strlen( line );
+        if (len > 0) line[strlen (line) - 1] = '\0';
+        /*
+         * look for the section header
+         */
+        if ( strcmp( line, sectionPattern ) == 0 )
+            return 1;
 
-      p = strchr (s, '=');
-   }  
+        s = fgets( line, max_line, stream );
+    }
 
-   free (cs);
+    return 0;
 }
 
-/*
- * Dump all the ODBC Connection Paramters to a file (e.g. stdout)
- */
-
-void DumpParams (ConnectParams* params, FILE* output)
+static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
 {
-   if (!params)
-   {
-      g_printerr ("NULL ConnectionParams pointer\n");
-      return;
-   }
+    char* s;
+    int len;
+    char equals[] = "="; /* used for seperator for strtok */
+    char* token;
 
-   if (params->dsnName)
-      g_printerr ("Parameter values for DSN: %s\n", params->dsnName->str);
-      
-   if (params->iniFileName)
-      g_printerr ("Ini File is %s\n", params->iniFileName->str);
+    if ( pszName == NULL || pszValue == NULL)
+    {
+        fprintf( stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Invalid argument.\n", __FILE__, __LINE__ );
+        return 0;
+    }
 
-   g_hash_table_foreach (params->table, visit, output);
+    s = fgets( line, max_line, hFile );
+    if (s == NULL)
+    {
+        perror( "[FreeTDS][ODBC] ERROR: fgets" );
+        return 0;
+    }
+
+    /*
+     * Get rid of the newline character
+     */
+    len = strlen (line);
+    if (len > 0) line[strlen (line) - 1] = '\0';
+    /*
+     * Extract name from name = value
+     */
+    if ((token = strtok (line, equals)) == NULL) return 0;
+
+    len = strlen (token);
+    while (len > 0 && isspace(token[len-1]))
+    {
+        len--;
+        token[len] = '\0';
+    }
+    *ppszKey = token;
+
+    /*
+     * extract value from name = value
+     */
+    token = strtok (NULL, equals);
+    if (token == NULL) return 0;
+    while (*token && isspace(token[0]))
+        token++;
+
+    *ppszValue = token;
+
+    return 1;
 }
 
-/*
- * Return the value of the DSN from the conneciton string 
- */
 
-gchar* ExtractDSN (ConnectParams* params, const gchar* connectString)
-{
-   char *p, *q, *s;
-
-   if (!params)
-      return NULL;
-   /*
-    * Position ourselves to the beginning of "DSN"
-    */
-   p = strstr (connectString, "DSN");
-   if (!p) return NULL;
-   /*
-    * Position ourselves to the "="
-    */
-   q = strchr (p, '=');
-   if (!q) return NULL;
-   /*
-    * Skip over any leading spaces
-    */
-   q++;
-   while (isspace(*q))
-     q++;
-   /*
-    * Copy the DSN value to a buffer
-    */
-   s = line;
-   while (*q && *q != ';')
-      *s++ = *q++;
-   *s = '\0';
-   /*
-    * Save it as a string in the params object
-    */
-   params->dsnName = g_string_assign (params->dsnName, line);
-
-   return params->dsnName->str;   
-}
-
-/*
- * Begin local function definitions
- */
-
-static GString* GetIniFileName ()
-{
-   char* setting;
-   GString* iniFileName = g_string_new ("");
-   /*
-    * First, try the ODBCINI environment variable
-    */
-   if ((setting = getenv ("ODBCINI")) != NULL)
-   {
-      g_string_assign (iniFileName, getenv ("ODBCINI"));
-
-      if (FileExists (iniFileName->str))
-         return iniFileName;
-      
-      g_string_assign (iniFileName, "");
-   }
-   /*
-    * Second, try the HOME environment variable
-    */
-   if ((setting = getenv ("HOME")) != NULL)
-   {
-      g_string_assign (iniFileName, setting);
-      iniFileName = g_string_append (iniFileName, "/.odbc.ini");
-
-      if (FileExists (iniFileName->str))
-         return iniFileName;
-      
-      g_string_assign (iniFileName, "");
-   }
-   /*
-    * As a last resort, try SYS_ODBC_INI
-    */
-   g_string_assign (iniFileName, SYS_ODBC_INI); 
-   if (FileExists (iniFileName->str))
-      return iniFileName;
-    
-   g_string_assign (iniFileName, "");
-
-   return iniFileName;
-}
-
-static int FileExists (const gchar* name)
-{
-   struct stat fileStat;
-
-   return (stat (name, &fileStat) == 0);
-}
-
-static int FindSection (FILE* stream, const char* section)
-{
-   char* s;
-   char sectionPattern[max_line];
-   int len;
-
-   strcpy (sectionPattern, "[");
-   strcat (sectionPattern, section);
-   strcat (sectionPattern, "]");
-
-   s = fgets (line, max_line, stream);
-   while (s != NULL)
-   {
-      /*
-       * Get rid of the newline character
-       */
-      len = strlen (line);
-      if (len > 0) line[strlen (line) - 1] = '\0';
-      /*
-       * look for the section header
-       */
-      if (strcmp (line, sectionPattern) == 0)
-         return 1;
-
-      s = fgets (line, max_line, stream);
-   }
-
-   return 0;
-}
-
-int LoadDSN (
-   const gchar* iniFileName, const gchar* dsnName, GHashTable* table)
-{
-   FILE* stream;
-   gchar* name;
-   gchar* value;
-
-   if ((stream = fopen (iniFileName, "r" )) != NULL )   
-   {
-      if (!FindSection (stream, dsnName))
-      {
-	 g_printerr ("Couldn't find DSN %s in %s\n", iniFileName, dsnName);
-	 fclose (stream);
-         return 0;
-      }
-      else
-      {
-         while (GetNextItem (stream, &name, &value))
-         {
-            g_hash_table_insert (table, strdup (name), strdup (value));
-         }
-      }
-
-      fclose( stream );   
-   }
-
-   return 1;
-}
-
-/*
- * Make a hash from all the characters
- */
-static guint HashFunction (const void *key)
-{
-   guint value = 0;
-   const char* s = key;
-
-   while (*s) value += *s++;
-
-   return value;
-}
-
-static int GetNextItem (FILE* stream, char** name, char** value)
-{
-   char* s;
-   int len;
-   char equals[] = "="; /* used for seperator for strtok */
-   char* token;
-
-   if (name == NULL || value == NULL)
-   {
-      g_printerr ("GetNextItem, invalid parameters");
-      return 0;
-   }
-
-   s = fgets (line, max_line, stream);
-   if (s == NULL)
-   {
-      perror ("fgets");
-      return 0;
-   }
-   /*
-    * Get rid of the newline character
-    */
-   len = strlen (line);
-   if (len > 0) line[strlen (line) - 1] = '\0';
-   /*
-    * Extract name from name = value
-    */
-   if ((token = strtok (line, equals)) == NULL) return 0;
-
-   len = strlen (token);
-   while (len > 0 && isspace(token[len-1]))
-   {
-      len--;
-      token[len] = '\0';
-   }
-   *name = token;
-   /*
-    * extract value from name = value
-    */
-   token = strtok (NULL, equals);
-   if (token == NULL) return 0;
-   while (*token && isspace(token[0]))
-      token++;
-
-   *value = token;
-
-   return 1;
-}
-
-static void visit (gpointer key, gpointer value, gpointer user_data)
-{
-   FILE* output = (FILE*) user_data;
-
-   g_printerr ("Parameter: %s, Value: %s\n", key, value);
-}
-
-static gboolean cleanup (gpointer key, gpointer value, gpointer user_data)
-{
-   free (key);
-   free (value);
-
-   return TRUE;
-}
+#endif
 
 
