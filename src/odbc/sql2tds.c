@@ -35,14 +35,13 @@
 #include "tdsodbc.h"
 #include "tdsconvert.h"
 #include "sql2tds.h"
-#include "convert_sql2string.h"
 #include "odbc_util.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.25 2003-11-08 18:00:30 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.26 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -128,8 +127,14 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	if (dest_type == TDS_FAIL)
 		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
+
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
+	if (is_numeric_type(curcol->column_type)) {
+		curcol->column_prec = drec_ipd->sql_desc_precision;
+		curcol->column_scale = drec_ipd->sql_desc_scale;
+	}
+
 	len = curcol->column_size;
 	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;
@@ -193,10 +198,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 
 	/* test type */
 	/* TODO test intervals */
-	if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
-		src_type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
-	else
-		src_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
+	src_type = drec_apd->sql_desc_concise_type;
+	if (src_type == SQL_C_DEFAULT)
+		src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+	src_type = odbc_c_to_server_type(src_type);
 	if (src_type == TDS_FAIL)
 		return SQL_ERROR;
 
@@ -215,17 +220,13 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 
 	/* convert special parameters (not libTDS compatible) */
 	src = drec_apd->sql_desc_data_ptr;
-	switch (drec_apd->sql_desc_concise_type) {
-	case SQL_C_DATE:
-	case SQL_C_TIME:
-	case SQL_C_TIMESTAMP:
-	case SQL_C_TYPE_DATE:
-	case SQL_C_TYPE_TIME:
-	case SQL_C_TYPE_TIMESTAMP:
+	switch (src_type) {
+	case SYBDATETIME:
 		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dt);
 		src = (char *) &dt;
 		break;
-	case SQL_C_NUMERIC:
+	case SYBDECIMAL:
+	case SYBNUMERIC:
 		sql_num = (SQL_NUMERIC_STRUCT *) src;
 		num.precision = sql_num->precision;
 		num.scale = sql_num->scale;
@@ -238,13 +239,13 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		if (i < sizeof(num.array))
 			memset(num.array + i, 0, sizeof(num.array) - i);
 		src = (char *) &num;
-		
+
 		/* set output */
 		/* TODO use descriptors informations ?? */
 		ores.n.precision = 18;
 		ores.n.scale = 2;
 		break;
-	/* TODO intervals */
+		/* TODO intervals */
 	}
 
 	res = tds_convert(dbc->henv->tds_ctx, src_type, src, len, dest_type, &ores);

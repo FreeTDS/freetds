@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.110 2003-11-06 17:26:39 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.111 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -975,22 +975,24 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		tds_put_int(tds, curcol->column_usertype);	/* usertype */
 	tds_put_byte(tds, curcol->on_server.column_type);
 
-	switch (curcol->column_varint_size) {
-	case 0:
-		break;
-	case 1:
-		tds_put_byte(tds, curcol->column_size);
-		break;
-	case 2:
-		tds_put_smallint(tds, curcol->column_size);
-		break;
-	case 4:
-		tds_put_int(tds, curcol->column_size);
-		break;
-	}
 	if (is_numeric_type(curcol->on_server.column_type)) {
+		tds_put_byte(tds, tds_numeric_bytes_per_prec[curcol->column_prec]);
 		tds_put_byte(tds, curcol->column_prec);
 		tds_put_byte(tds, curcol->column_scale);
+	} else {
+		switch (curcol->column_varint_size) {
+		case 0:
+			break;
+		case 1:
+			tds_put_byte(tds, curcol->column_size);
+			break;
+		case 2:
+			tds_put_smallint(tds, curcol->column_size);
+			break;
+		case 4:
+			tds_put_int(tds, curcol->column_size);
+			break;
+		}
 	}
 
 	/* TDS8 output collate information */

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.19 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.20 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -64,7 +64,7 @@ CheckReturn(void)
 	}
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
-		printf("SQL error %s -- %s\n", sqlstate, msg);
+		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
 	exit(1);
 }
 

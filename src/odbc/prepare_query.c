@@ -35,7 +35,9 @@
 #include "tds.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
+#if 0
 #include "convert_sql2string.h"
+#endif
 #include "odbc_util.h"
 #include "sql2tds.h"
 
@@ -43,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.37 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.38 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0

@@ -48,87 +48,15 @@
 #include "tds.h"
 #include "tdsodbc.h"
 #include "tdsconvert.h"
+#include "odbc_util.h"
 #include "convert_sql2string.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.39 2003-11-08 18:00:29 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.40 2003-11-13 13:52:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-/**
- * Pass this an SQL_C_* type and get a SYB* type which most closely corresponds
- * to the SQL_C_* type.
- */
-int
-odbc_c_to_server_type(int c_type)
-{
-	switch (c_type) {
-		/* FIXME this should be dependent on size of data !!! */
-	case SQL_C_BINARY:
-		return SYBBINARY;
-		/* TODO what happen if varchar is more than 255 characters long */
-	case SQL_C_CHAR:
-		return SYBVARCHAR;
-	case SQL_C_FLOAT:
-		return SYBREAL;
-	case SQL_C_DOUBLE:
-		return SYBFLT8;
-	case SQL_C_BIT:
-		return SYBBIT;
-#if (ODBCVER >= 0x0300)
-	case SQL_C_SBIGINT:
-	case SQL_C_UBIGINT:
-		return SYBINT8;
-	case SQL_C_GUID:
-		return SYBUNIQUE;
-#endif
-	case SQL_C_LONG:
-	case SQL_C_SLONG:
-	case SQL_C_ULONG:
-		return SYBINT4;
-	case SQL_C_SHORT:
-	case SQL_C_SSHORT:
-	case SQL_C_USHORT:
-		return SYBINT2;
-	case SQL_C_TINYINT:
-	case SQL_C_STINYINT:
-	case SQL_C_UTINYINT:
-		return SYBINT1;
-		/* ODBC date formats are completely differect from SQL one */
-	case SQL_C_DATE:
-	case SQL_C_TIME:
-	case SQL_C_TIMESTAMP:
-	case SQL_C_TYPE_DATE:
-	case SQL_C_TYPE_TIME:
-	case SQL_C_TYPE_TIMESTAMP:
-		return SYBDATETIME;
-		/* ODBC numeric/decimal formats are completely differect from tds one */
-	case SQL_C_NUMERIC:
-		return SYBNUMERIC;
-		/* not supported */
-	case SQL_C_INTERVAL_YEAR:
-	case SQL_C_INTERVAL_MONTH:
-	case SQL_C_INTERVAL_DAY:
-	case SQL_C_INTERVAL_HOUR:
-	case SQL_C_INTERVAL_MINUTE:
-	case SQL_C_INTERVAL_SECOND:
-	case SQL_C_INTERVAL_YEAR_TO_MONTH:
-	case SQL_C_INTERVAL_DAY_TO_HOUR:
-	case SQL_C_INTERVAL_DAY_TO_MINUTE:
-	case SQL_C_INTERVAL_DAY_TO_SECOND:
-	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
-	case SQL_C_INTERVAL_HOUR_TO_SECOND:
-	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
-#ifdef SQL_C_WCHAR
-	case SQL_C_WCHAR:
-#endif
-		break;
-	}
-	return TDS_FAIL;
-}
-
 
 static TDS_INT
 convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_CHAR * dest, TDS_INT destlen)

@@ -40,6 +40,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLExecDirect=PROCEDURE,-
 		SQLExecute=PROCEDURE,-
 		SQLFetch=PROCEDURE,-
+		SQLFetchScroll=PROCEDURE,-
 		SQLForeignKeys=PROCEDURE,-
 		SQLFreeConnect=PROCEDURE,-
 		SQLFreeEnv=PROCEDURE,-

@@ -2,7 +2,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.1 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.2 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -19,16 +19,16 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	Command(Statement, sbuf);
 
 	/* bind parameter */
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, 0, 0, out_buf, sizeof(out_buf), &out_len) !=
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, 18, 0, out_buf, sizeof(out_buf), &out_len) !=
 	    SQL_SUCCESS) {
 		fprintf(stderr, "Unable to bind input parameter\n");
-		exit(1);
+		CheckReturn();
 	}
 	
 		/* call store procedure */
 		if (SQLExecDirect(Statement, "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to execute store statement\n");
-		exit(1);
+		CheckReturn();
 	}
 
 	/* test results */
@@ -39,7 +39,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 		sprintf(sbuf, "%d %d %d ", num->precision, num->scale, num->sign);
 		i = SQL_MAX_NUMERIC_LEN;
 		for (; i > 0 && !num->val[--i];);
-		for (; i > 0; --i)
+		for (; i >= 0; --i)
 			sprintf(strchr(sbuf, 0), "%02X", num->val[i]);
 		break;
 	}
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 		printf("Unable to execute statement\n");
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
-	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
+	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
 
 	Disconnect();
 

@@ -34,14 +34,14 @@
 #include "tds.h"
 #include "tdsodbc.h"
 #include "tdsconvert.h"
+#include "odbc_util.h"
 #include "convert_tds2sql.h"
-#include "convert_sql2string.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.36 2003-11-08 18:00:29 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.37 2003-11-13 13:52:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -72,8 +72,8 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		return TDS_CONVERT_NOAVAIL;
 
 	if (is_numeric_type(nDestSybType)) {
-		/* TODO use descriptor information ?? */
-		ores.n.precision = 18;
+		/* TODO use descriptor information (APD) ?? However APD can contain SQL_C_DEFAULT... */
+		ores.n.precision = 38;
 		ores.n.scale = 0;
 	}
 
@@ -217,7 +217,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		num->scale = ores.n.scale;
 		num->sign = ores.n.array[0] ^ 1;
 		/* FIXME can i be greater than SQL_MAX_NUMERIC_LEN ?? */
-		i = tds_numeric_bytes_per_prec[ores.n.precision];
+		i = tds_numeric_bytes_per_prec[ores.n.precision] - 1;
 		memcpy(num->val, ores.n.array + 1, i);
 		tds_swap_bytes(num->val, i);
 		if (i < SQL_MAX_NUMERIC_LEN)

@@ -32,7 +32,7 @@
 #include "isqlext.h"
 #endif
 
-static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.20 2003-11-04 19:01:47 jklowden Exp $";
+static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.21 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
@@ -41,11 +41,13 @@ void odbc_set_return_status(struct _hstmt *stmt);
 void odbc_set_return_params(struct _hstmt *stmt);
 
 SQLSMALLINT odbc_server_to_sql_type(int col_type, int col_size);
-SQLINTEGER odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec);
-char *odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver);
-int odbc_get_string_size(int size, SQLCHAR * str);
 int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type);
+int odbc_c_to_server_type(int c_type);
+
+char *odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver);
+SQLINTEGER odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec);
+int odbc_get_string_size(int size, SQLCHAR * str);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
 SQLINTEGER odbc_get_param_len(TDSSOCKET * tds, struct _drecord *drec_apd, struct _drecord *drec_ipd);
 

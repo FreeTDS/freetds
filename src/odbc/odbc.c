@@ -59,7 +59,6 @@
 #include "connectparams.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
-#include "convert_sql2string.h"
 #include "sql2tds.h"
 #include "prepare_query.h"
 #include "replacements.h"
@@ -69,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.266 2003-11-13 07:48:39 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.267 2003-11-13 13:52:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -782,6 +781,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	TDS_DESC *apd, *ipd;
 	struct _drecord *drec;
 	SQLSMALLINT orig_apd_size;
+	int is_numeric = 0;
 
 	INIT_HSTMT;
 
@@ -805,6 +805,19 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 #endif
+
+	/* check cbColDef and ibScale */
+	if (fSqlType == SQL_DECIMAL || fSqlType == SQL_NUMERIC) {
+		is_numeric = 1;
+		if (cbColDef < 1 || cbColDef > 38) {
+			odbc_errs_add(&stmt->errs, "HY104", "Invalid precision value", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		if (ibScale < 0 || ibScale > cbColDef) {
+			odbc_errs_add(&stmt->errs, "HY104", "Invalid scale value", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+	}
 
 	/* Check parameter number */
 	if (ipar <= 0 || ipar > 4000) {
@@ -845,6 +858,10 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec->sql_desc_parameter_type = fParamType;
 	/* TODO test error */
 	odbc_set_concise_sql_type(fSqlType, drec, 0);
+	if (is_numeric) {
+		drec->sql_desc_precision = cbColDef;
+		drec->sql_desc_scale = ibScale;
+	}
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -2474,8 +2491,8 @@ SQLExecute(SQLHSTMT hstmt)
 	return _SQLExecute(stmt);
 }
 
-SQLRETURN SQL_API
-SQLFetch(SQLHSTMT hstmt)
+static SQLRETURN SQL_API
+_SQLFetch(TDS_STMT * stmt)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
@@ -2484,7 +2501,7 @@ SQLFetch(SQLHSTMT hstmt)
 	SQLINTEGER len = 0;
 	TDS_CHAR *src;
 	int srclen;
-	struct _drecord *drec;
+	struct _drecord *drec_ard;
 	TDS_DESC *ard;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
@@ -2492,15 +2509,13 @@ SQLFetch(SQLHSTMT hstmt)
 	TDS_INT computeid;
 	SQLUINTEGER dummy, *fetched_ptr;
 
-	INIT_HSTMT;
-
 	IRD_CHECK;
 	ard = stmt->ard;
 
 #ifdef TDS_NO_DM
 	if (stmt->cursor_state == TDS_CURSOR_CLOSED) {
 		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
+		return SQL_ERROR;
 	}
 #endif
 
@@ -2523,59 +2538,84 @@ SQLFetch(SQLHSTMT hstmt)
 	case TDS_NO_MORE_ROWS:
 		odbc_populate_ird(stmt);
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
-		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+		return SQL_NO_DATA_FOUND;
 		break;
 	case TDS_FAIL:
 		if (stmt->ird->header.sql_desc_array_status_ptr)
 			stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
-		ODBC_RETURN(stmt, SQL_ERROR);
+		return SQL_ERROR;
 		break;
 	}
 
 	resinfo = tds->res_info;
 	if (!resinfo) {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
-		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+		return SQL_NO_DATA_FOUND;
 	}
 	/* we got a row, return a row readed even if error (for ODBC specifications) */
 	++(*fetched_ptr);
 	for (i = 0; i < resinfo->num_cols; i++) {
 		colinfo = resinfo->columns[i];
 		colinfo->column_text_sqlgetdatapos = 0;
-		drec = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
+		drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
 		/* TODO how to fill indicator if not NULL */
-		if (!drec)
+		if (!drec_ard)
 			continue;
 		if (tds_get_null(resinfo->current_row, i)) {
-			if (drec->sql_desc_indicator_ptr)
-				*drec->sql_desc_indicator_ptr = SQL_NULL_DATA;
+			if (drec_ard->sql_desc_indicator_ptr)
+				*drec_ard->sql_desc_indicator_ptr = SQL_NULL_DATA;
 			continue;
 		}
 		/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
 		len = 0;
-		if (drec->sql_desc_data_ptr) {
+		if (drec_ard->sql_desc_data_ptr) {
 			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 			if (is_blob_type(colinfo->column_type))
 				src = ((TDSBLOBINFO *) src)->textvalue;
 			srclen = colinfo->column_cur_size;
+			/* TODO support SQL_C_DEFAULT */
 			len = convert_tds2sql(context,
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 					      src,
-					      srclen, drec->sql_desc_concise_type, drec->sql_desc_data_ptr,
-					      drec->sql_desc_octet_length);
+					      srclen, drec_ard->sql_desc_concise_type, drec_ard->sql_desc_data_ptr,
+					      drec_ard->sql_desc_octet_length);
 			if (len < 0) {
 				if (stmt->ird->header.sql_desc_array_status_ptr)
 					stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
-				ODBC_RETURN(stmt, SQL_ERROR);
+				return SQL_ERROR;
 			}
 		}
-		if (drec->sql_desc_octet_length_ptr)
-			*drec->sql_desc_octet_length_ptr = len;
+		if (drec_ard->sql_desc_octet_length_ptr)
+			*drec_ard->sql_desc_octet_length_ptr = len;
 	}
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_SUCCESS;
-	ODBC_RETURN(stmt, SQL_SUCCESS);
+	return SQL_SUCCESS;
 }
+
+SQLRETURN SQL_API
+SQLFetch(SQLHSTMT hstmt)
+{
+	INIT_HSTMT;
+
+	ODBC_RETURN(stmt, _SQLFetch(stmt));
+}
+
+#if (ODBCVER >= 0x0300)
+SQLRETURN SQL_API
+SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLINTEGER FetchOffset)
+{
+	INIT_HSTMT;
+
+	/* still we do not support cursors and scrolling */
+	if (FetchOrientation != SQL_FETCH_NEXT) {
+		odbc_errs_add(&stmt->errs, "HY106", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	ODBC_RETURN(stmt, _SQLFetch(stmt));
+}
+#endif
 
 
 #if (ODBCVER >= 0x0300)
@@ -3304,7 +3344,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-		/* TODO this cause double conversion in convert_tds2sql and should be avoided */
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
 		assert(fCType);
@@ -3389,7 +3428,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLEXECUTE);
 		API__(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
-		API3_(SQL_API_SQLFETCHSCROLL);
+		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);
 		API_X(SQL_API_SQLFREECONNECT);
 		API_X(SQL_API_SQLFREEENV);
@@ -3485,7 +3524,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLEXECUTE);
 		API__(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
-		API3_(SQL_API_SQLFETCHSCROLL);
+		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);
 		API_X(SQL_API_SQLFREECONNECT);
 		API_X(SQL_API_SQLFREEENV);
@@ -3580,7 +3619,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLEXECUTE);
 		API__(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
-		API3_(SQL_API_SQLFETCHSCROLL);
+		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);
 		API_X(SQL_API_SQLFREECONNECT);
 		API_X(SQL_API_SQLFREEENV);

@@ -35,13 +35,12 @@
 #include "tdsodbc.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
-#include "convert_sql2string.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.52 2003-11-08 18:00:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.53 2003-11-13 13:52:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -159,11 +158,12 @@ odbc_set_return_params(struct _hstmt *stmt)
 		return;
 
 	for (i = 0; i < info->num_cols; ++i) {
-		struct _drecord *drec_apd;
+		struct _drecord *drec_apd, *drec_ipd;
 		TDSCOLINFO *colinfo = info->columns[i];
 		TDS_CHAR *src;
 		int srclen;
 		SQLINTEGER len;
+		int c_type;
 
 		/* find next output parameter */
 		for (;;) {
@@ -172,6 +172,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 			if (nparam >= stmt->apd->header.sql_desc_count || nparam >= stmt->ipd->header.sql_desc_count)
 				return;
 			drec_apd = &stmt->apd->records[nparam];
+			drec_ipd = &stmt->ipd->records[nparam];
 			if (stmt->ipd->records[nparam++].sql_desc_parameter_type != SQL_PARAM_INPUT)
 				break;
 		}
@@ -188,10 +189,11 @@ odbc_set_return_params(struct _hstmt *stmt)
 		if (is_blob_type(colinfo->column_type))
 			src = ((TDSBLOBINFO *) src)->textvalue;
 		srclen = colinfo->column_cur_size;
-		/* TODO support SQL_C_DEFAULT */
+		c_type = drec_apd->sql_desc_concise_type;
+		if (c_type == SQL_C_DEFAULT)
+			c_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
-				      drec_apd->sql_desc_concise_type, drec_apd->sql_desc_data_ptr,
-				      drec_apd->sql_desc_octet_length);
+				      c_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length);
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
@@ -317,6 +319,78 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		break;
 	}
 	return SQL_UNKNOWN_TYPE;
+}
+
+/**
+ * Pass this an SQL_C_* type and get a SYB* type which most closely corresponds
+ * to the SQL_C_* type.
+ */
+int
+odbc_c_to_server_type(int c_type)
+{
+	switch (c_type) {
+		/* FIXME this should be dependent on size of data !!! */
+	case SQL_C_BINARY:
+		return SYBBINARY;
+		/* TODO what happen if varchar is more than 255 characters long */
+	case SQL_C_CHAR:
+		return SYBVARCHAR;
+	case SQL_C_FLOAT:
+		return SYBREAL;
+	case SQL_C_DOUBLE:
+		return SYBFLT8;
+	case SQL_C_BIT:
+		return SYBBIT;
+#if (ODBCVER >= 0x0300)
+	case SQL_C_SBIGINT:
+	case SQL_C_UBIGINT:
+		return SYBINT8;
+	case SQL_C_GUID:
+		return SYBUNIQUE;
+#endif
+	case SQL_C_LONG:
+	case SQL_C_SLONG:
+	case SQL_C_ULONG:
+		return SYBINT4;
+	case SQL_C_SHORT:
+	case SQL_C_SSHORT:
+	case SQL_C_USHORT:
+		return SYBINT2;
+	case SQL_C_TINYINT:
+	case SQL_C_STINYINT:
+	case SQL_C_UTINYINT:
+		return SYBINT1;
+		/* ODBC date formats are completely differect from SQL one */
+	case SQL_C_DATE:
+	case SQL_C_TIME:
+	case SQL_C_TIMESTAMP:
+	case SQL_C_TYPE_DATE:
+	case SQL_C_TYPE_TIME:
+	case SQL_C_TYPE_TIMESTAMP:
+		return SYBDATETIME;
+		/* ODBC numeric/decimal formats are completely differect from tds one */
+	case SQL_C_NUMERIC:
+		return SYBNUMERIC;
+		/* not supported */
+	case SQL_C_INTERVAL_YEAR:
+	case SQL_C_INTERVAL_MONTH:
+	case SQL_C_INTERVAL_DAY:
+	case SQL_C_INTERVAL_HOUR:
+	case SQL_C_INTERVAL_MINUTE:
+	case SQL_C_INTERVAL_SECOND:
+	case SQL_C_INTERVAL_YEAR_TO_MONTH:
+	case SQL_C_INTERVAL_DAY_TO_HOUR:
+	case SQL_C_INTERVAL_DAY_TO_MINUTE:
+	case SQL_C_INTERVAL_DAY_TO_SECOND:
+	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
+	case SQL_C_INTERVAL_HOUR_TO_SECOND:
+	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
+#ifdef SQL_C_WCHAR
+	case SQL_C_WCHAR:
+#endif
+		break;
+	}
+	return TDS_FAIL;
 }
 
 /* TODO return just constant buffer ?? */
@@ -450,6 +524,7 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 		break;
 	case SQL_TYPE_TIMESTAMP:
 	case SQL_TIMESTAMP:
+		/* TODO dependent on precision (decimal second digits) */
 		size = 24;	/* FIXME check, always format 
 				 * yyyy-mm-dd hh:mm:ss[.fff] ?? */
 		/* spinellia@acm.org: int token.c it is 30 should we comply? */
@@ -481,10 +556,12 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
 		return SQL_C_CHAR;
+		/* for compatibility numeric are converted to CHAR, not to structure */
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
-		return SQL_C_NUMERIC;
+		return SQL_C_CHAR;
 	case SQL_GUID:
+		/* TODO return SQL_C_CHAR for Sybase ?? */
 		return SQL_C_GUID;
 	case SQL_BIT:
 		return SQL_C_BIT;
@@ -652,12 +729,11 @@ odbc_get_param_len(TDSSOCKET * tds, struct _drecord *drec_apd, struct _drecord *
 		if (drec_apd->sql_desc_concise_type == SQL_C_CHAR || drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
-			int type;
-			
-			if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
-				type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
-			else 
-				type = odbc_sql_to_server_type(tds, drec_ipd->sql_desc_concise_type);
+			int type = drec_apd->sql_desc_concise_type;
+
+			if (type == SQL_C_DEFAULT)
+				type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+			type = odbc_c_to_server_type(type);
 
 			/* FIXME check what happen to DATE/TIME types */
 			size = tds_get_size_by_type(type);
@@ -743,6 +819,15 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 		drec->sql_desc_concise_type = concise_type;
 		drec->sql_desc_type = type;
 		drec->sql_desc_datetime_interval_code = interval_code;
+
+		switch (drec->sql_desc_type) {
+		case SQL_NUMERIC:
+		case SQL_DECIMAL:
+			drec->sql_desc_precision = 38;
+			drec->sql_desc_scale = 0;
+			break;
+			/* TODO finish */
+		}
 	}
 	return SQL_SUCCESS;
 #undef TYPE_NORMAL
@@ -852,6 +937,14 @@ odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord * drec, int ch
 		drec->sql_desc_concise_type = concise_type;
 		drec->sql_desc_type = type;
 		drec->sql_desc_datetime_interval_code = interval_code;
+
+		switch (drec->sql_desc_type) {
+		case SQL_C_NUMERIC:
+			drec->sql_desc_precision = 38;
+			drec->sql_desc_scale = 0;
+			break;
+			/* TODO finish */
+		}
 	}
 	return SQL_SUCCESS;
 #undef TYPE_NORMAL
