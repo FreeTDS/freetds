@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.165 2003-12-18 16:38:52 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.166 2003-12-30 10:27:42 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -101,6 +101,7 @@ typedef tds_sysdep_real32_type TDS_REAL;		/* 32-bit real     */
 typedef tds_sysdep_real64_type TDS_FLOAT;		/* 64-bit real     */
 typedef tds_sysdep_int64_type TDS_INT8;			/* 64-bit integer  */
 typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
+typedef tds_sysdep_intptr_type TDS_INTPTR;
 
 typedef struct tdsnumeric
 {

@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h.in,v 1.6 2003-10-24 10:11:11 freddy77 Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h.in,v 1.7 2003-12-30 10:27:42 freddy77 Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
@@ -38,6 +38,7 @@ extern "C"
 #define tds_sysdep_int64_type __int64	/* 64-bit int */
 #define tds_sysdep_real32_type float	/* 32-bit real */
 #define tds_sysdep_real64_type double	/* 64-bit real */
+#define tds_sysdep_intptr_type int	/* 32-bit int */
 #endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef tds_sysdep_int16_type
@@ -59,6 +60,10 @@ extern "C"
 #ifndef tds_sysdep_real64_type
 #define tds_sysdep_real64_type @tds_sysdep_real64_type@	/* 64-bit real */
 #endif				/* !tds_sysdep_real64_type */
+
+#ifndef tds_sysdep_intptr_type
+#define tds_sysdep_intptr_type @tds_sysdep_intptr_type@
+#endif				/* !tds_sysdep_intptr_type */
 
 #if !defined(__WIN32__) && !defined(_WIN32) && !defined(WIN32)
 typedef int TDS_SYS_SOCKET;

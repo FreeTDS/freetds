@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.285 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.286 2003-12-30 10:27:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1946,13 +1946,13 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #define IIN(type, dest) do { \
 	/* trick warning if type wrong */ \
 	type *p_test = &dest; p_test = p_test; \
-	dest = (type)(int)Value; } while(0)
+	dest = (type)(TDS_INTPTR)Value; } while(0)
 #define PIN(type, dest) do { \
 	/* trick warning if type wrong */ \
 	type *p_test = &dest; p_test = p_test; \
 	dest = (type)Value; } while(0)
 #else
-#define IIN(type, dest) dest = (type)(int)Value
+#define IIN(type, dest) dest = (type)(TDS_INTPTR)Value
 #define PIN(type, dest) dest = (type)Value
 #endif
 

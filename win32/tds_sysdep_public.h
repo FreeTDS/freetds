@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.3 2003-10-24 10:11:11 freddy77 Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.4 2003-12-30 10:27:42 freddy77 Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
@@ -34,6 +34,7 @@ extern "C"
 #define tds_sysdep_int64_type __int64	/* 64-bit int */
 #define tds_sysdep_real32_type float	/* 32-bit real */
 #define tds_sysdep_real64_type double	/* 64-bit real */
+#define tds_sysdep_intptr_type int	/* 32-bit int */
 typedef SOCKET TDS_SYS_SOCKET;
 #ifndef TDS_IS_SOCKET_INVALID
 #define TDS_IS_SOCKET_INVALID(s) ((s) == INVALID_SOCKET)
