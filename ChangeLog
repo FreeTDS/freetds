@@ -1,3 +1,7 @@
+Tue Sep 10 10:37:00 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/dblib.c:
+	- Fix compilation when configured with --with-tdsver=8.0
+
 Tue Sep 10 15:18:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: more check building html docs
 	* src/Makefile.am: include always odbc in distribution

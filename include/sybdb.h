@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.15 2002-09-05 12:22:07 brianb Exp $";
+"$Id: sybdb.h,v 1.16 2002-09-10 14:38:32 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -70,6 +70,7 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBVERSION_100     2
 #define DBVERSION_42      3
 #define DBVERSION_70      4
+#define DBVERSION_80      5
 
 #define SYBAOPCNT  0x4b
 #define SYBAOPCNTU 0x4c
