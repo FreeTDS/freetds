@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.48 2002-08-22 05:24:20 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.49 2002-08-22 08:45:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -78,6 +78,10 @@ extern const int g__numeric_bytes_per_prec[];
 /* f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value */
 #define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
+
+#define LOG_CONVERT() \
+	tdsdump_log(TDS_DBG_ERROR, "error_handler: conversion from " \
+			"%d to %d not supported\n", srctype, desttype)
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -239,7 +243,7 @@ int  ret;
       case SYBDATETIMN:
 	 break;
       default:
-         fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+	 LOG_CONVERT();
          return TDS_FAIL;
          break;
    }
@@ -342,7 +346,7 @@ TDS_INT tds_i;
 					hex1 &= 0x0f;
 					hex1 += 9;
 				} else {
-					fprintf(stderr,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
+					tdsdump_log(TDS_DBG_INFO1,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
 					return TDS_FAIL;
 				}
 			}
@@ -473,7 +477,7 @@ TDS_INT tds_i;
 		 return sizeof(TDS_NUMERIC);
 		 break;
 	  default:
-         fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+		LOG_CONVERT();
 	     return TDS_FAIL;
 	}
 }
@@ -535,7 +539,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 		case SYBNUMERIC:
 		case SYBDECIMAL:
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
             return TDS_FAIL;
 	}
 	return TDS_FAIL;
@@ -595,7 +599,7 @@ TDS_CHAR tmp_str[5];
 		case SYBDATETIMN:
 			break;
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 	}
 	return TDS_FAIL;
@@ -656,7 +660,7 @@ TDS_CHAR tmp_str[16];
 		case SYBDATETIMN:
 			break;
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 	}
 	return TDS_FAIL;
@@ -721,7 +725,7 @@ TDS_CHAR tmp_str[16];
 		case SYBDATETIMN:
 			break;
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 	}
 	return TDS_FAIL;
@@ -761,7 +765,7 @@ char tmpstr[MAXPRECISION];
 			break;
 	    /* TODO conversions to int, bit and money */
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 			break;
 	}
@@ -837,7 +841,7 @@ char tmp_str[33];
 			break;
 		/* TODO numeric */
         default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
             return TDS_FAIL;
     }
 	return TDS_FAIL;
@@ -954,7 +958,7 @@ int i;
 			break;
 		/* TODO numeric */
 	    default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 			break;
 	}
@@ -1074,7 +1078,7 @@ struct tds_tm when;
 		case SYBDECIMAL:
 			break;
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 			break;
 	}
@@ -1179,7 +1183,7 @@ struct tds_tm when;
 		case SYBDECIMAL:
 			break;
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 			break;
 	}
@@ -1233,7 +1237,7 @@ TDS_INT8 mymoney;
 	    break;
 	/* TODO int, bit, numeric */
       default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+	    LOG_CONVERT();
             return TDS_FAIL;
    }
 	return TDS_FAIL;
@@ -1277,7 +1281,7 @@ char      tmp_str[25];
 		break;
 	/* TODO int, bit, numeric */
       default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+		LOG_CONVERT();
 			return TDS_FAIL;
    }
 	return TDS_FAIL;
@@ -1313,7 +1317,7 @@ TDS_UCHAR buf[37];
 			break;
 		/* no not warning for not convertible types */
 		default:
-            fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			LOG_CONVERT();
 			return TDS_FAIL;
 	}
 	return TDS_FAIL;
@@ -1616,7 +1620,7 @@ int current_state;
 
            case STRING_GARBLED:
                 
-              fprintf(stderr,"error_handler:  Attempt to convert data stopped by syntax error in source field \n");
+              tdsdump_log(TDS_DBG_INFO1,"error_handler:  Attempt to convert data stopped by syntax error in source field \n");
               return TDS_FAIL;
         }
 

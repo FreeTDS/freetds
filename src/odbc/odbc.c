@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.39 2002-08-09 02:55:49 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.40 2002-08-22 08:45:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2030,8 +2030,10 @@ SQLRETURN SQL_API SQLSetConnectOption(
 
     switch (fOption)
     {
-/*        case :
-                 break;*/
+	case SQL_AUTOCOMMIT:
+		if (vParam == SQL_AUTOCOMMIT_ON)
+			return SQL_SUCCESS;
+		/* if off fall through */
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");

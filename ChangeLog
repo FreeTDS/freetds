@@ -1,3 +1,9 @@
+Thu Aug 22 10:44:52 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- workaround for set autocommit option
+	* src/tds/convert.c:
+	- avoiding writing to stderr, use tdsdump_log
+
 Wed Aug 21 23:28:58 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c	better diagnostics and -v support
 	* src/tds/asprintf.c	PD version of function for systems that lack it.
