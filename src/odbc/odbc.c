@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.127 2003-01-16 14:24:40 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.128 2003-01-17 09:54:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -278,7 +278,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
 				/* Skipping current result set's rows to access next resultset or proc's retval */
-				while ((tdsret=tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
+				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
 					;
 				if (tdsret == TDS_FAIL)
 					return SQL_ERROR;
@@ -294,14 +294,12 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 				/* ?? */
 			case TDS_CMD_DONE:
+				stmt->row = 0;
 				break;
-				/* TODO: correct ?? */
-				if (tds->res_info) {
-					stmt->row = 0;
-					return SQL_SUCCESS;
-				}
+
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
+				stmt->row = 0;
 				return SQL_SUCCESS;
 			case TDS_PARAM_RESULT:
 			case TDS_MSG_RESULT:
@@ -1381,7 +1379,7 @@ SQLRETURN SQL_API
 SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	SQLINTEGER tmp_len;
-	SQLUINTEGER *ui_val = (SQLUINTEGER*) Value;
+	SQLUINTEGER *ui_val = (SQLUINTEGER *) Value;
 
 	INIT_HSTMT;
 
@@ -1392,19 +1390,19 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 	case SQL_ATTR_ASYNC_ENABLE:
 		*ui_val = SQL_ASYNC_ENABLE_OFF;
 		break;
-	
+
 	case SQL_ATTR_CONCURRENCY:
 		*ui_val = SQL_CONCUR_READ_ONLY;
 		break;
-	
+
 	case SQL_ATTR_CURSOR_SCROLLABLE:
 		*ui_val = SQL_NONSCROLLABLE;
 		break;
-	
+
 	case SQL_ATTR_CURSOR_SENSITIVITY:
 		*ui_val = SQL_UNSPECIFIED;
 		break;
-	
+
 	case SQL_ATTR_CURSOR_TYPE:
 		*ui_val = SQL_CURSOR_FORWARD_ONLY;
 		break;
@@ -1418,35 +1416,35 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 	case SQL_ATTR_MAX_ROWS:
 		*ui_val = 0;
 		break;
-		
+
 	case SQL_ATTR_NOSCAN:
 		*ui_val = SQL_NOSCAN_OFF;
 		break;
-		
+
 	case SQL_ATTR_PARAM_BIND_TYPE:
 		*ui_val = SQL_PARAM_BIND_BY_COLUMN;
 		break;
-		
+
 	case SQL_ATTR_QUERY_TIMEOUT:
-		*ui_val = 0; /* TODO return timeout in seconds */
+		*ui_val = 0;	/* TODO return timeout in seconds */
 		break;
-		
+
 	case SQL_ATTR_RETRIEVE_DATA:
 		*ui_val = SQL_RD_ON;
 		break;
-		
+
 	case SQL_ATTR_ROW_ARRAY_SIZE:
 		*ui_val = 1;
 		break;
-		
+
 	case SQL_ATTR_ROW_NUMBER:
-		*ui_val = 0; /* TODO */
+		*ui_val = 0;	/* TODO */
 		break;
-		
+
 	case SQL_ATTR_USE_BOOKMARKS:
 		*ui_val = SQL_UB_OFF;
 		break;
-		
+
 		/* This make MS ODBC not crash */
 	case SQL_ATTR_APP_ROW_DESC:
 		*(SQLPOINTER *) Value = &stmt->ard;
@@ -1468,7 +1466,7 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 		*StringLength = sizeof(SQL_IS_POINTER);
 		break;
 
-	/* TODO ?? what to do */
+		/* TODO ?? what to do */
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
 	case SQL_ATTR_METADATA_ID:
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
@@ -1753,35 +1751,35 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (tds_get_null(resinfo->current_row, icol - 1)) {
 		*pcbValue = SQL_NULL_DATA;
 	} else {
-	src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
-	if (is_blob_type(colinfo->column_type)) {
-		if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-			return SQL_NO_DATA_FOUND;
-		src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
-		srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-	} else {
-		srclen = colinfo->column_cur_size;
-	}
-	nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	/* TODO add support for SQL_C_DEFAULT */
-	*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
-	if (*pcbValue < 0)
-		return SQL_ERROR;
+		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
+		if (is_blob_type(colinfo->column_type)) {
+			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+				return SQL_NO_DATA_FOUND;
+			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
+		} else {
+			srclen = colinfo->column_cur_size;
+		}
+		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+		/* TODO add support for SQL_C_DEFAULT */
+		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
+		if (*pcbValue < 0)
+			return SQL_ERROR;
 
-	if (is_blob_type(colinfo->column_type)) {
-		/* calc how many bytes was readed */
-		int readed = cbValueMax;
+		if (is_blob_type(colinfo->column_type)) {
+			/* calc how many bytes was readed */
+			int readed = cbValueMax;
 
-		/* char is always terminated... */
-		/* FIXME test on destination char ??? */
-		if (nSybType == SYBTEXT)
-			--readed;
-		if (readed > *pcbValue)
-			readed = *pcbValue;
-		colinfo->column_text_sqlgetdatapos += readed;
-		/* not all readed ?? */
-		if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
-			return SQL_SUCCESS_WITH_INFO;
+			/* char is always terminated... */
+			/* FIXME test on destination char ??? */
+			if (nSybType == SYBTEXT)
+				--readed;
+			if (readed > *pcbValue)
+				readed = *pcbValue;
+			colinfo->column_text_sqlgetdatapos += readed;
+			/* not all readed ?? */
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
+				return SQL_SUCCESS_WITH_INFO;
 		}
 	}
 	return SQL_SUCCESS;
@@ -2257,6 +2255,8 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	TDS_INT row_type;
 	TDS_INT compute_id;
 	int varchar_pos = -1, n;
+	static const char sql_templ[] = "EXEC sp_datatype_info %d";
+	char sql[sizeof(sql_templ) + 30];
 
 	INIT_HSTMT;
 
@@ -2264,20 +2264,12 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
 	/* FIXME what about early Sybase products ? */
-	if (!fSqlType) {
-		static const char *sql = "EXEC sp_datatype_info";
-
-		if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
-			return SQL_ERROR;
-	} else {
-		static const char sql_templ[] = "EXEC sp_datatype_info %d";
-		char sql[sizeof(sql_templ) + 20];
-
-		/* TODO ODBC3 convert type to ODBC version 2 (date) */
-		sprintf(sql, sql_templ, fSqlType);
-		if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
-			return SQL_ERROR;
-	}
+	/* TODO ODBC3 convert type to ODBC version 2 (date) */
+	sprintf(sql, sql_templ, fSqlType);
+	if (TDS_IS_MSSQL(tds))
+		sprintf(strchr(sql, 0), ",%d", stmt->hdbc->henv->odbc_ver);
+	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
+		return SQL_ERROR;
 
       redo:
 	res = _SQLExecute(stmt);
