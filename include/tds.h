@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.167 2003-12-31 11:33:10 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.167.2.1 2004-07-14 09:09:39 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -545,11 +545,12 @@ enum TDS_OPT_ISOLATION_CHOICE
 			x==TDS_ERROR_TOKEN    || \
 			x==TDS_EED_TOKEN)
 
-#define is_result_token(x) (x==TDS_RESULT_TOKEN    || \
-			x==TDS_ROWFMT2_TOKEN || \
+#define is_result_token(x) (x==TDS_RESULT_TOKEN || \
+			x==TDS_ROWFMT2_TOKEN    || \
 			x==TDS7_RESULT_TOKEN    || \
-			x==TDS_COLFMT_TOKEN    || \
-			x==TDS_COLNAME_TOKEN)
+			x==TDS_COLFMT_TOKEN     || \
+			x==TDS_COLNAME_TOKEN    || \
+			x==TDS_RETURNSTATUS_TOKEN)
 
 /* FIX ME -- not a complete list */
 #define is_fixed_type(x) (x==SYBINT1    || \

@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.22 2003-09-21 18:37:42 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.22.2.1 2004-07-14 09:09:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -320,6 +320,7 @@ param_clear(DBREMOTE_PROC_PARAM * pparam)
 	}
 
 	/* free self after clearing children */
+	if (pparam->name)
+		free(pparam->name);
 	free(pparam);
-	pparam = (DBREMOTE_PROC_PARAM *) NULL;
 }

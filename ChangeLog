@@ -1,3 +1,7 @@
+Wed Jul 14 11:08:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: backported fix for tests
+	* src/dblib/rpc.c: backported RPC leak fix
+
 Thu Jul 08 11:20:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: ignore spurious TDS_RETURNSTATUS_TOKEN packets
 
