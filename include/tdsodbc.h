@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.29 2003-05-20 10:48:27 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.30 2003-07-11 15:08:11 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -92,6 +92,8 @@ enum _sql_error_types
 	ODBCERR_INVALIDOPTION
 };
 
+#define ODBC_RETURN(handle, rc)       { return (handle->lastrc = (rc)); }
+
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
 
@@ -107,6 +109,7 @@ struct _henv
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
 	unsigned char odbc_ver;
+	SQLRETURN lastrc;
 };
 
 struct _hstmt;
@@ -122,6 +125,7 @@ struct _hdbc
 	struct _sql_errors errs;
 	
 	DSTR current_database;
+	SQLRETURN lastrc;
 };
 
 struct _hstmt
@@ -147,6 +151,7 @@ struct _hstmt
 	TDSDYNAMIC *dyn;	/* FIXME check if freed */
 	struct _sql_errors errs;
 	char ard, ird, apd, ipd;
+	SQLRETURN lastrc;
 };
 
 struct _sql_param_info

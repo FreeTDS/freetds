@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.184 2003-07-03 19:28:32 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.185 2003-07-11 15:08:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -157,14 +157,14 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 	if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not change transaction status");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 
 	dbc->autocommit_state = state;
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 static void
@@ -196,10 +196,13 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
 	if (!dbc->tds_socket) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
+
+	/* Set up our environment change hook */
 	dbc->tds_socket->env_chg_func = odbc_env_change;
+
 	tds_fix_connect(connect_info);
 
 	/* fix login type */
@@ -215,9 +218,9 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, ODBCERR_CONNECT, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -232,7 +235,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	/* FIXME szConnStrIn can be no-null terminated */
@@ -241,25 +244,25 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	if (tds_dstr_isempty(&connect_info->server_name)) {
 		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find Servername or server parameter");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	if (tds_dstr_isempty(&connect_info->user_name)) {
 		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find UID parameter");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	if ((ret = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
 		tds_free_connect(connect_info);
-		return ret;
+		ODBC_RETURN(dbc, ret);
 	}
 
 	/* use the default database */
 	tds_free_connect(connect_info);
 	if (dbc->errs.num_errors != 0)
-		return SQL_SUCCESS_WITH_INFO;
-	return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS_WITH_INFO);
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 #if 0
@@ -269,7 +272,7 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 {
 	INIT_HDBC;
 	odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "SQLBrowseConnect: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(dbc, SQL_ERROR);
 }
 #endif
 
@@ -291,7 +294,7 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 #if 0
@@ -301,7 +304,7 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLDescribeParam: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
 SQLRETURN SQL_API
@@ -309,7 +312,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUI
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLExtendedFetch: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 #endif
 
@@ -336,7 +339,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 		odbc_col_setname(stmt, 5, "FKTABLE_CAT");
 		odbc_col_setname(stmt, 6, "FKTABLE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 SQLRETURN SQL_API
@@ -358,7 +361,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->hdbc->current_statement == stmt)
 				stmt->hdbc->current_statement = NULL;
-			return SQL_NO_DATA_FOUND;
+			ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
@@ -366,7 +369,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* Skipping current result set's rows to access next resultset or proc's retval */
 				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
 				if (tdsret == TDS_FAIL)
-					return SQL_ERROR;
+					ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			case TDS_STATUS_RESULT:
 				odbc_set_return_status(stmt);
@@ -383,21 +386,21 @@ SQLMoreResults(SQLHSTMT hstmt)
 				stmt->row = 0;
 				/* FIXME here ??? */
 				tds_free_all_results(tds);
-				return SQL_SUCCESS;
+				ODBC_RETURN(stmt, SQL_SUCCESS);
 				break;
 
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
 				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
-				return SQL_SUCCESS;
+				ODBC_RETURN(stmt, SQL_SUCCESS);
 			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
 				break;
 			}
 		}
 	}
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
 #if 0
@@ -407,7 +410,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 {
 	INIT_HDBC;
 	odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "SQLNativeSql: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(dbc, SQL_ERROR);
 }
 #endif
 
@@ -416,7 +419,7 @@ SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 {
 	INIT_HSTMT;
 	*pcpar = stmt->param_count;
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 #if 0
@@ -425,7 +428,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLUINTEGER crow, SQLUINTEGER FAR * pirow)
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLParamOptions: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 #endif
 
@@ -445,7 +448,7 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 SQLRETURN SQL_API
@@ -470,7 +473,7 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		odbc_col_setname(stmt, 10, "DECIMAL_DIGITS");
 		odbc_col_setname(stmt, 11, "NUM_PREC_RADIX");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 SQLRETURN SQL_API
@@ -489,7 +492,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 #if 0
@@ -498,7 +501,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetPos: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 #endif
 
@@ -518,7 +521,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 #if (ODBCVER >= 0x0300)
@@ -535,15 +538,15 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 		switch ((SQLULEN) Value) {
 		case SQL_OV_ODBC3:
 			env->odbc_ver = 3;
-			return SQL_SUCCESS;
+			ODBC_RETURN(env, SQL_SUCCESS);
 		case SQL_OV_ODBC2:
 			env->odbc_ver = 2;
-			return SQL_SUCCESS;
+			ODBC_RETURN(env, SQL_SUCCESS);
 		}
 		break;
 	}
 	odbc_errs_add(&env->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetEnvAttr: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(env, SQL_ERROR);
 }
 #endif
 
@@ -557,7 +560,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 
 	if (ipar == 0) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
 	/* find available item in list */
@@ -569,7 +572,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 			malloc(sizeof(struct _sql_param_info));
 		if (!newitem) {
 			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 		memset(newitem, 0, sizeof(struct _sql_param_info));
 		newitem->param_number = ipar;
@@ -584,7 +587,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 		cur->param_bindtype = odbc_sql_to_c_type_default(fSqlType);
 		if (cur->param_bindtype == 0) {
 			odbc_errs_add(&stmt->errs, ODBCERR_INVALIDTYPE, NULL);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	} else {
 		cur->param_bindtype = fCType;
@@ -609,7 +612,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 	}
 	cur->varaddr = (char *) rgbValue;
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 /* compatibility with X/Open */
@@ -649,7 +652,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc = (TDS_DBC *) malloc(sizeof(TDS_DBC));
 	if (!dbc) {
 		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(env, SQL_ERROR);
 	}
 
 	/* initialize DBC structure */
@@ -662,7 +665,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->autocommit_state = 1;
 	*phdbc = (SQLHDBC) dbc;
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(env, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -720,13 +723,13 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt = (TDS_STMT *) malloc(sizeof(TDS_STMT));
 	if (!stmt) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 	memset(stmt, '\0', sizeof(TDS_STMT));
 	stmt->hdbc = dbc;
 	*phstmt = (SQLHSTMT) stmt;
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -745,7 +748,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	INIT_HSTMT;
 	if (icol <= 0) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
 	/* find available item in list */
@@ -762,7 +765,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		newitem = (struct _sql_bind_info *) malloc(sizeof(struct _sql_bind_info));
 		if (!newitem) {
 			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 		memset(newitem, 0, sizeof(struct _sql_bind_info));
 		newitem->column_number = icol;
@@ -783,7 +786,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	/* force rebind */
 	stmt->row = 0;
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -798,7 +801,7 @@ SQLCancel(SQLHSTMT hstmt)
 	tds_send_cancel(tds);
 	tds_process_cancel(tds);
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -814,7 +817,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	/* data source name */
@@ -827,7 +830,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	if (!odbc_get_dsn_info(DSN, connect_info)) {
 		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Error getting DSN information");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	/* username/password are never saved to ini file, 
@@ -843,13 +846,13 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	/* DO IT */
 	if ((result = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
 		tds_free_connect(connect_info);
-		return result;
+		ODBC_RETURN(dbc, result);
 	}
 
 	tds_free_connect(connect_info);
 	if (dbc->errs.num_errors != 0)
-		return SQL_SUCCESS_WITH_INFO;
-	return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS_WITH_INFO);
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -866,12 +869,12 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	tds = stmt->hdbc->tds_socket;
 	if (icol <= 0 || tds->res_info == NULL || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	/* check name length */
 	if (cbColNameMax < 0) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDBUFFERLEN, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	colinfo = tds->res_info->columns[icol - 1];
 
@@ -913,7 +916,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	if (pfNullable) {
 		*pfNullable = is_nullable_type(colinfo->column_type) ? 1 : 0;
 	}
-	return result;
+	ODBC_RETURN(stmt, result);
 }
 
 SQLRETURN SQL_API
@@ -939,18 +942,18 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		} else {
 			*pfDesc = tds->res_info->num_cols;
 		}
-		return SQL_SUCCESS;
+		ODBC_RETURN(stmt, SQL_SUCCESS);
 		break;
 	}
 
 	if (!tds->res_info) {
 		odbc_errs_add(&stmt->errs, ODBCERR_NORESULT, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
 	if (icol == 0 || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	colinfo = tds->res_info->columns[icol - 1];
 
@@ -1064,7 +1067,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
 		break;
 	}
-	return result;
+	ODBC_RETURN(stmt, result);
 }
 
 
@@ -1078,7 +1081,7 @@ SQLDisconnect(SQLHDBC hdbc)
 
 	/* TODO free all associated statements (done by DM??) f77 */
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 static int
@@ -1161,9 +1164,9 @@ _SQLExecute(TDS_STMT * stmt)
 		ret = tds_submit_rpc(tds, stmt->query, NULL);
 		*end = tmp;
 		if (ret != TDS_SUCCEED)
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 	} else if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	stmt->hdbc->current_statement = stmt;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
@@ -1204,16 +1207,16 @@ _SQLExecute(TDS_STMT * stmt)
 	switch (ret) {
 	case TDS_NO_MORE_RESULTS:
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
-			return SQL_SUCCESS_WITH_INFO;
-		return result;
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+		ODBC_RETURN(stmt, result);
 	case TDS_SUCCEED:
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
-			return SQL_SUCCESS_WITH_INFO;
-		return result;
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+		ODBC_RETURN(stmt, result);
 	default:
 		/* TODO test what happened, report correct error to client */
 		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n");
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 }
 
@@ -1223,14 +1226,14 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	INIT_HSTMT;
 
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
 	stmt->param_count = tds_count_placeholders(stmt->query);
 
 	if (SQL_SUCCESS != prepare_call(stmt))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 
 	if (stmt->param_count) {
 		SQLRETURN res;
@@ -1242,7 +1245,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		res = start_parse_prepared_query(stmt);
 
 		if (SQL_SUCCESS != res)
-			return res;
+			ODBC_RETURN(stmt, res);
 	}
 
 	return _SQLExecute(stmt);
@@ -1278,21 +1281,21 @@ SQLExecute(SQLHSTMT hstmt)
 		param = odbc_find_param(stmt, i);
 		if (!param) {
 			tds_free_param_results(params);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
 		/* add a columns to parameters */
 		if (!(temp_params = tds_alloc_param_result(params))) {
 			tds_free_param_results(params);
 			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 		params = temp_params;
 
 		/* add another type and copy data */
 		if (sql2tds(stmt->hdbc, param, params, nparam) < 0) {
 			tds_free_param_results(params);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	}
 
@@ -1304,11 +1307,11 @@ SQLExecute(SQLHSTMT hstmt)
 		/* TODO use tds_submit_prepexec */
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
 			tds_free_param_results(params);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 			tds_free_param_results(params);
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	}
 	if (!stmt->prepared_query_is_rpc) {
@@ -1318,7 +1321,7 @@ SQLExecute(SQLHSTMT hstmt)
 		tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
 		/* TODO return error to client */
 		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 	} else {
 		/* get rpc name */
 		/* TODO change method */
@@ -1334,7 +1337,7 @@ SQLExecute(SQLHSTMT hstmt)
 		*end = tmp;
 		tds_free_param_results(params);
 		if (ret != TDS_SUCCEED)
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
 	/* TODO copied from _SQLExecute, use a function... */
@@ -1379,14 +1382,14 @@ SQLExecute(SQLHSTMT hstmt)
 		if (done)
 			break;
 	}
-	return result;
+	ODBC_RETURN(stmt, result);
 #else /* ENABLE_DEVELOPING */
 
 	if (stmt->prepared_query) {
 		SQLRETURN res = start_parse_prepared_query(stmt);
 
 		if (SQL_SUCCESS != res)
-			return res;
+			ODBC_RETURN(stmt, res);
 	}
 
 	return _SQLExecute(stmt);
@@ -1439,12 +1442,12 @@ SQLFetch(SQLHSTMT hstmt)
 	ret = tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid);
 	if (ret == TDS_NO_MORE_ROWS) {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
-		return SQL_NO_DATA_FOUND;
+		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 	}
 	resinfo = tds->res_info;
 	if (!resinfo) {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
-		return SQL_NO_DATA_FOUND;
+		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 	}
 	for (i = 0; i < resinfo->num_cols; i++) {
 		colinfo = resinfo->columns[i];
@@ -1459,7 +1462,7 @@ SQLFetch(SQLHSTMT hstmt)
 					      src,
 					      srclen, colinfo->column_bindtype, colinfo->column_varaddr, colinfo->column_bindlen);
 			if (len < 0)
-				return SQL_ERROR;
+				ODBC_RETURN(stmt, SQL_ERROR);
 		}
 		if (colinfo->column_lenbind) {
 			if (tds_get_null(resinfo->current_row, i))
@@ -1469,10 +1472,10 @@ SQLFetch(SQLHSTMT hstmt)
 		}
 	}
 	if (ret == TDS_SUCCEED) {
-		return SQL_SUCCESS;
+		ODBC_RETURN(stmt, SQL_SUCCESS);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !TDS_SUCCEED (%d)\n", ret);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 }
 
@@ -1546,7 +1549,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	if (fOption != SQL_DROP && fOption != SQL_CLOSE && fOption != SQL_UNBIND && fOption != SQL_RESET_PARAMS) {
 		tdsdump_log(TDS_DBG_ERROR, "odbc:SQLFreeStmt: Unknown option %d\n", fOption);
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
 	/* if we have bound columns, free the temporary list */
@@ -1595,12 +1598,12 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		if (stmt->dyn) {
 			if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
 				if (tds_process_simple_query(tds) != TDS_SUCCEED)
-					return SQL_ERROR;
+					ODBC_RETURN(stmt, SQL_ERROR);
 				tds_free_dynamic(stmt->hdbc->tds_socket, stmt->dyn);
 				stmt->dyn = NULL;
 			} else {
 				/* TODO if fail add to odbc to free later, when we are in idle */
-				return SQL_ERROR;
+				ODBC_RETURN(stmt, SQL_ERROR);
 			}
 		}
 	}
@@ -1616,7 +1619,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 			stmt->hdbc->current_statement = NULL;
 		free(stmt);
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -1734,9 +1737,9 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 	case SQL_ATTR_SIMULATE_CURSOR:
 	default:
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 #endif
 
@@ -1746,7 +1749,7 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLGetCursorName: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 #endif
 
@@ -1764,11 +1767,11 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		/* 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
 		 * ** generating queries such as 'drop table' */
 		*pccol = 0;
-		return SQL_SUCCESS;
+		ODBC_RETURN(stmt, SQL_SUCCESS);
 	}
 
 	*pccol = resinfo->num_cols;
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -1777,16 +1780,16 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	INIT_HSTMT;
 
 	if (SQL_SUCCESS != odbc_set_stmt_prepared_query(stmt, (char *) szSqlStr, cbSqlStr))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 
 	/* count parameters */
 	stmt->param_count = tds_count_placeholders(stmt->prepared_query);
 
 	/* trasform to native (one time, not for every SQLExecute) */
 	if (SQL_SUCCESS != prepare_call(stmt))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -1799,13 +1802,12 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	tds = stmt->hdbc->tds_socket;
 
 	/* test is this is current statement */
-	if (stmt->hdbc->current_statement != stmt) {
-		return SQL_ERROR;
-	}
+	if (stmt->hdbc->current_statement != stmt)
+		ODBC_RETURN(stmt, SQL_ERROR);
 	*pcrow = -1;
 	if (tds->rows_affected != TDS_NO_COUNT)
 		*pcrow = tds->rows_affected;
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 #if 0
@@ -1814,7 +1816,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
 	INIT_HSTMT;
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetCursorName: function not implemented");
-	return SQL_ERROR;
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 #endif
 
@@ -1851,7 +1853,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	INIT_HDBC;
 
 	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%x,0x%x,%d)\n", henv, hdbc, fType);
-	return change_transaction(dbc, op);
+	ODBC_RETURN(dbc, change_transaction(dbc, op));
 }
 
 #if ODBCVER >= 0x300
@@ -1917,7 +1919,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 		odbc_col_setname(stmt, 9, "DECIMAL_DIGITS");
 		odbc_col_setname(stmt, 10, "NUM_PREC_RADIX");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 SQLRETURN SQL_API
@@ -1931,16 +1933,16 @@ SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 	switch (fOption) {
 	case SQL_AUTOCOMMIT:
 		*((SQLUINTEGER *) pvParam) = dbc->autocommit_state;
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 	case SQL_TXN_ISOLATION:
 		*((SQLUINTEGER *) pvParam) = SQL_TXN_READ_COMMITTED;
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetConnectOption: Statement option %d not implemented\n", fOption);
 		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Statement option not implemented");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -1968,7 +1970,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	resinfo = tds->res_info;
 	if (icol == 0 || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	colinfo = resinfo->columns[icol - 1];
 
@@ -1978,7 +1980,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 		if (is_blob_type(colinfo->column_type)) {
 			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-				return SQL_NO_DATA_FOUND;
+				ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 
 			/* FIXME why this became < 0 ??? */
 			if (colinfo->column_text_sqlgetdatapos > 0)
@@ -1994,7 +1996,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		/* TODO add support for SQL_C_DEFAULT */
 		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
 		if (*pcbValue < 0)
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 
 		if (is_blob_type(colinfo->column_type)) {
 			/* calc how many bytes was readed */
@@ -2009,10 +2011,10 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			colinfo->column_text_sqlgetdatapos += readed;
 			/* not all readed ?? */
 			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
-				return SQL_SUCCESS_WITH_INFO;
+				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -2121,7 +2123,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 #undef API__
 #undef API3X
 #undef API3_
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 #endif
 
 	case SQL_API_ALL_FUNCTIONS:
@@ -2213,7 +2215,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 #undef API__
 #undef API3X
 #undef API3_
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 #define API_X(n) case n:
 #define API__(n)
@@ -2303,13 +2305,13 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 #undef API3X
 #undef API3_
 		*pfExists = SQL_TRUE;
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 	default:
 		*pfExists = SQL_FALSE;
-		return SQL_SUCCESS;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 
@@ -2440,14 +2442,14 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	default:
 		log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "Option not supported");
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	/* char data */
 	if (p)
-		return odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1);
+		ODBC_RETURN(dbc, odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1));
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -2464,10 +2466,10 @@ SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetStmtOption: Statement option %d not implemented\n", fOption);
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 static void
@@ -2516,7 +2518,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->odbc_ver == 3)
 		strcat(sql, ",3");
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 
       redo:
 	res = _SQLExecute(stmt);
@@ -2524,7 +2526,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	odbc_upper_column_names(stmt);
 
 	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
-		return res;
+		ODBC_RETURN(stmt, res);
 
 	/* Sybase return first nvarchar for char... and without length !!! */
 	/* Some program use first entry so we discard all entry bfore varchar */
@@ -2558,7 +2560,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 			varchar_pos = n;
 		}
 	}
-	return res;
+	ODBC_RETURN(stmt, res);
 }
 
 SQLRETURN SQL_API
@@ -2571,13 +2573,13 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 	if (stmt->prepared_query_need_bytes) {
 		param = odbc_find_param(stmt, stmt->prepared_query_param_num);
 		if (!param)
-			return SQL_ERROR;
+			ODBC_RETURN(stmt, SQL_ERROR);
 
 		*prgbValue = param->varaddr;
-		return SQL_NEED_DATA;
+		ODBC_RETURN(stmt, SQL_NEED_DATA);
 	}
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -2589,9 +2591,9 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 		SQLRETURN res = continue_parse_prepared_query(stmt, rgbValue, cbValue);
 
 		if (SQL_NEED_DATA == res)
-			return SQL_SUCCESS;
+			ODBC_RETURN(stmt, SQL_SUCCESS);
 		if (SQL_SUCCESS != res)
-			return res;
+			ODBC_RETURN(stmt, res);
 	}
 
 	return _SQLExecute(stmt);
@@ -2609,15 +2611,15 @@ SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_AUTOCOMMIT:
 		/* spinellia@acm.org */
 		if (u_value == SQL_AUTOCOMMIT_ON)
-			return change_autocommit(dbc, 1);
-		return change_autocommit(dbc, 0);
+			ODBC_RETURN(dbc, change_autocommit(dbc, 1));
+		ODBC_RETURN(dbc, change_autocommit(dbc, 0));
 		break;
 /*	case SQL_ATTR_CONNECTION_TIMEOUT:
 		dbc->tds_socket->connect_timeout = u_value;
 		break; */
 	}
 	odbc_errs_add(&dbc->errs, ODBCERR_INVALIDOPTION, NULL);
-	return SQL_ERROR;
+	ODBC_RETURN(dbc, SQL_ERROR);
 }
 
 SQLRETURN SQL_API
@@ -2632,9 +2634,9 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
 		odbc_errs_add(&dbc->errs, ODBCERR_INVALIDOPTION, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	return SQL_SUCCESS;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -2648,15 +2650,15 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 		break;
 	case SQL_CURSOR_TYPE:
 		if (vParam == SQL_CURSOR_FORWARD_ONLY)
-			return SQL_SUCCESS;
+			ODBC_RETURN(stmt, SQL_SUCCESS);
 		/* fall through */
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetStmtOption: Statement option %d not implemented\n", fOption);
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
-		return SQL_ERROR;
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	return SQL_SUCCESS;
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 SQLRETURN SQL_API
@@ -2691,7 +2693,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 SQLRETURN SQL_API
@@ -2713,7 +2715,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		odbc_col_setname(stmt, 8, "ORDINAL_POSITION");
 		odbc_col_setname(stmt, 10, "ASC_OR_DESC");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 
@@ -2735,7 +2737,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
-	return retcode;
+	ODBC_RETURN(stmt, retcode);
 }
 
 /** 
@@ -2781,17 +2783,17 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_ALTER_DOMAIN";
 		category = "Supported SQL";
 		break;
-#	ifdef SQL_ALTER_SCHEMA
+#ifdef SQL_ALTER_SCHEMA
 	case SQL_ALTER_SCHEMA:
 		name = "SQL_ALTER_SCHEMA";
 		category = "Supported SQL";
 		break;
-#	endif
+#endif
 	case SQL_ALTER_TABLE:
 		name = "SQL_ALTER_TABLE";
 		category = "Supported SQL";
 		break;
-#	ifdef SQL_ANSI_SQL_DATETIME_LITERALS
+#ifdef SQL_ANSI_SQL_DATETIME_LITERALS
 	case SQL_ANSI_SQL_DATETIME_LITERALS:
 		name = "SQL_ANSI_SQL_DATETIME_LITERALS";
 		category = "Supported SQL";
@@ -3261,12 +3263,12 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_INTEGRITY/SQL_ODBC_SQL_OPT_IEF";
 		category = "Renamed for ODBC 3.x";
 		break;
-#	ifdef SQL_ODBC_STANDARD_CLI_CONFORMANCE
+#ifdef SQL_ODBC_STANDARD_CLI_CONFORMANCE
 	case SQL_ODBC_STANDARD_CLI_CONFORMANCE:
 		name = "SQL_ODBC_STANDARD_CLI_CONFORMANCE";
 		category = "Driver Information";
 		break;
-#	endif
+#endif
 	case SQL_ODBC_VER:
 		name = "SQL_ODBC_VER";
 		category = "Driver Information";

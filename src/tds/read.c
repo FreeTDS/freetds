@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.55 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.56 2003-07-11 15:08:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
 			    size_t *wire_size, char **outbuf, size_t *outbytesleft);
@@ -259,7 +259,6 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, wire_bytes);
-			TEMP_FREE;
 			return string_len;
 		}
 
