@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.13 2002-08-30 18:42:54 castellano Exp $";
+"$Id: sybdb.h,v 1.14 2002-08-30 21:09:22 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -529,16 +529,8 @@ RETCODE dbsetdeflang(char *language);
 void dbsetidle(DBPROCESS *dbprocess, INTFUNCPTR (*handler)());
 void dbsetifile(char *filename);
 void dbsetinterrupt(DBPROCESS *dbproc, int (*ckintr)(void), int (*hndlintr)(void));
-RETCODE DBSETLAPP(LOGINREC *login, char *application);
-RETCODE DBSETLCHARSET(LOGINREC *login, char *charset);
-RETCODE DBSETLENCRYPT(LOGINREC *loginrec, DBBOOL enable);
-RETCODE DBSETLHOST(LOGINREC *login, char *hostname);
-RETCODE DBSETLNATLANG(LOGINREC *loginrec, char *language);
 RETCODE dbsetloginfo(LOGINREC *loginrec, DBLOGINFO *loginfo);
 RETCODE dbsetlogintime(int seconds);
-RETCODE DBSETLPACKET(LOGINREC *login, short packet_size);
-RETCODE DBSETLPWD(LOGINREC *login, char *password);
-RETCODE DBSETLUSER(LOGINREC *login, char *username);
 RETCODE dbsetmaxprocs(int maxprocs);
 RETCODE dbsetnull(DBPROCESS *dbprocess, int bindtype, int bindlen, BYTE *bindval);
 RETCODE dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param);
@@ -611,6 +603,39 @@ DBBOOL dbwillconvert(int srctype, int desttype);
 RETCODE dbwritepage(DBPROCESS *dbprocess, char *dbname, DBINT pageno, DBINT size, BYTE *buf);
 RETCODE dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textptrlen, DBBINARY *timestamp, DBBOOL log, DBINT size, BYTE *text);
 int dbxlate(DBPROCESS *dbprocess, char *src, int srclen, char *dest, int destlen, DBXLATE *xlt, int *srcbytes_used, DBBOOL srcend, int status);
+
+/* LOGINREC manipulation */
+RETCODE dbsetlname(LOGINREC *login, char *value, int which);
+RETCODE dbsetlbool(LOGINREC *login, int value, int which);
+RETCODE dbsetlshort(LOGINREC *login, int value, int which);
+RETCODE dbsetllong(LOGINREC* login, long value, int which);
+#define DBSETHOST		1
+#define DBSETLHOST(x,y)		dbsetlname((x), (y), DBSETHOST)
+#define DBSETUSER		2
+#define DBSETLUSER(x,y)		dbsetlname((x), (y), DBSETUSER)
+#define DBSETPWD		3
+#define DBSETLPWD(x,y)		dbsetlname((x), (y), DBSETPWD)
+#define DBSETHID		4 /* not implemented */
+#define DBSETLHID(x,y)		dbsetlname((x), (y), DBSETHID)
+#define DBSETAPP		5
+#define DBSETLAPP(x,y)		dbsetlname((x), (y), DBSETAPP)
+#define DBSETBCP		6
+#define BCP_SETL(x,y)		dbsetlbool((x), (y), DBSETBCP)
+#define DBSETNATLANG		7 /* not implemented */
+#define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
+#define DBSETNOSHORT		8 /* not implemented */
+#define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
+#define DBSETHIER		9 /* not implemented */
+#define DBSETLHIER(x,y)		dbsetlshort((x), (y), DBSETHIER)
+#define DBSETCHARSET		10
+#define DBSETLCHARSET(x,y)	dbsetlname((x), (y), DBSETCHARSET)
+#define DBSETPACKET		11
+#define DBSETLPACKET(x,y)	dbsetllong((x), (y), DBSETPACKET)
+#define DBSETENCRYPT		12
+#define DBSETLENCRYPT(x,y)	dbsetlbool((x), (y), DBSETENCRYPT)
+#define DBSETLABELED		13
+#define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
+#define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 
 #ifdef __cplusplus
 #if 0

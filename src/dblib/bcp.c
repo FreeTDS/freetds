@@ -43,7 +43,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.11 2002-08-23 19:36:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.12 2002-08-30 21:09:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -53,12 +53,6 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int     _bcp_rtrim_varchar(char *, int );
 
-
-RETCODE BCP_SETL(LOGINREC *login, DBBOOL enable)
-{
-    tds_set_bulk(login->tds_login, enable);
-    return SUCCEED;
-}
 
 RETCODE bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
 {

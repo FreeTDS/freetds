@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.46 2002-08-30 21:06:39 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.47 2002-08-30 21:09:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -436,36 +436,82 @@ void dbloginfree(LOGINREC *login)
 		free(login);
 	}
 }
-RETCODE DBSETLCHARSET(LOGINREC *login, char *charset)
+RETCODE dbsetlname(LOGINREC *login, char *value, int which)
 {
-	tds_set_charset(login->tds_login,charset);
-	return SUCCEED;
+	switch (which) {
+	case DBSETHOST:
+		tds_set_host(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETUSER:
+		tds_set_user(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETPWD:
+		tds_set_passwd(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETAPP:
+		tds_set_app(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETCHARSET:
+		tds_set_charset(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETHID:
+	case DBSETNATLANG:
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlname() which = %d\n", which);
+		return FAIL;
+		break;
+	}
 }
-RETCODE DBSETLPACKET(LOGINREC *login, short packet_size)
+
+RETCODE dbsetllong(LOGINREC *login, long value, int which)
 {
-	tds_set_packet(login->tds_login,packet_size);
-	return SUCCEED;
+	switch (which) {
+	case DBSETPACKET:
+		tds_set_packet(login->tds_login, (short) value); /* XXX */
+		return SUCCEED;
+		break;
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetllong() which = %d\n", which);
+		return FAIL;
+		break;
+	}
 }
-RETCODE DBSETLPWD(LOGINREC *login, char *password)
+
+RETCODE dbsetlshort(LOGINREC *login, int value, int which)
 {
-	tds_set_passwd(login->tds_login,password);
-	return SUCCEED;
+	switch (which) {
+	case DBSETHIER:
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlshort() which = %d\n", which);
+		return FAIL;
+		break;
+	}
 }
-RETCODE DBSETLUSER(LOGINREC *login, char *username)
+
+RETCODE dbsetlbool(LOGINREC *login, int value, int which)
 {
-	tds_set_user(login->tds_login,username);
-	return SUCCEED;
+	switch (which) {
+	case DBSETBCP:
+		tds_set_bulk(login->tds_login, (TDS_TINYINT) value);
+		return SUCCEED;
+		break;
+	case DBSETNOSHORT:
+	case DBSETENCRYPT:
+	case DBSETLABELED:
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlbool() which = %d\n", which);
+		return FAIL;
+		break;
+
+	}
+	
 }
-RETCODE DBSETLHOST(LOGINREC *login, char *hostname)
-{
-	tds_set_host(login->tds_login,hostname);
-	return SUCCEED;
-}
-RETCODE DBSETLAPP(LOGINREC *login, char *application)
-{
-	tds_set_app(login->tds_login,application);
-	return SUCCEED;
-}
+
 DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
 {
 DBPROCESS *dbproc;
