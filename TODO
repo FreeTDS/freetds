@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.70 2003-08-30 17:53:10 freddy77 Exp $
+To Do List	$Id: TODO,v 1.71 2003-09-01 19:45:17 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -91,7 +91,6 @@ For future versions (in priority order within library):
   (handle environment callbacks)
   do a "SELECT USER_NAME()". If data pending MS do another connection with 
   same login.
-. Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 . test: SQLPutData/SQLGetData
 . test: check for SQLGetTypeInfo (test column names in versions 2 and 3 
   of odbc, varchar/nvarchar should be before sysname, numeric type for data 
@@ -161,4 +160,5 @@ Done in 0.62
 . Someone broke early binding in ODBC 
   (fixed, add check for early bind, and multiple recordset)
 . ODBC: configure should detect iODBC or unixODBC automatically
+. ODBC: Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 
