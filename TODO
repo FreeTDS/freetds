@@ -1,5 +1,19 @@
+This list is ordered top-to-bottom by priority.  
+Things that are broken and need mending are at the top, 
+followed by things that should work before the next release, 
+followed by features that should be added/fixed/reworked.  
+
+Everyone is encouraged to add to the list.  Developers can do it directly; anyone
+else can post a patch to Source Forge.  In this way we can communicate with each
+other about the project's priorities and needs.  
+
 To Do List
 ------------
+Broken:
+For version 0.60:
+For future versions:
+. conversion from ucs2 to utf8, provide for 2+ bytes/character.  
+. Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords.  
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . Array binding for ctlib not working
 . RPC stuff not implemented
