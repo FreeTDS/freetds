@@ -1,3 +1,6 @@
+Wed Apr  6 11:50:40 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* samples/odbc_rpc.pl works
+
 Wed Apr  6 02:38:19 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* autogen.sh src/tds/Makefile.am src/tds/encodings.pl
 	- allowed for out-of-tree building.  Do not assume .c and .o 

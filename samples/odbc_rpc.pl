@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.3 2005-04-05 23:04:35 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.4 2005-04-06 16:24:35 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -9,10 +9,13 @@
 #
 # By default, arguments are bound to type SQL_VARCHAR.  If the stored procedure 
 # uses other types, they may be specified in the form :TYPE:data, where TYPE is one
-# of the DBI sybolic constants.  If your data happen to begin with a colon, 
+# of the DBI symbolic constants.  If your data happen to begin with a colon, 
 # prefix the string with ':SQL_VARCHAR:'.  
 #
 # Example: a datetime parameter:  ':SQL_DATETIME:2005-04-01 16:46:00' 
+# (Unfortunately, it appears DBD::ODBC has difficulty with SQL_DATETIME:
+# http://www.opensubscriber.com/message/perl-win32-users@listserv.ActiveState.com/108164.html
+#	
 #
 # To find the symbolic constants for DBI, perldoc DBI recommends:
 #  	use DBI;         
@@ -38,7 +41,7 @@ die qq(Syntax: \t$program [-D dsn] [-U username] [-P password] procedure [arg1[,
 	if( $opts{h} || 0 == @ARGV );
 
 # Connect
-my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 1, AutoCommit => 1})
+my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 0, PrintError => 1, AutoCommit => 1})
 	or die "Unable for connect to $dsn $DBI::errstr";
 
 # Construct an odbc placeholder list like (?, ?, ?)
@@ -70,25 +73,27 @@ for( my $i=1; $i < @ARGV; $i++ ) {
 	$typename = $1;
 	$data = $2;
         $type = eval($typename);
+	warn qq("$typename" will probably cause a "can't rebind parameter" message\n) 
+		if $type == SQL_DATETIME;
     }
-    printf STDERR qq(Binding parameter #%d (type %s): "$data"\n), ($i+1), $typename;
+    printf STDERR qq(Binding parameter #%d (%s): "$data"\n), ($i+1), $typename;
     $sth->bind_param( 1 + $i, $data, $type );
 }
 
 print STDERR qq(\nExecuting: "$sth->{Statement}" with parameters '), 
 	     join(q(', '), @ARGV[1..$#ARGV]), qq('\n);
 
-# Be prepared
-my $sth = $dbh->prepare($sql);
-
 # Execute the SQL and print the (possibly several) results
-if($sth->execute) {
-	$i = 1;
-	while ( $sth->{Active} ) { 
-		printf "Result #%d:\n", $i++;
-		while(@dat = $sth->fetchrow) {
-			print q('), join(q(', '), @dat), qq('\n);
-		}
+$rc = $sth->execute;
+print STDERR qq(execute returned: '$rc'\n) if $rc;
+
+$i = 1;
+while ( $sth->{Active} ) { 
+	printf "Result #%d:\n", $i++;
+        my @names = @{$sth->{NAME}};	# print column names for each result set
+	print '[', join("], [", @{$sth->{NAME}}), "]\n" if @names;
+	while(@dat = $sth->fetchrow) {
+		print q('), join(q(', '), @dat), qq('\n);
 	}
 }
 
