@@ -1,3 +1,6 @@
+Mon May 12 07:53:05 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: improve TDS7+ dynamic
+
 Sun May 11 10:34:07 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:
