@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.219 2003-08-26 14:57:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.220 2003-08-26 15:50:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -995,6 +995,26 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	stmt->htype = SQL_HANDLE_STMT;
 	stmt->hdbc = dbc;
+
+	/* allocate descriptors */
+	stmt->ird = desc_alloc(stmt, DESC_IRD, SQL_DESC_ALLOC_AUTO);
+	stmt->ard = desc_alloc(stmt, DESC_ARD, SQL_DESC_ALLOC_AUTO);
+	stmt->ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
+	stmt->apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
+	if (!stmt->ird || !stmt->ard || !stmt->ipd || !stmt->apd) {
+		if (stmt->ird)
+			desc_free(stmt->ird);
+		if (stmt->ard)
+			desc_free(stmt->ard);
+		if (stmt->ipd)
+			desc_free(stmt->ipd);
+		if (stmt->apd)
+			desc_free(stmt->apd);
+		free(stmt);
+		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
 	*phstmt = (SQLHSTMT) stmt;
 
 	ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -1046,10 +1066,10 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		cur = newitem;
 	}
 
-	cur->column_bindtype = fCType;
-	cur->column_bindlen = cbValueMax;
-	cur->column_lenbind = (char *) pcbValue;
-	cur->varaddr = (char *) rgbValue;
+	cur->ard_sql_desc_type = fCType;
+	cur->ard_sql_desc_octet_length = cbValueMax;
+	cur->ard_sql_desc_octet_length_ptr = pcbValue;
+	cur->ard_sql_desc_data_ptr = (char *) rgbValue;
 
 	/* force rebind */
 	stmt->row = 0;
@@ -2175,14 +2195,15 @@ SQLFetch(SQLHSTMT hstmt)
 
 	/* if we bound columns, transfer them to res_info now that we have one */
 	if (stmt->row == 0) {
+		/* TODO this code should simply do not exists... use ARD directly */
 		cur = stmt->bind_head;
 		while (cur) {
 			if (cur->column_number > 0 && cur->column_number <= tds->res_info->num_cols) {
 				colinfo = tds->res_info->columns[cur->column_number - 1];
-				colinfo->column_varaddr = cur->varaddr;
-				colinfo->column_bindtype = cur->column_bindtype;
-				colinfo->column_bindlen = cur->column_bindlen;
-				colinfo->column_lenbind = cur->column_lenbind;
+				colinfo->column_varaddr = cur->ard_sql_desc_data_ptr;
+				colinfo->column_bindtype = cur->ard_sql_desc_type;
+				colinfo->column_bindlen = cur->ard_sql_desc_octet_length;
+				colinfo->column_lenbind = (char *) cur->ard_sql_desc_octet_length_ptr;
 			} else {
 				/* log error ? */
 			}

@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.44 2003-08-26 14:57:36 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.45 2003-08-26 15:50:42 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -229,20 +229,21 @@ struct _hstmt
 	/** number of parameter in current query */
 	unsigned int param_count;
 	int row;
-	TDSDYNAMIC *dyn;	/* FIXME check if freed */
+	/* do NOT free dynamic, free from socket or attach to connection */
+	TDSDYNAMIC *dyn;
 	struct _sql_errors errs;
-	char ard, ird, apd, ipd;
+	TDS_DESC *ard, *ird, *apd, *ipd;
 	SQLRETURN lastrc;
 };
 
 struct _sql_param_info
 {
 	int param_number;
-	int ipd_sql_desc_parameter_type;
-	int apd_sql_desc_type;
-	int ipd_sql_desc_type;
-	char *apd_sql_desc_data_ptr;
-	int apd_sql_desc_octet_length;
+	SQLSMALLINT ipd_sql_desc_parameter_type;
+	SQLSMALLINT apd_sql_desc_type;
+	SQLSMALLINT ipd_sql_desc_type;
+	SQLPOINTER apd_sql_desc_data_ptr;
+	SQLINTEGER apd_sql_desc_octet_length;
 	/* also APD SQL_DESC_INDICATOR_PTR */
 	SQLINTEGER *apd_sql_desc_octet_length_ptr;
 	/** this parameter is used if provided param_lenbind is NULL */
@@ -253,10 +254,11 @@ struct _sql_param_info
 struct _sql_bind_info
 {
 	int column_number;
-	int column_bindtype;
-	int column_bindlen;
-	char *varaddr;
-	char *column_lenbind;
+	SQLSMALLINT ard_sql_desc_type;
+	SQLINTEGER ard_sql_desc_octet_length;
+	SQLPOINTER ard_sql_desc_data_ptr;
+	/* also ARD SQL_DESC_INDICATOR_PTR */
+	SQLLEN *ard_sql_desc_octet_length_ptr;
 	struct _sql_bind_info *next;
 };
 

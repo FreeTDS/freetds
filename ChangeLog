@@ -1,3 +1,11 @@
+Tue Aug 26 17:50:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue changing field names
+	- correct field type
+	- allocate descriptors correctly (still not used very much)
+	* src/odbc/odbc_util.c:
+	- small fix returning result from store procedures
+
 Tue Aug 26 16:57:11 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/prepare_query.c src/odbc/sql2tds.c:

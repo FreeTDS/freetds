@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.40 2003-08-26 14:57:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.41 2003-08-26 15:50:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -124,7 +124,7 @@ odbc_set_return_status(struct _hstmt *stmt)
 		param = odbc_find_param(stmt, 1);
 		if (param) {
 			int len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-						  param->ipd_sql_desc_type, param->apd_sql_desc_data_ptr,
+						  param->apd_sql_desc_type, param->apd_sql_desc_data_ptr,
 						  param->apd_sql_desc_octet_length);
 
 			if (TDS_FAIL == len)
