@@ -1,3 +1,7 @@
+Mon Feb 09 16:35:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/numeric.c:
+	- fix a Bus Error on some architecture (like SPARC)
+
 Fri Jan 30 17:02:58 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c log reason for iconv init failure
 

@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.24 2003-12-07 06:13:08 jklowden Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.24.2.1 2004-02-09 15:32:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -78,11 +78,9 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	TDS_INT8 mymoney;
 	char *p;
 
-#ifdef WORDS_BIGENDIAN
-	mymoney = *((TDS_INT8*) money);
-#else
+	/* sometimes money it's only 4-byte aligned so always compute 64-bit */
+	/* FIXME align money/double/bigint in row to 64-bit */
 	mymoney = (((TDS_INT8)(((TDS_INT*)money)[0])) << 32) | ((TDS_UINT*) money)[1];
-#endif
 
 	p = s;
 	if (mymoney < 0) {
