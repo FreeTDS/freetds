@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.60 2004-02-11 14:34:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.61 2004-02-12 16:55:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -277,7 +277,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBMONEY4:
 		return SQL_DOUBLE;
 	case SYBMONEYN:
-		break;
+		return SQL_DOUBLE;
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:

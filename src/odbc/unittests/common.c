@@ -4,12 +4,13 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: common.c,v 1.24 2003-12-26 18:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.25 2004-02-12 16:55:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
 HDBC Connection;
 HSTMT Statement;
+int use_odbc_version3 = 0;
 
 char USER[512];
 char SERVER[512];
@@ -143,6 +144,10 @@ Connect(void)
 		printf("Unable to allocate env\n");
 		exit(1);
 	}
+
+	if (use_odbc_version3)
+		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+
 	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
 		printf("Unable to allocate connection\n");
 		SQLFreeEnv(Environment);

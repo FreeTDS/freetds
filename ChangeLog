@@ -1,3 +1,10 @@
+Thu Feb 12 17:55:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c: support nullable money
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	- add version ODBC 3 option
+	* src/tds/query.c:
+	- rewrote sp_executesql calls, it was not working
+
 Wed Feb 11 17:47:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: improve SQLPrepare
 	* src/tds/query.c: update doc

@@ -16,12 +16,13 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.10 2003-12-23 21:14:19 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.11 2004-02-12 16:55:29 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern HENV Environment;
 extern HDBC Connection;
 extern HSTMT Statement;
+extern int use_odbc_version3;
 
 extern char USER[512];
 extern char SERVER[512];
