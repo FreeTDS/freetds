@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.64 2004-07-26 14:39:43 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.65 2004-07-27 08:29:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -168,7 +168,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 							     "%d bytes remain.\n", (int) inbytesleft);
 				/* TODO return some sort or error ?? */
 				break;
-			} else {
+			} else if (errno != E2BIG) {
 				/* It's not an incomplete multibyte sequence, or it IS, but we're not anticipating one. */
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: tds_put_string: "
 							     "Gave up converting %d bytes due to error %d.\n", 

@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.13 2004-06-17 15:39:58 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.14 2004-07-27 08:29:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -127,8 +127,10 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 		return CS_SUCCEED;
 	}
 
-	/* check whether the request is for array binding and ensure that user */
-	/* supplies the same datafmt->count to the subsequent ct_bind calls	*/
+	/*
+	 * check whether the request is for array binding and ensure that user
+	 * supplies the same datafmt->count to the subsequent ct_bind calls
+	 */
 
 	bind_count = (datafmt->count == 0) ? 1 : datafmt->count;
 
@@ -211,8 +213,10 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
 
-	/* There are other options that can be returned, but these are the
-	 ** only two being noted via the TDS layer. */
+	/*
+	 * There are other options that can be returned, but these are the
+	 * only two being noted via the TDS layer.
+	 */
 	datafmt->status = 0;
 	if (curcol->column_nullable)
 		datafmt->status |= CS_CANBENULL;
@@ -388,6 +392,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 	tds = blkdesc->con->tds_socket;
 
+	/* TODO quote tablename if needed */
 	if (tds_submit_queryf(tds, "select * from %s where 0 = 1", blkdesc->tablename) == TDS_FAIL) {
 		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
@@ -416,16 +421,11 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	}
 
 
-	bindinfo->num_cols = resinfo->num_cols;
 	bindinfo->row_size = resinfo->row_size;
-
-	bindinfo->columns = (TDSCOLUMN **) malloc(resinfo->num_cols * sizeof(TDSCOLUMN *));
 
 	for (i = 0; i < bindinfo->num_cols; i++) {
 
-		bindinfo->columns[i] = (TDSCOLUMN *) malloc(sizeof(TDSCOLUMN));
 		curcol = bindinfo->columns[i];
-		memset(curcol, '\0', sizeof(TDSCOLUMN));
 
 		curcol->column_type = resinfo->columns[i]->column_type;
 		curcol->column_usertype = resinfo->columns[i]->column_usertype;
@@ -445,7 +445,11 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 		memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
 
-		curcol->bcp_column_data = tds_alloc_bcp_column_data(curcol->on_server.column_size);
+		if (is_numeric_type(curcol->column_type)) {
+			curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
+		} else {
+			curcol->bcp_column_data = tds_alloc_bcp_column_data(curcol->on_server.column_size);
+		}
 	}
 
 	bindinfo->current_row = tds_alloc_row(bindinfo);
@@ -618,8 +622,10 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
 
-	/* the first time blk_xfer called after blk_init() */
-	/* do the query and get to the row data...		 */
+	/*
+	 * the first time blk_xfer called after blk_init()
+	 * do the query and get to the row data...
+	 */
 
 	if (blkdesc->xfer_init == 0) {
 
@@ -692,13 +698,17 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
 
-	/* the first time blk_xfer called after blk_init() */
-	/* do the query and get to the row data...		 */
+	/*
+	 * the first time blk_xfer called after blk_init()
+	 * do the query and get to the row data...
+	 */
 
 	if (blkdesc->xfer_init == 0) {
 
-		/* first call the start_copy function, which will */
-		/* retrieve details of the database table columns */
+		/*
+		 * first call the start_copy function, which will
+		 * retrieve details of the database table columns
+		 */
 
 		if (_rowxfer_in_init(blkdesc) == CS_FAIL)
 			return (CS_FAIL);
@@ -814,9 +824,11 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 	
 			bcpcol = blkdesc->bindinfo->columns[i];
 
-			/* work out storage required for thsi datatype */
-			/* blobs always require 16, numerics vary, the */
-			/* rest can be taken from the server           */
+			/*
+			 * work out storage required for thsi datatype
+			 * blobs always require 16, numerics vary, the
+			 * rest can be taken from the server
+			 */
 
 			if (is_blob_type(bcpcol->on_server.column_type))
 				column_bcp_data_size  = 16;
@@ -825,8 +837,10 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 			else
 				column_bcp_data_size  = bcpcol->column_size;
 
-			/* now add that size into either fixed or variable */
-			/* column totals...                                */
+			/*
+			 * now add that size into either fixed or variable
+			 * column totals...
+			 */
 
 			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable) {
 				blkdesc->var_cols++;
@@ -1046,8 +1060,10 @@ _blk_send_colmetadata(CS_BLKDESC * blkdesc)
 	for (i = 0; i < blkdesc->bindinfo->num_cols; i++) {
 		bcpcol = blkdesc->bindinfo->columns[i];
 
-		/* dont send the (meta)data for timestamp columns, or   */
-		/* identity columns (unless indentity_insert is enabled */
+		/*
+		 * dont send the (meta)data for timestamp columns, or
+		 * identity columns (unless indentity_insert is enabled
+		 */
 
 		if ((!blkdesc->identity_insert_on && bcpcol->column_identity) || 
 			bcpcol->column_timestamp) {
@@ -1137,8 +1153,10 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 	
 			bindcol = blkdesc->bindinfo->columns[i];
 
-			/* dont send the (meta)data for timestamp columns, or   */
-			/* identity columns (unless indentity_insert is enabled */
+			/*
+			 * dont send the (meta)data for timestamp columns, or
+			 * identity columns (unless indentity_insert is enabled
+			 */
 
 			if ((!blkdesc->identity_insert_on && bindcol->column_identity) || 
 				bindcol->column_timestamp) {
@@ -1237,8 +1255,10 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 	else {
 			memset(record, '\0', old_record_size);	/* zero the rowbuffer */
 
-			/* offset 0 = number of var columns */
-			/* offset 1 = row number.  zeroed (datasever assigns) */
+			/*
+			 * offset 0 = number of var columns
+			 * offset 1 = row number.  zeroed (datasever assigns)
+			 */
 			row_pos = 2;
 
 			if ((row_pos = _blk_add_fixed_columns(blkdesc, offset, record, row_pos)) == CS_FAIL)
@@ -1280,8 +1300,10 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 					tds_put_smallint(tds, 0);
 					tds_put_byte(tds, bindcol->column_type);
 					tds_put_byte(tds, 0xff - blob_cols);
-					/* offset of txptr we stashed during variable
-					 * ** column processing */
+					/*
+					 * offset of txptr we stashed during variable
+					 * column processing 
+					 */
 					tds_put_smallint(tds, bindcol->column_textpos);
 					tds_put_int(tds, bindcol->bcp_column_data->datalen);
 					tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
@@ -1349,10 +1371,9 @@ _blk_add_fixed_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuff
 	return row_pos;
 }
 
-/*
+/**
  * Add variable size columns to the row
  */
-
 static int
 _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols)
 {
@@ -1372,8 +1393,10 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 	int i, adjust_table_entries_required;
 
-	/* Skip over two bytes. These will be used to hold the entire record length */
-	/* once the record has been completely built.                               */
+	/*
+	 * Skip over two bytes. These will be used to hold the entire record length
+	 * once the record has been completely built.
+	 */
 
 	row_pos = start + 2;
 
@@ -1385,8 +1408,10 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 		bcpcol = blkdesc->bindinfo->columns[i];
 
-		/* is this column of "variable" type, i.e. NULLable */
-		/* or naturally variable length e.g. VARCHAR        */
+		/*
+		 * is this column of "variable" type, i.e. NULLable
+		 * or naturally variable length e.g. VARCHAR
+		 */
 
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
@@ -1396,8 +1421,10 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 		 		return CS_FAIL;
 			}
 
-			/* but if its a NOT NULL column, and we have no data */
-			/* throw an error                                    */
+			/*
+			 * but if its a NOT NULL column, and we have no data
+			 * throw an error
+			 */
 
 			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->null_column) {
 				/* No value or default value available and NULL not allowed. col = %d row = %d. */
@@ -1426,9 +1453,11 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 			if (cpbytes > 0) {
 
-				/* update offset table. Each entry in the offset table is a single byte */
-				/* so can only hold a maximum value of 255. If the real offset is more  */
-				/* than 255 we will have to add one or more entries in the adjust table */
+				/*
+				 * update offset table. Each entry in the offset table is a single byte
+				 * so can only hold a maximum value of 255. If the real offset is more
+				 * than 255 we will have to add one or more entries in the adjust table
+				 */
 
 				offset_table[offset_pos++] = row_pos % 256;
 
@@ -1436,8 +1465,10 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 				num_cols++;
 
-				/* how many times does 256 have to be added to the one byte offset to   */
-				/* calculate the REAL offset...                                         */
+				/*
+				 * how many times does 256 have to be added to the one byte offset to
+				 * calculate the REAL offset...
+				 */
 
 				this_adjustment_increment = row_pos / 256;
 
@@ -1445,9 +1476,11 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 				if (this_adjustment_increment > last_adjustment_increment) {
 
-					/* add n entries to the adjust table. each entry represents */
-					/* an adjustment of 256 bytes, and each entry holds the     */
-					/* column number for which the adjustment needs to be made  */
+					/*
+					 * add n entries to the adjust table. each entry represents
+					 * an adjustment of 256 bytes, and each entry holds the
+					 * column number for which the adjustment needs to be made
+					 */
 
 					for ( adjust_table_entries_required = this_adjustment_increment - last_adjustment_increment;
 						  adjust_table_entries_required > 0;
@@ -1504,7 +1537,6 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 	CS_INT null_column = 0;
 	
 	unsigned char *src = NULL;
-	unsigned char *temp_add = NULL;
 
 	CS_INT      srctype = 0;
 	CS_INT      srclen  = 0;
@@ -1514,11 +1546,13 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 	CS_CONTEXT *ctx = blkdesc->con->ctx;
 	CS_DATAFMT srcfmt, destfmt;
 
-	/* retrieve the initial bound column_varaddress */
-	/* and increment it if offset specified		 */
+	/*
+	 * retrieve the initial bound column_varaddress
+	 * and increment it if offset specified
+	 */
 
-	temp_add = (unsigned char *) bindcol->column_varaddr;
-	src = temp_add + (offset * bindcol->column_bindlen);
+	src = (unsigned char *) bindcol->column_varaddr;
+	src += offset * bindcol->column_bindlen;
 	
 	if (bindcol->column_nullbind) {
 		nullind = bindcol->column_nullbind;
