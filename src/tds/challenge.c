@@ -31,9 +31,7 @@
 
 /**
  * \defgroup auth Authentication
- */
-
-/** \addtogroup auth
+ * \addtogroup auth
  *  \@{ 
  */
 
@@ -55,7 +53,7 @@ void tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER* 
 #define MAX_PW_SZ 14
 int   len;
 int i;
-static des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
+static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 DES_KEY ks;
 unsigned char hash[24];
 unsigned char passwd_up[MAX_PW_SZ];

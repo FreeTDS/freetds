@@ -33,7 +33,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.50 2002-09-30 14:41:51 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.51 2002-09-30 20:18:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -312,19 +312,19 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 /*   char *tmpbuf;
    int tmplen;*/
 #ifdef WORDS_BIGENDIAN
-   unsigned char be1[]= {0x02,0x00,0x06,0x04,0x08,0x01};
+   static const unsigned char be1[]= {0x02,0x00,0x06,0x04,0x08,0x01};
 #endif
-   unsigned char le1[]= {0x03,0x01,0x06,0x0a,0x09,0x01};
-   unsigned char magic2[]={0x00,0x00};
+   static const unsigned char le1[]= {0x03,0x01,0x06,0x0a,0x09,0x01};
+   static const unsigned char magic2[]={0x00,0x00};
    
-   unsigned char magic3[]= {0x00,0x00,0x00};
+   static const unsigned char magic3[]= {0x00,0x00,0x00};
    
 /* these seem to endian flags as well 13,17 on intel/alpha 12,16 on power */
    
 #ifdef WORDS_BIGENDIAN
-   unsigned char be2[]= {0x00,12,16};
+   static const unsigned char be2[]= {0x00,12,16};
 #endif
-   unsigned char le2[]= {0x00,13,17};
+   static const unsigned char le2[]= {0x00,13,17};
    
    /* 
    ** the former byte 0 of magic5 causes the language token and message to be 
@@ -332,12 +332,14 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    ** of setting this in the client layer, but I am not aware of any thing of
    ** the sort -- bsb 01/17/99
    */
-   unsigned char magic5[]= {0x00,0x00};
-   unsigned char magic6[]= {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-   unsigned char magic7=   0x01;
+   static const unsigned char magic5[]= {0x00,0x00};
+   static const unsigned char magic6[]= 
+   	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+   static const unsigned char magic7=   0x01;
    
-   unsigned char magic42[]= {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-   unsigned char magic50[]= {0x00,0x00,0x00,0x00};
+   static const unsigned char magic42[]= 
+   	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+   static const unsigned char magic50[]= {0x00,0x00,0x00,0x00};
 /*
 ** capabilities are now part of the tds structure.
    unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
@@ -407,10 +409,12 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       rc|=tds_put_login_string(tds,config->password,255);
    } else {
 	 if(config->password == NULL) {
+		/* FIXME check out of memory */
 		asprintf(&passwdstr, "%c%c%s", 0, 0, "");
       		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
 		free(passwdstr);
 	 } else {
+		/* FIXME check out of memory */
       		asprintf(&passwdstr, "%c%c%s",0,
 			(unsigned char)strlen(config->password),
 			config->password);
@@ -442,6 +446,7 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    rc|=tds_put_n(tds,magic6,10);
    rc|=tds_put_login_string(tds,config->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
    rc|=tds_put_byte(tds,magic7);
+   /* FIXME check out of memory */
    asprintf(&blockstr,"%d",config->block_size);
    rc|=tds_put_login_string(tds,blockstr,6); /* network packet size */
    free(blockstr);
@@ -616,12 +621,13 @@ unsigned const char *magic1 = magic1_server;
 	0x00,0x09,0x04,0x00,
 	0x00};
 #endif
-static const unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
+/* TODO read correct MAC address instead of using a dummy one */
+static const unsigned char hwaddr[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
 /* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 unsigned char unicode_string[255];
 int packet_size;
 int current_pos;
-static const unsigned char magic3[] = "NTLMSSP";
+static const unsigned char ntlm_id[] = "NTLMSSP";
 int domain_login = config->try_domain_login ? 1 : 0;
 
 const char* domain = config->default_domain;
@@ -715,7 +721,7 @@ int auth_len = 0;
    tds_put_smallint(tds,0); 
 
    /* MAC address */
-   tds_put_n(tds,magic2,6);
+   tds_put_n(tds,hwaddr,6);
 
    /* authentication stuff */
    tds_put_smallint(tds, current_pos);
@@ -749,7 +755,7 @@ int auth_len = 0;
 
    if (domain_login) {
    /* from here to the end of the packet is the NTLMSSP authentication */
-	tds_put_n(tds,magic3,8);
+	tds_put_n(tds,ntlm_id,8);
    /* sequence 1 client -> server */
 	tds_put_int(tds,1);
 	/* flags */

@@ -1,3 +1,9 @@
+Mon Sep 30 22:15:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/Makefile.am: fix distribution
+	* src/tds/challenge.c src/tds/login.c:
+	- optimization (use static const buffers to initialize at compile time)
+	* src/tds/config.c: check some allocation
+
 Mon Sep 30 13:28:47 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/bcp.c:
 	- Move generation of SYBEBBCI error into _bcp_start_new_batch()

@@ -5,7 +5,7 @@ include_HEADERS	=	cspublic.h ctpublic.h sybdb.h sybfront.h  \
 			tdssrv.h
 
 EXTRA_DIST     =    tds_configs.h.in tds_configs.h \
-		tdsiconv.h md4.h
+		tdsiconv.h md4.h des.h
 
 all-local: tds_configs.h 
 
