@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.188 2003-07-25 15:31:17 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.189 2003-07-27 11:27:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2724,9 +2724,44 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
 {
 	int retcode;
-	char nullable[2], scope[2];
+	char nullable[2], scope[2], col_type[2];
 
 	INIT_HSTMT;
+
+#ifdef TDS_NO_DM
+	/* Check column type */
+	if (fColType != SQL_BEST_ROWID && fColType != SQL_ROWVER) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY097", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* check our buffer lengths */
+	if (!IS_VALID_LEN(cbCatalogName) || !IS_VALID_LEN(cbSchemaName) || !IS_VALID_LEN(cbTableName)) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY090", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* Check nullable */
+	if (fNullable != SQL_NO_NULLS && fNullable != SQL_NULLABLE) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY099", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	if (!odbc_get_string_size(cbTableName, szTableName)) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY009", "SQLSpecialColumns: The table name parameter is required", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	switch (fScope) {
+	case SQL_SCOPE_CURROW:
+	case SQL_SCOPE_TRANSACTION:
+	case SQL_SCOPE_SESSION:
+		break;
+	default:
+		odbc_errs_ms_add(&stmt->errs, 0, "HY098", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+#endif
 
 	nullable[1] = 0;
 	if (fNullable == SQL_NO_NULLS)
@@ -2736,15 +2771,22 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 
 	scope[1] = 0;
 	if (fScope == SQL_SCOPE_CURROW)
-		scope[0] = 'O';
+		scope[0] = 'C';
 	else
 		scope[0] = 'T';
 
+	col_type[1] = 0;
+	if (fScope == SQL_BEST_ROWID)
+		col_type[0] = 'R';
+	else
+		col_type[0] = 'V';
+
 	retcode =
-		odbc_stat_execute(stmt, "sp_special_columns ", 5,
+		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->hdbc->tds_socket) ? 6 : 4,
 				  "", szTableName, cbTableName,
 				  "@owner", szSchemaName, cbSchemaName,
-				  "@qualifier", szCatalogName, cbCatalogName, "@scope", scope, 1, "@nullable", nullable, 1);
+				  "@qualifier", szCatalogName, cbCatalogName,
+				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
@@ -2759,13 +2801,52 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	      SQLUSMALLINT fAccuracy)
 {
 	int retcode;
+	char unique[2], accuracy[1];
 
 	INIT_HSTMT;
 
+#ifdef TDS_NO_DM
+	/* check our buffer lengths */
+	if (!IS_VALID_LEN(cbCatalogName) || !IS_VALID_LEN(cbSchemaName) || !IS_VALID_LEN(cbTableName)) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY090", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* check our uniqueness value */
+	if (fUnique != SQL_INDEX_UNIQUE && fUnique != SQL_INDEX_ALL) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY100", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* check our accuracy value */
+	if (fAccuracy != SQL_QUICK && fAccuracy != SQL_ENSURE) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY101", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	if (!odbc_get_string_size(cbTableName, szTableName)) {
+		odbc_errs_ms_add(&stmt->errs, 0, "HY009", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+#endif
+
+	accuracy[1] = 0;
+	if (fAccuracy == SQL_ENSURE)
+		accuracy[0] = 'E';
+	else
+		accuracy[0] = 'Q';
+
+	unique[1] = 0;
+	if (fUnique == SQL_INDEX_UNIQUE)
+		unique[0] = 'Y';
+	else
+		unique[0] = 'N';
+
 	retcode =
-		odbc_stat_execute(stmt, "sp_statistics ", 3,
+		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->hdbc->tds_socket) ? 5 : 4,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
-				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
+				  "@table_owner", szSchemaName, cbSchemaName,
+				  "@table_name", szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");

@@ -1,3 +1,9 @@
+Sun Jul 27 13:25:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: update version
+	* src/odbc/odbc.c:
+	- small merge (statistics functions) from Steve patch
+	- some fixes for Sybase
+
 Fri Jul 25 16:11:29 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0014.c nicer user feedback
 
