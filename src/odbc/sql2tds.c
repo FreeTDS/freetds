@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: sql2tds.c,v 1.37 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: sql2tds.c,v 1.38 2005-01-07 12:49:37 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -117,13 +117,13 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 	int need_data = 0, i;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, drec_ipd->sql_desc_concise_type);
+	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ipd->sql_desc_concise_type);
 
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 	if (dest_type == TDS_FAIL)
 		return SQL_ERROR;
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
+	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
@@ -265,7 +265,7 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 	res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
 	if (res < 0)
 		return SQL_ERROR;
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
+	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
 	/* truncate ?? */
 	/* TODO what happen for blobs ?? */

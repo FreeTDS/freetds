@@ -1,3 +1,6 @@
+Fri Dec  7 13:49:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/sql2tds.c: update logging
+
 Thu Jan  6 23:44:59 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/rpc.c correct rpc unittest
 
@@ -8,11 +11,11 @@ Wed Jan  5 22:07:07 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
 	- Patch 1095806 by Bill Thompson
 	- PRINT packets handled correctly (do not yield stale metadata).
-	
+
 Fri Dec 31 14:15:28 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c use getopt(3)
 	* src/dblib/bcp.c firstrow and lastrow are independent
-	
+
 Wed Dec 22 21:09:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: fix memory leak reported by Brad Rittenhouse
 
