@@ -43,7 +43,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.12 2002-08-30 21:09:22 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.13 2002-09-12 14:45:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,6 +52,7 @@ static RETCODE _bcp_build_bulk_insert_stmt(char *, BCP_COLINFO *, int );
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int     _bcp_rtrim_varchar(char *, int );
+static void    _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno);
 
 
 RETCODE bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
@@ -96,13 +97,13 @@ char query[256];
 
     if (tblname == (char *)NULL)
     {
-       _bcp_err_handler(dbproc, BCPEBCITBNM);
+       _bcp_err_handler(dbproc, SYBEBCITBNM);
        return (FAIL);
     }
 
     if (strlen(tblname) > 92 ) /* 30.30.30 */
     {
-       _bcp_err_handler(dbproc, BCPEBCITBLEN);
+       _bcp_err_handler(dbproc, SYBEBCITBLEN);
        return (FAIL);
     }
 
@@ -113,7 +114,7 @@ char query[256];
        dbproc->bcp_direction = direction;
     else 
     {
-       _bcp_err_handler(dbproc, BCPEBDIO);
+       _bcp_err_handler(dbproc, SYBEBDIO);
        return (FAIL);
     }
 
@@ -190,13 +191,13 @@ BCP_HOSTCOLINFO *hostcol;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
 
     if (dbproc->bcp_direction != DB_IN)
     {
-      _bcp_err_handler(dbproc, BCPEBCPN);
+      _bcp_err_handler(dbproc, SYBEBCPN);
       return FAIL;
     }
 
@@ -218,18 +219,18 @@ int i;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     if(dbproc->bcp_hostfile == (char *)NULL)
     {
-      _bcp_err_handler(dbproc, BCPEBIVI);
+      _bcp_err_handler(dbproc, SYBEBIVI);
       return FAIL;
     }
 
     if(host_colcount < 1)
     {
-      _bcp_err_handler(dbproc, BCPEBCFO);
+      _bcp_err_handler(dbproc, SYBEBCFO);
       return FAIL;
     }
 
@@ -254,19 +255,19 @@ BCP_HOSTCOLINFO *hostcol;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
 
     if(dbproc->bcp_hostfile == (char *)NULL)
     {
-      _bcp_err_handler(dbproc, BCPEBIVI);
+      _bcp_err_handler(dbproc, SYBEBIVI);
       return FAIL;
     }
 
     if (dbproc->host_colcount == 0) 
     {
-      _bcp_err_handler(dbproc, BCPEBCBC);
+      _bcp_err_handler(dbproc, SYBEBCBC);
       return FAIL;
     }
 
@@ -277,26 +278,26 @@ BCP_HOSTCOLINFO *hostcol;
         host_prefixlen != 2 && host_prefixlen != 4 &&
         host_prefixlen != -1 )
     {
-      _bcp_err_handler(dbproc, BCPEBCPREF);
+      _bcp_err_handler(dbproc, SYBEBCPREF);
       return FAIL;
     }
 
     if (table_colnum == 0 && host_type == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPCTYP);
+      _bcp_err_handler(dbproc, SYBEBCPCTYP);
       return FAIL;
     }
 
     if (host_prefixlen == 0 && host_collen == -1 && 
         host_termlen == -1 && !is_fixed_type(host_type))
     {
-      _bcp_err_handler(dbproc, BCPEVDPT);
+      _bcp_err_handler(dbproc, SYBEVDPT);
       return FAIL;
     }
 
     if (host_collen < -1)
     {
-      _bcp_err_handler(dbproc, BCPEBCHLEN);
+      _bcp_err_handler(dbproc, SYBEBCHLEN);
       return FAIL;
     }
 
@@ -325,7 +326,7 @@ RETCODE bcp_colfmt_ps(DBPROCESS *dbproc, int host_colnum, int host_type, int hos
 {
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     return SUCCEED;
@@ -337,7 +338,7 @@ RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value)
 {
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
 
@@ -349,7 +350,7 @@ RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value)
        case BCPBATCH:   dbproc->bcpbatch = value; break;
 
        default:
-            _bcp_err_handler(dbproc, BCPEIFNB);
+            _bcp_err_handler(dbproc, SYBEIFNB);
             return FAIL;
     } 
     return SUCCEED;
@@ -362,12 +363,12 @@ BCP_HOSTCOLINFO *hostcol;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     if (dbproc->bcp_direction != DB_IN)
     {
-      _bcp_err_handler(dbproc, BCPEBCPN);
+      _bcp_err_handler(dbproc, SYBEBCPN);
       return FAIL;
     }
 
@@ -425,7 +426,7 @@ int           rows_written;
 
     if (! (hostfile = fopen(dbproc->bcp_hostfile, "w"))) 
     {
-        _bcp_err_handler(dbproc, BCPEBCUO);
+        _bcp_err_handler(dbproc, SYBEBCUO);
         return FAIL;
     }
 
@@ -629,7 +630,7 @@ int           rows_written;
     }
     if (fclose(hostfile) != 0)
     {
-       _bcp_err_handler(dbproc, BCPEBCUC);
+       _bcp_err_handler(dbproc, SYBEBCUC);
        return (FAIL);
     }
 
@@ -643,7 +644,7 @@ int           rows_written;
         * to skip.  
         */
 
-       _bcp_err_handler(dbproc, BCPETTS);
+       _bcp_err_handler(dbproc, SYBETTS);
        return (FAIL);
     }
 
@@ -694,7 +695,7 @@ BYTE *coldata;
                 case 1:
                     if (fread(&ti, 1, 1, hostfile) != 1)
                     {
-                       _bcp_err_handler(dbproc, BCPEBCRE);
+                       _bcp_err_handler(dbproc, SYBEBCRE);
                         return (FAIL);
                     }
                     collen = ti;
@@ -702,7 +703,7 @@ BYTE *coldata;
                 case 2:
                     if (fread(&si, 2, 1, hostfile) != 1)
                     {
-                       _bcp_err_handler(dbproc, BCPEBCRE);
+                       _bcp_err_handler(dbproc, SYBEBCRE);
                         return (FAIL);
                     }
                     collen = si;
@@ -710,7 +711,7 @@ BYTE *coldata;
                 case 4:
                     if (fread(&li, 4, 1, hostfile) != 1)
                     {
-                       _bcp_err_handler(dbproc, BCPEBCRE);
+                       _bcp_err_handler(dbproc, SYBEBCRE);
                         return (FAIL);
                     }
                     collen = li;
@@ -810,7 +811,7 @@ BYTE *coldata;
            {
               if (fread(coldata, collen, 1, hostfile) != 1)
               {
-                 _bcp_err_handler(dbproc, BCPEBCRE);
+                 _bcp_err_handler(dbproc, SYBEBCRE);
                  return (FAIL);
               }
            }
@@ -940,7 +941,7 @@ int i;
 
             if (!(bcpcol->db_nullable) && bcpcol->data_size == 0 )
             {
-               _bcp_err_handler(dbproc, BCPEBCNN);
+               _bcp_err_handler(dbproc, SYBEBCNN);
                return FAIL;
             }
 
@@ -997,7 +998,7 @@ int i;
  
             if (!(bcpcol->db_nullable) && bcpcol->data_size == 0 )
             {
-               _bcp_err_handler(dbproc, BCPEBCNN);
+               _bcp_err_handler(dbproc, SYBEBCNN);
                return FAIL;
             }
 
@@ -1044,8 +1045,8 @@ int i;
 
     /* write the adjust table (right to left) */
     for (i=adjust_pos-1;i>=0;i--) {
-        fprintf(stderr,"adjust %d\n",adjust_table[i]);
-        rowbuffer[row_pos++]=adjust_table[i];
+      /* fprintf(stderr,"adjust %d\n",adjust_table[i]); */
+      rowbuffer[row_pos++]=adjust_table[i];
     }
 
     /* the EOD (end of data) pointer */
@@ -1053,8 +1054,8 @@ int i;
     
     /* write the offset table (right to left) */
     for (i=offset_pos-1;i>=0;i--) {
-        fprintf(stderr,"offset %d\n",offset_table[i]);
-        rowbuffer[row_pos++]=offset_table[i];
+      /* fprintf(stderr,"offset %d\n",offset_table[i]); */
+      rowbuffer[row_pos++]=offset_table[i];
     }
 
     return row_pos;
@@ -1090,18 +1091,18 @@ unsigned char row_token         = 0xd1;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     if (dbproc->bcp_hostfile != (char *)NULL)
     {
-      _bcp_err_handler(dbproc, BCPEBCPB);
+      _bcp_err_handler(dbproc, SYBEBCPB);
       return FAIL;
     }
 
     if (dbproc->bcp_direction != DB_IN)
     {
-      _bcp_err_handler(dbproc, BCPEBCPN);
+      _bcp_err_handler(dbproc, SYBEBCPN);
       return FAIL;
     }
 
@@ -1176,7 +1177,7 @@ unsigned char row_token         = 0xd1;
                  }
                  else
                  {
-                    _bcp_err_handler(dbproc, BCPEBCNN);
+                    _bcp_err_handler(dbproc, SYBEBCNN);
                     return FAIL;
                  }
               }
@@ -1310,7 +1311,7 @@ unsigned char row_token         = 0xd1;
 
     if (! (hostfile = fopen(dbproc->bcp_hostfile, "r"))) 
     {
-        _bcp_err_handler(dbproc, BCPEBCUO);
+        _bcp_err_handler(dbproc, SYBEBCUO);
         return FAIL;
     }
 
@@ -1367,7 +1368,7 @@ unsigned char row_token         = 0xd1;
                      }
                      else
                      {
-                        _bcp_err_handler(dbproc, BCPEBCNN);
+                        _bcp_err_handler(dbproc, SYBEBCNN);
                         return FAIL;
                      }
                   }
@@ -1476,6 +1477,7 @@ unsigned char row_token         = 0xd1;
                  }
               } while (marker!=TDS_DONE_TOKEN);
 
+	      _bcp_err_handler(dbproc, SYBEBBCI);
               _bcp_start_new_batch(dbproc);
 
            }
@@ -1484,7 +1486,7 @@ unsigned char row_token         = 0xd1;
 
     if (fclose(hostfile) != 0)
     {
-       _bcp_err_handler(dbproc, BCPEBCUC);
+       _bcp_err_handler(dbproc, SYBEBCUC);
        return (FAIL);
     }
 
@@ -1511,7 +1513,7 @@ RETCODE ret;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     if (dbproc->bcp_hostfile) 
@@ -1526,7 +1528,7 @@ RETCODE ret;
     }
     else 
     {
-      _bcp_err_handler(dbproc, BCPEBCVH );
+      _bcp_err_handler(dbproc, SYBEBCVH );
       return FAIL;
     }
 }
@@ -1844,13 +1846,13 @@ BCP_HOSTCOLINFO *hostcol;
 
      if (dbproc->bcp_direction == 0)
      {
-        _bcp_err_handler(dbproc, BCPEBCPI);
+        _bcp_err_handler(dbproc, SYBEBCPI);
         return FAIL;
      }
 
      if ((ffile = fopen(filename, "r" )) == (FILE *)NULL)
      {
-        _bcp_err_handler(dbproc, BCPEBUOF);
+        _bcp_err_handler(dbproc, SYBEBUOF);
         return(FAIL);
      }
 
@@ -1904,7 +1906,7 @@ BCP_HOSTCOLINFO *hostcol;
      }
      if (fclose(ffile) != 0)
      {
-        _bcp_err_handler(dbproc, BCPEBUCF);
+        _bcp_err_handler(dbproc, SYBEBUCF);
         return (FAIL);
      }
 
@@ -1970,7 +1972,7 @@ NO_MORE_COLS
 
                 if (ci->host_column < 1)
                 {
-                   _bcp_err_handler(dbproc, BCPEBIHC);
+                   _bcp_err_handler(dbproc, SYBEBIHC);
                    return(FALSE);
                 }
                 
@@ -2010,7 +2012,7 @@ NO_MORE_COLS
                    ci->datatype = SYBDATETIME4;
                 else
                 {
-                   _bcp_err_handler(dbproc, BCPEBUDF);
+                   _bcp_err_handler(dbproc, SYBEBUDF);
                    return(FALSE);
                 }
 
@@ -2078,7 +2080,7 @@ RETCODE bcp_writefmt(DBPROCESS *dbproc, char *filename)
 {
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     return SUCCEED;
@@ -2088,7 +2090,7 @@ RETCODE bcp_moretext(DBPROCESS *dbproc, DBINT size, BYTE *text)
 {
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     return SUCCEED;
@@ -2102,7 +2104,7 @@ int        rows_copied;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
 
@@ -2136,7 +2138,7 @@ int        rows_copied = -1;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
     tds_flush_packet(tds);
@@ -2167,32 +2169,32 @@ BCP_HOSTCOLINFO *hostcol;
 
     if (dbproc->bcp_direction == 0)
     {
-      _bcp_err_handler(dbproc, BCPEBCPI);
+      _bcp_err_handler(dbproc, SYBEBCPI);
       return FAIL;
     }
 
     if (dbproc->bcp_hostfile != (char *)NULL)
     {
-      _bcp_err_handler(dbproc, BCPEBCPB);
+      _bcp_err_handler(dbproc, SYBEBCPB);
       return FAIL;
     }
 
     if (dbproc->bcp_direction != DB_IN)
     {
-      _bcp_err_handler(dbproc, BCPEBCPN);
+      _bcp_err_handler(dbproc, SYBEBCPN);
       return FAIL;
     }
 
     if (varlen < -1 )
     {
-      _bcp_err_handler(dbproc, BCPEBCVLEN);
+      _bcp_err_handler(dbproc, SYBEBCVLEN);
       return FAIL;
     }
 
     if (prefixlen != 0 && prefixlen != 1 &&
         prefixlen != 2 && prefixlen != 4 )
     {
-      _bcp_err_handler(dbproc, BCPEBCBPREF);
+      _bcp_err_handler(dbproc, SYBEBCBPREF);
       return FAIL;
     }
 
@@ -2217,7 +2219,7 @@ BCP_HOSTCOLINFO *hostcol;
         (prefixlen != 0 || termlen != 0)
        )
     {
-      _bcp_err_handler(dbproc, BCPEBCBNPR);
+      _bcp_err_handler(dbproc, SYBEBCBNPR);
       return FAIL;
     }
 
@@ -2548,109 +2550,175 @@ int i;
 
 }
 
-RETCODE _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno)
+static void
+_bcp_err_handler(DBPROCESS *dbproc, int bcp_errno)
 {
-
-char errmsg[512];
+char *errmsg;
+int severity;
 
   switch(bcp_errno) {
 
-     case BCPETTS         : strcpy(errmsg, "The table which bulk-copy is attempting to copy to a host-file "
-                                           "is shorter than the number of rows which bulk-copy was "
-                                           "instructed to skip.");
-                            break;
+  case SYBETTS:
+    errmsg = "The table which bulk-copy is attempting to copy to a "
+      "host-file is shorter than the number of rows which bulk-copy "
+      "was instructed to skip.";
+    severity = EXUSER;
+    break;
 
-     case BCPEBDIO        : strcpy(errmsg, "Bad bulk-copy direction. Must be either IN or OUT.");
-                            break;
+  case SYBEBDIO:
+    errmsg = "Bad bulk-copy direction. Must be either IN or OUT.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCVH        : strcpy(errmsg, "bcp_exec() may be called only after bcp_init() has "
-                                           "been passed a valid host file.");
-                            break;
+  case SYBEBCVH:
+    errmsg = "bcp_exec() may be called only after bcp_init() has "
+      "been passed a valid host file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBIVI        : strcpy(errmsg, "bcp_columns(), bcp_colfmt() and * bcp_colfmt_ps() may be used "
-                                           "only after bcp_init() has been passed a valid input file.");
-                            break;
+  case SYBEBIVI:
+    errmsg = "bcp_columns(), bcp_colfmt() and * bcp_colfmt_ps() may be used "
+      "only after bcp_init() has been passed a valid input file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCBC        : strcpy(errmsg, "bcp_columns() must be called before bcp_colfmt().");
-                            break;
+  case SYBEBCBC:
+    errmsg = "bcp_columns() must be called before bcp_colfmt().";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCFO        : strcpy(errmsg, "Bcp host-files must contain at least one column.");
-                            break;
+  case SYBEBCFO:
+    errmsg = "Bcp host-files must contain at least one column.";
+    severity = EXUSER;
+    break;
 
-     case BCPEBCPB        : strcpy(errmsg, "bcp_bind(), bcp_moretext() and bcp_sendrow() * may NOT be used "
-                                           "after bcp_init() has been passed a non-NULL input file name.");
-                            break;
+  case SYBEBCPB:
+    errmsg = "bcp_bind(), bcp_moretext() and bcp_sendrow() * may NOT be used "
+      "after bcp_init() has been passed a non-NULL input file name.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCPN        : strcpy(errmsg, "bcp_bind(), bcp_collen(), bcp_colptr(), bcp_moretext() and "
-                                           "bcp_sendrow() may be used only after bcp_init() has been called "
-                                           "with the copy direction set to DB_IN.");
-                            break;
+  case SYBEBCPN:
+    errmsg = "bcp_bind(), bcp_collen(), bcp_colptr(), bcp_moretext() and "
+      "bcp_sendrow() may be used only after bcp_init() has been called "
+      "with the copy direction set to DB_IN.";
+    severity = EXPROGRAM;
+    break;
                                  
-     case BCPEBCPI        : strcpy(errmsg, "bcp_init() must be called before any other bcp routines.");
-                            break;
+  case SYBEBCPI:
+    errmsg = "bcp_init() must be called before any other bcp routines.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCITBNM     : strcpy(errmsg, "bcp_init(): tblname parameter cannot be NULL.");
-                            break;
+  case SYBEBCITBNM:
+    errmsg = "bcp_init(): tblname parameter cannot be NULL.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCITBLEN    : strcpy(errmsg, "bcp_init(): tblname parameter is too long.");
-                            break;
+  case SYBEBCITBLEN:
+    errmsg = "bcp_init(): tblname parameter is too long.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCBNPR      : strcpy(errmsg, "bcp_bind(): if varaddr is NULL, prefixlen must be 0 and no "
-                                           "terminator should be ** specified.");
-                            break;
+  case SYBEBCBNPR:
+    errmsg = "bcp_bind(): if varaddr is NULL, prefixlen must be 0 and no "
+      "terminator should be ** specified.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCBPREF     : strcpy(errmsg, "Illegal prefix length. Legal values are 0, 1, 2 or 4.");
-                            break;
+  case SYBEBCBPREF:
+    errmsg = "Illegal prefix length. Legal values are 0, 1, 2 or 4.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEVDPT        : strcpy(errmsg, "For bulk copy, all variable-length data * must have either "
-                                           "a length-prefix or a terminator specified.");
-                            break;
+  case SYBEVDPT:
+    errmsg = "For bulk copy, all variable-length data * must have either "
+      "a length-prefix or a terminator specified.";
+    severity = EXUSER;
+    break;
 
-     case BCPEBCPCTYP     : strcpy(errmsg, "bcp_colfmt(): If table_colnum is 0, ** host_type cannot be 0.");
-                            break;
+  case SYBEBCPCTYP:
+    errmsg = "bcp_colfmt(): If table_colnum is 0, ** host_type cannot be 0.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCHLEN      : strcpy(errmsg, "host_collen should be greater than or equal to -1.");
-                            break;
+  case SYBEBCHLEN:
+    errmsg = "host_collen should be greater than or equal to -1.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCPREF      : strcpy(errmsg, "Illegal prefix length. Legal values are -1, 0, 1, 2 or 4.");
-                            break;
+  case SYBEBCPREF:
+    errmsg = "Illegal prefix length. Legal values are -1, 0, 1, 2 or 4.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCVLEN      : strcpy(errmsg, "varlen should be greater than or equal to -1.");
-                            break;
+  case SYBEBCVLEN:
+    errmsg = "varlen should be greater than or equal to -1.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCUO        : strcpy(errmsg, "Unable to open host data-file.");
-                            break;
+  case SYBEBCUO:
+    errmsg = "Unable to open host data-file.";
+    severity = EXRESOURCE;
+    break;
 
-     case BCPEBUOF        : strcpy(errmsg, "Unable to open format-file.");
-                            break;
+  case SYBEBUOF:
+    errmsg = "Unable to open format-file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBUDF        : strcpy(errmsg, "Unrecognized datatype found in format-file.");
-                            break;
+  case SYBEBUDF:
+    errmsg = "Unrecognized datatype found in format-file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBIHC        : strcpy(errmsg, "Incorrect host-column number found in bcp format-file.");
-                            break;
+  case SYBEBIHC:
+    errmsg = "Incorrect host-column number found in bcp format-file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCUC        : strcpy(errmsg, "Unable to close host data-file.");
-                            break;
+  case SYBEBCUC:
+    errmsg = "Unable to close host data-file.";
+    severity = EXRESOURCE;
+    break;
 
-     case BCPEBUCF        : strcpy(errmsg, "Unable to close format-file.");
-                            break;
+  case SYBEBUCF:
+    errmsg = "Unable to close format-file.";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEIFNB        : strcpy(errmsg, "Illegal field number passed to bcp_control().");
-                            break;
+  case SYBEIFNB:
+    errmsg = "Illegal field number passed to bcp_control().";
+    severity = EXPROGRAM;
+    break;
 
-     case BCPEBCRE        : strcpy(errmsg, "I/O error while reading bcp data-file.");
-                            break;
+  case SYBEBCRE:
+    errmsg = "I/O error while reading bcp data-file.";
+    severity = EXNONFATAL;
+    break;
 
-     case BCPEBCNN        : strcpy(errmsg, "Attempt to bulk-copy a NULL value into Server column which "
-                                           "does not accept NULL values.");
-                            break;
+  case SYBEBCNN:
+    errmsg = "Attempt to bulk-copy a NULL value into Server column which "
+      "does not accept NULL values.";
+    severity = EXUSER;
+    break;
+
+  case SYBEBBCI:
+    errmsg = "Batch successfully bulk-copied to SQL Server.";
+    severity = EXINFO;
+    break;
+
+  default:
+    errmsg = "Unknown bcp error";
+    severity = EXCONSISTENCY;
+    break;
   }
 
-  if(g_dblib_err_handler)
-  {
-     g_dblib_err_handler(dbproc, 0, 0, 0, errmsg, "");
-     return (SUCCEED);
+  if (g_dblib_err_handler) {
+    if (g_dblib_err_handler(dbproc, severity, bcp_errno, -1, errmsg, NULL)
+	== INT_EXIT) {
+      exit(EXIT_FAILURE);
+    }
   }
-
+  return;
 }

@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.16 2002-09-10 14:38:32 castellano Exp $";
+"$Id: sybdb.h,v 1.17 2002-09-12 14:45:50 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -51,16 +51,18 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define INT_CANCEL 2
 #define INT_TIMEOUT 3
 
-/* serverity levels, gleaned from google */
-#define EXINFO       1
-#define EXUSER       2
-#define EXNONFATAL   3
-#define EXCONVERSION 4
-#define EXSERVER     5
-#define EXTIME       6
-#define EXPROGRAM    7
-#define EXRESOURCE   8
-#define EXCOMM       9
+/* severity levels, gleaned from google */
+#define EXINFO         1
+#define EXUSER         2
+#define EXNONFATAL     3
+#define EXCONVERSION   4
+#define EXSERVER       5
+#define EXTIME         6
+#define EXPROGRAM      7
+#define EXRESOURCE     8
+#define EXCOMM         9
+#define EXFATAL       10
+#define EXCONSISTENCY 11
 
 #define DBMAXNUMLEN 33
 #define MAXNAME     30
@@ -562,33 +564,35 @@ char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
 #define SYBETIME        20003   /* SQL Server connection timed out. */
 #define SYBECLOS        20056   /* Error in closing network connection. */
 
-#define BCPETTS          80001
-#define BCPEBDIO         80002
-#define BCPEBCVH         80003
-#define BCPEBIVI         80004
-#define BCPEBCBC         80005
-#define BCPEBCFO         80006
-#define BCPEBCPB         80007
-#define BCPEBCPN         80008
-#define BCPEBCPI         80009
-#define BCPEBCITBNM      80010
-#define BCPEBCITBLEN     80011
-#define BCPEBCBNPR       80012
-#define BCPEBCBPREF      80013
-#define BCPEVDPT         80014
-#define BCPEBCPCTYP      80015
-#define BCPEBCHLEN       80016
-#define BCPEBCPREF       80017
-#define BCPEBCVLEN       80018
-#define BCPEBCUO         80019
-#define BCPEBUOF         80020
-#define BCPEBUDF         80021
-#define BCPEBIHC         80022
-#define BCPEBCUC         80023
-#define BCPEBUCF         80024
-#define BCPEIFNB         80025
-#define BCPEBCRE         80026
-#define BCPEBCNN         80027
+#define SYBETTS          20066
+#define SYBEBDIO         20063
+#define SYBEBCVH         20083
+#define SYBEBIVI         20080
+#define SYBEBCBC         20081
+#define SYBEBCFO         20082
+#define SYBEBCPB         20078
+#define SYBEBCPN         20077
+#define SYBEBCPI         20076
+#define SYBEBCITBNM      20238
+#define SYBEBCITBLEN     20239
+#define SYBEBCBNPR       20230
+#define SYBEBCBPREF      20236
+#define SYBEVDPT         20079
+#define SYBEBCPCTYP      20233
+#define SYBEBCHLEN       20235
+#define SYBEBCPREF       20237
+#define SYBEBCVLEN       20234
+#define SYBEBCUO         20084
+#define SYBEBUOF         20098
+#define SYBEBUDF         20102
+#define SYBEBIHC         20103
+#define SYBEBCUC         20085
+#define SYBEBUCF         20099
+#define SYBEIFNB         20065
+#define SYBEBCRE         20070
+#define SYBEBCNN         20073
+#define SYBEBBCI         20068
+
 int DBTDS(DBPROCESS *dbprocess);
 DBINT dbtextsize(DBPROCESS *dbprocess);
 int dbtsnewlen(DBPROCESS *dbprocess);

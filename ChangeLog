@@ -1,3 +1,10 @@
+Thu Sep 12 10:42:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/bcp.c:
+	- Rework BCP error handling.  Add two missing severity levels,
+	  use SYB* instead of BCP* for error codes, use Sybase-compatible
+	  numbers for error codes, add SYBEBBCI "error" processing, and
+	  eliminate the need for a fixed-length string buffer.
+
 Thu Sep 12 16:08:51 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/threadsafe.c: fix for tru64 reentrancy
 
