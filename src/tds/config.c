@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.80 2003-09-22 20:12:51 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.81 2003-09-28 23:24:23 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -970,7 +970,8 @@ parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 			break;
 
 	if ((pSep < pEnd) && (pSep != server)) {	/* yes, i found it! */
-		tds_dstr_copyn(&connect_info->server_name, server, pSep - server);	/* end the server_name before the ':' */
+		if (!tds_dstr_copyn(&connect_info->server_name, server, pSep - server))	/* end the server_name before the ':' */
+			return 0; /* FALSE */
 
 		/* modify connect_info-> && login->server_name & ->port */
 		login->port = connect_info->port = atoi(pSep + 1);
@@ -981,7 +982,8 @@ parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 			char tmp[256];
 
 			tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
-			tds_dstr_copy(&connect_info->ip_addr, tmp);
+			if (!tds_dstr_copy(&connect_info->ip_addr, tmp))
+				return 0; /* FALSE */
 		}
 
 		return 1;	/* TRUE */

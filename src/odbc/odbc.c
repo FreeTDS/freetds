@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.253 2003-09-25 21:14:24 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.254 2003-09-28 23:24:01 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1257,12 +1257,22 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	/* username/password are never saved to ini file, 
 	 * so you do not check in ini file */
 	/* user id */
-	if (szUID && (*szUID))
-		tds_dstr_copyn(&connect_info->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID));
+	if (szUID && (*szUID)) {
+		if (!tds_dstr_copyn(&connect_info->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID))) {
+			tds_free_connect(connect_info);
+			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+	}
 
 	/* password */
-	if (szAuthStr)
-		tds_dstr_copyn(&connect_info->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr));
+	if (szAuthStr) {
+		if (!tds_dstr_copyn(&connect_info->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr))) {
+			tds_free_connect(connect_info);
+			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+	}
 
 	/* DO IT */
 	if ((result = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
@@ -4568,8 +4578,12 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char *) ValuePtr, len);
-		ODBC_RETURN(dbc, SQL_SUCCESS);
+		if (tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char *) ValuePtr, len))
+			ODBC_RETURN(dbc, SQL_SUCCESS);
+		else {
+			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
 		break;
 #endif
 	case SQL_ATTR_TXN_ISOLATION:
