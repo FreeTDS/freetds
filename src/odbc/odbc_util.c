@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.63 2004-04-11 13:07:22 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.64 2004-07-21 14:51:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -454,8 +454,8 @@ odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec)
 	case SYBFLTN:
 	case SYBMONEYN:
 		assert(0);
-	case SYBNTEXT:
 	case SYBVOID:
+	case SYBNTEXT:
 	case SYBNVARCHAR:
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:

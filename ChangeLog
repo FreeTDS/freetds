@@ -1,3 +1,6 @@
+Wed Jul 21 16:50:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: some fix for SQLFetch and multiple rows
+
 Mon Jul 19 15:31:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- experimental support for multiple-row fetching

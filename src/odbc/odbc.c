@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.331 2004-07-19 13:32:03 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.332 2004-07-21 14:51:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2642,14 +2642,23 @@ _SQLFetch(TDS_STMT * stmt)
 			colinfo = resinfo->columns[i];
 			colinfo->column_text_sqlgetdatapos = 0;
 			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
-			/* TODO how to fill indicator if not NULL */
-			if (!drec_ard)
-				continue;
-			if (tds_get_null(resinfo->current_row, i)) {
-				if (drec_ard->sql_desc_indicator_ptr)
-					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = SQL_NULL_DATA;
+			if (!drec_ard) {
+				num_rows = 1;
 				continue;
 			}
+			if (tds_get_null(resinfo->current_row, i)) {
+				if (!drec_ard->sql_desc_indicator_ptr) {
+					odbc_errs_add(&stmt->errs, "22002", NULL, NULL);
+					row_status = SQL_ROW_ERROR;
+					break;
+				}
+				*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = SQL_NULL_DATA;
+				continue;
+			}
+			/* set indicator to 0 if data is not null */
+			if (drec_ard->sql_desc_indicator_ptr)
+				*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = 0;
+
 			/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
 			len = 0;
 			if (drec_ard->sql_desc_data_ptr) {
@@ -2668,10 +2677,39 @@ _SQLFetch(TDS_STMT * stmt)
 				} else {
 					int len;
 
-					if (c_type == SQL_C_CHAR || c_type == SQL_C_BINARY)
+					if (c_type == SQL_C_CHAR || c_type == SQL_C_BINARY || c_type == SQL_C_VARBOOKMARK) {
 						len = drec_ard->sql_desc_octet_length;
-					else
-						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
+					} else {
+						/* this shit is mine -- freddy77 */
+						int server_type = odbc_c_to_server_type(c_type);
+
+						switch (server_type) {
+						case SYBDATETIME:
+							switch (c_type) {
+							case SQL_C_TYPE_DATE:
+							case SQL_C_DATE:
+								len = sizeof(DATE_STRUCT);
+								break;
+							case SQL_C_TYPE_TIME:
+							case SQL_C_TIME:
+								len = sizeof(TIME_STRUCT);
+								break;
+							default:
+								assert(0);
+							case SQL_C_TYPE_TIMESTAMP:
+							case SQL_C_TIMESTAMP:
+								len = sizeof(TIMESTAMP_STRUCT);
+								break;
+							}
+							break;
+						case SYBNUMERIC:
+							len = sizeof(SQL_NUMERIC_STRUCT);
+							break;
+						default:
+							len = tds_get_size_by_type(server_type);
+							break;
+						}
+					}
 					if (len <= 0) {
 						row_status = SQL_ROW_ERROR;
 						break;
@@ -2699,14 +2737,13 @@ _SQLFetch(TDS_STMT * stmt)
 			stmt->errs.lastrc = SQL_ERROR;
 			break;
 		}
-
 #if SQL_BIND_BY_COLUMN != 0
 		if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN)
 #endif
 			row_offset += stmt->ard->header.sql_desc_bind_type;
 	} while (++curr_row < num_rows);
 
-all_done:
+      all_done:
 	if (*fetched_ptr == 0 && stmt->errs.lastrc == SQL_SUCCESS)
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 	if (stmt->errs.lastrc == SQL_ERROR && (*fetched_ptr > 1 || (*fetched_ptr == 1 && row_status != SQL_ROW_ERROR)))
