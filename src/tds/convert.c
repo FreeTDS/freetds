@@ -36,15 +36,9 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.40 2002-08-16 08:49:25 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.41 2002-08-16 11:00:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
-
-struct diglist {
-	short int dig;
-	short int carried;
-	struct diglist *nextptr;
-};
 
 typedef unsigned short utf16_t;
 
@@ -52,7 +46,10 @@ static int  _tds_pad_string(char *dest, int destlen);
 extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
-static int  string_to_numeric(char *instr, CONV_RESULT *cr);
+/**
+ * convert a number in string to a TDSNUMERIC return 0 if success
+ */
+static int string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr);
 /**
  * convert a number in string to TDS_INT return TDS_FAIL if failure
  */
@@ -446,7 +443,10 @@ TDS_INT tds_i;
       case SYBDECIMAL:
 		 cr->n.precision = 18;
 		 cr->n.scale     = 0;
-		 return string_to_numeric(src, cr);
+		if (string_to_numeric(src, src + srclen, cr))
+			return TDS_FAIL;
+		 
+		 return sizeof(TDS_NUMERIC);
 		 break;
 	  default:
          fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -1590,165 +1590,160 @@ int current_state;
 
 }
 
-static TDS_INT 
-string_to_numeric(char *instr, CONV_RESULT *cr)
+static int 
+string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr)
 {
 
-char  mynumber[39];
-/* unsigned char  mynumeric[16]; */ 
+char  mynumber[40];
+/* num packaged 8 digit, see below for detail */
+TDS_UINT packed_num[5];
 
 char *ptr;
-char c = '\0';
+const char *pdigits;
+const char* pstr;
 
-unsigned char masks[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-
-short int  binarylist[128];
-short int  carry_on = 1;
-short int  i = 0;
-short int  j = 0;
-short int  x = 0;
-short int bits, bytes, places, point_found, sign;
-
-struct diglist *topptr = (struct diglist *)NULL;
-struct diglist *curptr = (struct diglist *)NULL;
-struct diglist *freeptr = (struct diglist *)NULL;
+TDS_UINT  carry = 0;
+char  not_zero = 1;
+int  i = 0;
+int  j = 0;
+short int bytes, places, point_found, sign, digits;
 
   sign        = 0;
   point_found = 0;
   places      = 0;
 
+  /* FIXME: application can pass invalid value for precision and scale ?? */
+  if (cr->n.precision > 38)
+  	return 1;
 
   if (cr->n.precision == 0)
-     cr->n.precision = 18; 
+     cr->n.precision = 38; /* assume max precision */
+      
+  if ( cr->n.scale > cr->n.precision )
+	return 1;
 
 
-  for (ptr = instr; *ptr == ' '; ptr++);  /* skip leading blanks */
-
-  if (*ptr == '-' || *ptr == '+')         /* deal with a leading sign */
+  /* skip leading blanks */
+  for (pstr = instr;; ++pstr)
   {
-     if (*ptr == '-')
-        sign = 1;
-     ptr++;
+  	if (pstr == pend) return 1;
+  	if (*pstr != ' ') break;
   }
 
-  for(; *ptr; ptr++)                      /* deal with the rest */
+  if ( *pstr == '-' || *pstr == '+' )         /* deal with a leading sign */
   {
-     if (isdigit(*ptr))                   /* it's a number */
+     if (*pstr == '-')
+        sign = 1;
+     pstr++;
+  }
+
+  digits = 0;
+  pdigits = pstr;
+  for(; pstr != pend; ++pstr)             /* deal with the rest */
+  {
+     if (isdigit(*pstr))                  /* its a number */
      {  
-        mynumber[i++] = *ptr;
         if (point_found)                  /* if we passed a decimal point */
-           places++;                      /* count digits after that point  */
+           ++places;                      /* count digits after that point  */
+        else
+           ++digits;                      /* count digits before point  */
      }
-     else if (*ptr == '.')                /* found a decimal point */
+     else if (*pstr == '.')               /* found a decimal point */
           {
-             if (point_found)             /* already had one. lose the rest */
-                break;
+             if (point_found)             /* already had one. return error */
+                return 1;
              if (cr->n.scale == 0)       /* no scale...lose the rest  */
-                break;
+                break; /* FIXME: check other characters */
              point_found = 1;
           }
           else                            /* first invalid character */
-             break;                       /* lose the rest.          */
-  }
-
-
-  if (cr->n.scale > 0)                   /* scale specified, pad out */
-  {                                       /* number with zeroes to the */
-                                          /* scale...                  */
-
-     for (j = 0 ; j < (cr->n.scale - places) ; j++ )
-         mynumber[i++] = '0';
+             return 1;                    /* return error.          */
 
   }
 
-  mynumber[i] = '\0';
+  /* no digits? no number!*/
+  if (!digits)
+  	return 1;
+
+  /* truncate decimal digits */
+  if ( cr->n.scale > 0 && places > cr->n.scale)
+  	places = cr->n.scale;
+
+  /* too digits, error */
+  if ( (digits+cr->n.scale) > cr->n.precision)
+ 	return 1;
 
 
-  if (strlen(mynumber) > cr->n.precision )
-     strcpy(mynumber, &mynumber[strlen(mynumber) - cr->n.precision]);
+  /* FIXME: this can be optimized in a single step */
+
+  /* scale specified, pad out number with zeroes to the scale...  */
+  ptr = mynumber+40-(cr->n.scale-places);
+  memset(ptr,48,cr->n.scale-places);
+  ptr -= places;
+  /* copy number without point */
+  memcpy(ptr,pdigits+digits+1,places);
+  ptr -= digits;
+  memcpy(ptr,pdigits,digits);
+  memset(mynumber,48,ptr-mynumber);
+
+  /* transform ASCII string into a numeric array */
+  for (ptr = mynumber; ptr != mynumber+40; ++ptr)
+  	*ptr -= 48;
+
+  /*
+   * Packaged number explanation
+   * I package 8 decimal digit in one number
+   * This because 10^8 = 5^8 * 2^8 = 5^8 * 256
+   * So dividing 10^8 for 256 make no remainder
+   * So I can split for bytes in an optmized way
+   */
  
-  for (ptr = mynumber; *ptr; ptr++)
-  {
-      if (topptr == (struct diglist *)NULL)
+  /* transform to packaged one */
+  for(j=0;j<5;++j)
       {
-          topptr = (struct diglist *)malloc(sizeof(struct diglist));
-          curptr = topptr;
-          curptr->nextptr = NULL;
-          curptr->dig = *ptr - 48;
-          curptr->carried = 0;
-      }
-      else
+  	TDS_UINT n = mynumber[j*8];
+ 	for(i=1;i<8;++i)
       {
-          curptr->nextptr = (struct diglist *)malloc(sizeof(struct diglist));
-          curptr = curptr->nextptr;
-          curptr->nextptr = NULL;
-          curptr->dig = *ptr - 48;
-          curptr->carried = 0;
+  		n = n * 10 + mynumber[j*8+i];
       }
+  	packed_num[j] = n;
   }
 
-  memset(&binarylist[0], '\0',  sizeof(short int) * 128);
-  i = 127;
-
-  while (carry_on)
-  {
-     carry_on = 0;
-     for (curptr = topptr ; curptr != NULL; curptr = curptr->nextptr)
-     {
-         if (curptr->dig > 0)
-            carry_on = 1;
-     
-         if (curptr->nextptr != NULL )
-         {
-            curptr->nextptr->carried = ( ( curptr->carried * 10 ) + curptr->dig ) % 2;
-            curptr->dig =  ( ( curptr->carried * 10 ) + curptr->dig ) / 2;
-         }
-         else
-         {
-            if (carry_on)
-            {
-               binarylist[i--] = ( ( curptr->carried * 10 ) + curptr->dig ) % 2;
-            }
-            curptr->dig = ( ( curptr->carried * 10 ) + curptr->dig ) / 2;
-         }
-     }
-
-  }
-
-  memset(cr->n.array, '\0', 17);
-  bits  = 0;
-  bytes = 1;
-
+  memset(cr->n.array,0,sizeof(cr->n.array));
   cr->n.array[0] =  sign;
+  bytes = g__numeric_bytes_per_prec[cr->n.precision];
 
-  x = g__numeric_bytes_per_prec[cr->n.precision] - 1;
-
-  for (i = 128 - (x * 8); i < 128 ; i++)
+  while (not_zero)
   {
-     if (binarylist[i])
+     not_zero = 0;
+     carry = 0;
+     for (i = 0; i < 5; ++i)
      {
-        c = c | masks[bits]; 
-     }
-     bits++;
-     if (bits == 8)
-     {
-        cr->n.array[bytes] = c;
+     	TDS_UINT tmp;
+     
+        if (packed_num[i] > 0)
+            not_zero = 1;
 
-        bytes++;
-        bits = 0;
-        c    = '\0';
+     	/* divide for 256 for find another byte */
+     	tmp = packed_num[i];
+     	/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
+     	 * using unsigned number is just an optimization
+     	 * compiler can translate division to a shift and remainder 
+     	 * to a binary and
+     	 */
+     	packed_num[i] = carry * (25u*25u*25u*25u) + packed_num[i] / 256u;
+     	carry = tmp % 256u;
+
+        if ( i == 4 && not_zero)
+     {
+           /* source number is limited to 38 decimal digit
+            * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
+            */
+	   cr->n.array[--bytes] = carry;
      }
   }
-
-  curptr = topptr;
-  while (curptr != NULL)
-  {
-      freeptr = curptr;
-      curptr  = curptr->nextptr;
-      free(freeptr);
   }
-
-  return sizeof(TDS_NUMERIC);
+  return 0;
 }
 
 static int _tds_pad_string(char *dest, int destlen)

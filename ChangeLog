@@ -1,3 +1,13 @@
+Fri Aug 16 12:43:09 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	+ src/tds/convert.c: rewritten string_to_numeric:
+	- improved performance
+	- do not allocated unneeded and unchecked buffers
+	- work with not terminated string
+	- remove buffer overflow if number too long
+	- check for numeric overflow
+	+ src/tds/unittests/t0008.c: (new)
+	- test numeric results
+
 Fri Aug 16 10:26:12 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	+ src/tds/convert.c:
 	- rewritten tds_atoi (to string_to_int), because atoi
