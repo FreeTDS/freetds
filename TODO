@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.78 2003-11-04 19:01:53 jklowden Exp $
+To Do List	$Id: TODO,v 1.79 2003-11-16 08:23:23 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -43,10 +43,10 @@ For 0.62 version:
   - obsolete configuration (nt domain, locale.conf, etc.)
 . UTF-8 unit tests (libTDS)
   - very large column name (128 on mssql), no-english to UTF-8 client
-. ODBC: test NUMERIC parameter
 . ODBC: dynamic query
-  - SQLPutData do not work
   - Sybase and blobs do not work
+    port code for string building from ODBC to libtds
+    (required also for some test working using tds4.2)
 
 Postponed to 0.63 version
 . iconv
@@ -78,13 +78,10 @@ For future versions (in priority order within library):
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
 . All manner of unimplemented functions (see doc/api_status.txt)
-. cursor support
+. cursor support (work in progress)
 . tds_connect free tds structure on failure. This cause in some condition
   a pointer to garbage in some library (workaround written, best to change)
 . support for named instances under mssql2k
-. portability: Tru64 64bit (reported core)
-. dynamic query: port code for string building from ODBC to libtds
-  (required for some test working using tds4.2)
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested many time ago for mssql6.5 server, only
@@ -163,11 +160,14 @@ Done in 0.62
   - SQLMoreResults
   - SQLMoreResults 
 . Someone broke early binding in ODBC 
-  (fixed, add check for early bind, and multiple recordset)
+  (fixed, added check for early bind, and multiple recordset)
 . ODBC: configure should detect iODBC or unixODBC automatically
 . ODBC: Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 . freebcp should understand \n as newline. Also \r and \0 (null byte).
 . --without-libiconv to switch off iconv library
+. ODBC: test NUMERIC parameter
+. ODBC: dynamic query
+  - SQLPutData do not work
 
 Done (removed from above):
 . Extend TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
