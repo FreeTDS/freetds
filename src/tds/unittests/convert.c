@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.7 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.8 2003-07-30 16:08:26 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -85,7 +85,8 @@ main(int argc, char **argv)
 		printf("Computing %d iterations\n", iterations);
 	}
 
-	assert(ctx = tds_alloc_context());
+	ctx = tds_alloc_context();
+	assert(ctx); 
 	if (ctx->locale && !ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
