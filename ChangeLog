@@ -1,3 +1,9 @@
+Fri Nov  8 08:51:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c src/pool/member.c:
+	- remove warning compiling
+	* src/odbc/odbc.c:
+	- do not overwrite values from freetds.conf with default
+
 Thu Nov  7 21:02:39 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/config.c src/tds/util.c:
 	- Namespace cleanup.

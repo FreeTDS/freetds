@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char  software_version[]   = "$Id: member.c,v 1.17 2002-11-01 20:55:51 castellano Exp $";
+static char  software_version[]   = "$Id: member.c,v 1.18 2002-11-08 07:53:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
@@ -250,6 +250,7 @@ TDS_POOL_MEMBER *pmbr;
 	}
 	/* if we have dead connections we can open */
 	if (active_members < pool->num_members) {
+		pmbr = NULL;
 		for (i=0;i<pool->num_members;i++) {
 			pmbr = &pool->members[i];
 			if (!pmbr->tds) {

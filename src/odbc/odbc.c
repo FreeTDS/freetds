@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.84 2002-11-07 15:52:32 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.85 2002-11-08 07:53:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -750,7 +750,6 @@ SQLRETURN SQL_API SQLConnect(
                             SQLCHAR FAR       *szAuthStr,
                             SQLSMALLINT        cbAuthStr)
 {
-#define TO_STRING(s) #s
 const char *DSN;
 char tmp[FILENAME_MAX];
 SQLRETURN   nRetVal;
@@ -801,12 +800,12 @@ int	freetds_conf_less = 1;
 	}
 
 	tmp[0] = '\0';
-	if (freetds_conf_less && SQLGetPrivateProfileString( DSN, "Port", TO_STRING(TDS_DEF_PORT), tmp, FILENAME_MAX, "odbc.ini") > 0) {
+	if (SQLGetPrivateProfileString( DSN, "Port", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		connect_info->port = atoi(tmp);
 	}
 
 	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "TDS_Version", TO_STRING(TDS_DEF_MAJOR) "." TO_STRING(TDS_DEF_MINOR), tmp, FILENAME_MAX, "odbc.ini") > 0) {
+	if (SQLGetPrivateProfileString( DSN, "TDS_Version", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_config_verstr(tmp,connect_info);
 	}
 

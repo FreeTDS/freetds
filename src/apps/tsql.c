@@ -54,7 +54,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.39 2002-11-01 20:55:46 castellano Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.40 2002-11-08 07:53:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -105,7 +105,7 @@ add_history(const char *s)
 int
 do_query(TDSSOCKET *tds, char *buf, int opt_flags)
 {
-int rows;
+int rows = 0;
 int rc, i;
 TDSCOLINFO *col;
 int ctype;
