@@ -1,3 +1,8 @@
+Sat Feb  8 20:09:45 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/token.c removed unused local variables.
+	* src/tds/unittests/Makefile.am src/tds/unittests/convert.c
+	- test conversions (10 failures) and performance
+	
 Thu Feb  6 10:45:31 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h: 
 	- odbc include under win32 seem not define SQLLEN

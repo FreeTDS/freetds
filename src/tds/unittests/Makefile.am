@@ -1,5 +1,7 @@
-TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
-	dynamic1
+TESTS		=	t0001 t0002 t0003 t0004 \
+			t0005 t0006 t0007 t0008 \
+			dynamic1 convert
+			
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -10,7 +12,8 @@ t0005_SOURCES	=	t0005.c common.c common.h
 t0006_SOURCES	=	t0006.c common.c common.h
 t0007_SOURCES	=	t0007.c
 t0008_SOURCES	=	t0008.c
-dynamic1_SOURCES	=	dynamic1.c common.c common.h
+dynamic1_SOURCES =	dynamic1.c common.c common.h
+convert_SOURCES	=	convert.c
 
 LIBS		=	../libtds.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
