@@ -1,18 +1,3 @@
-/* Sofware DES functions
- * written 12 Dec 1986 by Phil Karn, KA9Q; large sections adapted from
- * the 1977 public-domain program by Jim Gillogly
- * Modified for additional speed - 6 December 1988 Phil Karn
- * Modified for parameterized key schedules - Jan 1991 Phil Karn
- * Callers now allocate a key schedule as follows:
- *	kn = (char (*)[8])malloc(sizeof(char) * 8 * 16);
- *	or
- *	char kn[16][8];
- */
-
-/* modified in order to use the libmcrypt API by Nikos Mavroyanopoulos 
- * All modifications are placed under the license of libmcrypt.
- */
-
 /*
  * Copyright (C) 1998,1999,2000,2001 Nikos Mavroyanopoulos
  * 
@@ -30,6 +15,21 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
+ */
+
+/* Sofware DES functions
+ * written 12 Dec 1986 by Phil Karn, KA9Q; large sections adapted from
+ * the 1977 public-domain program by Jim Gillogly
+ * Modified for additional speed - 6 December 1988 Phil Karn
+ * Modified for parameterized key schedules - Jan 1991 Phil Karn
+ * Callers now allocate a key schedule as follows:
+ *	kn = (char (*)[8])malloc(sizeof(char) * 8 * 16);
+ *	or
+ *	char kn[16][8];
+ */
+
+/* modified in order to use the libmcrypt API by Nikos Mavroyanopoulos 
+ * All modifications are placed under the license of libmcrypt.
  */
 
 #include "config.h"

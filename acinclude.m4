@@ -100,41 +100,10 @@ size_t iconv();
 dnl SSL check
 
 AC_DEFUN([CHECK_SSL],
-[AC_MSG_CHECKING(if ssl is wanted)
-AC_ARG_WITH(ssl,
+[AC_ARG_WITH(ssl,
 [  --with-ssl enable ssl [will check /usr/local/ssl
                             /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr ]
-],
-[   AC_MSG_RESULT(yes)
-    for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
-        ssldir="$dir"
-        if test -f "$dir/include/openssl/ssl.h"; then
-            found_ssl="yes";
-            CFLAGS="$CFLAGS -I$ssldir/include/openssl ";
-            break;
-        fi
-        if test -f "$dir/include/ssl.h"; then
-            found_ssl="yes";
-            CFLAGS="$CFLAGS -I$ssldir/include/ ";
-            break
-        fi
-    done
-    if test x_$found_ssl != x_yes; then
-        AC_MSG_ERROR(Cannot find ssl libraries)
-    else
-        printf "OpenSSL found in $ssldir\n";
-        LIBS="$LIBS -lssl -lcrypto";
-        LDFLAGS="$LDFLAGS -L$ssldir/lib";
-        HAVE_SSL=yes
-        AC_DEFINE(HAVE_SSL, 1, [Define if you have the SSL.])
-    fi
-    AC_SUBST(HAVE_SSL)
-],
-[
-    AC_MSG_RESULT(no)
-])
-])
-
+])])
 
 
 dnl Found on autoconf archive
@@ -214,7 +183,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.7 2002-09-12 18:59:11 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.8 2002-09-29 20:54:43 vorlon Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
