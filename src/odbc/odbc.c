@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.273 2003-12-06 20:18:46 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.274 2003-12-07 10:34:40 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -233,15 +233,15 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 	 */
 	if (tds) {
 		/* build query */
-		/* FIXME quote id, not quote string */
-		char *query = (char *) malloc(6 + tds_quote_string(tds, NULL, database, database_len));
+		char *query = (char *) malloc(6 + tds_quote_id(tds,NULL,database,database_len));
 
 		if (!query) {
 			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		strcpy(query, "USE ");
-		tds_quote_string(tds, query + 4, database, database_len);
+		tds_quote_id(tds,query + 4,database,database_len);
+
 
 		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
 
@@ -1394,7 +1394,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ird = stmt->ird;
 
-#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src, -1);
+#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? src : "", -1);
 
 #if ENABLE_EXTRA_CHECKS
 #define IOUT(type, src) do { \
@@ -1498,7 +1498,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		COUT(drec->sql_desc_literal_suffix);
 		break;
 	case SQL_DESC_LOCAL_TYPE_NAME:
-		COUT(drec->sql_desc_literal_suffix);
+		COUT(drec->sql_desc_local_type_name);
 		break;
 #if SQL_COLUMN_NAME != SQL_DESC_NAME
 	case SQL_COLUMN_NAME:
@@ -1847,7 +1847,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		COUT(drec->sql_desc_literal_suffix);
 		break;
 	case SQL_DESC_LOCAL_TYPE_NAME:
-		COUT(drec->sql_desc_literal_suffix);
+		COUT(drec->sql_desc_local_type_name);
 		break;
 	case SQL_DESC_NAME:
 		COUT(drec->sql_desc_name);
@@ -2210,36 +2210,38 @@ odbc_populate_ird(TDS_STMT * stmt)
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
-	/* FIXME check failure */
-	desc_alloc_records(ird, num_cols);
+	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS)
+		return SQL_ERROR;
 
-	/* FIXME check failures on allocation !!! */
 	for (i = 0; i < num_cols; i++) {
 		drec = &ird->records[i];
 		col = res_info->columns[i];
 		drec->sql_desc_auto_unique_value = col->column_identity ? SQL_TRUE : SQL_FALSE;
-		drec->sql_desc_base_column_name = strdup("");
-		drec->sql_desc_base_table_name = strdup("");
+		drec->sql_desc_base_column_name = NULL;
+		drec->sql_desc_base_table_name = NULL;
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
-		drec->sql_desc_catalog_name = strdup("");
+		drec->sql_desc_catalog_name = NULL;
 		/* TODO test error ?? */
 		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->column_type, col->column_size), drec, 0);
 		drec->sql_desc_display_size =
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
-		drec->sql_desc_label = odbc_strndup(col->column_name, col->column_namelen);
-		/* TODO other types for date ?? */
+		if ((drec->sql_desc_label = odbc_strndup(col->column_name, col->column_namelen)) == NULL)
+			return SQL_ERROR;
+
+		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
 		if (drec->sql_desc_concise_type == SQL_TIMESTAMP)
 			drec->sql_desc_length = strlen("2000-01-01 12:00:00.0000");
 		else
 			drec->sql_desc_length = col->column_size;
-		/* TOOD use constants, not allocated string, fill correctly */
-		drec->sql_desc_literal_prefix = strdup("");
-		drec->sql_desc_literal_suffix = strdup("");
+		/* TODO use constants, not allocated string, fill correctly */
+		drec->sql_desc_literal_prefix = NULL;
+		drec->sql_desc_literal_suffix = NULL;
 
-		drec->sql_desc_local_type_name = strdup("");
-		drec->sql_desc_name = odbc_strndup(col->column_name, col->column_namelen);
+		drec->sql_desc_local_type_name = NULL;
+		if ((drec->sql_desc_name = odbc_strndup(col->column_name, col->column_namelen)) == NULL)
+			return SQL_ERROR;
 
 		drec->sql_desc_unnamed = strlen(drec->sql_desc_name) ? SQL_NAMED : SQL_UNNAMED;
 		/* TODO use is_nullable_type ?? */
@@ -2255,12 +2257,14 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO test timestamp from db, FOR BROWSE query */
 		drec->sql_desc_rowver = SQL_FALSE;
 		drec->sql_desc_scale = col->column_scale;
-		drec->sql_desc_schema_name = strdup("");
+		drec->sql_desc_schema_name = NULL;
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
-		drec->sql_desc_table_name = strdup("");
-		drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
-								       col->column_size, stmt->dbc->env->attr.odbc_version);
+		drec->sql_desc_table_name = NULL;
+		if ((drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
+								       col->column_size, stmt->dbc->env->attr.odbc_version)) == NULL) {
+			return SQL_ERROR;
+		}
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -2822,26 +2826,6 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 	size_t size;
 
 	INIT_HSTMT;
-
-	/* TODO see documentation .. it do not seem correct to me -- freddy77 */
-	switch (BufferLength) {
-	case SQL_IS_POINTER:
-		BufferLength = sizeof(SQLPOINTER);
-		break;
-	case SQL_IS_UINTEGER:
-		BufferLength = sizeof(SQLUINTEGER);
-		break;
-	case SQL_IS_INTEGER:
-		BufferLength = sizeof(SQLINTEGER);
-		break;
-	case SQL_IS_USMALLINT:
-		BufferLength = sizeof(SQLUSMALLINT);
-		break;
-	case SQL_IS_SMALLINT:
-		BufferLength = sizeof(SQLSMALLINT);
-		break;
-	}
-	/* TODO BufferLength < 0 */
 
 	/* TODO assign directly, use macro for size */
 	switch (Attribute) {

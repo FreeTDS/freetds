@@ -1,3 +1,10 @@
+Sun Dec  7 02:32:19 PST 2003	Peter Deacon <peterd@iea-software.com>
+	* include/tds.h src/odbc/descriptor.c src/odbc/odbc.c:
+	* src/tds/login.c src/tds/query.c:
+	- fixed unchecked memory allocation
+	- fixed wrong value for SQL_DESC_LOCAL_TYPE_NAME
+	- fixed setting SQL_ATTR_CURRENT_CATALOG failed
+
 Sun Dec  7 01:09:42 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/numeric.c fixed tds_money_to_string: s/0.%02f/%.02f/
 	
