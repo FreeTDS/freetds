@@ -47,11 +47,14 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.37 2003-03-27 07:39:06 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.38 2003-03-27 16:05:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
-CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
+static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
+static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
+static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message);
+static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
 
 /* 	returns the fixed length of the specified data type, or 0 if not a 
 	fixed length data type */
@@ -728,9 +731,6 @@ cs_conv_mult(CS_CONTEXT * ctx, CS_LOCALE * srcloc, CS_LOCALE * destloc, CS_INT *
 CS_RETCODE
 cs_diag(CS_CONTEXT * ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
-
-int msg_no;
-
 	switch (operation) {
 
 		case CS_INIT:
@@ -842,7 +842,8 @@ cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * res
 	return CS_SUCCEED;
 }
 
-CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
+static CS_INT 
+cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
 {
 
 struct cs_diag_msg **curptr;
@@ -882,7 +883,8 @@ CS_INT msg_count = 0;
 	return CS_SUCCEED;
 }
 
-CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
+static CS_INT 
+cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
 {
 
 struct cs_diag_msg *curptr;
@@ -909,22 +911,27 @@ CS_INT msg_count = 0, msg_found = 0;
 	}
 }
 
-CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
+static CS_INT 
+cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
 {
 
-struct cs_diag_msg **curptr, **freeptr;
+struct cs_diag_msg *curptr, *freeptr;
 
-	curptr = &(context->msgstore);
+	curptr = context->msgstore;
+	context->msgstore = NULL;
 
-	while (*curptr != (struct cs_diag_msg *)NULL ) {
-        freeptr = curptr;
-		curptr = &((*curptr)->next);
-        TDS_ZERO_FREE(*freeptr);
+	while (curptr != (struct cs_diag_msg *)NULL ) {
+        	freeptr = curptr;
+		curptr = freeptr->next;
+        	if (freeptr->msg)
+        		free(freeptr->msg);
+        	free(freeptr);
 	}
 	return CS_SUCCEED;
 }
 
-CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
+static CS_INT 
+cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
 {
 struct cs_diag_msg *curptr;
 CS_INT msg_count = 0;
