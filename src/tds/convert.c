@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.72 2002-09-13 23:43:58 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.73 2002-09-17 22:13:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,8 +73,6 @@ static TDS_INT
 tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src, 
 	TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);
 
-static size_t 
-tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm *timeptr);
 static int  store_hour(char *, char *, struct tds_time *);
 static int  store_time(char *, struct tds_time * );
 static int  store_yymmdd_date(char *, struct tds_time *);
@@ -1157,12 +1155,9 @@ tds_convert_datetime(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 {
 
 unsigned int dt_days, dt_time;
-int  dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-int dty;
 
 char whole_date_string[30];
-struct tds_tm when;
+TDSDATEREC when;
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -1174,67 +1169,12 @@ struct tds_tm when;
 				*(cr->c) = '\0';
                 return 0;
 			} else {
-				/*
-				 * Set up an extended struct tm, and call tds_strftime()
-				 * to format the datetime as a string.
-				 */
+
 				memset( &when, 0, sizeof(when) );
 
-				memcpy(&dt_days, src, 4);
-				memcpy(&dt_time, src + 4, 4);
+                tds_datecrack (SYBDATETIME, src, &when);
+                tds_strftime  (whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 
-				/* it's a date before 1900 */
-				if (dt_days > 2958463) { 	/* what's 2958463? */
-					dt_days = 0xffffffff  - dt_days; 
-					/* year */
-					when.tm.tm_year = -1;
-					dty = days_this_year(when.tm.tm_year);
-					while ( dt_days >= dty ) {
-						when.tm.tm_year--;
-						dt_days -= dty;
-						dty = days_this_year(when.tm.tm_year);
-					}
-					dim[1] = (dty == 366)? 29 : 28;
-
-					/* month, day */
-					when.tm.tm_mon = 11;
-					while (dt_days > dim[when.tm.tm_mon] ) {
-						dt_days -= dim[when.tm.tm_mon];
-						when.tm.tm_mon--;
-					}
-
-					when.tm.tm_mday = dim[when.tm.tm_mon] - dt_days;
-				} else {
-					dt_days++;
-					/* year */
-					when.tm.tm_year = 0;
-					dty = days_this_year(when.tm.tm_year);
-					while ( dt_days > dty ) {
-						when.tm.tm_year++;
-						dt_days -= dty;
-						dty = days_this_year(when.tm.tm_year);
-					}
-
-					dim[1] = (dty == 366)? 29 : 28;
-
-					/* month, day */
-					when.tm.tm_mon = 0;
-					while (dt_days > dim[when.tm.tm_mon] ) {
-						dt_days -= dim[when.tm.tm_mon];
-						when.tm.tm_mon++;
-					}
-					when.tm.tm_mday = dt_days;
-				}
-				when.tm.tm_sec = dt_time / 300;
-				when.milliseconds = ((dt_time - (when.tm.tm_sec * 300)) * 1000) / 300 ;
-                tdsdump_log(TDS_DBG_FUNC, "%L inside convert_datetime() ms = %d \n", when.milliseconds);
-
-				/* hours, minutes, seconds */
-				when.tm.tm_hour = when.tm.tm_sec / 3600; 
-				when.tm.tm_min = (when.tm.tm_sec % 3600) / 60; 
-				when.tm.tm_sec =  when.tm.tm_sec %   60; 
-
-				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 				return string_to_result(whole_date_string,cr);
 			}
 			break;
@@ -1293,12 +1233,9 @@ tds_convert_datetime4(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 {
 
 TDS_USMALLINT dt_days, dt_mins;
-int  dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-int dty = 365;
 
 char whole_date_string[30];
-struct tds_tm when;
+TDSDATEREC when;
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -1310,40 +1247,11 @@ struct tds_tm when;
 				*(cr->c) = '\0';
                 return 0;
 			} else {
-				/*
-				 * Set up an extended struct tm, and call tds_strftime()
-				 * to format the datetime as a string.
-				 */
+
 				memset( &when, 0, sizeof(when) );
 
-				memcpy(&dt_days, src, 2);
-				memcpy(&dt_mins, src + 2, 2);
-
-				dt_days++;
-				
-				/* year */
-				while ( dt_days > dty ) {
-					when.tm.tm_year++;
-					dt_days -= dty;
-					dty = days_this_year(when.tm.tm_year);
-				}
-
-				dim[1] = (dty == 366)? 29 : 28;		/* February */
-
-				/* month, day */
-				while (dt_days > dim[when.tm.tm_mon] ) {
-					dt_days -= dim[when.tm.tm_mon];
-					when.tm.tm_mon++;
-				}
-				when.tm.tm_mday = dt_days;
-
-				/* hours, minutes */
-				when.tm.tm_hour = dt_mins / 60; 
-				when.tm.tm_min =  dt_mins % 60; 
-
-				/* no seconds, milliseconds for smalldatetime */
-
-				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
+                tds_datecrack (SYBDATETIME4, src, &when);
+                tds_strftime  (whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 
 				return string_to_result(whole_date_string,cr);
 			}
@@ -2406,28 +2314,42 @@ int  mday = 0;
 
 static int store_numeric_date(char *datestr , struct tds_time *t)
 {
-enum {TDS_MONTH, 
-      TDS_DAY, 
-      TDS_YEAR};
+int   TDS_MONTH = 0;
+int   TDS_DAY   = 0;
+int   TDS_YEAR  = 0;
 
-int  state = TDS_MONTH;
+int  state;
 char last_char = 0; 
 char *s;
 int  month = 0, year = 0, mday = 0;
 
+    /* Its YYYY-MM-DD format */
+
+    if ( strlen(datestr) == 10 && *(datestr + 4) == '-' && *(datestr + 7) == '-' ) {
+
+       TDS_YEAR  = 0;
+       TDS_MONTH = 1;
+       TDS_DAY   = 2;
+       state     = TDS_YEAR;
+       
+    }
+    /* else we assume MDY */
+    else {
+       TDS_MONTH = 0;
+       TDS_DAY   = 1;
+       TDS_YEAR  = 2;
+       state     = TDS_MONTH;
+    }
     for (s = datestr; *s; s++) {
         if (!isdigit((unsigned char) *s) && isdigit((unsigned char) last_char)) {
             state++;
-        } else switch(state) {
-            case TDS_MONTH:
+        } else {
+            if (state == TDS_MONTH)
                 month = (month * 10) + (*s - '0');
-                break;
-            case TDS_DAY:
+            if (state ==  TDS_DAY)
                 mday = (mday * 10) + (*s - '0');
-                break;
-            case TDS_YEAR:
+            if (state ==  TDS_YEAR)
                 year = (year * 10) + (*s - '0');
-                break;
         }
         last_char = *s;
     }
@@ -2522,6 +2444,7 @@ char last_sep;
 char *s;
 int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
 int ret = 1;
+int ms_len = 0;
 
     for (s = datestr; 
          *s && strchr("apmAPM" , (int) *s) == (char *)NULL; 
@@ -2542,6 +2465,7 @@ int ret = 1;
                 break;
             case TDS_FRACTIONS:
                 millisecs = (millisecs * 10) + (*s - '0');
+                ms_len++;
                 break;
         }
     }
@@ -2588,18 +2512,16 @@ int ret = 1;
             t->tm_ms = millisecs;
          else
          {
-
-            if (millisecs < 10)
+            if (ms_len == 1 )
                t->tm_ms = millisecs * 100;
-            else if (millisecs < 100 )
+            else if (ms_len ==  2)
                     t->tm_ms = millisecs * 10;
-                 else 
+                 else
                     t->tm_ms = millisecs;
          }
       }
       else
         ret = 0;
-      tdsdump_log(TDS_DBG_FUNC, "%L inside store_time() tm_ms = %d\n", t->tm_ms);
     }
 
 
@@ -2665,49 +2587,62 @@ TDS_INT tds_get_null_type(int srctype)
 /*
  * format a date string according to an "extended" strftime formatting definition.
  */     
-static size_t 
-tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm *timeptr)
+size_t 
+tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *dr)
 {
-	int length=0;
-	char *s, *our_format;
-	char millibuf[8];
-	
-	char *pz = NULL;
-	
-	our_format = malloc( strlen(format) + (1+1) ); /* 1 for terminator and 1 for added millisecond character */
-	if( !our_format ) return 0;
-	strcpy( our_format, format );
-		
-	pz = strstr( our_format, "%z" );
-	
-	/* 
-	 * Look for "%z" in the format string.  If found, replace it with timeptr->milliseconds.
-	 * For example, if milliseconds is 124, the format string 
-	 * "%b %d %Y %H:%M:%S.%z" would become 
-	 * "%b %d %Y %H:%M:%S.124".  
-	 */
-	 
-	/* Skip any escaped cases (%%z) */
-	while( pz && *(pz-1) == '%' )
-		pz = strstr( ++pz, "%z" );
-	
-	if( pz && length < maxsize - 1 ) {
-		
-		sprintf( millibuf, "%03d", timeptr->milliseconds );
-		
-		/* move everything back one, then overwrite "?%z" with millibuf */
-		for( s = our_format + strlen(our_format); s > pz; s-- ) {
-			*(s+1) = *s;
-		}
-		
-		strncpy( pz, millibuf, 3 );	/* don't copy the null */
-	}
-	
-	length = strftime( buf, maxsize, our_format, &timeptr->tm );	
-	
-	free(our_format);
-	
-	return length;
+    struct tm tm;
+
+    int length=0;
+    char *s, *our_format;
+    char millibuf[8];
+
+    char *pz = NULL;
+
+    tm.tm_sec   = dr->second;
+    tm.tm_min   = dr->minute;
+    tm.tm_hour  = dr->hour;
+    tm.tm_mday  = dr->day;
+    tm.tm_mon   = dr->month;
+    tm.tm_year  = dr->year - 1900;
+    tm.tm_wday  = dr->weekday;
+    tm.tm_yday  = dr->dayofyear;
+    tm.tm_isdst = 0;
+
+    our_format = malloc( strlen(format) + 1 );
+    if( !our_format ) return 0;
+    strcpy( our_format, format );
+
+    pz = strstr( our_format, "%z" );
+
+    /*
+     * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
+     * For example, if milliseconds is 124, the format string
+     * "%b %d %Y %H:%M:%S.%z" would become
+     * "%b %d %Y %H:%M:%S.124".
+     */
+
+    /* Skip any escaped cases (%%z) */
+
+    while( pz && *(pz-1) == '%' )
+        pz = strstr( ++pz, "%z" );
+
+    if( pz && length < maxsize - 1 ) {
+
+        sprintf( millibuf, "%03d", dr->millisecond );
+
+        /* move everything back one, then overwrite "?%z" with millibuf */
+        for( s = our_format + strlen(our_format); s > pz; s-- ) {
+            *(s+1) = *s;
+        }
+
+        strncpy( pz, millibuf, 3 ); /* don't copy the null */
+    }
+
+    length = strftime( buf, maxsize, our_format, &tm );
+
+    free(our_format);
+
+    return length;
 }
 
 #if 0
@@ -2806,7 +2741,7 @@ int i;
 	return 0;
 
 }
-TDS_INT tds_datecrack( TDS_INT datetype, void *di, TDSDATEREC *dr )
+TDS_INT tds_datecrack( TDS_INT datetype, const void *di, TDSDATEREC *dr )
 {
 
 TDS_DATETIME  *dt;

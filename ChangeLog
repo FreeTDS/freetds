@@ -1,3 +1,13 @@
+Tue Sep 17 18:03:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in include/tdsconvert.h src/dblib/bcp.c
+	  src/dblib/dblib.c src/dblib/unittests/t0016.in src/tds/convert.c:
+	- Merge Bill's patch #610589 onto HEAD.
+	- The modifications to dbconvert() for SYB[VAR]CHAR to SYB[VAR]CHAR
+	  conversions were incorrect, resulting in different behavior from
+	  Sybase's libraries and failure of dblib unit test t0019.  I removed
+	  these changes.
+	- Cleaned up a few warnings.
+
 Tue Sep 17 13:50:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/Makefile.am src/tds/token.c src/tds/util.c:
 	- Don't pass NULL pointers to fflush(), fclose(), or realloc().

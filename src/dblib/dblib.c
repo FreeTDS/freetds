@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.61 2002-09-17 17:37:40 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.62 2002-09-17 22:13:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1623,6 +1623,7 @@ TDSSOCKET * tds;
 int i,col,collen,namlen,len;
 char dest[256];
 int desttype, srctype;
+TDSDATEREC when;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -1636,7 +1637,13 @@ int desttype, srctype;
 			} else {
 				desttype = _db_get_server_type(STRINGBIND);
 				srctype = tds_get_conversion_type(colinfo->column_type,colinfo->column_size);
-				dbconvert(dbproc, srctype ,dbdata(dbproc,col+1), -1, desttype, (BYTE *)dest, 255);
+				if (srctype == SYBDATETIME || srctype == SYBDATETIME4 ) {
+					memset( &when, 0, sizeof(when) );
+					tds_datecrack (srctype, dbdata(dbproc,col+1), &when);
+					tds_strftime  (dest, sizeof(dest), "%b %e %Y %l:%M%p", &when );
+				} else {
+					dbconvert(dbproc, srctype ,dbdata(dbproc,col+1), -1, desttype, (BYTE *)dest, -1);
+				}
 
 				/* printf ("some data\t"); */
 			}

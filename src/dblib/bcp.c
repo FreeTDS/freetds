@@ -45,7 +45,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.16 2002-09-16 19:48:00 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.17 2002-09-17 22:13:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -415,6 +415,8 @@ TDS_TINYINT   ti;
 TDS_SMALLINT  si;
 TDS_INT       li;
 
+TDSDATEREC    when;
+
 int           row_of_query;
 
 int           rows_written;
@@ -537,7 +539,9 @@ int           rows_written;
                  case SYBCHAR:         
                  case SYBVARCHAR:         
                       switch (bcpcol->db_type) {
-                        case SYBVARCHAR:
+                        case SYBVARCHAR:  buflen = bcpcol->db_length + 1;     
+                                          destlen = -1;
+                                          break;
                         case SYBCHAR:     buflen = bcpcol->db_length + 1;     
                                           destlen = -2;
                                           break;
@@ -571,9 +575,20 @@ int           rows_written;
                }
    
                outbuf = malloc(buflen);
-               buflen = dbconvert(dbproc,
-                                  bcpcol->db_type, bcpcol->data, bcpcol->data_size,
-                                  hostcol->datatype, outbuf, destlen);
+
+               /* if we are converting datetime to string, need to override any 
+                  date time formats already established
+               */
+               if ((bcpcol->db_type == SYBDATETIME || bcpcol->db_type == SYBDATETIME4 )  &&
+                   (hostcol->datatype == SYBCHAR   || hostcol->datatype == SYBVARCHAR )) {
+                   memset( &when, 0, sizeof(when) );
+                   tds_datecrack (bcpcol->db_type, bcpcol->data, &when);
+                   buflen = tds_strftime  (outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when );
+               }
+               else
+                   buflen = dbconvert(dbproc,
+                                      bcpcol->db_type, bcpcol->data, bcpcol->data_size,
+                                      hostcol->datatype, outbuf, destlen);
                
                /* FIX ME -- does not handle prefix_len == -1 */
                /* The prefix */
@@ -1376,6 +1391,11 @@ unsigned char row_token         = 0xd1;
 #ifdef WORDS_BIGENDIAN
                      tds_swap_datatype(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length),
                                        bcpcol->data);
+#else
+                     if (is_numeric_type(bcpcol->db_type)) {
+                        tds_swap_datatype(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length),
+                                          bcpcol->data);
+                     }
 #endif
                      
                      if (is_numeric_type(bcpcol->db_type)) 

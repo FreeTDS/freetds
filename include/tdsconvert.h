@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.12 2002-09-13 20:13:16 castellano Exp $";
+         "$Id: tdsconvert.h,v 1.13 2002-09-17 22:13:01 castellano Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
@@ -42,8 +42,20 @@ typedef union conv_result {
     TDS_UNIQUE      u;
 } CONV_RESULT;
 
-struct tds_tm;
+struct  tds_time {
+int tm_year;
+int tm_mon;
+int tm_mday;
+int tm_hour;
+int tm_min;
+int tm_sec;
+int tm_ms;
+};
 
+struct tds_tm {
+	struct tm tm;
+	int milliseconds;
+};
 
 TDS_INT _convert_money(int srctype,unsigned char *src,
                             int desttype,unsigned char *dest,TDS_INT destlen);
@@ -66,19 +78,7 @@ int tds_get_conversion_type(int srctype, int colsize);
 TDS_INT tds_convert(TDSCONTEXT *context, int srctype, const TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);
 
-struct  tds_time {
-int tm_year;
-int tm_mon;
-int tm_mday;
-int tm_hour;
-int tm_min;
-int tm_sec;
-int tm_ms;
-};
+size_t  tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *timeptr);
 
-struct tds_tm {
-	struct tm tm;
-	int milliseconds;
-};
 #endif
 

@@ -1,2 +1,2 @@
-1	2	123.45	This is a varchar 255 field	Sep 11 2001  9:13:13:666AM
-4	5	56789.12	This is another varchar 255 field	Feb 29 2000 01:01:01:001AM
+1	2	123.45	This is a varchar 255 field	2001-09-11 09:13:13.666
+4	5	56789.12	This is another varchar 255 field	2000-02-29 13:01:01.001
