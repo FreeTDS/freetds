@@ -1,3 +1,7 @@
+Tue Mar 04 17:45:09 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/tds/convert.c src/tds/token.c:
+	- merged a part of Sybase patch
+
 Tue Mar 04 11:43:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/convert.c: spell fix
 

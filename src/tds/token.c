@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.148 2003-02-22 09:19:18 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.149 2003-03-04 16:46:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1968,6 +1968,7 @@ static int
 tds_get_varint_size(int datatype)
 {
 	switch (datatype) {
+	case SYBLONGBINARY:
 	case SYBTEXT:
 	case SYBNTEXT:
 	case SYBIMAGE:
@@ -1979,13 +1980,17 @@ tds_get_varint_size(int datatype)
 	case SYBBIT:
 	case SYBINT2:
 	case SYBINT4:
+	case SYBINT8:
 	case SYBDATETIME4:
 	case SYBREAL:
 	case SYBMONEY:
 	case SYBDATETIME:
 	case SYBFLT8:
 	case SYBMONEY4:
-	case SYBINT8:
+	case SYBSINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
 		return 0;
 	case XSYBNCHAR:
 	case XSYBNVARCHAR:

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.77 2003-02-12 21:01:32 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.78 2003-03-04 16:46:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1041,6 +1041,9 @@ _ct_get_server_type(int datatype)
 		break;
 	case CS_UNIQUE_TYPE:
 		return SYBUNIQUE;
+		break;
+	case CS_LONGBINARY_TYPE:        /* vicm */
+ 		return SYBLONGBINARY;
 		break;
 	default:
 		return -1;

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.110 2003-01-26 10:27:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.111 2003-03-04 16:46:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -3000,7 +3000,7 @@ tds_prtype(int token)
       case XSYBNVARCHAR:    result = "XSYBNVARCHAR";	break;
       case XSYBVARBINARY:   result = "XSYBVARBINARY";	break;
       case XSYBVARCHAR :    result = "XSYBVARCHAR";	break;
-
+      case SYBLONGBINARY:   result = "SYBLONGBINARY";   break;
       default:	break;
    }
    return result;
