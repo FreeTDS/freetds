@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.9 2002-08-23 13:10:15 freddy77 Exp $";
+         "$Id: tdsconvert.h,v 1.10 2002-08-23 19:36:21 freddy77 Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
@@ -61,6 +61,7 @@ extern int _get_conversion_type(int srctype, int colsize);
 
 extern unsigned char tds_willconvert(int srctype, int desttype);
 
+TDS_INT tds_get_null_type(int srctype);
 int tds_get_conversion_type(int srctype, int colsize);
 TDS_INT tds_convert(TDSCONTEXT *context, int srctype, TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);

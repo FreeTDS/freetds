@@ -43,7 +43,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.10 2002-08-22 15:36:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.11 2002-08-23 19:36:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1704,15 +1704,15 @@ char column_type[32];
                         break;
     case XSYBCHAR     : sprintf(column_type,"char(%d)", bcpcol->db_length);
                         break;
-    case SYBTEXT      : sprintf(column_type,"text", bcpcol->db_length);
+    case SYBTEXT      : sprintf(column_type,"text");
                         break;
-    case SYBIMAGE     : sprintf(column_type,"image", bcpcol->db_length);
+    case SYBIMAGE     : sprintf(column_type,"image");
                         break;
     case XSYBNVARCHAR : sprintf(column_type,"nvarchar(%d)", bcpcol->db_length);
                         break;
     case XSYBNCHAR    : sprintf(column_type,"nchar(%d)", bcpcol->db_length);
                         break;
-    case SYBNTEXT     : sprintf(column_type,"ntext", bcpcol->db_length);
+    case SYBNTEXT     : sprintf(column_type,"ntext");
                         break;
    }
    

@@ -24,12 +24,13 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.23 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.24 2002-08-23 19:36:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 static void _ct_bind_data(CS_COMMAND *cmd);
+static int _ct_get_client_type(int datatype, int size);
 
 
 CS_RETCODE ct_exit(CS_CONTEXT *ctx, CS_INT unused)
@@ -604,7 +605,7 @@ CS_RETCODE ct_con_drop(CS_CONNECTION *con)
 }
 
 
-int _ct_get_client_type(int datatype, int size)
+static int _ct_get_client_type(int datatype, int size)
 {
    tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_get_client_type(type %d, size %d)\n",
                              datatype, size);

@@ -24,7 +24,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.8 2002-08-16 21:01:25 freddy77 Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.9 2002-08-23 19:36:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -32,8 +32,8 @@ static void *no_unused_var_warn[] = {software_version,
 int ctlib_handle_info_message(TDSCONTEXT *ctx,TDSSOCKET *tds, TDSMSGINFO *msg)
 {
 /* CS_CONNECTION *con = (CS_CONNECTION *)bStruct;
-TDSSOCKET* tds = (TDSSOCKET *tds) con->tds_socket; */
-CS_CLIENTMSG errmsg; 
+TDSSOCKET* tds = (TDSSOCKET *tds) con->tds_socket; 
+CS_CLIENTMSG errmsg; */
 
 	return ctlib_handle_err_message(ctx, tds, msg);
 /*

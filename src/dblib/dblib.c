@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.37 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.38 2002-08-23 19:36:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -328,7 +328,7 @@ static void buffer_transfer_bound_data(
    DBPROCESS     *dbproc,   /* (I)                                         */
    int            row_num)  /* (I) resultset row number                    */
 {
-int            i, j;
+int            i;
 TDSCOLINFO    *curcol;
 TDSRESULTINFO *resinfo;
 TDSSOCKET     *tds;
@@ -337,7 +337,6 @@ BYTE          *src;
 int            desttype;
 int            destlen;
 /* this should probably go somewhere else */
-TDS_NUMERIC	numeric;
    
 	tds     = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -470,8 +469,6 @@ RETCODE DBSETLAPP(LOGINREC *login, char *application)
 DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
 {
 DBPROCESS *dbproc;
-char	*envbuf;
-int version_value;
    
 	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
 	memset(dbproc,'\0',sizeof(DBPROCESS));
@@ -592,7 +589,6 @@ char query[255];
 void
 dbclose(DBPROCESS *dbproc)
 {
-TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
 int i;
 
@@ -653,7 +649,6 @@ int i;
 RETCODE dbresults_r(DBPROCESS *dbproc, int recursive)
 {
 RETCODE       retcode = FAIL;
-unsigned char marker; 
 TDSSOCKET *tds;
 
    
@@ -766,7 +761,6 @@ RETCODE dbnextrow(DBPROCESS *dbproc)
    TDSSOCKET     *tds;
    int            rc;
    RETCODE        result = FAIL;
-   int            marker;
    
    tdsdump_log(TDS_DBG_FUNC, "%L inside dbnextrow()\n");
 
@@ -1450,7 +1444,7 @@ DBINT dbspr1rowlen(DBPROCESS *dbproc)
 TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
-int i,col,len=0,collen,namlen;
+int col,len=0,collen,namlen;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -2085,9 +2079,6 @@ RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt)
 {
 TDSDATEREC dr;
 
-
-int i;
-
 	tds_datecrack(SYBDATETIME, dt, &dr);
 
 #ifndef MSDBLIB
@@ -2431,8 +2422,6 @@ int cpbytes, bytes_avail, rc;
 }
 RETCODE dbmoretext(DBPROCESS *dbproc, DBINT size, BYTE *text)
 {
-int marker;
-
 	tds_put_bulk_data(dbproc->tds_socket, text, size);
 	dbproc->text_sent += size;
 

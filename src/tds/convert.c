@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.51 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.52 2002-08-23 19:36:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -200,11 +200,9 @@ tds_convert_binary(int srctype,TDS_UCHAR *src,TDS_INT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 int cplen;
-int d, s;
-TDS_VARBINARY *varbin;
+int s;
 char *c;
 char hex2[3];
-int  ret;
 
    switch(desttype) {
       case SYBCHAR:
@@ -257,11 +255,9 @@ static TDS_INT
 tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
-
-int           ret;
 int           i, j;
 unsigned char hex1;
-int           inp;
+/*int           inp;*/
 
 TDS_INT8     mymoney;
 TDS_INT      mymoney4;
@@ -862,8 +858,6 @@ static TDS_INT
 tds_convert_money(int srctype,TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
-TDS_INT high;
-TDS_UINT low;
 char *s;
 
 TDS_INT8 mymoney,dollars;
@@ -1454,8 +1448,6 @@ char last_token[32];
 int   monthdone = 0;
 int   yeardone  = 0;
 int   mdaydone  = 0;
-int   timedone  = 0;
-int   ampmdone  = 0;
 
 struct tds_time mytime;
 struct tds_time *t;
@@ -2486,8 +2478,6 @@ unsigned int dt_time;
 
 
 int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
 int i;

@@ -1,3 +1,9 @@
+Fri Aug 23 21:35:19 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in include/tdsconvert.h src/ctlib/ct.c:
+	* src/ctlib/ctutil.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/tds/convert.c src/tds/query.c:
+	- other minor cleanup
+
 Fri Aug 23 15:08:49 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsconvert.h include/tdsutil.h src/ctlib/ct.c:
 	* src/dblib/dblib.c src/tds/asprintf.c src/tds/config.c:
