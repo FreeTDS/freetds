@@ -42,11 +42,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.10 2003-05-20 15:31:00 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.11 2003-05-22 19:27:48 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
-extern const int tds_numeric_bytes_per_prec[];
 
 /**
  * Convert parameters to libtds format

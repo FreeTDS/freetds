@@ -61,9 +61,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-extern const int tds_numeric_bytes_per_prec[];
-
-static char software_version[] = "$Id: bcp.c,v 1.66 2003-05-05 00:12:52 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.67 2003-05-22 19:27:47 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
