@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.70 2003-05-14 18:49:07 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.71 2003-05-15 06:59:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -292,7 +292,7 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 	}
 
 	if (!server_canonical) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
