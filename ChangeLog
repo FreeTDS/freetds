@@ -1,3 +1,6 @@
+Tue Jun 11 07:18:29 EDT 2002	Brian Bruns <camber@ais.org>
+	*src/apps/tsql.c: get conversion type before calling tds_convert
+
 Sun Jun  9 18:17:46 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/apps/Makefile.am: initial implementation
 	* src/apps/freebcp.c: initial implementation (Bill Thompson)

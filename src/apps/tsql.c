@@ -55,6 +55,8 @@ int do_query(TDSSOCKET *tds, char *buf)
 {
 int rc, i;
 char tmpbuf[255];
+TDSCOLINFO *col;
+int ctype;
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -75,11 +77,12 @@ char tmpbuf[255];
 				continue;
 
 			for (i=0; i<tds->res_info->num_cols; i++) {
+				col = tds->res_info->columns[i];
+				ctype = tds_get_conversion_type(col->column_type, col->column_size);
                     tds_convert(NULL,
- 					tds->res_info->columns[i]->column_type,
- 					&tds->res_info->current_row[
-						tds->res_info->columns[i]->column_offset],
- 					tds->res_info->columns[i]->column_size,
+ 					ctype,
+ 					&tds->res_info->current_row[col->column_offset],
+ 					col->column_size,
 					SYBVARCHAR,
 					tmpbuf,
 					-1);
