@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.41 2002-08-29 22:01:29 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.42 2002-08-30 04:54:18 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -901,21 +901,23 @@ static int _db_get_server_type(int bindtype)
 }
 /**
  * Conversion functions are handled in the TDS layer.
+ * 
  * The main reason for this is that ctlib and ODBC (and presumably DBI) need
  * to be able to do conversions between datatypes. This is possible because
  * the format of complex data (dates, money, numeric, decimal) is defined by
- * its representation on the wire, thus what we call DBMONEY is exactly its
- * format on the wire. CLIs that need a differtent representation (ODBC?) 
+ * its representation on the wire; thus what we call DBMONEY is exactly its
+ * format on the wire. CLIs that need a different representation (ODBC?) 
  * need to convert from this format anyway, so the code would already be in
  * place.
- * The datatypes are also defined by its Server-type so all CLIs should be 
+ * 
+ * Each datatype is also defined by its Server-type so all CLIs should be 
  * able to map native types to server types as well.
  *
  * tds_convert copies from src to dest and returns the output data length,
- * period.  All padding and termination is the responsibilty of the API library
- * and is done post conversion.  The peculiar rule in dbconvert() is that
- * a dest len of -1 and a desttype of SYBCHAR means the output buffer
- * should be null-teminated.  
+ * period.  All padding and termination is the responsibility of the API library
+ * and is done post-conversion.  The peculiar rule in dbconvert() is that
+ * a destlen of -1 and a desttype of SYBCHAR means the output buffer
+ * should be null-terminated.  
  */
 
 DBINT dbconvert(DBPROCESS *dbproc,
@@ -1002,8 +1004,9 @@ int         len;
                }
                else { /* destlen is > 0 */
                   if (srclen > destlen) {
-                     fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
-                     ret = -1;
+                     fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
+                     fprintf(stderr,"\tsrclen (%d)> destlen (%d).\n", srclen, destlen);
+                    ret = -1;
                   }
                   else {
                      memcpy(dest, src, srclen);
@@ -1054,7 +1057,8 @@ int         len;
         case SYBIMAGE:
 
              if (len > destlen) {
-                fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
+                fprintf(stderr,"%s: Line %d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
+                fprintf(stderr,"\tlen (%d) > destlen (%d).\n", len, destlen);
                 ret = -1;
              } else {
                 memcpy(dest, dres.ib, len);
@@ -1135,8 +1139,9 @@ int         len;
              }
              else { /* destlen is > 0 */
                 if (len > destlen) {
-                   fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
-                   ret = -1;
+               	 fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
+               	 fprintf(stderr,"\tlen (%d)> destlen (%d).\n", len, destlen);
+                   	 ret = -1;
                 }
                 else
                    memcpy(dest, dres.c, len);
