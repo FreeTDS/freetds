@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.40 2002-08-22 08:45:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.41 2002-08-28 07:53:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -746,24 +746,29 @@ SQLRETURN SQL_API SQLDescribeCol(
         odbc_LogError ("SQLDescribeCol: Column out of range");
         return SQL_ERROR;
     }
+    /* check name length */
+    if (cbColNameMax < 0) {
+	    /* HY090 */
+	    odbc_LogError ("Invalid buffer length");
+	    return SQL_ERROR;
+    }
     colinfo = tds->res_info->columns[icol-1];
 
-    if (szColName)
+    /* cbColNameMax can be 0 (to retrieve name length) */
+    if (szColName && cbColNameMax)
     {
+	/* straight copy column name up to cbColNameMax */
         namelen = strlen(colinfo->column_name);
         cplen = namelen >= cbColNameMax ?
                 cbColNameMax - 1 : namelen;
         strncpy(szColName,colinfo->column_name, cplen);
-        for (i=0;i<cplen;i++)
-        {
-            if (islower(szColName[i]))
-                szColName[i] -= 0x20;
-        }
         szColName[cplen]='\0';
         /* fprintf(stderr,"\nsetting column name to %s %s\n", colinfo->column_name, szColName); */
     }
     if (pcbColName)
     {
+	/* return column name length (without terminator) 
+	 * as specification return full length, not copied length */
         *pcbColName = strlen(colinfo->column_name);
     }
     if (pfSqlType)
