@@ -1,3 +1,8 @@
+Fri Jan 02 10:49:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/pool/Makefile.am:
+	- fixed double inclusion of symbols (Mac OS X should now compile
+	  without patch, tested 10.2 version)
+
 Fri Jan 02 09:21:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: optimize a bit
 	* doc/Makefile.am: use $(MAKE) to call make
