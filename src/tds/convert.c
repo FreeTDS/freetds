@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.141 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.142 2004-09-08 15:12:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -283,12 +283,10 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	case SYBREAL:
 	case SYBFLT8:
 		cplen = tds_get_size_by_type(desttype);
-		if (cplen <= srclen)
-			return binary_to_result(src, cplen, cr);
-		cr->ib = (TDS_CHAR *) malloc(cplen);
-		test_alloc(cr->ib);
-		memcpy(cr->ib, src, srclen);
-		memset(cr->ib + srclen, 0, cplen - srclen);
+		if (srclen >= cplen)
+			srclen = cplen;
+		memcpy(cr, src, srclen);
+		memset(((char*) cr) + srclen, 0, cplen - srclen);
 		return cplen;
 		break;
 

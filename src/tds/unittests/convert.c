@@ -31,11 +31,23 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.16 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.17 2004-09-08 15:12:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
 static TDSCONTEXT *ctx;
+
+static void
+free_convert(int type, CONV_RESULT *cr)
+{
+	switch (type) {
+	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
+	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
+	case SYBLONGBINARY:
+		free(cr->c);
+		break;
+	}
+}
 
 int
 main(int argc, char **argv)
@@ -214,7 +226,9 @@ main(int argc, char **argv)
 		 * Now at last do the conversion
 		 */
 
+		cr.c = NULL;
 		result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
+		free_convert(answers[i].desttype, &cr);
 
 		if (result < 0) {
 			if (result == TDS_CONVERT_NOAVAIL)	/* tds_willconvert returned true, but it lied. */
@@ -280,7 +294,7 @@ main(int argc, char **argv)
 
 		for (j = 0; result >= 0 && j < iterations; j++) {
 			result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
-
+			free_convert(answers[i].desttype, &cr);
 		}
 
 		result = gettimeofday(&end, NULL);
@@ -292,6 +306,7 @@ main(int argc, char **argv)
 		}
 
 	}
+	tds_free_context(ctx);
 
 	return g_result;
 }

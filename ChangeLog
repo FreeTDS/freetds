@@ -1,3 +1,8 @@
+Wed Sep 08 17:10:27 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c src/tds/unittests/convert.c:
+	- remove memory leak
+	- fix conversion from binary to fixed types
+
 Wed Sep 08 14:48:37 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h src/ctlib/blk.c src/ctlib/cs.c:
 	* src/ctlib/ct.c src/ctlib/unittests/blk_in.c:
