@@ -1,3 +1,7 @@
+Thu Oct 10 15:04:05 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/pool/main.c src/pool/member.c:
+	- Make some local functions static, and provide prototypes.
+
 Thu Oct 10 13:09:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/Makefile.am doc/userguide.sgml:
 	- Build and install the pool server by default.

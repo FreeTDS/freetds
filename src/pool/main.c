@@ -27,8 +27,8 @@
 #include <config.h>
 #endif
 
-#include "pool.h"
 #include <signal.h>
+#include "pool.h"
 #include "tdsutil.h"
 
 /* this will go away...starting with just 1 global pool */
@@ -39,7 +39,11 @@ int term = 0;
 int waiters = 0;
 int hack = 0;
 
-void term_handler(int sig)
+static void term_handler(int sig);
+static void pool_schedule_waiters(TDS_POOL *pool);
+
+static void
+term_handler(int sig)
 {
 	fprintf(stdout,"Shutdown Requested\n");
 	term = 1;
@@ -74,7 +78,8 @@ TDS_POOL *pool;
 	return pool;
 }
 
-void pool_schedule_waiters(TDS_POOL *pool)
+static void
+pool_schedule_waiters(TDS_POOL *pool)
 {
 TDS_POOL_USER *puser;
 TDS_POOL_MEMBER *pmbr;

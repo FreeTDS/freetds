@@ -24,7 +24,8 @@
 #include "pool.h"
 #include "tdsutil.h"
 
-int pool_packet_read(TDS_POOL_MEMBER *pmbr);
+static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
+static void pool_free_member(TDS_POOL_MEMBER *pmbr);
 
 /*
 ** pool_mbr_login open a single pool login, to be call at init time or
@@ -80,7 +81,9 @@ char *query;
 
 	return tds;
 }
-void pool_free_member(TDS_POOL_MEMBER *pmbr)
+
+static void
+pool_free_member(TDS_POOL_MEMBER *pmbr)
 {
 	if (!IS_TDSDEAD(pmbr->tds)) {
 		tds_close_socket(pmbr->tds);
@@ -219,7 +222,9 @@ TDS_POOL_MEMBER *pmbr;
 	fprintf(stderr,"No idle members left, increase MAX_POOL_CONN\n");
 	return NULL;
 }
-int pool_packet_read(TDS_POOL_MEMBER *pmbr)
+
+static int
+pool_packet_read(TDS_POOL_MEMBER *pmbr)
 {
 TDSSOCKET *tds;
 int packet_len;
