@@ -91,7 +91,7 @@ odbc	(all)	SQLCancel	OK
 odbc	(all)	SQLCloseCursor	
 odbc	(all)	SQLColAttribute	
 odbc	(all)	SQLColAttributes	OK
-odbc	(all)	SQLColumnPrivileges	
+odbc	(all)	SQLColumnPrivileges	OK
 odbc	(all)	SQLColumns	OK
 odbc	(all)	SQLConnect	OK
 odbc	(all)	SQLCopyDesc	
@@ -106,7 +106,7 @@ odbc	(all)	SQLExecute	OK
 odbc	(all)	SQLExtendedFetch	
 odbc	(all)	SQLFetch	OK
 odbc	(all)	SQLFetchScroll	
-odbc	(all)	SQLForeignKeys	
+odbc	(all)	SQLForeignKeys	OK
 odbc	(all)	SQLFreeConnect	OK
 odbc	(all)	SQLFreeEnv	OK
 odbc	(all)	SQLFreeHandle	OK
@@ -132,9 +132,9 @@ odbc	(all)	SQLNumResultCols	OK
 odbc	(all)	SQLParamData	OK
 odbc	(all)	SQLParamOptions	
 odbc	(all)	SQLPrepare	OK
-odbc	(all)	SQLPrimaryKeys	
-odbc	(all)	SQLProcedureColumns	
-odbc	(all)	SQLProcedures	
+odbc	(all)	SQLPrimaryKeys	OK
+odbc	(all)	SQLProcedureColumns	OK
+odbc	(all)	SQLProcedures	OK
 odbc	(all)	SQLPutData	OK
 odbc	(all)	SQLRowCount	OK
 odbc	(all)	SQLSetConnectAttr	partial
@@ -149,8 +149,8 @@ odbc	(all)	SQLSetScrollOption
 odbc	(all)	SQLSetStmtAttr	
 odbc	(all)	SQLSetStmtOption	partial
 odbc	(all)	SQLSpecialColumns	
-odbc	(all)	SQLStatistics	
-odbc	(all)	SQLTablePrivileges	
+odbc	(all)	SQLStatistics	OK
+odbc	(all)	SQLTablePrivileges	OK
 odbc	(all)	SQLTables	OK
 odbc	(all)	SQLTransact	OK
 dblib	(none)   	n/a				db12hour	

@@ -1,3 +1,6 @@
+Wed Apr 02 15:07:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt: updated
+
 Wed Apr 02 14:57:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c win32/FreeTDS.def:
 	- applied Peter Daecon patch
