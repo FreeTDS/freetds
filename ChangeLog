@@ -1,3 +1,18 @@
+Thu Nov 13 08:46:23 EST 2003	JK Lowden <jklowden@schemamania.org>
+	- Applied Frediano's patch:
+	* src/odbc/Makefile.am  src/odbc/convert_sql2string.c
+	* src/odbc/convert_sql2string.h src/odbc/convert_tds2sql.c
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c
+	* src/odbc/unittests/common.c src/odbc/unittests/genparams.c
+	* src/tds/query.c vms/odbc_driver_axp.opt win32/FreeTDS.def
+	- some fix for numeric parameters in ODBC
+	- some fix for SQL_C_DEFAULT in ODBC
+	- added SQLFetchScroll
+	- cleanup
+	- do not use convert_sql2string.[ch]
+	* src/odbc/checkexport.sh some fixes for libtool update
+
 Wed Nov 12 23:45:02 PST 2003	Peter Deacon <peterd@iea-software.com>
 	* src/odbc/odbc.c: commit/rollback with pending results
 
