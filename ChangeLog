@@ -1,3 +1,8 @@
+Sat Nov 29 22:04:10 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/odbc.c 
+	- applied 2-line  patch from nj-freetds@talbott.ws
+	- Cf. 25 Nov 2003, "ODBC SQLExecute succeeds when it shouldn't"
+	
 Fri Nov 28 17:52:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: updated to 0.62 version
 	* include/tds.h src/tds/mem.c src/tds/query.c:
