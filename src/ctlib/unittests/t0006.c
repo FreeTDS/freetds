@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.9 2003-03-07 15:42:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.10 2004-03-22 20:41:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
@@ -17,20 +17,20 @@ int allSuccess = 1;
 
 typedef const char *STR;
 
-int DoTest(TDS_INT fromtype, void *fromdata, TDS_INT fromlen,
-	   TDS_INT totype, TDS_INT tomaxlen,
-	   CS_RETCODE tores, void *todata, TDS_INT tolen,
+int DoTest(CS_INT fromtype, void *fromdata, CS_INT fromlen,
+	   CS_INT totype, CS_INT tomaxlen,
+	   CS_RETCODE tores, void *todata, CS_INT tolen,
 	   STR sdecl,
 	   STR sfromtype, STR sfromdata, STR sfromlen, STR stotype, STR stomaxlen, STR stores, STR stodata, STR stolen, int line);
 
 int
 DoTest(
 	      /* source information */
-	      TDS_INT fromtype, void *fromdata, TDS_INT fromlen,
+	      CS_INT fromtype, void *fromdata, CS_INT fromlen,
 	      /* to information */
-	      TDS_INT totype, TDS_INT tomaxlen,
+	      CS_INT totype, CS_INT tomaxlen,
 	      /* expected result */
-	      CS_RETCODE tores, void *todata, TDS_INT tolen,
+	      CS_RETCODE tores, void *todata, CS_INT tolen,
 	      STR sdecl,
 	      STR sfromtype, STR sfromdata, STR sfromlen, STR stotype, STR stomaxlen, STR stores, STR stodata, STR stolen, int line)
 {
@@ -110,7 +110,7 @@ int
 main(int argc, char **argv)
 {
 	CS_RETCODE ret;
-	volatile TDS_INT8 one = 1;
+	volatile tds_sysdep_int64_type one = 1;
 	int verbose = 1;
 
 	fprintf(stdout, "%s: Testing conversion\n", __FILE__);
@@ -236,13 +236,13 @@ main(int argc, char **argv)
 
 	DO_TEST(CS_INT test = 1234678;
 		CS_MONEY test2;
-		test2.tdsoldmoney.mnyhigh = ((one * 1234678) * 10000) >> 32;
-		test2.tdsoldmoney.mnylow = (TDS_UINT) ((one * 1234678) * 10000),
+		test2.mnyhigh = ((one * 1234678) * 10000) >> 32;
+		test2.mnylow = (CS_UINT) ((one * 1234678) * 10000),
 		CS_INT_TYPE, &test, sizeof(test), CS_MONEY_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
 	DO_TEST(CS_INT test = -8765;
 		CS_MONEY test2;
-		test2.tdsoldmoney.mnyhigh = ((one * -8765) * 10000) >> 32;
-		test2.tdsoldmoney.mnylow = (TDS_UINT) ((one * -8765) * 10000),
+		test2.mnyhigh = ((one * -8765) * 10000) >> 32;
+		test2.mnylow = (CS_UINT) ((one * -8765) * 10000),
 		CS_INT_TYPE, &test, sizeof(test), CS_MONEY_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
 
 	DO_TEST(CS_INT test = 12345;

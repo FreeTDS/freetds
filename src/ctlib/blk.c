@@ -22,8 +22,9 @@
 #endif
 
 #include "bkpublic.h"
+#include "ctlib.h"
 
-static char software_version[] = "$Id: blk.c,v 1.6 2002-11-20 13:30:15 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.7 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE

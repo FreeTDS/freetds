@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.3 2004-01-31 16:07:14 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.4 2004-03-22 20:41:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 						return 1;
 					}
 
-					clientmsg_cb(conn->ctx, conn, &client_message);
+					clientmsg_cb(conn, &client_message);
 
 				}
 

@@ -30,13 +30,43 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.10 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.11 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
 /*
  * internal types
  */
+struct _cs_config
+{
+	short cs_expose_formats;
+};
+
+/* Code changed for error handling */
+/* Code changes starts here - CT_DIAG - 01 */
+
+/* This structure is used in CT_DIAG */
+
+struct cs_diag_msg_client
+{
+	CS_CLIENTMSG *clientmsg;
+	struct cs_diag_msg_client *next;
+};
+
+struct cs_diag_msg_svr
+{
+	CS_SERVERMSG *servermsg;
+	struct cs_diag_msg_svr *next;
+};
+
+/* Code changes ends here - CT_DIAG - 01 */
+
+struct cs_diag_msg
+{
+	CS_CLIENTMSG *msg;
+	struct cs_diag_msg *next;
+};
+
 struct _cs_context
 {
 	CS_INT date_convert_fmt;
@@ -79,6 +109,83 @@ typedef struct ctcolinfo
 	TDS_SMALLINT *indicator;
 }
 CT_COLINFO;
+
+struct cs_connection
+{
+	CS_CONTEXT *ctx;
+	TDSLOGIN *tds_login;
+	TDSSOCKET *tds_socket;
+	CS_CLIENTMSG_FUNC _clientmsg_cb;
+	CS_SERVERMSG_FUNC _servermsg_cb;
+	void *userdata;
+	int userdata_len;
+	CS_LOCALE *locale;
+};
+
+/* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
+	places, too. */
+
+typedef struct _CS_PARAM
+{
+	struct _CS_PARAM *next;
+	char *name;
+	int status;
+	int type;
+	CS_INT maxlen;
+	CS_INT *datalen;
+	CS_SMALLINT *ind;
+	CS_BYTE *value;
+	int param_by_value;
+} CS_PARAM;
+
+ /* Code added for RPC functionality - SUHA */
+ /* RPC Code changes starts here */
+
+typedef CS_PARAM CSREMOTE_PROC_PARAM;
+
+typedef struct _CSREMOTE_PROC
+{
+	char *name;
+	CS_SMALLINT options;
+	CSREMOTE_PROC_PARAM *param_list;
+} CSREMOTE_PROC;
+
+/* Structure CS_COMMAND changed for RPC functionality -SUHA */
+/* Added CSREMOTE_PROC *rpc to CS_COMMAND structure */
+
+struct _cs_command
+{
+	CS_CHAR *query;
+	CS_INT command_type;
+	CS_CONNECTION *con;
+	short dynamic_cmd;
+	char *dyn_id;
+	int row_prefetched;
+	int results_state;
+	int curr_result_type;
+	/* Array Binding Code changes start here */
+	int bind_count;
+	/* Array Binding Code changes end here */
+	int get_data_item;
+	int get_data_bytes_returned;
+	CS_IODESC *iodesc;
+	CS_INT send_data_started;
+	CSREMOTE_PROC *rpc;
+	CS_PARAM *input_params;
+};
+
+/* RPC Code changes ends here */
+
+#define _CS_ERRHAND_INLINE 1
+#define _CS_ERRHAND_CB     2
+
+struct _cs_locale
+{
+	char *language;
+	char *charset;
+	char *time;
+	char *collate;
+};
 
 /*
  * internal prototypes

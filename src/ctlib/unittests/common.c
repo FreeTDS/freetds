@@ -12,7 +12,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.12 2004-01-07 18:04:53 castellano Exp $";
+static char software_version[] = "$Id: common.c,v 1.13 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -225,7 +225,7 @@ CS_INT result_type;
 }
 
 CS_INT
-cslibmsg_cb(CS_CONTEXT * context, CS_CLIENTMSG * errmsg)
+cslibmsg_cb(CS_CLIENTMSG * errmsg)
 {
 	cslibmsg_cb_invoked++;
 	fprintf(stderr, "\nCS-Library Message:\n");
@@ -242,7 +242,7 @@ cslibmsg_cb(CS_CONTEXT * context, CS_CLIENTMSG * errmsg)
 
 
 CS_RETCODE
-clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
+clientmsg_cb(CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
 	clientmsg_cb_invoked++;
 	fprintf(stderr, "\nOpen Client Message:\n");

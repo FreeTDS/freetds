@@ -20,7 +20,7 @@
 #ifndef _cspublic_h_
 #define _cspublic_h_
 
-#include <tds.h>
+#include "tds_sysdep_public.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.49 2004-02-09 14:26:06 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.50 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -38,32 +38,40 @@ typedef int CS_RETCODE;
 #define CS_PUBLIC
 #define CS_STATIC static
 
-typedef TDS_INT CS_INT;
-typedef TDS_SMALLINT CS_SMALLINT;
-typedef TDS_TINYINT CS_TINYINT;
-typedef TDS_CHAR CS_CHAR;
-typedef TDS_UCHAR CS_BYTE;
-/* XX defined */
-typedef TDS_NUMERIC CS_NUMERIC;
-typedef float CS_REAL;
-typedef double CS_FLOAT;
+typedef tds_sysdep_int32_type CS_INT;
+typedef unsigned tds_sysdep_int32_type CS_UINT;
+typedef tds_sysdep_int16_type CS_SMALLINT;
+typedef unsigned char CS_TINYINT;
+typedef char CS_CHAR;
+typedef unsigned char CS_BYTE;
+typedef struct _cs_numeric
+{
+	unsigned char precision;
+	unsigned char scale;
+	unsigned char array[33];
+} CS_NUMERIC;
+typedef tds_sysdep_real32_type CS_REAL;
+typedef tds_sysdep_real64_type CS_FLOAT;
 typedef char CS_BOOL;
 typedef void CS_VOID;
-/* XX defined, error, int instead of short... */
-typedef TDS_VARBINARY CS_VARBINARY;
-/* XX defined */
-typedef TDS_NUMERIC CS_DECIMAL;
-typedef TDS_UCHAR CS_IMAGE;
-typedef TDS_UCHAR CS_TEXT;
-typedef TDS_UCHAR CS_LONGBINARY;
-typedef TDS_UCHAR CS_LONGCHAR;
-typedef TDS_INT CS_LONG;
-typedef TDS_UCHAR CS_BINARY;
-typedef TDS_USMALLINT CS_USHORT;
-typedef TDS_UCHAR CS_BIT;
+typedef struct _cs_varbinary
+{
+	CS_INT len;
+	CS_CHAR array[256];
+} CS_VARBINARY;
+typedef CS_NUMERIC CS_DECIMAL;
+typedef unsigned char CS_IMAGE;
+typedef unsigned char CS_TEXT;
+typedef unsigned char CS_LONGBINARY;
+typedef unsigned char CS_LONGCHAR;
+typedef tds_sysdep_int32_type CS_LONG;
+typedef unsigned char CS_BINARY;
+typedef unsigned tds_sysdep_int16_type CS_USHORT;
+typedef unsigned char CS_BIT;
 
-#define CS_FAIL	   TDS_FAIL
-#define CS_SUCCEED TDS_SUCCEED
+/* TODO check */
+#define CS_FAIL	   0
+#define CS_SUCCEED 1
 #define CS_SIZEOF(x) sizeof(x)
 #define CS_NOMSG   -99
 
@@ -76,103 +84,20 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_TP_SIZE  16		/* text pointer */
 #define CS_TS_SIZE  8		/* length of timestamp */
 
-typedef struct _cs_config
-{
-	short cs_expose_formats;
-} CS_CONFIG;
-
 /* forward declarations */
+typedef struct _cs_config CS_CONFIG;
 typedef struct _cs_context CS_CONTEXT;
-typedef struct cs_clientmsg CS_CLIENTMSG;
+typedef struct _cs_clientmsg CS_CLIENTMSG;
 typedef struct cs_connection CS_CONNECTION;
 typedef struct _cs_servermsg CS_SERVERMSG;
 typedef CS_RETCODE(*CS_CSLIBMSG_FUNC) (CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
-/* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
-	places, too. */
-
-typedef struct _CS_PARAM
-{
-	struct _CS_PARAM *next;
-	char *name;
-	int status;
-	int type;
-	CS_INT maxlen;
-	CS_INT *datalen;
-	CS_SMALLINT *ind;
-	CS_BYTE *value;
-	int param_by_value;
-} CS_PARAM;
-
-
- /* Code added for RPC functionality - SUHA */
- /* RPC Code changes starts here */
-
-typedef CS_PARAM CSREMOTE_PROC_PARAM;
-
-typedef struct _CSREMOTE_PROC
-{
-	char *name;
-	CS_SMALLINT options;
-	CSREMOTE_PROC_PARAM *param_list;
-} CSREMOTE_PROC;
-
-/* RPC Code changes ends here */
-
-#define _CS_ERRHAND_INLINE 1
-#define _CS_ERRHAND_CB     2
-
-/* Code changed for error handling */
-/* Code changes starts here - CT_DIAG - 01 */
-
-/* This structure is used in CT_DIAG */
-
-struct cs_diag_msg_client
-{
-	CS_CLIENTMSG *clientmsg;
-	struct cs_diag_msg_client *next;
-};
-
-struct cs_diag_msg_svr
-{
-	CS_SERVERMSG *servermsg;
-	struct cs_diag_msg_svr *next;
-};
-
-/* Code changes ends here - CT_DIAG - 01 */
-
-struct cs_diag_msg
-{
-	CS_CLIENTMSG *msg;
-	struct cs_diag_msg *next;
-};
-
-typedef struct _cs_locale
-{
-	char *language;
-	char *charset;
-	char *time;
-	char *collate;
-} CS_LOCALE;
-
-struct cs_connection
-{
-	CS_CONTEXT *ctx;
-	TDSLOGIN *tds_login;
-	TDSSOCKET *tds_socket;
-	CS_CLIENTMSG_FUNC _clientmsg_cb;
-	CS_SERVERMSG_FUNC _servermsg_cb;
-	void *userdata;
-	int userdata_len;
-	CS_LOCALE *locale;
-};
-
+typedef struct _cs_locale CS_LOCALE;
 
 #define CS_IODATA          (CS_INT)1600
 
-/* XX defined */
 typedef struct _cs_iodesc
 {
 	CS_INT iotype;
@@ -190,30 +115,7 @@ typedef struct _cs_iodesc
 	CS_INT textptrlen;
 } CS_IODESC;
 
-
-/* Structure CS_COMMAND changed for RPC functionality -SUHA */
-/* Added CSREMOTE_PROC *rpc to CS_COMMAND structure */
-
-typedef struct _cs_command
-{
-	CS_CHAR *query;
-	CS_INT command_type;
-	CS_CONNECTION *con;
-	short dynamic_cmd;
-	char *dyn_id;
-	int row_prefetched;
-	int results_state;
-	int curr_result_type;
-	/* Array Binding Code changes start here */
-	int bind_count;
-	/* Array Binding Code changes end here */
-	int get_data_item;
-	int get_data_bytes_returned;
-	CS_IODESC *iodesc;
-	CS_INT send_data_started;
-	CSREMOTE_PROC *rpc;
-	CS_PARAM *input_params;
-} CS_COMMAND;
+typedef struct _cs_command CS_COMMAND;
 
 /* values for cs_command.results_state */
 
@@ -235,29 +137,41 @@ typedef struct _cs_command
 
 typedef struct _cs_datafmt
 {
-	int datatype;
-	int format;
-	int maxlength;
-	int count;
+	CS_CHAR name[CS_MAX_NAME];
+	CS_INT namelen;
+	CS_INT datatype;
+	CS_INT format;
+	CS_INT maxlength;
+	CS_INT scale;
+	CS_INT precision;
+	CS_INT status;
+	CS_INT count;
+	CS_INT usertype;
 	CS_LOCALE *locale;
-	int precision;
-	int scale;
-	int namelen;
-	char name[CS_MAX_NAME];
-	int status;
-	int usertype;
 } CS_DATAFMT;
 
-/* XX defined */
-typedef TDS_MONEY CS_MONEY;
-/* XX defined */
-typedef TDS_MONEY4 CS_MONEY4;
+typedef struct _cs_money
+{
+	CS_INT mnyhigh;
+	CS_UINT mnylow;
+} CS_MONEY;
 
-/* XX defined */
-typedef TDS_DATETIME CS_DATETIME;
+typedef struct _cs_money4
+{
+	CS_INT mny4;
+} CS_MONEY4;
 
-/* XX defined */
-typedef TDS_DATETIME4 CS_DATETIME4;
+typedef struct _cs_datetime
+{
+	CS_INT dtdays;
+	CS_INT dttime;
+} CS_DATETIME;
+
+typedef struct _cs_datetime4
+{
+	CS_USHORT days;
+	CS_USHORT minutes;
+} CS_DATETIME4;
 
 typedef struct _cs_daterec
 {
@@ -275,8 +189,7 @@ typedef struct _cs_daterec
 
 typedef CS_INT CS_MSGNUM;
 
-/* XX defined */
-struct cs_clientmsg
+struct _cs_clientmsg
 {
 	CS_INT severity;
 	CS_MSGNUM msgnumber;
@@ -290,7 +203,6 @@ struct cs_clientmsg
 	CS_INT sqlstatelen;
 };
 
-/* XX defined */
 struct _cs_servermsg
 {
 	CS_MSGNUM msgnumber;
@@ -583,7 +495,7 @@ enum
 #define CS_MESSAGE_CB		9119
 
 /* string types */
-#define CS_NULLTERM	TDS_NULLTERM
+#define CS_NULLTERM	-9
 #define CS_WILDCARD	-99
 #define CS_NO_LIMIT	-9999
 #define CS_UNUSED	-99999
@@ -595,9 +507,9 @@ enum
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
 #define CS_END_ITEM 11
-#define CS_CMD_SUCCEED	TDS_CMD_SUCCEED
-#define CS_CMD_FAIL	TDS_CMD_FAIL
-#define CS_CMD_DONE	TDS_CMD_DONE
+#define CS_CMD_SUCCEED	4047
+#define CS_CMD_FAIL	4048
+#define CS_CMD_DONE	4046
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
@@ -625,7 +537,7 @@ enum
 #define CS_COMP_BYLIST	54
 #define CS_COMP_OP	55
 #define CS_COMP_COLID	56
-#define CS_NO_COUNT	TDS_NO_COUNT
+#define CS_NO_COUNT	-1
 #define CS_ROW_COUNT	59
 #define CS_OP_SUM	60
 #define CS_OP_AVG	61
@@ -679,15 +591,15 @@ enum
 #define CS_CUR_CMD 133
 
 /* result_types */
-#define CS_COMPUTE_RESULT	TDS_COMPUTE_RESULT
+#define CS_COMPUTE_RESULT	4045
 #define CS_CURSOR_RESULT	4041
-#define CS_PARAM_RESULT		TDS_PARAM_RESULT
-#define CS_ROW_RESULT		TDS_ROW_RESULT
-#define CS_STATUS_RESULT	TDS_STATUS_RESULT
-#define CS_COMPUTEFMT_RESULT	TDS_COMPUTEFMT_RESULT
-#define CS_ROWFMT_RESULT	TDS_ROWFMT_RESULT
-#define CS_MSG_RESULT		TDS_MSG_RESULT
-#define CS_DESCRIBE_RESULT	TDS_DESCRIBE_RESULT
+#define CS_PARAM_RESULT		4042
+#define CS_ROW_RESULT		4040
+#define CS_STATUS_RESULT	4043
+#define CS_COMPUTEFMT_RESULT	4050
+#define CS_ROWFMT_RESULT	4049
+#define CS_MSG_RESULT		4044
+#define CS_DESCRIBE_RESULT	4051
 
 /* bind types */
 #define CS_CHAR_TYPE	1

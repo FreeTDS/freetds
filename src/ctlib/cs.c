@@ -43,11 +43,11 @@
 #endif /* HAVE_STRING_H */
 
 #include "cspublic.h"
-#include "tdsconvert.h"
 #include "ctlib.h"
+#include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.46 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.47 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -670,8 +670,8 @@ CS_RETCODE ret;
 CS_RETCODE
 cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec)
 {
-CS_DATETIME *dt;
-CS_DATETIME4 *dt4;
+TDS_DATETIME *dt;
+TDS_DATETIME4 *dt4;
 time_t tmp_secs_from_epoch;
 struct tm *t;
 TDSDATEREC dr;

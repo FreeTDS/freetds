@@ -31,8 +31,60 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.20 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.21 2004-03-22 20:41:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+/*
+ * test include consistency 
+ * I don't think all compiler are able to compile this code... if not comment it
+ */
+#if ENABLE_EXTRA_CHECKS
+
+#if defined(__GNUC__) && __GNUC__ >= 2
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1] __attribute__ ((unused))
+#else
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1]
+#endif
+
+#define TEST_EQUAL(t,a,b) COMPILE_CHECK(t,a==b)
+
+TEST_EQUAL(t01,CS_FAIL,TDS_FAIL);
+TEST_EQUAL(t02,CS_SUCCEED,TDS_SUCCEED);
+TEST_EQUAL(t03,CS_NULLTERM,TDS_NULLTERM);
+TEST_EQUAL(t04,CS_CMD_SUCCEED,TDS_CMD_SUCCEED);
+TEST_EQUAL(t05,CS_CMD_FAIL,TDS_CMD_FAIL);
+TEST_EQUAL(t06,CS_CMD_DONE,TDS_CMD_DONE);
+TEST_EQUAL(t07,CS_NO_COUNT,TDS_NO_COUNT);
+TEST_EQUAL(t08,CS_COMPUTE_RESULT,TDS_COMPUTE_RESULT);
+TEST_EQUAL(t09,CS_PARAM_RESULT,TDS_PARAM_RESULT);
+TEST_EQUAL(t10,CS_ROW_RESULT,TDS_ROW_RESULT);
+TEST_EQUAL(t11,CS_STATUS_RESULT,TDS_STATUS_RESULT);
+TEST_EQUAL(t12,CS_COMPUTEFMT_RESULT,TDS_COMPUTEFMT_RESULT);
+TEST_EQUAL(t13,CS_ROWFMT_RESULT,TDS_ROWFMT_RESULT);
+TEST_EQUAL(t14,CS_MSG_RESULT,TDS_MSG_RESULT);
+TEST_EQUAL(t15,CS_DESCRIBE_RESULT,TDS_DESCRIBE_RESULT);
+
+#define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
+	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && (int)(&((sa*)0)->fa) == (int)(&((sb*)0)->fb))
+
+TEST_ATTRIBUTE(t21,TDS_MONEY4,mny4,CS_MONEY4,mny4);
+TEST_ATTRIBUTE(t22,TDS_OLD_MONEY,mnyhigh,CS_MONEY,mnyhigh);
+TEST_ATTRIBUTE(t23,TDS_OLD_MONEY,mnylow,CS_MONEY,mnylow);
+TEST_ATTRIBUTE(t24,TDS_DATETIME,dtdays,CS_DATETIME,dtdays);
+TEST_ATTRIBUTE(t25,TDS_DATETIME,dttime,CS_DATETIME,dttime);
+TEST_ATTRIBUTE(t26,TDS_DATETIME4,days,CS_DATETIME4,days);
+TEST_ATTRIBUTE(t27,TDS_DATETIME4,minutes,CS_DATETIME4,minutes);
+TEST_ATTRIBUTE(t28,TDS_NUMERIC,precision,CS_NUMERIC,precision);
+TEST_ATTRIBUTE(t29,TDS_NUMERIC,scale,CS_NUMERIC,scale);
+TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,CS_NUMERIC,array);
+TEST_ATTRIBUTE(t30,TDS_NUMERIC,precision,CS_DECIMAL,precision);
+TEST_ATTRIBUTE(t31,TDS_NUMERIC,scale,CS_DECIMAL,scale);
+TEST_ATTRIBUTE(t32,TDS_NUMERIC,array,CS_DECIMAL,array);
+TEST_ATTRIBUTE(t33,TDS_VARBINARY,len,CS_VARBINARY,len);
+TEST_ATTRIBUTE(t34,TDS_VARBINARY,array,CS_VARBINARY,array);
+#endif
 
 /* error handler */
 int
