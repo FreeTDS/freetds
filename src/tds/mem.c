@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.20 2002-09-12 19:27:00 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.21 2002-09-13 12:36:29 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -33,6 +33,22 @@ static void *no_unused_var_warn[] = {software_version,
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds);
 void tds_free_env(TDSSOCKET *tds);
 
+/**
+ * \defgroup mem Allocation Routines
+ */
+
+/** \addtogroup mem
+ *  \@{ 
+ */
+
+/** \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id)
+ *  \brief Allocate a dynamic statement.
+ *  \param tds the connection within which to allocate the statement.
+ *  \param id a character label identifying the statement.
+ *  \return a pointer to the allocated structure.
+ *
+ *  tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
+ */
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id)
 {
 int i;
@@ -67,6 +83,13 @@ int i;
 	return tds->dyns[tds->num_dyns-1];
 }
 
+/** \fn TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
+ *  \brief Allocate a dynamic statement.
+ *  \param dyn the dynamic statement to bind this parameter to.
+ *  \return a pointer to the allocated structure.
+ *
+ *  tds_add_input_param adds a parameter to a dynamic statement.
+ */
 TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
 {
 TDSINPUTPARAM *param;
@@ -89,6 +112,12 @@ TDSINPUTPARAM *param;
 	}
 	return param;
 }
+/** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
+ *  \brief Frees all allocated input parameters of a dynamic statement.
+ *  \param dyn the dynamic statement whose input parameter are to be freed
+ *
+ *  tds_free_input_params frees all parameters for the give dynamic statement
+ */
 void tds_free_input_params(TDSDYNAMIC *dyn)
 {
 int i;
@@ -101,6 +130,13 @@ int i;
 		dyn->num_params = 0;
 	}
 }
+/** \fn void tds_free_dynamic(TDSSOCKET *tds)
+ *  \brief Frees all dynamic statements for a given connection.
+ *  \param tds the connection containing the dynamic statements to be freed.
+ *
+ *  tds_free_dynamic frees all dynamic statements for the given TDS socket and
+ *  then zeros tds->dyns.
+ */
 void tds_free_dynamic(TDSSOCKET *tds)
 {
 int i;
@@ -116,13 +152,18 @@ TDSDYNAMIC *dyn;
 	
 	return;
 }
-/*
-** tds_alloc_param_result() works a bit differently than the other alloc result
-** functions.  Output parameters come in individually with no total number 
-** given in advance, so we simply call this func every time with get a
-** TDS_PARAM_TOKEN and let it realloc the columns struct one bigger. 
-** tds_free_all_results() usually cleans up after us.
-*/
+/** \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
+ *  \brief Adds a output parameter to TDSPARAMINFO.
+ *  \param old_param a pointer to the TDSPARAMINFO structure containing the 
+ *  current set of output parameter, or NULL if none exists.
+ *  \return a pointer to the new TDSPARAMINFO structure.
+ *
+ *  tds_alloc_param_result() works a bit differently than the other alloc result
+ *  functions.  Output parameters come in individually with no total number 
+ *  given in advance, so we simply call this func every time with get a
+ *  TDS_PARAM_TOKEN and let it realloc the columns struct one bigger. 
+ *  tds_free_all_results() usually cleans up after us.
+ */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
 {
 TDSPARAMINFO *param_info;
@@ -484,3 +525,4 @@ void tds_free_msg(TDSMSGINFO *msg_info)
 	}
 }
 
+/** \@} */
