@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-08 07:35:06 $</date>
-		<releaseinfo>$Revision: 1.71 $</releaseinfo>
+		<date>$Date: 2003-12-08 08:45:00 $</date>
+		<releaseinfo>$Revision: 1.72 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.71 $</>
-<member>$Date: 2003-12-08 07:35:06 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.71 2003-12-08 07:35:06 jklowden Exp $.</>
+<member>$Revision: 1.72 $</>
+<member>$Date: 2003-12-08 08:45:00 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.72 2003-12-08 08:45:00 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -523,7 +523,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X&reg;</title>
-			<para>As of this writing ($Date: 2003-12-08 07:35:06 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-12-08 08:45:00 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -888,7 +888,7 @@ Information on locales and locale strings is easily (even too easily!) found on 
 		<sect2 id="localeslocation">
 			<title>Where it goes</title>
 			<para>
-			Like <filename>freetds.conf</filename>, the location of <filename>locales.conf</> is determined by the value of <parameter>--sysconfdir</> in <application>configure</>.  The default is <literal>PREFIX/etc</>.
+			Like <filename>freetds.conf</filename>, the location of <filename>locales.conf</> is determined by the value of <option>--sysconfdir</> to <command>configure</>.  The default is <literal>PREFIX/etc</>.
 			</para>
 		</sect2>
 		<sect2 id="localesformat">
@@ -962,7 +962,7 @@ In a typical system, no environment variables need be used.  They're sometimes h
 					</para></listitem>
 				<listitem><para>The <filename>interfaces</filename> file entry (see below)
 					</para></listitem>
-				<listitem><para>The <parameter>--with-tdsver</parameter> option passed to <command>configure</command>
+				<listitem><para>The <option>--with-tdsver</> option passed to <command>configure</command>
 					</para></listitem>
 			</orderedlist>
 		</listitem>
@@ -1736,7 +1736,7 @@ The <literal>-g</literal> is important to keep the symbol tables for debugging p
 Again, first build <productname>unixODBC</productname> according to the documentation or install it via RPM, DEB or other package manager.
 			</para>
 			<para>
-Now build freetds using the <parameter>--with-unixodbc</parameter> flag to specify the location where <productname>FreeTDS</productname> can find the include files from <productname>unixODBC</productname>.  For instance if <productname>unixODBC</productname>'s header files are in <filename>/opt/unixodbc/include</filename> use <filename>/opt/unixodbc</filename>.  By default the location will be <filename>/usr/local</filename>.
+Now build freetds using the <option>--with-unixodbc</> flag to specify the location where <productname>FreeTDS</productname> can find the include files from <productname>unixODBC</productname>.  For instance if <productname>unixODBC</productname>'s header files are in <filename>/opt/unixodbc/include</filename> use <filename>/opt/unixodbc</filename>.  By default the location will be <filename>/usr/local</filename>.
 <screen>
 <prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds --with-unixodbc=/usr/local</userinput>
 <prompt>$ </prompt><userinput>gmake</userinput>
@@ -1958,7 +1958,7 @@ The <productname>FreeTDS</productname> connection pool currently only supports <
 The pooling server was added to the <application>autoconf</application> scripts after 0.53, so if you have an earlier version, please use <productname>CVS</productname> or a nightly snapshot.
 		</para>
 		<para>
-After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory you specified if configure was run using the <parameter>--with-prefix flag</parameter>).
+After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory you specified if <command>configure</> was run using the <option>--with-prefix flag</>).
 		</para>
 		<para>
 Next, edit the <filename>pool.conf</filename> file in the <productname>FreeTDS</productname>'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like the <filename>freetds.conf</filename> with a section name in brackets and options for each section in key/value pairs.
@@ -2139,7 +2139,7 @@ The following programs are known to work to some extent with <productname>FreeTD
 		<sect1>
 			<title><application>SQSH</application></title>
 			<para>
-<application>SQSH</application> is a command line based query tool written by Scott Gray to replace the program <application>isql</application> that ships with <productname>Sybase ASE</productname>.  It makes a great diagnostic tool for <productname>FreeTDS</productname> as well.  If you are having trouble, install <application>SQSH</application> (it's easy) and try getting that to work before more complicated arrangements.
+<application>SQSH</application> is a command line based query tool written by Scott Gray to replace the <command>isql</> utility that ships with <productname>Sybase ASE</productname>.  It makes a great diagnostic tool for <productname>FreeTDS</productname> as well.  If you are having trouble, install <application>SQSH</application> (it's easy) and try getting that to work before more complicated arrangements.
 
 	<tip><sidebar><para>That advice is so good, it bears repeating.  If you are having trouble, grab <application>SQSH</application> and get that to work. Not only will it help isolate the problem, it will give you a very capable tool.  </para></sidebar></tip>
 
@@ -2765,7 +2765,7 @@ in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 Successful problem isolation will yield earliest resolution.  You (believe it or not) have more information about your environment than anyone else does, and have the greatest motivation to solve your problem.  The resources at your disposal will be much more useful if the problem is specific.  (Sorry if this is obvious.  If it is, you might be surprised how often it's not.)
 			</para>
 			<para>
-If you can demonstrate the problem with <application>tsql</> or <application>sqsh</>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making <productname>FreeTDS</productname> useful and bugless is the goal of the project, after all.)  
+If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making <productname>FreeTDS</productname> useful and bugless is the goal of the project, after all.)  
 			</para>
 			<para>
 <productname>FreeTDS</productname> being what it is, problems frequently arise amidst complex environments.  It can be hard for both you and the list participants -- who are your allies and best resource -- to determine what's going wrong.  If you can submit a script that they can use to try to reproduce your results, you have a much better chance of happy resolution.  
