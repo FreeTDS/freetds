@@ -33,6 +33,7 @@
 
 #include "tds.h"
 #include "tdsodbc.h"
+#include "tdsstring.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -99,6 +100,16 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 
 	for (i = desc->header.sql_desc_count; i < count; ++i) {
 		drec = &desc->records[i];
+
+		tds_dstr_init(&drec->sql_desc_label);
+		tds_dstr_init(&drec->sql_desc_name);
+		tds_dstr_init(&drec->sql_desc_base_column_name);
+		tds_dstr_init(&drec->sql_desc_base_table_name);
+		tds_dstr_init(&drec->sql_desc_catalog_name);
+		tds_dstr_init(&drec->sql_desc_local_type_name);
+		tds_dstr_init(&drec->sql_desc_schema_name);
+		tds_dstr_init(&drec->sql_desc_table_name);
+
 		switch (desc->type) {
 		case DESC_IRD:
 		case DESC_IPD:
@@ -120,14 +131,14 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 static void
 desc_free_record(struct _drecord *drec)
 {
-	IF_FREE(drec->sql_desc_base_column_name);
-	IF_FREE(drec->sql_desc_base_table_name);
-	IF_FREE(drec->sql_desc_catalog_name);
-	IF_FREE(drec->sql_desc_label);
-	IF_FREE(drec->sql_desc_local_type_name);
-	IF_FREE(drec->sql_desc_name);
-	IF_FREE(drec->sql_desc_schema_name);
-	IF_FREE(drec->sql_desc_table_name);
+	tds_dstr_free(&drec->sql_desc_base_column_name);
+	tds_dstr_free(&drec->sql_desc_base_table_name);
+	tds_dstr_free(&drec->sql_desc_catalog_name);
+	tds_dstr_free(&drec->sql_desc_label);
+	tds_dstr_free(&drec->sql_desc_local_type_name);
+	tds_dstr_free(&drec->sql_desc_name);
+	tds_dstr_free(&drec->sql_desc_schema_name);
+	tds_dstr_free(&drec->sql_desc_table_name);
 }
 
 SQLRETURN
@@ -172,7 +183,7 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		/* copy strings */
 		/* TODO avoid all this conversions */
 		/* FIXME on memory error free allocated strings */
-#define CCOPY(name) if (src_rec->name) if (!(dest_rec->name=(SQLCHAR*)strdup((char*) src_rec->name))) return SQL_ERROR;
+#define CCOPY(name) tds_dstr_init(&dest_rec->name); if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) return SQL_ERROR;
 		CCOPY(sql_desc_base_column_name);
 		CCOPY(sql_desc_base_table_name);
 		CCOPY(sql_desc_catalog_name);

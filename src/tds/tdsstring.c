@@ -37,7 +37,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.9 2003-12-31 11:33:10 freddy77 Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.10 2004-02-11 16:13:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -69,6 +69,7 @@ tds_dstr_free(DSTR * s)
 {
 	if (*s != (DSTR) tds_str_empty)
 		free(*s);
+	*s = (DSTR) tds_str_empty;
 }
 
 /**
@@ -83,11 +84,15 @@ tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 {
 	if (*s != (DSTR) tds_str_empty)
 		free(*s);
-	*s = (struct DSTR_STRUCT *) malloc(length + 1);
-	if (!*s)
-		return NULL;
-	memcpy(*s, src, length);
-	(*s)->dstr_s[length] = 0;
+	if (!length) {
+		*s = (DSTR) tds_str_empty;
+	} else {
+		*s = (struct DSTR_STRUCT *) malloc(length + 1);
+		if (!*s)
+			return NULL;
+		memcpy(*s, src, length);
+		(*s)->dstr_s[length] = 0;
+	}
 	return *s;
 }
 
@@ -119,7 +124,10 @@ tds_dstr_copy(DSTR * s, const char *src)
 {
 	if (*s != (DSTR) tds_str_empty)
 		free(*s);
-	*s = (DSTR) strdup(src);
+	if (!src[0])
+		*s = (DSTR) tds_str_empty;
+	else
+		*s = (DSTR) strdup(src);
 	return *s;
 }
 

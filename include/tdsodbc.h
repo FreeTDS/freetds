@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.67 2004-02-11 14:34:18 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.68 2004-02-11 16:13:17 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -107,10 +107,10 @@ struct _dheader
 struct _drecord
 {
 	SQLUINTEGER sql_desc_auto_unique_value;
-	SQLCHAR *sql_desc_base_column_name;
-	SQLCHAR *sql_desc_base_table_name;
+	DSTR sql_desc_base_column_name;
+	DSTR sql_desc_base_table_name;
 	SQLINTEGER sql_desc_case_sensitive;
-	SQLCHAR *sql_desc_catalog_name;
+	DSTR sql_desc_catalog_name;
 	SQLSMALLINT sql_desc_concise_type;
 	SQLPOINTER sql_desc_data_ptr;
 	SQLSMALLINT sql_desc_datetime_interval_code;
@@ -118,14 +118,14 @@ struct _drecord
 	SQLINTEGER sql_desc_display_size;
 	SQLSMALLINT sql_desc_fixed_prec_scale;
 	SQLINTEGER *sql_desc_indicator_ptr;
-	SQLCHAR *sql_desc_label;
+	DSTR sql_desc_label;
 	SQLUINTEGER sql_desc_length;
 	/* this point to a constant buffer, do not free or modify */
 	const char *sql_desc_literal_prefix;
 	/* this point to a constant buffer, do not free or modify */
 	const char *sql_desc_literal_suffix;
-	SQLCHAR *sql_desc_local_type_name;
-	SQLCHAR *sql_desc_name;
+	DSTR sql_desc_local_type_name;
+	DSTR sql_desc_name;
 	SQLSMALLINT sql_desc_nullable;
 	SQLINTEGER sql_desc_num_prec_radix;
 	SQLINTEGER sql_desc_octet_length;
@@ -134,9 +134,9 @@ struct _drecord
 	SQLSMALLINT sql_desc_precision;
 	SQLSMALLINT sql_desc_rowver;
 	SQLSMALLINT sql_desc_scale;
-	SQLCHAR *sql_desc_schema_name;
+	DSTR sql_desc_schema_name;
 	SQLSMALLINT sql_desc_searchable;
-	SQLCHAR *sql_desc_table_name;
+	DSTR sql_desc_table_name;
 	SQLSMALLINT sql_desc_type;
 	/* this point to a constant buffer, do not free or modify */
 	const char *sql_desc_type_name;

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.298 2004-02-11 14:34:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.299 2004-02-11 16:13:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -173,9 +173,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 
 	if (colpos > 0 && colpos <= stmt->ird->header.sql_desc_count) {
 		--colpos;
-		if (stmt->ird->records[colpos].sql_desc_label)
-			free(stmt->ird->records[colpos].sql_desc_label);
-		stmt->ird->records[colpos].sql_desc_label = strdup(name);
+		tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_label, name);
 	}
 }
 
@@ -1341,7 +1339,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	/* cbColNameMax can be 0 (to retrieve name length) */
 	if (szColName && cbColNameMax) {
 		/* straight copy column name up to cbColNameMax */
-		result = odbc_set_string(szColName, cbColNameMax, pcbColName, drec->sql_desc_name, -1);
+		result = odbc_set_string(szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_name), -1);
 		if (result == SQL_SUCCESS_WITH_INFO)
 			odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
 	}
@@ -1383,6 +1381,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	ird = stmt->ird;
 
 #define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? (SQLCHAR*)src : (SQLCHAR*)"", -1);
+#define SOUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, tds_dstr_cstr(&src), -1);
 
 /* SQLColAttribute returns always attributes using SQLINTEGER */
 #if ENABLE_EXTRA_CHECKS
@@ -1424,16 +1423,16 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
 		break;
 	case SQL_DESC_BASE_COLUMN_NAME:
-		COUT(drec->sql_desc_base_column_name);
+		SOUT(drec->sql_desc_base_column_name);
 		break;
 	case SQL_DESC_BASE_TABLE_NAME:
-		COUT(drec->sql_desc_base_table_name);
+		SOUT(drec->sql_desc_base_table_name);
 		break;
 	case SQL_DESC_CASE_SENSITIVE:
 		IOUT(SQLINTEGER, drec->sql_desc_case_sensitive);
 		break;
 	case SQL_DESC_CATALOG_NAME:
-		COUT(drec->sql_desc_catalog_name);
+		SOUT(drec->sql_desc_catalog_name);
 		break;
 #if SQL_COLUMN_TYPE != SQL_DESC_CONCISE_TYPE
 	case SQL_COLUMN_TYPE:
@@ -1473,7 +1472,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		IOUT(SQLSMALLINT, drec->sql_desc_fixed_prec_scale);
 		break;
 	case SQL_DESC_LABEL:
-		COUT(drec->sql_desc_label);
+		SOUT(drec->sql_desc_label);
 		break;
 		/* FIXME special cases for SQL_COLUMN_LENGTH */
 	case SQL_COLUMN_LENGTH:
@@ -1487,13 +1486,13 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		COUT(drec->sql_desc_literal_suffix);
 		break;
 	case SQL_DESC_LOCAL_TYPE_NAME:
-		COUT(drec->sql_desc_local_type_name);
+		SOUT(drec->sql_desc_local_type_name);
 		break;
 #if SQL_COLUMN_NAME != SQL_DESC_NAME
 	case SQL_COLUMN_NAME:
 #endif
 	case SQL_DESC_NAME:
-		COUT(drec->sql_desc_name);
+		SOUT(drec->sql_desc_name);
 		break;
 #if SQL_COLUMN_NULLABLE != SQL_DESC_NULLABLE
 	case SQL_COLUMN_NULLABLE:
@@ -1524,13 +1523,13 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			*((SQLINTEGER *) pfDesc) = 0;
 		break;
 	case SQL_DESC_SCHEMA_NAME:
-		COUT(drec->sql_desc_schema_name);
+		SOUT(drec->sql_desc_schema_name);
 		break;
 	case SQL_DESC_SEARCHABLE:
 		IOUT(SQLSMALLINT, drec->sql_desc_searchable);
 		break;
 	case SQL_DESC_TABLE_NAME:
-		COUT(drec->sql_desc_table_name);
+		SOUT(drec->sql_desc_table_name);
 		break;
 	case SQL_DESC_TYPE:
 		IOUT(SQLSMALLINT, drec->sql_desc_type);
@@ -1560,6 +1559,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	ODBC_RETURN(stmt, result);
 
 #undef COUT
+#undef SOUT
 #undef IOUT
 }
 
@@ -1680,7 +1680,6 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 {
 	struct _drecord *drec = NULL;
 	SQLRETURN rc = SQL_SUCCESS;
-	int len;
 
 	INIT_HDESC;
 
@@ -1695,15 +1694,9 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	}
 
 	drec = &desc->records[RecordNumber];
-	len = strlen(drec->sql_desc_name);
 
-	if (StringLength)
-		*StringLength = len;
-
-	if (Name) {
-		if ((rc = odbc_set_string(Name, BufferLength, StringLength, drec->sql_desc_name, len)) != SQL_SUCCESS)
-			odbc_errs_add(&desc->errs, "01004", NULL, NULL);
-	}
+	if ((rc = odbc_set_string(Name, BufferLength, StringLength, tds_dstr_cstr(&drec->sql_desc_name), -1)) != SQL_SUCCESS)
+		odbc_errs_add(&desc->errs, "01004", NULL, NULL);
 
 	if (Type)
 		*Type = drec->sql_desc_type;
@@ -1731,6 +1724,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	INIT_HDESC;
 
 #define COUT(src) result = odbc_set_string_i(Value, BufferLength, StringLength, src, -1);
+#define SOUT(src) result = odbc_set_string_i(Value, BufferLength, StringLength, tds_dstr_cstr(&src), -1);
 
 #if ENABLE_EXTRA_CHECKS
 #define IOUT(type, src) do { \
@@ -1791,16 +1785,16 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
 		break;
 	case SQL_DESC_BASE_COLUMN_NAME:
-		COUT(drec->sql_desc_base_column_name);
+		SOUT(drec->sql_desc_base_column_name);
 		break;
 	case SQL_DESC_BASE_TABLE_NAME:
-		COUT(drec->sql_desc_base_table_name);
+		SOUT(drec->sql_desc_base_table_name);
 		break;
 	case SQL_DESC_CASE_SENSITIVE:
 		IOUT(SQLINTEGER, drec->sql_desc_case_sensitive);
 		break;
 	case SQL_DESC_CATALOG_NAME:
-		COUT(drec->sql_desc_catalog_name);
+		SOUT(drec->sql_desc_catalog_name);
 		break;
 	case SQL_DESC_CONCISE_TYPE:
 		IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
@@ -1824,7 +1818,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLINTEGER *, drec->sql_desc_indicator_ptr);
 		break;
 	case SQL_DESC_LABEL:
-		COUT(drec->sql_desc_label);
+		SOUT(drec->sql_desc_label);
 		break;
 	case SQL_DESC_LENGTH:
 		IOUT(SQLINTEGER, drec->sql_desc_length);
@@ -1836,10 +1830,10 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		COUT(drec->sql_desc_literal_suffix);
 		break;
 	case SQL_DESC_LOCAL_TYPE_NAME:
-		COUT(drec->sql_desc_local_type_name);
+		SOUT(drec->sql_desc_local_type_name);
 		break;
 	case SQL_DESC_NAME:
-		COUT(drec->sql_desc_name);
+		SOUT(drec->sql_desc_name);
 		break;
 	case SQL_DESC_NULLABLE:
 		IOUT(SQLSMALLINT, drec->sql_desc_nullable);
@@ -1873,13 +1867,13 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 			*((SQLSMALLINT *) Value) = 0;
 		break;
 	case SQL_DESC_SCHEMA_NAME:
-		COUT(drec->sql_desc_schema_name);
+		SOUT(drec->sql_desc_schema_name);
 		break;
 	case SQL_DESC_SEARCHABLE:
 		IOUT(SQLSMALLINT, drec->sql_desc_searchable);
 		break;
 	case SQL_DESC_TABLE_NAME:
-		COUT(drec->sql_desc_table_name);
+		SOUT(drec->sql_desc_table_name);
 		break;
 	case SQL_DESC_TYPE:
 		IOUT(SQLSMALLINT, drec->sql_desc_type);
@@ -1908,6 +1902,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	ODBC_RETURN(desc, result);
 
 #undef COUT
+#undef SOUT
 #undef IOUT
 }
 
@@ -2035,21 +2030,13 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	case SQL_DESC_NAME:
 		{
-			/* TODO use our DSTR lib */
 			/* FIXME test len >= 0 */
 			int len = odbc_get_string_size(BufferLength, (SQLCHAR *) Value);
-			char *p = malloc(len + 1);
 
-			if (!p) {
+			if (!tds_dstr_copyn(&drec->sql_desc_name, Value, len)) {
 				odbc_errs_add(&desc->errs, "HY001", NULL, NULL);
 				result = SQL_ERROR;
-				break;
 			}
-			memcpy(p, Value, len);
-			p[len] = 0;
-			if (drec->sql_desc_name)
-				free(drec->sql_desc_name);
-			drec->sql_desc_name = p;
 		}
 		break;
 	case SQL_DESC_NULLABLE:
@@ -2140,19 +2127,6 @@ SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
 	ODBC_RETURN(target, desc_copy(target, desc));
 }
 
-/* TODO remove this ugly functions */
-static char *
-odbc_strndup(const char *s, size_t n)
-{
-	char *p = (char *) malloc(n + 1);
-
-	if (p) {
-		memcpy(p, s, n);
-		p[n] = 0;
-	}
-	return p;
-}
-
 #if ENABLE_EXTRA_CHECKS
 static void
 odbc_ird_check(TDS_STMT * stmt)
@@ -2178,8 +2152,8 @@ odbc_ird_check(TDS_STMT * stmt)
 	for (i = 0; i < ird->header.sql_desc_count; ++i) {
 		drec = &ird->records[i];
 		col = res_info->columns[i];
-		assert(strlen(drec->sql_desc_label) == col->column_namelen);
-		assert(memcmp(drec->sql_desc_label, col->column_name, col->column_namelen) == 0);
+		assert(tds_dstr_len(&drec->sql_desc_label) == col->column_namelen);
+		assert(memcmp(tds_dstr_cstr(&drec->sql_desc_label), col->column_name, col->column_namelen) == 0);
 	}
 }
 #endif
@@ -2207,17 +2181,14 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec = &ird->records[i];
 		col = res_info->columns[i];
 		drec->sql_desc_auto_unique_value = col->column_identity ? SQL_TRUE : SQL_FALSE;
-		drec->sql_desc_base_column_name = NULL;
-		drec->sql_desc_base_table_name = NULL;
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
-		drec->sql_desc_catalog_name = NULL;
 		/* TODO test error ?? */
 		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->column_type, col->column_size), drec, 0);
 		drec->sql_desc_display_size =
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
-		if ((drec->sql_desc_label = odbc_strndup(col->column_name, col->column_namelen)) == NULL)
+		if (!tds_dstr_copyn(&drec->sql_desc_label, col->column_name, col->column_namelen))
 			return SQL_ERROR;
 
 		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
@@ -2227,11 +2198,10 @@ odbc_populate_ird(TDS_STMT * stmt)
 			drec->sql_desc_length = col->column_size;
 		odbc_set_sql_type_info(col, stmt->dbc->env->attr.odbc_version, drec);
 
-		drec->sql_desc_local_type_name = NULL;
-		if ((drec->sql_desc_name = odbc_strndup(col->column_name, col->column_namelen)) == NULL)
+		if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
 			return SQL_ERROR;
 
-		drec->sql_desc_unnamed = strlen(drec->sql_desc_name) ? SQL_NAMED : SQL_UNNAMED;
+		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;
 		/* TODO use is_nullable_type ?? */
 		drec->sql_desc_nullable = col->column_nullable ? SQL_TRUE : SQL_FALSE;
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
@@ -2245,10 +2215,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO test timestamp from db, FOR BROWSE query */
 		drec->sql_desc_rowver = SQL_FALSE;
 		drec->sql_desc_scale = col->column_scale;
-		drec->sql_desc_schema_name = NULL;
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
-		drec->sql_desc_table_name = NULL;
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -4451,7 +4419,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 
 		/* upper case */
 		/* TODO procedure */
-		for (p = drec->sql_desc_label; *p; ++p)
+		for (p = tds_dstr_cstr(&drec->sql_desc_label); *p; ++p)
 			if ('a' <= *p && *p <= 'z')
 				*p = *p & (~0x20);
 	}
