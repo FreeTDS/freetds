@@ -1,3 +1,9 @@
+Mon Sep 30 10:23:22 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/vasprintf.c:
+	- Optimize the last-resort version of vasprintf():
+	  if we don't need to be reentrant, we can avoid opening and
+	  closing the file handle each time.
+
 Mon Sep 30 11:47:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in doc/userguide.sgml include/des.h:
 	- remove --with-ssl parameter (not used)
