@@ -24,9 +24,21 @@
 #include "sybdb.h"
 #include "dblib.h"
 #include <unistd.h>
+#ifdef TARGET_API_MAC_OS8
+#include <stdlib.h>
+#include "tdsconvert.h"
+#endif
+
+/*	was hard coded as 32768, but that made the local stack data size > 32K,
+	which is not allowed on Mac OS 8/9. (mlilback, 11/7/01) */
+#ifdef TARGET_API_MAC_OS8
+#define ROWBUF_SIZE 31000
+#else
+#define ROWBUF_SIZE 32768
+#endif
 
 
-static char  software_version[]   = "$Id: bcp.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.3 2001-11-08 17:48:07 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -450,7 +462,7 @@ TDSCOLINFO *curcol;
 int i;
 int collen;
 /* FIX ME -- calculate dynamically */
-unsigned char rowbuffer[32768];
+unsigned char rowbuffer[ROWBUF_SIZE];
 int row_pos;
 /* end of data pointer...the last byte of var data before the adjust table */
 int var_cols;
@@ -479,7 +491,7 @@ int blob_cols = 0;
 	tds->out_flag = 0x07;
 	while (_bcp_read_hostfile(dbproc,hostfile)==SUCCEED) {
 		/* zero the rowbuffer */
-		memset(rowbuffer,'\0',32768);
+		memset(rowbuffer,'\0',ROWBUF_SIZE);
 
 		/* offset 0 = number of var columns */
 		/* offset 1 = row number.  zeroed (datasever assigns) */
