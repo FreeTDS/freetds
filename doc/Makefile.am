@@ -2,36 +2,45 @@
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
 SHELL = /bin/sh
-TXT2MAN = ./txt2man
+TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.60
 PRODUCT = FreeTDS
+DOCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
+#DOCBOOK_DSL = ${DOCBOOK}/dsssl/modular/html/docbook.dsl
 
 man_MANS	= freebcp.1 tsql.1
 
-html:: 
+EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
+		policy.txt tds7.txt tds_layer.txt Makefile userguide.sgml \
+		basic_jdbc_question.html faq.html tds.html userguide.tgz \
+		txt2man
+
+html:: $(srcdir)/userguide.sgml
 	if ! [ -d html ]; then \
             mkdir html; \
-	fi; \
+	fi
 	cd html; pwd; \
-	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml; \
-	if ! [ -e html/index.html ]; then \
+	openjade -d ${DOCBOOK_DSL} -t sgml ../$(srcdir)/userguide.sgml; \
+	if ! [ -e index.html ]; then \
 		ln -s book1.htm index.html; \
-	fi; 
+	fi
 
 #	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml
 
-dist::	man html
+dist::	man userguide.tgz
+
+userguide.tgz: html
 	if ! [ -L userguide ]; then \
 		ln -s html userguide; \
-	fi; \
+	fi
 	tar zcf userguide.tgz userguide/* 
 
 man:	freebcp.1 tsql.1
 
-freebcp.1:  freebcp.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) freebcp.txt >freebcp.1
+freebcp.1:  $(srcdir)/freebcp.txt
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
 	
-tsql.1: tsql.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) tsql.txt >tsql.1
+tsql.1: $(srcdir)/tsql.txt
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
 
 	

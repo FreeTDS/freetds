@@ -4,12 +4,6 @@ EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
 		samples/README samples/dyntest.c samples/odbc.ini \
 		samples/odbctest.php samples/odbctest.pl samples/test.php \
 		samples/test.pl \
-		doc/api_status.txt doc/bcp.txt doc/cap.txt \
-		doc/getting_started.txt doc/policy.txt doc/tds7.txt \
-		doc/tds_layer.txt doc/Makefile doc/userguide.sgml \
-		doc/basic_jdbc_question.html \
-		doc/faq.html doc/tds.html \
-		doc/userguide.tgz \
 		freetds.conf locales.conf acconfig.h
 
 DEFDIR		=	$(prefix)
