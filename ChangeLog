@@ -1,3 +1,7 @@
+Mon Oct 14 00:26:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds_sysdep_private.h.in:
+	- Correct autoconf substitution for FREETDS_SYSCONFDIR.
+
 Sun Oct 13 23:49:13 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/.cvsignore:
 	- Update with new generated files.

@@ -21,7 +21,7 @@
 #define _tds_sysdep_private_h_
 
 static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h.in,v 1.4 2002-10-14 00:24:17 castellano Exp $";
+	"$Id: tds_sysdep_private.h.in,v 1.5 2002-10-14 04:29:30 castellano Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = {
 	rcsid_tds_sysdep_private_h,
 	no_unused_tds_sysdep_private_h_warn};
@@ -65,7 +65,7 @@ extern "C" {
 #endif /* !IOCTLSOCKET */
 
 #ifndef FREETDS_SYSCONFDIR
-#define FREETDS_SYSCONFDIR	"@sysconfdir@/"
+#define FREETDS_SYSCONFDIR	"@prefix@/etc/"
 #endif /* !FREETDS_SYSCONFDIR */
 
 #ifdef __cplusplus
