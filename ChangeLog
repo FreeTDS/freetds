@@ -1,3 +1,7 @@
+Wed May 14 18:15:49 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/character_sets.h src/tds/iconv.c:
+	- start run time charset searching
+
 Wed May 14 17:01:56 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/alternative_character_sets.h:
 	- other HP/UX charsets

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.67 2003-05-13 16:17:20 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.68 2003-05-14 16:16:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -58,12 +58,130 @@ static char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
 static int tds_charset_name_compare(const char *name1, const char *name2);
 static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name);
+static int tds_iconv_init(void);
+
 
 /**
  * \ingroup libtds
  * \defgroup conv Charset conversion
  * Convert between different charsets
  */
+
+static const CHARACTER_SET_ALIAS iconv_aliases[] = {
+#include "alternative_character_sets.h"
+	, {NULL, NULL}
+};
+
+static const TDS_ENCODING canonic_charsets[] = {
+#include "character_sets.h"
+};
+
+/* this will contain real iconv names */
+static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charsets[0])];
+static int iconv_initialized = 0;
+
+/**
+ * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
+ */
+static int
+tds_iconv_init(void)
+{
+	int i;
+	iconv_t cd;
+
+	/* first entries should be constants */
+	assert(strcmp(canonic_charsets[0].name, "ISO-8859-1") == 0);
+	assert(strcmp(canonic_charsets[1].name, "UTF-8") == 0);
+	assert(strcmp(canonic_charsets[2].name, "UCS-2LE") == 0);
+	assert(strcmp(canonic_charsets[3].name, "UCS-2BE") == 0);
+
+	/* fast tests for GNU-iconv */
+	cd = iconv_open("ISO-8859-1", "UTF-8");
+	if (cd != (iconv_t) - 1) {
+		iconv_names[0] = "ISO-8859-1";
+		iconv_names[1] = "UTF-8";
+		iconv_close(cd);
+	} else {
+
+		/* search names for ISO8859-1 and UTF-8 */
+		for (i = 0; iconv_aliases[i].name; ++i) {
+			int j;
+
+			if (strcmp(iconv_aliases[i].name, "ISO-8859-1") != 0)
+				continue;
+			for (j = 0; iconv_aliases[j].name; ++j) {
+				if (strcmp(iconv_aliases[j].name, "UTF-8") != 0)
+					continue;
+
+				cd = iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
+				if (cd != (iconv_t) - 1) {
+					iconv_names[0] = iconv_aliases[i].alias;
+					iconv_names[1] = iconv_aliases[j].alias;
+					iconv_close(cd);
+					break;
+				}
+			}
+			if (iconv_names[0])
+				break;
+		}
+		/* required characters not found !!! */
+		if (!iconv_names[0])
+			return 1;
+	}
+
+	/* now search for UCS-2 */
+	cd = iconv_open(iconv_names[0], "UCS-2LE");
+	if (cd != (iconv_t) - 1) {
+		iconv_names[2] = "UCS-2LE";
+		iconv_close(cd);
+	}
+	cd = iconv_open(iconv_names[0], "UCS-2BE");
+	if (cd != (iconv_t) - 1) {
+		iconv_names[3] = "UCS-2BE";
+		iconv_close(cd);
+	}
+
+	/* long search needed ?? */
+	if (!iconv_names[2] || !iconv_names[3]) {
+		for (i = 0; iconv_aliases[i].name; ++i) {
+			if (strncmp(iconv_aliases[i].name, "UCS-2", 5) != 0)
+				continue;
+
+			cd = iconv_open(iconv_aliases[i].alias, iconv_names[0]);
+			if (cd != (iconv_t) - 1) {
+				char ib[1];
+				char ob[4];
+				size_t il, ol;
+				char *pib, *pob;
+
+				/* try to convert 'A' and check result */
+				ib[0] = 0x41;
+				pib = ib;
+				pob = ob;
+				il = 1;
+				ol = 4;
+				ob[0] = ob[1] = 0;
+				if (iconv(cd, &pib, &il, &pob, &ol) != (size_t) - 1) {
+					if (ob[0])
+						iconv_names[2] = iconv_aliases[i].alias;
+					else
+						iconv_names[3] = iconv_aliases[i].alias;
+				}
+				iconv_close(cd);
+			}
+
+			if (iconv_names[2] && iconv_names[3])
+				break;
+		}
+	}
+	/* we need a UCS-2 (big endian or little endian) */
+	if (!iconv_names[2] && !iconv_names[3])
+		return 1;
+
+	/* success (it should always occurs) */
+	return 0;
+}
+
 
 /**
  * \addtogroup conv
@@ -97,6 +215,15 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	bytes_per_char(server);
 	return;
 #else
+	/* initialize */
+	if (!iconv_initialized) {
+		if (tds_iconv_init()) {
+			assert(0);
+			return;
+		}
+		iconv_initialized = 1;
+	}
+
 	/* 
 	 * Client <-> UCS-2 (client2ucs2)
 	 */
@@ -423,20 +550,17 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 static int
 bytes_per_char(TDS_ENCODING * charset)
 {
-	static const TDS_ENCODING charsets[] = {
-#include "character_sets.h"
-	};
 	int i;
 
 	assert(charset && strlen(charset->name) < sizeof(charset->name));
 
-	for (i = 0; i < sizeof(charsets) / sizeof(TDS_ENCODING); i++) {
-		if (charsets[i].min_bytes_per_char == 0)
+	for (i = 0; i < sizeof(canonic_charsets) / sizeof(TDS_ENCODING); i++) {
+		if (canonic_charsets[i].min_bytes_per_char == 0)
 			break;
 
-		if (0 == strcmp(charset->name, charsets[i].name)) {
-			charset->min_bytes_per_char = charsets[i].min_bytes_per_char;
-			charset->max_bytes_per_char = charsets[i].max_bytes_per_char;
+		if (0 == strcmp(charset->name, canonic_charsets[i].name)) {
+			charset->min_bytes_per_char = canonic_charsets[i].min_bytes_per_char;
+			charset->max_bytes_per_char = canonic_charsets[i].max_bytes_per_char;
 
 			return (charset->max_bytes_per_char == charset->min_bytes_per_char) ? 1 : 2;
 		}
@@ -570,11 +694,13 @@ const char *
 tds_canonical_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {
-#		include "alternative_character_sets.h"
-		,
 #		include "sybase_character_sets.h"
 	};
 
+	const char *res = lookup_charset_name(iconv_aliases, charset_name, 0);
+
+	if (res)
+		return res;
 	return lookup_charset_name(aliases, charset_name, 0);
 }
 

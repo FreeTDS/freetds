@@ -8,11 +8,12 @@
  * Alternative character set names are mapped to these canonical ones in 
  * alternative_character_sets.h and are accessed with canonical_charset();
  */
-		  {"US-ASCII",		1, 1}
+		  {"ISO-8859-1",	1, 1}
 		, {"UTF-8", 		1, 4}
-		, {"UCS-2",		2, 2}
-		, {"UCS-2BE", 		2, 2}
 		, {"UCS-2LE", 		2, 2}
+		, {"UCS-2BE", 		2, 2}
+		, {"UCS-2",		2, 2}
+		, {"US-ASCII",		1, 1}
 		, {"UCS-4",		4, 4}
 		, {"UCS-4BE", 		4, 4}
 		, {"UCS-4LE", 		4, 4}
@@ -29,7 +30,6 @@
 		, {"UCS-4-SWAPPED", 	4, 4}
 		, {"C99", 		1, 1}
 		, {"JAVA", 		1, 1}
-		, {"ISO-8859-1",	1, 1}
 		, {"ISO-8859-2", 	1, 1}
 		, {"ISO-8859-3", 	1, 1}
 		, {"ISO-8859-4", 	1, 1}
