@@ -1,3 +1,7 @@
+Thu Apr 10 13:54:59 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/tables.c:
+	- remove some warnings
+
 Thu Apr 10 13:43:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/ct_diagclient.c:
 	- fixed test
