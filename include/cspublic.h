@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.2 2001-11-08 03:34:39 brianb Exp $";
+         "$Id: cspublic.h,v 1.3 2001-11-08 17:39:52 mlilback Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -60,8 +60,8 @@ typedef TDS_VARBINARY CS_VARBINARY;
 typedef struct cs_context
 {
 	CS_INT date_convert_fmt;
-	int (*_clientmsg_cb)();
-	int (*_servermsg_cb)();
+	int (*_clientmsg_cb)(void*, void*, void*);
+	int (*_servermsg_cb)(void*, void*, void*);
 } CS_CONTEXT;
 
 typedef struct cs_locale {
@@ -76,8 +76,8 @@ typedef struct cs_connection
 	CS_CONTEXT *ctx;
 	void *tds_login;
 	TDSSOCKET *tds_socket;
-	int (*_clientmsg_cb)();
-	int (*_servermsg_cb)();
+	int (*_clientmsg_cb)(void*, void*, void*);
+	int (*_servermsg_cb)(void*, void*, void*);
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;
