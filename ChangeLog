@@ -1,3 +1,6 @@
+Tue Apr  5 19:02:49 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* samples/odbc_rpc.pl fixed silly getopt misprocessing
+	
 Tue Apr  5 18:47:05 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* samples/odbc_rpc.pl added datatyping feature
 

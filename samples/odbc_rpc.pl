@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.2 2005-04-05 22:48:35 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.3 2005-04-05 23:04:35 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -30,9 +30,9 @@ $program = basename($0);
 Getopt::Std::getopts('U:P:D:d:h', \%opts);
 
 my ($dsn, $user, $pass, $database);
-$dsn  = "dbi:ODBC:JDBC" unless $opts{D};
-$user = 'guest'  unless $opts{U};
-$pass = 'sybase' unless $opts{P};
+$dsn  = $opts{D}? $opts{D} : "dbi:ODBC:JDBC";
+$user = $opts{U}? $opts{U} : 'guest';
+$pass = $opts{P}? $opts{P} : 'sybase';
 
 die qq(Syntax: \t$program [-D dsn] [-U username] [-P password] procedure [arg1[, argn]]\n) 
 	if( $opts{h} || 0 == @ARGV );
