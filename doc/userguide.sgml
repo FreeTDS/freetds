@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-11-04 08:07:21 $</date>
-		<releaseinfo>$Revision: 1.68 $</releaseinfo>
+		<date>$Date: 2003-12-03 08:38:28 $</date>
+		<releaseinfo>$Revision: 1.69 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.68 $</>
-<member>$Date: 2003-11-04 08:07:21 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.68 2003-11-04 08:07:21 jklowden Exp $.</>
+<member>$Revision: 1.69 $</>
+<member>$Date: 2003-12-03 08:38:28 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.69 2003-12-03 08:38:28 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -314,18 +314,17 @@ If you've built other <acronym>GNU</> projects, building <productname>FreeTDS</p
 The <acronym>GNU</> development system can generate code for a wide variety of hardware architectures and operating systems, virtually all of which can run <productname>FreeTDS</productname> in consequence.  The work of building and installing the <productname>FreeTDS</productname> libraries begins with the command <Command>configure</Command>, which generates the <filename>Makefile</filename> that governs how the code is compiled, linked, and installed.  Once you've <quote>configured</quote> the project, <application>make</application> will manage the rest of the build.
 			</para>
 			<para>
-The simplest form of running <Command>configure</Command> is:
+The simplest form of running <Command>configure</> is:
 <screen>
 	<prompt>$ </prompt><userinput>./configure</userinput>
 </screen>
-and sometimes that's enough.  <application>configure</application> accepts some command-line arguments, too, and you may need to provide some, depending on what your environment looks like.  
+and sometimes that's enough.  <Command>configure</> accepts some command-line arguments, too, and you may need to provide some, depending on what your environment looks like.  
 			</para>
 			<para>
-There are a few optional arguments to <Command>configure</Command> that may be important to you.  For a complete list, see <command>configure --help</command>.  
+There are a few optional arguments to <Command>configure</> that may be important to you.  For a complete list, see <command>configure --help</command>.  
 			</para>
-			<variablelist>
-				<title><application>./configure</application> options</title>
-
+			<sect3><title><command>configure</> options</title>
+			<variablelist><title>Directories and TDS version</title>
 			<varlistentry>
 				<term><Parameter>--prefix=PREFIX
 					</Parameter></term>
@@ -345,24 +344,61 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				</varlistentry>
 
 			<varlistentry>
+				<term><Parameter>--with-libiconv-prefix
+					</Parameter></term>
+				<listitem><para>Specifies the location of the iconv library to use.  <Command>configure</> will search for libiconv in the usual places; use .<Parameter>--with-libiconv-prefix</Parameter>  if it's unsuccessful (assuming you want to use iconv, of course).  Overridden by <Parameter>--disable-libiconv</Parameter>, below.  </para>
+					</listitem>
+				</varlistentry>
+			<varlistentry>
 				<term><Parameter>--with-tdsver
 					</Parameter></term>
 				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, and <literal>8.0</literal>.</para>
 					<para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 					</listitem>
 				</varlistentry>
-
+			</variablelist>
+			
+			<variablelist><title>ODBC Driver Managers</title>
 			<varlistentry>
 				<term><Parameter>--with-iodbc
 					</Parameter></term>
 				<term><Parameter>--with-unixodbc 
 					</Parameter></term>
-				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> or <systemitem class="library">ODBC</systemitem> support, and use it as the Driver Manager. 
+				<listitem><para>Specify directory of <systemitem class="library">iODBC</systemitem> or <systemitem class="library">unixODBC</systemitem> support, and use it as the Driver Manager. 
 				As of version 0.62, the ODBC Driver Manager is detected by <filename>configure</>, so use this parameter only if yours is installed in a nonstandard path.
-				(Requires <productname>iODBC</productname> or <systemitem class="library">ODBC</systemitem> to have already been installed.)</para>
+				(Requires <productname>iODBC</productname> or <systemitem class="library">unixODBC</systemitem> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
-
+			</variablelist>
+			
+			<variablelist><title>Things you can turn off</title>
+			<varlistentry>
+				<term><Parameter>--disable-odbc
+					</Parameter></term>
+				<listitem><para>Do not attempt to detect ODBC, and do not build the ODBC driver. In case you don't care about ODBC.  
+				</para>
+				</listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Parameter>--disable-libiconv</Parameter></term>
+				<listitem><para>By default, <command>configure</> will search your system for an <systemitem class="library">iconv</systemitem> library for use with Microsoft servers (because TDS 7.0 employs Unicode).  This switch prevents that search.  If no <systemitem class="library">iconv</systemitem> library is used, <productname>FreeTDS</productname> relies on its built-in iconv emulation, which is capable of converting ISO-8859-1 to UCS-2, sufficient for many applications.  </para>
+					</listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Parameter>--disable-threadsafe</Parameter></term>
+				<listitem><para>Force <productname>FreeTDS</productname> not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, <productname>FreeTDS</productname> will use threadsafe functions throughout. </para>
+				<para> Threadsafe operation is not in wide use yet, but has been tested on Linux, FreeBSD, and HP-UX 10.20.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  It is a good idea to enable threadsafe operation if you configure Apache with multi-threading support.</para>
+				<para> With version 0.62, <productname>FreeTDS</productname> uses threadsafe function, if available, unless the feature is explicitly disabled.  RPMs since version 0.61 enabled threadsafe by default.
+				</para></listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Parameter>--disable-debug</Parameter></term>
+				<listitem><para>Debug-mode compiles are enabled by default, and will remain so at least until version 1.0.  You can speed things up ever so slightly by disabling it.
+				</para></listitem>
+				</varlistentry>
+			</variablelist>
+			
+			<variablelist><title>Things you can turn on</title>
 			<varlistentry>
 				<term><Parameter>--enable-msdblib</Parameter></term>
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
@@ -370,43 +406,26 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				</varlistentry>
 
 			<varlistentry>
-				<term><Parameter>--disable-libiconv</Parameter></term>
-				<listitem><para>By default, <application>configure</> will search your system for an <systemitem class="library">iconv</systemitem> library for use with Microsoft servers (because TDS 7.0 employs Unicode).  This switch prevents that search.  If no <systemitem class="library">iconv</systemitem> library is used, <productname>FreeTDS</productname> relies on its built-in iconv emulation, which is capable of converting ISO-8859-1 to UCS-2, and is sufficient for many applications.  </para>
-					</listitem>
-				</varlistentry>
-
-			<varlistentry>
-				<term><Parameter>--disable-threadsafe</Parameter></term>
-				<listitem><para>Force <productname>FreeTDS</productname> not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, <productname>FreeTDS</productname> will use these functions throughout. </para>
-				<para> Threadsafe operation is not in wide use yet, but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).  Not expected to work on non-unix systems.  It is a good idea to enable threadsafe if you configure Apache with multi-threading support.</para>
-				<para>RPMs since version 0.61 enabled threadsafe by default. With version 0.62, <productname>FreeTDS</productname> uses threadsafe function, if available, unless the feature is explicitly disabled.  
-				</para></listitem>
-			</varlistentry>
-			<varlistentry>
 				<term><Parameter>--enable-sybase-compat</Parameter></term>
 				<listitem><para>Enable close compatibility with Sybase's ABI, at the expense of other features.  Currently, this enables the generation of a dbopen() entry point in <systemitem class="library">db-lib</systemitem>, which may clash with the <systemitem class="library">DBM</systemitem> function with the same name.  Absolutely <emphasis>not required</> for use with other free software.  </para>
 					</listitem>
 			</varlistentry>
 
 			<varlistentry>
-				<term><Parameter>--disable-debug</Parameter></term>
-				<listitem><para>Debug-mode compiles are enabled by default, and will remain so at least until version 1.0.  You can speed things up ever so slightly by disabling it.
-				</para></listitem>
-			</varlistentry>
-
-			<varlistentry>
 				<term><Parameter>--enable-extra-checks</Parameter></term>
-				<listitem><para>This enables some extra checks in FreeTDS code. Currently is not widely used and intended for debugging purposes. 
+				<listitem><para>This enables some extra checks in FreeTDS code. Currently is not widely used, intended for debugging purposes. 
 				</para></listitem>
-			</varlistentry>
+				</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-developing</Parameter></term>
 				<listitem><para>Enable some code still in development. Should be used only by a developer or a brave user :)
 				</para></listitem>
-			</varlistentry>
+				</varlistentry>
 
 			</variablelist>
+			</sect3>
+			<sect3><title><command>Make</></title>
 			<para>
 Now you're ready to build.  Follow these easy steps.  
 			</para>
@@ -433,6 +452,7 @@ You normally need to be root to <command>make install</command>, unless you use 
 			<para>
 With any luck, you've built and installed the <productname>FreeTDS</productname> libraries.  
 			</para>
+			</sect3>
 		</sect2>
 		</sect1>
 		<sect1 id="osissues">
@@ -475,7 +495,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X &reg;</title>
-			<para>As of this writing ($Date: 2003-11-04 08:07:21 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-12-03 08:38:28 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -628,7 +648,7 @@ The default location of <filename>freetds.conf</filename> is determined by the  
 In addition, <productname>FreeTDS</productname> will look for a file <filename>.freetds.conf</filename> in the user's home directory (<filename>~/.freetds.conf</filename>).  
 			</para>
 			<para>
-The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETD</envar> (or <envar>FREETDSCONF</envar>, same effect).  See <link linkend="envvar">Environment Variables</link>, below.  
+The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETDS</envar> (or <envar>FREETDSCONF</envar>, same effect).  See <link linkend="envvar">Environment Variables</link>, below.  
 			</para>
 			<para>
 <productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
@@ -781,7 +801,8 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<row>
 	<entry id="clientcharset">client charset</entry>
 	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
-	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0</entry>
+	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0.
+As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characthers server supports.</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
 	<row>
@@ -1360,6 +1381,7 @@ The unit tests rely on the <filename>PWD</> file in root of the FreeTDS source t
 <filename>PWD</> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</>.  			</para>
 			<para>
 To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  
+In order to execute all test successfully, you must edit PWD file setting a working server. Note also that the ODBC unittests rely on a proper configuration of "FreeTDS" driver entry in <filename>odbcinst.ini</>. 
 			</para>
 			<para>
 <note><para>
@@ -1410,7 +1432,7 @@ To learn what character set the client is using, <productname>FreeTDS</productna
 			</para>
 
 			<para>
-To list all supported iconv character sets under Linux, use the <application>iconv</application> command.
+To list all supported iconv character sets try <command>iconv</>(1).  GNU's does: 
 			</para>
 <screen>
 <prompt>$ </><userinput>iconv --list</userinput>
@@ -1431,13 +1453,13 @@ In this example a server named <literal>mssql</literal> will return data encoded
 	client charset = GREEK
 </programlisting>
 </example>
-<para>
-If <productname>FreeTDS</productname> runs into a character it can not convert, its behavior varies according to the severity of the problem.  On retrieving data from the server, <productname>FreeTDS</productname> substitutes an <acronym>ASCII</> '?' it the character's place, and emits a warning message stating that some characters could not be converted.  On sending data to the server, <productname>FreeTDS</productname> aborts the query and emits an error message.  It is well to ensure that the data contained in the database is representable in the client's character set.
-</para>
-<para>
-If you have a mix of character data that can not be contained in a single byte character set, you may wish to use <acronym>UTF-8</>.  <acronym>UTF-8</> is a variable length unicode encoding that is compatible with <acronym>ASCII</> in the range 0 to 127.  With <acronym>UTF-8</>, you are guaranteed to never have an unconvertible character.
-</para>
-<Important><para><productname>FreeTDS</productname> is not fully compatible with multi-byte character sets such as <acronym>UTF-8</> and <acronym>UCS-2</>.  Extreme care should be taken with testing applications using these encodings. Specifically, many applications fail to expect a number of characters returning that will exceed the column size.  On the other hand, support of <acronym>UTF-8</> and <acronym>UCS-2</> is a high priority for the developers.  Patches and bug reports in this area are especially welcome.  
+			<para>
+If <productname>FreeTDS</productname> runs into a character it can not convert, its behavior varies according to the severity of the problem.  On retrieving data from the server, <productname>FreeTDS</productname> substitutes an <acronym>ASCII</> '?' it the character's place, and emits a warning message stating that some characters could not be converted.  On sending data to the server, <productname>FreeTDS</productname> aborts the query and emits an error message.  It is well to ensure that the data contained in the database is representable in the client's character set.</para>
+
+			<para>
+If you have a mix of character data that can not be contained in a single byte character set, you may wish to use <acronym>UTF-8</>.  <acronym>UTF-8</> is a variable length unicode encoding that is compatible with <acronym>ASCII</> in the range 0 to 127.  With <acronym>UTF-8</>, you are guaranteed to never have an unconvertible character.</para>
+
+<Important><para><productname>FreeTDS</productname> is not fully compatible with multi-byte character sets such as <acronym>UCS-2</>.  You must use an ASCII-extension charset (like UTF-8, ISO-8859-*)<footnote><para>not EBCDIC or other weird charsets</para></footnote>. Extreme care should be taken with testing applications using these encodings. Specifically, many applications do not expect the number of characters returned to exceed the column size (in bytes).  On the other hand, support of <acronym>UTF-8</> and <acronym>UCS-2</> is a high priority for the developers.  Patches and bug reports in this area are especially welcome.  
 </para></Important>
 			<para>
 In the following example, a server named <literal>mssql</literal> will return data encoded in the <acronym>UTF-8</> character set.
@@ -1907,12 +1929,11 @@ There are three options for building PHP with support for <productname>FreeTDS</
 		<sect2 id="phpDblib">
 			<title><systemitem class="library">db-lib</systemitem></title>
 			<para>
-<systemitem class="library">db-lib</systemitem> is perhaps the most straightforward to build.  Previously, some source
-code tweaking was required to build PHP with both <systemitem class="library">db-lib</systemitem> and DBM support, but 
-<productname>FreeTDS</productname> has handled that automatically since version 0.53.
+PHP can be configured with <systemitem class="library">db-lib</systemitem> access for a "Sybase" server (which also works with Microsoft servers), or with the <emphasis>mssql</> extension, intended exclusively for Microsoft servers.  At one time, some source code tweaking was required to build PHP with both <systemitem class="library">db-lib</systemitem> and DBM support, but <productname>FreeTDS</productname> has handled that automatically since version 0.53.
  			</para>
 			<para>
-First build <productname>FreeTDS</productname> normally.
+<example><title>PHP and <systemitem class="library">db-lib</systemitem> for <quote>Sybase</></title>
+	<para>First build <productname>FreeTDS</productname> normally.</para>
 <screen>
 <prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds</userinput>
 <prompt>$ </prompt><userinput>make</userinput>
@@ -1920,7 +1941,7 @@ First build <productname>FreeTDS</productname> normally.
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
-Then build PHP with support for <quote>Sybase</quote>
+	<para>Then build PHP with support for <quote>Sybase</quote></para>
 <screen>
 <prompt>$ </prompt><userinput>cd php</userinput>
 <prompt>$ </prompt><userinput>./configure --with-sybase=/usr/local/freetds</userinput>
@@ -1929,7 +1950,8 @@ Then build PHP with support for <quote>Sybase</quote>
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
-And that's it!  
+	<para>And that's it!</para>  
+</example>
 			</para>
 		</sect2>
 		<sect2>
@@ -1954,7 +1976,7 @@ We hope an upcoming version of PHP will automatically detect the presence of <pr
 		<sect2>
 			<title><systemitem class="library">ODBC</systemitem></title>
 			<para>
-The third and newest option is to use the <productname>FreeTDS</productname> <systemitem class="library">ODBC</systemitem> driver with PHP.  This option is somewhat immature, so buyer beware. First build the <productname>iODBC</productname> driver manager and <productname>FreeTDS</productname> as detailed <link linkend="iodbc">in this guide</link>.  Then build PHP with support for <productname>iODBC</productname>.
+The third and newest option is to use the <productname>FreeTDS</productname> <systemitem class="library">ODBC</systemitem> driver with PHP.  First build the <productname>iODBC</productname> or <productname>unixODBC</productname> driver manager and <productname>FreeTDS</productname> as detailed <link linkend="iodbc">in this guide</link>.  Then build PHP with support for ODBC.
 <screen>
 <prompt>$ </prompt><userinput>cd php</userinput>
 <prompt>$ </prompt><userinput>./configure --with-iodbc=/usr/local</userinput>
@@ -2399,7 +2421,7 @@ Server</productname> uses the facilities of the host operating system (<productn
 username alone, without requiring a separate login name and password.
 			</para>
 <Note><para>
-The <productname>FreeTDS</productname> has recently added support for integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter.
+The <productname>FreeTDS</productname> supports integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter.
 </para></Note>
 			<para>
 <productname>FreeTDS</productname> supports the traditional database
@@ -2614,6 +2636,7 @@ still fail.  It also helps to report the version numbers of PHP, and
 		#define NOREVERSELOOKUPS
 		</programlisting>
 in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
+<Note><para> Reverse lookup code has been removed as of version 0.62 due to wrong implementation.</para></Note>
 		</para>
 	</listitem>
 </itemizedlist>
@@ -3003,7 +3026,7 @@ For better or worse, <productname>FreeTDS</productname> brings the otherwise inn
 			</para>
 		<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 			<para>
-The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages, all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
+The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
 			</para>
 			<para>
 Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
@@ -3011,6 +3034,11 @@ Our so-called <quote>text</quote> files are nothing special, nothing but a littl
 			<para>
 The important thing to understand is that the designation of 65 for <literal>A</literal> and so on is a choice.  It's an <emphasis>encoding standard</emphasis>, made necessary by the old simple fact that computers store numbers, not letters.  <acronym>ASCII</> is so ubiquitous these days that it's hard sometimes to remember there was a time when it was but one of a set of competing encoding standards.  Others you probably have heard of include <acronym>EBCDIC</> and the Baudot systems, but they are by no means the only historical alternatives, nor the only modern ones.  
 			</para>
+		<section><title>The <acronym>ASCII</> Compact</title>
+			<para>
+UNIX&reg; and unix-like systems bought into <acronym>ASCII</> big time.  Program code, filenames, string constants (and variables), configuration files, everything but everything is encoded in <acronym>ASCII</>.  Practically every utility, command, and library assumes the <quote>text</> data will be <acronym>ASCII</>. At the dawn of the 21<superscript>st</> century, there is widespread recognition that <acronym>ASCII</> will no longer suffice, but the art of upgrading all the computers and computer programmers is, well, an unfinished work.  
+			</para>
+		</section>
 		</section>
 		<section id="ISO8859"><title>ISO 8859: What everyone would like to forget</title>
 			<para>
