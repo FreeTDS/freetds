@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.268 2004-10-19 09:17:49 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.268.2.1 2005-01-20 08:07:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1541,7 +1541,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 * under 7.0 lengths are number of characters not
 	 * number of bytes...tds_get_string handles this
 	 */
-	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
+	/*
+	 * column_name can store up to 512 bytes however column_namelen can hold
+	 * that size so limit column name, fixed in 0.64 -- freddy77
+	 */
+	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, 255);
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
@@ -1638,8 +1642,11 @@ tds7_process_result(TDSSOCKET * tds)
 static int
 tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 {
-
-	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
+	/*
+	 * column_name can store up to 512 bytes however column_namelen can hold
+	 * that size so limit column name, fixed in 0.64 -- freddy77
+	 */
+	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, 255);
 	curcol->column_name[curcol->column_namelen] = '\0';
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
@@ -1830,8 +1837,12 @@ tds5_process_result(TDSSOCKET * tds)
 		curcol = info->columns[col];
 
 		/* label */
+		/*
+		 * column_name can store up to 512 bytes however column_namelen can hold
+		 * that size so limit column name, fixed in 0.64 -- freddy77
+		 */
 		curcol->column_namelen =
-			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
+			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, 255);
 		curcol->column_name[curcol->column_namelen] = '\0';
 
 		/* TODO add these field again */
@@ -2866,8 +2877,12 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* TODO reuse tds_get_data_info code, sligthly different */
 
 		/* column name */
+		/*
+		 * column_name can store up to 512 bytes however column_namelen can hold
+		 * that size so limit column name, fixed in 0.64 -- freddy77
+		 */
 		curcol->column_namelen =
-			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
+			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, 255);
 		curcol->column_name[curcol->column_namelen] = '\0';
 
 		/* column status */

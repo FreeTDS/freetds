@@ -1,6 +1,9 @@
+Thu Jan 20  9:06:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: workaround for long column names
+
 Fri Jan 14 00:08:41 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in 0.63RC9
-	
+
 Mon Jan 10 10:34:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: backport small rpc fixes
 	* src/dblib/unittests/rpc.c: test to fix #744992
