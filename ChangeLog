@@ -1,3 +1,9 @@
+Tue Apr 15 01:19:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/alternative_character_sets.h
+	* src/tds/sybase_character_sets.h.pl
+	* src/tds/character_sets.h include/tdsiconv.h src/tds/iconv.c
+	- s/cannonical/canonical/g
+
 Mon Apr 14 22:53:56 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/sybase_character_sets.h.pl utility script
 	* src/tds/Makefile.am

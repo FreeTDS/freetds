@@ -1,12 +1,12 @@
 /* 
- * These are the cannonical names for character sets accepted by GNU iconv.  
+ * These are the canonical names for character sets accepted by GNU iconv.  
  * See its documentation for the standard it follows.  
  * 
  * GNU iconv accepts other character set names, too, and your favorite operating system
  * very likely uses still other names to represent the _same_ character set.  
  * 
- * Alternative character set names are mapped to these cannonical ones in 
- * alternative_character_sets.h and are accessed with cannonical_charset();
+ * Alternative character set names are mapped to these canonical ones in 
+ * alternative_character_sets.h and are accessed with canonical_charset();
  */
 		  {"ANSI_X3.4-1968", 	1, 1}
 		, {"UTF-8", 		1, 4}

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.53 2003-04-15 02:59:52 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.54 2003-04-15 05:22:06 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -349,12 +349,12 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
 }
 
 /**
- * Determine cannonical iconv character set name.  
- * \returns cannonical name, or NULL if lookup failed.
+ * Determine canonical iconv character set name.  
+ * \returns canonical name, or NULL if lookup failed.
  * \remarks Returned name can be used in bytes_per_char(), above.
  */
 const char *
-tds_cannonical_charset_name(const char *charset_name)
+tds_canonical_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {
 #		include "alternative_character_sets.h"
@@ -366,7 +366,7 @@ tds_cannonical_charset_name(const char *charset_name)
 }
 
 /**
- * Determine the name Sybase uses for a character set, given a cannonical iconv name.  
+ * Determine the name Sybase uses for a character set, given a canonical iconv name.  
  * \returns Sybase name, or NULL if lookup failed.
  * \remarks Returned name can be sent to Sybase a server.
  */

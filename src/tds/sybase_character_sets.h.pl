@@ -29,10 +29,10 @@ while(<SYB>){
 
 print "/*\n";
 print " * This file produced from $0\n";
-print ' * $Id: sybase_character_sets.h.pl,v 1.1 2003-04-15 02:59:23 jklowden Exp $', "\n";
+print ' * $Id: sybase_character_sets.h.pl,v 1.2 2003-04-15 05:22:06 jklowden Exp $', "\n";
 print " */\n";
 
-# look up the cannonical name
+# look up the canonical name
 $comma = ' ';
 while(<DATA>){
 	next if /^#/;

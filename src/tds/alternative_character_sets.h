@@ -16,7 +16,7 @@
   * GNU iconv converts a byte sequence from one encoding to another, but before it can do 
   * so, it must be told which is which.  In the list below, the preferred GNU iconv(3) name 
   * is on the left and an alias is on the right.  It is a simple exercise, left to the reader, 
-  * to write a function that uses these data to look up the cannonical name when provided 
+  * to write a function that uses these data to look up the canonical name when provided 
   * an alias.  
   *
   * GNU iconv will in fact accept any name in the generated list, see comments below for details.  
@@ -27,7 +27,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 #if 0
-static char software_version[] = "$Id: alternative_character_sets.h,v 1.2 2003-04-15 02:59:52 jklowden Exp $";
+static char software_version[] = "$Id: alternative_character_sets.h,v 1.3 2003-04-15 05:22:06 jklowden Exp $";
 /*
 To regenerate this file, do:
 $ perl -x alternative_character_sets.h >/tmp/alternative_character_sets.h \
@@ -55,11 +55,11 @@ $comma = ' ';
 @names = `iconv -l`;
 foreach( @names )  {
 	my(@alternatives) = split;
-	$cannonical = $alternatives[0] or die;
-	$cannonical = qq/"$cannonical",/;
+	$canonical = $alternatives[0] or die;
+	$canonical = qq/"$canonical",/;
 	foreach my $name (@alternatives) {
 		$name = qq/"$name"/;
-		printf "\t${comma} {%20s %-25s}\n", $cannonical, $name;
+		printf "\t${comma} {%20s %-25s}\n", $canonical, $name;
 		$comma = ','; 
 	}
 }
@@ -387,7 +387,7 @@ __END__
 /* **   END ICONV ** */
 	/*
 	 * Add OS character set names here.  
-	 * The first string is the GNU iconv cannonical name.  
+	 * The first string is the GNU iconv canonical name.  
 	 * The second element is whatever string is returned by nl_langinfo.  
 	 */
 	/* NetBSD */
