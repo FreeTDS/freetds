@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.229 2003-08-28 22:33:16 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.230 2003-08-29 14:20:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1101,8 +1101,9 @@ SQLRETURN SQL_API
 SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLINTEGER cbValueMax,
 	   SQLINTEGER FAR * pcbValue)
 {
-	struct _sql_bind_info *cur, *prev = NULL, *newitem;
 	SQLRETURN rc = SQL_SUCCESS;
+	TDS_DESC *ard;
+	struct _drecord *drec;
 
 	INIT_HSTMT;
 
@@ -1149,39 +1150,19 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		ODBC_RETURN(stmt, rc);
 	}
 
-	/* TODO rewrite, use ARD */
-
-	/* find available item in list */
-	cur = stmt->bind_head;
-	while (cur) {
-		if (cur->column_number == icol)
-			break;
-		prev = cur;
-		cur = cur->next;
+	ard = stmt->ard;
+	if (icol > ard->header.sql_desc_count && desc_alloc_records(ard, icol) != SQL_SUCCESS) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	if (!cur) {
-		/* didn't find it create a new one */
-		newitem = (struct _sql_bind_info *) malloc(sizeof(struct _sql_bind_info));
-		if (!newitem) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
-		}
-		memset(newitem, 0, sizeof(struct _sql_bind_info));
-		newitem->column_number = icol;
-		/* if there's no head yet */
-		if (!stmt->bind_head) {
-			stmt->bind_head = newitem;
-		} else {
-			prev->next = newitem;
-		}
-		cur = newitem;
-	}
+	drec = &ard->records[icol - 1];
 
-	cur->ard_sql_desc_type = fCType;
-	cur->ard_sql_desc_octet_length = cbValueMax;
-	cur->ard_sql_desc_octet_length_ptr = pcbValue;
-	cur->ard_sql_desc_data_ptr = (char *) rgbValue;
+	drec->sql_desc_type = fCType;
+	drec->sql_desc_octet_length = cbValueMax;
+	drec->sql_desc_octet_length_ptr = pcbValue;
+	drec->sql_desc_indicator_ptr = pcbValue;
+	drec->sql_desc_data_ptr = rgbValue;
 
 	/* force rebind */
 	stmt->row = 0;
@@ -2612,7 +2593,8 @@ SQLFetch(SQLHSTMT hstmt)
 	SQLINTEGER len = 0;
 	TDS_CHAR *src;
 	int srclen;
-	struct _sql_bind_info *cur;
+	struct _drecord *drec;
+	TDS_DESC *ard;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	TDS_INT rowtype;
@@ -2622,28 +2604,12 @@ SQLFetch(SQLHSTMT hstmt)
 	INIT_HSTMT;
 
 	IRD_CHECK;
+	ard = stmt->ard;
 	tds = stmt->hdbc->tds_socket;
 
 	context = stmt->hdbc->henv->tds_ctx;
 	locale = context->locale;
 
-	/* if we bound columns, transfer them to res_info now that we have one */
-	if (stmt->row == 0) {
-		/* TODO this code should simply do not exists... use ARD directly */
-		cur = stmt->bind_head;
-		while (cur) {
-			if (cur->column_number > 0 && cur->column_number <= tds->res_info->num_cols) {
-				colinfo = tds->res_info->columns[cur->column_number - 1];
-				colinfo->column_varaddr = cur->ard_sql_desc_data_ptr;
-				colinfo->column_bindtype = cur->ard_sql_desc_type;
-				colinfo->column_bindlen = cur->ard_sql_desc_octet_length;
-				colinfo->column_lenbind = (char *) cur->ard_sql_desc_octet_length_ptr;
-			} else {
-				/* log error ? */
-			}
-			cur = cur->next;
-		}
-	}
 	stmt->row++;
 
 	switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid)) {
@@ -2665,7 +2631,16 @@ SQLFetch(SQLHSTMT hstmt)
 	for (i = 0; i < resinfo->num_cols; i++) {
 		colinfo = resinfo->columns[i];
 		colinfo->column_text_sqlgetdatapos = 0;
-		if (colinfo->column_varaddr && !tds_get_null(resinfo->current_row, i)) {
+		drec = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
+		/* TODO how to fill indicator if not NULL */
+		if (!drec)
+			continue;
+		if (tds_get_null(resinfo->current_row, i)) {
+			if (drec->sql_desc_indicator_ptr)
+				*drec->sql_desc_indicator_ptr = SQL_NULL_DATA;
+			continue;
+		}
+		if (drec->sql_desc_data_ptr) {
 			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 			if (is_blob_type(colinfo->column_type))
 				src = ((TDSBLOBINFO *) src)->textvalue;
@@ -2673,16 +2648,12 @@ SQLFetch(SQLHSTMT hstmt)
 			len = convert_tds2sql(context,
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 					      src,
-					      srclen, colinfo->column_bindtype, colinfo->column_varaddr, colinfo->column_bindlen);
+					      srclen, drec->sql_desc_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
 			if (len < 0)
 				ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		if (colinfo->column_lenbind) {
-			if (tds_get_null(resinfo->current_row, i))
-				*((SQLINTEGER *) colinfo->column_lenbind) = SQL_NULL_DATA;
-			else
-				*((SQLINTEGER *) colinfo->column_lenbind) = len;
-		}
+		if (drec->sql_desc_octet_length_ptr)
+			*drec->sql_desc_octet_length_ptr = len;
 	}
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -2780,17 +2751,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 
 	/* if we have bound columns, free the temporary list */
 	if (fOption == SQL_DROP || fOption == SQL_UNBIND) {
-		struct _sql_bind_info *cur, *tmp;
-
-		if (stmt->bind_head) {
-			cur = stmt->bind_head;
-			while (cur) {
-				tmp = cur->next;
-				free(cur);
-				cur = tmp;
-			}
-			stmt->bind_head = NULL;
-		}
+		desc_free_records(stmt->ard);
 	}
 
 	/* do the same for bound parameters */

@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.48 2003-08-28 16:03:56 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.49 2003-08-29 14:20:09 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -273,8 +273,7 @@ struct _hstmt
 	int prepared_query_is_func;
 	int prepared_query_is_rpc;
 	/* end prepared query stuff */
-	/* TODO remove (use IRD, ARD, etc) */
-	struct _sql_bind_info *bind_head;
+	/* TODO remove (use IPD and APD) */
 	struct _sql_param_info *param_head;
 	/** number of parameter in current query */
 	unsigned int param_count;
@@ -299,17 +298,6 @@ struct _sql_param_info
 	/** this parameter is used if provided param_lenbind is NULL */
 	SQLINTEGER param_inlen;
 	struct _sql_param_info *next;
-};
-
-struct _sql_bind_info
-{
-	int column_number;
-	SQLSMALLINT ard_sql_desc_type;
-	SQLINTEGER ard_sql_desc_octet_length;
-	SQLPOINTER ard_sql_desc_data_ptr;
-	/* also ARD SQL_DESC_INDICATOR_PTR */
-	SQLLEN *ard_sql_desc_octet_length_ptr;
-	struct _sql_bind_info *next;
 };
 
 typedef struct _henv TDS_ENV;
