@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.107 2002-11-29 14:03:04 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.108 2002-12-09 22:27:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -77,25 +77,25 @@ DBLIBCONTEXT;
 
 static DBLIBCONTEXT *g_dblib_ctx = NULL;
 
+static int g_dblib_version = 
+
 #ifdef TDS42
-static int g_dblib_version = DBVERSION_42;
+		DBVERSION_42;
 #endif
 #ifdef TDS50
-static int g_dblib_version = DBVERSION_100;
+		DBVERSION_100;
 #endif
 #ifdef TDS46
-static int g_dblib_version = DBVERSION_46;
+		DBVERSION_46;
 #endif
-/* I'm taking some liberties here, there is no such thing as
- * DBVERSION_70 or DBVERSION_80 in the real world,
- * so we make it up as we go along
- */
 #ifdef TDS70
-static int g_dblib_version = DBVERSION_70;
+		DBVERSION_70;
 #endif
 #ifdef TDS80
-static int g_dblib_version = DBVERSION_80;
+		DBVERSION_80;
 #endif
+
+static int g_dblib_login_timeout = -1;  	/* not used unless positive */
 
 static int
 dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
@@ -776,8 +776,15 @@ TDSCONNECTINFO *connect_info;
 	dbproc->envchange_rcv = 0;
 	dbproc->dbcurdb[0] = '\0';
 	dbproc->servcharset[0] = '\0';
+
 	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx->tds_ctx->locale);
-	if (!connect_info || tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
+	if (!connect_info) return NULL;
+
+        if (g_dblib_login_timeout >= 0) {
+                connect_info->connect_timeout = g_dblib_login_timeout;
+        }
+
+	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
 		tds_free_connect(connect_info);
 		return NULL;
 	}
@@ -2475,7 +2482,7 @@ dbsettime(int seconds)
 RETCODE
 dbsetlogintime(int seconds)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlogintime()\n");
+	g_dblib_login_timeout = seconds;
 	return SUCCEED;
 }
 

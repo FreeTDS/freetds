@@ -1,3 +1,7 @@
+Mon Dec  9 17:22:26 EST 2002 	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/dblib/dblib.c src/dblib/unittests/t0001.c src/tds/login.c
+	- support for dbsetlogintime (not yet working)
+
 Mon Dec 09 21:48:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt src/odbc/odbc.c:
 	- update odbc status
