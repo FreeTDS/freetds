@@ -1,4 +1,3 @@
-$Id: INSTALL.CVS,v 1.5 2004-11-27 22:05:50 jklowden Exp $
 Building FreeTDS from CVS
 James Cameron <james.cameron@compaq.com>
 
@@ -57,4 +56,4 @@ We have a backup location, too, via anonymous ftp:
 	ftp://rt.fm/pub/freetds/ (thanks to Joshua Stein <jcs@rt.fm>)
 	
 --
-$Id: INSTALL.CVS,v 1.5 2004-11-27 22:05:50 jklowden Exp $
+$Id: INSTALL.CVS,v 1.6 2004-11-27 22:07:55 jklowden Exp $
