@@ -3,4 +3,4 @@ Makefile.in
 tsql
 freebcp
 .libs
-
+.deps

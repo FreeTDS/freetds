@@ -1,3 +1,8 @@
+Mon Sep  9 12:30:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* .cvsignore include/.cvsignore src/apps/.cvsignore
+	  src/odbc/unittests/.cvsignore src/pool/.cvsignore:
+	- ignore more configuration turds.
+
 Mon Sep  9 16:17:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: distribute only compiled man
 
@@ -8,6 +13,7 @@ Mon Sep  9 10:13:17 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 Sun Sep  8 21:34:35 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/tds/util.c	patch from lbayuk on 7 September to fix some 
 				formatting problems in the log
+
 Sun Sep  8 19:41:41 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* R0_60 release tag applied; release candidate #1 for 0.60!
 	* doc/userguide.sgml	conforms to release 0.60, added locale
