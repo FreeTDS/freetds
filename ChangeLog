@@ -1,3 +1,7 @@
+Thu Mar 13 22:14:33 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/getting_started.txt Updated with Brian's TDS version table
+	* src/tds/util.c Fixed segfault on opening log file in append mode.
+
 Wed Mar 12 16:16:39 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h new error numbers 
 	* src/dblib/bcp.c _bcp_get_term_data.c rewrite
