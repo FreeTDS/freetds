@@ -12,7 +12,6 @@ SQLINTEGER ind;
 	Connect();
 
 	strcpy(buf,"I don't exist");
-	strcpy(buf,"sysobjects");
 	ind = strlen(buf);
 
 	if ( SQLBindParameter(Statement,1,SQL_PARAM_INPUT,SQL_C_CHAR,
@@ -30,6 +29,29 @@ SQLINTEGER ind;
 	if ( SQLExecute(Statement) != SQL_SUCCESS ) {
 		printf( "Unable to execute statement\n" );
 		exit (1);
+	}
+
+	if (SQLFetch(Statement) != SQL_NO_DATA) {
+		printf("Data not expected\n");
+		exit(1);
+	}
+
+	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
+		printf("Not expected another recordset\n");
+		exit(1);
+	}
+
+	strcpy(buf,"sysobjects");
+	ind = strlen(buf);
+
+	if ( SQLExecute(Statement) != SQL_SUCCESS ) {
+		printf( "Unable to execute statement\n" );
+		exit (1);
+	}
+
+	if (SQLFetch(Statement) != SQL_SUCCESS) {
+		printf("Data expected\n");
+		exit(1);
 	}
 
 	if (SQLFetch(Statement) != SQL_NO_DATA) {

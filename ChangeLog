@@ -1,3 +1,6 @@
+Mon Oct  7 22:03:26 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/t0004.c: correct test
+
 Mon Oct  7 14:54:36 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* missing:
 	- Update missing script from autoconf-2.54.
