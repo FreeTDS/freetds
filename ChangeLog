@@ -1,3 +1,6 @@
+Mon Feb 23 08:12:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/genparams.c: fix for big-endian machine
+
 Sun Feb 22 12:51:38 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/genparams.c: add date types
 	* src/odbc/unittests/testodbc.c: remove identity, useless
