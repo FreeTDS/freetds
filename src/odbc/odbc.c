@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.278 2003-12-09 13:41:02 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.279 2003-12-12 15:19:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -593,15 +593,17 @@ SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
-#if 0
 SQLRETURN SQL_API
 SQLParamOptions(SQLHSTMT hstmt, SQLUINTEGER crow, SQLUINTEGER FAR * pirow)
 {
-	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, "HYC00", "SQLParamOptions: function not implemented", NULL);
-	ODBC_RETURN(stmt, SQL_ERROR);
+	SQL_RETURN res;
+
+	/* emulate for ODBC 2 DM */
+	res = SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMS_PROCESSED_PTR, piRow, 0);
+	if (res != SQL_SUCCESS)
+		return res;
+	return SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) crow, 0);
 }
-#endif
 
 SQLRETURN SQL_API
 SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
@@ -2780,7 +2782,6 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	return _SQLFreeStmt(hstmt, fOption);
 }
 
-#ifdef TDS_NO_DM
 SQLRETURN SQL_API
 SQLCloseCursor(SQLHSTMT hstmt)
 {
@@ -2791,9 +2792,10 @@ SQLCloseCursor(SQLHSTMT hstmt)
 	 *  - indeed that is what the DM does if it can't find the function
 	 *    in the driver, so this is pretty close.
 	 */
+	/* TODO remember to close cursors really when get implemented */
+	/* TODO read all results and discard them or use cancellation ?? test behaviour */
 	return _SQLFreeStmt(hstmt, SQL_CLOSE);
 }
-#endif
 
 static SQLRETURN SQL_API
 _SQLFreeDesc(SQLHDESC hdesc)
@@ -3399,11 +3401,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
-#ifdef TDS_NO_DM
 		API3X(SQL_API_SQLCLOSECURSOR);
-#else
-		API3_(SQL_API_SQLCLOSECURSOR);
-#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
@@ -3495,11 +3493,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
-#ifdef TDS_NO_DM
 		API3X(SQL_API_SQLCLOSECURSOR);
-#else
-		API3_(SQL_API_SQLCLOSECURSOR);
-#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
@@ -3588,11 +3582,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
-#ifdef TDS_NO_DM
 		API3X(SQL_API_SQLCLOSECURSOR);
-#else
-		API3_(SQL_API_SQLCLOSECURSOR);
-#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 #if SQL_API_SQLCOLATTRIBUTE != SQL_API_SQLCOLATTRIBUTES
 		API_X(SQL_API_SQLCOLATTRIBUTES);

@@ -1,3 +1,7 @@
+Fri Dec 12 16:18:53 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt src/odbc/odbc.c:
+	- SQLParamOptions and SQLCloseCursor
+
 Fri Dec 12 15:33:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: check tds_process_default_tokens result
 

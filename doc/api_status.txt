@@ -88,7 +88,7 @@ odbc	(all)	SQLBindParam	OK
 odbc	(all)	SQLBindParameter	OK
 odbc	(all)	SQLBrowseConnect	
 odbc	(all)	SQLCancel	OK
-odbc	(all)	SQLCloseCursor	
+odbc	(all)	SQLCloseCursor	OK
 odbc	(all)	SQLColAttribute		OK
 odbc	(all)	SQLColAttributes	OK
 odbc	(all)	SQLColumnPrivileges	OK
@@ -130,7 +130,7 @@ odbc	(all)	SQLNativeSql	partial
 odbc	(all)	SQLNumParams	OK
 odbc	(all)	SQLNumResultCols	OK
 odbc	(all)	SQLParamData	OK
-odbc	(all)	SQLParamOptions	
+odbc	(all)	SQLParamOptions	OK
 odbc	(all)	SQLPrepare	OK
 odbc	(all)	SQLPrimaryKeys	OK
 odbc	(all)	SQLProcedureColumns	OK
