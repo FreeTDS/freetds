@@ -20,7 +20,7 @@
 #ifndef _sybdb_h_
 #define _sybdb_h_
 
-#include "tds.h"
+#include "tds_sysdep_public.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.54 2003-11-01 23:02:08 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.55 2004-01-28 20:37:42 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -51,10 +51,10 @@ static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn 
 #define DBNOSAVE 0
 #define DBNOERR  -1
 
-#define INT_EXIT	TDS_INT_EXIT
-#define INT_CONTINUE	TDS_INT_CONTINUE
-#define INT_CANCEL	TDS_INT_CANCEL
-#define INT_TIMEOUT	TDS_INT_TIMEOUT
+#define INT_EXIT	0
+#define INT_CONTINUE	1
+#define INT_CANCEL	2
+#define INT_TIMEOUT	3
 
 #define DBMAXNUMLEN 33
 #define DBMAXNAME   30
@@ -138,29 +138,115 @@ typedef int STATUS;
 typedef unsigned char BOOL;
 #endif
 
+#if !defined(_FREETDS_LIBRARY_SOURCE) || !defined(_tds_h_)
+/* copied from tds.h */
+/* TODO find a best way... */
+enum
+{
+	SYBCHAR = 47,		/* 0x2F */
+#define SYBCHAR	SYBCHAR
+	SYBVARCHAR = 39,	/* 0x27 */
+#define SYBVARCHAR	SYBVARCHAR
+	SYBINT1 = 48,		/* 0x30 */
+#define SYBINT1	SYBINT1
+	SYBINT2 = 52,		/* 0x34 */
+#define SYBINT2	SYBINT2
+	SYBINT4 = 56,		/* 0x38 */
+#define SYBINT4	SYBINT4
+	SYBINT8 = 127,		/* 0x7F */
+#define SYBINT8	SYBINT8
+	SYBFLT8 = 62,		/* 0x3E */
+#define SYBFLT8	SYBFLT8
+	SYBDATETIME = 61,	/* 0x3D */
+#define SYBDATETIME	SYBDATETIME
+	SYBBIT = 50,		/* 0x32 */
+#define SYBBIT	SYBBIT
+	SYBTEXT = 35,		/* 0x23 */
+#define SYBTEXT	SYBTEXT
+	SYBIMAGE = 34,		/* 0x22 */
+#define SYBIMAGE	SYBIMAGE
+	SYBMONEY4 = 122,	/* 0x7A */
+#define SYBMONEY4	SYBMONEY4
+	SYBMONEY = 60,		/* 0x3C */
+#define SYBMONEY	SYBMONEY
+	SYBDATETIME4 = 58,	/* 0x3A */
+#define SYBDATETIME4	SYBDATETIME4
+	SYBREAL = 59,		/* 0x3B */
+#define SYBREAL	SYBREAL
+	SYBBINARY = 45,		/* 0x2D */
+#define SYBBINARY	SYBBINARY
+	SYBVARBINARY = 37,	/* 0x25 */
+#define SYBVARBINARY	SYBVARBINARY
+	SYBNUMERIC = 108,	/* 0x6C */
+#define SYBNUMERIC	SYBNUMERIC
+	SYBDECIMAL = 106,	/* 0x6A */
+#define SYBDECIMAL	SYBDECIMAL
+};
+
+#define SYBAOPCNT  0x4b
+#define SYBAOPCNTU 0x4c
+#define SYBAOPSUM  0x4d
+#define SYBAOPSUMU 0x4e
+#define SYBAOPAVG  0x4f
+#define SYBAOPAVGU 0x50
+#define SYBAOPMIN  0x51
+#define SYBAOPMAX  0x52
+
+/* mssql2k compute operator */
+#define SYBAOPCNT_BIG		0x09
+#define SYBAOPSTDEV		0x30
+#define SYBAOPSTDEVP		0x31
+#define SYBAOPVAR		0x32
+#define SYBAOPVARP		0x33
+#define SYBAOPCHECKSUM_AGG	0x72
+
+#endif
+
 typedef unsigned char DBBOOL;
-typedef TDS_CHAR DBCHAR;
+typedef char DBCHAR;
 typedef unsigned char DBTINYINT;
-typedef TDS_SMALLINT DBSMALLINT;
-typedef TDS_INT DBINT;
+typedef tds_sysdep_int16_type DBSMALLINT;
+typedef tds_sysdep_int32_type DBINT;
 typedef unsigned char DBBINARY;
-typedef TDS_REAL DBREAL;
-typedef TDS_FLOAT DBFLT8;
-typedef unsigned short DBUSMALLINT;
-typedef TDS_NUMERIC DBNUMERIC;
-typedef TDS_MONEY DBMONEY;
-typedef TDS_MONEY4 DBMONEY4;
-typedef TDS_DATETIME DBDATETIME;
-typedef TDS_DATETIME4 DBDATETIME4;
+typedef tds_sysdep_real32_type DBREAL;
+typedef tds_sysdep_real64_type DBFLT8;
+typedef unsigned tds_sysdep_int16_type DBUSMALLINT;
+
+typedef struct
+{
+	unsigned char precision;
+	unsigned char scale;
+	unsigned char array[33];
+} DBNUMERIC;
+
+typedef struct
+{
+	DBINT mnyhigh;
+	unsigned tds_sysdep_int32_type mnylow;
+} DBMONEY;
+
+typedef struct
+{
+	DBINT mny4;
+} DBMONEY4;
+
+typedef struct
+{
+	DBINT dtdays;
+	DBINT dttime;
+} DBDATETIME;
+
+typedef struct
+{
+	DBUSMALLINT days;
+	DBUSMALLINT minutes;
+} DBDATETIME4;
 
 #ifdef MSDBLIB
 #define SQLCHAR SYBCHAR
 #endif
 
-typedef struct
-{
-	TDSLOGIN *tds_login;
-} LOGINREC;
+typedef struct tds_dblib_loginrec LOGINREC;
 
 typedef unsigned char BYTE;
 
@@ -169,32 +255,6 @@ typedef struct dbtypeinfo
 	DBINT precision;
 	DBINT scale;
 } DBTYPEINFO;
-
-typedef struct tag_DBPROC_ROWBUF
-{
-	int buffering_on;	/* (boolean) is row buffering turned on?     */
-	int first_in_buf;	/* result set row number of first row in buf */
-	int next_row;		/* result set row number of next row         */
-	int newest;		/* index of most recent item in queue        */
-	int oldest;		/* index of least recent item in queue       */
-	int elcount;		/* max element count that buffer can hold    */
-	int element_size;	/* size in bytes of each element in queue    */
-	int rows_in_buf;	/* # of rows currently in buffer             */
-	void *rows;		/* pointer to the row storage                */
-} DBPROC_ROWBUF;
-
-typedef struct
-{
-	int host_column;
-	void *host_var;
-	int datatype;
-	int prefix_len;
-	DBINT column_len;
-	BYTE *terminator;
-	int term_len;
-	int tab_colnum;
-	int column_error;
-} BCP_HOSTCOLINFO;
 
 struct dbstring
 {
@@ -264,79 +324,7 @@ struct dboption
 };
 typedef struct dboption DBOPTION;
 
-/* linked list of rpc parameters */
-
-typedef struct _DBREMOTE_PROC_PARAM
-{
-	struct _DBREMOTE_PROC_PARAM *next;
-
-	char *name;
-	BYTE status;
-	int type;
-	DBINT maxlen;
-	DBINT datalen;
-	BYTE *value;
-} DBREMOTE_PROC_PARAM;
-
-typedef struct
-{
-	char *hint;
-	TDS_CHAR *hostfile;
-	TDS_CHAR *errorfile;
-	TDS_CHAR *tablename;
-	TDS_CHAR *insert_stmt;
-	TDS_INT direction;
-	TDS_INT db_colcount;
-	TDS_INT host_colcount;
-	BCP_COLINFO **db_columns;
-	BCP_HOSTCOLINFO **host_columns;
-	TDS_INT firstrow;
-	TDS_INT lastrow;
-	TDS_INT maxerrs;
-	TDS_INT batch;
-} DBBULKCOPY;
-
-typedef struct _DBREMOTE_PROC
-{
-	struct _DBREMOTE_PROC *next;
-
-	char *name;
-	DBSMALLINT options;
-	DBREMOTE_PROC_PARAM *param_list;
-} DBREMOTE_PROC;
-
-typedef struct
-{
-	TDSSOCKET *tds_socket;
-
-	DBPROC_ROWBUF row_buf;
-
-	int noautofree;
-	int more_results;	/* boolean.  Are we expecting results? */
-	int dbresults_state;
-	int dbresults_retcode;
-	BYTE *user_data;	/* see dbsetuserdata() and dbgetuserdata() */
-	unsigned char *dbbuf;	/* is dynamic!                   */
-	int dbbufsz;
-	int command_state;
-	TDS_INT text_size;
-	TDS_INT text_sent;
-	FILE *bcp_errfileptr;
-	TDS_INT sendrow_init;
-	TDS_INT var_cols;
-	DBTYPEINFO typeinfo;
-	unsigned char avail_flag;
-	DBOPTION *dbopts;
-	DBSTRING *dboptcmd;
-	DBBULKCOPY bcp;		/* see TODO, above */
-	DBREMOTE_PROC *rpc;
-	DBUSMALLINT envchange_rcv;
-	char dbcurdb[DBMAXNAME + 1];
-	char servcharset[DBMAXNAME + 1];
-	FILE *ftos;
-	DB_DBCHKINTR_FUNC dbchkintr;
-	DB_DBHNDLINTR_FUNC dbhndlintr;
-} DBPROCESS;
+typedef struct tds_dblib_dbprocess DBPROCESS;
 
 typedef struct dbdaterec
 {

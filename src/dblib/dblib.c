@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.161 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.162 2004-01-28 20:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4167,16 +4167,16 @@ int
 dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2)
 {
 
-	if (m1->tdsoldmoney.mnyhigh < m2->tdsoldmoney.mnyhigh) {
+	if (m1->mnyhigh < m2->mnyhigh) {
 		return -1;
 	}
-	if (m1->tdsoldmoney.mnyhigh > m2->tdsoldmoney.mnyhigh) {
+	if (m1->mnyhigh > m2->mnyhigh) {
 		return 1;
 	}
-	if (m1->tdsoldmoney.mnylow < m2->tdsoldmoney.mnylow) {
+	if (m1->mnylow < m2->mnylow) {
 		return -1;
 	}
-	if (m1->tdsoldmoney.mnylow > m2->tdsoldmoney.mnylow) {
+	if (m1->mnylow > m2->mnylow) {
 		return 1;
 	}
 	return 0;
@@ -4218,8 +4218,8 @@ dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
 	if (dest == NULL) {
 		return FAIL;
 	}
-	dest->tdsoldmoney.mnylow = 0;
-	dest->tdsoldmoney.mnyhigh = 0;
+	dest->mnylow = 0;
+	dest->mnyhigh = 0;
 	return SUCCEED;
 }
 
@@ -4767,8 +4767,8 @@ dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 	if ((src == NULL) || (dest == NULL)) {
 		return FAIL;
 	}
-	dest->tdsoldmoney.mnylow = src->tdsoldmoney.mnylow;
-	dest->tdsoldmoney.mnyhigh = src->tdsoldmoney.mnyhigh;
+	dest->mnylow = src->mnylow;
+	dest->mnyhigh = src->mnyhigh;
 	return SUCCEED;
 }
 

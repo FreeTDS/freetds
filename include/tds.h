@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.169 2004-01-28 11:06:16 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.170 2004-01-28 20:37:42 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -332,10 +332,10 @@ enum tds_end
 #define TDS_SP_PREPEXECRPC     14
 #define TDS_SP_UNPREPARE       15
 /* 
-<rant> Sybase does an awful job of this stuff, non null ints of size 1 2 
-and 4 have there own codes but nullable ints are lumped into INTN
-sheesh! </rant>
-*/
+ * <rant> Sybase does an awful job of this stuff, non null ints of size 1 2 
+ * and 4 have there own codes but nullable ints are lumped into INTN
+ * sheesh! </rant>
+ */
 typedef enum
 {
 	SYBCHAR = 47,		/* 0x2F */

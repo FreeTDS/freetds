@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.15 2002-11-23 17:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.16 2004-01-28 20:37:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -38,6 +38,7 @@ main(int argc, char *argv[])
 	DBINT rows_copied;
 	int num_cols = 0;
 	int col_type[256];
+	DBBOOL col_varylen[256];
 	int prefix_len;
 
 	set_malloc_options();
@@ -90,8 +91,10 @@ main(int argc, char *argv[])
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
-		for (i = 0; i < num_cols; i++)
+		for (i = 0; i < num_cols; i++) {
 			col_type[i] = dbcoltype(dbproc, i + 1);
+			col_varylen[i] = dbvarylen(dbproc, i + 1);
+		}
 		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		}
 	}
@@ -103,7 +106,7 @@ main(int argc, char *argv[])
 		prefix_len = 0;
 		if (col_type[i] == SYBIMAGE) {
 			prefix_len = 4;
-		} else if (!is_fixed_type(col_type[i])) {
+		} else if (col_varylen[i]) {
 			prefix_len = 1;
 		}
 		ret = bcp_colfmt(dbproc, i + 1, col_type[i], prefix_len, -1, NULL, 0, i + 1);

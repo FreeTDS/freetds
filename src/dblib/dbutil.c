@@ -27,13 +27,14 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include "tds.h"
 #include "sybdb.h"
 #include "syberror.h"
 #include "dblib.h"
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.21 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.22 2004-01-28 20:37:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
