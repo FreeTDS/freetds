@@ -262,6 +262,15 @@ gchar* ExtractDSN (ConnectParams* params, const gchar* connectString)
  * Begin local function definitions
  */
 
+#ifdef 0 
+/* UNIXODBC?
+*/
+static GString* GetIniFileName ()
+{
+
+    return iniFileName;
+}
+#else
 static GString* GetIniFileName ()
 {
    char* setting;
@@ -302,6 +311,7 @@ static GString* GetIniFileName ()
 
    return iniFileName;
 }
+#endif
 
 static int FileExists (const gchar* name)
 {
