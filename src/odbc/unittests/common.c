@@ -6,7 +6,7 @@
 
 #include <ctype.h>
 
-static char software_version[] = "$Id: common.c,v 1.29 2004-03-06 13:03:43 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.30 2004-03-21 08:24:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -98,12 +98,12 @@ read_login_info(void)
 	strcpy(DRIVER, path);
 
 	/* craft out odbc.ini, avoid to read wrong one */
-	in = fopen("myodbc.ini", "w");
+	in = fopen("odbc.ini", "w");
 	if (in) {
 		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", SERVER, DRIVER, DATABASE, SERVER);
 		fclose(in);
-		setenv("ODBCINI", "./myodbc.ini", 1);
-		setenv("SYSODBCINI", "./myodbc.ini", 1);
+		setenv("ODBCINI", "./odbc.ini", 1);
+		setenv("SYSODBCINI", "./odbc.ini", 1);
 	}
 	return 0;
 }

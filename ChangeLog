@@ -1,3 +1,8 @@
+Sun Mar 21 09:33:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/common.c:
+	- use odbc.ini name for configuration
+
 Thu Mar 18 11:54:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c src/tds/read.c src/tds/write.c:
 	- remove warnings under VMS

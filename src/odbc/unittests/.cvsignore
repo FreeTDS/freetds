@@ -25,7 +25,7 @@ type
 genparams
 transaction
 preperror
-myodbc.ini
+odbc.ini
 odbcinst.ini
 prepare_results
 data
