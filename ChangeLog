@@ -1,3 +1,7 @@
+Mon May 03 22:02:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/threadsafe.c win32/winlogin.c win32/winsetup.c:
+	- use correct directories under windows
+
 Mon May 03 20:49:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c win32/FreeTDS.def win32/Makefile.am:
 	* win32/initnet.c win32/dev-cpp/FreeTDS.dev:

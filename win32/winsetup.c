@@ -191,7 +191,7 @@ write_all_strings(DSNINFO * di)
  * Go looking for trouble.  Return NULL if the info is okay, or an error message
  * if something needs to change.
  */
-static char *
+static const char *
 validate(DSNINFO * di)
 {
 	char tmp[100];
@@ -227,9 +227,9 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	DSNINFO *di;
 	char tmp[100];
-	char *pstr;
+	const char *pstr;
 	int major, minor, i;
-	static char *protocols[] = {
+	static const char *protocols[] = {
 		"TDS 4.2", "TDS 4.6", "TDS 5.0", "TDS 7.0", "TDS 8.0", NULL
 	};
 
@@ -411,12 +411,15 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 BOOL INSTAPI
 ConfigDriver(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszArgs, LPSTR lpszMsg, WORD cbMsgMax, WORD * pcbMsgOut)
 {
+	/* TODO finish ?? */
 	switch (fRequest) {
 	case ODBC_INSTALL_DRIVER:
+		/* FIXME possible buffer overflow */
 		strcpy(lpszMsg, "Hello");
 		*pcbMsgOut = strlen(lpszMsg);
 		break;
 	case ODBC_REMOVE_DRIVER:
+		/* FIXME possible buffer overflow */
 		strcpy(lpszMsg, "Goodbye");
 		*pcbMsgOut = strlen(lpszMsg);
 		break;

@@ -68,12 +68,16 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#ifdef WIN32
+#include <shlobj.h>
+#endif
+
 #include "tds.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.34 2004-05-02 07:30:40 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.35 2004-05-03 20:02:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -397,6 +401,26 @@ tds_get_homedir(void)
 	return strdup(home);
 #endif
 #else /* WIN32 */
-#error Finish!!! Get Application Data
+	/*
+	 * For win32 we return application data cause we use "HOME" 
+	 * only to store configuration files
+	 */
+	LPITEMIDLIST pidl;
+	char path[MAX_PATH];
+	HRESULT hr;
+	LPMALLOC pMalloc = NULL;
+	char * res = NULL;
+
+	hr = SHGetMalloc(&pMalloc);
+	if (!FAILED(hr)) {
+		hr = SHGetSpecialFolderLocation(NULL, CSIDL_APPDATA, &pidl);
+		if (!FAILED(hr)) {
+			if (SHGetPathFromIDList(pidl, path))
+				res = strdup(path);
+			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
+		}
+		(*pMalloc->lpVtbl->Release)(pMalloc);
+	}
+	return res;
 #endif
 }

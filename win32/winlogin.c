@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2002-2004  Frediano Ziglio
+ * Copyright (C) 2004  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -49,6 +49,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <assert.h>
+#include <shlobj.h>
 
 #include "resource.h"
 
@@ -65,6 +66,28 @@
 /* This is defined in ... */
 extern HINSTANCE hinstFreeTDS;
 
+static char *
+get_desktop_file(const char *file)
+{
+	LPITEMIDLIST pidl;
+	char path[MAX_PATH];
+	HRESULT hr;
+	LPMALLOC pMalloc = NULL;
+	char * res = NULL;
+
+	hr = SHGetMalloc(&pMalloc);
+	if (!FAILED(hr)) {
+		hr = SHGetSpecialFolderLocation(NULL, CSIDL_DESKTOPDIRECTORY, &pidl);
+		if (!FAILED(hr)) {
+			if (SHGetPathFromIDList(pidl, path))
+				asprintf(&res, "%s\\$s", path, file);
+			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
+		}
+		(*pMalloc->lpVtbl->Release)(pMalloc);
+	}
+	return res;
+}
+
 /**
  * Callback function for the DSN Configuration dialog 
  * \param hDlg identifies the dialog
@@ -78,7 +101,6 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 {
 	TDSCONNECTION *connection;
 	char tmp[100];
-	char *dir;
 
 	switch (message) {
 
@@ -94,8 +116,7 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, !tds_dstr_isempty(&connection->dump_file), 0L);
 
 		/* adjust label of logging checkbox */
-		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, WM_SETTEXT, 0,
-				   (LPARAM) (getenv("windir") ? "\"FreeTDS.log\" on desktop" : "\"C:\\FreeTDS.log\""));
+		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, WM_SETTEXT, 0, (LPARAM) "\"FreeTDS.log\" on desktop");
 
 		return TRUE;
 
@@ -119,13 +140,12 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		tds_dstr_copy(&connection->password, tmp);
 		if (SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_GETCHECK, 0, 0)) {
-			dir = getenv("windir");
-			if (dir) {
-				sprintf(tmp, "%s\\Desktop\\FreeTDS.log", dir);
-			} else {
-				strcpy(tmp, "C:\\FreeTDS.log");
+			char * filename = get_desktop_file("FreeTDS.log");
+
+			if (filename) {
+				tds_dstr_copy(&connection->dump_file, filename);
+				free(filename);
 			}
-			tds_dstr_copy(&connection->dump_file, tmp);
 		} else {
 			tds_dstr_copy(&connection->dump_file, "");
 		}
