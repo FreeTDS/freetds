@@ -1,3 +1,8 @@
+Mon Sep 16 20:28:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/tds/asprintf.c:
+	- Provide a better/more portable {,v}asprintf() implementation
+	  for systems that don't have one.
+
 Mon Sep 16 16:59:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h include/ctpublic.h src/ctlib/unittests/common.h:
 	- Add some prototypes for "gcc -Wall" in src/ctlib/unittests

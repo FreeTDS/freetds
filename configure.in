@@ -142,6 +142,7 @@ dnl Checks for library functions.
 dnl ------------------------------------------------------------
 
 AC_CHECK_FUNCS(vasprintf)
+AC_CHECK_FUNCS(vsnprintf)
 
 AC_CHECK_FUNCS(atoll)
 AC_MSG_CHECKING(if 64-bit arithmetic is available)
