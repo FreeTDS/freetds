@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.38 2003-04-03 10:37:09 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.39 2003-04-13 16:08:41 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -161,6 +161,10 @@ struct cs_context
    	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
+/* code changes start here - CS_CONFIG - 01*/
+	void *userdata;
+	int userdata_len;
+/* code changes end here - CS_CONFIG - 01*/
 	TDSCONTEXT *tds_ctx;
     CS_CONFIG config;
 };

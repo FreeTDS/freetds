@@ -1,3 +1,8 @@
+Sun Apr 13 12:04:24 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h src/ctlib/cs.c 
+	* src/ctlib/unittests/Makefile.am
+	- patch 719581: cs_userdata option for cs_config by Swapna Anand
+
 Sun Apr 13 11:06:49 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* INSTALL.CVS configure.in removed outdated macros, documented
 	*  include/tdsiconv.h minor cleanup

@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.38 2003-03-27 16:05:42 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.39 2003-04-13 16:08:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -235,6 +235,9 @@ cs_ctx_drop(CS_CONTEXT * ctx)
 CS_RETCODE
 cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
+/* declared  for - CS_USERDATA changes - swapna*/
+CS_INT maxcp;
+
 	if (action == CS_GET) {
 		if (buffer == NULL) {
 			return CS_SUCCEED;
@@ -243,9 +246,22 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		case CS_MESSAGE_CB:
 			*(void **) buffer = (void*) ctx->_cslibmsg_cb;
 			return CS_SUCCEED;
+		case CS_USERDATA:
+
+		  /* code changes start here - CS_CONFIG - 01*/
+		  	tdsdump_log(TDS_DBG_INFO2, "%L fetching userdata %d\n", ctx->userdata);
+			maxcp = ctx->userdata_len;
+			if (outlen)
+				*outlen = maxcp;
+			if (maxcp > buflen)
+				maxcp = buflen;
+			tdsdump_log(TDS_DBG_INFO2, "%L maxcp= %d len=%d, outlen =%d\n", maxcp,buflen,*outlen);
+			memcpy(buffer, ctx->userdata, maxcp); 
+			
+			return CS_SUCCEED;
+		/* code changes end here - CS_CONFIG - 01*/
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
-		case CS_USERDATA:
 		case CS_VERSION:
 			return CS_FAIL;
 			break;
@@ -260,10 +276,22 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
 		ctx->cs_errhandletype = _CS_ERRHAND_CB;
 		return CS_SUCCEED;
+	case CS_USERDATA:
+	  /* code changes start here - CS_CONFIG - 02*/
+	   	if (ctx->userdata) {
+		     free(ctx->userdata);
+		}
+
+		ctx->userdata = (void *) malloc(buflen + 1);
+		tdsdump_log(TDS_DBG_INFO2, "%L setting userdata orig %d new %d\n", buffer, ctx->userdata);
+		ctx->userdata_len = buflen;
+
+		memcpy(ctx->userdata, buffer, buflen);
+		return CS_SUCCEED;
+	       /* code changes end here - CS_CONFIG - 02*/
 
 	case CS_EXTRA_INF:
 	case CS_LOC_PROP:
-	case CS_USERDATA:
 	case CS_VERSION:
 		return CS_FAIL;
 		break;
