@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.115 2003-11-23 08:59:08 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.116 2003-11-24 03:12:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1162,7 +1162,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_n(tds, s, colsize);
 		}
 		if (converted)
-			tds_convert_string_free(src, s);
+			tds_convert_string_free((char*)src, s);
 	} else {
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
