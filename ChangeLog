@@ -1,3 +1,6 @@
+Fri Feb 20 13:26:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/data.c: remove warnings compiling
+
 Thu Feb 19 16:38:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/sql2tds.c src/tds/data.c src/tds/query.c:
 	- fix for UNIQUEIDENTIFIER type
