@@ -45,7 +45,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.23 2002-09-30 16:36:12 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.24 2002-09-30 17:34:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1484,7 +1484,6 @@ unsigned char row_token         = 0xd1;
                  }
               } while (marker!=TDS_DONE_TOKEN);
 
-	      _bcp_err_handler(dbproc, SYBEBBCI);
               _bcp_start_new_batch(dbproc);
 
            }
@@ -1734,6 +1733,8 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *dbproc)
 
 TDSSOCKET *tds = dbproc->tds_socket;
 int        marker;
+
+    _bcp_err_handler(dbproc, SYBEBBCI);
 
     if (IS_TDS50(tds)) 
     {
