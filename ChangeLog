@@ -1,3 +1,6 @@
+Wed May  7 23:58:33 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/apps/tsql.c default to CHARSET_ISO1
+
 Wed May  7 23:08:12 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* acinclude.m4 Add comments for iconv testing
 	* configure.in test for locale_charset

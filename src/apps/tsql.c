@@ -19,6 +19,8 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
+#else
+#define CHARSET_ISO1 "ISO-8859-1"
 #endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
@@ -66,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.56 2003-05-05 00:12:03 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.57 2003-05-08 03:59:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -276,8 +278,12 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	setlocale(LC_ALL, "");
 	locale = setlocale(LC_ALL, NULL);
-#ifdef CODESET
+#if HAVE_NL_LANGINFO
+# if HAVE_LOCALE_CHARSET
+	charset = locale_charset();
+# else
 	charset = nl_langinfo(CODESET);
+# endif 
 #endif
 
 	if (locale)
@@ -285,7 +291,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	if (charset) {
 		printf("charset is \"%s\"\n", charset);
 	} else {
-		charset = "iso_1";
+		charset = CHARSET_ISO1;
 		printf("using default charset \"%s\"\n", charset);
 	}
 
