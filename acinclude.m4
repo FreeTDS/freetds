@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.20 2003-05-13 13:34:25 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.21 2003-06-04 21:39:21 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -394,103 +394,5 @@ if test $ac_cv_func_which_localtime_r = struct; then
 else
   AC_DEFINE(HAVE_FUNC_LOCALTIME_R_INT, 1, [Define to 1 if your localtime_r return a int.])
 fi
-])
-
-dnl Infer what flavor of iconv(3) we're likely to be linking with, and what 
-dnl names it uses for some of our favorite character sets, by trying out a few obvious
-dnl choices with iconv(1).  (Character set names are famously not standardized.)
-
-dnl TDS_ICONV_CHARSET VAR RES LIST
-
-AC_DEFUN(TDS_ICONV_CHARSET,
-[tds_charset=
-for TDSTO in $3
-do
-	RES=`(eval $tds_iconvtest) 2> /dev/null`
-	if test "X$RES" = "X$2"; then
-		tds_charset=$TDSTO
-		break
-	fi
-done
-if test "X$tds_charset" != "X"; then
-AC_DEFINE(HAVE_CHARSET_$1, 1, [Define to 1 if iconv support $1 charset.])
-AC_DEFINE_UNQUOTED(CHARSET_$1, ["$tds_charset"], [Define to the iconv name of $1 charset.])
-fi
-])
-
-AC_DEFUN(TDS_ICONV,
-[
-dnl does cksum use tab or space (Solaris use space)
-SUM=`true | cksum | cut -f 1`
-if test "X$SUM" = "X4294967295"; then
-	tds_iconvtest='echo $TDSSTR | iconv -f $TDSFROM -t $TDSTO | cksum | cut -f 1'
-else
-	SUM=`true | cksum | cut -d " " -f 1`
-	if test "X$SUM" = "X4294967295"; then
-		tds_iconvtest='echo $TDSSTR | iconv -f $TDSFROM -t $TDSTO | cksum | cut -d " " -f 1'
-	fi
-fi
-
-dnl test for ucs2 and iso8859-1 (types always presents)
-TDSSTR=foo
-ICONV_ISO1=
-ICONV_UCS2=
-for TDSFROM in "ISO8859-1" "ISO-8859-1" "iso81" "iso8859-1" "iso88591" "iso8859_1"
-do
-        for TDSTO in "UCS-2" "UCS2" "ucs2"
-        do
-                RES=`(eval $tds_iconvtest) 2> /dev/null`
-                if test "X$RES" = "X3637111430" -o "X$RES" = "X823496052"; then
-			if test "X$ICONV_ISO1" = "X"; then
-				ICONV_ISO1=$TDSFROM
-			fi
-			if test "X$ICONV_UCS2" = "X"; then
-				ICONV_UCS2=$TDSTO
-			fi
-		fi
-		if test "X$ICONV_ISO1" != "X" -a "X$ICONV_UCS2" != "X"; then
-			break 2
-		fi
-        done
-done
-
-AC_DEFINE(HAVE_CHARSET_ISO1, 1, [Define to 1 if iconv support ISO1 charset.])
-AC_DEFINE_UNQUOTED(CHARSET_ISO1, ["$ICONV_ISO1"], [Define to the iconv name of ISO1 charset.])
-AC_DEFINE(HAVE_CHARSET_UCS2, 1, [Define to 1 if iconv support UCS2 charset.])
-AC_DEFINE_UNQUOTED(CHARSET_UCS2, ["$ICONV_UCS2"], [Define to the iconv name of UCS2 charset.])
-
-dnl now we have a type we can check for others names
-TDSFROM=$ICONV_ISO1
-TDS_ICONV_CHARSET(UTF8, 3915528286, ["UTF-8" "UTF8" "utf8"])
-ICONV_UTF8=$tds_charset
-TDS_ICONV_CHARSET(UCS2LE, 3637111430, ["$ICONV_UCS2" "UCS2LE" "UCS-2LE" "ucs2le"])
-TDS_ICONV_CHARSET(UCS4LE, 2049347138, ["UCS4" "UCS-4" "UCS4LE" "UCS-4LE"])
-TDS_ICONV_CHARSET(UCS4BE, 991402119, ["UCS4" "UCS-4" "UCS4BE" "UCS-4BE"])
-
-TDSFROM=$ICONV_UTF8
-TDS_ICONV_CHARSET(ISO2, 3915528286, ["ISO8859-2" "ISO-8859-2" "ISO_8859-2" iso82 iso8859_2 iso88592])
-TDS_ICONV_CHARSET(ISO5, 3915528286, ["ISO8859-5" "ISO-8859-5" "ISO_8859-5" iso85 iso8859_5 iso88595])
-TDS_ICONV_CHARSET(ISO6, 3915528286, ["ISO8859-6" "ISO-8859-6" "ISO_8859-6" iso86 iso8859_6 iso88596])
-TDS_ICONV_CHARSET(ISO7, 3915528286, ["ISO8859-7" "ISO-8859-7" "ISO_8859-7" iso87 iso8859_7 iso88597])
-TDS_ICONV_CHARSET(ISO8, 3915528286, ["ISO8859-8" "ISO-8859-8" "ISO_8859-8" iso88 iso8859_8 iso88598])
-TDS_ICONV_CHARSET(ISO9, 3915528286, ["ISO8859-9" "ISO-8859-9" "ISO_8859-9" iso89 iso8859_9 iso88599])
-TDS_ICONV_CHARSET(ISO15, 3915528286, ["ISO8859-15" "ISO-8859-15" "ISO_8859-15" iso815 iso8859_15 iso885915])
-
-# PC charsets
-TDS_ICONV_CHARSET(CP1250, 3915528286, [CP1250 cp1250])
-TDS_ICONV_CHARSET(CP1251, 3915528286, [CP1251 cp1251])
-TDS_ICONV_CHARSET(CP1252, 3915528286, [CP1252 cp1252])
-TDS_ICONV_CHARSET(CP1253, 3915528286, [CP1253 cp1253])
-TDS_ICONV_CHARSET(CP1254, 3915528286, [CP1254 cp1254])
-TDS_ICONV_CHARSET(CP1255, 3915528286, [CP1255 cp1255])
-TDS_ICONV_CHARSET(CP1256, 3915528286, [CP1256 cp1256])
-TDS_ICONV_CHARSET(CP1257, 3915528286, [CP1257 cp1257])
-TDS_ICONV_CHARSET(CP1258, 3915528286, [CP1258 cp1258])
-TDS_ICONV_CHARSET(CP874, 3915528286, [CP874 cp874])
-TDS_ICONV_CHARSET(CP932, 3915528286, [CP932])
-TDS_ICONV_CHARSET(CP936, 3915528286, [CP936])
-TDS_ICONV_CHARSET(CP949, 3915528286, [CP949])
-TDS_ICONV_CHARSET(CP950, 3915528286, [CP950])
-
 ])
 
