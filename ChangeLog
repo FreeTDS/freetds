@@ -1,3 +1,7 @@
+Thu Oct 16 23:02:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/encodings.h src/tds/encodings.pl:
+	- define constant for every canonic charset
+
 Wed Oct 08 21:23:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in:
 	- test for wchar.h (some systems define EILSEQ here)
