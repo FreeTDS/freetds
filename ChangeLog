@@ -1,3 +1,7 @@
+Sat Dec 11 14:26:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c: use current_results, not res_info
+	* src/dblib/unittests/rpc.c: backported improved test
+
 Fri Dec 10 14:59:47 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/convert.c
 	- apply patch, modified, from Bill Thompson cf. ML today.

@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.15 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.16 2004-12-11 13:27:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -29,10 +29,12 @@ static int init_proc(DBPROCESS * dbproc, const char *name);
 
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"
-			"  @first_type varchar(30) OUTPUT \n"
+			"  @null_input varchar(30) OUTPUT \n"
+			", @first_type varchar(30) OUTPUT \n"
 			", @nrows int OUTPUT \n"
 		"AS \n"
 		"BEGIN \n"
+			"select @null_input = max(convert(varchar(30), name)) from systypes \n"
 			"select @first_type = min(convert(varchar(30), name)) from systypes \n"
 			"select distinct convert(varchar(30), name) as 'type'  from systypes \n"
 				"where name in ('int', 'char', 'text') \n"
@@ -86,6 +88,7 @@ main(int argc, char **argv)
 	char *retname = NULL;
 	int rettype = 0, retlen = 0;
 	char proc[] = "#t0022", 
+	     param0[] = "@null_input", 
 	     param1[] = "@first_type", 
 	     param2[] = "@nrows";
 	char *proc_name = proc;
@@ -140,6 +143,13 @@ main(int argc, char **argv)
 	}
 
 	printf("executing dbrpcparam\n");
+	erc = dbrpcparam(dbproc, param0, DBRPCRETURN, SYBCHAR, /*maxlen= */ -1, /* datlen= */ 0, (BYTE *) NULL);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcparam\n");
+		failed = 1;
+	}
+
+	printf("executing dbrpcparam\n");
 	erc = dbrpcparam(dbproc, param1, DBRPCRETURN, SYBCHAR, /*maxlen= */ sizeof(param_data1), /* datlen= */ 0, (BYTE *) & param_data1);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcparam\n");
@@ -190,7 +200,7 @@ main(int argc, char **argv)
 				}
 			}
 			/* check return status */
-			printf("retrieving return status... ");
+			printf("retrieving return status...\n");
 			if (dbhasretstat(dbproc) == TRUE) {
 				printf("%d\n", dbretstatus(dbproc));
 			} else {

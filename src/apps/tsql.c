@@ -67,7 +67,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.71 2004-11-28 20:44:14 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.72 2004-12-11 13:27:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -150,9 +150,9 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		}
 		switch (resulttype) {
 		case TDS_ROWFMT_RESULT:
-			if ((!(opt_flags & OPT_NOHEADER)) && tds->res_info) {
-				for (i = 0; i < tds->res_info->num_cols; i++) {
-					fprintf(stdout, "%s\t", tds->res_info->columns[i]->column_name);
+			if ((!(opt_flags & OPT_NOHEADER)) && tds->current_results) {
+				for (i = 0; i < tds->current_results->num_cols; i++) {
+					fprintf(stdout, "%s\t", tds->current_results->columns[i]->column_name);
 				}
 				fprintf(stdout, "\n");
 			}
@@ -162,19 +162,19 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
 				rows++;
 
-				if (!tds->res_info)
+				if (!tds->current_results)
 					continue;
 
-				for (i = 0; i < tds->res_info->num_cols; i++) {
-					if (tds_get_null(tds->res_info->current_row, i)) {
+				for (i = 0; i < tds->current_results->num_cols; i++) {
+					if (tds_get_null(tds->current_results->current_row, i)) {
 						if (print_rows)
 							fprintf(stdout, "NULL\t");
 						continue;
 					}
-					col = tds->res_info->columns[i];
+					col = tds->current_results->columns[i];
 					ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
-					src = &(tds->res_info->current_row[col->column_offset]);
+					src = &(tds->current_results->current_row[col->column_offset]);
 					if (is_blob_type(col->column_type))
 						src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 					srclen = col->column_cur_size;
