@@ -198,6 +198,9 @@ AC_ARG_ENABLE(threadsafe,
   [  --enable-threadsafe     compile for thread safety [default=no]])
 if test "$enable_threadsafe" = "yes" ; then
 	CFLAGS="$CFLAGS -D_REENTRANT -D_THREAD_SAFE"
+	AC_MSG_RESULT(enabled)
+else
+	AC_MSG_RESULT(disabled)
 fi
 
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
