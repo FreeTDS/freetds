@@ -19,11 +19,12 @@
 
 #include <config.h>
 #include "sybdb.h"
+#include "syberror.h"
 #include "dblib.h"
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.12 2002-09-23 23:05:22 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.13 2002-09-24 17:04:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,9 +38,10 @@ extern EHANDLEFUNC g_dblib_err_handler;
  * recieves an informational message from the server that it can be dealt with
  * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
  * TDS layer didn't what it really was */
-int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
+int
+dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-	DBPROCESS *dbproc = NULL;
+DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
@@ -59,13 +61,25 @@ int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *m
 					msg->line_number);
 		}
 	}
-        return 1;
+	if (msg->msg_level > 10) {
+		/*
+		 * Sybase docs say SYBESMSG is generated only in specific
+		 * cases (severity greater than 16, or deadlock occurred, or
+		 * a syntax error occurred.)  However, actual observed
+		 * behavior is that SYBESMSG is always generated for
+		 * server messages with severity greater than 10.
+		 */
+		tds_client_msg(tds_ctx, tds, SYBESMSG, EXSERVER, -1, -1,
+			"General SQL Server error: Check messages from the SQL Server.");
+	}
+	return SUCCEED;
 }
 
-int dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
+int
+dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-	DBPROCESS *dbproc = NULL;
-	int rc = INT_CANCEL;
+DBPROCESS *dbproc = NULL;
+int rc = INT_CANCEL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;

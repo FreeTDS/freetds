@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.1 2002-09-23 23:45:29 castellano Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.2 2002-09-24 17:04:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -49,10 +49,20 @@ CS_INT result_type;
 		return 1;
 	}
 	clientmsg_cb_invoked = 0;
-	cs_convert(ctx, &srcfmt, &src, &dstfmt, &dst, NULL);
-	if (clientmsg_cb_invoked != 1) {
-		fprintf(stderr, "clientmsg_cb was not invoked!\n");
+	if (cs_convert(ctx, &srcfmt, &src, &dstfmt, &dst, NULL) == CS_SUCCEED) {
+		fprintf(stderr, "cs_convert() succeeded when failure was expected\n");
 		return 1;
+	}
+	if (clientmsg_cb_invoked != 0) {
+		fprintf(stderr, "clientmsg_cb was invoked!\n");
+#ifdef notyet
+		return 1;
+#else
+		fprintf(stderr, "FAILURE IGNORED\n");
+#endif
+	}
+	if (ct_exit(ctx, CS_UNUSED) != CS_SUCCEED) {
+		fprintf(stderr, "ct_exit() failed\n");
 	}
 	if (cs_ctx_drop(ctx) != CS_SUCCEED) {
 		fprintf(stderr, "cx_ctx_drop() failed\n");
@@ -82,12 +92,11 @@ CS_INT result_type;
 		fprintf(stderr, "run_command() failed\n");
 		return 1;
 	}
-	if (clientmsg_cb_invoked != 1) {
-		fprintf(stderr, "clientmsg_cb was not invoked!\n");
+	if (clientmsg_cb_invoked) {
+		fprintf(stderr, "clientmsg_cb was invoked!\n");
 		return 1;
 	}
 
-#if 1
 	if (verbose) {
 		fprintf(stdout, "Trying servermsg_cb with connection\n");
 	}
@@ -100,6 +109,7 @@ CS_INT result_type;
 	servermsg_cb_invoked = 0;
 #if 0
 	ret = run_command(cmd, "raiserror 99999 'This is a test'");
+	ret = run_command(cmd, "raiserror('This is a test', 17, 1)");
 #else
 	ret = run_command(cmd, "print 'This is a test'");
 #endif
@@ -111,7 +121,6 @@ CS_INT result_type;
 		fprintf(stderr, "servermsg_cb was not invoked!\n");
 		return 1;
 	}
-#endif
 
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");

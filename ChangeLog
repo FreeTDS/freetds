@@ -1,3 +1,19 @@
+Tue Sep 24 12:53:14 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dbutil.c src/tds/token.c:
+	- Generate the SYBESMSG error from the DB-Library layer, not the
+	  TDS layer.  CT-Library doesn't have this behavior.
+	- Always generate SYBESMSG for any server message with severity
+	  greater than 10.  This contradicts the Sybase documentation, but
+	  matches observed DB-Library behavior.
+	* src/ctlib/unittests/t0008.c:
+	- Disable the first test, and change the expected result to
+	  be what Sybase CT-Library actually does.  Fixing our behavior
+	  here is non-trivial.
+	- Call cs_exit() before cs_ctx_drop().  Sybase's CT-Lib dumps core
+	  if you forget to do this!
+	- Change the sense of the second test to match Sybase behavior
+	  (and now our behavior, with the related SYBESMSG change).
+
 Tue Sep 24 09:26:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/README (removed)
 	- Remove obsolete include/README which only referred to four

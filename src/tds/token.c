@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.59 2002-09-23 23:05:22 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.60 2002-09-24 17:05:33 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1357,15 +1357,6 @@ int len_sqlstate;
 			tds->msg_info->server,
 			tds->msg_info->line_number,
 			tds->msg_info->message);
-	}
-	/*
-	 * Next, invoke the error handler to indicate that a msg was sent
-	 * if it was a syntax error or high severity.
-	 */
-	if ((tds->msg_info->msg_number == 102)
-	    || (tds->msg_info->msg_level > 16)) {
-		tds_client_msg(tds->tds_ctx, tds, 20018, 5, -1, 1,
-			 "General SQL Server error: Check messages from the SQL Server.");
 	}
 	tds_free_msg(tds->msg_info);
 	return rc;
