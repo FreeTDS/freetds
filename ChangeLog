@@ -1,3 +1,6 @@
+Thu Apr 10 14:08:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: disable debug by default
+
 Thu Apr 10 13:54:59 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/tables.c:
 	- remove some warnings
