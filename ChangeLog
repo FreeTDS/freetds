@@ -1,3 +1,6 @@
+Fri Jan 21 10:10:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: backport column quoting
+
 Thu Jan 20  9:06:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: workaround for long column names
 
