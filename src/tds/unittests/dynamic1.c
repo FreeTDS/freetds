@@ -34,8 +34,10 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.2 2002-11-22 15:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.3 2002-11-22 21:31:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static int discard_result(TDSSOCKET * tds);
 
 static void
 fatal_error(const char *msg)
@@ -58,11 +60,13 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	dyn->params = params;
 
 	curcol = params->columns[0];
-	curcol->column_type = SYBINT4;
+	curcol->column_type = SYBINTN;
+	curcol->column_size = sizeof(TDS_INT);
+	curcol->column_varint_size = 1;
+	curcol->column_cur_size = sizeof(TDS_INT);
 
 	/* TODO test error */
 	tds_alloc_param_row(params, curcol);
-	n = 123;
 	memcpy(&params->current_row[curcol->column_offset], &n, sizeof(n));
 
 	if (!(params = tds_alloc_param_result(dyn->params)))
@@ -80,6 +84,8 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 
 	if (tds_submit_execute(tds, dyn) != TDS_SUCCEED)
 		fatal_error("tds_submit_execute() error");
+	if (discard_result(tds) != TDS_SUCCEED)
+		fatal_error("tds_submit_prepare() output error");
 }
 
 int
@@ -106,6 +112,8 @@ main(int argc, char **argv)
 	/* prepare to insert */
 	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL) != TDS_SUCCEED)
 		fatal_error("tds_submit_prepare() error");
+	if (discard_result(tds) != TDS_SUCCEED)
+		fatal_error("tds_submit_prepare() output error");
 
 	dyn = tds->cur_dyn;
 	if (!dyn)
@@ -131,17 +139,47 @@ main(int argc, char **argv)
 
 	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 WHERE i = 123 AND c = 'dynamic' IF @n <> 1 SELECT 0")
 	    != TDS_SUCCEED)
-		fatal_error("checking rows 1");
+		fatal_error("checking rows 2");
 
 	if (run_query
 	    (tds,
 	     "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 WHERE i = 654321 AND c = 'a longer string' IF @n <> 1 SELECT 0") !=
 	    TDS_SUCCEED)
-		fatal_error("checking rows 1");
+		fatal_error("checking rows 3");
 
 	if (run_query(tds, "DROP TABLE #dynamic1") != TDS_SUCCEED)
 		fatal_error("dropping table error");
 
 	try_tds_logout(login, tds, verbose);
 	return 0;
+}
+
+static int
+discard_result(TDSSOCKET * tds)
+{
+	int rc;
+	int result_type;
+
+	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+
+		switch(result_type) {
+		case TDS_CMD_DONE:
+		case TDS_CMD_SUCCEED:
+		case TDS_CMD_FAIL:
+		case TDS_DESCRIBE_RESULT:
+			break;
+		default:
+			fprintf(stderr, "Error:  query should not return results\n");
+			return TDS_FAIL;
+		}
+	}
+	if (rc == TDS_FAIL) {
+		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL\n");
+		return TDS_FAIL;
+	} else if (rc != TDS_NO_MORE_RESULTS) {
+		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		return TDS_FAIL;
+	}
+
+	return TDS_SUCCEED;
 }

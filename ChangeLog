@@ -1,3 +1,8 @@
+Fri Nov 22 22:30:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c src/tds/unittests/dynamic1.c:
+	- fix error handling PARAMFMT (row not allocated)
+	- fix test (read prepare results)
+
 Fri Nov 22 17:41:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: update for ODBC
 

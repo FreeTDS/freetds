@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.114 2002-11-22 09:53:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.115 2002-11-22 21:31:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,7 +52,7 @@ static int tds_process_param_result(TDSSOCKET *tds);
 static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static int tds_process_params_result_token(TDSSOCKET *tds);
-static void tds_process_dyn_result(TDSSOCKET *tds);
+static int tds_process_dyn_result(TDSSOCKET *tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET *tds);
 static int tds_process_auth(TDSSOCKET *tds);
 static int tds_get_varint_size(int datatype);
@@ -794,7 +794,7 @@ int marker;
 		tds->curr_resinfo = tds->cur_dyn->res_info;
 	else
 		tds->curr_resinfo = tds->param_info;
-	
+
 	while ((marker=tds_get_byte(tds))==TDS_PARAM_TOKEN) {
 		tds_process_param_result(tds);
 	}
@@ -1753,7 +1753,7 @@ int drain = 0;
 	return tds_lookup_dynamic(tds,id);
 }
 
-static void 
+static int 
 tds_process_dyn_result(TDSSOCKET *tds)
 {
 int hdrsize;
@@ -1779,13 +1779,16 @@ TDSDYNAMIC *dyn;
 	tds->curr_resinfo = info;
 
 	for (col=0;col<info->num_cols;col++) {
-		curcol=info->columns[col];
+		curcol = info->columns[col];
 
 		tds_get_data_info(tds, curcol);
 
 		/* skip locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 	}
+
+	info->current_row = tds_alloc_row(info);
+	return TDS_SUCCEED;
 }
 
 /**
