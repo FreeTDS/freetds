@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.32 2004-02-03 17:50:10 jklowden Exp $
+# $Id: Makefile.am,v 1.33 2004-06-12 17:01:09 freddy77 Exp $
 SUBDIRS		= unittests
 
 lib_LTLIBRARIES	=	libtdsodbc.la
@@ -11,7 +11,7 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	odbc_checks.c odbc_checks.h
 libtdsodbc_la_LIBADD=	../tds/libtds_objects.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
-libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*' -Wl,-Bsymbolic
+libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*' $(FREETDS_SYMBOLIC)
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)

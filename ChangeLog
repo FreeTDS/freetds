@@ -1,3 +1,8 @@
+Sat Jun 12 19:00:28 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/ctlib/Makefile.am src/dblib/Makefile.am:
+	* src/odbc/Makefile.am:
+	- use -Bsymbolic linker option if available
+
 Sat Jun 12 18:22:49 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c:
 	- fix momory leak in SQLCopyDesc
