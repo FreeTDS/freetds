@@ -41,7 +41,7 @@
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
 
-static void tds_encrypt_answer(unsigned char *hash, unsigned char *challenge, unsigned char *answer);
+static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(unsigned char *key_56, des_key_schedule ks);
 
 /**
@@ -113,7 +113,7 @@ MD4_CTX context;
 * 8 byte plaintext is encrypted with each key and the resulting 24
 * bytes are stored in the results array.
 */
-static void tds_encrypt_answer(unsigned char *hash, unsigned char *challenge, unsigned char *answer)
+static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
 {
 des_key_schedule ks;
 
