@@ -121,10 +121,11 @@ char *hostname = NULL;
 char *servername = NULL;
 char *username = NULL;
 char *password = NULL;
+char *confile = NULL;
 int  port = 0;
 int  opt;
 
-     while ((opt=getopt(argc, argv, "H:S:V::P:U:p:v"))!=-1) {
+     while ((opt=getopt(argc, argv, "H:S:I:V::P:U:p:v"))!=-1) {
           switch (opt) {
           case 'H':
                hostname = (char *) malloc(strlen(optarg)+1);
@@ -141,6 +142,10 @@ int  opt;
           case 'P':
                password = (char *) malloc(strlen(optarg)+1);
                strcpy(password, optarg);
+          break;
+          case 'I':
+               confile = (char *) malloc(strlen(optarg)+1);
+               strcpy(confile, optarg);
           break;
           case 'p':
 			port = atoi(optarg);
@@ -190,6 +195,9 @@ int  opt;
 		tds_set_language(login, "us_english");
 		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
+		if (confile) {
+			set_interfaces_file_loc(confile);
+		}
 	/* else we specified hostname/port */
 	} else {
 		tds_set_user(login, username);

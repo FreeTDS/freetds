@@ -1,3 +1,10 @@
+Sun Sep  8 08:54:07 EDT 2002	Brian Bruns <camber@ais.org>
+	* src/tds/read.c(tds_get_byte): change precedence on empty packet sink.
+	* src/tds/config.c(tds_read_conf_file): consolidated redundant code into 
+       tds_try_conf_file().  Added check for conf file added programmatically
+       to match documented behaviour.
+     * src/apps/tsql.c:  Add -I option to set freetds.conf/interfaces file
+
 Sat Sep  7 23:36:06 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/userguide.sgml:
 	- Fix a few more spelling errors.

@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.24 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.25 2002-09-08 13:22:36 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -132,22 +132,38 @@ pid_t pid;
 
         if ( s && *s) tdsdump_close();
 	return config;
+}        
+
+static int tds_try_conf_file(char *path, char *how, char *server, TDSCONFIGINFO *config)
+{
+int found = 0;
+FILE *in;
+
+	if ((in = fopen (path, "r")) != NULL) {
+		tdsdump_log(TDS_DBG_INFO1, 
+			"%L Found conf file in %s %s. Reading section %s.\n",interf_file,how, server);
+		found = tds_read_conf_sections (in, server, config);
+        	              if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
+		fclose (in);
+	}
+	return found;
 }
+
 static int tds_read_conf_file(char *server, TDSCONFIGINFO *config)
 {
 FILE *in;
 char  *home, *path;
 int found = 0; 
 
+	if (interf_file[0]!='\0') {
+		found = tds_try_conf_file(interf_file,"set programmatically", server, config);
+	}
+
 	/* FREETDSCONF env var, pkleef@openlinksw.com 01/21/02 */
-	path = getenv ("FREETDSCONF");
-	if (path) {
-		if ((in = fopen (path, "r")) != NULL) {
-			tdsdump_log(TDS_DBG_INFO1, 
-				"%L Found conf file in %s (from $FREETDSCONF) Reading section %s.\n",path,server);
-			found = tds_read_conf_sections (in, server, config);
-                        if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
-			fclose (in);
+	if (!found) {
+		path = getenv ("FREETDSCONF");
+		if (path) {
+			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, config);
 		}
 	}
 
@@ -158,26 +174,14 @@ int found = 0;
 			/* FIXME check buffer */
 			path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
 			sprintf(path,"%s/.freetds.conf",home);
-			in = fopen(path, "r");
-			if (in) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s  Reading section %s.\n",path,server);
-				found = tds_read_conf_sections(in, server, config);
-                                if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
-				fclose(in);
-			}
+			found = tds_try_conf_file(path, "(.freetds.conf)", server, config);
 			free(path);
 		}
 	}
 
-        if (!found) {
-            in = fopen(FREETDS_SYSCONFFILE, "r");
-            if (in) {
-                tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s Reading section %s.\n",FREETDS_SYSCONFFILE,server);
-                found = tds_read_conf_sections(in, server, config);
-                if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
-                fclose(in);
-            }
-        }
+	if (!found) {
+		found = tds_try_conf_file(FREETDS_SYSCONFFILE, "(default)", server, config);
+	}
 
 	return found;
 }

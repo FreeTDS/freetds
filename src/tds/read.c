@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.15 2002-09-06 11:42:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.16 2002-09-08 13:22:36 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -118,7 +118,7 @@ unsigned char tds_get_byte(TDSSOCKET *tds)
 int rc;
 
 	if (tds->in_pos >= tds->in_len) {
-		while (tds->s && (rc = tds_read_packet(tds) == 0)) ;
+		while (tds->s && (rc = tds_read_packet(tds)) == 0) ;
 		if(!tds->s || rc == -1) {
 			return 0;
 		}
