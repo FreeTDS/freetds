@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.53 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.54 2002-10-15 11:53:11 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -168,7 +168,6 @@ int retval;
 time_t start, now;
 TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
-char *query;
 int connect_timeout = 0;
 TDSLOCINFO *locale = NULL;
 
@@ -325,14 +324,12 @@ TDSLOCINFO *locale = NULL;
 		return TDS_FAIL;
 	}
 	if (tds && config->text_size) {
-		if (asprintf(&query,"set textsize %d", config->text_size) >= 0) {
-   			retval = tds_submit_query(tds, query);
-			free(query);
-   			if (retval == TDS_SUCCEED) {
-   				while (tds_process_result_tokens(tds)==TDS_SUCCEED)
-					;
-   			}
-		}
+   		retval = tds_submit_queryf(tds, "set textsize %d",
+						config->text_size);
+   		if (retval == TDS_SUCCEED) {
+   			while (tds_process_result_tokens(tds) == TDS_SUCCEED)
+				;
+   		}
 	}
 
 	tds->config = NULL;

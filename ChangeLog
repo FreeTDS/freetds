@@ -1,3 +1,7 @@
+Tue Oct 15 07:50:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/login.c:
+	- Use tds_submit_queryf() to set textsize.
+
 Tue Oct 15 10:07:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/prepare_query.c:
 	- use ' to quote strings (work on Sybase and mssql)
