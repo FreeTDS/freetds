@@ -1,3 +1,8 @@
+Wed Jan  5 22:07:07 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
+	- Patch 1095806 by Bill Thompson
+	- PRINT packets handled correctly (do not yield stale metadata).
+	
 Fri Dec 31 14:15:28 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c use getopt(3)
 	* src/dblib/bcp.c firstrow and lastrow are independent

@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.22 2004-12-01 03:55:13 jklowden Exp $";
+static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.23 2005-01-06 03:09:08 jklowden Exp $";
 static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 enum {
@@ -37,6 +37,7 @@ enum {
 	, _DB_RES_RESULTSET_ROWS  = 2
 	, _DB_RES_NEXT_RESULT     = 3
 	, _DB_RES_NO_MORE_RESULTS = 4
+	, _DB_RES_SUCCEED         = 5
 };
 
 struct tds_dblib_loginrec
