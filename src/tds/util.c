@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.48 2004-07-29 10:22:42 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.49 2004-07-29 20:05:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -240,6 +240,18 @@ tdsdump_close(void)
 	}
 }				/* tdsdump_close()  */
 
+static void
+tdsdump_start(FILE *file)
+{
+	char buf[128];
+
+	if (tds_g_append_mode)
+		fprintf(dumpfile, "pid: %d:", (int) getpid());
+
+	/* write always time before log */
+	fputs(tds_timestamp_str(buf, 127), dumpfile);
+	fputc(' ', dumpfile);
+}
 
 /**
  * Dump the contents of data into the log file in a human readable format.
@@ -255,10 +267,18 @@ tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
 	const int bytesPerLine = 16;
 	const unsigned char *data = (const unsigned char *) buf;
 
-	if (debug_lvl > tds_g_debug_lvl || !write_dump || !dumpfile)
+	if (debug_lvl > tds_g_debug_lvl || !write_dump)
 		return;
 
-	tdsdump_log(debug_lvl, "%s\n", msg);
+	if (tds_g_append_mode && !tdsdump_append())
+		return;
+
+	if (dumpfile == NULL)
+		return;
+
+	tdsdump_start(dumpfile);
+
+	fprintf(dumpfile, "%s\n", msg);
 
 	for (i = 0; i < length; i += bytesPerLine) {
 		/*
@@ -296,6 +316,12 @@ tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
 		fprintf(dumpfile, "|\n");
 	}
 	fprintf(dumpfile, "\n");
+
+	if (tds_g_append_mode) {
+		if (dumpfile && dumpfile != stdout && dumpfile != stderr)
+			fclose(dumpfile);
+		dumpfile = NULL;
+	}
 }				/* tdsdump_dump_buf()  */
 
 
@@ -307,7 +333,6 @@ tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
 void
 tdsdump_log(int debug_lvl, const char *fmt, ...)
 {
-	char buf[128];
 	va_list ap;
 
 	if (debug_lvl > tds_g_debug_lvl || !write_dump)
@@ -319,14 +344,9 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 	if (dumpfile == NULL)
 		return;
 
+	tdsdump_start(dumpfile);
+
 	va_start(ap, fmt);
-
-	if (tds_g_append_mode)
-		fprintf(dumpfile, "pid: %d:", (int) getpid());
-
-	/* write always time before log */
-	fputs(tds_timestamp_str(buf, 127), dumpfile);
-	fputc(' ', dumpfile);
 
 	vfprintf(dumpfile, fmt, ap);
 	va_end(ap);
@@ -334,9 +354,8 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 	fflush(dumpfile);
 
 	if (tds_g_append_mode) {
-		if (dumpfile && dumpfile != stdout && dumpfile != stderr) {
+		if (dumpfile && dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
-		}
 		dumpfile = NULL;
 	}
 }				/* tdsdump_log()  */

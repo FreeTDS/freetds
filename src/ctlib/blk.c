@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.16 2004-07-29 10:22:39 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.17 2004-07-29 20:05:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -441,6 +441,8 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
+			((TDS_NUMERIC *) curcol->bcp_column_data->data)->precision = curcol->column_prec;
+			((TDS_NUMERIC *) curcol->bcp_column_data->data)->scale = curcol->column_scale;
 		} else {
 			curcol->bcp_column_data = tds_alloc_bcp_column_data(curcol->on_server.column_size);
 		}
