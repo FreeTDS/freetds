@@ -24,7 +24,7 @@
 #include "tds.h"
 #ifdef HAVE_SSL
 #include <openssl/des.h>
-#include <openssl/md4.h>
+#include <md4.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
