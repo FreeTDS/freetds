@@ -1,3 +1,11 @@
+Tue Jan 25 09:51:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/dblib.dsp(added) win32/msvc6/libTDS.dsp(added):
+	* include/replacements.h win32/msvc6/FreeTDS.dsp:
+	* win32/msvc6/FreeTDS.dsw win32/msvc6/Makefile.am:
+	- imported Frank M. Kromann dblib project file for msvc6
+	- add projec for libTDS (shared by ODBC and dblib)
+	- fix include for win32
+
 Mon Jan 24 21:07:36 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
 	* src/tds/login.c src/tds/mem.c:

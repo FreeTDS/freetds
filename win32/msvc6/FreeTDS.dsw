@@ -3,7 +3,37 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "FreeTDS"=.\FreeTDS.dsp - Package Owner=<4>
+Project: "FreeTDS"=".\FreeTDS.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libTDS
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dblib"=".\dblib.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libTDS
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libTDS"=".\libTDS.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

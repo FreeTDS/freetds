@@ -33,13 +33,13 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Output_Dir "odbc_Release"
+# PROP BASE Intermediate_Dir "odbc_Release"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "odbc_Release"
+# PROP Intermediate_Dir "odbc_Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /c
@@ -59,13 +59,13 @@ LINK32=link.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Output_Dir "odbc_Debug"
+# PROP BASE Intermediate_Dir "odbc_Debug"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "odbc_Debug"
+# PROP Intermediate_Dir "odbc_Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /GZ /c
@@ -157,27 +157,11 @@ SOURCE=..\winsetup.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\config.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\odbc\connectparams.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\odbc\convert_tds2sql.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\des.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\freetds_sysconfdir.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\md4.h
 # End Source File
 # Begin Source File
 
@@ -189,51 +173,11 @@ SOURCE=..\..\src\odbc\prepare_query.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\replacements.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\odbc\sql2tds.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\tds.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tds_configs.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tds_sysdep_private.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\tds_sysdep_public.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\tds_willconvert.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tdsconvert.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tdsiconv.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\tdsodbc.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tdsstring.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\tdsver.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -242,118 +186,6 @@ SOURCE=..\..\include\tdsver.h
 # Begin Source File
 
 SOURCE=..\setup.rc
-# End Source File
-# End Group
-# Begin Group "Replacements"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\..\src\replacements\asprintf.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\iconv_replacement.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\replacements\strtok_r.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\replacements\vasprintf.c
-# End Source File
-# End Group
-# Begin Group "LibTDS"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\..\src\tds\challenge.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\config.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\convert.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\data.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\des.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\getmac.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\iconv.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\locale.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\login.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\md4.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\md5.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\mem.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\net.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\numeric.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\query.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\read.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\tdsstring.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\threadsafe.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\token.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\util.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\vstrbuild.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\tds\write.c
 # End Source File
 # End Group
 # End Target
