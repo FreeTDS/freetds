@@ -35,3 +35,6 @@ rebindpar
 convert_error
 typeinfo
 const_params
+compute
+insert_speed
+
