@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.59 2003-05-05 00:12:52 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.60 2003-05-05 05:45:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -149,7 +149,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 	const size_t output_buffer_size = output_size;
-	int erc, one_character;
+	int one_character;
 	ICONV_CONST char *input_p = (ICONV_CONST char *) input;
 
 	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
@@ -182,19 +182,16 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 	 * or exhaust output.  
 	 */
 	while (iconv(cd, &input_p, input_size, &output, &output_size) == (size_t) - 1) {
-		/* iconv call can reset errno */
-		erc = errno;
-		/* reset iconv state */
-		iconv(cd, NULL, NULL, NULL, NULL);
-		if (erc != EILSEQ)
+
+		if (errno != EILSEQ)
 			break;
 
 		/* skip one input sequence, adjusting input pointer */
 		one_character = skip_one_input_sequence(cd, input_charset, &input_p, input_size);
-		*input_size -= one_character;
 
+		/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
 		if (!one_character)
-			break;	/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
+			break;
 
 		/* 
 		 * To replace invalid input with '?', we have to convert an ASCII '?' 
@@ -422,7 +419,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 	iconv(cd, NULL, NULL, &pob, &ol);
 
 	/* init destination conversion */
-	cd2 = iconv_open("UTF-8", charset->name);
+	/* TODO use largest fixed size for this platform */
+	cd2 = iconv_open("UCS-4", charset->name);
 	if (cd2 == (iconv_t) - 1)
 		return 0;
 
@@ -434,20 +432,18 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 	memcpy(ib + l, *input, il);
 	il += l;
 
-	/* translate a character */
+	/* translate a single character */
 	pib = ib;
 	pob = ob;
-	ol = sizeof(ob);
+	/* TODO use size of largest fixed charset */
+	ol = 4;
 	iconv(cd2, &pib, &il, &pob, &ol);
 
-#if 0
 	/* adjust input */
-	l = (pib - ib) - sl;
+	l = (pib - ib) - l;
 	*input += l;
 	*input_size -= l;
-#else
-	assert( 0 == strlen("iconv.c:442: `sl' undeclared (first use in this function)\n") );
-#endif
+
 	/* extract state */
 	pob = ib;
 	ol = sizeof(ib);
