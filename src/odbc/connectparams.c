@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.35 2003-03-26 21:17:26 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.36 2003-04-01 21:43:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -125,6 +125,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 	char tmp[256];
 	char temp_c;
 
+	pszConnectString = strdup(pszConnectString);	/* copy the string so we can hack at it */
 	for (p = pszConnectString;;) {
 		dest_s = NULL;
 
@@ -163,8 +164,10 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 				dest_s = &connect_info->server_name;
 				tds_lookup_host(p, NULL, tmp, NULL);
 				*end = temp_c;
-				if (!tds_dstr_copy(&connect_info->ip_addr, tmp))
+				if (!tds_dstr_copy(&connect_info->ip_addr, tmp)) {
+					free(pszConnectString); 
 					return 0;
+				}
 			}
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
@@ -203,8 +206,10 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 
 		/* copy to destination */
 		if (dest_s) {
-			if (!tds_dstr_copyn(dest_s, p, end - p))
+			if (!tds_dstr_copyn(dest_s, p, end - p)){
+				free(pszConnectString); 
 				return 0;
+			}
 		}
 
 		p = end;
@@ -216,6 +221,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		++p;
 	}
 
+	free(pszConnectString); 
 	return 1;
 }
 
