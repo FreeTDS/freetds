@@ -1,3 +1,7 @@
+Thu Sep 18 11:26:59 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/vasprintf.c
+	- Fix off-by-one error in vsnprintf-based vasprintf() replacement.
+
 Wed Sep 17 21:29:21 PDT 2003	Peter Deacon <peterd@iea-software.com>
 	* src/tds/mem.c: added sqlstate mappings
 	* src/replacements/iconv.c: fix charset selection

@@ -31,7 +31,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vasprintf.c,v 1.12 2003-03-12 17:43:41 freddy77 Exp $";
+static char software_version[] = "$Id: vasprintf.c,v 1.13 2003-09-18 15:30:18 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef _PATH_DEVNULL
@@ -56,7 +56,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 			return -1;
 		}
 		len = vsnprintf(buf, buflen, fmt, ap);
-		if (len >= 0 && len < buflen) {
+		if (len >= 0 && len < (buflen - 1)) {
 			break;
 		}
 		free(buf);
