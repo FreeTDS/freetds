@@ -66,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.64 2003-06-11 20:10:40 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.65 2003-07-28 15:12:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -274,7 +274,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	setlocale(LC_ALL, "");
 	locale = setlocale(LC_ALL, NULL);
-#if HAVE_NL_LANGINFO
+#if HAVE_NL_LANGINFO && CODESET
 # if HAVE_LOCALE_CHARSET
 	charset = locale_charset();
 # else
