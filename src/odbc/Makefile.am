@@ -14,7 +14,7 @@ else
 libtdsodbc_la_LIBADD=	../tds/libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
 endif
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
-libtdsodbc_la_LDFLAGS = -export-symbols-regex SQL.*
+libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*'
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)
