@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.108 2003-11-01 23:02:20 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.109 2003-11-03 16:46:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -82,6 +82,10 @@ tds_to_quering(TDSSOCKET * tds)
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
+
+	/* TODO check this code, copied from tds_submit_prepare */
+	tds_free_all_results(tds);
+	tds->rows_affected = TDS_NO_COUNT;
 
 	tds->state = TDS_QUERYING;
 	return TDS_SUCCEED;
@@ -181,11 +185,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 	/* Jeff's hack to handle long query timeouts */
 	tds->queryStarttime = time(NULL);
 
-	tds_free_all_results(tds);
-
-	tds->rows_affected = TDS_NO_COUNT;
-
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 
 	query_len = strlen(query);
 	if (IS_TDS50(tds)) {
@@ -259,8 +259,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			tds_put_data(tds, param, params->current_row, i);
 		}
 
-        tds->internal_sp_called = TDS_SP_EXECUTESQL;
-		return tds_flush_packet(tds);
+		tds->internal_sp_called = TDS_SP_EXECUTESQL;
 	}
 	return tds_flush_packet(tds);
 }
@@ -684,7 +683,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	int id_len, query_len;
 	TDSDYNAMIC *dyn;
 
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 
 	if (!query)
 		return TDS_FAIL;
@@ -716,9 +715,6 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
 
-	tds_free_all_results(tds);
-
-	tds->rows_affected = TDS_NO_COUNT;
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -774,7 +770,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, SYBINT4);
 		tds_put_int(tds, 1);
 
-        tds->internal_sp_called = TDS_SP_PREPARE;
+		tds->internal_sp_called = TDS_SP_PREPARE;
 		return tds_flush_packet(tds);
 	}
 
@@ -794,6 +790,139 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	tds_put_n(tds, dyn->id, id_len);
 	tds_put_n(tds, " as ", 4);
 	tds_put_n(tds, query, query_len);
+
+	return tds_flush_packet(tds);
+}
+
+/**
+ * Currently works with TDS 5.0 and TDS7+
+ * \param tds     state information for the socket and the TDS protocol
+ * \param query   language query with given placeholders (?)
+ * \param params  parameters to send
+ * \return TDS_FAIL or TDS_SUCCEED
+ */
+int
+tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
+{
+	int id_len, query_len;
+	TDSDYNAMIC *dyn;
+	TDSCOLINFO *param;
+
+	if (!query)
+		return TDS_FAIL;
+
+	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
+		tdsdump_log(TDS_DBG_ERROR, "Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
+		return TDS_FAIL;
+	}
+
+	/* allocate a structure for this thing */
+	if (IS_TDS50(tds)) {
+		char *tmp_id = NULL;
+
+		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
+			return TDS_FAIL;
+		dyn = tds_alloc_dynamic(tds, tmp_id);
+		free(tmp_id);
+
+		if (!dyn)
+			return TDS_FAIL;
+		tds->cur_dyn = dyn;
+	}
+
+	if (tds_to_quering(tds) == TDS_FAIL)
+		return TDS_FAIL;
+	tds->internal_sp_called = 0;
+
+	query_len = strlen(query);
+
+	if (IS_TDS7_PLUS(tds)) {
+		int definition_len = 0, i;
+		char *param_definition = NULL;
+		int converted_query_len;
+		const char *converted_query;
+
+		if (params) {
+			/* place dummy parameters */
+			for (i = 0; i < params->num_cols; ++i) {
+				sprintf(params->columns[i]->column_name, "@P%d", i + 1);
+				params->columns[i]->column_namelen = strlen(params->columns[i]->column_name);
+			}
+			param_definition = tds_build_params_definition(tds, params, &definition_len);
+			if (!param_definition)
+				return TDS_FAIL;
+		}
+
+		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		if (!converted_query) {
+			free(param_definition);
+			return TDS_FAIL;
+		}
+
+		tds->out_flag = 3;	/* RPC */
+		/* procedure name */
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
+		} else {
+			tds_put_smallint(tds, 13);
+			/* sp_executesql */
+			tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
+		}
+		tds_put_smallint(tds, 0);
+
+		/* string with sql statement */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+		tds_put_int(tds, converted_query_len);
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
+		tds_put_int(tds, converted_query_len);
+		tds_put_n(tds, converted_query, converted_query_len);
+		tds_convert_string_free(query, converted_query);
+
+		/* params definitions */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+		tds_put_int(tds, definition_len);
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
+		tds_put_int(tds, definition_len);
+		tds_put_n(tds, param_definition, definition_len);
+		free(param_definition);
+
+		for (i = 0; i < params->num_cols; i++) {
+			param = params->columns[i];
+			/* TODO check error */
+			tds_put_data_info(tds, param, 0);
+			tds_put_data(tds, param, params->current_row, i);
+		}
+
+		tds->internal_sp_called = TDS_SP_EXECUTESQL;
+		return tds_flush_packet(tds);
+	}
+
+	tds->out_flag = 0x0F;
+
+	id_len = strlen(dyn->id);
+	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
+	tds_put_smallint(tds, query_len + id_len * 2 + 21);
+	tds_put_byte(tds, 0x08);
+	tds_put_byte(tds, params ? 0x01 : 0);
+	tds_put_byte(tds, id_len);
+	tds_put_n(tds, dyn->id, id_len);
+	/* TODO ICONV convert string, do not put with tds_put_n */
+	/* TODO how to pass parameters type? like store procedures ? */
+	tds_put_smallint(tds, query_len + id_len + 16);
+	tds_put_n(tds, "create proc ", 12);
+	tds_put_n(tds, dyn->id, id_len);
+	tds_put_n(tds, " as ", 4);
+	tds_put_n(tds, query, query_len);
+
+	if (params)
+		tds_put_params(tds, params, 0);
 
 	return tds_flush_packet(tds);
 }
@@ -1093,13 +1222,9 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
 
-	/* TODO check this code, copied from tds_submit_prepare */
-	tds_free_all_results(tds);
-	tds->rows_affected = TDS_NO_COUNT;
-
 	tds->cur_dyn = dyn;
 
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
@@ -1125,7 +1250,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 				tds_put_data(tds, param, info->current_row, i);
 			}
 
-        tds->internal_sp_called = TDS_SP_EXECUTE;
+		tds->internal_sp_called = TDS_SP_EXECUTE;
 
 		return tds_flush_packet(tds);
 	}
@@ -1230,11 +1355,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
 
-	/* TODO check this code, copied from tds_submit_prepare */
-	tds_free_all_results(tds);
-	tds->rows_affected = TDS_NO_COUNT;
-
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 	tds->cur_dyn = dyn;
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -1258,7 +1379,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_byte(tds, SYBINT4);
 		tds_put_int(tds, dyn->num_id);
 
-        tds->internal_sp_called = TDS_SP_UNPREPARE;
+		tds->internal_sp_called = TDS_SP_UNPREPARE;
 		return tds_flush_packet(tds);
 	}
 
@@ -1297,10 +1418,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
 
-	tds_free_all_results(tds);
-	tds->rows_affected = TDS_NO_COUNT;
-
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 	/* distinguish from dynamic query  */
 	tds->cur_dyn = NULL;
 
@@ -1370,7 +1488,7 @@ tds_send_cancel(TDSSOCKET * tds)
 
 	tds->queryStarttime = 0;
 	tds->out_flag = 0x06;
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 	return tds_flush_packet(tds);
 }
 
@@ -1449,7 +1567,7 @@ tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 int
 tds_cursor_declare(TDSSOCKET * tds, int *something_to_send)
 {
- 
+
 	tdsdump_log(TDS_DBG_ERROR, "%L tds_cursor_declare ()\n");
 
 	tds->queryStarttime = time(NULL);
@@ -1459,31 +1577,31 @@ tds_cursor_declare(TDSSOCKET * tds, int *something_to_send)
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_cursor_declare (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			   "Attempt to initiate a new SQL Server operation with results pending.");
+			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state         = TDS_QUERYING;
-    tds->internal_sp_called = 0;
+	tds->state = TDS_QUERYING;
+	tds->internal_sp_called = 0;
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURDECLARE_TOKEN);
 
-        /* length of the data stream that follows */
-		tds_put_smallint(tds, (6 +  strlen(tds->cursor->cursor_name) +  strlen(tds->cursor->query))); 
+		/* length of the data stream that follows */
+		tds_put_smallint(tds, (6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
 
-		tdsdump_log(TDS_DBG_ERROR, "%L size = %d\n",(6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
+		tdsdump_log(TDS_DBG_ERROR, "%L size = %d\n", (6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
 
 		tds_put_tinyint(tds, strlen(tds->cursor->cursor_name));
-		tds_put_n(tds,tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
-		tds_put_byte(tds, 1); /* cursor option is read only=1, unused=0*/
-		tds_put_byte(tds, 0); /* status unused=0 */
+		tds_put_n(tds, tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
+		tds_put_byte(tds, 1);	/* cursor option is read only=1, unused=0 */
+		tds_put_byte(tds, 0);	/* status unused=0 */
 		tds_put_smallint(tds, strlen(tds->cursor->query));
 		tds_put_n(tds, tds->cursor->query, strlen(tds->cursor->query));
-		tds_put_tinyint(tds, 0); /* number of columns = 0 , valid value applicable only for updatable cursor */
+		tds_put_tinyint(tds, 0);	/* number of columns = 0 , valid value applicable only for updatable cursor */
 		*something_to_send = 1;
 	}
 
@@ -1493,11 +1611,11 @@ tds_cursor_declare(TDSSOCKET * tds, int *something_to_send)
 int
 tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 {
-	int         converted_query_len;
+	int converted_query_len;
 	const char *converted_query;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): \n");
-	
+
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
@@ -1506,30 +1624,37 @@ tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			   "Attempt to initiate a new SQL Server operation with results pending.");
+			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
-    tds->internal_sp_called = 0;
-	
+	tds->internal_sp_called = 0;
+
 	if (IS_TDS50(tds)) {
 
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CUROPEN_TOKEN);
-		tds_put_smallint(tds, 6 + strlen(tds->cursor->cursor_name)); /* length of the data stream that follows */
+		tds_put_smallint(tds, 6 + strlen(tds->cursor->cursor_name));	/* length of the data stream that follows */
 
-		/*tds_put_int(tds, tds->cursor->cursor_id);*/ /* Only if cursor id is passed as zero, the cursor name need to be sent */
+		/*tds_put_int(tds, tds->cursor->cursor_id); *//* Only if cursor id is passed as zero, the cursor name need to be sent */
 
 		tds_put_int(tds, 0);
 		tds_put_tinyint(tds, strlen(tds->cursor->cursor_name));
-		tds_put_n(tds,tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));  
-		tds_put_byte(tds, 0); /* Cursor status : 0 for no arguments */
+		tds_put_n(tds, tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
+		tds_put_byte(tds, 0);	/* Cursor status : 0 for no arguments */
 		*something_to_send = 1;
 	}
 	if (IS_TDS7_PLUS(tds)) {
+
+		/* cursor statement */
+		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2],
+						     tds->cursor->query, strlen(tds->cursor->query), &converted_query_len);
+		if (!converted_query) {
+			return TDS_FAIL;
+		}
 
 		/* RPC call to sp_cursoropen */
 
@@ -1537,28 +1662,25 @@ tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 
 		/* procedure identifier by number */
 
-		tds_put_byte(tds, 0xff);
-		tds_put_byte(tds, 0xff);
-		tds_put_smallint(tds, TDS_SP_CURSOROPEN);
-		
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_CURSOROPEN);
+		} else {
+			tds_put_smallint(tds, 13);
+			/* sp_cursoropen */
+			tds_put_n(tds, "s\0p\0_\0c\0u\0r\0s\0o\0r\0o\0p\0e\0n", 26);
+		}
+
 		tds_put_smallint(tds, 0);	/* flags */
 
 		/* return cursor handle (int) */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 1);	/* output parameter  */
 		tds_put_byte(tds, SYBINTN);
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
 
-        /* cursor statement */
-		
-		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], 
-                                             tds->cursor->query, strlen(tds->cursor->query), 
-                                             &converted_query_len);
-		if (!converted_query) {
-			return TDS_FAIL;
-		}
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
@@ -1570,8 +1692,8 @@ tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 		tds_convert_string_free(tds->cursor->query, converted_query);
 
 		*something_to_send = 1;
-        tds->internal_sp_called = TDS_SP_CURSOROPEN;
-	    tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): RPC call set up \n");
+		tds->internal_sp_called = TDS_SP_CURSOROPEN;
+		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): RPC call set up \n");
 	}
 
 
@@ -1580,7 +1702,7 @@ tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 }
 
 int
-tds_cursor_setrows(TDSSOCKET * tds, int * something_to_send)
+tds_cursor_setrows(TDSSOCKET * tds, int *something_to_send)
 {
 	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_setrows (): \n");
 
@@ -1591,46 +1713,46 @@ tds_cursor_setrows(TDSSOCKET * tds, int * something_to_send)
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			   "Attempt to initiate a new SQL Server operation with results pending.");
+			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURINFO_TOKEN);
 
-		/*	tds_put_smallint(tds, 8);
-
-		tds_put_int(tds, 0);*/
-		tds_put_smallint(tds, 12 + strlen(tds->cursor->cursor_name)); 
+		/*      tds_put_smallint(tds, 8);
+		 * 
+		 * tds_put_int(tds, 0); */
+		tds_put_smallint(tds, 12 + strlen(tds->cursor->cursor_name));
 		/* length of data stream that follows */
 
-		/*tds_put_int(tds, tds->cursor->cursor_id);*/ /* Cursor id */
+		/*tds_put_int(tds, tds->cursor->cursor_id); *//* Cursor id */
 
-		tds_put_int(tds,0);
+		tds_put_int(tds, 0);
 		tds_put_tinyint(tds, strlen(tds->cursor->cursor_name));
-		tds_put_n(tds,tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
-		tds_put_byte(tds, 1); /* Command  TDS_CUR_CMD_SETCURROWS */
-		tds_put_byte(tds, 0x00); /* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
-		tds_put_byte(tds, 0x20); /* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
-		tds_put_int(tds, tds->cursor->cursor_rows); /* row count to set */
+		tds_put_n(tds, tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
+		tds_put_byte(tds, 1);	/* Command  TDS_CUR_CMD_SETCURROWS */
+		tds_put_byte(tds, 0x00);	/* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
+		tds_put_byte(tds, 0x20);	/* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
+		tds_put_int(tds, tds->cursor->cursor_rows);	/* row count to set */
 		*something_to_send = 1;
-	
+
 	}
 	return TDS_SUCCEED;
 }
- 
+
 
 int
 tds_cursor_fetch(TDSSOCKET * tds)
 {
 	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_fetch ():\n");
-	
+
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
@@ -1638,80 +1760,84 @@ tds_cursor_fetch(TDSSOCKET * tds)
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			   "Attempt to initiate a new SQL Server operation with results pending.");
+			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
-    tds->internal_sp_called = 0;
-	
+	tds->internal_sp_called = 0;
+
 	if (IS_TDS50(tds)) {
 
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURFETCH_TOKEN);
 
-		/*tds_put_smallint(tds, 8);*/
+		/*tds_put_smallint(tds, 8); */
 
-		tds_put_smallint(tds, 6 + strlen(tds->cursor->cursor_name)); /* length of the data stream that follows */
+		tds_put_smallint(tds, 6 + strlen(tds->cursor->cursor_name));	/* length of the data stream that follows */
 
-		/*tds_put_int(tds, tds->cursor->cursor_id);*/ /* cursor id returned by the server*/
+		/*tds_put_int(tds, tds->cursor->cursor_id); *//* cursor id returned by the server */
 
 		tds_put_int(tds, 0);
 		tds_put_tinyint(tds, strlen(tds->cursor->cursor_name));
-		tds_put_n(tds,tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
-		tds_put_tinyint(tds, 1); /* Fetch Type : TDS_CUR_NEXT */
+		tds_put_n(tds, tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
+		tds_put_tinyint(tds, 1);	/* Fetch Type : TDS_CUR_NEXT */
 
 		/* tds_put_int(tds, row#) Optional argument to fetch row at absolute/relative position */
-		tds_flush_packet(tds);
-	
+		return tds_flush_packet(tds);
 	}
+
 	if (IS_TDS7_PLUS(tds)) {
 
 		/* RPC call to sp_cursorfetch */
 
 		tds->out_flag = 3;	/* RPC */
 
-		tds_put_byte(tds, 0xff);
-		tds_put_byte(tds, 0xff);
-		tds_put_smallint(tds, TDS_SP_CURSORFETCH);
-		
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
+		} else {
+			tds_put_smallint(tds, 14);
+			/* sp_cursorfetch */
+			tds_put_n(tds, "s\0p\0_\0c\0u\0r\0s\0o\0r\0f\0e\0t\0c\0h", 28);
+		}
+
 		/* This flag tells the SP only to */
 		/* output a dummy metadata token  */
 
-		tds_put_smallint(tds, 2);	
+		tds_put_smallint(tds, 2);
 
 		/* input cursor handle (int) */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
 		tds_put_int(tds, tds->cursor->cursor_id);
 
 		/* fetch type - 2 = NEXT */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds,  2);
+		tds_put_int(tds, 2);
 
 		/* row number - will be ignored for NEXT */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds,  0);
+		tds_put_int(tds, 0);
 
 		/* number of rows to fetch */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
 		tds_put_int(tds, tds->cursor->cursor_rows);
 
-        tds->internal_sp_called = TDS_SP_CURSORFETCH;
-		tds_flush_packet(tds);
-
+		tds->internal_sp_called = TDS_SP_CURSORFETCH;
+		return tds_flush_packet(tds);
 	}
 
 	return TDS_SUCCEED;
@@ -1722,7 +1848,7 @@ tds_cursor_close(TDSSOCKET * tds)
 {
 
 	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_close ():\n");
-	
+
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
@@ -1730,25 +1856,25 @@ tds_cursor_close(TDSSOCKET * tds)
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			   "Attempt to initiate a new SQL Server operation with results pending.");
+			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
-    tds->internal_sp_called = 0;
-	
+	tds->internal_sp_called = 0;
+
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
-		tds_put_smallint(tds, 5 ); /* length of the data stream that follows */
-		tds_put_int(tds, tds->cursor->cursor_id); /* cursor id returned by the server is available now*/
+		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
+		tds_put_int(tds, tds->cursor->cursor_id);	/* cursor id returned by the server is available now */
 
-		if (tds->cursor->dealloc_status == 1) 
-			tds_put_byte(tds, 0x01); /* Close option: TDS_CUR_COPT_DEALLOC */
+		if (tds->cursor->dealloc_status == 1)
+			tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
 		else
-			tds_put_byte(tds, 0x00); /* Close option: TDS_CUR_COPT_UNUSED */
-	
+			tds_put_byte(tds, 0x00);	/* Close option: TDS_CUR_COPT_UNUSED */
+
 	}
 	if (IS_TDS7_PLUS(tds)) {
 
@@ -1756,58 +1882,62 @@ tds_cursor_close(TDSSOCKET * tds)
 
 		tds->out_flag = 3;	/* RPC */
 
-		tds_put_byte(tds, 0xff);
-		tds_put_byte(tds, 0xff);
-		tds_put_smallint(tds, TDS_SP_CURSORCLOSE);
-		
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_CURSORCLOSE);
+		} else {
+			tds_put_smallint(tds, 14);
+			/* sp_cursorclose */
+			tds_put_n(tds, "s\0p\0_\0c\0u\0r\0s\0o\0r\0c\0l\0o\0s\0e", 28);
+		}
+
 		/* This flag tells the SP only to */
 		/* output a dummy metadata token  */
 
-		tds_put_smallint(tds, 2);	
+		tds_put_smallint(tds, 2);
 
 		/* input cursor handle (int) */
 
-		tds_put_byte(tds, 0);   /* no parameter name */
+		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
 		tds_put_int(tds, tds->cursor->cursor_id);
-        tds->internal_sp_called = TDS_SP_CURSORCLOSE;
-
-
+		tds->internal_sp_called = TDS_SP_CURSORCLOSE;
 	}
-	tds_flush_packet(tds);
-	return TDS_SUCCEED;
+	return tds_flush_packet(tds);
 
 }
 
 int
 tds_cursor_dealloc(TDSSOCKET * tds)
 {
+	int res = TDS_SUCCEED;
 
 	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_dealloc ():\n");
-	
+
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
 		return TDS_FAIL;
 
-    tds->internal_sp_called = 0;
+	tds->internal_sp_called = 0;
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
-		tds_put_smallint(tds, 5 ); /* length of the data stream that follows */
-		tds_put_int(tds, tds->cursor->cursor_id); /* cursor id returned by the server is available now*/
-		tds_put_byte(tds, 0x01); /* Close option: TDS_CUR_COPT_DEALLOC */
+		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
+		tds_put_int(tds, tds->cursor->cursor_id);	/* cursor id returned by the server is available now */
+		tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
 		tds->state = TDS_QUERYING;
-		tds_flush_packet(tds);
+		res = tds_flush_packet(tds);
 	}
 
 	tds_free_cursor(tds->cursor);
 	tds->cursor = NULL;
 
-	return TDS_SUCCEED;
+	return res;
 
 }
+
 /* TODO add function to return type suitable for param
  * ie:
  * sybvarchar -> sybvarchar / xsybvarchar

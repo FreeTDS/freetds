@@ -1,3 +1,18 @@
+Mon Nov  3 11:35:02 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/tds/query.c
+	- add sql_submit_execdirect procedure
+	- cleanup
+	- indent(1)
+	- return TDS_FAIL if tds_flush_packet fail
+	- support mssql7 using cursors
+	* include/tdsodbc.h
+	* src/odbc/odbc.c src/odbc/odbc_checks.c src/odbc/odbc_util.c
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/odbc/sql2tds.h
+	- fix SQLPutData using prepared statements
+	* src/tds/mem.c
+	- small optimization, 
+	- remove some buffer overflows (added very recently)
+
 Mon Nov  3 00:03:37 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml Updated from beginning to iODBC.  
 	
