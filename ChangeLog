@@ -1,3 +1,7 @@
+Wed Nov  6 12:21:36 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/unittests/t0007.c src/tds/unittests/t0008.c:
+	- Fix shadow warnings.
+
 Wed Nov  6 11:58:40 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/common.c
 	  src/dblib/unittests/common.h src/dblib/unittests/t0001.c

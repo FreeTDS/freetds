@@ -30,16 +30,16 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char  software_version[]   = "$Id: t0008.c,v 1.7 2002-10-13 23:28:13 castellano Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.8 2002-11-06 17:22:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int g_result = 0;
 static TDSCONTEXT ctx;
 
-void test(const char *test, const char *result, int prec, int scale);
+void test(const char *src, const char *result, int prec, int scale);
 
 void
-test(const char *test, const char *result, int prec, int scale)
+test(const char *src, const char *result, int prec, int scale)
 {
 	int i;
 	char buf[256];
@@ -48,7 +48,7 @@ test(const char *test, const char *result, int prec, int scale)
 	memset(&cr.n,0,sizeof(cr.n));
 	cr.n.precision = prec;
 	cr.n.scale = scale;
-	if (tds_convert(&ctx,SYBVARCHAR,test,strlen(test),SYBNUMERIC,&cr) < 0)
+	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0)
 		strcpy(buf,"error");
 	else
 	{
