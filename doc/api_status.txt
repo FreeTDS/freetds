@@ -29,7 +29,7 @@
 #	Comments:	Whatever you'd like to say about the function.
 #
 
-# This little bit of perl will product a data file suitable for uploading into a table thus:
+# This little bit of perl will produce a data file suitable for uploading into a table thus:
 # create table api
 #	( vendor char(15)	NOT NULL
 #	, name	char(15)	NOT NULL
@@ -317,7 +317,7 @@ dblib	core     	dbmnyndigit			(same)		stub
 dblib	core     	dbmnyscale			(same)		stub
 dblib	core     	dbmnysub			(same)		stub
 dblib	core     	dbmnyzero			(same)		OK
-dblib	core     	dbmorecmds			DBMORECMDS	stub
+dblib	core     	dbmorecmds			DBMORECMDS	OK
 dblib	core     	dbmsghandle			(same)		OK
 dblib	core     	dbname				(same)		OK
 dblib	core     	dbnextrow			(same)		OK
