@@ -1,3 +1,6 @@
+Fri Jul 25 16:11:29 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/t0014.c nicer user feedback
+
 Fri Jul 25 17:30:29 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix t0003 test (without broking other tests)
 

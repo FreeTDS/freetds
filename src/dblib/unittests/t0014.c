@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.18 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.19 2003-07-25 20:13:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -61,7 +61,7 @@ main(int argc, const char *argv[])
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0014");
 
-	fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n", "", "", "");	/* PASSWORD, USER, SERVER); */
+	fprintf(stdout, "About to open %s..%s for user '%s'\n", SERVER, DATABASE, USER);
 
 	dbproc = dbopen(login, SERVER);
 	blobproc = dbopen(login, SERVER);
