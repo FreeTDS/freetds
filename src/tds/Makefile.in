@@ -302,33 +302,6 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
-config.lo config.o : config.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-convert.lo convert.o : convert.c ../../include/tdsutil.h \
-	../../include/tds.h ../../include/tds_configs.h \
-	../../include/tdsver.h ../../include/tdsconvert.h
-login.lo login.o : login.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-mem.lo mem.o : mem.c ../../include/tds.h ../../include/tds_configs.h \
-	../../include/tdsver.h ../../include/tdsutil.h
-numeric.lo numeric.o : numeric.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h
-query.lo query.o : query.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-read.lo read.o : read.c ../../include/tds.h ../../include/tds_configs.h \
-	../../include/tdsver.h ../../include/tdsutil.h
-token.lo token.o : token.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-util.lo util.o : util.c ../../include/tdsutil.h ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h
-write.lo write.o : write.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-
 info-am:
 info: info-recursive
 dvi-am:

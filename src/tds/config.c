@@ -44,7 +44,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.1 2001-10-12 23:29:02 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.2 2001-10-20 14:31:56 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -63,6 +63,8 @@ static int tds_config_boolean(char *value);
 static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
 
 static char interf_file[MAXPATH];
+
+#define DEBUG_CONFIG 0
 
 /*
 ** tds_get_config() will fill the tds config structure based on configuration 
@@ -84,8 +86,13 @@ TDSCONFIGINFO *config;
 	/* allocate a new structure with hard coded and build-time defaults */
 	config = tds_alloc_config();
 
+#if DEBUG_CONFIG
+	tdsdump_open("/tmp/tdsconfig.log");
+#endif
+	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf file\n");
 	if (! tds_read_conf_file(login->server_name, config)) {
 		/* fallback to interfaces file */
+		tdsdump_log(TDS_DBG_INFO1, "%L Failed reading conf file.  Trying interfaces\n");
 		tds_read_interfaces(login->server_name, config);
 	}
 
@@ -97,6 +104,10 @@ TDSCONFIGINFO *config;
 	
 	/* And finally the login structure */
 	tds_config_login(config, login);
+
+#if DEBUG_CONFIG
+	tdsdump_close();
+#endif
 
 	return config;
 }
@@ -110,6 +121,7 @@ int found = 0;
 
 	in = fopen(FREETDS_SYSCONFFILE, "r");
 	if (in) {
+		tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s reading sections\n",FREETDS_SYSCONFFILE);
 		found = tds_read_conf_sections(in, server, config);
 		fclose(in);
 	}
@@ -120,6 +132,7 @@ int found = 0;
 		sprintf(path,"%s/.freetds.conf",home);
 		in = fopen(path, "r");
 		if (in) {
+			tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s/.freetds.conf reading sections\n",home);
 			found = tds_read_conf_sections(in, server, config);
 			fclose(in);
 		}
@@ -212,6 +225,7 @@ int found = 0;
 				s++;
 			}
 			if (!strcmp(section, &option[1])) {
+				tdsdump_log(TDS_DBG_INFO1, "%L Found matching section\n");
 				insection=1;
 				found=1;
 			} else {
@@ -250,9 +264,11 @@ int found = 0;
 				if (atoi(value)) 
 					config->connect_timeout = atoi(value);
 			} else if (!strcmp(option,TDS_STR_HOST)) {
+				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s\n",value);
    				lookup_host(value, NULL, tmp, NULL);
 				if (config->ip_addr) free(config->ip_addr);
 				config->ip_addr = strdup(tmp);
+				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s\n",config->ip_addr);
 			} else if (!strcmp(option,TDS_STR_PORT)) {
 				if (atoi(value)) 
 					config->port = atoi(value);
@@ -538,6 +554,7 @@ int   found=0;
 	tmp_port[0] = '\0';
 	tmp_ver[0]  = '\0';
 
+	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s\n",dir,file);
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
    
 	/*
@@ -563,19 +580,24 @@ int   found=0;
 		free(pathname);
 		return;
 	}
+	tdsdump_log(TDS_DBG_INFO1, "%L Interfaces file opened\n");
 
 	while (fgets(line,sizeof(line)-1,in)) {
 		if (line[0]=='#') continue; /* comment */
 
 		if (!isspace(line[0])) {
 			field = strtok(line,"\n\t ");
-			if (!strcmp(field,host)) found=1;
+			if (!strcmp(field,host)) {
+				found=1;
+				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry.\n");
+			}
 			else found=0;
 		} else if (found && isspace(line[0])) {
 			field = strtok(line,"\n\t ");
 			if (field!=NULL && !strcmp(field,"query")) {
 				field = strtok(NULL,"\n\t "); /* tcp or tli */
 				if (!strcmp(field,"tli")) {
+					tdsdump_log(TDS_DBG_INFO1, "%L TLI service.\n");
 					field = strtok(NULL,"\n\t "); /* tcp */
 					field = strtok(NULL,"\n\t "); /* device */
 					field = strtok(NULL,"\n\t "); /* host/port */
@@ -591,6 +613,7 @@ int   found=0;
 					strcpy(tmp_ver,field);
 					field = strtok(NULL,"\n\t "); /* host */
 					strcpy(tmp_ip,field);
+					tdsdump_log(TDS_DBG_INFO1, "%L host field %s\n",tmp_ip);
 					field = strtok(NULL,"\n\t "); /* port */
 					strcpy(tmp_port,field);
 				} /* else */
@@ -605,6 +628,7 @@ free(pathname);
     * Look up the host and service
     */
    lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
+   tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP %s\n",ip_addr);
    strcpy(tds_ver,tmp_ver);
 } /* search_interface_file()  */
 

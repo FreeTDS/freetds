@@ -252,11 +252,6 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-connectparams.lo connectparams.o : connectparams.c connectparams.h
-odbc.lo odbc.o : odbc.c ../../include/tdsodbc.h ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	connectparams.h
-
 info-am:
 info: info-am
 dvi-am:

@@ -234,15 +234,6 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-login.lo login.o : login.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-query.lo query.o : query.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h \
-	../../include/tdsutil.h
-server.lo server.o : server.c ../../include/tds.h \
-	../../include/tds_configs.h ../../include/tdsver.h
-
 info-am:
 info: info-am
 dvi-am:
