@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.78 2003-04-25 11:54:01 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.79 2003-05-01 12:39:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -140,21 +140,47 @@ tds_free_input_params(TDSDYNAMIC * dyn)
 	}
 }
 
-/** \fn void tds_free_dynamic(TDSSOCKET *tds)
+/** \fn void tds_free_dynamic(TDSSOCKET *tds, TDSDYNAMIC *dyn)
+ *  \brief Frees dynamic statement and remove from TDS
+ *  \param dyn dynamic statement to be freed.
+ */
+void
+tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+{
+	int i;
+
+	/* avoid pointer to garbage */
+	if (tds->cur_dyn == dyn)
+		tds->cur_dyn = NULL;
+
+	/* free from tds */
+	for (i = 0; i < tds->num_dyns; ++i)
+		if (dyn == tds->dyns[i]) {
+			tds->dyns[i] = tds->dyns[--tds->num_dyns];
+			break;
+		}
+
+	tds_free_input_params(dyn);
+	free(dyn);
+}
+
+/** \fn void tds_free_all_dynamic(TDSSOCKET *tds)
  *  \brief Frees all dynamic statements for a given connection.
  *  \param tds the connection containing the dynamic statements to be freed.
  *
- *  tds_free_dynamic frees all dynamic statements for the given TDS socket and
+ *  tds_free_all_dynamic frees all dynamic statements for the given TDS socket and
  *  then zeros tds->dyns.
  */
 void
-tds_free_dynamic(TDSSOCKET * tds)
+tds_free_all_dynamic(TDSSOCKET * tds)
 {
 	int i;
 	TDSDYNAMIC *dyn;
 
 	for (i = 0; i < tds->num_dyns; i++) {
 		dyn = tds->dyns[i];
+		if (!dyn)
+			continue;
 		tds_free_input_params(dyn);
 		free(dyn);
 	}
@@ -707,7 +733,7 @@ tds_free_socket(TDSSOCKET * tds)
 	if (tds) {
 		tds_free_all_results(tds);
 		tds_free_env(tds);
-		tds_free_dynamic(tds);
+		tds_free_all_dynamic(tds);
 		if (tds->in_buf)
 			TDS_ZERO_FREE(tds->in_buf);
 		if (tds->out_buf)

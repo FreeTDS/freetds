@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.25 2003-04-03 08:59:16 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.26 2003-05-01 12:39:53 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -120,6 +120,8 @@ struct _hdbc
 	/** 0 = OFF, 1 = ON, -1 = UNKNOWN */
 	int autocommit_state;
 	struct _sql_errors errs;
+	
+	DSTR current_database;
 };
 
 struct _hstmt

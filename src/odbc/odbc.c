@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.157 2003-04-30 15:29:08 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.158 2003-05-01 12:39:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -179,9 +179,9 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	if (!dbc)
 		return;
 
-	/* TODO copy it */
 	switch (type) {
 	case TDS_ENV_DATABASE:
+		tds_dstr_copy(&dbc->current_database, newval);
 		break;
 	case TDS_ENV_CHARSET:
 		break;
@@ -623,7 +623,9 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 		return SQL_ERROR;
 	}
 
+	/* initialize DBC structure */
 	memset(dbc, '\0', sizeof(TDS_DBC));
+	tds_dstr_init(&dbc->current_database);
 	dbc->henv = env;
 
 	/* spinellia@acm.org
@@ -1443,6 +1445,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 
 	tds_free_socket(dbc->tds_socket);
 	odbc_errs_reset(&dbc->errs);
+	tds_dstr_free(&dbc->current_database);
 	free(dbc);
 
 	return SQL_SUCCESS;
@@ -1524,9 +1527,24 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		 * FIX ME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
-		if (tds->state == TDS_PENDING && stmt->hdbc->current_statement == stmt) {
+		if (tds->state != TDS_IDLE && stmt->hdbc->current_statement == stmt) {
 			tds_send_cancel(tds);
 			tds_process_cancel(tds);
+		}
+
+		/* close prepared statement or add to connection */
+		if (stmt->dyn) {
+			TDS_INT result_type;
+
+			if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
+				if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+					return SQL_ERROR;
+				tds_free_dynamic(stmt->hdbc->tds_socket, stmt->dyn);
+				stmt->dyn = NULL;
+			} else {
+				/* TODO if fail add to odbc to free later, when we are in idle */
+				return SQL_ERROR;
+			}
 		}
 	}
 
@@ -2291,6 +2309,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		/* currently cursors are not supported however sql server close automaticly cursors on commit */
 		*usiInfoValue = SQL_CB_CLOSE;
 		break;
+	case SQL_DATABASE_NAME:
+		p = tds_dstr_cstr(&dbc->current_database);
+		break;
 	case SQL_DATA_SOURCE_READ_ONLY:
 		/* TODO: determine the right answer from connection 
 		 * attribute SQL_ATTR_ACCESS_MODE */
@@ -2387,20 +2408,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		return SQL_ERROR;
 	}
 
-	if (p) {		/* char/binary data */
-		int len = strlen(p);
-
-		if (rgbInfoValue) {
-			strncpy_null((char *) rgbInfoValue, p, (size_t) cbInfoValueMax);
-
-			if (len >= cbInfoValueMax) {
-				odbc_errs_add(&dbc->errs, ODBCERR_DATATRUNCATION, NULL);
-				return SQL_SUCCESS_WITH_INFO;
-			}
-		}
-		if (pcbInfoValue)
-			*pcbInfoValue = len;
-	}
+	/* char data */
+	if (p)
+		return odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1);
 
 	return SQL_SUCCESS;
 }
