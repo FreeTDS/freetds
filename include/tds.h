@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.154 2003-11-16 08:19:34 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.155 2003-11-22 23:05:09 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -413,8 +413,10 @@ typedef enum
 
 	SYBUNIQUE = 36,		/* 0x24 */
 #define SYBUNIQUE	SYBUNIQUE
-	SYBVARIANT = 98 	/* 0x62 */
+	SYBVARIANT = 98, 	/* 0x62 */
 #define SYBVARIANT	SYBVARIANT
+	SYBUNIVARCHAR = -1001
+#define SYBUNIVARCHAR	SYBUNIVARCHAR
 } TDS_SERVER_TYPE;
 
 #define SYBAOPCNT  0x4b
@@ -568,6 +570,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
+#define is_binary_type(x) (x==SYBLONGBINARY)
 #define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
 #define is_similar_type(x, y) ((is_char_type(x) && is_char_type(y)) || ((is_unicode_type(x) && is_unicode_type(y))))
 

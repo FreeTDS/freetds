@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.107 2003-11-16 08:19:58 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.108 2003-11-22 23:05:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -49,7 +49,7 @@ static void *no_unused_var_warn[] = { software_version,
  */
 static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
 static int _ct_bind_data(CS_COMMAND * cmd, CS_INT offset);
-static int _ct_get_client_type(int datatype, int size);
+static int _ct_get_client_type(int datatype, int usertype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
@@ -1369,6 +1369,11 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
 
+		tdsdump_log(TDS_DBG_FUNC, "%L _ct_bind_data(): column_type: %d column_len: %d\n",
+			curcol->column_type,
+			curcol->column_cur_size
+		);
+
 		if (curcol->column_hidden) 
 			continue;
 
@@ -1397,7 +1402,7 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 
 		if (dest && !tds_get_null(resinfo->current_row, i)) {
 
-			srctype = _ct_get_client_type(curcol->column_type, curcol->column_size);
+			srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
 
 			src = &(resinfo->current_row[curcol->column_offset]);
 			if (is_blob_type(curcol->column_type))
@@ -1413,7 +1418,8 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 			destfmt.locale = cmd->con->locale;
 			destfmt.format = curcol->column_bindfmt;
 			/* if convert return FAIL mark error but process other columns */
-			if (cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED) {
+			if ((result= cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED)) {
+				tdsdump_log(TDS_DBG_FUNC, "%L cs_convert-result = %d\n", result);
 				result = 1;
 				len = 0;
 				tdsdump_log(TDS_DBG_INFO1, "%L \n  convert failed for %d \n", srcfmt.datatype);
@@ -1472,9 +1478,9 @@ ct_con_drop(CS_CONNECTION * con)
 
 
 static int
-_ct_get_client_type(int datatype, int size)
+_ct_get_client_type(int datatype, int usertype, int size)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L _ct_get_client_type(type %d, size %d)\n", datatype, size);
+	tdsdump_log(TDS_DBG_FUNC, "%L _ct_get_client_type(type %d, user %d, size %d)\n", datatype, usertype, size);
 	switch (datatype) {
 	case SYBBIT:
 	case SYBBITN:
@@ -1568,6 +1574,11 @@ _ct_get_client_type(int datatype, int size)
 	case SYBUNIQUE:
 		return CS_UNIQUE_TYPE;
 		break;
+	case SYBLONGBINARY:
+		if (usertype == 35)
+			return CS_UNIVARCHAR_TYPE;
+		return CS_BINARY_TYPE;
+		break;
 	}
 
 	return CS_FAIL;
@@ -1635,6 +1646,8 @@ _ct_get_server_type(int datatype)
 	case CS_LONGBINARY_TYPE:	/* vicm */
 		return SYBLONGBINARY;
 		break;
+	case CS_UNIVARCHAR_TYPE:
+		return SYBUNIVARCHAR;
 	default:
 		return -1;
 		break;
@@ -1703,7 +1716,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	strncpy(datafmt->name, curcol->column_name, len);
 	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_size);
+	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.125 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.126 2003-11-22 23:05:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1608,6 +1608,7 @@ tds_convert(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT sr
 	assert(srclen >= 0 && srclen <= 2147483647u);
 
 	switch (srctype) {
+	case SYBUNIVARCHAR:
 	case CASE_ALL_CHAR:
 		length = tds_convert_char(srctype, src, srclen, desttype, cr);
 		break;
@@ -3220,6 +3221,9 @@ tds_prtype(int token)
 		break;
 	case SYBLONGBINARY:
 		result = "SYBLONGBINARY";
+		break;
+	case SYBUNIVARCHAR:
+		result = "SYBUNIVARCHAR";
 		break;
 	default:
 		break;

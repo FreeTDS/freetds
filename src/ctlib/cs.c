@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.42 2003-11-01 23:02:09 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.43 2003-11-22 23:05:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -371,11 +371,13 @@ CS_RETCODE ret;
 				}
 			}
 			break;
+		case SYBUNIVARCHAR:
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
 			tdsdump_log(TDS_DBG_FUNC, "%L cs_convert() desttype = character\n");
 			if (src_len > destlen) {
+				tdsdump_log(TDS_DBG_FUNC, "%L src_len > destlen\n");
 				ret = CS_FAIL;
 			} else {
 				switch (destfmt->format) {
@@ -416,6 +418,7 @@ CS_RETCODE ret;
 					ret = CS_SUCCEED;
 					break;
 				default:
+					tdsdump_log(TDS_DBG_FUNC, "%L no destination format specified!\n");
 					ret = CS_FAIL;
 					break;
 				}

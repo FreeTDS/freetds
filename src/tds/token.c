@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.227 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.228 2003-11-22 23:05:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1511,8 +1511,11 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	switch (curcol->column_varint_size) {
 	case 4:
 		curcol->column_size = tds_get_int(tds);
-		curcol->table_namelen =
-			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
+		/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
+		if (is_blob_type (curcol->column_type)) {
+			curcol->table_namelen =
+				tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
+		}
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
@@ -1803,7 +1806,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 {
 	unsigned char *dest;
 	int len, colsize;
-	int fillchar;
+	int fillchar, pos;
 	TDSBLOBINFO *blob_info = NULL;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
@@ -1821,6 +1824,15 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_set_null(current_row, i);
 			return TDS_SUCCEED;
 		}
+		
+		/* LONGBINARY
+		 * This type just stores a 4-byte length
+		 */
+		if (curcol->column_type == SYBLONGBINARY) {
+			colsize = tds_get_int(tds);
+			break;
+		}
+		
 		/* It's a BLOB... */
 		len = tds_get_byte(tds);
 		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
@@ -1940,6 +1952,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	} else {		/* non-numeric and non-blob */
 		if (is_char_type(curcol->column_type)) {
 			/* this shouldn't fail here */
+			tdsdump_log(TDS_DBG_INFO1, "%L curcol->iconv_info? %d\n", (int)curcol->iconv_info);
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {
@@ -1959,6 +1972,11 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				break;
 			/* FIXME use client charset */
 			fillchar = ' ';
+		/* just to prevent \0 to interrupt display, as long as we cannot decode utf-16 */
+		case SYBLONGBINARY:
+			for (pos= 0; pos < colsize; pos++) {
+				if (dest[pos] == '\0') { dest[pos]= '.'; }
+			}
 		case SYBBINARY:
 		case XSYBBINARY:
 			if (colsize < curcol->column_size)
@@ -3142,6 +3160,7 @@ tds_prtype(int token)
 		TYPE(SYBAOPSUM, "sum");
 
 		TYPE(SYBBINARY, "binary");
+		TYPE(SYBLONGBINARY, "longbinary");
 		TYPE(SYBBIT, "bit");
 		TYPE(SYBBITN, "bit-null");
 		TYPE(SYBCHAR, "char");

@@ -1,3 +1,9 @@
+Sat Nov 22 17:59:36 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h include/cspublic.h
+	* src/ctlib/cs.c src/ctlib/ct.c
+	* src/tds/convert.c src/tds/token.c
+	- SYBUNIVARCHAR handling
+	
 Sat Nov 22 17:49:12 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsiconv.h
 	* src/tds/iconv.c src/tds/login.c src/tds/query.c
