@@ -1,3 +1,7 @@
+Tue Oct 15 00:11:15 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/pool/member.c:
+	- Set appname and hostname properly for the pool server.
+
 Mon Oct 14 23:44:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/server/login.c:
 	- Don't abuse BUFSIZ.

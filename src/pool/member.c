@@ -35,8 +35,16 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 #include "pool.h"
 #include "tdsutil.h"
+
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 256
+#endif /* MAXHOSTNAMELEN */
 
 static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
 static void pool_free_member(TDS_POOL_MEMBER *pmbr);
@@ -52,12 +60,18 @@ TDSLOGIN *login;
 TDSSOCKET *tds;
 int rc, marker;
 char *query;
+char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login();
 	tds_set_passwd(login,pool->password);
 	tds_set_user(login,pool->user);
-	tds_set_app(login,"myhost");
-	tds_set_host(login,"myhost");
+	tds_set_app(login, "tdspool");
+#if HAVE_GETHOSTNAME
+	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
+#endif
+		strncpy(hostname, "tdspool", MAXHOSTNAMELEN);
+	hostname[MAXHOSTNAMELEN - 1] = '\0';
+	tds_set_host(login, hostname);
 	tds_set_library(login,"TDS-Library");
 	tds_set_server(login,pool->server);
 	tds_set_charset(login,"iso_1");
