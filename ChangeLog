@@ -1,3 +1,6 @@
+Fri Jan 30 17:02:58 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c log reason for iconv init failure
+
 Mon Jan 26 10:40:29 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/write.c handle large UTF-8 inputs to tds_put_string()
 
