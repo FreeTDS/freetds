@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.223 2003-08-27 13:07:53 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.224 2003-08-28 05:47:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1868,7 +1868,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #undef IOUT
 }
 
-SQLRETURN
+SQLRETURN SQL_API
 SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength)
 {
 	struct _drecord *drec;
@@ -3430,7 +3430,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	const char *p = NULL;
 	char buf[32];
 	TDSSOCKET *tds;
-	int is_ms;
+	int is_ms = -1;
 	unsigned int smajor;
 	SQLUINTEGER mssql7plus_mask = 0;
 
@@ -3441,12 +3441,12 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 
 	INIT_HDBC;
 
-	tds = dbc->tds_socket;
-
-	is_ms = TDS_IS_MSSQL(tds);
-	smajor = (tds->product_version >> 24) & 0x7F;
-	if (is_ms && smajor >= 7)
-		mssql7plus_mask = ~((SQLUINTEGER) 0);
+	if ((tds = dbc->tds_socket) != NULL) {
+		is_ms = TDS_IS_MSSQL(tds);
+		smajor = (tds->product_version >> 24) & 0x7F;
+		if (is_ms && smajor >= 7)
+			mssql7plus_mask = ~((SQLUINTEGER) 0);
+	}
 
 	switch (fInfoType) {
 	case SQL_ACCESSIBLE_PROCEDURES:
@@ -3512,6 +3512,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "Y";
 		break;
 	case SQL_CONCAT_NULL_BEHAVIOR:
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		/* TODO a bit more complicate for mssql2k.. */
 		SIVAL = (!is_ms || smajor < 7) ? SQL_CB_NON_NULL : SQL_CB_NULL;
 		break;
@@ -3838,16 +3840,22 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		USIVAL = 0;
 		break;
 	case SQL_MAX_IDENTIFIER_LEN:
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		USIVAL = (!is_ms || smajor < 7) ? 30 : 128;
 		break;
 	case SQL_MAX_INDEX_SIZE:
 		UIVAL = 127;
 		break;
 	case SQL_MAX_PROCEDURE_NAME_LEN:
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		/* TODO Sybase ? */
 		USIVAL = (is_ms && smajor >= 7) ? 134 : 36;
 		break;
 	case SQL_MAX_ROW_SIZE:
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		/* TODO Sybase ? */
 		UIVAL = (is_ms && smajor >= 7) ? 8062 : 1962;
 		break;
@@ -3864,6 +3872,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_MAX_USER_NAME_LEN:
 		/* TODO Sybase ? */
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		USIVAL = (is_ms && smajor >= 7) ? 128 : 30;
 		break;
 	case SQL_MAX_COLUMN_NAME_LEN:
@@ -3872,6 +3882,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_MAX_CATALOG_NAME_LEN:
 	case SQL_MAX_TABLE_NAME_LEN:
 		/* TODO Sybase ? */
+		if (is_ms == -1)
+			ODBC_RETURN(dbc, SQL_ERROR);
 		USIVAL = (is_ms && smajor >= 7) ? 128 : 30;
 		break;
 	case SQL_MULT_RESULT_SETS:

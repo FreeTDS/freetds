@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.93 2003-08-15 08:15:23 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.94 2003-08-28 05:47:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -830,6 +830,31 @@ tds_free_msg(TDSMSGINFO * msg_info)
 }
 
 #define SQLS_ENTRY(number,state) case number: p = state; break
+
+char *
+tds_alloc_client_sqlstate(int msgnum)
+{
+	char *p = NULL;
+
+	switch (msgnum) {
+		SQLS_ENTRY(20004, "08S01");	/* Communication link failure */
+		SQLS_ENTRY(20006, "08S01");
+		SQLS_ENTRY(20009, "08S01");
+		SQLS_ENTRY(20019, "24000");	/* Invalid cursor state */
+		SQLS_ENTRY(20014, "28000");	/* Invalid authorization specification */
+		SQLS_ENTRY(2400, "42000");	/* Syntax error or access violation */
+		SQLS_ENTRY(2401, "42000");
+		SQLS_ENTRY(2403, "42000");
+		SQLS_ENTRY(2404, "42000");
+		SQLS_ENTRY(2402, "S1000");	/* General error */
+	}
+
+	if (p != NULL)
+		return strdup(p);
+	else
+		return NULL;
+}
+
 char *
 tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 {
@@ -897,6 +922,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(8506, "25000");
 			SQLS_ENTRY(15626, "25000");
 			SQLS_ENTRY(18456, "28000");	/* Login failed? */
+			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(17571, "42000");
 			SQLS_ENTRY(18002, "42000");
@@ -988,6 +1014,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(1276, "25000");
 			SQLS_ENTRY(3902, "25000");
 			SQLS_ENTRY(3903, "25000");
+			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
 			SQLS_ENTRY(229, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(230, "42000");
 			SQLS_ENTRY(262, "42000");

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.206 2003-08-14 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.207 2003-08-28 05:47:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1960,6 +1960,8 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 		msg_info.server = strdup("OpenClient");
 		msg_info.line_number = line;
 		msg_info.message = strdup(message);
+		if (msg_info.sql_state == NULL)
+			msg_info.sql_state = tds_alloc_client_sqlstate(msg_info.msg_number);
 		ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		tds_free_msg(&msg_info);
 		/* message handler returned FAIL/CS_FAIL
