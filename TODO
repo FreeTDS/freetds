@@ -8,10 +8,13 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.26 2003-01-05 15:50:25 freddy77 Exp $
+To Do List	$Id: TODO,v 1.27 2003-01-05 22:16:10 freddy77 Exp $
 ------------
 Broken:
-. Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
+. Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken
+  (should work now, need testing).
+. tds_connect free tds structure on failure. This cause in some condition
+  a pointer to garbage in some library
 
 For 0.61 version:
 
@@ -60,7 +63,7 @@ For future versions (in priority order within library):
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types)
 . dynamic query (work in progress, lack unprepare)
 . get a solid corpus of unittests for ODBC, and have it become a top tier API.
-. improve, best error report (even multiple)
+. improve, best error report (lack SQLGetDiagField, other stuff ok)
 . cursor support
 
   pool
@@ -80,5 +83,5 @@ Done (removed from above):
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
 . autoconf the connection pooling stuff
 . DBLIB: output params (tests)
-. set database during login process (work in progress)
+. set database during login process
 
