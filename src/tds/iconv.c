@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.110 2004-04-07 07:47:20 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.111 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -417,12 +417,12 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	server_canonical = tds_canonical_charset(server_name);
 
 	if (client_canonical < 0) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
 	if (server_canonical < 0) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" unrecognized\n", client->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: server charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
@@ -462,19 +462,19 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 		char_conv->to_wire = (iconv_t) - 1;
 		char_conv->from_wire = (iconv_t) - 1;
 		char_conv->flags = TDS_ENCODING_MEMCPY;
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: use memcpy to convert \"%s\"->\"%s\"\n", client->name,
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: use memcpy to convert \"%s\"->\"%s\"\n", client->name,
 			    server->name);
 		return 0;
 	}
 
 	char_conv->to_wire = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
 	if (char_conv->to_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 	}
 
 	char_conv->from_wire = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
 	if (char_conv->from_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 	}
 
 	/* try indirect conversions */
@@ -491,7 +491,7 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 		    || char_conv->from_wire == (iconv_t) - 1 || char_conv->from_wire2 == (iconv_t) - 1) {
 
 			tds_iconv_info_close(char_conv);
-			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\" indirectly\n",
+			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\" indirectly\n",
 				    server->name, client->name);
 			return 0;
 		}
@@ -501,7 +501,7 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	
 	/* TODO, do some optimizations like UCS2 -> UTF8 min,max = 2,2 (UCS2) and 1,4 (UTF8) */
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name);
+	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name);
 
 	return 1;
 }
@@ -871,7 +871,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 
 	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
 
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n", isize, field_len,
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n", isize, field_len,
 			    *outbytesleft);
 		field_len -= isize;
 
@@ -890,7 +890,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 			case EILSEQ:	/* invalid multibyte sequence encountered in input */
 			default:
 				/* FIXME: emit message */
-				tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: error %d: %s.\n", errno, strerror(errno));
+				tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: error %d: %s.\n", errno, strerror(errno));
 				break;
 			}
 		}
@@ -904,7 +904,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 		if (term_len && 1 == fread(buffer, term_len, 1, stream)) {
 			isize -= term_len;
 		} else {
-			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
+			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
 		}
 	}
 
@@ -968,7 +968,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 
 	/* ignore request to change to unknown charset */
 	if (!canonic_charset) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_srv_charset_changed: what is charset \"%s\"?\n", charset);
+		tdsdump_log(TDS_DBG_FUNC, "tds_srv_charset_changed: what is charset \"%s\"?\n", charset);
 		return;
 	}
 

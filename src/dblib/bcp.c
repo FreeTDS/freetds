@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.99 2004-07-27 13:45:25 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.100 2004-07-29 10:22:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -409,7 +409,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 
 	switch (option) {
 	case BCPLABELED:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED bcp option: BCPLABELED\n");
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: BCPLABELED\n");
 		return FAIL;
 	case BCPHINTS:
 		if (!value || valuelen <= 0)
@@ -435,7 +435,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 		dbproc->bcpinfo->hint[valuelen] = '\0';	/* null terminate it */
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED bcp option: %u\n", option);
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: %u\n", option);
 		return FAIL;
 	}
 
@@ -828,7 +828,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 	/* for each host file column defined by calls to bcp_colfmt */
 
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-		tdsdump_log(TDS_DBG_FUNC, "%L parsing host column %d\n", i + 1);
+		tdsdump_log(TDS_DBG_FUNC, "parsing host column %d\n", i + 1);
 		hostcol = dbproc->hostfileinfo->host_columns[i];
 
 		data_is_null = 0;
@@ -873,7 +873,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 		/* if (Max) column length specified take that into consideration. */
 
-		tdsdump_log(TDS_DBG_FUNC, "%L prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
 
 		if (!data_is_null && hostcol->column_len >= 0) {
 			if (hostcol->column_len == 0)
@@ -1011,7 +1011,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					free(coldata);
 					if (i == 0 && feof(hostfile))
-						tdsdump_log(TDS_DBG_FUNC, "%L Normal end-of-file reached while loading bcp data file.\n");
+						tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
 					else
 						_bcp_err_handler(dbproc, SYBEBCRE);
 					return (FAIL);
@@ -1026,7 +1026,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 */
 		if (i == 0 && collen == 0 && feof(hostfile)) {
 			free(coldata);
-			tdsdump_log(TDS_DBG_FUNC, "%L Normal end-of-file reached while loading bcp data file.\n");
+			tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
 			return (FAIL);
 		}
 
@@ -1076,8 +1076,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
 					tdsdump_log(TDS_DBG_FUNC, 
-						    "%L _bcp_read_hostfile (bcp.c:%d) failed to convert %d bytes at offset 0x%x in the data file.\n", 
-						    __LINE__, collen, ftell(hostfile) - collen);
+						    "_bcp_read_hostfile (bcp.c:%d) failed to convert %d bytes at offset 0x%lx in the data file.\n", 
+						    __LINE__, collen, (unsigned long int) ftell(hostfile) - collen);
 				}
 
 				/* trim trailing blanks from character data */
@@ -1218,11 +1218,11 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
 
 		if (!is_nullable_type(bcpcol->column_type) && !(bcpcol->column_nullable)) {
 
-			tdsdump_log(TDS_DBG_FUNC, "%L _bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
+			tdsdump_log(TDS_DBG_FUNC, "_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bcpcol)) != SUCCEED) {
-					tdsdump_log(TDS_DBG_INFO1, "%L bcp_get_colData (column %d) failed\n", i + 1);
+					tdsdump_log(TDS_DBG_INFO1, "bcp_get_colData (column %d) failed\n", i + 1);
 		 			return FAIL;
 				}
 			}
@@ -1293,7 +1293,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
-			tdsdump_log(TDS_DBG_FUNC, "%L _bcp_add_variable_columns column %d is a variable column\n", i + 1);
+			tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns column %d is a variable column\n", i + 1);
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bcpcol)) != SUCCEED) {
@@ -1759,13 +1759,13 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 							(dbproc->bcpinfo->var_cols + 1) +
 							2;
 
-		tdsdump_log(TDS_DBG_FUNC, "%L current_record_size = %d\n", dbproc->bcpinfo->bindinfo->row_size);
-		tdsdump_log(TDS_DBG_FUNC, "%L bcp_record_size     = %d\n", bcp_record_size);
+		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", dbproc->bcpinfo->bindinfo->row_size);
+		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > dbproc->bcpinfo->bindinfo->row_size) {
 			dbproc->bcpinfo->bindinfo->current_row = realloc(dbproc->bcpinfo->bindinfo->current_row, bcp_record_size);
 			if (dbproc->bcpinfo->bindinfo->current_row == NULL) {
-				tdsdump_log(TDS_DBG_FUNC, "%L could not realloc current_row\n");
+				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
 				return FAIL;
 			}
 			dbproc->bcpinfo->bindinfo->row_size = bcp_record_size;
@@ -1807,13 +1807,13 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 				bcp_record_size += bcpcol->column_size;
 			}
 		}
-		tdsdump_log(TDS_DBG_FUNC, "%L current_record_size = %d\n", dbproc->bcpinfo->bindinfo->row_size);
-		tdsdump_log(TDS_DBG_FUNC, "%L bcp_record_size     = %d\n", bcp_record_size);
+		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", dbproc->bcpinfo->bindinfo->row_size);
+		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > dbproc->bcpinfo->bindinfo->row_size) {
 			dbproc->bcpinfo->bindinfo->current_row = realloc(dbproc->bcpinfo->bindinfo->current_row, bcp_record_size);
 			if (dbproc->bcpinfo->bindinfo->current_row == NULL) {
-				tdsdump_log(TDS_DBG_FUNC, "%L could not realloc current_row\n");
+				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
 				return FAIL;
 			}
 			dbproc->bcpinfo->bindinfo->row_size = bcp_record_size;
@@ -1952,7 +1952,7 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 		sprintf(column_type, "uniqueidentifier  ");
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L error: cannot build bulk insert statement. unrecognized server datatype %d\n", 
+		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n", 
 					bcpcol->on_server.column_type);
 		return FAIL;
 	}
@@ -2487,7 +2487,7 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L _bcp_build_bcp_record\n");
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_build_bcp_record\n");
 
 	record = dbproc->bcpinfo->bindinfo->current_row;
 	old_record_size = dbproc->bcpinfo->bindinfo->row_size;
@@ -2509,13 +2509,13 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bindcol)) != SUCCEED) {
-					tdsdump_log(TDS_DBG_INFO1, "%L bcp_get_colData (column %d) failed\n", i + 1);
+					tdsdump_log(TDS_DBG_INFO1, "bcp_get_colData (column %d) failed\n", i + 1);
 		 			return FAIL;
 				}
-				tdsdump_log(TDS_DBG_INFO1, "%L gotten column %d length %d null %d\n",
+				tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
 							i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
 			}
-			tdsdump_log(TDS_DBG_INFO1, "%L column %d length %d null %d\n",
+			tdsdump_log(TDS_DBG_INFO1, "column %d length %d null %d\n",
 						i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
 	
 			if (bindcol->bcp_column_data->null_column) {
@@ -2568,11 +2568,11 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 					varint_1 = bindcol->bcp_column_data->datalen;
 					if (is_numeric_type(bindcol->column_type)) { 
 						varint_1 = tds_numeric_bytes_per_prec[bindcol->column_prec];
-						tdsdump_log(TDS_DBG_INFO1, "%L numeric type prec = %d varint_1 = %d\n", bindcol->column_prec, varint_1);
+						tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d varint_1 = %d\n", bindcol->column_prec, varint_1);
 					}
 					else {
 						varint_1 = bindcol->bcp_column_data->datalen;
-						tdsdump_log(TDS_DBG_INFO1, "%L varint_1 = %d\n", varint_1);
+						tdsdump_log(TDS_DBG_INFO1, "varint_1 = %d\n", varint_1);
 					}
 					*record = varint_1; record++; new_record_size++;
 					break;
@@ -2580,7 +2580,7 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 					break;
 				}
 
-				tdsdump_log(TDS_DBG_INFO1, "%L new_record_size = %d datalen = %d \n", 
+				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
 							new_record_size, bindcol->bcp_column_data->datalen);
 
 #if WORDS_BIGENDIAN
@@ -2592,18 +2592,18 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 										bindcol->bcp_column_data->data);
 				}
 #endif
-				tdsdump_log(TDS_DBG_INFO1, "%L new_record_size = %d datalen = %d \n", 
+				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
 							new_record_size, bindcol->bcp_column_data->datalen);
 
 
 				if (is_numeric_type(bindcol->column_type)) {
 					TDS_NUMERIC *num = (TDS_NUMERIC *) bindcol->bcp_column_data->data;
-					tdsdump_log(TDS_DBG_INFO1, "%L numeric type prec = %d\n", num->precision);
+					tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d\n", num->precision);
 					memcpy(record, num->array, tds_numeric_bytes_per_prec[num->precision]);
 					record += tds_numeric_bytes_per_prec[num->precision]; 
 					new_record_size += tds_numeric_bytes_per_prec[num->precision];
 				} else {
-					tdsdump_log(TDS_DBG_INFO1, "%L new_record_size = %d datalen = %d \n", 
+					tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
 								new_record_size, bindcol->bcp_column_data->datalen);
 					memcpy(record, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
 					record += bindcol->bcp_column_data->datalen;
@@ -2611,7 +2611,7 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 				}
 
 			}
-			tdsdump_log(TDS_DBG_INFO1, "%L old_record_size = %d new size = %d \n",
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
 					old_record_size, new_record_size);
 		}
 	}  /* IS_TDS7_PLUS */
@@ -2641,7 +2641,7 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 				record[0] = var_cols_written;
 			}
 
-			tdsdump_log(TDS_DBG_INFO1, "%L old_record_size = %d new size = %d \n",
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
 					old_record_size, row_size);
 
 			tds_put_smallint(tds, row_size);

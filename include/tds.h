@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.184 2004-07-26 14:39:40 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.185 2004-07-29 10:22:39 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1264,8 +1264,12 @@ void tdsdump_on(void);
 int tdsdump_open(const char *filename);
 int tdsdump_append(void);
 void tdsdump_close(void);
-void tdsdump_dump_buf(const void *buf, int length);
-void tdsdump_log(int dbg_lvl, const char *fmt, ...);
+void tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length);
+void tdsdump_log(int dbg_lvl, const char *fmt, ...) 
+#if defined(__GNUC__) && __GNUC__ >= 2
+	__attribute__ ((__format__ (__printf__, 2, 3)))
+#endif
+;
 int tds_close_socket(TDSSOCKET * tds);
 
 /* vstrbuild.c */

@@ -36,67 +36,67 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: xact.c,v 1.8 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: xact.c,v 1.9 2004-07-29 10:22:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 void
 build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED build_xact_string()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED build_xact_string()\n");
 }
 
 RETCODE
 remove_xact(DBPROCESS * connect, DBINT commid, int n)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED remove_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED remove_xact()\n");
 	return SUCCEED;
 }
 
 RETCODE
 abort_xact(DBPROCESS * connect, DBINT commid)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED abort_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED abort_xact()\n");
 	return SUCCEED;
 }
 
 void
 close_commit(DBPROCESS * connect)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED close_commit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED close_commit()\n");
 }
 
 RETCODE
 commit_xact(DBPROCESS * connect, DBINT commid)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED commit_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED commit_xact()\n");
 	return SUCCEED;
 }
 
 DBPROCESS *
 open_commit(LOGINREC * login, char *servername)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED open_commit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED open_commit()\n");
 	return NULL;
 }
 
 RETCODE
 scan_xact(DBPROCESS * connect, DBINT commid)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED scan_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED scan_xact()\n");
 	return SUCCEED;
 }
 
 DBINT
 start_xact(DBPROCESS * connect, char *application_name, char *xact_name, int site_count)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED start_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED start_xact()\n");
 	return 0;
 }
 
 DBINT
 stat_xact(DBPROCESS * connect, DBINT commid)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED stat_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED stat_xact()\n");
 	return 0;
 }

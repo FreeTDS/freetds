@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.334 2004-07-22 13:09:16 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.335 2004-07-29 10:22:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1576,7 +1576,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		IOUT(SQLSMALLINT, drec->sql_desc_updatable);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttribute: fDescType %d not catered for...\n");
+		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttribute: fDescType %d not catered for...\n", fDescType);
 		odbc_errs_add(&stmt->errs, "HY091", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 		break;
@@ -2009,6 +2009,13 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		ODBC_RETURN(desc, SQL_ERROR);
 		break;
 	case SQL_DESC_ARRAY_SIZE:
+#ifndef ENABLE_DEVELOPING
+		assert(desc->header.sql_desc_array_size == 1);
+		if ((SQLINTEGER) (TDS_INTPTR) Value != 1) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+		}
+#endif
 		IIN(SQLINTEGER, desc->header.sql_desc_array_size);
 		ODBC_RETURN_(desc);
 		break;
@@ -2772,7 +2779,7 @@ SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLINTEGER FetchOff
 SQLRETURN SQL_API
 SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 {
-	tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, 0x%x)\n", HandleType, Handle);
+	tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, 0x%p)\n", HandleType, (void *) Handle);
 
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:
@@ -3354,7 +3361,7 @@ change_transaction(TDS_DBC * dbc, int state)
 	const char *query;
 	TDSSOCKET *tds = dbc->tds_socket;
 
-	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
+	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%p,%d)\n", dbc, state);
 
 	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON || TDS_IS_MSSQL(tds))
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT" : "IF @@TRANCOUNT > 0 ROLLBACK";
@@ -3390,7 +3397,7 @@ _SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	/* ..but not without a HDBC! */
 	INIT_HDBC;
 
-	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%x,0x%x,%d)\n", henv, hdbc, fType);
+	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%p,0x%p,%d)\n", henv, hdbc, fType);
 	ODBC_RETURN(dbc, change_transaction(dbc, op));
 }
 
@@ -5030,6 +5037,13 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		/* allow to exec procedure multiple time */
 		/* TODO support it */
 	case SQL_ATTR_PARAMSET_SIZE:
+#ifndef ENABLE_DEVELOPING
+		assert(stmt->ard->header.sql_desc_array_size == 1);
+		if (ui != 1) {
+			odbc_errs_add(&stmt->errs, "HY024", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+#endif
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:

@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.15 2004-07-27 13:45:25 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.16 2004-07-29 10:22:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -59,7 +59,7 @@ static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS
 CS_RETCODE
 blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_alloc()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_alloc()\n");
 
 	*blk_pointer = (CS_BLKDESC *) malloc(sizeof(CS_BLKDESC));
 	memset(*blk_pointer, '\0', sizeof(CS_BLKDESC));
@@ -82,7 +82,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 
 	tds = (TDSSOCKET *) blkdesc->con->tds_socket;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_bind()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_bind()\n");
 
 	if (!blkdesc) {
 		return CS_FAIL;
@@ -168,7 +168,7 @@ blk_colval(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT 
 	   CS_INT * outlenp)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_colval()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_colval()\n");
 	return CS_FAIL;
 }
 
@@ -176,7 +176,7 @@ CS_RETCODE
 blk_default(CS_BLKDESC * blkdesc, CS_INT colnum, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_default()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_default()\n");
 	return CS_FAIL;
 }
 
@@ -187,7 +187,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	TDSCOLUMN *curcol;
 	int len;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_describe()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_describe()\n");
 	tds = blkdesc->con->tds_socket;
 
 	if (item < 1 || item > blkdesc->bindinfo->num_cols) {
@@ -205,7 +205,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
-	tdsdump_log(TDS_DBG_INFO1, "%L blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
+	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 			curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */
 	datafmt->maxlength = curcol->column_size;
@@ -234,7 +234,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 {
 	TDSSOCKET *tds;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_done()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_done()\n");
 	tds = blkdesc->con->tds_socket;
 
 	switch (type) {
@@ -307,7 +307,7 @@ CS_RETCODE
 blk_drop(CS_BLKDESC * blkdesc)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_drop()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_drop()\n");
 	return CS_FAIL;
 }
 
@@ -315,7 +315,7 @@ CS_RETCODE
 blk_getrow(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_getrow()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_getrow()\n");
 	return CS_FAIL;
 }
 
@@ -323,7 +323,7 @@ CS_RETCODE
 blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT bufsize, CS_INT * outlenp)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_gettext()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_gettext()\n");
 	return CS_FAIL;
 }
 
@@ -338,7 +338,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	TDS_INT result_type;
 	int i, rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_init()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_init()\n");
 
 	if (!blkdesc) {
 		return CS_FAIL;
@@ -359,17 +359,17 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	/* free allocated storage in blkdesc & initialise flags, etc. */
 
 	if (blkdesc->tablename) {
-		tdsdump_log(TDS_DBG_FUNC, "%L blk_init() freeing tablename\n");
+		tdsdump_log(TDS_DBG_FUNC, "blk_init() freeing tablename\n");
 		free(blkdesc->tablename);
 	}
 
 	if (blkdesc->insert_stmt) {
-		tdsdump_log(TDS_DBG_FUNC, "%L blk_init() freeing insert_stmt\n");
+		tdsdump_log(TDS_DBG_FUNC, "blk_init() freeing insert_stmt\n");
 		free(blkdesc->insert_stmt);
 	}
 
 	if (blkdesc->bindinfo) {
-		tdsdump_log(TDS_DBG_FUNC, "%L blk_init() freeing results\n");
+		tdsdump_log(TDS_DBG_FUNC, "blk_init() freeing results\n");
 		tds_free_results(blkdesc->bindinfo);
 		blkdesc->bindinfo = NULL;
 	}
@@ -518,7 +518,7 @@ CS_RETCODE
 blk_rowalloc(SRV_PROC * srvproc, CS_BLK_ROW ** row)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowalloc()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_rowalloc()\n");
 	return CS_FAIL;
 }
 
@@ -526,7 +526,7 @@ CS_RETCODE
 blk_rowdrop(SRV_PROC * srvproc, CS_BLK_ROW * row)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowdrop()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_rowdrop()\n");
 	return CS_FAIL;
 }
 
@@ -546,7 +546,7 @@ blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count)
 	int rows_xferred = 0;
 	CS_RETCODE ret;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_rowxfer_mult()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_mult()\n");
 
 	if (!row_count || *row_count == 0 )
 		rows_to_xfer = blkdesc->bind_count;
@@ -568,7 +568,7 @@ CS_RETCODE
 blk_sendrow(CS_BLKDESC * blkdesc, CS_BLK_ROW * row)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_sendrow()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_sendrow()\n");
 	return CS_FAIL;
 }
 
@@ -576,7 +576,7 @@ CS_RETCODE
 blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT buflen)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_sendtext()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_sendtext()\n");
 	return CS_FAIL;
 }
 
@@ -584,7 +584,7 @@ CS_RETCODE
 blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_srvinit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_srvinit()\n");
 	return CS_FAIL;
 }
 
@@ -592,7 +592,7 @@ CS_RETCODE
 blk_textxfer(CS_BLKDESC * blkdesc, CS_BYTE * buffer, CS_INT buflen, CS_INT * outlen)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_textxfer()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_textxfer()\n");
 	return CS_FAIL;
 }
 
@@ -609,7 +609,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	TDS_INT row_of_query;
 	TDS_INT rows_written;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L blk_rowxfer_out()\n");
+	tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_out()\n");
 
 	if (!blkdesc)
 		return CS_FAIL;
@@ -652,7 +652,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 		ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
 
-		tdsdump_log(TDS_DBG_FUNC, "%L blk_rowxfer_out() process_row_tokens returned %d\n", ret);
+		tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_out() process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
 			case TDS_SUCCEED: 
@@ -854,13 +854,13 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 							(blkdesc->var_cols + 1) +
 							2;
 
-		tdsdump_log(TDS_DBG_FUNC, "%L current_record_size = %d\n", blkdesc->bindinfo->row_size);
-		tdsdump_log(TDS_DBG_FUNC, "%L bcp_record_size     = %d\n", bcp_record_size);
+		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", blkdesc->bindinfo->row_size);
+		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > blkdesc->bindinfo->row_size) {
 			blkdesc->bindinfo->current_row = realloc(blkdesc->bindinfo->current_row, bcp_record_size);
 			if (blkdesc->bindinfo->current_row == NULL) {
-				tdsdump_log(TDS_DBG_FUNC, "%L could not realloc current_row\n");
+				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
 				return CS_FAIL;
 			}
 			blkdesc->bindinfo->row_size = bcp_record_size;
@@ -999,7 +999,7 @@ _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 		sprintf(column_type, "uniqueidentifier");
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L error: cannot build bulk insert statement. unrecognized server datatype %d\n",
+		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n",
 					bcpcol->on_server.column_type);
 		return CS_FAIL;
 	}
@@ -1135,7 +1135,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L _blk_build_bcp_record(offset %d)\n", offset);
+	tdsdump_log(TDS_DBG_FUNC, "_blk_build_bcp_record(offset %d)\n", offset);
 
 	record = blkdesc->bindinfo->current_row;
 	old_record_size = blkdesc->bindinfo->row_size;
@@ -1158,10 +1158,10 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 			}
 
 			if ((_blk_get_col_data(blkdesc, bindcol, offset)) != CS_SUCCEED) {
-				tdsdump_log(TDS_DBG_INFO1, "%L blk_get_colData (column %d) failed\n", i + 1);
+				tdsdump_log(TDS_DBG_INFO1, "blk_get_colData (column %d) failed\n", i + 1);
 	 			return CS_FAIL;
 			}
-			tdsdump_log(TDS_DBG_INFO1, "%L gotten column %d length %d null %d\n",
+			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
 					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
 	
 			if (bindcol->bcp_column_data->null_column) {
@@ -1242,7 +1242,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 				}
 
 			}
-			tdsdump_log(TDS_DBG_INFO1, "%L old_record_size = %d new size = %d \n",
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
 					old_record_size, new_record_size);
 		}
 	}  /* IS_TDS7_PLUS */
@@ -1274,7 +1274,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 				record[0] = var_cols_written;
 			}
 
-			tdsdump_log(TDS_DBG_INFO1, "%L old_record_size = %d new size = %d \n",
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
 					old_record_size, row_size);
 
 			tds_put_smallint(tds, row_size);
@@ -1322,7 +1322,7 @@ _blk_add_fixed_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuff
 
 	int i, j;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L _blk_add_fixed_columns (offset %d)\n", offset);
+	tdsdump_log(TDS_DBG_FUNC, "_blk_add_fixed_columns (offset %d)\n", offset);
 
 	for (i = 0; i < blkdesc->bindinfo->num_cols; i++) {
 
@@ -1330,7 +1330,7 @@ _blk_add_fixed_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuff
 
 		if (!is_nullable_type(bcpcol->column_type) && !(bcpcol->column_nullable)) {
 
-			tdsdump_log(TDS_DBG_FUNC, "%L _blk_add_fixed_columns column %d is a fixed column\n", i + 1);
+			tdsdump_log(TDS_DBG_FUNC, "_blk_add_fixed_columns column %d is a fixed column\n", i + 1);
 
 			if (( _blk_get_col_data(blkdesc, bcpcol, offset)) != CS_SUCCEED) {
 		 		return CS_FAIL;
@@ -1396,7 +1396,7 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 	/* for each column in the target table */
 
-	tdsdump_log(TDS_DBG_FUNC, "%L _blk_add_variable_columns (offset %d)\n", offset);
+	tdsdump_log(TDS_DBG_FUNC, "_blk_add_variable_columns (offset %d)\n", offset);
 
 	for (i = 0; i < blkdesc->bindinfo->num_cols; i++) {
 
@@ -1409,7 +1409,7 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
-			tdsdump_log(TDS_DBG_FUNC, "%L _blk_add_variable_columns column %d is a variable column\n", i + 1);
+			tdsdump_log(TDS_DBG_FUNC, "_blk_add_variable_columns column %d is a variable column\n", i + 1);
 
 			if ((_blk_get_col_data(blkdesc, bcpcol, offset)) != CS_SUCCEED) {
 		 		return CS_FAIL;
@@ -1561,8 +1561,8 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 	
 		srctype = bindcol->column_bindtype; 		/* used to pass to cs_convert */
 
-		tdsdump_log(TDS_DBG_INFO1, "%L blk_get_col_data srctype = %d \n", srctype);
-		tdsdump_log(TDS_DBG_INFO1, "%L blk_get_col_data datalen = %d \n", *datalen);
+		tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d \n", srctype);
+		tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d \n", *datalen);
 	
 		if (*datalen) {
 			if (*datalen == CS_UNUSED) {
@@ -1607,7 +1607,7 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 			/* if convert return FAIL mark error but process other columns */
 			if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
 									&destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen) != CS_SUCCEED)) {
-				tdsdump_log(TDS_DBG_INFO1, "%L convert failed for %d \n", srcfmt.datatype);
+				tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
 				return CS_FAIL;
 			}
 		}

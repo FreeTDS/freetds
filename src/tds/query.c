@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.136 2004-05-12 19:12:56 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.137 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -935,7 +935,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 	if (flags & TDS_PUT_DATA_USE_NAME) {
 		len = curcol->column_namelen;
-		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting param_name \n");
+		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting param_name \n");
 
 		if (IS_TDS7_PLUS(tds)) {
 			int converted_param_len;
@@ -962,7 +962,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	 * bit 1 (2 as flag) in TDS7+ is "default value" bit 
 	 * (what's the meaning of "default value" ?) */
 
-	tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting status \n");
+	tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting status \n");
 	tds_put_byte(tds, curcol->column_output);	/* status (input) */
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_int(tds, curcol->column_usertype);	/* usertype */
@@ -995,7 +995,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
 	if (!IS_TDS7_PLUS(tds)) {
 
-		tdsdump_log(TDS_DBG_ERROR, "%L HERE! \n");
+		tdsdump_log(TDS_DBG_ERROR, "HERE! \n");
 		tds_put_byte(tds, 0x00);	/* locale info length */
 	}
 	return TDS_SUCCEED;
@@ -1015,7 +1015,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 #if ENABLE_EXTRA_CHECKS
 	if (IS_TDS7_PLUS(tds))
-		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
+		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info_length called with TDS7+\n");
 #endif
 
 	/* TODO ICONV convert string if needed (see also tds_put_data_info) */
@@ -1047,10 +1047,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	colsize = curcol->column_cur_size;
 	src = &(current_row[curcol->column_offset]);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
+	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
 
 	if (is_null) {
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
+		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: null param\n");
 		switch (curcol->column_varint_size) {
 		case 4:
 			tds_put_int(tds, -1);
@@ -1071,7 +1071,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		const char *s;
 		int converted = 0;
 
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n",
+		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: not null param varint_size = %d\n",
 			    curcol->column_varint_size);
 
 		if (is_blob_type(curcol->column_type)) {
@@ -1128,7 +1128,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 
 			num = (TDS_NUMERIC *) src;
 			memcpy(&buf, num, sizeof(buf));
-			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
 			/* TODO tds_get_conversion_type needed?? */
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
 			num = &buf;
@@ -1140,7 +1140,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			unsigned char buf[64];
 
 			if (tds->emul_little_endian && colsize < 64) {
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
@@ -1183,7 +1183,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			num = (TDS_NUMERIC *) src;
 			if (IS_TDS7_PLUS(tds)) {
 				memcpy(&buf, num, sizeof(buf));
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+				tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
 				num = &buf;
 			}
@@ -1197,7 +1197,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			unsigned char buf[64];
 
 			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, src, colsize);
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
@@ -1225,7 +1225,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	int id_len;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_execute()\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_submit_execute()\n");
 
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
@@ -1366,7 +1366,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (!dyn)
 		return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_unprepare() %s\n", dyn->id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_submit_unprepare() %s\n", dyn->id);
 
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
@@ -1604,14 +1604,14 @@ int
 tds_cursor_declare(TDSSOCKET * tds, int *something_to_send)
 {
 
-	tdsdump_log(TDS_DBG_ERROR, "%L tds_cursor_declare ()\n");
+	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare ()\n");
 
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
 		return TDS_FAIL;
 	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "%L tds_cursor_declare (): state is PENDING\n");
+		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
@@ -1629,7 +1629,7 @@ tds_cursor_declare(TDSSOCKET * tds, int *something_to_send)
 		/* length of the data stream that follows */
 		tds_put_smallint(tds, (6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
 
-		tdsdump_log(TDS_DBG_ERROR, "%L size = %d\n", (6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
+		tdsdump_log(TDS_DBG_ERROR, "size = %d\n", (6 + strlen(tds->cursor->cursor_name) + strlen(tds->cursor->query)));
 
 		tds_put_tinyint(tds, strlen(tds->cursor->cursor_name));
 		tds_put_n(tds, tds->cursor->cursor_name, strlen(tds->cursor->cursor_name));
@@ -1787,7 +1787,7 @@ tds_cursor_setrows(TDSSOCKET * tds, int *something_to_send)
 int
 tds_cursor_fetch(TDSSOCKET * tds)
 {
-	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_fetch ():\n");
+	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_fetch ():\n");
 
 	tds->queryStarttime = time(NULL);
 
@@ -1883,7 +1883,7 @@ int
 tds_cursor_close(TDSSOCKET * tds)
 {
 
-	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_close ():\n");
+	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_close ():\n");
 
 	tds->queryStarttime = time(NULL);
 
@@ -1949,7 +1949,7 @@ tds_cursor_dealloc(TDSSOCKET * tds)
 {
 	int res = TDS_SUCCEED;
 
-	tdsdump_log(TDS_DBG_ERROR, "%L inside tds_cursor_dealloc ():\n");
+	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_dealloc ():\n");
 
 	tds->queryStarttime = time(NULL);
 

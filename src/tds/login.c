@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.125 2004-07-18 17:30:13 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.126 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -256,18 +256,18 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* verify that ip_addr is not NULL */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
-		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
+		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is NULL\n");
 		if (connection->server_name) {
-			tdsdump_log(TDS_DBG_ERROR, "%L Server %s not found!\n", connection->server_name);
+			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));
 		} else {
-			tdsdump_log(TDS_DBG_ERROR, "%L No server specified!\n");
+			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 	sin.sin_addr.s_addr = inet_addr(tds_dstr_cstr(&connection->ip_addr));
 	if (sin.sin_addr.s_addr == INADDR_NONE) {
-		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", connection->ip_addr);
+		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", tds_dstr_cstr(&connection->ip_addr));
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
@@ -282,7 +282,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (!retval)
 		version[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), version);
+	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), version);
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
 		perror("socket");
 		tds_free_socket(tds);
@@ -841,7 +841,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
 		if (tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
 		    (size_t) - 1) {
-			tdsdump_log(TDS_DBG_INFO1, "%L password \"%s\" could not be converted to UCS-2\n", p);
+			tdsdump_log(TDS_DBG_INFO1, "password \"%s\" could not be converted to UCS-2\n", p);
 			assert(0);
 		}
 		password_len = punicode - unicode_string;

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.93 2004-06-28 05:24:56 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.94 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -147,15 +147,15 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		}
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
+	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
 	if (!tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name))) {
 		/* fallback to interfaces file */
-		tdsdump_log(TDS_DBG_INFO1, "%L Failed in reading conf file.  Trying interface files.\n");
+		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
 		tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection);
 	}
 
 	if (parse_server_name_for_port(connection, login)) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Parsed servername, now %s on %d.\n", connection->server_name, login->port);
+		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", tds_dstr_cstr(&connection->server_name), login->port);
 	}
 
 	tds_fix_connection(connection);
@@ -191,13 +191,13 @@ tds_try_conf_file(const char *path, const char *how, const char *server, TDSCONN
 	FILE *in;
 
 	if ((in = fopen(path, "r")) != NULL) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Found conf file '%s' %s. Reading section '%s'.\n", path, how, server);
+		tdsdump_log(TDS_DBG_INFO1, "Found conf file '%s' %s. Reading section '%s'.\n", path, how, server);
 		found = tds_read_conf_sections(in, server, connection);
 
 		if (found) {
-			tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
+			tdsdump_log(TDS_DBG_INFO1, "...Success.\n");
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...'%s' not found.\n", server);
+			tdsdump_log(TDS_DBG_INFO2, "...'%s' not found.\n", server);
 		}
 
 		fclose(in);
@@ -248,7 +248,7 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 		if (path) {
 			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, connection);
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDSCONF not set.  Trying $FREETDS/etc.\n");
+			tdsdump_log(TDS_DBG_INFO2, "...$FREETDSCONF not set.  Trying $FREETDS/etc.\n");
 		}
 	}
 
@@ -264,7 +264,7 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 			found = tds_try_conf_file(path, "(from $FREETDS)", server, connection);
 #endif
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDS not set.  Trying $HOME.\n");
+			tdsdump_log(TDS_DBG_INFO2, "...$FREETDS not set.  Trying $HOME.\n");
 		}
 	}
 
@@ -274,7 +274,7 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, connection);
 			free(path);
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...Error getting ~/.freetds.conf.  Trying %s.\n", FREETDS_SYSCONFFILE);
+			tdsdump_log(TDS_DBG_INFO2, "...Error getting ~/.freetds.conf.  Trying %s.\n", FREETDS_SYSCONFFILE);
 		}
 	}
 
@@ -297,10 +297,10 @@ static int
 tds_config_boolean(const char *value)
 {
 	if (!strcmp(value, "yes") || !strcmp(value, "on") || !strcmp(value, "true") || !strcmp(value, "1")) {
-		tdsdump_log(TDS_DBG_INFO1, "%L %s is a 'yes/on/true'.\n", value);
+		tdsdump_log(TDS_DBG_INFO1, "%s is a 'yes/on/true'.\n", value);
 		return 1;
 	} else {
-		tdsdump_log(TDS_DBG_INFO1, "%L %s is a 'no/off/false'.\n", value);
+		tdsdump_log(TDS_DBG_INFO1, "%s is a 'no/off/false'.\n", value);
 		return 0;
 	}
 }
@@ -322,7 +322,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 	int insection = 0;
 	int found = 0;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Looking for section %s.\n", section);
+	tdsdump_log(TDS_DBG_INFO1, "Looking for section %s.\n", section);
 	while (fgets(line, 256, in)) {
 		s = line;
 
@@ -379,10 +379,10 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 				*s = tolower((unsigned char) *s);
 				s++;
 			}
-			tdsdump_log(TDS_DBG_INFO1, "%L ... Found section %s.\n", &option[1]);
+			tdsdump_log(TDS_DBG_INFO1, "... Found section %s.\n", &option[1]);
 
 			if (!strcasecmp(section, &option[1])) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Got a match.\n");
+				tdsdump_log(TDS_DBG_INFO1, "Got a match.\n");
 				insection = 1;
 				found = 1;
 			} else {
@@ -402,7 +402,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	TDSCONNECTION *connection = (TDSCONNECTION *) param;
 	char tmp[256];
 
-	tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
+	tdsdump_log(TDS_DBG_INFO1, "option = '%s' value = '%s'.\n", option, value);
 
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, connection);
@@ -433,10 +433,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			connection->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n", value);
+		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s.\n", value);
 		tds_lookup_host(value, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);
-		tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n", connection->ip_addr);
+		tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_dstr_cstr(&connection->ip_addr));
 	} else if (!strcmp(option, TDS_STR_PORT)) {
 		if (atoi(value))
 			connection->port = atoi(value);
@@ -447,10 +447,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			connection->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
 		tds_dstr_copy(&connection->server_charset, value);
-		tdsdump_log(TDS_DBG_INFO1, "%L %s is %s.\n", option, connection->server_charset);
+		tdsdump_log(TDS_DBG_INFO1, "%s is %s.\n", option, tds_dstr_cstr(&connection->server_charset));
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
 		tds_dstr_copy(&connection->client_charset, value);
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, option, connection->client_charset);
+		tdsdump_log(TDS_DBG_INFO1, "tds_config_login:%d: %s is %s.\n", __LINE__, option, tds_dstr_cstr(&connection->client_charset));
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		tds_dstr_copy(&connection->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
@@ -480,8 +480,8 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	}
 	if (!tds_dstr_isempty(&login->client_charset)) {
 		tds_dstr_copy(&connection->client_charset, tds_dstr_cstr(&login->client_charset));
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset",
-			    connection->client_charset);
+		tdsdump_log(TDS_DBG_INFO1, "tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset",
+			    tds_dstr_cstr(&connection->client_charset));
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
 		tds_dstr_copy(&connection->host_name, tds_dstr_cstr(&login->host_name));
@@ -543,12 +543,12 @@ tds_config_env_tdsquery(TDSCONNECTION * connection)
 
 	if ((s = getenv("TDSQUERY")) != NULL && s[0]) {
 		tds_dstr_copy(&connection->server_name, s);
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n", s);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $TDSQUERY.\n", s);
 		return;
 	}
 	if ((s = getenv("DSQUERY")) != NULL && s[0]) {
 		tds_dstr_copy(&connection->server_name, s);
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n", s);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $DSQUERY.\n", s);
 	}
 }
 static void
@@ -570,7 +570,7 @@ tds_config_env_tdsdump(TDSCONNECTION * connection)
 		} else {
 			tds_dstr_copy(&connection->dump_file, s);
 		}
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'dump_file' to '%s' from $TDSDUMP.\n", connection->dump_file);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&connection->dump_file));
 	}
 }
 static void
@@ -580,7 +580,7 @@ tds_config_env_tdsport(TDSCONNECTION * connection)
 
 	if ((s = getenv("TDSPORT"))) {
 		connection->port = atoi(s);
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'port' to %s from $TDSPORT.\n", s);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'port' to %s from $TDSPORT.\n", s);
 	}
 	return;
 }
@@ -591,7 +591,7 @@ tds_config_env_tdsver(TDSCONNECTION * connection)
 
 	if ((tdsver = getenv("TDSVER"))) {
 		tds_config_verstr(tdsver, connection);
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tdsver' to %s from $TDSVER.\n", tdsver);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'tdsver' to %s from $TDSVER.\n", tdsver);
 
 	}
 	return;
@@ -607,7 +607,7 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
 	if ((tdshost = getenv("TDSHOST"))) {
 		tds_lookup_host(tdshost, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
 
 	}
 	return;
@@ -787,7 +787,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 	tmp_port[0] = '\0';
 	tmp_ver[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s.\n", dir, file);
+	tdsdump_log(TDS_DBG_INFO1, "Searching interfaces file %s/%s.\n", dir, file);
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
 	if (!pathname)
 		return 0;
@@ -812,11 +812,11 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 	 * *  parse the interfaces file and find the server and port
 	 */
 	if ((in = fopen(pathname, "r")) == NULL) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Couldn't open %s.\n", pathname);
+		tdsdump_log(TDS_DBG_INFO1, "Couldn't open %s.\n", pathname);
 		free(pathname);
 		return 0;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "%L Interfaces file %s opened.\n", pathname);
+	tdsdump_log(TDS_DBG_INFO1, "Interfaces file %s opened.\n", pathname);
 
 	while (fgets(line, sizeof(line) - 1, in)) {
 		if (line[0] == '#')
@@ -826,7 +826,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (!strcmp(field, host)) {
 				found = 1;
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n", host);
+				tdsdump_log(TDS_DBG_INFO1, "Found matching entry for host %s.\n", host);
 			} else
 				found = 0;
 		} else if (found && TDS_ISSPACE(line[0])) {
@@ -834,7 +834,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 			if (field != NULL && !strcmp(field, "query")) {
 				field = strtok_r(NULL, "\n\t ", &lasts);	/* tcp or tli */
 				if (!strcmp(field, "tli")) {
-					tdsdump_log(TDS_DBG_INFO1, "%L TLI service.\n");
+					tdsdump_log(TDS_DBG_INFO1, "TLI service.\n");
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* tcp */
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* device */
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* host/port */
@@ -842,14 +842,14 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 						sprintf(tmp_port, "%d", hex2num(&field[6]) * 256 + hex2num(&field[8]));
 						sprintf(tmp_ip, "%d.%d.%d.%d", hex2num(&field[10]),
 							hex2num(&field[12]), hex2num(&field[14]), hex2num(&field[16]));
-						tdsdump_log(TDS_DBG_INFO1, "%L tmp_port = %d.mtp_ip = %s.\n", tmp_port, tmp_ip);
+						tdsdump_log(TDS_DBG_INFO1, "tmp_port = %s. tmp_ip = %s.\n", tmp_port, tmp_ip);
 					}
 				} else {
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* ether */
 					strcpy(tmp_ver, field);
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* host */
 					strcpy(tmp_ip, field);
-					tdsdump_log(TDS_DBG_INFO1, "%L host field %s.\n", tmp_ip);
+					tdsdump_log(TDS_DBG_INFO1, "host field %s.\n", tmp_ip);
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* port */
 					strcpy(tmp_port, field);
 				}	/* else */
@@ -866,7 +866,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 	 */
 	if (server_found) {
 		tds_lookup_host(tmp_ip, line);
-		tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n", line);
+		tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n", line);
 		tds_dstr_copy(&connection->ip_addr, line);
 		if (tmp_port[0])
 			connection->port = tds_lookup_port(tmp_port);
@@ -895,16 +895,16 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		if (!server || strlen(server) == 0) {
 			server = "SYBASE";
 		}
-		tdsdump_log(TDS_DBG_INFO1, "%L Setting server to %s from $TDSQUERY.\n", server);
+		tdsdump_log(TDS_DBG_INFO1, "Setting server to %s from $TDSQUERY.\n", server);
 
 	}
-	tdsdump_log(TDS_DBG_INFO1, "%L Looking for server %s....\n", server);
+	tdsdump_log(TDS_DBG_INFO1, "Looking for server %s....\n", server);
 
 	/*
 	 * Look for the server in the interf_file iff interf_file has been set.
 	 */
 	if (interf_file) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in file %s.\n", interf_file);
+		tdsdump_log(TDS_DBG_INFO1, "Looking for server in file %s.\n", interf_file);
 		founded = search_interface_file(connection, "", interf_file, server);
 	}
 
@@ -915,7 +915,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		char *path = tds_get_home_file(".interfaces");
 
 		if (path) {
-			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s.\n", path);
+			tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s.\n", path);
 			founded = search_interface_file(connection, "", path, server);
 			free(path);
 		}
@@ -933,7 +933,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 #else
 			sybase = "c:\\";
 #endif
-		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
+		tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s/interfaces.\n", sybase);
 		founded = search_interface_file(connection, sybase, "interfaces", server);
 	}
 
@@ -969,9 +969,9 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		}
 		if ((env_port = getenv("TDSPORT")) != NULL) {
 			ip_port = tds_lookup_port(env_port);
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_port' to %s from $TDSPORT.\n", env_port);
+			tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_port' to %s from $TDSPORT.\n", env_port);
 		} else
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_port' to %d as a guess.\n", ip_port);
+			tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_port' to %d as a guess.\n", ip_port);
 
 		/*
 		 * lookup the host

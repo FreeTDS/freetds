@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.31 2004-07-15 07:28:38 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32 2004-07-29 10:22:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -115,7 +115,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	(*rpc)->param_list = (DBREMOTE_PROC_PARAM *) NULL;
 
 	/* completed */
-	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcinit() added rpcname \"%s\"\n", rpcname);
+	tdsdump_log(TDS_DBG_INFO1, "dbrpcinit() added rpcname \"%s\"\n", rpcname);
 
 	return SUCCEED;
 }
@@ -164,13 +164,13 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	 */
 	if (is_char_type(type)) {
 		if (maxlen < 0 || datalen < 0) {
-			tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam(): variable-length type %d, maxlen=%d, datalen=%d\n", 
+			tdsdump_log(TDS_DBG_INFO1, "dbrpcparam(): variable-length type %d, maxlen=%d, datalen=%d\n", 
 							type, maxlen, datalen);
 			return FAIL;
 		}
 	} else {
 		if (maxlen != -1 || datalen > 0) {
-			tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam(): fixed-length type %d, maxlen=%d, datalen=%d\n", 
+			tdsdump_log(TDS_DBG_INFO1, "dbrpcparam(): fixed-length type %d, maxlen=%d, datalen=%d\n", 
 							type, maxlen, datalen);
 			return FAIL;
 		}
@@ -213,7 +213,7 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 
 	*pparam = param;	/* add to the end of the list */
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam() added parameter \"%s\"\n", (paramname) ? paramname : "");
+	tdsdump_log(TDS_DBG_INFO1, "dbrpcparam() added parameter \"%s\"\n", (paramname) ? paramname : "");
 
 	return SUCCEED;
 }
@@ -235,7 +235,7 @@ dbrpcsend(DBPROCESS * dbproc)
 	dbproc->dbresults_state = DBRESINIT;
 
 	/* FIXME do stuff */
-	tdsdump_log(TDS_DBG_FUNC, "%L dbrpcsend()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend()\n");
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;
@@ -316,7 +316,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		tds_set_param_type(tds, pcol, p->type);
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0) {
-				tdsdump_log(TDS_DBG_FUNC, "%L param_info_alloc(): p->maxlen is %d"
+				tdsdump_log(TDS_DBG_FUNC, "param_info_alloc(): p->maxlen is %d"
 							     "parameters of variable-size datatypes "
 							     "require a non-negative input length\n", p->maxlen);
 				tds_free_param_results(params);

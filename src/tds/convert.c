@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.140 2004-05-19 13:11:39 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.141 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1183,7 +1183,7 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 	TDS_INT8 mymoney, dollars;
 	char tmpstr[64];
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_convert_money()\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_convert_money()\n");
 #if defined(WORDS_BIGENDIAN) || !defined(HAVE_INT64)
 	memcpy(&mymoney, src, sizeof(TDS_INT8));
 #else
@@ -2653,7 +2653,7 @@ store_time(char *datestr, struct tds_time *t)
 		t->tm_sec = seconds;
 	else
 		ret = 0;
-	tdsdump_log(TDS_DBG_FUNC, "%L store_time() millisecs = %d\n", millisecs);
+	tdsdump_log(TDS_DBG_FUNC, "store_time() millisecs = %d\n", millisecs);
 	if (millisecs) {
 		if (millisecs >= 0 && millisecs < 1000) {
 			if (last_sep == ':')
@@ -2904,11 +2904,11 @@ tds_willconvert(int srctype, int desttype)
 	};
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_willconvert()\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert()\n");
 
 	for (i = 0; i < sizeof(answers) / sizeof(ANSWER); i++) {
 		if (srctype == answers[i].srctype && desttype == answers[i].desttype) {
-			tdsdump_log(TDS_DBG_FUNC, "%L tds_willconvert() %d %d %d\n", answers[i].srctype, answers[i].desttype,
+			tdsdump_log(TDS_DBG_FUNC, "tds_willconvert() %d %d %d\n", answers[i].srctype, answers[i].desttype,
 				    answers[i].yn);
 			return answers[i].yn;
 		}

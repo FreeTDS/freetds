@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.88 2004-05-27 14:50:06 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.89 2004-07-29 10:22:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -123,7 +123,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if( retcode < 0 ) {
 				if (sock_errno != TDSSOCK_EINTR) {
 					char *msg = strerror(sock_errno);
-					tdsdump_log(TDS_DBG_NETWORK, "%L goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
+					tdsdump_log(TDS_DBG_NETWORK, "goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
 					return -1;
 				}
 				goto OK_TIMEOUT;
@@ -139,7 +139,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 			if (len < 0) {
 				char *msg = strerror(sock_errno);
-				tdsdump_log(TDS_DBG_NETWORK, "%L goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
+				tdsdump_log(TDS_DBG_NETWORK, "goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
 				
 				switch (sock_errno) {
 				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
@@ -549,7 +549,7 @@ tds_read_packet(TDSSOCKET * tds)
 		}
 		return -1;
 	}
-	tdsdump_log(TDS_DBG_NETWORK, "Received header @ %L\n%D\n", header, sizeof(header));
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received header", header, sizeof(header));
 
 #if 0
 	/*
@@ -643,7 +643,7 @@ tds_read_packet(TDSSOCKET * tds)
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = have;
 	tds->in_pos = 0;
-	tdsdump_log(TDS_DBG_NETWORK, "Received packet @ %L\n%D\n", tds->in_buf, tds->in_len);
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return (tds->in_len);
 }
@@ -687,15 +687,15 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTIO
 		bufp = temp; /* always convert from start of buffer */
 		suppress->einval = *wire_size > 0; /* EINVAL matters only on the last chunk. */
 		if ((size_t)-1 == tds_iconv(tds, char_conv, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
-			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
+			tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: tds_iconv returned errno %d\n", errno);
 			if (errno != EILSEQ) {
-				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "
+				tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: "
 							     "Gave up converting %d bytes due to error %d.\n", bufleft, errno);
-				tdsdump_log(TDS_DBG_NETWORK, "\tTroublesome bytes:\n\t%D\n", bufp, bufleft);
+				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes:", bufp, bufleft);
 			}
 
 			if (bufp == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
-				tdsdump_log(TDS_DBG_NETWORK, "%L No conversion possible: draining remaining %d bytes.\n", *wire_size);
+				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: draining remaining %d bytes.\n", *wire_size);
 				tds_get_n(tds, NULL, *wire_size); /* perhaps we should read unconverted data into outbuf? */
 				*wire_size = 0;
 				break;

@@ -35,7 +35,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char software_version[] = "$Id: config.c,v 1.11 2003-12-09 10:19:17 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.12 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -162,7 +162,7 @@ pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 				s++;
 			}
 			if (!strcmp(section, &option[1])) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching section\n");
+				tdsdump_log(TDS_DBG_INFO1, "Found matching section\n");
 				insection = 1;
 				found = 1;
 			} else {

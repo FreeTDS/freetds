@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.113 2004-07-26 14:39:43 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.114 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -337,18 +337,18 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 
 	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
 	for (col = 0; col < num_cols; col++) {
 		TEST_MALLOC(info->columns[col], TDSCOLUMN);
 		memset(info->columns[col], '\0', sizeof(TDSCOLUMN));
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 2\n");
 
 	if (by_cols) {
 		TEST_CALLOC(info->bycolumns, TDS_TINYINT, by_cols);
-		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
+		tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}
 
@@ -370,8 +370,8 @@ tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int 
 	TDSCOMPUTEINFO **comp_info;
 	TDSCOMPUTEINFO *cur_comp_info;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
 	cur_comp_info = tds_alloc_compute_result(num_cols, by_cols);
 	if (!cur_comp_info)
@@ -391,7 +391,7 @@ tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int 
 	comp_info[n] = cur_comp_info;
 	*num_comp_results = n + 1;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
 	return comp_info;
 }
@@ -511,7 +511,7 @@ tds_free_results(TDSRESULTINFO * res_info)
 void
 tds_free_all_results(TDSSOCKET * tds)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_free_all_results()\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_all_results()\n");
 	tds_free_results(tds->res_info);
 	tds->res_info = NULL;
 	tds_free_param_results(tds->param_info);

@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.47 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: util.c,v 1.48 2004-07-29 10:22:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -243,19 +243,22 @@ tdsdump_close(void)
 
 /**
  * Dump the contents of data into the log file in a human readable format.
+ * \param msg      message to print before dump
  * \param buf      buffer to dump
  * \param length   number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(const void *buf, int length)
+tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
 {
 	int i;
 	int j;
 	const int bytesPerLine = 16;
 	const unsigned char *data = (const unsigned char *) buf;
 
-	if (!write_dump || !dumpfile)
+	if (debug_lvl > tds_g_debug_lvl || !write_dump || !dumpfile)
 		return;
+
+	tdsdump_log(debug_lvl, "%s\n", msg);
 
 	for (i = 0; i < length; i += bytesPerLine) {
 		/*
@@ -297,25 +300,14 @@ tdsdump_dump_buf(const void *buf, int length)
 
 
 /**
- * This function write a message to the debug log.  fmt is a printf-like
- *       format string.  It recognizes the following format characters:
- *          d     The next argument is printed as a decimal number
- *          x     The next argument is printed as a hexadecimal number
- *          u     The next argument is printed as an unsigned decimal number
- *          p     The pid of the running process
- *          s     The next argument is printed as a character string
- *          L     This doesn't consume any arguments, it simply
- *                prints the current local time.
- *          D     This dumps a buffer in hexadecimal and ascii.
- *                The next argument is a pointer to the buffer
- *                and the argument after that is the number 
- *                of bytes in the buffer.
- *
+ * This function write a message to the debug log.  
+ * \param debug_lvl level of debugging
+ * \param fmt       printf-like format string
  */
 void
 tdsdump_log(int debug_lvl, const char *fmt, ...)
 {
-	const char *ptr;
+	char buf[128];
 	va_list ap;
 
 	if (debug_lvl > tds_g_debug_lvl || !write_dump)
@@ -332,65 +324,12 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 	if (tds_g_append_mode)
 		fprintf(dumpfile, "pid: %d:", (int) getpid());
 
-	for (ptr = fmt; *ptr != '\0'; ptr++) {
-		if (*ptr != '%') {
-			fputc(*ptr, dumpfile);
-			continue;
-		}
+	/* write always time before log */
+	fputs(tds_timestamp_str(buf, 127), dumpfile);
+	fputc(' ', dumpfile);
 
-		ptr++;
-		switch (*ptr) {
-		case 's':
-			{
-				char *s = va_arg(ap, char *);
-
-				if (s)
-					fputs(s, dumpfile);
-				else
-					fputs("(null)", dumpfile);
-				break;
-			}
-		case 'd':
-			{
-				int i = va_arg(ap, int);
-
-				fprintf(dumpfile, "%d", i);
-				break;
-			}
-		case 'u':
-			{
-				int i = va_arg(ap, int);
-
-				fprintf(dumpfile, "%u", i);
-				break;
-			}
-		case 'x':
-			{
-				int i = va_arg(ap, int);
-
-				fprintf(dumpfile, "%x", i);
-				break;
-			}
-		case 'D':
-			{
-				char *buf = va_arg(ap, char *);
-				int len = va_arg(ap, int);
-
-				tdsdump_dump_buf(buf, len);
-				break;
-			}
-		case 'L':	/* current local time */
-			{
-				char buf[128];
-
-				fputs(tds_timestamp_str(buf, 127), dumpfile);
-				break;
-			}
-		case '%':
-			fputc('%', dumpfile);
-			break;
-		}
-	}
+	vfprintf(dumpfile, fmt, ap);
+	va_end(ap);
 
 	fflush(dumpfile);
 

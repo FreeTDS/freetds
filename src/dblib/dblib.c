@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.182 2004-07-03 18:15:01 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.183 2004-07-29 10:22:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -524,7 +524,7 @@ dbinit(void)
 
 	g_dblib_ctx.connection_list = (TDSSOCKET **) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
 	if (g_dblib_ctx.connection_list == NULL) {
-		tdsdump_log(TDS_DBG_FUNC, "%L dbinit: out of memory\n");
+		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
 		return FAIL;
 	}
 	g_dblib_ctx.connection_list_size = TDS_MAX_CONN;
@@ -632,7 +632,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		break;
 	case DBSETHID:
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlname() which = %d\n", which);
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlname() which = %d\n", which);
 		return FAIL;
 		break;
 	}
@@ -657,7 +657,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 		return SUCCEED;
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetllong() which = %d\n", which);
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetllong() which = %d\n", which);
 		return FAIL;
 		break;
 	}
@@ -679,7 +679,7 @@ dbsetlshort(LOGINREC * login, int value, int which)
 	switch (which) {
 	case DBSETHIER:
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlshort() which = %d\n", which);
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlshort() which = %d\n", which);
 		return FAIL;
 		break;
 	}
@@ -707,7 +707,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 	case DBSETENCRYPT:
 	case DBSETLABELED:
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlbool() which = %d\n", which);
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlbool() which = %d\n", which);
 		return FAIL;
 		break;
 
@@ -999,7 +999,7 @@ tdsdbopen(LOGINREC * login, char *server)
 		const int len = snprintf(temp_filename, sizeof(temp_filename), "%s.%d", 
 					 g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
 		if (len == sizeof(temp_filename) - 1) {
-			tdsdump_log(TDS_DBG_FUNC, "%L dbopen(): filename '%s' truncated to '%s'\n", 
+			tdsdump_log(TDS_DBG_FUNC, "dbopen(): filename '%s' truncated to '%s'\n", 
 				    temp_filename, g_dblib_ctx.recftos_filename);
 		}
 		assert(len != 0);
@@ -1068,7 +1068,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 
 	dbproc->avail_flag = FALSE;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbcmd() bufsz = %d\n", dbproc->dbbufsz);
+	tdsdump_log(TDS_DBG_FUNC, "dbcmd() bufsz = %d\n", dbproc->dbbufsz);
 	if (dbproc->command_state == DBCMDSENT) {
 		if (!dbproc->noautofree) {
 			dbfreebuf(dbproc);
@@ -1118,7 +1118,7 @@ dbsqlexec(DBPROCESS * dbproc)
 	if (dbproc == NULL) {
 		return FAIL;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlexec()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbsqlexec()\n");
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (IS_TDSDEAD(tds))
@@ -1150,7 +1150,7 @@ dbsqlexec(DBPROCESS * dbproc)
 RETCODE
 dbuse(DBPROCESS * dbproc, char *name)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L dbuse()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbuse()\n");
 	/* FIXME quote name if needed */
 	if ((dbproc == NULL)
 	    || (dbfcmd(dbproc, "use %s", name) == FAIL)
@@ -1287,7 +1287,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 	int result_type;
 	int done, done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbresults_r()\n");
 	if (dbproc == NULL)
 		return FAIL;
 	buffer_clear(&(dbproc->row_buf));
@@ -1300,13 +1300,13 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 
 	if (dbproc->dbresults_state & DBRESCMDS) {
 		dbproc->dbresults_state &= ~DBRESCMDS;
-		tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r: cleared DBRESCMDS; dbproc->dbresults_state=%d \n",
+		tdsdump_log(TDS_DBG_FUNC, "dbresults_r: cleared DBRESCMDS; dbproc->dbresults_state=%d \n",
 			    dbproc->dbresults_state);
 		return dbproc->dbresults_retcode;
 	}
 
 	while (!done && (retcode = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
-		tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
+		tdsdump_log(TDS_DBG_FUNC, "dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			dbproc->dbresults_state = DBRESINIT;
@@ -1385,12 +1385,12 @@ dbresults(DBPROCESS * dbproc)
 {
 	RETCODE rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbresults()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbresults()\n");
 	if (dbproc == NULL)
 		return FAIL;
 
 	rc = dbresults_r(dbproc, 0);
-	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbresults() returning %d\n", rc);
+	tdsdump_log(TDS_DBG_FUNC, "leaving dbresults() returning %d\n", rc);
 	return rc;
 }
 
@@ -1502,20 +1502,20 @@ dbnextrow(DBPROCESS * dbproc)
 	TDS_INT computeid;
 	TDS_INT ret;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbnextrow()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbnextrow()\n");
 
 	if (dbproc == NULL)
 		return FAIL;
 		
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (IS_TDSDEAD(tds)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", FAIL);
+		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", FAIL);
 		return FAIL;
 	}
 
 	resinfo = tds->res_info;
 	if (!resinfo) {
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", NO_MORE_ROWS);
+		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", NO_MORE_ROWS);
 		return dbproc->row_type = NO_MORE_ROWS;
 	}
 
@@ -1567,7 +1567,7 @@ dbnextrow(DBPROCESS * dbproc)
 		}
 	}
 	
-	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", result);
+	tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", result);
 	return result;
 } /* dbnextrow()  */
 
@@ -1678,7 +1678,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	int len;
 	DBNUMERIC *num;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert(%d [%s] len %d => %d [%s] len %d)\n", 
+	tdsdump_log(TDS_DBG_INFO1, "dbconvert(%d [%s] len %d => %d [%s] len %d)\n", 
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 
 	if (dbproc) {
@@ -1709,7 +1709,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	if (srctype == desttype) {
 		ret = -2;  /* to make sure we always set it */
-		tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() srctype == desttype\n");
+		tdsdump_log(TDS_DBG_INFO1, "dbconvert() srctype == desttype\n");
 		switch (desttype) {
 
 		case SYBBINARY:
@@ -1817,10 +1817,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			dres.n.scale = num->scale;
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() calling tds_convert\n");
+	tdsdump_log(TDS_DBG_INFO1, "dbconvert() calling tds_convert\n");
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() called tds_convert returned %d\n", len);
+	tdsdump_log(TDS_DBG_INFO1, "dbconvert() called tds_convert returned %d\n", len);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -1920,7 +1920,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
-		tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() outputting %d bytes character data destlen = %d \n", len, destlen);
+		tdsdump_log(TDS_DBG_INFO1, "dbconvert() outputting %d bytes character data destlen = %d \n", len, destlen);
 
 		if (destlen < -2)
 			destlen = 0;	/* failure condition */
@@ -1964,7 +1964,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO1, "%L error: dbconvert(): unrecognized desttype %d \n", desttype);
+		tdsdump_log(TDS_DBG_INFO1, "error: dbconvert(): unrecognized desttype %d \n", desttype);
 		ret = -1;
 		break;
 
@@ -2040,7 +2040,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 	int okay = TRUE;	/* so far, so good */
 	TDS_SMALLINT num_cols = 0;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbbind() column = %d %d %d\n", column, vartype, varlen);
+	tdsdump_log(TDS_DBG_INFO1, "dbbind() column = %d %d %d\n", column, vartype, varlen);
 	dbproc->avail_flag = FALSE;
 	/* 
 	 * Note on logic-  I'm using a boolean variable 'okay' to tell me if
@@ -2072,7 +2072,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 		srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 		desttype = _db_get_server_type(vartype);
 
-		tdsdump_log(TDS_DBG_INFO1, "%L dbbind() srctype = %d desttype = %d \n", srctype, desttype);
+		tdsdump_log(TDS_DBG_INFO1, "dbbind() srctype = %d desttype = %d \n", srctype, desttype);
 
 		okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
 	}
@@ -2169,18 +2169,18 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 	int i;
 
 	compute_id = computeid;
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbanullbind(%d,%d)\n", compute_id, column);
+	tdsdump_log(TDS_DBG_FUNC, "in dbanullbind(%d,%d)\n", compute_id, column);
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbanullbind() num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_FUNC, "in dbanullbind() num_comp_info = %d\n", tds->num_comp_info);
 	for (i = 0;; ++i) {
 		if (i >= tds->num_comp_info)
 			return FAIL;
 		info = tds->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "%L in dbanullbind() found computeid = %d\n", info->computeid);
+		tdsdump_log(TDS_DBG_FUNC, "in dbanullbind() found computeid = %d\n", info->computeid);
 		if (info->computeid == compute_id)
 			break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbanullbind() num_cols = %d\n", info->num_cols);
+	tdsdump_log(TDS_DBG_FUNC, "in dbanullbind() num_cols = %d\n", info->num_cols);
 
 	if (column < 1 || column > info->num_cols)
 		return FAIL;
@@ -2502,13 +2502,13 @@ dbdatlen(DBPROCESS * dbproc, int column)
 	if (column < 1 || column > resinfo->num_cols)
 		return -1;
 	colinfo = resinfo->columns[column - 1];
-	tdsdump_log(TDS_DBG_INFO1, "%L dbdatlen() type = %d\n", colinfo->column_type);
+	tdsdump_log(TDS_DBG_INFO1, "dbdatlen() type = %d\n", colinfo->column_type);
 
 	if (tds_get_null(resinfo->current_row, column - 1))
 		ret = 0;
 	else
 		ret = colinfo->column_cur_size;
-	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n", ret);
+	tdsdump_log(TDS_DBG_FUNC, "leaving dbdatlen() returning %d\n", ret);
 	return ret;
 }
 
@@ -2791,7 +2791,7 @@ dbprrow(DBPROCESS * dbproc)
 			}
 
 			num_cols = dbnumalts(dbproc, computeid);
-			tdsdump_log(TDS_DBG_FUNC, "%L dbprrow num compute cols = %d\n", num_cols);
+			tdsdump_log(TDS_DBG_FUNC, "dbprrow num compute cols = %d\n", num_cols);
 
 			i = 0;
 			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].optparam, i)) != -1) {
@@ -2799,7 +2799,7 @@ dbprrow(DBPROCESS * dbproc)
 				i++;
 			}
 			for (selcol = col = 1; col <= num_cols; col++) {
-				tdsdump_log(TDS_DBG_FUNC, "%L dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
+				tdsdump_log(TDS_DBG_FUNC, "dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
 				colid = dbaltcolid(dbproc, computeid, col);
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
@@ -2832,7 +2832,7 @@ dbprrow(DBPROCESS * dbproc)
 			}
 
 			for (selcol = col = 1; col <= num_cols; col++) {
-				tdsdump_log(TDS_DBG_FUNC, "%L dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
+				tdsdump_log(TDS_DBG_FUNC, "dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
 				colid = dbaltcolid(dbproc, computeid, col);
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
@@ -2880,9 +2880,9 @@ dbprrow(DBPROCESS * dbproc)
 							(BYTE *) dest, sizeof(dest));
 				}
 
-				tdsdump_log(TDS_DBG_FUNC, "%L dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
+				tdsdump_log(TDS_DBG_FUNC, "dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
 				colid = dbaltcolid(dbproc, computeid, col);
-				tdsdump_log(TDS_DBG_FUNC, "%L dbprrow select column = %d\n", colid);
+				tdsdump_log(TDS_DBG_FUNC, "dbprrow select column = %d\n", colid);
 
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
@@ -3194,7 +3194,7 @@ dbrows(DBPROCESS * dbproc)
 RETCODE
 dbsetdeflang(char *language)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdeflang()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetdeflang()\n");
 	return SUCCEED;
 }
 
@@ -3232,7 +3232,7 @@ dbsetmaxprocs(int maxprocs)
 	int i;
 	TDSSOCKET **old_list = g_dblib_ctx.connection_list;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNTESTED dbsetmaxprocs()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNTESTED dbsetmaxprocs()\n");
 	/*
 	 * Don't reallocate less memory.  
 	 * If maxprocs is less than was initially allocated, just reduce the represented list size.  
@@ -3286,7 +3286,7 @@ dbgetmaxprocs(void)
 RETCODE
 dbsettime(int seconds)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsettime()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsettime()\n");
 	g_dblib_query_timeout = seconds;
 	return SUCCEED;
 }
@@ -3346,18 +3346,18 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 	int i;
 
 	compute_id = computeid;
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltcolid(%d,%d)\n", compute_id, column);
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid(%d,%d)\n", compute_id, column);
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltcolid() num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() num_comp_info = %d\n", tds->num_comp_info);
 	for (i = 0;; ++i) {
 		if (i >= tds->num_comp_info)
 			return -1;
 		info = tds->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "%L in dbaltcolid() found computeid = %d\n", info->computeid);
+		tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() found computeid = %d\n", info->computeid);
 		if (info->computeid == compute_id)
 			break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltcolid() num_cols = %d\n", info->num_cols);
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() num_cols = %d\n", info->num_cols);
 
 	if (column < 1 || column > info->num_cols)
 		return -1;
@@ -3390,7 +3390,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 	int i;
 	DBINT ret;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbadlen()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbadlen()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -3406,13 +3406,13 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 		return -1;
 
 	colinfo = info->columns[column - 1];
-	tdsdump_log(TDS_DBG_INFO1, "%L dbadlen() type = %d\n", colinfo->column_type);
+	tdsdump_log(TDS_DBG_INFO1, "dbadlen() type = %d\n", colinfo->column_type);
 
 	if (tds_get_null(info->current_row, column - 1))
 		ret = 0;
 	else
 		ret = colinfo->column_cur_size;
-	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbadlen() returning %d\n", ret);
+	tdsdump_log(TDS_DBG_FUNC, "leaving dbadlen() returning %d\n", ret);
 
 	return ret;
 
@@ -3438,7 +3438,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbalttype()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbalttype()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -3518,7 +3518,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 	int desttype = -1;
 	int i;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbaltbind() compteid %d column = %d %d %d\n", computeid, column, vartype, varlen);
+	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() compteid %d column = %d %d %d\n", computeid, column, vartype, varlen);
 
 	dbproc->avail_flag = FALSE;
 
@@ -3544,7 +3544,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	desttype = _db_get_server_type(vartype);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
+	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
 
 	if (!dbwillconvert(srctype, _db_get_server_type(vartype)))
 		goto Failed;
@@ -3579,7 +3579,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbadata()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbadata()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -3629,7 +3629,7 @@ dbaltop(DBPROCESS * dbproc, int computeid, int column)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltop()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltop()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -3756,7 +3756,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	default:
 		break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetopt(option = %d)\n", option);
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetopt(option = %d)\n", option);
 	return FAIL;
 }
 
@@ -3833,7 +3833,7 @@ dbnumrets(DBPROCESS * dbproc)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbnumrets() finds %d columns\n", (tds->param_info? tds->param_info->num_cols : 0));
+	tdsdump_log(TDS_DBG_FUNC, "dbnumrets() finds %d columns\n", (tds->param_info? tds->param_info->num_cols : 0));
 
 	/* try to fetch output parameters and return status, if we have not already done so */
 	if (!tds->param_info) 
@@ -3947,7 +3947,7 @@ dbsqlok(DBPROCESS * dbproc)
 	int done = 0, done_flags;
 	TDS_INT result_type;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlok() \n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbsqlok() \n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
 	/* dbsqlok has been called after dbmoretext() */
@@ -3966,13 +3966,13 @@ dbsqlok(DBPROCESS * dbproc)
 
 	while (!done) {
 		marker = tds_peek(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %x\n", marker);
+		tdsdump_log(TDS_DBG_FUNC, "dbsqlok() marker is %x\n", marker);
 
 		/* If we hit a result token, then we know  */
 		/* everything is fine with the command...  */
 
 		if (is_result_token(marker)) {
-			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
+			tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 			return SUCCEED;
 		}
 
@@ -3996,16 +3996,16 @@ dbsqlok(DBPROCESS * dbproc)
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
 			case TDS_COMPUTEFMT_RESULT:
-				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
+				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 				return SUCCEED;
 				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
 				if (done_flags & TDS_DONE_ERROR) {
-					tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
+					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was error\n");
 					return FAIL;
 				} else {
-					tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was success\n");
+					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was success\n");
 					return SUCCEED;
 				}
 				break;
@@ -4087,7 +4087,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbbylist() \n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbbylist() \n");
 
 	compute_id = computeid;
 
@@ -4174,7 +4174,7 @@ dbmsghandle(MHANDLEFUNC handler)
 RETCODE
 dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyadd()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyadd()\n");
 	return SUCCEED;
 }
 
@@ -4193,7 +4193,7 @@ dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 RETCODE
 dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnysyb()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnysyb()\n");
 	return SUCCEED;
 }
 
@@ -4212,7 +4212,7 @@ dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 RETCODE
 dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymul()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymul()\n");
 	return SUCCEED;
 }
 
@@ -4231,7 +4231,7 @@ dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 RETCODE
 dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydivide()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
 
@@ -4282,7 +4282,7 @@ dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2)
 RETCODE
 dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyscale()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
 
@@ -4320,7 +4320,7 @@ dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
 RETCODE
 dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymaxpos()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymaxpos()\n");
 	return SUCCEED;
 }
 
@@ -4337,7 +4337,7 @@ dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
 RETCODE
 dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymaxneg()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymaxneg()\n");
 	return SUCCEED;
 }
 
@@ -4357,7 +4357,7 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 RETCODE
 dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyndigit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyndigit()\n");
 	return SUCCEED;
 }
 
@@ -4376,7 +4376,7 @@ dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 RETCODE
 dbmnyinit(DBPROCESS * dbproc, DBMONEY * amount, int trim, DBBOOL * negative)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyinit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyinit()\n");
 	return SUCCEED;
 }
 
@@ -4395,7 +4395,7 @@ dbmnyinit(DBPROCESS * dbproc, DBMONEY * amount, int trim, DBBOOL * negative)
 RETCODE
 dbmnydown(DBPROCESS * dbproc, DBMONEY * amount, int divisor, int *remainder)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydown()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydown()\n");
 	return SUCCEED;
 }
 
@@ -4412,7 +4412,7 @@ dbmnydown(DBPROCESS * dbproc, DBMONEY * amount, int divisor, int *remainder)
 RETCODE
 dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyinc()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyinc()\n");
 	return SUCCEED;
 }
 
@@ -4429,7 +4429,7 @@ dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
 RETCODE
 dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydec()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydec()\n");
 	return SUCCEED;
 }
 
@@ -4448,7 +4448,7 @@ dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
 RETCODE
 dbmnyminus(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyminus()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyminus()\n");
 	return SUCCEED;
 }
 
@@ -4571,7 +4571,7 @@ dbmny4mul(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * prod)
 	if ((m1 == NULL) || (m2 == NULL) || (prod == NULL)) {
 		return FAIL;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4mul()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmny4mul()\n");
 	return FAIL;
 }
 
@@ -4595,7 +4595,7 @@ dbmny4divide(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * quotie
 	if ((m1 == NULL) || (m2 == NULL) || (quotient == NULL)) {
 		return FAIL;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4divide()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmny4divide()\n");
 	return FAIL;
 }
 
@@ -4738,7 +4738,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 void
 dbrpwclr(LOGINREC * login)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwclr()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbrpwclr()\n");
 }
 
 /**
@@ -4756,7 +4756,7 @@ dbrpwclr(LOGINREC * login)
 RETCODE
 dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwset()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbrpwset()\n");
 	return SUCCEED;
 }
 
@@ -4898,7 +4898,7 @@ dbcanquery(DBPROCESS * dbproc)
 void
 dbfreebuf(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbfreebuf()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbfreebuf()\n");
 	if (dbproc->dbbuf) {
 		free(dbproc->dbbuf);
 		dbproc->dbbuf = NULL;
@@ -4961,7 +4961,7 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
 	default:
 		break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbclropt(option = %d)\n", option);
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbclropt(option = %d)\n", option);
 	return FAIL;
 }
 
@@ -4996,7 +4996,7 @@ dbisopt(DBPROCESS * dbproc, int option, char *param)
 DBINT
 dbcurrow(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcurrow()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbcurrow()\n");
 	return 0;
 }
 
@@ -5025,7 +5025,7 @@ dbrowtype(DBPROCESS * dbproc)
 int
 dbcurcmd(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcurcmd()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbcurcmd()\n");
 	return 0;
 }
 
@@ -5042,7 +5042,7 @@ dbmorecmds(DBPROCESS * dbproc)
 	RETCODE rc;
 
 	if (dbproc->tds_socket->res_info == NULL || dbproc->tds_socket->res_info->more_results == 0) {
-		tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds: more_results == 0; returns FAIL\n");
+		tdsdump_log(TDS_DBG_FUNC, "dbmorecmds: more_results == 0; returns FAIL\n");
 		return FAIL;
 	}
 	/*
@@ -5056,9 +5056,9 @@ dbmorecmds(DBPROCESS * dbproc)
 	dbproc->dbresults_state |= DBRESCMDS;
 	dbproc->dbresults_retcode = rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds: dbresults_state=%x, dbresults_retcode=%d\n", dbproc->dbresults_state,
+	tdsdump_log(TDS_DBG_FUNC, "dbmorecmds: dbresults_state=%x, dbresults_retcode=%d\n", dbproc->dbresults_state,
 		    dbproc->dbresults_retcode);
-	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds() returns %s\n", (rc == SUCCEED) ? "SUCCEED" : "FAIL");
+	tdsdump_log(TDS_DBG_FUNC, "dbmorecmds() returns %s\n", (rc == SUCCEED) ? "SUCCEED" : "FAIL");
 
 	return (rc == SUCCEED) ? SUCCEED : FAIL;
 }
@@ -5114,7 +5114,7 @@ dbstrlen(DBPROCESS * dbproc)
 char *
 dbgetchar(DBPROCESS * dbproc, int pos)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbgetchar() bufsz = %d, pos = %d\n", dbproc->dbbufsz, pos);
+	tdsdump_log(TDS_DBG_FUNC, "in dbgetchar() bufsz = %d, pos = %d\n", dbproc->dbbufsz, pos);
 	if (dbproc->dbbufsz > 0) {
 		if (pos >= 0 && pos < dbproc->dbbufsz)
 			return (char *) &dbproc->dbbuf[pos];
@@ -5542,7 +5542,7 @@ dbversion()
 RETCODE
 dbsetdefcharset(char *charset)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdefcharset()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetdefcharset()\n");
 	return SUCCEED;
 }
 
@@ -5559,7 +5559,7 @@ dbsetdefcharset(char *charset)
 RETCODE
 dbreginit(DBPROCESS * dbproc, DBCHAR * procedure_name, DBSMALLINT namelen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbreginit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbreginit()\n");
 	return SUCCEED;
 }
 
@@ -5574,7 +5574,7 @@ dbreginit(DBPROCESS * dbproc, DBCHAR * procedure_name, DBSMALLINT namelen)
 RETCODE
 dbreglist(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbreglist()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbreglist()\n");
 	return SUCCEED;
 }
 
@@ -5593,7 +5593,7 @@ dbreglist(DBPROCESS * dbproc)
 RETCODE
 dbregparam(DBPROCESS * dbproc, char *param_name, int type, DBINT datalen, BYTE * data)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbregparam()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbregparam()\n");
 	return SUCCEED;
 }
 
@@ -5609,7 +5609,7 @@ dbregparam(DBPROCESS * dbproc, char *param_name, int type, DBINT datalen, BYTE *
 RETCODE
 dbregexec(DBPROCESS * dbproc, DBUSMALLINT options)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbregexec()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbregexec()\n");
 	return SUCCEED;
 }
 
@@ -5707,7 +5707,7 @@ dbsqlsend(DBPROCESS * dbproc)
 	dbproc->envchange_rcv = 0;
 	dbproc->dbresults_state = DBRESINIT;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlsend()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbsqlsend()\n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
 	if (tds->state == TDS_PENDING) {
@@ -5769,7 +5769,7 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltutype()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltutype()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -5806,7 +5806,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 	TDS_SMALLINT compute_id;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbaltlen()\n");
+	tdsdump_log(TDS_DBG_FUNC, "in dbaltlen()\n");
 	compute_id = computeid;
 
 	for (i = 0;; ++i) {
@@ -5851,7 +5851,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 RETCODE
 dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbpoll()\n");
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbpoll()\n");
 	return SUCCEED;
 }
 
@@ -6131,7 +6131,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
     int limited_dest_space = 0;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
+	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 
 	if (dbproc) {
@@ -6152,7 +6152,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	if ((srctype == desttype) ||
 		(is_similar_type(srctype, desttype))) {
 
-		tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() srctype == desttype\n");
+		tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() srctype == desttype\n");
 		switch (desttype) {
 
 		case SYBBINARY:
@@ -6274,7 +6274,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	}
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-	tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() called tds_convert returned %d\n", len);
+	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() called tds_convert returned %d\n", len);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -6359,7 +6359,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
-		tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() outputting %d bytes character data destlen = %d \n", len, destlen);
+		tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() outputting %d bytes character data destlen = %d \n", len, destlen);
 		switch (bindtype) {
 			case NTBSTRINGBIND: /* strip trailing blanks, null term */
 				while (len && dres.c[len - 1] == ' ') {
@@ -6418,7 +6418,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		free(dres.c);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO1, "%L error: dbconvert(): unrecognized desttype %d \n", desttype);
+		tdsdump_log(TDS_DBG_INFO1, "error: dbconvert(): unrecognized desttype %d \n", desttype);
 		break;
 
 	}

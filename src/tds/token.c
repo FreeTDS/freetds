@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.260 2004-07-03 18:14:29 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.261 2004-07-29 10:22:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -99,10 +99,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	int done_flags;
 	TDS_INT ret_status;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
 
 	if (IS_TDSDEAD(tds)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_default_tokens() connection dead\n");
+		tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_default_tokens() connection dead\n");
 		tds->state = TDS_DEAD;
 		return TDS_FAIL;
 	}
@@ -129,7 +129,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 			break;
 		tds->has_status = 1;
 		tds->ret_status = ret_status;
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens: return status is %d\n", tds->ret_status);
+		tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens: return status is %d\n", tds->ret_status);
 		break;
 	case TDS_ERROR_TOKEN:
 	case TDS_INFO_TOKEN:
@@ -176,7 +176,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds7_process_result(tds);
 		break;
 	case TDS_OPTIONCMD_TOKEN:
-		tdsdump_log(TDS_DBG_FUNC, "%L option command token encountered\n");
+		tdsdump_log(TDS_DBG_FUNC, "option command token encountered\n");
 		break;
 	case TDS_RESULT_TOKEN:
 		return tds_process_result(tds);
@@ -214,14 +214,14 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
-		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "%s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_COLINFO_TOKEN:
 		return tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "%s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default:
@@ -306,11 +306,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	unsigned char ack;
 	TDS_UINT product_version;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_login_tokens()\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
 	/* get_incoming(tds->s); */
 	do {
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L looking for login token, got  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, _tds_token_name(marker));
 
 		switch (marker) {
 		case TDS_AUTH_TOKEN:
@@ -375,11 +375,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	tds->spid = tds->rows_affected;
 	if (tds->spid == 0) {
 		if (tds_set_spid(tds) != TDS_SUCCEED) {
-			tdsdump_log(TDS_DBG_ERROR, "%L tds_set_spid() failed\n");
+			tdsdump_log(TDS_DBG_ERROR, "tds_set_spid() failed\n");
 			succeed = TDS_FAIL;
 		}
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_login_tokens() returning %d\n", succeed);
+	tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_login_tokens() returning %d\n", succeed);
 	if (memrc != 0)
 		succeed = TDS_FAIL;
 	return succeed;
@@ -414,8 +414,7 @@ tds_process_auth(TDSSOCKET * tds)
 	/* TODO use them */
 	tds_get_n(tds, NULL, 4);	/* flags */
 	tds_get_n(tds, nonce, 8);
-	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce\n");
-	tdsdump_dump_buf(nonce, 8);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
 	where = 32;
 
 	/*
@@ -428,7 +427,7 @@ tds_process_auth(TDSSOCKET * tds)
 		return TDS_FAIL;
 	/* discard context, target and data informations */
 	tds_get_n(tds, NULL, pdu_size - where);
-	tdsdump_log(TDS_DBG_INFO1, "%L Draining %d bytes\n", pdu_size - where);
+	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", pdu_size - where);
 
 	tds7_send_auth(tds, nonce);
 
@@ -494,7 +493,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	TDS_INT ret_status;
 
 	if (tds->state == TDS_IDLE) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens() state is COMPLETED\n");
+		tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() state is COMPLETED\n");
 		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
 	}
@@ -503,7 +502,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	for (;;) {
 
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_INFO1, "processing result tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
 
 		switch (marker) {
 		case TDS7_RESULT_TOKEN:
@@ -588,13 +587,13 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
 			if (tds->internal_sp_called) {
-				tdsdump_log(TDS_DBG_FUNC, "%L processing parameters for sp %d\n", tds->internal_sp_called);
+				tdsdump_log(TDS_DBG_FUNC, "processing parameters for sp %d\n", tds->internal_sp_called);
 				while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
-					tdsdump_log(TDS_DBG_INFO1, "%L calling tds_process_param_result\n");
+					tdsdump_log(TDS_DBG_INFO1, "calling tds_process_param_result\n");
 					tds_process_param_result(tds, &pinfo);
 				}
 				tds_unget_byte(tds);
-				tdsdump_log(TDS_DBG_FUNC, "%L no of hidden return parameters %d\n", pinfo->num_cols);
+				tdsdump_log(TDS_DBG_FUNC, "no of hidden return parameters %d\n", pinfo->num_cols);
 				if(tds->internal_sp_called == TDS_SP_CURSOROPEN) {
 					curcol = pinfo->columns[0];
 					tds->cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
@@ -649,7 +648,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds->has_status = 1;
 				tds->ret_status = ret_status;
 				*result_type = TDS_STATUS_RESULT;
-				tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens: return status is %d\n", tds->ret_status);
+				tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens: return status is %d\n", tds->ret_status);
 				return TDS_SUCCEED;
 			}
 			break;
@@ -774,14 +773,14 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 		return TDS_FAIL;
 	if (tds->state == TDS_IDLE) {
 		*rowtype = TDS_NO_MORE_ROWS;
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_row_tokens() state is COMPLETED\n");
+		tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_ROWS;
 	}
 
 	while (1) {
 
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_INFO1, "processing row tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
 
 		switch (marker) {
 		case TDS_RESULT_TOKEN:
@@ -852,12 +851,12 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 	int marker;
 	int done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_trailing_tokens() \n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_trailing_tokens() \n");
 
 	while (tds->state != TDS_IDLE) {
 
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_INFO1, "%L processing trailing tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_INFO1, "processing trailing tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
 		switch (marker) {
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
@@ -1111,7 +1110,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
 		tds_set_column_type(curcol, tds_get_byte(tds));
 
-		tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n",
+		tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 			    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
 		switch (curcol->column_varint_size) {
@@ -1293,7 +1292,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	compute_id = tds_get_smallint(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. compute_id = %d\n", compute_id);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. compute_id = %d\n", compute_id);
 
 	/* number of compute columns returned - so */
 	/* COMPUTE SUM(x), AVG(x)... would return  */
@@ -1305,15 +1304,15 @@ tds_process_compute_result(TDSSOCKET * tds)
 		if (i >= tds->num_comp_info)
 			return TDS_FAIL;
 		info = tds->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "%L in dbaltcolid() found computeid = %d\n", info->computeid);
+		tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() found computeid = %d\n", info->computeid);
 		if (info->computeid == compute_id)
 			break;
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. num_cols = %d\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_cols = %d\n", num_cols);
 
 	for (col = 0; col < num_cols; col++) {
-		tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
+		tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 2\n");
 		curcol = info->columns[col];
 
 		curcol->column_operator = tds_get_byte(tds);
@@ -1345,7 +1344,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		case 0:
 			break;
 		}
-		tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
+		tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
@@ -1361,7 +1360,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	by_cols = tds_get_byte(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds compute result. by_cols = %d\n", by_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result. by_cols = %d\n", by_cols);
 
 	if (by_cols) {
 		if ((info->bycolumns = (TDS_TINYINT *) malloc(by_cols)) == NULL)
@@ -1451,7 +1450,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: \n"
+	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info:%d: \n"
 		    "\tcolname = %s (%d bytes)\n"
 		    "\ttype = %d (%s)\n"
 		    "\tserver's type = %d (%s)\n"
@@ -1486,7 +1485,7 @@ tds7_process_result(TDSSOCKET * tds)
 	/* This can be a DUMMY results token from a cursor fetch */
 
 	if (num_cols == -1) {
-		tdsdump_log(TDS_DBG_INFO1, "%L processing TDS7 result. no meta data\n");
+		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. no meta data\n");
 		return TDS_SUCCEED;
 	}
 
@@ -1544,7 +1543,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	curcol->column_usertype = tds_get_int(tds);
 	tds_set_column_type(curcol, tds_get_byte(tds));
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n",
+	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
@@ -1564,7 +1563,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	case 0:
 		break;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
+	tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
 
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
@@ -1649,7 +1648,7 @@ tds5_process_result(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L tds5_process_result\n");
+	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result\n");
 
 	/*
 	 * free previous resultset
@@ -1668,7 +1667,7 @@ tds5_process_result(TDSSOCKET * tds)
 		return TDS_FAIL;
 	info = tds->res_info;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L num_cols=%d\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "num_cols=%d\n", num_cols);
 
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
@@ -1746,7 +1745,7 @@ tds5_process_result(TDSSOCKET * tds)
 					tds_get_n(tds, NULL, namelen);
 
 			} else
-				tdsdump_log(TDS_DBG_INFO1, "%L UNHANDLED TYPE %x\n", curcol->column_type);
+				tdsdump_log(TDS_DBG_INFO1, "UNHANDLED TYPE %x\n", curcol->column_type);
 			break;
 		case 5:
 			curcol->column_size = tds_get_int(tds);
@@ -1780,16 +1779,16 @@ tds5_process_result(TDSSOCKET * tds)
 		/* 
 		 *  Dump all information on this column
 		 */
-		tdsdump_log(TDS_DBG_INFO1, "%L col %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_label=[%s]\n", curcol->column_name);
-/*		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_name=[%s]\n", curcol->column_colname);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tcatalog=[%s] schema=[%s] table=[%s]\n",
+		tdsdump_log(TDS_DBG_INFO1, "col %d:\n", col);
+		tdsdump_log(TDS_DBG_INFO1, "tcolumn_label=[%s]\n", curcol->column_name);
+/*		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
+		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
 			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
 */
-		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d\n",
+		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
 			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
 
-		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
+		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
 	if ((info->current_row = tds_alloc_row(info)) != NULL)
@@ -1847,7 +1846,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	int fillchar;
 	TDSBLOB *blob = NULL;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
+	tdsdump_log(TDS_DBG_INFO1, "processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
 		/* TODO finish 
@@ -1907,7 +1906,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column size is %d \n", colsize);
+	tdsdump_log(TDS_DBG_INFO1, "processing row.  column size is %d \n", colsize);
 	/* set NULL flag in the row buffer */
 	if (colsize == 0) {
 		tds_set_null(current_row, i);
@@ -1946,7 +1945,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		/* corrected colsize for column_cur_size */
 		colsize = sizeof(TDS_NUMERIC);
 		if (IS_TDS7_PLUS(tds)) {
-			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) num);
 		}
 		curcol->column_cur_size = colsize;
@@ -2030,7 +2029,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		}
 
 		if (curcol->column_type == SYBDATETIME4) {
-			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
+			tdsdump_log(TDS_DBG_INFO1, "datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}
 	}
 
@@ -2060,7 +2059,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		memcpy(&dest[colsize / 2], temp_buf, colsize / 2);
 	}
 	if (tds->emul_little_endian && !is_numeric_type(curcol->column_type)) {
-		tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
 	}
 #endif
@@ -2116,7 +2115,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	done_count_valid = (tmp & TDS_DONE_COUNT) != 0;
 
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end: more_results = %d\n"
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_end: more_results = %d\n"
 		    "\t\twas_cancelled = %d\n"
 		    "\t\terror = %d\n"
 		    "\t\tdone_count_valid = %d\n", more_results, was_cancelled, error, done_count_valid);
@@ -2132,7 +2131,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		*flags_parm = tmp;
 
 	if (was_cancelled || !(more_results)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() state set to TDS_IDLE\n");
+		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
 		tds->state = TDS_IDLE;
 	}
 
@@ -2214,7 +2213,7 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 #endif
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgnum, msg_text, tds ? (int)tds->state : -1);
+	tdsdump_log(TDS_DBG_FUNC, "tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgnum, msg_text, tds ? (int)tds->state : -1);
 
 	return 0;
 }
@@ -2284,7 +2283,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	case TDS_ENV_PACKSIZE:
 		new_block_size = atoi(newval);
 		if (new_block_size > tds->env->block_size) {
-			tdsdump_log(TDS_DBG_INFO1, "%L increasing block size from %s to %d\n", oldval, new_block_size);
+			tdsdump_log(TDS_DBG_INFO1, "increasing block size from %s to %d\n", oldval, new_block_size);
 			/* 
 			 * I'm not aware of any way to shrink the 
 			 * block size but if it is possible, we don't 
@@ -2454,7 +2453,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg);
 		} else if (msg.msg_number) {
 			tdsdump_log(TDS_DBG_WARN,
-				    "%L Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+				    "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
 				    msg.msg_number,
 				    msg.msg_level,
 				    msg.msg_state, msg.server, msg.line_number, msg.message);
@@ -2539,7 +2538,7 @@ tds_set_null(unsigned char *current_row, int column)
 	int bit = ((unsigned int) column) % 8u;
 	unsigned char mask = 1 << bit;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L setting column %d NULL bit\n", column);
+	tdsdump_log(TDS_DBG_INFO1, "setting column %d NULL bit\n", column);
 	current_row[bytenum] |= mask;
 }
 
@@ -2553,7 +2552,7 @@ tds_clr_null(unsigned char *current_row, int column)
 	int bit = ((unsigned int) column) % 8u;
 	unsigned char mask = ~(1 << bit);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L clearing column %d NULL bit\n", column);
+	tdsdump_log(TDS_DBG_INFO1, "clearing column %d NULL bit\n", column);
 	current_row[bytenum] &= mask;
 }
 
@@ -2731,7 +2730,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name,
 						       sizeof(curcol->table_name) - 1);
 			} else
-				tdsdump_log(TDS_DBG_INFO1, "%L UNHANDLED TYPE %x\n", curcol->column_type);
+				tdsdump_log(TDS_DBG_INFO1, "UNHANDLED TYPE %x\n", curcol->column_type);
 			break;
 		case 2:
 			curcol->column_size = tds_get_smallint(tds);
@@ -2758,11 +2757,11 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 
 		tds_add_row_column_size(info, curcol);
 
-		tdsdump_log(TDS_DBG_INFO1, "%L elem %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_name=[%s]\n", curcol->column_name);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d\n",
+		tdsdump_log(TDS_DBG_INFO1, "elem %d:\n", col);
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
 			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
+		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
 
@@ -2916,7 +2915,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 	remainder = hdrsize;
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds5 compute names. remainder = %d\n", remainder);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
 
 	/* compute statement id which this relates */
 	/* to. You can have more than one compute  */
@@ -2952,15 +2951,15 @@ tds_process_compute_names(TDSSOCKET * tds)
 		}
 		curptr->namelen = namelen;
 		num_cols++;
-		tdsdump_log(TDS_DBG_INFO1, "%L processing tds5 compute names. remainder = %d\n", remainder);
+		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds5 compute names. num_cols = %d\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_cols = %d\n", num_cols);
 
 	if ((tds->comp_info = tds_alloc_compute_results(&(tds->num_comp_info), tds->comp_info, num_cols, 0)) == NULL)
 		memrc = -1;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
 
 	info = tds->comp_info[tds->num_comp_info - 1];
 	tds->curr_resinfo = info;
@@ -3012,7 +3011,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 	num_cols = tds_get_smallint(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. num_cols = %d\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_cols = %d\n", num_cols);
 
 	/* compute statement id which this relates */
 	/* to. You can have more than one compute  */
@@ -3020,23 +3019,23 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 	compute_id = tds_get_smallint(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. compute_id = %d\n", compute_id);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. compute_id = %d\n", compute_id);
 	/* number of "by" columns in compute - so  */
 	/* COMPUTE SUM(x) BY a, b, c would return  */
 	/* by_cols = 3                             */
 
 	by_cols = tds_get_byte(tds);
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. by_cols = %d\n", by_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. by_cols = %d\n", by_cols);
 
 	if ((tds->comp_info = tds_alloc_compute_results(&(tds->num_comp_info), tds->comp_info, num_cols, by_cols)) == NULL)
 		return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_comp_info = %d\n", tds->num_comp_info);
 
 	info = tds->comp_info[tds->num_comp_info - 1];
 	tds->curr_resinfo = info;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 0\n");
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 0\n");
 
 	info->computeid = compute_id;
 
@@ -3049,10 +3048,10 @@ tds7_process_compute_result(TDSSOCKET * tds)
 		*cur_by_col = tds_get_smallint(tds);
 		cur_by_col++;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 1\n");
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 1\n");
 
 	for (col = 0; col < num_cols; col++) {
-		tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
+		tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 2\n");
 		curcol = info->columns[col];
 
 		curcol->column_operator = tds_get_byte(tds);
@@ -3069,7 +3068,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
-	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 5 \n");
+	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 5 \n");
 	if ((info->current_row = tds_alloc_compute_row(info)) != NULL)
 		return TDS_SUCCEED;
 	else
@@ -3125,7 +3124,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 
 	TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L entering %s::tds_send_optioncmd() \n", __FILE__);
+	tdsdump_log(TDS_DBG_INFO1, "entering %s::tds_send_optioncmd() \n", __FILE__);
 
 	assert(IS_TDS50(tds));
 	assert(ptds_argument);
@@ -3147,7 +3146,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		tds_put_string(tds, ptds_argument->c, argsize);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_send_optioncmd: failed: argsize is %d.\n", *ptds_argsize);
+		tdsdump_log(TDS_DBG_INFO1, "tds_send_optioncmd: failed: argsize is %d.\n", *ptds_argsize);
 		return -1;
 	}
 
@@ -3407,7 +3406,7 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->on_server.column_size = curcol->column_size;
 	curcol->column_size = determine_adjusted_size(curcol->char_conv, curcol->column_size);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L adjust_character_column_size:\n"
+	tdsdump_log(TDS_DBG_INFO1, "adjust_character_column_size:\n"
 				   "\tServer charset: %s\n"
 				   "\tServer column_size: %d\n"
 				   "\tClient charset: %s\n"

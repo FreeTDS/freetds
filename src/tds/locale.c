@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: locale.c,v 1.20 2003-05-19 09:25:04 freddy77 Exp $";
+static char software_version[] = "$Id: locale.c,v 1.21 2004-07-29 10:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -60,7 +60,7 @@ tds_get_locale(void)
 	if (!locale)
 		return NULL;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read locales.conf file\n");
+	tdsdump_log(TDS_DBG_INFO1, "Attempting to read locales.conf file\n");
 
 	in = fopen(FREETDS_LOCALECONFFILE, "r");
 	if (in) {
