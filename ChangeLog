@@ -1,3 +1,7 @@
+Sun Sep 29 15:05:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/Makefile.am src/dblib/Makefile.am src/tds/Makefile.am:
+	- correct version info
+
 Sun Sep 29 14:49:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am src/tds/challenge.c:
 	- use md4 included in distribution
