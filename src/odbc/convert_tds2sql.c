@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.6 2002-08-18 12:50:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.7 2002-08-30 20:11:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -102,6 +102,12 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
 
         nDestSybType = _odbc_get_server_type( desttype );
 
+	if (is_numeric_type(nDestSybType)) {
+		ores.n.precision = 18;
+		ores.n.scale = 0;
+	}
+			
+
         if ( nDestSybType != TDS_FAIL )
         {
             nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, destlen, &ores);
@@ -148,7 +154,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              dsp = (DATE_STRUCT *) dest;
 
              dsp->year  = dr.year;
-             dsp->month = dr.month;
+             dsp->month = dr.month + 1;
              dsp->day   = dr.day;
 
              ret = sizeof(DATE_STRUCT);
@@ -180,7 +186,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              tssp = (TIMESTAMP_STRUCT *) dest;
 
              tssp->year     = dr.year;
-             tssp->month    = dr.month;
+             tssp->month    = dr.month + 1;
              tssp->day      = dr.day;
              tssp->hour     = dr.hour;
              tssp->minute   = dr.minute;

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.44 2002-08-30 18:47:02 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.45 2002-08-30 20:11:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -931,6 +931,7 @@ CONV_RESULT dres;
 DBINT       ret;
 int         i;
 int         len;
+DBNUMERIC   *num;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() srctype = %d desttype = %d\n",srctype, desttype);
 
@@ -1038,9 +1039,24 @@ int         len;
                break;
 
        }
+       return ret;
     }          /* srctype == desttype */
 
 
+    	/* FIXME what happen if client do not reset values ??? */
+	/* FIXME act differently for ms and sybase */
+	if (is_numeric_type(desttype)) {
+		num = (DBNUMERIC *)dest;
+		if ( num->precision == 0 )
+			dres.n.precision = 18;
+		else
+			dres.n.precision = num->precision;
+		if ( num->scale == 0 )
+			dres.n.scale = 0;
+		else
+			dres.n.scale = num->scale;
+	}
+		
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
 
 	len = tds_convert (g_dblib_ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, 
@@ -1060,10 +1076,9 @@ int         len;
              } else {
                 memcpy(dest, dres.ib, len);
                 free(dres.ib);
-                /* else { */
-                   for ( i = len ; i < destlen; i++ )
-                       dest[i] = '\0';
-                   ret = destlen;
+		for ( i = len ; i < destlen; i++ )
+			dest[i] = '\0';
+		ret = destlen;
              }
              break;
         case SYBINT1:
@@ -1116,7 +1131,7 @@ int         len;
         case SYBVARCHAR:
         case SYBTEXT:
 
-	         tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting character data destlen = %d \n", destlen);
+	         tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting %d bytes character data destlen = %d \n", len, destlen);
              if (destlen == 0 || destlen < -2) {
                 ret = FAIL;
              }
@@ -1153,6 +1168,41 @@ int         len;
 
      }
      return(ret);
+}
+
+DBINT dbconvert_ps(DBPROCESS *dbproc,
+	int srctype,
+	BYTE *src,
+	DBINT srclen,
+	int desttype,
+	BYTE *dest,
+	DBINT destlen,
+	DBTYPEINFO *typeinfo)
+{
+DBNUMERIC *s;
+DBNUMERIC *d;
+
+	if (is_numeric_type(desttype)) {
+		if (typeinfo == (DBTYPEINFO *) NULL ) {
+			if (is_numeric_type(srctype)) {
+				s = (DBNUMERIC *)src;
+				d = (DBNUMERIC *)dest;
+				d->precision = s->precision;
+				d->scale     = s->scale;
+			} else {
+				d = (DBNUMERIC *)dest;
+				d->precision = 18;
+				d->scale     = 0;
+			}
+		} else {
+			d = (DBNUMERIC *)dest;
+			d->precision = typeinfo->precision;
+			d->scale     = typeinfo->scale;
+		}
+	}
+
+	return dbconvert(dbproc, srctype, src, srclen,
+			desttype, dest, destlen);
 }
 
 RETCODE dbbind(
@@ -2095,10 +2145,10 @@ TDSDATEREC dr;
 	di->datemsecond = dr.millisecond;
 #else
 	di->year        = dr.year;
-	di->month       = dr.month;
+	di->month       = dr.month + 1;
 	di->day         = dr.day;
 	di->dayofyear   = dr.dayofyear;
-	di->weekday     = dr.weekday;
+	di->weekday     = dr.weekday + 1;
 	di->hour        = dr.hour;
 	di->minute      = dr.minute;
 	di->second      = dr.second;

@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.8 2002-08-02 03:13:00 brianb Exp $";
+         "$Id: cspublic.h,v 1.9 2002-08-30 20:11:21 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -102,6 +102,9 @@ typedef struct cs_command
 #define CS_OBJ_NAME 132 /* ? */
 #define CS_TP_SIZE  16  /* ? */
 #define CS_TS_SIZE  16  /* ? */
+
+
+#define CS_SRC_VALUE   -999
 
 typedef struct cs_datafmt {
 	int datatype;

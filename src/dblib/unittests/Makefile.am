@@ -26,3 +26,5 @@ t0021_SOURCES	=	t0021.c
 LIBS		=	../libsybdb.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
 include_HEADERS =       common.h
+EXTRA_DIST	=	t0016.in
+

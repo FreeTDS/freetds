@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.14 2002-08-18 12:50:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.15 2002-08-30 20:11:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -217,6 +217,17 @@ CS_RETCODE ret;
 
     }  /* src type == dest type */
 
+
+	/* set the output precision/scale for conversions to numeric type */
+	if (is_numeric_type(desttype)) {
+		cres.n.precision = destfmt->precision;
+		cres.n.scale     = destfmt->scale;
+		if (cres.n.precision == CS_SRC_VALUE)
+			cres.n.precision = srcfmt->precision;
+		if (cres.n.scale == CS_SRC_VALUE)
+			cres.n.scale = srcfmt->scale;
+	}
+    
     tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() calling tds_convert\n");
     len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, destlen, &cres);
 

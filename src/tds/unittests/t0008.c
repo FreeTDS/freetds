@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: t0008.c,v 1.3 2002-08-27 09:52:04 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.4 2002-08-30 20:11:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int g_result = 0;
@@ -75,12 +75,10 @@ int main()
 		strcat(long_test,"1234567890");
 	test(long_test,"error",18,0);
 
-	/* return only precision 18 scale 0
-	test("123456789012345678901234567890","prec=38 scale=0 00 D2 0A 3F 4E EE E0 73 C3 F6 0F E9 8E 01 00 00 00",38,0);
+	test("123456789012345678901234567890","prec=38 scale=0 00 00 00 00 01 8E E9 0F F6 C3 73 E0 EE 4E 3F 0A D2",38,0);
 	test("1234567890123456789012345678901234567890123456789012345678901234567890","error",38,0);
-	test("99999999999999999999999999999999999999","prec=38 scale=0 00 FF FF FF FF 3F 22 8A 09 7A C4 86 5A A8 4C 3B 4B",38,0);
+	test("99999999999999999999999999999999999999","prec=38 scale=0 00 4B 3B 4C A8 5A 86 C4 7A 09 8A 22 3F FF FF FF FF",38,0);
 	test("100000000000000000000000000000000000000","error",38,0);
-	*/
 
 	return g_result;
 }

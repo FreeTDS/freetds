@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.64 2002-08-30 14:16:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.65 2002-08-30 20:11:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -160,65 +160,15 @@ int len = strlen(s);
 
 
 
+/* TODO implement me */
+/*
 static TDS_INT 
 tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
       int desttype,TDS_UINT destlen, CONV_RESULT *cr)
 {
-      /* FIX */
-      /* 
-       * XXX Limit of 255 + 1 needs to be fixed by determining what the 
-       *     real limit of [N][VAR]CHAR columns is.
-       * XXX What about NCHAR?  Don't see a constant for it in tds.h.
-       * XXX Case for -1 in switch statement because upper levels don't
-       *     have a way to bind to wide-character types.
-       */
-      TDS_UINT i, cplen, char_limit = 256;
-      utf16_t* wsrc  = (utf16_t*)src;
-      utf16_t* wdest; 
-/*
-      utf16_t* wdest = (utf16_t*)dest;
-*/
-
-      /* TODO implement me, 
-       * following code is just broken so best to return failure */
-      return TDS_FAIL;
-      
-      assert(sizeof(utf16_t) == 2);
-      switch (desttype) {
-              case SYBNVARCHAR:
-                      if (destlen > char_limit * sizeof(utf16_t))
-                              destlen = char_limit * sizeof(utf16_t);
-                      /* Fall through ... */
-              case SYBNTEXT:
-              case -1:
-                      cplen = srclen > destlen ? destlen : srclen;
-/*
-                      memcpy(dest, src, cplen);
-*/
-                      if (destlen < srclen + sizeof(utf16_t)) {
-                              size_t term_pos  = destlen - sizeof(utf16_t);
-                              size_t odd_bytes = term_pos % sizeof(utf16_t);
-                              term_pos -= odd_bytes;
-                              wdest[term_pos / sizeof(utf16_t)] = 0;
-                      }
-            else
-                              wdest[cplen / sizeof(utf16_t)] = 0;
-                      return utf16len(wdest) * 2;
-              default:
-                      /* Assume caller wants conversion to narrow string. */
-                      if (destlen > char_limit && desttype != SYBTEXT)
-                              destlen = char_limit;
-                      cplen = srclen > destlen ? destlen : srclen;
-/*
-                      for (i = 0; i < cplen; ++i)
-                              dest[i] = (unsigned char)wsrc[i];
-                      dest[cplen-1] = 0;
-                      return strlen(dest);
-*/
-      }
       return TDS_FAIL;
 }
-
+*/
 
 static TDS_INT 
 tds_convert_binary(int srctype,TDS_UCHAR *src,TDS_INT srclen,
@@ -501,9 +451,6 @@ TDS_INT tds_i;
 		 break;
       case SYBNUMERIC:
       case SYBDECIMAL:
-		 /* FIXME ctlib should pass precision values to tds_convert...*/
-		 cr->n.precision = 18;
-		 cr->n.scale     = 0;
 		if (string_to_numeric(src, src + srclen, cr))
 			return TDS_FAIL;
 		 
@@ -1297,7 +1244,8 @@ tds_convert_real(int srctype, TDS_CHAR *src,
 	int desttype, TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_REAL the_value;
-char tmp_str[15];
+/* FIXME how many big should be this buffer ?? */
+char tmp_str[128];
 TDS_INT  mymoney4;
 TDS_INT8 mymoney;
 
@@ -1362,7 +1310,13 @@ TDS_INT8 mymoney;
 	  case SYBDATETIME:
 	  case SYBDATETIMN:
 	    break;
-	/* TODO numeric */
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			sprintf(tmp_str,"%.*f", cr->n.scale,  the_value);
+			if (string_to_numeric(tmp_str, tmp_str + strlen(tmp_str), cr))
+				return TDS_FAIL;
+			return sizeof(TDS_NUMERIC);
+			break;
       default:
 	    LOG_CONVERT();
             return TDS_FAIL;
@@ -1490,6 +1444,18 @@ TDS_UCHAR buf[37];
 	return TDS_FAIL;
 }
 
+/**
+ * tds_convert
+ * convert a type to another
+ * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision and scale of cr
+ * @param tds_ctx context (used in conversion to data and to return messages)
+ * @param srctype  type of source
+ * @param srclen   length in bytes of source (not counting terminator or strings)
+ * @param desttype type of destination
+ * @param destlen  length in bytes of output
+ * @param cr       structure to old result
+ * @return length of result or TDS_FAIL on failure
+ */
 TDS_INT 
 tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
@@ -1560,13 +1526,11 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 			length= tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
 				desttype, destlen, cr);
 			break;
-		case SYBNVARCHAR:
-		case SYBNTEXT:
-			length= tds_convert_ntext(srctype,src,srclen, desttype,destlen, cr);
-			break;
 		case SYBUNIQUE:
 			length= tds_convert_unique(srctype,src,srclen, desttype,destlen, cr);
 			break;
+		case SYBNVARCHAR:
+		case SYBNTEXT:
 		default:
 			send_conversion_error_msg( tds, 20029, __LINE__, srctype, "[unable to display]", desttype );
 			LOG_CONVERT();

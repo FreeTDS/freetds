@@ -1,3 +1,23 @@
+Fri Aug 30 22:00:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h src/ctlib/cs.c src/dblib/dblib.c
+	  src/odbc/convert_tds2sql.c
+	  (patch by Bill Thompson):
+	- pass precision/scale to tds_convert
+	- date return fixed for ms compatibility
+	* src/dblib/unittests/t0016.c
+	  (patch by Bill Thompson):
+	- check errors (now work, very good job)
+	* src/dblib/unittests/Makefile.am:
+	- added test file to distribution
+	* src/ctlib/unittests/t0006.c:
+	- fixed for correction of money conversions
+	* src/tds/convert.c:
+	- cleanup
+	- add conversion from real to numeric (Bill Thompson)
+	- added preliminary documentation for tds_convert
+	* src/tds/unittests/t0008.c:
+	- readded different precision/scale tests
+	
 Fri Aug 30 16:15:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/convert.c:
 	- fixed money problem

@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0016.c,v 1.4 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0016.c,v 1.5 2002-08-30 20:11:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -92,6 +92,8 @@ int main(int argc, char *argv[])
    /* BCP in */
 
    ret = bcp_init(dbproc, "#dblib0016", in_file, err_file, DB_IN);
+   if (ret != SUCCEED)
+	   failed = 1;
     
    fprintf(stdout, "return from bcp_init = %d\n", ret);
 
@@ -109,6 +111,8 @@ int main(int argc, char *argv[])
    }
 
    ret = bcp_columns(dbproc, num_cols);
+   if (ret != SUCCEED)
+	   failed = 1;
    fprintf(stdout, "return from bcp_columns = %d\n", ret);
 
    for (i = 1; i < num_cols ; i++ )
@@ -116,16 +120,20 @@ int main(int argc, char *argv[])
       if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
       {
           fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+	  failed = 1;
       }
    }
 
    if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
    {
       fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+      failed = 1;
    }
 
 
    ret = bcp_exec(dbproc, &rows_copied);
+   if (ret != SUCCEED)
+	   failed = 1;
 
    fprintf(stdout, "%d rows copied in\n",rows_copied);
 
@@ -133,6 +141,8 @@ int main(int argc, char *argv[])
 
    rows_copied = 0;
    ret = bcp_init(dbproc, "#dblib0016", out_file, err_file, DB_OUT);
+   if (ret != SUCCEED)
+	   failed = 1;
 
    fprintf(stderr, "select\n");
    dbcmd(dbproc, "select * from #dblib0016 where 0=1"); 
@@ -150,15 +160,19 @@ int main(int argc, char *argv[])
       if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
       {
           fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+	  failed = 1;
       }
    }
 
    if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
    {
       fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+      failed = 1;
    }
 
    ret = bcp_exec(dbproc, &rows_copied);
+   if (ret != SUCCEED)
+	   failed = 1;
 
    fprintf(stdout, "%d rows copied out\n",rows_copied);
    dbclose(dbproc);
