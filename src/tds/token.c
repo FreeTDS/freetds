@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.137 2003-01-03 23:34:08 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.138 2003-01-05 13:42:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -166,7 +166,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
-	case TDS_TABNAME_TOKEN: /* used for FOR BROWSE query */
+	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
 	case TDS_COLINFO_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
@@ -426,11 +426,6 @@ int done_flags;
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
 
 		switch (marker) {
-		case TDS_ERROR_TOKEN:
-		case TDS_INFO_TOKEN:
-		case TDS_EED_TOKEN:
-			tds_process_msg(tds, marker);
-			break;
 		case TDS7_RESULT_TOKEN:
 			tds7_process_result(tds);
 			*result_type = TDS_ROWFMT_RESULT;
@@ -615,6 +610,69 @@ int i;
 		}
 	}
 	return TDS_SUCCEED;
+}
+
+/**
+ * Process results for simple query as "SET TEXTSIZE" or "USE dbname"
+ * If you issue a statement that return some results all results are
+ * discarded
+ * All results are readed until error or failure
+ * @param result_type hold results type
+ *        (only TDS_CMD_SUCCEED or TDS_CMD_FAIL should return)
+ * @return see tds_process_result_tokens for results (TDS_NO_MORE_RESULTS is never returned)
+ */
+int
+tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type)
+{
+TDS_INT result = TDS_CMD_SUCCEED;
+TDS_INT res_type;
+TDS_INT rowtype;
+int tdsret;
+
+	for (;;) {
+		switch (tdsret=tds_process_result_tokens(tds, &res_type)) {
+		case TDS_SUCCEED:
+			switch (res_type) {
+			case TDS_ROW_RESULT:
+			case TDS_COMPUTE_RESULT:
+				/* discard all this information */
+				while ((tdsret=tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
+					;
+				
+				if (tdsret == TDS_FAIL)
+					return TDS_FAIL;
+
+				break;
+
+			case TDS_CMD_DONE:
+				break;
+
+			/* some command went wrong */
+			case TDS_CMD_FAIL:
+				result = TDS_CMD_FAIL;
+				break;
+
+
+			/* ignore */
+			case TDS_COMPUTEFMT_RESULT:
+			case TDS_ROWFMT_RESULT:
+			case TDS_DESCRIBE_RESULT:
+			case TDS_STATUS_RESULT:
+			case TDS_PARAM_RESULT:
+			default:
+				break;
+			}
+			break;
+
+		case TDS_NO_MORE_RESULTS:
+			*result_type = result;
+			return TDS_SUCCEED;
+
+		default:
+			return tdsret;
+			break;
+		}
+	}
 }
 
 /**
@@ -1601,7 +1659,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	/* determine if msg or error */
 	switch (marker) {
-	case TDS_EED_TOKEN: 
+	case TDS_EED_TOKEN:
 		if (msg_info.msg_level <= 10)
 			msg_info.priv_msg_type = 0;
 		else
@@ -1627,7 +1685,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		msg_info.priv_msg_type = 1;
 		break;
 	default:
-		tdsdump_log(TDS_DBG_ERROR, "__FILE__:__LINE__: tds_process_msg() called with unknown marker '%d'!\n", (int)marker);
+		tdsdump_log(TDS_DBG_ERROR, "__FILE__:__LINE__: tds_process_msg() called with unknown marker '%d'!\n", (int) marker);
 		return TDS_FAIL;
 	}
 

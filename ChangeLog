@@ -1,3 +1,10 @@
+Sun Jan  5 14:38:21 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- added tds_process_simple_query to libtds
+	* src/odbc/odbc.c:
+	- use tds_process_simple_query fixing some problems
+	* src/odbc/unittests/t0003.c: cleanup
+
 Sun Jan  5 11:27:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c src/odbc/odbc.c:
 	- more SQLError to error.c file

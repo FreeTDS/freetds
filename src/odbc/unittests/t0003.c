@@ -12,7 +12,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.6 2002-11-20 14:00:43 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.7 2003-01-05 13:42:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -67,14 +67,6 @@ main(int argc, char *argv[])
 		printf("Not expected another recordset\n");
 		exit(1);
 	}
-
-	/* FIXME why this do not work ?? */
-/*	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to close cursor\n");
-		CheckReturn();
-		exit(1);
-	}*/
 
 	Command(Statement, "drop table #odbctestdata");
 

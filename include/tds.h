@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.76 2003-01-03 23:34:08 jklowden Exp $";
+	"$Id: tds.h,v 1.77 2003-01-05 13:42:00 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -780,6 +780,7 @@ int tds_count_placeholders(const char *query);
 int tds_get_dynid(TDSSOCKET *tds, char **id);
 int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params);
+int tds_quote_id(TDSSOCKET * tds, char* buffer, const char *id);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET *tds);
@@ -788,6 +789,7 @@ int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET *tds);
 void tds_set_column_type(TDSCOLINFO *curcol, int type);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
+int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);

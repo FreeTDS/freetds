@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.113 2003-01-05 10:28:32 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.114 2003-01-05 13:42:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -111,17 +111,17 @@ change_database(TDS_DBC * dbc, char *database)
 {
 	SQLRETURN ret;
 	TDSSOCKET *tds;
-	int marker;
 	char *query;
+	TDS_INT result_type;
 
-	/* FIXME quote dbname if needed */
 	tds = dbc->tds_socket;
-	query = (char *) malloc(strlen(database) + 5);
+	query = (char *) malloc(tds_quote_id(tds, NULL, database) + 5);
 	if (!query) {
 		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
 	}
-	sprintf(query, "use %s", database);
+	strcpy(query, "use ");
+	tds_quote_id(tds, query + 4, database);
 	ret = tds_submit_query(tds, query);
 	free(query);
 	if (ret != TDS_SUCCEED) {
@@ -129,10 +129,8 @@ change_database(TDS_DBC * dbc, char *database)
 		return SQL_ERROR;
 	}
 
-	do {
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return SQL_ERROR;
 
 	return SQL_SUCCESS;
 }
@@ -143,8 +141,8 @@ change_autocommit(TDS_DBC * dbc, int state)
 {
 	SQLRETURN ret;
 	TDSSOCKET *tds;
-	int marker;
 	char query[80];
+	TDS_INT result_type;
 
 	tds = dbc->tds_socket;
 
@@ -165,13 +163,10 @@ change_autocommit(TDS_DBC * dbc, int state)
 		return SQL_ERROR;
 	}
 
-	dbc->autocommit_state = state;
-	/* FIXME should check result ? */
-	do {
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return SQL_ERROR;
 
+	dbc->autocommit_state = state;
 	return SQL_SUCCESS;
 }
 
@@ -1084,7 +1079,6 @@ SQLExecute(SQLHSTMT hstmt)
 #ifdef ENABLE_DEVELOPING
 	TDSSOCKET *tds;
 	TDSDYNAMIC *dyn;
-	int marker;
 	struct _sql_param_info *param;
 	TDS_INT result_type;
 	int ret, done;
@@ -1103,15 +1097,13 @@ SQLExecute(SQLHSTMT hstmt)
 	if (stmt->param_count > 0) {
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
+			TDS_INT result_type;
+
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn) == TDS_FAIL)
 				return SQL_ERROR;
-			/* TODO get results and other things */
-			do {
-				marker = tds_get_byte(tds);
-				tds_process_default_tokens(tds, marker);
-				/* FIXME is DEAD loop do not end...Put all in tds_submit_prepare ?? */
-			} while (tds->state != TDS_COMPLETED);
+			if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+				return SQL_ERROR;
 		}
 		/* build parameters list */
 		dyn = stmt->dyn;
@@ -1375,7 +1367,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	if (fOption == SQL_DROP || fOption == SQL_CLOSE) {
 		tds = stmt->hdbc->tds_socket;
 		/* 
-		 * ** FIX ME -- otherwise make sure the current statement is complete
+		 * FIX ME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
 		if (tds->state == TDS_PENDING && stmt->hdbc->current_statement == stmt) {
@@ -1510,9 +1502,9 @@ change_transaction(TDS_DBC * dbc, int state)
 {
 	SQLRETURN ret;
 	TDSSOCKET *tds;
-	int marker;
 	char query[256];
 	SQLRETURN cc = SQL_SUCCESS;
+	TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
@@ -1524,10 +1516,8 @@ change_transaction(TDS_DBC * dbc, int state)
 		cc = SQL_ERROR;
 	}
 
-	do {
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return SQL_ERROR;
 
 	return cc;
 }
