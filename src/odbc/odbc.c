@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.160 2003-05-07 12:48:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.161 2003-05-09 09:54:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1739,6 +1739,11 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	INIT_HSTMT;
 
 	tds = stmt->hdbc->tds_socket;
+	
+	/* test is this is current statement */
+	if (stmt->hdbc->current_statement != stmt) {
+		return SQL_ERROR;
+	}
 	*pcrow = -1;
 	if (tds->rows_affected == TDS_NO_COUNT) {
 		if (tds->res_info != NULL && tds->res_info->row_count != 0)

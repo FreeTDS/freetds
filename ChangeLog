@@ -1,3 +1,7 @@
+Fri May  9 11:53:13 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: return SQL_ERROR on SQLRowCount
+	* src/tds/config.c src/tds/mem.c: fixes on configuration
+
 Thu May  8 10:10:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: sort function declarations
 	* src/apps/tsql.c: use strdup to copy string

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.80 2003-05-06 03:46:34 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.81 2003-05-09 09:54:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -633,25 +633,6 @@ tds_alloc_login(void)
 	tds_dstr_init(&tds_login->password);
 	tds_dstr_init(&tds_login->library);
 	tds_dstr_init(&tds_login->client_charset);
-	if ((tdsver = getenv("TDSVER"))) {
-		if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2")) {
-			tds_login->major_version = 4;
-			tds_login->minor_version = 2;
-		} else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6")) {
-			tds_login->major_version = 4;
-			tds_login->minor_version = 6;
-		} else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0")) {
-			tds_login->major_version = 5;
-			tds_login->minor_version = 0;
-		} else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0")) {
-			tds_login->major_version = 7;
-			tds_login->minor_version = 0;
-		} else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0")) {
-			tds_login->major_version = 8;
-			tds_login->minor_version = 0;
-		}
-		/* else unrecognized...use compile time default above */
-	}
 	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return tds_login;
 }

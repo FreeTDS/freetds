@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.75 2003-04-27 18:34:38 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.76 2003-05-09 09:54:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -464,8 +464,7 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 	if (!tds_dstr_isempty(&login->server_charset)) {
 		tds_dstr_copy(&connect_info->server_charset, tds_dstr_cstr(&login->server_charset));
 	}
-	/* don't overwrite freetds.conf client charset with one derived from the environment. */
-	if (tds_dstr_isempty(&connect_info->client_charset) && !tds_dstr_isempty(&login->client_charset)) {
+	if (!tds_dstr_isempty(&login->client_charset)) {
 		tds_dstr_copy(&connect_info->client_charset, tds_dstr_cstr(&login->client_charset));
 		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset",
 			    connect_info->client_charset);
