@@ -30,8 +30,7 @@ void foo(int bar)
 Indenting
 ---------
 
-Indenting should be done with one tab character per level.  I generally use a 
-tabstop of 5 when programming, so it probably looks best like that.
+Indenting should be done with one tab character per level.
 
 Variables
 ---------
@@ -142,7 +141,7 @@ default follows some other setting, I've placed a '#' to indicate it's (sort of)
 commented out, and won't appear in .indent.pro.  Same goes for options e.g.  
 '-troff' that have no opposite.  
 
-  -nbad, -bad	  If -bad is specified, a blank line is forced after every
+  -bad, -nbad	  If -bad is specified, a blank line is forced after every
 		  block of declarations.  Default: -nbad.
   -bap, -nbap	  If -bap is specified, a blank line is forced after every
 		  procedure body.  Default: -nbap.
@@ -152,7 +151,7 @@ commented out, and won't appear in .indent.pro.  Same goes for options e.g.
 		  comma in a declaration.  -nbc turns off this option.  The
 		  default is -bc.
   -br, -bl	  K & R braces, see above.
-  -c -33 	  The column in which comments on code start.  The default.
+  -c33 		  The column in which comments on code start.  The default.
   #cd -n	  Indent declarations as code.  
   -ncdb, -cdb	  Allow single-line comments e.g.:
                               /* this is a comment */  
@@ -169,18 +168,18 @@ commented out, and won't appear in .indent.pro.  Same goes for options e.g.
 		  right of code.  The default -d1 means that such comments
                   are placed one indentation level to the left of code.
 		  Specifying -d0 lines up these comments with the code.
-  -di16  	  Specifies the indentation, in character positions, from a
+  -di1  	  Specifies the indentation, in character positions, from a
 		  declaration keyword to the following identifier.  The de-
 		  fault is -di16.
   -dj, -ndj	  -dj left justifies declarations.  -ndj indents declara-
 		  tions the same as code.  The default is -ndj.
   -nei, -ei	  Disable special else-if processing.  
   -nfc1, -fc1	  Disable formatting comments that start in column 1.  
-  -i5		  The number of spaces for one indentation level.
-  -ts5		  Tab stops at 5 postitions, per Brian's preference.  
+  -i8		  The number of spaces for one indentation level.
+  -ts8		  Tab stops at 8 postitions.
   -ip, -nip	  Enable the indentation of parameter declarations 
 		  from the left margin.  The default is -ip.
-  -l75		  Maximum length of an output line.  The default is 75.
+  -l80		  Maximum length of an output line.  The default is 75.
   -lp, -nlp	  Line up code surrounded by parenthesis:
                            p1 = first_procedure(second_procedure(p2, p3),
                                                 third_procedure(p4,p5));

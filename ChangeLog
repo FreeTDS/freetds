@@ -1,3 +1,7 @@
+Mon Oct 28 15:20:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/CodingStyle:
+	- Update indentation notes.
+
 Mon Oct 28 14:56:22 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/.indent.pro:
 	- Updated based on today's indentation discussion.
