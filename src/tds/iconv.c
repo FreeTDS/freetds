@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.68 2003-05-14 16:16:05 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.69 2003-05-14 18:18:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -152,7 +152,8 @@ tds_iconv_init(void)
 				char ib[1];
 				char ob[4];
 				size_t il, ol;
-				char *pib, *pob;
+				ICONV_CONST char *pib;
+				char *pob;
 
 				/* try to convert 'A' and check result */
 				ib[0] = 0x41;
@@ -326,18 +327,26 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 }
 
 
+#if HAVE_ICONV
+static void 
+_iconv_close(iconv_t cd)
+{
+	static const iconv_t invalid = (iconv_t) -1;
+	if (cd != invalid) {
+		iconv_close(cd);
+		cd = invalid;
+	}
+}
+#endif
+	
 void
 tds_iconv_close(TDSSOCKET * tds)
 {
 #if HAVE_ICONV
-	if (tds->iconv_info->to_wire != (iconv_t) - 1) {
-		iconv_close(tds->iconv_info->to_wire);
-		tds->iconv_info->to_wire = (iconv_t) - 1;
-	}
-
-	if (tds->iconv_info->from_wire != (iconv_t) - 1) {
-		iconv_close(tds->iconv_info->from_wire);
-		tds->iconv_info->from_wire = (iconv_t) - 1;
+	int i;
+	for(i=0; i < tds->iconv_info_count; i++) {
+		_iconv_close(tds->iconv_info[i].to_wire);
+		_iconv_close(tds->iconv_info[i].from_wire);
 	}
 #endif
 }

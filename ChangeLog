@@ -1,3 +1,6 @@
+Wed May 14 14:13:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c tds_iconv_close closes all descriptors
+
 Wed May 14 18:15:49 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/character_sets.h src/tds/iconv.c:
 	- start run time charset searching
