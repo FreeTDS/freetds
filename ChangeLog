@@ -1,4 +1,10 @@
+Tue Mar 18 01:13:28 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* Makefile.am tds.dox create doxygen output and targets
+	* include/sybdb.h src/dblib/dblib.c add doxygen comments, reindent.
+	* src/tds/Makefile.am minor changes, doxygen soon to be removed.
+
 Sat Mar 15 12:25:43 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+
 	* src/dblib/dblib.c: remove wrong assert
 
 Fri Mar 14 14:54:40 EST 2003	JK Lowden <jklowden@schemamania.org>
