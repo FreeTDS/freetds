@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.20 2002-03-22 03:52:58 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.21 2002-04-04 23:11:02 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -998,7 +998,7 @@ struct _sql_bind_info *cur;
 		cur = stmt->bind_head;
 		while (cur) {
 			if (cur->column_number>0 && 
-			cur->column_number < tds->res_info->num_cols) {
+			cur->column_number <= tds->res_info->num_cols) {
 				colinfo = tds->res_info->columns[cur->column_number-1];
 				colinfo->varaddr = cur->varaddr;
 				colinfo->column_bindtype = cur->column_bindtype;
