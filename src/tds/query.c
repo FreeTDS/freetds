@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.53 2002-11-29 10:29:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.54 2002-11-29 10:39:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -323,14 +323,16 @@ TDSDYNAMIC *dyn;
  * @param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
  * @return TDS_SUCCEED or TDS_FAIL
  */
-/* TODO add a flag for select if named used or not ?? */
 static int 
 tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 {
+	int len;
+
 	if (flags & TDS_PUT_DATA_USE_NAME) {
 		/* TODO use column_namelen ?? */
-		tds_put_byte(tds, strlen(curcol->column_name)); /* param name len*/
-		tds_put_string(tds, curcol->column_name, strlen(curcol->column_name));
+		len = strlen(curcol->column_name);
+		tds_put_byte(tds, len); /* param name len*/
+		tds_put_string(tds, curcol->column_name, len);
 	} else {
 		tds_put_byte(tds,0x00); /* param name len*/
 	}

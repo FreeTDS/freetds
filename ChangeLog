@@ -1,3 +1,6 @@
+Fri Nov 29 11:38:26 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: small optimization and remove TODO
+
 Fri Nov 29 11:28:33 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: use column_type in parameters, not nullable
 
