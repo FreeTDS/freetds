@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0017.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0017.c,v 1.4 2002-08-31 07:08:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
    /* BCP in */
 
    ret = bcp_init(dbproc, "#dblib0017", in_file, err_file, DB_IN);
+   if (ret != SUCCEED)
+	   failed = 1;
     
    fprintf(stderr, "select\n");
    dbcmd(dbproc, "select * from #dblib0017 where 0=1"); 
@@ -105,6 +107,8 @@ int main(int argc, char *argv[])
    }
 
    ret = bcp_columns(dbproc, num_cols);
+   if (ret != SUCCEED)
+	   failed = 1;
    for (i=0;i<num_cols;i++) {
         prefix_len = 0;
 	if (col_type[i]==SYBIMAGE) {
@@ -112,10 +116,16 @@ int main(int argc, char *argv[])
 	} else if (!is_fixed_type(col_type[i])) {
 		prefix_len=1;
 	}
-        bcp_colfmt(dbproc, i+1, col_type[i], prefix_len, -1, NULL, 0, i+1);
+        ret = bcp_colfmt(dbproc, i+1, col_type[i], prefix_len, -1, NULL, 0, i+1);
+	if (ret == FAIL) {
+		fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+		failed = 1;
+	}
    }
 
    ret = bcp_exec(dbproc, &rows_copied);
+   if (ret != SUCCEED)
+	   failed = 1;
 
 #if 0
    /* BCP out */
