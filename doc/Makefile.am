@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.39 2003-12-29 14:20:46 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.40 2003-12-29 15:52:48 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -33,10 +33,16 @@ installdirs:
 				$(TARGET_DOCDIR)/images
 
 freebcp.1: freebcp.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >freebcp.1
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
 
 tsql.1: tsql.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >tsql.1
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
 
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
@@ -44,12 +50,12 @@ install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/usergui
 	$(mkinstalldirs) $(DOCDIR)
 	if test -e $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
-	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/userguide ';'
+		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/userguide ';'
 	if test -e $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) -exec \
-	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/reference ';'
+		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/reference ';'
 	find $(srcdir)/images -name \*.gif -exec \
-	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/images ';'
+		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/images ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
@@ -82,7 +88,7 @@ clean-local:
 DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
-$(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml  $(srcdir)/userguide.dsl.in $(srcdir)/api_status.txt
+$(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl
@@ -123,12 +129,14 @@ reference: $(DOCDIR)/reference/index.html
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
+	$(mkinstalldirs) $(DOCDIR)
 	cd .. && make doxy 2> doc/doxy.log
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -e $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
 # if we don't find the source, generate a stub
+	$(mkinstalldirs) $(DOCDIR)/reference
 	if test ! -e $@ ; then \
 		cd $(DOCDIR)/reference && \
 		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
@@ -173,7 +181,7 @@ dblib.api.sgml: dblib.api
 	cat .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail >$@
 	rm  .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail
 
-dblib.api: $(srcdir)/api_status.txt
+dblib.api: api_status.txt
 	grep ^dblib $(srcdir)/api_status.txt > .dblib.api
 	test -s  .dblib.api
 	mv .dblib.api dblib.api
@@ -200,7 +208,7 @@ ctlib.api.sgml: ctlib.api
 	cat .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail >$@
 	rm  .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail
 
-ctlib.api: $(srcdir)/api_status.txt
+ctlib.api: api_status.txt
 	grep ^ctlib $(srcdir)/api_status.txt > .ctlib.api
 	test -s  .ctlib.api
 	mv .ctlib.api ctlib.api
@@ -226,7 +234,7 @@ odbc.api.sgml: odbc.api
 	cat .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail >$@
 	rm  .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail
 
-odbc.api: $(srcdir)/api_status.txt
+odbc.api: api_status.txt
 	grep ^odbc $(srcdir)/api_status.txt > .odbc.api
 	test -s  .odbc.api
 	mv .odbc.api odbc.api
