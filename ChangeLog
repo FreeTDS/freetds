@@ -1,3 +1,8 @@
+Sun Dec 14 14:02:42 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml
+	- Added ODBC background and troubleshooting help.  
+	- Removed iodbc, unixodbc compiling instructions.  
+	
 Sun Dec 14 16:07:25 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: size optimization
 
