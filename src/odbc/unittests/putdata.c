@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.1 2003-05-31 15:57:23 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.2 2003-05-31 19:00:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -131,6 +131,8 @@ main(int argc, char *argv[])
 		printf("Wrong result from SQLParamData\n");
 		exit(1);
 	}
+	
+	/* TODO check inserts ... */
 
 	Disconnect();
 

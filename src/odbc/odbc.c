@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.176 2003-05-30 08:45:26 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.177 2003-05-31 19:00:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1858,16 +1858,12 @@ SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
 
 /* end of transaction support */
 
-#if 0
 SQLRETURN SQL_API
 SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLUINTEGER cbParamDef,
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER FAR * pcbValue)
 {
-	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetParam: function not implemented");
-	return SQL_ERROR;
+	return SQLBindParameter(hstmt, ipar, SQL_PARAM_INPUT, fCType, fSqlType, cbParamDef, ibScale, rgbValue, 0, pcbValue);
 }
-#endif
 
 /************************
  * SQLColumns
@@ -2648,17 +2644,40 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 	return SQL_SUCCESS;
 }
 
-#if 0
 SQLRETURN SQL_API
 SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName,
 		  SQLCHAR FAR * szSchemaName, SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName,
 		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
 {
+	int retcode;
+	char nullable[2], scope[2];
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSpecialColumns: function not implemented");
-	return SQL_ERROR;
+
+	nullable[1] = 0;
+	if (fNullable == SQL_NO_NULLS)
+		nullable[0] = 'O';
+	else
+		nullable[0] = 'U';
+
+	scope[1] = 0;
+	if (fScope == SQL_SCOPE_CURROW)
+		scope[0] = 'O';
+	else
+		scope[0] = 'T';
+
+	retcode =
+		odbc_stat_execute(stmt, "sp_special_columns ", 5,
+				  "", szTableName, cbTableName,
+				  "@owner", szSchemaName, cbSchemaName,
+				  "@qualifier", szCatalogName, cbCatalogName, "@scope", scope, 1, "@nullable", nullable, 1);
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->odbc_ver >= 3) {
+		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
+		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
+		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
+	}
+	return retcode;
 }
-#endif
 
 SQLRETURN SQL_API
 SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
@@ -3447,9 +3466,11 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	for (i = 0; i < nparams; ++i) {
 		if (params[i].len <= 0)
 			continue;
-		strcpy(p, params[i].name);
-		p += strlen(params[i].name);
-		*p++ = '=';
+		if (params[i].name[0]) {
+			strcpy(p, params[i].name);
+			p += strlen(params[i].name);
+			*p++ = '=';
+		}
 		p += tds_quote_string(stmt->hdbc->tds_socket, p, params[i].value, params[i].len);
 		*p++ = ',';
 	}

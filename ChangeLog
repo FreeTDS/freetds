@@ -1,3 +1,8 @@
+Sat May 31 21:01:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt src/odbc/odbc.c:
+	* src/odbc/unittests/putdata.c:
+	- implement SQLSetParam and SQLSpecialColumns
+
 Sat May 31 18:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:
 	* src/odbc/prepare_query.c src/odbc/unittests/putdata.c(added):

@@ -144,11 +144,11 @@ odbc	(all)	SQLSetDescField
 odbc	(all)	SQLSetDescRec	
 odbc	(all)	SQLSetEnvAttr	partial
 odbc	(all)	SQLSetPos	
-odbc	(all)	SQLSetParam	
+odbc	(all)	SQLSetParam	OK
 odbc	(all)	SQLSetScrollOption	
 odbc	(all)	SQLSetStmtAttr	
 odbc	(all)	SQLSetStmtOption	partial
-odbc	(all)	SQLSpecialColumns	
+odbc	(all)	SQLSpecialColumns	OK
 odbc	(all)	SQLStatistics	OK
 odbc	(all)	SQLTablePrivileges	OK
 odbc	(all)	SQLTables	OK
