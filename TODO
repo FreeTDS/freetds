@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.54 2003-05-07 12:48:55 freddy77 Exp $
+To Do List	$Id: TODO,v 1.55 2003-05-11 07:26:58 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -93,17 +93,15 @@ For future versions (in priority order within library):
 . Someone broke early binding in ODBC 
   (fixed, add check for early bind, and multiple recordset)
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
+. Add test for SQLPutData/SQLGetData
 . cursor support
 . Star Office complains that these TypeInfo constants are not implemented in SQLGetInfo:
 	47      SQL_USER_NAME
-	10000   SQL_XOPEN_CLI_YEAR
   (handle environment callbacks)
 . Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 . Add a check for SQLGetTypeInfo (test column names in versions 2 and 3 
   of odbc, varchar/nvarchar should be before sysname, numeric type for data 
   with different odbc versions)
-. Check (and fix if needed) call to {?=store(?)} does it bind correctly?
-  seem not replace first parameters
 . SQLNativeSql and fill SQLGetInfo according
 . configure should detect iODBC or unixODBC automatically
 . autoinstall for RPM
@@ -142,4 +140,6 @@ Done in 0.62
 . ODBC test: how work mssql driver using SQLMoreResults/SQLRowCount and batch 
   like SELECT INSERT INSERT SELECT ?
   (SQLMoreResults skip row counts for INSERT?)
+. ODBC: Check (and fix if needed) call to {?=store(?)} does it bind correctly?
+  seem not replace first parameters
 

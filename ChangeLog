@@ -1,3 +1,6 @@
+Sun May 11 09:27:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO src/odbc/odbc.c: return CLI year
+
 Fri May  9 15:05:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/config.c src/tds/mem.c:
 	- cleanup and const

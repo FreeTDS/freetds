@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.161 2003-05-09 09:54:40 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.162 2003-05-11 07:26:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2408,6 +2408,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_TXN_CAPABLE:
 		/* transaction for DML and DDL */
 		*siInfoValue = SQL_TC_ALL;
+		break;
+	case SQL_XOPEN_CLI_YEAR:
+		/* TODO check specifications */
+		p = "1995";
 		break;
 		/* TODO support for other options */
 	default:
