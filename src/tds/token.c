@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.104 2002-11-14 15:46:33 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.105 2002-11-14 20:00:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -652,6 +652,31 @@ TDSRESULTINFO *info;
 } 
 
 /**
+ * Add a column size to result info row size and calc offset into row
+ * @param info   result where to add column
+ * @param curcol column to add
+ */
+static void
+tds_add_row_column_size(TDSRESULTINFO *info, TDSCOLINFO *curcol)
+{
+	/* the column_offset is the offset into the row buffer
+	 * where this column begins, text types are no longer
+	 * stored in the row buffer because the max size can
+	 * be too large (2gig) to allocate 
+	 */
+	curcol->column_offset = info->row_size;
+	if (is_numeric_type(curcol->column_type)) {
+		info->row_size += sizeof(TDS_NUMERIC);
+	} else if (is_blob_type(curcol->column_type)) {
+		info->row_size += sizeof(TDSBLOBINFO);
+	} else {
+		info->row_size += curcol->column_size;
+	}
+	info->row_size += (TDS_ALIGN_SIZE-1);
+	info->row_size -= info->row_size % TDS_ALIGN_SIZE;
+}
+
+/**
  * tds_process_col_info() is the other half of result set processing
  * under TDS 4.2. It follows tds_process_col_name(). It contains all the 
  * column type and size information.
@@ -665,7 +690,6 @@ TDSRESULTINFO *info;
 TDS_SMALLINT tabnamesize;
 int bytes_read = 0;
 int rest;
-int remainder;
 char ci_flags[4];
 
 	hdrsize = tds_get_smallint(tds);
@@ -705,16 +729,7 @@ char ci_flags[4];
 				break;
 		}
 
-		curcol->column_offset = info->row_size;
-		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(curcol->column_type)) {
-			info->row_size += sizeof(TDSBLOBINFO);
-		} else {
-			info->row_size += curcol->column_size;
-		}
-		remainder = info->row_size % TDS_ALIGN_SIZE; 
-		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
+		tds_add_row_column_size(info, curcol);
 	}
 
 	/* get the rest of the bytes */
@@ -785,7 +800,6 @@ TDS_TINYINT *cur_by_col;
 TDS_SMALLINT compute_id = 0;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
-int remainder;
 int             i;
 
 
@@ -862,18 +876,7 @@ int             i;
 		/* skip locale */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 
-		curcol->column_offset = info->row_size;
-		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(curcol->column_type)) {
-			info->row_size += sizeof(TDSBLOBINFO);
-		} else {
-			info->row_size += curcol->column_size;
-		}
-
-		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % TDS_ALIGN_SIZE;
-		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
+		tds_add_row_column_size(info, curcol);
 	}
 
     by_cols = tds_get_byte(tds);       
@@ -982,7 +985,6 @@ static int tds7_process_result(TDSSOCKET *tds)
 int col, num_cols;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
-int remainder;
 
 	tds_free_all_results(tds);
 
@@ -1003,22 +1005,7 @@ int remainder;
 
 		tds7_get_data_info(tds,curcol);
 		
-		/* the column_offset is the offset into the row buffer
-		** where this column begins, text types are no longer
-		** stored in the row buffer because the max size can
-		** be too large (2gig) to allocate */
-		curcol->column_offset = info->row_size;
-		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(curcol->column_type)) {
-			info->row_size += sizeof(TDSBLOBINFO);
-		} else {
-			info->row_size += curcol->column_size;
-		}
-		
-		remainder = info->row_size % TDS_ALIGN_SIZE;
-		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
-		
+		tds_add_row_column_size(info, curcol);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
@@ -1088,7 +1075,6 @@ int hdrsize;
 int col, num_cols;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
-int remainder;
 
 	tds_free_all_results(tds);
 
@@ -1115,17 +1101,7 @@ int remainder;
 		/* NOTE do not put into tds_get_data_info, param do not have locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 
-		curcol->column_offset = info->row_size;
-		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(curcol->column_type)) {
-			info->row_size += sizeof(TDSBLOBINFO);
-		} else {
-			info->row_size += curcol->column_size;
-		}
-
-		remainder = info->row_size % TDS_ALIGN_SIZE; 
-		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
+		tds_add_row_column_size(info, curcol);
 	}
 	info->current_row = tds_alloc_row(info);
 
@@ -2085,7 +2061,6 @@ TDS_TINYINT *cur_by_col;
 TDS_SMALLINT compute_id;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
-int remainder;
 
     /* number of compute columns returned - so */
     /* COMPUTE SUM(x), AVG(x)... would return  */
@@ -2133,10 +2108,10 @@ int remainder;
 
 	for (col = 0; col < num_cols; col++) 
 	{
-        tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
+		tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
 		curcol = info->columns[col];
 
-        curcol->column_operator = tds_get_byte(tds);
+		curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand  = tds_get_smallint(tds);  
 
 		tds7_get_data_info(tds, curcol);
@@ -2146,26 +2121,11 @@ int remainder;
 			curcol->column_namelen = strlen(curcol->column_name);
 		}
 
-		/* the column_offset is the offset into the row buffer
-		** where this column begins, text types are no longer
-		** stored in the row buffer because the max size can
-		** be too large (2gig) to allocate */
-		curcol->column_offset = info->row_size;
-		/* TODO why this code is repeated 4 time ?? */
-		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(curcol->column_type)) {
-			info->row_size += sizeof(TDSBLOBINFO);
-		} else {
-			info->row_size += curcol->column_size;
-		}
-		
-		remainder = info->row_size % TDS_ALIGN_SIZE;
-		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
+		tds_add_row_column_size(info, curcol);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
-    tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 5 \n");
+	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 5 \n");
 	info->current_row = tds_alloc_compute_row(info);
 
 	return TDS_SUCCEED;
@@ -2201,7 +2161,7 @@ tds_prtype(int token) {
 		break;
 	case SYBCHAR:
 		return "char";
-                break;
+		break;
 	case SYBDATETIME4:
 		return "smalldatetime";
 		break;
@@ -2258,10 +2218,10 @@ tds_prtype(int token) {
 		break;
 	case SYBREAL:
 		return "real";
-                break;
+		break;
 	case SYBTEXT:
 		return "text";
-                break;
+		break;
 	case SYBUNIQUE:
 		return "uniqueidentifier";
 		break;
@@ -2273,10 +2233,10 @@ tds_prtype(int token) {
 		break;
 	case SYBVARIANT:
 		return "variant";
-                break;
+		break;
 	case SYBVOID:
 		return "void";
-                break;
+		break;
 	case XSYBBINARY:
 		return "xbinary";
 		break;

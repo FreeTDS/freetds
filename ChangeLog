@@ -1,3 +1,6 @@
+Thu Nov 14 20:59:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: collect code to calc row size in a single function
+
 Thu Nov 14 16:45:58 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: other cleanup and code reuse
 
