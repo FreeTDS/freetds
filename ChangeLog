@@ -1,3 +1,9 @@
+Thu Oct 24 21:37:34 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- fix malloc(0) problem coring on some platform
+	* src/tds/util.c:
+	- fix a core dump setting TDSDUMPCONFIG env
+
 Thu Oct 24 14:19:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml src/odbc/odbc.c:
 	- use language param for dsn configuration

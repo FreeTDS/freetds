@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.77 2002-10-23 05:42:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.78 2002-10-24 19:38:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -868,8 +868,10 @@ int             matched_compute_id = 0;
 
     tdsdump_log(TDS_DBG_INFO1, "%L processing tds compute result. by_cols = %d\n", by_cols);
 
-    info->bycolumns = (TDS_TINYINT *) malloc(by_cols);
-    memset(info->bycolumns,'\0', by_cols);
+	if (by_cols) {
+		info->bycolumns = (TDS_TINYINT *) malloc(by_cols);
+		memset(info->bycolumns,'\0', by_cols);
+	}
     info->by_cols = by_cols;
 
     cur_by_col = info->bycolumns;
