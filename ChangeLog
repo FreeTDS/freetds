@@ -1,3 +1,8 @@
+Thu Aug 28 18:03:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - SQLGetStmtAttr and SQLGetStmtOption
+
 Thu Aug 28 17:11:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merging Steve Murphree patch

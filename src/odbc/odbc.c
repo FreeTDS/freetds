@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.225 2003-08-28 15:13:52 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.226 2003-08-28 16:03:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -83,6 +83,8 @@ static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
+static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
+					 SQLINTEGER * StringLength);
 
 #ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
@@ -1024,7 +1026,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 /*	stmt->attr.attr_app_param_desc = stmt->apd; */
 /*	stmt->attr.attr_app_row_desc = stmt->ard; */
 	stmt->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
-	stmt->attr.attr_concurrency = SQL_CONCUR_DEFAULT;
+	stmt->attr.attr_concurrency = SQL_CONCUR_READ_ONLY;
 	stmt->attr.attr_cursor_scrollable = SQL_NONSCROLLABLE;
 	stmt->attr.attr_cursor_sensitivity = SQL_UNSPECIFIED;
 	stmt->attr.attr_cursor_type = SQL_CURSOR_FORWARD_ONLY;
@@ -2678,119 +2680,190 @@ _SQLFreeDesc(SQLHDESC hdesc)
 	return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
-SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+static SQLRETURN SQL_API
+_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
-	SQLINTEGER tmp_len;
-	SQLUINTEGER *ui_val = (SQLUINTEGER *) Value;
+	void *src;
+	size_t size;
 
 	INIT_HSTMT;
 
-	if (!StringLength)
-		StringLength = &tmp_len;
+	/* TODO see documentation .. it do not seem correct to me -- freddy77 */
+	switch (BufferLength) {
+	case SQL_IS_POINTER:
+		BufferLength = sizeof(SQLPOINTER);
+		break;
+	case SQL_IS_UINTEGER:
+		BufferLength = sizeof(SQLUINTEGER);
+		break;
+	case SQL_IS_INTEGER:
+		BufferLength = sizeof(SQLINTEGER);
+		break;
+	case SQL_IS_USMALLINT:
+		BufferLength = sizeof(SQLUSMALLINT);
+		break;
+	case SQL_IS_SMALLINT:
+		BufferLength = sizeof(SQLSMALLINT);
+		break;
+	}
+	/* TODO BufferLength < 0 */
 
+	/* TODO assign directly, use macro for size */
 	switch (Attribute) {
-	case SQL_ATTR_ASYNC_ENABLE:
-		*ui_val = SQL_ASYNC_ENABLE_OFF;
-		break;
-
-	case SQL_ATTR_CONCURRENCY:
-		*ui_val = SQL_CONCUR_READ_ONLY;
-		break;
-
-	case SQL_ATTR_CURSOR_SCROLLABLE:
-		*ui_val = SQL_NONSCROLLABLE;
-		break;
-
-	case SQL_ATTR_CURSOR_SENSITIVITY:
-		*ui_val = SQL_UNSPECIFIED;
-		break;
-
-	case SQL_ATTR_CURSOR_TYPE:
-		*ui_val = SQL_CURSOR_FORWARD_ONLY;
-		break;
-
-	case SQL_ATTR_ENABLE_AUTO_IPD:
-		*ui_val = SQL_FALSE;
-		break;
-
-	case SQL_ATTR_KEYSET_SIZE:
-	case SQL_ATTR_MAX_LENGTH:
-	case SQL_ATTR_MAX_ROWS:
-		*ui_val = 0;
-		break;
-
-	case SQL_ATTR_NOSCAN:
-		*ui_val = SQL_NOSCAN_OFF;
-		break;
-
-	case SQL_ATTR_PARAM_BIND_TYPE:
-		*ui_val = SQL_PARAM_BIND_BY_COLUMN;
-		break;
-
-	case SQL_ATTR_QUERY_TIMEOUT:
-		*ui_val = 0;	/* TODO return timeout in seconds */
-		break;
-
-	case SQL_ATTR_RETRIEVE_DATA:
-		*ui_val = SQL_RD_ON;
-		break;
-
-	case SQL_ATTR_ROW_ARRAY_SIZE:
-		*ui_val = 1;
-		break;
-
-	case SQL_ATTR_ROW_NUMBER:
-		*ui_val = 0;	/* TODO */
-		break;
-
-	case SQL_ATTR_USE_BOOKMARKS:
-		*ui_val = SQL_UB_OFF;
-		break;
-
-		/* This make MS ODBC not crash */
-	case SQL_ATTR_APP_ROW_DESC:
-		*(SQLHDESC *) Value = (SQLHDESC) stmt->ard;
-		*StringLength = sizeof(SQL_IS_POINTER);
-		break;
-
-	case SQL_ATTR_IMP_ROW_DESC:
-		*(SQLHDESC *) Value = (SQLHDESC) stmt->ird;
-		*StringLength = sizeof(SQL_IS_POINTER);
-		break;
-
 	case SQL_ATTR_APP_PARAM_DESC:
-		*(SQLHDESC *) Value = (SQLHDESC) stmt->apd;
-		*StringLength = sizeof(SQL_IS_POINTER);
+		size = sizeof(stmt->apd);
+		src = &stmt->apd;
 		break;
-
-	case SQL_ATTR_IMP_PARAM_DESC:
-		*(SQLHDESC *) Value = (SQLHDESC) stmt->ipd;
-		*StringLength = sizeof(SQL_IS_POINTER);
+	case SQL_ATTR_APP_ROW_DESC:
+		size = sizeof(stmt->ard);
+		src = &stmt->ard;
 		break;
-
-		/* TODO ?? what to do */
+	case SQL_ATTR_ASYNC_ENABLE:
+		size = sizeof(stmt->attr.attr_async_enable);
+		src = &stmt->attr.attr_async_enable;
+		break;
+	case SQL_ATTR_CONCURRENCY:
+		size = sizeof(stmt->attr.attr_concurrency);
+		src = &stmt->attr.attr_concurrency;
+		break;
+	case SQL_ATTR_CURSOR_TYPE:
+		size = sizeof(stmt->attr.attr_cursor_type);
+		src = &stmt->attr.attr_cursor_type;
+		break;
+	case SQL_ATTR_ENABLE_AUTO_IPD:
+		size = sizeof(stmt->attr.attr_enable_auto_ipd);
+		src = &stmt->attr.attr_enable_auto_ipd;
+		break;
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
-	case SQL_ATTR_METADATA_ID:
+		size = sizeof(stmt->attr.attr_fetch_bookmark_ptr);
+		src = &stmt->attr.attr_fetch_bookmark_ptr;
+		break;
+	case SQL_ATTR_KEYSET_SIZE:
+		size = sizeof(stmt->attr.attr_keyset_size);
+		src = &stmt->attr.attr_keyset_size;
+		break;
+	case SQL_ATTR_MAX_LENGTH:
+		size = sizeof(stmt->attr.attr_max_length);
+		src = &stmt->attr.attr_max_length;
+		break;
+	case SQL_ATTR_MAX_ROWS:
+		size = sizeof(stmt->attr.attr_max_rows);
+		src = &stmt->attr.attr_max_rows;
+		break;
+	case SQL_ATTR_NOSCAN:
+		size = sizeof(stmt->attr.attr_noscan);
+		src = &stmt->attr.attr_noscan;
+		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
+		size = sizeof(stmt->apd->header.sql_desc_bind_offset_ptr);
+		src = &stmt->apd->header.sql_desc_bind_offset_ptr;
+		break;
+	case SQL_ATTR_PARAM_BIND_TYPE:
+		size = sizeof(stmt->apd->header.sql_desc_bind_type);
+		src = &stmt->apd->header.sql_desc_bind_type;
+		break;
 	case SQL_ATTR_PARAM_OPERATION_PTR:
+		size = sizeof(stmt->apd->header.sql_desc_array_status_ptr);
+		src = &stmt->apd->header.sql_desc_array_status_ptr;
+		break;
 	case SQL_ATTR_PARAM_STATUS_PTR:
+		size = sizeof(stmt->ipd->header.sql_desc_array_status_ptr);
+		src = &stmt->ipd->header.sql_desc_array_status_ptr;
+		break;
 	case SQL_ATTR_PARAMS_PROCESSED_PTR:
+		size = sizeof(stmt->ipd->header.sql_desc_rows_processed_ptr);
+		src = &stmt->ipd->header.sql_desc_rows_processed_ptr;
+		break;
 	case SQL_ATTR_PARAMSET_SIZE:
+		size = sizeof(stmt->apd->header.sql_desc_array_size);
+		src = &stmt->apd->header.sql_desc_array_size;
+		break;
+	/* TODO use this attribute, set in tds_socket before every query */
+	case SQL_ATTR_QUERY_TIMEOUT:
+		size = sizeof(stmt->attr.attr_query_timeout);
+		src = &stmt->attr.attr_query_timeout;
+		break;
+	case SQL_ATTR_RETRIEVE_DATA:
+		size = sizeof(stmt->attr.attr_retrieve_data);
+		src = &stmt->attr.attr_retrieve_data;
+		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
+		size = sizeof(stmt->ard->header.sql_desc_bind_offset_ptr);
+		src = &stmt->ard->header.sql_desc_bind_offset_ptr;
+		break;
 	case SQL_ATTR_ROW_BIND_TYPE:
+		size = sizeof(stmt->ard->header.sql_desc_bind_type);
+		src = &stmt->ard->header.sql_desc_bind_type;
+		break;
+	case SQL_ATTR_ROW_NUMBER:
+		size = sizeof(stmt->attr.attr_row_number);
+		src = &stmt->attr.attr_row_number;
+		break;
 	case SQL_ATTR_ROW_OPERATION_PTR:
+		size = sizeof(stmt->ard->header.sql_desc_array_status_ptr);
+		src = &stmt->ard->header.sql_desc_array_status_ptr;
+		break;
 	case SQL_ATTR_ROW_STATUS_PTR:
+		size = sizeof(stmt->ird->header.sql_desc_array_status_ptr);
+		src = &stmt->ird->header.sql_desc_array_status_ptr;
+		break;
 	case SQL_ATTR_ROWS_FETCHED_PTR:
+		size = sizeof(stmt->ird->header.sql_desc_rows_processed_ptr);
+		src = &stmt->ird->header.sql_desc_rows_processed_ptr;
+		break;
+	case SQL_ATTR_ROW_ARRAY_SIZE:
+		size = sizeof(stmt->ard->header.sql_desc_array_size);
+		src = &stmt->ard->header.sql_desc_array_size;
+		break;
 	case SQL_ATTR_SIMULATE_CURSOR:
+		size = sizeof(stmt->attr.attr_simulate_cursor);
+		src = &stmt->attr.attr_simulate_cursor;
+		break;
+	case SQL_ATTR_USE_BOOKMARKS:
+		size = sizeof(stmt->attr.attr_use_bookmarks);
+		src = &stmt->attr.attr_use_bookmarks;
+		break;
+	case SQL_ATTR_CURSOR_SCROLLABLE:
+		size = sizeof(stmt->attr.attr_cursor_scrollable);
+		src = &stmt->attr.attr_cursor_scrollable;
+		break;
+	case SQL_ATTR_CURSOR_SENSITIVITY:
+		size = sizeof(stmt->attr.attr_cursor_sensitivity);
+		src = &stmt->attr.attr_cursor_sensitivity;
+		break;
+	case SQL_ATTR_IMP_ROW_DESC:
+		size = sizeof(stmt->ird);
+		src = &stmt->ird;
+		break;
+	case SQL_ATTR_IMP_PARAM_DESC:
+		size = sizeof(stmt->ipd);
+		src = &stmt->ipd;
+		break;
 	default:
 		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+
+	memcpy(Value, src, size);
+	if (StringLength)
+		*StringLength = size;
+
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
+
+#if (ODBCVER >= 0x0300)
+SQLRETURN SQL_API
+SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+{
+	return _SQLGetStmtAttr(hstmt, Attribute, Value, BufferLength, StringLength);
+}
 #endif
+
+SQLRETURN SQL_API
+SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
+{
+	return _SQLGetStmtAttr(hstmt, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL);
+}
 
 #if 0
 SQLRETURN SQL_API
@@ -4153,26 +4226,6 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 #undef USIVAL
 #undef IVAL
 #undef UIVAL
-}
-
-SQLRETURN SQL_API
-SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
-{
-	SQLUINTEGER *piParam = (SQLUINTEGER *) pvParam;
-
-	INIT_HSTMT;
-
-	switch (fOption) {
-	case SQL_ROWSET_SIZE:
-		*piParam = 1;
-		break;
-	default:
-		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetStmtOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 static void

@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.47 2003-08-28 15:13:52 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.48 2003-08-28 16:03:56 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -223,32 +223,32 @@ struct _hsattr
 	SQLUINTEGER attr_max_rows;
 	SQLUINTEGER attr_metadata_id;
 	SQLUINTEGER attr_noscan;
-	/* APD - SQL_DESC_BIND_OFFSET_PTR */
+	/* apd->sql_desc_bind_offset_ptr */
 	/* SQLUINTEGER *attr_param_bind_offset_ptr; */
-	/* APD - SQL_DESC_BIND_TYPE */
+	/* apd->sql_desc_bind_type */
 	/* SQLUINTEGER attr_param_bind_type; */
-	/* APD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* apd->sql_desc_array_status_ptr */
 	/* SQLUSMALLINT *attr_param_operation_ptr; */
-	/* IPD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* ipd->sql_desc_array_status_ptr */
 	/* SQLUSMALLINT *attr_param_status_ptr; */
-	/* IPD - SQL_DESC_ROWS_PROCESSED_PTR */
+	/* ipd->sql_desc_rows_processed_ptr */
 	/* SQLUSMALLINT *attr_params_processed_ptr; */
-	/* APD - SQL_DESC_ARRAY_SIZE */
+	/* apd->sql_desc_array_size */
 	/* SQLUINTEGER attr_paramset_size; */
 	SQLUINTEGER attr_query_timeout;
 	SQLUINTEGER attr_retrieve_data;
-	/* ARD - SQL_DESC_BIND_OFFSET_PTR */
+	/* ard->sql_desc_bind_offset_ptr */
 	/* SQLUINTEGER *attr_row_bind_offset_ptr; */
-	/* ARD - SQL_DESC_ARRAY_SIZE */
+	/* ard->sql_desc_array_size */
 	/* SQLUINTEGER attr_row_array_size; */
-	/* ARD - SQL_DESC_BIND_TYPE */
+	/* ard->sql_desc_bind_type */
 	/* SQLUINTEGER attr_row_bind_type; */
 	SQLUINTEGER attr_row_number;
-	/* ARD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* ard->sql_desc_array_status_ptr */
 	/* SQLUINTEGER *attr_row_operation_ptr; */
-	/* IRD - SQL_DESC_ARRAY_STATUS_PTR */
+	/* ird->sql_desc_array_status_ptr */
 	/* SQLUINTEGER *attr_row_status_ptr; */
-	/* IRD - SQL_DESC_ROWS_PROCESSED_PTR */
+	/* ird->sql_desc_rows_processed_ptr */
 	/* SQLUINTEGER *attr_rows_fetched_ptr; */
 	SQLUINTEGER attr_simulate_cursor;
 	SQLUINTEGER attr_use_bookmarks;
