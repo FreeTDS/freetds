@@ -1,3 +1,7 @@
+Mon Feb 09 16:32:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/numeric.c:
+	- fix a Bus Error on some architecture (like SPARC)
+
 Mon Feb 09 15:28:07 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h: small type change
 
