@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.11 2002-02-17 20:23:38 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.12 2002-03-06 01:39:07 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -511,10 +511,19 @@ static void lookup_host(
    char        *ip,          /* (O) dotted-decimal ip address of server */
    char        *port)        /* (O) port number of the service          */
 {
-   struct hostent   *host    = gethostbyname(servername);
+   struct hostent   *host    = NULL;
    struct servent   *service = NULL;
    int               num     = 0;
+   unsigned int		ip_addr=0;
 
+   /* Only call gethostbyname if servername is not an ip address. 
+      This call take a while and is useless for an ip address.
+      mlilback 3/2/02 */
+   ip_addr = inet_addr(servername);
+   if (ip_addr == INADDR_NONE)
+      host = gethostbyname(servername);
+	
+#ifndef NOREVERSELOOKUPS
 /* froy@singleentry.com 12/21/2000 */
 	if (host==NULL) {
 		char addr [4];
@@ -527,8 +536,13 @@ static void lookup_host(
 		host    = gethostbyaddr (addr, 4, AF_INET);
 	}
 /* end froy */ 
+#endif
    if (!host) {
-      ip[0]   = '\0';
+      /* if servername is ip, copy to ip. */
+      if (INADDR_NONE != ip_addr)
+         strncpy(ip, servername, 17); 
+      else
+         ip[0]   = '\0';
    } else {
       struct in_addr *ptr = (struct in_addr *) host->h_addr;
       strncpy(ip, inet_ntoa(*ptr), 17);
