@@ -21,7 +21,7 @@
  * Purpose: test conversions.  If they work, test their performance.  
  * To test performance, call this program with an iteration count (10 is probably fine).
  * The following shows performance converting to varchar:
- * $ make convert && ./convert 1 |grep interations |grep 'varchar\.' |sort -n 
+ * $ make convert && ./convert 1 |grep iterations |grep 'varchar\.' |sort -n 
  */
 
 #if HAVE_CONFIG_H
@@ -44,7 +44,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.3 2003-03-03 21:19:55 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.4 2003-03-04 10:46:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -294,7 +294,7 @@ main(int argc, char **argv)
 		result = gettimeofday(&end, &tzp);
 		endtime = (float) end.tv_sec + (float) end.tv_usec * 0.000001;
 		
-		printf("%8.0f interations/second converting %13s => %s.\n", 
+		printf("%8.0f iterations/second converting %13s => %s.\n", 
 			j / (endtime - starttime), 
 			tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
 		

@@ -1,3 +1,6 @@
+Tue Mar 04 11:43:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/convert.c: spell fix
+
 Mon Mar 03 22:19:31 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: update
 	* src/tds/unittests/convert.c: fix an error computing speed
