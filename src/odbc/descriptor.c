@@ -124,13 +124,10 @@ desc_free_record(struct _drecord *drec)
 	IF_FREE(drec->sql_desc_base_table_name);
 	IF_FREE(drec->sql_desc_catalog_name);
 	IF_FREE(drec->sql_desc_label);
-	IF_FREE(drec->sql_desc_literal_prefix);
-	IF_FREE(drec->sql_desc_literal_suffix);
 	IF_FREE(drec->sql_desc_local_type_name);
 	IF_FREE(drec->sql_desc_name);
 	IF_FREE(drec->sql_desc_schema_name);
 	IF_FREE(drec->sql_desc_table_name);
-	IF_FREE(drec->sql_desc_type_name);
 }
 
 SQLRETURN
@@ -180,13 +177,10 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		CCOPY(sql_desc_base_table_name);
 		CCOPY(sql_desc_catalog_name);
 		CCOPY(sql_desc_label);
-		CCOPY(sql_desc_literal_prefix);
-		CCOPY(sql_desc_literal_suffix);
 		CCOPY(sql_desc_local_type_name);
 		CCOPY(sql_desc_name);
 		CCOPY(sql_desc_schema_name);
 		CCOPY(sql_desc_table_name);
-		CCOPY(sql_desc_type_name);
 #undef CCOPY
 	}
 	return SQL_SUCCESS;

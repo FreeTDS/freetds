@@ -1,3 +1,10 @@
+Wed Feb 11 15:36:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/descriptor.c:
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/odbc_util.h:
+	- remove a TODO optimizing type info filling
+	- add prefix/suffix informations
+
 Tue Feb 10 12:35:13 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: fix a possible reading buffer overflow
 	* src/odbc/odbc.c: remove a warning

@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.66 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.67 2004-02-11 14:34:18 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -120,8 +120,10 @@ struct _drecord
 	SQLINTEGER *sql_desc_indicator_ptr;
 	SQLCHAR *sql_desc_label;
 	SQLUINTEGER sql_desc_length;
-	SQLCHAR *sql_desc_literal_prefix;
-	SQLCHAR *sql_desc_literal_suffix;
+	/* this point to a constant buffer, do not free or modify */
+	const char *sql_desc_literal_prefix;
+	/* this point to a constant buffer, do not free or modify */
+	const char *sql_desc_literal_suffix;
 	SQLCHAR *sql_desc_local_type_name;
 	SQLCHAR *sql_desc_name;
 	SQLSMALLINT sql_desc_nullable;
@@ -136,7 +138,8 @@ struct _drecord
 	SQLSMALLINT sql_desc_searchable;
 	SQLCHAR *sql_desc_table_name;
 	SQLSMALLINT sql_desc_type;
-	SQLCHAR *sql_desc_type_name;
+	/* this point to a constant buffer, do not free or modify */
+	const char *sql_desc_type_name;
 	SQLSMALLINT sql_desc_unnamed;
 	SQLSMALLINT sql_desc_unsigned;
 	SQLSMALLINT sql_desc_updatable;

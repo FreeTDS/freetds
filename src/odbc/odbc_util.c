@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.59 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.60 2004-02-11 14:34:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -393,58 +393,62 @@ odbc_c_to_server_type(int c_type)
 	return TDS_FAIL;
 }
 
-/* TODO return just constant buffer */
-char *
-odbc_server_to_sql_typename(TDSCOLUMN * col, int odbc_ver)
+void
+odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec)
 {
-	/* FIXME finish */
+#define SET_INFO(type, prefix, suffix) \
+	drec->sql_desc_literal_prefix = ""; \
+	drec->sql_desc_literal_suffix = ""; \
+	drec->sql_desc_type_name = type; \
+	return;
+
+	/* FIXME finish, support for N type (nvarchar) */
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
-		return (strdup("char"));
+		SET_INFO("char", "'", "'");
 	case XSYBVARCHAR:
 	case SYBVARCHAR:
-		return (strdup("varchar"));
+		SET_INFO("varchar", "'", "'");
 	case SYBTEXT:
-		return (strdup("text"));
+		SET_INFO("text", "'", "'");
 	case SYBBIT:
 	case SYBBITN:
-		return (strdup("bit"));
+		SET_INFO("bit", "", "");
 #if (ODBCVER >= 0x0300)
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
-		return (strdup("bigint"));
+		SET_INFO("bigint", "", "");
 #endif
 	case SYBINT4:
-		return (strdup("int"));
+		SET_INFO("int", "", "");
 	case SYBINT2:
-		return (strdup("smallint"));
+		SET_INFO("smallint", "", "");
 	case SYBINT1:
-		return (strdup("tinyint"));
+		SET_INFO("tinyint", "", "");
 	case SYBREAL:
-		return (strdup("real"));
+		SET_INFO("real", "", "");
 	case SYBFLT8:
-		return (strdup("float"));
+		SET_INFO("float", "", "");
 	case SYBMONEY:
 	case SYBMONEY4:
-		return (strdup("money"));
-		break;
+		SET_INFO("money", "$", "");
 	case SYBDATETIME:
 	case SYBDATETIME4:
-		return (strdup("datetime"));
+		SET_INFO("datetime", "'", "'");
 	case SYBBINARY:
 		/* handle TIMESTAMP using usertype */
 		if (col->column_usertype == 80)
-			return strdup("timestamp");
-		return (strdup("binary"));
+			SET_INFO("timestamp", "0x", "");
+		SET_INFO("binary", "0x", "");
 	case SYBIMAGE:
-		return (strdup("image"));
+		SET_INFO("image", "0x", "");
 	case SYBVARBINARY:
-		return (strdup("varbinary"));
+		SET_INFO("varbinary", "0x", "");
 	case SYBNUMERIC:
-		return (strdup("numeric"));
+		SET_INFO("numeric", "", "");
 	case SYBDECIMAL:
-		return (strdup("decimal"));
+		SET_INFO("decimal", "", "");
 	case SYBINTN:
 	case SYBDATETIMN:
 	case SYBFLTN:
@@ -459,13 +463,13 @@ odbc_server_to_sql_typename(TDSCOLUMN * col, int odbc_ver)
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
 		/* FIXME for Sybase ?? */
-		return (strdup("uniqueidentifier"));
+		SET_INFO("uniqueidentifier", "'", "'");
 	case SYBVARIANT:
-		/* return (strdup("sql_variant")); */
-		break;
+		/* SET_INFO("sql_variant", "", ""); */
 #endif
 	}
-	return (strdup(""));
+	SET_INFO("", "", "");
+#undef SET_INFO
 }
 
 SQLINTEGER

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.297 2004-02-10 11:33:10 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.298 2004-02-11 14:34:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1382,7 +1382,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ird = stmt->ird;
 
-#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? src : (SQLCHAR*)"", -1);
+#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? (SQLCHAR*)src : (SQLCHAR*)"", -1);
 
 /* SQLColAttribute returns always attributes using SQLINTEGER */
 #if ENABLE_EXTRA_CHECKS
@@ -2225,9 +2225,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			drec->sql_desc_length = strlen("2000-01-01 12:00:00.0000");
 		else
 			drec->sql_desc_length = col->column_size;
-		/* TODO use constants, not allocated string, fill correctly */
-		drec->sql_desc_literal_prefix = NULL;
-		drec->sql_desc_literal_suffix = NULL;
+		odbc_set_sql_type_info(col, stmt->dbc->env->attr.odbc_version, drec);
 
 		drec->sql_desc_local_type_name = NULL;
 		if ((drec->sql_desc_name = odbc_strndup(col->column_name, col->column_namelen)) == NULL)
@@ -2251,9 +2249,6 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = NULL;
-		if ((drec->sql_desc_type_name = odbc_server_to_sql_typename(col, stmt->dbc->env->attr.odbc_version)) == NULL) {
-			return SQL_ERROR;
-		}
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -2574,9 +2569,7 @@ _SQLFetch(TDS_STMT * stmt)
 				c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
 			len = convert_tds2sql(context,
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
-					      src,
-					      srclen, c_type, drec_ard->sql_desc_data_ptr,
-					      drec_ard->sql_desc_octet_length);
+					      src, srclen, c_type, drec_ard->sql_desc_data_ptr, drec_ard->sql_desc_octet_length);
 			if (len < 0) {
 				if (stmt->ird->header.sql_desc_array_status_ptr)
 					stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
@@ -3059,7 +3052,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 				case TDS_COMPUTE_RESULT:
 					while (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_SUCCEED);
 					break;
-	
+
 				case TDS_DONE_RESULT:
 				case TDS_DONEPROC_RESULT:
 				case TDS_DONEINPROC_RESULT:
@@ -3068,7 +3061,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 					/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 					stmt->row = 0;
 					break;
-	
+
 				case TDS_ROWFMT_RESULT:
 					/* store first row informations */
 					if (!in_row)
