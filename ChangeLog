@@ -1,3 +1,7 @@
+at Oct 19 14:02:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tdsstring.h:
+	- Add CVS Id.
+
 Fri Oct 18 22:20:15 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* apps/freebcp.h
 	  apps/tsql.c
@@ -17,7 +21,7 @@ Fri Oct 18 22:20:15 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	  pool/util.c
 	  server/unittest.c
 	  replacements/atoll.c
-	- added cvs $Id: ChangeLog,v 1.431 2002-10-19 03:02:30 jklowden Exp $ string for all above files. (All *.[ch] have one now.)
+	- added cvs Id string for all above files. (All *.[ch] have one now.)
 	  
 Fri Oct 18 20:25:42 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
