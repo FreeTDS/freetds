@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.3 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.4 2004-09-03 12:40:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -173,6 +173,8 @@ main(int argc, char **argv)
 			check_msg(!(p->flags & FLAG_SQL), "Type SQL failed to be set in IPD");
 		}
 	}
+
+	Disconnect();
 
 	return result;
 }

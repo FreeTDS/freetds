@@ -1,3 +1,7 @@
+Fri Sep 03 14:39:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/descriptor.c src/odbc/unittests/type.c:
+	- fix small memory leaks
+
 Tue Aug 31 16:02:14 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/vstrbuild.c: fix small memory leak
 
