@@ -1,3 +1,8 @@
+Fri Oct 18 13:34:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds_sysdep_public.h.in:
+	- Better guess at 64-bit int for win32 native,
+	  as suggested by jkl.
+
 Fri Oct 18 13:29:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/.cvsignore:
 	- Don't ignore tds_sysdep_private.h
