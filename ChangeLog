@@ -1,3 +1,15 @@
+Sat Jul  6 15:20:06 EDT 2002 JK Lowden <jklowden@schemamania.org>
+	Several patches from Frediano Ziglio:
+	* src/odbc/odbc.c, patch 577931, correct memory leak
+	* patch 578058, spell check various documentation files.
+	* src/tds/iconv.c, patch 565835. Fixes some problem with iconv routines.
+	* src/tds/convert.c, patch 574490.  
+		Handle endianism for "unique identifier" datatype
+	
+Sat Jul  6 11:22:08 EDT 2002 JK Lowden <jklowden@schemamania.org>
+	* autogen.sh: change so that "--include-deps" is always passed to automake.  
+    	* include/Makefile.am: change "$(RM)" into "rm -f".
+
 Fri Jul  5 07:39:04 EDT 2002
 	*src/tds/token.c(tds_process_msg): (from lirm604) check for closed 
 		connection
