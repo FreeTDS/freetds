@@ -1,3 +1,7 @@
+Mon Jan 27 11:30:34 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/unittests/common.c:
+	- workaround for tds_connect and garbage pointer
+
 Sun Jan 26 19:43:18 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/common.c src/ctlib/unittests/common.h:
 	* src/ctlib/unittests/connect_fail.c src/ctlib/unittests/t0002.c:

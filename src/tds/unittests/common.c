@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.11 2002-11-25 09:10:11 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.12 2003-01-27 10:31:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -95,7 +95,10 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	tds_set_parent(*tds, NULL);
 	connect_info = tds_read_config_info(NULL, *login, context->locale);
 	if (!connect_info || tds_connect(*tds, connect_info) == TDS_FAIL) {
-		tds_free_connect(connect_info);
+		if (connect_info) {
+			*tds = NULL;
+			tds_free_connect(connect_info);
+		}
 		fprintf(stderr, "tds_connect() failed\n");
 		return TDS_FAIL;
 	}

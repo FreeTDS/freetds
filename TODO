@@ -8,11 +8,9 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.35 2003-01-26 23:58:03 jklowden Exp $
+To Do List	$Id: TODO,v 1.36 2003-01-27 10:31:28 freddy77 Exp $
 ------------
 Broken:
-. tds_connect free tds structure on failure. This cause in some condition
-  a pointer to garbage in some library
 . ctlib: null returns zero-length string(see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
 
 For 0.61 version:
@@ -44,6 +42,8 @@ For future versions (in priority order within library):
 . limit copy of data (now wire -> tds -> temp -> client)
 . All manner of unimplemented functions (see doc/api_status.txt)
 . cursor support
+. tds_connect free tds structure on failure. This cause in some condition
+  a pointer to garbage in some library (workaround written, best to change)
 
   ct-lib
 . cs_calc and cs_cmp, for sybperl
