@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.171 2004-04-01 18:18:20 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.172 2004-04-26 23:49:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -982,8 +982,13 @@ tdsdbopen(LOGINREC * login, char *server)
 	buffer_init(&(dbproc->row_buf));
 
 	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
-		/* FIXME buffer overflow wait us... */
-		sprintf(temp_filename, "%s.%d", g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
+		const int len = snprintf(temp_filename, sizeof(temp_filename), "%s.%d", 
+					 g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
+		if (len == sizeof(temp_filename) - 1) {
+			tdsdump_log(TDS_DBG_FUNC, "%L dbopen(): filename '%s' truncated to '%s'\n", 
+				    temp_filename, g_dblib_ctx.recftos_filename);
+		}
+		assert(len != 0);
 		dbproc->ftos = fopen(temp_filename, "w");
 		if (dbproc->ftos != (FILE *) NULL) {
 			fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
