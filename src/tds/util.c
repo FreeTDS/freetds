@@ -53,12 +53,13 @@
 #endif /* HAVE_UNISTD_H */
 
 #include "tds.h"
+#include "tds_checks.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.50 2004-09-20 08:21:20 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.51 2004-12-07 22:39:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -93,6 +94,62 @@ tds_ctx_get_parent(TDSCONTEXT * ctx)
 {
 	return (ctx->parent);
 }
+
+/**
+ * Set state of TDS connection, with logging and checking.
+ * \param tds	  state information for the socket and the TDS protocol
+ * \param state	  the new state of the connection, cf. TDS_STATE.
+ * \return 	  the new state, which might not be \a state.
+ */
+TDS_STATE
+tds_set_state(TDSSOCKET * tds, TDS_STATE state)
+{
+	static const char *state_names[] = {    "TDS_QUERYING",
+						"TDS_PENDING",
+						"TDS_IDLE",
+						"TDS_CANCELED",
+						"TDS_DEAD"
+					    };
+	assert(state < TDS_VECTOR_SIZE(state_names));
+	assert(tds->state < TDS_VECTOR_SIZE(state_names));
+	
+	tdsdump_log(TDS_DBG_ERROR, "Changing query state from %s to %s\n", state_names[tds->state], state_names[state]);
+	
+	switch(state) {
+	case TDS_PENDING:
+	case TDS_IDLE:
+	case TDS_CANCELED:
+	case TDS_DEAD:
+		return tds->state = state;
+		break;
+	default:
+		assert(0);
+		break;
+	case TDS_QUERYING:
+		CHECK_TDS_EXTRA(tds);
+
+		if (tds->state == TDS_DEAD) {
+			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
+			return tds->state;
+		} else if (tds->state != TDS_IDLE) {
+			tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
+			tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
+				       "Attempt to initiate a new SQL Server operation with results pending.");
+			return tds->state;
+		}
+
+		/* TODO check this code, copied from tds_submit_prepare */
+		tds_free_all_results(tds);
+		tds->rows_affected = TDS_NO_COUNT;
+		tds->cur_cursor = NULL;
+		tds->internal_sp_called = 0;
+
+		return tds->state = state;
+	}
+	
+	return tds->state; /* should not reach here */
+}
+
 
 int
 tds_swap_bytes(unsigned char *buf, int bytes)

@@ -1,3 +1,11 @@
+Tue Dec  7 17:34:21 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h
+	* src/tds/net.c src/tds/query.c src/tds/token.c src/tds/util.c
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/ctlib/blk.c src/ctlib/ct.c
+	- implement and use tds_set_state() to set state with logging.
+	- change TDSSOCKET::state to enumerated type.  
+	
 Tue Dec  7 16:10:44 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* acinclude.m4 fix underquoting
 	- cf. info '(automake)Extending aclocal' (Autoconf 2.59)

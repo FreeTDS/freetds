@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.272 2004-12-05 20:05:09 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.273 2004-12-07 22:39:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -106,7 +106,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_default_tokens() connection dead\n");
-		tds->state = TDS_DEAD;
+		tds_set_state(tds, TDS_DEAD);
 		return TDS_FAIL;
 	}
 
@@ -230,7 +230,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	default:
 		tds_client_msg(tds->tds_ctx, tds, 20020, 9, 0, 0, "Unknown marker");
 		if (IS_TDSDEAD(tds))
-			tds->state = TDS_DEAD;
+			tds_set_state(tds, TDS_DEAD);
 		else
 			tds_close_socket(tds);
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
@@ -1105,7 +1105,7 @@ tds_process_col_name(TDSSOCKET * tds)
 	tds->current_results = tds->res_info = info;
 
 	/* tell the upper layers we are processing results */
-	tds->state = TDS_PENDING;
+	tds_set_state(tds, TDS_PENDING);
 	cur = head;
 
 	if (memrc != 0) {
@@ -1629,7 +1629,7 @@ tds7_process_result(TDSSOCKET * tds)
 	}
 
 	/* tell the upper layers we are processing results */
-	tds->state = TDS_PENDING;
+	tds_set_state(tds, TDS_PENDING);
 
 	/* loop through the columns populating COLINFO struct from
 	 * server response */
@@ -1761,7 +1761,7 @@ tds_process_result(TDSSOCKET * tds)
 	}
 
 	/* tell the upper layers we are processing results */
-	tds->state = TDS_PENDING;
+	tds_set_state(tds, TDS_PENDING);
 
 	/*
 	 * loop through the columns populating COLINFO struct from
@@ -1833,7 +1833,7 @@ tds5_process_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "num_cols=%d\n", num_cols);
 
 	/* tell the upper layers we are processing results */
-	tds->state = TDS_PENDING;
+	tds_set_state(tds, TDS_PENDING);
 
 	/* TODO reuse some code... */
 	/* loop through the columns populating COLINFO struct from
@@ -2307,7 +2307,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 	if (was_cancelled || !(more_results)) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
-		tds->state = TDS_IDLE;
+		tds_set_state(tds, TDS_IDLE);
 	}
 
 	if (IS_TDSDEAD(tds))
@@ -2392,7 +2392,7 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 		 */
 		if (ret && tds) {
 			/* TODO close socket too ?? */
-			tds->state = TDS_DEAD;
+			tds_set_state(tds, TDS_DEAD);
 		}
 #endif
 	}
@@ -2718,7 +2718,7 @@ tds_process_cancel(TDSSOCKET * tds)
 
 
 	if (retcode == TDS_SUCCEED && !IS_TDSDEAD(tds))
-		tds->state = TDS_IDLE;
+		tds_set_state(tds, TDS_IDLE);
 	else
 		retcode = TDS_FAIL;
 

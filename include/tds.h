@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.199 2004-12-05 20:05:08 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.200 2004-12-07 22:39:21 jklowden Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -894,14 +894,14 @@ typedef struct tds_result_info
 } TDSRESULTINFO;
 
 /* values for tds->state */
-enum
+typedef enum _TDS_STATE
 {
 	TDS_QUERYING,
 	TDS_PENDING,
 	TDS_IDLE,
 	TDS_CANCELED,
 	TDS_DEAD
-};
+} TDS_STATE;
 
 #define TDS_DBG_FUNC    7
 #define TDS_DBG_INFO2   6
@@ -1077,7 +1077,7 @@ struct tds_socket
 	TDSCURSOR *cursors;	/**< linked list of cursors allocated for this connection */
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
-	TDS_TINYINT state;
+	TDS_STATE state;
 	int rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT timeout;
@@ -1277,6 +1277,7 @@ int tds_get_size_by_type(int servertype);
 
 
 /* util.c */
+TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
 void tds_set_parent(TDSSOCKET * tds, void *the_parent);
 void *tds_get_parent(TDSSOCKET * tds);
 void tds_ctx_set_parent(TDSCONTEXT * ctx, void *the_parent);

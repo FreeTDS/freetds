@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.104 2004-11-17 18:47:34 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.105 2004-12-07 22:39:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1580,7 +1580,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	
 						tds_flush_packet(tds);
 	
-						tds->state = TDS_QUERYING;
+						tds_set_state(tds, TDS_QUERYING);
 	
 						if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 							fclose(errfile);
@@ -1614,7 +1614,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	tds_flush_packet(tds);
 
-	tds->state = TDS_QUERYING;
+	tds_set_state(tds, TDS_QUERYING);
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
@@ -2368,7 +2368,7 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tds_flush_packet(tds);
 
-	tds->state = TDS_QUERYING;
+	tds_set_state(tds, TDS_QUERYING);
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
@@ -2394,7 +2394,7 @@ bcp_done(DBPROCESS * dbproc)
 	}
 	tds_flush_packet(tds);
 
-	tds->state = TDS_QUERYING;
+	tds_set_state(tds, TDS_QUERYING);
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;

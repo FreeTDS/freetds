@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.135 2004-12-05 20:05:08 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.136 2004-12-07 22:39:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -842,7 +842,7 @@ ct_send(CS_COMMAND * cmd)
 
 		if (something_to_send) {
 			tdsdump_log(TDS_DBG_WARN, "ct_send(): sending cursor commands\n");
-			tds->state = TDS_QUERYING;
+			tds_set_state(tds, TDS_QUERYING);
 			tds_flush_packet(tds);
 			something_to_send = 0;
 
@@ -868,7 +868,7 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
-		tds->state = TDS_QUERYING;
+		tds_set_state(tds, TDS_QUERYING);
 		tds_flush_packet(tds);
 	}
 

@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.4 2004-12-01 13:11:35 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.5 2004-12-07 22:39:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -212,7 +212,7 @@ tds_close_socket(TDSSOCKET * tds)
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
 		tds->s = INVALID_SOCKET;
-		tds->state = TDS_DEAD;
+		tds_set_state(tds, TDS_DEAD);
 	}
 	return rc;
 }
