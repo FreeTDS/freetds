@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.3 2003-04-01 12:01:35 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.4 2003-04-23 15:09:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call simpleresult(?)}", SQL_NTS) != SQL_SUCCESS) {
+	if (SQLPrepare(Statement, (SQLCHAR *) "{ \n?\t\r= call simpleresult(?)}", SQL_NTS) != SQL_SUCCESS) {
 		printf("Unable to prepare statement\n");
 		exit(1);
 	}
