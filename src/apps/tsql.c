@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.49 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.50 2003-02-11 05:20:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -208,8 +208,9 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 void
 print_usage(char *progname)
 {
-	fprintf(stderr, "Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n",
-		progname);
+	fprintf(stderr, 
+		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n\t%s -C\n",
+		progname, progname);
 }
 
 int
@@ -254,6 +255,7 @@ get_opt_flags(char *s, int *opt_flags)
 void
 populate_login(TDSLOGIN * login, int argc, char **argv)
 {
+	const TDS_COMPILETIME_SETTINGS *settings;
 	char *hostname = NULL;
 	char *servername = NULL;
 	char *username = NULL;
@@ -279,7 +281,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		printf("using default charset \"%s\"\n", charset);
 	}
 
-	while ((opt = getopt(argc, argv, "H:S:I:V::P:U:p:v")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:V::P:U:p:vC")) != -1) {
 		switch (opt) {
 		case 'H':
 			hostname = (char *) malloc(strlen(optarg) + 1);
@@ -303,6 +305,24 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'p':
 			port = atoi(optarg);
+			break;
+		case 'C':
+			settings = tds_get_compiletime_settings();
+			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n", 
+				"Compile-time settings (established with the \"configure\" script):", 
+				"Version:", settings->freetds_version, 
+				/* settings->last_update */
+				"MS db-lib source compatibility:", settings->msdblib? "yes" : "no",
+				"Sybase binary compatibility:", 
+					(settings->sybase_compat == -1? "unknown" :(settings->sybase_compat? "yes" : "no")), 
+				"Thread safety:", settings->threadsafe? "yes" : "no",
+				"iconv library:", settings->libiconv? "yes" : "no",
+				
+				"TDS version:", settings->tdsver, 
+				"iODBC:", settings->iodbc? "yes" : "no",
+				"unixodbc:", settings->unixodbc? "yes" : "no"
+			       );	
+			exit(0);
 			break;
 		default:
 			print_usage(argv[0]);

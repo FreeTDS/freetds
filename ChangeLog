@@ -1,3 +1,7 @@
+Tue Feb 11 00:15:18 EST 20031	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/apps/tsql.c src/tds/config.c
+	- provide tds_get_compiletime_settings, view with "tsql -C".
+	
 Mon Feb 10 21:31:28 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/dblib.c
 	- patch from Bill Thompson to support DBNOAUTOFREE.

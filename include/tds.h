@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.82 2003-02-04 13:28:28 freddy77 Exp $";
+	"$Id: tds.h,v 1.83 2003-02-11 05:20:02 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -39,6 +39,25 @@ static void *no_unused_tds_h_warn[] = {
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
+/**
+ * A structure to hold all the compile-time settings.
+ * This structure is returned by tds_get_compiletime_settings
+ */
+ 
+typedef struct _tds_compiletime_settings
+{
+	char *freetds_version;		/* release version of FreeTDS */
+	char *last_update;	/* latest software_version date among the modules */
+	int msdblib;		/* for MS style dblib */
+	int sybase_compat;	/* enable increased Open Client binary compatibility */
+	int threadsafe; 	/* compile for thread safety default=no */
+	int libiconv;     	/* search for libiconv in DIR/include and DIR/lib */
+	char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/8.0) 5.0 */
+	int iodbc;		/* build odbc driver against iODBC in DIR */
+	int unixodbc; 		/* build odbc driver against unixODBC in DIR */
+
+} TDS_COMPILETIME_SETTINGS;
 
 /**
  * @file tds.h
@@ -725,6 +744,7 @@ void tds_free_context(TDSCONTEXT *locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
 
 /* config.c */
+const TDS_COMPILETIME_SETTINGS* tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE)(const char* option, const char* value, void *param);
 int tds_read_conf_section(FILE *in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
 int tds_read_conf_file(TDSCONNECTINFO *connect_info,const char *server);
@@ -771,6 +791,8 @@ int tds_get_null(unsigned char *current_row, int column);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 const char *tds_prtype(int token);
+
+
 
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);

@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 
@@ -64,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.64 2003-01-25 02:36:39 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.65 2003-02-11 05:20:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1018,6 +1019,65 @@ char tmp[256];
 		return 1;	/* TRUE */
 	} else
 		return 0;	/* FALSE */
+}
+
+
+/**
+ * Return a structure capturing the compile-time settings provided to the
+ * configure script.  
+ */
+ 
+const TDS_COMPILETIME_SETTINGS* tds_get_compiletime_settings(void)
+{
+	static TDS_COMPILETIME_SETTINGS settings = {
+		  TDS_VERSION_NO
+		, "unknown"	/* need fancy script in makefile */
+#		ifdef MSDBLIB
+		, 1
+#		else
+		, 0
+#		endif
+		, -1 /* unknown: sybase_compat only a makefile setting, so far. */
+#		ifdef THREAD_SAFE
+		, 1
+#		else
+		, 0
+#		endif
+#		ifdef HAVE_ICONV
+		, 1
+#		else
+		, 0
+#		endif
+#		ifdef TDS42
+		, "4.2"
+#		endif
+#		ifdef TDS46
+		, "4.6"
+#		endif
+#		ifdef TDS50
+		, "5.0"
+#		endif
+#		ifdef TDS70
+		, "7.0"
+#		endif
+#		ifdef TDS80
+		, "8.0"
+#		endif
+#		ifdef IODBC
+		, 1
+#		else
+		, 0
+#		endif
+#		ifdef UNIXODBC
+		, 1
+#		else
+		, 0
+#		endif
+		};
+			
+	assert(settings.tdsver);
+	
+	return &settings;
 }
 
 /** \@} */
