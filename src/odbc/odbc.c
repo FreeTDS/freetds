@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.64 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.65 2002-10-14 08:29:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -601,9 +601,10 @@ TDSCONTEXT* ctx;
 	ctx->msg_handler = mymessagehandler;
 	ctx->err_handler = myerrorhandler;
 
-	if (!ctx->locale->date_fmt) {
-		ctx->locale->date_fmt = strdup("%Y-%m-%d");
-	}
+	/* ODBC has its own format */
+	free(ctx->locale->date_fmt);
+	ctx->locale->date_fmt = strdup("%Y-%m-%d");
+
 	*phenv = (SQLHENV)env;
 
 	return SQL_SUCCESS;
@@ -2358,18 +2359,22 @@ SQLRETURN SQL_API SQLSetStmtOption(
 {
     CHECK_HSTMT;
 
-    switch (fOption)
-    {
-    case SQL_ROWSET_SIZE:
-        /* Always 1 */
-        break;
-    default:
-        tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetStmtOption: Statement option %d not implemented\n", fOption);
-        odbc_LogError ("Statement option not implemented");
-        return SQL_ERROR;
-    }
+	switch (fOption)
+	{
+	case SQL_ROWSET_SIZE:
+		/* Always 1 */
+		break;
+	case SQL_CURSOR_TYPE:
+		if (vParam == SQL_CURSOR_FORWARD_ONLY)
+			return SQL_SUCCESS;
+		/* fall through */
+	default:
+		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetStmtOption: Statement option %d not implemented\n", fOption);
+		odbc_LogError ("Statement option not implemented");
+		return SQL_ERROR;
+	}
 
-    return SQL_SUCCESS;
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLSpecialColumns(

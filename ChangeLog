@@ -1,3 +1,8 @@
+Mon Oct 14 10:28:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- use always odbc date format (iso)
+	- return success setting cursor type to forward
+
 Mon Oct 14 10:09:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/locale.c src/tds/mem.c:
 	- improve out of memory handling
