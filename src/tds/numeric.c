@@ -89,7 +89,7 @@ int neg=0;
 	number = reorder;
 #endif
 
-	if (number[0] && 0x80) {
+	if (number[0] & 0x80) {
 		/* negative number -- preform two's complement */
 		neg = 1;
 		for (i=0;i<8;i++) {
