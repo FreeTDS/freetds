@@ -3,6 +3,9 @@
 # stop on errors
 set -e
 
+# do not create logs so diskcheck test do not fails
+unset TDSDUMP || true
+
 # set correct directory
 DIR=`dirname $0`
 cd "$DIR/.."

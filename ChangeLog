@@ -1,3 +1,6 @@
+Thu Mar 11 16:43:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* misc/test-dist.sh: small fix
+
 Thu Mar 11 16:13:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/data.c:
 	- do not test mssql2k feature if not mssql2k
