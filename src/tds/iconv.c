@@ -44,18 +44,15 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.56 2003-05-01 18:53:36 jklowden Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: iconv.c,v 1.57 2003-05-02 05:56:55 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->min_bytes_per_char )? \
+#define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
 
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
-static int skip_one_input_sequence(TDS_ENCODING * charset, const char **input);
+static int skip_one_input_sequence(const TDS_ENCODING * charset, ICONV_CONST char **input);
 static const char *tds_canonical_charset_name(const char *charset_name);
 static const char *tds_sybase_charset_name(const char *charset_name);
 
@@ -83,6 +80,8 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	client->name[sizeof(client->name) - 1] = '\0';
 
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
+
+	/* TODO support Sybase dbms and tds4.2 */
 
 	/* TODO init singlebyte server */
 	strncpy(server->name, "UCS-2LE", sizeof(server->name));
@@ -145,7 +144,7 @@ tds_iconv_close(TDSSOCKET * tds)
  * \todo Check for variable multibyte non-UTF-8 input character set.  
  */
 size_t
-tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST char *input, size_t * input_size,
+tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *input, size_t * input_size,
 	  char *output, size_t output_size)
 {
 #if HAVE_ICONV
@@ -153,6 +152,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	const char *output_charset_name = NULL;
 	const size_t output_buffer_size = output_size;
 	int erc, one_character;
+	ICONV_CONST char *input_p = (ICONV_CONST char *) input;
 
 	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
 
@@ -183,7 +183,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	 * Call iconv() as many times as necessary, until we reach the end of input 
 	 * or exhaust output.  
 	 */
-	while (iconv(cd, &input, input_size, &output, &output_size) == (size_t) - 1) {
+	while (iconv(cd, &input_p, input_size, &output, &output_size) == (size_t) - 1) {
 		/* iconv call can reset errno */
 		erc = errno;
 		/* reset iconv state */
@@ -192,7 +192,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 			break;
 
 		/* skip one input sequence, adjusting input pointer */
-		one_character = skip_one_input_sequence(input_charset, &input);
+		one_character = skip_one_input_sequence(input_charset, &input_p);
 		input_size -= one_character;
 
 		if (!one_character)
@@ -204,6 +204,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		 * impossible.  
 		 */
 		if (error_cd == (iconv_t) - 1) {
+			/* TODO is ascii extension just copy (always ascii extension??) */
 			error_cd = iconv_open(output_charset_name, "ISO-8859-1");
 			if (error_cd == (iconv_t) - 1)
 				break;	/* what to do? */
@@ -231,6 +232,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 #endif
 }
 
+/* FIXME should change only singlebyte conversions */
 void
 tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
@@ -250,6 +252,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	if (tds->iconv_info->from_wire != (iconv_t) - 1)
 		iconv_close(tds->iconv_info->from_wire);
 
+	/* TODO test before ? - f77 */
 	/* look up the size of the server's new character set */
 	ret = bytes_per_char(&tds->iconv_info->server_charset);
 	if (!ret) {
@@ -302,8 +305,9 @@ bytes_per_char(TDS_ENCODING * charset)
  * Used when an input character cannot be converted.  
  * \returns number of bytes to skip.
  */
+/* FIXME possible buffer reading overflow ?? */
 static int
-skip_one_input_sequence(TDS_ENCODING * charset, const char **input)
+skip_one_input_sequence(const TDS_ENCODING * charset, ICONV_CONST char **input)
 {
 	int charsize = CHARSIZE(charset);
 
@@ -320,11 +324,13 @@ skip_one_input_sequence(TDS_ENCODING * charset, const char **input)
 		 *     3 |   16 | 1110vvvv 10vvvvvv 10vvvvvv
 		 *     4 |   21 | 11110vvv 10vvvvvv 10vvvvvv 10vvvvvv
 		 */
-		charsize = 0;
-		while (**input | 0x80) {
-			++*input;
+		int c = **input;
+
+		c = c & (c >> 1);
+		do {
 			++charsize;
-		}
+		} while ((c <<= 1) & 0x80);
+		*input += charsize;
 		return charsize;
 	}
 
@@ -393,6 +399,7 @@ lcid2charset(int lcid)
 
 	char *cp = NULL;
 
+	/* TODO consider only lower 16 bit ?? */
 	switch (lcid) {
 	case 0x1040e:		/* FIXME check, in neither table but returned from mssql2k */
 	case 0x405:

@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.12 2003-04-14 13:47:42 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.13 2003-05-02 05:56:55 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -70,7 +70,7 @@ typedef struct _character_set_alias
 # define ICONV_CONST const
 #endif
 
-size_t tds_iconv (TDS_ICONV_DIRECTION io, const TDSICONVINFO *info, ICONV_CONST char *input, size_t * input_size, char *out_string, size_t maxlen);
+size_t tds_iconv (TDS_ICONV_DIRECTION io, const TDSICONVINFO *info, const char *input, size_t * input_size, char *out_string, size_t maxlen);
 const char * tds_cannonical_charset_name(const char *charset_name);
 
 #ifdef __cplusplus
