@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.5 2002-12-18 14:06:33 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.6 2003-01-12 20:28:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -234,7 +234,7 @@ static const struct func_info funcs[] = {
  * Parse given sql and return converted sql
  */
 int
-native_sql(const char *odbc_sql, char **out)
+odbc_native_sql(const char *odbc_sql, char **out)
 {
 	char *d;
 }
