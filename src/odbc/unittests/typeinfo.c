@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.5 2005-02-09 19:18:36 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.6 2005-02-18 12:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -49,7 +49,7 @@ FlushStatement(void)
 }
 
 static void
-CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type)
+CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int line)
 {
 	SQLSMALLINT out_type;
 	SQLLEN ind;
@@ -61,19 +61,19 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type)
 	switch (SQLFetch(Statement)) {
 	case SQL_SUCCESS:
 		if (expected == SQL_UNKNOWN_TYPE) {
-			fprintf(stderr, "Data not expected (type %d - %s)\n", type, string_type);
+			fprintf(stderr, "Data not expected (type %d - %s) line %d\n", type, string_type, line);
 			Disconnect();
 			exit(1);
 		}
 		if (expected != out_type) {
-			fprintf(stderr, "Got type %d expected %d. Input type %d - %s\n", out_type, expected, type, string_type);
+			fprintf(stderr, "Got type %d expected %d. Input type %d - %s line %d\n", out_type, expected, type, string_type, line);
 			Disconnect();
 			exit(1);
 		}
 		break;
 	case SQL_NO_DATA:
 		if (expected != SQL_UNKNOWN_TYPE) {
-			fprintf(stderr, "Data expected. Inpute type %d - %s\n", type, string_type);
+			fprintf(stderr, "Data expected. Inpute type %d - %s line %d\n", type, string_type, line);
 			Disconnect();
 			exit(1);
 		}
@@ -95,6 +95,7 @@ DoTest(int version3)
 	SQLINTEGER col_size, min_scale;
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
 	SQLRETURN retcode;
+	int date_time_supported = 0;
 
 	use_odbc_version3 = version3;
 	Connect();
@@ -128,16 +129,20 @@ DoTest(int version3)
 	/* TODO test if SQL_ALL_TYPES returns right numeric type for timestamp */
 
 	/* numeric type for data */
-#define CHECK_TYPE(in,out) CheckType(in, out, #in)
-	CHECK_TYPE(SQL_DATE, SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TIME, SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TYPE_DATE, SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TYPE_TIME, SQL_UNKNOWN_TYPE);
+
+	/* test for date/time support */
+	retcode = CommandWithResult(Statement, "select cast(getdate() as date)");
+	if (retcode == SQL_SUCCESS)
+		date_time_supported = 1;
+	SQLCloseCursor(Statement);
+
+#define CHECK_TYPE(in,out) CheckType(in, out, #in, __LINE__)
+	CHECK_TYPE(SQL_DATE, date_time_supported && !version3 ? SQL_DATE : SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
 	CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
-	/* I hope to fix this ASAP -- freddy77 */
-#ifdef ENABLE_DEVELOPING
 	CHECK_TYPE(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
-#endif
 
 	/* TODO implement this part of test */
 	/* varchar/nvarchar before sysname */

@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.77 2005-02-09 16:15:11 jklowden Exp $ */
+/* $Id: tdsodbc.h,v 1.78 2005-02-18 12:56:43 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -331,6 +331,7 @@ struct _hstmt
 	SQLULEN sql_rowset_size;
 	struct _hsattr attr;
 	DSTR cursor_name;	/* auto generated cursor name */
+	int special_row;
 };
 
 typedef struct _henv TDS_ENV;

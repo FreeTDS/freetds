@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.137 2005-02-16 06:18:39 freddy77 Exp $
+To Do List	$Id: TODO,v 1.138 2005-02-18 12:56:40 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -82,7 +82,8 @@ For future versions (in priority order within library):
 . support for password longer than 30 characters under Sybase
   (anybody know how ??)
 . under Sybase using prepared statements and BLOBs we shouldn't try to
-  prepare every time (cache failure preparing, see odbc unittests logs)
+  prepare every time (cache failure preparing, see odbc unittests logs,
+  binary_test)
 . Native bcp has no iconv support; character bcp files are assumed be encoded
   with the client's charset.  More flexibility one both sides would be good.  
 . date/time on Sybase (from 12.5)

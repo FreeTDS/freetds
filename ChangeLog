@@ -1,3 +1,12 @@
+Fri Feb 18 13:55:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/typeinfo.c:
+	- fix problem using SQLGetTypeInfo in Sybase and ODBC 3.x
+	- do not prepare too much on Sybase
+	- update for NODM environment
+	* src/ctlib/blk.c: add comment
+	* src/ctlib/unittests/cancel.c: decrease timeout, too high
+
 Thu Feb 17 22:27:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/timeout.c:
 	- fix timeout in ODBC

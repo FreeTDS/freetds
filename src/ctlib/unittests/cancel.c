@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.5 2005-01-21 11:38:11 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.6 2005-02-18 12:56:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -76,10 +76,10 @@ main(int argc, char **argv)
 
 	/* TODO better to use alarm AFTER ct_send ?? */
 	/* Set timer */
-	timer.it_interval.tv_sec = 1;
-	timer.it_interval.tv_usec = 0;
-	timer.it_value.tv_sec = 1;
-	timer.it_value.tv_usec = 0;
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = 100000;
+	timer.it_value.tv_sec = 0;
+	timer.it_value.tv_usec = 100000;
 	if (0 != setitimer(ITIMER_REAL, &timer, NULL)) {
 		fprintf(stderr, "Could not set realtime timer.\n");
 		return 1;

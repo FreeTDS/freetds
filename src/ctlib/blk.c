@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.25 2005-02-09 16:15:12 jklowden Exp $";
+static char software_version[] = "$Id: blk.c,v 1.26 2005-02-18 12:56:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -792,6 +792,7 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 		}
 
 	} else {
+		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
 		if (asprintf(&query, "insert bulk %s", blkdesc->tablename) < 0) {
 			return CS_FAIL;
 		}

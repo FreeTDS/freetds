@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.359 2005-02-17 21:27:36 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.360 2005-02-18 12:56:43 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -98,6 +98,7 @@ static void odbc_upper_column_names(TDS_STMT * stmt);
 static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
+static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 
 #if ENABLE_EXTRA_CHECKS
 static void odbc_ird_check(TDS_STMT * stmt);
@@ -509,10 +510,12 @@ SQLMoreResults(SQLHSTMT hstmt)
 	tds = stmt->dbc->tds_socket;
 
 	/* we already readed all results... */
+	/* TODO cursor */
 	if (stmt->dbc->current_statement != stmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 
 	stmt->row_count = TDS_NO_COUNT;
+	stmt->special_row = 0;
 
 	/* TODO this code is TOO similar to _SQLExecute, merge it - freddy77 */
 	/* try to go to the next recordset */
@@ -531,7 +534,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			tds_free_all_results(tds);
 #endif
 			odbc_populate_ird(stmt);
-			if (!got_rows && stmt->errs.lastrc == SQL_SUCCESS)
+			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
 		case TDS_FAIL:
@@ -2470,7 +2473,7 @@ _SQLExecute(TDS_STMT * stmt)
 		TDSDYNAMIC *dyn;
 
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn || stmt->need_reprepare) {
+		if (!stmt->dyn || (stmt->need_reprepare && !stmt->dyn->emulated && IS_TDS7_PLUS(tds))) {
 
 			/* free previous prepared statement */
 			if (stmt->dyn) {
@@ -2684,6 +2687,13 @@ _SQLFetch(TDS_STMT * stmt)
 	}
 	IRD_CHECK;
 
+#ifdef TDS_NO_DM
+	if (stmt->ird->header.sql_desc_count <= 0) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+#endif
+
 	tds = stmt->dbc->tds_socket;
 
 	context = stmt->dbc->env->tds_ctx;
@@ -2732,12 +2742,27 @@ _SQLFetch(TDS_STMT * stmt)
 			switch (tds_process_row_tokens(stmt->dbc->tds_socket, NULL, NULL)) {
 			case TDS_NO_MORE_ROWS:
 				stmt->row_count = tds->rows_affected;
+				stmt->special_row = 0;
 				odbc_populate_ird(stmt);
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 				goto all_done;
 				break;
 			case TDS_FAIL:
 				ODBC_RETURN(stmt, SQL_ERROR);
+				break;
+			}
+
+			/* handle special row */
+			switch (stmt->special_row) {
+			case 1: /* GetTypeInfo row convert type */
+				resinfo = tds->current_results;
+				if (resinfo->num_cols >= 2) {
+					colinfo = resinfo->columns[1];
+					if (colinfo->column_type == SYBINT2) {
+						TDS_SMALLINT *data = (TDS_SMALLINT *) (resinfo->current_row + colinfo->column_offset);
+						*data = odbc_swap_datetime_sql_type(*data);
+					}
+				}
 				break;
 			}
 		}
@@ -3355,7 +3380,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
-			/* TODO ?? tds_free_param_results(params); */
+			tds_free_param_results(params);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
@@ -3385,7 +3410,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 				case TDS_DONEPROC_RESULT:
 				case TDS_DONEINPROC_RESULT:
 					stmt->row_count = tds->rows_affected;
-					if (done_flags & TDS_DONE_ERROR) {
+					if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated) {
 						dyn = stmt->dyn;
 						stmt->dyn = NULL;
 						tds_free_dynamic(tds, dyn);
@@ -4825,6 +4850,32 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	}
 }
 
+static SQLSMALLINT
+odbc_swap_datetime_sql_type(SQLSMALLINT sql_type)
+{
+	switch (sql_type) {
+	case SQL_TYPE_TIMESTAMP:
+		sql_type = SQL_TIMESTAMP;
+		break;
+	case SQL_TIMESTAMP:
+		sql_type = SQL_TYPE_TIMESTAMP;
+		break;
+	case SQL_TYPE_DATE:
+		sql_type = SQL_DATE;
+		break;
+	case SQL_DATE:
+		sql_type = SQL_TYPE_DATE;
+		break;
+	case SQL_TYPE_TIME:
+		sql_type = SQL_TIME;
+		break;
+	case SQL_TIME:
+		sql_type = SQL_TYPE_TIME;
+		break;
+	}
+	return sql_type;
+}
+
 SQLRETURN SQL_API
 SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 {
@@ -4845,15 +4896,10 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	/* TODO Does Sybase return all ODBC3 columns? Add them if not */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	if (TDS_IS_SYBASE(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
-		switch (fSqlType) {
-		case SQL_TYPE_TIMESTAMP:
-			fSqlType = SQL_TIMESTAMP;
-			break;
-		case SQL_TIMESTAMP:
-			fSqlType = SQL_TYPE_TIMESTAMP;
-			break;
-		}
+		fSqlType = odbc_swap_datetime_sql_type(fSqlType);
+		stmt->special_row = 1;
 	}
+
 	sprintf(sql, sql_templ, fSqlType);
 	if (TDS_IS_MSSQL(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 		strcat(sql, ",3");
