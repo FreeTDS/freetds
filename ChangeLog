@@ -1,3 +1,7 @@
+Thu May 22 14:35:36 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/cs.c src/ctlib/ct.c:
+	- Avoid shadow warnings for "index".
+
 Thu May 22 14:31:29 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h include/tdsconvert.h:
 	- Remove redundant declarations.

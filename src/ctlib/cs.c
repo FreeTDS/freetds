@@ -47,13 +47,13 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.40 2003-05-08 03:14:57 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.41 2003-05-22 18:41:54 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
-static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message);
+static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
 static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
 
 /* 	returns the fixed length of the specified data type, or 0 if not a 
@@ -912,7 +912,7 @@ CS_INT msg_count = 0;
 }
 
 static CS_INT 
-cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
+cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message)
 {
 
 struct cs_diag_msg *curptr;
@@ -925,7 +925,7 @@ CS_INT msg_count = 0, msg_found = 0;
 
 	while (curptr != (struct cs_diag_msg *)NULL) {
 		msg_count++;
-		if (msg_count == index) {
+		if (msg_count == idx) {
 			msg_found++;
 			break;
 		}

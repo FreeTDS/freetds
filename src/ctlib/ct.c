@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.94 2003-05-08 08:15:25 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.95 2003-05-22 18:41:54 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -62,8 +62,8 @@ static CS_INT ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn,
 static CS_INT ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message);
 static CS_INT ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count);
 static CS_INT ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
-static CS_INT ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message);
-static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVERMSG * message);
+static CS_INT ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message);
+static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message);
 
 /* Code changes ends here - CT_DIAG - 01 */
 
@@ -1849,7 +1849,7 @@ CS_RETCODE
 ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID * value)
 {
 	TDSLOGIN *login;
-	int index = 0;
+	int idx = 0;
 	unsigned char bitmask = 0;
 	unsigned char *mask;
 
@@ -1859,150 +1859,150 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 
 	switch (capability) {
 	case CS_DATA_NOBOUNDARY:
-		index = 13;
+		idx = 13;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOTDSDEBUG:
-		index = 13;
+		idx = 13;
 		bitmask = 0x02;
 		break;
 	case CS_RES_NOSTRIPBLANKS:
-		index = 13;
+		idx = 13;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOINT8:
-		index = 13;
+		idx = 13;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOINTN:
-		index = 14;
+		idx = 14;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NODATETIMEN:
-		index = 14;
+		idx = 14;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NOMONEYN:
-		index = 14;
+		idx = 14;
 		bitmask = 0x04;
 		break;
 	case CS_CON_NOOOB:
-		index = 14;
+		idx = 14;
 		bitmask = 0x08;
 		break;
 	case CS_CON_NOINBAND:
-		index = 14;
+		idx = 14;
 		bitmask = 0x10;
 		break;
 	case CS_PROTO_NOTEXT:
-		index = 14;
+		idx = 14;
 		bitmask = 0x20;
 		break;
 	case CS_PROTO_NOBULK:
-		index = 14;
+		idx = 14;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOSENSITIVITY:
-		index = 14;
+		idx = 14;
 		bitmask = 0x80;
 		break;
 	case CS_DATA_NOFLT4:
-		index = 15;
+		idx = 15;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOFLT8:
-		index = 15;
+		idx = 15;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NONUM:
-		index = 15;
+		idx = 15;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOTEXT:
-		index = 15;
+		idx = 15;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOIMAGE:
-		index = 15;
+		idx = 15;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NODEC:
-		index = 15;
+		idx = 15;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NOLCHAR:
-		index = 15;
+		idx = 15;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOLBIN:
-		index = 15;
+		idx = 15;
 		bitmask = 0x80;
 		break;
 	case CS_DATA_NOCHAR:
-		index = 16;
+		idx = 16;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOVCHAR:
-		index = 16;
+		idx = 16;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NOBIN:
-		index = 16;
+		idx = 16;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOVBIN:
-		index = 16;
+		idx = 16;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOMNY8:
-		index = 16;
+		idx = 16;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NOMNY4:
-		index = 16;
+		idx = 16;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NODATE8:
-		index = 16;
+		idx = 16;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NODATE4:
-		index = 16;
+		idx = 16;
 		bitmask = 0x80;
 		break;
 	case CS_RES_NOMSG:
-		index = 17;
+		idx = 17;
 		bitmask = 0x02;
 		break;
 	case CS_RES_NOEED:
-		index = 17;
+		idx = 17;
 		bitmask = 0x04;
 		break;
 	case CS_RES_NOPARAM:
-		index = 17;
+		idx = 17;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOINT1:
-		index = 17;
+		idx = 17;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NOINT2:
-		index = 17;
+		idx = 17;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NOINT4:
-		index = 17;
+		idx = 17;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOBIT:
-		index = 17;
+		idx = 17;
 		bitmask = 0x80;
 		break;
 	default:
 		return CS_FAIL;
 	}			/* end capability */
 
-	assert(13 <= index && index <= 17);
+	assert(13 <= idx && idx <= 17);
 	assert(bitmask);
 
 	if (type == CS_CAP_RESPONSE) {
@@ -2011,17 +2011,17 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 			/* Having established the offset and the bitmask, we can now turn the capability on or off */
 			switch (*(CS_BOOL *) value) {
 			case CS_TRUE:
-				mask[index] |= bitmask;
+				mask[idx] |= bitmask;
 				break;
 			case CS_FALSE:
-				mask[index] &= ~bitmask;
+				mask[idx] &= ~bitmask;
 				break;
 			default:
 				return CS_FAIL;
 			}
 			break;
 		case CS_GET:
-			*(CS_BOOL *) value = (mask[index] & bitmask) ? CS_TRUE : CS_FALSE;
+			*(CS_BOOL *) value = (mask[idx] & bitmask) ? CS_TRUE : CS_FALSE;
 			break;
 		default:
 			return CS_FAIL;
@@ -3282,7 +3282,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 }
 
 static CS_INT
-ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message)
+ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 {
 	struct cs_diag_msg_client *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
@@ -3294,7 +3294,7 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message)
 
 	while (curptr != (struct cs_diag_msg_client *) NULL) {
 		msg_count++;
-		if (msg_count == index) {
+		if (msg_count == idx) {
 			msg_found++;
 			break;
 		}
@@ -3309,7 +3309,7 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message)
 }
 
 static CS_INT
-ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVERMSG * message)
+ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
@@ -3321,7 +3321,7 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVERMSG * message)
 
 	while (curptr != (struct cs_diag_msg_svr *) NULL) {
 		msg_count++;
-		if (msg_count == index) {
+		if (msg_count == idx) {
 			msg_found++;
 			break;
 		}
