@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-11-27 22:01:35 $</date>
-		<releaseinfo>$Revision: 1.86 $</releaseinfo>
+		<date>$Date: 2004-11-30 01:26:07 $</date>
+		<releaseinfo>$Revision: 1.87 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.86 $</>
-<member>$Date: 2004-11-27 22:01:35 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.86 2004-11-27 22:01:35 jklowden Exp $.</>
+<member>$Revision: 1.87 $</>
+<member>$Date: 2004-11-30 01:26:07 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.87 2004-11-30 01:26:07 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -408,7 +408,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<varlistentry>
 				<term><Option>--disable-threadsafe</Option></term>
 				<listitem><para>Force <productname>FreeTDS</productname> not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, <productname>FreeTDS</productname> will use threadsafe functions throughout. </para>
-				<para> Threadsafe operation is not in wide use yet, but has been tested on Linux, FreeBSD, and HP-UX 10.20.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  It is a good idea to enable threadsafe operation if you configure Apache with multi-threading support.</para>
+				<para>Threadsafe operation has been tested on Linux, FreeBSD, and HP-UX.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  It is a good idea to enable threadsafe operation if you configure Apache with multi-threading support.</para>
 				</listitem>
 				</varlistentry>
 			<varlistentry>
@@ -422,6 +422,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<varlistentry>
 				<term><Option>--enable-msdblib</Option></term>
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically needed only for porting Win32 applications to Unix.</para>
+					<para>As of version 0.63, this option specifies just the default behavior. Programs can change the default at compile time by defining MSDBLIB or SYBDBLIB (for Microsoft or Sybase behavior, respectively) .</para>
 					</listitem>
 				</varlistentry>
 
@@ -535,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-11-27 22:01:35 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2004-11-30 01:26:07 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>

@@ -1,3 +1,6 @@
+Mon Nov 29 20:18:16 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml document MSDBLIB and SYBDBLIB defines.  
+
 Mon Nov 29  9:41:30 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt: merge
 
