@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.46 2004-05-30 21:12:19 jklowden Exp $s
+# $Id: api_status.txt,v 1.46.2.1 2004-11-28 15:13:29 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -160,16 +160,16 @@ dblib	(none)   	n/a				dbaltbind_ps
 dblib	(none)   	n/a				dbbind_ps	
 dblib	(none)   	n/a				dbbufsize	
 dblib	(none)   	n/a				dbcharsetconv	
-dblib	(none)   	n/a				dbcoltypeinfo	
-dblib	(none)   	n/a				dbconvert_ps	
+dblib	(none)   	n/a				dbcoltypeinfo	OK	
+dblib	(none)   	n/a				dbconvert_ps	OK	
 dblib	(none)   	n/a				dbfreesort	
 dblib	(none)   	n/a				dbfree_xlate	
 dblib	(none)   	n/a				dbgetcharset	
 dblib	(none)   	n/a				dbgetloginfo	
 dblib	(none)   	n/a				dbgetlusername	
 dblib	(none)   	n/a				dbgetnatlang	
-dblib	(none)   	n/a				DBIORDESC	
-dblib	(none)   	n/a				DBIOWDESC	
+dblib	(none)   	n/a				DBIORDESC	OK	
+dblib	(none)   	n/a				DBIOWDESC	OK	
 dblib	(none)   	n/a				dbloadsort	
 dblib	(none)   	n/a				dbload_xlate	
 dblib	(none)   	n/a				dbnpcreate	
@@ -177,7 +177,7 @@ dblib	(none)   	n/a				dbnpdefine
 dblib	(none)   	n/a				dbpoll		
 dblib	(none)   	n/a				DBRBUF		
 dblib	(none)   	n/a				dbreadpage	
-dblib	(none)   	n/a				dbrecftos	
+dblib	(none)   	n/a				dbrecftos	OK	
 dblib	(none)   	n/a				dbrecvpassthru	
 dblib	(none)   	n/a				dbregdrop	
 dblib	(none)   	n/a				dbregexec	
@@ -190,24 +190,24 @@ dblib	(none)   	n/a				dbregwatch
 dblib	(none)   	n/a				dbregwatchlist	
 dblib	(none)   	n/a				dbrpwclr	
 dblib	(none)   	n/a				dbrpwset	
-dblib	(none)   	n/a				dbsafestr	
+dblib	(none)   	n/a				dbsafestr	OK	
 dblib	(none)   	n/a				dbsechandle	
 dblib	(none)   	n/a				dbsendpassthru	
 dblib	(none)   	n/a				dbsetbusy	
 dblib	(none)   	n/a				dbsetdefcharset	
 dblib	(none)   	n/a				dbsetdeflang	
 dblib	(none)   	n/a				dbsetidle	
-dblib	(none)   	n/a				dbsetifile	
-dblib	(none)   	n/a				dbsetinterrupt	
+dblib	(none)   	n/a				dbsetifile	OK	
+dblib	(none)   	n/a				dbsetinterrupt	OK	
 dblib	(none)   	n/a				DBSETLCHARSET	
 dblib	(none)   	n/a				DBSETLENCRYPT	
 dblib	(none)   	n/a				dbsetloginfo	
 dblib	(none)   	n/a				dbsetrow	
-dblib	(none)   	n/a				dbsetversion	
-dblib	(none)   	n/a				dbspr1row	
-dblib	(none)   	n/a				dbspr1rowlen	
-dblib	(none)   	n/a				dbsprhead	
-dblib	(none)   	n/a				dbsprline	
+dblib	(none)   	n/a				dbsetversion	OK	
+dblib	(none)   	n/a				dbspr1row	OK	
+dblib	(none)   	n/a				dbspr1rowlen	OK	
+dblib	(none)   	n/a				dbsprhead	OK	
+dblib	(none)   	n/a				dbsprline	OK	
 dblib	(none)   	n/a				dbstrcmp	
 dblib	(none)   	n/a				dbstrsort	
 dblib	(none)   	n/a				dbtextsize	
@@ -356,7 +356,7 @@ dblib	core     	dbsetlversion			n/a		OK
 dblib	core     	dbsetmaxprocs			(same)		OK
 dblib	core     	dbsetnull			(same)		
 dblib	core     	dbsetopt			(same)		partial
-dblib	core     	dbsettime			(same)		stub
+dblib	core     	dbsettime			(same)		OK
 dblib	core     	dbsetuserdata			(same)		OK
 dblib	core     	dbspid				(same)		OK
 dblib	core     	dbsqlexec			(same)		OK
@@ -383,7 +383,7 @@ dblib	cursor   	dbcursoropen			(same)
 dblib	datetime 	n/a				dbdate4cmp	
 dblib	datetime 	n/a				dbdate4zero	
 dblib	datetime 	n/a				dbdatechar	
-dblib	datetime 	n/a				dbdatecmp	
+dblib	datetime 	n/a				dbdatecmp	OK	
 dblib	datetime 	n/a				dbdatename	
 dblib	datetime 	n/a				dbdateorder	
 dblib	datetime 	n/a				dbdatepart	
@@ -427,7 +427,7 @@ ctlib	(all)	ct_con_drop	OK	Deallocate a CS_CONNECTION structure.
 ctlib	(all)	ct_con_props	OK	Set or retrieve connection structure properties.
 ctlib	(all)	ct_config	OK	Set or retrieve context properties.
 ctlib	(all)	ct_connect	OK	Connect to a server.
-ctlib	(all)	ct_cursor	stub	Initiate a Client-Library cursor command.
+ctlib	(all)	ct_cursor       OK	Initiate a Client-Library cursor command.
 ctlib	(all)	ct_data_info	OK	Define or retrieve a data I/O descriptor structure.
 ctlib	(all)	ct_debug		Manage debug library operations.
 ctlib	(all)	ct_describe	OK	Return a description of result data.
@@ -457,7 +457,7 @@ ctlib	(all)	ct_send	OK	Send a command to the server.
 ctlib	(all)	ct_send_data	OK	Send a chunk of text or image data to the server.
 ctlib	(all)	ct_sendpassthru		Send a Tabular Data Stream (TDS) packet to a server.
 ctlib	(all)	ct_setloginfo		Transfer TDS login response information from a CS_LOGINFO structure to a CS_CONNECTION structure.
-ctlib	(all)	ct_setparam		Specify source variables from which ct_send reads input parameter values for a server command.
+ctlib	(all)	ct_setparam	OK	Specify source variables from which ct_send reads input parameter values for a server command.
 ctlib	(all)	ct_wakeup		Call a connection's completion callback.
 ctlib	(all)	cs_calc		Perform an arithmetic operation on two operands.
 ctlib	(all)	cs_cmp		Compare two data values.
@@ -467,7 +467,7 @@ ctlib	(all)	cs_convert	OK	Convert a data value from one datatype, locale, or for
 ctlib	(all)	cs_ctx_alloc	OK	Allocate a CS_CONTEXT structure.
 ctlib	(all)	cs_ctx_drop	OK	Deallocate a CS_CONTEXT structure.
 ctlib	(all)	cs_ctx_global	OK	Allocate or return a CS_CONTEXT structure.
-ctlib	(all)	cs_diag	stub	Manage inline error handling.
+ctlib	(all)	cs_diag	OK	Manage inline error handling.
 ctlib	(all)	cs_dt_crack	OK	Convert a machine-readable datetime value into a user-accessible format.
 ctlib	(all)	cs_dt_info	OK	Set or retrieve language-specific datetime information.
 ctlib	(all)	cs_loc_alloc	stub	Allocate a CS_LOCALE structure.
@@ -481,21 +481,21 @@ ctlib	(all)	cs_strbuild	OK	Construct native language message strings.
 ctlib	(all)	cs_strcmp	stub	Compare two strings using a specified sort order.
 ctlib	(all)	cs_time	stub	Retrieve the current date and time.
 ctlib	(all)	cs_will_convert	OK	Indicate whether a specific datatype conversion is available in the Client/Server libraries.
-ctlib	(all)	blk_alloc	stub	Allocate a CS_BLKDESC structure.
-ctlib	(all)	blk_bind	stub	Bind a program variable and a database column.
+ctlib	(all)	blk_alloc	OK	Allocate a CS_BLKDESC structure.
+ctlib	(all)	blk_bind	OK	Bind a program variable and a database column.
 ctlib	(all)	blk_colval	stub	Server-side routine to obtain the column value from a formatted bulk copy row.
 ctlib	(all)	blk_default	stub	Retrieve a column's default value.
-ctlib	(all)	blk_describe	stub	Retrieve a description of a database column.
-ctlib	(all)	blk_done	stub	Mark a complete bulk copy operation or a complete bulk copy batch.
-ctlib	(all)	blk_drop	stub	Deallocate a CS_BLKDESC structure.
+ctlib	(all)	blk_describe	OK	Retrieve a description of a database column.
+ctlib	(all)	blk_done	OK	Mark a complete bulk copy operation or a complete bulk copy batch.
+ctlib	(all)	blk_drop	OK	Deallocate a CS_BLKDESC structure.
 ctlib	(all)	blk_getrow	stub	Server-side routine to retrieve and store a formatted bulk copy row.
 ctlib	(all)	blk_gettext	stub	Server-side routine to retrieve the text, image, sensitivity, or boundary portion of an incoming bulk copy formatted row.
-ctlib	(all)	blk_init	stub	Initiate a bulk copy operation.
-ctlib	(all)	blk_props	stub	Set or retrieve bulk descriptor structure properties.
+ctlib	(all)	blk_init	OK	Initiate a bulk copy operation.
+ctlib	(all)	blk_props	OK	Set or retrieve bulk descriptor structure properties.
 ctlib	(all)	blk_rowalloc	stub	Server-side routine to allocate space for a formatted bulk copy row.
 ctlib	(all)	blk_rowdrop	stub	Server-side routine to free space previously allocated for a formatted bulk copy row.
-ctlib	(all)	blk_rowxfer	stub	Transfer one or more rows during a bulk copy operation without specifying or receiving a row count.
-ctlib	(all)	blk_rowxfer_mult	stub	Transfer one or more rows during a bulk copy operation.
+ctlib	(all)	blk_rowxfer	OK	Transfer one or more rows during a bulk copy operation without specifying or receiving a row count.
+ctlib	(all)	blk_rowxfer_mult	OK	Transfer one or more rows during a bulk copy operation.
 ctlib	(all)	blk_sendrow	stub	Server-side routine to send a formatted bulk copy row obtained from blk_getrow.
 ctlib	(all)	blk_sendtext	stub	Server-side routine to send text, image, sensitivity, or boundary data in a formatted bulk copy row obtained from blk_sendtext.
 ctlib	(all)	blk_srvinit	stub	Server-side routine to copy descriptions of server table columns to the client, if required.
