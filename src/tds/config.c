@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.17 2002-07-05 20:23:49 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.18 2002-07-07 04:33:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -426,13 +426,20 @@ static void tds_config_env_dsquery(TDSCONFIGINFO *config)
 {
 char *s;
 
-        if ((s=getenv("TDSQUERY"))) {
+	if ((s=getenv("TDSQUERY"))) {
 		if (s && strlen(s)) {
 			if (config->server_name) free(config->server_name);
 			config->server_name = strdup(s);
-                        tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n",s);
-
-		}
+			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n",s);
+		} 
+		return;
+	}
+	if ((s=getenv("DSQUERY"))) {
+		if (s && strlen(s)) {
+			if (config->server_name) free(config->server_name);
+			config->server_name = strdup(s);
+			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n",s);
+		} 
 	}
 }
 static void tds_config_env_tdsdump(TDSCONFIGINFO *config)
