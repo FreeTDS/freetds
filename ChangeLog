@@ -1,3 +1,9 @@
+Sat Oct 25 05:06:58 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* configure.in
+	- added --disable-libiconv, 
+	- enable-threadsafe [default yes] => disable-threadsafe
+	- enable-debug [default yes] => disable-debug
+	
 Sat Oct 25 00:57:00 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* TODO src/apps/freebcp.c src/dblib/bcp.c
 	- support \\, \t, \r, and \n terminators.  Parse but don't honor \0.

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.108 2003-10-08 19:24:29 freddy77 Exp $
+dnl $Id: configure.in,v 1.109 2003-10-25 09:13:51 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -52,7 +52,18 @@ dnl ------------------------------------------------------------
 AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_LIBTOOL
-AM_ICONV
+
+AC_ARG_ENABLE(libiconv,
+	AC_HELP_STRING([--disable-libiconv], [do not attempt to include libiconv]),
+	[use_libiconv=$enableval], [use_libiconv=yes])
+  
+if test "$use_libiconv" = "yes" ; then
+	AM_ICONV
+else 
+	AC_MSG_NOTICE(libiconv disabled)	
+fi
+
+
 dnl test if we have doxygen installed
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
@@ -297,16 +308,18 @@ AC_ARG_ENABLE(sybase-compat,
 AM_CONDITIONAL(SYBASE_COMPAT, test x$enable_sybase_compat = xyes)
 
 AC_MSG_CHECKING(threadsafety)
-dnl Enable or disable thread safetiness
-dnl This option is not enabled for default because some 
-dnl implementation or reentrant api are not very safe
+# Enable or disable thread safetiness
+# This option is enabled by default because most OS's support it.   
+# A more sophisticated approach would be to set the default per-OS.  
 AC_ARG_ENABLE(threadsafe,
-  [  --enable-threadsafe     compile for thread safety [default=yes]])
-if test "$enable_threadsafe" = "no" ; then
-	AC_MSG_RESULT(disabled)
-else
+	AC_HELP_STRING([--disable-threadsafe], [disable calls to threadsafe fuctions e.g.,gethostbyname_r ]),
+	[use_threadsafe=$enableval], [use_threadsafe=yes])
+
+if test "$enable_threadsafe" = "yes" ; then
 	CPPFLAGS="$CPPFLAGS -D_REENTRANT -D_THREAD_SAFE"
 	AC_MSG_RESULT(enabled)
+else
+	AC_MSG_RESULT(disabled)
 fi
 
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
@@ -316,11 +329,15 @@ AC_tds_FUNC_WHICH_GETPWUID_R
 AC_tds_FUNC_WHICH_LOCALTIME_R
 
 AC_ARG_ENABLE(debug,
-  [  --enable-debug          enable assert and other things [default=yes]])
-if test "$enable_debug" = "no" ; then
-        CPPFLAGS="$CPPFLAGS -DNDEBUG=1"
-else
+	AC_HELP_STRING([--disable-debug], [disable assert and other things]),
+	[use_debug=$enableval], [use_debug=yes])
+  
+if test "$use_debug" = "yes" ; then
+	AC_MSG_NOTICE(debug enabled)	
         CPPFLAGS="$CPPFLAGS -DDEBUG=1"
+else
+	AC_MSG_NOTICE(debug disabled)	
+        CPPFLAGS="$CPPFLAGS -DNDEBUG=1"
 fi
 
 AC_ARG_ENABLE(extra-checks,
