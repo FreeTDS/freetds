@@ -11,4 +11,5 @@ connect
 print
 date
 norowset
+funccall
 
