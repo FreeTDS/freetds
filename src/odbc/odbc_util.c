@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.33 2003-07-31 12:33:48 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.34 2003-07-31 12:52:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -309,6 +309,100 @@ odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 #endif
 	}
 	return SQL_UNKNOWN_TYPE;
+}
+
+/* TODO return just constant buffer ?? */
+char *
+odbc_tds_to_sql_typename(int col_type, int col_size, int odbc_ver)
+{
+	/* FIXME finish */
+	/* TODO use a function to clash nullable type ?? */
+	switch (col_type) {
+	case XSYBCHAR:
+	case SYBCHAR:
+		return (strdup("CHAR"));
+	case XSYBVARCHAR:
+	case SYBVARCHAR:
+		return (strdup("VARCHAR"));
+	case SYBTEXT:
+		/* FIXME TEXT ??? */
+		return (strdup("LONGVARCHAR"));
+	case SYBBIT:
+	case SYBBITN:
+		return (strdup("BIT"));
+#if (ODBCVER >= 0x0300)
+	case SYBINT8:
+		/* TODO return numeric for odbc2 and convert bigint to numeric */
+		return (strdup("BIGINT"));
+#endif
+	case SYBINT4:
+		return (strdup("INTEGER"));
+	case SYBINT2:
+		return (strdup("SMALLINT"));
+	case SYBINT1:
+		return (strdup("TINYINT"));
+	case SYBINTN:
+		switch (col_size) {
+		case 1:
+			return (strdup("TINYINT"));
+		case 2:
+			return (strdup("SMALLINT"));
+		case 4:
+			return (strdup("INTEGER"));
+#if (ODBCVER >= 0x0300)
+		case 8:
+			return (strdup("BIGINT"));
+#endif
+		}
+		break;
+	case SYBREAL:
+		return (strdup("REAL"));
+	case SYBFLT8:
+		return (strdup("DOUBLE"));
+	case SYBFLTN:
+		switch (col_size) {
+		case 4:
+			return (strdup("REAL"));
+		case 8:
+			return (strdup("DOUBLE"));
+		}
+		break;
+	case SYBMONEY:
+		return (strdup("DOUBLE"));
+	case SYBMONEY4:
+		return (strdup("DOUBLE"));
+	case SYBMONEYN:
+		break;
+	case SYBDATETIME:
+	case SYBDATETIME4:
+	case SYBDATETIMN:
+		/* FIXME correct ??? */
+		return (strdup("TIMESTAMP"));
+	case SYBBINARY:
+		return (strdup("BINARY"));
+	case SYBIMAGE:
+		/* FIXME correct ??? IMAGE ? */
+		return (strdup("LONGVARBINARY"));
+	case SYBVARBINARY:
+		return (strdup("VARBINARY"));
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		return (strdup("NUMERIC"));
+	case SYBNTEXT:
+	case SYBVOID:
+	case SYBNVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+		break;
+#if (ODBCVER >= 0x0300)
+	case SYBUNIQUE:
+		/* FIXME correct ?? and for Sybase */
+		return (strdup("GUID"));
+	case SYBVARIANT:
+		break;
+#endif
+	}
+	return (strdup(""));
 }
 
 SQLINTEGER

@@ -1,3 +1,8 @@
+Thu Jul 31 14:50:47 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- continue merge from Steve patch:
+	 - copyed odbc_tds_to_sql_typename function
+
 Thu Jul 31 14:32:32 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	- continue merge from Steve patch:
