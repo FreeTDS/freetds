@@ -1,3 +1,6 @@
+Thu Mar 11 20:49:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: fix double free
+
 Thu Mar 11 20:21:37 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/testodbc.c src/tds/query.c:
 	- fix test for Sybase

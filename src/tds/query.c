@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.132 2004-03-11 19:15:11 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.133 2004-03-11 19:40:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -885,6 +885,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			ret = tds_to_quering(tds);
 		if (ret != TDS_FAIL)
 			ret = tds_submit_emulated_execute(tds, dyn);
+		/* do not free our parameters */
+		dyn->params = NULL;
 		tds_free_dynamic(tds, dyn);
 		return ret;
 	}
