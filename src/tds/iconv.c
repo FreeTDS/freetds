@@ -44,15 +44,20 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.60 2003-05-05 05:45:07 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.61 2003-05-06 03:46:33 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
 
+#define SAFECPY(d, s) 	strncpy((d), (s), sizeof(d)); (d)[sizeof(d) - 1] = '\0'
+
+
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
+static int tds_charset_name_compare(const char *name1, const char *name2);
+static int tds_iconv_info_init(TDSICONVINFO *iconv_info, ICONV_CONST char *client_name, ICONV_CONST char *server_name);
 
 /**
  * \ingroup libtds
@@ -63,35 +68,42 @@ static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICO
 /**
  * \addtogroup conv
  * \@{ 
+ * Set up the initial iconv conversion descriptors.
+ * When the socket is allocated, three TDSICONVINFO structures are attached to iconv_info.  
+ * They have fixed meanings:
+ * 	0. Client <-> UCS-2 (client2ucs2)
+ * 	1. Client <-> server single-byte charset (client2server_singlebyte)
+ *	2. Ascii  <-> server meta data	(ascii2server_metadata)
+ * Other designs that use less data are possible, but these three conversion needs are 
+ * very often needed.  By reserving them, we avoid searching the array for our most common purposes.  
  */
-
 void
 tds_iconv_open(TDSSOCKET * tds, char *charset)
 {
-	TDS_ENCODING *client = &tds->iconv_info->client_charset;
-	TDS_ENCODING *server = &tds->iconv_info->server_charset;
+	static const char *UCS_2LE = "UCS-2LE";
+	const char *name;
+	int fOK;
 
-#if HAVE_ICONV
-	int ratio_c, ratio_s;
+	TDS_ENCODING *client = &tds->iconv_info[client2ucs2].client_charset;
+	TDS_ENCODING *server = &tds->iconv_info[client2ucs2].server_charset;
+	
+#if !HAVE_ICONV
+	
+	strcpy(client->name, "ISO-8859-1");
+	strcpy(server->name, UCS_2LE);
 
-	strncpy(client->name, charset, sizeof(client->name));
-	client->name[sizeof(client->name) - 1] = '\0';
-
-	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
-
-	/* TODO support Sybase dbms and tds4.2 */
-
-	/* TODO init singlebyte server */
-	strncpy(server->name, "UCS-2LE", sizeof(server->name));
-	server->name[sizeof(server->name) - 1] = '\0';
-
-	ratio_c = bytes_per_char(client);
-	if (ratio_c == 0)
-		return;		/* client set unknown */
-
-	ratio_s = bytes_per_char(server);
-	if (ratio_s == 0)
-		return;		/* server set unknown */
+	bytes_per_char(client);
+	bytes_per_char(server);
+	return;
+#else
+	/* 
+	 * Client <-> UCS-2 (client2ucs2)
+	 */
+	tdsdump_log(TDS_DBG_FUNC, "iconv to convert client-side data to the \"%s\" character set\n", charset);
+	
+	fOK = tds_iconv_info_init(&tds->iconv_info[client2ucs2], charset, UCS_2LE);
+	if (!fOK)
+		return;
 
 	/* 
 	 * How many UTF-8 bytes we need is a function of what the input character set is.
@@ -102,24 +114,61 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 		client->max_bytes_per_char = 3;
 	}
 
-	tds->iconv_info->to_wire = iconv_open(server->name, client->name);
-	if (tds->iconv_info->to_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert to \"%s\"\n", charset);
-		return;
+	/* 
+	 * Client <-> server single-byte charset
+	 * TODO: the server hasn't reported its charset yet, so this logic can't work here.  
+	 *  	 not sure what to do about that yet.  
+	 */
+	if (tds->env && tds->env->charset) {
+		name = tds_canonical_charset_name(tds->env->charset);
+		fOK = tds_iconv_info_init(&tds->iconv_info[client2ucs2], charset, name);
+		if (!fOK)
+			return;
 	}
-	tds->iconv_info->from_wire = iconv_open(client->name, server->name);
-	if (tds->iconv_info->from_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
-		return;
-	}
-#else
-	strcpy(client->name, "ISO-8859-1");
-	strcpy(server->name, "UCS-2LE");
-
-	bytes_per_char(client);
-	bytes_per_char(server);
+	
+	/* 
+	 * Ascii  <-> server meta data
+	 */
+	name = tds_canonical_charset_name("ASCII");
+	fOK = tds_iconv_info_init(&tds->iconv_info[ascii2server_metadata], name, 
+		(tds->connect_info->major_version >= 7)? UCS_2LE : name);
 #endif
 }
+
+static int
+tds_iconv_info_init(TDSICONVINFO *iconv_info, ICONV_CONST char *client_name, ICONV_CONST char *server_name)
+{
+	TDS_ENCODING *client = &iconv_info->client_charset;
+	TDS_ENCODING *server = &iconv_info->server_charset;
+	int ratio;
+	
+	assert(client_name && server_name);
+	
+	SAFECPY(client->name, client_name);
+	ratio = bytes_per_char(client);
+	
+	iconv_info->to_wire = iconv_open(server->name, client->name);
+	if (ratio == 0 || iconv_info->to_wire == (iconv_t) - 1) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: ratio %d: cannot convert \"%s\"->\"%s\"\n", 
+			    ratio, client->name, server->name);
+		return 0;
+	}
+		
+	SAFECPY(server->name, server_name);
+	ratio = bytes_per_char(server);
+
+	iconv_info->from_wire = iconv_open(client->name, server->name);
+	if (ratio == 0 || iconv_info->from_wire == (iconv_t) - 1) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: ratio %d: cannot convert \"%s\"->\"%s\"\n", 
+			    ratio, server->name, client->name);
+		return 0;
+	}
+
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name);
+
+	return 1;
+}
+
 
 void
 tds_iconv_close(TDSSOCKET * tds)
@@ -462,19 +511,21 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 }
 
 static const char *
-lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_name)
+lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_name, int reverse)
 {
 	int i;
 
 	if (!charset_name || *charset_name == '\0')
 		return charset_name;
 
-	for (i = 0; i < sizeof(aliases) / sizeof(CHARACTER_SET_ALIAS); i++) {
-		if (aliases[i].alias == 0)
-			break;
-
-		if (0 == strcmp(charset_name, aliases[i].alias)) {
-			return aliases[i].name;
+	for (i = 0; i < aliases[i].alias; i++) {
+	
+		if (!reverse) {
+			if (0 == strcmp(charset_name, aliases[i].alias))
+				return aliases[i].name;
+		} else { /* look up first alias for canonical name */
+			if (0 == strcmp(charset_name, aliases[i].name))
+				return aliases[i].alias;
 		}
 	}
 
@@ -495,7 +546,7 @@ tds_canonical_charset_name(const char *charset_name)
 #		include "sybase_character_sets.h"
 	};
 
-	return lookup_charset_name(aliases, charset_name);
+	return lookup_charset_name(aliases, charset_name, 0);
 }
 
 /**
@@ -510,7 +561,28 @@ tds_sybase_charset_name(const char *charset_name)
 #		include "sybase_character_sets.h"
 	};
 
-	return lookup_charset_name(aliases, charset_name);
+	return lookup_charset_name(aliases, charset_name, 1);
+}
+
+/**
+ * Compare noncanonical iconv character set names, by looking up their canonical counterparts.  
+ * \returns strcmp(3) of the canonical names.
+ * \remarks If either name cannot be looked up, there is no way to return an error.  
+ */
+static int
+tds_charset_name_compare(const char *name1, const char *name2)
+{
+	const char *s1, *s2;
+	
+	assert (name1 && name2); 
+	
+	s1 = tds_canonical_charset_name(name1);
+	s2 = tds_canonical_charset_name(name2);
+	
+	if (s1 && s2) 
+		return strcmp(s1, s2);
+		
+	return -1; /* not equal; also not accurate */
 }
 
 static char *

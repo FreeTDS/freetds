@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.120 2003-05-05 00:10:51 jklowden Exp $";
+	"$Id: tds.h,v 1.121 2003-05-06 03:46:33 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -829,16 +829,6 @@ enum {
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
 
-/*
-typedef struct tds_param_info {
-	TDS_SMALLINT  num_cols;
-	TDSCOLINFO    **columns;
-	TDS_INT       row_size;
-	int           null_info_size;
-	unsigned char *current_row;
-} TDSPARAMINFO;
-*/
-
 typedef TDSRESULTINFO TDSPARAMINFO;
 
 typedef struct tds_msg_info {
@@ -883,6 +873,8 @@ struct tds_context {
 	int (*msg_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 };
+
+enum { client2ucs2, client2server_singlebyte, ascii2server_metadata } TDS_ICONV_INFO_ENTRY;
 
 struct tds_socket {
 	/* fixed and connect time */
@@ -931,6 +923,7 @@ struct tds_socket {
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
+	int iconv_info_count;
 	TDSICONVINFO *iconv_info;
 
 	/** config for login stuff. After login this field is NULL */

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.79 2003-05-01 12:39:54 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.80 2003-05-06 03:46:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -54,9 +54,9 @@ static void tds_free_env(TDSSOCKET * tds);
 #define TEST_MALLOC(dest,type) \
 	{if (!(dest = (type*)malloc(sizeof(type)))) goto Cleanup;}
 
-#undef TEST_MALLOCN
-#define TEST_MALLOCN(dest,type,n) \
-	{if (!(dest = (type*)malloc(sizeof(type)*n))) goto Cleanup;}
+#undef TEST_CALLOC
+#define TEST_CALLOC(dest,type,n) \
+	{if (!(dest = (type*)calloc((n), sizeof(type)))) goto Cleanup;}
 
 #undef TEST_STRDUP
 #define TEST_STRDUP(dest,str) \
@@ -309,7 +309,7 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
 	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
 
-	TEST_MALLOCN(info->columns, TDSCOLINFO *, num_cols);
+	TEST_CALLOC(info->columns, TDSCOLINFO *, num_cols);
 	memset(info->columns, '\0', sizeof(TDSCOLINFO *) * num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
@@ -322,7 +322,7 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
 
 	if (by_cols) {
-		TEST_MALLOCN(info->bycolumns, TDS_TINYINT, by_cols);
+		TEST_CALLOC(info->bycolumns, TDS_TINYINT, by_cols);
 		memset(info->bycolumns, '\0', by_cols);
 		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
@@ -384,7 +384,7 @@ tds_alloc_results(int num_cols)
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	memset(res_info, '\0', sizeof(TDSRESULTINFO));
-	TEST_MALLOCN(res_info->columns, TDSCOLINFO *, num_cols);
+	TEST_CALLOC(res_info->columns, TDSCOLINFO *, num_cols);
 	for (col = 0; col < num_cols; col++) {
 		TEST_MALLOC(res_info->columns[col], TDSCOLINFO);
 		memset(res_info->columns[col], '\0', sizeof(TDSCOLINFO));
@@ -677,6 +677,7 @@ tds_free_login(TDSLOGIN * login)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
+	enum {iconv_info_count = 3};
 	TDSSOCKET *tds_socket;
 	TDSICONVINFO *iconv_info;
 
@@ -684,16 +685,17 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
 	tds_socket->in_buf_max = 0;
-	TEST_MALLOCN(tds_socket->out_buf, unsigned char, bufsize);
+	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize);
 
 	tds_socket->parent = (char *) NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket, bufsize)))
 		goto Cleanup;
 
-	/* an iconv conversion descriptor of -1 means we don't use iconv. */
-	TEST_MALLOC(iconv_info, TDSICONVINFO);
+	TEST_CALLOC(iconv_info, TDSICONVINFO, iconv_info_count);
 	tds_socket->iconv_info = iconv_info;
+	tds_socket->iconv_info_count = iconv_info_count;
 #if HAVE_ICONV
+	/* an iconv conversion descriptor of -1 means we don't use iconv. */
 	iconv_info->to_wire = (iconv_t) - 1;
 	iconv_info->from_wire = (iconv_t) - 1;
 #endif
