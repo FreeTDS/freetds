@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.14 2002-12-06 21:56:56 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.15 2002-12-20 20:27:43 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -353,6 +353,15 @@ ac_cv_func_which_getpwuid_r=no)
 
 if test $ac_cv_func_which_getpwuid_r = four; then
   AC_DEFINE(HAVE_FUNC_GETPWUID_R_4, 1, [Define to 1 if your system provides the 4-parameter version of getpwuid_r().])
+  AC_TRY_COMPILE([
+#include <unistd.h>
+#include <pwd.h>
+  ], [
+struct passwd bpw;
+char buf[1024];
+char *dir = getpwuid_r(getuid(), &bpw, buf, sizeof(buf))->pw_dir;
+],AC_DEFINE(HAVE_FUNC_GETPWUID_R_4_PW, 1, [Define to 1 if your system getpwuid_r() have 4 parameters and return struct passwd*.]),
+[])
 elif test $ac_cv_func_which_getpwuid_r = five; then
   AC_DEFINE(HAVE_FUNC_GETPWUID_R_5, 1, [Define to 1 if your system provides the 5-parameter version of getpwuid_r().])
 fi
