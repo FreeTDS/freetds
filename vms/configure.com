@@ -15,9 +15,9 @@ $! You should have received a copy of the GNU Library General Public
 $! License along with this library; if not, write to the
 $! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 $! Boston, MA 02111-1307, USA.
-
-$! $Id: configure.com,v 1.1 2003-03-01 12:48:36 jklowden Exp $
-
+$!
+$! $Id: configure.com,v 1.2 2003-05-20 11:34:41 freddy77 Exp $
+$!
 $! CONFIGURE.COM -- run from top level source directory as @[.vms]configure
 $!
 $! Checks for C library functions and applies its findings to 

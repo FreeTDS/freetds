@@ -1,55 +1,74 @@
-LIBODBCINST/SHARE
+! FreeTDS - Library of routines accessing Sybase and Microsoft databases
+! Copyright (C) 2003  Craig A. Berry	craigberry@mac.com	05-MAY-2003
+! 
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Library General Public
+! License as published by the Free Software Foundation; either
+! version 2 of the License, or (at your option) any later version.
+! 
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Library General Public License for more details.
+! 
+! You should have received a copy of the GNU Library General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+! 
+LIBODBCINST/SHAREABLE
 CASE_SENSITIVE=YES
 SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLAllocEnv=PROCEDURE,-
 		SQLAllocStmt=PROCEDURE,-
 		SQLBindCol=PROCEDURE,-
 		SQLBindParameter=PROCEDURE,-
-		SQLBrowseConnect/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLCancel=PROCEDURE,-
 		SQLColAttributes=PROCEDURE,-
-		SQLColumnPrivileges/freetds_odbc_unimplemented=PROCEDURE,-
+		SQLColumnPrivileges=PROCEDURE,-
 		SQLColumns=PROCEDURE,-
 		SQLConnect=PROCEDURE,-
 		SQLDescribeCol=PROCEDURE,-
-		SQLDescribeParam/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLDisconnect=PROCEDURE,-
 		SQLDriverConnect=PROCEDURE,-
 		SQLError=PROCEDURE,-
 		SQLExecDirect=PROCEDURE,-
 		SQLExecute=PROCEDURE,-
-		SQLExtendedFetch/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLFetch=PROCEDURE,-
-		SQLForeignKeys/freetds_odbc_unimplemented=PROCEDURE,-
+		SQLForeignKeys=PROCEDURE,-
 		SQLFreeConnect=PROCEDURE,-
 		SQLFreeEnv=PROCEDURE,-
 		SQLFreeStmt=PROCEDURE,-
 		SQLGetConnectOption=PROCEDURE,-
-		SQLGetCursorName/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLGetData=PROCEDURE,-
 		SQLGetFunctions=PROCEDURE,-
 		SQLGetInfo=PROCEDURE,-
 		SQLGetStmtOption=PROCEDURE,-
 		SQLGetTypeInfo=PROCEDURE,-
 		SQLMoreResults=PROCEDURE,-
-		SQLNativeSql/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLNumParams=PROCEDURE,-
 		SQLNumResultCols=PROCEDURE,-
 		SQLParamData=PROCEDURE,-
-		SQLParamOptions/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLPrepare=PROCEDURE,-
-		SQLPrimaryKeys/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLProcedureColumns/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLProcedures/freetds_odbc_unimplemented=PROCEDURE,-
+		SQLProcedureColumns=PROCEDURE,-
+		SQLProcedures=PROCEDURE,-
 		SQLPutData=PROCEDURE,-
 		SQLRowCount=PROCEDURE,-
 		SQLSetConnectOption=PROCEDURE,-
-		SQLSetCursorName/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLSetPos/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLSetScrollOptions/freetds_odbc_unimplemented=PROCEDURE,-
 		SQLSetStmtOption=PROCEDURE,-
-		SQLSpecialColumns/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLStatistics/freetds_odbc_unimplemented=PROCEDURE,-
-		SQLTablePrivileges/freetds_odbc_unimplemented=PROCEDURE,-
+		SQLStatistics=PROCEDURE,-
+		SQLTablePrivileges=PROCEDURE,-
 		SQLTables=PROCEDURE,-
 		SQLTransact=PROCEDURE)
+!
+!		SQLPrimaryKeysd=PROCEDURE,-
+!		SQLBrowseConnect=PROCEDURE,-
+!		SQLDescribeParam=PROCEDURE,-
+!		SQLExtendedFetch=PROCEDURE,-
+!		SQLGetCursorName=PROCEDURE,-
+!		SQLNativeSql=PROCEDURE,-
+!		SQLParamOptions=PROCEDURE,-
+!		SQLSetCursorName=PROCEDURE,-
+!		SQLSetPos=PROCEDURE,-
+!		SQLSetScrollOptions=PROCEDURE,-
+!		SQLSpecialColumns=PROCEDURE,-

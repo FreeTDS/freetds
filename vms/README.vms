@@ -5,6 +5,7 @@ following environments:
 
 OpenVMS Alpha 7.2-1, Compaq C 6.4, OpenVMS Sybase 11.0.2, TDS 5.0
 OpenVMS Alpha 7.3-1, Compaq C 6.5, MS SQL Server 7.0, TDS 7.0
+OpenVMS Alpha 7.1, Compaq C 6.5, MS SQL Server 2000, TDS 8.0
 
 It will probably build and run on most versions of OpenVMS Alpha 7.0 and
 later with DEC/Compaq C 6.0 or later.
@@ -82,9 +83,6 @@ UNIX and VMS filename syntax.  For example:
 There is currently no install target; it's up to you to put the libraries,
 include files, etc. wherever you want them.
 
-The contents of the [.src.pool] and [.src.server] are not currently getting
-built; they may just need to be added to the description file template.
-
 A VAX port is within the realm of possibilities.  It would need to convert
 between IEEE floating point data and native format and/or request native
 F_FLOAT and D_FLOAT from the server (which may only work on Sybase, not MS
@@ -102,4 +100,4 @@ work around this but for now you'll have to roll your own.
 
 
 Last updated: 	2-Feb-2003	Craig A. Berry	<craigberry@mac.com>
-$Id: README.vms,v 1.1 2003-03-01 12:48:36 jklowden Exp $
+$Id: README.vms,v 1.2 2003-05-20 11:34:41 freddy77 Exp $

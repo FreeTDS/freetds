@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.1 2003-03-01 12:48:36 jklowden Exp $
+# $Id: descrip_mms.template,v 1.2 2003-05-20 11:34:41 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -110,27 +110,40 @@ CTLIBOBJS = [.src.ctlib]blk$(OBJ), [.src.ctlib]cs$(OBJ), [.src.ctlib]ct$(OBJ), \
 DBLIBOBJS = [.src.dblib]bcp$(OBJ), [.src.dblib]dblib$(OBJ), $(DBOPENOBJ) \
 	[.src.dblib]dbutil$(OBJ), [.src.dblib]rpc$(OBJ), [.src.dblib]xact$(OBJ)
 
+TDSSRVOBJS = [.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
+
+TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$(OBJ), \
+	[.src.pool]stream$(OBJ), [.src.pool]user$(OBJ), [.src.pool]util$(OBJ)
+
 TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), [.src.odbc]convert_sql2string$(OBJ), \
 	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]error$(OBJ), [.src.odbc]native$(OBJ), \
 	[.src.odbc]odbc$(OBJ), [.src.odbc]odbc_util$(OBJ) [.src.odbc]prepare_query$(OBJ), \
-	[.src.odbc]sql2tds$(OBJ) [.vms]odbc_unimplemented$(OBJ)
+	[.src.odbc]sql2tds$(OBJ)
 
 # This is the top-level target
 
-all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) $(TDSODBCSHR) buildchecks apps
+all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) \
+		$(TDSODBCSHR) buildchecks apps
 	@ write sys$output " "
 	@ write sys$output " Everything is up to date.  '$(MMS)$(MMSQUALIFIERS) check' to run test suite."
 
 
 # Configuration dependencies
 
-$(TDSOBJS) : [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h 
+CONFIGS = [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h \
+	[.include]readline.h [.include]history.h
 
-$(CTLIBOBJS) : [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h 
+$(TDSOBJS) : $(CONFIGS)
 
-$(DBLIBOBJS) : [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h 
+$(CTLIBOBJS) : $(CONFIGS)
 
-$(TDSODBCOBJS) : [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h 
+$(DBLIBOBJS) : $(CONFIGS)
+
+$(TDSSRVOBJS) : $(CONFIGS)
+
+$(TDSPOOLOBJS) : $(CONFIGS)
+
+$(TDSODBCOBJS) : $(CONFIGS)
 
 [.include]config.h : [.vms]config_h.vms 
 	@ write sys$output "Run @[.vms]configure to generate config.h"
@@ -167,15 +180,28 @@ $(TDSODBCOBJS) : [.include]config.h [.include]freetds_sysconfdir.h [.include]tds
 	@ @vmsconfigtmp.com
 	@ delete/noconfirm/nolog vmsconfigtmp.com;
 
+[.include]readline.h :
+	@ open/write readlineh $(MMS$TARGET)
+	@ write readlineh "char *readline(char *prompt);"
+	@ close readlineh 
+
+[.include]history.h :
+	@ open/write historyh $(MMS$TARGET)
+	@ write historyh "void add_history(const char *s);"
+	@ close historyh
+
 # Build the libraries
 
 []libtds$(OLB) : libtds$(OLB)( $(TDSOBJS) )
 	LIBRARY /COMPRESS $(MMS$TARGET) /OUTPUT=$(MMS$TARGET)
 
-[]libct$(OLB) : libct$(OLB)( $(ctlibobjs) )
+[]libct$(OLB) : libct$(OLB)( $(CTLIBOBJS) )
 	LIBRARY /COMPRESS $(MMS$TARGET) /OUTPUT=$(MMS$TARGET)
 
 []libsybdb$(OLB) : libsybdb$(OLB)( $(DBLIBOBJS) )
+	LIBRARY /COMPRESS $(MMS$TARGET) /OUTPUT=$(MMS$TARGET)
+
+[]libtdssrv$(OLB) : libtdssrv$(OLB)( $(TDSSRVOBJS) )
 	LIBRARY /COMPRESS $(MMS$TARGET) /OUTPUT=$(MMS$TARGET)
 
 []libtdsodbc$(OLB) : libtdsodbc$(OLB)( $(TDSODBCOBJS), $(TDSOBJS) )
@@ -185,29 +211,56 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 	link$(LINKFLAGS) $(MMS$SOURCE)/include=odbc/library,[.vms]odbc_driver_axp.opt/options/share=$(MMS$TARGET) 
 
 
-# Build the utility programs
+# Build the utility programs and the pool server
 
-apps : freebcp$(E) tsql$(E)
+apps : freebcp$(E) tsql$(E) tdspool$(E)
 
 freebcp$(E) : [.src.apps]freebcp$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, \ 
+		[]libtds$(OLB)/library
 
 [.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c
 
 tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, \
+		[]libtds$(OLB)/library
 
 [.src.apps]tsql$(OBJ) : [.src.apps]tsql.c
+	@ define/nolog/user_mode readline [.include]
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
+tdspool$(E) : $(TDSPOOLOBJS) []libtdssrv$(OLB) []libtds$(OLB)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), \
+		[]libtdssrv$(OLB)/library, []libtds$(OLB)/library
 
-check : all PWD libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
+[.src.pool]config$(OBJ) : [.src.pool]config.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]main$(OBJ) : [.src.pool]main.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]member$(OBJ) : [.src.pool]member.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]stream$(OBJ) : [.src.pool]stream.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]user$(OBJ) : [.src.pool]user.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]util$(OBJ) : [.src.pool]util.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+# Run the test suite
+
+check : buildchecks PWD libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
 	@ write sys$output ""
 	@ write sys$output "Test run complete.
 
 PWD : PWD.in
 	copy $(MMS$SOURCE) $(MMS$TARGET).
 
-libtdscheck :
+libtdscheck : 
 	@ set default [.src.tds.unittests]
 	@ define/nolog FREETDSCONF [---]freetds.conf
 	@ run/nodebug []dynamic1$(E)
@@ -222,7 +275,7 @@ libtdscheck :
 	@ set default [---]
 
 
-ctlibcheck :
+ctlibcheck : 
 	@ set default [.src.ctlib.unittests]
 	@ define/nolog FREETDSCONF [---]freetds.conf
 	@ run/nodebug []t0001$(E)
@@ -236,7 +289,7 @@ ctlibcheck :
 	@ run/nodebug []t0009$(E)
 	@ set default [---]
 
-dblibcheck :
+dblibcheck : 
 	@ set default [.src.dblib.unittests]
 	@ define/nolog FREETDSCONF [---]freetds.conf
 	@ run/nodebug []t0001$(E)
@@ -265,7 +318,7 @@ dblibcheck :
 	@ run/nodebug []rpc$(E)
 	@ set default [---]
 
-tdsodbccheck :
+tdsodbccheck : 
 	@ set default [.src.odbc.unittests]
 	@ define/nolog FREETDSCONF [---]freetds.conf
 	@ define/nolog LIBTDSODBC [---]libtdsodbc$(E)
@@ -631,6 +684,8 @@ clean : distclean
 	@ if f$search("*$(OLB)") .nes. "" then delete/noconfirm *$(OLB);*
 	@ if f$search("*$(E)") .nes. "" then delete/noconfirm *$(E);*
 	@ if f$search("[.include]config.h") .nes. "" then delete/noconfirm [.include]config.h;*
+	@ if f$search("[.include]readline.h") .nes. "" then delete/noconfirm [.include]readline.h;*
+	@ if f$search("[.include]history.h") .nes. "" then delete/noconfirm [.include]history.h;*
 	@ if f$search("[]descrip.mms") .nes. "" then delete/noconfirm []descrip.mms;*
 	@ if f$search("[.include]freetds_sysconfdir.h") .nes. "" then delete/noconfirm [.include]freetds_sysconfdir.h;*
 	@ if f$search("[.include]tds_sysdep_public.h") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h;*

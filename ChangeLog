@@ -1,3 +1,16 @@
+Tue May 20 13:33:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* vms/README.vms vms/config_h.vms vms/configure.com:
+	* vms/descrip_mms.template vms/getpass.c vms/libodbc.opt:
+	* vms/odbc_driver_axp.opt vms/odbc_unimplemented.c:
+	- applied patch #733631
+	 - own up in our config.h to having locale.h, nl_langinfo, and 
+	   readline
+	 - build the pool server
+	 - redone getpass() implementation
+	 - update list of ODBC functions
+	 - no longer export ODBC functions that are not implemented
+	- reindented
+
 Tue May 20 12:49:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/t0004.c:
 	- fix bug binding parameters with NULL indicator

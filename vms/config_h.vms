@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.1 2003-03-01 12:48:36 jklowden Exp $ */
+/* $Id: config_h.vms,v 1.2 2003-05-20 11:34:41 freddy77 Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -112,6 +112,9 @@
 /* Define to 1 if you have the <libgen.h> header file. */
 #define HAVE_LIBGEN_H 1
 
+/* Define to 1 if you have the <locale.h> header file. */
+#define HAVE_LOCALE_H 1
+
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
@@ -128,13 +131,13 @@
 #define HAVE_NETINET_IN_H 1
 
 /* Define to 1 if you have the `nl_langinfo' function. */
-#undef HAVE_NL_LANGINFO
+#define HAVE_NL_LANGINFO 1
 
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
 /* Define to 1 if you have the GNU Readline library. */
-#undef HAVE_READLINE
+#define HAVE_READLINE 1
 
 /* Define to 1 if you have the `sethostent_r' function. */
 #undef HAVE_SETHOSTENT_R
