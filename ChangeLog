@@ -1,3 +1,7 @@
+Wed Jul 30 02:15:44 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/tds.html fixed an internal link
+	* src/dblib/dblib.c dbmorecmds tolerates missing result set.
+
 Tue Jul 29 21:25:26 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	* vms/odbc_driver_axp.opt win32/FreeTDS.def:
