@@ -4,6 +4,7 @@ dnl ------------------------------------------------------------
 dnl Initialization
 dnl ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
+AC_PREREQ(2.53)
 AM_INIT_AUTOMAKE(freetds, 0.60)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREFIX_DEFAULT(/usr/local)
@@ -232,14 +233,6 @@ fi
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 AC_raf_FUNC_WHICH_GETSERVBYNAME_R
 AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
-
-dnl ------------------------------------------------------------
-dnl LTLIBOBJS hacks from libtool info page
-dnl ------------------------------------------------------------
-LTLIBOBJS=`echo "$LIBOBJS" | sed 's/\.o/.lo/g'`
-AC_SUBST(LTLIBOBJS)
-LTALLOCA=`echo "$ALLOCA" | sed 's/\.o/.lo/g'`
-AC_SUBST(LTALLOCA)
 
 AC_MSG_RESULT(done)
 dnl ------------------------------------------------------------
