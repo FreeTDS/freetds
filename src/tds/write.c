@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.34 2003-04-06 20:34:57 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.35 2003-04-07 19:02:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -103,6 +103,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
 	TDS_ENCODING *client;
 	char buffer[256];
+	const char * eob; 
 	unsigned int output_size, bytes_out = 0;
 	unsigned int bpc = tds->iconv_info.server_charset.max_bytes_per_char; /* bytes per char */ ;
 
@@ -117,6 +118,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 				TDS_SMALLINT *p = (TDS_SMALLINT *) s;
 
 				for (len = 0; p && p[len]; len++);
+				len *= sizeof(TDS_SMALLINT);
 
 			} else {
 				assert(client->min_bytes_per_char < 3);	/* FIXME */
@@ -124,20 +126,21 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		}
 	}
 	assert(bpc);
-
-	/* convert len to bytes and use it to measure iconv's output */
-	len *= bpc;
+	assert(len >= 0);
 
 	if (IS_TDS7_PLUS(tds)) {
+		eob = s[len];	/* 1 past the end of the input buffer */
 		while (len > 0) {
-			output_size = len > (sizeof(buffer)) ? sizeof(buffer) : len;
+			tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
+			output_size = len * bpc;
+			if (output_size > sizeof(buffer))
+				output_size = sizeof(buffer);
 			bytes_out = tds_iconv(to_server, &tds->iconv_info, s, &len, buffer, output_size);
-			s += bytes_out;
-			len -= bytes_out;
-			bytes_out = tds_put_n(tds, buffer, bytes_out);
+			s = eob - len;
+			tds_put_n(tds, buffer, bytes_out);
 		}
+		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string wrote %d bytes\n", bytes_out);
 		return bytes_out;
-
 	}
 	return tds_put_n(tds, s, len);
 }

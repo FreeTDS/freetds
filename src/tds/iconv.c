@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.47 2003-04-06 20:34:57 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.48 2003-04-07 19:02:30 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -71,10 +71,6 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	TDS_ENCODING *server = &tds->iconv_info.server_charset;
 	int ratio_c, ratio_s;
 
-	if (tds->iconv_info.to_wire == (iconv_t) - 1 || tds->iconv_info.from_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L iconv library not employed, relying on ISO-8859-1 compatibility\n");
-		return;
-	}
 #if HAVE_ICONV
 	strncpy(client->name, charset, sizeof(client->name));
 	client->name[sizeof(client->name) - 1] = '\0';
@@ -139,7 +135,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 {
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
-
+	const size_t output_buffer_size = output_size;
 	int erc;
 
 	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
@@ -164,7 +160,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		break;
 	}
 
-	if (cd == (iconv_t) - 1)
+	if (cd == (iconv_t) - 1) /* FIXME: call memcpy, adjust input and *input_size, and return copied size */ 
 		return 0;
 
 	/*
@@ -193,7 +189,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 			 */
 			while (*input | 0x80) {
 				input++;
-				input_size--;
+				*input_size--;
 			}
 
 		}
@@ -220,7 +216,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	if (error_cd != (iconv_t) - 1)
 		iconv_close(error_cd);
 
-	return output_size;
+	return  output_buffer_size - output_size;
 }
 
 void
@@ -275,7 +271,7 @@ bytes_per_char(TDS_ENCODING * charset)
 	assert(charset && strlen(charset->name) < sizeof(charset->name));
 
 	for (i = 0; i < sizeof(charsets) / sizeof(TDS_ENCODING); i++) {
-		if (charsets[1].min_bytes_per_char == 0)
+		if (charsets[i].min_bytes_per_char == 0)
 			break;
 
 		if (0 == strcmp(charset->name, charsets[i].name)) {

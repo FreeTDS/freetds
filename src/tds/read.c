@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.43 2003-04-06 20:34:57 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.44 2003-04-07 19:02:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -228,11 +228,12 @@ tds_get_int(TDSSOCKET * tds)
  * Fetch a string from the wire.
  * Output string is NOT null terminated.
  * If TDS version is 7 or 8 read unicode string and convert it.
- * @return bytes written
+ * @return bytes written to \a dest
  * @param tds  connection information
  * @param string_len length of string to read from wire (in characters)
- * @param dest destination buffer, if NULL string is readed and discarded
+ * @param dest destination buffer, if NULL string is read and discarded
  * @param need length to read (in characters)
+ * @remarks What is the difference between \a string_len and \a need?
  */
 int
 tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
@@ -244,7 +245,8 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	 */
 	char temp[256];
 	char *p, *pend;
-	unsigned int in_left, bpc = tds->iconv_info.client_charset.max_bytes_per_char;	/* bytes per char */
+	unsigned int in_left, wire_bytes; 
+	const unsigned int bpc = tds->iconv_info.server_charset.max_bytes_per_char;	/* bytes per char */
 
 
 	/*
@@ -264,10 +266,13 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 		p = dest;
 		pend = dest + need;
 		while (string_len > 0 && p < pend) {
-			in_left = string_len > (sizeof(temp) / bpc) ? (sizeof(temp) / bpc) : string_len;
-			tds_get_n(tds, temp, in_left * bpc);
-			p += tds_iconv(to_client, &tds->iconv_info, temp, &in_left, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
-			string_len -= in_left;
+			in_left = string_len * bpc;
+			if (in_left > sizeof(temp))
+				in_left = sizeof(temp);
+			wire_bytes = in_left;
+			tds_get_n(tds, temp, wire_bytes);
+			p += tds_iconv(to_client, &tds->iconv_info, temp, &wire_bytes, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
+			string_len -= (in_left - wire_bytes) / bpc;
 		}
 		return p - dest;
 	} else {

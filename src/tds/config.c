@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.71 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.72 2003-04-07 19:02:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -436,8 +436,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			connect_info->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
 		tds_dstr_copy(&connect_info->server_charset, value);
+		tdsdump_log(TDS_DBG_INFO1, "%L %s is %s.\n", option, connect_info->server_charset);
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
 		tds_dstr_copy(&connect_info->client_charset, value);
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, option, connect_info->client_charset);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		tds_dstr_copy(&connect_info->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
@@ -481,8 +483,10 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 	if (!tds_dstr_isempty(&login->server_charset)) {
 		tds_dstr_copy(&connect_info->server_charset, login->server_charset);
 	}
-	if (!tds_dstr_isempty(&login->client_charset)) {
+	/* don't overwrite freetds.conf client charset with one derived from the environment. */
+	if (tds_dstr_isempty(&connect_info->client_charset) && !tds_dstr_isempty(&login->client_charset)) {
 		tds_dstr_copy(&connect_info->client_charset, login->client_charset);
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset", connect_info->client_charset);
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
 		tds_dstr_copy(&connect_info->host_name, login->host_name);

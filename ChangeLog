@@ -1,3 +1,9 @@
+Mon Apr  7 14:57:59 EDT 2003
+	* src/tds/character_sets.h added ISO-8855-1
+	* src/tds/config.c src/tds/iconv.c src/tds/login.c
+	* src/tds/read.c src/tds/token.c src/tds/write.c
+	- Made sufficient repairs that tsql now logs in.
+
 Sun Apr  6 14:41:05 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h include/tdsiconv.h
 	* src/dblib/bcp.c

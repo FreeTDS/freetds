@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.169 2003-04-06 20:34:57 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.170 2003-04-07 19:02:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -262,6 +262,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	/* get_incoming(tds->s); */
 	do {
 		marker = tds_get_byte(tds);
+		tdsdump_log(TDS_DBG_FUNC, "%L looking for login token, got  %d(%x)\n", marker, _tds_token_name(marker));
+
 		switch (marker) {
 		case TDS_AUTH_TOKEN:
 			tds_process_auth(tds);
