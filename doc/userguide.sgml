@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-11-22 16:41:55 $</date>
-		<releaseinfo>$Revision: 1.44 $</releaseinfo>
+		<date>$Date: 2002-12-18 21:27:59 $</date>
+		<releaseinfo>$Revision: 1.46 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.44 $
+$Revision: 1.46 $
 , dated 
-$Date: 2002-11-22 16:41:55 $ (CVS control number $Id: userguide.sgml,v 1.44 2002-11-22 16:41:55 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2002-12-18 21:27:59 $ (CVS control number $Id: userguide.sgml,v 1.46 2002-12-18 21:27:59 jklowden Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -1861,9 +1861,10 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<row>
 	<entry>DSN</entry>
 	<entry>none</entry>
-	<entry>Use DSN. This will search in ODBC.INI for entry. 
+	<entry>Use DSN. This will search in odbc.ini for entry. 
 	  It let you specify connection like SQLConnect but using SQLDriverConnect. 
 	  Do not use Servername and DSN together.
+	  Can be specified only on connection string, not in odbc.ini file.
 	</entry>
 	<entry>A valid DSN entry</entry>
 	</row>
@@ -2689,10 +2690,10 @@ UCS-2 is the system employed by Microsoft NT-based systems.  Microsoft database 
 You will read from time to time that Unicode is not perfect.  Surprise, surprise: it's true.  From a linguistic point of view, Unicode is incomplete; in particular, UCS-2 is demonstrably too small (!) to hold all the forms of Chinese ideographs used over the centuries.  (It is, however, quite useful and widely employed in representing modern Chinese.)  Of more common concern to programmers are Unicode's technical problems, or rather, Unix's technical shortcomings <foreignphrase>vis-a-vis</foreignphrase> any encoding more complex than <acronym>ISO-8859-x</>.  
 			</para>
 			<para>
-The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</> Compact,</quote> if you will.  Assumptions about <acronym>ASCII</> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.  
+The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</> Compact,</quote> if you will.  Assumptions about <acronym>ASCII</> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.  
 			</para>
 			<para>
-Even if every OS were magically rid of all <acronym>ASCII</> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> <ulink url="http://www.noveltheory.com/TechPapers/endian.asp">explanations</ulink> on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in homogeneous environments.  
+Even if every OS were magically rid of all <acronym>ASCII</> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> <ulink url="http://www.noveltheory.com/TechPapers/endian.asp">explanations</ulink> on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.  
 			</para>
 			<para>
 The Unicode folks knew about Endianism, of course, and had to address it.  A Unicode bytestream is supposed to begin with a byte-order mark.  Needless to say, perhaps, many don't.  
