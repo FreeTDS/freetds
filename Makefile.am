@@ -1,3 +1,4 @@
+# version $Id: Makefile.am,v 1.16 2002-09-20 18:36:08 jklowden Exp $
 SUBDIRS		=	include src doc
 
 EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
