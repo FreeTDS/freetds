@@ -1,3 +1,8 @@
+Thu Feb  6 10:22:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/FreeTDS.dsp win32/msvc6/Makefile.am:
+	* win32/msvc6/tds_sysdep_public.h win32/msvc6/freetds_sysconfdir.h:
+	- fix some problem compiling win32 odbc driver
+
 Wed Feb  5 23:39:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	* src/odbc/odbc.c: replace SQLINTEGER with SQLLEN when casting
 	  from a pointer, eliminating incompatible-size warnings on
