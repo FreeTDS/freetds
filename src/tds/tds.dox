@@ -4,10 +4,10 @@ GENERATE_LATEX   = NO
 GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
-INPUT            = mem.c challenge.c query.c iconv.c read.c write.c token.c \
-		tdsstring.c ../../include/tdsstring.h ../../include/tds.h \
-		config.c convert.c
+INPUT            = $(srcdir) \
+		   $(TOP_SRCDIR)/include/tdsstring.h \
+		   $(TOP_SRCDIR)/include/tds.h 
 QUIET            = YES
 JAVADOC_AUTOBRIEF = YES
 PREDEFINED 	 = HAVE_SSL
-EXAMPLE_PATH = example
+EXAMPLE_PATH = $(SRCDIR)/example

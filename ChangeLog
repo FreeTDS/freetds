@@ -1,3 +1,10 @@
+Wed Mar 12 01:05:34 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO added freebcp switches
+	* src/apps/freebcp.c applied patch for interfaces file
+	* src/dblib/bcp.c removed spurious carriage returns
+	* src/tds/Makefile.am src/tds/tds.dox
+	- run doxygen outside source tree 
+
 Tue Mar 11 15:08:18 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h added missing functional prototype
 	* include/dblib.h _bcp_get_term_data new signature
