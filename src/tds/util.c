@@ -49,7 +49,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.13 2002-09-13 18:03:24 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.14 2002-09-14 20:37:00 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -96,6 +96,31 @@ int i;
 		buf[bytes-i-1]=tmp;
 	}
 	return bytes;
+}
+
+/**
+ * Returns the version of the TDS protocol in effect for the link
+ * as a decimal integer.  
+ *	Typical returned values are 42, 50, 70, 80.
+ * Also fills pversion_string unless it is null.
+ * 	Typical pversion_string values are "4.2" and "7.0".
+ */
+int tds_version(TDSSOCKET *tds_socket, char *pversion_string)
+{
+int iversion = 0;
+
+	if (tds_socket) {
+		iversion =  10 * tds_socket->major_version
+					+ tds_socket->minor_version;
+
+		if (pversion_string) {
+			sprintf (pversion_string, "%d.%d", 
+					tds_socket->major_version, 
+					tds_socket->minor_version );
+		}
+	}
+	
+	return iversion;
 }
 
 /* ============================== tdsdump_off() ==============================
