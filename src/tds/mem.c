@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.18 2002-08-26 15:41:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.19 2002-09-05 12:22:08 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -333,19 +333,19 @@ char *tdsver;
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
 	if ((tdsver=getenv("TDSVER"))) {
-		if (!strcmp(tdsver,"42")) {
+		if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
 			tds_login->major_version=4;
 			tds_login->minor_version=2;
-		} else if (!strcmp(tdsver,"46")) {
+		} else if (!strcmp(tdsver,"46") || !strcmp(tdsver,"4.6")) {
 			tds_login->major_version=4;
 			tds_login->minor_version=6;
-		} else if (!strcmp(tdsver,"50")) {
+		} else if (!strcmp(tdsver,"50") || !strcmp(tdsver,"5.0")) {
 			tds_login->major_version=5;
 			tds_login->minor_version=0;
-		} else if (!strcmp(tdsver,"70")) {
+		} else if (!strcmp(tdsver,"70") || !strcmp(tdsver,"7.0")) {
 			tds_login->major_version=7;
 			tds_login->minor_version=0;
-		} else if (!strcmp(tdsver,"80")) {
+		} else if (!strcmp(tdsver,"80") || !strcmp(tdsver,"8.0")) {
 			tds_login->major_version=8;
 			tds_login->minor_version=0;
 		}

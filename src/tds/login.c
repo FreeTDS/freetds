@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.38 2002-09-03 12:49:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.39 2002-09-05 12:22:08 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -110,7 +110,7 @@ void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func)(long
 	tds_login->longquery_func = longquery_func;
 	tds_login->longquery_param = longquery_param;
 }
-extern void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size)
+void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size)
 {
 	memcpy(tds_login->capabilities, capabilities, 
 		size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
@@ -256,6 +256,8 @@ FD_ZERO (&fds);
     		}
 
 		if ((now-start) > connect_timeout) {
+			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
+				"Server is unavailable or does not exist.");
 			tds_free_config(config);
 			tds_free_socket(tds);
 			return NULL;
@@ -266,6 +268,8 @@ FD_ZERO (&fds);
 		sprintf(message, "src/tds/login.c: tds_connect: %s:%d",
 			inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 		perror(message);
+		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
+			"Server is unavailable or does not exist.");
 		tds_free_config(config);
 		tds_free_socket(tds);
 		return NULL;
@@ -281,6 +285,9 @@ FD_ZERO (&fds);
 		tds_send_login(tds,config);	
 	}
 	if (!tds_process_login_tokens(tds)) {
+		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, 
+			"Login incorrect.");
+		tds_free_config(config);
 		tds_free_socket(tds);
 		tds = NULL;
 		return NULL;

@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.45 2002-08-30 00:42:44 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.46 2002-09-05 12:22:08 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1096,7 +1096,7 @@ TDSMSGINFO msg_info;
 ** There is no action taken currently, but certain functions at the CLI level
 ** that return the name of the current database will need to use this.
 */
-extern int tds_process_env_chg(TDSSOCKET *tds)
+int tds_process_env_chg(TDSSOCKET *tds)
 {
 int size, type;
 char *oldval, *newval;

@@ -21,7 +21,7 @@
 #define _pool_h_
 
 static char  rcsid_pool [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.2 2002-01-22 05:59:35 brianb Exp $";
+         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.3 2002-09-05 12:22:08 brianb Exp $";
 
 /* includes */
 #include <stdio.h>
@@ -46,7 +46,7 @@ enum {
 	TDS_SRV_QUERY,
 	TDS_SRV_WAIT,    /* if no members are free wait */
 	TDS_SRV_CANCEL,
-	TDS_SRV_DEAD,
+	TDS_SRV_DEAD
 };
 
 typedef struct tds_pool_user {

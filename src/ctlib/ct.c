@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.25 2002-09-04 18:47:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.26 2002-09-05 12:22:07 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -688,7 +688,6 @@ static int _ct_get_client_type(int datatype, int size)
 			return CS_DATETIME_TYPE;
 		} else {
 			fprintf(stderr,"Error! unknown date size of %d\n",size);
-			return CS_FAIL;
 		}
 		break;
          case SYBNUMERIC:
@@ -713,7 +712,8 @@ static int _ct_get_client_type(int datatype, int size)
       		return CS_UNIQUE_TYPE;
 		break;
    }
-   /* FIXME what to return here ? */
+
+   return CS_FAIL;
 }
 int _ct_get_server_type(int datatype)
 {

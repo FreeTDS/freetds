@@ -34,3 +34,5 @@ test:
 all-redirect:
 	if test ! -f PWD; then cp $(srcdir)/PWD PWD; fi
 
+snapshot:
+	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.49 2002-09-01 07:45:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.50 2002-09-05 12:22:08 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -459,8 +459,11 @@ RETCODE dbsetlname(LOGINREC *login, char *value, int which)
 		tds_set_charset(login->tds_login, value);
 		return SUCCEED;
 		break;
-	case DBSETHID:
 	case DBSETNATLANG:
+		tds_set_language(login->tds_login, value);
+		return SUCCEED;
+		break;
+	case DBSETHID:
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlname() which = %d\n", which);
 		return FAIL;
@@ -1398,6 +1401,19 @@ TDSSOCKET * tds;
 	}
 	return 0; /* something went wrong */
 }
+
+int dbcolutype(DBPROCESS *dbproc,int column)
+{
+TDSCOLINFO * colinfo;
+TDSRESULTINFO * resinfo;
+TDSSOCKET * tds;
+
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	resinfo = tds->res_info;
+	colinfo = resinfo->columns[column-1];
+        return colinfo->column_usertype;
+}
+
 DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column)
 {
 /* moved typeinfo from static into dbproc structure to make thread safe. 

@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.14 2002-08-30 21:09:22 castellano Exp $";
+"$Id: sybdb.h,v 1.15 2002-09-05 12:22:07 brianb Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -376,6 +376,7 @@ DBINT dbcollen(DBPROCESS *dbproc, int column);
 char *dbcolname(DBPROCESS *dbproc, int column);
 char *dbcolsource(DBPROCESS *dbproc, int colnum);
 int dbcoltype(DBPROCESS *dbproc, int column);
+int dbcolutype(DBPROCESS *dbproc, int column);
 DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column);
 DBINT dbcolutype(DBPROCESS *dbprocess, int column);
 DBINT dbconvert(DBPROCESS *dbproc, int srctype, BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen);
@@ -621,7 +622,7 @@ RETCODE dbsetllong(LOGINREC* login, long value, int which);
 #define DBSETLAPP(x,y)		dbsetlname((x), (y), DBSETAPP)
 #define DBSETBCP		6
 #define BCP_SETL(x,y)		dbsetlbool((x), (y), DBSETBCP)
-#define DBSETNATLANG		7 /* not implemented */
+#define DBSETNATLANG		7
 #define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
 #define DBSETNOSHORT		8 /* not implemented */
 #define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
