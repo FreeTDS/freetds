@@ -1,3 +1,10 @@
+Mon Sep 23 20:13:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/Makefile.am src/dblib/Makefile.am src/odbc/Makefile.am
+	  src/pool/Makefile.am src/tds/Makefile.am:
+	- Build a libtool convenience library "libtds_objects.la".  Use that
+	  to pull the tds object files into the other libraries, so every
+	  copy of Makefile.am doesn't need a synchronized list of objects.
+
 Mon Sep 23 19:46:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/ctlib.h include/ctpublic.h src/ctlib/ct.c
 	  src/ctlib/ctutil.c src/ctlib/unittests/.cvsignore

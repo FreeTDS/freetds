@@ -1,13 +1,5 @@
 SUBDIRS		= unittests
 
-TDSDIR		=	../tds
-TDSOBJECTS	=	$(TDSDIR)/mem.lo $(TDSDIR)/token.lo \
-		$(TDSDIR)/util.lo $(TDSDIR)/login.lo $(TDSDIR)/read.lo \
-		$(TDSDIR)/write.lo $(TDSDIR)/convert.lo \
-		$(TDSDIR)/numeric.lo $(TDSDIR)/config.lo \
-		$(TDSDIR)/query.lo $(TDSDIR)/iconv.lo \
-		$(TDSDIR)/locale.lo $(TDSDIR)/threadsafe.lo \
-		$(TDSDIR)/challenge.lo
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
@@ -16,9 +8,9 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	prepare_query.h connectparams.h
 EXTRA_DIST = tables.sql
 if UNIXODBC
-libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lodbcinst $(NETWORK_LIBS) $(LIBICONV) $(top_srcdir)/src/replacements/libreplacements.la
+libtdsodbc_la_LIBADD=	$(top_srcdir)/src/tds/libtds_objects.la -lodbcinst $(NETWORK_LIBS) $(LIBICONV) $(top_srcdir)/src/replacements/libreplacements.la
 else
-libtdsodbc_la_LIBADD=	$(TDSOBJECTS) $(NETWORK_LIBS) $(LIBICONV) $(top_srcdir)/src/replacements/libreplacements.la
+libtdsodbc_la_LIBADD=	$(top_srcdir)/src/tds/libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) $(top_srcdir)/src/replacements/libreplacements.la
 endif
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 
