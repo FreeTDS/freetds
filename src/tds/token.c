@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.118 2002-11-23 16:44:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.119 2002-11-29 16:59:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -979,6 +979,9 @@ int colnamelen;
 	}
 
 	if (IS_TDS80(tds) && is_collate_type(curcol->column_type))
+		/* first 2 bytes are windows code (such as 0x409 for english)
+		   other 2 bytes ???
+		   last bytes is id in syscharsets */
 		tds_get_n(tds, curcol->column_collation, 5);
 
 	if (is_blob_type(curcol->column_type)) {

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.15 2002-11-23 16:44:57 freddy77 Exp $
+To Do List	$Id: TODO,v 1.16 2002-11-29 16:59:44 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
@@ -42,7 +42,7 @@ For future versions:
 (f77) Those was collected from ML...
 . ODBC: get a solid corpus of unittests for ODBC, and have it become a 
   top tier API.
-. DBLIB: output params
+. DBLIB: output params (work in progress)
 . get connection pooling working with all protocol versions
 . Finish off the TDS dissector for ethereal
 . ODBC: dynamic query (need rewrite SQLPrepare and related)
