@@ -51,14 +51,18 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef HAVE_LOCALE_H
 #include <locale.h>
-#include <nl_types.h>
+#endif /* HAVE_LOCALE_H */
+
+#ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif /* HAVE_LANGINFO_H */
 
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.49.2.1 2003-02-20 15:38:24 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.49.2.2 2003-02-20 20:14:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum

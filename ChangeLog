@@ -1,3 +1,7 @@
+Thu Feb 20 21:13:12 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/apps/tsql.c:
+	- merged Steve Langasek patch for portability issue
+
 Thu Feb 20 16:37:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: fix a buffer overflow
 
