@@ -52,7 +52,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.6 2004-05-11 19:56:03 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.7 2004-10-19 09:17:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -700,7 +700,6 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	int ch;
 
 	extern char *optarg;
-	extern int optind;
 
 	assert(options && argv);
 	

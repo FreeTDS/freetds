@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.267 2004-10-14 18:26:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.268 2004-10-19 09:17:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -494,7 +494,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
 	TDSCOLUMN   *curcol;
 	int rc;
-	int saved_rows_affected = tds->rows_affected;;
+	int saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
 
 	if (tds->state == TDS_IDLE) {

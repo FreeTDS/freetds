@@ -1,3 +1,8 @@
+Tue Oct 19 11:16:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: use -Bsymbolic only on Solaris, HP-UX and Linux
+	* src/apps/bsqldb.c src/tds/token.c:
+	- remove warnings
+
 Sat Oct 16 13:41:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am misc/test-dist.sh:
 	- allow make clean before another make
