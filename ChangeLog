@@ -1,3 +1,8 @@
+Wed Mar 24 23:58:52 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/rpc.c
+	- more generalized processing, to allow more complex tests.
+	- dbnumrets() fails if stored procedure returns multiple result sets. 
+	
 Wed Mar 24 17:30:30 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c src/odbc/odbc.c src/odbc/prepare_query.h:
 	- applied patch from Nick Stoughton for scalar functions (modified)
