@@ -1,3 +1,13 @@
+Fri Sep  6 17:23:00 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/token.c:
+	- Ensure proc_name parameter to message handlers is never NULL.
+	  This matches Sybase's behavior, and prevents crashes in correct
+	  handlers that don't expect NULLs here (such as the example handlers
+	  in Sybase's documentation).
+	* src/dblib/dblib.c:
+	- Fix declarations of global handlers.
+	- Pass the line number through to the message handler.
+
 Fri Sep  6 15:54:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c:
 	- remove bogus dberrhandler() and dbmsghandler()
