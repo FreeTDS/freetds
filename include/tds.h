@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.136 2003-08-02 17:50:43 freddy77 Exp $";
+	"$Id: tds.h,v 1.137 2003-08-05 04:02:08 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -822,6 +822,25 @@ enum {
 #define TDS_DBG_WARN    3
 #define TDS_DBG_ERROR   2
 #define TDS_DBG_SEVERE  1
+
+/**
+ * An attempt at better logging.
+ * Using these bitmapped values, various logging features can be turned on and off.
+ * It can be especially helpful to turn packet data on/off for security reasons.
+ */ 
+enum TDS_DBG_LOG_STATE {
+	  TDS_DBG_LOGIN = 1	/* for diagnosing login problems;  					
+				 * otherwise the username/password information is suppressed. */
+	, TDS_DBG_API	 	= (1 << 1)	/* Log calls to client libraries */
+	, TDS_DBG_ASYNC 	= (1 << 2)	/* Log asynchronous function starts or completes. */
+	, TDS_DBG_DIAG  	= (1 << 3)	/* Log client- and server-generated messages */
+	, TDS_DBG_error 	= (1 << 4)	/* Log FreeTDS runtime/logic error occurs. */
+	/* TODO:  ^^^^^ make upper case when old #defines (above) are removed */
+	, TDS_DBG_PACKET	= (1 << 5)	/* Log hex dump of packets to/from the server. */
+	, TDS_DBG_LIBTDS	= (1 << 6)	/* Log calls to (and in) libtds */
+	, TDS_DBG_CONFIG	= (1 << 7)	/* replaces TDSDUMPCONFIG */
+	, TDS_DBG_DEFAULT	= 0xFE 		/* all above except login packets */
+}; 
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
 
