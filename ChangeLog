@@ -1,3 +1,6 @@
+Mon Nov  3 00:03:37 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml Updated from beginning to iODBC.  
+	
 Sun Nov  2 11:58:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/tdsodbc.h src/odbc/odbc.c:
 	* src/odbc/odbc_util.h src/odbc/prepare_query.h:

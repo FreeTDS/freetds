@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-10-18 22:57:24 $</date>
-		<releaseinfo>$Revision: 1.65 $</releaseinfo>
+		<date>$Date: 2003-11-03 05:07:04 $</date>
+		<releaseinfo>$Revision: 1.66 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.65 $</>
-<member>$Date: 2003-10-18 22:57:24 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.65 2003-10-18 22:57:24 jklowden Exp $.</>
+<member>$Revision: 1.66 $</>
+<member>$Date: 2003-11-03 05:07:04 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.66 2003-11-03 05:07:04 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -73,6 +73,9 @@ Enough.  Let's begin.
 
 		<para>
 <productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an <systemitem class="library">ODBC library</systemitem>.  It allows many open source applications such as <productname>Perl</productname> and <productname>PHP</productname> (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
+		</para>
+		<para>
+<productname>FreeTDS</productname> is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix &reg; and Unix-like &trade; system (including notable variants such as Interix &reg; and QNX &reg;), as well as Win32 &reg;, VMS  &reg;, and OS X  &reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS &mdash; it's probably considered a bug.  
 		</para>
 		<sect1 id="tdsprotocol">
 			<title>Background: The <acronym>TDS</> Protocol
@@ -161,6 +164,12 @@ In early 1997, the only option for connecting to a Sybase dataserver from Linux 
 			<para>
 Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
 			</para>
+			<para>
+As the project matured, it gained new partcipants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
+			</para>
+			<para>
+There have been many other contributions.  Please see the <filename>AUTHORS</> in the distribution for a (we hope) complete list.  
+			</para>
 		</sect1>
 		<sect1 id="projects">
 			<title>Current Projects, Language Bindings, and Alternatives</title>
@@ -171,35 +180,35 @@ Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productnam
 			</para>
 			<itemizedlist mark=opencircle>
 			<listitem><para>
-The <productname>FreeTDS</productname> C libraries support three separate <acronym>API</>s: <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and <systemitem class="library">ODBC</systemitem>.  Underlying these three is libtds which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.
+The <productname>FreeTDS</productname> C libraries support three separate <acronym>API</>s: <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and <systemitem class="library">ODBC</systemitem>.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.  
 			</para></listitem>
 			<listitem><para>
-The <productname>FreeTDS/JDBC</productname>, developed by Craig Spannring, is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</> driver.  Currently it has only been tested mostly on <productname>SQL Server 6.5</productname> and 7.0.  The driver is not complete, but Methods that aren't implemented will throw a SQLException with the message <quote>Not implemented</quote>.  This project has recently gotten a second wind as the <productname>jTDS</productname> project on <ulink url="http://sourceforge.net/projects/jtds/">SourceForge</ulink>
-.
+If Java is your game, we refer you to the <productname>jTDS</productname> project on <ulink url="http://sourceforge.net/projects/jtds/">SourceForge</ulink>.  It is a fork of the 
+<productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</> driver.  
 			</para></listitem>
 			</itemizedlist>
 		  </sect2>
 		<sect2>
 			<title>Status</title>
 			<para>
-As of version 0.60, the <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s are fairly stable.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  
+The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.62 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
 			</para>
 			<para>
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <application>freebcp</application>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
-The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your application's needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  It has reportedly been used with <application>Star Office</>.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and with 0.61 it began to comply with the ODBC 3.0 specification.
-0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (ODBC RPC parameters, descriptors and others).
+0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).
 			</para>
 			<para>
-Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
+Basic <acronym>API</> coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
 			</para> 
 		</sect2>
 		<sect2>
 			<title>Languages besides C and Java</title>
 			<para>
-You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>s, for which <productname>FreeTDS</productname> is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using <productname>FreeTDS</productname> to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
+You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>, for which <productname>FreeTDS</productname> is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using <productname>FreeTDS</productname> to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
 			</para>
 			<para>
 <productname>FreeTDS</productname> is a source code library, though, not a binary one.  It has to be linked to a program.  For it to be useful to you in any way, you have to be prepared to break out your build tools.  
@@ -312,7 +321,7 @@ The simplest form of running <Command>configure</Command> is:
 and sometimes that's enough.  <application>configure</application> accepts some command-line arguments, too, and you may need to provide some, depending on what your environment looks like.  
 			</para>
 			<para>
-There are a few optional arguments to <Command>configure</Command> that may be important to you.
+There are a few optional arguments to <Command>configure</Command> that may be important to you.  For a complete list, see <command>configure --help</command>.  
 			</para>
 			<variablelist>
 				<title><application>./configure</application> options</title>
@@ -320,18 +329,18 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--prefix=PREFIX
 					</Parameter></term>
-				<listitem><para>         install architecture-independent files in PREFIX
+				<listitem><para>         install architecture-independent files in <parameter>PREFIX</>.  When you run <command>make install</command>, libraries will be placed in <parameter>PREFIX</><filename>/lib</>, executables in <parameter>PREFIX</><filename>/bin</>, and so on.  
                           </para>
-					<para>The default is <literal>/usr/local</literal> if this argument is not passed to <Command>configure</Command>.  In versions prior to 0.60, the default was <literal>/usr/local/freetds</literal>.  </para>
+					<para>The default is <literal>/usr/local</literal> if this argument is not passed to <Command>configure</Command>.  </para>
 					</listitem>
 				</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--sysconfdir=DIR
 					</Parameter></term>
-				<listitem><para>         read-only single-machine data in DIR
+				<listitem><para> read-only single-machine data in <parameter>DIR</>
                           </para>
-					<para>The default is <literal>PREFIX/etc</literal> (<literal>PREFIX</literal> being the value of <Parameter>--prefix=PREFIX</Parameter>, above) if this argument is not passed to <Command>configure</Command>.  In versions prior to 0.60, the default was <literal>/usr/local/freetds/etc/</literal>.  </para>
+					<para>The default is <literal>PREFIX/etc</literal> (<literal>PREFIX</literal> being the value of <Parameter>--prefix=PREFIX</Parameter>, above) if this argument is not passed to <Command>configure</Command>.  </para>
 					</listitem>
 				</varlistentry>
 
@@ -346,18 +355,11 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--with-iodbc
 					</Parameter></term>
-				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>iODBC</productname> Driver Manager. 
-				As of version 0.62, the ODBC DM is detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
-				(Requires <productname>iODBC</productname> to have already been installed.)</para>
-					</listitem>
-				</varlistentry>
-
-			<varlistentry>
 				<term><Parameter>--with-unixodbc 
 					</Parameter></term>
-				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>unixODBC</productname> Driver Manager.
-				From 0.62 version ODBC DM are detected by the configure script, so use this parameter only if your DM is installed in a non-standard path.
-				(Requires <productname>unixODBC</productname> to have already been installed.)</para>
+				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> or <systemitem class="library">ODBC</systemitem> support, and use it as the Driver Manager. 
+				As of version 0.62, the ODBC Driver Manager is detected by <filename>configure</>, so use this parameter only if yours is installed in a nonstandard path.
+				(Requires <productname>iODBC</productname> or <systemitem class="library">ODBC</systemitem> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
 
@@ -366,12 +368,18 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
 					</listitem>
 				</varlistentry>
+
 			<varlistentry>
-				<term><Parameter>--enable-threadsafe</Parameter></term>
-				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using <function>gethostbyname_r()</> instead of the older and non-threadsafe <function>gethostbyname()</>.
-				Is not widely tested on all platform but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).
-				Is also a good idea to enable this switch if you configure Apache with multi-threading support.
-				With 0.61 version this option is turned on by default in RPM building. With version 0.62 this option is turned on by default.
+				<term><Parameter>--disable-libiconv</Parameter></term>
+				<listitem><para>By default, <application>configure</> will search your system for an <systemitem class="library">iconv</systemitem> library for use with Microsoft servers (because TDS 7.0 employs Unicode).  This switch prevents that search.  If no <systemitem class="library">iconv</systemitem> library is used, <productname>FreeTDS</productname> relies on its built-in iconv emulation, which is capable of converting ISO-8859-1 to UCS-2, and is sufficient for many applications.  </para>
+					</listitem>
+				</varlistentry>
+
+			<varlistentry>
+				<term><Parameter>--disable-threadsafe</Parameter></term>
+				<listitem><para>Force <productname>FreeTDS</productname> not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, <productname>FreeTDS</productname> will use these functions throughout. </para>
+				<para> Threadsafe operation is not in wide use yet, but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).  Not expected to work on non-unix systems.  It is a good idea to enable threadsafe if you configure Apache with multi-threading support.</para>
+				<para>RPMs since version 0.61 enabled threadsafe by default. With version 0.62, <productname>FreeTDS</productname> uses threadsafe function, if available, unless the feature is explicitly disabled.  
 				</para></listitem>
 			</varlistentry>
 			<varlistentry>
@@ -381,22 +389,20 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			</varlistentry>
 
 			<varlistentry>
-				<term><Parameter>--enable-debug</Parameter></term>
-				<listitem><para>This enables some checks in FreeTDS code. Enabled by default.
+				<term><Parameter>--disable-debug</Parameter></term>
+				<listitem><para>Debug-mode compiles are enabled by default, and will remain so at least until version 1.0.  You can speed things up ever so slightly by disabling it.
 				</para></listitem>
 			</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-extra-checks</Parameter></term>
-				<listitem><para>This enables some extra checks in FreeTDS code. Currently is not widely used and
-				intended for debugging purposes. 
+				<listitem><para>This enables some extra checks in FreeTDS code. Currently is not widely used and intended for debugging purposes. 
 				</para></listitem>
 			</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-developing</Parameter></term>
-				<listitem><para>Enable some code still in development. Should be used only by a developer or a
-				brave user :)
+				<listitem><para>Enable some code still in development. Should be used only by a developer or a brave user :)
 				</para></listitem>
 			</varlistentry>
 
@@ -431,55 +437,52 @@ With any luck, you've built and installed the <productname>FreeTDS</productname>
 		</sect1>
 		<sect1 id="osissues">
     			<title>OS-specific Issues</title>
-			<para>
+		<sect2><title>Windows &reg;</title>
+			<para><productname>FreeTDS</productname> compiles under VC++; <filename>.dsw</> and <filename>.dsp</> files are included in the <filename>win32</> directory.  In the alternative, it can be built with <application>gcc</> under <application>cygwin</>.  Threadsafe operation will not be enabled.  The Borland Builder 6.0 compiler is also reported to work, but requires some tweaking of the <literal>#include</> statements.  We would apply any patches that make this work cleanly.</para>
+			<para>From the Department of Double Emulation: <productname>FreeTDS</productname> builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.  </para>
+		</sect2>
+		<sect2><title>VMS &reg;</title>
+			<para><productname>FreeTDS</productname> will probably build and run on most versions of OpenVMS Alpha 7.0 and later with DEC/Compaq C 6.0 or later.  Other prerequisites:
+
+			<simplelist>
+				<member><application>gunzip</></member>
+				<member><application>vmstar</></member>
+				<member><application>MMS</> or <application>MMK<</></member>
+			</simplelist>
 			</para>
-			<para>
-This section is mostly a place holder, because <productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here.  
+    
+		<sect3><title>Build Instructions</title>
+		
+			<para>Decompress and unpack the source archive using gunzip and vmstar.  If
+you are untarring on an ODS-5 disk, you should use the <parameter>/ODS2</> or <parameter>-o</>
+option to create universally VMS-friendly filenames; otherwise the build will fail to locate some files.</para>
+
+			<para>Set default to the top-level source directory and run the configuration
+script:</para>
+
+<screen>
+    <prompt>$</> <userinput>@[.vms]configure</userinput>
+</screen>
+
+			<para> This creates a <filename>descrip.mms</> in the top-level source
+directory which you may execute by simply running MMS (if you have the Module Management System that
+is part of DECset) or MMK (a freeware MMS alternative available from <ulink
+url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
+
+			<para>Further information can be found in the <filename></> in the source distribution.  
 			</para>
-			<para>
-One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  
-			</para>
-		<!--sect2-->
-			<sidebar>
-    			<title><application>ldconfig</application> and 
+
+		</sect3>
+		</sect2>
+		<sect2><title>OS X &reg;</title>
+			<para>As of this writing ($Date: 2003-11-03 05:07:04 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
-			<parameter>LD_LIBRARY_PATH</parameter></title>
-			<para>
-On OS's with shared libraries (Linux usually), pay attention to <command><application>ldconfig</application></command>.  After the installation, you may have to let the system know about the new libraries.
-			</para>
-			<para>
-<quote>Installing</quote> a library is not really a meaningful concept, except insofar as you might put it into <filename>/usr/local/lib</filename> or somewhere where the operating system will be able to find it. That is the purpose of <parameter>LD_LIBRARY_PATH</parameter> (<parameter>LIBPATH</parameter> on AIX): it works just the same as <parameter>PATH</parameter>, but instead of a colon-separated list of directories containing executables, it's a colon-separated list of directories containing shared objects (<filename>*.so</filename> files) i.e., dynamic libraries. You can consider a library installed, more or less, if the directory it's in is listed in <parameter>LD_LIBRARY_PATH</parameter>. 			</para>
-			<para>
-The <productname>FreeTDS</productname> <command>make install</command> may put its <filename>*.so</filename> files in a directory not included in <parameter>LD_LIBRARY_PATH</parameter>, depending on what your set <parameter>--prefix</parameter> to.  If so, you can either modify <parameter>LD_LIBRARY_PATH</parameter> (assuming <productname>FreeTDS</productname> is installed in <filename>/usr/local/freetds</filename>
-			</para>
-<screen>
-<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/freetds/lib</userinput>
-</screen>
-			<para>
-Add it to ld.so.conf and run <application>ldconfig</application>.
-			</para>
-<screen>
-<prompt>$ </prompt><userinput>su -</userinput>
-<prompt>Password: </prompt>
-<prompt># </prompt><userinput>echo /usr/local/freetds >> /etc/ld.so.conf</userinput>
-<prompt># </prompt><userinput>ldconfig</userinput>
-</screen>
-			<para>
-Or create symlink in /usr/lib or /usr/local/lib to the actual file.
-			</para>
-<screen>
-<prompt># </prompt><userinput>ln -s /usr/local/blah/libsybdb.so /usr/local/lib/libsybdb.so</userinput>
-</screen>
-			<para>
-which is not a particularly wonderful solution but gets the job done.
-			</para>
-			<para>
-To determine whether this is all working, you can run <command>ldd</command> (if it's available on your system) against an executable linked to <productname>FreeTDS</productname>.
-			</para>
-			<para>
-			</para>
+			<sidebar>
+			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
+			
+			<para>One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  </para>
 			</sidebar>
-		<!-- end sect2-->
+		</sect2>
 		</sect1>
 	</chapter>
 	
@@ -554,7 +557,7 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 			</para>
 			<para>
 Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (unicode, 2 bytes/character).  
-However 4.2 version has many limitations (see below) so if you encounter problems is best to report to ML and wait for a fix.
+However TDS 4.2 has many limitations (see below).  If you encounter problems, it's best to report them to the mailing list and wait for a fix.  
 			</para>
 			<para>
 TDS 4.2 and 5.0 have limitations you should be aware of, though, including:
@@ -575,13 +578,10 @@ TDS 4.2 have also other limitations:
 					</para></listitem>
 			</ItemizedList>
 			</para>
-			<para>
-The protocol version may also affect how database servers
-    interpret commands.  For example, Microsoft SQL Server 2000 is
-    known to behave differently with versions 4.2 and 7.0.  Version
-    7.0 is recommended for compatibility with SQL Server tools.
-
-
+			
+			<para> The protocol version may also affect how database servers interpret
+commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
+and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.
 			</para>
 			
 			
@@ -597,11 +597,12 @@ the file can be controlled by an environment variable).  Its format
 is similar to Samba's modified
 <quote><filename>win.ini</filename></quote> format.  Its foremost job
 is to relate  <emphasis>dataserver</emphasis> names, as known to your
-programs<footnote>
+programs
+
+	<footnote>
 	<para>In general, the dataserver name is arbitrary and local; it's used only by your client programs to tell <productname>FreeTDS</productname> which server to connect to.  You can choose any name you like.  </para>
 	<para><productname>Sybase SQL Anywhere</productname> (a/k/a Sybase ASA), however, is fussy.  You must use the database's name as your dataserver name.  Otherwise, the server will refuse your connection.  </para>
-</footnote>
-
+	</footnote>
 
 , to  <emphasis>machine</emphasis> names, as known your
 network.  That is, while your machines have names known to the
@@ -657,7 +658,13 @@ The <filename>freetds.conf</filename> file is composed of two types of sections:
 </programlisting>
 </example>
 	<para>
-In this example, the default  <acronym>TDS</> version for all dataservers is set to 4.2.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses 5.0.
+In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</>.
+	</para>
+	<para>
+Usually, it is sufficient to state the only server's hostname and TDS protocol.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
+	</para>
+	<para>
+It bears mentioning here that prior versions of <productname>FreeTDS</productname> were quite fussy about domain logins, forcing users to make explicit per-server entries in <filename>freetds.conf</>.  That is no longer the case.  If the username has the form <parameter>DOMAIN\username</>, <productname>FreeTDS</productname> will automatically use a domain login.  
 	</para>
 <table>
 <title><filename>freetds.conf</filename> settings</title>
@@ -673,13 +680,15 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 <tbody>
 	<row>
 	<entry>tds version</entry>
-	<entry>--with-tdsver value (5.0 if unspecified)</entry>
+	<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified) 
+		Overridden by <link  linkend="TDSVER">TDSVER</link>.  
+		</entry> 
 	<entry>The <acronym>TDS</> protocol version to use when connecting.</entry>
 	<entry>4.2, 5.0, 7.0, 8.0</entry>
 	</row>
 	<row>
 	<entry>host</entry>
-	<entry>server name</entry>
+	<entry>none</entry>
 	<entry>The host that the dataserver is running on.</entry>
 	<entry>host name or IP address</entry>
 	</row>
@@ -717,7 +726,11 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 		</row>
 		</tbody>
 	</entrytbl>
-	<entry>The port number that the dataserver is listening to.</entry>
+	<entry>	The port number that the dataserver is listening to.  
+		<emphasis>Please note:</emphasis>
+			The "defaults" to the left are the server's default settings.   <productname>FreeTDS</productname> chooses its default port based on the TDS protocol version: <literal>5000</> for <acronym>TDS</> <literal>5.0</>, and <literal>1433</> for everything else.  
+		Overridden by <link  linkend="TDSPORT">TDSPORT</link>.
+	</entry>
 	<entry>any valid port</entry>
 	
 	</row>
@@ -729,7 +742,9 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</row>
 	<row>
 	<entry>dump file</entry>
-	<entry>none</entry>
+	<entry>none
+		Overridden by <link  linkend="TDSDUMP">TDSDUMP</link>.
+		</entry>
 	<entry>Specifies the location of a tds dump file and turns on logging</entry>
 	<entry>any valid file name</entry>
 	</row>
@@ -764,8 +779,8 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>yes/no</entry>
 	</row>
 	<row>
-	<entry>client charset</entry>
-	<entry>strip high-order byte <footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
+	<entry id="clientcharset">client charset</entry>
+	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
 	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
@@ -789,7 +804,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>Attempt a domain login.  
 		<emphasis> Setting try domain login has the effect 
 				of disallowing server logins!</emphasis>
-		To configure a dataserver for both server logins and domain login disable this option and use DOMAIN\username for login.
+		To configure a dataserver for both server logins and domain login disable this option and use <link linkend="domains">DOMAIN\username</> for login.
 		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
 	</entry>
 	<entry>yes/no</entry>
@@ -922,7 +937,7 @@ The primary use of <envar>SYBASE</envar> is to advertise the location of the <pr
 			</para>
 			</sect3>
 			
-			<sect3><title><envar>TDSVER</envar></title>
+			<sect3><title id="TDSVER"><envar>TDSVER</envar></title>
 			<para>
 The environment variable <envar>TDSVER</envar> governs the version of the <acronym>TDS</> protocol used to connect to your server.  For a given server, <productname>FreeTDS</productname> inspects four sources in the following order to determine which <acronym>TDS</> protocol version to use.
 			</para>
@@ -944,7 +959,7 @@ The <envar>FREETDSCONF</envar> environment variable may be
 used to specify the name and location of the <filename>freetds.conf</filename> file.
 			</para>
 		        </sect3>
-        		 <sect3><title><envar>TDSPORT</envar></title>
+        		 <sect3><title id="TDSPORT"><envar>TDSPORT</envar></title>
         		 <para>
 The <envar>TDSPORT</envar> environment variable specifies a TCP port number to be
 used to connect to the dataserver with.  It overrides the version default port (1433 for TDS 4.2/7.0/8.0, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.
@@ -955,7 +970,7 @@ used to connect to the dataserver with.  It overrides the version default port (
 The <envar>TDSQUERY</envar> environment variable provides a server name to connect to if none is specified by the application.  DSQUERY is the historical Sybase name for this variable.
 			</para>
 		        </sect3>
-        		 <sect3><title><envar>TDSHOST</envar></title>
+        		 <sect3><title id="TDSHOST"><envar>TDSHOST</envar></title>
         		 <para>
 The <envar>TDSHOST</envar> environment variable overrides the host specified in the <filename>freetds.conf</>.
 			</para>
@@ -1217,20 +1232,32 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<sect2><title><application>tsql</application></title>
 
 			<para>
-The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to see if it's your dataserver that's not responding, or your configuration files that are messed up.  
+The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to see if it's your dataserver that's not responding, or your configuration files that are messed up. </para> 
 
+			<formalpara><title>Using <filename>freetds.conf</></title>
+			<para>
 <cmdsynopsis label="Syntax synopsis for tsql">
   <command>tsql</command> 
-	<group>
-		<arg choice='req'>-S <replaceable>server</replaceable></arg>
-		<group>
-			<arg choice='req'>-H <replaceable>hostname</replaceable></arg>
-			<arg choice='req'>-p <replaceable>port</replaceable></arg>
-		</group>
-	</group>
-  <arg choice='plain'>-U <replaceable>username</replaceable></arg>
-  <arg choice='opt'>-P <replaceable>password</replaceable></arg>
+	<arg choice='req'>-S<replaceable>server</replaceable></arg>
+	<arg choice='req'>-U<replaceable>username</replaceable></arg>
+	<arg choice='opt'>-P<replaceable>password</replaceable></arg>
+	<arg choice='opt'>-C</arg>
 </cmdsynopsis>
+			</para>
+			</formalpara>
+
+			<formalpara><title>Bypassing <filename>freetds.conf</></title>
+			<para>
+<cmdsynopsis label="Syntax synopsis for tsql">
+  <command>tsql</command> 
+	<arg choice='req'>-H <replaceable>hostname</replaceable></arg>
+	<arg choice='req'>-p <replaceable>port</replaceable></arg>
+	<arg choice='req'>-U <replaceable>username</replaceable></arg>
+	<arg choice='opt'>-P<replaceable>password</replaceable></arg>
+	<arg choice='opt'>-C</arg>
+</cmdsynopsis>
+			</para>
+			</formalpara>
 
 <example>
 <title>Failing to connect with tsql</title>
@@ -1268,7 +1295,9 @@ There was a problem connecting to the server
 </screen>
 </example>
 
-Another handy diagnostic feature of <application>tsql</application> is that it can show you the compile-time settings of the installed version of <productname>FreeTDS</productname>:  </para><para>
+
+
+<para>Another handy diagnostic feature of <application>tsql</application> is that it can show you the compile-time settings of the installed version of <productname>FreeTDS</productname>:  </para>
 
 <example>
 <title>Show compile-time settings with <application>tsql</application></title>
@@ -1290,9 +1319,8 @@ Compile-time settings (established with the "configure" script):
 </computeroutput>
 </screen>
 </example>
-
+			<para>
 For details on <application>tsql</application>, see the <application>tsql</application> man page.  
- 
 			</para>
 			</sect2>
 			<sect2><title><application>Unit Tests</application></title>
@@ -1353,16 +1381,20 @@ In this example we want to force connections to a server named <literal>mssql</l
 		<sect1 id="Nonwestern">
 			<title><acronym>TDS</> 7.0 for Nonwestern Languages</title>
 			<para>
-<acronym>TDS</> 7.0 uses 2-byte Unicode (<acronym>UCS-2</>) to transfer all textual data between servers and clients.  By default, <productname>FreeTDS</productname> converts this data to 8-bit <acronym>ASCII</> representation by stripping the high order byte.  This is generally sufficient for western languages such as English, but produces garbage for other languages.
+<acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.
 			</para>
 			<para>
-Since, most Unix tools and languages do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.  Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.
+Since most Unix tools and languages do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.  Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.  If no iconv library is found, or if it is explicitly disabled, <productname>FreeTDS</productname> will use its built-in iconv substitute, and will be capable of converting between only <acronym>ISO-8859-1</> and <acronym>UCS-2</>.  
 			</para>
+			<para>
+To learn what character set the client is using, <productname>FreeTDS</productname> examines the <link linkend="clientcharset"><filename>freetds.conf</></link> entry.  If it finds nothing there, it assumes the client is using <acronym>ISO-8859-1</>.   That is generally a safe assumption for western languages such as English or French, but produces garbage for other languages.
+			</para>
+
 			<para>
 To list all supported iconv character sets under Linux, use the <application>iconv</application> command.
 			</para>
 <screen>
-<userinput>iconv --list</userinput>
+<prompt>$ </><userinput>iconv --list</userinput>
 </screen>
 			<para>
 For other systems, consult your documentation (most likely <command>man iconv</command> will give you some hints).
@@ -1381,7 +1413,7 @@ In this example a server named <literal>mssql</literal> will return data encoded
 </programlisting>
 </example>
 <para>
-If <application>iconv</application> runs into a character it can not convert, it will replace that character with a '?' character.  Always ensure that the data contained in the database is representable in the chosen character set.
+If <productname>FreeTDS</productname> runs into a character it can not convert, its behavior varies according to the severity of the problem.  On retrieving data from the server, <productname>FreeTDS</productname> substitutes an <acronym>ASCII</> '?' it the character's place, and emits a warning message stating that some characters could not be converted.  On sending data to the server, <productname>FreeTDS</productname> aborts the query and emits an error message.  It is well to ensure that the data contained in the database is representable in the client's character set.
 </para>
 <para>
 If you have a mix of character data that can not be contained in a single byte character set, you may wish to use <acronym>UTF-8</>.  <acronym>UTF-8</> is a variable length unicode encoding that is compatible with <acronym>ASCII</> in the range 0 to 127.  With <acronym>UTF-8</>, you are guaranteed to never have an unconvertible character.
@@ -1401,9 +1433,9 @@ In the following example, a server named <literal>mssql</literal> will return da
 	client charset = UTF-8
 </programlisting>
 </example>
-<para>
-It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any specified character set during login, as 4.2 does.  <acronym>TDS 7.0</> transmits all data as <acronym>UCS-2</>.  Specifying a character set with the <literal>charset</literal> option in  <filename>freetds.conf</filename>, or by calling <function>DBSETLCHARSET</function> and its equivalents will be ignored under <acronym>TDS 7.0</>.
-</para>
+			<para>
+It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any specified character set during login, as 4.2 does.  A <acronym>TDS 7.0</> login packet uses <acronym>UCS-2</>.  
+			</para>
 		</sect1>
 		<sect1 id="domains">
 			<title>Domain Logins</title>
@@ -1697,10 +1729,14 @@ The following programs are known to work to some extent with <productname>FreeTD
 		<sect1>
 			<title><application>SQSH</application></title>
 			<para>
-<application>SQSH</application> is a command line based query tool written by Scott Gray to replace the program <application>isql</application> that ships with <productname>Sybase ASE</productname>.  It makes a great diagnostic tool for <productname>FreeTDS</productname> as well.  If you are having trouble, install <application>SQSH</application> (it's easy) and try getting that to work before more complicated arrangements.<tip><sidebar><para>That advice is so good, it bears repeating.  If you are having trouble, grab <application>SQSH</application> and get that to work. Not only will it help isolate the problem, it will give you a very capable tool.  </para></sidebar></tip>
+<application>SQSH</application> is a command line based query tool written by Scott Gray to replace the program <application>isql</application> that ships with <productname>Sybase ASE</productname>.  It makes a great diagnostic tool for <productname>FreeTDS</productname> as well.  If you are having trouble, install <application>SQSH</application> (it's easy) and try getting that to work before more complicated arrangements.
+
+	<tip><sidebar><para>That advice is so good, it bears repeating.  If you are having trouble, grab <application>SQSH</application> and get that to work. Not only will it help isolate the problem, it will give you a very capable tool.  </para></sidebar></tip>
+
 			</para>
+
 			<para>
-<application>SQSH</application> 2.1 includes direct support for <productname>FreeTDS</productname>, so these instructions may not be necessary, but are still included just in case.
+<application>SQSH</application> 2.1 includes direct support for <productname>FreeTDS</productname>, so these instructions may not be necessary, but are still included just in case.  
 			</para>
 			<para>
 After running <Command>configure</Command> in <application>SQSH</application>'s directory (make sure you set the Sybase environment variable first), look for the Sybase_LIBS definition in the Makefile.  Change the line to match this example.
@@ -1732,22 +1768,29 @@ At this point you can also enable <application>readline</application> support if
 			<para>
 After that just type <command>make</command> and you are off and running.
 			</para>
+			<para>
+The <productname>FreeTDS</productname> maintainer has commit rights to the <application>sqsh</application> source tree.  If you have problems getting <application>sqsh</application> to work with <productname>FreeTDS</productname>, you may wish to send your patches to the <productname>FreeTDS</productname> mailing list.  
+			</para>
 		</sect1>
 		<sect1 id="perl">
 			<title>Perl</title>
+			<para>There are a few ways to use <productname>Perl</productname> to connect to a <productname>SQL Server</productname> using <productname>FreeTDS</productname>. </para>
+			
+		<sect2 id="DBD.Sybase"><title>DBD::Sybase</title>
+			<para>The recommended choice is <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for any Sybase or Microsoft <productname>SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the <systemitem class="library">ct-lib</systemitem> <acronym>API</> and works well. </para>
+		</sect2>
+			
+		<sect2 id="DBD.ODBC"><title>DBD::ODBC</title>
 			<para>
-There are a few ways to use <productname>Perl</productname> to connect to a <productname>SQL Server</productname> using <productname>FreeTDS</productname>.
-The first is using <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for either the range of Sybase servers or Microsoft <productname>SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the <systemitem class="library">ct-lib</systemitem> <acronym>API</> and works well.  
+You may also use <systemitem class="library">DBD::ODBC</systemitem> with the <productname>FreeTDS</productname> <systemitem class="library">ODBC</systemitem> driver.  You may find this attractive if you're familiar with <systemitem class="library">DBD::ODBC</systemitem>.
 			</para>
+		</sect2>
+		<sect2 id="Sybperl"><title>Sybperl</title>
 			<para>
-There is a <systemitem class="library">DBD::FreeTDS</systemitem> written by Craig Spannring which is a native implementation in <productname>Perl</productname>, however it has not seen development in quite some time.
+Finally, you can use <systemitem class="library">Sybperl</systemitem>.  Scripts written against <systemitem class="library">Sybperl</systemitem> will not run against other databases the way DBI scripts will.  However, it will be familiar ground for those used to <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem>.  
 			</para>
-			<para>
-A third option is to use <systemitem class="library">DBD::ODBC</systemitem> with the <productname>FreeTDS</productname> <systemitem class="library">ODBC</systemitem> driver.  Brian has gotten this to work fairly well but it is still new, so YMMV.
-			</para>
-			<para>
-Lastly, you can use <systemitem class="library">Sybperl</systemitem>.  Scripts written against <systemitem class="library">Sybperl</systemitem> will not run against other databases like DBI will, however it will be familiar ground for those used to <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem>.
-			</para>
+		</sect2>
+		<sect2><title>Building and using the Perl modules</title>
 			<para>
 Building <systemitem class="library">DBD::Sybase</systemitem>
 <screen>
@@ -1824,7 +1867,9 @@ if($sth->execute) {
 </programlisting>
 You'll note this is the same program as for <systemitem class="library">DBD::Sybase</systemitem> with the exception of the <function>connect</function> statement, welcome to the magic of DBI!
 			</para>
+		</sect2>
 		</sect1>
+		
 		<sect1 id="php">
 			<title>PHP</title>
 			<para>
@@ -1925,10 +1970,10 @@ By defining <envar>SYBASE</envar> to the parent directory of the <filename>inter
 		<sect1>
 			<title>Python</title>
 <tip><para>
-I am not a python user myself, so the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
+I am not a Python user myself, so the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
                         </para></tip>
 			<para>
-Grab <ulink url="http://www.python.org/sigs/distutils-sig/">distutils</ulink> if you dont have it and install it.
+Install <ulink url="http://www.python.org/sigs/distutils-sig/">distutils</ulink> if you haven't already.
 <screen>
 <prompt>$ </prompt><userinput>tar xvfz distutils-latest.tgz</userinput>
 <prompt>$ </prompt><userinput>cd distutils</userinput>
@@ -2406,7 +2451,7 @@ If this fails, FreeTDS is either not finding your <filename>freetds.conf</filena
         		<sect2><title>Environment Variables that Control Logging</title>
 <variablelist>
 	<varlistentry>
-		<term><envar>TDSDUMP</envar></term>
+		<term id="TDSDUMP"><envar>TDSDUMP</envar></term>
 		<listitem>
 			<para>Log files can be turned on using the <envar>TDSDUMP</envar> environment variable.  For instance, setting the location of a dumpfile
 <screen>
@@ -2443,6 +2488,9 @@ the logs tend to grow large, so trim or archive them often.  Secondly,
 equivalent passwords.</emphasis> So, if this is a concern (most likely
 is) make sure that the files are not world readable, and avoid posting
 them to mailing lists.
+			</para>
+			<para>
+Once in a while, someone writes to the mailing list, asking why <productname>FreeTDS</productname> is so <emphasis>slow</>.  It sometimes turns out that logging was left turned on.  Don't you be the next victim!  <productname>FreeTDS</productname> logs are meant for development and debugging, not as a system monitoring tool.  
 			</para>
 		        </sect2>
 		</sect1>
