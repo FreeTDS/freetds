@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.3 2004-02-23 16:13:53 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.4 2004-03-08 18:38:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -86,7 +86,9 @@ main(int argc, char *argv[])
 	Test("BINARY(5)", "qwer", SQL_C_BINARY, "7177657200");
 	Test("IMAGE", "cricetone", SQL_C_BINARY, "6372696365746F6E65");
 	Test("VARBINARY(20)", "teo", SQL_C_BINARY, "74656F");
-	Test("TIMESTAMP", "abcdefghi", SQL_C_BINARY, "6162636465666768");
+	/* TODO only MS ?? */
+	if (db_is_microsoft())
+		Test("TIMESTAMP", "abcdefghi", SQL_C_BINARY, "6162636465666768");
 
 	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
 	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, big_endian ? "94970394" : "97949403");
@@ -96,7 +98,9 @@ main(int argc, char *argv[])
 	Test("TINYINT", "231", SQL_C_BINARY, "E7");
 	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
 	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
-	Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
+	/* TODO some Sybase versions */
+	if (db_is_microsoft())
+		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
 
 	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
 	Test("NUMERIC", "8765.4321", SQL_C_BINARY, "1200013D220000000000000000000000000000");
