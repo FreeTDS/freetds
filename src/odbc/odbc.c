@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.239 2003-08-30 17:53:11 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.240 2003-08-31 14:22:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -85,10 +85,7 @@ static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
-
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
-#endif
 static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					 SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
@@ -1055,6 +1052,10 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+
+	/* save original ARD and APD */
+	stmt->orig_apd = stmt->apd;
+	stmt->orig_ard = stmt->ard;
 
 	/* set the default statement attributes */
 /*	stmt->attr.attr_app_param_desc = stmt->apd; */
@@ -2746,8 +2747,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 			stmt->hdbc->current_statement = NULL;
 		desc_free(stmt->ird);
 		desc_free(stmt->ipd);
-		desc_free(stmt->ard);
-		desc_free(stmt->apd);
+		desc_free(stmt->orig_ard);
+		desc_free(stmt->orig_apd);
 		free(stmt);
 
 		/* NOTE we freed stmt, do not use ODBC_RETURN */
@@ -2770,13 +2771,18 @@ _SQLFreeDesc(SQLHDESC hdesc)
 
 	INIT_HDESC;
 
+	if (desc->header.sql_desc_alloc_type != SQL_DESC_ALLOC_USER) {
+		odbc_errs_add(&desc->errs, "HY017", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
 	if (IS_HDBC(desc->parent)) {
 		dbc = (TDS_DBC *) desc->parent;
 
 		for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 			if (dbc->uad[i] == desc) {
-				desc_free(desc);
 				dbc->uad[i] = NULL;
+				desc_free(desc);
 				break;
 			}
 		}
@@ -3441,11 +3447,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
-#ifdef ENABLE_DEVELOPING
 		API3X(SQL_API_SQLSETSTMTATTR);
-#else
-		API3_(SQL_API_SQLSETSTMTATTR);
-#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -3537,11 +3539,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
-#ifdef ENABLE_DEVELOPING
 		API3X(SQL_API_SQLSETSTMTATTR);
-#else
-		API3_(SQL_API_SQLSETSTMTATTR);
-#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -3633,11 +3631,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
-#ifdef ENABLE_DEVELOPING
 		API3X(SQL_API_SQLSETSTMTATTR);
-#else
-		API3_(SQL_API_SQLSETSTMTATTR);
-#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -4602,31 +4596,6 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 }
 #endif
 
-#ifndef ENABLE_DEVELOPING
-SQLRETURN SQL_API
-SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
-{
-	INIT_HSTMT;
-
-	switch (fOption) {
-	case SQL_ROWSET_SIZE:
-		/* Always 1 */
-		break;
-	case SQL_CURSOR_TYPE:
-		if (vParam == SQL_CURSOR_FORWARD_ONLY)
-			ODBC_RETURN(stmt, SQL_SUCCESS);
-		/* fall through */
-	default:
-		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetStmtOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	ODBC_RETURN(stmt, SQL_SUCCESS);
-}
-#endif /* !ENABLE_DEVELOPING */
-
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API
 _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
@@ -4637,49 +4606,109 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	INIT_HSTMT;
 
 	/* TODO - error checking and real functionality :-) */
+	/* TODO some setting set also other attribute, see documentation */
 	switch (Attribute) {
-		/* TODO check HDESC (not associated, not NULL, from DBC) */
-		/* TODO ValuePtr is NULL original descriptor is associated */
 		/* TODO check SQLFreeHandle on descriptor. Is possible to free an associated descriptor ? */
-		/* TODO must be allocated by user, not implicit ones */
-		/* TODO setting original descriptor is like using NULL */
 	case SQL_ATTR_APP_PARAM_DESC:
-		stmt->apd = (SQLHDESC) ValuePtr;
-		break;
 	case SQL_ATTR_APP_ROW_DESC:
-		stmt->ard = (SQLHDESC) ValuePtr;
+		{
+			TDS_DESC *orig;
+			TDS_DESC **curr;
+			TDS_DESC *val = (TDS_DESC *) ValuePtr;
+
+			if (Attribute == SQL_ATTR_APP_PARAM_DESC) {
+				orig = stmt->orig_apd;
+				curr = &stmt->apd;
+			} else {
+				orig = stmt->orig_ard;
+				curr = &stmt->ard;
+			}
+			/* if ValuePtr is NULL or original descriptor set original */
+			if (!val || val == orig) {
+				*curr = orig;
+				break;
+			}
+
+			/* must be allocated by user, not implicit ones */
+			if (val->header.sql_desc_alloc_type != SQL_DESC_ALLOC_USER) {
+				odbc_errs_add(&stmt->errs, "HY017", NULL, NULL);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			/* TODO check HDESC (not associated, from DBC HY024) */
+			*curr = val;
+		}
 		break;
-		/* TODO errore */
 	case SQL_ATTR_ASYNC_ENABLE:
+		if (stmt->attr.attr_async_enable != ui) {
+			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_async_enable = ui;
 		break;
-		/* TODO errore */
 	case SQL_ATTR_CONCURRENCY:
+		if (stmt->attr.attr_concurrency != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_concurrency = ui;
 		break;
-		/* TODO errore */
+	case SQL_ATTR_CURSOR_SCROLLABLE:
+		if (stmt->attr.attr_cursor_scrollable != ui) {
+			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		stmt->attr.attr_cursor_scrollable = ui;
+		break;
+	case SQL_ATTR_CURSOR_SENSITIVITY:
+		if (stmt->attr.attr_cursor_sensitivity != ui) {
+			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		stmt->attr.attr_cursor_sensitivity = ui;
+		break;
 	case SQL_ATTR_CURSOR_TYPE:
+		if (stmt->attr.attr_cursor_type != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_cursor_type = ui;
 		break;
-		/* TODO errore ?? se tento di cambiarlo */
 	case SQL_ATTR_ENABLE_AUTO_IPD:
+		if (stmt->attr.attr_enable_auto_ipd != ui) {
+			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_enable_auto_ipd = ui;
 		break;
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
 		stmt->attr.attr_fetch_bookmark_ptr = ValuePtr;
 		break;
+	case SQL_ATTR_IMP_ROW_DESC:
+	case SQL_ATTR_IMP_PARAM_DESC:
+		odbc_errs_add(&stmt->errs, "HY017", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+		break;
 		/* TODO what's is this ??? */
 	case SQL_ATTR_KEYSET_SIZE:
 		stmt->attr.attr_keyset_size = ui;
 		break;
-		/* TODO what's is this ??? */
+		/* TODO max length of data returned. Use SQL TEXTSIZE or just truncate ?? */
 	case SQL_ATTR_MAX_LENGTH:
+		if (stmt->attr.attr_max_length != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_max_length = ui;
 		break;
-		/* TODO what's is this ??? */
+		/* TODO max row returned. Use SET ROWCOUNT */
 	case SQL_ATTR_MAX_ROWS:
+		if (stmt->attr.attr_max_rows != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_max_rows = ui;
 		break;
+		/* TODO SQL_ATTR_METADATA_ID */
 		/* TODO use it !!! */
 	case SQL_ATTR_NOSCAN:
 		stmt->attr.attr_noscan = ui;
@@ -4699,6 +4728,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_PARAMS_PROCESSED_PTR:
 		stmt->ipd->header.sql_desc_rows_processed_ptr = uip;
 		break;
+		/* allow to exec procedure multiple time */
 	case SQL_ATTR_PARAMSET_SIZE:
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
@@ -4706,9 +4736,21 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_QUERY_TIMEOUT:
 		stmt->attr.attr_query_timeout = ui;
 		break;
-		/* TODO what's is this ??? */
+		/* retrieve data after positioning the cursor */
 	case SQL_ATTR_RETRIEVE_DATA:
+		if (stmt->attr.attr_retrieve_data != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_retrieve_data = ui;
+		break;
+	case SQL_ATTR_ROW_ARRAY_SIZE:
+		assert(stmt->ard->header.sql_desc_array_size == 1);
+		if (stmt->ard->header.sql_desc_array_size != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		stmt->ard->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
 		stmt->ard->header.sql_desc_bind_offset_ptr = uip;
@@ -4717,8 +4759,8 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ard->header.sql_desc_bind_type = ui;
 		break;
 	case SQL_ATTR_ROW_NUMBER:
-		/* FIXME read only */
-		stmt->attr.attr_row_number = ui;
+		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
 		break;
 	case SQL_ATTR_ROW_OPERATION_PTR:
 		stmt->ard->header.sql_desc_array_status_ptr = usip;
@@ -4729,30 +4771,19 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_ROWS_FETCHED_PTR:
 		stmt->ird->header.sql_desc_rows_processed_ptr = uip;
 		break;
-		/* TODO accept only 1 */
-	case SQL_ATTR_ROW_ARRAY_SIZE:
-		stmt->ard->header.sql_desc_array_size = ui;
-		break;
-		/* TODO what's is this ??? */
 	case SQL_ATTR_SIMULATE_CURSOR:
+		if (stmt->attr.attr_simulate_cursor != ui) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.attr_simulate_cursor = ui;
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
 		stmt->attr.attr_use_bookmarks = ui;
 		break;
-		/* TODO do not allow change */
-	case SQL_ATTR_CURSOR_SCROLLABLE:
-		stmt->attr.attr_cursor_scrollable = ui;
-		break;
-		/* TODO do not allow change */
-	case SQL_ATTR_CURSOR_SENSITIVITY:
-		stmt->attr.attr_cursor_sensitivity = ui;
-		break;
-		/* These can't be set. Silently fail to do so. */
-		/* TODO error ? */
-	case SQL_ATTR_IMP_ROW_DESC:
-	case SQL_ATTR_IMP_PARAM_DESC:
-		break;
+	default:
+		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -4770,7 +4801,6 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 {
 	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
-#endif /* ENABLE_DEVELOPING */
 
 SQLRETURN SQL_API
 SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName,
