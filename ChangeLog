@@ -1,3 +1,6 @@
+Thu Sep 12 20:59:06 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: fix compile on Solaris 5.8
+
 Thu Sep 12 11:19:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* Makefile.am .cvsignore
 	* PWD (removed)

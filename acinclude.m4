@@ -142,7 +142,9 @@ dnl Based on Caolan McNamara's gethostbyname_r macro.
 dnl Based on David Arnold's autoconf suggestion in the threads faq.
 
 AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
-[AC_CACHE_CHECK(for getservbyname_r, ac_cv_func_which_getservbyname_r, [
+[ac_save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $NETWORK_LIBS"
+AC_CACHE_CHECK(for getservbyname_r, ac_cv_func_which_getservbyname_r, [
 AC_CHECK_FUNC(getservbyname_r, [
         AC_TRY_COMPILE([
 #               include <netdb.h>
@@ -194,7 +196,7 @@ elif test $ac_cv_func_which_getservbyname_r = four; then
   AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_4)
 
 fi
-
+CFLAGS=$ac_save_CFLAGS
 ])
 
 
@@ -212,13 +214,15 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.6 2002-08-23 08:15:04 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.7 2002-09-12 18:59:11 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
 dnl
 AC_DEFUN(AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R,
-[AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
+[ac_save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $NETWORK_LIBS"
+AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
 AC_CHECK_FUNC(gethostbyname_r, [
 	AC_TRY_COMPILE([
 #		include <netdb.h> 
@@ -271,14 +275,16 @@ elif test $ac_cv_func_which_gethostname_r = three; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3)
 
 fi
-
+CFLAGS=$ac_save_CFLAGS
 ])
 
 
 dnl based on gethostbyname_r check and snippits from curl's check
 
 AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
-[AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
+[ac_save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $NETWORK_LIBS"
+AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
 AC_CHECK_FUNC(gethostbyaddr_r, [
 	AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -346,5 +352,6 @@ elif test $ac_cv_func_which_gethostbyaddr_r = five; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_5)
 
 fi
+CFLAGS=$ac_save_CFLAGS
 ])
 
