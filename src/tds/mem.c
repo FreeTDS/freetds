@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.137 2005-02-09 16:15:18 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.138 2005-02-09 19:46:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -147,7 +147,6 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	if (tds->current_results == dyn->res_info)
 		tds->current_results = NULL;
-	tds_free_results(dyn->res_info);
 
 	/* free from tds */
 	for (pcurr = &tds->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
@@ -156,36 +155,11 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			break;
 		}
 
+	tds_free_results(dyn->res_info);
 	tds_free_input_params(dyn);
 	if (dyn->query)
 		free(dyn->query);
 	free(dyn);
-}
-
-/** \fn void tds_free_all_dynamic(TDSSOCKET *tds)
- *  \brief Frees all dynamic statements for a given connection.
- *  \param tds the connection containing the dynamic statements to be freed.
- *
- *  tds_free_all_dynamic frees all dynamic statements for the given TDS socket and
- *  then zeros tds->dyns.
- */
-void
-tds_free_all_dynamic(TDSSOCKET * tds)
-{
-	TDSDYNAMIC *curr, *next;
-	
-	curr = tds->dyns;
-
-	tds->dyns = NULL;
-	tds->cur_dyn = NULL;
-
-	for (; curr != NULL; curr = next) {
-		next = curr->next;
-		tds_free_input_params(curr);
-		if (curr->query)
-			free(curr->query);
-		free(curr);
-	}
 }
 
 /** \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
@@ -797,7 +771,8 @@ tds_free_socket(TDSSOCKET * tds)
 	if (tds) {
 		tds_free_all_results(tds);
 		tds_free_env(tds);
-		tds_free_all_dynamic(tds);
+		while (tds->dyns)
+			tds_free_dynamic(tds, tds->dyns);
 		while (tds->cursors)
 			tds_free_cursor(tds, tds->cursors);
 		if (tds->in_buf)

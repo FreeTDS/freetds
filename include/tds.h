@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.218 2005-02-09 16:15:10 jklowden Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.219 2005-02-09 19:46:24 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1190,7 +1190,6 @@ char *tds_get_homedir(void);
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
-void tds_free_all_dynamic(TDSSOCKET * tds);
 void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, int bufsize);
 unsigned char *tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam);

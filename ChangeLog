@@ -1,3 +1,7 @@
+Wed Feb  9 20:44:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/mem.c src/tds/unittests/dynamic1.c:
+	- better fix for leak on dynamics and Sybase
+
 Wed Feb  9 20:17:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c src/odbc/unittests/convert_error.c:
 	* src/odbc/unittests/raiserror.c src/odbc/unittests/timeout.c:
