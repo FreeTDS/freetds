@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32.2.1 2004-12-01 03:52:47 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.2 2004-12-09 16:36:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -107,8 +107,11 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	memset(*rpc, 0, sizeof(DBREMOTE_PROC));
 
 	(*rpc)->name = strdup(rpcname);
-	if ((*rpc)->name == NULL)
+	if ((*rpc)->name == NULL) {
+		free(*rpc);
+		*rpc = NULL;
 		return FAIL;
+	}
 
 	/* store */
 	(*rpc)->options = options & DBRPCRECOMPILE;
@@ -149,31 +152,34 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC_PARAM *param;
 
 	/* sanity */
-	if (dbproc == NULL || value == NULL)
+	if (dbproc == NULL)
 		return FAIL;
 	if (dbproc->rpc == NULL)
 		return FAIL;
 
-	/* Correctness:
-	 * Parameter 			maxlen 			datalen 
-	 * -----------------------	-------------------	----------------------------------
-	 * Fixed-length 		-1 			-1 
-	 * Fixed-length, NULL 		-1 			 0 
-	 * Variable-length 		Max output size		input size without null terminator 
-	 * Variable-length, NULL 	 0 			 0 
-	 */
-	if (is_char_type(type)) {
-		if (maxlen < 0 || datalen < 0) {
-			tdsdump_log(TDS_DBG_INFO1, "dbrpcparam(): variable-length type %d, maxlen=%d, datalen=%d\n", 
-							type, maxlen, datalen);
+	/* validate datalen parameter */
+
+	if (is_fixed_type(type)) {
+		if (datalen > 0) 
 			return FAIL;
+	} else {
+		if (datalen < 0) 
+			return FAIL;
+	}
+
+	/* validate maxlen parameter */
+
+	if (status & DBRPCRETURN) {
+		if (is_fixed_type(type)) {
+			if (maxlen != -1)
+				return FAIL;
+		} else {
+			if (maxlen == -1)
+				maxlen = 255;
 		}
 	} else {
-		if (maxlen != -1 || datalen > 0) {
-			tdsdump_log(TDS_DBG_INFO1, "dbrpcparam(): fixed-length type %d, maxlen=%d, datalen=%d\n", 
-							type, maxlen, datalen);
+		if (maxlen != -1)
 			return FAIL;
-		}
 	}
 
 	/* TODO add other tests for correctness */
@@ -185,8 +191,10 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 
 	if (paramname) {
 		name = strdup(paramname);
-		if (name == NULL)
+		if (name == NULL) {
+			free(param);
 			return FAIL;
+		}
 	}
 
 	/* initialize */
@@ -196,7 +204,16 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	param->type = type;
 	param->maxlen = maxlen;
 	param->datalen = datalen;
-	param->value = value;
+
+	/*
+	 * if datalen = 0, value parameter is ignored       
+	 * this is one way to specify a NULL input parameter 
+	 */
+
+	if (datalen == 0)
+		param->value = NULL;
+	else
+		param->value = value;
 
 	/*
 	 * Add a parameter to the current rpc.  
@@ -267,13 +284,24 @@ dbrpcsend(DBPROCESS * dbproc)
  * Tell the TDSPARAMINFO structure where the data go.  This is a kind of "bind" operation.
  */
 static const unsigned char *
-param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, void *value, int size)
+param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
+	tdsdump_log(TDS_DBG_INFO1, "param_row_alloc, size = %d, offset = %d, row_size = %d\n",
+                size, curcol->column_offset,
+                params->row_size);
 
 	if (!row)
 		return NULL;
-	memcpy(&params->current_row[curcol->column_offset], value, size);
+	tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): doing data from value\n");
+	if (size > 0 && value) {
+		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): copying %d bytes of data to parameter #%d\n", size, param_num);
+		memcpy(&params->current_row[curcol->column_offset], value, size);
+	}
+	else {
+		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): setting parameter #%d to NULL\n", param_num);
+		tds_set_null(params->current_row, param_num);
+	}
 
 	return row;
 }
@@ -288,6 +316,10 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	DBREMOTE_PROC_PARAM *p;
 	TDSCOLUMN *pcol;
 	TDSPARAMINFO *params = NULL, *new_params;
+	BYTE *temp_value;
+	int  temp_datalen;
+	int  temp_type;
+	int  param_is_null;
 
 	/* sanity */
 	if (rpc == NULL)
@@ -305,6 +337,54 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 		params = new_params;
 
+		/* Determine whether an input parameter is NULL
+		 * or not.
+		 */
+
+		param_is_null = 0;
+		temp_datalen = 0;
+		temp_type = p->type;
+
+		if (p->datalen == 0)
+			param_is_null = 1; 
+
+		tdsdump_log(TDS_DBG_INFO1, "parm_info_alloc(): parameter null-ness = %d\n", param_is_null);
+
+		if (param_is_null) {
+			temp_datalen = 0;
+			temp_value = NULL;
+			switch (temp_type) {
+			case SYBINT1:
+			case SYBINT2:
+			case SYBINT4:
+				temp_type = SYBINTN;
+				break;
+			case SYBDATETIME:
+			case SYBDATETIME4:
+				temp_type = SYBDATETIMN;
+				break;
+			case SYBFLT8:
+				temp_type = SYBFLTN;
+				break;
+			case SYBBIT:
+				temp_type = SYBBITN;
+				break;
+			case SYBMONEY:
+			case SYBMONEY4:
+				temp_type = SYBMONEYN;
+				break;
+			default:
+				break;
+			}
+		} else {
+			temp_value = p->value;
+			if (is_fixed_type(temp_type)) {
+				temp_datalen = tds_get_size_by_type(temp_type);
+			} else {
+				temp_datalen = p->datalen;
+			}
+		}
+
 		pcol = params->columns[i];
 
 		/* meta data */
@@ -313,23 +393,18 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 			pcol->column_name[sizeof(pcol->column_name) - 1] = 0;
 			pcol->column_namelen = strlen(pcol->column_name);
 		}
-		tds_set_param_type(tds, pcol, p->type);
-		if (pcol->column_varint_size) {
-			if (p->maxlen < 0) {
-				tdsdump_log(TDS_DBG_FUNC, "param_info_alloc(): p->maxlen is %d"
-							     "parameters of variable-size datatypes "
-							     "require a non-negative input length\n", p->maxlen);
-				tds_free_param_results(params);
-				return NULL;
-			}
+
+		tds_set_param_type(tds, pcol, temp_type);
+
+		if (p->maxlen > 0)
 			pcol->column_size = p->maxlen;
+		else
+			pcol->column_size = tds_get_size_by_type(p->type);
 
-			/* actual data */
-			pcol->column_cur_size = p->datalen;
-		}
 		pcol->column_output = p->status;
+		pcol->column_cur_size = temp_datalen;
 
-		prow = param_row_alloc(params, pcol, p->value, pcol->column_cur_size);
+		prow = param_row_alloc(params, pcol, i, temp_value, temp_datalen);
 
 		if (!prow) {
 			tds_free_param_results(params);
