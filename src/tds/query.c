@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.41 2002-11-16 15:21:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.42 2002-11-17 12:38:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -394,7 +394,6 @@ tds_put_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i
 {
 unsigned char *dest;
 TDS_NUMERIC *num;
-TDS_VARBINARY *varbin;
 TDSBLOBINFO *blob_info;
 int colsize;
 int is_null;
@@ -437,9 +436,6 @@ int is_null;
 		num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
 		/* TODO colsize is correct here ?? */
 		tds_put_n(tds,num->array,colsize);
-	} else if (curcol->column_type == SYBVARBINARY) {
-		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
-		tds_put_n(tds,varbin->array,colsize);
 	} else if (is_blob_type(curcol->column_type)) {
 		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
 		tds_put_n(tds, blob_info->textvalue, colsize);

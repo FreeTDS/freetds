@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.105 2002-11-15 19:02:42 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.106 2002-11-17 12:38:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1875,7 +1875,6 @@ dbdata(DBPROCESS *dbproc, int column)
 TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
-TDS_VARBINARY *varbin;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -1888,13 +1887,7 @@ TDS_VARBINARY *varbin;
 	if (is_blob_type(colinfo->column_type)) {
 		return ((TDSBLOBINFO *) (resinfo->current_row+colinfo->column_offset))->textvalue;
 	} 
-	if (colinfo->column_type == SYBVARBINARY) {
-		varbin = (TDS_VARBINARY *)
-			&(resinfo->current_row[colinfo->column_offset]);
-		return (BYTE *)varbin->array;
-	}
 
-	/* else */
 	return &resinfo->current_row[colinfo->column_offset];
 }
 
@@ -2703,10 +2696,9 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-TDS_VARBINARY  *varbin;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbadata()\n");
-    compute_id = computeid;
+	compute_id = computeid;
 
 	for ( i = 0; ; ++i ) {
 		if (i >= tds->num_comp_info)
@@ -2731,10 +2723,6 @@ TDS_VARBINARY  *varbin;
 	if (is_blob_type(colinfo->column_type)) {
 		return ((TDSBLOBINFO *) (info->current_row+colinfo->column_offset))->textvalue;
 	} 
-	if (colinfo->column_type == SYBVARBINARY) {
-		varbin = (TDS_VARBINARY *) &(info->current_row[colinfo->column_offset]);
-		return (BYTE *)varbin->array;
-	}
 
 	return &info->current_row[colinfo->column_offset];
 }
