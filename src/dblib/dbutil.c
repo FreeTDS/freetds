@@ -33,7 +33,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.18 2002-11-17 11:20:16 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.19 2003-04-03 09:12:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* The next 2 functions will be the reciever for the info and error messages
@@ -45,7 +45,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int
 dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
-DBPROCESS *dbproc = NULL;
+	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS *) tds->parent;
@@ -78,8 +78,8 @@ DBPROCESS *dbproc = NULL;
 int
 dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
-DBPROCESS *dbproc = NULL;
-int rc = INT_CANCEL;
+	DBPROCESS *dbproc = NULL;
+	int rc = INT_CANCEL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS *) tds->parent;
