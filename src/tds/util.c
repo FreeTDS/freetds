@@ -56,13 +56,13 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: util.c,v 1.26 2002-11-07 18:46:28 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.27 2002-11-08 02:05:06 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* for now all messages go to the log */
-int g_debug_lvl = 99;
-int g_append_mode = 0;
+int tds_g_debug_lvl = 99;
+int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 static int   write_dump = 0;      /* is TDS stream debug log turned on? */
 static FILE *dumpfile   = NULL;   /* file pointer for dump log          */
@@ -181,7 +181,7 @@ tdsdump_open(const char *filename)
 	if (filename == NULL || filename[0] == '\0') {
 		return 1;
 	}
-	if (g_append_mode) {
+	if (tds_g_append_mode) {
 		g_dump_filename = strdup(filename);
 		result = 1;
 	} else if (!strcmp(filename, "stdout")) {
@@ -327,10 +327,10 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
 {
    int ret = 0;
 
-   if (debug_lvl>g_debug_lvl) 
+   if (debug_lvl>tds_g_debug_lvl) 
 	return;
 
-   if (g_append_mode) {
+   if (tds_g_append_mode) {
       ret = tdsdump_append();
    }
    if (write_dump && dumpfile!=NULL)
@@ -340,7 +340,7 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
       va_list   ap;
       va_start(ap, fmt);
       
-   	 if (g_append_mode) {
+   	 if (tds_g_append_mode) {
           fprintf(dumpfile, "pid: %d:", (int)getpid() );
       }
       for(ptr = fmt; *ptr != '\0'; ptr++)
@@ -393,7 +393,7 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
          }
       }
       fflush(dumpfile);
-      if (g_append_mode && ret) {
+      if (tds_g_append_mode && ret) {
          fclose(dumpfile);
       }
    }

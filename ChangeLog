@@ -1,3 +1,7 @@
+Thu Nov  7 21:02:39 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/config.c src/tds/util.c:
+	- Namespace cleanup.
+
 Thu Nov  7 16:44:53 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt:
 	- Update status of dbcanquery() and dbclrbuf().

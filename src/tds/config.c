@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.54 2002-11-04 19:49:20 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.55 2002-11-08 02:05:06 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -82,7 +82,7 @@ static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login );
 static int get_server_info(const char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
-extern int g_append_mode;
+extern int tds_g_append_mode;
 
 static char *interf_file = NULL;
 
@@ -417,7 +417,7 @@ static void tds_parse_conf_section(const char* option, const char* value, void *
 	} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
 		tds_dstr_copy(&connect_info->language,value);
 	} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
-		g_append_mode = tds_config_boolean(value);
+		tds_g_append_mode = tds_config_boolean(value);
 	}
 	else tdsdump_log(TDS_DBG_INFO1, "%L UNRECOGNIZED option '%s'...ignoring.\n", option);
 }
