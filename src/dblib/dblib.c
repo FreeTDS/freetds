@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.143 2003-05-19 17:49:06 castellano Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.144 2003-05-22 18:53:37 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -487,7 +487,7 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 
 
 static int
-chkintr(TDSSOCKET *tds)
+dblib_chkintr(TDSSOCKET *tds)
 {
 DBPROCESS *dbproc = NULL;
 
@@ -503,7 +503,7 @@ DBPROCESS *dbproc = NULL;
 }
 
 static int
-hndlintr(TDSSOCKET *tds)
+dblib_hndlintr(TDSSOCKET *tds)
 {
 DBPROCESS *dbproc = NULL;
 
@@ -945,8 +945,8 @@ tdsdbopen(LOGINREC * login, char *server)
 
 	dbproc->dbchkintr = NULL;
 	dbproc->dbhndlintr = NULL;
-	dbproc->tds_socket->chkintr = chkintr;
-	dbproc->tds_socket->hndlintr = hndlintr;
+	dbproc->tds_socket->chkintr = dblib_chkintr;
+	dbproc->tds_socket->hndlintr = dblib_hndlintr;
 
 	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
 		dbproc->tds_socket = NULL;

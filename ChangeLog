@@ -1,3 +1,7 @@
+Thu May 22 14:53:06 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- Avoid shadow warnings for "chkintr" and "hndlintr".
+
 Thu May 22 14:35:36 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* include/ctpublic.h src/ctlib/cs.c src/ctlib/ct.c:
 	- Avoid shadow warnings for "index".
