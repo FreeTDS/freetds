@@ -1,3 +1,7 @@
+Thu Apr 03 14:43:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/tables.c:
+	- add a test for SQLTables
+
 Thu Apr 03 12:35:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/ct_diagall.c:
 	* src/ctlib/unittests/ct_diagclient.c:
