@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.160 2005-01-31 10:01:51 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.161 2005-02-08 13:51:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1166,7 +1166,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			num = (TDS_NUMERIC *) src;
 			memcpy(&buf, num, sizeof(buf));
 			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-			tds_swap_datatype(curcol->column_type, (unsigned char *) &buf);
+			tds_swap_numeric(num);
 			num = &buf;
 			tds_put_n(tds, num->array, colsize);
 		} else if (blob) {
@@ -1223,7 +1223,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			if (IS_TDS7_PLUS(tds)) {
 				memcpy(&buf, num, sizeof(buf));
 				tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
+				tds_swap_numeric(&buf);
 				num = &buf;
 			}
 			tds_put_n(tds, num->array, colsize);

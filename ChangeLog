@@ -1,3 +1,10 @@
+Tue Feb  8 14:50:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/blk.c src/ctlib/cs.c:
+	* src/dblib/bcp.c src/tds/numeric.c src/tds/query.c:
+	* src/tds/tds_checks.c src/tds/token.c:
+	- add tds_swap_numeric, use it
+	- fix numeric and bcp
+
 Tue Feb  8 13:08:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS: updated
 	* include/tds.h src/tds/config.c src/tds/login.c:

@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.284 2005-02-01 13:01:10 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.285 2005-02-08 13:51:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -671,14 +672,18 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				if (tds->res_info)
 					tds->current_results = tds->res_info;
 			}
-			tds->current_results->rows_exist = 1;
+			/* I don't know when this it's false but it happened, also server can send garbage... */
+			if (tds->current_results)
+				tds->current_results->rows_exist = 1;
 			tds_unget_byte(tds);
 			rc = TDS_SUCCEED;
 			goto check_cancel;
 			break;
 		case TDS_CMP_ROW_TOKEN:
 			*result_type = TDS_COMPUTE_RESULT;
-			tds->res_info->rows_exist = 1;
+			/* I don't know when this it's false but it happened, also server can send garbage... */
+			if (tds->res_info)
+				tds->res_info->rows_exist = 1;
 			tds_unget_byte(tds);
 			rc = TDS_SUCCEED;
 			goto check_cancel;
@@ -1563,6 +1568,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
+		/* FIXME check prec/scale, don't let server crash us */
 	}
 
 	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
@@ -1732,6 +1738,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
+		/* FIXME check prec/scale, don't let server crash us */
 	}
 
 	/* read sql collation info */
@@ -1956,6 +1963,7 @@ tds5_process_result(TDSSOCKET * tds)
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->column_prec = tds_get_byte(tds);	/* precision */
 			curcol->column_scale = tds_get_byte(tds);	/* scale */
+			/* FIXME check prec/scale, don't let server crash us */
 		}
 
 		/* discard Locale */
@@ -2123,10 +2131,12 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		 */
 		TDS_NUMERIC *num = (TDS_NUMERIC *) dest;
 		memset(num, '\0', sizeof(TDS_NUMERIC));
+		/* TODO perhaps it would be fine to change format ?? */
 		num->precision = curcol->column_prec;
 		num->scale = curcol->column_scale;
 
 		/* server is going to crash freetds ?? */
+		/* TODO close connection it server try to do so ?? */
 		if (colsize > sizeof(num->array))
 			return TDS_FAIL;
 		tds_get_n(tds, num->array, colsize);
@@ -2135,7 +2145,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		colsize = sizeof(TDS_NUMERIC);
 		if (IS_TDS7_PLUS(tds)) {
 			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) num);
+			tds_swap_numeric(num);
 		}
 		curcol->column_cur_size = colsize;
 	} else if (is_blob_type(curcol->column_type)) {
@@ -2233,6 +2243,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	 *
 	 * Nope its an actual MS SQL bug -bsb
 	 */
+	/* TODO test on login, remove configuration -- freddy77 */
 	if (tds->broken_dates &&
 	    (curcol->column_type == SYBDATETIME ||
 	     curcol->column_type == SYBDATETIME4 ||
@@ -2250,7 +2261,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		memcpy(dest, &dest[colsize / 2], colsize / 2);
 		memcpy(&dest[colsize / 2], temp_buf, colsize / 2);
 	}
-	if (tds->emul_little_endian && !is_numeric_type(curcol->column_type)) {
+	if (tds->emul_little_endian) {
 		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
 	}
@@ -2952,6 +2963,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->column_prec = tds_get_byte(tds);	/* precision */
 			curcol->column_scale = tds_get_byte(tds);	/* scale */
+			/* FIXME check prec/scale, don't let server crash us */
 		}
 
 		/* discard Locale */
@@ -2998,8 +3010,6 @@ tds_get_token_size(int marker)
 void
 tds_swap_datatype(int coltype, unsigned char *buf)
 {
-	TDS_NUMERIC *num;
-
 	switch (coltype) {
 	case SYBINT2:
 		tds_swap_bytes(buf, 2);
@@ -3022,18 +3032,6 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 		tds_swap_bytes(buf, 2);
 		tds_swap_bytes(&buf[2], 2);
 		break;
-		/*
-		 * should we place numeric conversion in another place ??
-		 * this is not used for big/little-endian conversion...
-		 */
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		num = (TDS_NUMERIC *) buf;
-		/* swap the sign */
-		num->array[0] = (num->array[0] == 0) ? 1 : 0;
-		/* swap the data */
-		tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
-		break;
 	case SYBUNIQUE:
 		tds_swap_bytes(buf, 4);
 		tds_swap_bytes(&buf[4], 2);
@@ -3041,6 +3039,17 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 		break;
 	}
 }
+
+void
+tds_swap_numeric(TDS_NUMERIC *num)
+{
+	/* swap the sign */
+	num->array[0] = (num->array[0] == 0) ? 1 : 0;
+	/* swap the data */
+	tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
+}
+
+
 
 /**
  * tds5_get_varint_size5() returns the size of a variable length integer

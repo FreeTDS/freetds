@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.216 2005-02-08 12:11:01 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.217 2005-02-08 13:51:17 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1248,6 +1248,7 @@ int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
+void tds_swap_numeric(TDS_NUMERIC *num);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET * tds);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol);

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.8 2005-01-31 10:01:52 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.9 2005-02-08 13:51:18 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -187,7 +187,9 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	if (is_numeric_type(column->column_type)) {
 		/* I don't like that much this difference between numeric and not numeric - freddy77 */
 		/* TODO what should be the size ?? */
-		/* assert(column->column_cur_size == sizeof(TDS_NUMERIC) || column->column_cur_size == 0); */
+		assert(column->column_prec >= 1 && column->column_prec <= 77);
+		assert(column->column_scale <= column->column_prec);
+/*		assert(column->column_cur_size == tds_numeric_bytes_per_prec[column->column_prec] + 2 || column->column_cur_size == -1); */
 	} else {
 		assert(column->column_cur_size <= column->column_size);
 	}

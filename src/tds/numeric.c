@@ -33,11 +33,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.27 2004-10-14 14:27:50 freddy77 Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: numeric.c,v 1.28 2005-02-08 13:51:18 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -51,14 +48,19 @@ static int do_carry(unsigned char *product);
 static char *array_to_string(unsigned char *array, int scale, char *s);
 #endif
 
-/*
- * The following little table is indexed by precision-1 and will
+/**
+ * tds_numeric_bytes_per_prec is indexed by precision and will
  * tell us the number of bytes required to store the specified
  * precision (with the sign).
  * Support precision up to 77 digits
  */
 const int tds_numeric_bytes_per_prec[] = {
-	-1, 2, 2, 3, 3, 4, 4, 4, 5, 5,
+	/*
+	 * precision can't be 0 but using a value > 0 assure no
+	 * core if for some bug it's 0...
+	 */
+	1, 
+	2, 2, 3, 3, 4, 4, 4, 5, 5,
 	6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
 	10, 10, 11, 11, 11, 12, 12, 13, 13, 14,
 	14, 14, 15, 15, 16, 16, 16, 17, 17, 18,

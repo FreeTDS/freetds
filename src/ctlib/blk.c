@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.23 2005-02-01 13:01:07 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.24 2005-02-08 13:51:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -1231,14 +1231,12 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 
 #if WORDS_BIGENDIAN
 				tds_swap_datatype(bindcol->on_server.column_type, bindcol->bcp_column_data->data);
-#else
-				if (is_numeric_type(bindcol->on_server.column_type)) {
-					tds_swap_datatype(bindcol->on_server.column_type, bindcol->bcp_column_data->data);
-				}
 #endif
 
 				if (is_numeric_type(bindcol->on_server.column_type)) {
 					CS_NUMERIC *num = (CS_NUMERIC *) bindcol->bcp_column_data->data;
+					if (IS_TDS7_PLUS(tds))
+						tds_swap_numeric((TDS_NUMERIC *) num);
 					memcpy(record, num->array, tds_numeric_bytes_per_prec[num->precision]);
 					record += tds_numeric_bytes_per_prec[num->precision]; 
 					new_record_size += tds_numeric_bytes_per_prec[num->precision];

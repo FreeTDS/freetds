@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.54 2005-01-12 08:46:51 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.55 2005-02-08 13:51:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -447,9 +447,10 @@ CS_RETCODE ret;
 			ret = CS_SUCCEED;
 			break;
 
-		case SYBBITN:
 		case SYBNUMERIC:
 		case SYBDECIMAL:
+			src_len = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) srcdata)->precision] + 2;
+		case SYBBITN:
 			if (src_len > destlen) {
 				ret = CS_FAIL;
 			} else {
@@ -599,9 +600,10 @@ CS_RETCODE ret;
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		memcpy(dest, &(cres.n), sizeof(TDS_NUMERIC));
+		src_len = tds_numeric_bytes_per_prec[cres.n.precision] + 2;
+		memcpy(dest, &(cres.n), src_len);
 		if (resultlen != (CS_INT *) NULL)
-			*resultlen = sizeof(TDS_NUMERIC);
+			*resultlen = src_len;
 		ret = CS_SUCCEED;
 		break;
 	case SYBCHAR:

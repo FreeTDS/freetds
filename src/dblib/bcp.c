@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.118 2005-02-08 12:11:01 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.119 2005-02-08 13:51:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -2597,11 +2597,6 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 #if WORDS_BIGENDIAN
 				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
 									bindcol->bcp_column_data->data);
-#else
-				if (is_numeric_type(bindcol->column_type)) {
-					tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->column_size),
-										bindcol->bcp_column_data->data);
-				}
 #endif
 				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
 							new_record_size, bindcol->bcp_column_data->datalen);
@@ -2610,6 +2605,8 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 				if (is_numeric_type(bindcol->column_type)) {
 					TDS_NUMERIC *num = (TDS_NUMERIC *) bindcol->bcp_column_data->data;
 					tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d\n", num->precision);
+					if (IS_TDS7_PLUS(tds))
+						tds_swap_numeric(num);
 					memcpy(record, num->array, tds_numeric_bytes_per_prec[num->precision]);
 					record += tds_numeric_bytes_per_prec[num->precision]; 
 					new_record_size += tds_numeric_bytes_per_prec[num->precision];
