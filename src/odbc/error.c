@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.7 2003-01-11 16:40:30 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.8 2003-03-23 10:45:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
@@ -235,12 +235,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_INVALID_HANDLE;
 	}
 
-	if (numRecord > errs->num_errors)
-		return SQL_NO_DATA_FOUND;
-
-	if (numRecord == 0 && diagIdentifier > 0)
-		return SQL_ERROR;
-
+	/* header (numRecord ignored) */
 	switch (diagIdentifier) {
 	case SQL_DIAG_DYNAMIC_FUNCTION:
 		if (handleType != SQL_HANDLE_STMT)
@@ -251,19 +246,15 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			*(char *) buffer = 0;
 		if (pcbBuffer)
 			*pcbBuffer = 0;
-		break;
+		return SQL_SUCCESS;
 
 	case SQL_DIAG_DYNAMIC_FUNCTION_CODE:
 		*(SQLINTEGER *) buffer = 0;
-		break;
-
-	case SQL_DIAG_ROW_NUMBER:
-		*(SQLINTEGER *) buffer = SQL_ROW_NUMBER_UNKNOWN;
-		break;
+		return SQL_SUCCESS;
 
 	case SQL_DIAG_NUMBER:
-		*(SQLINTEGER *) buffer = 1;
-		break;
+		*(SQLINTEGER *) buffer = errs->num_errors;
+		return SQL_SUCCESS;
 
 	case SQL_DIAG_RETURNCODE:
 		/* TODO */
@@ -271,7 +262,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			*(SQLRETURN *) buffer = SQL_ERROR;
 		else
 			*(SQLRETURN *) buffer = SQL_SUCCESS;
-		break;
+		return SQL_SUCCESS;
 
 	case SQL_DIAG_CURSOR_ROW_COUNT:
 		if (handleType != SQL_HANDLE_STMT)
@@ -279,7 +270,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 		/* TODO */
 		*(SQLINTEGER *) buffer = 0;
-		break;
+		return SQL_SUCCESS;
 
 	case SQL_DIAG_ROW_COUNT:
 		if (handleType != SQL_HANDLE_STMT)
@@ -287,6 +278,19 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 		/* TODO */
 		*(SQLINTEGER *) buffer = 0;
+		return SQL_SUCCESS;
+	}
+
+	if (numRecord > errs->num_errors)
+		return SQL_NO_DATA_FOUND;
+
+	if (numRecord <= 0)
+		return SQL_ERROR;
+	--numRecord;
+
+	switch (diagIdentifier) {
+	case SQL_DIAG_ROW_NUMBER:
+		*(SQLINTEGER *) buffer = SQL_ROW_NUMBER_UNKNOWN;
 		break;
 
 	case SQL_DIAG_CLASS_ORIGIN:

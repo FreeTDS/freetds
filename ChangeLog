@@ -1,3 +1,8 @@
+Sun Mar 23 11:44:26 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c:
+	- decrement numRecord (it start from 1, not zero)
+	- ignore numRecord for header fields
+
 Sun Mar 23 11:06:37 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c src/odbc/odbc.c:
 	- return "Microsoft SQL Server" for mssql
