@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.25 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.26 2002-07-16 02:50:46 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -407,7 +407,7 @@ RETCODE dbinit()
 
 	if( g_dblib_ctx->tds_ctx->locale && !g_dblib_ctx->tds_ctx->locale->date_fmt ) {
 		/* set default in case there's no locale file */
-		g_dblib_ctx->tds_ctx->locale->date_fmt = "%b %e %Y %l:%M:%S:%z%p"; 
+		g_dblib_ctx->tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M:%S:%z%p"); 
 	}
 
 	return SUCCEED;
@@ -1001,7 +1001,7 @@ RETCODE dbbind(
       colinfo  = resinfo->columns[column-1];
       srctype = tds_get_conversion_type(colinfo->column_type,
                                      colinfo->column_size);
-      okay = okay && dbwillconvert(srctype, vartype);
+      okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
    }
 
    if (okay)
@@ -2118,6 +2118,10 @@ int i, j = 0;
 int squote = FALSE, dquote = FALSE;
 
 	
+	/* check parameters */
+	if (srclen<-1 || destlen<-1)
+		return FAIL;
+
 	if (srclen==-1) 
 		srclen = strlen(src);
 
@@ -2125,6 +2129,11 @@ int squote = FALSE, dquote = FALSE;
 		squote = TRUE;
 	if (quotetype == DBDOUBLE || quotetype == DBBOTH)
 		dquote = TRUE;
+
+	/* return FAIL if invalid quotetype */
+	if (!dquote && !squote)
+		return FAIL;
+
 
 	for (i=0;i<srclen;i++) {
 
@@ -2138,13 +2147,13 @@ int squote = FALSE, dquote = FALSE;
 		else if (dquote && src[i]=='\"')
 			dest[j++] = '\"';
 
-		if (destlen >= 0 && j>destlen)
+		if (destlen >= 0 && j>=destlen)
 			return FAIL;
 
 		dest[j++] = src[i];
 	}
 
-	if (destlen >= 0 && j>destlen)
+	if (destlen >= 0 && j>=destlen)
 		return FAIL;
 
 	dest[j]='\0';

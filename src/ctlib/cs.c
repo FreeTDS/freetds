@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.8 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.9 2002-07-16 02:50:45 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -36,7 +36,7 @@ TDSCONTEXT *tds_ctx;
 	(*ctx)->tds_ctx = tds_ctx;
 	if( tds_ctx->locale && !tds_ctx->locale->date_fmt ) {
 		/* set default in case there's no locale file */
-		tds_ctx->locale->date_fmt = "%b %e %Y %l:%M%p"; 
+		tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M%p"); 
 	}
 	return CS_SUCCEED;
 }
