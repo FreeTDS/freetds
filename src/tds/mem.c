@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.31 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.32 2002-10-14 08:10:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -375,11 +375,18 @@ void tds_free_column(TDSCOLINFO *column)
 TDSCONTEXT *tds_alloc_context(void)
 {
 TDSCONTEXT *context;
+TDSLOCINFO *locale;
+
+	locale = tds_get_locale();
+	if (!locale) return NULL;
 
 	context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
-	if (!context) return NULL;
+	if (!context) {
+		tds_free_locale(locale);
+		return NULL;
+	}
 	memset(context, '\0', sizeof(TDSCONTEXT));
-	context->locale = tds_get_locale();
+	context->locale = locale;
 
 	return context;
 }

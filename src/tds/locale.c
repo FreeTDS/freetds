@@ -39,13 +39,17 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.11 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.12 2002-10-14 08:10:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 static int tds_read_locale_section(FILE *in, char *section, TDSLOCINFO *config);
 
+/**
+ * Get locale information. 
+ * @return allocated structure with all information or NULL if error
+ */
 TDSLOCINFO *tds_get_locale(void)
 {
 TDSLOCINFO *locale;
@@ -55,6 +59,9 @@ FILE *in;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	locale = tds_alloc_locale();
+	if (!locale)
+		return NULL;
+
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read locales.conf file\n");
 
 	in = fopen(FREETDS_LOCALECONFFILE, "r");

@@ -1,3 +1,7 @@
+Mon Oct 14 10:09:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/locale.c src/tds/mem.c:
+	- improve out of memory handling
+
 Mon Oct 14 00:26:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds_sysdep_private.h.in:
 	- Correct autoconf substitution for FREETDS_SYSCONFDIR.
