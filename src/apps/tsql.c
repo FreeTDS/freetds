@@ -55,7 +55,7 @@
 #include "tdsconvert.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.37 2002-10-23 02:21:22 castellano Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.38 2002-10-29 16:45:10 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -103,7 +103,8 @@ add_history(const char *s)
 }
 #endif
 
-int do_query(TDSSOCKET *tds, char *buf, int opt_flags)
+int
+do_query(TDSSOCKET *tds, char *buf, int opt_flags)
 {
 int rows;
 int rc, i;
@@ -130,13 +131,16 @@ char message[128];
 			gettimeofday(&start,NULL);
 			print_rows = 0;
 		}
+    switch (resulttype) {
+    case TDS_ROWFMT_RESULT:
 		if ((!(opt_flags & OPT_NOHEADER)) && tds->res_info) {
 			for (i=0; i<tds->res_info->num_cols; i++) {
 				fprintf(stdout, "%s\t", tds->res_info->columns[i]->column_name);
 			}
 			fprintf(stdout,"\n");
 		}
-
+      break;
+    case TDS_ROW_RESULT:
 		rows = 0;
         while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
 			rows++;
@@ -171,6 +175,14 @@ char message[128];
 				free(dres.c);
 			}
 			if (print_rows) fprintf(stdout,"\n");
+    
+      }
+      break;
+    case TDS_STATUS_RESULT:
+      printf("(return status = %d)\n", tds->ret_status);
+      break;
+    default:
+      break;
          }
 		 if (opt_flags & OPT_VERSION) {
 			char version[64];

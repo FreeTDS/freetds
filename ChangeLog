@@ -1,3 +1,7 @@
+Tue Oct 29 11:44:00 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- Fix processing of result sets (fallout from Bill's patch).
+
 Tue Oct 29 10:22:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/CodingStyle: updated and some specification
 
