@@ -38,7 +38,7 @@ href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.11 2002-05-01 23:49:31 jklowden Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.12 2002-05-02 00:03:49 jklowden Exp $</i></div><p>
 
 </font> </p>
 
@@ -433,13 +433,13 @@ Server or Sybase prior to 10.0 or change these values to 4.2 at runtime! TDS 7.0
 SQL Server 7 and above.</p>
 
 <a name="SYBASE"></a>
-<h3>What is this SYBASE environment variable?</h3>
+<h3>What is this <code>SYBASE</code> environment variable?</h3>
 
 <p>
-Many programs look for the SYBASE environment variable in order to
-find the libraries home. You will want to set this to the main tds
-directory.  For example if your tds installation is in
-<tt>/usr/local</tt>, then your SYBASE variable would be set to
+Many programs look for the <var>SYBASE</var> environment variable in order to
+find the library's home. You will want to set this to the main tds
+directory.  For example if <code>FreeTDS</code> is installed in
+<tt>/usr/local</tt>, then your <var>SYBASE</var> variable would be set to
 <tt>/usr/local/freetds</tt>.</p>
 
 <a name="other_environment_variables"></a>
@@ -447,15 +447,15 @@ directory.  For example if your tds installation is in
 
 <ul>
 <li>
-<tt>TDSVER</tt> will override the default TDS version, possible values are 4.2, 5.0,
+<var>TDSVER</var> will override the default TDS version, possible values are 4.2, 5.0,
 and 7.0</li>
 
 <li>
-<tt>TDSDUMP</tt> will specify a location for a log file for debugging. Beware that
+<var>TDSDUMP</var> will specify a location for a log file for debugging. Beware that
 your database login passwords may be listed in this file.</li>
 
 <li>
-<tt>TDSPORT</tt> will override the default port for the server. Defaults are 1433
+<var>TDSPORT</var> will override the default port for the server. Defaults are 1433
 for TDS 4.2/7.0 and 4000 for TDS 5.0</li>
 </ul>
 
