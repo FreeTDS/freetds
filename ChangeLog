@@ -1,3 +1,6 @@
+Tue Feb 18 11:30:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/FreeTDS.def: add SQLGetDiag* exports
+
 Thu Feb 13 16:07:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: merge fix for bus error
 

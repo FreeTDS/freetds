@@ -28,6 +28,8 @@ EXPORTS
 	SQLGetConnectOption
 	SQLGetCursorName
 	SQLGetData
+	SQLGetDiagField
+	SQLGetDiagRec
 	SQLGetFunctions
 	SQLGetInfo
 	SQLGetStmtAttr
