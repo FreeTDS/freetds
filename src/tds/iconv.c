@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.91 2003-11-15 09:39:25 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.92 2003-11-15 16:12:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -1009,7 +1009,7 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 			++charsize;
 		} while ((c <<= 1) & 0x80);
 		*input += charsize;
-		*input_size += charsize;
+		*input_size -= charsize;
 		return charsize;
 	}
 

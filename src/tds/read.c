@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.70 2003-11-14 17:28:48 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.71 2003-11-15 16:12:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -226,7 +226,7 @@ tds_get_int(TDSSOCKET * tds)
 }
 
 #if ENABLE_EXTRA_CHECKS
-# define TEMP_INIT(s) char* temp = (char*)malloc(s); const size_t temp_size = s
+# define TEMP_INIT(s) char* temp = (char*)malloc(32); const size_t temp_size = 32
 # define TEMP_FREE free(temp);
 # define TEMP_SIZE temp_size
 #else
@@ -341,7 +341,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * cu
 		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
-			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: left %d on wire while reading %d into client. \n", 
+			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 
 							 wire_size, curcol->column_cur_size);
 			return TDS_FAIL;
 		}
@@ -600,19 +600,25 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 
 	static const short UTF8 = 0; /* for now */
 
-	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
+	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0;) {
 		assert(bufp >= temp);
 		/* read a chunk of data */
-		bufleft = (*wire_size > TEMP_SIZE - bufleft) ? TEMP_SIZE : *wire_size;
-		tds_get_n(tds, (char *) bufp, bufleft - (bufp - temp));
+		bufleft = TEMP_SIZE - bufleft;
+		if (bufleft > *wire_size)
+			bufleft = *wire_size;
+		tds_get_n(tds, (char *) bufp, bufleft);
+		*wire_size -= bufleft;
+		bufleft += bufp - temp;
 
 		/* TODO: Determine charset, and do not ask tds_iconv to convert a partial character.  */
 		/*       loop compiles but never executes */
 		for (i=1; UTF8 && i <= 4; i++) {
+			/* FIXME if bufleft < 4 underflow */
 			if (temp[bufleft - i] & 0xC0) { /* guard byte is binary 11xxxxxx */
 				/* for interest, we can count the number of characters to come */
 				int len; char mask = 0x40;
-				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); len++);
+				/* TODO if not partial do not exclude */
+				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); ++len);
 				partial_character = &temp[bufleft - i];
 				partial_character_length = i;
 				bufleft -= partial_character_length;
@@ -631,14 +637,13 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		}
 
 		/* update for next chunk */
-		*wire_size -= bufp - temp;
 		if (bufleft) {
 			if (bufleft >= 4) {
 				tdsdump_log(TDS_DBG_NETWORK, "read_and_convert: EINVAL: "
 					    "incomplete sequence at %d from end\n", *wire_size + (bufp - temp));
 				break;
 			}
-			memmove(temp, &bufp, bufleft);
+			memmove(temp, bufp, bufleft);
 		}
 		
 		if (partial_character) { /* always false */
@@ -646,7 +651,11 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 			bufleft += partial_character_length;
 			partial_character = NULL;
 		}
+		bufp = temp + bufleft;
 	}
+
+	/* keep FreeTDS in sync even on conversion errors */
+	tds_get_n(tds, NULL, *wire_size);
 
 	TEMP_FREE;
 	return max_output - *outbytesleft;

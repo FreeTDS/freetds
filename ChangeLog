@@ -1,3 +1,9 @@
+Sat Nov 15 17:10:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c src/tds/read.c src/tds/unittests/Makefile.am:
+	* src/tds/unittests/utf8_2.c(added):
+	- some fixes for iconv stuff
+	- added test for conversion from utf8
+
 Sat Nov 15 10:37:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt: added SQLFetchScroll
 	* src/tds/iconv.c: fixed for dblib problem

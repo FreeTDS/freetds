@@ -1,7 +1,7 @@
 TESTS		=	t0001 t0002 t0003 t0004 \
 			t0005 t0006 t0007 t0008 \
 			dynamic1 convert dataread \
-			flags utf8_1
+			flags utf8_1 utf8_2
 			
 check_PROGRAMS	=	$(TESTS)
 
@@ -18,6 +18,7 @@ convert_SOURCES	=	convert.c
 dataread_SOURCES	=	dataread.c common.c common.h
 flags_SOURCES	=	flags.c common.c common.h
 utf8_1_SOURCES	=	utf8_1.c common.c common.h
+utf8_2_SOURCES	=	utf8_2.c common.c common.h
 
 LIBS		=	../libtds.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
