@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.235 2003-12-06 20:19:53 ppeterd Exp $";
+static char software_version[] = "$Id: token.c,v 1.236 2003-12-12 14:34:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -514,7 +514,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
 				} else {
-					tds_process_default_tokens(tds, marker);
+					if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+						return TDS_FAIL;
 					marker = tds_get_byte(tds);
 					if (marker != TDS_COLINFO_TOKEN) {
 						tds_unget_byte(tds);
@@ -531,7 +532,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 					tds_unget_byte(tds);
 					return TDS_SUCCEED;
 				}
-				tds_process_default_tokens(tds, marker);
+				if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+					return TDS_FAIL;
 				marker = tds_get_byte(tds);
 				if (marker != TDS_COLINFO_TOKEN) {
 					tds_unget_byte(tds);
@@ -565,7 +567,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds_unget_byte(tds);
 				return rc;
 			}
-			tds_process_default_tokens(tds, marker);
+			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+				return TDS_FAIL;
 			marker = tds_get_byte(tds);
 			if (marker != TDS_COLINFO_TOKEN) {
 				tds_unget_byte(tds);
@@ -944,7 +947,8 @@ tds_do_until_done(TDSSOCKET * tds)
 			tds_process_end(tds, marker, NULL);
 			rows_affected = tds->rows_affected;
 		} else {
-			tds_process_default_tokens(tds, marker);
+			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+				return TDS_FAIL;
 		}
 	} while (marker != TDS_DONE_TOKEN);
 
@@ -2458,7 +2462,7 @@ tds_process_cancel(TDSSOCKET * tds)
 		} else if (marker == 0) {
 			done_flags = TDS_DONE_CANCELLED;
 		} else {
-			tds_process_default_tokens(tds, marker);
+			retcode = tds_process_default_tokens(tds, marker);
 		}
 	} while (retcode == TDS_SUCCEED && !(done_flags & TDS_DONE_CANCELLED));
 
@@ -3107,7 +3111,8 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		break;
 	}
 	while ((marker = tds_get_byte(tds)) != expected_acknowledgement) {
-		tds_process_default_tokens(tds, marker);
+		if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+			return TDS_FAIL;
 	}
 
 	if (marker == TDS_DONE_TOKEN) {
@@ -3146,7 +3151,8 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 
 
 	while ((marker = tds_get_byte(tds)) != TDS_DONE_TOKEN) {
-		tds_process_default_tokens(tds, marker);
+		if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+			return TDS_FAIL;
 	}
 
 	tds_process_end(tds, marker, &status);

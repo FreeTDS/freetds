@@ -1,3 +1,6 @@
+Fri Dec 12 15:33:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: check tds_process_default_tokens result
+
 Fri Dec 12 11:42:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsiconv.h src/replacements/iconv.c:
 	- avoid problem with libc iconv version
