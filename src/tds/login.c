@@ -32,7 +32,7 @@
 
 #define DOMAIN 0
 
-static char  software_version[]   = "$Id: login.c,v 1.28 2002-08-04 13:43:11 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.29 2002-08-16 12:27:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -592,7 +592,7 @@ char *answer;
 	tds_answer_challenge(password, challenge);
 	tds_put_n(tds, answer, 24);
 
-	rc|=tds_flush_packet(tds);
+	rc=tds_flush_packet(tds);
 
 	return rc;
 #else
@@ -647,9 +647,12 @@ unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
 unsigned char magic3[] = "NTLMSSP";
 unsigned char unicode_string[255];
 int packet_size;
-int size1;
 int current_pos;
+#if DOMAIN
 int domain_login = 1;
+#else
+int domain_login = 0;
+#endif
 
 int user_name_len = config->user_name ? strlen(config->user_name) : 0;
 int host_name_len = config->host_name ? strlen(config->host_name) : 0;
@@ -659,24 +662,17 @@ int server_name_len = config->server_name ? strlen(config->server_name) : 0;
 int library_len = config->library ? strlen(config->library) : 0;
 int language_len = config->language ? strlen(config->language) : 0;
 
+   packet_size = 86 + (
+			host_name_len +
+			app_name_len +
+			server_name_len +
+			library_len +
+			language_len)*2;
 #if DOMAIN
-   	size1 = 86 + (
-			host_name_len +
-			app_name_len +
-			server_name_len +
-			library_len +
-			language_len)*2;
+   packet_size += 48;
 #else
-   	size1 = 86 + (
-			host_name_len +
-			user_name_len +
-			app_name_len +
-			password_len +
-			server_name_len +
-			library_len +
-			language_len)*2;
+   packet_size += (user_name_len + password_len)*2;
 #endif
-   packet_size = size1 + 48;
    tds_put_smallint(tds,packet_size);
    tds_put_n(tds,NULL,5);
    if (IS_TDS80(tds)) {
@@ -693,12 +689,12 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,host_name_len);
    current_pos += host_name_len * 2;
-#if DOMAIN
+   if (domain_login) {
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
-#else
+   } else {
    	/* username */
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,user_name_len);
@@ -707,7 +703,7 @@ int language_len = config->language ? strlen(config->language) : 0;
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,password_len);
    	current_pos += password_len * 2;
-#endif
+   }
    /* app name */
    tds_put_smallint(tds,current_pos);
    tds_put_smallint(tds,app_name_len);
@@ -731,10 +727,20 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,0); 
 
+   /* MAC address */
    tds_put_n(tds,magic2,6);
-   tds_put_smallint(tds, size1);
+
+   /* authentication stuff */
+   tds_put_smallint(tds, current_pos);
+#if DOMAIN
    tds_put_smallint(tds, 0x30); /* this matches numbers at end of packet */
-   tds_put_smallint(tds, packet_size);
+   current_pos += 0x30;
+#else
+   tds_put_smallint(tds, 0);
+#endif
+
+   /* unknown */
+   tds_put_smallint(tds, current_pos);
    tds_put_smallint(tds, 0); 
 
    tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
@@ -755,6 +761,7 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds7_ascii2unicode(tds,config->language, unicode_string, 255);
    tds_put_n(tds,unicode_string,language_len * 2);
 
+#if DOMAIN
    /* from here to the end of the packet is the NTLMSSP authentication */
    tds_put_n(tds,magic3,7);
    /* null */
@@ -769,12 +776,13 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds_put_n(tds,NULL,7);
    tds_put_byte(tds,48);
    tds_put_n(tds,NULL,3);
-
+#endif
+   
    tdsdump_off();
-   rc|=tds_flush_packet(tds);
+   rc=tds_flush_packet(tds);
    tdsdump_on();
    
-	return 0;
+	return rc;
 }
 
 /*
