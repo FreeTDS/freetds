@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.61 2002-09-24 18:51:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.62 2002-09-24 19:40:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1347,7 +1347,6 @@ TDSMSGINFO msg_info;
 	*/
 
 	if (tds->tds_ctx->msg_handler) {
-	  /* First, invoke the message handler. */
 	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg_info);
 	} else {
 		if (msg_info.msg_number)

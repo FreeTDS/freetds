@@ -1,3 +1,8 @@
+Tue Sep 24 15:38:39 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/token.c:
+	- garbage-collect a comment that no longer makes sense in the current
+	  context of the code.
+
 Tue Sep 24 20:50:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
 	- removed msg_info field of TDSSOCKET
