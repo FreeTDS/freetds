@@ -16,7 +16,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0022.c,v 1.8 2002-10-04 14:56:55 castellano Exp $";
+static char  software_version[]   = "$Id: t0022.c,v 1.9 2002-10-08 15:01:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -31,7 +31,7 @@ main(int argc, char **argv)
    int         i;
    char        teststr[1024];
    int         failed = 0;
-   char        *retname;
+   char        *retname = NULL;
    int         rettype, retlen;
 
 #if HAVE_MALLOC_OPTIONS
@@ -125,7 +125,7 @@ fprintf(stdout, "About to open\n");
       printf ("ret data %d is %s\n",i,teststr);
       add_bread_crumb();
    }
-   if (strcmp(retname, "@b")) {
+   if ((retname == NULL) || strcmp(retname, "@b")) {
       fprintf(stdout, "Was expecting a retname to be @b.\n");
       exit(1);
    }

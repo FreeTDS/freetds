@@ -1,3 +1,8 @@
+Tue Oct  8 10:59:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/t0022.c:
+	- If we don't see the output parameter from the server,
+	  print an error message instead of crashing.
+
 Tue Oct  8 10:42:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Add some CFLAGS on OSF1 hosts that are required to set the
