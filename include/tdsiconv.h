@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.16 2003-06-30 04:59:06 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.17 2003-07-01 05:33:07 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -53,7 +53,7 @@ extern "C"
 
 	/* FYI, the first 4 entries look like this:
 	 * 	{"ISO-8859-1",	1, 1}, -> 0
-	 * 	{"UTF-8",	1, 4}, <- user needs real iconv
+	 * 	{"US-ASCII",	1, 4}, -> 1
 	 * 	{"UCS-2LE",	2, 2}, -> 2
 	 * 	{"UCS-2BE",	2, 2}, -> 3
 	 *
@@ -61,9 +61,13 @@ extern "C"
 	 * have or otherwise need an iconv.
 	 */
 	enum ICONV_CD_VALUE {
-		  Like_to_Like  = 0x00
+		  Like_to_Like  = 0x100
+		, Latin1_ASCII  = 0x01
+		, ASCII_Latin1  = 0x10
 		, Latin1_UCS2LE = 0x02
 		, UCS2LE_Latin1 = 0x20
+		, ASCII_UCS2LE  = 0x12
+		, UCS2LE_ASCII  = 0x21
 		/* these aren't needed 
 			, Latin1_UCS2BE = 0x03
 			, UCS2BE_Latin1 = 0x30

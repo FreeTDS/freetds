@@ -1,3 +1,9 @@
+Tue Jul  1 01:28:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tdsiconv.h 
+	* src/tds/encodings.h src/tds/encodings.pl src/tds/iconv.c
+	- Add ASCII conversions
+	* src/replacements/iconv.c Fix blatant errors
+
 Mon Jun 30 00:53:14 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h include/tdsiconv.h include/sybdb.h
 	* src/dblib/dbutil.c src/dblib/error_table.h
@@ -9,7 +15,6 @@ Mon Jun 30 00:53:14 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml added comments
 	
 Wed Jun 25 17:05:02 EDT 2003	JK Lowden <jklowden@schemamania.org>
-
 	* doc/userguide.sgml
 	- Added paragraph from ML regarding effect of TDS version.
 

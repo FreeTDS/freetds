@@ -18,7 +18,7 @@
  */
 
 /*
- * iconv.c, handle all the conversion stuff without spreading #if HAVE_ICONV 
+ * iconv.c, handle all the conversion stuff without spreading #if HAVE_ICONV_ALWAYS 
  * all over the other code
  */
 
@@ -44,7 +44,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.78 2003-06-30 04:59:06 jklowden Exp $";
+/* define this for now; remove when done testing */
+#define HAVE_ICONV_ALWAYS 1
+
+static char software_version[] = "$Id: iconv.c,v 1.79 2003-07-01 05:33:07 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -76,7 +79,7 @@ static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charset
 static int iconv_initialized = 0;
 
 enum
-{ POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
+{ POS_ISO1, POS_ASCII, POS_UCS2LE, POS_UCS2BE };
 
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
@@ -89,32 +92,32 @@ tds_iconv_init(void)
 
 	/* first entries should be constants */
 	assert(strcmp(canonic_charsets[POS_ISO1].name, "ISO-8859-1") == 0);
-	assert(strcmp(canonic_charsets[POS_UTF8].name, "UTF-8") == 0);
+	assert(strcmp(canonic_charsets[POS_ASCII].name, "US-ASCII") == 0);
 	assert(strcmp(canonic_charsets[POS_UCS2LE].name, "UCS-2LE") == 0);
 	assert(strcmp(canonic_charsets[POS_UCS2BE].name, "UCS-2BE") == 0);
 
 	/* fast tests for GNU-iconv */
-	cd = iconv_open("ISO-8859-1", "UTF-8");
+	cd = iconv_open("ISO-8859-1", "US-ASCII");
 	if (cd != (iconv_t) - 1) {
 		iconv_names[POS_ISO1] = "ISO-8859-1";
-		iconv_names[POS_UTF8] = "UTF-8";
+		iconv_names[POS_ASCII] = "US-ASCII";
 		iconv_close(cd);
 	} else {
 
-		/* search names for ISO8859-1 and UTF-8 */
+		/* search names for ISO8859-1 and US-ASCII */
 		for (i = 0; iconv_aliases[i].alias; ++i) {
 			int j;
 
 			if (iconv_aliases[i].canonic != POS_ISO1)
 				continue;
 			for (j = 0; iconv_aliases[j].alias; ++j) {
-				if (iconv_aliases[j].canonic != POS_UTF8)
+				if (iconv_aliases[j].canonic != POS_ASCII)
 					continue;
 
 				cd = iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
 				if (cd != (iconv_t) - 1) {
 					iconv_names[POS_ISO1] = iconv_aliases[i].alias;
-					iconv_names[POS_UTF8] = iconv_aliases[j].alias;
+					iconv_names[POS_ASCII] = iconv_aliases[j].alias;
 					iconv_close(cd);
 					break;
 				}
@@ -208,8 +211,8 @@ tds_get_iconv_name(int charset)
 	if (!ucs2name)
 		ucs2name = iconv_names[POS_UCS2LE];
 
-	/* try using canonic name and UTF-8 and UCS2 */
-	cd = iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
+	/* try using canonic name and ASCII and UCS2 */
+	cd = iconv_open(iconv_names[POS_ASCII], canonic_charsets[charset].name);
 	if (cd != (iconv_t) - 1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
 		iconv_close(cd);
@@ -227,7 +230,7 @@ tds_get_iconv_name(int charset)
 		if (iconv_aliases[i].canonic != charset)
 			continue;
 
-		cd = iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
+		cd = iconv_open(iconv_names[POS_ASCII], iconv_aliases[i].alias);
 		if (cd != (iconv_t) - 1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
 			iconv_close(cd);
@@ -269,7 +272,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	TDS_ENCODING *client = &tds->iconv_info[client2ucs2].client_charset;
 	TDS_ENCODING *server = &tds->iconv_info[client2ucs2].server_charset;
 
-#if !HAVE_ICONV
+#if !HAVE_ICONV_ALWAYS
 
 	strcpy(client->name, "ISO-8859-1");
 	strcpy(server->name, UCS_2LE);
@@ -402,7 +405,7 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 }
 
 
-#if HAVE_ICONV
+#if HAVE_ICONV_ALWAYS
 static void
 _iconv_close(iconv_t * cd)
 {
@@ -418,7 +421,7 @@ _iconv_close(iconv_t * cd)
 void
 tds_iconv_close(TDSSOCKET * tds)
 {
-#if HAVE_ICONV
+#if HAVE_ICONV_ALWAYS
 	int i;
 
 	for (i = 0; i < tds->iconv_info_count; i++) {
@@ -436,7 +439,7 @@ size_t
 tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *input, size_t * input_size,
 	  char *output, size_t output_size)
 {
-#if HAVE_ICONV
+#if HAVE_ICONV_ALWAYS
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 	const size_t output_buffer_size = output_size;
@@ -594,7 +597,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 void
 tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
-#if HAVE_ICONV
+#if HAVE_ICONV_ALWAYS
 	TDSICONVINFO *iconv_info = tds->iconv_info;
 
 	const char *charset = lcid2charset(lcid);
