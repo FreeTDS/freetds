@@ -2,13 +2,23 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.7 2003-01-26 18:42:54 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.8 2003-02-12 06:16:16 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
-extern char PASSWORD[512];
-extern char USER[512];
 extern char SERVER[512];
 extern char DATABASE[512];
+extern char USER[512];
+extern char PASSWORD[512];
+
+typedef struct 
+{
+	int initialized;
+	char SERVER[512];
+	char DATABASE[512];
+	char USER[512];
+	char PASSWORD[512];
+} COMMON_PWD;
+extern COMMON_PWD common_pwd;
 
 CS_RETCODE read_login_info(void);
 

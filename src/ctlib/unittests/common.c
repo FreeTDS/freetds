@@ -11,13 +11,15 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.11 2003-02-12 06:16:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+
+COMMON_PWD common_pwd = {0};
 
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
@@ -29,6 +31,14 @@ read_login_info(void)
 	FILE *in;
 	char line[512];
 	char *s1, *s2;
+	
+	if (common_pwd.initialized) {
+		strcpy(USER, common_pwd.USER);
+		strcpy(SERVER, common_pwd.SERVER);
+		strcpy(PASSWORD, common_pwd.PASSWORD);
+		strcpy(DATABASE, common_pwd.DATABASE);
+		return CS_SUCCEED;
+	}
 
 	in = fopen("../../../PWD", "r");
 	if (!in) {
