@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-17 04:12:58 $</date>
-		<releaseinfo>$Revision: 1.36 $</releaseinfo>
+		<date>$Date: 2002-10-18 02:02:31 $</date>
+		<releaseinfo>$Revision: 1.37 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -202,9 +202,9 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 			<title>Status of this document</title>
 			<para>
 The document you are reading is version 
-$Revision: 1.36 $
+$Revision: 1.37 $
 , dated 
-$Date: 2002-10-17 04:12:58 $
+$Date: 2002-10-18 02:02:31 $
 .  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>
@@ -605,27 +605,24 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</row>
 	<row>
 	<entry>port</entry>
-	<entry>1433 for <acronym>TDS</> 4.2/7.0/8.0, 4000 for <acronym>TDS</> 5.0</entry>
-	<entry>The port number that the dataserver is running at.</entry>
-	<entry>any valid port.  
-	
-		<table <title>Default ports by product</title>
-		<tgroup cols='3' align='left' >
-		<colspec colname='Product'/>
-		<colspec colname='Version'/>
-		<colspec colname='Port'/>
+	<entrytbl cols=3> 
 		<thead>
-		<row>
-		  <entry>Product</entry>
-		  <entry>Version</entry>
-		  <entry>Port</entry>
-		</row>
+		  <row>
+		    <entry>Product</entry>
+		    <entry>Version</entry>
+		    <entry>Default Port</entry>
+		  </row>
 		</thead>
 
 		<tbody>
 		<row>
 		  <entry>Sybase <productname>SQL Server</productname></entry>
-		  <entry>all</entry>
+		  <entry>prior to System 10</entry>
+		  <entry>1433</entry>
+		</row>
+		<row>
+		  <entry>Sybase <productname>SQL Server</productname></entry>
+		  <entry>10 and up</entry>
 		  <entry>5000</entry>
 		</row>
 		<row>
@@ -639,11 +636,9 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 		  <entry>1433</entry>
 		</row>
 		</tbody>
-		
-		</tgroup>
-		</table>
-	<!--Microsoft <productname>SQL Server</productname> defaults to 1433. <productname>Sybase SQL Anywhere</productname> version 7.0 defaults to 2638.  -->
-	</entry>
+	</entrytbl>
+	<entry>The port number that the dataserver is listening to.</entry>
+	<entry>any valid port</entry>
 	
 	</row>
 	<row>
@@ -716,7 +711,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</row>
 	<row>
 	<entry>client charset</entry>
-	<entry>strip high-order byte <footnote><para>Valid for ISO 8859-1 character set.  See the Unicode <link linkend="ascii">appendix</link> for more information.  </para></footnote></entry>
+	<entry>strip high-order byte <footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
 	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
