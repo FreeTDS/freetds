@@ -1,3 +1,8 @@
+Wed Oct 13 15:46:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
+	* src/odbc/unittests/Makefile.am src/tds/unittests/Makefile.am:
+	- say to libtool that we are not going to install tests
+
 Wed Oct 13 14:55:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/tds/mem.c:
 	* src/tds/query.c src/tds/token.c:

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.19 2004-05-17 15:17:02 freddy77 Exp $
+# $Id: Makefile.am,v 1.20 2004-10-13 13:48:13 freddy77 Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
@@ -31,6 +31,7 @@ cancel_SOURCES	= cancel.c common.c common.h
 blk_in_SOURCES	= blk_in.h blk_in.c common.c common.h
 blk_out_SOURCES	= blk_out.c common.c common.h
 
+AM_LDFLAGS	=	-no-install
 LIBS		=	../libct.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
 CLEANFILES	=	tdsdump.out
