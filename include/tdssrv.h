@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _server_h_
-#define _server_h_
+#ifndef _tdssrv_h_
+#define _tdssrv_h_
 #endif
 
 #ifdef __cplusplus
@@ -28,11 +28,11 @@ extern "C" {
 }
 #endif
 
-static char rcsid_server_h[] =
-	"$Id: server.h,v 1.2 2002-09-23 15:10:21 castellano Exp $";
-static void *no_unused_server_h_warn[] = {
-	rcsid_server_h,
-	no_unused_server_h_warn};
+static char rcsid_tdssrv_h[] =
+	"$Id: tdssrv.h,v 1.1 2002-09-24 00:21:55 castellano Exp $";
+static void *no_unused_tdssrv_h_warn[] = {
+	rcsid_tdssrv_h,
+	no_unused_tdssrv_h_warn};
 
 /* login.c */
 void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login);

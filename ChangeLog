@@ -1,3 +1,11 @@
+Mon Sep 23 20:20:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/Makefile.am src/pool/user.c src/server/Makefile.am
+	  src/server/login.c src/server/server.c
+	  src/server/server.h (removed)
+	  include/tdssrv.h (added):
+	- Relocate server.h to the include directory so it can be installed.
+	  Now called tdssrv.h.
+
 Mon Sep 23 20:13:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/Makefile.am src/dblib/Makefile.am src/odbc/Makefile.am
 	  src/pool/Makefile.am src/tds/Makefile.am:

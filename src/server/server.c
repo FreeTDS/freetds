@@ -19,9 +19,9 @@
 
 #include <config.h>
 #include <tds.h>
-#include "server.h"
+#include "tdssrv.h"
 
-static char  software_version[]   = "$Id: server.c,v 1.5 2002-09-20 21:08:35 castellano Exp $";
+static char  software_version[]   = "$Id: server.c,v 1.6 2002-09-24 00:21:56 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

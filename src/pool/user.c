@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "pool.h"
-#include "server.h"
+#include "tdssrv.h"
 
 extern int waiters;
 
