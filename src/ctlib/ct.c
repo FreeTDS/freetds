@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.101 2003-07-01 13:42:41 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.102 2003-08-06 03:46:33 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2428,41 +2428,23 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	{
 		CS_INT option;
 		TDS_OPTION tds_option;
-	}
-	tds_bool_option_map[] =
-	{
-		{
-		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
-		, {
-		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
-		, {
-		CS_OPT_CHAINXACTS, TDS_OPT_CHAINXACTS}
-		, {
-		CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT}
-		, {
-		CS_OPT_FIPSFLAG, TDS_OPT_FIPSFLAG}
-		, {
-		CS_OPT_FORCEPLAN, TDS_OPT_FORCEPLAN}
-		, {
-		CS_OPT_FORMATONLY, TDS_OPT_FORMATONLY}
-		, {
-		CS_OPT_GETDATA, TDS_OPT_GETDATA}
-		, {
-		CS_OPT_NOCOUNT, TDS_OPT_NOCOUNT}
-		, {
-		CS_OPT_NOEXEC, TDS_OPT_NOEXEC}
-		, {
-		CS_OPT_PARSEONLY, TDS_OPT_PARSEONLY}
-		, {
-		CS_OPT_QUOTED_IDENT, TDS_OPT_QUOTED_IDENT}
-		, {
-		CS_OPT_RESTREES, TDS_OPT_RESTREES}
-		, {
-		CS_OPT_SHOWPLAN, TDS_OPT_SHOWPLAN}
-		, {
-		CS_OPT_STATS_IO, TDS_OPT_STAT_IO,}
-		, {
-		CS_OPT_STATS_TIME, TDS_OPT_STAT_TIME,}
+	} tds_bool_option_map[] = {
+		  { CS_OPT_ANSINULL, 		TDS_OPT_ANSINULL	}
+		, { CS_OPT_ANSINULL, 		TDS_OPT_ANSINULL	}
+		, { CS_OPT_CHAINXACTS, 		TDS_OPT_CHAINXACTS	}
+		, { CS_OPT_CURCLOSEONXACT,	TDS_OPT_CURCLOSEONXACT	}
+		, { CS_OPT_FIPSFLAG, 		TDS_OPT_FIPSFLAG	}
+		, { CS_OPT_FORCEPLAN, 		TDS_OPT_FORCEPLAN	}
+		, { CS_OPT_FORMATONLY, 		TDS_OPT_FORMATONLY	}
+		, { CS_OPT_GETDATA, 		TDS_OPT_GETDATA		}
+		, { CS_OPT_NOCOUNT, 		TDS_OPT_NOCOUNT		}
+		, { CS_OPT_NOEXEC, 		TDS_OPT_NOEXEC		}
+		, { CS_OPT_PARSEONLY, 		TDS_OPT_PARSEONLY	}
+		, { CS_OPT_QUOTED_IDENT, 	TDS_OPT_QUOTED_IDENT	}
+		, { CS_OPT_RESTREES, 		TDS_OPT_RESTREES	}
+		, { CS_OPT_SHOWPLAN, 		TDS_OPT_SHOWPLAN	}
+		, { CS_OPT_STATS_IO, 		TDS_OPT_STAT_IO		}
+		, { CS_OPT_STATS_TIME, 		TDS_OPT_STAT_TIME	}
 	};
 
 	if (param == NULL)
