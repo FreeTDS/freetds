@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.56 2003-03-11 20:31:20 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.57 2003-03-12 06:19:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
