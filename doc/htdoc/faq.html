@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: faq.html,v 1.4 2003-09-09 18:05:47 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.5 2004-05-21 17:53:58 jklowden Exp $ -->
 <head>
 <title>FreeTDS Frequently Asked Questions</title>
 </head>
@@ -38,7 +38,7 @@ This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
 since the last release, and to answer perennial questions (there are some).  </p>
 
-<div align=right><i>$Id: faq.html,v 1.4 2003-09-09 18:05:47 jklowden Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.5 2004-05-21 17:53:58 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -56,27 +56,32 @@ General Questions<ul>
 <a href="#Does FreeTDS support MSSQL">Does FreeTDS support MSSQL?</a></li>
 
 <li>
-<a href="#Is there any documentation for the TDS protocol">Is there any documentation for the TDS protocol?</a></li>
-
-<li>
-<a href="#Is there other documentation I should know about">Is there other documentation I should know about?</a></li>
-
-<li>
 <a href="#How can I get help">How can I get help (or support)?</a></li>
 
 <li>
 <a href="#Who is responsible for FreeTDS">Who is responsible for FreeTDS?</a></li>
 
 <li>
-<a href="#Why LGPL license instead of license foo">Why LGPL license instead of license foo?</a></li>
+<a href="#license">Why LGPL license?</a></li>
 
 </ul>
 
 <li>
-Implementation<ul>
+Documentation<ul>
+<li>
+<a href="#documentation">What sort of documentation is available?</a></li>
 
 <li>
-<a href="#How to I access the CVS">How to I access the CVS?</a></li>
+<a href="#refman">What about a Programmer's Reference Manual?</a></li>
+
+<li>
+<a href="#protocol">Is there any documentation for the TDS protocol?</a></li>
+
+</ul>
+
+
+<li>
+Implementation<ul>
 
 <li>
 <a href="#SYBASE">What's this SYBASE environment variable for?</a></li>
@@ -108,10 +113,10 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 <a href="#Are there any known issues">Are there any known issues?</a></li>
 
 <li>
-<a href="#thread safe">Is FreeTDS be thread safe?</a></li>
+<a href="#pending">Why does each connection support only one query at a time?</a></li>
 
 <li>
-<a href="#class library">Any plans to write a C++ class library directly over TDS?</a></li>
+<a href="#thread safe">Is FreeTDS be thread safe?</a></li>
 
 <li>
 <a href="#Are there plans to implement the OpenServer protocol/library">Are there plans to implement the OpenServer protocol/library?</a></li>
@@ -127,10 +132,7 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 Problems Building<ul>
 
 <li>
-<a href="#Apache/PHP core dumps on start up">Apache/PHP core dumps on start up</a></li>
-
-<li>
-<a href="#autoconf_problem">I get a message like "<tt>undefined symbol g_tds_err_handler</tt>" on Solaris.</a></li>
+<a href="#How to I access the CVS">How to I access the CVS?</a></li>
 
 <li>
 <a href="#build_macosx">Getting it to work on MAC OS X</a></li>
@@ -139,9 +141,6 @@ Problems Building<ul>
 
 <li>
 Problems Running<ul>
-
-<li>
-<a href="#Why is my TDS protocol wrong">Why is my TDS protocol wrong since upgrading to 0.53?</a></li>
 
 <li>
 <a href="#unknownmarker">What does this <tt>unknown marker</tt> message mean? </a></li>
@@ -204,42 +203,6 @@ places. </p>
 <p>Yes, as long as you configure the libraries with the 4.2, 7.0 or 8.0 protocol
 version. See the <a href="http://www.freetds.org/userguide/">User Guide</a> for details. </p>
 
-
-<a name="Is there any documentation for the TDS protocol"></a>
-<h3>Is there any documentation on the TDS protocol?</h3>
-
-<p>Yes, there is some <a href="tds.html">preliminary documentation</a> available.</p>
-
-<p>Sybase has also made the TDS 5.0 protocol documentation available
-for free (price) download, however the license is too restrictive to be
-used by developers of this project and the core developers have decided
-to not obtain the documentation until all license issues are resolved.</p>
-
-
-<a name="Is there other documentation I should know about"></a>
-<h3>Is there other documentation I should know about?</h3>
-
-<ul>
-	<li>FreeTDS Users Guide, on <a
-	href="http://www.freetds.org/userguide/">the web</a>
-	or as a <a
-	href="http://www.freetds.org/userguide.tgz">tarball</a>.</li>
-
-	<li><a
-	href="http://www.microsoft.com/sql/productdoc/">Microsoft's
-	Books Online</a>.</li>
-	<!-- goes to http://www.microsoft.com/sql/techinfo/productdoc/2000/default.asp -->
-	<!-- valid as at 12th november 2001 -->
-
-	<li><a
-	href="http://www.SchemaMania.org/jkl/booksonline/SQLBOL70/">Microsoft
-	Documentation</a> converted to HTML.</li>
-
-	<li><a href="http://www.sybase.com/support/manuals">Sybase's
-	Product Manuals</a>.</li>
-	<!-- valid as at 12th november 2001 -->
-
-</ul>
 
 <a name="How can I get help"></a>
 <h3>How can I get help (or support)?</h3>
@@ -341,55 +304,66 @@ Poyourow there for helping with the debugging.
 <!-- end generated table -->
 <p>(These addresses have been mangled to defy "spamaton" programs that mindlessly collect email addresses from the web.  To send email to anyone listed above, delete the "nospam." part of the address.)</p>
 
-<a name="Why LGPL license instead of license foo"></a>
-<h3>Why LGPL license instead of license foo?</h3>
+<a name="license"></a>
+<h3>Why LGPL license?</h3>
 
 <p>
+Brian Bruns started the project, and that's the choice he made.  
 LGPL was chosen because if you want a commercial client, you can buy them
-from Sybase, Microsoft or others. I do believe BSDish licenses are better
-in some cases, but not for something like this.</p>
+from Sybase, Microsoft or others. "I do believe BSDish licenses are better
+in some cases, but not for something like this," he said.  </p>
+
+<hr>
+		<!-- documentation -->
+
+<h2>Documentation</h2>
+
+<a name="documentation"></a>
+<h3>What sort of documentation is available?</h3>
+<ul>
+	<li>The FreeTDS <a
+	href="http://www.freetds.org/userguide/">User Guide</a> is the best place to start.  </li>
+
+	<li>FreeTDS , on <a
+	href="http://www.freetds.org/reference/">Reference Manual</a> is a beginning at 
+	an independent description of the client APIs and the TDS layer.  </li>
+</ul>
+
+
+<a name="refman"></a>
+<h3>What about a Programmer's Reference Manual?</h3>
+<P> The best information is available from the vendors.  FreeTDS means to conform to the documented
+ (and, in some cases, undocumented) behavior of the vendors' offerings.  
+<ul>
+ 	<li><a
+	href="http://www.microsoft.com/sql/productdoc/">Microsoft's
+	Books Online</a>.</li>
+	<!-- goes to http://www.microsoft.com/sql/techinfo/productdoc/2000/default.asp -->
+	<!-- valid as at 12th november 2001 -->
+
+	<li><a
+	href="http://www.SchemaMania.org/jkl/booksonline/SQLBOL70/">Microsoft
+	Documentation</a> converted to HTML.</li>
+
+	<li><a href="http://www.sybase.com/support/manuals">Sybase's
+	Product Manuals</a>.</li>
+	<!-- valid as at 12th november 2001 -->
+</ul>
+
+<a name="protocol"></a>
+<h3>Is there any documentation on the TDS protocol?</h3>
+
+<p>Yes, there is some <a href="tds.html">preliminary documentation</a> available.  The most up to date version is in the User Guide.  </p>
+
+<p>Sybase has also made the TDS 5.0 protocol documentation available
+for free (price) download.</p>
+
+
 
 <hr>
 		<!-- Implementation -->
 
 <h2>Implementation</h2>
-
-<a name="How to I access the CVS"></a>
-<h3>How do I access the CVS Repository?</h3>
-
-<p>The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">SourceForge</a></p>
-
-<ul>
-
-<li>The TDS, dblib, ctlib, and ODBC libraries are in the <a
-href="http://sourceforge.net/cvs/?group_id=33106">FreeTDS</a> project.
-(The root for anonymous access is
-<tt>:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds</tt>,
-the password is empty, and the module name is <tt>freetds</tt>)</li>
-
-<!-- :pserver:anon-cvs@freetds.internetcds.com:/Repository -->
-<li>The JDBC library is in the <a
-href="http://sourceforge.net/cvs/?group_id=33291">JTDS</a> project.
-(The root for anonymous access is
-<tt>:pserver:anonymous@cvs.jtds.sourceforge.net:/cvsroot/jtds</tt>,
-the password is empty, and the module name is <tt>jtds</tt>)</li>
-
-</ul>
-<p>Read-only access requires no password.  For the right to commit
-changes, contact the Project Admins listed on the SourceForge project
-summary pages.</p>
-<p>To obtain the current CVS copy of FreeTDS</p>
-<pre><small>cvs \
--d:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds \
-login
-
-cvs -z3 \
--d:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds \
-checkout freetds</small></pre>
-
-<p>Building from CVS is described in the file INSTALL.CVS, and
-involves running the <tt>autogen.sh</tt> script to generate and run
-<tt>configure</tt> then <tt>make</tt> and <tt>make install</tt>.</p>
 
 <a name="SYBASE"></a>
 <h3>What is this <code>SYBASE</code> environment variable?</h3>
@@ -473,14 +447,14 @@ the CTLib portion. Set your SYBASE environment variable to /usr/local/freetds
 and install DBD::Sybase. Don't worry too much if some of the tests fail.
 Do worry if the module doesn't compile. Make sure you have the most recent
 version of FreeTDS installed. You can check the 
-<a href="http://franklin.oit.unc.edu/cgi-bin/lyris.pl?visit=freetds">mailing list archives</a>
+<a href="http://lists.ibiblio.org/pipermail/freetds/">mailing list archives</a>
  or ask the mailing list for help.</p>
 
 <p>DBD::FreeTDS does not depend on the FreeTDS libraries. It is minimally
 functional but it is considered alpha software and is not being actively
 developed.</p>
 
-<p>From Michael Peppler (mpeppler@peppler.org):
+<p>From  <a href="mailto:mpeppler@peppler.org">Michael Peppler</a>:
 <br>Sybperl is a thin wrapper around the Sybase C APIs. It's a lot more
 mature than DBI/DBD::Sybase (I've been working on it for 9 years :-) and
 it's maybe more natural to use for someone who already knows the Sybase
@@ -493,28 +467,55 @@ DBD::ODBC is the newest option available.  Its primary advantage is not having t
 
 <a name="Are there any known issues"></a>
 <h3>Are there any known issues?</h3>
+   <UL>
+	<li>ODBC can be confusing to set up.  See the <tt>samples</tt> directory for example <tt>.ini</tt> files, and follow the User Guide's instructions carefully.  
+	<li>BCP of text and image types is currently broken for Microsoft servers.
+	<li>BCP does not support TDS 4.2.  You must use a more modern protocol version.  
+	<li>Server-side cursors work only in ct-lib.  
+	<li>There are no plans to implement db-lib's browse mode.  
+   </UL>
+   <P> Errors can sometimes be confusing.  When an application uses the library incorrectly, 
+   or when there are problems in a data file being uploaded with BCP, the message returned by FreeTDS 
+   can sometimes be misleading.  In the latter case, it's often necessary to examine the log file to 
+   understand what went wrong.  
 
-<p>ODBC can be confusing to set up, but it works, subject to limitations in the implementation.  See the samples directory for example .ini files.  </p>
+<a name="pending"></a>
+<h3>Why does each connection support only one query at a time?</h3>
 
-<p>BCP of text and image types is currently broken for Microsoft servers. </p>
+	<P>If you are accustomed to programming with other database servers, you may be surprised when you 
+first encounter this aspect of the TDS protocol.  When a TDS server -- be it by Microsoft or Sybase -- responds 
+to a query, it may send a result set to the client.  The server does not construct a complete result set first, 
+unless it needs to (say, to execute an <tt>ORDER BY</tt> clause).  Instead, it sends the rows as they're 
+selected/formed, in real time (if you will).  Likewise, the client libraries do <i>not</i> read all the rows 
+from the server before making them available to the client application.  
 
-<p>BCP does not support TDS 4.2.  You must use a more modern protocol version.  </p>
+	<P>As you can see, for the purposes of the connection, the client library is tightly coupled to the server;
+they are synchronized, share state information.  The server requires the client either to read all the results from 
+a query, or to indicate that no further rows are desired i.e., to issue a cancellation.  Until one of those two 
+things happens, the server will not accept new queries on that connection.  It will complain about "pending results".  
+
+	<P>How do mortal programmers cope with this strict one-query-at-a-time limitation?  For one thing, 
+they become better programmers.  
+	<ul>
+	<li>The solution often involves doing more SQL work, which often results in 
+less interaction with the server, which is almost always faster.  
+	<li>Even when that's not true, there's nothing to prevent the application from caching the whole results set in its own collection object.  
+	<li>Sometimes, the best answer is to open a new connection.  That's not as bad as it sounds, and it certainly not
+	unheard of to have 4 or more simultaneous connections supporting an application.  
+	</ul>
+	It's important to realize that the selection of rows and their accumulation into a container of some sort are two 
+	different functions.  A TDS server issues its results a row at a time, which the client library dutifully makes
+	available to the application on arrival.  It's up to the application -- or a higher-level library -- to form a 
+	"rowset" of some kind if desired.  
 
 <a name="thread_safe"></a>
 <h3>Is FreeTDS thread safe?</h3>
 
 <p>
-TDS is designed to be thread safe in the following manner. Different threads
+FreeTDS is designed to be thread safe in the following manner. Different threads
 may all use separate connections without interfering with each other.
 Threads may not share a DBPROCESS or CS_CONNECTION without controlling
 access via a mutex however.</p>
-
-<a name="class_library"></a>
-<h3>Any plans to write a C++ class library directly over TDS?</h3>
-<p>
-I have a JDBC-like class library written over dblib. I may port that (probably
-not soon).</p>
-<p>Another option may be using libodbc++, but I have not tested this.</p>
 
 <a name="Are there plans to implement the OpenServer protocol/library"></a>
 <h3>Are there plans to implement the OpenServer protocol/library?</h3>
@@ -581,42 +582,42 @@ But, <tt>libtdssrv</tt> will do the trick for some applications.</p>
 
 <h2>Problems Building</h2>
 
-<!-- fixed in 0.53? -->
+<a name="How to I access the CVS"></a>
+<h3>How do I access the CVS Repository?</h3>
 
-<a name="Apache/PHP core dumps on start up"></a>
-<h3>Apache/PHP core dumps on start up</h3>
+<p>The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">SourceForge</a></p>
 
-<p>
-You'll probably need to compile FreeTDS with "--enable-dbmfix", then edit
-PHP's "functions/sybase.c" file, and find any references to "dbopen" and
-replace with "tdsdbopen", then compile and run etc...</p>
+<ul>
 
-<p>The reason for this is that Apache is linked against DBM which includes
-a function named dbopen() too.</p>
-<p>
-Update: fixed in 0.53pre2, dbopen is now always a define to tdsdbopen</p>
+<li>The TDS, dblib, ctlib, and ODBC libraries are in the <a
+href="http://sourceforge.net/cvs/?group_id=33106">FreeTDS</a> project.
+(The root for anonymous access is
+<tt>:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds</tt>,
+the password is empty, and the module name is <tt>freetds</tt>)</li>
 
-<!-- fixed in 0.53? -->
+<!-- :pserver:anon-cvs@freetds.internetcds.com:/Repository -->
+<li>The JDBC library is in the <a
+href="http://sourceforge.net/cvs/?group_id=33291">JTDS</a> project.
+(The root for anonymous access is
+<tt>:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jtds</tt>,
+the password is empty, and the module name is <tt>jtds</tt>)</li>
 
-<a name="autoconf_problem"></a>
-<h3>I get a message like "<tt>undefined symbol g_tds_err_handler</tt>" on Solaris.</h3>
+</ul>
+<p>Read-only access requires no password.  For the right to commit
+changes, contact the Project Admins listed on the SourceForge project
+summary pages.</p>
+<p>To obtain the current CVS copy of FreeTDS</p>
+<pre><small>cvs \
+-d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds \
+login
 
-<p>
-There is a bug in the FreeTDS <tt>autoconf</tt> scripts on both Sparc and x86 platforms when linking to <tt>PHP</tt> and <tt>DBD::Sybase</tt>.</p>
+cvs -z3 \
+-d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds \
+checkout freetds</small></pre>
 
-<p>
-The workaround is to add "<font size="+1"><tt>-ltds</tt></font>" to the link command. </p>
-
-<p>
-For <tt>PHP</tt>, edit the <tt>EXTRA_LIBS</tt> line in <tt>config_vars.mk</tt></p>
-
-<p>
-For <tt>DBD::Sybase</tt> edit the Makefile after running <b><kbd>perl Makefile.PL</kbd></b>.  (Please send mail to the list if this doesn't help.)  </p>
-
-<p>
-If you have a Solaris machine and the requisite <tt>autoconf</tt> skills to fix this, a patch would be appreciated.</p>
-
-<p>Status: <em>fixed in version 0.60</em></p>
+<p>Building from CVS is described in the file INSTALL.CVS, and
+involves running the <tt>autogen.sh</tt> script to generate and run
+<tt>configure</tt> then <tt>make</tt> and <tt>make install</tt>.</p>
 
 <a name="build_macosx"></a>
 <h3>Getting it to work on MAC OS X.</h3>
@@ -670,38 +671,6 @@ steps.</p>
 		<!-- RUNNING -->
 
 <h2>Problems Running</h2>
-
-<a name="Why is my TDS protocol wrong"></a>
-<h3>Why is my TDS protocol wrong since upgrading to 0.53?</h3>
-
-<p>You upgraded your FreeTDS library and now seem to be 
-connecting at a different protocol version, but your interfaces file hasn't changed.  What gives?</p>
-
-<p>Between the 0.51 and 0.53 releases a lot of changes went into the 
-configuration options.  Formerly, at least three different schemes existed
-for specifying the protocol version: </p>
-
-<table border=1>
-	<tr>
-		<td><b>Location</b></td>
-		<td><b>Example format</b></td>
-	</tr>
-	<tr>
-		<td>build-time (<tt>./configure</tt>)</td>
-		<td>4.2</td>
-	</tr>
-	<tr>
-		<td>interfaces file</td>
-		<td>tds4.2</td>
-	</tr>
-	<tr>
-		<td>TDSVER environment variable</td>
-		<td>42</td>
-	</tr>
-</table>
-<p>The preferred form is now 4.2 and 
-the others are deprecated and have been or will be removed in subsequent 
-releases.</p>
 
 <a name="unknownmarker"></a>
 <h3>What does this <tt>unknown marker</tt> message mean?</h3>

@@ -1,3 +1,6 @@
+Fri May 21 13:41:21 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/faq.html removed stale questions, added 1/session.
+
 Wed May 19 19:51:10 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/cs.c add milliseconds to cs_dt_crack().
 	
