@@ -22,7 +22,9 @@
 #endif
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -56,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.105 2002-12-03 16:51:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.106 2002-12-06 16:54:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -976,16 +978,16 @@ long i;
 			i = atoi(tmpstr);
 			if (!IS_TINYINT(i))
 				return TDS_CONVERT_OVERFLOW;
-			cr->ti = i;
-			return 1;
+			cr->ti = (TDS_TINYINT) i;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			tds_numeric_to_string(src,tmpstr);
 			i = atoi(tmpstr);
 			if (!IS_SMALLINT(i))
 				return TDS_CONVERT_OVERFLOW;
-			cr->si = i;
-			return 2;
+			cr->si = (TDS_SMALLINT) i;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			tds_numeric_to_string(src,tmpstr);

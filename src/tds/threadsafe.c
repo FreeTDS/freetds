@@ -26,7 +26,9 @@
 #endif /* HAVE_UNISTD_H */
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -55,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.21 2002-11-24 12:01:16 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.22 2002-12-06 16:55:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *

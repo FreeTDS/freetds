@@ -22,7 +22,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -77,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.67 2002-12-03 08:59:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.68 2002-12-06 16:55:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);

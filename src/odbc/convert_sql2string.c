@@ -22,7 +22,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -48,7 +50,7 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.19 2002-11-30 14:11:36 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.20 2002-12-06 16:54:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**

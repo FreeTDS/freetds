@@ -26,7 +26,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
-#include <sqltypes.h>
+
+#include "tds.h"
 
 #ifdef UNIXODBC
 #include <sql.h>
@@ -36,13 +37,13 @@
 #include "isql.h"
 #include "isqlext.h"
 #endif
+#include <sqltypes.h>
 
-#include "tds.h"
 #include "tdsstring.h"
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.26 2002-12-03 08:59:52 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.27 2002-12-06 16:54:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST

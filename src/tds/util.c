@@ -22,7 +22,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -56,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.29 2002-12-04 22:37:40 jklowden Exp $";
+static char software_version[] = "$Id: util.c,v 1.30 2002-12-06 16:56:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */

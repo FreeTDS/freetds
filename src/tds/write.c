@@ -22,7 +22,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
 # include <time.h>
 #else
 # if HAVE_SYS_TIME_H
@@ -58,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.29 2002-12-03 16:51:48 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.30 2002-12-06 16:56:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
