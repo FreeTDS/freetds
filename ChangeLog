@@ -1,3 +1,11 @@
+Mon Dec 29 10:45:25 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* tds.dox use short names, so HP/UX can unpack the tarball. 
+	* doc/Makefile.am fail if man pages don't build, better doc install
+	* doc/README.releasing release engineering notes
+	* doc/userguide.sgml OS X ODBC note
+	* src/dblib/bcp.c patch from Christos for native bcp null handling
+	* src/tds/token.c remove bogus log entry
+	
 Mon Dec 29 15:18:26 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in doc/Makefile.am:
 	- install images for userguide
