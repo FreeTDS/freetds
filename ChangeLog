@@ -1,3 +1,6 @@
+Tue Jan  7 20:53:38 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix some issue with SQLGetFunctions
+
 Tue Jan  7 15:41:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c:
 	- avoid free(NULL)
