@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.55 2002-08-27 05:20:37 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.56 2002-08-27 06:43:10 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1508,25 +1508,25 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 	if( length == TDS_FAIL ) {
 		char varchar[2056];
 		CONV_RESULT result;
-		int fOK;
+		int fOK, len;
 		static short int depth=0;
 
 		assert( !depth++ );		/* failing to handle failure is a fault */
-		result.ib = varchar;
 		
 		switch(srctype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
-				length= (srclen<destlen)? srclen : destlen;
-				if( length > sizeof(varchar) ) 
-					length = sizeof(varchar);
-				strncpy( varchar, src, length );
+				len= (destlen < sizeof(varchar))? destlen : sizeof(varchar);
+				strncpy( varchar, src, len );
 				break;
 			default:
-				length= tds_convert_char(srctype,src, srclen, desttype,destlen, cr);
 				/* recurse once to convert whatever it was to varchar */
-				fOK = tds_convert(tds_ctx, srctype, src, srclen, SYBCHAR, destlen, &result);
+				len = tds_convert(tds_ctx, srctype, src, srclen, SYBCHAR, sizeof(varchar), &result);
+				strncpy( varchar, result.ib, len );
+				if( len >= 0 ) 
+					varchar[len] = '\0';
+				free(result.ib);
 				break;
 		}
 
