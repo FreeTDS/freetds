@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.31 2002-09-23 23:45:29 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.32 2002-09-25 19:37:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -777,32 +777,35 @@ int _ct_get_server_type(int datatype)
    }
 }
 
-CS_RETCODE ct_cancel(CS_CONNECTION *conn, CS_COMMAND *cmd, CS_INT type)
+CS_RETCODE
+ct_cancel(CS_CONNECTION *conn, CS_COMMAND *cmd, CS_INT type)
 {
-   CS_RETCODE ret;
+CS_RETCODE ret;
 
-   tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cancel()\n");
-   if (type == CS_CANCEL_CURRENT) {
-      if (conn || !cmd)  return CS_FAIL;
-      while (1) {
-         ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL);
-         if ((ret != CS_SUCCEED) && (ret != CS_ROW_FAIL)) {
-            break;
-         }
-      }
-      if (cmd->con->tds_socket) {
-         tds_free_all_results(cmd->con->tds_socket);
-      }
-      return ret;
-   }
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cancel()\n");
+	if (type == CS_CANCEL_CURRENT) {
+		if (conn || !cmd)
+			return CS_FAIL;
+		do {
+			ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED,
+					NULL);
+		} while ((ret == CS_SUCCEED) || (ret == CS_ROW_FAIL));
+		if (cmd->con->tds_socket) {
+			tds_free_all_results(cmd->con->tds_socket);
+		}
+		return ret;
+	}
 
-   if ((conn && cmd) || (!conn && !cmd)) {
-      return CS_FAIL;
-   }
-   if (cmd)  conn = cmd->con;
-   tds_send_cancel(conn->tds_socket);
-   tds_process_cancel(conn->tds_socket);
-   return CS_SUCCEED;
+	if ((conn && cmd) || (!conn && !cmd)) {
+		return CS_FAIL;
+	}
+	if (cmd)
+		conn = cmd->con;
+	if (conn && !IS_TDSDEAD(conn->tds_socket)) {
+		tds_send_cancel(conn->tds_socket);
+		tds_process_cancel(conn->tds_socket);
+	}
+	return CS_SUCCEED;
 }
 
 CS_RETCODE ct_describe(CS_COMMAND *cmd, CS_INT item, CS_DATAFMT *datafmt)

@@ -1,3 +1,8 @@
+Wed Sep 25 15:30:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/ct.c:
+	- Fix segfault when ct_cancel(CT_CANCEL_ALL) is called on an
+	  unopened connection.  Problem reported by Paul Rensing.
+
 Wed Sep 25 13:57:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/login.c src/tds/query.c src/tds/read.c src/tds/write.c:
 	- Replace bogus dblib error numbers with real ones.  Where a
