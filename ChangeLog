@@ -1,3 +1,7 @@
+Thu Dec 12 12:04:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/FreeTDS.dsp win32/msvc6/config.h:
+	- update win32 project
+
 Thu Dec 12 11:24:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/des.h src/tds/des.c:
 	- fix compiler with a C++ compiler

@@ -11,16 +11,16 @@
 #define ENABLE_EXTRA_CHECKS 1
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
-/* #define HAVE_ARPA_INET_H 1 */
+/* #undef HAVE_ARPA_INET_H */
 
 /* Define to 1 if you have the `asprintf' function. */
-/* #define HAVE_ASPRINTF 1 */
+/* #undef HAVE_ASPRINTF */
 
 /* Define to 1 if you have the `atoll' function. */
 #define HAVE_ATOLL 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-/* #define HAVE_DLFCN_H 1 */
+/* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
@@ -35,7 +35,7 @@
 
 /* Define to 1 if your system provides the 8-parameter version of
    gethostbyaddr_r(). */
-/* #define HAVE_FUNC_GETHOSTBYADDR_R_8 1 */
+/* #undef HAVE_FUNC_GETHOSTBYADDR_R_8 */
 
 /* Define to 1 if your system provides the 3-parameter version of
    gethostbyname_r(). */
@@ -47,7 +47,7 @@
 
 /* Define to 1 if your system provides the 6-parameter version of
    gethostbyname_r(). */
-/* #define HAVE_FUNC_GETHOSTBYNAME_R_6 1 */
+/* #undef HAVE_FUNC_GETHOSTBYNAME_R_6 */
 
 /* Define to 1 if your system provides the 4-parameter version of
    getservbyname_r(). */
@@ -59,28 +59,28 @@
 
 /* Define to 1 if your system provides the 6-parameter version of
    getservbyname_r(). */
-/* #define HAVE_FUNC_GETSERVBYNAME_R_6 1 */
+/* #undef HAVE_FUNC_GETSERVBYNAME_R_6 */
 
 /* Define to 1 if you have the `gethostent_r' function. */
-/* #define HAVE_GETHOSTENT_R 1 */
+/* #undef HAVE_GETHOSTENT_R */
 
 /* Define to 1 if you have the `gethostname' function. */
 #define HAVE_GETHOSTNAME 1
 
 /* Define to 1 if you have the `getpwuid' function. */
-/* #define HAVE_GETPWUID 1 */
+/* #undef HAVE_GETPWUID */
 
 /* Define to 1 if you have the `getpwuid_r' function. */
-/* #define HAVE_GETPWUID_R 1 */
+/* #undef HAVE_GETPWUID_R */
 
 /* Define to 1 if you have the `gettimeofday' function. */
-/* #define HAVE_GETTIMEOFDAY 1 */
+/* #undef HAVE_GETTIMEOFDAY */
 
 /* Define to 1 if you have the `getuid' function. */
-/* #define HAVE_GETUID 1 */
+/* #undef HAVE_GETUID */
 
 /* Define if you have the iconv() function. */
-/* #define HAVE_ICONV 1 */
+/* #undef HAVE_ICONV */
 
 /* Define to 1 if you have a 64-bit integral type. */
 #define HAVE_INT64 1
@@ -98,16 +98,16 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the <netdb.h> header file. */
-/* #define HAVE_NETDB_H 1 */
+/* #undef HAVE_NETDB_H */
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
-/* #define HAVE_NETINET_IN_H 1 */
+/* #undef HAVE_NETINET_IN_H */
 
 /* Define to 1 if you have the <paths.h> header file. */
-/* #define HAVE_PATHS_H 1 */
+/* #undef HAVE_PATHS_H */
 
 /* Define to 1 if you have the GNU Readline library. */
-/* #define HAVE_READLINE 1 */
+/* #undef HAVE_READLINE */
 
 /* Define to 1 if you have the `sethostent_r' function. */
 /* #undef HAVE_SETHOSTENT_R */
@@ -119,37 +119,37 @@
 #define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
+/* #undef HAVE_STRINGS_H */
 
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strtok_r' function. */
-/* #define HAVE_STRTOK_R 1 */
+/* #undef HAVE_STRTOK_R */
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
-/* #define HAVE_SYS_IOCTL_H 1 */
+/* #undef HAVE_SYS_IOCTL_H */
 
 /* Define to 1 if you have the <sys/param.h> header file. */
-/* #define HAVE_SYS_PARAM_H 1 */
+/* #undef HAVE_SYS_PARAM_H */
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 /* #define HAVE_SYS_SOCKET_H 1 */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-/* #define HAVE_SYS_STAT_H 1 */
+/* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-/* #define HAVE_SYS_TIME_H 1 */
+/* #undef HAVE_SYS_TIME_H */
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-/* #define HAVE_UNISTD_H 1 */
+/* #undef HAVE_UNISTD_H */
 
 /* Define to 1 if you have the `vasprintf' function. */
-/* #define HAVE_VASPRINTF 1 */
+/* #undef HAVE_VASPRINTF */
 
 /* Define to 1 if you have the `vsnprintf' function. */
 #define HAVE_VSNPRINTF 1

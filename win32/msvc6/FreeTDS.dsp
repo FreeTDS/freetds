@@ -129,6 +129,90 @@ SOURCE=..\..\src\odbc\sql2tds.c
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\connectparams.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\convert_sql2string.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\convert_tds2sql.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\des.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\freetds_sysconfdir.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\md4.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\odbc_util.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\prepare_query.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\replacements.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\odbc\sql2tds.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tds.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tds_configs.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tds_sysdep_private.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tds_sysdep_public.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\src\tds\tds_willconvert.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tdsconvert.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tdsiconv.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tdsodbc.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tdsstring.h
+# End Source File
+# Begin Source File
+
+SOURCE=\cpp\freetds\freetds\include\tdsver.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
