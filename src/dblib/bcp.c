@@ -45,6 +45,10 @@
 #include "syberror.h"
 #include "dblib.h"
 
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
 /*    was hard coded as 32768, but that made the local stack data size > 32K,
     which is not allowed on Mac OS 8/9. (mlilback, 11/7/01) */
 #ifdef TARGET_API_MAC_OS8
@@ -63,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.95 2004-05-30 20:23:05 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.96 2004-06-01 07:34:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);

@@ -32,7 +32,11 @@
 #include "sybdb.h"
 #include "dblib.h"
 
-static char software_version[] = "$Id: xact.c,v 1.7 2002-11-17 11:20:17 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: xact.c,v 1.8 2004-06-01 07:34:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

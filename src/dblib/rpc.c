@@ -42,10 +42,12 @@
 #include "sybfront.h"
 #include "sybdb.h"
 #include "dblib.h"
-#include <assert.h>
 
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char software_version[] = "$Id: rpc.c,v 1.25 2004-03-25 19:10:54 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.26 2004-06-01 07:34:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);

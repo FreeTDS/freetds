@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-static char software_version[] = "$Id: dbopen.c,v 1.5 2002-11-17 11:20:16 freddy77 Exp $";
+static char software_version[] = "$Id: dbopen.c,v 1.6 2004-06-01 07:34:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_CONFIG_H
@@ -25,6 +25,10 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #endif
 
 #include "sybdb.h"
+
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifdef dbopen
 #undef dbopen

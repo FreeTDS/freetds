@@ -33,8 +33,11 @@
 #include "dblib.h"
 /* #include "fortify.h" */
 
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.25 2004-04-04 15:43:22 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.26 2004-06-01 07:34:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*

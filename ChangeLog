@@ -1,7 +1,13 @@
+Tue Jun  1 09:33:52 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbopen.c:
+	* src/dblib/dbutil.c src/dblib/rpc.c src/dblib/xact.c:
+	* src/dblib/unittests/common.c:
+	- add support for dmalloc
+
 Tue Jun  1 01:46:10 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h src/dblib/dblib.c src/tds/login.c
 	- added dbsettime().  Query timeout remains broken, though.  
-	
+
 Mon May 31 11:37:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix typo in comment
 
