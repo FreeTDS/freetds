@@ -1,3 +1,6 @@
+Thu Mar 11 15:26:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/data.c: fix for mssql using TDS7
+
 Thu Mar 11 13:28:04 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fix return from SQLExecDirect/SQLExecute if insert/update/delete

@@ -3,15 +3,15 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.5 2004-03-11 10:29:08 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.6 2004-03-11 14:19:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
+static char sbuf[1024];
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, const char *expected)
 {
-	char sbuf[1024];
 	unsigned char out_buf[256];
 	SQLINTEGER out_len = 0;
 	SQL_NUMERIC_STRUCT *num;
@@ -100,8 +100,16 @@ main(int argc, char *argv[])
 	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
 	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
 	/* TODO some Sybase versions */
-	if (db_is_microsoft())
+	if (db_is_microsoft()) {
+		int old_result = result;
+
 		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
+		if (result && strcmp(sbuf, "13000179DF0D86487000000000000000000000") == 0) {
+			fprintf(stderr, "Ignore previous error. You should configure TDS 8.0 for this!!!\n");
+			if (!old_result)
+				result = 0;
+		}
+	}
 
 	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
 	Test("NUMERIC", "8765.4321", SQL_C_BINARY, "1200013D220000000000000000000000000000");
