@@ -1276,6 +1276,70 @@ Now you can run <Command>tdspool</Command> with the name of the pool you are ser
 Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host/port of the pooling server, and point your clients at it!
 		</para>
 		</sect1>
+		
+		<sect1 id="stunnel">
+			<title>stunnel HOWTO</title>
+		<para>
+		Contributed by <ulink url="mailto:bradleyb@u.washington.edu">Bradley Bell</ulink>.  
+		</para>
+		<para>
+To set up freetds over stunnel between a linux webserver and a W2k SQL server:
+		</para>
+                <orderedlist>
+                	<listitem>
+				<para>Get unencrypted freetds working</para></listitem>
+                	<listitem>
+				<para>Install openssl and stunnel on the linux box:
+			    	<ulink url="http://www.stunnel.org/">stunnel.org</ulink>
+				</para></listitem>
+                	<listitem>
+				<para>Download the <ulink url="http://www.stunnel.org/download/binaries.html">stunnel binary</ulink> and openssl dll's for Windows.  
+				</para></listitem>
+                	<listitem>
+				<para>Generate stunnel.pem (complete with Diffie-Hellman parameters) for
+   placement on the W2k box. See <ulink url="http://www.stunnel.org/faq/certs.html">instructions</ulink> in the stunnel FAQ.
+				</para></listitem>
+                	<listitem>
+				<para>Start stunnel on the W2k box:</para>
+  <screen>
+  <prompt>$ </prompt><userinput>stunnel.exe -d 61666 -r localhost:1433</userinput>
+  </screen>
+   
+   				<para>61666 is just an arbitrary port number.  
+				</para></listitem>
+                	<listitem>
+				<para>Start stunnel on the linux box:
+				</para>
+  <screen>
+  <prompt>$ </prompt><userinput>stunnel -c -d 1433 -r <replaceable>win2kserver</replaceable>:61666</userinput>
+  </screen>
+ 				<para>where <replaceable>win2kserver</replaceable> is the hostname or IP address of the W2k box.
+				</para></listitem>
+			<listitem>
+				<para>Set up freetds to use the tunnel.  If this is your unencrypted entry in
+   freetds.conf:
+				</para>
+<example>
+<title>Unencrypted entry in <filename>freetds.conf</filename></title>
+<programlisting>
+   [win2kserver]
+        host = win2kserver
+        port = 1433
+</programlisting>
+</example>
+				<para>   the encrypted equivalent uses:
+				</para>
+<example>
+<title>Encrypted entry in <filename>freetds.conf</filename></title>
+<programlisting>
+   [win2kserver]
+        host = localhost
+	port = 1433
+</programlisting>
+</example>
+				</listitem>
+                </orderedlist>
+		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="software">
