@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_options.c,v 1.1 2003-02-12 16:05:25 jklowden Exp $";
+static char software_version[] = "$Id: ct_options.c,v 1.2 2003-02-12 21:46:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Set and get options with ct_options */
@@ -18,22 +18,27 @@ int
 main(int argc, char *argv[])
 {
 	int verbose = 0;
-	
+
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
 	CS_RETCODE ret;
-	
+
 	CS_INT action;
 	CS_INT option;
 	CS_INT param;
 	CS_INT paramlen;
 	CS_INT outlen;
 
+	/* this strange hack is used to check a bus error on some machines */
+	CS_BOOL param_bools[2];
+
+#define param_bool *(param_bools+1)
+
 	if (verbose) {
 		fprintf(stdout, "Trying login\n");
 	}
-	
+
 	if (argc >= 5) {
 		common_pwd.initialized = argc;
 		strcpy(common_pwd.SERVER, argv[1]);
@@ -41,44 +46,44 @@ main(int argc, char *argv[])
 		strcpy(common_pwd.USER, argv[3]);
 		strcpy(common_pwd.PASSWORD, argv[4]);
 	}
-	
+
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
-	
+
 	action = CS_GET;
 	option = CS_TDS_VERSION;
 	param = CS_TRUE;
 	paramlen = sizeof(param);
 	outlen = sizeof(param);
-	
+
 	ret = ct_con_props(conn, action, option, &param, paramlen, &outlen);
-	if ( param != CS_TDS_50 ) {
+	if (param != CS_TDS_50) {
 		fprintf(stdout, "%s: ct_options implemented only in TDS 5.0.\n", __FILE__);
 		return 0;
 	}
 
-	
+
 	fprintf(stdout, "%s: Retrieve a boolean option\n", __FILE__);
-	
+
 	action = CS_GET;
 	option = CS_OPT_CHAINXACTS;
-	*(CS_TINYINT*) &param = CS_TRUE;
-	paramlen = sizeof(CS_TINYINT);
-	outlen = sizeof(CS_TINYINT);
-	
-	ret = ct_options(conn, action, option, &param, paramlen, &outlen);
+	param_bool = CS_TRUE;
+	paramlen = sizeof(param_bool);
+	outlen = sizeof(param_bool);
+
+	ret = ct_options(conn, action, option, &param_bool, paramlen, &outlen);
 
 	if (ret != CS_SUCCEED) {
-		ret = *(CS_TINYINT*) &param;
+		ret = param_bool;
 		fprintf(stdout, "%s:%d: CS_OPT_CHAINXACTS failed %d\n", __FILE__, __LINE__, ret);
 		return 1;
 	}
 
-	ret = *(CS_TINYINT*) &param;
-	fprintf(stdout, "%s:%d: CS_OPT_CHAINXACTS is %d\n", __FILE__, __LINE__, ret );
+	ret = param_bool;
+	fprintf(stdout, "%s:%d: CS_OPT_CHAINXACTS is %d\n", __FILE__, __LINE__, ret);
 
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");

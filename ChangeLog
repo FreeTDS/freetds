@@ -1,3 +1,7 @@
+Wed Feb 12 22:46:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/ct_options.c:
+	- use small hack to check bus error on some machines
+
 Wed Feb 12 15:57:52 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h  src/ctlib/ct.c  src/tds/token.c
 	- more untested support for optioncmd
