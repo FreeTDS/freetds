@@ -1,8 +1,20 @@
+Fri Sep 20 16:14:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/convert.c:
+	- Always return TDS_CONVERT_NOAVAIL for unimplemented conversions
+	  in type-specific conversion functions.
+	- Centralize logging of unimplemented conversions into tds_convert()
+	- Don't try to send server message 249 for client-side conversion
+	  errors.  Intead, just send client message 20050 indicating an error
+	  in the source field.
+	- "#if 0" out the tds_prtype() function that's no longer used
+	  (but keep it around because it might prove useful elsewhere).
+
 Fri Sep 20 14:15:21 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* Makefile.am	added version string
 	* doc/Makefile.am 	added version string
 				html builds if DOCBOOK_DSL is defined	
 	* doc/freebcp.txt	fixed minor glitches
+
 Fri Sep 20 10:37:07 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/token.c:
 	- Only invoke the client error handler with SYBESMSG per the conditions

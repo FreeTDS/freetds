@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.74 2002-09-20 15:01:14 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.75 2002-09-20 20:20:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -89,8 +89,8 @@ static int  is_monthname(char *);
 static int  is_numeric_dateformat(char *);
 #if 0
 static TDS_UINT utf16len(const utf16_t* s);
-#endif
 static const char *tds_prtype(int token);
+#endif
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern const int g__numeric_bytes_per_prec[];
@@ -100,29 +100,6 @@ extern const int g__numeric_bytes_per_prec[];
 /* f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value */
 #define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
-
-#define LOG_CONVERT() \
-	tdsdump_log(TDS_DBG_ERROR, "error_handler: conversion from " \
-			"%d to %d not supported\n", srctype, desttype)
-
-/* eg "Syntax error during explicit conversion of VARCHAR value ' - 13 ' to a DATETIME field." */
-
-void
-send_conversion_error_msg(TDSCONTEXT *tds_ctx, int err, int from, char *varchar, int to)
-{	
-	/* TODO 249 is the standard explicit conversion error number. 
-	 * If this function is passed some other number, it should have a 
-	 * static lookup table of message strings (by number and locale). --jkl
-	 */
-	const static char *message = "Syntax error during explicit conversion of %.30s value '%.3900s' to a %.30s field.";
-	char buffer[4096];
-	
-	sprintf( buffer, message, tds_prtype(from), varchar, tds_prtype(to) );
-	
-	assert( strlen(buffer) < sizeof(buffer) );
-
-	tds_client_msg(tds_ctx, NULL, err, 16, -1, -1, buffer); 
-}
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -199,7 +176,7 @@ static TDS_INT
 tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
       int desttype,TDS_UINT destlen, CONV_RESULT *cr)
 {
-      return TDS_FAIL;
+      return TDS_CONVERT_NOAVAIL;
 }
 */
 
@@ -263,20 +240,21 @@ char hex2[3];
 		memset(cr->ib+srclen, 0, cplen-srclen);
 		return cplen;
 		break;
-	 /* conversion not allowed */
-      case SYBDATETIME4:
-      case SYBDATETIME:
-      case SYBDATETIMN:
-	 break;
+	
+	/* conversions not allowed */
+	case SYBDATETIME4:
+	case SYBDATETIME:
+	case SYBDATETIMN:
+
 	/* TODO should we do some test for these types or work as ints ?? */
 	case SYBDECIMAL:
 	case SYBNUMERIC:
 	case SYBBIT:
 	case SYBBITN:
-      default:
-	 LOG_CONVERT();
-         return TDS_FAIL;
-         break;
+
+	default:
+		return TDS_CONVERT_NOAVAIL;
+		break;
    }
    return TDS_FAIL;
 }
@@ -559,8 +537,8 @@ TDS_INT tds_i;
 	 }
 	 return sizeof(TDS_UNIQUE);
 	 default:
-		LOG_CONVERT();
-	     return TDS_FAIL;
+		return TDS_CONVERT_NOAVAIL;
+		break;
 	} /* end switch */
 } /* tds_convert_char */
 
@@ -622,10 +600,9 @@ tds_convert_bit(int srctype, const TDS_CHAR *src,
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
-			break;
 		default:
-			LOG_CONVERT();
-            return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 	return TDS_FAIL;
 }
@@ -692,10 +669,9 @@ TDS_CHAR tmp_str[5];
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 	return TDS_FAIL;
 }
@@ -763,10 +739,9 @@ TDS_CHAR tmp_str[16];
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 	return TDS_FAIL;
 }
@@ -838,10 +813,9 @@ TDS_CHAR tmp_str[16];
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 	return TDS_FAIL;
 }
@@ -912,16 +886,14 @@ long i;
             cr->r = atof(tmpstr);
             return 4;
             break;
+	    /* TODO conversions to money */
 		/* conversions not allowed */
 		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
-			break;
-	    /* TODO conversions to money */
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
 			break;
 	}
 	return TDS_FAIL;
@@ -1006,9 +978,9 @@ char tmp_str[33];
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%04lu",dollars,fraction);
 			return stringz_to_numeric(tmp_str,cr);
-        default:
-			LOG_CONVERT();
-            return TDS_FAIL;
+        	default:
+            		return TDS_CONVERT_NOAVAIL;
+			break;
     }
 	return TDS_FAIL;
 }
@@ -1126,20 +1098,18 @@ int i;
 			cr->m.mny = mymoney;
 			return sizeof(TDS_MONEY);
 			break;
-		/* conversions not allowed */
-		case SYBUNIQUE:
-		case SYBDATETIME4:
-		case SYBDATETIME:
-		case SYBDATETIMN:
-			break;
 		case SYBDECIMAL:
 		case SYBNUMERIC:
 			s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
 			return stringz_to_numeric(tmpstr,cr);
 			break;
-	    default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+		/* conversions not allowed */
+		case SYBUNIQUE:
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+		default:
+			return TDS_CONVERT_NOAVAIL;
 			break;
 	}
 	return TDS_FAIL;
@@ -1203,10 +1173,8 @@ TDSDATEREC when;
 		case SYBMONEY:
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
 			break;
 	}
 	return TDS_FAIL;
@@ -1281,10 +1249,8 @@ TDSDATEREC when;
 		case SYBMONEY:
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
 			break;
 	}
 	return TDS_FAIL;
@@ -1369,10 +1335,9 @@ TDS_INT8 mymoney;
 	  case SYBDATETIME4:
 	  case SYBDATETIME:
 	  case SYBDATETIMN:
+	  default:
+            return TDS_CONVERT_NOAVAIL;
 	    break;
-      default:
-	    LOG_CONVERT();
-            return TDS_FAIL;
    }
 	return TDS_FAIL;
 }
@@ -1442,15 +1407,14 @@ char      tmp_str[25];
             		sprintf(tmp_str,"%.15g", the_value);
 			return stringz_to_numeric(tmp_str, cr);
 			break;
-	    /* not allowed */
-		case SYBUNIQUE:
+	/* not allowed */
+	case SYBUNIQUE:
 	case SYBDATETIME4:
 	case SYBDATETIME:
 	case SYBDATETIMN:
+	default:
+		return TDS_CONVERT_NOAVAIL;
 		break;
-      default:
-		LOG_CONVERT();
-			return TDS_FAIL;
    }
 	return TDS_FAIL;
 }
@@ -1500,10 +1464,9 @@ TDS_UCHAR buf[37];
 		case SYBDATETIMN:
 		case SYBREAL:
 		case SYBFLT8:
-			break;
 		default:
-			LOG_CONVERT();
-			return TDS_FAIL;
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 	return TDS_FAIL;
 }
@@ -1532,51 +1495,31 @@ tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 		CONV_RESULT *cr)
 {
 int length;
-char varchar[2056];
-CONV_RESULT result;
-int len;
 
 	length = tds_convert_noerror(tds_ctx,srctype,src,srclen,
 			desttype,destlen,cr);
 
-	switch(length) {
+	switch (length) {
 	case TDS_CONVERT_NOAVAIL:
+		tdsdump_log(TDS_DBG_ERROR,
+			"error: conversion from %d to %d not supported\n",
+			srctype, desttype);
 		tds_client_msg(tds_ctx, NULL, 20053, 4, -1, -1, "Requested data-conversion does not exist.");
-		LOG_CONVERT();
 		return TDS_FAIL;
 		break;
 	case TDS_FAIL:
+		/*
+		 * XXX TDS_FAIL == 0 ... investigate whether 0 is ever a
+		 * valid length return
+		 */
+		/* XXX Some of these should really be overflows, I think */
+		tds_client_msg(tds_ctx, NULL, 20050, 4, -1, -1, "Attempt to convert data stopped by syntax error in source field.");
+		return TDS_FAIL;
 		break;
 	default:
 		return length;
 		break;
 	}
-
-	switch(srctype) {
-		case SYBCHAR:
-		case SYBVARCHAR:
-		case SYBTEXT:
-			len= (srclen < (sizeof(varchar)-1))? srclen : (sizeof(varchar)-1);
-			strncpy( varchar, src, len );
-			varchar[len] = 0;
-			break;
-		default:
-			/* recurse once to convert whatever it was to varchar */
-			len = tds_convert_noerror(tds_ctx, srctype, src, srclen, SYBCHAR, sizeof(varchar), &result);
-			if (len < 0) len = 0;
-			if (len > (sizeof(varchar)-1))
-				len = sizeof(varchar)-1;
-			strncpy( varchar, result.c, len );
-			varchar[len] = '\0';
-			free(result.c);
-			break;
-	}
-
-	/*
-	 * XXX This is not correct -- 249 is a server message not a
-	 * XXX client error!
-         */
-	send_conversion_error_msg(tds_ctx, 249, srctype, varchar, desttype);
 
 	return TDS_FAIL;
 }
@@ -2932,6 +2875,7 @@ unsigned int num; /* we use unsigned here for best overflow check */
 	return TDS_SUCCEED;
 }
 
+#if 0
 /* 
  * Offer string equivalents of conversion tokens.  
  */
@@ -2982,4 +2926,6 @@ tds_prtype(int token)
       default:	break;
    }
    return result;
-} 
+}
+#endif
+
