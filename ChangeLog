@@ -1,3 +1,6 @@
+Tue Aug 31 16:02:14 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/vstrbuild.c: fix small memory leak
+
 Mon Aug 16 13:50:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/winlogin.c:
 	- remove warning

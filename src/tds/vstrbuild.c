@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.11 2002-12-10 17:02:05 freddy77 Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.12 2004-08-31 14:04:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct string_linked_list
@@ -207,6 +207,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen,
 		head = head->next;
 		free(item);
 	}
+	free(params);
 
 	va_end(ap);
 	return rc;
