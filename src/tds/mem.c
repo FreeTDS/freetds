@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.89 2003-07-13 16:06:02 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.90 2003-08-01 06:40:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -830,9 +830,13 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 
 	if (TDS_IS_MSSQL(tds)) {
 		switch (msgnum) {	/* MSSQL Server */
+
+			SQLS_ENTRY(3621,"01000");
 			SQLS_ENTRY(8153, "01003");	/* Null in aggregate */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
+			SQLS_ENTRY(109, "21S01");
+			SQLS_ENTRY(110, "21S01");
 			SQLS_ENTRY(1774, "21S02");	/* Ref column mismatch */
 			SQLS_ENTRY(8152, "22001");	/* String data would be truncated */
 			SQLS_ENTRY(5146, "22003");	/* Numeric value out of range */
@@ -850,6 +854,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(542, "22008");
 			SQLS_ENTRY(3607, "22012");	/* Div by zero */
 			SQLS_ENTRY(8134, "22012");
+			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(2627, "23000");	/* Constraint violation */
 			SQLS_ENTRY(547, "23000");
 			SQLS_ENTRY(550, "23000");
@@ -868,6 +873,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(16917, "24000");
 			SQLS_ENTRY(16946, "24000");
 			SQLS_ENTRY(16950, "24000");
+			SQLS_ENTRY(18456, "28000"); /* Login failed? */
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(17571, "42000");
 			SQLS_ENTRY(18002, "42000");
@@ -908,6 +914,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(4925, "42S21");	/* Column already exists */
 			SQLS_ENTRY(21255, "42S21");
 			SQLS_ENTRY(1911, "42S22");	/* Column not found */
+			SQLS_ENTRY(207, "42S22");
 			SQLS_ENTRY(4924, "42S22");
 			SQLS_ENTRY(4926, "42S22");
 			SQLS_ENTRY(15645, "42S22");
@@ -915,9 +922,12 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 		}
 	} else {
 		switch (msgnum) {	/* Sybase */
+			SQLS_ENTRY(3621,"01000");
 			SQLS_ENTRY(9501, "01003");	/* Null in aggregate */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
+			SQLS_ENTRY(109, "21S01");
+			SQLS_ENTRY(110, "21S01");			
 			SQLS_ENTRY(1715, "21S02");	/* Ref column mismatch */
 			SQLS_ENTRY(9502, "22001");	/* String data would be truncated */
 			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
@@ -928,6 +938,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(535, "22008");	/* Datetime out of range */
 			SQLS_ENTRY(542, "22008");
 			SQLS_ENTRY(3607, "22012");	/* Div by zero */
+			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(544, "23000");	/* Constraint violation */
 			SQLS_ENTRY(545, "23000");
 			SQLS_ENTRY(546, "23000");
@@ -973,6 +984,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(18091, "42S12");
 			SQLS_ENTRY(1921, "42S21");	/* Column already exists */
 			SQLS_ENTRY(1720, "42S22");	/* Column not found */
+			SQLS_ENTRY(207, "42S22");
 			SQLS_ENTRY(4934, "42S22");
 			SQLS_ENTRY(18117, "42S22");
 		}

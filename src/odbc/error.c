@@ -32,6 +32,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdsstring.h"
 #include "tdsodbc.h"
@@ -45,13 +47,13 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.23 2003-07-29 06:02:17 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.24 2003-08-01 06:40:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
-static void odbc_get_sqlstate(TDS_UINT native, char *dest_state);
 static void odbc_get_v2state(const char *sqlstate, char *dest_state);
+static void sqlstate2to3(char *state);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 
 struct s_SqlMsgMap
@@ -179,24 +181,6 @@ struct s_NativeToSqlstateMap
 	char sqlstate[6];
 };
 
-/* TODO use function in token.c */
-/* Try to map a native error code to a SQLSTATE */
-static const struct s_NativeToSqlstateMap NativeToSqlstateMap[] = {
-	{0, "42000"},
-	{109, "21S01"},
-	{110, "21S01"},
-	{207, "42S22"},
-	{208, "42S02"},
-	{245, "22018"},
-	{295, "22007"},
-	{296, "22007"},
-	{3621, "01000"},
-	{2627, "23000"},
-	{18456, "28000"},
-	{8152, "22001"},
-	{0, ""}
-};
-
 struct s_v3to2map
 {
 	char v3[6];
@@ -273,23 +257,6 @@ odbc_get_msg(const char *sqlstate)
 	return strdup("");
 }
 
-/* TODO use function in token.c */
-static void
-odbc_get_sqlstate(TDS_UINT native, char *dest_state)
-{
-	const struct s_NativeToSqlstateMap *pmap = NativeToSqlstateMap;
-
-	while (pmap->sqlstate[0]) {
-		if (pmap->native == native) {
-			strncpy(dest_state, pmap->sqlstate, 5);
-			return;
-		}
-		++pmap;
-	}
-	/* The default sqlstate */
-	strncpy(dest_state, "42000", 5);
-}
-
 static void
 odbc_get_v2state(const char *sqlstate, char *dest_state)
 {
@@ -347,10 +314,12 @@ odbc_errs_pop(struct _sql_errors *errs)
 }
 
 void
-odbc_errs_add(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, const char *server)
+odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, const char *server)
 {
 	struct _sql_error *p;
 	int n = errs->num_errors;
+	
+	assert(sqlstate);
 
 	if (errs->errs)
 		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
@@ -361,13 +330,11 @@ odbc_errs_add(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, c
 	errs->errs = p;
 
 	memset(p, 0, sizeof(*p));
-	errs->errs[n].native = native;
-	if (sqlstate) {
-		strncpy(errs->errs[n].state3, sqlstate, 5);
-		errs->errs[n].state3[5] = '\0';
-	} else
-		odbc_get_sqlstate(native, errs->errs[n].state3);
+	errs->errs[n].native = 0;
+	strncpy(errs->errs[n].state3, sqlstate, 5);
+	errs->errs[n].state3[5] = '\0';
 	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
+
 	/* TODO why driver ?? -- freddy77 */
 	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
@@ -393,13 +360,14 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	memset(p, 0, sizeof(*p));
 	errs->errs[n].native = native;
 	if (sqlstate) {
-		/* FIXME this can cause all error to be wrong !!! */
-		/* TODO is correct to set state3 ?? */
-		strncpy(errs->errs[n].state3, sqlstate, 5);
-		errs->errs[n].state3[5] = '\0';
-	} else
-		odbc_get_sqlstate(native, errs->errs[n].state3);
-	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
+		strncpy(errs->errs[n].state2, sqlstate, 5);
+		errs->errs[n].state2[5] = '\0';
+	} 
+	else
+		errs->errs[n].state2[0] = '\0';
+	strcpy(errs->errs[n].state3, errs->errs[n].state2);
+	sqlstate2to3(errs->errs[n].state3);
+	
 	/* TODO why driver ?? -- freddy77 */
 	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
@@ -408,7 +376,6 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	++errs->num_errors;
 }
 
-#if 0
 #define SQLS_MAP(v2,v3) if (strcmp(p,v2) == 0) {strcpy(p,v3); return;}
 static void
 sqlstate2to3(char *state)
@@ -463,7 +430,6 @@ sqlstate2to3(char *state)
 	SQLS_MAP("S1C00", "HYC00");
 	SQLS_MAP("S1T00", "HYT00");
 }
-#endif
 
 static SQLRETURN
 _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
@@ -474,8 +440,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	const char *msg;
 	char *p;
 
-	/* TODO use FreeTDS name ?? */
-	static const char msgprefix[] = "[ODBC SQL Server Driver][SQL Server]";
+	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
 	/* FIXME change type, possible overflow */
 	unsigned char odbc_ver = SQL_OV_ODBC2;
