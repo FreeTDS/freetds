@@ -27,11 +27,13 @@ EXPORTS
 	SQLFreeEnv
 	SQLFreeHandle
 	SQLFreeStmt
+	SQLGetConnectAttr
 	SQLGetConnectOption
 ;	SQLGetCursorName
 	SQLGetData
 	SQLGetDiagField
 	SQLGetDiagRec
+	SQLGetEnvAttr
 	SQLGetFunctions
 	SQLGetInfo
 	SQLGetStmtAttr

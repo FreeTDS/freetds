@@ -43,10 +43,12 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLFreeEnv=PROCEDURE,-
 		SQLFreeHandle=PROCEDURE,-
 		SQLFreeStmt=PROCEDURE,-
+		SQLGetConnectAttr=PROCEDURE,-
 		SQLGetConnectOption=PROCEDURE,-
 		SQLGetData=PROCEDURE,-
 		SQLGetDiagField=PROCEDURE,-
 		SQLGetDiagRec=PROCEDURE,-
+		SQLGetEnvAttr=PROCEDURE,-
 		SQLGetFunctions=PROCEDURE,-
 		SQLGetInfo=PROCEDURE,-
 		SQLGetStmtAttr=PROCEDURE,-
