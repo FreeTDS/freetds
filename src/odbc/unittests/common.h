@@ -1,6 +1,3 @@
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h> 
 #include <sqltypes.h>
 #include <sql.h>
 #include <sqlext.h>

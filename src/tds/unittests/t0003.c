@@ -17,11 +17,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <stdio.h>
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.3 2002-10-03 18:46:09 castellano Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.4 2002-10-13 23:28:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

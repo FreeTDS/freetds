@@ -3,20 +3,22 @@
 */
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+
+#if HAVE_STDLIB_H
 #include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#ifdef _WIN32
-#define DBNTWIN32
-#include <windows.h>
-#endif
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <sqlfront.h>
 #include <sqldb.h>
 
-static char  software_version[]   = "$Id: t0021.c,v 1.5 2002-10-04 14:56:55 castellano Exp $";
+static char  software_version[]   = "$Id: t0021.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -19,7 +19,7 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -31,28 +31,31 @@
 #  include <time.h>
 # endif
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <limits.h>
+
 #include <assert.h>
 #include <ctype.h>
-#ifdef WIN32
-#include <windows.h>
+#include <limits.h>
 #include <stdio.h>
-#else
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
+#include <stdarg.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include "tdsutil.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-
-static char  software_version[]   = "$Id: util.c,v 1.21 2002-10-13 17:52:29 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.22 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -392,28 +395,6 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
       }
    }
 } /* tdsdump_log()  */
-
-/* Jeff's hack*** NEW CODE *** */
-int tds_msleep(long usec)         /* returns 0 if ok, else -1 */
-     {
-#ifdef WIN32
-     Sleep(0);
-     return 0;
-#else
-     /* try to select stdin for writing just to create a delay */
-     /* fd_set fd_in; */
-    struct timeval delay;          /* _select() timeout */
-
-     /* FD_ZERO (&fd_in); */
-     /* FD_SET (fileno(stdin), &fd_in); */
-
-    delay.tv_sec = usec / 1000000L;
-    delay.tv_usec = usec % 1000000L;
-
-    return(select(0, (fd_set *)NULL, (fd_set *)NULL, (fd_set *)NULL, &delay));
-#endif
-    }
-/* Jeff's hack ***NEW CODE END**** */
 
 int
 tds_close_socket(TDSSOCKET *tds)

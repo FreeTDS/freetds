@@ -19,7 +19,11 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
 
 #include "ctlib.h"
 #include "cspublic.h"
@@ -27,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.13 2002-09-27 03:09:50 castellano Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.14 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

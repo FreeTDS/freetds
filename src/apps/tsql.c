@@ -19,14 +19,27 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#endif
+#endif /* HAVE_READLINE */
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
 #include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include "tds.h"
 #include "tdsconvert.h"
 #include "tdsutil.h"

@@ -21,6 +21,16 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdsconvert.h"
@@ -29,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.27 2002-10-09 10:20:56 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.28 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

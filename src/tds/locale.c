@@ -21,22 +21,17 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <assert.h>
 #include <ctype.h>
-#ifdef WIN32
-#include <windows.h>
 #include <stdio.h>
-#endif
-#ifndef WIN32
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include "tds.h"
 #include "tds_configs.h"
 #include "tdsutil.h"
@@ -44,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.10 2002-10-13 17:52:29 castellano Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.11 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -21,16 +21,21 @@
 #include <config.h>
 #endif
 
-#include <tdsutil.h>
-#include <tds.h>
-#include <tdsodbc.h>
+#include <assert.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include "tdsutil.h"
+#include "tds.h"
+#include "tdsodbc.h"
 #include "prepare_query.h"
 #include "convert_sql2string.h"
 #include "odbc_util.h"
-#include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.9 2002-10-02 20:38:55 castellano Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.10 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

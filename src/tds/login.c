@@ -19,7 +19,52 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
 #endif
+
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#include <stdio.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 
 #include "tds.h"
 #include "tdsutil.h"
@@ -28,13 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-#ifdef WIN32                                           
-#define IOCTL(a,b,c) ioctlsocket(a, b, c)
-#else
-#define IOCTL(a,b,c) ioctl(a, b, c)
-#endif
-
-static char  software_version[]   = "$Id: login.c,v 1.52 2002-10-02 21:00:33 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.53 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -221,7 +260,7 @@ TDSLOCINFO *locale = NULL;
 	if (connect_timeout) {
 		start = time (NULL);
 		ioctl_blocking = 1; /* ~0; //TRUE; */
-		if (IOCTL(tds->s, FIONBIO, &ioctl_blocking) < 0) {
+		if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
 			tds_free_config(config);
 			tds_free_socket(tds);
 			return TDS_FAIL;

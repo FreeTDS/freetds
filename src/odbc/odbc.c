@@ -34,7 +34,17 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
 
 #ifdef UNIXODBC
     #include <sql.h>
@@ -45,13 +55,10 @@
     #include "isqlext.h"
 #endif
 
-#include <tdsodbc.h>
-#include <tdsutil.h>
-#include <tdsconvert.h>
-#include <tds.h>
-
-#include <string.h>
-#include <stdio.h>
+#include "tds.h"
+#include "tdsodbc.h"
+#include "tdsutil.h"
+#include "tdsconvert.h"
 
 #include "connectparams.h"
 #include "odbc_util.h"
@@ -59,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.63 2002-10-09 10:20:55 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.64 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 

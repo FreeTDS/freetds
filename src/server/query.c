@@ -18,21 +18,20 @@
  */
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
-#include <unistd.h>
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.5 2002-10-01 15:43:15 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 char *
 tds_get_query(TDSSOCKET *tds) 
 {
-static unsigned char query[BUFSIZ];
+static unsigned char query[4096]; /* XXX buffer overrun */
 int len;
 
 	tds_get_byte(tds); /* 33 */

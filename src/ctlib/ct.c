@@ -19,15 +19,23 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
 #include <stdlib.h>
-#include <unistd.h>
-#include <ctpublic.h>
-#include <ctlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include "ctpublic.h"
+#include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.35 2002-09-28 12:47:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.36 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -21,6 +21,20 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include "tdsutil.h"
 #include "tds.h"
 #include "tdsconvert.h"
@@ -28,12 +42,6 @@
 #include "sybdb.h"
 #include "syberror.h"
 #include "dblib.h"
-#include <unistd.h>
-
-#ifdef TARGET_API_MAC_OS8
-#include <stdlib.h>
-#include "tdsconvert.h"
-#endif
 
 /*    was hard coded as 32768, but that made the local stack data size > 32K,
     which is not allowed on Mac OS 8/9. (mlilback, 11/7/01) */
@@ -45,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.24 2002-09-30 17:34:19 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.25 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

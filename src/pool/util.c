@@ -19,7 +19,10 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
+#include <ctype.h>
 
 #include "pool.h"
 

@@ -19,7 +19,7 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -31,14 +31,21 @@
 #  include <time.h>
 # endif
 #endif
-#include <tdsutil.h>
-#include <tds.h>
-#include <tdsconvert.h>
-#include "convert_sql2string.h"
+
 #include <assert.h>
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#include "tdsutil.h"
+#include "tds.h"
+#include "tdsconvert.h"
+#include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.12 2002-10-09 10:20:55 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.13 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

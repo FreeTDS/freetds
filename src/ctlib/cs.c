@@ -31,14 +31,24 @@
 #  include <time.h>
 # endif
 #endif
-#include <stdarg.h>
-#include <cspublic.h>
-#include <tdsconvert.h>
+
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include "cspublic.h"
+#include "tdsconvert.h"
 #include "ctlib.h"
 #include "tdsutil.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.24 2002-10-02 21:00:33 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.25 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -19,7 +19,9 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
 
 #include "tdsutil.h"
 #include "tds.h"
@@ -29,7 +31,7 @@
 #include <unistd.h>
 
 
-static char  software_version[]   = "$Id: rpc.c,v 1.3 2002-09-27 03:09:52 castellano Exp $";
+static char  software_version[]   = "$Id: rpc.c,v 1.4 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

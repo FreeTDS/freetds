@@ -21,7 +21,7 @@
 #define _tds_sysdep_private_h_
 
 static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h.in,v 1.1 2002-10-13 17:52:28 castellano Exp $";
+	"$Id: tds_sysdep_private.h.in,v 1.2 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = {
 	rcsid_tds_sysdep_private_h,
 	no_unused_tds_sysdep_private_h_warn};
@@ -30,13 +30,17 @@ static void *no_unused_tds_sysdep_private_h_warn[] = {
 extern "C" {
 #endif
 
-#define FREETDS_SYSCONFDIR "@sysconfdir@/"
+#ifdef __INCvxWorksh
+#include <ioLib.h> /* for FIONBIO */
+#endif /* __INCvxWorksh */
 
 #ifdef WIN32
+#include <windows.h>
 #define READSOCKET(a,b,c)	recv((a), (b), (c), 0L)
 #define WRITESOCKET(a,b,c)	send((a), (b), (c), 0L)
 #define CLOSESOCKET(a)		closesocket((a))
-#endif
+#define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
+#endif /* WIN32 */
 
 #ifndef READSOCKET
 #define READSOCKET(a,b,c)	read((a), (b), (c))
@@ -49,6 +53,12 @@ extern "C" {
 #ifndef CLOSESOCKET
 #define CLOSESOCKET(a)		close((a))
 #endif
+
+#ifndef IOCTLSOCKET
+#define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
+#endif
+
+#define FREETDS_SYSCONFDIR	"@sysconfdir@/"
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.13 2002-10-02 20:38:54 castellano Exp $";
+"$Id: tdsutil.h,v 1.14 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 void tds_set_parent(TDSSOCKET *tds, void *the_parent);
@@ -71,7 +71,6 @@ int  tds_is_message(TDSSOCKET *tds);
 int  tds_is_doneinproc(TDSSOCKET *tds);
 int  tds_is_control(TDSSOCKET *tds);
 
-int  tds_msleep(long usecs);
 /* added 'cause used but not declared (mlilback, 11/7/01) */
 TDS_INT tds_get_int(TDSSOCKET *tds);
 

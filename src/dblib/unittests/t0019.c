@@ -4,16 +4,19 @@
  * */
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
+#include <ctype.h>
 #include <stdio.h>
+
+#if HAVE_STDLIB_H
 #include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#ifdef _WIN32
-#define DBNTWIN32
-#include <windows.h>
-#endif
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <sqlfront.h>
 #include <sqldb.h>
 

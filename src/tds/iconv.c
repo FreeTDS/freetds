@@ -26,6 +26,10 @@
 #include <config.h>
 #endif
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdsiconv.h"

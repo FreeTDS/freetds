@@ -19,13 +19,24 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include <ctype.h>
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
 #endif
 
 #include "pool.h"
-#include <tds_configs.h>
+#include "tds_configs.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.4 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.5 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -59,7 +70,7 @@ int found = 0;
 }
 static int pool_read_conf_sections(FILE *in, char *poolname, TDS_POOL *pool)
 {
-char *section;
+unsigned char *section;
 int i, found = 0;
 
 	pool_read_conf_section(in, "global", pool);
@@ -88,9 +99,10 @@ static int pool_config_boolean(char *value)
 
 static int pool_read_conf_section(FILE *in, char *section, TDS_POOL *pool)
 {
-char line[256], option[256], value[256], *s;
+char line[256], option[256], value[256];
+unsigned char *s;
 int i;
-char p;
+unsigned char p;
 int insection = 0;
 int found = 0;
 

@@ -31,9 +31,24 @@
 #  include <time.h>
 # endif
 #endif
+
 #include <assert.h>
+#include <ctype.h>
+
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
 #include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #include "tdsconvert.h"
 #include "tdsutil.h"
@@ -42,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.93 2002-10-13 15:02:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.94 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

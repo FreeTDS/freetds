@@ -19,17 +19,24 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
-#include <tdsutil.h>
-#include <tds.h>
-#include <tdsodbc.h>
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include "tdsutil.h"
+#include "tds.h"
+#include "tdsodbc.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
-#include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.9 2002-10-03 19:07:32 castellano Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.10 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

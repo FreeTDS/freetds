@@ -21,41 +21,13 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.16 2002-10-13 17:52:28 castellano Exp $";
+	"$Id: tds.h,v 1.17 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
 
-#ifndef WIN32
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/signal.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#endif 
-
-#ifdef WIN32
-#include <windows.h>
-#include <stdio.h>
-#endif
-
-#ifdef __INCvxWorksh
-#include <signal.h>
-#include <ioLib.h> /* for FIONBIO */
-#else
-#include <errno.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
-#endif
-
 #include <stdarg.h>
+#include <time.h>
 
 #include "tdsver.h"
 #include "tds_sysdep_public.h"

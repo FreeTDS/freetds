@@ -19,7 +19,25 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
 
 #include "pool.h"
 #include "tdssrv.h"
@@ -44,7 +62,7 @@ TDS_POOL_USER *pool_user_create(TDS_POOL *pool, int s, struct sockaddr_in *sin)
 {
 TDS_POOL_USER *puser;
 int     fd;
-int     len;
+size_t  len;
 
 	/* FIX ME -- the accepted connections just grow until we run out */
 	puser = (TDS_POOL_USER *) &pool->users[pool->max_users];

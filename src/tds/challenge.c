@@ -21,6 +21,12 @@
 #include <config.h>
 #endif
 
+#include <ctype.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #include "md4.h"
 #include "des.h"

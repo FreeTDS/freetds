@@ -19,16 +19,21 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
-#include <tdsutil.h>
-#include <tds.h>
-#include <tdsconvert.h>
-#include "convert_tds2sql.h"
 #include <assert.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#include "tdsutil.h"
+#include "tds.h"
+#include "tdsconvert.h"
+#include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.16 2002-10-10 15:38:55 castellano Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.17 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

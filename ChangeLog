@@ -1,3 +1,51 @@
+Sun Oct 13 19:11:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/tds.h include/tds_sysdep_private.h.in
+	  include/tdsutil.h src/apps/tsql.c src/ctlib/cs.c src/ctlib/ct.c
+	  src/ctlib/ctutil.c src/ctlib/unittests/common.c
+	  src/ctlib/unittests/t0001.c src/ctlib/unittests/t0002.c
+	  src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c
+	  src/ctlib/unittests/t0005.c src/ctlib/unittests/t0006.c
+	  src/ctlib/unittests/t0007.c src/ctlib/unittests/t0008.c
+	  src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbutil.c
+	  src/dblib/rpc.c src/dblib/xact.c src/dblib/unittests/common.c
+	  src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c
+	  src/dblib/unittests/t0003.c src/dblib/unittests/t0004.c
+	  src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c
+	  src/dblib/unittests/t0007.c src/dblib/unittests/t0008.c
+	  src/dblib/unittests/t0009.c src/dblib/unittests/t0010.c
+	  src/dblib/unittests/t0011.c src/dblib/unittests/t0012.c
+	  src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c
+	  src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c
+	  src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c
+	  src/dblib/unittests/t0019.c src/dblib/unittests/t0020.c
+	  src/dblib/unittests/t0021.c src/dblib/unittests/t0022.c
+	  src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c
+	  src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/prepare_query.c
+	  src/odbc/unittests/common.c src/odbc/unittests/common.h
+	  src/odbc/unittests/t0001.c src/odbc/unittests/t0002.c
+	  src/odbc/unittests/t0003.c src/odbc/unittests/t0004.c
+	  src/pool/config.c src/pool/main.c src/pool/member.c src/pool/pool.h
+	  src/pool/stream.c src/pool/user.c src/pool/util.c src/server/login.c
+	  src/server/query.c src/server/server.c src/tds/challenge.c
+	  src/tds/config.c src/tds/convert.c src/tds/des.c src/tds/iconv.c
+	  src/tds/locale.c src/tds/login.c src/tds/md4.c src/tds/mem.c
+	  src/tds/numeric.c src/tds/query.c src/tds/read.c src/tds/threadsafe.c
+	  src/tds/token.c src/tds/util.c src/tds/vstrbuild.c src/tds/write.c
+	  src/tds/unittests/t0001.c src/tds/unittests/t0002.c
+	  src/tds/unittests/t0003.c src/tds/unittests/t0004.c
+	  src/tds/unittests/t0005.c src/tds/unittests/t0006.c
+	  src/tds/unittests/t0007.c src/tds/unittests/t0008.c:
+	- Header file infrastructure rewrite for portability.  Don't
+	  include anything that isn't absolutely necessary from tds.h or
+	  other central header files.  Use HAVE_* macros more
+	  consistently to pull in headers portably.  Add autoconf checks
+	  for a few more headers.
+	- Migrate some additional system dependencies into
+	  tds_sysdep_*.h.in.
+	- Remove unused and non-portable tds_msleep().
+	- Don't misuse BUFSIZ in src/server/query.c.
+	- Fix type of accept() length argument in src/pool/user.c.
+
 Sun Oct 13 13:47:42 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in include/Makefile.am include/replacements.h
 	  include/tds.h src/replacements/atoll.c src/tds/config.c

@@ -21,19 +21,14 @@
 #define _pool_h_
 
 static char rcsid_pool_h [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.4 2002-09-20 20:50:58 castellano Exp $";
+         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.5 2002-10-13 23:28:12 castellano Exp $";
 static void *no_unused_var_warn_pool_h[] = {rcsid_pool_h,
 					    no_unused_var_warn_pool_h};
 
-/* includes */
-#include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
+#endif /* HAVE_NETINET_IN_H */
+
 #include "tds.h"
 
 /* defines */
