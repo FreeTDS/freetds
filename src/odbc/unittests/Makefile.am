@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.27 2003-12-20 13:23:38 freddy77 Exp $
+# $Id: Makefile.am,v 1.27.2.1 2004-03-28 14:19:48 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -34,5 +34,5 @@ preperror_SOURCES = preperror.c common.c common.h
 
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
-DISTCLEANFILES	=	myodbc.ini odbcinst.ini
+DISTCLEANFILES	=	myodbc.ini odbcinst.ini odbc.ini
 

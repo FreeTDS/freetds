@@ -1,3 +1,7 @@
+Sun Mar 28 16:29:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: backported small patch for DBD::ODBC
+	* src/odbc/unittests/Makefile.am: clean odbc.ini
+
 Mon Mar 22 17:02:07 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* README document 0.62.2 changes
 
