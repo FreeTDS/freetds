@@ -21,7 +21,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.9 2003-04-10 13:09:57 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.10 2003-04-13 14:06:38 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -31,9 +31,6 @@ static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_i
 #ifdef __cplusplus
 extern "C"
 {
-#if 0
-}
-#endif
 #endif
 
 /**
@@ -63,12 +60,14 @@ struct tdsiconvinfo
 #endif
 };
 
-size_t tds_iconv (TDS_ICONV_DIRECTION, const TDSICONVINFO *, ICONV_CONST char *input, size_t * input_size, char *out_string, size_t maxlen);
+/* we use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
+#ifndef ICONV_CONST
+# define ICONV_CONST const
+#endif
+
+size_t tds_iconv (TDS_ICONV_DIRECTION io, const TDSICONVINFO *info, ICONV_CONST char *input, size_t * input_size, char *out_string, size_t maxlen);
 
 #ifdef __cplusplus
-#if 0
-{
-#endif
 }
 #endif
 
