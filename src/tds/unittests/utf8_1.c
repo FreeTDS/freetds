@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.3 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.4 2004-01-26 13:39:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -47,6 +47,10 @@ static const char *strings[] = {
 	chinese,
 	japanese,
 	hebrew,
+	NULL,			/* will be replaced with large data */
+	NULL,			/* will be replaced with large data */
+	NULL,			/* will be replaced with large data */
+	NULL,			/* will be replaced with large data */
 	NULL
 };
 
@@ -234,8 +238,23 @@ main(int argc, char **argv)
 
 	if (IS_TDS7_PLUS(tds)) {
 		char type[32];
+		char buf[1024];
+		int i, len;
 
-		test("NVARCHAR(40)", "NVARCHAR with large size");
+		strcpy(buf, "aaa");
+		len = 0;
+		for (i = 0; strlen(buf) < 980 && len < 200; ++i) {
+			char tmp[256];
+
+			strcat(buf, japanese);
+			len += strlen(to_utf8(japanese, tmp));
+		}
+		strings[sizeof(strings) / sizeof(strings[0]) - 5] = buf + 3;
+		strings[sizeof(strings) / sizeof(strings[0]) - 4] = buf + 2;
+		strings[sizeof(strings) / sizeof(strings[0]) - 3] = buf + 1;
+		strings[sizeof(strings) / sizeof(strings[0]) - 2] = buf;
+
+		test("NVARCHAR(500)", "NVARCHAR with large size");
 
 		sprintf(type, "NVARCHAR(%d)", max_len);
 		test(type, "NVARCHAR with sufficient size");

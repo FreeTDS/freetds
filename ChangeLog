@@ -1,3 +1,6 @@
+Mon Jan 26 14:39:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/utf8_1.c: improved to catch EINVAL problem
+
 Mon Jan 26 11:32:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/Makefile.am:
 	* src/ctlib/unittests/cancel.c(added):
