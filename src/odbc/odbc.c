@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.8 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.9 2002-01-23 03:54:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1228,7 +1228,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLALLOCSTMT);
 			_set_func_exists(pfExists,SQL_API_SQLBINDCOL);
 			_set_func_exists(pfExists,SQL_API_SQLCANCEL);
-			_set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTE);
+			_set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTES);
 			_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
 			_set_func_exists(pfExists,SQL_API_SQLCONNECT);
 			_set_func_exists(pfExists,SQL_API_SQLDATASOURCES);

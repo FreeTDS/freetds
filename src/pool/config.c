@@ -18,13 +18,12 @@
  */
 
 #include "pool.h"
+#include <tds_configs.h>
 
-static char  software_version[]   = "$Id: config.c,v 1.1 2002-01-22 05:59:35 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.2 2002-01-23 03:54:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-
-#define FREETDS_POOLCONFFILE "/usr/local/freetds/etc/pool.conf"
 
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"

@@ -1145,37 +1145,136 @@ As an alternative to FreeTDS logging, you might also consider using tcpdump or e
 		<sect1 id="tdspool">
 		<title>TDS Connection Pooling</title>
 		<para>
-FreeTDS 0.52 was the first to include a TDS Connection Pooling server.  It lives in the <filename>src/pool</filename> directory.  Configuration of it is not easy but we will try to sort out the details here.
+FreeTDS 0.52 was the first to include a TDS Connection Pooling server.  It lives in the <filename>src/pool</filename> directory.  
 		</para>
 		<para>
 The FreeTDS connection pool is a server process, it acts just like a SQL Server.  You can use any program to attach to it that you could use to attach to a real SQL Server.  The pool in turn connects to the SQL Server and database you specify, and attempts to share these connections.  See the <filename>README</filename> in the pool directory for a more detailed description of its inner workings.
 		</para>
 		<para>
-To configure the pooling server, first make sure FreeTDS has a working entry for real SQL Server by connecting to it with SQSH or another program. 
+To configure the pooling server, first make sure FreeTDS has a working entry for the real SQL Server by connecting to it with SQSH or another program. 
 		</para>
 <Note><para>
 The FreeTDS connection pool currently only supports TDS version 4.2.
 </para></Note>
 		<para>
-Next, modify the <filename>pool.h</filename> file in the pool directory, modifying the #defines for USER, PASSWORD, SERVER, DATABASE, and TDS_POOL_PORT.  The first 4 specify the connection information for the SQL Server, the last determines which port the connection pool will listen at.  Optionally, modify the min and max settings to control the number of active connections and other behaviours.
+First build the pool server.  The pooling server was added to the autoconf scripts after 0.53, so if you have an earlier version, please use CVS or a nightly snapshot.  Although, TDSPool is built using autoconf, it does not build by default.  To build, simply <command>cd</command> into the <filename>src/pool</filename> directory and issue the <command>make</command> command.
 		</para>
 		<para>
-Now build the pool server.  We haven't actually autoconf'ed the pooling server yet, so you'll have to build it by hand.
-		</para>
 <screen>
-<prompt>$ </prompt><userinput> gcc -o main.o -c main.c -I../../include</userinput>
-<prompt>$ </prompt><userinput> gcc -o stream.o -c stream.c -I../../include</userinput>
-<prompt>$ </prompt><userinput> gcc -o user.o -c user.c -I../../include</userinput>
-<prompt>$ </prompt><userinput> gcc -o member.o -c member.c -I../../include</userinput>
-<prompt>$ </prompt><userinput> gcc -o util.o -c util.c -I../../include</userinput>
-<prompt>$ </prompt><userinput> gcc -o tdspool *.o -L/usr/local/freetds/lib -ltds -ltdssrv</userinput>
+<prompt>$ </prompt><userinput> cd src/pool</userinput>
+<prompt>$ </prompt><userinput> make</userinput>
+<prompt>$ </prompt><userinput> su -</userinput>
+<prompt>password: </prompt>
+<prompt># </prompt><userinput> make install</userinput>
 </screen>
-		<para>
-Now you can run <Command>tdspool</Command>, edit your <filename>freetds.conf</filename> to include the host/port of the pooling server, and point your clients at it!
 		</para>
-<Note><para>
-Work is ongoing on the connection pooling server, and future releases will bring easier configuration and more features.
-</para></Note>
+		<para>
+You will now find an executable named <command>tdspool</command> in the <filename>/usr/local/freetds/bin</filename> directory (or whatever directory you specified if configure was run using the --with-prefix flag).
+		</para>
+		<para>
+Next, edit the <filename>pool.conf</filename> file in the FreeTDS's <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like the <filename>freetds.conf</filename> with a section name in brackets and options for each section in key/value pairs.
+		</para>
+		<para>
+Just like the <filename>freetds.conf</filename> file there are two types of sections, a [global] section whose options affect all pools, and a section with the name of the pool for pool-specific options.  The following options are supported and may appear in either section.
+		</para>
+		<para>
+<table>
+<title>freetds.conf settings</title>
+<tgroup cols="4">
+<thead>
+	<row>
+	<entry>Name</entry>
+	<entry>Default</entry>
+	<entry>Meaning</entry>
+	<entry>Possible Values</entry>
+	</row>
+</thead>
+<tbody>
+	<row>
+	<entry>user</entry>
+	<entry>none</entry>
+	<entry>The username used to connect to the dataserver.</entry>
+	<entry>Any valid user</entry>
+	</row>
+	<row>
+	<entry>password</entry>
+	<entry>none</entry>
+	<entry>The password of the user at the dataserver.</entry>
+	<entry>Any</entry>
+	</row>
+	<row>
+	<entry>server</entry>
+	<entry>none</entry>
+	<entry>The alias from the freetds.conf file representing the dataserver that will be connected to.</entry>
+	<entry>Any entry in the freetds.conf file</entry>
+	</row>
+	<row>
+	<entry>database</entry>
+	<entry>User's default database</entry>
+	<entry>The database on the dataserver to use.</entry>
+	<entry>Any valid database</entry>
+	</row>
+	<row>
+	<entry>port</entry>
+	<entry>none</entry>
+	<entry>Port on which tdspool will listen.</entry>
+	<entry>Any TCP port</entry>
+	</row>
+	<row>
+	<entry>min pool conn</entry>
+	<entry>none</entry>
+	<entry>Minimum number of open connections to maintain to the dataserver.</entry>
+	<entry>1 or more</entry>
+	</row>
+	<row>
+	<entry>max pool conn</entry>
+	<entry>none</entry>
+	<entry>Maximum number of open connections to open against the dataserver.</entry>
+	<entry>1 or more</entry>
+	</row>
+	<row>
+	<entry>max member age</entry>
+	<entry>0</entry>
+	<entry>Maximum age of idle members before connection is closed.</entry>
+	<entry>0 (no limit) or a number of seconds</entry>
+	</row>
+</tbody>
+</tgroup>
+</table>
+		</para>
+		<para>
+Now, let's put this into pratice.
+<example>
+<title>pool.conf</title>
+<programlisting>
+[global]
+	min pool conn = 5
+	max pool conn = 10
+	max member age = 120
+
+[mypool]
+	user = webuser
+	password = secret
+	database = ebiz
+	server = fooserv
+	max pool conn = 7
+	port = 5000
+</programlisting>
+</example>
+First, the [global] section defines that we will open 5 connections against the server initially, and will increase up to 10 as demand requires.  These connections will be closed after being idle for 2 minutes (120 seconds), but only until there are 5 remaining open.
+		</para>
+		<para>
+The [mypool] section defines a pool named 'mypool' that will listen on port 5000.  It will login to a SQL Server named 'fooserv' using the user webuser and the ever so clever password of 'secret'.  Once logged in, the connections will use the database 'ebiz' instead of webuser's default database.  Also, since this SQL Server has a limited number of CALs (Client Access Licenses) we are restricting the maximum number of connections to 7, which overrides the global setting of 10.
+		</para>
+		<para>
+Now you can run <Command>tdspool</Command> with the name of the pool you are serving.  
+<screen>
+<prompt>$ </prompt><userinput> tdspool mypool</userinput>
+</screen>
+		</para>
+		<para>
+Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host/port of the pooling server, and point your clients at it!
+		</para>
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->

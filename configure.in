@@ -23,8 +23,8 @@ dnl ------------------------------------------------------------
 dnl Checks for libraries.
 dnl ------------------------------------------------------------
 AC_CHECK_LIB(socket, socket, NETWORK_LIBS="$NETWORK_LIBS -lsocket")
+AC_CHECK_LIB(nsl, gethostbyname, NETWORK_LIBS="$NETWORK_LIBS -lnsl")
 AC_SUBST(NETWORK_LIBS)
-
 
 dnl ------------------------------------------------------------
 dnl Checks for header files.

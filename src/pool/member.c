@@ -54,19 +54,21 @@ char *query;
 	tds->in_buf = (unsigned char *)malloc(BLOCKSIZ);
 	memset(tds->in_buf,0,BLOCKSIZ);
 
-	query = (char *) malloc(strlen(pool->database) + 5);
-	sprintf(query, "use %s", pool->database);
-	rc = tds_submit_query(tds,query);
-	free(query);
-	if (rc != TDS_SUCCEED) {
-		fprintf(stderr, "changing database failed\n");
-		return NULL;
-	}
+	if (pool->database && strlen(pool->database)) {
+		query = (char *) malloc(strlen(pool->database) + 5);
+		sprintf(query, "use %s", pool->database);
+		rc = tds_submit_query(tds,query);
+		free(query);
+		if (rc != TDS_SUCCEED) {
+			fprintf(stderr, "changing database failed\n");
+			return NULL;
+		}
 
-	do {
-		marker=tds_get_byte(tds);
-		tds_process_default_tokens(tds,marker);
-	} while (marker!=TDS_DONE_TOKEN);
+		do {
+			marker=tds_get_byte(tds);
+			tds_process_default_tokens(tds,marker);
+		} while (marker!=TDS_DONE_TOKEN);
+	}
 
 
 	return tds;

@@ -1,3 +1,12 @@
+Tue Jan 22 22:33:17 2002	Brian Bruns	<camber@ais.org>
+
+	* configure.in: Added check for nsl(gethostbyname) for Solaris (Nick Gorham)
+	* include/tds_configs.h.in: Added pool server conf file
+	* doc/userguide.sgml: Updated tdspool section
+	* src/odbc/odbc.c: ODBC 2.5 fix from openlink
+	* src/pool/member.c: use database only if exists
+	* src/pool/config.c: Config file location from build time
+
 Mon Jan 21 22:03:37 2002  Brian Bruns  <camber@ais.org>
 	
 	* src/pool/user.c: Fixed EINVAL accept() bug
