@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.94 2003-04-08 11:10:55 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.95 2003-04-08 15:38:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -808,7 +808,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_string(tds, connect_info->host_name, host_name_len);
 	if (!domain_login) {
 		tds_put_string(tds, connect_info->user_name, user_name_len);
-/* tds7_ascii2unicode(tds, connect_info->password, unicode_string, 256); */
 		password_len = tds_iconv(to_server, tds->iconv_info, connect_info->password, (size_t *) &password_len, unicode_string, 256);
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
