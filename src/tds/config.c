@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.97 2004-11-07 08:59:33 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.98 2004-12-06 13:29:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -457,8 +457,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_g_append_mode = tds_config_boolean(value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s'...ignoring.\n", option);
-		fprintf(stderr, "FreeTDS: %s:%d: ignoring unrecognized option '%s'\n", 
-				__FILE__, __LINE__, option);
 	}
 }
 

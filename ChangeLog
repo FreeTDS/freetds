@@ -1,3 +1,8 @@
+Sun Dec 06 14:28:28 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c: remove printf
+	* src/tds/convert.c: cleanup
+	* src/tds/query.c: reuse tds_to_quering
+
 Sun Dec 05 21:03:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS: updated
 	* include/ctlib.h include/tds.h src/ctlib/ct.c:

@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.148 2004-12-05 20:05:09 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.149 2004-12-06 13:29:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1663,19 +1663,10 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_declare() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare (): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
-	tds_free_results(cursor->res_info);
-	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
-	tds->internal_sp_called = 0;
+	tds->queryStarttime = time(NULL);
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
@@ -1712,19 +1703,10 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_open() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
-	tds_free_results(cursor->res_info);
-	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
-	tds->internal_sp_called = 0;
+	tds->queryStarttime = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -1805,19 +1787,10 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_setrows() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows (): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
-	tds_free_results(cursor->res_info);
-	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
-	tds->internal_sp_called = 0;
+	tds->queryStarttime = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -1856,18 +1829,10 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_fetch() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch (): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
-	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
-	tds->internal_sp_called = 0;
+	tds->queryStarttime = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -1955,18 +1920,10 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_close() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	if (tds->state == TDS_PENDING) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close (): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
-	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
-	tds->internal_sp_called = 0;
+	tds->queryStarttime = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -2025,17 +1982,17 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_dealloc() cursor id = %d\n", cursor->cursor_id);
 
-	tds->queryStarttime = time(NULL);
-
-	tds->internal_sp_called = 0;
-	tds->cur_cursor = cursor;
 	if (IS_TDS50(tds)) {
+		if (tds_to_quering(tds) == TDS_FAIL)
+			return TDS_FAIL;
+		tds->queryStarttime = time(NULL);
+		tds->cur_cursor = cursor;
+
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
 		tds_put_int(tds, cursor->cursor_id);	/* cursor id returned by the server is available now */
 		tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
-		tds->state = TDS_QUERYING;
 		res = tds_flush_packet(tds);
 	}
 

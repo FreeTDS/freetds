@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.144 2004-10-14 14:47:39 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.145 2004-12-06 13:29:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -359,46 +359,6 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		cr->ib = (TDS_CHAR *) malloc(srclen / 2);
 		test_alloc(cr->ib);
 
-#if 0
-		/* hey, I know this looks a bit cruddy,   */
-		/* and I'm sure it can all be done in one */
-		/* statement, so go on, make my day!      */
-
-		for (i = 0, j = 0; i < srclen; i++, j++) {
-
-			inp = src[i];
-			if (inp > 47 && inp < 58)	/* '0' thru '9' */
-				hex1 = inp - 48;
-			else if (inp > 96 && inp < 103)	/* 'a' thru 'f' */
-				hex1 = inp - 87;
-			else if (inp > 64 && inp < 71)	/* 'A' thru 'F' */
-				hex1 = inp - 55;
-			else {
-				fprintf(stderr,
-					"error_handler:  Attempt to convert data stopped by syntax error in source field \n");
-				return;
-			}
-
-			hex1 = hex1 << 4;
-
-			i++;
-
-			inp = src[i];
-			if (inp > 47 && inp < 58)	/* '0' thru '9' */
-				hex1 = hex1 | (inp - 48);
-			else if (inp > 96 && inp < 103)	/* 'a' thru 'f' */
-				hex1 = hex1 | (inp - 87);
-			else if (inp > 64 && inp < 71)	/* 'A' thru 'F' */
-				hex1 = hex1 | (inp - 55);
-			else {
-				fprintf(stderr,
-					"error_handler:  Attempt to convert data stopped by syntax error in source field \n");
-				return;
-			}
-
-			cr->ib[j] = hex1;
-		}
-#else
 		for (i = srclen; --i >= j;) {
 			hex1 = src[i];
 
@@ -421,7 +381,6 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			else
 				cr->ib[i / 2] |= hex1 << 4;
 		}
-#endif
 		return srclen / 2;
 		break;
 	case SYBINT1:
