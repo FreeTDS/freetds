@@ -42,13 +42,15 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.120 2004-10-14 08:16:44 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.121 2004-12-02 12:37:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
 
 static TDSENV *tds_alloc_env(TDSSOCKET * tds, int bufsize);
 static void tds_free_env(TDSSOCKET * tds);
+static void tds_free_compute_results(TDSSOCKET * tds);
+static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
@@ -456,25 +458,31 @@ tds_free_param_results(TDSPARAMINFO * param_info)
 	tds_free_results(param_info);
 }
 
-void
+static void
 tds_free_compute_result(TDSCOMPUTEINFO * comp_info)
 {
 	tds_free_results(comp_info);
 }
 
-void
-tds_free_compute_results(TDSCOMPUTEINFO ** comp_info, TDS_INT num_comp)
+static void
+tds_free_compute_results(TDSSOCKET * tds)
 {
-
 	int i;
+	TDSCOMPUTEINFO ** comp_info = tds->comp_info;
+	TDS_INT num_comp = tds->num_comp_info;
+
+	tds->comp_info = NULL;
+	tds->num_comp_info = 0;
 
 	for (i = 0; i < num_comp; i++) {
-		if (comp_info && comp_info[i])
+		if (comp_info && comp_info[i]) {
+			if (tds->current_results == comp_info[i])
+				tds->current_results = NULL;
 			tds_free_compute_result(comp_info[i]);
+		}
 	}
 	if (num_comp)
 		free(comp_info);
-
 }
 
 void
@@ -513,13 +521,15 @@ void
 tds_free_all_results(TDSSOCKET * tds)
 {
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_all_results()\n");
+	if (tds->current_results == tds->res_info)
+		tds->current_results = NULL;
 	tds_free_results(tds->res_info);
 	tds->res_info = NULL;
+	if (tds->current_results == tds->param_info)
+		tds->current_results = NULL;
 	tds_free_param_results(tds->param_info);
 	tds->param_info = NULL;
-	tds_free_compute_results(tds->comp_info, tds->num_comp_info);
-	tds->comp_info = NULL;
-	tds->num_comp_info = 0;
+	tds_free_compute_results(tds);
 	tds->has_status = 0;
 	tds->ret_status = 0;
 }

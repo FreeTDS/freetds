@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.1 2004-12-01 13:11:36 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.2 2004-12-02 12:37:54 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -52,6 +52,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 {
 	const int invalid_state = 0;
 	int found, i;
+	int result_found = 0;
 
 	assert(tds);
 
@@ -83,21 +84,34 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(tds->in_buf_max == 0 || tds->in_buf != NULL);
 
 	/* test res_info */
-	if (tds->res_info)
+	if (tds->res_info) {
 		tds_check_resultinfo_extra(tds->res_info);
+		if (tds->current_results == tds->res_info)
+			result_found = 1;
+	}
 
 	/* test num_comp_info, comp_info */
 	assert(tds->num_comp_info >= 0);
 	for (i = 0; i < tds->num_comp_info; ++i) {
 		assert(tds->comp_info);
 		tds_check_resultinfo_extra(tds->comp_info[i]);
+		if (tds->current_results == tds->comp_info[i])
+			result_found = 1;
 	}
 
-	/* TODO param_info */
-	if (tds->param_info)
+	/* param_info */
+	if (tds->param_info) {
 		tds_check_resultinfo_extra(tds->param_info);
+		if (tds->current_results == tds->param_info)
+			result_found = 1;
+	}
 
-	/* TODO test cursor */
+	/* test cursor */
+	if (tds->cursor) {
+		tds_check_cursor_extra(tds->cursor);
+		if (tds->current_results == tds->cursor->res_info)
+			result_found = 1;
+	}
 
 	/* test num_dyms, cur_dyn, dyns*/
 	found = 0;
@@ -107,6 +121,8 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		if (tds->dyns[i] == tds->cur_dyn)
 			found = 1;
 		tds_check_dynamic_extra(tds->dyns[i]);
+		if (tds->current_results == tds->dyns[i]->res_info)
+			result_found = 1;
 	}
 	assert(found || tds->cur_dyn == NULL);
 
@@ -114,7 +130,16 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	tds_check_context_extra(tds->tds_ctx);
 
 	/* TODO test char_conv_count, char_convs */
-	/* TODO current_results should be one of res_info, comp_info, param_info or dynamic */
+
+	/* current_results should be one of res_info, comp_info, param_info or dynamic */
+	assert(result_found || tds->current_results == NULL);
+	
+	/* we can't have compute and no results */
+	assert(tds->num_comp_info == 0 || tds->res_info != NULL);
+	
+	/* we can't have normal and parameters results */
+	/* TODO too strict ?? */
+/*	assert(tds->param_info == NULL || tds->res_info == NULL); */
 }
 
 void
@@ -134,6 +159,8 @@ tds_check_env_extra(const TDSENV * env)
 void
 tds_check_column_extra(const TDSCOLUMN * column)
 {
+	int size;
+
 	assert(column);
 
 	assert(column->column_varint_size <= 5);
@@ -141,13 +168,57 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(column->column_scale <= column->column_prec);
 	assert(column->column_prec <= 77);
 
+	/* I don't like this that much... freddy77 */
+	if (column->column_type == 0)
+		return;
+
 	assert(strlen(column->table_name) < sizeof(column->table_name));
 	assert(strlen(column->column_name) < sizeof(column->column_name));
 	
-	/* TODO check type and server type same or SQLNCHAR -> SQLCHAR */
-	/* TODO check current size <= size */
-	/* TODO check size of fixed type correct */
-	/* TODO check size of N types (ie intN) it's supported */
+	/* check type and server type same or SQLNCHAR -> SQLCHAR */
+	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type);
+	assert(tds_get_varint_size(column->on_server.column_type) == column->column_varint_size);
+
+	/* check current size <= size */
+	if (is_numeric_type(column->column_type)) {
+		/* I don't like that much this difference between numeric and not numeric - freddy77 */
+		/* TODO what should be the size ?? */
+		/* assert(column->column_cur_size == sizeof(TDS_NUMERIC) || column->column_cur_size == 0); */
+	} else {
+		assert(column->column_cur_size <= column->column_size);
+	}
+
+	/* check size of fixed type correct */
+	size = tds_get_size_by_type(column->column_type);
+	assert(size != 0);
+	if (size > 0 && column->column_type != SYBBITN) {
+		/* check macro */
+		assert(is_fixed_type(column->column_type));
+		/* check current size */
+		assert(size == column->column_size);
+		assert(column->column_size == column->column_cur_size || (column->column_type == SYBUNIQUE && column->column_cur_size == 0));
+		/* check same type and size on server */
+		assert(column->column_type == column->on_server.column_type);
+		assert(column->column_size == column->on_server.column_size);
+		
+		assert(column->column_varint_size == 0 || (column->column_type == SYBUNIQUE && column->column_varint_size == 1));
+	} else {
+		assert(!is_fixed_type(column->column_type));
+		assert(column->column_varint_size != 0);
+	}
+
+	/* check size of nullable types (ie intN) it's supported */
+	if (tds_get_conversion_type(column->column_type, 4) != column->column_type) {
+		/* check macro */
+		assert(is_nullable_type(column->column_type));
+		/* check that size it's correct for this type of nullable */
+		assert(tds_get_conversion_type(column->column_type, column->column_size) != column->column_type);
+		/* check current size */
+		assert(column->column_size == column->column_cur_size || column->column_cur_size == 0);
+		/* check same type and size on server */
+		assert(column->column_type == column->on_server.column_type);
+		assert(column->column_size == column->on_server.column_size);
+	}
 }
 
 void

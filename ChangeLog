@@ -1,3 +1,13 @@
+Thu Dec 02 13:36:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/tds/unittests/dynamic1.c:
+	- fix for tests
+	* src/tds/data.c: set on_server.column_size correctly
+	* include/tds.h src/tds/mem.c:
+	- cleanup
+	- unset current_results if needed
+	* src/tds/tds_checks.c src/tds/tds_checks.h:
+	- improved tests
+
 Thu Dec 02 12:28:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h include/tdsstring.h src/odbc/connectparams.h:
 	* src/odbc/convert_sql2string.h src/odbc/convert_tds2sql.h:

@@ -28,15 +28,18 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
+#include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.8 2004-09-23 11:33:38 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.9 2004-12-02 12:37:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
 static int tds_get_varint_size(int datatype);
+#endif
 
 /**
  * Set type of column initializing all dependency 
@@ -53,7 +56,7 @@ tds_set_column_type(TDSCOLUMN * curcol, int type)
 	/* set size */
 	curcol->column_varint_size = tds_get_varint_size(type);
 	if (curcol->column_varint_size == 0)
-		curcol->column_cur_size = curcol->column_size = tds_get_size_by_type(type);
+		curcol->column_cur_size = curcol->on_server.column_size = curcol->column_size = tds_get_size_by_type(type);
 
 }
 
@@ -95,14 +98,17 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 	/* TODO VARIANT, when supported */
 	switch (type) {
 	case SYBUNIQUE:
-		curcol->column_size = sizeof(TDS_UNIQUE);
+		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_UNIQUE);
 		break;
 	default:
 		break;
 	}
 }
 
-static int
+#if !ENABLE_EXTRA_CHECKS
+static
+#endif
+int
 tds_get_cardinal_type(int datatype)
 {
 	switch (datatype) {
@@ -126,7 +132,10 @@ tds_get_cardinal_type(int datatype)
  * tds_get_varint_size() returns the size of a variable length integer
  * returned in a TDS 7.0 result string
  */
-static int
+#if !ENABLE_EXTRA_CHECKS
+static
+#endif
+int
 tds_get_varint_size(int datatype)
 {
 	switch (datatype) {

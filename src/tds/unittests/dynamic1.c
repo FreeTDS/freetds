@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.11 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.12 2004-12-02 12:37:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -47,6 +47,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	curcol->column_type = SYBINTN;
 	curcol->on_server.column_type = SYBINTN;
 	curcol->column_size = sizeof(TDS_INT);
+	curcol->on_server.column_size = sizeof(TDS_INT);
 	curcol->column_varint_size = 1;
 	curcol->column_cur_size = sizeof(TDS_INT);
 

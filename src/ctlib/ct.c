@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.130 2004-11-28 20:44:14 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.131 2004-12-02 12:37:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -3479,7 +3479,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
 				return NULL;
-			pcol->column_size = p->maxlen;
+			pcol->on_server.column_size = pcol->column_size = p->maxlen;
 		}
 
 		if (p->status == CS_RETURN)
