@@ -8,11 +8,9 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.40 2003-03-03 21:19:51 freddy77 Exp $
+To Do List	$Id: TODO,v 1.41 2003-03-12 06:19:32 jklowden Exp $
 ------------
 Broken:
-
-For 0.61 version:
 
 For 0.62 version:
 . Move website docs (not UG) to doc/htdoc, put in CVS
@@ -24,6 +22,7 @@ For 0.62 version:
 . Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . Rationalize libtds structure and *_alloc functions (ML 5 December, sb:"names")
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
+. freebcp should understand \n as newline. Also \r and \0 (null byte).
 
 For future versions (in priority order within library):
   All:
