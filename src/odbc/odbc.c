@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.288.2.1 2004-03-06 10:59:14 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.288.2.2 2004-03-06 13:51:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -514,6 +514,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
+				stmt->row_count = tds->rows_affected;
 				if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 					break;
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
@@ -527,6 +528,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 				/* TODO test flags ? check error and change result ? */
 			case TDS_DONEINPROC_RESULT:
+				stmt->row_count = tds->rows_affected;
 				if (in_row) {
 					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
@@ -540,8 +542,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
 				}
-				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
+				stmt->row_count = TDS_NO_COUNT;
 				in_row = 1;
 				break;
 			case TDS_MSG_RESULT:
@@ -1135,6 +1137,8 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	/* is not the same of using APD sql_desc_bind_type */
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
+	
+	stmt->row_count = TDS_NO_COUNT;
 
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -2377,6 +2381,7 @@ _SQLExecute(TDS_STMT * stmt)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	stmt->dbc->current_statement = stmt;
+	stmt->row_count = TDS_NO_COUNT;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
@@ -2396,6 +2401,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
+			stmt->row_count = tds->rows_affected;
 			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 				break;
 			if (done_flags & TDS_DONE_ERROR)
@@ -2404,6 +2410,7 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 		case TDS_DONEINPROC_RESULT:
+			stmt->row_count = tds->rows_affected;
 			if (done_flags & TDS_DONE_ERROR)
 				result = SQL_ERROR;
 			if (in_row)
@@ -2417,8 +2424,8 @@ _SQLExecute(TDS_STMT * stmt)
 				done = 1;
 				break;
 			}
-			tds->rows_affected = TDS_NO_COUNT;
 			stmt->row = 0;
+			stmt->row_count = TDS_NO_COUNT;
 			result = SQL_SUCCESS;
 			in_row = 1;
 			break;
@@ -2557,6 +2564,7 @@ _SQLFetch(TDS_STMT * stmt)
 
 	switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
 	case TDS_NO_MORE_ROWS:
+		stmt->row_count = tds->rows_affected;
 		odbc_populate_ird(stmt);
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 		return SQL_NO_DATA_FOUND;
@@ -3060,14 +3068,9 @@ _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 
 	tds = stmt->dbc->tds_socket;
 
-	/* test is this is current statement */
-	if (stmt->dbc->current_statement != stmt) {
-		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
 	*pcrow = -1;
-	if (tds->rows_affected != TDS_NO_COUNT)
-		*pcrow = tds->rows_affected;
+	if (stmt->row_count != TDS_NO_COUNT)
+		*pcrow = stmt->row_count;
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 

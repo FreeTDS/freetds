@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.63 2003-12-19 10:29:25 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.63.2.1 2004-03-06 13:51:28 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -296,6 +296,8 @@ struct _hstmt
 	/** number of parameter in current query */
 	unsigned int param_count;
 	int row;
+	/** row count to return */
+	int row_count;
 	/* do NOT free dynamic, free from socket or attach to connection */
 	TDSDYNAMIC *dyn;
 	struct _sql_errors errs;
