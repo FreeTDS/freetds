@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.27 2002-12-22 11:33:06 freddy77 Exp $
+# version $Id: Makefile.am,v 1.28 2003-03-18 06:19:40 jklowden Exp $
 SUBDIRS		=	include src doc samples win32
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
@@ -40,6 +40,14 @@ endif
 snapshot:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
-doxy:
-	cd src/tds; $(MAKE) doxy
+if HAVE_DOXYGEN
+doxyfile: $(top_srcdir)/tds.dox
+	cp $(top_srcdir)/tds.dox doxyfile
+	
+## The doxygen configuration file understands environment variables.  
 
+doxy: doxyfile  $(SUBDIRS)
+	SRCDIR=$(top_srcdir); \
+	export SRCDIR; \
+	$(DOXYGEN) doxyfile
+endif
