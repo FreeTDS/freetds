@@ -1,3 +1,6 @@
+Sat Jul 03 19:40:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/date.c: updated reusing macros
+
 Tue Jun 29 08:37:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/convert_error.c:
 	- fix test

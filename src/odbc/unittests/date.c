@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.7 2004-04-15 19:27:33 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.8 2004-07-03 17:40:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -18,24 +18,15 @@ DoTest(int n)
 
 	TIMESTAMP_STRUCT ts;
 
-	if (CommandWithResult(Statement, "select convert(datetime, '2002-12-27 18:43:21')") != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
-	}
+	if (CommandWithResult(Statement, "select convert(datetime, '2002-12-27 18:43:21')") != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to execute statement");
 
 	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
-	}
+	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO)
+		ODBC_REPORT_ERROR("Unable to fetch row");
 
-	if (SQLDescribeCol(Statement, 1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable) != SQL_SUCCESS) {
-		printf("Error getting data\n");
-		CheckReturn();
-		exit(1);
-	}
+	if (SQLDescribeCol(Statement, 1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Error getting data");
 
 	if (n == 0) {
 		memset(&ts, 0, sizeof(ts));
@@ -60,18 +51,12 @@ DoTest(int n)
 	}
 
 	res = SQLFetch(Statement);
-	if (res != SQL_NO_DATA) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
-	}
+	if (res != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Unable to fetch row");
 
 	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to close cursr\n");
-		CheckReturn();
-		exit(1);
-	}
+	if (!SQL_SUCCEEDED(res))
+		ODBC_REPORT_ERROR("Unable to close cursor");
 }
 
 int
