@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.335 2004-07-29 10:22:40 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.336 2004-07-29 11:23:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2012,8 +2012,8 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #ifndef ENABLE_DEVELOPING
 		assert(desc->header.sql_desc_array_size == 1);
 		if ((SQLINTEGER) (TDS_INTPTR) Value != 1) {
-			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+			odbc_errs_add(&desc->errs, "01S02", NULL, NULL);
+			ODBC_RETURN(desc, SQL_SUCCESS_WITH_INFO);
 		}
 #endif
 		IIN(SQLINTEGER, desc->header.sql_desc_array_size);
