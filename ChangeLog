@@ -29,7 +29,7 @@ Fri Sep 20 16:14:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	  in type-specific conversion functions.
 	- Centralize logging of unimplemented conversions into tds_convert()
 	- Don't try to send server message 249 for client-side conversion
-	  errors.  Intead, just send client message 20050 indicating an error
+	  errors.  Instead, just send client message 20050 indicating an error
 	  in the source field.
 	- "#if 0" out the tds_prtype() function that's no longer used
 	  (but keep it around because it might prove useful elsewhere).
@@ -88,7 +88,6 @@ Wed Sep 18 10:25:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	- support autocommit option on mssql
 	- return error/info information to client
 	- support SQLTransact
-	
 
 Wed Sep 18 10:25:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* applied patch #610810 from Ross Simpson (slightly modified)
@@ -295,8 +294,8 @@ Thu Sep 12 19:28:07 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/dblib/unittests/t0022.c: test output params
 	* src/dblib/unittests/Makefile.am: add t0022
 	* src/dblib/dblib.c: implement dbnumrets, and dbret*() funcs
-	* src/tds/token.c(tds_process_param_result): load paraminfo struct instead
-	  of skipping
+	* src/tds/token.c(tds_process_param_result): load paraminfo struct
+	  instead of skipping
 
 Thu Sep 12 15:59:01 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
@@ -397,10 +396,10 @@ Sun Sep  8 19:41:41 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	
 Sun Sep  8 08:54:07 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/tds/read.c(tds_get_byte): change precedence on empty packet sink.
-	* src/tds/config.c(tds_read_conf_file): consolidated redundant code into 
-       tds_try_conf_file().  Added check for conf file added programmatically
-       to match documented behaviour.
-     * src/apps/tsql.c:  Add -I option to set freetds.conf/interfaces file
+	* src/tds/config.c(tds_read_conf_file): consolidated redundant code into
+          tds_try_conf_file().  Added check for conf file added programmatically
+          to match documented behaviour.
+	* src/apps/tsql.c:  Add -I option to set freetds.conf/interfaces file
 
 Sat Sep  7 23:36:06 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/userguide.sgml:
@@ -451,7 +450,8 @@ Thu Sep  5 22:42:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 Thu Sep  5 18:16:05 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c:	Applied Eric's ML patch of 9 September:
 	- added a -d option which only turns on the dumping if selected.
-	- malloc() bug  sometimes caused last character of a tablename to be truncated.
+	- malloc() bug sometimes caused last character of a tablename to be
+	  truncated.
 
 Thu Sep  5  15:46:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: make --sysconfdir option work and make distcheck work
@@ -464,7 +464,7 @@ Thu Sep  5  14:04:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 
 Thu Sep  5 06:51:17 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/odbc/obdc.c: added SQL_FLOAT and friends to SQLColAttributes 
-	display size.
+	  display size.
 
 Thu Sep  5  10:19:56 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: print NULL for null, do not call tds_convert
