@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.38 2003-12-27 09:57:50 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.39 2003-12-29 14:20:46 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -11,7 +11,8 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds_layer.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
-		$(DOCDIR)/userguide $(DOCDIR)/reference 
+		$(DOCDIR)/userguide $(DOCDIR)/reference \
+		images/important.gif images/note.gif images/tip.gif
 
 man_MANS	= freebcp.1 tsql.1
 nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
@@ -28,7 +29,8 @@ man:	freebcp.1 tsql.1
 
 installdirs: 
 	$(mkinstalldirs)	$(TARGET_DOCDIR)/userguide    \
-				$(TARGET_DOCDIR)/reference
+				$(TARGET_DOCDIR)/reference    \
+				$(TARGET_DOCDIR)/images
 
 freebcp.1: freebcp.txt
 	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >freebcp.1
@@ -41,9 +43,13 @@ tsql.1: tsql.txt
 install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 	$(mkinstalldirs) $(DOCDIR)
 	if test -e $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
-	$(INSTALL_DATA) -c $$d/$(DOCDIR)/userguide/* $(TARGET_DOCDIR)/userguide
+	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
+	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/userguide ';'
 	if test -e $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
-	$(INSTALL_DATA) -c $$d/$(DOCDIR)/reference/* $(TARGET_DOCDIR)/reference
+	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) -exec \
+	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/reference ';'
+	find $(srcdir)/images -name \*.gif -exec \
+	$(INSTALL_DATA) {} $(TARGET_DOCDIR)/images ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)

@@ -91,7 +91,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files doc
 %defattr (-,root,root)
-%doc doc/doc/freetds-%{version}/userguide doc/doc/freetds-%{version}/reference
+%doc doc/doc/freetds-%{version}/userguide doc/doc/freetds-%{version}/images doc/doc/freetds-%{version}/reference
  
 %changelog 
 * Sun Mar 30 2003 Frediano Ziglio <freddy77@angelfire.com>

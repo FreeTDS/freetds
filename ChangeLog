@@ -1,3 +1,8 @@
+Mon Dec 29 15:18:26 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.spec.in doc/Makefile.am:
+	- install images for userguide
+	- fix install on some old platforms (like HP/UX 10.20)
+
 Mon Dec 29 14:56:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/images/important.gif(added) doc/images/tip.gif(added):
 	* doc/images/note.gif(added):
