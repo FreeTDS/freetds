@@ -1,3 +1,6 @@
+Thu Jan  6 23:44:59 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/rpc.c correct rpc unittest
+
 Thu Jan  6 15:13:56 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/tds.html src/dblib/unittests/README updated docs
 

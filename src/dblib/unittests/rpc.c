@@ -21,11 +21,18 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.16 2004-12-11 13:27:55 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.17 2005-01-07 04:53:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
 static int init_proc(DBPROCESS * dbproc, const char *name);
+
+typedef struct {
+	char *name, *value;
+	int type, len;
+} RETPARAM;
+
+RETPARAM* save_retparam(RETPARAM *param, char *name, char *value, int type, int len);
 
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"
@@ -77,11 +84,28 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	return res;
 }
 
+RETPARAM*
+save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
+{
+	free(param->name);
+	free(param->value);
+	
+	param->name = strdup(name);
+	param->value = strdup(value);
+	
+	param->type = type;
+	param->len = len;
+	
+	return param;
+}
+
 int
 main(int argc, char **argv)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
+	RETPARAM save_param;
+	
 	int i, r;
 	char teststr[1024];
 	int failed = 0;
@@ -98,6 +122,8 @@ main(int argc, char **argv)
 	RETCODE erc, row_code;
 
 	set_malloc_options();
+	
+	memset(&save_param, 0, sizeof(save_param));
 
 	read_login_info(argc, argv);
 
@@ -199,6 +225,7 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
+			
 			/* check return status */
 			printf("retrieving return status...\n");
 			if (dbhasretstat(dbproc) == TRUE) {
@@ -206,50 +233,56 @@ main(int argc, char **argv)
 			} else {
 				printf("none\n");
 			}
+			
 			/* check return parameter values */
 			printf("retrieving output parameter... ");
-			if (dbnumrets(dbproc) > 0) {
-				for (i = 1; i <= dbnumrets(dbproc); i++) {
-					add_bread_crumb();
-					retname = dbretname(dbproc, i);
-					printf("ret name %d is %s\n", i, retname);
-					rettype = dbrettype(dbproc, i);
-					printf("ret type %d is %d\n", i, rettype);
-					retlen = dbretlen(dbproc, i);
-					printf("ret len %d is %d\n", i, retlen);
-					dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
-					printf("ret data %d is %s\n", i, teststr);
-					add_bread_crumb();
-				}
-			} else {
+			for (i = 1; i <= dbnumrets(dbproc); i++) {
+				add_bread_crumb();
+				retname = dbretname(dbproc, i);
+				printf("ret name %d is %s\n", i, retname);
+				rettype = dbrettype(dbproc, i);
+				printf("ret type %d is %d\n", i, rettype);
+				retlen = dbretlen(dbproc, i);
+				printf("ret len %d is %d\n", i, retlen);
+				dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
+				printf("ret data %d is %s\n", i, teststr);
+				add_bread_crumb();
+				
+				save_retparam(&save_param, retname, teststr, rettype, retlen);
+			}
+			
+			if (i == 1) {	/* no return parameter */
 				printf("none\n");
 			}
+			
 		} else {
 			add_bread_crumb();
+			puts("Expected a result set.\n");
 			fprintf(stdout, "Expected a result set.\n");
 			exit(1);
 		}
 	} /* while dbresults */
 	
-	/* test the last parameter for expected outcome */
-
-	if ((retname == NULL) || strcmp(retname, param2)) {
+	/* 
+	 * Test the last parameter for expected outcome 
+	 */
+	if ((save_param.name == NULL) || strcmp(save_param.name, param2)) {
 		fprintf(stdout, "Expected retname to be '%s', got ", param2);
-		if (retname == NULL) 
+		if (save_param.name == NULL) 
 			fprintf(stdout, "<NULL> instead.\n");
 		else
-			fprintf(stdout, "'%s' instead.\n", retname);
+			fprintf(stdout, "'%s' instead.\n", save_param.name);
 		exit(1);
 	}
-	if (strcmp(teststr, "3")) {
+	if (strcmp(save_param.value, "3")) {
 		fprintf(stdout, "Expected retdata to be 3.\n");
 		exit(1);
 	}
-	if (rettype != SYBINT4) {
-		fprintf(stdout, "Expected rettype to be SYBINT4 was %d.\n", rettype);
+	if (save_param.type != SYBINT4) {
+		fprintf(stdout, "Expected rettype to be SYBINT4 was %d.\n", save_param.type);
 		exit(1);
 	}
-	if (retlen != 4) {
+	if (save_param.len != 4) {
 		fprintf(stdout, "Expected retlen to be 4.\n");
 		exit(1);
 	}
