@@ -67,11 +67,14 @@ void tds_iconv_close(TDSSOCKET *tds)
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
 {
 int i;
-
 #if HAVE_ICONV
 char *in_ptr, *out_ptr;
 int  out_bytes, in_bytes;
+#endif
 
+	if (!in_string) return NULL;
+
+#if HAVE_ICONV
 	if (tds->use_iconv) {
      	out_bytes = len + 1;
      	in_bytes = (len + 1) * 2;
@@ -97,12 +100,16 @@ char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string
 {
 register int out_pos = 0;
 register int i; 
-size_t string_length = strlen(in_string);
-
+size_t string_length;
 #if HAVE_ICONV
 char *in_ptr, *out_ptr;
 int  out_bytes, in_bytes;
+#endif
 
+	if (!in_string) return NULL;
+	string_length = strlen(in_string);
+
+#if HAVE_ICONV
 	if (tds->use_iconv) {
      	out_bytes = maxlen;
      	in_bytes = strlen(in_string) + 1;
