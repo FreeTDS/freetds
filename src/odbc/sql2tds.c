@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.28 2003-12-07 13:20:20 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.29 2003-12-09 13:41:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -135,73 +135,76 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		curcol->column_scale = drec_ipd->sql_desc_scale;
 	}
 
-	/* FIXME len is source len while column refers to destination !!! */
-	len = curcol->column_size;
 	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;
-	if (curcol->column_varint_size != 0) {
-		switch (sql_len) {
-		case SQL_NULL_DATA:
-			len = 0;
-			break;
-		case SQL_NTS:
-			len = strlen(drec_apd->sql_desc_data_ptr);
-			break;
-		case SQL_DEFAULT_PARAM:
-		case SQL_DATA_AT_EXEC:
-			/* TODO */
-			return SQL_ERROR;
-			break;
-		default:
-			if (sql_len < 0) {
-				/* test for SQL_CHAR/SQL_BINARY */
-				switch (drec_apd->sql_desc_concise_type) {
-				case SQL_C_CHAR:
-				case SQL_C_BINARY:
-					break;
-				case SQL_C_DEFAULT:
-					switch (drec_ipd->sql_desc_concise_type) {
-					case SQL_CHAR:
-					case SQL_VARCHAR:
-					case SQL_LONGVARCHAR:
-					case SQL_BINARY:
-					case SQL_VARBINARY:
-					case SQL_LONGVARBINARY:
-						break;
-					default:
-						return SQL_ERROR;
-					}
-					break;
-				default:
-					return SQL_ERROR;
-				}
-				len = SQL_LEN_DATA_AT_EXEC(sql_len);
-				need_data = 1;
-			} else {
-				len = sql_len;
-			}
 
-		}
-		curcol->column_cur_size = curcol->column_size = len;
-		if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
-			curcol->column_size = drec_apd->sql_desc_octet_length;
+	/* compute destination length */
+	if (curcol->column_varint_size != 0) {
+		/* curcol->column_size = drec_apd->sql_desc_octet_length; */
+		/*
+		 * TODO destination length should come from sql_desc_length, 
+		 * however there is the encoding problem to take into account
+		 * we should fill destination length after conversion keeping 
+		 * attention to fill correctly blob/fixed type/variable type
+		 */
+		curcol->column_cur_size = 0;
+		curcol->column_size = drec_ipd->sql_desc_length;
+		if (curcol->column_size < 0)
+			curcol->column_size = 0x7FFFFFFFl;
 	} else {
 		/* TODO only a trick... */
 		if (curcol->column_varint_size == 0)
 			tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
 	}
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
+
+	/* get C type */
+	src_type = drec_apd->sql_desc_concise_type;
+	if (src_type == SQL_C_DEFAULT)
+		src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+
+	/* compute source length */
+	switch (sql_len) {
+	case SQL_NULL_DATA:
+		len = 0;
+		break;
+	case SQL_NTS:
+		len = strlen(drec_apd->sql_desc_data_ptr);
+		break;
+	case SQL_DEFAULT_PARAM:
+	case SQL_DATA_AT_EXEC:
+		/* TODO */
+		return SQL_ERROR;
+		break;
+	default:
+		len = sql_len;
+		if (sql_len < 0) {
+			/* test for SQL_C_CHAR/SQL_C_BINARY */
+			switch (src_type) {
+			case SQL_C_CHAR:
+			case SQL_C_BINARY:
+				break;
+			default:
+				return SQL_ERROR;
+			}
+			len = SQL_LEN_DATA_AT_EXEC(sql_len);
+			need_data = 1;
+
+			/* other trick, set length of destination */
+			switch (odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type)) {
+			case SQL_C_CHAR:
+			case SQL_C_BINARY:
+				curcol->column_size = len;
+				break;
+			}
+		}
+	}
 
 	/* allocate given space */
 	if (!tds_alloc_param_row(info, curcol))
 		return SQL_ERROR;
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	/* test type */
+	/* test source type */
 	/* TODO test intervals */
-	src_type = drec_apd->sql_desc_concise_type;
-	if (src_type == SQL_C_DEFAULT)
-		src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
 	src_type = odbc_c_to_server_type(src_type);
 	if (src_type == TDS_FAIL)
 		return SQL_ERROR;
@@ -217,7 +220,6 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;
 	}
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* convert special parameters (not libTDS compatible) */
 	src = drec_apd->sql_desc_data_ptr;
@@ -258,6 +260,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	/* TODO what happen for blobs ?? */
 	if (res > curcol->column_size)
 		res = curcol->column_size;
+	curcol->column_cur_size = res;
 
 	/* free allocated memory */
 	dest = &info->current_row[curcol->column_offset];

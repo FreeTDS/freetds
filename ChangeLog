@@ -1,3 +1,7 @@
+Tue Dec  9 14:39:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/sql2tds.c:
+	- fixed problem with Ruby and ODBC
+
 Tue Dec  9 11:18:45 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsstring.h src/apps/freebcp.c src/odbc/native.c:
 	* src/odbc/odbc.c src/pool/config.c src/tds/config.c:
