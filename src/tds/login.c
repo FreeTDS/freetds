@@ -61,6 +61,10 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#if HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif /* HAVE_NETINET_TCP_H */
+
 #if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
@@ -85,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.114 2003-11-22 22:54:16 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.115 2003-11-25 15:43:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -308,6 +312,15 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
+#if defined(TCP_NODELAY) && (defined(IPPROTO_TCP) || defined(SOL_TCP))
+	len = 1;
+#ifdef SOL_TCP
+	setsockopt(tds->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+#else
+	setsockopt(tds->s, IPPROTO_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+#endif
+#endif
+	
 	/* Jeff's hack *** START OF NEW CODE *** */
 	if (connect_timeout) {
 		start = time(NULL);

@@ -1,3 +1,7 @@
+Tue Nov 25 16:41:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/tds/login.c:
+	- enable TCP_NODELAY options in socket
+
 Mon Nov 24 21:18:50 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* configure.in provide --disable-odbc override, and minor edits.
 	
