@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.22 2002-06-25 00:50:12 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.23 2002-06-26 01:39:51 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -601,6 +601,7 @@ TDS_SMALLINT tabnamelen;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 TDS_SMALLINT collate_type;
+int remainder;
 
 	tds_free_all_results(tds);
 
@@ -629,7 +630,7 @@ TDS_SMALLINT collate_type;
 
 		curcol->column_type = tds_get_byte(tds); 
 		
-          curcol->column_type_save = curcol->column_type;
+        curcol->column_type_save = curcol->column_type;
 		collate_type = is_collate_type(curcol->column_type);
 		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 
@@ -705,6 +706,11 @@ TDS_SMALLINT collate_type;
 		if (is_numeric_type(curcol->column_type)) {
                        info->row_size += sizeof(TDS_NUMERIC) + 1;
 		}
+		
+		/* actually this 4 should be a machine dependent #define */
+		remainder = info->row_size % 4;
+		if (remainder) info->row_size += (4 - remainder);
+		
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
@@ -1582,6 +1588,11 @@ TDS_NUMERIC *num;
             tds_swap_bytes(&(num->array[1]),
                            g__numeric_bytes_per_prec[num->precision] - 1); break;
 
+        case SYBUNIQUE:
+			tds_swap_bytes(buf,4);
+			tds_swap_bytes(&buf[4],2); 
+			tds_swap_bytes(&buf[6],2); break;
+
 	}
 }
 /*
@@ -1606,7 +1617,6 @@ int tds_get_varint_size(int datatype)
 		case SYBMONEY:
 		case SYBDATETIME:
 		case SYBFLT8:
-		case SYBBITN:
 		case SYBMONEY4:
 		case SYBINT8:
 			return 0;
