@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.47 2002-08-21 20:08:46 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.48 2002-08-22 05:24:20 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -110,7 +110,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 }
 
 /**
- * copy a terminared string to result and return len or TDS_FAIL
+ * Copy a terminated string to result and return len or TDS_FAIL
  */
 static TDS_INT 
 string_to_result(const char* s,CONV_RESULT* cr)

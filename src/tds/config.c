@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.20 2002-08-18 19:45:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.21 2002-08-22 05:24:20 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -66,6 +66,7 @@ static void tds_read_interfaces(char *server, TDSCONFIGINFO *config);
 static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config);
 static int tds_config_boolean(char *value);
 static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
+static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login );
 
 extern int g_append_mode;
 
@@ -115,6 +116,10 @@ pid_t pid;
 		tds_read_interfaces(login->server_name, config);
 	}
 
+	if( parse_server_name_for_port( config, login ) ) {
+		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", config->server_name, login->port);
+	}
+	
 	/* Now check the environment variables */
 	tds_config_env_tdsver(config);
 	tds_config_env_tdsdump(config);
@@ -861,4 +866,47 @@ int get_server_info(
 
 	return ip_addr[0]!='\0' && ip_port[0]!='\0';
 } /* get_server_info()  */
+
+/**
+ * Check the server name to find port info first
+ * return 1 when found, else 0
+ * Warning: config-> & login-> are all modified when needed
+ */
+static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login )
+{
+    char *pSep, *pEnd;
+        
+    if( ! login->server_name )
+        return 0;/* FALSE */
+    
+    /* seek the ':' in login server_name */
+    pEnd = login->server_name + strlen( login->server_name );
+    for( pSep = login->server_name; pSep < pEnd; pSep ++ )
+        if( *pSep == ':' ) break;
+    
+    if(( pSep < pEnd )&&( pSep != login->server_name ))/* yes, i found it! */
+    {
+        if( config->server_name ) free( config->server_name );
+        config->server_name = strdup( login->server_name );
+        
+        /* modify config-> && login->server_name & ->port */
+        login->port = config->port = atoi( pSep + 1 );
+        config->server_name[pSep - login->server_name] = 0;/* end the server_name before the ':' */
+        *pSep = 0;
+
+        /* config->ip_addr needed */
+        {
+            char tmp[256];
+
+            lookup_host (config->server_name, NULL, tmp, NULL);
+            if (config->ip_addr)
+                    free (config->ip_addr);
+            config->ip_addr = strdup (tmp);
+        }
+
+        return 1;/* TRUE */
+    }
+    else
+        return 0;/* FALSE */
+}
 

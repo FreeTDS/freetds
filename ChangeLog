@@ -4,6 +4,7 @@ Wed Aug 21 23:28:58 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* configure.in		support vasprintf test, fix '==' error in thread checking
 	* src/dblib/dblib.c	use vasprintf in dbfcmd
 	* src/tds/Makefile.am	added asprintf.c to list of sources
+	* src/tds/config.c	allow :port to describe port as part of servername.  
 	
 Wed Aug 21 21:42:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
