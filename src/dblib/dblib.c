@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.142 2003-05-08 03:14:57 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.143 2003-05-19 17:49:06 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -485,6 +485,39 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	return;
 }
 
+
+static int
+chkintr(TDSSOCKET *tds)
+{
+DBPROCESS *dbproc = NULL;
+
+	if (tds && tds->parent) {
+		dbproc = (DBPROCESS *) tds->parent;
+	}
+
+	if ((dbproc == NULL) || (dbproc->dbchkintr == NULL)) {
+		return FALSE;
+	}
+
+	return ((*dbproc->dbchkintr)(dbproc));
+}
+
+static int
+hndlintr(TDSSOCKET *tds)
+{
+DBPROCESS *dbproc = NULL;
+
+	if (tds && tds->parent) {
+		dbproc = (DBPROCESS *) tds->parent;
+	}
+
+	if ((dbproc == NULL) || (dbproc->dbhndlintr == NULL)) {
+		return INT_CONTINUE;
+	}
+
+	return ((*dbproc->dbhndlintr)(dbproc));
+}
+
 /**
  * \ingroup dblib_api
  * \brief Initialize db-lib.  
@@ -909,6 +942,11 @@ tdsdbopen(LOGINREC * login, char *server)
 	if (g_dblib_login_timeout >= 0) {
 		connect_info->connect_timeout = g_dblib_login_timeout;
 	}
+
+	dbproc->dbchkintr = NULL;
+	dbproc->dbhndlintr = NULL;
+	dbproc->tds_socket->chkintr = chkintr;
+	dbproc->tds_socket->hndlintr = hndlintr;
 
 	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
 		dbproc->tds_socket = NULL;
@@ -3668,15 +3706,15 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
  * \brief Set interrupt handler for db-lib to use while blocked against a read from the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param ckintr
+ * \param chkintr
  * \param hndlintr
  * \sa dbcancel(), dbgetuserdata(), dbsetuserdata(), dbsetbusy(), dbsetidle().
- * \todo Unimplemented.
  */
 void
-dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC ckintr, DB_DBHNDLINTR_FUNC hndlintr)
+dbsetinterrupt(DBPROCESS *dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC hndlintr)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetinterrupt()\n");
+	dbproc->dbchkintr = chkintr;
+	dbproc->dbhndlintr = hndlintr;
 }
 
 /**

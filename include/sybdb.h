@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.49 2003-05-05 00:10:51 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.50 2003-05-19 17:49:05 castellano Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -51,10 +51,10 @@ static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn 
 #define DBNOSAVE 0
 #define DBNOERR  -1
 
-#define INT_EXIT   0
-#define INT_CONTINUE 1
-#define INT_CANCEL 2
-#define INT_TIMEOUT 3
+#define INT_EXIT	TDS_INT_EXIT
+#define INT_CONTINUE	TDS_INT_CONTINUE
+#define INT_CANCEL	TDS_INT_CANCEL
+#define INT_TIMEOUT	TDS_INT_TIMEOUT
 
 #define DBMAXNUMLEN 33
 #define DBMAXNAME   30
@@ -360,6 +360,8 @@ typedef struct
 	char dbcurdb[DBMAXNAME + 1];
 	char servcharset[DBMAXNAME + 1];
 	FILE *ftos;
+	DB_DBCHKINTR_FUNC dbchkintr;
+	DB_DBHNDLINTR_FUNC dbhndlintr;
 } DBPROCESS;
 
 typedef struct dbdaterec
@@ -646,7 +648,7 @@ RETCODE dbsetdefcharset(char *charset);
 RETCODE dbsetdeflang(char *language);
 void dbsetidle(DBPROCESS * dbprocess, DB_DBIDLE_FUNC idlefunc);
 void dbsetifile(char *filename);
-void dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC ckintr, DB_DBHNDLINTR_FUNC hndlintr);
+void dbsetinterrupt(DBPROCESS *dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC hndlintr);
 RETCODE dbsetloginfo(LOGINREC * loginrec, DBLOGINFO * loginfo);
 RETCODE dbsetlogintime(int seconds);
 RETCODE dbsetmaxprocs(int maxprocs);

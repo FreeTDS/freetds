@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.52 2003-05-13 10:06:04 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.53 2003-05-19 17:49:06 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -80,7 +80,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * return -1 on failure 
  */
 static int
-goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
+goodread(TDSSOCKET *tds, unsigned char *buf, int buflen)
 {
 	int got = 0;
 	int len, retcode;
@@ -89,64 +89,51 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	struct timeval selecttimeout;
 
 	FD_ZERO(&fds);
-	if (tds->timeout) {
-		start = time(NULL);
-		now = start;
-
-		/* FIXME return even if not finished read if timeout */
-		while ((buflen > 0) && ((now - start) < tds->timeout)) {
-			int timeleft = tds->timeout;
-
-			len = 0;
-			retcode = 0;
-
-			do {
-				FD_SET(tds->s, &fds);
-				selecttimeout.tv_sec = timeleft;
-				selecttimeout.tv_usec = 0;
-				retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);
-				/* ignore EINTR errors */
-				if (retcode < 0 && errno == EINTR)
-					retcode = 0;
-
-				now = time(NULL);
-				timeleft = tds->timeout - (now - start);
-			} while ((retcode == 0) && timeleft > 0);
+	start = time(NULL);
+	now = start;
+	/* FIXME return even if not finished read if timeout */
+	/* nsc 20030326 The tds->timeout stuff is flawed and should probably just be removed. */
+	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
+		assert(tds);
+		assert(tds->s >= 0);
+		FD_SET(tds->s, &fds);
+		selecttimeout.tv_sec = 1;
+		selecttimeout.tv_usec = 0;
+		retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);
+		if (retcode < 0) {
+			if (errno != EINTR) {
+				return (-1);
+			}
+		} else if (retcode > 0) {
 			len = READSOCKET(tds->s, buf + got, buflen);
-			if (len <= 0) {
-				if (len < 0 && errno == EINTR)
-					len = 0;
-				else
-					return (-1);	/* SOCKET_ERROR */
+			if (len > 0) {
+				buflen -= len;
+				got += len;
+			} else if ((len == 0) || ((errno != EINTR) && (errno != EINPROGRESS))) {
+				return (-1);
 			}
-
-			buflen -= len;
-			got += len;
-			now = time(NULL);
-
-			if (tds->queryStarttime && tds->longquery_timeout) {
-				if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
-					(*tds->longquery_func) (tds->longquery_param);
-				}
+		}
+		now = time(NULL);
+		if (tds->timeout && tds->queryStarttime && tds->longquery_timeout) {
+			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
+				(*tds->longquery_func) (tds->longquery_param);
 			}
-		}		/* while buflen... */
-	} else {
-		/* got = READSOCKET(tds->s, buf, buflen); */
-		while (got < buflen) {
-			FD_SET(tds->s, &fds);
-			select(tds->s + 1, &fds, NULL, NULL, NULL);
-			len = READSOCKET(tds->s, buf + got, buflen - got);
-			if (len <= 0) {
-				if (len < 0 && (errno == EINTR || errno == EINPROGRESS))
-					len = 0;
-				else
-					return (-1);	/* SOCKET_ERROR */
+		}
+		if ((tds->chkintr) && ((*tds->chkintr)(tds)) && (tds->hndlintr)) {
+			switch ((*tds->hndlintr)(tds)) {
+			case TDS_INT_EXIT:
+				exit(EXIT_FAILURE);
+				break;
+			case TDS_INT_CANCEL:
+				tds_send_cancel(tds);
+				break;
+			case TDS_INT_CONTINUE:
+			default:
+				break;
 			}
-			got += len;
 		}
 
-	}
-
+	} /* while buflen... */
 	return (got);
 }
 
@@ -506,10 +493,10 @@ tds_get_size_by_type(int servertype)
 
 /**
  * Read in one 'packet' from the server.  This is a wrapped outer packet of
- * the protocol (they bundle resulte packets into chunks and wrap them at
+ * the protocol (they bundle result packets into chunks and wrap them at
  * what appears to be 512 bytes regardless of how that breaks internal packet
  * up.   (tetherow\@nol.org)
- * @return bytes readed or -1 on failure
+ * @return bytes read or -1 on failure
  */
 int
 tds_read_packet(TDSSOCKET * tds)
@@ -598,6 +585,7 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_len = 0;
 			tds->in_pos = 0;
 			tds->last_packet = 1;
+			/* XXX should this be "if (x == 0)" ? */
 			if (len == 0) {
 				tds_close_socket(tds);
 			}

@@ -1,3 +1,8 @@
+Mon May 19 13:47:52 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h include/tds.h src/dblib/dblib.c src/tds/mem.c
+	  src/tds/read.c:
+	- implement dbsetinterrupt().
+
 Mon May 19 12:28:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/moreandcount.c:
 	- fixed more&count test

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.124 2003-05-17 18:10:29 freddy77 Exp $";
+	"$Id: tds.h,v 1.125 2003-05-19 17:49:06 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -186,6 +186,11 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_REG_ROW          -1
 #define TDS_NO_MORE_ROWS     -2
 #define TDS_COMP_ROW         -3
+
+#define TDS_INT_EXIT 0
+#define TDS_INT_CONTINUE 1
+#define TDS_INT_CANCEL 2
+#define TDS_INT_TIMEOUT 3
 
 #define TDS_NO_COUNT         -1
 
@@ -931,6 +936,8 @@ struct tds_socket {
 	int spid;
 	TDS_UCHAR collation[5];
 	void (*env_chg_func)(TDSSOCKET *tds, int type, char *oldval, char *newval);
+	int (*chkintr)(TDSSOCKET *tds);
+	int (*hndlintr)(TDSSOCKET *tds);
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
