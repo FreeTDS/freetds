@@ -1,3 +1,6 @@
+Thu Feb 13 00:44:32 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tdsodbc.h  applied Frediano's SQLULEN patch
+
 Thu Feb  6 10:45:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h: 
 	- odbc include under win32 seem not define SQLLEN
