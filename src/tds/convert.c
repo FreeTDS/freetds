@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.146 2004-12-08 20:30:06 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.147 2004-12-10 20:03:03 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1928,23 +1928,20 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 
 	char mynumber[(MAXPRECISION + 7) / 8 * 8];
 
-/* num packaged 8 digit, see below for detail */
+	/* num packaged 8 digit, see below for detail */
 	TDS_UINT packed_num[TDS_VECTOR_SIZE(mynumber) / 8];
 
 	char *ptr;
-	const char *pdigits;
-	const char *pstr;
+	const char *pstr, *pdigits, *pplaces = NULL;
 
 	TDS_UINT carry = 0;
 	char not_zero = 1;
 	int i = 0;
 	int j = 0;
-	short int bytes, places, point_found, digits;
+	short int bytes, places, digits;
 	unsigned char sign;
 
 	sign = 0;
-	point_found = 0;
-	places = 0;
 
 	/* FIXME: application can pass invalid value for precision and scale ?? */
 	if (cr->n.precision > 77)
@@ -1971,32 +1968,44 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		pstr++;
 	}
 
-	digits = 0;
-	pdigits = pstr;
-	for (; pstr != pend; ++pstr) {	/* deal with the rest */
-		if (isdigit((unsigned char) *pstr)) {	/* its a number */
-			if (point_found)	/* if we passed a decimal point */
-				++places;	/* count digits after that point  */
-			else
-				++digits;	/* count digits before point  */
-		} else if (*pstr == '.') {	/* found a decimal point */
-			if (point_found)	/* already had one. return error */
-				return TDS_CONVERT_SYNTAX;
-			point_found = 1;
-		} else		/* first invalid character */
-			return TDS_CONVERT_SYNTAX;	/* return error. */
-	}
+	/* 
+	 * Having disposed of any sign and leading blanks, 
+	 * vet the digit string, counting places before and after 
+	 * the decimal point.  Dispense with trailing blanks, if any.  
+	 */
 
+	pdigits = pstr;
+	digits = places = 0;
+
+	for (; pstr != pend; ++pstr) {			/* deal with the rest */
+		if (isdigit((unsigned char) *pstr)) {	/* it's a number */
+			if (pplaces)				/* if we passed a decimal point, count digits after that point  */
+				++places;
+			else					/* else count digits before point, obviously  */
+				++digits;
+		} else if (*pstr == '.') {			/* found a decimal point */
+			if (pplaces)				/* found a decimal point previously: return error */
+				return TDS_CONVERT_SYNTAX;
+			pplaces =  1 + pstr;			/* point to first position past the decimal point */ 
+		} else if (*pstr == ' ') {
+			for (; pstr != pend && *pstr == ' '; ++pstr) ; /* skip contiguous blanks */
+			if (pstr == pend)
+				break;				/* success: found only trailing blanks */
+			return TDS_CONVERT_SYNTAX;		/* bzzt: found something after the blank(s) */
+		} else {         				/* first invalid character */
+			return TDS_CONVERT_SYNTAX;
+		}
+	}
 	/* no digits? no number! */
-	if (!digits)
+	if (digits + places == 0)
 		return TDS_CONVERT_SYNTAX;
 
 	/* truncate decimal digits */
 	if (places > cr->n.scale)
 		places = cr->n.scale;
 
-	/* too digits, error */
-	if ((digits + cr->n.scale) > cr->n.precision)
+	/* too many digits, error */
+	if (digits + cr->n.scale > cr->n.precision)
 		return TDS_CONVERT_OVERFLOW;
 
 
@@ -2004,24 +2013,29 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 
 	/* scale specified, pad out number with zeroes to the scale...  */
 	ptr = mynumber + sizeof(mynumber) - (cr->n.scale - places);
-	memset(ptr, 48, cr->n.scale - places);
-	ptr -= places;
-	/* copy number without point */
-	memcpy(ptr, pdigits + digits + 1, places);
-	ptr -= digits;
-	memcpy(ptr, pdigits, digits);
-	memset(mynumber, 48, ptr - mynumber);
+	memset(ptr, '0', cr->n.scale - places);
+
+	/* copy number without point, starting from behind */
+	if (places) {
+		assert(pplaces != NULL); 
+		ptr -= places;
+		memcpy(ptr, pplaces, places);
+	}
+	if (digits) {
+		ptr -= digits;
+		memcpy(ptr, pdigits, digits);
+	}
+	memset(mynumber, '0', ptr - mynumber);
 
 	/* transform ASCII string into a numeric array */
 	for (ptr = mynumber; ptr != mynumber + sizeof(mynumber); ++ptr)
-		*ptr -= 48;
+		*ptr -= '0';
 
 	/*
-	 * Packaged number explanation
-	 * I package 8 decimal digit in one number
-	 * This because 10^8 = 5^8 * 2^8 = 5^8 * 256
-	 * So dividing 10^8 for 256 make no remainder
-	 * So I can split for bytes in an optmized way
+	 * Packaged number explanation: 
+	 * We package 8 decimal digits in one number.  
+	 * Because 10^8 = 5^8 * 2^8 = 5^8 * 256, dividing 10^8 by 256 leaves no remainder.
+	 * We can thus split it into bytes in an optimized way.
 	 */
 
 	/* transform to packaged one */
@@ -2051,7 +2065,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
 			 * using unsigned number is just an optimization
 			 * compiler can translate division to a shift and remainder 
-			 * to a binary and
+			 * to a binary AND
 			 */
 			packed_num[i] = carry * (25u * 25u * 25u * 25u) + packed_num[i] / 256u;
 			carry = tmp % 256u;
