@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.16 2002-09-20 18:36:08 jklowden Exp $
+# version $Id: Makefile.am,v 1.17 2002-09-28 12:47:01 freddy77 Exp $
 SUBDIRS		=	include src doc
 
 EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
@@ -27,3 +27,7 @@ all-redirect:
 
 snapshot:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
+
+doxy:
+	cd src/tds; $(MAKE) doxy
+

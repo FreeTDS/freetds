@@ -2,17 +2,6 @@
 
 /* Test for SQLMoreResults */
 
-static void Command(HSTMT stmt, const char* command)
-{
-	printf("%s\n",command);
-	if( SQLExecDirect( stmt, command, SQL_NTS ) 
-		!= SQL_SUCCESS ) { 
-		printf( "Unable to execute statement\n" ); 
-		CheckReturn(); 
-		exit( 1 ); 
-	}
-}
-
 int main( int argc, char * argv[] ) 
 { 
 

@@ -1,3 +1,16 @@
+Sat Sep 27 14:37:50 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am configure.in src/tds/Makefile.am src/tds/challenge.c:
+	* src/tds/tds.dox:
+	- generate documentation with make doxy from main directory
+	- add some file and some documentation
+	* src/ctlib/ct.c: check item param in ct_bind
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/t0004.c:
+	- added a test for prepared statement
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/t0002.c src/odbc/unittests/t0003.c:
+	- moved Command function to common.c
+	* src/tds/convert.c: added some types to tds_get_null_type
+
 Fri Sep 27 21:55:39 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt:
 	- More API status doc updates.

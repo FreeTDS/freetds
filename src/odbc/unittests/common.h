@@ -22,3 +22,5 @@ int Connect();
 
 int Disconnect();
 
+void Command(HSTMT stmt, const char* command);
+

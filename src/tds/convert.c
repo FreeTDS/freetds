@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.83 2002-09-27 03:09:54 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.84 2002-09-28 12:47:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2424,6 +2424,11 @@ int  hours;
     return (ret);
 }
 
+/**
+ * Get same type but nullable
+ * @param srctype type requires
+ * @return nullable type
+ */
 TDS_INT tds_get_null_type(int srctype)
 {
 
@@ -2434,6 +2439,7 @@ TDS_INT tds_get_null_type(int srctype)
 		case SYBINT1:
 		case SYBINT2:
 		case SYBINT4:
+		case SYBINT8:
 			return SYBINTN;
 			break;
 		case SYBREAL:
@@ -2444,9 +2450,11 @@ TDS_INT tds_get_null_type(int srctype)
 		case SYBDATETIME4:
 			return SYBDATETIMN;
 			break;
+		case SYBBIT:
+			return SYBBITN;
+			break;
 		default:
 			return srctype;
-
 	}
 	return srctype;
 }

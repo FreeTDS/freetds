@@ -29,6 +29,14 @@
 #include <dmalloc.h>
 #endif
 
+/**
+ * \defgroup auth Authentication
+ */
+
+/** \addtogroup auth
+ *  \@{ 
+ */
+
 /*
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
@@ -36,10 +44,15 @@
 static void tds_encrypt_answer(unsigned char *hash, unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(unsigned char *key_56, des_key_schedule ks);
 
-#define MAX_PW_SZ 14
-
-void tds_answer_challenge(char *passwd, char *challenge, TDSANSWER* answer)
+/**
+ * Crypt a given password using schema required for NTLMv1 authentication
+ * @param passwd clear text domain password
+ * @param challenge challenge data given by server
+ * @param answer buffer where to store crypted password
+ */
+void tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER* answer)
 {
+#define MAX_PW_SZ 14
 int   len;
 int i;
 static const_des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
@@ -140,4 +153,6 @@ des_cblock key;
 	memset(&key, 0, sizeof(key));
 }
 
+
+/** \@} */
 #endif /* HAVE_SSL */
