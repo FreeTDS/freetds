@@ -1,3 +1,7 @@
+Thu Apr 03 22:16:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/odbc/connectparams.h:
+	- avoid allocating memory for all string
+
 Thu Apr 03 21:42:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: remove warnings
 

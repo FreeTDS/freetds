@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.38 2003-04-02 09:27:57 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.39 2003-04-03 20:17:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -116,17 +116,15 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
  * @param connect_info     where to store connection info
  * @return 1 if success 0 otherwhise */
 int
-tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
+tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_info)
 {
-	char *p, *end;
-	char **dest_s;
+	const char *p, *end;
+	char **dest_s, *value;
 	int reparse = 0;	/* flag for indicate second parse of string */
 	char option[16];
 	char tmp[256];
-	char temp_c;
 
-	pszConnectString = strdup(pszConnectString);	/* copy the string so we can hack at it */
-
+	tds_dstr_init(&value);
 	for (p = pszConnectString; p && *p;) {
 		dest_s = NULL;
 
@@ -157,33 +155,31 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		if (!end)
 			end = strchr(p, 0);
 
-		temp_c = *end;
-		*end = 0;
+		if (!tds_dstr_copyn(&value, p, end - p))
+			return 0;
+
 		if (strcasecmp(option, "SERVER") == 0) {
 			/* ignore if servername specified */
 			if (!reparse) {
 				dest_s = &connect_info->server_name;
-				tds_lookup_host(p, NULL, tmp, NULL);
-				*end = temp_c;
+				tds_lookup_host(value, NULL, tmp, NULL);
 				if (!tds_dstr_copy(&connect_info->ip_addr, tmp)) {
-					free(pszConnectString); 
+					tds_dstr_free(&value);
 					return 0;
 				}
 			}
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
-				tds_read_conf_file(connect_info, p);
+				tds_read_conf_file(connect_info, value);
 				reparse = 1;
 				p = pszConnectString;
-				*end = temp_c;
 				continue;
 			}
 		} else if (strcasecmp(option, "DSN") == 0) {
 			if (!reparse) {
-				odbc_get_dsn_info(p, connect_info);
+				odbc_get_dsn_info(value, connect_info);
 				reparse = 1;
 				p = pszConnectString;
-				*end = temp_c;
 				continue;
 			}
 		} else if (strcasecmp(option, "DATABASE") == 0) {
@@ -199,18 +195,15 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		} else if (strcasecmp(option, "LANGUAGE") == 0) {
 			dest_s = &connect_info->language;
 		} else if (strcasecmp(option, "Port") == 0) {
-			connect_info->port = atoi(p);
+			connect_info->port = atoi(value);
 		} else if (strcasecmp(option, "TDS_Version") == 0) {
-			tds_config_verstr(p, connect_info);
+			tds_config_verstr(value, connect_info);
 		}
-		*end = temp_c;
 
 		/* copy to destination */
 		if (dest_s) {
-			if (!tds_dstr_copyn(dest_s, p, end - p)){
-				free(pszConnectString); 
-				return 0;
-			}
+			tds_dstr_set(dest_s, value);
+			tds_dstr_init(&value);
 		}
 
 		p = end;
@@ -222,7 +215,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		++p;
 	}
 
-	free(pszConnectString); 
+	tds_dstr_free(&value);
 	return p != NULL;
 }
 
