@@ -53,16 +53,16 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.31 2004-12-12 15:27:11 brianb Exp $";
+static char software_version[] = "$Id: member.c,v 1.32 2004-12-13 19:24:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static void pool_free_member(TDS_POOL_MEMBER * pmbr);
 
 /*
-** pool_mbr_login open a single pool login, to be call at init time or
-** to reconnect.
-*/
+ * pool_mbr_login open a single pool login, to be call at init time or
+ * to reconnect.
+ */
 TDSSOCKET *
 pool_mbr_login(TDS_POOL * pool)
 {
@@ -133,11 +133,14 @@ pool_free_member(TDS_POOL_MEMBER * pmbr)
 		tds_close_socket(pmbr->tds);
 	}
 	pmbr->tds = NULL;
-	/* if he is allocated disconnect the client 
-	 * ** otherwise we end up with broken client.
+	/*
+	 * if he is allocated disconnect the client 
+	 * otherwise we end up with broken client.
 	 */
-	if (pmbr->current_user)
+	if (pmbr->current_user) {
 		pool_free_user(pmbr->current_user);
+		pmbr->current_user = NULL;
+	}
 	pmbr->state = TDS_IDLE;
 }
 
@@ -239,9 +242,9 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 }
 
 /*
-** pool_find_idle_member
-** returns the first pool member in TDS_IDLE state
-*/
+ * pool_find_idle_member
+ * returns the first pool member in TDS_IDLE state
+ */
 TDS_POOL_MEMBER *
 pool_find_idle_member(TDS_POOL * pool)
 {

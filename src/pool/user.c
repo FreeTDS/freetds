@@ -47,10 +47,10 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.21 2004-12-12 19:06:49 brianb Exp $";
+static char software_version[] = "$Id: user.c,v 1.22 2004-12-13 19:24:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
+static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 
 extern int waiters;
 
@@ -64,13 +64,7 @@ pool_user_init(TDS_POOL * pool)
 	memset(pool->users, '\0', sizeof(TDS_POOL_USER) * MAX_POOL_USERS);
 }
 
-
-/*
-
-** pool_user_create
-** accepts a client connection and adds it to the users list and returns it
-*/
-TDS_POOL_USER *
+static TDS_POOL_USER *
 pool_user_find_new(TDS_POOL * pool)
 {
         TDS_POOL_USER *puser;
@@ -79,7 +73,8 @@ pool_user_find_new(TDS_POOL * pool)
         /* first check for dead users to reuse */
         for (i=0; i<pool->max_users; i++) {
                 puser = (TDS_POOL_USER *) & pool->users[i];
-                if (!puser->tds) return puser;
+                if (!puser->tds)
+			return puser;
         }
 
         /* did we exhaust the number of concurrent users? */
@@ -107,10 +102,11 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	socklen_t len;
 
 	puser = pool_user_find_new(pool);
-	if (!puser) return NULL;
+	if (!puser)
+		return NULL;
 
 	fprintf(stderr, "accepting connection\n");
-	len = sizeof(struct sockaddr);
+	len = sizeof(*sin);
 	if ((fd = accept(s, (struct sockaddr *) sin, &len)) < 0) {
 		perror("accept");
 		return NULL;
@@ -120,18 +116,18 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	/* FIX ME - little endian emulation should be config file driven */
 	puser->tds->emul_little_endian = 1;
 	puser->tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
+	puser->tds->in_buf_max = BLOCKSIZ;
 	memset(puser->tds->in_buf, 0, BLOCKSIZ);
 	puser->tds->s = fd;
 	puser->tds->out_flag = 0x02;
 	puser->user_state = TDS_SRV_LOGIN;
-	pool->max_users++;
 	return puser;
 }
 
 /* 
-** pool_free_user
-** close out a disconnected user.
-*/
+ * pool_free_user
+ * close out a disconnected user.
+ */
 void
 pool_free_user(TDS_POOL_USER * puser)
 {
@@ -139,14 +135,14 @@ pool_free_user(TDS_POOL_USER * puser)
 	if (puser->user_state == TDS_SRV_WAIT)
 		waiters--;
 	tds_free_socket(puser->tds);
-	memset(puser, '\0', sizeof(TDS_POOL_USER));
+	memset(puser, 0, sizeof(TDS_POOL_USER));
 }
 
 /* 
-** pool_process_users
-** check the fd_set for user input, allocate a pool member to it, and forward
-** the query to that member.
-*/
+ * pool_process_users
+ * check the fd_set for user input, allocate a pool member to it, and forward
+ * the query to that member.
+ */
 int
 pool_process_users(TDS_POOL * pool, fd_set * fds)
 {
@@ -177,6 +173,9 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 			case TDS_SRV_QUERY:
 				/* what is this? a cancel perhaps */
 				pool_user_read(pool, puser);
+				break;
+			/* just to avoid a warning */
+			default:
 				break;
 			}	/* switch */
 		}		/* if */
@@ -238,7 +237,8 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 	TDSSOCKET *tds;
 
 	tds = puser->tds;
-	tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ);
+	/* FIXME read entire packet !!! */
+	tds->in_len = read(tds->s, tds->in_buf, tds->in_buf_max);
 	if (tds->in_len == 0) {
 		fprintf(stderr, "user disconnected\n");
 		pool_free_user(puser);
@@ -259,6 +259,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 	}
 	/* fprintf(stderr,"read %d bytes from conn %d\n",len,i); */
 }
+
 void
 pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 {

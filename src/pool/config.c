@@ -35,7 +35,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char software_version[] = "$Id: config.c,v 1.12 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.13 2004-12-13 19:24:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -68,6 +68,7 @@ pool_read_conf_file(char *poolname, TDS_POOL * pool)
 
 	return found;
 }
+
 static int
 pool_read_conf_sections(FILE * in, char *poolname, TDS_POOL * pool)
 {
@@ -97,6 +98,7 @@ pool_config_boolean(char *value)
 }
 #endif
 
+/* TODO reuse libTDS code... */
 static int
 pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 {

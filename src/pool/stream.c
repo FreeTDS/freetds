@@ -18,9 +18,9 @@
  */
 
 /*
-** Name: stream.c
-** Description: Controls the result stream processing.
-*/
+ * Name: stream.c
+ * Description: Controls the result stream processing.
+ */
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.18 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: stream.c,v 1.19 2004-12-13 19:24:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -49,8 +49,8 @@ struct tmp_col_struct
 };
 
 /*
-**  returns 1 if this end token has the final bit set
-*/
+ *  returns 1 if this end token has the final bit set
+ */
 static int
 is_final_token(const unsigned char *buf)
 {
@@ -58,10 +58,10 @@ is_final_token(const unsigned char *buf)
 }
 
 /*
-**  computes the number of bytes left to be read from the input stream 
-**  after this packet is completely processed.
-**  returns 1 if token overruns the current packet, 0 otherwise.
-*/
+ *  computes the number of bytes left to be read from the input stream 
+ *  after this packet is completely processed.
+ *  returns 1 if token overruns the current packet, 0 otherwise.
+ */
 static int
 bytes_left(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int pos, int maxlen, int need)
 {
@@ -72,9 +72,9 @@ bytes_left(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int pos, int maxlen
 }
 
 /*
-** attempts to read a fixed length token, returns 1 if successful
-** bytes_read is set to the number of bytes read fromt the input stream.
-*/
+ * attempts to read a fixed length token, returns 1 if successful
+ * bytes_read is set to the number of bytes read fromt the input stream.
+ */
 static int
 read_fixed_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -96,6 +96,7 @@ read_fixed_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, i
 		return 1;
 	}
 }
+
 static int
 read_variable_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -119,6 +120,7 @@ read_variable_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen
 		return 1;
 	}
 }
+
 static int
 read_row(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -153,6 +155,7 @@ read_row(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *byte
 
 	return 1;
 }
+
 static int
 read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -229,6 +232,7 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 	*bytes_read = pos;
 	return 1;
 }
+
 static int
 read_col_info(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -283,9 +287,10 @@ read_col_info(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 
 	return 1;
 }
+
 /*
- * ** TDS 5 style result sets
- * */
+ * TDS 5 style result sets
+ */
 static int
 read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -315,8 +320,10 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 	tds->res_info = tds_alloc_results(num_cols);
 	info = pmbr->tds->res_info;
 
-	/* loop through the columns populating COLINFO struct from
- 	 * server response */
+	/*
+	 * loop through the columns populating COLINFO struct from
+ 	 * server response
+	 */
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -355,10 +362,10 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 }
 
 /* 
-** is_end_token processes one token and returns 0 for an incomplete token
-** or -1 if this is the END token, and 1 for successful processing of token.  
-** The number of bytes read from the stream is returned in 'bytes_read'.
-*/
+ * is_end_token processes one token and returns 0 for an incomplete token
+ * or -1 if this is the END token, and 1 for successful processing of token.  
+ * The number of bytes read from the stream is returned in 'bytes_read'.
+ */
 static int
 pool_is_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
@@ -413,7 +420,7 @@ pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len)
 	static int last_mark;
 
 	/*
-	 * ** if we had part of a token left over, copy to tmpbuf
+	 * if we had part of a token left over, copy to tmpbuf
 	 */
 	if (pmbr->num_bytes_left) {
 		/* fprintf(stderr,"%d bytes left from last packet\n",pmbr->num_bytes_left); */

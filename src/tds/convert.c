@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.147 2004-12-10 20:03:03 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.148 2004-12-13 19:24:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2067,7 +2067,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			 * compiler can translate division to a shift and remainder 
 			 * to a binary AND
 			 */
-			packed_num[i] = carry * (25u * 25u * 25u * 25u) + packed_num[i] / 256u;
+			packed_num[i] = carry * (25u * 25u * 25u * 25u) + tmp / 256u;
 			carry = tmp % 256u;
 
 			if (i == (TDS_VECTOR_SIZE(packed_num) - 1) && not_zero) {

@@ -20,7 +20,7 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Id: pool.h,v 1.11 2004-12-11 13:32:42 freddy77 Exp $";
+static char rcsid_pool_h[] = "$Id: pool.h,v 1.12 2004-12-13 19:24:25 freddy77 Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H
@@ -46,7 +46,7 @@ static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_po
 #define MAX_POOL_USERS 1024
 
 /* enums and typedefs */
-enum
+typedef enum
 {
 	TDS_SRV_LOGIN,
 	TDS_SRV_IDLE,
@@ -54,12 +54,12 @@ enum
 	TDS_SRV_WAIT,		/* if no members are free wait */
 	TDS_SRV_CANCEL,
 	TDS_SRV_DEAD
-};
+} TDS_USER_STATE;
 
 typedef struct tds_pool_user
 {
 	TDSSOCKET *tds;
-	int user_state;
+	TDS_USER_STATE user_state;
 }
 TDS_POOL_USER;
 
