@@ -21,7 +21,12 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <assert.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -37,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.21 2003-03-01 20:18:57 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.22 2003-03-05 09:46:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.120 2003-03-04 16:51:52 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.121 2003-03-05 09:46:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1939,7 +1939,6 @@ RETCODE
 dbcancel(DBPROCESS * dbproc)
 {
 int marker;
-int done_flags;
 TDSSOCKET *tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;

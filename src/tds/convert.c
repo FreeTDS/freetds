@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.112 2003-03-04 16:51:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.113 2003-03-05 09:46:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,6 +73,8 @@ static TDS_INT tds_convert_int2(int srctype, const TDS_CHAR *src, int desttype, 
 static TDS_INT tds_convert_int4(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static TDS_INT tds_convert_int8(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
+static int is_dd_mon_yyyy(char *t);
+static int store_dd_mon_yyy_date(char *datestr , struct tds_time *t);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
 
@@ -2163,7 +2165,6 @@ int   digits   = 0;
 static int is_dd_mon_yyyy(char *t)
 {
 char *instr ;
-int   ret   = 1;
 char  month[4];
 
 	instr = t;
