@@ -54,8 +54,7 @@ OPTIONS
   -b batchsize  is the number of rows per batch of data copied. Batching 
                 applies only when you are bulk copying into the
                 database. each batch of data is effectively 'committed'
-                into the database. the default value for batchsize is
-                1000 .
+                into the database. the default value for batchsize is 1000. 
 
   -F firstrow   is the number of the first row to copy from the input file or
                 database table the default is the first row. 
@@ -63,9 +62,9 @@ OPTIONS
   -L lastrow    is the number of the last row to copy from an input file  or
                 database table the default is the last row. 
 
-  -r row_term   specifies the row terminator. Default is newline ('\n') 
+  -r row_term   specifies the row terminator. Default is newline ('\\n') 
 
-  -t field_term  specifies the field terminator. Default is tab ('\t')
+  -t field_term  specifies the field terminator. Default is tab ('\\t')
 
   -S servername  specifies the name of the Database Server to which to connect. 
 

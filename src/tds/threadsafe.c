@@ -30,7 +30,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.7 2002-09-13 05:58:24 freddy77 Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.5.2.1 2002-09-21 07:45:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

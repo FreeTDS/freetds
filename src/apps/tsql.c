@@ -25,19 +25,15 @@
 #include <string.h>
 #include "tds.h"
 #include "tdsconvert.h"
-#include "tdsutil.h"
 
 #ifndef HAVE_READLINE
-char *
-readline(char *prompt)
+char *readline(char *prompt)
 {
 char *buf, line[1000];
 int i = 0;
 
 	printf("%s",prompt);
-	if (fgets(line, 1000, stdin) == NULL) {
-		return NULL;
-	}
+	fgets(line,1000,stdin);
 	for (i=strlen(line);i>0;i--) {
 		if (line[i]=='\n') {
 			line[i]='\0';
@@ -49,9 +45,7 @@ int i = 0;
 
 	return buf;
 }
-
-void
-add_history(const char *s)
+add_history(char *s)
 {
 }
 #endif
@@ -64,6 +58,7 @@ int ctype;
 CONV_RESULT dres;
 unsigned char *src;
 TDS_INT srclen;
+TDS_INT len;
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -93,10 +88,11 @@ TDS_INT srclen;
 
 				if (is_blob_type(col->column_type)) {
 					src = (unsigned char *)col->column_textvalue;
+					srclen = col->column_textsize;
 				} else {
 					src = &(tds->res_info->current_row[col->column_offset]);
+					srclen = col->cur_row_size;
 				}
-				srclen = col->column_cur_size;
 
 	 
                     if(tds_convert(tds->tds_ctx,
@@ -120,7 +116,7 @@ void print_usage(char *progname)
 {
 			fprintf(stderr,"Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n",progname);
 }
-void populate_login(TDSLOGIN *login, int argc, char **argv)
+int populate_login(TDSLOGIN *login, int argc, char **argv)
 {
 char *hostname = NULL;
 char *servername = NULL;
@@ -225,9 +221,7 @@ int  opt;
 }
 int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-     if (msg->msg_number > 0
-	 && msg->msg_number != 5701
-	 && msg->msg_number != 20018) {
+     if( msg->msg_number > 0  && msg->msg_number != 5701) {
 		fprintf (stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
                          msg->msg_number,
                          msg->msg_level,
@@ -270,9 +264,9 @@ TDSCONTEXT *context;
 	populate_login(login, argc, argv);
 
 	/* Try to open a connection*/
-	tds = tds_alloc_socket(context, 512);
-	tds_set_parent(tds, NULL);
-	if (tds_connect(tds, login) == TDS_FAIL) {
+	tds = tds_connect(login, context, NULL); 
+
+	if (!tds) {
 		/* FIX ME -- need to hook up message/error handlers */
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
@@ -284,25 +278,10 @@ TDSCONTEXT *context;
 
 	sprintf(prompt,"1> ");
 	s=readline(prompt);
-	if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
+	if (!strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 		done = 1;
 	}
-	if (!strcmp(s,"version")) {
-		done = tds_version( tds, mybuf );
-		if( done )
-			printf( "using TDS version %s\n", mybuf );
-	}
-
 	while (!done) {
-		if (!strcmp(s,"GO")) {
-			char version[64], message[128];
-			strcpy(s, "go");
-			line = tds_version( tds, version );
-			if( line ) {
-				sprintf( message, "using TDS version %s", version );
-				tds_client_msg(context, tds, line, line, line, line, message);
-			}
-		}
 		if (!strcmp(s,"go")) {
 			line = 0;
 			do_query(tds, mybuf);
@@ -323,13 +302,8 @@ TDSCONTEXT *context;
 		sprintf(prompt,"%d> ",++line);
 		free(s);
 		s=readline(prompt);
-		if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
+		if (!strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 			done = 1;
-		}
-		if (!strcmp(s,"version")) {
-			done = tds_version( tds, mybuf );
-			if( done )
-				printf( "using TDS version %s\n", mybuf );
 		}
 	}
 

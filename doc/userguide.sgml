@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-09 08:27:31 $</date>
-		<releaseinfo>$Revision: 1.33 $</releaseinfo>
+		<date>$Date: 2002-09-21 07:45:15 $</date>
+		<releaseinfo>$Revision: 1.31.2.1 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -202,9 +202,9 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 			<title>Status of this document</title>
 			<para>
 The document you are reading is version 
-$Revision: 1.33 $
+$Revision: 1.31.2.1 $
 , dated 
-$Date: 2002-09-09 08:27:31 $
+$Date: 2002-09-21 07:45:15 $
 .  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>

@@ -214,7 +214,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.7 2002-09-12 18:59:11 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.6.2.1 2002-09-21 07:45:15 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq

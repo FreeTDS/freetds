@@ -29,6 +29,21 @@ AC_CHECK_LIB(socket, socket, NETWORK_LIBS="$NETWORK_LIBS -lsocket")
 AC_CHECK_LIB(nsl, gethostbyname, NETWORK_LIBS="$NETWORK_LIBS -lnsl")
 AC_SUBST(NETWORK_LIBS)
 
+dnl readline test
+dnl Readline is needed by the tty session. Set up a special RL_LIBS
+dnl substitution for it.
+OLDLIBS="$LIBS"
+dnl Readline is linked with curses, and on some systems termcap must be
+dnl linked in. Others (inc debian) have termcap built into ncurses.
+LIBS=""
+AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
+AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
+  AC_DEFINE(HAVE_READLINE)] )
+READLINE_LIBS="$LIBS"
+AC_SUBST(READLINE_LIBS)
+LIBS="$OLDLIBS"
+
+
 dnl ------------------------------------------------------------
 dnl Checks for header files.
 dnl ------------------------------------------------------------
@@ -127,6 +142,7 @@ dnl Checks for library functions.
 dnl ------------------------------------------------------------
 
 AC_CHECK_FUNCS(vasprintf)
+AC_CHECK_FUNCS(vsnprintf)
 
 AC_CHECK_FUNCS(atoll)
 AC_MSG_CHECKING(if 64-bit arithmetic is available)

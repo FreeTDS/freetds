@@ -1,3 +1,15 @@
+Sat Sep 21  9:40:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* acconfig.h configure.in src/apps/Makefile.am src/apps/tsql.c:
+	- add readline stuff to tsql (merged)
+	* acinclude.m4: merged problem compiling in Solaris
+	* freetds.spec.in: fix rpm builing
+	* doc/Makefile.am: fix make dist
+	* doc/freebcp.txt doc/userguide.sgml: merged
+	* src/odbc/connectparams.c src/odbc/odbc_util.c:
+	- merged, SQLDriverConnect now work (required for many tools)
+	* src/tds/threadsafe.c: merged (fox compiling in Tru64 if threadsafe)
+
+	
 Thu Sep 19 00:51:19 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/Makefile.am: add version, set to 0.1.0
 	* src/tds/Makefile.am: 	add version, set to 1.0.0

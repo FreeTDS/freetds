@@ -5,7 +5,7 @@ SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.60.1
 PRODUCT = FreeTDS
-DOCBOOK_DSL = $$DOCBOOK_DSL
+#DOCBOOK_DSL = $$DOCBOOK_DSL
 
 man_MANS	= freebcp.1 tsql.1
 
