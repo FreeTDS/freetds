@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0016.c,v 1.20 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.21 2005-02-22 12:30:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 	if (ret != SUCCEED)
 		failed = 1;
 
-	fprintf(stderr, "select\n");
+	printf("select\n");
 	dbcmd(dbproc, "select * from #dblib0016 where 0=1");
 	dbsqlexec(dbproc);
 

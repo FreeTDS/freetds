@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.4 2005-02-09 16:15:20 jklowden Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.5 2005-02-22 12:30:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -186,7 +186,7 @@ main(int argc, char **argv)
 
 		/* do all test */
 		for (i = 1;;) {
-			fprintf(stderr, "Testing len %d\n", i);
+			printf("Testing len %d\n", i);
 			test(buf + 8 * (128 - i));
 			if (i == 128)
 				break;
