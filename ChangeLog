@@ -1,3 +1,10 @@
+Thu Nov  7 13:44:42 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/util.c:
+	- Make tdsdump_open(NULL) and tdsdump_open("") equivalent
+	  to tdsdump_close().  Fixes bug introduced with the
+	  tds_dstr*() code (logging always enabled to tdsdump.out
+	  by default).
+
 Thu Nov  7 12:27:08 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0005.c src/dblib/unittests/t0007.c:
 	- Add some informational output about expected failures.

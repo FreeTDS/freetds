@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: util.c,v 1.25 2002-11-01 20:55:54 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.26 2002-11-07 18:46:28 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -165,39 +165,40 @@ tdsdump_on(void)
  *
  * Def:  This creates and truncates a human readable dump file for the TDS
  *       traffic.  The name of the file is specified by the filename
- *       parameter.  If that is given as NULL, it opens a
- *       file named "tdsdump.out" in the current directory.
+ *       parameter.  If that is given as NULL or an empty string,
+ *       any existing log file will be closed.
  *
  * Ret:  true iff the file was opened, false if it couldn't be opened.
  *
  * ===========================================================================
  */
-int tdsdump_open(const char *filename)
+int
+tdsdump_open(const char *filename)
 {
-int   result;   /* really should be a boolean, not an int */
+	int result;   /* really should be a boolean, not an int */
 
-   tdsdump_close();
-   if (filename == NULL || filename[0]=='\0') {
-      filename = "tdsdump.out";
-   }
-   if (g_append_mode) {
-	 g_dump_filename = strdup(filename);
-      tdsdump_on();
-      result = 1;
-   } else if (!strcmp(filename,"stdout")) {
-      dumpfile = stdout;
-      result = 1;
-   } else if (!strcmp(filename,"stderr")) {
-      dumpfile = stderr;
-      result = 1;
-   } else if (NULL == (dumpfile = fopen(filename, "w"))) {
-      tdsdump_off();
-      result = 0;
-   } else {
-      tdsdump_on();
-      result = 1;
-   }
-   return result;
+	tdsdump_close();
+	if (filename == NULL || filename[0] == '\0') {
+		return 1;
+	}
+	if (g_append_mode) {
+		g_dump_filename = strdup(filename);
+		result = 1;
+	} else if (!strcmp(filename, "stdout")) {
+		dumpfile = stdout;
+		result = 1;
+	} else if (!strcmp(filename, "stderr")) {
+		dumpfile = stderr;
+		result = 1;
+	} else if (NULL == (dumpfile = fopen(filename, "w"))) {
+		result = 0;
+	} else {
+		result = 1;
+	}
+	if (result == 1) {
+		tdsdump_on();
+	}
+	return result;
 } /* tdsdump_open()  */
 
 int tdsdump_append(void)
