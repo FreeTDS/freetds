@@ -58,6 +58,10 @@
 #include <sys/select.h>
 #endif /* HAVE_SELECT_H */
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
 #include <assert.h>
 
 #include "tds.h"
@@ -66,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.75 2003-11-23 09:12:34 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.76 2003-12-09 20:52:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -112,7 +116,11 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				return (-1);
 			}
 		} else if (retcode > 0) {
+#ifndef MSG_NOSIGNAL
 			len = READSOCKET(tds->s, buf + got, buflen);
+#else
+			len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
+#endif
 			if (len > 0) {
 				buflen -= len;
 				got += len;

@@ -56,9 +56,13 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if HAVE_SELECT_H
+#if HAVE_SYS_SELECT_H
 #include <sys/select.h>
-#endif /* HAVE_SELECT_H */
+#endif /* HAVE_SYS_SELECT_H */
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
 
 #include "tds.h"
 #include "tdsiconv.h"
@@ -67,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.52 2003-11-24 03:12:27 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.53 2003-12-09 20:52:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -412,9 +416,17 @@ goodwrite(TDSSOCKET * tds)
 		 * writability
 		 * moved socket writability check to own function -- bsb
 		 */
+		/* 
+		 * TODO we can avoid calling select for every send using 
+		 * no-blocking socket... This will reduce syscalls
+		 */
 		tds_check_socket_write(tds);
 
+#ifndef MSG_NOSIGNAL
 		retval = WRITESOCKET(tds->s, p, left);
+#else
+		retval = send(tds->s, p, left, MSG_NOSIGNAL);
+#endif
 
 		if (retval <= 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", sock_errno,
@@ -437,7 +449,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int retcode;
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	void (*oldsig) (int);
 #endif
 
@@ -451,7 +463,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_log(TDS_DBG_NETWORK, "Sending packet @ %L\n%D\n", tds->out_buf, tds->out_pos);
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	oldsig = signal(SIGPIPE, SIG_IGN);
 	if (oldsig == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
@@ -460,7 +472,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	retcode = goodwrite(tds);
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}

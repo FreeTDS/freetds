@@ -1,3 +1,8 @@
+Tue Dec  9 21:51:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: fixed "make distcheck"
+	* src/tds/read.c src/tds/write.c:
+	- used MSG_NOSIGNAL where available
+
 Tue Dec  9 17:57:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in:
 	- enable threadsafe by default to remove some undefined problems

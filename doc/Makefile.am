@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.24 2003-12-08 07:35:06 jklowden Exp $
+# version: $Id: Makefile.am,v 1.25 2003-12-09 20:52:33 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.62
@@ -12,7 +12,8 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds_layer.txt CodingStyle tds.html  \
 		userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
-		userguide.tgz reference.tgz
+		userguide.tgz reference.tgz \
+		userguide.dsl.in
 
 tarballs:	userguide.tgz reference.tgz
 
@@ -78,4 +79,6 @@ install-data-local:
 uninstall-local:
 	rm -rf $(DESTDIR)$(datadir)/doc/freetds/reference
 	rm -rf $(DESTDIR)$(datadir)/doc/freetds/userguide
+
+DISTCLEANFILES = userguide.tgz userguide.dsl userguide/*
 
