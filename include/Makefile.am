@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS	=	1.7
+AUTOMAKE_OPTIONS	=	1.53
 
 include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctlib.h ctpublic.h \
 			dblib.h \
