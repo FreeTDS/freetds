@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.53 2003-05-06 03:46:10 jklowden Exp $
+To Do List	$Id: TODO,v 1.54 2003-05-07 12:48:55 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -94,9 +94,6 @@ For future versions (in priority order within library):
   (fixed, add check for early bind, and multiple recordset)
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
 . cursor support
-. how work mssql driver using SQLMoreResults/SQLRowCount and batch like 
-  SELECT INSERT INSERT SELECT ?
-  (SQLMoreResults skip row counts for INSERT?)
 . Star Office complains that these TypeInfo constants are not implemented in SQLGetInfo:
 	47      SQL_USER_NAME
 	10000   SQL_XOPEN_CLI_YEAR
@@ -142,3 +139,7 @@ Done (removed from above):
 Done in 0.62
 . ODBC: improve, best error report (finish and test, see error.c FIXME and TODO)
 . ct-lib: support ct_diag (for Python)
+. ODBC test: how work mssql driver using SQLMoreResults/SQLRowCount and batch 
+  like SELECT INSERT INSERT SELECT ?
+  (SQLMoreResults skip row counts for INSERT?)
+

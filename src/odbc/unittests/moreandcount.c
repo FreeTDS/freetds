@@ -2,16 +2,21 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.1 2003-05-07 12:35:43 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.2 2003-05-07 12:48:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 CheckRows(int n)
 {
 	SQLINTEGER rows;
+	SQLRETURN res;
 
-	if (SQLRowCount(Statement, &rows) != SQL_SUCCESS) {
+	res = SQLRowCount(Statement, &rows);
+	if (res != SQL_SUCCESS) {
+		if (res == SQL_ERROR && n < -1)
+			return;
 		fprintf(stderr, "Unable to get row\n");
+		CheckReturn();
 		exit(1);
 	}
 
@@ -94,6 +99,8 @@ main(int argc, char *argv[])
 	CheckRows(1);
 
 	NextResults(SQL_NO_DATA);
+
+	CheckRows(-2);
 
 	Disconnect();
 

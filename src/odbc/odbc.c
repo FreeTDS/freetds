@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.159 2003-05-07 09:57:34 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.160 2003-05-07 12:48:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1141,6 +1141,7 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 		case TDS_CMD_DONE:
+			/* FIXME should just return ?? what happen on INSERT query ? */
 			if (tds->res_info)
 				done = 1;
 			break;
