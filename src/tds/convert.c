@@ -42,13 +42,16 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.89 2002-10-02 21:00:33 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.90 2002-10-09 10:20:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef unsigned short utf16_t;
 
 static TDS_INT tds_convert_int1(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
+static TDS_INT tds_convert_int2(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
+static TDS_INT tds_convert_int4(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
+static TDS_INT tds_convert_int8(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
 /**
  * convert a number in string to a TDSNUMERIC
@@ -65,6 +68,12 @@ static int stringz_to_numeric(const char *instr, CONV_RESULT *cr);
  * @return TDS_CONVERT_* failure code if failure
  */
 static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
+/**
+ * convert a number in string to TDS_INT8
+ * @return TDS_CONVERT_* failure code if failure
+ */
+static TDS_INT string_to_int8(const char *buf,const char *pend,TDS_INT8* res);
+
 
 static int store_hour(char *, char *, struct tds_time *);
 static int store_time(char *, struct tds_time * );
@@ -220,6 +229,7 @@ char hex2[3];
 	case SYBINT1:
 	case SYBINT2:
 	case SYBINT4:
+	case SYBINT8:
 	case SYBMONEY4:
 	case SYBMONEY:
 	case SYBREAL:
@@ -266,6 +276,7 @@ char         mynumber[39];
 const char *ptr, *pend;
 int point_found, places;
 TDS_INT tds_i;
+TDS_INT8 tds_i8;
 TDS_INT rc;
    
    switch(desttype) {
@@ -390,6 +401,12 @@ TDS_INT rc;
 		cr->i = tds_i;
          	return 4;
          	break;
+	case SYBINT8:
+		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
+			return rc;
+		cr->bi = tds_i8;
+		return 8;
+		break;
       case SYBFLT8:
          	cr->f = atof(src);
          	return 8;
@@ -565,6 +582,10 @@ tds_convert_bit(int srctype, const TDS_CHAR *src,
 			cr->i = canonic;
 			return 4;
 			break;
+		case SYBINT8:
+			cr->bi = canonic;
+			return 8;
+			break;
 		case SYBFLT8:
 			cr->f = canonic;
 			return 8;
@@ -628,7 +649,11 @@ TDS_CHAR tmp_str[5];
 			break;
 		case SYBINT4:
 			cr->i = buf;
-            return 4;
+			return 4;
+			break;
+		case SYBINT8:
+			cr->bi = buf;
+			return 8;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -700,6 +725,10 @@ TDS_CHAR tmp_str[16];
 			cr->i = buf;
             return 4;
 			break;
+		case SYBINT8:
+			cr->bi = buf;
+			return 8;
+			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = buf ? 1 : 0;
@@ -737,6 +766,7 @@ TDS_CHAR tmp_str[16];
 	}
 	return TDS_CONVERT_FAIL;
 }
+
 static TDS_INT 
 tds_convert_int4(int srctype, const TDS_CHAR *src,
 	int desttype, CONV_RESULT *cr)
@@ -771,6 +801,10 @@ TDS_CHAR tmp_str[16];
 		case SYBINT4:
 			cr->i = buf;
             return 4;
+			break;
+		case SYBINT8:
+			cr->bi = buf;
+			return 8;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -811,6 +845,91 @@ TDS_CHAR tmp_str[16];
 	}
 	return TDS_CONVERT_FAIL;
 }
+
+static TDS_INT 
+tds_convert_int8(int srctype, const TDS_CHAR *src,
+	int desttype, CONV_RESULT *cr)
+{
+TDS_INT8 buf;
+TDS_CHAR tmp_str[24];
+	
+	memcpy(&buf,src,sizeof(buf));
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBTEXT:
+		case SYBVARCHAR:
+			/* TODO: fix for all platform */
+			sprintf(tmp_str,"%lld",buf);
+			return string_to_result(tmp_str,cr);
+			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,8,cr);
+			break;
+		case SYBINT1:
+			if (!IS_TINYINT(buf))
+				return TDS_CONVERT_OVERFLOW;
+			cr->ti = buf;
+			return 1;
+			break;
+		case SYBINT2:
+			if (!IS_SMALLINT(buf))
+				return TDS_CONVERT_OVERFLOW;
+			cr->si = buf;
+			return 2;
+			break;
+		case SYBINT4:
+			if (!IS_INT(buf))
+				return TDS_CONVERT_OVERFLOW;
+			cr->i = buf;
+			return 4;
+			break;
+		case SYBINT8:
+			cr->bi = buf;
+			return 8;
+			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = buf ? 1 : 0;
+			return 1;
+			break;
+		case SYBFLT8:
+			cr->f = buf;
+			return 8;
+			break;
+		case SYBREAL:
+			cr->r = buf;
+			return 4;
+			break;
+		case SYBMONEY4:
+			if (buf > 214748 || buf < -214748)
+				return TDS_CONVERT_OVERFLOW;
+			cr->m4.mny4 = buf * 10000;
+			return 4;
+			break;
+		case SYBMONEY:
+			/* TODO check overflow */
+			cr->m.mny = buf * 10000;
+			return sizeof(TDS_MONEY);
+			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			/* TODO portability problem */
+			sprintf(tmp_str,"%lld",buf);
+			return stringz_to_numeric(tmp_str,cr);
+			break;
+		/* conversions not allowed */
+		case SYBUNIQUE:
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+		default:
+			return TDS_CONVERT_NOAVAIL;
+			break;
+	}
+	return TDS_CONVERT_FAIL;
+}
+
 static TDS_INT 
 tds_convert_numeric(int srctype,TDS_NUMERIC *src,TDS_INT srclen,
 	int desttype, CONV_RESULT *cr)
@@ -852,6 +971,12 @@ long i;
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = i;
 			return 4;
+			break;
+		case SYBINT8:
+			tds_numeric_to_string(src,tmpstr);
+			/* TODO check for overflow */
+			cr->bi = atoll(tmpstr);
+			return 8;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -935,6 +1060,10 @@ char tmp_str[33];
 		case SYBINT4:
 			cr->i = mny.mny4 / 10000;
 			return 4;
+			break;
+		case SYBINT8:
+			cr->bi = mny.mny4 / 10000;
+			return 8;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -1068,6 +1197,10 @@ int i;
 			cr->i = dollars;
 			return 4;
 			break;
+		case SYBINT8:
+			cr->i = mymoney / 10000;
+			return 8;
+			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = mymoney ? 1 : 0;
@@ -1161,6 +1294,7 @@ TDSDATEREC when;
 		case SYBINT1:
 		case SYBINT2:
 		case SYBINT4:
+		case SYBINT8:
 		case SYBMONEY4:
 		case SYBMONEY:
 		case SYBNUMERIC:
@@ -1237,6 +1371,7 @@ TDSDATEREC when;
 		case SYBINT1:
 		case SYBINT2:
 		case SYBINT4:
+		case SYBINT8:
 		case SYBMONEY4:
 		case SYBMONEY:
 		case SYBNUMERIC:
@@ -1289,6 +1424,11 @@ TDS_INT8 mymoney;
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = the_value;
 			return 4;
+			break;
+		case SYBINT8:
+			/* TODO check overflow */
+			cr->bi = the_value;
+			return 8;
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -1372,6 +1512,11 @@ char      tmp_str[25];
 			cr->i = the_value;
 			return 4;
 			break;
+		case SYBINT8:
+			/* TODO check overflow */
+			cr->bi = the_value;
+			return 8;
+			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = the_value ? 1 : 0;
@@ -1449,6 +1594,7 @@ TDS_UCHAR buf[37];
 		case SYBINT1:
 		case SYBINT2:
 		case SYBINT4:
+		case SYBINT8:
 		case SYBMONEY4:
 		case SYBMONEY:
 		case SYBDATETIME4:
@@ -1515,6 +1661,9 @@ TDS_VARBINARY *varbin;
 			break;
 		case SYBINT4:
 			length = tds_convert_int4(srctype, src, desttype, cr);
+			break;
+		case SYBINT8:
+			length = tds_convert_int8(srctype, src, desttype, cr);
 			break;
 		case SYBREAL:
 			length = tds_convert_real(srctype, src, desttype, cr);
@@ -2582,26 +2731,27 @@ utf16len(const utf16_t* s)
 __DATA__
           To
 From
-          VARCHAR CHAR TEXT BINARY IMAGE INT1 INT2 INT4 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
-VARCHAR     T      T   T    T 	T	 T	T	T	T	T   T	  T  	T   T    T	 T		T		T	   T
-CHAR        T      T   T    T 	T	 T	T	T	T	T   T	  T  	T   T    T	 T		T		T	   T
-TEXT        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
-BINARY      T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-IMAGE       T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT1        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT2        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT4        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-FLT8        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-REAL        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-NUMERIC     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-DECIMAL     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-BIT         T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-MONEY       T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-MONEY4      T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-DATETIME    T      T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
-DATETIME4   T      T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
-BOUNDARY    T      T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         T       F
-SENSITIVITY T      T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         F       T
+          VARCHAR CHAR TEXT BINARY IMAGE INT1 INT2 INT4 INT8 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
+VARCHAR     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
+CHAR        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
+TEXT        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
+BINARY      T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+IMAGE       T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+INT1        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+INT2        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+INT4        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+INT8        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+FLT8        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+REAL        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+NUMERIC     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+DECIMAL     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+BIT         T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+MONEY       T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+MONEY4      T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
+DATETIME    T      T   T    T      T     F    F    F    F    F    F    F       F       F   F     F      T        T         F        F
+DATETIME4   T      T   T    T      T     F    F    F    F    F    F    F       F       F   F     F      T        T         F        F
+BOUNDARY    T      T   T    F      F     F    F    F    F    F    F    F       F       F   F     F      F        F         T        F
+SENSITIVITY T      T   T    F      F     F    F    F    F    F    F    F       F       F   F     F      F        F         F        T
 #endif
 unsigned char
 tds_willconvert(int srctype, int desttype)
@@ -2820,6 +2970,74 @@ unsigned int num; /* we use unsigned here for best overflow check */
 		*res = 0 - num;
 	} else {
 		if (num >= 2147483648u)
+			return TDS_CONVERT_OVERFLOW;
+		*res = num;
+	}
+	
+	return TDS_SUCCEED;
+}
+
+/* copied from string_ti_int and modified */
+static TDS_INT
+string_to_int8(const char *buf,const char *pend,TDS_INT8* res)
+{
+enum { blank = ' ' };
+const char *p;
+int	sign;
+TDS_UINT8 num; /* we use unsigned here for best overflow check */
+	
+	p = buf;
+	
+	/* ignore leading spaces */
+	while( p != pend && *p == blank )
+		++p;
+	if (p==pend) return TDS_CONVERT_SYNTAX;
+
+	/* check for sign */
+	sign = 0;
+	switch ( *p ) {
+	case '-':
+		sign = 1;
+		/* fall thru */
+	case '+':
+		/* skip spaces between sign and number */
+		++p;
+		while( p != pend && *p == blank )
+			++p;
+		break;
+	}
+	
+	/* a digit must be present */
+	if (p == pend )
+		return TDS_CONVERT_SYNTAX;
+
+	num = 0;
+	for(;p != pend;++p) {
+		/* check for trailing spaces */
+		if (*p == blank) {
+			while( p != pend && *++p == blank);
+			if (p!=pend) return TDS_CONVERT_SYNTAX;
+			break;
+		}
+	
+		/* must be a digit */
+		if (!isdigit((unsigned char) *p))
+			return TDS_CONVERT_SYNTAX;
+	
+		/* add a digit to number and check for overflow */
+		/* FIXME not portable constant */
+		if (num > ( (((TDS_UINT8)1)<<63) / ((TDS_UINT8)10) ) )
+			return TDS_CONVERT_OVERFLOW;
+		num = num * 10u + (*p-'0');
+	}
+	
+	/* check for overflow and convert unsigned to signed */
+	if (sign) {
+		if (num > (((TDS_UINT8)1)<<63) )
+			return TDS_CONVERT_OVERFLOW;
+		*res = 0 - num;
+	} else {
+		if (num >= (((TDS_UINT8)1)<<63) )
 			return TDS_CONVERT_OVERFLOW;
 		*res = num;
 	}

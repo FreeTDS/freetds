@@ -29,7 +29,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.26 2002-10-07 17:51:01 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.27 2002-10-09 10:20:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -297,6 +297,17 @@ int elem, id_len;
 int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
+
+	if (tds->state==TDS_PENDING) {
+		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,
+			"Attempt to initiate a new SQL Server operation with results pending.");
+		return TDS_FAIL;
+	}
+
+	/* TODO check this code, copied from tds_submit_prepare */
+	tds_free_all_results(tds);
+	tds->rows_affected = 0;
+	tds->state = TDS_QUERYING;
 
 	id_len = strlen(id);
 

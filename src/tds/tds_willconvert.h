@@ -13,6 +13,7 @@
 	, { SYBVARCHAR, SYBINT1         , 1 }
 	, { SYBVARCHAR, SYBINT2         , 1 }
 	, { SYBVARCHAR, SYBINT4         , 1 }
+	, { SYBVARCHAR, SYBINT8         , 1 }
 	, { SYBVARCHAR, SYBFLT8         , 1 }
 	, { SYBVARCHAR, SYBREAL         , 1 }
 	, { SYBVARCHAR, SYBNUMERIC      , 1 }
@@ -30,6 +31,7 @@
 	, { SYBCHAR, SYBINT1            , 1 }
 	, { SYBCHAR, SYBINT2            , 1 }
 	, { SYBCHAR, SYBINT4            , 1 }
+	, { SYBCHAR, SYBINT8            , 1 }
 	, { SYBCHAR, SYBFLT8            , 1 }
 	, { SYBCHAR, SYBREAL            , 1 }
 	, { SYBCHAR, SYBNUMERIC         , 1 }
@@ -47,6 +49,7 @@
 	, { SYBTEXT, SYBINT1            , 1 }
 	, { SYBTEXT, SYBINT2            , 1 }
 	, { SYBTEXT, SYBINT4            , 1 }
+	, { SYBTEXT, SYBINT8            , 1 }
 	, { SYBTEXT, SYBFLT8            , 1 }
 	, { SYBTEXT, SYBREAL            , 1 }
 	, { SYBTEXT, SYBNUMERIC         , 1 }
@@ -64,6 +67,7 @@
 	, { SYBBINARY, SYBINT1          , 1 }
 	, { SYBBINARY, SYBINT2          , 1 }
 	, { SYBBINARY, SYBINT4          , 1 }
+	, { SYBBINARY, SYBINT8          , 1 }
 	, { SYBBINARY, SYBFLT8          , 1 }
 	, { SYBBINARY, SYBREAL          , 1 }
 	, { SYBBINARY, SYBNUMERIC       , 1 }
@@ -81,6 +85,7 @@
 	, { SYBIMAGE, SYBINT1           , 1 }
 	, { SYBIMAGE, SYBINT2           , 1 }
 	, { SYBIMAGE, SYBINT4           , 1 }
+	, { SYBIMAGE, SYBINT8           , 1 }
 	, { SYBIMAGE, SYBFLT8           , 1 }
 	, { SYBIMAGE, SYBREAL           , 1 }
 	, { SYBIMAGE, SYBNUMERIC        , 1 }
@@ -98,6 +103,7 @@
 	, { SYBINT1, SYBINT1            , 1 }
 	, { SYBINT1, SYBINT2            , 1 }
 	, { SYBINT1, SYBINT4            , 1 }
+	, { SYBINT1, SYBINT8            , 1 }
 	, { SYBINT1, SYBFLT8            , 1 }
 	, { SYBINT1, SYBREAL            , 1 }
 	, { SYBINT1, SYBNUMERIC         , 1 }
@@ -115,6 +121,7 @@
 	, { SYBINT2, SYBINT1            , 1 }
 	, { SYBINT2, SYBINT2            , 1 }
 	, { SYBINT2, SYBINT4            , 1 }
+	, { SYBINT2, SYBINT8            , 1 }
 	, { SYBINT2, SYBFLT8            , 1 }
 	, { SYBINT2, SYBREAL            , 1 }
 	, { SYBINT2, SYBNUMERIC         , 1 }
@@ -132,6 +139,7 @@
 	, { SYBINT4, SYBINT1            , 1 }
 	, { SYBINT4, SYBINT2            , 1 }
 	, { SYBINT4, SYBINT4            , 1 }
+	, { SYBINT4, SYBINT8            , 1 }
 	, { SYBINT4, SYBFLT8            , 1 }
 	, { SYBINT4, SYBREAL            , 1 }
 	, { SYBINT4, SYBNUMERIC         , 1 }
@@ -141,6 +149,24 @@
 	, { SYBINT4, SYBMONEY4          , 1 }
 	, { SYBINT4, SYBDATETIME        , 0 }
 	, { SYBINT4, SYBDATETIME4       , 0 }
+	, { SYBINT8, SYBVARCHAR         , 1 }
+	, { SYBINT8, SYBCHAR            , 1 }
+	, { SYBINT8, SYBTEXT            , 1 }
+	, { SYBINT8, SYBBINARY          , 1 }
+	, { SYBINT8, SYBIMAGE           , 1 }
+	, { SYBINT8, SYBINT1            , 1 }
+	, { SYBINT8, SYBINT2            , 1 }
+	, { SYBINT8, SYBINT4            , 1 }
+	, { SYBINT8, SYBINT8            , 1 }
+	, { SYBINT8, SYBFLT8            , 1 }
+	, { SYBINT8, SYBREAL            , 1 }
+	, { SYBINT8, SYBNUMERIC         , 1 }
+	, { SYBINT8, SYBDECIMAL         , 1 }
+	, { SYBINT8, SYBBIT             , 1 }
+	, { SYBINT8, SYBMONEY           , 1 }
+	, { SYBINT8, SYBMONEY4          , 1 }
+	, { SYBINT8, SYBDATETIME        , 0 }
+	, { SYBINT8, SYBDATETIME4       , 0 }
 	, { SYBFLT8, SYBVARCHAR         , 1 }
 	, { SYBFLT8, SYBCHAR            , 1 }
 	, { SYBFLT8, SYBTEXT            , 1 }
@@ -149,6 +175,7 @@
 	, { SYBFLT8, SYBINT1            , 1 }
 	, { SYBFLT8, SYBINT2            , 1 }
 	, { SYBFLT8, SYBINT4            , 1 }
+	, { SYBFLT8, SYBINT8            , 1 }
 	, { SYBFLT8, SYBFLT8            , 1 }
 	, { SYBFLT8, SYBREAL            , 1 }
 	, { SYBFLT8, SYBNUMERIC         , 1 }
@@ -166,6 +193,7 @@
 	, { SYBREAL, SYBINT1            , 1 }
 	, { SYBREAL, SYBINT2            , 1 }
 	, { SYBREAL, SYBINT4            , 1 }
+	, { SYBREAL, SYBINT8            , 1 }
 	, { SYBREAL, SYBFLT8            , 1 }
 	, { SYBREAL, SYBREAL            , 1 }
 	, { SYBREAL, SYBNUMERIC         , 1 }
@@ -183,6 +211,7 @@
 	, { SYBNUMERIC, SYBINT1         , 1 }
 	, { SYBNUMERIC, SYBINT2         , 1 }
 	, { SYBNUMERIC, SYBINT4         , 1 }
+	, { SYBNUMERIC, SYBINT8         , 1 }
 	, { SYBNUMERIC, SYBFLT8         , 1 }
 	, { SYBNUMERIC, SYBREAL         , 1 }
 	, { SYBNUMERIC, SYBNUMERIC      , 1 }
@@ -200,6 +229,7 @@
 	, { SYBDECIMAL, SYBINT1         , 1 }
 	, { SYBDECIMAL, SYBINT2         , 1 }
 	, { SYBDECIMAL, SYBINT4         , 1 }
+	, { SYBDECIMAL, SYBINT8         , 1 }
 	, { SYBDECIMAL, SYBFLT8         , 1 }
 	, { SYBDECIMAL, SYBREAL         , 1 }
 	, { SYBDECIMAL, SYBNUMERIC      , 1 }
@@ -217,6 +247,7 @@
 	, { SYBBIT, SYBINT1             , 1 }
 	, { SYBBIT, SYBINT2             , 1 }
 	, { SYBBIT, SYBINT4             , 1 }
+	, { SYBBIT, SYBINT8             , 1 }
 	, { SYBBIT, SYBFLT8             , 1 }
 	, { SYBBIT, SYBREAL             , 1 }
 	, { SYBBIT, SYBNUMERIC          , 1 }
@@ -234,6 +265,7 @@
 	, { SYBMONEY, SYBINT1           , 1 }
 	, { SYBMONEY, SYBINT2           , 1 }
 	, { SYBMONEY, SYBINT4           , 1 }
+	, { SYBMONEY, SYBINT8           , 1 }
 	, { SYBMONEY, SYBFLT8           , 1 }
 	, { SYBMONEY, SYBREAL           , 1 }
 	, { SYBMONEY, SYBNUMERIC        , 1 }
@@ -251,6 +283,7 @@
 	, { SYBMONEY4, SYBINT1          , 1 }
 	, { SYBMONEY4, SYBINT2          , 1 }
 	, { SYBMONEY4, SYBINT4          , 1 }
+	, { SYBMONEY4, SYBINT8          , 1 }
 	, { SYBMONEY4, SYBFLT8          , 1 }
 	, { SYBMONEY4, SYBREAL          , 1 }
 	, { SYBMONEY4, SYBNUMERIC       , 1 }
@@ -268,6 +301,7 @@
 	, { SYBDATETIME, SYBINT1        , 0 }
 	, { SYBDATETIME, SYBINT2        , 0 }
 	, { SYBDATETIME, SYBINT4        , 0 }
+	, { SYBDATETIME, SYBINT8        , 0 }
 	, { SYBDATETIME, SYBFLT8        , 0 }
 	, { SYBDATETIME, SYBREAL        , 0 }
 	, { SYBDATETIME, SYBNUMERIC     , 0 }
@@ -285,6 +319,7 @@
 	, { SYBDATETIME4, SYBINT1       , 0 }
 	, { SYBDATETIME4, SYBINT2       , 0 }
 	, { SYBDATETIME4, SYBINT4       , 0 }
+	, { SYBDATETIME4, SYBINT8       , 0 }
 	, { SYBDATETIME4, SYBFLT8       , 0 }
 	, { SYBDATETIME4, SYBREAL       , 0 }
 	, { SYBDATETIME4, SYBNUMERIC    , 0 }

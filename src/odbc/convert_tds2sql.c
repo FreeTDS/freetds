@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.14 2002-10-02 20:38:55 castellano Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.15 2002-10-09 10:20:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -51,6 +51,11 @@ static int _odbc_get_server_type(int clt_type)
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
 		return SYBDATETIME;
+
+	case SQL_BIGINT:
+	case SQL_C_SBIGINT:
+	case SQL_C_UBIGINT:
+		return SYBINT8;
 
 	case SQL_C_LONG:
 	case SQL_C_ULONG:
@@ -98,6 +103,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
     TIMESTAMP_STRUCT *tssp;
     SQL_NUMERIC_STRUCT   *num;
 
+    TDS_UINT8        *uip8;
     TDS_UINT         *uip;
     TDS_USMALLINT    *usip;
 
@@ -120,7 +126,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
         }
         
 	/* FIXME if tds_convert fail we not return failure but continue... */
-	    switch(desttype) {
+	switch(desttype) {
 
            case SQL_C_CHAR:
              tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
@@ -197,6 +203,13 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
 
              ret = sizeof(TIMESTAMP_STRUCT);
              break;
+
+		case SQL_BIGINT:
+		case SQL_C_SBIGINT:
+		case SQL_C_UBIGINT:
+			memcpy(dest, &(ores.bi), sizeof(TDS_INT8));
+			ret = sizeof(TDS_INT8);
+			break;
 
 	       case SQL_C_LONG:
        	   case SQL_C_SLONG:

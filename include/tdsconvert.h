@@ -21,7 +21,7 @@
 #define _tdsconvert_h_
 
 static char rcsid_tdsconvert_h[] =
-         "$Id: tdsconvert.h,v 1.14 2002-09-25 01:12:01 castellano Exp $";
+         "$Id: tdsconvert.h,v 1.15 2002-10-09 10:20:55 freddy77 Exp $";
 static void *no_unused_tdsconvert_h_warn[] = {
 	rcsid_tdsconvert_h, 
 	no_unused_tdsconvert_h_warn};
@@ -30,6 +30,7 @@ typedef union conv_result {
     TDS_TINYINT     ti;
     TDS_SMALLINT    si;
     TDS_INT         i;
+    TDS_INT8        bi;
     TDS_FLOAT       f;
     TDS_REAL        r;
     TDS_CHAR        *c;

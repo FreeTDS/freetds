@@ -59,7 +59,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.62 2002-10-07 20:55:29 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.63 2002-10-09 10:20:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1147,20 +1147,94 @@ SQLRETURN SQL_API SQLExecDirect(
 SQLRETURN SQL_API SQLExecute(
                             SQLHSTMT           hstmt)
 {
-    struct _hstmt *stmt = (struct _hstmt *) hstmt;
+#if 0 /* developing... */
+TDSSOCKET *tds;
+TDSDYNAMIC *dyn;
+int marker;
+struct _sql_param_info *param;
+#endif 
+struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
-    CHECK_HSTMT;
-    if (SQL_SUCCESS!=prepare_call(stmt))
-        return SQL_ERROR;
+	CHECK_HSTMT;
 
-    if (stmt->prepared_query)
-    {
-        SQLRETURN res = start_parse_prepared_query(stmt);
-        if (SQL_SUCCESS!=res)
-            return res;
-    }
+#if 0 /* developing... */
+	tds = stmt->hdbc->tds_socket;
 
-    return _SQLExecute(hstmt);
+	fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
+	if (stmt->param_count > 0) {
+		if( !stmt->dynid  ){
+			char *id = NULL;
+			tdsdump_log(TDS_DBG_INFO1,"Creating prepared statement\n");
+			if (tds_get_dynid(tds,&id) == TDS_FAIL)
+				return SQL_ERROR;
+			if (tds_submit_prepare(tds,stmt->prepared_query,id) == TDS_FAIL) {
+				free(id);
+				return SQL_ERROR;
+			}
+			/* TODO get results and other things */
+			do
+			{
+				marker=tds_get_byte(tds);
+				tds_process_default_tokens(tds,marker);
+			} while (marker!=TDS_DONE_TOKEN);
+
+			stmt->dynid = id; /* FIXME perhaps we should store numeric position ?? */
+		}
+		/* build parameters list */
+		dyn = tds->dyns[tds_lookup_dynamic(tds,stmt->dynid)];
+		/* TODO rebuild should be done for every bingings change */
+		/*if (dyn->num_params != stmt->param_count) */ {
+			int i;
+			TDSINPUTPARAM *dynparam;
+			tdsdump_log(TDS_DBG_INFO1,"Setting input parameters\n");
+			for(i=0; i < stmt->param_count; ++i) {
+				param = odbc_find_param(stmt, i+1);
+				if (!param) return SQL_ERROR;
+				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
+				if (i>=dyn->num_params) {
+					if (!(dynparam=tds_add_input_param(dyn)))
+						return SQL_ERROR;
+				} else {
+					dynparam = dyn->params[i];
+				}
+				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
+				dynparam->column_type    = SYBVARCHAR; /* FIXME */
+				dynparam->varaddr        = param->varaddr;
+				dynparam->column_bindlen = *(SQLINTEGER*)param->param_lenbind;
+				dynparam->is_null        = 0;
+			}
+		}
+		tdsdump_log(TDS_DBG_INFO1,"End prepare, execute\n");
+		/* TODO check errors */
+		if (tds_submit_execute(tds,stmt->dynid) == TDS_FAIL)
+			return SQL_ERROR;
+		
+		/* TODO copied from _SQLExecute, use a function... */
+		stmt->hdbc->current_statement = stmt;
+		switch(tds_process_result_tokens(tds)) {
+		case TDS_NO_MORE_RESULTS:
+		case TDS_SUCCEED:
+			return SQL_SUCCESS;
+			break;
+		}
+		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n" );
+		return SQL_ERROR;
+	} else {
+//		return _SQLExecute(hstmt);
+	}
+#endif
+
+	if (SQL_SUCCESS!=prepare_call(stmt))
+		return SQL_ERROR;
+
+	if (stmt->prepared_query)
+	{
+		SQLRETURN res = start_parse_prepared_query(stmt);
+		if (SQL_SUCCESS!=res)
+			return res;
+	}
+
+	return _SQLExecute(hstmt);
 }
 
 SQLRETURN SQL_API SQLFetch(
@@ -2448,6 +2522,8 @@ static int sql_to_c_type_default ( int sql_type )
 			return SQL_C_SSHORT;
 		case SQL_INTEGER:
 			return SQL_C_SLONG;
+		case SQL_BIGINT:
+			return SQL_C_SBIGINT;
 		case SQL_REAL:
 			return SQL_C_FLOAT;
 		case SQL_FLOAT:

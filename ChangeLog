@@ -1,3 +1,11 @@
+Mon Oct  9 12:18:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsconvert.h include/tdsodbc.h src/odbc/convert_sql2string.c:
+	* src/odbc/convert_tds2sql.c src/odbc/odbc.c src/tds/convert.c:
+	* src/tds/query.c src/tds/tds_willconvert.h:
+	- applied patch from Jason Borden for bigint support (updated)
+	- add code for handle prepared statement (some stuff are commented,
+	  because not so good and tested)
+
 Mon Oct  9 10:35:35 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: fix problem compiling with odbc and relative directory
 
