@@ -1,4 +1,3 @@
-/* Generated from tds_configs.h.in on Sun Aug 11 12:35:14 EDT 2002 */
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 2002  Brian Bruns
  *
@@ -21,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.10 2003-04-13 14:06:38 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.11 2003-04-13 15:11:16 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -33,6 +32,9 @@ extern "C"
 {
 #endif
 
+
+typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
+
 /**
  * Information relevant to libiconv.  The name is an iconv name, not 
  * the same as found in master..syslanguages.  
@@ -40,9 +42,6 @@ extern "C"
  *  	- nl_langinfo output to iconv charset name
  * 	- iconv charset name to Sybase charset name
  */
-
-typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
-
 typedef struct _tds_encoding 
 {
 	char name[64];
