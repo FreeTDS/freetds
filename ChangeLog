@@ -1,7 +1,7 @@
 Sat Dec 13 03:04:48 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am remove generated html before regenerating
 	* doc/api_status.txt ident string
-	* doc/userguide.sgml mostly markup fixup
+	* doc/userguide.sgml 100% nice HTML page names, plus markup fixup
 	
 Fri Dec 12 16:18:53 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt src/odbc/odbc.c:
