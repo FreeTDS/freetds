@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.27 2004-10-19 11:15:02 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.27.2.1 2005-01-06 01:51:18 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -85,17 +85,17 @@ _dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * m
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS *) tds->parent;
 	}
-	if (msg->msg_number > 0) {
-		/* now check to see if the user supplied a function,
-		 * if not, ignore the problem
-		 */
-		if (_dblib_msg_handler) {
-			_dblib_msg_handler(dbproc,
-					   msg->msg_number,
-					   msg->msg_state,
-					   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
-		}
+
+	/* now check to see if the user supplied a function,
+	 * if not, ignore the problem
+	 */
+	if (_dblib_msg_handler) {
+		_dblib_msg_handler(dbproc,
+				   msg->msg_number,
+				   msg->msg_state,
+				   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
 	}
+
 	if (msg->msg_level > 10) {
 		/*
 		 * Sybase docs say SYBESMSG is generated only in specific

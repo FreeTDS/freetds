@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.2 2004-12-01 03:52:47 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.3 2005-01-06 01:51:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1295,6 +1295,10 @@ dbresults(DBPROCESS * dbproc)
 
 	switch ( dbproc->dbresults_state ) {
 
+	case _DB_RES_SUCCEED:
+		dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+		return SUCCEED;
+		break;
 	case _DB_RES_RESULTSET_ROWS:
 		/* dbresults called while rows outstanding.... */
 		_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
@@ -1303,6 +1307,10 @@ dbresults(DBPROCESS * dbproc)
 	case _DB_RES_NO_MORE_RESULTS:
 		dbproc->dbresults_state = _DB_RES_INIT;
 		return NO_MORE_RESULTS;
+		break;
+	case _DB_RES_NEXT_RESULT:
+	case _DB_RES_INIT:
+		tds_free_all_results(tds);
 		break;
 	default:
 		break;
@@ -1436,8 +1444,9 @@ dbnumcols(DBPROCESS * dbproc)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
-	if (resinfo)
+	if (resinfo) {
 		return resinfo->num_cols;
+	}
 	return 0;
 }
 
@@ -3208,6 +3217,7 @@ dbrows(DBPROCESS * dbproc)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
+
 	if (resinfo && resinfo->rows_exist)
 		return SUCCEED;
 	else
@@ -4034,9 +4044,18 @@ dbsqlok(DBPROCESS * dbproc)
 			case TDS_DONEPROC_RESULT:
 				if (done_flags & TDS_DONE_ERROR) {
 					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was error\n");
+
+					if (done_flags & TDS_DONE_MORE_RESULTS) {
+						dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+					} else {
+						dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
+					}
+
 					return FAIL;
 				} else {
 					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was success\n");
+
+					dbproc->dbresults_state = _DB_RES_SUCCEED;
 					return SUCCEED;
 				}
 				break;

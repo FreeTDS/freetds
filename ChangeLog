@@ -1,3 +1,9 @@
+Wed Jan  5 20:42:50 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* configure.in include/dblib.h src/dblib/dblib.c 
+	* src/dblib/dbutil.c src/dblib/rpc.c
+	- 0.63RC6: Patch 1095806 by Bill Thompson
+	- PRINT packets handled correctly (do not yield stale metadata).
+	
 Wed Dec 22 21:09:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: fix memory leak reported by Brad Rittenhouse
 
