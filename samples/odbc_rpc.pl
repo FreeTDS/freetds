@@ -1,7 +1,27 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.1 2005-04-05 22:11:44 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.2 2005-04-05 22:48:35 jklowden Exp $
+#
+# Contributed by James K. Lowden and is hereby placed in 
+# the public domain.  No rights reserved.  
+#
+# This program demonstrates calling the ODBC "dynamic" functions, using
+# placeholders and prepared statements.  
+#
+# By default, arguments are bound to type SQL_VARCHAR.  If the stored procedure 
+# uses other types, they may be specified in the form :TYPE:data, where TYPE is one
+# of the DBI sybolic constants.  If your data happen to begin with a colon, 
+# prefix the string with ':SQL_VARCHAR:'.  
+#
+# Example: a datetime parameter:  ':SQL_DATETIME:2005-04-01 16:46:00' 
+#
+# To find the symbolic constants for DBI, perldoc DBI recommends:
+#  	use DBI;         
+#  	foreach (@{ $DBI::EXPORT_TAGS{sql_types} }) {
+#             printf "%s=%d\n", $_, &{"DBI::$_"};
+#  	}
+# 
 
-use DBI;
+use DBI qw(:sql_types);
 use Getopt::Std;
 use File::Basename;
 
@@ -34,12 +54,6 @@ if( @ARGV > 1 ) {
 my $sql = "{? = call $ARGV[0] $placeholders}";
 my $sth = $dbh->prepare( $sql );
 
-##  To find the symbolic constants for DBI, perldoc DBI recommends:
-##  	use DBI;         
-##  	foreach (@{ $DBI::EXPORT_TAGS{sql_types} }) {
-##             printf "%s=%d\n", $_, &{"DBI::$_"};
-##  	}
-
 # Bind the return code as "inout".
 my $rc;
 print STDERR qq(Binding parameter #1, the return code\n);
@@ -48,9 +62,17 @@ $sth->bind_param_inout(1, \$rc, SQL_INTEGER);
 # Bind the input parameters (we don't do outputs in this example).
 # Placeholder numbers are 1-based; the first "parameter" 
 # is the return code, $rc, above.
-for( my $i=1; $i < @ARGV; $i++ ) {	
-    printf STDERR qq(Binding parameter #%d: "$ARGV[$i]"\n), ($i+1);
-    $sth->bind_param( 1 + $i, $ARGV[$i] );
+for( my $i=1; $i < @ARGV; $i++ ) {
+    my $type = SQL_VARCHAR;
+    my $typename = 'SQL_VARCHAR';
+    my $data = $ARGV[$i];
+    if( $data =~ /^:([[:upper:]_]+):(.+)/ ) { # parse out the datatype, if any
+	$typename = $1;
+	$data = $2;
+        $type = eval($typename);
+    }
+    printf STDERR qq(Binding parameter #%d (type %s): "$data"\n), ($i+1), $typename;
+    $sth->bind_param( 1 + $i, $data, $type );
 }
 
 print STDERR qq(\nExecuting: "$sth->{Statement}" with parameters '), 
