@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.68 2003-01-04 10:35:40 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.69 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -116,15 +116,15 @@ int (*funcptr) (void *, void *, void *) = (int (*)(void *, void *, void *)) func
 	switch (type) {
 	case CS_CLIENTMSG_CB:
 		if (con)
-			con->_clientmsg_cb = (void *) funcptr;
+			con->_clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
 		else
-			ctx->_clientmsg_cb = (void *) funcptr;
+			ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
 		break;
 	case CS_SERVERMSG_CB:
 		if (con)
-			con->_servermsg_cb = (void *) funcptr;
+			con->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		else
-			ctx->_servermsg_cb = (void *) funcptr;
+			ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		break;
 	}
 	return CS_SUCCEED;
@@ -736,7 +736,7 @@ CS_DATAFMT srcfmt, destfmt;
 
 			src = &(resinfo->current_row[curcol->column_offset]);
 			if (is_blob_type(curcol->column_type))
-				src = ((TDSBLOBINFO *) src)->textvalue;
+				src = (unsigned char*) ((TDSBLOBINFO *) src)->textvalue;
 			srclen = curcol->column_cur_size;
 
 			tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i,

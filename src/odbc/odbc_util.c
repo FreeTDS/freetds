@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.18 2003-01-03 18:28:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.19 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -52,7 +52,7 @@ odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
 	if (stmt->query)
 		free(stmt->query);
 
-	stmt->query = malloc(sql_len + 1);
+	stmt->query = (char*) malloc(sql_len + 1);
 	if (!stmt->query)
 		return SQL_ERROR;
 
@@ -78,7 +78,7 @@ odbc_set_stmt_prepared_query(TDS_STMT *stmt, const char *sql, int sql_len)
 	if (stmt->prepared_query)
 		free(stmt->prepared_query);
 
-	stmt->prepared_query = malloc(sql_len + 1);
+	stmt->prepared_query = (char*) malloc(sql_len + 1);
 	if (!stmt->prepared_query)
 		return SQL_ERROR;
 
@@ -148,7 +148,7 @@ odbc_get_string_size(int size, SQLCHAR * str)
 		return 0;
 	}
 	if (size == SQL_NTS) {
-		return strlen(str);
+		return strlen((const char*) str);
 	} else {
 		return size;
 	}

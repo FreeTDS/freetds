@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.32 2003-01-02 20:12:37 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.33 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -125,14 +125,14 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 	char tmp[256];
 	char temp_c;
 
-	for (p = pszConnectString;;) {
+	for (p = pszConnectString;;) {
 		dest_s = NULL;
 
 		/* parse option */
 		end = strchr(p, '=');
 		if (!end)
 			break;
-		if ((end - p) >= sizeof(option))
+		if ((end - p) >= (int) sizeof(option))
 			option[0] = 0;
 		else {
 			strncpy(option, p, end - p);
@@ -299,9 +299,9 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 static FILE *
 tdoGetIniFileName()
 {
-FILE *ret = NULL;
-char *p;
-char *fn;
+	FILE *ret = NULL;
+	char *p;
+	char *fn;
 
 	/*
 	 * First, try the ODBCINI environment variable

@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.24 2003-01-02 02:00:19 jklowden Exp $";
+         "$Id: cspublic.h,v 1.25 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -66,13 +66,16 @@ typedef struct cs_context CS_CONTEXT;
 typedef struct cs_clientmsg CS_CLIENTMSG;
 typedef struct cs_connection CS_CONNECTION;
 typedef struct cs_servermsg CS_SERVERMSG;
+typedef CS_RETCODE (*CS_CSLIBMSG_FUNC)(CS_CONTEXT *, CS_CLIENTMSG *);
+typedef CS_RETCODE (*CS_CLIENTMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
+typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
 struct cs_context
 {
 	CS_INT date_convert_fmt;
-	CS_RETCODE (*_cslibmsg_cb)(CS_CONTEXT *, CS_CLIENTMSG *);
-	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
-	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
+	CS_CSLIBMSG_FUNC _cslibmsg_cb;
+	CS_CLIENTMSG_FUNC _clientmsg_cb;
+	CS_SERVERMSG_FUNC _servermsg_cb;
 	TDSCONTEXT *tds_ctx;
     CS_CONFIG config;
 };
@@ -89,8 +92,8 @@ struct cs_connection
 	CS_CONTEXT *ctx;
 	TDSLOGIN *tds_login;
 	TDSSOCKET *tds_socket;
-	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
-	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
+	CS_CLIENTMSG_FUNC _clientmsg_cb;
+	CS_SERVERMSG_FUNC _servermsg_cb;
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;

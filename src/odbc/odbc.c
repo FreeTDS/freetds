@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.111 2003-01-03 18:28:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.112 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -107,7 +107,7 @@ static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 */
 
 static SQLRETURN
-change_database(TDS_DBC * dbc, SQLCHAR * database)
+change_database(TDS_DBC * dbc, char *database)
 {
 	SQLRETURN ret;
 	TDSSOCKET *tds;
@@ -220,27 +220,34 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		return SQL_ERROR;
 	}
 
-	tdoParseConnectString(szConnStrIn, connect_info);
+	/* FIXME szConnStrIn can be no-null terminated */
+	tdoParseConnectString((char *) szConnStrIn, connect_info);
 
 	if (tds_dstr_isempty(&connect_info->server_name)) {
+		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find Servername or server parameter");
 		return SQL_ERROR;
 	}
 
 	if (tds_dstr_isempty(&connect_info->user_name)) {
+		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find UID parameter");
 		return SQL_ERROR;
 	}
 
-	if ((ret = do_connect(hdbc, connect_info)) != SQL_SUCCESS) {
+	if ((ret = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
+		tds_free_connect(connect_info);
 		return ret;
 	}
 
 	if (!tds_dstr_isempty(&connect_info->database)) {
-		return change_database(dbc, connect_info->database);
+		ret = change_database(dbc, connect_info->database);
+		tds_free_connect(connect_info);
+		return ret;
 	}
 
 	/* use the default database */
+	tds_free_connect(connect_info);
 	return SQL_SUCCESS;
 }
 
@@ -673,7 +680,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	   SQLSMALLINT cbAuthStr)
 {
 	const char *DSN;
-	SQLRETURN nRetVal;
+	SQLRETURN result;
 	TDSCONNECTINFO *connect_info;
 
 	INIT_HDBC;
@@ -685,8 +692,9 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	/* data source name */
+	/* FIXME DSN can be no-null terminated */
 	if (szDSN || (*szDSN))
-		DSN = szDSN;
+		DSN = (char *) szDSN;
 	else
 		DSN = "DEFAULT";
 
@@ -700,26 +708,26 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	 * so you do not check in ini file */
 	/* user id */
 	if (szUID && (*szUID))
-		tds_dstr_copy(&connect_info->user_name, szUID);
+		tds_dstr_copyn(&connect_info->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID));
 
 	/* password */
 	if (szAuthStr)
-		tds_dstr_copy(&connect_info->password, szAuthStr);
+		tds_dstr_copyn(&connect_info->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr));
 
 	/* DO IT */
-	if ((nRetVal = do_connect(hdbc, connect_info)) != SQL_SUCCESS) {
+	if ((result = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
 		tds_free_connect(connect_info);
-		return nRetVal;
+		return result;
 	}
 
 	/* database */
 	if (!tds_dstr_isempty(&connect_info->database)) {
-		nRetVal = change_database(dbc, connect_info->database);
+		result = change_database(dbc, connect_info->database);
 		tds_free_connect(connect_info);
-		return nRetVal;
+		return result;
 	}
 
-
+	tds_free_connect(connect_info);
 	return SQL_SUCCESS;
 }
 
@@ -755,7 +763,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 			odbc_errs_add(&stmt->errs, ODBCERR_DATATRUNCATION, NULL);
 			result = SQL_SUCCESS_WITH_INFO;
 		}
-		strncpy(szColName, colinfo->column_name, cplen);
+		strncpy((char *) szColName, colinfo->column_name, cplen);
 		szColName[cplen] = '\0';
 	}
 	if (pcbColName) {
@@ -837,7 +845,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			result = SQL_SUCCESS_WITH_INFO;
 		}
 		tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: copying %d bytes, len = %d, cbDescMax = %d\n", cplen, len, cbDescMax);
-		strncpy(rgbDesc, colinfo->column_name, cplen);
+		strncpy((char *) rgbDesc, colinfo->column_name, cplen);
 		((char *) rgbDesc)[cplen] = '\0';
 		/* return length of full string, not only copied part */
 		if (pcbDesc) {
@@ -959,6 +967,7 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	struct _sql_errors *errs = NULL;
 	const char *msg;
 	unsigned char odbc_ver = 2;
+	int cplen;
 
 	if (hstmt) {
 		odbc_ver = ((TDS_STMT *) hstmt)->hdbc->henv->odbc_ver;
@@ -972,21 +981,28 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	}
 
 	if (errs && errs->num_errors) {
-		/* change all error handling, error should be different.. */
+		result = SQL_SUCCESS;
 		if (odbc_ver == 3)
-			strcpy(szSqlState, errs->errs[0].err->state3);
+			strcpy((char *) szSqlState, errs->errs[0].err->state3);
 		else
-			strcpy(szSqlState, errs->errs[0].err->state2);
+			strcpy((char *) szSqlState, errs->errs[0].err->state2);
 		msg = errs->errs[0].msg;
 		if (!msg)
 			msg = errs->errs[0].err->msg;
-		strcpy(szErrorMsg, msg);
+		cplen = strlen(msg);
 		if (pcbErrorMsg)
-			*pcbErrorMsg = strlen(msg);
+			*pcbErrorMsg = cplen;
+		if (cplen >= cbErrorMsgMax) {
+			cplen = cbErrorMsgMax - 1;
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		if (szErrorMsg && cplen >= 0) {
+			strncpy((char *) szErrorMsg, msg, cplen);
+			((char *) szErrorMsg)[cplen] = 0;
+		}
 		if (pfNativeError)
 			*pfNativeError = 1;
 
-		result = SQL_SUCCESS;
 		/* FIXME here ?? */
 		odbc_errs_reset(errs);
 	}
@@ -1158,7 +1174,7 @@ SQLExecute(SQLHSTMT hstmt)
 
 			tds_free_input_params(dyn);
 			tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
-			for (i = 0; i < stmt->param_count; ++i) {
+			for (i = 0; i < (int) stmt->param_count; ++i) {
 				param = odbc_find_param(stmt, i + 1);
 				if (!param)
 					return SQL_ERROR;
@@ -1578,7 +1594,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	INIT_HDBC;
 
 	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%x,0x%x,%d)\n", henv, hdbc, fType);
-	return change_transaction(hdbc, op);
+	return change_transaction(dbc, op);
 }
 
 /* end of transaction support */
@@ -1627,36 +1643,36 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 
 	sprintf(szQuery, "exec sp_columns ");
 
-	if (szTableName && *szTableName) {
+	if (nTableName) {
 		strcat(szQuery, "@table_name = '");
-		strncat(szQuery, szTableName, nTableName);
+		strncat(szQuery, (const char *) szTableName, nTableName);
 		strcat(szQuery, "'");
 		bNeedComma = 1;
 	}
 
-	if (szSchemaName && *szSchemaName) {
+	if (nTableOwner) {
 		if (bNeedComma)
 			strcat(szQuery, ", ");
 		strcat(szQuery, "@table_owner = '");
-		strncat(szQuery, szSchemaName, nTableOwner);
+		strncat(szQuery, (const char *) szSchemaName, nTableOwner);
 		strcat(szQuery, "'");
 		bNeedComma = 1;
 	}
 
-	if (szCatalogName && *szCatalogName) {
+	if (nTableQualifier) {
 		if (bNeedComma)
 			strcat(szQuery, ", ");
 		strcat(szQuery, "@table_qualifier = '");
-		strncat(szQuery, szCatalogName, nTableQualifier);
+		strncat(szQuery, (const char *) szCatalogName, nTableQualifier);
 		strcat(szQuery, "'");
 		bNeedComma = 1;
 	}
 
-	if (szColumnName && *szColumnName) {
+	if (nColumnName) {
 		if (bNeedComma)
 			strcat(szQuery, ", ");
 		strcat(szQuery, "@column_name = '");
-		strncat(szQuery, szColumnName, nColumnName);
+		strncat(szQuery, (const char *) szColumnName, nColumnName);
 		strcat(szQuery, "'");
 		bNeedComma = 1;
 	}
@@ -1732,7 +1748,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, rgbValue, cbValueMax);
+		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
 
 		if (is_blob_type(colinfo->column_type)) {
 			/* calc how many bytes was readed */
@@ -2279,7 +2295,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 
 	if (tlen) {
 		*p++ = '"';
-		strncpy(p, szTableName, tlen);
+		strncpy(p, (const char *) szTableName, tlen);
 		*p += tlen;
 		*p++ = '"';
 		first = 0;
@@ -2288,7 +2304,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		if (!first)
 			*p++ = ',';
 		*p++ = '"';
-		strncpy(p, szSchemaName, slen);
+		strncpy(p, (const char *) szSchemaName, slen);
 		*p += slen;
 		*p++ = '"';
 		first = 0;
@@ -2297,7 +2313,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		if (!first)
 			*p++ = ',';
 		*p++ = '"';
-		strncpy(p, szCatalogName, clen);
+		strncpy(p, (const char *) szCatalogName, clen);
 		*p += clen;
 		*p++ = '"';
 		first = 0;
@@ -2306,7 +2322,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		if (!first)
 			*p++ = ',';
 		*p++ = '"';
-		strncpy(p, szTableType, ttlen);
+		strncpy(p, (const char *) szTableType, ttlen);
 		*p += ttlen;
 		*p++ = '"';
 		first = 0;

@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.32 2002-12-20 21:51:38 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.33 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *
@@ -204,7 +204,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		}
 		switch (property) {
 		case CS_MESSAGE_CB:
-			*(void **) buffer = ctx->_cslibmsg_cb;
+			*(void **) buffer = (void*) ctx->_cslibmsg_cb;
 			return CS_SUCCEED;
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
@@ -217,7 +217,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 	/* CS_SET */
 	switch (property) {
 	case CS_MESSAGE_CB:
-		ctx->_cslibmsg_cb = (void *) buffer;
+		ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
 		return CS_SUCCEED;
 	case CS_EXTRA_INF:
 	case CS_LOC_PROP:
@@ -407,7 +407,7 @@ CS_RETCODE ret;
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() calling tds_convert\n");
-	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, &cres);
+	len = tds_convert(ctx->tds_ctx, src_type, (TDS_CHAR*) srcdata, src_len, desttype, &cres);
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() tds_convert returned %d\n", len);
 

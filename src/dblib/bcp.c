@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.45 2002-11-27 19:45:42 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.46 2003-01-04 13:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -383,7 +383,7 @@ RETCODE bcp_options(DBPROCESS *dbproc, int option, BYTE *value, int valuelen)
                         return FAIL;
 
 		for(i=0; hints[i]; i++ ) { /* do we know about this hint? */
-			if (strncasecmp(value, hints[i], strlen(hints[i])) == 0)
+			if (strncasecmp((char*) value, hints[i], strlen(hints[i])) == 0)
 				break;
 		}
 		if (!hints[i]) { /* no such hint */
@@ -531,7 +531,7 @@ int rows_written;
 				src = &resinfo->current_row[curcol->column_offset];
 				if (is_blob_type(curcol->column_type)) {
 					/* FIX ME -- no converts supported */
-					src = ((TDSBLOBINFO *) src)->textvalue;
+					src = (BYTE*) ((TDSBLOBINFO *) src)->textvalue;
 					len = curcol->column_cur_size;
 				} else {
 
@@ -656,7 +656,7 @@ int rows_written;
 					buflen = destlen = 255;
 				}
 
-				outbuf = malloc(buflen);
+				outbuf = (BYTE*) malloc(buflen);
 
 				/* if we are converting datetime to string, need to override any 
 				 * date time formats already established
@@ -665,7 +665,7 @@ int rows_written;
 				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 					memset(&when, 0, sizeof(when));
 					tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
-					buflen = tds_strftime(outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
+					buflen = tds_strftime((char*)outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
 				} else
 					buflen = dbconvert(dbproc,
 							   bcpcol->db_type,
@@ -876,7 +876,7 @@ TDS_INT desttype;
 					return (FAIL);
 
 				if (desttype == SYBVARCHAR) {
-					bcpcol->data_size = _bcp_rtrim_varchar(bcpcol->data, converted_data_size);
+					bcpcol->data_size = _bcp_rtrim_varchar((char*)bcpcol->data, converted_data_size);
 				} else {
 					bcpcol->data_size = converted_data_size;
 				}
