@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.151 2005-03-25 16:22:45 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.152 2005-03-28 08:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1922,23 +1922,19 @@ stringz_to_numeric(const char *instr, CONV_RESULT * cr)
 static int
 string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 {
-
-	char mynumber[(MAXPRECISION + 7) / 8 * 8];
+	char mynumber[(MAXPRECISION + 7) / 8 * 8 + 8];
 
 	/* num packaged 8 digit, see below for detail */
-	TDS_UINT packed_num[TDS_VECTOR_SIZE(mynumber) / 8];
+	TDS_UINT packed_num[(MAXPRECISION + 7) / 8];
 
 	char *ptr;
-	const char *pstr, *pdigits, *pplaces = NULL;
+	const char *pstr;
+	int old_digits_left, digits_left, digit_found = 0;
 
-	TDS_UINT carry = 0;
-	char not_zero = 1;
 	int i = 0;
 	int j = 0;
-	short int bytes, places, digits;
+	int bytes, places;
 	unsigned char sign;
-
-	sign = 0;
 
 	/* FIXME: application can pass invalid value for precision and scale ?? */
 	if (cr->n.precision > 77)
@@ -1959,11 +1955,21 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			break;
 	}
 
+	sign = 0;
 	if (*pstr == '-' || *pstr == '+') {	/* deal with a leading sign */
 		if (*pstr == '-')
 			sign = 1;
 		pstr++;
 	}
+	cr->n.array[0] = sign;
+
+	/* 
+	 * skip leading zeroes 
+	 * Not skipping them cause numbers like "000000000000" to 
+	 * appear like overflow
+	 */
+	for (; pstr != pend && *pstr == '0'; ++pstr)
+		digit_found = 1;
 
 	/* 
 	 * Having disposed of any sign and leading blanks, 
@@ -1971,19 +1977,26 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	 * the decimal point.  Dispense with trailing blanks, if any.  
 	 */
 
-	pdigits = pstr;
-	digits = places = 0;
+	ptr = mynumber;
+	for (i = 0; i < 8; ++i)
+		*ptr++ = '0';
+
+	places = 0;
+	old_digits_left = 0;
+	digits_left = cr->n.precision - cr->n.scale;
 
 	for (; pstr != pend; ++pstr) {			/* deal with the rest */
-		if (isdigit((unsigned char) *pstr)) {	/* it's a number */
-			if (pplaces)				/* if we passed a decimal point, count digits after that point  */
-				++places;
-			else					/* else count digits before point, obviously  */
-				++digits;
+		if (*pstr >= '0' && *pstr <= '9') {	/* it's a number */
+			/* copy digit to destination */
+			if (--digits_left >= 0)
+				*ptr++ = *pstr;
+			digit_found = 1;
 		} else if (*pstr == '.') {			/* found a decimal point */
-			if (pplaces)				/* found a decimal point previously: return error */
+			if (places)				/* found a decimal point previously: return error */
 				return TDS_CONVERT_SYNTAX;
-			pplaces =  1 + pstr;			/* point to first position past the decimal point */ 
+			old_digits_left = digits_left;
+			digits_left = cr->n.scale;
+			places = 1;
 		} else if (*pstr == ' ') {
 			for (; pstr != pend && *pstr == ' '; ++pstr) ; /* skip contiguous blanks */
 			if (pstr == pend)
@@ -1994,39 +2007,21 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		}
 	}
 	/* no digits? no number! */
-	if (digits + places == 0)
+	if (!digit_found)
 		return TDS_CONVERT_SYNTAX;
 
-	/* truncate decimal digits */
-	if (places > cr->n.scale)
-		places = cr->n.scale;
+	if (!places) {
+		old_digits_left = digits_left;
+		digits_left = cr->n.scale;
+	}
 
 	/* too many digits, error */
-	if (digits + cr->n.scale > cr->n.precision)
+	if (old_digits_left < 0)
 		return TDS_CONVERT_OVERFLOW;
 
-
-	/* TODO: this can be optimized in a single step */
-
-	/* scale specified, pad out number with zeroes to the scale...  */
-	ptr = mynumber + sizeof(mynumber) - (cr->n.scale - places);
-	memset(ptr, '0', cr->n.scale - places);
-
-	/* copy number without point, starting from behind */
-	if (places) {
-		assert(pplaces != NULL); 
-		ptr -= places;
-		memcpy(ptr, pplaces, places);
-	}
-	if (digits) {
-		ptr -= digits;
-		memcpy(ptr, pdigits, digits);
-	}
-	memset(mynumber, '0', ptr - mynumber);
-
-	/* transform ASCII string into a numeric array */
-	for (ptr = mynumber; ptr != mynumber + sizeof(mynumber); ++ptr)
-		*ptr -= '0';
+	/* fill up decimal digits */
+	while (--digits_left >= 0)
+		*ptr++ = '0';
 
 	/*
 	 * Packaged number explanation: 
@@ -2036,29 +2031,35 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	 */
 
 	/* transform to packaged one */
-	for (j = 0; j < TDS_VECTOR_SIZE(packed_num); ++j) {
-		TDS_UINT n = mynumber[j * 8];
+	j = -1;
+	ptr -= 8;
+	do {
+		TDS_UINT n = *ptr++;
 
 		for (i = 1; i < 8; ++i)
-			n = n * 10 + mynumber[j * 8 + i];
-		packed_num[j] = n;
-	}
+			n = n * 10 + *ptr++;
+		/* fix packet number and store */
+		packed_num[++j] = n - ((TDS_UINT) '0' * 11111111lu);
+		ptr -= 16;
+	} while (ptr > mynumber);
 
-	memset(cr->n.array, 0, sizeof(cr->n.array));
-	cr->n.array[0] = sign;
+	memset(cr->n.array + 1, 0, sizeof(cr->n.array) - 1);
 	bytes = tds_numeric_bytes_per_prec[cr->n.precision];
+	while (j > 0 && !packed_num[j])
+		--j;
 
-	while (not_zero) {
-		not_zero = 0;
-		carry = 0;
-		for (i = 0; i < TDS_VECTOR_SIZE(packed_num); ++i) {
-			TDS_UINT tmp;
-
-			if (packed_num[i] > 0)
-				not_zero = 1;
+	for (;;) {
+		char is_zero = 1;
+		TDS_UINT carry = 0;
+		i = j;
+		if (!packed_num[j])
+			--j;
+		do {
+			TDS_UINT tmp = packed_num[i];
+			if (tmp)
+				is_zero = 0;
 
 			/* divide for 256 for find another byte */
-			tmp = packed_num[i];
 			/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
 			 * using unsigned number is just an optimization
 			 * compiler can translate division to a shift and remainder 
@@ -2066,14 +2067,13 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			 */
 			packed_num[i] = carry * (25u * 25u * 25u * 25u) + tmp / 256u;
 			carry = tmp % 256u;
-
-			if (i == (TDS_VECTOR_SIZE(packed_num) - 1) && not_zero) {
-				/* source number is limited to 38 decimal digit
-				 * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
-				 */
-				cr->n.array[--bytes] = carry;
-			}
-		}
+		} while(--i >= 0);
+		if (is_zero)
+			break;
+		/* source number is limited to 38 decimal digit
+		 * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
+		 */
+		cr->n.array[--bytes] = carry;
 	}
 	return sizeof(TDS_NUMERIC);
 }

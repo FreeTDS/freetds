@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.18 2004-12-15 09:59:51 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.19 2005-03-28 08:52:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -226,7 +226,6 @@ main(int argc, char **argv)
 		 * Now at last do the conversion
 		 */
 
-		cr.c = NULL;
 		result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
 		free_convert(answers[i].desttype, &cr);
 
