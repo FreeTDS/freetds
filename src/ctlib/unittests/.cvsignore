@@ -20,4 +20,7 @@ lang_ct_param
 get_send_data
 cs_diag
 array_bind
+ct_diagall
+ct_diagclient
+ct_diagserver
 
