@@ -1,8 +1,12 @@
-TESTS		=	t0001 t0002 t0003 t0004 connect print date \
+# $Id: Makefile.am,v 1.23 2003-10-19 17:05:37 jklowden Exp $
+TESTS		=	\
+			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
 			binary_test moreandcount earlybind \
 			putdata params raiseerror getdata \
+			transaction \
 			type
+
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -24,6 +28,7 @@ params_SOURCES	= params.c common.c common.h
 raiseerror_SOURCES	= raiseerror.c common.c common.h
 getdata_SOURCES	= getdata.c common.c common.h
 type_SOURCES	= type.c common.c common.h
+transaction_SOURCES = transaction.c common.c common.h
 
 LIBS		=	-lodbc @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)

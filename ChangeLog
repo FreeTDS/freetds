@@ -1,3 +1,11 @@
+Sun Oct 19 13:00:14 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/unittests/Makefile.am
+	* src/odbc/unittests/common.c
+	* src/odbc/unittests/common.h
+	- Accepted patch from John Anderson <panic@semiosix.com>
+	- should close cursors on SQLEndTran
+	* src/odbc/unittests/transaction.c added
+
 Sat Oct 18 23:36:42 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* samples/test.pl permit command-line connection arguments
 	* src/tds/encodings.pl src/tds/encodings.h 
