@@ -7,13 +7,13 @@ Everyone is encouraged to add to the list.  Developers can do it directly; anyon
 else can post a patch to Source Forge.  In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.6 2002-08-30 04:59:37 jklowden Exp $
+To Do List	$Id: TODO,v 1.7 2002-09-05 12:07:19 freddy77 Exp $
 ------------
 Broken:
 For version 0.60:
 . test conversion from char. Does libraries append blank to reach column_size ?
   same problem for binary (padded with zeroes) ?
-. money conversions, maybe numerics, too.
+. numeric conversions.
 . move error message macro/prototype to tds.h.in; use in dblib.c. 
 For future versions:
 . conversion from ucs2 to utf8, provide for 2+ bytes/character.

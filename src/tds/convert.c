@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.67 2002-09-01 09:56:16 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.68 2002-09-05 12:07:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,6 +62,16 @@ static int stringz_to_numeric(const char *instr, CONV_RESULT *cr);
  * @return TDS_FAIL if failure
  */
 static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
+
+#define TDS_CONVERT_NOAVAIL -2
+/**
+ * convert, same as tds_convert but not return error to client
+ * @return TDS_FAIL on conversion failure
+ * TDS_CONVERT_NOAVAIL if conversion impossible
+ */
+static TDS_INT
+tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, 
+	TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);
 
 static size_t 
 tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm *timeptr);
@@ -835,6 +845,7 @@ tds_convert_numeric(int srctype,TDS_NUMERIC *src,TDS_INT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 char tmpstr[MAXPRECISION];
+TDS_INT i;
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -846,6 +857,40 @@ char tmpstr[MAXPRECISION];
 		case SYBBINARY:
 		case SYBIMAGE:
 			return binary_to_result(src,sizeof(TDS_NUMERIC),cr);
+			break;
+		case SYBINT1:
+			tds_numeric_to_string(src,tmpstr);
+			i = atoi(tmpstr);
+			if (!IS_TINYINT(i))
+				return TDS_FAIL;
+			cr->ti = i;
+			return 1;
+			break;
+		case SYBINT2:
+			tds_numeric_to_string(src,tmpstr);
+			i = atoi(tmpstr);
+			if ( !IS_SMALLINT(i) )
+				return TDS_FAIL;
+			cr->si = i;
+			return 2;
+			break;
+		case SYBINT4:
+			tds_numeric_to_string(src,tmpstr);
+			i = atoi(tmpstr);
+			if ( !IS_INT(i) )
+				return TDS_FAIL;
+			cr->i = i;
+			return 4;
+			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = 0;
+			for(i=g__numeric_bytes_per_prec[src->precision]; --i > 0;)
+				if (src->array[i] != 0) {
+					cr->ti = 1;
+					break;
+				}
+			return 1;
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
@@ -868,7 +913,7 @@ char tmpstr[MAXPRECISION];
 		case SYBDATETIME:
 		case SYBDATETIMN:
 			break;
-	    /* TODO conversions to int, bit and money */
+	    /* TODO conversions to money */
 		default:
 			LOG_CONVERT();
 			return TDS_FAIL;
@@ -1550,7 +1595,13 @@ TDS_UCHAR buf[37];
 /**
  * tds_convert
  * convert a type to another
- * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision and scale of cr
+ * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision 
+ * and scale of cr
+ * Do not expect string to be zero terminate. Databases support zero inside
+ * string. Doing strlen on result may result on data loss or even core.
+ * Use memcpy to copy destination using length returned.
+ * This function do not handle NULL, srclen should be >0, if not undefinited 
+ * behaviour...
  * @param tds_ctx context (used in conversion to data and to return messages)
  * @param srctype  type of source
  * @param srclen   length in bytes of source (not counting terminator or strings)
@@ -1559,24 +1610,74 @@ TDS_UCHAR buf[37];
  * @param cr       structure to old result
  * @return length of result or TDS_FAIL on failure
  */
-TDS_INT 
-tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
-		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
+TDS_INT
+tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, 
+		TDS_UINT srclen, int desttype, TDS_UINT destlen, 
+		CONV_RESULT *cr)
 {
-TDS_INT length=0;
-TDS_VARBINARY *varbin;
-char errmsg[255];
-
-	/* For now, construct a TDSSOCKET.  It's what we should have been passed.
-	 * The only real consequence is that the user-supplied error handler's return
-	 * code can't be used to close the connection.  
-	 */
+int length;
+	
+/* For now, construct a TDSSOCKET.  It's what we should have been passed.
+ * The only real consequence is that the user-supplied error handler's return
+ * code can't be used to close the connection.  
+ */
 TDSSOCKET fake_socket, *tds=&fake_socket;
+char varchar[2056];
+CONV_RESULT result;
+int len;
+		
 
 	/* FIXME this method can cause core dump, we call tds_client_msg with 
 	 * invalid socket structure but handler do not know this...*/
 	memset( &fake_socket, 0, sizeof(fake_socket) );
 	fake_socket.tds_ctx = tds_ctx;
+
+	length = tds_convert_noerror(tds_ctx,srctype,src,srclen,
+			desttype,destlen,cr);
+
+	switch(length) {
+	case TDS_CONVERT_NOAVAIL:
+		send_conversion_error_msg( tds, 20029, __LINE__, srctype, "[unable to display]", desttype );
+		LOG_CONVERT();
+		return TDS_FAIL;
+		break;
+	case TDS_FAIL:
+		break;
+	default:
+		return length;
+		break;
+	}
+
+	switch(srctype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBTEXT:
+			len= (srclen < (sizeof(varchar)-1))? srclen : (sizeof(varchar)-1);
+			strncpy( varchar, src, len );
+			varchar[len] = 0;
+			break;
+		default:
+			/* recurse once to convert whatever it was to varchar */
+			len = tds_convert_noerror(tds_ctx, srctype, src, srclen, SYBCHAR, sizeof(varchar), &result);
+			if (len < 0) len = 0;
+			if (len > (sizeof(varchar)-1))
+				len = sizeof(varchar)-1;
+			strncpy( varchar, result.c, len );
+			varchar[len] = '\0';
+			free(result.c);
+			break;
+	}
+
+	CONVERSION_ERROR( tds, srctype, varchar, desttype );
+	return TDS_FAIL;
+}
+
+static TDS_INT 
+tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
+		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
+{
+TDS_INT length=0;
+TDS_VARBINARY *varbin;
 
 	switch(srctype) {
 		case SYBCHAR:
@@ -1635,11 +1736,8 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 		case SYBNVARCHAR:
 		case SYBNTEXT:
 		default:
-			send_conversion_error_msg( tds, 20029, __LINE__, srctype, "[unable to display]", desttype );
-			LOG_CONVERT();
-			return TDS_FAIL;
-		break;
-
+			return TDS_CONVERT_NOAVAIL;
+			break;
 	}
 
 /* fix MONEY case */
@@ -1649,42 +1747,6 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 			((TDS_UINT8)cr->m.mny) >> 32 | (cr->m.mny << 32);
 	}
 #endif
-
-	if( length == TDS_FAIL ) {
-		char varchar[2056];
-		CONV_RESULT result;
-		int len;
-		/* FIXME assert errors on multithread */
-		static short int depth=0;
-
-		assert( !depth++ );		/* failing to handle failure is a fault */
-		
-		switch(srctype) {
-			case SYBCHAR:
-			case SYBVARCHAR:
-			case SYBTEXT:
-				len= (srclen < (sizeof(varchar)-1))? srclen : (sizeof(varchar)-1);
-				strncpy( varchar, src, len );
-				varchar[len] = 0;
-				break;
-			default:
-				/* recurse once to convert whatever it was to varchar */
-				len = tds_convert(tds_ctx, srctype, src, srclen, SYBCHAR, sizeof(varchar), &result);
-				if (len < 0) len = 0;
-				if (len > (sizeof(varchar)-1))
-					len = sizeof(varchar)-1;
-				strncpy( varchar, result.c, len );
-				varchar[len] = '\0';
-				free(result.c);
-				break;
-		}
-
-		CONVERSION_ERROR( tds, srctype, varchar, desttype );
-		depth = 0;
-
-		return TDS_FAIL;
-	}
-
 	return length;
 }
 
