@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.301 2004-02-13 20:40:21 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.302 2004-02-24 09:09:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2993,6 +2993,10 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	/* try to prepare query */
 	/* TODO try to prepare only getting informations (faster and optimizable) for mssql2k */
 	/* TODO support getting info for RPC */
+	/* 
+	 * TODO this should be done if all parameters are bounded or using TDS5 
+	 * binary_test for example do not work for this problem (post bind on image)
+	 */
 	if (!stmt->prepared_query_is_rpc) {
 		TDSDYNAMIC *dyn;
 
