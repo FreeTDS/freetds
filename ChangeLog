@@ -1,3 +1,7 @@
+Tue Dec  9 17:57:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in:
+	- enable threadsafe by default to remove some undefined problems
+
 Tue Dec  9 11:49:19 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/replacements.h add vsnprintf prototype
 
