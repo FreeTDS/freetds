@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.57 2005-02-11 13:15:57 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.58 2005-02-16 19:25:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -67,7 +67,15 @@ int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 static int write_dump = 0;	/* is TDS stream debug log turned on? */
-static FILE *dumpfile = NULL;	/* file pointer for dump log          */
+static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
+
+#ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_util_deinit(void)
+{
+	tdsdump_close();
+}
+#endif
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -238,12 +246,12 @@ tdsdump_open(const char *filename)
 		g_dump_filename = strdup(filename);
 		result = 1;
 	} else if (!strcmp(filename, "stdout")) {
-		dumpfile = stdout;
+		g_dumpfile = stdout;
 		result = 1;
 	} else if (!strcmp(filename, "stderr")) {
-		dumpfile = stderr;
+		g_dumpfile = stderr;
 		result = 1;
-	} else if (NULL == (dumpfile = fopen(filename, "w"))) {
+	} else if (NULL == (g_dumpfile = fopen(filename, "w"))) {
 		result = 0;
 	} else {
 		result = 1;
@@ -264,27 +272,18 @@ tdsdump_open(const char *filename)
 	return result;
 }				/* tdsdump_open()  */
 
-int
+static FILE*
 tdsdump_append(void)
 {
-	int result;
-
-	if (!g_dump_filename) {
-		return 0;
-	}
+	if (!g_dump_filename)
+		return NULL;
 
 	if (!strcmp(g_dump_filename, "stdout")) {
-		dumpfile = stdout;
-		result = 1;
+		return stdout;
 	} else if (!strcmp(g_dump_filename, "stderr")) {
-		dumpfile = stderr;
-		result = 1;
-	} else if (NULL == (dumpfile = fopen(g_dump_filename, "a"))) {
-		result = 0;
-	} else {
-		result = 1;
+		return stderr;
 	}
-	return result;
+	return fopen(g_dump_filename, "a");
 }
 
 
@@ -295,10 +294,9 @@ void
 tdsdump_close(void)
 {
 	tdsdump_off();
-	if (dumpfile != NULL && dumpfile != stdout && dumpfile != stderr) {
-		fclose(dumpfile);
-	}
-	dumpfile = NULL;
+	if (g_dumpfile != NULL && g_dumpfile != stdout && g_dumpfile != stderr)
+		fclose(g_dumpfile);
+	g_dumpfile = NULL;
 	if (g_dump_filename)
 		TDS_ZERO_FREE(g_dump_filename);
 }				/* tdsdump_close()  */
@@ -311,14 +309,14 @@ tdsdump_start(FILE *file, const char *fname, int line)
 
 	/* write always time before log */
 	if (tds_debug_flags & TDS_DBGFLAG_TIME) {
-		fputs(tds_timestamp_str(buf, 127), dumpfile);
+		fputs(tds_timestamp_str(buf, 127), file);
 		started = 1;
 	}
 
 	if (tds_debug_flags & TDS_DBGFLAG_PID) {
 		if (started)
-			fputc(' ', dumpfile);
-		fprintf(dumpfile, "%d", (int) getpid());
+			fputc(' ', file);
+		fprintf(file, "%d", (int) getpid());
 		started = 1;
 	}
 
@@ -331,13 +329,13 @@ tdsdump_start(FILE *file, const char *fname, int line)
 		if (p)
 			fname = p + 1;
 		if (started)
-			fprintf(dumpfile, " (%s:%d)", fname, line);
+			fprintf(file, " (%s:%d)", fname, line);
 		else
-			fprintf(dumpfile, "%s:%d", fname, line);
+			fprintf(file, "%s:%d", fname, line);
 		started = 1;
 	}
 	if (started)
-		fputc(':', dumpfile);
+		fputc(':', file);
 }
 
 /**
@@ -355,12 +353,14 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	const unsigned char *data = (const unsigned char *) buf;
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;
+	FILE *dumpfile;
 
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
 		return;
 
-	if (tds_g_append_mode && !tdsdump_append())
-		return;
+	dumpfile = g_dumpfile;
+	if (tds_g_append_mode)
+		dumpfile = tdsdump_append();
 
 	if (dumpfile == NULL)
 		return;
@@ -407,9 +407,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	fprintf(dumpfile, "\n");
 
 	if (tds_g_append_mode) {
-		if (dumpfile && dumpfile != stdout && dumpfile != stderr)
+		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
-		dumpfile = NULL;
 	}
 }				/* tdsdump_dump_buf()  */
 
@@ -425,12 +424,14 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;
 	va_list ap;
+	FILE *dumpfile;
 
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
 		return;
 
-	if (tds_g_append_mode && !tdsdump_append())
-		return;
+	dumpfile = g_dumpfile;
+	if (tds_g_append_mode)
+		dumpfile = tdsdump_append();
 
 	if (dumpfile == NULL)
 		return;
@@ -445,9 +446,8 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	fflush(dumpfile);
 
 	if (tds_g_append_mode) {
-		if (dumpfile && dumpfile != stdout && dumpfile != stderr)
+		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
-		dumpfile = NULL;
 	}
 }				/* tdsdump_log()  */
 

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.143 2005-02-15 09:08:46 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.144 2005-02-16 19:24:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1040,14 +1040,20 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.close == _CS_CURS_TYPE_REQUESTED){
-			ret = tds_cursor_close(tds, cursor);
-			cursor->status.close = _CS_CURS_TYPE_SENT;
+			if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
+				/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
+				ret = tds_cursor_close(tds, cursor);
+				cmd->cursor = NULL;
+			} else {
+				ret = tds_cursor_close(tds, cursor);
+				cursor->status.close = _CS_CURS_TYPE_SENT;
+			}
 		}
 
-		if (cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED){
+		if (cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED) {
+			/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 			ret = tds_cursor_dealloc(tds, cursor);
 			cmd->cursor = NULL;
-			cursor->status.dealloc = _CS_CURS_TYPE_SENT;
 			tds_free_all_results(tds);
 		}
 

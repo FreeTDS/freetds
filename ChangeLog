@@ -1,3 +1,10 @@
+Wed Feb 16 20:22:37 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/util.c:
+	- fix reentrancy problem using logs and append mode
+	- make tdsdump_append static
+	* src/ctlib/ct.c:
+	- fix use of freed memory
+
 Tue Feb 15 14:03:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c TODO:
 	- improve support for getting port on mssql2k (mainly using clusters)

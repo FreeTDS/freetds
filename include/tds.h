@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.220 2005-02-11 13:15:54 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.221 2005-02-16 19:24:47 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1301,7 +1301,6 @@ int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
 void tdsdump_off(void);
 void tdsdump_on(void);
 int tdsdump_open(const char *filename);
-int tdsdump_append(void);
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length);
 void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...) 
