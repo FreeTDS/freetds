@@ -1,3 +1,7 @@
+Sun Oct 13 20:22:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds_sysdep_private.h.in include/tds_sysdep_public.h.in
+	- Take a "best-guess" stab at a native WIN32 port.
+
 Sun Oct 13 19:57:09 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0001.c src/dblib/unittests/t0005.c
 	  src/dblib/unittests/t0006.c src/dblib/unittests/t0012.c

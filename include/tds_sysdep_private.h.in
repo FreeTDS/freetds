@@ -21,7 +21,7 @@
 #define _tds_sysdep_private_h_
 
 static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h.in,v 1.3 2002-10-13 23:52:02 castellano Exp $";
+	"$Id: tds_sysdep_private.h.in,v 1.4 2002-10-14 00:24:17 castellano Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = {
 	rcsid_tds_sysdep_private_h,
 	no_unused_tds_sysdep_private_h_warn};
@@ -41,29 +41,32 @@ extern "C" {
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define SOCK_REENTRANT 1	/* BSD-style socket interface is reentrant */
-#endif /* WIN32 */
+#define FREETDS_SYSCONFDIR	"c:\\windows\\system32\\drivers\\etc\\"
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #if (defined (__digital__) || defined(__osf__)) && defined (__unix__)
 #define SOCK_REENTRANT 1	/* BSD-style socket interface is reentrant */
-#endif
+#endif /* (defined (__digital__) || defined(__osf__)) && defined (__unix__) */
 
 #ifndef READSOCKET
 #define READSOCKET(a,b,c)	read((a), (b), (c))
-#endif
+#endif /* !READSOCKET */
 
 #ifndef WRITESOCKET
 #define WRITESOCKET(a,b,c)	write((a), (b), (c))
-#endif
+#endif /* !WRITESOCKET */
 
 #ifndef CLOSESOCKET
 #define CLOSESOCKET(a)		close((a))
-#endif
+#endif /* !CLOSESOCKET */
 
 #ifndef IOCTLSOCKET
 #define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
-#endif
+#endif /* !IOCTLSOCKET */
 
+#ifndef FREETDS_SYSCONFDIR
 #define FREETDS_SYSCONFDIR	"@sysconfdir@/"
+#endif /* !FREETDS_SYSCONFDIR */
 
 #ifdef __cplusplus
 }
