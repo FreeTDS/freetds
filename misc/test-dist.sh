@@ -3,6 +3,10 @@
 # stop on errors
 set -e
 
+# set correct directory
+DIR=`dirname $0`
+cd "$DIR/.."
+
 # remove old distributions
 rm -rf freetds-*
 

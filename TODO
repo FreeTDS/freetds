@@ -8,17 +8,12 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.88 2003-12-23 16:29:10 freddy77 Exp $
+To Do List	$Id: TODO,v 1.89 2003-12-23 21:24:50 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
 
 For 0.62 version:
-. iconv
-  - finish support for no-GNU iconv (indirect conversion see src/tds/iconv.c)
-    (it affect UTF-8 client)
-    (should work, must be tested with no-GNU iconv platforms like HP/UX and
-    Solaris)
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . FAQ
   - multiple statemets question
