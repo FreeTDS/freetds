@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.6 2003-04-29 19:37:16 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.7 2003-04-29 20:01:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -57,6 +57,8 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
+	TDSBLOBINFO *blob_info;
+	unsigned char *dest;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->param_sqltype);
@@ -94,19 +96,29 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 		res = curcol->column_size;
 
 	/* free allocated memory */
-	/* FIXME this crash for blob (IMAGE/TEXT) */
+	dest = &info->current_row[curcol->column_offset];
 	switch (dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
-	case SYBTEXT:
 		memcpy(&info->current_row[curcol->column_offset], ores.c, res);
 		free(ores.c);
 		break;
+	case SYBTEXT:
+		blob_info = (TDSBLOBINFO *) dest;
+		if (blob_info->textvalue)
+			free(blob_info->textvalue);
+		blob_info->textvalue = ores.c;
+		break;
 	case SYBBINARY:
 	case SYBVARBINARY:
-	case SYBIMAGE:
 		memcpy(&info->current_row[curcol->column_offset], ores.ib, res);
 		free(ores.ib);
+		break;
+	case SYBIMAGE:
+		blob_info = (TDSBLOBINFO *) dest;
+		if (blob_info->textvalue)
+			free(blob_info->textvalue);
+		blob_info->textvalue = ores.ib;
 		break;
 	default:
 		memcpy(&info->current_row[curcol->column_offset], &ores, res);
