@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-08 10:37:30 $</date>
-		<releaseinfo>$Revision: 1.73 $</releaseinfo>
+		<date>$Date: 2003-12-13 08:10:35 $</date>
+		<releaseinfo>$Revision: 1.74 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -35,7 +35,7 @@
 	<toc></toc>
 <!-- nettiquette quoting: http://www.netmeister.org/news/learn2quote.html-->
 				<!-- ////////////////// CHAPTER /////////////////////// -->
-	<preface><title>About this User Guide</title>
+	<preface id="about"><title>About this User Guide</title>
 			<para>
 This User Guide describes <productname>FreeTDS</productname> 0.62.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
 			</para>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.73 $</>
-<member>$Date: 2003-12-08 10:37:30 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.73 2003-12-08 10:37:30 freddy77 Exp $.</>
+<member>$Revision: 1.74 $</>
+<member>$Date: 2003-12-13 08:10:35 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.74 2003-12-13 08:10:35 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -75,9 +75,9 @@ Enough.  Let's begin.
 <productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an <systemitem class="library">ODBC library</systemitem>.  It allows many open source applications such as <productname>Perl</productname> and <productname>PHP</productname> (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
 		</para>
 		<para>
-<productname>FreeTDS</productname> is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix &reg; and Unix-like &trade; system (including notable variants such as Interix &reg; and QNX &reg;), as well as Win32 &reg;, VMS  &reg;, and OS X  &reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS &mdash; it's probably considered a bug.  
+<productname>FreeTDS</productname> is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;), as well as Win32&reg;, VMS&reg;, and OS X&reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.  
 		</para>
-		<sect1 id="tdsprotocol">
+		<sect1 id="tdsprotocolhist">
 			<title>Background: The <acronym>TDS</> Protocol
 				and related <acronym>API</>s
 			</title>
@@ -99,7 +99,7 @@ The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their
 			<para>
 In 1990 Sybase entered into a technology sharing agreement with Microsoft which resulted in Microsoft marketing its own <productname>SQL Server</productname>. Microsoft kept the <systemitem class="library">db-lib</systemitem> <acronym>API</> and added <systemitem class="library">ODBC</systemitem>.  (Microsoft has since added other <acronym>API</>s, too.)
 
-At about the same time, Sybase introduced a more powerful <quote>successor</quote> to <systemitem class="library">db-lib</systemitem>, called <systemitem class="library">ct-lib</systemitem>, and called the pair <productname>OpenClient</productname>.  
+At about the same time, Sybase introduced a more powerful <quote>successor</quote> to <systemitem class="library">db-lib</systemitem>, called <systemitem class="library">ct-lib</systemitem>, and called the pair <productname><firstterm>OpenClient</firstterm></productname>.  
 			</para>
 			<para>
 
@@ -114,7 +114,7 @@ been openly documented.  If anything, it's probably considered to be something l
 			</para>
 		</sect1>
 		
-		<sect1 id="history">
+		<sect1 id="tdshistory">
 			<title>History of <acronym>TDS</> Versions</title>
 			
 			<para>
@@ -157,7 +157,7 @@ Introduced for <productname>SQL Server 2000</productname>.  Includes support for
 			</variablelist>
 		  </sect1>
 
-		  <sect1> <title>History of <productname>FreeTDS</productname></title>
+		  <sect1 id="FreeTDShistory"> <title>History of <productname>FreeTDS</productname></title>
 			<para>
 In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was a.out based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
 			</para>
@@ -194,7 +194,7 @@ If Java is your game, we refer you to the <productname>jTDS</productname> projec
 The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.62 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
 			</para>
 			<para>
-In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <application>freebcp</application>, a replacement for Sybase's <application>bcp</application> utility.  
+In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
 The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  
@@ -312,12 +312,12 @@ If you've built other <acronym>GNU</> projects, building <productname>FreeTDS</p
 				<TITLEABBREV>(<productname>FreeTDS</productname> for Dummies?)</TITLEABBREV>
 				
 			<para>			
-The <acronym>GNU</> development system can generate code for a wide variety of hardware architectures and operating systems, virtually all of which can run <productname>FreeTDS</> in consequence.  The work of building and installing the <productname>FreeTDS</> libraries begins with the command <Command>configure</Command>, which generates the <filename>Makefile</filename> that governs how the code is compiled, linked, and installed.  Once you've <quote>configured</quote> the project, <application>make</application> will manage the rest of the build.
+The <acronym>GNU</> development system can generate code for a wide variety of hardware architectures and operating systems, virtually all of which can run <productname>FreeTDS</> in consequence.  The work of building and installing the <productname>FreeTDS</> libraries begins with the command <Command>configure</Command>, which generates the <filename>Makefile</filename> that governs how the code is compiled, linked, and installed.  Once you've <quote>configured</quote> the project, <command>make</> will manage the rest of the build.
 			</para>
-			<sidebar><title>ODBC Pre-Setup</title>
+			<sidebar><title>ODBC Preparation</title>
 	<para>If you intend to build the <productname>FreeTDS</> ODBC driver &mdash; and want to use a Driver Manager (DM), as most people do &mdash; install the Driver Manager before configuring <productname>FreeTDS</>.  <Command>configure</> will detect the the DM and use its header (<filename>.h</>) files for ODBC constants and such.  If your DM is installed in an unusual directory, you may have to provide the directory name as a parameter to <Command>configure</>.</para>
 	
-	<para><productname>FreeTDS</> doesn't <emphasis>require</> a DM, though; you can build the ODBC driver without one. You still need the <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>, of course; these can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>); you'll have to tell <Command>configure</> where to look for them.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link> <option</>.
+	<para><productname>FreeTDS</> doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because <productname>FreeTDS</> won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link> <option</>.
 </para>
 			</sidebar>
 			<para>
@@ -401,8 +401,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 				<term><Option>--disable-threadsafe</Option></term>
 				<listitem><para>Force <productname>FreeTDS</productname> not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, <productname>FreeTDS</productname> will use threadsafe functions throughout. </para>
 				<para> Threadsafe operation is not in wide use yet, but has been tested on Linux, FreeBSD, and HP-UX 10.20.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  It is a good idea to enable threadsafe operation if you configure Apache with multi-threading support.</para>
-				<para> With version 0.62, <productname>FreeTDS</productname> uses threadsafe function, if available, unless the feature is explicitly disabled.  RPMs since version 0.61 enabled threadsafe by default.
-				</para></listitem>
+				</listitem>
 				</varlistentry>
 			<varlistentry>
 				<term><Option>--disable-debug</Option></term>
@@ -523,7 +522,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X&reg;</title>
-			<para>As of this writing ($Date: 2003-12-08 10:37:30 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-12-13 08:10:35 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -658,7 +657,7 @@ Should you need it, more information about <filename>interfaces</filename> can b
 		<sect2 id="freetdsconflocation">
 			<title>Where it goes</title>
 			<para>
-The default location of <filename>freetds.conf</filename> is determined by the  <literal>sysconfdir</literal> option of <application>configure</application>.  If you don't specify anything, <application>configure</application>'s default <literal>sysconfdir</literal> is <filename>/usr/local/etc</filename>.
+The default location of <filename>freetds.conf</filename> is determined by the  <literal>--sysconfdir</literal> option of <command>configure</>.  If you don't specify anything, <command>configure</>'s default <literal>sysconfdir</literal> is <filename>/usr/local/etc</filename>.
 			</para>
 			<para>
 In addition, <productname>FreeTDS</productname> will look for a file <filename>.freetds.conf</filename> in the user's home directory (<filename>~/.freetds.conf</filename>).  
@@ -1263,7 +1262,7 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			</para>
 		</sect1>
 		
-		<sect1><title>Confirm the installation</title>
+		<sect1 id="ConfirmInstall"><title>Confirm the installation</title>
 			
 			<sect2><title><application>tsql</application></title>
 
@@ -1604,9 +1603,9 @@ if (!SQL_SUCCEEDED(res)) {
 </programlisting>
 </example>
 
-You can even do a connection that do not require <filename>odbc.ini</filename> nor <filename>freetd.conf</filename>.
+You can even establish a connection without reference to either <filename>odbc.ini</filename> or <filename>freetd.conf</filename>.
 
-<example><title>Connecting with a DSN-less configuration that do not use <filename>freetds.conf</filename></title>
+<example><title>Connecting with a DSN-less configuration that does not use <filename>freetds.conf</filename></title>
 <programlisting>
 /*
  * application call
@@ -2153,7 +2152,7 @@ To set up freetds over stunnel between a Linux webserver and a W2k SQL server:
 		<para>
 The following programs are known to work to some extent with <productname>FreeTDS</productname>.  Here you will find any special instructions for getting them compiled or running.
 		</para>
-		<sect1>
+		<sect1 id="sqsh">
 			<title><application>SQSH</application></title>
 			<para>
 <application>SQSH</application> is a command line based query tool written by Scott Gray to replace the <command>isql</> utility that ships with <productname>Sybase ASE</productname>.  It makes a great diagnostic tool for <productname>FreeTDS</productname> as well.  If you are having trouble, install <application>SQSH</application> (it's easy) and try getting that to work before more complicated arrangements.
@@ -2375,7 +2374,7 @@ Now everything should run.  There is a sample PHP script in the <productname>Fre
 			</para>
 		</sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="SybSQL">
 			<title>SybSQL</title>
 			<para>
 <productname>SybSQL</productname> is a <productname>Qt</productname>-based <acronym>GUI</> interface to <productname>Sybase</productname> databases that uses the <systemitem class="library">db-lib</systemitem> <acronym>API</>.
@@ -2403,7 +2402,7 @@ In <productname>FreeTDS</productname>'s <filename>bin</filename> directory, ther
 By defining <envar>SYBASE</envar> to the parent directory of the <filename>interfaces</filename> file, you may put it where ever you like; it does not have to be in <filename>/usr/local</filename>.  When using <filename>freetds.conf</filename>, <productname>FreeTDS</productname> does not rely on the <envar>SYBASE</envar> variable for finding its own components, so it is safe to point it elsewhere.
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="Python">
 			<title>Python</title>
 <tip><para>
 I am not a Python user myself, so the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
@@ -2560,7 +2559,7 @@ modes.
 			</sect3>
 			</sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="serverthere">
 			<title>Is the server there?</title>
 			<para>
 First ping the host to make sure you can talk to the machine the server resides on.  
@@ -2590,7 +2589,7 @@ If telnet works, the next step is to run <command>tsql</>.  <command>tsql</> can
 <prompt>$ </prompt><userinput>cd src/apps</userinput>
 <prompt>$ </prompt><userinput>./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput>
 </screen>
-If you receive a message of 'Login Failed.' then your connectivity is ok, but you have a authentication issue.
+If you receive a message of 'Login Failed.' then your connectivity is OK, but you have a authentication issue.
 </para>
 <para>
 If you receive a message like
@@ -2599,11 +2598,11 @@ If you receive a message like
  Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid Reason: Not defined as a valid user of a trusted SQL Server connection
 </computeroutput>
 </screen>
-<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or configure FreeTDS with domain support (experimental).
+<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.  
 
 			</para>
 			<para>
-Finally if you received a prompt, then try <command>tsql</> using the server name.
+Finally, if you received a prompt, then try <command>tsql</> using the dataserver name.
 <screen>
 <prompt>$ </prompt><userinput>./tsql -S <replaceable>myserver</> -U <replaceable>user</></userinput>
 </screen>
@@ -2777,7 +2776,7 @@ in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowlegable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
 			</para>
 			
-		<sect1><title>Isolate the cause</title>
+		<sect1 id="IsolateCause"><title>Isolate the cause</title>
 			<para>
 Successful problem isolation will yield earliest resolution.  You (believe it or not) have more information about your environment than anyone else does, and have the greatest motivation to solve your problem.  The resources at your disposal will be much more useful if the problem is specific.  (Sorry if this is obvious.  If it is, you might be surprised how often it's not.)
 			</para>
@@ -2791,7 +2790,7 @@ If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, yo
 On the plus side, the list includes people with a variety of backgrounds, who frequently answer questions that aren't really about <productname>FreeTDS</productname> <foreignphrase>per se</foreignphrase>.  Clear questions have sometimes even led to submitting patches to other projects.  
 			</para>
 		</sect1>
-		<sect1><title>The Mailing List</title>
+		<sect1 id="MailingList"><title>The Mailing List</title>
 <epigraph>
 <attribution>3 Henry VI, I, ii, approximately</>
 <para><literallayout>
@@ -2808,7 +2807,7 @@ On the plus side, the list includes people with a variety of backgrounds, who fr
 			<para>New developments between releases tend <emphasis>not</> to be announced on the website.  The website is updated only intermittently, when we post a new release or <productname>FreeTDS</productname> is somehow in the news, say.  If you found a bug or need a feature, you may find it was announced/discussed/fixed by perusing the archive.  
 			</para>
 		</sect2>
-		<sect2 id="mailinglist">
+		<sect2 id="Asklist">
     			<title>Ask the list</title>
 			<para>
 Many of the original authors and anyone maintaining or extending the code reads the list.  The traffic tends to be bursty.  It usually focuses on build problems and troubleshooting.  Again, the more specific your question, the sooner you'll get a useful reply (if it comes).  
@@ -2820,7 +2819,7 @@ Many of the original authors and anyone maintaining or extending the code reads 
 		</sect2>
 		</sect1>
 		
-		<sect1><title>What to include when asking for help</title>
+		<sect1 id="askingforhelp"><title>What to include when asking for help</title>
 		<sect2><title>Waddya got?</title>
 			
 			<para>It's important to convey your setup and configuration.  
@@ -2850,11 +2849,11 @@ Moving down, Perl or PHP code provided it creates all the tables it needs and po
 			<tip><para>If you provide an SQL query in your question to the list, provide a table definition, too.  Problems are often related to specific datatypes, so a table definition is an absolute must.  You can run <command>sp_help <parameter>table</parameter></command> to generate one.  </para></tip>
 			</para>
 			<para>
-It is very helpful if you can show an example of the problem using <productname>sqsh</> or <productname>tsql</> (the latter is included in with <productname>FreeTDS</productname>).  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
+It is very helpful if you can show an example of the problem using <command>sqsh</> or <command>tsql</> (the latter is included in with <productname>FreeTDS</productname>).  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
 			</para>
 <para>If the problem is a segmentation fault or bus error, that's bad.  Please obtain a
 backtrace and include it in your mail.  See the <link
-linkend=pagenodata>"Page contains no data"</link> section for how to
+linkend="pagenodata">"Page contains no data"</link> section for how to
 do this.</para>
 
 		</sect2>
@@ -2872,7 +2871,7 @@ do this.</para>
 		<para>
 <productname>FreeTDS</productname> is a cooperative, volunteer effort.  Flame wars on the list are unknown and the signal to noise ratio is pretty high for its venue.  Many people have contributed patches, and few have been turned away.  
 		</para>
-		<sect1>
+		<sect1 id="Pickweakspot">
 			<title>Pick a weak spot and fix it.</title>
 			<para>
 
@@ -2919,7 +2918,7 @@ The <productname>FreeTDS</productname> FAQ Master is <ulink url="mailto:jklowden
 			</para>
 		</sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="Advocacy">
     			<title>Advocacy</title>
 			<para>
 Out of ten people you know, it's a fair bet 10 never heard of <productname>FreeTDS</productname> and nine don't understand the problem it solves.  Lots of places have begun to use Microsoft <productname>SQL Server</productname>s in all sorts of ways, and if you adhere to the Microsoft line, there's only one way to connect to them: from a Microsoft OS.  
@@ -2929,7 +2928,7 @@ What can <productname>FreeTDS</productname> do that can't be done any other way?
 			</para>
 <ItemizedList>
 	<listitem><para>Connect to every version of either vendor's server, using the same binaries.</para></listitem>
-	<listitem><para>Provide a <systemitem class="library">ct-lib</systemitem> interface to Microsoft <productname>SQL Server</productname>.  This feature alone allows <productname>DBD::Sybase</> and <productname>sqsh</>, among others, to connect to Microsoft's product.  </para></listitem>
+	<listitem><para>Provide a <systemitem class="library">ct-lib</systemitem> interface to Microsoft <productname>SQL Server</productname>.  This feature alone allows <productname>DBD::Sybase</> and <command>sqsh</>, among others, to connect to Microsoft's product.  </para></listitem>
 	<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>SQL Server</productname>.</para></listitem>
 	<listitem><para>Run on many more operating systems than either vendor's libraries do.</para></listitem>
 	<listitem><para>Get fixed, instead of telling you to get stuffed.</para></listitem>
@@ -2944,20 +2943,19 @@ What can <productname>FreeTDS</productname> do that can't be done any other way?
 		<title>Programming</title>
 		<para>
 		</para>
-		<sect1>
+		<sect1 id="TDSprotocolref">
     			<title>TDS protocol reference</title>
 			<para>
 Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ulink>
 			</para>
 		</sect1>
-		<sect1>
-			<title>TDS <acronym>API</> [future reference]</title>
+		<sect1 id="APIreference"><title>TDS <acronym>API</> [future reference]</title>
 			<para>
 Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink>.
 libtds documentation can be compiled using <productname>Doxygen</productname> and issuing <command>make doxy</command> command.
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="samplecode">
     			<title>Examples [future reference]</title>
 			<para>
 (this isn't a reference manual)
@@ -2974,7 +2972,7 @@ libtds documentation can be compiled using <productname>Doxygen</productname> an
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="acknowledgments">
     			<title>Acknowledgments</title>
-		<sect1>
+		<sect1 id="Codesmyths">
 	    		<title>Codesmyths</title>
 			<para>Many people, too many to mention, have contributed patches and located bugs.  The primary names are:
 			</para>
@@ -3008,7 +3006,7 @@ libtds documentation can be compiled using <productname>Doxygen</productname> an
 			</para>
 		</sect1>
 
-		<sect1>
+		<sect1 id="Contributors">
 	    		<title>Contributors</title>
 			<para>This user guide owes at least 100 words each to the following people.
 			</para>
@@ -3027,9 +3025,9 @@ libtds documentation can be compiled using <productname>Doxygen</productname> an
 	
 	<!-- ////////////////// Appendix  ////////////////// -->
 	
-	<Appendix><title>The <filename>interfaces</filename> File</title>
+	<Appendix id="interfacesfile"><title>The <filename>interfaces</filename> File</title>
 			<Abstract><para>The <filename>interfaces</filename> file is retained for compatibility with Sybase environments.  It is recommended that new users use the <link linkend="freetdsconf">freetds.conf</link> format instead.</para></Abstract>
-		<sect1 id="interfacesfile">
+		<sect1 id="interfacesorigin">
 			<title>Where it came from</title>
 			<para>
 Under Sybase OpenClient there is a file called <filename>interfaces</filename> that defines servers available to the software.  <productname>FreeTDS</productname> inherited this file structure with minor alterations.  The <filename>interfaces</filename> remains supported for backward compatibility, and for those running in a mixed <productname>FreeTDS</productname>/Sybase environment.
@@ -3139,7 +3137,7 @@ For better or worse, <productname>FreeTDS</productname> brings the otherwise inn
 			</para>
 		<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 			<para>
-The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><footnote><para>czyborra.com is offline at the time of this writing (December 2003).  It contained good information, so it's still included here, in case it comes back to life.  </para></footnote>  <acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
+The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> <footnote><para>czyborra.com is offline at the time of this writing (December 2003).  It contained good information, so it's still included here, in case it comes back to life.  </para></footnote>  was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
 			</para>
 			<para>
 Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
@@ -3158,7 +3156,7 @@ UNIX&reg; and unix-like systems bought into <acronym>ASCII</> big time.  Program
 <acronym>ASCII</> won, it would seem, but the race goes not to the swift.  <acronym>ASCII</> has many limitations, the most egregious of which is, it's not much good for anything besides English.  It encodes all the letters and punctuation (almost) of the English alphabet, but is useless for German, Russian, and Greek, to say nothing of Chinese.  
 			</para>
 			<para>
-<acronym>ASCII</> assigns one byte to every character, but deals only with 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English -- even English with em dashes and cent (&cent;) signs -- arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of non-English languages, notably excluding ideographic languages such as Chinese.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  
+<acronym>ASCII</> assigns one byte to every character, but deals only with 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English &mdash; even English with em dashes and cent (&cent;) signs &mdash; arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of alphabets.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  
 	
 			</para>
 			<para>
@@ -3210,20 +3208,20 @@ Here's a small example showing the difference between UCS-2 and UTF-8.
 			<example>
 <title><quote>HELLO</quote> in UCS-2 and UTF-8</title>
 <screen>
-$ echo HELLO | iconv -f ascii -t UCS-2 | hexdump -C
+$ <userinput>echo HELLO | iconv -f ascii -t UCS-2 | hexdump -C</userinput>
 00000000  00 48 00 45 00 4c 00 4c  00 4f 00 0a              |.H.E.L.L.O..|
 0000000c
-$ echo HELLO | iconv -f ascii -t utf-8 | hexdump -C
+$ <userinput>echo HELLO | iconv -f ascii -t utf-8 | hexdump -C</userinput>
 00000000  48 45 4c 4c 4f 0a                                 |HELLO.|
 00000006
-$ echo HELLO | hexdump -C
+$ <userinput>echo HELLO | hexdump -C</userinput>
 00000000  48 45 4c 4c 4f 0a                                 |HELLO.|
 00000006
 </screen>
 			</example>
 It is the similarity of the last two outputs that makes UTF-8 so attractive.  It behaves like <acronym>ASCII</> when <acronym>ASCII</>'s all that's needed.  But it lacks <acronym>ASCII</>'s limitations.  			</para>
 			<para>
-While UTF-8 solves many technical problems, it doesn't magically transform every <acronym>ASCII</>-assuming system into a Unicode system.  For example, to display Unicode data correctly -- even Unicode data in UTF-8 format -- the system still needs a suitable font.  And it must distinguish the buffer size (and byte count) from the character count.  
+While UTF-8 solves many technical problems, it doesn't magically transform every <acronym>ASCII</>-assuming system into a Unicode system.  For example, to display Unicode data correctly &mdash; even Unicode data in UTF-8 format &mdash; the system still needs a suitable font.  And it must distinguish the buffer size (and byte count) from the character count.  
 			</para>
 		</section>
 		<section id="UnicodeFreeTDS"><title>Unicode and FreeTDS</title>
@@ -3238,7 +3236,7 @@ Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy
 			</para>
 			<section><title>For further information</title>
 <simplelist type=vert columns=1>
-	<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>.  As the man says, very comprehensive.  	</member>
+	<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
 	<member><ulink url="http://www.wps.com/projects/codes/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.    </member>
 	<member><ulink url="http://tronweb.super-nova.co.jp/characcodehist.html">A Brief History of Character Codes</ulink>, by Steven J. Searle.  Includes useful references.  </member>
 	<member><ulink url="http://www.unicode.org/">Unicode Home Page</ulink>.  </member>
