@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.53 2002-11-21 21:31:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.54 2002-11-22 09:53:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -130,9 +130,7 @@ TDSPARAMINFO *info;
 
 	info = dyn->params;
 	if (info) {
-		if (info->columns) free(info->columns);
-		if (info->current_row) free(info->current_row);
-		free(info);
+		tds_free_param_results(info);
 		dyn->params = NULL;
 	}
 }
@@ -378,23 +376,14 @@ void *ptr;
 	return ptr;
 }
 
-void tds_free_param_results(TDSPARAMINFO *param_info)
+void 
+tds_free_param_results(TDSPARAMINFO *param_info)
 {
-int i;
-
-	if(param_info)
-	{
-		for (i=0;i<param_info->num_cols;i++)
-		{
-			if(param_info->columns[i])
-				TDS_ZERO_FREE(param_info->columns[i]);
-		}
-		if (param_info->num_cols) TDS_ZERO_FREE(param_info->columns);
-		if (param_info->current_row) TDS_ZERO_FREE(param_info->current_row);
-		TDS_ZERO_FREE(param_info);
-	}
+	tds_free_results(param_info);
 }
-void tds_free_compute_result(TDSCOMPUTEINFO *comp_info)
+
+void 
+tds_free_compute_result(TDSCOMPUTEINFO *comp_info)
 {
 	tds_free_results(comp_info);
 }
@@ -413,7 +402,8 @@ int i;
 
 }
 
-void tds_free_results(TDSRESULTINFO *res_info)
+void 
+tds_free_results(TDSRESULTINFO *res_info)
 {
 int i;
 TDSCOLINFO *curcol;
@@ -436,11 +426,14 @@ TDSCOLINFO *curcol;
 	if (res_info->current_row) 
 		free(res_info->current_row);
 
-	if (res_info->bycolumns) free(res_info->bycolumns);
+	if (res_info->bycolumns)
+		free(res_info->bycolumns);
 
 	free(res_info);
 }
-void tds_free_all_results(TDSSOCKET *tds)
+
+void 
+tds_free_all_results(TDSSOCKET *tds)
 {
 	tds_free_results(tds->res_info);
 	tds->res_info = NULL;

@@ -1,3 +1,10 @@
+Fri Nov 22 10:49:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/mem.c src/tds/token.c:
+	- unified TDSRESULTINFO, TDSCOMPUTEINFO and TDSPARAMINFO
+	- update some style (function declarations and comments)
+	- put output parameters in correct places
+	- use curr_resinfo field getting params tokens
+
 Thu Nov 21 17:28:33 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/bcp.c 
 	- some preparation for bcp error file

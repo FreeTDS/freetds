@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.54 2002-11-21 21:31:05 freddy77 Exp $";
+	"$Id: tds.h,v 1.55 2002-11-22 09:53:37 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -555,6 +555,7 @@ enum {
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
 
+/*
 typedef struct tds_param_info {
 	TDS_SMALLINT  num_cols;
 	TDSCOLINFO    **columns;
@@ -562,6 +563,9 @@ typedef struct tds_param_info {
 	int           null_info_size;
 	unsigned char *current_row;
 } TDSPARAMINFO;
+*/
+
+typedef TDSRESULTINFO TDSPARAMINFO;
 
 typedef struct tds_msg_info {
       TDS_SMALLINT priv_msg_type;
@@ -590,7 +594,7 @@ typedef struct tds_dynamic {
 	int dyn_state;
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
-	TDSRESULTINFO *res_info;
+	TDSPARAMINFO *res_info;
 	TDSPARAMINFO *params;
 } TDSDYNAMIC;
 

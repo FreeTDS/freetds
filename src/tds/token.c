@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.113 2002-11-21 20:48:43 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.114 2002-11-22 09:53:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,10 +62,10 @@ static int tds_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol);
 static int tds_process_env_chg(TDSSOCKET *tds);
 
 /*
-** The following little table is indexed by precision and will
-** tell us the number of bytes required to store the specified
-** precision.
-*/
+ * The following little table is indexed by precision and will
+ * tell us the number of bytes required to store the specified
+ * precision.
+ */
 extern const int tds_numeric_bytes_per_prec[];
 
 /**
@@ -266,8 +266,8 @@ TDS_UINT product_version;
 */
 #endif
 				/* TDS 5.0 reports 5 on success 6 on failure
-				** TDS 4.2 reports 1 on success and is not
-				** present on failure */
+				 * TDS 4.2 reports 1 on success and is not
+				 * present on failure */
 				if (ack==5 || ack==1) succeed=TDS_SUCCEED;
 				break;
 			default:
@@ -761,10 +761,12 @@ TDSCOLINFO *curparam;
 TDSPARAMINFO *info;
 int i;
 
+	/* TODO check if curr_resinfo is a param result */
+	
 	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
 	hdrsize = tds_get_smallint(tds);
-	info = tds_alloc_param_result(tds->param_info);
-	tds->param_info = info;
+	info = tds_alloc_param_result(tds->curr_resinfo);
+	tds->curr_resinfo = info;
 	curparam = info->columns[info->num_cols - 1];
 
 	/* FIXME check support for tds7+ (seem to use same format of tds5 for data...)
@@ -788,6 +790,11 @@ tds_process_param_result_tokens(TDSSOCKET *tds)
 {
 int marker;
 
+	if (tds->cur_dyn)
+		tds->curr_resinfo = tds->cur_dyn->res_info;
+	else
+		tds->curr_resinfo = tds->param_info;
+	
 	while ((marker=tds_get_byte(tds))==TDS_PARAM_TOKEN) {
 		tds_process_param_result(tds);
 	}
@@ -805,7 +812,8 @@ int i;
 TDSCOLINFO *curcol;
 TDSPARAMINFO *info;
 
-	info = tds->param_info;
+	/* TODO check if curr_resinfo is a param result */
+	info = tds->curr_resinfo;
 	if (!info)
 		return TDS_FAIL;
 
@@ -997,7 +1005,7 @@ int colnamelen;
 	}
 
 	/* under 7.0 lengths are number of characters not 
-	** number of bytes...tds_get_string handles this */
+	 * number of bytes...tds_get_string handles this */
 	colnamelen = tds_get_byte(tds);
 	tds_get_string(tds,curcol->column_name, colnamelen);
 	curcol->column_name[colnamelen] = 0;
@@ -1029,7 +1037,7 @@ TDSRESULTINFO *info;
 	tds->state = TDS_PENDING; 
 
 	/* loop through the columns populating COLINFO struct from
-	** server response */
+	 * server response */
 	for (col=0;col<num_cols;col++) {
 
 		curcol = info->columns[col];
@@ -1121,7 +1129,7 @@ TDSRESULTINFO *info;
 	tds->state = TDS_PENDING; 
 
 	/* loop through the columns populating COLINFO struct from
-	** server response */
+	 * server response */
 	for (col=0;col<info->num_cols;col++) 
 	{
 		curcol=info->columns[col];
@@ -1139,11 +1147,12 @@ TDSRESULTINFO *info;
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_compute() processes compute rows and places them in the row
-** buffer.  
-*/
-static int tds_process_compute(TDSSOCKET *tds)
+/**
+ * tds_process_compute() processes compute rows and places them in the row
+ * buffer.  
+ */
+static int 
+tds_process_compute(TDSSOCKET *tds)
 {
 int i;
 TDSCOLINFO *curcol;
@@ -1224,13 +1233,13 @@ TDSBLOBINFO *blob_info;
 		TDS_NUMERIC *num;
 
 		/* 
-		** handling NUMERIC datatypes: 
-		** since these can be passed around independent
-		** of the original column they were from, I decided
-		** to embed the TDS_NUMERIC datatype in the row buffer
-		** instead of using the wire representation even though
-		** it uses a few more bytes
-		*/
+		 * handling NUMERIC datatypes: 
+		 * since these can be passed around independent
+		 * of the original column they were from, I decided
+		 * to embed the TDS_NUMERIC datatype in the row buffer
+		 * instead of using the wire representation even though
+		 * it uses a few more bytes
+		 */
 		num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
 		memset(num, '\0', sizeof(TDS_NUMERIC));
 		num->precision = curcol->column_prec;
@@ -1306,14 +1315,14 @@ TDSBLOBINFO *blob_info;
 
 #ifdef WORDS_BIGENDIAN
 	/* MS SQL Server 7.0 has broken date types from big endian 
-	** machines, this swaps the low and high halves of the 
-	** affected datatypes
-	**
-	** Thought - this might be because we don't have the
-	** right flags set on login.  -mjs
-	**
-	** Nope its an actual MS SQL bug -bsb
-	*/
+	 * machines, this swaps the low and high halves of the 
+	 * affected datatypes
+	 *
+	 * Thought - this might be because we don't have the
+	 * right flags set on login.  -mjs
+	 *
+	 * Nope its an actual MS SQL bug -bsb
+	 */
 	if (tds->broken_dates &&
 		(curcol->column_type == SYBDATETIME ||
 		curcol->column_type == SYBDATETIME4 ||
@@ -1403,7 +1412,7 @@ int tmp;
    tds_get_smallint(tds);
 
    /* rows affected is in the tds struct because a query may affect rows but
-   ** have no result set. */
+    * have no result set. */
 
    tds->rows_affected = tds_get_int(tds);
 
@@ -1443,7 +1452,7 @@ TDSMSGINFO msg_info;
 		ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		tds_free_msg(&msg_info);
 		/* message handler returned FAIL/CS_FAIL
-		** mark socket as dead */
+		 * mark socket as dead */
 		if (ret && tds) {
 			tds->state=TDS_DEAD;
 		}	
@@ -1469,9 +1478,9 @@ tds_process_env_chg(TDSSOCKET *tds)
 
 	size = tds_get_smallint(tds);
 	/* this came in a patch, apparently someone saw an env message
-	** that was different from what we are handling? -- brian
-	** changed back because it won't handle multibyte chars -- 7.0
-	*/
+	 * that was different from what we are handling? -- brian
+	 * changed back because it won't handle multibyte chars -- 7.0
+	 */
 	/* tds_get_n(tds,NULL,size); */
 
 	type = tds_get_byte(tds);
@@ -1503,10 +1512,10 @@ tds_process_env_chg(TDSSOCKET *tds)
 			if (new_block_size > env->block_size) {
 				tdsdump_log(TDS_DBG_INFO1, "%L increasing block size from %s to %d\n", oldval, new_block_size);
 				/* 
-				** I'm not aware of any way to shrink the 
-				** block size but if it is possible, we don't 
-				** handle it.
-				*/
+				 * I'm not aware of any way to shrink the 
+				 * block size but if it is possible, we don't 
+				 * handle it.
+				 */
 				/* Reallocate buffer if impossible (strange values from server or out of memory) use older buffer */
 				if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, new_block_size)) != NULL) {
 					tds->out_buf = new_out_buf;
@@ -1592,9 +1601,9 @@ TDSMSGINFO msg_info;
 	msg_info.line_number = tds_get_smallint(tds);
 
 	/* call the msg_handler that was set by an upper layer 
-	** (dblib, ctlib or some other one).  Call it with the pointer to 
-	** the "parent" structure.
-	*/
+	 * (dblib, ctlib or some other one).  Call it with the pointer to 
+	 * the "parent" structure.
+	 */
 
 	if (tds->tds_ctx->msg_handler) {
 	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg_info);
@@ -1634,12 +1643,13 @@ char *s;
 	return s;
 }
 
-/*
-** tds_process_cancel() processes the incoming token stream until it finds
-** an end token (DONE, DONEPROC, DONEINPROC) with the cancel flag set.
-** a that point the connetion should be ready to handle a new query.
-*/
-int tds_process_cancel(TDSSOCKET *tds)
+/**
+ * tds_process_cancel() processes the incoming token stream until it finds
+ * an end token (DONE, DONEPROC, DONEINPROC) with the cancel flag set.
+ * a that point the connetion should be ready to handle a new query.
+ */
+int 
+tds_process_cancel(TDSSOCKET *tds)
 {
 int marker, done_flags=0;
 
@@ -1707,10 +1717,11 @@ int i;
 	}
 	return NULL;
 }
-/*
-** tds_process_dynamic()
-** finds the element of the dyns array for the id
-*/
+
+/**
+ * tds_process_dynamic()
+ * finds the element of the dyns array for the id
+ */
 static TDSDYNAMIC*
 tds_process_dynamic(TDSSOCKET *tds)
 {
@@ -1748,25 +1759,24 @@ tds_process_dyn_result(TDSSOCKET *tds)
 int hdrsize;
 int col, num_cols;
 TDSCOLINFO *curcol;
-TDSRESULTINFO *info;
+TDSPARAMINFO *info;
 TDSDYNAMIC *dyn;
 
 	hdrsize = tds_get_smallint(tds);
 	num_cols = tds_get_smallint(tds);
 
-	/* FIXME output params are always written to param_info, never to cur_dyn or res_info */
 	if (tds->cur_dyn) {
 		dyn = tds->cur_dyn;
-		tds_free_results(dyn->res_info);
+		tds_free_param_results(dyn->res_info);
 		/* read number of columns and allocate the columns structure */
 		dyn->res_info = tds_alloc_results(num_cols);
 		info = dyn->res_info;
 	} else {
-		/* FIXME should write on param_info, not res_info */
-		tds_free_results(tds->res_info);
-		tds->res_info = tds_alloc_results(num_cols);
-		info = tds->res_info;
+		tds_free_param_results(tds->param_info);
+		tds->param_info = tds_alloc_results(num_cols);
+		info = tds->param_info;
 	}
+	tds->curr_resinfo = info;
 
 	for (col=0;col<info->num_cols;col++) {
 		curcol=info->columns[col];
@@ -1842,10 +1852,10 @@ TDS_NUMERIC *num;
 	}
 }
 
-/*
-** tds_get_varint_size() returns the size of a variable length integer
-** returned in a TDS 7.0 result string
-*/
+/**
+ * tds_get_varint_size() returns the size of a variable length integer
+ * returned in a TDS 7.0 result string
+ */
 static int 
 tds_get_varint_size(int datatype)
 {
@@ -1901,10 +1911,11 @@ tds_get_cardinal_type(int datatype)
 	return datatype;
 }
 
-/*
-** tds_process_compute_names() processes compute result sets.  
-*/
-static int tds_process_compute_names(TDSSOCKET *tds)
+/**
+ * tds_process_compute_names() processes compute result sets.  
+ */
+static int 
+tds_process_compute_names(TDSSOCKET *tds)
 {
 int hdrsize;
 int remainder;
@@ -1988,11 +1999,13 @@ struct namelist *freeptr = NULL;
 
 	return TDS_SUCCEED;
 }
-/*
-** tds7_process_compute_result() processes compute result sets for TDS 7/8.
-** They is are very  similar to normal result sets.
-*/
-static int tds7_process_compute_result(TDSSOCKET *tds)
+
+/**
+ * tds7_process_compute_result() processes compute result sets for TDS 7/8.
+ * They is are very  similar to normal result sets.
+ */
+static int 
+tds7_process_compute_result(TDSSOCKET *tds)
 {
 int col, num_cols; 
 TDS_TINYINT by_cols;
