@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.61 2003-08-14 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.62 2003-09-23 08:31:41 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -97,7 +97,6 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	FD_ZERO(&fds);
 	start = time(NULL);
 	now = start;
-	/* FIXME return even if not finished read if timeout */
 	/* nsc 20030326 The tds->timeout stuff is flawed and should probably just be removed. */
 	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
 		assert(tds);
@@ -121,9 +120,10 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			}
 		}
 		now = time(NULL);
-		if (tds->timeout && tds->queryStarttime && tds->longquery_timeout) {
+		if (tds->longquery_func && tds->queryStarttime && tds->longquery_timeout) {
 			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
 				(*tds->longquery_func) (tds->longquery_param);
+				return got;
 			}
 		}
 		if ((tds->chkintr) && ((*tds->chkintr) (tds)) && (tds->hndlintr)) {
@@ -141,6 +141,11 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		}
 
 	}			/* while buflen... */
+
+	if (tds->timeout > 0 && now - start < tds->timeout && buflen > 0)
+		return -1;
+
+	assert(buflen == 0);
 	return (got);
 }
 
@@ -473,14 +478,16 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos = 0;
 			return -1;
 		}
+
 		/* GW ADDED */
 		/*  Not sure if this is the best way to do the error 
 		 *  handling here but this is the way it is currently 
 		 *  being done. */
+
 		tds->in_len = 0;
 		tds->in_pos = 0;
 		tds->last_packet = 1;
-		if (len == 0) {
+		if (tds->state != TDS_IDLE && len == 0) {
 			tds_close_socket(tds);
 		}
 		return -1;
