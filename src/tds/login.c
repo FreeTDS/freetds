@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.22 2002-06-18 03:35:30 jklowden Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.23 2002-06-25 00:50:12 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -273,7 +273,7 @@ FD_ZERO (&fds);
 	}
 	/* END OF NEW CODE */
 
-	if (IS_TDS70(tds) || IS_TDS80(tds)) {
+	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag=0x10;
 		tds7_send_login(tds,config);	
 	} else {
@@ -293,7 +293,7 @@ FD_ZERO (&fds);
    			while (tds_process_result_tokens(tds)==TDS_SUCCEED);
    		}
 	}
-    if (IS_TDS70(tds) || IS_TDS80(tds)) {
+    if (IS_TDS7_PLUS(tds)) {
        g__numeric_bytes_per_prec[ 0] = -1;
        g__numeric_bytes_per_prec[ 1] = 5;
        g__numeric_bytes_per_prec[ 2] = 5;

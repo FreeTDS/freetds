@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.21 2002-06-10 03:08:21 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.22 2002-06-25 00:50:12 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -931,7 +931,13 @@ int len;
 			}
 
 			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
-			curcol->cur_row_size = colsize;
+			/* was: curcol->cur_row_size = colsize; */
+   			if (curcol->column_unicodedata) {
+      				curcol->cur_row_size = strlen(dest);
+   			} else {
+      				curcol->cur_row_size = colsize;
+   			}
+
 #ifdef WORDS_BIGENDIAN
 			/* MS SQL Server 7.0 has broken date types from big endian 
 			** machines, this swaps the low and high halves of the 
