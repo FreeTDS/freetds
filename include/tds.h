@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.26 2002-10-23 05:42:32 freddy77 Exp $";
+	"$Id: tds.h,v 1.27 2002-10-23 20:45:33 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -426,17 +426,17 @@ typedef struct tds_connect_info {
 	char *ip_addr;     /**< ip of server */
 	char *database;
 	char *dump_file;
+	char *default_domain;
+	char *client_charset;
+	int timeout;
+	int debug_level;
+	int text_size;
 	int broken_dates;
 	int broken_money;
-	int timeout;
-	char *default_domain;
 	int try_server_login;
 	int try_domain_login;
 	int xdomain_auth;
-	int debug_level;
 	int emul_little_endian;
-	int text_size;
-	char *client_charset;
 } TDSCONNECTINFO;
 
 typedef struct tds_loc_info {

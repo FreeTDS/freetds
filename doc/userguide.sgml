@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-18 12:59:58 $</date>
-		<releaseinfo>$Revision: 1.40 $</releaseinfo>
+		<date>$Date: 2002-10-23 20:45:33 $</date>
+		<releaseinfo>$Revision: 1.41 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.40 $
+$Revision: 1.41 $
 , dated 
-$Date: 2002-10-18 12:59:58 $ (CVS control number $Id: userguide.sgml,v 1.40 2002-10-18 12:59:58 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2002-10-23 20:45:33 $ (CVS control number $Id: userguide.sgml,v 1.41 2002-10-23 20:45:33 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -1881,7 +1881,7 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<entry>UID</entry>
 	<entry>none</entry>
 	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
-	      To use domain authentication and specify domain use the format "domain\password". Work in progress: domain auth not tested.</entry>
+	      To use domain authentication and specify domain use the format "domain\password".</entry>
 	<entry>Any valid user</entry>
 	</row>
 	<row>

@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.71 2002-10-23 02:21:23 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.72 2002-10-23 20:45:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -188,6 +188,17 @@ struct _henv *env = dbc->henv;
 		return SQL_ERROR;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 	tds_fix_connect(connect_info);
+
+	/* fix login type */
+	if (!connect_info->try_domain_login) {
+		if (strchr(connect_info->user_name,'\\')) {
+			connect_info->try_domain_login = 1;
+			connect_info->try_server_login = 0;
+		}
+	}
+	if (!connect_info->try_domain_login && !connect_info->try_server_login)
+		connect_info->try_server_login = 1;
+
 	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
 		odbc_LogError ("tds_connect failed");
 		return SQL_ERROR;
