@@ -1,3 +1,12 @@
+Tue Sep 17 13:31:47 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/Makefile.am:
+	- Add explicit shared library version number.
+	* include/tds.h.in src/dblib/Makefile.am src/dblib/dblib.c
+	  src/tds/Makefile.am src/tds/login.c src/tds/mem.c:
+	- Change tds_set_packet to take packet_size as an int instead
+	  of a short.  Adjust TDSLOGIN.block_size to match.  Use these
+	  to fix possible integer overflow in DBSETLPACKET().
+
 Tue Sep 17 12:47:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/unittests/common.c src/ctlib/unittests/t0001.c
 	  src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c

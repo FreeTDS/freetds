@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.42 2002-09-13 21:00:21 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.43 2002-09-17 17:37:41 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -47,7 +47,7 @@ void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver)
 	tds_login->major_version=major_ver;
 	tds_login->minor_version=minor_ver;
 }
-void tds_set_packet(TDSLOGIN *tds_login, short packet_size)
+void tds_set_packet(TDSLOGIN *tds_login, int packet_size)
 { 
 	tds_login->block_size=packet_size; 
 }

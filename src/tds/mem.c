@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.23 2002-09-14 06:41:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.24 2002-09-17 17:37:41 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -557,7 +557,7 @@ TDSENVINFO *env;
 	env = (TDSENVINFO *) malloc(sizeof(TDSENVINFO));
 	if (!env) return NULL;
 	memset(env,'\0',sizeof(TDSENVINFO));
-	env->block_size = 512;
+	env->block_size = TDS_DEF_BLKSZ;
 
 	return env;
 }

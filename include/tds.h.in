@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.46 2002-09-16 19:47:58 castellano Exp $";
+	 "$Id: tds.h.in,v 1.47 2002-09-17 17:37:40 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -389,7 +389,7 @@ typedef struct tds_login {
 	TDS_CHAR language[TDS_MAX_LOGIN_STR_SZ+1]; /* ie us-english */
 	TDS_TINYINT encrypted; 
 	TDS_CHAR char_set[TDS_MAX_LOGIN_STR_SZ+1]; /*  ie iso_1 */
-	TDS_SMALLINT block_size; 
+	int block_size; 
 	TDS_TINYINT suppress_language;
      TDS_INT connect_timeout;
      TDS_INT query_timeout;
@@ -655,7 +655,7 @@ TDSLOCINFO *tds_alloc_locale();
 void tds_free_locale(TDSLOCINFO *locale);
 int tds_connect(TDSSOCKET *tds, TDSLOGIN *login);
 TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
-void tds_set_packet(TDSLOGIN *tds_login, short packet_size);
+void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);
 void tds_set_passwd(TDSLOGIN *tds_login, char *password);
 void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled);

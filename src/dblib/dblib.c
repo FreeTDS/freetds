@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.60 2002-09-16 19:48:02 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.61 2002-09-17 17:37:40 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -480,7 +480,7 @@ RETCODE dbsetllong(LOGINREC *login, long value, int which)
 {
 	switch (which) {
 	case DBSETPACKET:
-		tds_set_packet(login->tds_login, (short) value); /* XXX */
+		tds_set_packet(login->tds_login, value);
 		return SUCCEED;
 		break;
 	default:

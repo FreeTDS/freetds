@@ -8,6 +8,6 @@ DBOPEN=dbopen.c
 endif
 EXTRA_DIST	=	dbopen.c
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c $(DBOPEN)
-libsybdb_la_LDFLAGS=	-version-info 1 0 0
+libsybdb_la_LDFLAGS=	-version-info 1 1 0
 libsybdb_la_LIBADD=	$(TDSOBJECTS) $(NETWORK_LIBS) $(LIBICONV)
 INCLUDES	=	-I$(top_srcdir)/include
