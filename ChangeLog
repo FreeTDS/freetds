@@ -1,3 +1,6 @@
+Thu Jan  2 15:25:45 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ct.c, src/tds/token.c support return status as special row
+
 Thu Jan  2 21:03:25 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in: update description
 	* include/tdsodbc.h src/odbc/convert_sql2string.c:

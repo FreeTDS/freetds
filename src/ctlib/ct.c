@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.64 2003-01-02 01:59:52 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.65 2003-01-02 20:28:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -593,6 +593,8 @@ CS_INT res_type;
 
 
 			case CS_STATUS_RESULT:
+				cmd->row_prefetched = 1;
+				/* fall through */
 			default:
 				*result_type = res_type;
 				return CS_SUCCEED;
