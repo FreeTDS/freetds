@@ -1,3 +1,7 @@
+Wed Sep 24 22:26:32 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am doc/Makefile.am:	
+	- fix some issue related to make distcheck
+
 Wed Sep 24 21:14:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/odbc/Makefile.am:
 	- try to fix ODBC library use (iODBC and unixODBC should now

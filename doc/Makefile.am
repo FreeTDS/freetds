@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.19 2003-08-05 05:03:15 jklowden Exp $
+# version: $Id: Makefile.am,v 1.20 2003-09-24 20:28:21 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.61
@@ -31,8 +31,8 @@ userguide.tgz: $(srcdir)/userguide.sgml
 	        if ! [ -L userguide ]; then \
 	                ln -s html userguide; \
 	        fi; \
-	        tar czf userguide.tgz userguide/* \
-	; fi
+	        tar czf userguide.tgz userguide/*; \
+	fi
 
 man:	freebcp.1 tsql.1
 
@@ -50,11 +50,22 @@ reference.tgz: reference
 	
 install-data-local: 
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/doc/freetds
-	ln -s `pwd`/reference.tgz $(DESTDIR)$(datadir)/doc/freetds \
-		|| touch $(DESTDIR)$(datadir)/doc/freetds/reference.tgz
-	ln -s `pwd`/userguide.tgz $(DESTDIR)$(datadir)/doc/freetds \
-		|| touch $(DESTDIR)$(datadir)/doc/freetds/userguide.tgz
-	cd $(DESTDIR)$(datadir)/doc/freetds || pwd # 'cd' can return spurious errors?
-	tar xzf reference.tgz || echo No reference manual installed
-	tar xzf userguide.tgz || echo No user guide installed
-	rm reference.tgz userguide.tgz
+	if test -f $(srcdir)/reference.tgz; then \
+		cp $(srcdir)/reference.tgz $(DESTDIR)$(datadir)/doc/freetds/reference.tgz; \
+	else \
+		cp ./reference.tgz $(DESTDIR)$(datadir)/doc/freetds/reference.tgz; \
+	fi
+	cd $(DESTDIR)$(datadir)/doc/freetds && tar zxf ./reference.tgz
+	if test -f $(srcdir)/userguide.tgz; then \
+		cp $(srcdir)/userguide.tgz $(DESTDIR)$(datadir)/doc/freetds/userguide.tgz; \
+	else \
+		cp ./userguide.tgz $(DESTDIR)$(datadir)/doc/freetds/userguide.tgz; \
+	fi
+	cd $(DESTDIR)$(datadir)/doc/freetds && tar zxf ./userguide.tgz
+	rm -f $(DESTDIR)$(datadir)/doc/freetds/reference.tgz
+	rm -f $(DESTDIR)$(datadir)/doc/freetds/userguide.tgz
+
+uninstall-local:
+	rm -rf $(DESTDIR)$(datadir)/doc/freetds/reference
+	rm -rf $(DESTDIR)$(datadir)/doc/freetds/userguide
+

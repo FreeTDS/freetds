@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.29 2003-04-13 14:07:11 jklowden Exp $
+# version $Id: Makefile.am,v 1.30 2003-09-24 20:28:21 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -54,4 +54,6 @@ doxy: doxyfile  $(SUBDIRS)
 	SRCDIR=$(top_srcdir); \
 	export SRCDIR; \
 	$(DOXYGEN) doxyfile
+
+DISTCLEANFILES	= doxyfile
 endif
