@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.112 2003-11-16 08:21:47 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.113 2003-11-16 18:10:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -804,36 +804,11 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 int
 tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
-	int id_len, query_len;
-	TDSDYNAMIC *dyn = NULL;
+	int query_len;
 	TDSCOLINFO *param;
 
 	if (!query)
 		return TDS_FAIL;
-
-	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
-		tdsdump_log(TDS_DBG_ERROR, "Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
-		return TDS_FAIL;
-	}
-
-	/* allocate a structure for this thing */
-	if (IS_TDS50(tds)) {
-		char *tmp_id = NULL;
-
-		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
-			return TDS_FAIL;
-		dyn = tds_alloc_dynamic(tds, tmp_id);
-		free(tmp_id);
-
-		if (!dyn)
-			return TDS_FAIL;
-		tds->cur_dyn = dyn;
-	}
-
-	if (tds_to_quering(tds) == TDS_FAIL)
-		return TDS_FAIL;
-	tds->internal_sp_called = 0;
-
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -841,6 +816,10 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		char *param_definition = NULL;
 		int converted_query_len;
 		const char *converted_query;
+
+		if (tds_to_quering(tds) == TDS_FAIL)
+			return TDS_FAIL;
+		tds->internal_sp_called = 0;
 
 		if (params) {
 			/* place dummy parameters */
@@ -904,29 +883,50 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		return tds_flush_packet(tds);
 	}
 
-	tds->out_flag = 0x0F;
-	
-	assert(dyn);
+	/* allocate a structure for this thing */
+	if (IS_TDS50(tds)) {
+		char *tmp_id = NULL;
+		TDSDYNAMIC *dyn;
+		int id_len;
 
-	id_len = strlen(dyn->id);
-	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
-	tds_put_smallint(tds, query_len + id_len * 2 + 21);
-	tds_put_byte(tds, 0x08);
-	tds_put_byte(tds, params ? 0x01 : 0);
-	tds_put_byte(tds, id_len);
-	tds_put_n(tds, dyn->id, id_len);
-	/* TODO ICONV convert string, do not put with tds_put_n */
-	/* TODO how to pass parameters type? like store procedures ? */
-	tds_put_smallint(tds, query_len + id_len + 16);
-	tds_put_n(tds, "create proc ", 12);
-	tds_put_n(tds, dyn->id, id_len);
-	tds_put_n(tds, " as ", 4);
-	tds_put_n(tds, query, query_len);
+		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
+			return TDS_FAIL;
+		dyn = tds_alloc_dynamic(tds, tmp_id);
+		free(tmp_id);
 
-	if (params)
-		tds_put_params(tds, params, 0);
+		if (!dyn)
+			return TDS_FAIL;
+		tds->cur_dyn = dyn;
 
-	return tds_flush_packet(tds);
+		if (tds_to_quering(tds) == TDS_FAIL)
+			return TDS_FAIL;
+		tds->internal_sp_called = 0;
+
+		tds->out_flag = 0x0F;
+
+		id_len = strlen(dyn->id);
+		tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
+		tds_put_smallint(tds, query_len + id_len * 2 + 21);
+		tds_put_byte(tds, 0x08);
+		tds_put_byte(tds, params ? 0x01 : 0);
+		tds_put_byte(tds, id_len);
+		tds_put_n(tds, dyn->id, id_len);
+		/* TODO ICONV convert string, do not put with tds_put_n */
+		/* TODO how to pass parameters type? like store procedures ? */
+		tds_put_smallint(tds, query_len + id_len + 16);
+		tds_put_n(tds, "create proc ", 12);
+		tds_put_n(tds, dyn->id, id_len);
+		tds_put_n(tds, " as ", 4);
+		tds_put_n(tds, query, query_len);
+
+		if (params)
+			tds_put_params(tds, params, 0);
+
+		return tds_flush_packet(tds);
+	}
+
+	tdsdump_log(TDS_DBG_ERROR, "Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
+	return TDS_FAIL;
 }
 
 

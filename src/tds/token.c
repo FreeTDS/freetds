@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.225 2003-11-16 08:21:47 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.226 2003-11-16 18:10:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1394,7 +1394,6 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
-	adjust_character_column_size(tds, curcol);
 
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
@@ -1410,6 +1409,9 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->iconv_info = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
+	
+	/* NOTE adjustements must be done after curcol->iconv_info initialization */
+	adjust_character_column_size(tds, curcol);
 
 	if (is_blob_type(curcol->column_type)) {
 		curcol->table_namelen =
@@ -1906,33 +1908,34 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) num);
 		}
-
+		curcol->column_cur_size = colsize;
 	} else if (is_blob_type(curcol->column_type)) {
+		TDS_CHAR *p;
 		int new_blob_size;
-		assert(blob_info == (TDS_CHAR*) dest); 	/* cf. column_varint_size case 4, above */
-		assert(curcol->iconv_info);
+		assert(blob_info == (TDSBLOBINFO *) dest); 	/* cf. column_varint_size case 4, above */
 		
 		/* 
 		 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
 		 * Instead, they're reallocated as necessary, based on the data's size.  
 		 * Here we allocate memory, if need be.  
 		 */
+		/* TODO this can lead to a big waste of memory */
 		new_blob_size = determine_adjusted_size(curcol->iconv_info, colsize);
 		
-		if (!blob_info->textvalue) {
-			blob_info->textvalue = (TDS_CHAR *) malloc(new_blob_size);
-			curcol->column_cur_size = new_blob_size;
+		/* NOTE we use an extra pointer (p) to avoid lose of memory in the case realloc fails */
+		p = blob_info->textvalue;
+		if (!p) {
+			p = (TDS_CHAR *) malloc(new_blob_size);
 		} else {
-			if( new_blob_size > curcol->column_cur_size ) {
-				blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, new_blob_size);
-				curcol->column_cur_size = new_blob_size;
+			/* TODO perhaps we should store allocated bytes too ? */
+			if (new_blob_size > curcol->column_cur_size ||  (curcol->column_cur_size - new_blob_size) > 10240) {
+				p = (TDS_CHAR *) realloc(p, new_blob_size);
 			}
 		}
 		
-		if (!blob_info->textvalue) {
-			curcol->column_cur_size = 0;
+		if (!p)
 			return TDS_FAIL;
-		}
+		blob_info->textvalue = p;
 		curcol->column_cur_size = new_blob_size;
 		
 		/* read the data */
@@ -1940,6 +1943,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			if (tds_get_char_data(tds, blob_info->textvalue, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {
+			assert(colsize == new_blob_size);
 			tds_get_n(tds, blob_info->textvalue, colsize);
 		}
 	} else {		/* non-numeric and non-blob */
@@ -1976,8 +1980,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}
 	}
-
-	/* curcol->column_cur_size is used to properly know value in dbdatlen. (mlilback, 11/7/01) */
 
 #ifdef WORDS_BIGENDIAN
 	/* MS SQL Server 7.0 has broken date types from big endian 
