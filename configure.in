@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.116 2003-12-10 10:26:37 freddy77 Exp $
+dnl $Id: configure.in,v 1.117 2003-12-18 19:35:22 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -306,7 +306,12 @@ then
 	AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
 		fi
 	fi
-
+	if test "$iodbc" = "true"; then
+		save_cppflags="$CPPFLAGS"
+		CPPFLAGS="$CPPFLAGS $ODBC_INC"
+		AC_CHECK_HEADERS(iodbcinst.h)
+		CPPFLAGS="$save_cppflags"
+	fi
 else 
 	AC_MSG_NOTICE(odbc disabled)	
 fi

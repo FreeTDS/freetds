@@ -30,8 +30,11 @@
 #include <sql.h>
 #include <sqlext.h>
 #else /* IODBC */
-#include "isql.h"
-#include "isqlext.h"
+#include <isql.h>
+#include <isqlext.h>
+#ifdef HAVE_IODBCINST_H
+#include <iodbcinst.h>
+#endif /* HAVE_IODBCINST_H */
 #endif
 
 #ifndef SQLULEN
@@ -49,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.61 2003-11-22 17:22:25 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.62 2003-12-18 19:35:23 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
