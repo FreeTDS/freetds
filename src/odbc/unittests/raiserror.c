@@ -1,10 +1,10 @@
 #include "common.h"
 
-/* test RAISEERROR in a store procedure, from Tom Rogers tests */
+/* test RAISERROR in a store procedure, from Tom Rogers tests */
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiseerror.c,v 1.6 2004-04-08 09:59:07 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.1 2004-04-13 08:18:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
