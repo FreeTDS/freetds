@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.85 2003-03-19 17:05:13 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.86 2003-03-20 16:07:24 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -719,6 +719,7 @@ TDSPARAMINFO* pparam_info;
 		}
 	}
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
+		tds->state = TDS_QUERYING;
 		tds_flush_packet(tds);
 	}
 	
