@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.113 2003-04-27 17:57:06 freddy77 Exp $";
+	"$Id: tds.h,v 1.114 2003-04-27 18:34:36 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -867,7 +867,7 @@ int tds_read_conf_file(TDSCONNECTINFO *connect_info,const char *server);
 TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCALE *locale);
 void tds_fix_connect(TDSCONNECTINFO *connect_info);
 void tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info);
-void tds_lookup_host(const char *servername, const char *portname, char *ip, int *port);
+void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(char *interfloc);
 
 TDSLOCALE *tds_get_locale(void);

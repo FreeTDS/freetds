@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.74 2003-04-27 17:57:06 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.75 2003-04-27 18:34:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -80,6 +80,7 @@ static void tds_parse_conf_section(const char *option, const char *value, void *
 static void tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login);
+static int tds_lookup_port(const char *portname);
 
 extern int tds_g_append_mode;
 
@@ -422,7 +423,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			connect_info->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
 		tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n", value);
-		tds_lookup_host(value, NULL, tmp, NULL);
+		tds_lookup_host(value, tmp);
 		tds_dstr_copy(&connect_info->ip_addr, tmp);
 		tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n", connect_info->ip_addr);
 	} else if (!strcmp(option, TDS_STR_PORT)) {
@@ -591,7 +592,7 @@ tds_config_env_tdshost(TDSCONNECTINFO * connect_info)
 	char tmp[256];
 
 	if ((tdshost = getenv("TDSHOST"))) {
-		tds_lookup_host(tdshost, NULL, tmp, NULL);
+		tds_lookup_host(tdshost, tmp);
 		tds_dstr_copy(&connect_info->ip_addr, tmp);
 		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
 
@@ -664,21 +665,16 @@ tds_set_interfaces_file_loc(char *interf)
  */
 void
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
-		const char *portname,	/* (I) name or number of the port          */
-		char *ip,	/* (O) dotted-decimal ip address of server */
-		int *port)
+		char *ip	/* (O) dotted-decimal ip address of server */
+	)
 {				/* (O) port number of the service          */
 	struct hostent *host = NULL;
-	int num = 0;
 	unsigned int ip_addr = 0;
 
 	/* Storage for reentrant getaddrby* calls */
 	struct hostent result;
 	char buffer[4096];
 	int h_errnop;
-
-	/* Storage for reentrant getservbyname */
-	struct servent serv_result;
 
 	/* Only call gethostbyname if servername is not an ip address. 
 	 * This call take a while and is useless for an ip address.
@@ -713,8 +709,16 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 
 		strncpy(ip, inet_ntoa(*ptr), 17);
 	}
+}				/* tds_lookup_host()  */
+
+static int
+tds_lookup_port(const char *portname)
+{
+	int num = 0;
 
 	if (portname) {
+		char buffer[4096];
+		struct servent serv_result;
 		struct servent *service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
 
 		if (service == NULL) {
@@ -723,9 +727,8 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 			num = ntohs(service->s_port);
 		}
 	}
-	if (port)
-		*port = num;
-}				/* tds_lookup_host()  */
+	return num;
+}
 
 static int
 hexdigit(char c)
@@ -760,9 +763,7 @@ hex2num(char *hex)
 static int
 search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Name of base directory for interface file */
 		      const char *file,	/* (I) Name of the interface file                */
-		      const char *host,	/* (I) Logical host to search for                */
-		      char *ip_addr,	/* (O) dotted-decimal IP address                 */
-		      int *ip_port	/* (O) Port number for database server           */
+		      const char *host	/* (I) Logical host to search for                */
 	)
 {
 	char *pathname;
@@ -773,10 +774,9 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 	FILE *in;
 	char *field;
 	int found = 0;
+	int server_found = 0;
 	char *lasts;
 
-	ip_addr[0] = '\0';
-	ip_port[0] = '\0';
 	line[0] = '\0';
 	tmp_ip[0] = '\0';
 	tmp_port[0] = '\0';
@@ -785,7 +785,7 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s.\n", dir, file);
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
 	if (!pathname)
-		return;
+		return 0;
 
 	/*
 	 * * create the full pathname to the interface file
@@ -809,7 +809,7 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 	if ((in = fopen(pathname, "r")) == NULL) {
 		tdsdump_log(TDS_DBG_INFO1, "%L Couldn't open %s.\n", pathname);
 		free(pathname);
-		return;
+		return 0;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "%L Interfaces file %s opened.\n", pathname);
 
@@ -848,6 +848,7 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* port */
 					strcpy(tmp_port, field);
 				}	/* else */
+				server_found = 1;
 			}	/* if */
 		}		/* else if */
 	}			/* while */
@@ -858,10 +859,16 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 	/*
 	 * Look up the host and service
 	 */
-	tds_lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
-	tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n", ip_addr);
-	if (tmp_ver[0])
-		tds_config_verstr(tmp_ver, connect_info);
+	if (server_found) {
+		tds_lookup_host(tmp_ip, line);
+		tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n", line);
+		tds_dstr_copy(&connect_info->ip_addr, line);
+		if (tmp_port[0])
+			connect_info->port = tds_lookup_port(tmp_port);
+		if (tmp_ver[0])
+			tds_config_verstr(tmp_ver, connect_info);
+	}
+	return server_found;
 }				/* search_interface_file()  */
 
 /**
@@ -874,13 +881,9 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 static void
 tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info)
 {
-	char ip_addr[255];
-	int ip_port;
+	int founded = 0;
 
 	/* read $SYBASE/interfaces */
-	/* This needs to be cleaned up */
-	ip_addr[0] = '\0';
-	ip_port = 0;
 
 	if (!server || strlen(server) == 0) {
 		server = getenv("TDSQUERY");
@@ -897,18 +900,18 @@ tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info)
 	 */
 	if (interf_file) {
 		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in file %s.\n", interf_file);
-		search_interface_file(connect_info, "", interf_file, server, ip_addr, &ip_port);
+		founded = search_interface_file(connect_info, "", interf_file, server);
 	}
 
 	/*
 	 * if we haven't found the server yet then look for a $HOME/.interfaces file
 	 */
-	if (ip_addr[0] == '\0') {
+	if (!founded) {
 		char *path = tds_get_home_file(".interfaces");
 
 		if (path) {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s.\n", path);
-			search_interface_file(connect_info, "", path, server, ip_addr, &ip_port);
+			founded = search_interface_file(connect_info, "", path, server);
 			free(path);
 		}
 	}
@@ -916,51 +919,48 @@ tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info)
 	/*
 	 * if we haven't found the server yet then look in $SYBBASE/interfaces file
 	 */
-	if (ip_addr[0] == '\0') {
-		char *sybase = getenv("SYBASE");
+	if (!founded) {
+		const char *sybase = getenv("SYBASE");
 
-		if (sybase && sybase[0]) {
-			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
-			search_interface_file(connect_info, sybase, "interfaces", server, ip_addr, &ip_port);
-		} else {
-			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in /etc/freetds/interfaces.\n");
-			search_interface_file(connect_info, "/etc/freetds", "interfaces", server, ip_addr, &ip_port);
-		}
+		if (!sybase || !sybase[0])
+			sybase = "/etc/freetds";
+		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
+		founded = search_interface_file(connect_info, sybase, "interfaces", server);
 	}
 
 	/*
 	 * If we still don't have the server and port then assume the user
 	 * typed an actual server name.
 	 */
-	if (ip_addr[0] == '\0') {
-		const char *tmp_port, *env_port;
+	if (!founded) {
+		char ip_addr[255];
+		int ip_port;
+		const char *env_port;
 
 		/*
 		 * Make a guess about the port number
 		 */
 
 #ifdef TDS50
-		tmp_port = "4000";
+		ip_port = 4000;
 #else
-		tmp_port = "1433";
+		ip_port = 1433;
 #endif
 		if ((env_port = getenv("TDSPORT")) != NULL) {
-			tmp_port = env_port;
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s from $TDSPORT.\n", tmp_port);
+			ip_port = tds_lookup_port(env_port);
+			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_port' to %s from $TDSPORT.\n", env_port);
 		} else
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s as a guess.\n", tmp_port);
-
+			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_port' to %d as a guess.\n", ip_port);
 
 		/*
-		 * lookup the host and service
+		 * lookup the host
 		 */
-		tds_lookup_host(server, tmp_port, ip_addr, &ip_port);
+		tds_lookup_host(server, ip_addr);
+		if (ip_addr[0])
+			tds_dstr_copy(&connect_info->ip_addr, ip_addr);
+		if (ip_port)
+			connect_info->port = ip_port;
 	}
-
-	if (ip_addr[0])
-		tds_dstr_copy(&connect_info->ip_addr, ip_addr);
-	if (ip_port)
-		connect_info->port = ip_port;
 }
 
 /**
@@ -992,7 +992,7 @@ parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 		{
 			char tmp[256];
 
-			tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), NULL, tmp, NULL);
+			tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
 			tds_dstr_copy(&connect_info->ip_addr, tmp);
 		}
 

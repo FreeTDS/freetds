@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.40 2003-04-21 09:05:55 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.41 2003-04-27 18:34:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -84,7 +84,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	tmp[0] = '\0';
 	if (freetds_conf_less && SQLGetPrivateProfileString(DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->server_name, tmp);
-		tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), NULL, tmp, NULL);
+		tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
 		tds_dstr_copy(&connect_info->ip_addr, tmp);
 	}
 
@@ -162,7 +162,7 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			/* ignore if servername specified */
 			if (!reparse) {
 				dest_s = &connect_info->server_name;
-				tds_lookup_host(tds_dstr_cstr(&value), NULL, tmp, NULL);
+				tds_lookup_host(tds_dstr_cstr(&value), tmp);
 				if (!tds_dstr_copy(&connect_info->ip_addr, tmp)) {
 					tds_dstr_free(&value);
 					return 0;

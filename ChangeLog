@@ -1,3 +1,7 @@
+Fri Apr 27 20:34:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
+	- cleanup
+
 Fri Apr 27 19:57:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/config.c: cleanup
 
