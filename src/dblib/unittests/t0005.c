@@ -19,7 +19,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0005.c,v 1.10 2002-11-06 17:25:10 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.11 2002-11-07 17:28:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -187,6 +187,7 @@ fprintf(stdout, "About to open\n");
    add_bread_crumb();
 #endif
 
+   fprintf(stdout, "Next query should fail.\n");
    sprintf(cmd, "select * from #dblib0005 where i>950 order by i");
    fprintf(stdout, "%s\n", cmd);
    if (SUCCEED != dbcmd(dbproc, cmd))

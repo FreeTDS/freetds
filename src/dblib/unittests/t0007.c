@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0007.c,v 1.8 2002-11-06 17:00:29 castellano Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.9 2002-11-07 17:28:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -194,7 +194,7 @@ fprintf(stdout, "About to open\n");
    }
 
 
-   fprintf(stdout, "second select\n");
+   fprintf(stdout, "second select.  Should fail.\n");
 
    if (start_query(dbproc, "select * from #dblib0007 where i>=5 order by i"))
    {

@@ -1,3 +1,7 @@
+Thu Nov  7 12:27:08 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/t0005.c src/dblib/unittests/t0007.c:
+	- Add some informational output about expected failures.
+
 Thu Nov  7 12:10:39 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/dblib.c:
 	- Bug fix:  Don't stop dbresults after TDS_CMD_DONE result
