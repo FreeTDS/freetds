@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.126 2002-12-14 14:13:48 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.127 2002-12-20 10:08:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -178,6 +178,7 @@ tds_set_spid(TDSSOCKET * tds)
 TDS_INT result_type;
 TDS_INT row_type;
 TDS_INT compute_id;
+TDSCOLINFO *curcol;
 
 	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
 		return TDS_FAIL;
@@ -188,13 +189,14 @@ TDS_INT compute_id;
 	if (tds->res_info->num_cols != 1) {
 		return TDS_FAIL;
 	}
-	if (tds->res_info->columns[0]->column_type != SYBINT2) {
+	curcol = tds->res_info->columns[0];
+	if (curcol->column_type != SYBINT2 && (curcol->column_type != SYBINTN || curcol->column_size != 2)) {
 		return TDS_FAIL;
 	}
 	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
-	tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + tds->res_info->columns[0]->column_offset));
+	tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
 	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_NO_MORE_ROWS) {
 		return TDS_FAIL;
 	}

@@ -1,3 +1,7 @@
+Fri Dec 20 11:07:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- fix problem with tds_set_spid returning nullable column
+
 Thu Dec 19 14:05:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c: fix check for dump
 
