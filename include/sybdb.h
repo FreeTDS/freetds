@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.18 2002-09-13 18:21:41 castellano Exp $";
+"$Id: sybdb.h,v 1.19 2002-09-14 20:30:20 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -54,12 +54,30 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBMAXNUMLEN 33
 #define MAXNAME     30
 
+/**
+ * DBVERSION_xxx are used with dbsetversion()
+ */
 #define DBVERSION_UNKNOWN 0
 #define DBVERSION_46      1
 #define DBVERSION_100     2
 #define DBVERSION_42      3
 #define DBVERSION_70      4
 #define DBVERSION_80      5
+
+/**
+ * DBTDS_xxx are returned by DBTDS()
+ * The integer values of the constants are poorly chosen.  
+ */
+#define DBTDS_UNKNOWN           0
+#define DBTDS_2_0               1       /* pre 4.0 SQL Server */
+#define DBTDS_3_4               2       /* Microsoft SQL Server (3.0) */
+#define DBTDS_4_0               3       /* 4.0 SQL Server */
+#define DBTDS_4_2               4       /* 4.2 SQL Server */
+#define DBTDS_4_6               5       /* 2.0 OpenServer and 4.6 SQL Server. */
+#define DBTDS_4_9_5             6       /* 4.9.5 (NCR) SQL Server */
+#define DBTDS_5_0               7       /* 5.0 SQL Server */
+#define DBTDS_7_0               8       /* Microsoft SQL Server 7.0 */
+#define DBTDS_8_0               9       /* Microsoft SQL Server 2000 */
 
 #define SYBAOPCNT  0x4b
 #define SYBAOPCNTU 0x4c
@@ -580,7 +598,8 @@ char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
 #define SYBEBCNN         20073
 #define SYBEBBCI         20068
 
-int DBTDS(DBPROCESS *dbprocess);
+int dbtds(DBPROCESS *dbprocess);
+#define DBTDS(a)                dbtds(a)
 DBINT dbtextsize(DBPROCESS *dbprocess);
 int dbtsnewlen(DBPROCESS *dbprocess);
 DBBINARY *dbtsnewval(DBPROCESS *dbprocess);
@@ -591,7 +610,7 @@ DBBINARY *dbtxtsnewval(DBPROCESS *dbprocess);
 RETCODE dbtxtsput(DBPROCESS *dbprocess, DBBINARY newtxts, int colnum);
 RETCODE dbuse(DBPROCESS *dbproc, char *dbname);
 DBBOOL dbcarylen(DBPROCESS *dbprocess, int column);
-char *dbversion(void);
+const char *dbversion(void);
 DBBOOL dbwillconvert(int srctype, int desttype);
 RETCODE dbwritepage(DBPROCESS *dbprocess, char *dbname, DBINT pageno, DBINT size, BYTE *buf);
 RETCODE dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textptrlen, DBBINARY *timestamp, DBBOOL log, DBINT size, BYTE *text);

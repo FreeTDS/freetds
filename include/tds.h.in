@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.44 2002-09-13 21:00:21 castellano Exp $";
+	 "$Id: tds.h.in,v 1.45 2002-09-14 20:30:20 jklowden Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -697,6 +697,7 @@ struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *resu
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct servent *tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen);
 char *tds_strtok_r(char *s, const char *delim, char **ptrptr);
+int tds_version(TDSSOCKET *tds_socket, char *pversion_string);
 
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
