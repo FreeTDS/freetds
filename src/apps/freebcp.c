@@ -42,7 +42,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.32 2004-06-19 05:56:29 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.33 2004-11-17 18:49:07 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -72,6 +72,10 @@ main(int argc, char **argv)
 	if (process_parameters(argc, argv, &params) == FALSE) {
 		exit(1);
 	}
+	if (getenv("FREEBCP")) {
+		fprintf(stderr, "User name: \"%s\"\n", params.user);
+	}
+
 
 	if (login_to_database(&params, &dbproc) == FALSE) {
 		exit(1);
