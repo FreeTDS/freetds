@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.98 2003-06-04 16:37:45 castellano Exp $";
+static char software_version[] = "$Id: ct.c,v 1.99 2003-06-06 09:18:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1712,7 +1712,6 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	char writetext_cmd[512];
-	TDS_INT result_type;
 
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
@@ -1766,7 +1765,7 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		}
 
 		/* read the end token */
-		if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		if (tds_process_simple_query(tds) != TDS_SUCCEED)
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;

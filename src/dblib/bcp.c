@@ -61,7 +61,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.69 2003-05-28 19:29:53 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.70 2003-06-06 09:19:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1395,8 +1395,6 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	int error_row_size;
 	char *row_in_error;
 
-	TDS_INT result_type;
-
 	if (!(hostfile = fopen(dbproc->bcp_hostfile, "r"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
 		return FAIL;
@@ -1547,7 +1545,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 					tds_flush_packet(tds);
 
-					if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+					if (tds_process_simple_query(tds) != TDS_SUCCEED)
 						return FAIL;
 					rows_copied_so_far += tds->rows_affected;
 
@@ -1570,7 +1568,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	tds_flush_packet(tds);
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 	rows_copied_so_far += tds->rows_affected;
 	*rows_copied = rows_copied_so_far;
@@ -1607,8 +1605,6 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_COLINFO *bcpcol;
-
-	TDS_INT result_type;
 
 	int i;
 	int firstcol;
@@ -1674,7 +1670,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	/* result set from the "insert bulk" command.  */
 	/* we're going to ignore this....              */
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 
 	/* work out the number of "variable" columns -         */
@@ -1847,13 +1843,12 @@ static RETCODE
 _bcp_start_new_batch(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
-	TDS_INT result_type;
 
 	_bcp_err_handler(dbproc, SYBEBBCI);
 
 	tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 
 	tds->out_flag = 0x07;
@@ -2198,7 +2193,6 @@ DBINT
 bcp_batch(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
-	TDS_INT result_type;
 	int rows_copied = 0;
 
 	if (dbproc->bcp_direction == 0) {
@@ -2208,7 +2202,7 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tds_flush_packet(tds);
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 	rows_copied = tds->rows_affected;
 
@@ -2224,7 +2218,6 @@ DBINT
 bcp_done(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
-	TDS_INT result_type;
 	int rows_copied = -1;
 
 	if (dbproc->bcp_direction == 0) {
@@ -2233,7 +2226,7 @@ bcp_done(DBPROCESS * dbproc)
 	}
 	tds_flush_packet(tds);
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 	rows_copied = tds->rows_affected;
 

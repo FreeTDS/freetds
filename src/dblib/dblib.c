@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.148 2003-06-05 17:14:41 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.149 2003-06-06 09:19:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -5209,7 +5209,6 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 {
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
-	TDS_INT result_type;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return FAIL;
@@ -5230,7 +5229,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	}
 
 	/* read the end token */
-	if (tds_process_simple_query(dbproc->tds_socket, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(dbproc->tds_socket) != TDS_SUCCEED)
 		return FAIL;
 		
 	dbproc->tds_socket->out_flag = 0x07;

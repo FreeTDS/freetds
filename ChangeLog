@@ -1,3 +1,10 @@
+Fri Jun 06 11:17:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/odbc/odbc.c src/pool/member.c:
+	* src/tds/login.c src/tds/token.c src/tds/unittests/t0003.c:
+	- change tds_process_simple_query prototype (simpler)
+	- cleanup
+
 Thu Jun  5 13:08:38 EDT 2003	JK Lowden <jklowden@schemamania.org>	
 	* src/dblib/dblib.c src/tds/iconv.c
 	- dbconvert: allow zero srclen for non-null datatypes

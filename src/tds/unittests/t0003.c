@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.11 2003-06-03 06:26:38 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.12 2003-06-06 09:19:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -45,7 +45,7 @@ main(int argc, char **argv)
 	}
 
 	/* warning: this mucks with some internals to get the env chg message */
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
+	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 		fprintf(stderr, "query results failed\n");
 		return 1;
 	}

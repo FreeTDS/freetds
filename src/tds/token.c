@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.196 2003-05-30 08:45:27 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.197 2003-06-06 09:19:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -757,19 +757,15 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
  * (which caused problems such as ignoring query errors).
  * Results are read until idle state or severe failure (do not stop for 
  * statement failure).
- * @param result_type hold results type
- *        (only TDS_CMD_SUCCEED or TDS_CMD_FAIL should return)
  * @return see tds_process_result_tokens for results (TDS_NO_MORE_RESULTS is never returned)
  */
 int
-tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type)
+tds_process_simple_query(TDSSOCKET * tds)
 {
-	TDS_INT result = TDS_CMD_SUCCEED;
 	TDS_INT res_type;
 	TDS_INT rowtype;
 	int tdsret;
 
-	*result_type = TDS_CMD_FAIL;
 	for (;;) {
 		switch (tdsret = tds_process_result_tokens(tds, &res_type)) {
 		case TDS_SUCCEED:
@@ -789,7 +785,7 @@ tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type)
 
 				/* some command went wrong */
 			case TDS_CMD_FAIL:
-				result = TDS_CMD_FAIL;
+				return TDS_FAIL;
 				break;
 
 
@@ -805,7 +801,6 @@ tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type)
 			break;
 
 		case TDS_NO_MORE_RESULTS:
-			*result_type = result;
 			return TDS_SUCCEED;
 
 		default:
@@ -2706,7 +2701,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 {
 	static const TDS_TINYINT token = TDS_OPTIONCMD_TOKEN;
 	TDS_TINYINT expected_acknowledgement = 0;
-	int ret, marker, status;
+	int marker, status;
 
 	TDS_TINYINT command = tds_command;
 	TDS_TINYINT option = tds_option;
@@ -2719,28 +2714,28 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 	assert(IS_TDS50(tds));
 	assert(ptds_argument);
 
-	ret = tds_put_tinyint(tds, token);
-	ret = tds_put_smallint(tds, length);
-	ret = tds_put_tinyint(tds, command);
-	ret = tds_put_tinyint(tds, option);
-	ret = tds_put_tinyint(tds, argsize);
+	tds_put_tinyint(tds, token);
+	tds_put_smallint(tds, length);
+	tds_put_tinyint(tds, command);
+	tds_put_tinyint(tds, option);
+	tds_put_tinyint(tds, argsize);
 
 	switch (*ptds_argsize) {
 	case 1:
-		ret = tds_put_tinyint(tds, ptds_argument->ti);
+		tds_put_tinyint(tds, ptds_argument->ti);
 		break;
 	case 4:
-		ret = tds_put_int(tds, ptds_argument->i);
+		tds_put_int(tds, ptds_argument->i);
 		break;
 	case TDS_NULLTERM:
-		ret = tds_put_string(tds, ptds_argument->c, argsize);
+		tds_put_string(tds, ptds_argument->c, argsize);
 		break;
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "%L tds_send_optioncmd: failed: argsize is %d.\n", *ptds_argsize);
 		return -1;
 	}
 
-	ret = tds_flush_packet(tds);
+	tds_flush_packet(tds);
 
 	/* TODO: read the server's response.  Don't use this function yet. */
 
@@ -2754,11 +2749,11 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		break;
 	}
 	while ((marker = tds_get_byte(tds)) != expected_acknowledgement) {
-		ret = tds_process_default_tokens(tds, marker);
+		tds_process_default_tokens(tds, marker);
 	}
 
 	if (marker == TDS_DONE_TOKEN) {
-		ret = tds_process_end(tds, marker, &status);
+		tds_process_end(tds, marker, &status);
 		return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL)) ? TDS_SUCCEED : TDS_FAIL;
 	}
 
@@ -2793,10 +2788,10 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 
 
 	while ((marker = tds_get_byte(tds)) != TDS_DONE_TOKEN) {
-		ret = tds_process_default_tokens(tds, marker);
+		tds_process_default_tokens(tds, marker);
 	}
 
-	ret = tds_process_end(tds, marker, &status);
+	tds_process_end(tds, marker, &status);
 	return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL)) ? TDS_SUCCEED : TDS_FAIL;
 
 }

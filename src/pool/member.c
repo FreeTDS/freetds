@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.24 2003-05-28 19:57:55 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.25 2003-06-06 09:19:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -106,8 +106,6 @@ pool_mbr_login(TDS_POOL * pool)
 	memset(tds->in_buf, 0, BLOCKSIZ);
 
 	if (pool->database && strlen(pool->database)) {
-		TDS_INT result_type;
-
 		query = (char *) malloc(strlen(pool->database) + 5);
 		sprintf(query, "use %s", pool->database);
 		rc = tds_submit_query(tds, query, NULL);
@@ -117,7 +115,7 @@ pool_mbr_login(TDS_POOL * pool)
 			return NULL;
 		}
 
-		if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		if (tds_process_simple_query(tds) != TDS_SUCCEED)
 			return NULL;
 	}
 

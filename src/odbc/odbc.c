@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.180 2003-06-02 11:32:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.181 2003-06-06 09:19:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -143,7 +143,6 @@ change_autocommit(TDS_DBC * dbc, int state)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
 	char query[80];
-	TDS_INT result_type;
 
 	/* mssql: SET IMPLICIT_TRANSACTION ON
 	 * sybase: SET CHAINED ON */
@@ -161,7 +160,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 		return SQL_ERROR;
 	}
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return SQL_ERROR;
 
 	dbc->autocommit_state = state;
@@ -1295,15 +1294,13 @@ SQLExecute(SQLHSTMT hstmt)
 	/* TODO unprepare on statement free of connection close */
 	/* prepare dynamic query (only for first SQLExecute call) */
 	if (!stmt->dyn && !stmt->prepared_query_is_rpc) {
-		TDS_INT result_type;
-
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 		/* TODO use tds_submit_prepexec */
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
 			tds_free_param_results(params);
 			return SQL_ERROR;
 		}
-		if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
+		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 			tds_free_param_results(params);
 			return SQL_ERROR;
 		}
@@ -1586,10 +1583,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 
 		/* close prepared statement or add to connection */
 		if (stmt->dyn) {
-			TDS_INT result_type;
-
 			if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
-				if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+				if (tds_process_simple_query(tds) != TDS_SUCCEED)
 					return SQL_ERROR;
 				tds_free_dynamic(stmt->hdbc->tds_socket, stmt->dyn);
 				stmt->dyn = NULL;
@@ -1821,7 +1816,6 @@ static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
-	TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
@@ -1830,7 +1824,7 @@ change_transaction(TDS_DBC * dbc, int state)
 		return SQL_ERROR;
 	}
 
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return SQL_ERROR;
 
 	return SQL_SUCCESS;
@@ -2528,7 +2522,6 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		TDSRESULTINFO *resinfo;
 		TDSCOLINFO *colinfo;
 		char *name;
-		TDS_INT result_type;
 
 		/* if next is varchar leave next for SQLFetch */
 		if (n == (varchar_pos - 1))
@@ -2537,7 +2530,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &row_type, &compute_id)) {
 		case TDS_NO_MORE_ROWS:
 			/* discard other tokens */
-			tds_process_simple_query(tds, &result_type);
+			tds_process_simple_query(tds);
 			if (n >= varchar_pos && varchar_pos > 0)
 				goto redo;
 			break;
