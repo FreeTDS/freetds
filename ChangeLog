@@ -1,3 +1,12 @@
+Sat Nov 30 15:10:50 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/Makefile.am src/odbc/sql2tds.c src/odbc/sql2tds.h:
+	- add file for converting param to tds
+	* src/odbc/convert_sql2string.c:
+	- handle some more types
+	* src/odbc/odbc.c:
+	- support more conversion for parameters
+	- remove old log
+
 Sat Nov 30 09:21:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- fix dynamic name generation for old Sybase server (like public

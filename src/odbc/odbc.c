@@ -63,10 +63,11 @@
 #include "connectparams.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
+#include "sql2tds.h"
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.96 2002-11-27 15:51:06 jklowden Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.97 2002-11-30 14:11:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1263,12 +1264,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				dyn->params = params;
 				/* add another type and copy data */
 				curcol = params->columns[i];
-				/* TODO handle bindings of char like "{d '2002-11-12'}" */
-				/* FIXME run only with VARCHAR */
-				tds_set_column_type(curcol, SYBVARCHAR);
-				curcol->column_cur_size = curcol->column_size = *(SQLINTEGER*)param->param_lenbind;
-				tds_alloc_param_row(params, curcol);
-				memcpy(&params->current_row[curcol->column_offset], param->varaddr, *(SQLINTEGER*)param->param_lenbind);
+				sql2tds(stmt->hdbc->henv->tds_ctx, param, params, curcol);
 			}
 		}
 		tdsdump_log(TDS_DBG_INFO1,"End prepare, execute\n");
@@ -2582,7 +2578,6 @@ SQLRETURN SQL_API SQLTables(
     ttlen = odbc_get_string_size(cbTableType, szTableType);
 
     querylen = strlen(sptables) + clen + slen + tlen + ttlen + 40; /* a little padding for quotes and commas */
-printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
     query = (char *) malloc(querylen);
     if (!query)
         return SQL_ERROR;

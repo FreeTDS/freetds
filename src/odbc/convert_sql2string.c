@@ -48,7 +48,7 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.18 2002-11-29 22:11:04 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.19 2002-11-30 14:11:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -63,6 +63,10 @@ _odbc_get_server_type(int c_type)
 		return SYBBINARY;
 	case SQL_C_CHAR:
 		return SYBCHAR;
+	case SQL_VARCHAR:
+		return SYBVARCHAR;
+	case SQL_LONGVARCHAR:
+		return SYBTEXT;
 	case SQL_C_FLOAT:
 		return SYBREAL;
 	case SQL_C_DOUBLE:
