@@ -1,3 +1,9 @@
+Sat Apr 17 11:59:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	- use lastrc to store and collect error
+	* src/odbc/unittests/raiserror.c:
+	- improve
+
 Thu Apr 15 21:25:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix date format
 	* src/tds/convert.c: fix date approximation

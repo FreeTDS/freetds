@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.104 2004-04-04 15:43:21 freddy77 Exp $
+To Do List	$Id: TODO,v 1.105 2004-04-17 10:02:11 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -147,6 +147,7 @@ For future versions (in priority order within library):
 . SQLDescribeParam (Sybase seems to require it)
 . change ODBC_RETURN to return errs.lastrc (not to set) and use errs.lastrc
   to store error, cache some errors (truncated output)
+  optimize ODBC_RETURN (remove useless)
 . handle no termination on odbc_set_string*
 . test: set SQL_C_DEFAULT and call SQLFetch (numeric, others)
 

@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.1 2004-04-13 08:18:30 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.2 2004-04-17 10:02:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -16,6 +16,7 @@ static const char create_proc[] =
 	"    @OutParam int OUTPUT,\n"
 	"    @OutString varchar(20) OUTPUT\n"
 	"AS\n"
+	"%s"
 	"     SET @OutParam = @InParam\n"
 	"     SET @OutString = 'This is bogus!'\n" "     RAISERROR('An error occurred.', @InParam, 1)\n" "     RETURN (0)";
 
@@ -94,12 +95,13 @@ Test(int level)
 	TestResult(result, level, "SQLExecute");
 }
 
-int
-main(int argc, char *argv[])
+static void
+Test2(int nocount)
 {
-	Connect();
+	char sql[512];
 
-	if (CommandWithResult(Statement, create_proc) != SQL_SUCCESS) {
+	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "");
+	if (CommandWithResult(Statement, sql) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to create temporary store, probably not mssql (required for this test)\n");
 		exit(0);
 	}
@@ -107,6 +109,18 @@ main(int argc, char *argv[])
 	Test(5);
 
 	Test(11);
+
+	Command(Statement, "DROP PROC #tmp1");
+}
+
+int
+main(int argc, char *argv[])
+{
+	Connect();
+
+	Test2(0);
+
+	Test2(1);
 
 	Disconnect();
 
