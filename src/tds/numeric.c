@@ -31,8 +31,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] =
-	"$Id: numeric.c,v 1.14 2002-11-13 21:14:48 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.15 2002-12-14 15:15:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -55,41 +54,40 @@ static char *array_to_string(unsigned char *array, int scale, char *s);
 ** precision (with the sign).
 ** Support precision up to 77 digits
 */
-const int tds_numeric_bytes_per_prec[] =
-{
- -1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 
-  6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
-  10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 
-  14, 14, 15, 15, 16, 16, 16, 17, 17, 18, 
-  18, 19, 19, 19, 20, 20, 21, 21, 21, 22, 
-  22, 23, 23, 24, 24, 24, 25, 25, 26, 26, 
-  26, 27, 27, 28, 28, 28, 29, 29, 30, 30,
-  31, 31, 31, 32, 32, 33, 33, 33
+const int tds_numeric_bytes_per_prec[] = {
+	-1, 2, 2, 3, 3, 4, 4, 4, 5, 5,
+	6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
+	10, 10, 11, 11, 11, 12, 12, 13, 13, 14,
+	14, 14, 15, 15, 16, 16, 16, 17, 17, 18,
+	18, 19, 19, 19, 20, 20, 21, 21, 21, 22,
+	22, 23, 23, 24, 24, 24, 25, 25, 26, 26,
+	26, 27, 27, 28, 28, 28, 29, 29, 30, 30,
+	31, 31, 31, 32, 32, 33, 33, 33
 };
 
 /*
 ** money is a special case of numeric really...that why its here
 */
 char *
-tds_money_to_string(const TDS_MONEY *money, char *s)
+tds_money_to_string(const TDS_MONEY * money, char *s)
 {
 	/* use brian's money */
 #ifdef UseBillsMoney
-char rawlong[64];
-int  rawlen;
-int i;
+	char rawlong[64];
+	int rawlen;
+	int i;
 
 	if (mymoney <= -10000 || mymoney >= 10000) {
 #		if (SIZEOF_LONG_LONG > 0)
-		sprintf(rawlong,"%lld", mymoney);
+		sprintf(rawlong, "%lld", mymoney);
 #		else
-		sprintf(rawlong,"%ld", mymoney);
+		sprintf(rawlong, "%ld", mymoney);
 #		endif
 		rawlen = strlen(rawlong);
 
 		strncpy(tmpstr, rawlong, rawlen - 4);
 		tmpstr[rawlen - 4] = '.';
-		strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
+		strcpy(&tmpstr[rawlen - 3], &rawlong[rawlen - 4]);
 	} else {
 		i = mymoney;
 		s = tmpstr;
@@ -97,22 +95,22 @@ int i;
 			*s++ = '-';
 			i = -i;
 		}
-		sprintf(s,"0.%04d",i);
+		sprintf(s, "0.%04d", i);
 	}
 	return s;
 #else
-unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
-unsigned char product[MAXPRECISION];
-const unsigned char *number;
-unsigned char tmpnumber[8];
-int num_bytes = 8;
-int i;
-int pos;
-int neg=0;
+	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
+	unsigned char product[MAXPRECISION];
+	const unsigned char *number;
+	unsigned char tmpnumber[8];
+	int num_bytes = 8;
+	int i;
+	int pos;
+	int neg = 0;
 
-	memset(multiplier,0,MAXPRECISION);
-	memset(product,0,MAXPRECISION);
-	multiplier[0]=1;
+	memset(multiplier, 0, MAXPRECISION);
+	memset(product, 0, MAXPRECISION);
+	multiplier[0] = 1;
 
 	number = (const unsigned char *) money;
 
@@ -121,35 +119,36 @@ int neg=0;
 	memcpy(tmpnumber, number, 8);
 #else
 	/* money is two 32 bit ints and thus is out of order on 
-	** little endian machines. Proof of the superiority of 
-	** big endian design. ;)
-	*/
-	for (i=0;i<4;i++)
-		tmpnumber[3-i] = number[i];
-	for (i=4;i<8;i++)
-		tmpnumber[7-i+4] = number[i];
+	 * ** little endian machines. Proof of the superiority of 
+	 * ** big endian design. ;)
+	 */
+	for (i = 0; i < 4; i++)
+		tmpnumber[3 - i] = number[i];
+	for (i = 4; i < 8; i++)
+		tmpnumber[7 - i + 4] = number[i];
 #endif
 
 	if (tmpnumber[0] & 0x80) {
 		/* negative number -- preform two's complement */
 		neg = 1;
-		for (i=0;i<8;i++) {
+		for (i = 0; i < 8; i++) {
 			tmpnumber[i] = ~tmpnumber[i];
 		}
-		for (i=7; i>=0; i--) {
+		for (i = 7; i >= 0; i--) {
 			tmpnumber[i] += 1;
-			if (tmpnumber[i]!=0) break;
+			if (tmpnumber[i] != 0)
+				break;
 		}
 	}
-	for (pos=num_bytes-1;pos>=0;pos--) {
+	for (pos = num_bytes - 1; pos >= 0; pos--) {
 		multiply_byte(product, tmpnumber[pos], multiplier);
 
 		memcpy(temp, multiplier, MAXPRECISION);
-		memset(multiplier,0,MAXPRECISION);
+		memset(multiplier, 0, MAXPRECISION);
 		multiply_byte(multiplier, 256, temp);
 	}
 	if (neg) {
-		s[0]='-';
+		s[0] = '-';
 		array_to_string(product, 4, &s[1]);
 	} else {
 		array_to_string(product, 4, s);
@@ -159,83 +158,86 @@ int neg=0;
 }
 
 char *
-tds_numeric_to_string(const TDS_NUMERIC *numeric, char *s)
+tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 {
-unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
-unsigned char product[MAXPRECISION];
-const unsigned char *number;
-int num_bytes;
-int pos;
+	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
+	unsigned char product[MAXPRECISION];
+	const unsigned char *number;
+	int num_bytes;
+	int pos;
 
-	memset(multiplier,0,MAXPRECISION);
-	memset(product,0,MAXPRECISION);
-	multiplier[0]=1;
+	memset(multiplier, 0, MAXPRECISION);
+	memset(product, 0, MAXPRECISION);
+	multiplier[0] = 1;
 	number = numeric->array;
 	num_bytes = tds_numeric_bytes_per_prec[numeric->precision];
 
 	if (numeric->array[0] == 1)
 		*s++ = '-';
 
-	for (pos=num_bytes-1;pos>0;pos--) {
+	for (pos = num_bytes - 1; pos > 0; pos--) {
 		multiply_byte(product, number[pos], multiplier);
 
 		memcpy(temp, multiplier, MAXPRECISION);
-		memset(multiplier,0,MAXPRECISION);
+		memset(multiplier, 0, MAXPRECISION);
 		multiply_byte(multiplier, 256, temp);
 	}
 	array_to_string(product, numeric->scale, s);
 	return s;
 }
-static int multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
+static int
+multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
 {
-unsigned char number[3];
-int i, top, j, start;
+	unsigned char number[3];
+	int i, top, j, start;
 
-	number[0]=num%10;
-	number[1]=(num/10)%10;
-	number[2]=(num/100)%10;
+	number[0] = num % 10;
+	number[1] = (num / 10) % 10;
+	number[2] = (num / 100) % 10;
 
-	for (top=MAXPRECISION-1;top>=0 && !multiplier[top];top--);
-	start=0;
-	for (i=0;i<=top;i++) {
-		for (j=0;j<3;j++) {
-			product[j+start]+=multiplier[i]*number[j];
+	for (top = MAXPRECISION - 1; top >= 0 && !multiplier[top]; top--);
+	start = 0;
+	for (i = 0; i <= top; i++) {
+		for (j = 0; j < 3; j++) {
+			product[j + start] += multiplier[i] * number[j];
 		}
 		do_carry(product);
 		start++;
 	}
 	return 0;
 }
-static int do_carry(unsigned char *product)
+static int
+do_carry(unsigned char *product)
 {
-int j;
+	int j;
 
-	for (j=0;j<MAXPRECISION;j++) {
-		if (product[j]>9) {
-			product[j+1]+=product[j]/10;
-			product[j]=product[j]%10;
+	for (j = 0; j < MAXPRECISION; j++) {
+		if (product[j] > 9) {
+			product[j + 1] += product[j] / 10;
+			product[j] = product[j] % 10;
 		}
 	}
 	return 0;
 }
-static char *array_to_string(unsigned char *array, int scale, char *s)
+static char *
+array_to_string(unsigned char *array, int scale, char *s)
 {
-int top, i, j;
-	
-	for (top=MAXPRECISION-1;top>=0 && top>scale && !array[top];top--);
+	int top, i, j;
 
-	if (top == -1)
-	{
+	for (top = MAXPRECISION - 1; top >= 0 && top > scale && !array[top]; top--);
+
+	if (top == -1) {
 		s[0] = '0';
 		s[1] = '\0';
 		return s;
 	}
 
-	j=0;
-	for (i=top;i>=0;i--) {
-		if (top+1-j == scale) s[j++]='.';
-		s[j++]=array[i]+'0';
+	j = 0;
+	for (i = top; i >= 0; i--) {
+		if (top + 1 - j == scale)
+			s[j++] = '.';
+		s[j++] = array[i] + '0';
 	}
-	s[j]='\0';
+	s[j] = '\0';
 	return s;
 }

@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.23 2002-12-06 21:56:59 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.24 2002-12-14 15:15:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -222,7 +222,7 @@ tds_get_homedir(void)
 	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw))
 		return NULL;
 #else
-	if (!(pw=getpwuid_r(getuid(), &bpw, buf, sizeof(buf))))
+	if (!(pw = getpwuid_r(getuid(), &bpw, buf, sizeof(buf))))
 		return NULL;
 #endif
 	return strdup(pw->pw_dir);
