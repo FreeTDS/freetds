@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.44 2002-11-23 20:48:35 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.45 2002-11-27 19:45:42 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -358,6 +358,53 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	return SUCCEED;
 }
 
+RETCODE bcp_options(DBPROCESS *dbproc, int option, BYTE *value, int valuelen)
+{
+	int i;
+	static const char *hints[] = 	{ "ORDER"
+					, "ROWS_PER_BATCH"
+					, "KILOBYTES_PER_BATCH"
+					, "TABLOCK"
+					, "CHECK_CONSTRAINTS"
+					, NULL
+					};
+	if (!dbproc)
+		return FAIL;
+
+	switch (option) {
+	case BCPLABELED:
+		tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED bcp option: BCPLABELED\n");
+		return FAIL;
+	case BCPHINTS:
+                if (!value || valuelen <= 0)
+                        return FAIL;
+
+                if (dbproc->bcp.hint != NULL) /* hint already set */
+                        return FAIL;
+
+		for(i=0; hints[i]; i++ ) { /* do we know about this hint? */
+			if (strncasecmp(value, hints[i], strlen(hints[i])) == 0)
+				break;
+		}
+		if (!hints[i]) { /* no such hint */
+			return FAIL;
+		}
+
+		/* 
+		 * Store the bare hint, as passed from the application.  
+		 * The process that constructs the "insert bulk" statement will incorporate the hint text.
+		 */
+		dbproc->bcp.hint = (char*) malloc(1+valuelen);
+		memcpy(dbproc->bcp.hint, value, valuelen);
+		dbproc->bcp.hint[valuelen] = '\0';	/* null terminate it */
+		break;
+	default:
+		tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED bcp option: %u\n", option);
+		return FAIL;	
+	}
+
+	return SUCCEED;
+}
 
 RETCODE
 bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
@@ -399,7 +446,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 FILE *hostfile;
 int i;
 
-TDSSOCKET *tds = dbproc->tds_socket;
+TDSSOCKET *tds;
 TDSRESULTINFO *resinfo;
 BCP_COLINFO *bcpcol;
 TDSCOLINFO *curcol;
@@ -422,8 +469,10 @@ TDS_INT li;
 TDSDATEREC when;
 
 int row_of_query;
-
 int rows_written;
+
+	tds = dbproc->tds_socket;
+	assert(tds);
 
 	if (!(hostfile = fopen(dbproc->bcp_hostfile, "w"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
@@ -516,6 +565,7 @@ int rows_written;
 						return FAIL;
 					}
 				}
+				assert(bcpcol);
 
 				if (hostcol->datatype == 0)
 					hostcol->datatype = bcpcol->db_type;
@@ -1485,6 +1535,9 @@ char colclause[1024];
 int firstcol;
 
 	if (IS_TDS7_PLUS(tds)) {
+		int erc;
+		char *hint;
+
 		firstcol = 1;
 		strcpy(colclause, "");
 
@@ -1497,7 +1550,20 @@ int firstcol;
 			}
 		}
 
-		if (asprintf(&query, "insert bulk %s (%s)", dbproc->bcp_tablename, colclause) < 0) {
+		if (dbproc->bcp.hint) {
+			if (asprintf(&hint, " with (%s)", dbproc->bcp.hint) < 0) {
+				return FAIL;
+			}
+		} else {
+			hint = strdup("");
+		}
+		if (!hint) return FAIL;
+
+		erc = asprintf(&query, "insert bulk %s (%s)%s", dbproc->bcp_tablename, colclause, hint);
+
+		free(hint); 
+
+		if (erc < 0) {
 			return FAIL;
 		}
 

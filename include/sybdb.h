@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.37 2002-11-23 06:36:35 jklowden Exp $";
+"$Id: sybdb.h,v 1.38 2002-11-27 19:45:42 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -85,6 +85,9 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define BCPFIRST 2
 #define BCPLAST 3
 #define BCPBATCH 4
+
+#define BCPLABELED 5
+#define	BCPHINTS 6
 
 typedef int	 RETCODE;
 
@@ -278,6 +281,39 @@ typedef struct _DBREMOTE_PROC_PARAM
 	BYTE		*value;
 }  DBREMOTE_PROC_PARAM;
 
+/*
+ * TODO: DBPROCESS has an implicit substructure of bcp-related
+ * variables.  Go through bcp.c et. al. changing e.g.:
+ * 
+ * 	dbproc->bcp_direction
+ * to
+ * 	dbproc->bcp.direction
+ *
+ * When all references are changed, delete the DBPROCESS member.  
+ */
+
+#define MOVED_ALL_REFERENCES_FROM_DBPROCESS 1
+typedef struct {
+#	if MOVED_ALL_REFERENCES_FROM_DBPROCESS
+	char 		*hint;
+#else
+	/* The members below still need work, see TODO, above.  */
+	TDS_CHAR	*hostfile;
+	TDS_CHAR	*errorfile;
+	TDS_CHAR	*tablename;
+	TDS_CHAR	*insert_stmt;
+	TDS_INT		direction;
+	TDS_INT		colcount;
+	TDS_INT		host_colcount;
+	BCP_COLINFO	**columns;
+	BCP_HOSTCOLINFO	**host_columns;
+	TDS_INT		firstrow;
+	TDS_INT		lastrow;
+	TDS_INT		maxerrs;
+	TDS_INT		batch;
+#	endif
+} DBBULKCOPY;
+
 typedef struct _DBREMOTE_PROC
 {
 	struct _DBREMOTE_PROC
@@ -320,6 +356,7 @@ typedef struct {
    unsigned char   avail_flag;
    DBOPTION        *dbopts;
    DBSTRING        *dboptcmd;
+   DBBULKCOPY	   bcp;	/* see TODO, above */
    DBREMOTE_PROC   *rpc;	
    DBUSMALLINT     envchange_rcv;
    char            dbcurdb[DBMAXNAME + 1];
@@ -719,21 +756,23 @@ RETCODE dbsetllong(LOGINREC* login, long value, int which);
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 
 RETCODE bcp_init(DBPROCESS *dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
+RETCODE bcp_done(DBPROCESS *dbproc);
+
+RETCODE bcp_batch(DBPROCESS *dbproc);
+RETCODE bcp_bind(DBPROCESS *dbproc, BYTE *varaddr, int prefixlen, DBINT varlen, BYTE *terminator, int termlen, int type, int table_column);
 RETCODE bcp_collen(DBPROCESS *dbproc, DBINT varlen, int table_column);
 RETCODE bcp_columns(DBPROCESS *dbproc, int host_colcount);
 RETCODE bcp_colfmt(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, const BYTE *host_term, int host_termlen, int colnum);
 RETCODE bcp_colfmt_ps(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, BYTE *host_term, int host_termlen, int colnum, DBTYPEINFO *typeinfo);
-RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value);
 RETCODE bcp_colptr(DBPROCESS *dbproc, BYTE *colptr, int table_column);
-DBBOOL bcp_getl(LOGINREC *login);
-RETCODE bcp_sendrow(DBPROCESS *dbproc);
+RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value);
 RETCODE bcp_exec(DBPROCESS *dbproc, DBINT *rows_copied);
-RETCODE bcp_readfmt(DBPROCESS *dbproc, char *filename);
-RETCODE bcp_writefmt(DBPROCESS *dbproc, char *filename);
+DBBOOL  bcp_getl(LOGINREC *login);
 RETCODE bcp_moretext(DBPROCESS *dbproc, DBINT size, BYTE *text);
-RETCODE bcp_batch(DBPROCESS *dbproc);
-RETCODE bcp_done(DBPROCESS *dbproc);
-RETCODE bcp_bind(DBPROCESS *dbproc, BYTE *varaddr, int prefixlen, DBINT varlen, BYTE *terminator, int termlen, int type, int table_column);
+RETCODE bcp_options(DBPROCESS *dbproc, int option, BYTE *value, int valuelen);
+RETCODE bcp_readfmt(DBPROCESS *dbproc, char *filename);
+RETCODE bcp_sendrow(DBPROCESS *dbproc);
+RETCODE bcp_writefmt(DBPROCESS *dbproc, char *filename);
 
 void build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result);
 RETCODE remove_xact(DBPROCESS *connect, DBINT commid, int n);
