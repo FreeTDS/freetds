@@ -43,7 +43,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.28 2002-12-12 15:00:46 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.29 2002-12-14 14:54:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -131,7 +131,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 	char tmp[256];
 	char temp_c;
 
-	for (p = pszConnectString;;) {
+	for (p = pszConnectString;;) {
 		dest_s = NULL;
 
 		/* parse option */
@@ -320,8 +320,7 @@ char *fn;
 	 */
 	if (!ret && (p = tds_get_homedir()) != NULL) {
 		fn = NULL;
-		if (vasprintf(&fn, "%s/.odbc.ini", p) > 0)
-		{
+		if (vasprintf(&fn, "%s/.odbc.ini", p) > 0) {
 			ret = fopen(pszFileName, "r");
 			free(fn);
 		}
