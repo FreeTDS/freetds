@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.2 2004-04-09 08:57:54 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.3 2004-08-10 06:46:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -53,6 +53,8 @@ Test(int prebind)
 	if (SQLPrepare(stmt, (SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
+	/* try to insert al empty string, should not fail */
+	TestInsert(stmt, "");
 	TestInsert(stmt, "a");
 	TestInsert(stmt, "bb");
 	TestInsert(stmt, buf);

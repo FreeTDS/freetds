@@ -1,3 +1,7 @@
+Tue Aug 10 08:45:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/rebindpar.c: improved
+	* src/tds/query.c: small fix for prepare if column_size == 0
+
 Fri Aug  6 19:20:19 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/typeinfo.c: enhanced, Sybase fix
 

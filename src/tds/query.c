@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.138 2004-08-01 19:05:14 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.139 2004-08-10 06:46:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -478,7 +478,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBBINARY:
 	case XSYBBINARY:
-		fmt = "BINARY";
+		fmt = "BINARY(%d)";
 		break;
 	case SYBVARBINARY:
 	case XSYBVARBINARY:
@@ -524,7 +524,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	}
 
 	/* fill out */
-	sprintf(out, fmt, curcol->column_size);
+	sprintf(out, fmt, curcol->column_size > 0 ? curcol->column_size : 1);
 	return TDS_SUCCEED;
 }
 
