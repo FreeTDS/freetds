@@ -1,3 +1,9 @@
+Mon Mar 31 15:13:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c: add comment
+	* src/tds/token.c:
+	- fixed a buffer overflow
+	- set correctly text size
+
 Mon Mar 31 11:11:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- applyed Peter Deacon patch for SQLRowCount

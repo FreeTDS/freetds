@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.165 2003-03-31 08:57:03 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.166 2003-03-31 13:14:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1618,14 +1618,15 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		if (blob_info->textvalue == NULL) {
 			blob_info->textvalue = (TDS_CHAR *) malloc(colsize);
 		} else {
+			/* FIXME memory leak if realloc return NULL */
 			blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, colsize);
 		}
 		if (blob_info->textvalue == NULL) {
 			return TDS_FAIL;
 		}
-		curcol->column_cur_size = colsize;
+		/* TODO convert even if TEXT, not only NTEXT */
 		if (curcol->column_unicodedata) {
-			colsize = tds_get_string(tds, colsize, blob_info->textvalue, curcol->column_size);
+			colsize = tds_get_string(tds, colsize, blob_info->textvalue, colsize);
 		} else {
 			tds_get_n(tds, blob_info->textvalue, colsize);
 		}

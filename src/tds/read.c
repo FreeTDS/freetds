@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.41 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.42 2003-03-31 13:14:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -237,6 +237,11 @@ tds_get_int(TDSSOCKET * tds)
 int
 tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 {
+	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
+	 * are parked before converting them to ASCII.  It has to have a size, 
+	 * and there's no advantage to allocating dynamically 
+	 * Also this prevent memory error problem on dynamic memory
+	 */
 	char temp[256];
 	char *p, *pend;
 	unsigned int in_left;
