@@ -68,7 +68,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.99 2002-12-09 20:48:50 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.100 2002-12-12 15:04:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -303,7 +303,7 @@ SQLRETURN SQL_API SQLDescribeParam(
     odbc_LogError ("SQLDescribeParam: function not implemented");
     return SQL_ERROR;
 }
-
+/*
 SQLRETURN SQL_API SQLExtendedFetch(
                                   SQLHSTMT           hstmt,
                                   SQLUSMALLINT       fFetchType,
@@ -315,7 +315,7 @@ SQLRETURN SQL_API SQLExtendedFetch(
     odbc_LogError ("SQLExtendedFetch: function not implemented");
     return SQL_ERROR;
 }
-
+*/
 SQLRETURN SQL_API SQLForeignKeys(
                                 SQLHSTMT           hstmt,
                                 SQLCHAR FAR       *szPkCatalogName,
@@ -489,6 +489,7 @@ SQLRETURN SQL_API SQLTablePrivileges(
     return SQL_ERROR;
 }
 
+/*
 SQLRETURN SQL_API SQLSetEnvAttr (
                                 SQLHENV henv,
                                 SQLINTEGER Attribute,
@@ -499,7 +500,7 @@ SQLRETURN SQL_API SQLSetEnvAttr (
     odbc_LogError ("SQLSetEnvAttr: function not implemented");
     return SQL_ERROR;
 }
-
+*/
 
 SQLRETURN SQL_API SQLBindParameter(
                                   SQLHSTMT           hstmt,
