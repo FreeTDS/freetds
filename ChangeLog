@@ -1,3 +1,13 @@
+Sat Sep 14 15:55:26 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* doc/Makefile.am  use $DOCBOOK_DSL to find jade files, manpages depend on inputs (!)
+	* doc/api_status.txt 	added dbversion, DBTDS
+	* include/sybdb.h	added dbversion, DBTDS, dbtds
+	* include/tds.h.in	added tds_version
+	* src/apps/tsql.c	added "version" and "GO" magic words
+	* src/dblib/dblib.c	added dbversion, dbtds
+	* src/tds/iconv.c	made iconv inputs const again
+	* src/tds/util.c	added tds_version
+	
 Sat Sep 14 15:45:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/convert_tds2sql.c:
 	* src/odbc/odbc.c src/odbc/odbc_util.c:
