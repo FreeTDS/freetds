@@ -40,11 +40,11 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.85 2003-04-30 13:49:07 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.86 2003-04-30 15:29:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
-static void tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+static void tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_definition);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
@@ -401,11 +401,13 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
  */
 static void
-tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
+tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_definition)
 {
 	int len, i, n;
 	const char *s, *e;
 	char buf[24];
+
+	/* TODO placeholder should be same number as parameters in definition ??? */
 
 	/* string with parameters types */
 	tds_put_byte(tds, 0);
@@ -413,7 +415,6 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
-	/* TODO build true param string from parameters */
 	/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
 	n = tds_count_placeholders(query);
 	len = n * 16 - 1;
@@ -421,11 +422,19 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	for (i = 10; i <= n; i *= 10) {
 		len += n - i + 1;
 	}
-	tds_put_int(tds, len * 2);
-	tds_put_int(tds, len * 2);
-	for (i = 1; i <= n; ++i) {
-		sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
-		tds_put_string(tds, buf, -1);
+	if (!param_definition) {
+		tds_put_int(tds, len * 2);
+		tds_put_int(tds, len * 2);
+		for (i = 1; i <= n; ++i) {
+			sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
+			tds_put_string(tds, buf, -1);
+		}
+	} else {
+		/* FIXME just to add some incompatibility with charset... */
+		i = strlen(param_definition);
+		tds_put_int(tds, i * 2);
+		tds_put_int(tds, i * 2);
+		tds_put_string(tds, param_definition, i);
 	}
 
 	/* string with sql statement */
@@ -506,6 +515,20 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
+		int definition_len, i;
+		char *param_definition = NULL;
+
+		if (params) {
+			/* place dummy parameters */
+			for (i = 0; i < params->num_cols; ++i) {
+				sprintf(params->columns[i]->column_name, "@P%d", i + 1);
+				params->columns[i]->column_namelen = strlen(params->columns[i]->column_name);
+			}
+			param_definition = tds_build_params_definition(tds, params, &definition_len);
+			if (!param_definition)
+				return TDS_FAIL;
+		}
+
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
 		tds_put_smallint(tds, 10);
@@ -519,7 +542,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
 
-		tds7_put_query_params(tds, query, params);
+		tds7_put_query_params(tds, query, param_definition);
 
 		/* 1 param ?? why ? flags ?? */
 		tds_put_byte(tds, 0);

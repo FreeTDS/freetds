@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.156 2003-04-30 13:12:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.157 2003-04-30 15:29:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1222,43 +1222,61 @@ SQLExecute(SQLHSTMT hstmt)
 	tds = stmt->hdbc->tds_socket;
 
 	if (stmt->param_count > 0) {
+		/* TODO what happen if binding is dynamic (data incomplete?) */
+
+		/* TODO rebuild should be done for every bingings change, not every time */
+		int i, nparam;
+		TDSPARAMINFO *params = NULL, *temp_params;
+		TDSCOLINFO *curcol;
+
+		/* build parameters list */
+		tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
+		for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
+			/* find binded parameter */
+			param = odbc_find_param(stmt, i);
+			if (!param) {
+				tds_free_param_results(params);
+				return SQL_ERROR;
+			}
+
+			/* add a columns to parameters */
+			if (!(temp_params = tds_alloc_param_result(params))) {
+				tds_free_param_results(params);
+				odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+				return SQL_ERROR;
+			}
+			params = temp_params;
+
+			/* add another type and copy data */
+			curcol = params->columns[nparam];
+			if (sql2tds(stmt->hdbc, param, params, curcol) < 0) {
+				tds_free_param_results(params);
+				return SQL_ERROR;
+			}
+		}
+
+		/* TODO test if two SQLPrepare on a statement */
+		/* TODO unprepare on statement free of connection close */
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
 			TDS_INT result_type;
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL)
+			/* TODO use tds_submit_prepexec */
+			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
+				tds_free_param_results(params);
 				return SQL_ERROR;
-			if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+			}
+			if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
+				tds_free_param_results(params);
 				return SQL_ERROR;
-		}
-		/* build parameters list */
-		dyn = stmt->dyn;
-		/* TODO rebuild should be done for every bingings change */
-		/*if (dyn->num_params != stmt->param_count) */  {
-			int i, nparam;
-			TDSPARAMINFO *params;
-			TDSCOLINFO *curcol;
-
-			tds_free_input_params(dyn);
-			tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
-			for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
-				param = odbc_find_param(stmt, i);
-				if (!param)
-					return SQL_ERROR;
-				if (!(params = tds_alloc_param_result(dyn->params))) {
-					odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-					return SQL_ERROR;
-				}
-				dyn->params = params;
-				/* add another type and copy data */
-				curcol = params->columns[nparam];
-				if (sql2tds(stmt->hdbc, param, params, curcol) < 0)
-					return SQL_ERROR;
 			}
 		}
+		dyn = stmt->dyn;
+		tds_free_input_params(dyn);
+		dyn->params = params;
 		tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
-		/* TODO check errors */
+		/* TODO return error to client */
 		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
 			return SQL_ERROR;
 
