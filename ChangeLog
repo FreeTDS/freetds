@@ -1,3 +1,17 @@
+Thu Jan 24 21:27:26 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* src/pool/user.c: Remove C++ style comment
+	* src/pool/stream.c: Remove C++ style comment
+	* src/dblib/dblib.c: Remove C++ style comment.  Add implementation of 
+	dbcanquery from Patrick van Kleef <pkleef@openlinksw.com>
+	* src/dblib/unittest/t0012.c: Remove C++ style comment
+	* src/dblib/unittest/t0013.c: Remove C++ style comment
+	* src/dblib/unittest/t0014.c: Remove C++ style comment
+	* src/dblib/unittest/t0016.c: Remove C++ style comment
+	* src/dblib/unittest/t0017.c: Remove C++ style comment
+	* src/odbc/odbc.c: Remove C++ style comment
+	* src/tds/token.c (tds_process_row): Test for NULL res_info
+
 Wed Jan 23 17:31:53 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* src/tds/token.c: Remove swap of message number on big endian machines

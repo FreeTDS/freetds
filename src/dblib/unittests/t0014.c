@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0014.c,v 1.2 2001-11-14 04:52:33 brianb Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.3 2002-01-25 03:44:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
    DBSETLAPP(login,"t0014");
    
    fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n",
-   	"","",""); // PASSWORD, USER, SERVER);
+   	"","",""); /* PASSWORD, USER, SERVER); */
 
    dbproc = dbopen(login, SERVER);
    blobproc = dbopen(login, SERVER);
@@ -148,10 +148,10 @@ int main(int argc, char *argv[])
 		textPtr = dbtxptr(dbproc, 1);
 		timeStamp = dbtxtimestamp(dbproc, 1);
 
-	// Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
-	// Use #ifndef for big buffer version (32-bit)
+	/* Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
+	   Use #ifndef for big buffer version (32-bit) */
 #if 1
-//DBWRITE_OK_FOR_OVER_4K
+/* DBWRITE_OK_FOR_OVER_4K */
 		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, blob) != SUCCEED)
 			return 5;
 #else
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 		dbresults(blobproc);
 
 		numtowrite = 0;
-		// Send the update value in chunks. 
+		/* Send the update value in chunks. */
 		for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
 			numtowrite = (isiz - numwritten);
 			if (numtowrite > BLOB_BLOCK_SIZE)
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
          abort();
       }
 
-			// get the image
+			/* get the image */
 			strcpy(sqlCmd, "SET TEXTSIZE 2147483647");
 			dbcmd(blobproc, sqlCmd); 
 			dbsqlexec(blobproc);			 
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
 			readFirstImage = FALSE;
 			while ((result = dbreadtext(blobproc, rbuf, BLOB_BLOCK_SIZE)) != NO_MORE_ROWS)
 			{
-				if (result == 0) // this indicates end of row
+				if (result == 0) /* this indicates end of row */
 				{
 					readFirstImage = TRUE;
 				}

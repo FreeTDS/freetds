@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0012.c,v 1.1 2001-10-12 23:29:13 brianb Exp $";
+static char  software_version[]   = "$Id: t0012.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
    DBSETLAPP(login,"t0012");
    
    fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n",
-   	"","",""); // PASSWORD, USER, SERVER);
+   	"","",""); /* PASSWORD, USER, SERVER); */
 
    dbproc = dbopen(login, SERVER);
    if (strlen(DATABASE)) {
@@ -75,16 +75,16 @@ int main(int argc, char *argv[])
 
    while (dbnextrow(dbproc) != NO_MORE_ROWS)
    {
-	// Print the database name and its date info 
+	/* Print the database name and its date info  */
 	dbconvert(dbproc, dbcoltype(dbproc, 2), 
 		dbdata(dbproc, 2),
 		dbdatlen(dbproc, 2), SYBCHAR, datestring, -1);
 	printf("%s: %s\n", (char *) (dbdata(dbproc, 1)), datestring);
 
-	// Break up the creation date into its constituent parts 
+	/* Break up the creation date into its constituent parts */
 	dbdatecrack(dbproc, &dateinfo, (DBDATETIME *) (dbdata(dbproc, 2)));
 
-	// Print the parts of the creation date 
+	/* Print the parts of the creation date */
 #if MSDBLIB
 	printf("\tYear = %d.\n", dateinfo.year);
 	printf("\tMonth = %d.\n", dateinfo.month);

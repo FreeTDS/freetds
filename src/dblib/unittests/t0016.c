@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0016.c,v 1.1 2001-10-12 23:29:13 brianb Exp $";
+static char  software_version[]   = "$Id: t0016.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
    DBSETLAPP(login,"t0016");
    
    fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n",
-   	"","",""); // PASSWORD, USER, SERVER);
+   	"","",""); /* PASSWORD, USER, SERVER); */
 
    dbproc = dbopen(login, SERVER);
    if (strlen(DATABASE)) {

@@ -302,7 +302,7 @@ int pos = 0, ret;
 		ret = read_variable_token(pmbr, buf, maxlen, bytes_read);
 	}
 
-	// fprintf(stderr,"bytes_read = %d\n",*bytes_read);
+	/* fprintf(stderr,"bytes_read = %d\n",*bytes_read); */
 	if (!ret) {
 		return 0;
 	}

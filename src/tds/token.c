@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.12 2002-01-23 22:35:24 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.13 2002-01-25 03:44:16 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -794,6 +794,9 @@ TDS_VARBINARY *varbin;
 int len;
 
 	info = tds->res_info;
+	if (!info)
+		return TDS_FAIL;
+
 	info->row_count++;
 	for (i=0;i<info->num_cols;i++)
 	{

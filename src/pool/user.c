@@ -144,7 +144,7 @@ char msg[256];
 		}
 		tds_env_change(tds,4,NULL,"512");
 		tds_send_login_ack(tds,"sql server");
-		// tds_send_capabilities_token(tds);
+		/* tds_send_capabilities_token(tds); */
 		tds_send_253_token(tds,0,1);
 		puser->user_state = TDS_SRV_IDLE;
 		

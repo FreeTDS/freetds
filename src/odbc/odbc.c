@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.9 2002-01-23 03:54:35 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.10 2002-01-25 03:44:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -613,7 +613,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				szColName[i] -= 0x20;
 		}
 		szColName[cplen]='\0';
-		// fprintf(stderr,"\nsetting column name to %s %s\n", colinfo->column_name, szColName);
+		/* fprintf(stderr,"\nsetting column name to %s %s\n", colinfo->column_name, szColName); */
 	}
     	if (pcbColName) {
 		*pcbColName = strlen(colinfo->column_name);
@@ -769,7 +769,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 int ret;
 TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
    
-   fprintf(stderr,"query = %s\n",stmt->query);
+   /* fprintf(stderr,"query = %s\n",stmt->query); */
    _odbc_fix_literals(stmt);
 
    if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED)) {
@@ -1424,7 +1424,7 @@ struct _hstmt *stmt;
 			first = 0;
 		}
 		*p++ = '\0';
-		// fprintf(stderr,"\nquery = %s\n",query);
+		/* fprintf(stderr,"\nquery = %s\n",query); */
 
 	strcpy(stmt->query, query);
 	return _SQLExecute(hstmt);

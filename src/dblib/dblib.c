@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.7 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.8 2002-01-25 03:44:15 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1408,6 +1408,7 @@ TDSSOCKET * tds;
 /* STUBS */
 RETCODE dbsetdeflang(char *language)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdeflang()\n");
 	return SUCCEED;
 }
 int dbgetpacket(DBPROCESS *dbproc)
@@ -1422,14 +1423,17 @@ TDSSOCKET *tds = dbproc->tds_socket;
 }
 RETCODE dbsetmaxprocs(int maxprocs)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetmaxprocs()\n");
 	return SUCCEED;
 }
 RETCODE dbsettime(int seconds)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsettime()\n");
 	return SUCCEED;
 }
 RETCODE dbsetlogintime(int seconds)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetlogintime()\n");
 	return SUCCEED;
 }
 DBBOOL dbhasretstat(DBPROCESS *dbproc)
@@ -1455,22 +1459,27 @@ RETCODE DBCMDROW(DBPROCESS *dbproc)
 }
 int dbaltcolid(DBPROCESS *dbproc, int computeid, int column)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbaltcolid()\n");
 	return -1;
 }
 DBINT dbadlen(DBPROCESS *dbproc,int computeid, int column)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbaddlen()\n");
 	return 0;
 }
 int dbalttype(DBPROCESS *dbproc, int computeid, int column)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbalttype()\n");
 	return 0;
 }
 BYTE *dbadata(DBPROCESS *dbproc, int computeid, int column)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbadata()\n");
 	return "";
 }
 int dbaltop(DBPROCESS *dbproc, int computeid, int column)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbaltop()\n");
 	return -1;
 }
 RETCODE dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
@@ -1491,21 +1500,26 @@ RETCODE dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 }
 void dbsetinterrupt(DBPROCESS *dbproc, int (*ckintr)(),int (*hndlintr)())
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetinterrupt()\n");
 }
 int dbnumrets(DBPROCESS *dbproc)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbnumrets()\n");
 	return 0;
 }
 char *dbretname(DBPROCESS *dbproc, int retnum)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretname()\n");
 	return NULL;
 }
 BYTE *dbretdata(DBPROCESS *dbproc, int retnum)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretdata()\n");
 	return NULL;
 }
 int dbretlen(DBPROCESS *dbproc, int retnum)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretlen()\n");
 	return -1;
 }
 RETCODE dbsqlok(DBPROCESS *dbproc)
@@ -1560,10 +1574,12 @@ TDSSOCKET *tds;
 }
 int dbnumalts(DBPROCESS *dbproc,int computeid)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbnumalts()\n");
 	return 0;
 }
 BYTE *dbbylist(DBPROCESS *dbproc, int computeid, int size)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbbylist()\n");
 	return NULL;
 }
 DBBOOL DBDEAD(DBPROCESS *dbproc)
@@ -1610,94 +1626,117 @@ int (*dbmsghandle(int (*handler)()))()
 
 RETCODE dbmnyadd(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *sum)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyadd()\n");
 	return SUCCEED;
 }
 RETCODE dbmnysub(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *diff)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnysyb()\n");
 	return SUCCEED;
 }
 RETCODE dbmnymul(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *prod)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymul()\n");
 	return SUCCEED;
 }
 RETCODE dbmnydivide(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *quotient)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
 RETCODE dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnycmp()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyscale(DBPROCESS *dbproc, DBMONEY *dest, int multiplier, int addend)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyzero(DBPROCESS *dbproc, DBMONEY *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyzero()\n");
 	return SUCCEED;
 }
 RETCODE dbmnymaxpos(DBPROCESS *dbproc, DBMONEY *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymaxpos()\n");
 	return SUCCEED;
 }
 RETCODE dbmnymaxneg(DBPROCESS *dbproc, DBMONEY *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymaxneg()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyndigit(DBPROCESS *dbproc, DBMONEY *mnyptr,DBCHAR *value, DBBOOL *zero)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyndigit()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyinit(DBPROCESS *dbproc,DBMONEY *mnyptr, int trim, DBBOOL *negative)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyinit()\n");
 	return SUCCEED;
 }
 RETCODE dbmnydown(DBPROCESS *dbproc,DBMONEY *mnyptr, int divisor, int *remainder)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydown()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyinc(DBPROCESS *dbproc,DBMONEY *mnyptr)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyinc()\n");
 	return SUCCEED;
 }
 RETCODE dbmnydec(DBPROCESS *dbproc,DBMONEY *mnyptr)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydec()\n");
 	return SUCCEED;
 }
 RETCODE dbmnyminus(DBPROCESS *dbproc,DBMONEY *src, DBMONEY *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyminus()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4minus(DBPROCESS *dbproc, DBMONEY4 *src, DBMONEY4 *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4minus()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4zero(DBPROCESS *dbproc, DBMONEY4 *dest)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4zero()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4add(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *sum)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4add()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4sub(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *diff)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4sub()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4mul(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *prod)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4mul()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4divide(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *quotient)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4divide()\n");
 	return SUCCEED;
 }
 RETCODE dbmny4cmp(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4cmp()\n");
 	return SUCCEED;
 }
 RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbdatecmp()\n");
 	return SUCCEED;
 }
 RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt)
@@ -1742,13 +1781,16 @@ int millis;
 }
 void dbrpwclr(LOGINREC *login)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwclr()\n");
 }
 RETCODE dbrpwset(LOGINREC *login, char *srvname, char *password, int pwlen)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwset()\n");
 	return SUCCEED;
 }
 int dbspid(DBPROCESS *dbproc)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbspid()\n");
 	return 0;
 }
 RETCODE dbsetuserdata(DBPROCESS *dbproc, BYTE *ptr)
@@ -1767,13 +1809,32 @@ RETCODE dbsetversion(DBINT version)
 }
 RETCODE dbmnycopy(DBPROCESS *dbproc, DBMONEY *src, DBMONEY *dest)
 {
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnycopy()\n");
 	return SUCCEED;
 }
 RETCODE dbcanquery(DBPROCESS *dbproc)
 {
+	TDSSOCKET *tds;
+	int rc;
+
+	if (dbproc == NULL)
+		return FAIL;
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	if (!tds || !tds->s) 
+		return FAIL;
+
+	/*
+	 *  Just throw away all pending rows from the last query
+	 */
+	do {
+		rc = tds_process_row_tokens(dbproc->tds_socket);
+	} while (rc == TDS_SUCCEED);
+
+	if (rc == TDS_FAIL)
+		return FAIL;
+
 	return SUCCEED;
 }
-
 void dbfreebuf(DBPROCESS *dbproc)
 {
 	if(dbproc->dbbuf) {
@@ -1785,26 +1846,32 @@ void dbfreebuf(DBPROCESS *dbproc)
 
 RETCODE dbclropt(DBPROCESS *dbproc,int option, char *param)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcltopt()\n");
 	return SUCCEED;
 }
 DBBOOL dbisopt(DBPROCESS *dbproc,int option, char *param)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbisopt()\n");
 	return TRUE;
 }
 DBINT DBCURROW(DBPROCESS *dbproc)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURROW()\n");
 	return 0;
 }
 int DBCURCMD(DBPROCESS *dbproc)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURCMD()\n");
 	return 0;
 }
 RETCODE DBMORECMDS(DBPROCESS *dbproc)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBMORECMDS()\n");
 	return SUCCEED;
 }
 int dbrettype(DBPROCESS *dbproc,int retnum)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrettype()\n");
 	return 0;
 }
 int dbstrlen(DBPROCESS *dbproc)
@@ -1982,10 +2049,12 @@ void dbrecftos(char *filename)
 }
 char *dbversion()
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbversion()\n");
 	return NULL;
 }
 RETCODE dbsetdefcharset(char *charset)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdefcharset()\n");
 	return SUCCEED;
 }
 RETCODE dbreginit(
@@ -1993,11 +2062,13 @@ RETCODE dbreginit(
       DBCHAR *procedure_name,
       DBSMALLINT namelen )
 {
-      return SUCCEED;
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbreginit()\n");
+        return SUCCEED;
 }
 RETCODE dbreglist(DBPROCESS *dbproc)
 {
-      return SUCCEED;
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbreglist()\n");
+        return SUCCEED;
 }
 RETCODE dbregparam(
       DBPROCESS    *dbproc,
@@ -2006,12 +2077,14 @@ RETCODE dbregparam(
       DBINT        datalen,
       BYTE         *data )
 {
-      return SUCCEED;
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbregparam()\n");
+        return SUCCEED;
 }
 RETCODE dbregexec(
       DBPROCESS      *dbproc,
       DBSMALLINT    options)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbregexec()\n");
 	return SUCCEED;
 }
 char      *dbmonthname(DBPROCESS *dbproc,char *language,int monthnum,DBBOOL shortform)
@@ -2070,14 +2143,17 @@ TDSSOCKET *tds;
 }
 RETCODE dbaltutype(DBPROCESS *dbproc, int computeid, int column)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbaltutype()\n");
 	return SUCCEED;
 }
 RETCODE dbaltlen(DBPROCESS *dbproc, int computeid, int column)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbaltlen()\n");
 	return SUCCEED;
 }
 RETCODE dbpoll(DBPROCESS *dbproc, long milliseconds, DBPROCESS **ready_dbproc, int *return_reason)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbpoll()\n");
 	return SUCCEED;
 }
 
