@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.175 2003-04-25 18:34:28 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.176 2003-04-25 18:48:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -50,7 +50,7 @@ static int tds7_process_compute_result(TDSSOCKET * tds);
 static int tds_process_result(TDSSOCKET * tds);
 static int tds_process_col_name(TDSSOCKET * tds);
 static int tds_process_col_fmt(TDSSOCKET * tds);
-static int tds_process_compute(TDSSOCKET * tds);
+static int tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
 static int tds_process_row(TDSSOCKET * tds);
 static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
@@ -586,9 +586,6 @@ int
 tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
 	int marker;
-	TDS_SMALLINT compute_id;
-	TDSRESULTINFO *info;
-	int i;
 
 	if (tds->state == TDS_COMPLETED) {
 		*rowtype = TDS_NO_MORE_ROWS;
@@ -621,23 +618,7 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 		case TDS_CMP_ROW_TOKEN:
 
 			*rowtype = TDS_COMP_ROW;
-			/* TODO put this code inside tds_process_compute ?? */
-			compute_id = tds_get_smallint(tds);
-
-			for (i = 0;; ++i) {
-				if (i >= tds->num_comp_info)
-					return TDS_FAIL;
-				info = tds->comp_info[i];
-				if (info->computeid == compute_id)
-					break;
-			}
-
-			tds->curr_resinfo = info;
-			tds_process_compute(tds);
-			if (computeid)
-				*computeid = compute_id;
-
-			return TDS_SUCCEED;
+			return tds_process_compute(tds, computeid);
 
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
@@ -1526,21 +1507,32 @@ tds5_process_result(TDSSOCKET * tds)
  * buffer.  
  */
 static int
-tds_process_compute(TDSSOCKET * tds)
+tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 {
 	int i;
 	TDSCOLINFO *curcol;
 	TDSCOMPUTEINFO *info;
+	TDS_INT compute_id;
 
-	info = tds->curr_resinfo;
+	compute_id = tds_get_smallint(tds);
+
+	for (i = 0;; ++i) {
+		if (i >= tds->num_comp_info)
+			return TDS_FAIL;
+		info = tds->comp_info[i];
+		if (info->computeid == compute_id)
+			break;
+	}
+	tds->curr_resinfo = info;
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
 		if (tds_get_data(tds, curcol, info->current_row, i) != TDS_SUCCEED)
 			return TDS_FAIL;
 	}
+	if (computeid)
+		*computeid = compute_id;
 	return TDS_SUCCEED;
-
 }
 
 

@@ -1,3 +1,6 @@
+Fri Apr 25 20:49:00 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: remove a TODO
+	
 Fri Apr 25 20:33:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- fix wrong version reading using mssql with tds 4.2
