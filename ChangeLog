@@ -1,6 +1,12 @@
+Fri Oct 25 19:36:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/dblib.c:
+	- Bug fix, correctly support numbytes == -1 in dbstrcpy().
+	- Bug fix, ensure dest is always NUL terminated in dbstrcpy().
+	- Generate SYBENSIP and SYBEBNUM errors in dbstrcpy().
+
 Fri Oct 25 19:10:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/dblib.c:
-	- Generate SYBESPID error.
+	- Generate SYBESPID error in dbspid().
 
 Fri Oct 25 18:51:32 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/ctpublic.h src/ctlib/ct.c:

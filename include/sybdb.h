@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.28 2002-10-25 23:12:01 castellano Exp $";
+"$Id: sybdb.h,v 1.29 2002-10-25 23:38:53 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -594,6 +594,7 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBESMSG        20018   
 #define SYBERPND        20019  
 #define SYBETIME        20003   /* SQL Server connection timed out. */
+#define SYBENSIP	20045	/* Negative starting index passed to dbstrcpy(). */
 #define SYBECOFL	20049	/* Data-conversion resulted in overflow. */
 #define SYBECSYN	20050	/* Attempt to convert data stopped by syntax error in source field. */
 #define SYBERDCN	20053	/* Requested data-conversion does not exist. */
@@ -615,6 +616,7 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBEVDPT         20079
 #define SYBEUNOP	 20115	/* Unknown option passed to dbsetopt(). */
 #define SYBESPID	 20154	/* Called dbspid() with a NULL dbproc. */
+#define SYBEBNUM	 20214	/* Bad numbytes parameter passed to dbstrcpy(). */
 #define SYBEBCPCTYP      20233
 #define SYBEBCHLEN       20235
 #define SYBEBCPREF       20237

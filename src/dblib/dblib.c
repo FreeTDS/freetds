@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.86 2002-10-25 23:12:06 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.87 2002-10-25 23:38:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -3408,14 +3408,29 @@ char *dbgetchar(DBPROCESS *dbproc, int pos)
     else
         return (char *)NULL;
 }
-RETCODE dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest)
+
+RETCODE
+dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest)
 {
+	if (start < 0) {
+		_dblib_client_msg(dbproc, SYBENSIP, EXPROGRAM, "Negative starting index passed to dbstrcpy().");
+		return FAIL;
+	}
+	if (numbytes < -1) {
+		_dblib_client_msg(dbproc, SYBEBNUM, EXPROGRAM, "Bad numbytes parameter passed to dbstrcpy().");
+		return FAIL;
+	}
 	dest[0] = 0; /* start with empty string being returned */
-	if (dbproc->dbbufsz>0) {
+	if (numbytes == -1) {
+		numbytes = dbproc->dbbufsz;
+	}
+	if (dbproc->dbbufsz > 0) {
 		strncpy(dest, (char*)&dbproc->dbbuf[start], numbytes);
 	}
+	dest[numbytes] = '\0';
 	return SUCCEED;
 }
+
 RETCODE dbsafestr(DBPROCESS *dbproc,char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
 {
 int i, j = 0;
