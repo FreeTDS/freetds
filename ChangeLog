@@ -1,3 +1,7 @@
+Tue Nov 20 11:34:54 2001  James Cameron  <quozl@us.netrek.org>
+
+	* README, doc/faq.html: fix User Guide URL
+
 Tue Nov 13 23:41:17 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/dblib/dbutil.c: fix call to tds_reset_msg after libtds change.

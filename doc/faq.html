@@ -34,11 +34,11 @@ since the last release.
 <p>
 
 On the other hand, the <a
-href="http://www.freetds.org/userguide/book1.htm">FreeTDS User
+href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.4 2001-11-13 05:09:38 quozl Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.5 2001-11-20 00:35:56 quozl Exp $</i></div><p>
 
 </font> </p>
 
@@ -350,7 +350,7 @@ to that will remove you from the list.
 <dd>
 <ul>
 	<li>FreeTDS Users Guide, on <a
-	href="http://www.freetds.org/userguide/book1.htm">the web</a>
+	href="http://www.freetds.org/userguide/book1.html">the web</a>
 	or as a <a
 	href="http://www.freetds.org/userguide.tgz">tarball</a>.</li>
 
@@ -492,7 +492,7 @@ headers and other stuff needed to build other stuff.</p>
 <a name="33"></a>
 <b>3.3 How do I compile PHP 3 with FreeTDS?</b></dt>
 <dd>
-	For questions 3.1, 3.2, and 3.3, please refer to the <a href="http://www.freetds.org/userguide/book1.htm">User Guide</a>.  
+	For questions 3.1, 3.2, and 3.3, please refer to the <a href="http://www.freetds.org/userguide/book1.html">User Guide</a>.  
 	
 <p>One small PHP hint, mailed to the FAQ master in May 2001: </p>
 	
@@ -567,7 +567,7 @@ Columns of datatype <tt>ntext</tt> are sometimes truncated by one position with 
 MSSQL-7.0 has a known bug when communicating with 
 big-endian machines.  Columns of type 
 MONEY and DATETIME are returned as little-endian regardless of 
-what was requested.  There is a patch from Microsoft that fixes this.  Refer to the <a href="http://www.freetds.org/userguide/book1.htm">User Guide</a> for further details.  </p>
+what was requested.  There is a patch from Microsoft that fixes this.  Refer to the <a href="http://www.freetds.org/userguide/book1.html">User Guide</a> for further details.  </p>
 <p>
 Unicode&lt;-&gt;Ascii conversion is broken, except for languages whose alphabet is similar to that of English.  Specifically, although Microsoft SQL Server transmits all character data as Unicode (UCS2), and can store text in Unicode (<tt>nchar/nvarchar</tt>) columns, FreeTDS will translate Unicode to Ascii correctly only for languages -- such as, not coincidentally, English -- that use use the Latin alphabet..  A more general solution awaits an individual with an actual problem to solve, knowledge of a non-Latin language, and a willingness to facilitate testing.  </p>
 </dd>
