@@ -1,3 +1,7 @@
+Fri Mar 07 16:57:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/dblib/dblib.c:
+	- remove some warnings
+
 Fri Mar 07 16:41:04 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0006.c: update
 
