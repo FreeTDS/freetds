@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.266 2004-10-13 12:57:05 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.267 2004-10-14 18:26:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -609,12 +609,10 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 
 						tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
 						cursor = tds->cursor; 
-						while (cursor->client_cursor_id != tds->client_cursor_id) {
+						while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 							cursor = cursor->next;
-							tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
-						}
 					
-						if (cursor->client_cursor_id != tds->client_cursor_id) {
+						if (!cursor) {
 							tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 							return TDS_FAIL;
 						}
@@ -655,11 +653,10 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				TDSCURSOR  *cursor;
 
 				cursor = tds->cursor; 
-				while (cursor->client_cursor_id != tds->client_cursor_id) {
+				while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 					cursor = cursor->next;
-				}
 			
-				if (cursor->client_cursor_id != tds->client_cursor_id) {
+				if (!cursor) {
 					tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 					return TDS_FAIL;
 				}
@@ -859,11 +856,10 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 		case TDS_ROW_TOKEN:
 			if (tds->client_cursor_id) {
 				cursor = tds->cursor; 
-				while (cursor->client_cursor_id != tds->client_cursor_id) {
+				while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 					cursor = cursor->next;
-				}
 			
-				if (cursor->client_cursor_id != tds->client_cursor_id) {
+				if (!cursor) {
 					tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 					return TDS_FAIL;
 				}
@@ -1594,11 +1590,10 @@ tds7_process_result(TDSSOCKET * tds)
 
 	if (tds->client_cursor_id) {
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != tds->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 			cursor = cursor->next;
-		}
 	
-		if (cursor->client_cursor_id != tds->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
@@ -1729,11 +1724,10 @@ tds_process_result(TDSSOCKET * tds)
 
 	if (tds->client_cursor_id) {
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != tds->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 			cursor = cursor->next;
-		}
 	
-		if (cursor->client_cursor_id != tds->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
@@ -1807,11 +1801,10 @@ tds5_process_result(TDSSOCKET * tds)
 
 	if (tds->client_cursor_id) {
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != tds->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 			cursor = cursor->next;
-		}
 	
-		if (cursor->client_cursor_id != tds->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
@@ -3290,12 +3283,10 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	if (tds->client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != tds->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != tds->client_cursor_id)
 			cursor = cursor->next;
-			tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
-		}
 	
-		if (cursor->client_cursor_id != tds->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_process_cursor_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}

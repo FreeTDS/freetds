@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.127 2004-10-14 08:16:43 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.128 2004-10-14 18:26:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -791,11 +791,10 @@ ct_send(CS_COMMAND * cmd)
 		int cursor_open_sent  = 0;
 
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != cmd->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
-		}
 
-		if (cursor->client_cursor_id != cmd->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_send() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 			return CS_FAIL;
 		}
@@ -1356,11 +1355,10 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		cmd->bind_count = 1;
 
 	cursor = tds->cursor; 
-	while (cursor->client_cursor_id != cmd->client_cursor_id) {
+	while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 		cursor = cursor->next;
-	}
 
-	if (cursor->client_cursor_id != cmd->client_cursor_id) {
+	if (!cursor) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 		return CS_FAIL;
 	}
@@ -3168,11 +3166,10 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
  	case CS_CURSOR_ROWS:
 
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != cmd->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
-		}
 
-		if (cursor->client_cursor_id != cmd->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 			return CS_FAIL;
 		}
@@ -3195,11 +3192,10 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	case CS_CURSOR_OPEN:
 
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != cmd->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
-		}
 
-		if (cursor->client_cursor_id != cmd->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 			return CS_FAIL;
 		}
@@ -3222,11 +3218,10 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	case CS_CURSOR_CLOSE:
 
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != cmd->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
-		}
 
-		if (cursor->client_cursor_id != cmd->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 			return CS_FAIL;
 		}
@@ -3243,11 +3238,10 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	case CS_CURSOR_DEALLOC:
 
 		cursor = tds->cursor; 
-		while (cursor->client_cursor_id != cmd->client_cursor_id) {
+		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
-		}
 
-		if (cursor->client_cursor_id != cmd->client_cursor_id) {
+		if (!cursor) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
 			return CS_FAIL;
 		}

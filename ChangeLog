@@ -1,3 +1,7 @@
+Thu Oct 14 20:26:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/tds/query.c src/tds/token.c:
+	- fix core if cursor it's not found
+
 Thu Oct 14 16:46:13 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c src/tds/unittests/dataread.c:
 	- even smallmoney has a arithmetic overflow
