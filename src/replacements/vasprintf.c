@@ -15,7 +15,7 @@
 #include <string.h>
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.4 2002-10-02 19:14:02 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.5 2002-10-07 15:44:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -27,32 +27,24 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 #if HAVE_VSNPRINTF
   int chunks;
   size_t buflen;
-  int fit = 0;
   char *buf;
   int len;
 
   chunks = ((strlen(fmt) + 1) / CHUNKSIZE) + 1;
   buflen = chunks * CHUNKSIZE;
-  while (!fit) {
+  for (;;) {
     if ((buf = malloc(buflen)) == NULL) {
       *ret = NULL;
       return -1;
     }
     len = vsnprintf(buf, buflen, fmt, ap);
-    if (len >= buflen) {
-      free(buf);
-      buflen = (++chunks) * CHUNKSIZE;
-      if (len >= buflen) {
-        buflen = len + 1;
-      }
-    } else {
-      fit = 1;
-    }
-  }
-  if (len < 0) {
+    if (len >=0 && len < buflen) {
+      break;
     free(buf);
-    *ret = NULL;
-    return len;
+    buflen = (++chunks) * CHUNKSIZE;
+    if (len >= buflen) {
+      buflen = len + 1;
+    }
   }
   *ret = buf;
   return len;

@@ -1,3 +1,7 @@
+Mon Oct  7 17:44:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/replacement/vasprintf.c:
+	- compatible with old snprintf version
+
 Mon Oct  7 10:22:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* acinclude.m4:
 	- Correct the test for malloc_options (need to try linking
