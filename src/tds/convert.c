@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.18 2002-07-05 03:52:46 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.19 2002-07-05 20:23:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1054,6 +1054,7 @@ enum states { GOING_IN_BLIND,
 
 char *in;
 char *tok;
+char *lasts;
 char last_token[32];
 int   monthdone = 0;
 int   yeardone  = 0;
@@ -1077,7 +1078,7 @@ int current_state;
 	in = (char *)malloc(strlen(instr));
 	strcpy (in , instr );
 
-	tok = strtok (in, " ,");
+	tok = tds_strtok_r (in, " ,", &lasts);
 
 	current_state = GOING_IN_BLIND;
 
@@ -1255,7 +1256,7 @@ int current_state;
               return (0);
         }
 
-        tok = strtok((char *)NULL, " ,");
+        tok = tds_strtok_r((char *)NULL, " ,", &lasts);
     }
 
     /* 1900 or after */ 

@@ -3,6 +3,10 @@ Fri Jul  5 07:39:04 EDT 2002
 		connection
 	*src/dblib/dblib.c: (from lirm604 mods by me) test return from 
 		tds_process_default_tokens
+	*src/tds/threadsafe.c: encapsulate thread safe calls here
+	*src/tds/config.c: make calls reentrant (from lirm604)
+	*src/tds/convert.c: make calls reentrant (from lirm604)
+	*src/tds/util.c: make calls reentrant (from lirm604)
 
 Thu Jul  4 08:29:22 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/tds/*.c: add ifdef DMALLOC

@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.16 2002-07-05 02:18:30 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.17 2002-07-05 20:23:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -549,12 +549,21 @@ static void lookup_host(
    int               num     = 0;
    unsigned int		ip_addr=0;
 
+   /* Storage for reentrant getaddrby* calls */
+   struct hostent result;
+   int buflen = 4096;
+   char buffer[buflen];
+   int h_errnop;
+
+   /* Storage for reentrant getservbyname */
+   struct servent serv_result;
+
    /* Only call gethostbyname if servername is not an ip address. 
       This call take a while and is useless for an ip address.
       mlilback 3/2/02 */
    ip_addr = inet_addr(servername);
    if (ip_addr == INADDR_NONE)
-      host = gethostbyname(servername);
+      host = tds_gethostbyname_r(servername, &result, buffer, buflen, &h_errnop);
 	
 #ifndef NOREVERSELOOKUPS
 /* froy@singleentry.com 12/21/2000 */
@@ -566,7 +575,7 @@ static void lookup_host(
 		addr [1] = a1;
 		addr [2] = a2;
 		addr [3] = a3;
-		host    = gethostbyaddr (addr, 4, AF_INET);
+		host    = tds_gethostbyaddr_r (addr, 4, AF_INET, &result, buffer, buflen, &h_errnop);
 	}
 /* end froy */ 
 #endif
@@ -581,7 +590,7 @@ static void lookup_host(
       strncpy(ip, inet_ntoa(*ptr), 17);
    }
    if (portname) {
-   	 service = getservbyname(portname, "tcp");
+   	 service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, buflen);
       if (service==NULL) {
          num = atoi(portname);
       } else {
@@ -639,6 +648,7 @@ char  tmp_ver[sizeof(line)];
 FILE *in;
 char *field;
 int   found=0;
+char *lasts;
 
 	ip_addr[0]  = '\0';
 	ip_port[0]  = '\0';
@@ -680,21 +690,21 @@ int   found=0;
 		if (line[0]=='#') continue; /* comment */
 
 		if (!isspace(line[0])) {
-			field = strtok(line,"\n\t ");
+			field = tds_strtok_r(line,"\n\t ", &lasts);
 			if (!strcmp(field,host)) {
 				found=1;
 				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n,host");
 			}
 			else found=0;
 		} else if (found && isspace(line[0])) {
-			field = strtok(line,"\n\t ");
+			field = tds_strtok_r(line,"\n\t ", &lasts);
 			if (field!=NULL && !strcmp(field,"query")) {
-				field = strtok(NULL,"\n\t "); /* tcp or tli */
+				field = tds_strtok_r(NULL,"\n\t ", &lasts); /* tcp or tli */
 				if (!strcmp(field,"tli")) {
 					tdsdump_log(TDS_DBG_INFO1, "%L TLI service.\n");
-					field = strtok(NULL,"\n\t "); /* tcp */
-					field = strtok(NULL,"\n\t "); /* device */
-					field = strtok(NULL,"\n\t "); /* host/port */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* tcp */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* device */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* host/port */
 					if (strlen(field)>=18) {
 						sprintf(tmp_port,"%d", hex2num(&field[6])*256 + 
 							hex2num(&field[8]));
@@ -704,12 +714,12 @@ int   found=0;
 					        tdsdump_log(TDS_DBG_INFO1, "%L tmp_port = %d.mtp_ip = %s.\n", tmp_port, tmp_ip);
 					}
 				} else {
-					field = strtok(NULL,"\n\t "); /* ether */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* ether */
 					strcpy(tmp_ver,field);
-					field = strtok(NULL,"\n\t "); /* host */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* host */
 					strcpy(tmp_ip,field);
 					tdsdump_log(TDS_DBG_INFO1, "%L host field %s.\n",tmp_ip);
-					field = strtok(NULL,"\n\t "); /* port */
+					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* port */
 					strcpy(tmp_port,field);
 				} /* else */
 			} /* if */

@@ -48,7 +48,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.8 2002-07-05 13:06:42 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.9 2002-07-05 20:23:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -326,29 +326,8 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
                case 'L': /* current local time */
                {
                   char        buf[128];
-                  struct tm  *tm;
-                  time_t      t;
 
-#ifdef __FreeBSD__
-                  struct timeval  tv;
-#endif
-
-#ifdef __FreeBSD__
-                  gettimeofday(&tv, NULL);
-                  t = tv.tv_sec;
-#else
-                  /* 
-                   * XXX Need to get a better time resolution for 
-                   * non-FreeBSD systems.
-                   */
-                  time(&t);
-#endif
-                  tm = localtime(&t);
-                  strftime(buf, sizeof(buf)-1, "%Y-%m-%d %H:%M:%S", tm);
-                  fputs(buf, dumpfile);
-#ifdef __FreeBSD__
-                  fprintf(dumpfile, ".%06lu", tv.tv_usec);
-#endif
+                  fputs(tds_timestamp_str(buf, 127), dumpfile);
                }
                default:
                {
