@@ -23,12 +23,15 @@
 ** Internal (not part of the exposed API) prototypes and such.
 */
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_ctlib_h [ ] =
-         "$Id: ctlib.h,v 1.5 2002-09-23 23:45:29 castellano Exp $";
-static void *no_unused_ctlib_h_warn[]={rcsid_ctlib_h, no_unused_ctlib_h_warn};
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.6 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
 
@@ -38,16 +41,20 @@ static void *no_unused_ctlib_h_warn[]={rcsid_ctlib_h, no_unused_ctlib_h_warn};
 typedef struct ctcolinfo
 {
 	TDS_SMALLINT *indicator;
-} CT_COLINFO;
+}
+CT_COLINFO;
 
 /*
 ** internal prototypes
 */
-int ctlib_handle_server_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
-int ctlib_handle_client_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
+int ctlib_handle_server_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
+int ctlib_handle_client_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
 int _ct_get_server_type(int datatype);
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

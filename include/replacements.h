@@ -21,14 +21,15 @@
 #define _replacements_h_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_replacements_h[] =
-         "$Id: replacements.h,v 1.4 2002-10-13 17:52:28 castellano Exp $";
-static void *no_unused_replacements_h_warn[] = {
-	rcsid_replacements_h,
-	no_unused_replacements_h_warn};
+static char rcsid_replacements_h[] = "$Id: replacements.h,v 1.5 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -50,6 +51,9 @@ char *strtok_r(char *str, const char *sep, char **lasts);
 #endif /* !HAVE_STRTOK_R */
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

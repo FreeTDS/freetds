@@ -20,19 +20,17 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h,v 1.2 2002-10-18 17:27:46 castellano Exp $";
-static void *no_unused_tds_sysdep_private_h_warn[] = {
-	rcsid_tds_sysdep_private_h,
-	no_unused_tds_sysdep_private_h_warn};
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.3 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifdef __INCvxWorksh
-#include <ioLib.h> /* for FIONBIO */
-#endif /* __INCvxWorksh */
+#include <ioLib.h>		/* for FIONBIO */
+#endif				/* __INCvxWorksh */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>
@@ -41,27 +39,26 @@ extern "C" {
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
+#endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef READSOCKET
 #define READSOCKET(a,b,c)	read((a), (b), (c))
-#endif /* !READSOCKET */
+#endif				/* !READSOCKET */
 
 #ifndef WRITESOCKET
 #define WRITESOCKET(a,b,c)	write((a), (b), (c))
-#endif /* !WRITESOCKET */
+#endif				/* !WRITESOCKET */
 
 #ifndef CLOSESOCKET
 #define CLOSESOCKET(a)		close((a))
-#endif /* !CLOSESOCKET */
+#endif				/* !CLOSESOCKET */
 
 #ifndef IOCTLSOCKET
 #define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
-#endif /* !IOCTLSOCKET */
+#endif				/* !IOCTLSOCKET */
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
-#endif /* _tds_sysdep_private_h_ */
-
+#endif				/* _tds_sysdep_private_h_ */

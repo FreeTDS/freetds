@@ -21,12 +21,15 @@
 #define _syberror_h_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_syberror_h [ ] =
-         "$Id: syberror.h,v 1.2 2002-09-13 18:21:41 castellano Exp $";
-static void *no_unused_syberror_h_warn[]={rcsid_syberror_h, no_unused_syberror_h_warn};
+static char rcsid_syberror_h[] = "$Id: syberror.h,v 1.3 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_syberror_h_warn[] = { rcsid_syberror_h, no_unused_syberror_h_warn };
 
 /* severity levels, gleaned from google */
 #define EXINFO         1
@@ -42,6 +45,9 @@ static void *no_unused_syberror_h_warn[]={rcsid_syberror_h, no_unused_syberror_h
 #define EXCONSISTENCY 11
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

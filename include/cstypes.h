@@ -24,17 +24,22 @@
 #include <cspublic.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_cstypes_h [ ] =
-         "$Id: cstypes.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
-static void *no_unused_cstypes_h_warn[]={rcsid_cstypes_h, no_unused_cstypes_h_warn};
+static char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
 
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 
 #endif
-

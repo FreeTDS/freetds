@@ -20,12 +20,8 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-static char rcsid_tdsstring_h[] =
-	"$Id: tdsstring.h,v 1.5 2002-10-19 18:03:14 castellano Exp $";
-static void *no_unused_tdsstring_h_warn[] = {
-	rcsid_tdsstring_h,
-	no_unused_tdsstring_h_warn
-};
+static char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.6 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_tdsstring_h_warn[] = { rcsid_tdsstring_h, no_unused_tdsstring_h_warn };
 
 extern char tds_str_empty[];
 
@@ -42,9 +38,9 @@ extern char tds_str_empty[];
 void tds_dstr_zero(char **s);
 void tds_dstr_free(char **s);
 
-char* tds_dstr_copy(char **s,const char* src);
-char* tds_dstr_copyn(char **s,const char* src,unsigned int length);
-char* tds_dstr_set(char **s,char *src);
+char *tds_dstr_copy(char **s, const char *src);
+char *tds_dstr_copyn(char **s, const char *src, unsigned int length);
+char *tds_dstr_set(char **s, char *src);
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \
@@ -53,4 +49,3 @@ char* tds_dstr_set(char **s,char *src);
 /** \@} */
 
 #endif /* _tdsstring_h_ */
-

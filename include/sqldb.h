@@ -23,9 +23,8 @@
 #include <sybdb.h>
 
 
-static char  rcsid_sqldb_h [ ] =
-         "$Id: sqldb.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
-static void *no_unused_sqldb_h_warn[]={rcsid_sqldb_h, no_unused_sqldb_h_warn};
+static char rcsid_sqldb_h[] = "$Id: sqldb.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_sqldb_h_warn[] = { rcsid_sqldb_h, no_unused_sqldb_h_warn };
 
 
 #endif

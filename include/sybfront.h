@@ -23,16 +23,22 @@
 #include "sybdb.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_sybfront_h [ ] =
-         "$Id: sybfront.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
-static void *no_unused_sybfront_h_warn[]={rcsid_sybfront_h, no_unused_sybfront_h_warn};
+static char rcsid_sybfront_h[] = "$Id: sybfront.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
+static void *no_unused_sybfront_h_warn[] = { rcsid_sybfront_h, no_unused_sybfront_h_warn };
 
 
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 
