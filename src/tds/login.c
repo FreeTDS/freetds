@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.140 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.141 2005-02-15 09:08:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -966,10 +966,16 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds->in_pos += len;
 	/* TODO some mssql version do not set last packet, update tds according */
 
-	/* no encryption required, just exit */
 	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
+
+	/* if server do not has certificate do normal login */
 	if (crypt_flag == 2)
 		return tds7_send_login(tds, connection);
+
+	/*
+	 * if server has a certificate it require at least a crypted login
+	 * (even if data is not encrypted)
+	 */
 
 #ifndef HAVE_GNUTLS
 	return TDS_FAIL;

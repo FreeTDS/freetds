@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.134 2005-02-14 16:12:12 freddy77 Exp $
+To Do List	$Id: TODO,v 1.135 2005-02-15 09:08:42 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -59,6 +59,8 @@ For future versions (in priority order within library):
   allocation and all function that return allocated data and be able to 
   rollback to a safe state)
 . optimize numeric conversions (partial, handle numeric->int and similar directly)
+  change precision (multiply/divide by 10^n) and extract number
+  checking overflow/underflow
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
   In token.c getting row should write data even to client

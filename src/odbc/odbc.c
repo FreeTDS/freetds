@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.357 2005-02-02 19:09:01 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.358 2005-02-15 09:08:47 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -534,6 +534,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 			if (!got_rows && stmt->errs.lastrc == SQL_SUCCESS)
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
+		case TDS_FAIL:
+			ODBC_RETURN(stmt, SQL_ERROR);
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
@@ -3382,8 +3384,12 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 				case TDS_DONEPROC_RESULT:
 				case TDS_DONEINPROC_RESULT:
 					stmt->row_count = tds->rows_affected;
-					if (done_flags & TDS_DONE_ERROR)
+					if (done_flags & TDS_DONE_ERROR) {
+						dyn = stmt->dyn;
+						stmt->dyn = NULL;
+						tds_free_dynamic(tds, dyn);
 						ODBC_RETURN(stmt, SQL_ERROR);
+					}
 					/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 					stmt->row = 0;
 					break;

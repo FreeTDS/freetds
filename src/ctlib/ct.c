@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.142 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.143 2005-02-15 09:08:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2481,8 +2481,11 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 				if (outlen) *outlen = sizeof(CS_INT);
 			}
 			if (property == CS_CUR_NAME) {
+				size_t len = strlen(cursor->cursor_name);
+				if (len >= buflen)
+					return CS_FAIL;
 				strcpy(buffer, cursor->cursor_name);
-				if (outlen) *outlen = strlen(cursor->cursor_name);
+				if (outlen) *outlen = len;
 			}
 			if (property == CS_CUR_ROWCOUNT) {
 				*(CS_INT *)buffer = cursor->cursor_rows;

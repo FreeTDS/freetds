@@ -1,3 +1,9 @@
+Tue Feb 15 10:07:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* src/ctlib/ct.c: fix possible client buffer overflow
+	* src/odbc/odbc.c: correctly free dynamic if fails
+	* src/tds/login.c: comment
+
 Mon Feb 14 13:44:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/.cvsignore doc/Makefile.am:
 	- use less temporary files
