@@ -1,6 +1,44 @@
 <html>
 <body>
-<p>Now prelogin packet (tds 8.0 only)
+
+<h2>How to enable encryption on MSSQL</h2>
+
+<h3>Under Linux (or any system that have openssl)</h3>
+
+<pre>
+# create a file containing key and self-signed certificate
+openssl req \
+  -x509 -nodes -days 365 \
+  -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
+
+# export mycert.pem as PKCS#12 file, mycert.pfx
+openssl pkcs12 -export \
+  -out mycert.pfx -in mycert.pem \
+  -name "My Certificate"
+</pre>
+
+<p>So we created a mycert.pfx certificate ready to be imported
+
+<h3>Under Windows</h3>
+
+<p>Open MMC and add certificates snap-in, add our certificate under <b>personal</b> and under <b>ca root</b> (to validate it)
+
+<p>Add to the registry the thumbprint of our certificato so to be used by mssql. For examples
+
+<pre>
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSSQLServer\MSSQLServer\SuperSocketNetLib]
+"Certificate"=hex:DD,5F,6C,EE,47,8E,0C,C0,74,8B,C4,71,8D,87,1C,E6,07,20,F2,28
+</pre>
+
+<p>Restart MSSQL
+
+<p>Check event viewer for results
+
+<h2>Encryption protocol</h2>
+
+<p>Prelogin packet (tds 8.0 only)
 
 <p>&gt;From client to server 
 

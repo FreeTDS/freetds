@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-01-30 11:46:46 $</date>
-		<releaseinfo>$Revision: 1.88 $</releaseinfo>
+		<date>$Date: 2005-02-03 09:04:04 $</date>
+		<releaseinfo>$Revision: 1.89 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.88 $</>
-<member>$Date: 2005-01-30 11:46:46 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.88 2005-01-30 11:46:46 freddy77 Exp $.</>
+<member>$Revision: 1.89 $</>
+<member>$Date: 2005-02-03 09:04:04 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.89 2005-02-03 09:04:04 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -536,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-01-30 11:46:46 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-02-03 09:04:04 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -2781,6 +2781,27 @@ them to mailing lists.
 Once in a while, someone writes to the mailing list, asking why <productname>FreeTDS</productname> is so <emphasis>slow</>.  It sometimes turns out that logging was left turned on.  Don't you be the next victim!  <productname>FreeTDS</productname> logs are meant for development and debugging, not as a system monitoring tool.  
 			</para>
 		        </sect2>
+			<sect2><title>ODBC world</title>
+			<para>
+Many ODBC DM have their own support for logging. How to set logging it's however very implementation dependent. ODBC log it's very helpful cause it provide a log of all calls made directly by applications.
+			</para>
+	<variablelist>
+	<varlistentry>
+		<term>unixODBC</term>
+		<listitem>
+			<para>unixODBC support logging setting some entries in <filename>odbcinst.ini</filename>. As example
+<screen>
+[ODBC]
+Trace        = Yes
+TraceFile    = /tmp/sql.log
+ForceTrace   = Yes
+</screen>
+Will generate a log file named <filename>sql.log</filename> in the <filename>/tmp</filename> directory.
+			</para>
+		</listitem>
+	</varlistentry>	
+	</variablelist>
+			</sect2>
 		</sect1>
 
 		<sect1 id="pagenodata">
