@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.126 2003-03-12 16:37:48 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.127 2003-03-12 17:43:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3009,7 +3009,7 @@ dbretname(DBPROCESS * dbproc, int retnum)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
-	if (retnum < 1 || retnum > param_info->num_cols)
+	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
 	return param_info->columns[retnum - 1]->column_name;
 }
@@ -3023,7 +3023,7 @@ TDSSOCKET *tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
-	if (retnum < 1 || retnum > param_info->num_cols)
+	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
 
 	colinfo = param_info->columns[retnum - 1];
@@ -3040,7 +3040,7 @@ dbretlen(DBPROCESS * dbproc, int retnum)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	param_info = tds->param_info;
-	if (retnum < 1 || retnum > param_info->num_cols)
+	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return -1;
 
 	colinfo = param_info->columns[retnum - 1];

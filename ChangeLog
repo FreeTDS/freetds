@@ -1,3 +1,7 @@
+Wed Mar 12 18:42:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c src/replacements/vasprintf.c:
+	- some fixes and change from Sybase patch
+
 Wed Mar 12 17:36:51 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: applied some fix
 

@@ -31,7 +31,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vasprintf.c,v 1.11 2002-12-09 16:40:59 freddy77 Exp $";
+static char software_version[] = "$Id: vasprintf.c,v 1.12 2003-03-12 17:43:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef _PATH_DEVNULL
@@ -79,6 +79,11 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 	*ret = NULL;
 
 #ifdef _REENTRANT
+
+# ifdef WIN32
+#  error Win32 do not have /dev/null, should use vsnprintf version
+# endif
+
 	if ((fp = fopen(_PATH_DEVNULL, "w")) == NULL)
 		return -1;
 #else /* !_REENTRANT */
