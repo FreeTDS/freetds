@@ -31,6 +31,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
@@ -43,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.19 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.19.2.1 2003-02-26 04:19:10 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *

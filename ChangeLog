@@ -1,3 +1,8 @@
+Tue Feb 25 22:07:08 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/server/login.c src/pool/pool.h
+	- include sys/types.h for FreeBSD per today's list discussion
+	* doc/userguide.sgml: fix grammar, clarify new ODBC configuration methods
+	
 Tue Feb 24 20:50:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: merged change from HEAD
 

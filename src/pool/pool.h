@@ -20,8 +20,12 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.6 2002-11-17 11:25:41 freddy77 Exp $";
+static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.6.2.1 2003-02-26 04:19:10 jklowden Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
+
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
 
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
