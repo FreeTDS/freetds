@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.75 2002-12-12 10:26:02 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.76 2002-12-19 13:06:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -209,7 +209,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	/*
 	 * If a dump file has been specified, start logging
 	 */
-	if (connect_info->dump_file) {
+	if (!tds_dstr_isempty(&connect_info->dump_file)) {
 		tdsdump_open(connect_info->dump_file);
 	}
 

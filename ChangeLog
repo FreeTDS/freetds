@@ -1,4 +1,7 @@
-Thu Dec 19 20:05:11 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Thu Dec 19 14:05:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c: fix check for dump
+
+Thu Dec 19 08:05:11 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: do not export SQLSetEnvAttr
 
 Wed Dec 18 15:18:13 EST 2002	JK Lowden <jklowden@schemamania.org>
