@@ -1,0 +1,34 @@
+<!DOCTYPE style-sheet PUBLIC "-//James Clark//DTD DSSSL Style Sheet//EN" [
+<!ENTITY dbstyle SYSTEM "docbook.dsl" CDATA DSSSL>
+]>
+
+<style-sheet>
+<style-specification use="docbook">
+<style-specification-body>
+
+;; For note, tip, and warning: include little
+;; gifs of a hand pointing a finger, or a yield sign, and so on.  
+;; Much prettier to look at than text.  
+
+(define %admon-graphics% #t) 
+;;(define %admon-graphics-path% "../images/")
+
+;; In generating names of HTML pages, use the
+;; section's "id" attribute, if present, to form the name.  
+
+(define %use-id-as-filename% #t)
+
+;; The filename of the root HTML document (excluding the extension).  
+(define %root-filename% "index")
+  
+(define %graphic-extensions%
+  ;; graphic extensions allowed
+  '("gif" "png" "jpg" "jpeg" "tif" "tiff" "eps" "epsf" ))
+
+(define %graphic-default-extension% 
+  "gif")
+
+</style-specification-body>
+</style-specification>
+<external-specification id="docbook" document="dbstyle">
+</style-sheet>

@@ -1,5 +1,5 @@
 Mon Dec  8 02:30:24 EST 2003	JK Lowden <jklowden@schemamania.org>
-	* doc/Makefile.am doc/userguide.sgml
+	* doc/Makefile.am doc/userguide.sgml doc/userguide.dsl.in
 	- Prepare UG for 0.62 release.  Added ODBC chapter.  
 	- Still needs integration with reference manual.  
 	
