@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.294 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.295 2004-02-09 16:01:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1326,12 +1326,6 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 
 	INIT_HSTMT;
 
-	if (stmt->dbc->current_statement != stmt) {
-		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-	IRD_CHECK;
-
 	ird = stmt->ird;
 
 	if (icol <= 0 || icol > ird->header.sql_desc_count) {
@@ -2583,15 +2577,19 @@ _SQLFetch(TDS_STMT * stmt)
 		/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
 		len = 0;
 		if (drec_ard->sql_desc_data_ptr) {
+			int c_type;
+
 			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 			if (is_blob_type(colinfo->column_type))
 				src = ((TDSBLOB *) src)->textvalue;
 			srclen = colinfo->column_cur_size;
-			/* TODO support SQL_C_DEFAULT */
+			c_type = drec_ard->sql_desc_concise_type;
+			if (c_type == SQL_C_DEFAULT)
+				c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
 			len = convert_tds2sql(context,
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 					      src,
-					      srclen, drec_ard->sql_desc_concise_type, drec_ard->sql_desc_data_ptr,
+					      srclen, c_type, drec_ard->sql_desc_data_ptr,
 					      drec_ard->sql_desc_octet_length);
 			if (len < 0) {
 				if (stmt->ird->header.sql_desc_array_status_ptr)
@@ -3002,16 +3000,6 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
 	INIT_HSTMT;
 
-	/* TODO... correct or not... */
-#if !UNIXODBC
-	if (stmt->dbc->current_statement != stmt) {
-		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	IRD_CHECK;
-#endif
-
 	/*
 	 * 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
 	 * generating queries such as 'drop table'
@@ -3041,6 +3029,81 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	/* trasform to native (one time, not for every SQLExecute) */
 	if (SQL_SUCCESS != prepare_call(stmt))
 		ODBC_RETURN(stmt, SQL_ERROR);
+
+#ifdef ENABLE_DEVELOPING
+	/* try to prepare query */
+	/* TODO support getting information even if parameters */
+	/* TODO try to prepare only getting informations (faster and optimizable) */
+	if (!stmt->prepared_query_is_rpc && !stmt->param_count) {
+		TDSDYNAMIC *dyn;
+
+		TDS_INT result_type;
+		TDS_INT rowtype;
+		int in_row = 0;
+		int done_flags;
+		TDSSOCKET *tds = stmt->dbc->tds_socket;
+
+		/* TODO needed ?? */
+		if (stmt->dyn)
+			tds_free_dynamic(tds, stmt->dyn);
+
+		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
+		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL) {
+			/* TODO ?? tds_free_param_results(params); */
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+
+		/* try to go to the next recordset */
+		desc_free_records(stmt->ird);
+		for (;;) {
+			switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
+			case TDS_NO_MORE_RESULTS:
+				if (stmt->dbc->current_statement == stmt)
+					stmt->dbc->current_statement = NULL;
+				ODBC_RETURN(stmt, SQL_SUCCESS);
+			case TDS_SUCCEED:
+				switch (result_type) {
+				case TDS_COMPUTEFMT_RESULT:
+				case TDS_STATUS_RESULT:
+				case TDS_PARAM_RESULT:
+				case TDS_MSG_RESULT:
+				case TDS_DESCRIBE_RESULT:
+					break;
+				case TDS_ROW_RESULT:	/* this should never happen */
+				case TDS_COMPUTE_RESULT:
+					while (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_SUCCEED);
+					break;
+	
+				case TDS_DONE_RESULT:
+				case TDS_DONEPROC_RESULT:
+				case TDS_DONEINPROC_RESULT:
+					if (done_flags & TDS_DONE_ERROR)
+						ODBC_RETURN(stmt, SQL_ERROR);
+					/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+					stmt->row = 0;
+					break;
+	
+				case TDS_ROWFMT_RESULT:
+					/* store first row informations */
+					if (!in_row)
+						odbc_populate_ird(stmt);
+					tds->rows_affected = TDS_NO_COUNT;
+					stmt->row = 0;
+					in_row = 1;
+					break;
+				}
+				break;
+			default:
+				dyn = stmt->dyn;
+				stmt->dyn = NULL;
+				tds_free_dynamic(tds, dyn);
+				/* TODO ?? tds_free_param_results(params); */
+				ODBC_RETURN(stmt, SQL_ERROR);
+				break;
+			}
+		}
+	}
+#endif
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
