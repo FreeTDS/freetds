@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.210 2003-09-21 18:37:43 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.211 2003-09-23 08:33:02 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2209,23 +2209,32 @@ int
 tds_process_cancel(TDSSOCKET * tds)
 {
 	int marker, done_flags = 0;
-
+	int retcode = TDS_SUCCEED;
+	
+	tds->queryStarttime = 0;
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, &done_flags);
+			{
+			if (tds_process_end(tds, marker, &done_flags) == TDS_FAIL)
+				retcode = TDS_FAIL;
+			}
 		} else if (marker == 0) {
 			done_flags = TDS_DONE_CANCELLED;
 		} else {
 			tds_process_default_tokens(tds, marker);
 		}
-	} while (!(done_flags & TDS_DONE_CANCELLED));
-	tds->state = TDS_IDLE;
+	} while (retcode == TDS_SUCCEED && !(done_flags & TDS_DONE_CANCELLED));
+
+
+	if (retcode == TDS_SUCCEED && !IS_TDSDEAD(tds))
+		tds->state = TDS_IDLE;
+	else
+		retcode = TDS_FAIL;
 
 	/* TODO clear cancelled results */
-
-	return 0;
+	return retcode;
 }
 
 /**
