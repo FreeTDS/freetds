@@ -17,6 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+static const char  software_version[]   = "$Id: dbopen.c,v 1.2 2002-08-29 22:06:25 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version,
+                                     no_unused_var_warn};
+
 #include <config.h>
 #include "sybdb.h"
 
