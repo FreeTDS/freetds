@@ -63,14 +63,14 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.94 2004-04-14 00:22:23 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.95 2004-05-30 20:23:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
 static RETCODE _bcp_build_bulk_insert_stmt(TDS_PBCB *, BCP_COLINFO *, int);
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
-static int _bcp_rtrim_varchar(char *, int);
+static int rtrim(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
 
@@ -842,7 +842,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 	TDS_INT desttype;
 	BYTE *coldata;
 
-	int i, collen, data_is_null, converted_data_size;
+	int i, collen, data_is_null;
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
@@ -1064,6 +1064,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 				/* special hack for text columns */
 				if (bcpcol->db_length == 4096 && collen > bcpcol->db_length) {	/* "4096" might not really matter */
+					BYTE *oldbuffer = bcpcol->data;
 					switch (desttype) {
 					case SYBTEXT:
 					case SYBNTEXT:
@@ -1071,12 +1072,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					case SYBVARBINARY:
 					case XSYBVARBINARY:
 					case SYBLONGBINARY:	/* Reallocate enough space for the data from the file. */
-						bcpcol->db_length = 8 + collen;	/* room to breath */
-						free(bcpcol->data);
-						bcpcol->data = (BYTE *) malloc(bcpcol->db_length);
+						bcpcol->db_length = 8 + collen;	/* room to breathe */
+						bcpcol->data = (BYTE *) realloc(bcpcol->data, bcpcol->db_length);
 						assert(bcpcol->data);
 						if (!bcpcol->data) {
 							_bcp_err_handler(dbproc, SYBEMEM);
+							free(oldbuffer);
 							return FAIL;
 						}
 						break;
@@ -1086,25 +1087,24 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				}
 				/* end special hack for text columns */
 
-				converted_data_size =
+				bcpcol->data_size =
 					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype,
 						  bcpcol->data, bcpcol->db_length);
 
 				free(coldata);
 
-				if (converted_data_size == -1) {
+				if (bcpcol->data_size == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
 					tdsdump_log(TDS_DBG_FUNC, 
 						    "%L _bcp_read_hostfile (bcp.c:%d) failed to convert %d bytes at offset 0x%x in the data file.\n", 
 						    __LINE__, collen, ftell(hostfile) - collen);
 				}
-
-				if (desttype == SYBVARCHAR) {
-					bcpcol->data_size = _bcp_rtrim_varchar((char *) bcpcol->data, converted_data_size);
-				} else {
-					bcpcol->data_size = converted_data_size;
-				}
+				
+				/* trim trailing blanks from character data */
+				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
+					bcpcol->data_size = rtrim((char *) bcpcol->data, bcpcol->data_size);
+				} 
 			}
 			if (bcpcol->data_size == -1) {	/* Are we trying to insert a NULL ? */
 				if (!bcpcol->db_nullable) {
@@ -1136,10 +1136,10 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 
 	const long int initial_offset = ftell(hostfile);
 
-	sample = (char *) malloc(term_len);
+	sample = malloc(term_len);
 
 	if (!sample) {
-		/* FIXME emit message */
+		_bcp_err_handler(NULL, SYBEMEM);
 		return -1;
 	}
 
@@ -1153,7 +1153,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 		if (*sample == *terminator) {
 			int found = 0;
 
-			if (sample_size == term_len) {	/* Did we read the end of a terminator? */
+			if (sample_size == term_len) {	
 				/*
 				 * If we read a whole terminator, compare the whole sequence and, if found, go home. 
 				 */
@@ -1162,12 +1162,25 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 				if (found) {
 					free(sample);
 					size = ftell(hostfile) - initial_offset;
-					if (size == -1 || 0 != fseek(hostfile, initial_offset, SEEK_SET)) {
+					if (size < 0 || 0 != fseek(hostfile, initial_offset, SEEK_SET)) {
 						/* FIXME emit message */
 						return -1;
 					}
 					return size - term_len;
 				}
+				/* 
+				 * If we tried to read a terminator and found something else, then we read a 
+				 * terminator's worth of data.  Back up N-1 bytes, and revert to byte-at-a-time testing.
+				 */
+				if (sample_size > 1) { 
+					sample_size--;
+					if (-1 == fseek(hostfile, -sample_size, SEEK_CUR)) {
+						/* FIXME emit message */
+						return -1;
+					}
+				}
+				sample_size = 1;
+				continue;
 			} else {
 				/* 
 				 * Found start of terminator, but haven't read a full terminator's length yet.  
@@ -1178,10 +1191,8 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 				sample_size = term_len;
 				continue;
 			}
-			assert(sample_size == term_len && !found);
+			assert(0);	/* should not arrive here */
 		}
-
-		sample_size = 1;
 	}
 
 	free(sample);
@@ -2658,7 +2669,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 }
 
 static int
-_bcp_rtrim_varchar(char *istr, int ilen)
+rtrim(char *istr, int ilen)
 {
 	char *t;
 	int olen = ilen;
