@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.35 2002-11-15 19:02:41 castellano Exp $";
+"$Id: sybdb.h,v 1.36 2002-11-21 22:40:46 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -263,6 +263,28 @@ struct dboption
 };
 typedef struct dboption DBOPTION;
 
+/* linked list of rpc parameters */
+
+typedef struct _DBREMOTE_PROC_PARAM
+{
+	struct _DBREMOTE_PROC_PARAM 
+			*next;
+			
+	char		*name;
+	BYTE		status;
+	int		type;
+	DBINT		maxlen;
+	DBINT		datalen;
+	BYTE		*value;
+}  DBREMOTE_PROC_PARAM;
+
+typedef struct 
+{
+	char *name;
+	DBSMALLINT options;
+	DBREMOTE_PROC_PARAM *param_list;
+} DBREMOTE_PROC;
+
 typedef struct {
    TDSSOCKET	  *tds_socket ;
    
@@ -295,6 +317,7 @@ typedef struct {
    unsigned char   avail_flag;
    DBOPTION        *dbopts;
    DBSTRING        *dboptcmd;
+   DBREMOTE_PROC   *rpc;	
    DBUSMALLINT     envchange_rcv;
    char            dbcurdb[DBMAXNAME + 1];
    char            servcharset[DBMAXNAME + 1];
@@ -625,10 +648,12 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBEBCPREF       20237
 #define SYBEBCVLEN       20234
 #define SYBEBCUO         20084
+#define SYBEBUOE         20097	/* FIXME: I made up this number (not the name). jkl */
 #define SYBEBUOF         20098
 #define SYBEBUDF         20102
 #define SYBEBIHC         20103
 #define SYBEBCUC         20085
+#define SYBEBUCE         20096	/* FIXME: I made up this number (not the name). jkl */
 #define SYBEBUCF         20099
 #define SYBEIFNB         20065
 #define SYBEBCRE         20070

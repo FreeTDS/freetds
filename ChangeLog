@@ -1,3 +1,9 @@
+Thu Nov 21 17:28:33 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h src/dblib/bcp.c 
+	- some preparation for bcp error file
+	* include/sybdb.h src/dblib/rpc.c 
+	- memory management skeleton for rpc.  Need send  to server
+	
 Thu Nov 21 22:30:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_tds2sql.c: add support for SQLGUID
 	* include/tds.h src/odbc/odbc.c src/tds/mem.c src/tds/query.c:
