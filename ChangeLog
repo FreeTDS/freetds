@@ -1,3 +1,6 @@
+Thu Aug 12 10:49:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: backported fix for prepare
+
 Mon Aug  9 11:00:07 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- backported fix for small buffer overflow in SQLStatistics
