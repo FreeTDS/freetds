@@ -1,0 +1,68 @@
+NAME
+  bsqldb - batch SQL script processor using db-lib
+
+SYNOPSIS
+  bsqldb [-U username] [-P password] [-S server] [-D database]
+         [-i input_file] [-o output_file] [-e error_file] [-v]
+
+DESCRIPTION
+  bsqldb is a utility program distributed with FreeTDS.
+
+  bsqldb is a non-interactive equivalent of the "isql" 
+  utility programs distributed by Sybase and Microsoft. Like them, bsqldb uses
+  the command "go" on a line by itself as a separator between batches. The last
+  batch need not be followed by "go".
+
+  bsqldb makes use of the db-lib API provided by FreeTDS. This 
+  API is of course also available to application developers.
+
+OPTIONS
+  -U username   database server login name.
+
+  -P password   database server password.
+
+  -S server	database server to which to connect.
+
+  -D database	database to use.
+
+  -i input_file  name of script file, containing SQL.
+
+  -o output_file  name of output file, holding result data.
+
+  -e error_file  name of file for errors.
+
+  -v  Turn on verbose mode, for more information about the db-lib interaction.
+  This also reports the result set metadata, including and return code. All
+  verbose data are written to standard error (or -e), so as not to interfere 
+  with the data stream.
+
+NOTES
+  bsqldb is a filter; it reads from standard input, writes to standard output, 
+  and writes errors to standard error. The -i, -o, and -e options override 
+  these, of course.
+
+  The source code for bsqldb is intended as a model for db-lib users. db-lib
+  has a rich set of functions, and it can be hard sometimes to understand how to
+  use them, particularly the first time. If you are using it in this way and
+  find something unclear, you are encouraged to email the author your
+  comments. 
+  
+EXIT STATUS
+  bsqldb exits 0 on success, and >0 if the server cannot process the query.
+
+  bsqldb will report any errors returned by the server, but will continue
+  processing. In a production environment, this behavior may be insufficiently
+  stringent. To make it extremely intolerant of errors, change the message and
+  error handlers to call exit(3). 
+
+HISTORY
+  bsqldb first appeared in FreeTDS 0\.63.
+
+AUTHORS
+  The bsqldb utility was written by James K. Lowden <jklowden@schemamania.org>
+
+BUGS
+  Microsoft servers as of SQL Server 7.0 SP 3 do not return output parameters
+  unless the RPC functions are used. This means bsqldb cannot return output
+  parameters for stored procedures with these servers. 
+

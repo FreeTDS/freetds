@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.47 2004-05-14 14:59:54 jklowden Exp $
+# version: $Id: Makefile.am,v 1.48 2004-06-15 00:39:10 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -11,10 +11,11 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
+		bsqldb.1 bsqldb.txt defncopy.1 defncopy.txt  \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
 		images/important.gif images/note.gif images/tip.gif
 
-man_MANS	= freebcp.1 tsql.1
+man_MANS	= freebcp.1 tsql.1 bsqldb.1 defncopy.1
 nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
@@ -25,7 +26,7 @@ doc:  $(DOCDIR)/userguide $(DOCDIR)/reference
 
 dist:	man
 
-man:	freebcp.1 tsql.1
+man:	freebcp.1 tsql.1 bsqldb.1 defncopy.1
 
 installdirs: 
 	$(mkinstalldirs)	$(TARGET_DOCDIR)/userguide    \
@@ -40,6 +41,18 @@ freebcp.1: freebcp.txt
 
 tsql.1: tsql.txt
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
+
+bsqldb.1: bsqldb.txt
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/bsqldb.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
+
+defncopy.1: defncopy.txt
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/defncopy.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@

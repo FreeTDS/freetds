@@ -1,3 +1,8 @@
+Mon Jun 14 20:35:43 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/Makefile.am doc/bsqldb.txt doc/defncopy.txt
+	* doc/userguide.sgml
+	- added man pages for bsqldb and defncopy
+	
 Sun Jun 13 19:35:43 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in comments with '#' instead of 'dnl'; add AC_REVISION.
 	* src/dblib/rpc.c dos2unix: s/\r//g.

@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-04-29 03:08:50 $</date>
-		<releaseinfo>$Revision: 1.82 $</releaseinfo>
+		<date>$Date: 2004-06-15 00:39:10 $</date>
+		<releaseinfo>$Revision: 1.83 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -41,7 +41,7 @@
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<preface id="about"><title>About this User Guide</title>
 			<para>
-This User Guide describes <productname>FreeTDS</productname> 0.62.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
+This User Guide describes <productname>FreeTDS</productname> 0.63.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
 			</para>
 			<para>
 It is surprisingly hard, after a while, to remember how it can be for someone newly approaching a project to use it.  What seems as obvious as a fog horn to an old hand may be much more like the fog itself to the newcomer.  That can make installing and setting up new software a puzzling or frustrating experience.  You may have heard, <quote>It's easy if you know how.</quote>  Indeed it is, and that's our purpose here: to make it easy, by letting you know how.  
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.82 $</>
-<member>$Date: 2004-04-29 03:08:50 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.82 2004-04-29 03:08:50 jklowden Exp $.</>
+<member>$Revision: 1.83 $</>
+<member>$Date: 2004-06-15 00:39:10 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.83 2004-06-15 00:39:10 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -196,7 +196,7 @@ If Java is your game, we refer you to the <productname>jTDS</productname> projec
 		<sect2 id="Status">
 			<title>Status</title>
 			<para>
-The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.62 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
+The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.63 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
 			</para>
 			<para>
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
@@ -536,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-04-29 03:08:50 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-06-15 00:39:10 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
