@@ -1,3 +1,9 @@
+Fri Sep 20 17:01:43 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in src/pool/Makefile.am src/pool/user.c
+	  src/server/login.c src/server/server.c
+	  src/server/server.h (added):
+	- Clean up remaining pool warnings.
+
 Fri Sep 20 16:49:25 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/pool/config.c src/pool/main.c
 	  src/pool/member.c src/pool/pool.h src/pool/stream.c

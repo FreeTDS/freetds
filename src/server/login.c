@@ -18,11 +18,12 @@
  */
 
 #include <config.h>
+#include <unistd.h>
 #include "tds.h"
 #include "tdsutil.h"
-#include <unistd.h>
+#include "server.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.7 2002-09-16 19:48:03 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.8 2002-09-20 21:08:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
