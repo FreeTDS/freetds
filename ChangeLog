@@ -1,3 +1,7 @@
+Sat Jan 11 19:13:33 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/t0003.c:
+	- SQLMoreResults discard results of current result set as documented
+
 Sat Jan 11 18:06:26 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/t0003.c: cleanup and more SQLMoreResults test
 

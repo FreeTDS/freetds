@@ -12,7 +12,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.9 2003-01-11 17:06:31 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.10 2003-01-11 18:13:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -58,6 +58,7 @@ main(int argc, char *argv[])
 
 	/* test that skipping a no empty result go to other result set */
 	Command(Statement, "insert into #odbctestdata values(123)");
+	Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 
 	if (SQLMoreResults(Statement) != SQL_SUCCESS) {
 		printf("Expected another recordset\n");

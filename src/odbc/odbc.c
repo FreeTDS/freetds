@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.125 2003-01-11 16:40:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.126 2003-01-11 18:13:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -261,6 +261,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 {
 	TDSSOCKET *tds;
 	TDS_INT result_type;
+	int tdsret;
+	TDS_INT rowtype;
 
 	INIT_HSTMT;
 
@@ -275,8 +277,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
+				/* Skipping current result set's rows to access next resultset or proc's retval */
+				while ((tdsret=tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
+					;
+				if (tdsret == TDS_FAIL)
+					return SQL_ERROR;
+				break;
 			case TDS_CMD_FAIL:
-				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result chenged */
+				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
 				return SQL_SUCCESS;
 
@@ -286,15 +294,17 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 				/* ?? */
 			case TDS_CMD_DONE:
+				break;
 				/* TODO: correct ?? */
 				if (tds->res_info) {
 					stmt->row = 0;
 					return SQL_SUCCESS;
 				}
-			case TDS_PARAM_RESULT:
 			case TDS_COMPUTEFMT_RESULT:
-			case TDS_MSG_RESULT:
 			case TDS_ROWFMT_RESULT:
+				return SQL_SUCCESS;
+			case TDS_PARAM_RESULT:
+			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
 				break;
 			}
@@ -995,9 +1005,12 @@ _SQLExecute(TDS_STMT * stmt)
 		case TDS_CMD_DONE:
 			if (tds->res_info)
 				done = 1;
+			break;
 		case TDS_COMPUTEFMT_RESULT:
-		case TDS_MSG_RESULT:
 		case TDS_ROWFMT_RESULT:
+			done = 1;
+			break;
+		case TDS_MSG_RESULT:
 		case TDS_DESCRIBE_RESULT:
 			break;
 
