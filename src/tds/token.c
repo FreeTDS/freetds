@@ -30,7 +30,6 @@
 #endif /* HAVE_STDLIB_H */
 
 #include <assert.h>
-#include <libgen.h>
 
 #include "tds.h"
 #include "tdsconvert.h"
@@ -39,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.226 2003-11-16 18:10:18 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.227 2003-11-22 16:50:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -210,14 +209,14 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
-		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", basename(__FILE__), __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_COLINFO_TOKEN:
 		return tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", basename(__FILE__), __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default:
@@ -486,8 +485,6 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	int marker;
 	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
 	TDSCOLINFO   *curcol;
-	int saved_rows_affected = TDS_NO_COUNT;
-	int saved_return_status = 0;
 	int rc;
 
 	if (tds->state == TDS_IDLE) {
@@ -634,7 +631,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			break;
 		case TDS_RETURNSTATUS_TOKEN:
 			if (tds->internal_sp_called) {
-				saved_return_status = tds_get_int(tds);
+				/* TODO perhaps we should use this result ?? */
+				tds_get_int(tds);
 			} else {
 				tds->has_status = 1;
 				tds->ret_status = tds_get_int(tds);
@@ -671,23 +669,16 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		case TDS_DONEPROC_TOKEN:
 			tds_process_end(tds, marker, done_flags);
 			if (tds->internal_sp_called) {
-				*result_type       = TDS_DONE_RESULT;
-				tds->rows_affected = saved_rows_affected;
-			} else {
-				*result_type = TDS_DONEPROC_RESULT;
+				*result_type = TDS_NO_MORE_RESULTS;
+				return TDS_NO_MORE_RESULTS;
 			}
+			*result_type = TDS_DONEPROC_RESULT;
 			return TDS_SUCCEED;
+			break;
 		case TDS_DONEINPROC_TOKEN:
-			/* FIXME should we free results ?? */
 			tds_process_end(tds, marker, done_flags);
-			if (tds->internal_sp_called) {
-				if (tds->rows_affected != TDS_NO_COUNT) {
-					saved_rows_affected = tds->rows_affected;
-				} 
-			} else {
-				*result_type = TDS_DONEINPROC_RESULT;
-				return TDS_SUCCEED;
-			}
+			*result_type = TDS_DONEINPROC_RESULT;
+			return TDS_SUCCEED;
 			break;
 		default:
 			if (tds_process_default_tokens(tds, marker) == TDS_FAIL) {
@@ -1940,7 +1931,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		
 		/* read the data */
 		if (is_char_type(curcol->column_type)) {
-			if (tds_get_char_data(tds, blob_info->textvalue, colsize, curcol) == TDS_FAIL)
+			if (tds_get_char_data(tds, (char *) blob_info, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {
 			assert(colsize == new_blob_size);
@@ -3287,13 +3278,15 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 	if (is_unicode_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2ucs2];
 
-	if (!curcol->iconv_info && IS_TDS7_PLUS(tds))
+	if (!curcol->iconv_info && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2server_chardata];
 
-	if (curcol->iconv_info) {
-		curcol->on_server.column_size = curcol->column_size;
-		curcol->column_size = determine_adjusted_size(curcol->iconv_info, curcol->column_size);
-	}
+	if (!curcol->iconv_info)
+		return;
+
+	curcol->on_server.column_size = curcol->column_size;
+	curcol->column_size = determine_adjusted_size(curcol->iconv_info, curcol->column_size);
+
 	tdsdump_log(TDS_DBG_INFO1, "%L adjust_character_column_size:\n"
 				   "\tServer charset: %s\n"
 				   "\tServer column_size: %d\n"

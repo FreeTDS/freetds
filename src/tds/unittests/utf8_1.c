@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.2 2003-11-15 09:30:45 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.3 2003-11-22 16:50:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -240,7 +240,7 @@ main(int argc, char **argv)
 		sprintf(type, "NVARCHAR(%d)", max_len);
 		test(type, "NVARCHAR with sufficient size");
 
-		test("TEXT", "TEXT");
+		test("NTEXT", "TEXT");
 
 		/* TODO test parameters */
 	}

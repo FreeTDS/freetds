@@ -1,3 +1,17 @@
+Sat Nov 22 17:32:29 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c: reverse some BLOB handling
+	* src/tds/token.c:
+	- remove libgen.h dependency
+	- some fixes for ODBC
+	- some fixes for UTF-8 client
+	- do not core if dumping is enabled
+	* src/tds/unittests/common.c:
+	- do not force 512 as packet size
+	* src/tds/unittests/flags.c src/tds/unittests/utf8_1.c:
+	- make them work
+	* src/tds/util.c: print (null) on null strings
+	* src/tds/write.c: new style comment..
+
 Sun Nov 16 19:09:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: reformatted to avoid warning in gcc
 	* src/tds/token.c:

@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.49 2003-11-16 08:21:47 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.50 2003-11-22 16:50:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -409,9 +409,11 @@ goodwrite(TDSSOCKET * tds)
 	p = tds->out_buf;
 
 	while (left > 0) {
-		/* If there's a timeout, we need to sit and wait for socket */
-		/* writability */
-		/* moved socket writability check to own function -- bsb */
+		/*
+		 * If there's a timeout, we need to sit and wait for socket
+		 * writability
+		 * moved socket writability check to own function -- bsb
+		 */
 		tds_check_socket_write(tds);
 
 		retval = WRITESOCKET(tds->s, p, left);

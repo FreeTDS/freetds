@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.40 2003-11-16 08:21:47 jklowden Exp $";
+static char software_version[] = "$Id: util.c,v 1.41 2003-11-22 16:50:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -367,7 +367,10 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 					{
 						char *s = va_arg(ap, char *);
 
-						fputs(s, dumpfile);
+						if (s)
+							fputs(s, dumpfile);
+						else
+							fputs("(null)", dumpfile);
 						break;
 					}
 				case 'd':
