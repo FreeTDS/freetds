@@ -1,3 +1,6 @@
+Mon Oct  7 21:24:32 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/tds/config.c	better logging for TDSDUMPCONFIG
+	
 Mon Oct  7 16:53:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/dblib/dblib.c src/odbc/odbc.c:
 	- Use AC_GNU_SOURCE in configure.in instead of defining

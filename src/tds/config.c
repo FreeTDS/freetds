@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.38 2002-10-07 17:51:01 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.39 2002-10-08 01:33:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -150,10 +150,16 @@ FILE *in;
 
 	if ((in = fopen (path, "r")) != NULL) {
 		tdsdump_log(TDS_DBG_INFO1, 
-			"%L Found conf file in %s %s. Reading section %s.\n",
+			"%L Found conf file '%s' %s. Reading section '%s'.\n",
 			path, how, server);
 		found = tds_read_conf_sections (in, server, config);
-        	              if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
+		
+		if(found) {
+			tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
+		} else {
+			tdsdump_log(TDS_DBG_INFO2, "%L ...'%s' not found.\n", server);
+		}
+		
 		fclose (in);
 	}
 	return found;
@@ -162,7 +168,7 @@ FILE *in;
 static int
 tds_read_conf_file(char *server, TDSCONFIGINFO *config)
 {
-char  *home, *path;
+char  *home, *path = NULL;
 int found = 0; 
 
 	if (interf_file) {
@@ -174,24 +180,30 @@ int found = 0;
 		path = getenv ("FREETDSCONF");
 		if (path) {
 			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, config);
+		} else {
+			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDSCONF not set.  Trying $HOME.\n");
 		}
 	}
 
 	if (!found) {
 		/* FIXME use getpwent for security */
 		home = getenv("HOME");
-		if (home!=NULL && home[0]!='\0') {
+		if (home && home[0]!='\0') {
 			if (asprintf(&path,"%s/.freetds.conf",home) < 0) {
+				/* out of memory condition; don't attempt a log message */
+				/* should we try the OS log? */
+				printf (stderr, "config.c (line %d): no memory\n", __LINE__);
 				return 0;
 			}
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, config);
-			free(path);
+		} else {
+			tdsdump_log(TDS_DBG_INFO2, "%L ...$HOME not set.  Trying %s.\n", FREETDS_SYSCONFFILE);
 		}
 	}
 
 	if (!found) {
 		found = tds_try_conf_file(FREETDS_SYSCONFFILE, "(default)", server, config);
-	}
+	} 
 
 	return found;
 }
