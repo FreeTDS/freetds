@@ -1,3 +1,7 @@
+Fri Dec 31 14:15:28 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c use getopt(3)
+	* src/dblib/bcp.c firstrow and lastrow are independent
+	
 Wed Dec 22 21:09:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: fix memory leak reported by Brad Rittenhouse
 

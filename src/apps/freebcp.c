@@ -36,13 +36,17 @@
 #include <strings.h>
 #endif /* HAVE_STRINGS_H */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "tds.h"
 #include <sybfront.h>
 #include <sybdb.h>
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.34 2004-11-19 15:42:05 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.35 2004-12-31 19:17:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -146,41 +150,37 @@ static void unescape(char arg[])
 }
 
 int
-process_parameters(int argc, char **argv, PARAMDATA * pdata)
+process_parameters(int argc, char **argv, PARAMDATA *pdata)
 {
-	int state;
-	int i;
-
-	char arg[FILENAME_MAX + 1];
-
-	if (argc == 1) {
-		pusage();
-		return (FALSE);
-	}
-
-	if (*(1 + argv[1]) == 'v') {
-		printf("freebcp version %s\n", software_version);
-		return (FALSE);
-	}
+	extern char *optarg;
+	extern int optind;
+	extern int optopt;
+	
+	int ch;
 
 	if (argc < 6) {
+		if (argc == 1) {
+			pusage();
+			return (FALSE);
+		}
 		fprintf(stderr, "A minimum of 6 parameters must be supplied.\n");
 		return (FALSE);
 	}
 
-	/* set some defaults */
-
+	/* 
+	 * Set some defaults and read the table, file, and direction arguments.  
+	 */
 	pdata->firstrow = 0;
 	pdata->lastrow = 0;
 	pdata->batchsize = 1000;
 	pdata->maxerrors = 10;
 
 	/* argument 1 - the database object */
-
 	pdata->dbobject = (char *) malloc(strlen(argv[1]) + 1);
 	if (pdata->dbobject != (char *) NULL)
 		strcpy(pdata->dbobject, argv[1]);
 
+	/* argument 2 - the direction */
 	strcpy(pdata->dbdirection, argv[2]);
 
 	if (strcmp(pdata->dbdirection, "in") == 0) {
@@ -194,233 +194,105 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 		return (FALSE);
 	}
 
+	/* argument 3 - the datafile name */
 	strcpy(pdata->hostfilename, argv[3]);
 
-	/* get the rest of the arguments */
-
-	state = GET_NEXTARG;
-
-	for (i = 4; i < argc; i++) {
-		strcpy(arg, argv[i]);
-
-		switch (state) {
-
-		case GET_NEXTARG:
-
-			if (arg[0] != '-') {
-				fprintf(stderr, "Parse error: expected parameter %d to begin with a '-' instead of '%c'.\n", i,
-					arg[0]);
-				return (FALSE);
-			}
-
-			switch (arg[1]) {
-
-			case 'v':
-			case 'V':
-				printf("freebcp version %s\n", software_version);
-				return FALSE;
-				break;
-			case 'm':
-				pdata->mflag++;
-				if (strlen(arg) > 2)
-					pdata->maxerrors = atoi(&arg[2]);
-				else
-					state = GET_MAXERRORS;
-				break;
-			case 'f':
-				pdata->fflag++;
-				if (strlen(arg) > 2)
-					strcpy(pdata->formatfile, &arg[2]);
-				else
-					state = GET_FORMATFILE;
-				break;
-			case 'e':
-				pdata->eflag++;
-				if (strlen(arg) > 2) {
-					pdata->errorfile = (char *) malloc(strlen(arg));
-					strcpy(pdata->errorfile, &arg[2]);
-				} else
-					state = GET_ERRORFILE;
-				break;
-			case 'F':
-				pdata->Fflag++;
-				if (strlen(arg) > 2)
-					pdata->firstrow = atoi(&arg[2]);
-				else
-					state = GET_FIRSTROW;
-				break;
-			case 'L':
-				pdata->Lflag++;
-				if (strlen(arg) > 2)
-					pdata->lastrow = atoi(&arg[2]);
-				else
-					state = GET_LASTROW;
-				break;
-			case 'b':
-				pdata->bflag++;
-				if (strlen(arg) > 2)
-					pdata->batchsize = atoi(&arg[2]);
-				else
-					state = GET_BATCHSIZE;
-				break;
-			case 'n':
-				pdata->nflag++;
-				break;
-			case 'c':
-				pdata->cflag++;
-				break;
-			case 'E':
-				pdata->Eflag++;
-				break;
-			case 'd':
-				tdsdump_open(NULL);
-				break;
-			case 't':
-				pdata->tflag++;
-				if (strlen(arg) > 2) {
-					pdata->fieldterm = (char *) malloc(strlen(arg));
-					strcpy(pdata->fieldterm, &arg[2]);
-					unescape(pdata->fieldterm);
-				} else
-					state = GET_FIELDTERM;
-				break;
-			case 'r':
-				pdata->rflag++;
-				if (strlen(arg) > 2) {
-					pdata->rowterm = (char *) malloc(strlen(arg));
-					strcpy(pdata->rowterm, &arg[2]);
-					unescape(pdata->rowterm);
-				} else
-					state = GET_ROWTERM;
-				break;
-			case 'U':
-				pdata->Uflag++;
-				if (strlen(arg) > 2) {
-					pdata->user = (char *) malloc(strlen(arg));
-					strcpy(pdata->user, &arg[2]);
-				} else
-					state = GET_USER;
-				break;
-			case 'P':
-				pdata->Pflag++;
-				if (strlen(arg) > 2) {
-					pdata->pass = (char *) malloc(strlen(arg));
-					strcpy(pdata->pass, &arg[2]);
-				} else
-					state = GET_PASS;
-				break;
-			case 'I':
-				pdata->Iflag++;
-				if (strlen(arg) > 2)
-					strcpy(pdata->interfacesfile, &arg[2]);
-				else
-					state = GET_INTERFACESFILE;
-				break;
-			case 'S':
-				pdata->Sflag++;
-				if (strlen(arg) > 2) {
-					pdata->server = (char *) malloc(strlen(arg));
-					strcpy(pdata->server, &arg[2]);
-				} else
-					state = GET_SERVER;
-				break;
-			case 'h':	/* hints */
-				if (strlen(arg) > 2) {
-					pdata->hint = (char *) malloc(strlen(arg));
-					strcpy(pdata->hint, &arg[2]);
-				} else
-					state = GET_HINT;
-				break;
-			case 'T':
-				pdata->Tflag++;
-				if (strlen(arg) > 2)
-					pdata->textsize = atoi(&arg[2]);
-				else
-					state = GET_TEXTSIZE;
-				break;
-			case 'A':
-				pdata->Aflag++;
-				if (strlen(arg) > 2)
-					pdata->packetsize = atoi(&arg[2]);
-				else
-					state = GET_PACKETSIZE;
-				break;
-			default:
-				fprintf(stderr, "Unknown option '%c'.\n", arg[1]);
-				return (FALSE);
-
-			}
+	/* 
+	 * Get the rest of the arguments 
+	 */
+	optind = 4; /* start processing options after table, direction, & filename */
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:ncEdvV")) != -1) {
+		switch (ch) {
+		case 'v':
+		case 'V':
+			printf("freebcp version %s\n", software_version);
+			return FALSE;
 			break;
-		case GET_MAXERRORS:
-			pdata->maxerrors = atoi(arg);
-			state = GET_NEXTARG;
+		case 'm':
+			pdata->mflag++;
+			pdata->maxerrors = atoi(optarg);
 			break;
-		case GET_FORMATFILE:
-			strcpy(pdata->formatfile, arg);
-			state = GET_NEXTARG;
+		case 'f':
+			pdata->fflag++;
+			strcpy(pdata->formatfile, optarg);
 			break;
-		case GET_ERRORFILE:
-			pdata->errorfile = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->errorfile, arg);
-			state = GET_NEXTARG;
+		case 'e':
+			pdata->eflag++;
+			pdata->errorfile = strdup(optarg);
 			break;
-		case GET_FIRSTROW:
-			pdata->firstrow = atoi(arg);
-			state = GET_NEXTARG;
+		case 'F':
+			pdata->Fflag++;
+			pdata->firstrow = atoi(optarg);
 			break;
-		case GET_LASTROW:
-			pdata->lastrow = atoi(arg);
-			state = GET_NEXTARG;
+		case 'L':
+			pdata->Lflag++;
+			pdata->lastrow = atoi(optarg);
 			break;
-		case GET_BATCHSIZE:
-			pdata->batchsize = atoi(arg);
-			state = GET_NEXTARG;
+		case 'b':
+			pdata->bflag++;
+			pdata->batchsize = atoi(optarg);
 			break;
-		case GET_FIELDTERM:
-			pdata->fieldterm = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->fieldterm, arg);
-			state = GET_NEXTARG;
+		case 'n':
+			pdata->nflag++;
 			break;
-		case GET_ROWTERM:
-			pdata->rowterm = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->rowterm, arg);
-			state = GET_NEXTARG;
+		case 'c':
+			pdata->cflag++;
 			break;
-		case GET_USER:
-			pdata->user = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->user, arg);
-			state = GET_NEXTARG;
+		case 'E':
+			pdata->Eflag++;
 			break;
-		case GET_PASS:
-			pdata->pass = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->pass, arg);
-			state = GET_NEXTARG;
+		case 'd':
+			tdsdump_open(NULL);
 			break;
-		case GET_INTERFACESFILE:
-			strcpy(pdata->interfacesfile, arg);
-			state = GET_NEXTARG;
+		case 't':
+			pdata->tflag++;
+			pdata->fieldterm = strdup(optarg);
+			unescape(pdata->fieldterm);
 			break;
-		case GET_SERVER:
-			pdata->server = (char *) malloc(strlen(arg) + 1);
-			strcpy(pdata->server, arg);
-			state = GET_NEXTARG;
+		case 'r':
+			pdata->rflag++;
+			pdata->rowterm = strdup(optarg);
+			unescape(pdata->rowterm);
 			break;
-		case GET_TEXTSIZE:
-			pdata->textsize = atoi(arg);
-			state = GET_NEXTARG;
+		case 'U':
+			pdata->Uflag++;
+			pdata->user = strdup(optarg);
 			break;
-		case GET_PACKETSIZE:
-			pdata->packetsize = atoi(arg);
-			state = GET_NEXTARG;
+		case 'P':
+			pdata->Pflag++;
+			pdata->pass = strdup(optarg);
 			break;
-
+		case 'I':
+			pdata->Iflag++;
+			strcpy(pdata->interfacesfile, optarg);
+			break;
+		case 'S':
+			pdata->Sflag++;
+			pdata->server = strdup(optarg);
+			break;
+		case 'h':
+			pdata->hint = strdup(optarg);
+			break;
+		case 'T':
+			pdata->Tflag++;
+			pdata->textsize = atoi(optarg);
+			break;
+		case 'A':
+			pdata->Aflag++;
+			pdata->packetsize = atoi(optarg);
+			break;
+		case '?':
 		default:
-			break;
-
+			fprintf(stderr, "Unrecognized option '%c'.\n", optopt);
+			pusage();
+			return (FALSE);
 		}
 	}
 
-
+	/* 
+	 * Check for required/disallowed option combinations 
+	 */
+	 
 	/* these must be specified */
 	if (!pdata->Uflag || !pdata->Pflag || !pdata->Sflag) {
 		fprintf(stderr, "All 3 options -U, -P, -S must be supplied.\n");
@@ -433,17 +305,14 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 		return (FALSE);
 	}
 
-	/* character mode file */
+	/* character mode file: Fill in some default values*/
 	if (pdata->cflag) {
-		/* Fill in some default values */
 
 		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
-			pdata->fieldterm = (char *) malloc(2);
-			strcpy(pdata->fieldterm, "\t");
+			pdata->fieldterm = "\t";
 		}
-		if (!pdata->rflag || !pdata->rowterm) {	/* row terminator not specified */
-			pdata->rowterm = (char *) malloc(2);
-			strcpy(pdata->rowterm, "\n");
+		if (!pdata->rflag || !pdata->rowterm) {		/* row terminator not specified */
+			pdata->rowterm =  "\n";
 		}
 	}
 
