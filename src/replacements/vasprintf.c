@@ -28,9 +28,10 @@
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vasprintf.c,v 1.10 2002-11-17 11:28:12 freddy77 Exp $";
+static char software_version[] = "$Id: vasprintf.c,v 1.11 2002-12-09 16:40:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef _PATH_DEVNULL

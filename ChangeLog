@@ -1,3 +1,7 @@
+Mon Dec 09 17:39:21 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/replacements/vasprintf.c:
+	- improve win32 compile
+
 Sun Dec 08 10:07:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds.html: slightly updated
 

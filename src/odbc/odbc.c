@@ -46,6 +46,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "tds.h"
+
 #ifdef UNIXODBC
     #include <sql.h>
     #include <sqlext.h>
@@ -55,7 +57,6 @@
     #include "isqlext.h"
 #endif
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
@@ -67,7 +68,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.97 2002-11-30 14:11:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.98 2002-12-09 16:40:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
