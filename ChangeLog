@@ -1,3 +1,8 @@
+Tue Aug 27 11:09:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- fixed some possible buffer overflow
+	- added some FIXME comment
+
 Tue Aug 27 02:38:16 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/tds/convert.c	Error messages (tds_client_msg) from tds_convert
 	* src/tds/token.c	don't write to null socket's state in tds_client_msg

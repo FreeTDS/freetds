@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.57 2002-08-27 06:50:50 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.58 2002-08-27 09:11:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,7 +72,7 @@ static int  is_ampm(char *);
 static int  is_monthname(char *);
 static int  is_numeric_dateformat(char *);
 static TDS_UINT utf16len(const utf16_t* s);
-static char *tds_prtype(int token);
+static const char *tds_prtype(int token);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern const int g__numeric_bytes_per_prec[];
@@ -96,11 +96,11 @@ void
 send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *varchar, int to)
 {	
 	enum { level=16, state=1 };
-	/* 249 is the standard explicit conversion error number. 
+	/* TODO 249 is the standard explicit conversion error number. 
 	 * If this function is passed some other number, it should have a 
 	 * static lookup table of message strings (by number and locale). --jkl
 	 */
-	const static char *message = "Syntax error during explicit conversion of %s value '%s' to a %s field.";
+	const static char *message = "Syntax error during explicit conversion of %.30s value '%.3900s' to a %.30s field.";
 	char buffer[4096];
 	
 	sprintf( buffer, message, tds_prtype(from), varchar, tds_prtype(to) );
@@ -1438,6 +1438,8 @@ char errmsg[255];
 	 */
 TDSSOCKET fake_socket, *tds=&fake_socket;
 
+	/* FIXME this method can cause core dump, we call tds_client_msg with 
+	 * invalid socket structure but handler do not know this...*/
 	memset( &fake_socket, 0, sizeof(fake_socket) );
 	fake_socket.tds_ctx = tds_ctx;
 
@@ -1511,6 +1513,7 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 		char varchar[2056];
 		CONV_RESULT result;
 		int fOK, len;
+		/* FIXME assert errors on multithread */
 		static short int depth=0;
 
 		assert( !depth++ );		/* failing to handle failure is a fault */
@@ -1519,16 +1522,19 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
-				len= (destlen < sizeof(varchar))? destlen : sizeof(varchar);
+				len= (destlen < (sizeof(varchar)-1))? destlen : (sizeof(varchar)-1);
 				strncpy( varchar, src, len );
+				varchar[len] = 0;
 				break;
 			default:
 				/* recurse once to convert whatever it was to varchar */
 				len = tds_convert(tds_ctx, srctype, src, srclen, SYBCHAR, sizeof(varchar), &result);
-				strncpy( varchar, result.ib, len );
-				if( len >= 0 ) 
-					varchar[len] = '\0';
-				free(result.ib);
+				if (len < 0) len = 0;
+				if (len > (sizeof(varchar)-1))
+					len = sizeof(varchar)-1;
+				strncpy( varchar, result.c, len );
+				varchar[len] = '\0';
+				free(result.c);
 				break;
 		}
 
@@ -2780,9 +2786,10 @@ unsigned int num; /* we use unsigned here for best overflow check */
 /* 
  * Offer string equivalents of conversion tokens.  
  */
-char *tds_prtype(int token)
+static const char *
+tds_prtype(int token)
 {
-   char  *result = "???";
+   const char  *result = "???";
 
    switch (token)
    {
