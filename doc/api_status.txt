@@ -1,6 +1,8 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
+# $Id: api_status.txt,v 1.41 2003-12-13 08:08:33 jklowden Exp $s
+#
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
 # wrong or incomplete.  It is the our intention to have a cgi script on 
