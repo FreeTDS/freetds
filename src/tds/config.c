@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.32 2002-09-30 15:31:58 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.33 2002-09-30 16:03:03 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -71,6 +71,7 @@ static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config);
 static int tds_config_boolean(char *value);
 static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
 static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login );
+static int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
 extern int g_append_mode;
 

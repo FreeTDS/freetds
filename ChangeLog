@@ -1,3 +1,8 @@
+Mon Sep 30 12:01:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tdsutil.h src/tds/config.c:
+	- Namespace cleanup, make get_server_info() static since it
+	  isn't needed outside config.c.
+
 Mon Sep 30 11:47:12 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in include/tdsutil.h src/dblib/bcp.c
 	  src/dblib/dblib.c src/pool/stream.c src/server/server.c
