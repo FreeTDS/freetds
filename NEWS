@@ -4,6 +4,8 @@
   important for future binary compatibility.
 - ODBC: SQLFetch returns error correctly
 - ODBC: fix problem rebinding parameters
+- ODBC: ability to fetch data types after prepare (needed for Oracle
+  bindings and OTL library).
 
 * 0.62
 - ct-lib: cursor support
