@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-08 03:37:48 $</date>
-		<releaseinfo>$Revision: 1.30 $</releaseinfo>
+		<date>$Date: 2002-09-08 20:45:47 $</date>
+		<releaseinfo>$Revision: 1.31 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -201,8 +201,12 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 		<sect1>
 			<title>Status of this document</title>
 			<para>
-The document you are reading is version $Revision: 1.30 $, dated $Date: 2002-09-08 03:37:48 $.  The most recent version can be found on the <productname>FreeTDS</productname> 
-<ulink url="http://www.freetds.org/userguide/">web site</ulink>.  
+The document you are reading is version 
+$Revision: 1.31 $
+, dated 
+$Date: 2002-09-08 20:45:47 $
+.  The most recent version can be found on the <productname>FreeTDS</productname> 
+<ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>
 		</sect1>
 	</chapter>
@@ -692,6 +696,85 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 			</para>
 		</sect2>
 		</sect1>
+
+		<sect1 id="locales">
+    			<title>The <filename>locales.conf</filename> file</title>
+		<sect2 id="localespurpose">
+			<title>What it does</title>
+			<para>
+For an English-speaking American, not much.  <productname>FreeTDS</productname>  originated in the United States, and uses U.S. conventions if no <filename>locales.conf</filename> is present.  The <filename>locales.conf</filename> provided with the installation also reflects these conventions.  
+			</para>
+			<para>
+Information on locales and locale strings is easily (even too easily!) found on the Internet, or see <command>man locale</> for your system.  <productname>FreeTDS</productname> will examine its environment for a <literal>LOCALE</> string.  If it finds one, it will look it up in <filename>locales.conf</> to find your preferred settings.  If it fails to find one, it will use its defaults.  
+			</para>
+			<para>
+<filename>locales.conf</> controls three settings: 
+<variablelist>
+	<varlistentry>
+		<term>Date format</term>
+		<listitem>
+			<para>The way dates will appear when implicitly converted to strings by <productname>FreeTDS</productname>.  </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>language</term>
+		<listitem>
+			<para>The language that will be used for error/status messages from the server.  A <productname>SQL Server</productname> client can specify a language for such messages at login time. <note><para><productname>FreeTDS</productname> issues a few messages of its own.  Messages from the server are called "messages"; those from the client library (i.e., from <productname>FreeTDS</productname>) are called "error messages".  <productname>FreeTDS</productname>-issued messages are not affected by <filename>locales.conf</filename>.  </para></note>
+	 </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>character set</term>
+		<listitem>
+			<para>Indicates to the server what character set should be used for communicating with the client.  </para>
+		</listitem>
+	</varlistentry>	
+</variablelist>
+
+
+			</para>
+		</sect2>
+		<sect2 id="localeslocation">
+			<title>Where it goes</title>
+			<para>
+			Like <filename>freetds.conf</filename>, the location of <filename>locales.conf</> is determined by the value of <parameter>--sysconfdir</> in <application>configure</>.  The default is <literal>PREFIX/etc</>.
+			</para>
+		</sect2>
+		<sect2 id="localesformat">
+			<title>What it looks like</title>
+			<para>
+The format of <filename>locales.conf</> is similar to that of <filename>freetds.conf</filename>.  There is a <literal>[default]</> section, and a section for each locale.  
+			
+<filename>locales.conf</> controls three settings
+<variablelist>
+	<varlistentry>
+		<term><literal>date format</></term>
+		<listitem>
+			<para>This entry will be passed (almost) literally to <function>strftime(3)</> to convert dates to strings.  </para>
+			<para>For the most part, see you system documentation for <function>strftime(3)</> (<command>man 3 strftime</command>).  You will see there though that <function>strftime(3)</> has no provision for milliseconds.  The <filename>locales.conf</> format string uses <literal>%z</> for milliseconds.  <note><para>If your system's <function>strftime(3)</> does employ <literal>%z</> for its own use, it will not be given that chance by <productname>FreeTDS</productname>.  <productname>FreeTDS</productname> will consume the <literal>%z</> for its milliseconds needs, and will not pass it on to <function>strftime(3)</>. </para></note></para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>language</term>
+		<listitem>
+			<para>The language that will be used for error/status messages from the server.  A <productname>SQL Server</productname> client can specify a language for such messages at login time. <note><para><productname>FreeTDS</productname> issues a few messages of its own.  Messages from the server are called <quote>messages</>; those from the client library (i.e., from <productname>FreeTDS</productname>) are called <quote>error messages</>.  <productname>FreeTDS</productname>-issued messages are not affected by <filename>locales.conf</filename>.  </para></note>
+	 </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>character set</term>
+		<listitem>
+			<para>Indicates to the server what character set should be used for communicating with the client.  </para>
+		</listitem>
+	</varlistentry>	
+</variablelist>
+			</para>
+		</sect2>
+		</sect1>
+
+
+
+
 		<sect1 id="envvar">
    			<title>Setting the environment variables</title>
 			<sect2>
@@ -2156,7 +2239,7 @@ do this.</para>
 			</para>
 		</sect2>
 		<sect2>
-    			<title>Send a patch.</title>
+    			<title>Send a patch</title>
 			<para>
 Good patches are nearly always applied in short order.  Patches uploaded to <ulink url="http://sourceforge.net/tracker/?group_id=33106&amp;atid=407808">SourceForge</ulink> trigger automatic notification to the <productname>FreeTDS</productname>  mailing list.  
 			</para>
@@ -2165,6 +2248,9 @@ Good patches are nearly always applied in short order.  Patches uploaded to <uli
     			<title>Correct this User Guide</title>
 			<para>
 Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
+			</para>
+			<para>
+The User Guide is maintained in SGML DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be gratefully emended by yours truly.  
 			</para>
 		</sect2>
 		<sect2>
@@ -2189,11 +2275,17 @@ The <productname>FreeTDS</productname> FAQ Master is <ulink url="mailto:jklowden
 Out of ten people you know, it's a fair bet 10 never heard of <productname>FreeTDS</productname> and nine don't understand the problem it solves.  Lots of places have begun to use Microsoft <productname>SQL Server</productname>s in all sorts of ways, and if you adhere to the Microsoft line, there's only one way to connect to them: from a Microsoft OS.  
 			</para>
 			<para>
-<productname>FreeTDS</productname> solves two problems neatly.  
-	<simplelist>
-		<member> It lets Unix-like OS's connect to Microsoft or Sybase servers, and </>
-		<member>It may well be the best  <acronym>JDBC</> driver <quote>on the market</quote> for NT environments.</>
-	</simplelist>   If more people knew, fewer would be stuck.  
+What can <productname>FreeTDS</productname> do that can't be done any other way?  Glad you asked.  <productname>FreeTDS</productname> can
+			</para>
+<ItemizedList>
+	<listitem><para>Connect to every version of either vendor's server, using the same binaries.</para></listitem>
+	<listitem><para>Provide a <systemitem class="library">ct-lib</systemitem> interface to Microsoft <productname>SQL Server</productname>.  This feature alone allows <productname>DBD::Sybase</> and <productname>sqsh</>, among others, to connect to Microsoft's product.  </para></listitem>
+	<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>SQL Server</productname>.</para></listitem>
+	<listitem><para>Run on many more operating systems than either vendor's libraries do.</para></listitem>
+	<listitem><para>Get fixed, instead of telling you to get stuffed.</para></listitem>
+	<listitem><para>Amuse and inform.  Also frustrate and infuriate, but we don't put that under "Advocacy".  </para></listitem>
+</ItemizedList>
+			<para>If more people knew, fewer would be stuck.  
 			</para>
 		</sect1>
 	</chapter>
