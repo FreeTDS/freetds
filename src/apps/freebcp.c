@@ -25,7 +25,7 @@
 
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.4 2002-08-22 05:45:25 jklowden Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.5 2002-08-31 20:29:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -426,17 +426,13 @@ int login_to_database(PARAMDATA *pdata, DBPROCESS **dbproc)
 int file_character(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir )
 {
 DBINT   li_rowsread = 0;
-char ls_command[256];
 int  i;
 int  li_direction = 0;
 int li_numcols = 0;
 
-
-     sprintf ( ls_command, "select * from %s where 1=2", pdata->dbobject );
-
-     if (dbcmd (dbproc, ls_command) == FAIL )
+     if (dbfcmd (dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL)
      {
-          printf("dbcmd failed\n");
+          printf("dbfcmd failed\n");
           return FALSE;
      }
 
@@ -498,19 +494,15 @@ int li_numcols = 0;
 int file_native(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir )
 {
 DBINT   li_rowsread = 0;
-char ls_command[256];
 int  i;
 int  li_direction = 0;
 int  li_numcols = 0;
 int  li_coltype;
 int  li_collen;
 
-
-     sprintf ( ls_command, "select * from %s where 1=2", pdata->dbobject );
-
-     if (dbcmd (dbproc, ls_command) == FAIL )
+     if (dbfcmd (dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL)
      {
-          printf("dbcmd failed\n");
+          printf("dbfcmd failed\n");
           return FALSE;
      }
 

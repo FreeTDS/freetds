@@ -1,3 +1,8 @@
+Sat Aug 31 16:27:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/freebcp.c:
+	- use dbfcmd() instead of dbcmd() to eliminate potential buffer
+	  overrun. 
+
 Sat Aug 31 08:31:25 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- fixed dbwritetext
