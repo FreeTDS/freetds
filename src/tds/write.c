@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.37 2003-04-08 10:25:43 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.38 2003-04-16 16:25:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -105,7 +105,6 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	char buffer[256];
 	const char * eob; 
 	unsigned int output_size, bytes_out = 0;
-	unsigned int bpc = tds->iconv_info->server_charset.max_bytes_per_char; /* bytes per char */ ;
 
 	client = &tds->iconv_info->client_charset;
 
@@ -125,18 +124,16 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 			}
 		}
 	}
-	assert(bpc);
+
 	assert(len >= 0);
 
 	if (IS_TDS7_PLUS(tds)) {
 		eob = s + len;	/* 1 past the end of the input buffer */
 		while (len > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
-			output_size = len * bpc;
-			if (output_size > sizeof(buffer))
-				output_size = sizeof(buffer);
+			output_size = sizeof(buffer);
 			bytes_out = tds_iconv(to_server, tds->iconv_info, s, &len, buffer, output_size);
-			s = eob - len;
+			s = eob - len;	/* len was reduced by number of bytes processed by tds_iconv() */
 			tds_put_n(tds, buffer, bytes_out);
 		}
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string wrote %d bytes\n", bytes_out);
