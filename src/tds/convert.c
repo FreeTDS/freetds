@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.139 2004-05-12 21:30:07 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.140 2004-05-19 13:11:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1498,7 +1498,7 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	memcpy(&the_value, src, 8);
 	switch (desttype) {
 	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%.15g", the_value);
+		sprintf(tmp_str, "%.16g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
 
@@ -1556,7 +1556,7 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%.15g", the_value);
+		sprintf(tmp_str, "%.16g", the_value);
 		return stringz_to_numeric(tmp_str, cr);
 		break;
 		/* not allowed */

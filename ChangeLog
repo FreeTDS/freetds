@@ -1,3 +1,6 @@
+Wed May 19 09:07:23 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/convert.c convert double-precision to 16 places, not 15.
+	
 Tue May 18 17:04:57 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/blk.c: remove some warnings
 
