@@ -68,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.60 2003-05-13 16:17:31 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.61 2003-05-22 19:45:43 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -93,7 +93,7 @@ void add_history(const char *s);
 char *
 readline(char *prompt)
 {
-	char *buf, line[1000];
+	char line[1000];
 	int i = 0;
 
 	printf("%s", prompt);

@@ -1,3 +1,7 @@
+Thu May 22 15:31:31 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- Remove unused variable "buf".
+
 Thu May 22 15:27:04 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/bcp.c src/odbc/convert_tds2sql.c src/odbc/sql2tds.c:
 	- Remove redundant declarations of tds_numeric_bytes_per_prec[].
