@@ -30,4 +30,5 @@ odbcinst.ini
 prepare_results
 data
 testodbc
+error
 

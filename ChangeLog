@@ -1,3 +1,7 @@
+Tue Mar 30 17:24:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/error.c(added):
+	- add error for error in a row
+
 Sun Mar 28 20:44:52 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/tables.c:
 	- fix small issue with DBD::ODBC
