@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.133 2005-02-09 14:56:22 freddy77 Exp $
+To Do List	$Id: TODO,v 1.134 2005-02-14 16:12:12 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -24,9 +24,10 @@ Working in progress:
   . review TODO in procedure, check cluster
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
-    (tds_peek in not pending hang... update)
+    (tds_peek if not in pending state hang... update)
   . tdsdump_log is not reentrant, cancellation core if logging enabled ...
 . fix timeout problem reported in ML
+  . check dblib behavior
 . support encrypted connections
   . mssql
   . sybase
