@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.39 2002-08-16 08:29:59 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.40 2002-08-16 08:49:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1272,11 +1272,11 @@ char errmsg[255];
 			return tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
 				desttype, destlen, cr);
 			break;
-		case SYBNVARCHAR:
 		case SYBTEXT:
 			return tds_convert_text(tds_ctx, srctype,src,srclen,
 				desttype,destlen, cr);
 			break;
+		case SYBNVARCHAR:
 		case SYBNTEXT:
 			return tds_convert_ntext(srctype,src,srclen,
 				desttype,destlen, cr);
