@@ -1,3 +1,7 @@
+Wed Oct 23 07:40:58 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* doc/CodingStyle	reflects tabstop of 5
+	- src/.indent.pro	added
+	
 Wed Oct 23 07:27:28 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c	Applied Bill's patch for missing column
 
