@@ -24,19 +24,28 @@
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.7 2002-10-14 03:16:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 char *
 tds_get_query(TDSSOCKET *tds) 
 {
-static unsigned char query[4096]; /* XXX buffer overrun */
+static unsigned char *query;
+static size_t query_buflen = 0;
 int len;
 
+	if (query_buflen = 0) {
+		query_buflen = 1024;
+		query = malloc(query_buflen);
+	}
 	tds_get_byte(tds); /* 33 */
 	len = tds_get_smallint(tds); /* query size +1 */
 	tds_get_n(tds,NULL,3);
+	if (len > query_buflen) {
+		query_buflen = len;
+		query = realloc(query, query_buflen);
+	}
 	tds_get_n(tds, query, len - 1);
 	return (char *)query;
 }
