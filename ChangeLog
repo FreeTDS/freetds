@@ -1,3 +1,7 @@
+Fri Sep  6 15:54:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- remove bogus dberrhandler() and dbmsghandler()
+
 Fri Sep  6 13:16:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c src/tds/write.c:
 	- work if not blocking socket (call always select)

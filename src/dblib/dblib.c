@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.50 2002-09-05 12:22:08 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.51 2002-09-06 19:57:05 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2021,28 +2021,12 @@ DBBOOL dbdead(DBPROCESS *dbproc)
 }
 
 EHANDLEFUNC
-dberrhandler(EHANDLEFUNC inHandler)
-{
-	EHANDLEFUNC old = g_dblib_err_handler;
-	g_dblib_err_handler = inHandler;
-	return old;
-} 
-
-EHANDLEFUNC
 dberrhandle(EHANDLEFUNC handler)
 {
    EHANDLEFUNC retFun = g_dblib_err_handler;
 
    g_dblib_err_handler = handler;
    return retFun;
-}
-
-MHANDLEFUNC
-dbmsghandler(MHANDLEFUNC inHandler)
-{
-	MHANDLEFUNC old = g_dblib_msg_handler;
-	g_dblib_msg_handler = inHandler;
-	return old;
 }
 
 MHANDLEFUNC
