@@ -29,6 +29,7 @@ int pool_packet_read(TDS_POOL_MEMBER *pmbr);
 */
 TDSSOCKET *pool_mbr_login(TDS_POOL *pool)
 {
+TDSCONTEXT *context;
 TDSLOGIN *login;
 TDSSOCKET *tds;
 int rc, marker;
@@ -44,7 +45,8 @@ char *query;
 	tds_set_charset(login,"iso_1");
 	tds_set_language(login,"us_english");
 	tds_set_packet(login,512);
-	tds = tds_alloc_socket(NULL, 512);
+	context = tds_alloc_context();
+	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
   	if (tds_connect(tds, login) == TDS_FAIL) {
 		/* what to do? */

@@ -1,3 +1,7 @@
+Fri Sep 20 17:45:43 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/pool/member.c:
+	- Allocate a context for the tds socket connection.
+
 Fri Sep 20 17:01:43 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/pool/Makefile.am src/pool/user.c
 	  src/server/login.c src/server/server.c
