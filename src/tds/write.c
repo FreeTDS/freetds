@@ -28,7 +28,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.3 2001-11-08 17:53:06 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,7 +62,7 @@ int  cpsize;
 	if (buf) memcpy(tempbuf,buf, cpsize);
 	tds_put_n(tds,tempbuf,dsize);
 	free(tempbuf);
-	tds_put_byte(tds,cpsize);
+	return tds_put_byte(tds,cpsize);
 }
 int tds_put_int(TDSSOCKET *tds, TDS_INT i)
 {
