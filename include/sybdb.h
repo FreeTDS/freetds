@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.9 2002-08-06 04:32:01 jklowden Exp $";
+"$Id: sybdb.h,v 1.10 2002-08-29 05:42:34 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -103,6 +103,12 @@ typedef int	(*INTFUNCPTR)();
 ** redefine them. */
 /* __INCvxWorksh will get #defined by std. include files included from tds.h
 */
+#ifdef STATUS
+/* On DU4.0d we get a conflicting STATUS definition from arpa/nameser.h
+   when _REENTRANT is defined.
+*/
+#undef STATUS
+#endif
 typedef int STATUS;
 typedef unsigned char BOOL ;
 #endif
@@ -466,7 +472,7 @@ extern int dbnumcompute(DBPROCESS *dbprocess);
 extern int DBNUMORDERS(DBPROCESS *dbprocess);
 extern int dbnumrets(DBPROCESS *dbproc);
 extern DBPROCESS *tdsdbopen(LOGINREC *login, char *server);
-#define   dbopen(x,y) tdsdbopen(x,y)
+#define   dbopen(x,y) tdsdbopen((x),(y))
 extern int dbordercol(DBPROCESS *dbprocess, int order);
 extern RETCODE dbpoll(DBPROCESS *dbproc, long milliseconds, DBPROCESS **ready_dbproc, int *return_reason);
 extern void dbprhead(DBPROCESS *dbproc);
@@ -493,7 +499,8 @@ extern int dbretlen(DBPROCESS *dbproc, int retnum);
 extern char *dbretname(DBPROCESS *dbproc, int retnum);
 extern DBINT dbretstatus(DBPROCESS *dbproc);
 extern int dbrettype(DBPROCESS *dbproc, int retnum);
-extern RETCODE DBROWS(DBPROCESS *dbproc);
+#define   DBROWS(x) dbrows((x))
+extern RETCODE dbrows(DBPROCESS *dbproc);
 extern STATUS DBROWTYPE(DBPROCESS *dbprocess);
 extern RETCODE dbrpcinit(DBPROCESS *dbproc, char *rpcname, DBSMALLINT options);
 extern RETCODE dbrpcparam(DBPROCESS *dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE *value);
