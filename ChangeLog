@@ -1,3 +1,7 @@
+Tue Jul 29 10:55:29 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c src/odbc/prepare_query.h:
+	- add native_sql procedure to implement SQLNativeSql
+
 Mon Jul 28 23:50:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: merge some SQLGetInfo stuff
 

@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.12 2003-07-01 20:23:46 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.13 2003-07-29 09:00:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -73,21 +73,14 @@ static void *no_unused_var_warn[] = { software_version,
  * ATAN2 -> ATN2
  * TRUNCATE -> ??
  */
-int
-prepare_call(struct _hstmt *stmt)
+static SQLRETURN
+to_native(struct _hstmt *stmt, char *buf)
 {
-	char *s, *d, *p, *buf;
+	char *d, *s, *p;
 	int nest_syntax = 0;
 
 	/* list of bit, used as stack, is call ? FIXME limites size... */
 	unsigned long is_calls = 0;
-
-	if (stmt->prepared_query)
-		buf = stmt->prepared_query;
-	else if (stmt->query)
-		buf = stmt->query;
-	else
-		return SQL_ERROR;
 
 	/* we can do it because result string will be
 	 * not bigger than source string */
@@ -130,7 +123,7 @@ prepare_call(struct _hstmt *stmt)
 					break;
 				s = p + 1;
 			} else {
-				if (*s == '?')
+				if (*s == '?' && stmt)
 					stmt->prepared_query_is_func = 1;
 				memcpy(d, "exec ", 5);
 				d += 5;
@@ -156,19 +149,46 @@ prepare_call(struct _hstmt *stmt)
 		}
 	}
 	*d = '\0';
+	return SQL_SUCCESS;
+}
+
+SQLRETURN
+prepare_call(struct _hstmt * stmt)
+{
+	char *s, *d, *p, *buf;
+	SQLRETURN rc;
+
+	if (stmt->prepared_query)
+		buf = stmt->prepared_query;
+	else if (stmt->query)
+		buf = stmt->query;
+	else
+		return SQL_ERROR;
+
+	if ((rc = to_native(stmt, buf)) != SQL_SUCCESS)
+		return rc;
+
+	/* TODO optimize ? */
+	d = strchr(buf, 0);
 
 	/* now detect RPC */
 	stmt->prepared_query_is_rpc = 0;
 	s = buf;
 	while (isspace(*s))
 		++s;
-	if (strncasecmp(s, "exec", 4) != 0 || !isspace(s[4]))
-		return SQL_SUCCESS;
-	s += 5;
+	if (strncasecmp(s, "exec", 4) == 0) {
+		if (isspace(s[4]))
+			s += 5;
+		else if (strncasecmp(s, "execute", 7) == 0 && isspace(s[7]))
+			s += 8;
+		else
+			return SQL_SUCCESS;
+	}
 	while (isspace(*s))
 		++s;
 	p = s;
 	if (*s == '[') {
+		/* FIXME handle [dbo].[name] and [master]..[name] syntax */
 		s = (char *) tds_skip_quoted(s);
 	} else {
 		/* FIXME: stop at other characters ??? */
@@ -195,6 +215,13 @@ prepare_call(struct _hstmt *stmt)
 	memmove(buf, p, d - p + 1);
 
 	return SQL_SUCCESS;
+}
+
+/* TODO handle output parameter and not terminated string */
+SQLRETURN
+native_sql(char *s)
+{
+	return to_native(NULL, s);
 }
 
 /* function info */
