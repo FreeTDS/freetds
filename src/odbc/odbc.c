@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.143 2003-03-31 09:13:02 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.144 2003-04-01 10:28:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -714,7 +714,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	INIT_HSTMT;
 
 	tds = stmt->hdbc->tds_socket;
-	if (icol <= 0 || icol > tds->res_info->num_cols) {
+	if (icol <= 0 || tds->res_info == NULL || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
 		return SQL_ERROR;
 	}
@@ -1021,9 +1021,9 @@ _SQLExecute(TDS_STMT * stmt)
 			if (tds->res_info)
 				done = 1;
 			break;
+		/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_ROWFMT_RESULT:
-			done = 1;
 			break;
 		case TDS_MSG_RESULT:
 		case TDS_DESCRIBE_RESULT:
