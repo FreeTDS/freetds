@@ -1,3 +1,6 @@
+Thu Sep  5  15:46:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: make --sysconfdir option work and make distcheck work
+
 Thu Sep  5  14:04:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- fix error on multithreading environment checking recursive error
