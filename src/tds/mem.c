@@ -33,6 +33,8 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
@@ -40,13 +42,13 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.77 2003-04-21 09:05:58 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.78 2003-04-25 11:54:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
 
-TDSENVINFO *tds_alloc_env(TDSSOCKET * tds);
-void tds_free_env(TDSSOCKET * tds);
+static TDSENVINFO *tds_alloc_env(TDSSOCKET * tds, int bufsize);
+static void tds_free_env(TDSSOCKET * tds);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
@@ -659,7 +661,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_MALLOCN(tds_socket->out_buf, unsigned char, bufsize);
 
 	tds_socket->parent = (char *) NULL;
-	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
+	if (!(tds_socket->env = tds_alloc_env(tds_socket, bufsize)))
 		goto Cleanup;
 
 	/* an iconv conversion descriptor of -1 means we don't use iconv. */
@@ -682,9 +684,21 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 }
 
 TDSSOCKET *
-tds_realloc_socket(int bufsize)
+tds_realloc_socket(TDSSOCKET * tds, int bufsize)
 {
-	return NULL;		/* XXX */
+	unsigned char *new_out_buf;
+
+	assert(tds && tds->env && tds->out_buf);
+
+	if (tds->env->block_size == bufsize)
+		return tds;
+
+	if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize)) != NULL) {
+		tds->out_buf = new_out_buf;
+		tds->env->block_size = bufsize;
+		return tds;
+	}
+	return NULL;
 }
 
 void
@@ -744,8 +758,8 @@ tds_free_connect(TDSCONNECTINFO * connect_info)
 	TDS_ZERO_FREE(connect_info);
 }
 
-TDSENVINFO *
-tds_alloc_env(TDSSOCKET * tds)
+static TDSENVINFO *
+tds_alloc_env(TDSSOCKET * tds, int bufsize)
 {
 	TDSENVINFO *env;
 
@@ -753,12 +767,12 @@ tds_alloc_env(TDSSOCKET * tds)
 	if (!env)
 		return NULL;
 	memset(env, '\0', sizeof(TDSENVINFO));
-	env->block_size = TDS_DEF_BLKSZ;
+	env->block_size = bufsize;
 
 	return env;
 }
 
-void
+static void
 tds_free_env(TDSSOCKET * tds)
 {
 	if (tds->env) {

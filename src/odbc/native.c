@@ -25,6 +25,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <ctype.h>
+
 #include "tds.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
@@ -33,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.8 2003-04-23 15:09:28 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.9 2003-04-25 11:54:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.111 2003-04-21 09:05:54 freddy77 Exp $";
+	"$Id: tds.h,v 1.112 2003-04-25 11:54:01 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -927,7 +927,7 @@ char *tds_get_homedir(void);
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
 void tds_free_input_params(TDSDYNAMIC *dyn);
 void tds_free_dynamic(TDSSOCKET *tds);
-TDSSOCKET *tds_realloc_socket(int bufsize);
+TDSSOCKET *tds_realloc_socket(TDSSOCKET *tds, int bufsize);
 void tds_free_compute_result(TDSCOMPUTEINFO *comp_info);
 void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp);
 unsigned char *tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam);

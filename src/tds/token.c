@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.173 2003-04-21 09:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.174 2003-04-25 11:54:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1856,7 +1856,6 @@ tds_process_env_chg(TDSSOCKET * tds)
 	char *newval = NULL;
 	int new_block_size;
 	TDSENVINFO *env = tds->env;
-	unsigned char *new_out_buf;
 	int lcid;
 
 	size = tds_get_smallint(tds);
@@ -1904,10 +1903,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 			 * handle it.
 			 */
 			/* Reallocate buffer if impossible (strange values from server or out of memory) use older buffer */
-			if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, new_block_size)) != NULL) {
-				tds->out_buf = new_out_buf;
-				env->block_size = new_block_size;
-			}
+			tds_realloc_socket(tds, new_block_size);
 		}
 		break;
 	}

@@ -1,3 +1,9 @@
+Fri Apr 25 13:52:51 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/mem.c src/tds/token.c:
+	- make tds_(alloc|free)_env static
+	- implement tds_realloc_socket and use it
+	* src/odbc/native.c: include ctype.h avoiding warning
+
 Wed Apr 23 13:18:08 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/odbc.c attempt to fix SQLGetInfo for SQL_DBMS_VER
 
