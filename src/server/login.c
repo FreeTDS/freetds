@@ -49,7 +49,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.31 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.32 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -73,7 +73,7 @@ tds_listen(int ip_port)
 	TDSCONTEXT *context;
 	TDSSOCKET *tds;
 	struct sockaddr_in sin;
-	SOCKET fd, s;
+	TDS_SYS_SOCKET fd, s;
 	size_t len;
 
 	sin.sin_addr.s_addr = INADDR_ANY;

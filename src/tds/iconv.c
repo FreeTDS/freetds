@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.88 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.89 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -484,6 +484,8 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 		    || iconv_info->from_wire == (iconv_t) - 1 || iconv_info->from_wire2 == (iconv_t) - 1) {
 
 			tds_iconv_info_close(iconv_info);
+			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\" indirectly\n",
+				    server->name, client->name);
 			return 0;
 		}
 
@@ -635,12 +637,34 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	/*
 	 * Call iconv() as many times as necessary, until we reach the end of input or exhaust output.  
 	 */
-	/* TODO use flag INDIRECT */
 	errno = 0;
 	p = *outbuf;
 	for (;;) {
-		/* swap bytes if necessary */
-		if (io == to_client && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
+		if (iconv_info->flags & TDS_ENCODING_INDIRECT) {
+			/* swap bytes if necessary */
+#if ENABLE_EXTRA_CHECKS
+			char tmp[8];
+#else
+			char tmp[128];
+#endif
+			char *pob = tmp;
+			size_t ol = sizeof(tmp);
+
+			irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pob, &ol);
+			if (irreversible == (size_t) - 1 || errno == E2BIG) {
+				char *pib = tmp;
+				size_t il = sizeof(tmp) - ol;
+
+				irreversible = iconv(cd2, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
+				if (irreversible != (size_t) - 1) {
+					if (*inbytesleft)
+						continue;
+					break;
+				}
+			}
+			break;
+		} else if (io == to_client && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
+			/* swap bytes if necessary */
 #if ENABLE_EXTRA_CHECKS
 			char tmp[8];
 #else

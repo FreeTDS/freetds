@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.9 2003-09-30 17:30:00 ppeterd Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.10 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -65,14 +65,6 @@ typedef DWORD pid_t;
 
 #ifndef sock_errno
 #define sock_errno errno
-#endif
-
-#if !defined(WIN32) && !defined(SOCKET)
-#define SOCKET int
-#endif
-
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET -1
 #endif
 
 #ifndef READSOCKET

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.256 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.257 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -355,11 +355,11 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	if (hwnd)
 		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
 
-	odbc_parse_connect_string(szConnStrIn, szConnStrIn + conlen, connect_info);
+	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connect_info);
 
 	/* TODO what should be correct behavior for output string?? -- freddy77 */
 	if (szConnStrOut)
-		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, szConnStrIn, conlen);
+		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, (const char *) szConnStrIn, conlen);
 
 	if (tds_dstr_isempty(&connect_info->server_name)) {
 		tds_free_connect(connect_info);
@@ -564,7 +564,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	}
 #endif
 
-	if (!tds_dstr_copyn(&query, szSqlStrIn, odbc_get_string_size(cbSqlStrIn, szSqlStrIn))) {
+	if (!tds_dstr_copyn(&query, (const char *) szSqlStrIn, odbc_get_string_size(cbSqlStrIn, szSqlStrIn))) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1245,7 +1245,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 
 	/* data source name */
 	if (szDSN || (*szDSN))
-		tds_dstr_copyn(&dbc->dsn, szDSN, odbc_get_string_size(cbDSN, szDSN));
+		tds_dstr_copyn(&dbc->dsn, (const char *) szDSN, odbc_get_string_size(cbDSN, szDSN));
 	else
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
@@ -3098,7 +3098,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
 	INIT_HSTMT;
 
-	if (!tds_dstr_copyn(&stmt->cursor_name, szCursor, odbc_get_string_size(cbCursor, szCursor))) {
+	if (!tds_dstr_copyn(&stmt->cursor_name, (const char *) szCursor, odbc_get_string_size(cbCursor, szCursor))) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -4621,6 +4621,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 {
 	SQLUINTEGER ui = (SQLUINTEGER) ValuePtr;
 	SQLUINTEGER *uip = (SQLUINTEGER *) ValuePtr;
+	SQLINTEGER *ip = (SQLINTEGER *) ValuePtr;
 	SQLUSMALLINT *usip = (SQLUSMALLINT *) ValuePtr;
 
 	INIT_HSTMT;
@@ -4734,7 +4735,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.attr_noscan = ui;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
-		stmt->apd->header.sql_desc_bind_offset_ptr = uip;
+		stmt->apd->header.sql_desc_bind_offset_ptr = ip;
 		break;
 	case SQL_ATTR_PARAM_BIND_TYPE:
 		stmt->apd->header.sql_desc_bind_type = ui;
@@ -4772,7 +4773,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ard->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
-		stmt->ard->header.sql_desc_bind_offset_ptr = uip;
+		stmt->ard->header.sql_desc_bind_offset_ptr = ip;
 		break;
 #if SQL_BIND_TYPE != SQL_ATTR_ROW_BIND_TYPE
 	case SQL_BIND_TYPE:	/* although this is ODBC2 we must support this attribute */
@@ -5101,7 +5102,8 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		params[i].value = va_arg(marker, SQLCHAR *);
 		params[i].len = odbc_get_string_size(va_arg(marker, int), params[i].value);
 
-		len += strlen(params[i].name) + tds_quote_string(stmt->hdbc->tds_socket, NULL, params[i].value, params[i].len) + 3;
+		len += strlen(params[i].name) + tds_quote_string(stmt->hdbc->tds_socket, NULL, (char *) params[i].value,
+								 params[i].len) + 3;
 	}
 	va_end(marker);
 
@@ -5123,7 +5125,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 			p += strlen(params[i].name);
 			*p++ = '=';
 		}
-		p += tds_quote_string(stmt->hdbc->tds_socket, p, params[i].value, params[i].len);
+		p += tds_quote_string(stmt->hdbc->tds_socket, p, (char *) params[i].value, params[i].len);
 		*p++ = ',';
 	}
 	*--p = '\0';

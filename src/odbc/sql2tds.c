@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.22 2003-10-05 16:46:42 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.23 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -182,7 +182,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		break;
 	default:
 		src_type =
-			(drec_apd->sql_desc_concise_type ==
+			(drec_apd->sql_desc_concise_type !=
 			 SQL_C_DEFAULT) ? odbc_c_to_server_type(drec_apd->sql_desc_concise_type) : odbc_sql_to_server_type(dbc->
 															   tds_socket,
 															   drec_ipd->

@@ -104,7 +104,7 @@ AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname_r, [
-        AC_TRY_COMPILE([
+        AC_TRY_LINK([
 #               include <netdb.h>
         ],      [
 
@@ -116,7 +116,7 @@ AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname
 
                 ],ac_cv_func_which_getservbyname_r=four,
                         [
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #   include <netdb.h>
   ], [
         char *name;
@@ -128,7 +128,7 @@ AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname
   ],ac_cv_func_which_getservbyname_r=six,
 
   [
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #   include <netdb.h>
   ], [
         char *name;
@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.21 2003-06-04 21:39:21 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.22 2003-10-24 10:11:10 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -180,7 +180,7 @@ AC_DEFUN(AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R,
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
-	AC_TRY_COMPILE([
+	AC_TRY_LINK([
 #		include <netdb.h> 
   	], 	[
 
@@ -192,7 +192,7 @@ AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r
 		],ac_cv_func_which_gethostname_r=three, 
 			[
 dnl			ac_cv_func_which_gethostname_r=no
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #   include <netdb.h>
   ], [
 	char *name;
@@ -205,7 +205,7 @@ dnl			ac_cv_func_which_gethostname_r=no
   
   [
 dnl  ac_cv_func_which_gethostname_r=no
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #   include <netdb.h>
   ], [
 			char *name;
@@ -240,7 +240,7 @@ AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
-	AC_TRY_COMPILE([
+	AC_TRY_LINK([
 #include <sys/types.h>
 #include <netdb.h>
   	], 	[
@@ -255,7 +255,7 @@ rc = gethostbyaddr_r(address, length, type, &h, &hdata);
 ],ac_cv_func_which_gethostbyaddr_r=five, 
   [
 dnl			ac_cv_func_which_gethostbyaddr_r=no
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #include <sys/types.h>
 #include <netdb.h>
   ], [
@@ -274,7 +274,7 @@ hp = gethostbyaddr_r(address, length, type, &h,
   
  [
 dnl  ac_cv_func_which_gethostbyaddr_r=no
-  AC_TRY_COMPILE([
+  AC_TRY_LINK([
 #include <sys/types.h>
 #include <netdb.h>
   ], [

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.149 2003-10-22 02:11:09 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.150 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -925,7 +925,7 @@ enum TDS_ICONV_INFO_ENTRY
 struct tds_socket
 {
 	/* fixed and connect time */
-	SOCKET s;
+	TDS_SYS_SOCKET s;
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
 	/** version of product (Sybase/MS and full version) */
@@ -1135,8 +1135,8 @@ void tds_unget_byte(TDSSOCKET * tds);
 unsigned char tds_peek(TDSSOCKET * tds);
 TDS_SMALLINT tds_get_smallint(TDSSOCKET * tds);
 TDS_INT tds_get_int(TDSSOCKET * tds);
-int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need);
-int tds_get_char_data(TDSSOCKET * tds, char *dest, int size, TDSCOLINFO * curcol);
+int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size);
+int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * curcol);
 void *tds_get_n(TDSSOCKET * tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
 int tds_read_packet(TDSSOCKET * tds);

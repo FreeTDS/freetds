@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.66 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.67 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -249,7 +249,7 @@ tds_get_int(TDSSOCKET * tds)
  * @param dest_size destination buffer size, in bytes
  */
 int
-tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
+tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 {
 	size_t wire_bytes;
 
@@ -293,7 +293,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
  * \todo put a TDSICONVINFO structure in every TDSCOLINFO
  */
 int
-tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curcol)
+tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * curcol)
 {
 	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
@@ -347,8 +347,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size =
-			read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
+		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			return TDS_FAIL;
 		}

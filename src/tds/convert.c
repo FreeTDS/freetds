@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.124 2003-09-22 20:12:51 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.125 2003-10-24 10:11:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -302,10 +302,9 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	case SYBBITN:
 
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -659,10 +658,9 @@ tds_convert_bit(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * c
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -728,10 +726,9 @@ tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -799,10 +796,9 @@ tds_convert_int2(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -875,10 +871,9 @@ tds_convert_int4(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -963,10 +958,9 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1046,10 +1040,9 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1234,10 +1227,9 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1256,15 +1248,14 @@ tds_convert_datetime(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, in
 			test_alloc(cr->c);
 			*(cr->c) = '\0';
 			return 0;
-		} else {
-
-			memset(&when, 0, sizeof(when));
-
-			tds_datecrack(SYBDATETIME, src, &when);
-			tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
-
-			return string_to_result(whole_date_string, cr);
 		}
+
+		memset(&when, 0, sizeof(when));
+
+		tds_datecrack(SYBDATETIME, src, &when);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
+
+		return string_to_result(whole_date_string, cr);
 		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_DATETIME), cr);
@@ -1296,10 +1287,9 @@ tds_convert_datetime(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, in
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 
@@ -1372,10 +1362,9 @@ tds_convert_datetime4(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, i
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1462,10 +1451,9 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1543,10 +1531,9 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDATETIME:
 	case SYBDATETIMN:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 static TDS_INT
@@ -1590,10 +1577,9 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
 	case SYBREAL:
 	case SYBFLT8:
 	default:
-		return TDS_CONVERT_NOAVAIL;
 		break;
 	}
-	return TDS_CONVERT_FAIL;
+	return TDS_CONVERT_NOAVAIL;
 }
 
 /**
@@ -2710,7 +2696,7 @@ tds_get_null_type(int srctype)
 		return SYBBITN;
 		break;
 	default:
-		return srctype;
+		break;
 	}
 	return srctype;
 }
