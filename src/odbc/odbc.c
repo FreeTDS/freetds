@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.328 2004-06-05 16:45:29 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.329 2004-06-12 11:44:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2868,9 +2868,6 @@ SQLCloseCursor(SQLHSTMT hstmt)
 static SQLRETURN SQL_API
 _SQLFreeDesc(SQLHDESC hdesc)
 {
-	int i;
-	TDS_DBC *dbc = NULL;
-
 	INIT_HDESC;
 
 	if (desc->header.sql_desc_alloc_type != SQL_DESC_ALLOC_USER) {
@@ -2879,7 +2876,17 @@ _SQLFreeDesc(SQLHDESC hdesc)
 	}
 
 	if (IS_HDBC(desc->parent)) {
-		dbc = (TDS_DBC *) desc->parent;
+		TDS_DBC *dbc = (TDS_DBC *) desc->parent;
+		TDS_STMT *stmt;
+		int i;
+		
+		/* freeing descriptors associated to statements revert state of statements */
+		for (stmt = dbc->stmt_list; stmt != NULL ; stmt = stmt->next) {
+			if (stmt->ard == desc)
+				stmt->ard = stmt->orig_ard;
+			if (stmt->apd == desc)
+				stmt->apd = stmt->orig_apd;
+		}
 
 		for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 			if (dbc->uad[i] == desc) {
@@ -2889,8 +2896,6 @@ _SQLFreeDesc(SQLHDESC hdesc)
 			}
 		}
 	}
-
-	/* FIXME freeing descriptors associated to statements should revert state of statements !!! */
 
 	return SQL_SUCCESS;
 }
