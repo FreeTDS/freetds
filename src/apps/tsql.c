@@ -274,7 +274,6 @@ int  opt;
 	if (servername) {
 		tds_set_user(login, username);
 		tds_set_app(login, "TSQL");
-		tds_set_host(login, "myhost");
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, servername);
 		tds_set_charset(login, "iso_1");
@@ -288,7 +287,6 @@ int  opt;
 	} else {
 		tds_set_user(login, username);
 		tds_set_app(login, "TSQL");
-		tds_set_host(login, "myhost");
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, hostname);
 		tds_set_port(login, port);
