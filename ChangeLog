@@ -1,3 +1,8 @@
+Mon Aug  9 11:00:07 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- backported fix for small buffer overflow in SQLStatistics
+	- fix printf witch could lead to core
+
 Sun Jul 18 19:27:42 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: small fix
 	* src/tds/login.c: remove SO_LINGER setting
