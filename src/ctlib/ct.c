@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.79 2003-03-05 13:14:30 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.80 2003-03-05 14:16:47 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -183,6 +183,9 @@ char *set_buffer = NULL;
 			break;
 		case CS_HOSTNAME:
 			tds_set_host(tds_login, set_buffer);
+			break;
+		case CS_PORT:
+			tds_set_port(tds_login, *((int*)buffer));
 			break;
 		case CS_LOC_PROP:
 			con->locale = (CS_LOCALE *) buffer;
@@ -2311,6 +2314,8 @@ int  param_is_null = 0;
 		/* TODO */
 		return CS_FAIL;
 	}
+	/* TODO */
+	return CS_FAIL;
 }
 
 CS_RETCODE
@@ -2390,6 +2395,9 @@ int  param_is_null = 0;
 		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() added parameter %s \n",(*param).name );
 		return CS_SUCCEED;
 	}
+
+	/* TODO */
+	return CS_FAIL;
 }
 
 CS_RETCODE
