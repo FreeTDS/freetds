@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.56 2002-10-13 17:02:36 jklowden Exp $
+dnl $Id: configure.in,v 1.57 2002-10-13 17:52:28 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -29,6 +29,11 @@ case $host in
 esac
 
 AC_GNU_SOURCE
+
+dnl ------------------------------------------------------------
+dnl Flag to include library-private definitions
+dnl ------------------------------------------------------------
+CFLAGS="$CFLAGS -D_FREETDS_LIBRARY_SOURCE"
 
 dnl ------------------------------------------------------------
 dnl Checks for programs.
@@ -93,45 +98,46 @@ AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(__int64)
 
 case 2 in
-$ac_cv_sizeof_short)   smallint=short;;
-$ac_cv_sizeof_int)     smallint=int;;
-esac
-case 4 in
-$ac_cv_sizeof_short)   int=short;;
-$ac_cv_sizeof_int)     int=int;;
-$ac_cv_sizeof_long)    int=long;;
+$ac_cv_sizeof_short)   tds_sysdep_int16_type=short;;
+$ac_cv_sizeof_int)     tds_sysdep_int16_type=int;;
+*)                     AC_ERROR(No 16-bit int found.)
 esac
 
 case 4 in
-$ac_cv_sizeof_float)   real=float;;
-$ac_cv_sizeof_double)  real=double;;
-*)                     AC_ERROR(No 32-bit float found.)
+$ac_cv_sizeof_short)   tds_sysdep_int32_type=short;;
+$ac_cv_sizeof_int)     tds_sysdep_int32_type=int;;
+$ac_cv_sizeof_long)    tds_sysdep_int32_type=long;;
+*)                     AC_ERROR(No 32-bit int found.)
+esac
+
+case 4 in
+$ac_cv_sizeof_float)   tds_sysdep_real32_type=float;;
+$ac_cv_sizeof_double)  tds_sysdep_real32_type=double;;
+*)                     AC_ERROR(No 32-bit real found.)
 esac
 
 case 8 in
-$ac_cv_sizeof_float)   float=float;;
-$ac_cv_sizeof_double)  float=double;;
-*)                     AC_ERROR(No 64-bit float found.)
+$ac_cv_sizeof_float)   tds_sysdep_real64_type=float;;
+$ac_cv_sizeof_double)  tds_sysdep_real64_type=double;;
+*)                     AC_ERROR(No 64-bit real found.)
 esac
 
 case 8 in
-$ac_cv_sizeof_long)    int64=long;;
-$ac_cv_sizeof_long_long)   int64="long long";;
-$ac_cv_sizeof___int64)    int64=__int64;;
+$ac_cv_sizeof_long)      tds_sysdep_int64_type=long;;
+$ac_cv_sizeof_long_long) tds_sysdep_int64_type="long long";;
+$ac_cv_sizeof___int64)   tds_sysdep_int64_type=__int64;;
 esac
-
-if test "$int64"; then
+if test "$tds_sysdep_int64_type"; then
     AC_DEFINE(HAVE_INT64, 1, [Define to 1 if you have a 64-bit integral type.])
 else
-    int64=long
+    tds_sysdep_int64_type=long
 fi
 
-
-AC_SUBST(smallint)
-AC_SUBST(int)
-AC_SUBST(real)
-AC_SUBST(float)
-AC_SUBST(int64)
+AC_SUBST(tds_sysdep_int16_type)
+AC_SUBST(tds_sysdep_int32_type)
+AC_SUBST(tds_sysdep_real32_type)
+AC_SUBST(tds_sysdep_real64_type)
+AC_SUBST(tds_sysdep_int64_type)
 
 dnl ------------------------------------------------------------
 dnl Checks for typedefs and structures
@@ -265,7 +271,8 @@ dnl ------------------------------------------------------------
 dnl Final output
 dnl ------------------------------------------------------------
 AC_OUTPUT(include/tdsver.h \
-	include/tds_configs.h \
+	include/tds_sysdep_private.h \
+	include/tds_sysdep_public.h \
 	Makefile \
 	include/Makefile \
 	doc/Makefile \

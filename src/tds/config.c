@@ -39,13 +39,14 @@
 #include <arpa/inet.h>
 #endif
 #include "tds.h"
+#include "tds_configs.h"
 #include "tdsutil.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.41 2002-10-11 20:22:16 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.42 2002-10-13 17:52:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

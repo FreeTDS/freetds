@@ -21,12 +21,10 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h,v 1.15 2002-10-11 19:58:18 freddy77 Exp $";
-static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
-
-#include "tds_configs.h"
-
-#include <stdarg.h>
+	"$Id: tds.h,v 1.16 2002-10-13 17:52:28 castellano Exp $";
+static void *no_unused_tds_h_warn[] = {
+	rcsid_tds_h,
+	no_unused_tds_h_warn};
 
 #ifndef WIN32
 #include <sys/types.h>
@@ -36,6 +34,7 @@ static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 #include <netdb.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #endif 
 
 #ifdef WIN32
@@ -53,22 +52,43 @@ static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 #include <sys/time.h>
 #endif
 
-#ifndef WIN32
-#include <unistd.h>
-#endif
+#include <stdarg.h>
 
 #include "tdsver.h"
-
+#include "tds_sysdep_public.h"
+#ifdef _FREETDS_LIBRARY_SOURCE
+#include "tds_sysdep_private.h"
+#endif /* _FREETDS_LIBRARY_SOURCE */
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
+/* 
+** I've tried to change all references to data that goes to 
+** or comes off the wire to use these typedefs.  I've probably 
+** missed a bunch, but the idea is we can use these definitions
+** to set the appropriately sized native type.
+**
+** If you have problems on 64-bit machines and the code is 
+** using a native datatype, please change the code to use
+** these. (In the TDS layer only, the API layers have their
+** own typedefs which equate to these).
+*/
+typedef char                           TDS_CHAR;      /*  8-bit char     */
+typedef unsigned char                  TDS_UCHAR;     /*  8-bit uchar    */
+typedef unsigned char                  TDS_TINYINT;   /*  8-bit unsigned */
+typedef tds_sysdep_int16_type          TDS_SMALLINT;  /* 16-bit int      */
+typedef unsigned tds_sysdep_int16_type TDS_USMALLINT; /* 16-bit unsigned */
+typedef tds_sysdep_int32_type          TDS_INT;       /* 32-bit int      */
+typedef unsigned tds_sysdep_int32_type TDS_UINT;      /* 32-bit unsigned */
+typedef tds_sysdep_real32_type         TDS_REAL;      /* 32-bit real     */
+typedef tds_sysdep_real64_type         TDS_FLOAT;     /* 64-bit real     */
+typedef tds_sysdep_int64_type          TDS_INT8;      /* 64-bit integer  */
+typedef unsigned tds_sysdep_int64_type TDS_UINT8;     /* 64-bit unsigned */
 
 typedef struct tdsnumeric
 {

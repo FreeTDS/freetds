@@ -1,3 +1,14 @@
+Sun Oct 13 13:47:42 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/Makefile.am include/replacements.h
+	  include/tds.h src/replacements/atoll.c src/tds/config.c
+	  src/tds/locale.c src/tds/read.c src/tds/util.c src/tds/write.c
+	  include/tds_configs.h.in (removed)
+	  include/tds_configs.h (added)
+	  include/tds_sysdep_private.h.in (added)
+	  include/tds_sysdep_public.h.in (added):
+	- Start migrating system-dependent information into
+	  include/tds_sysdep_private.h.in and include/tds_sysdep_public.h.in.
+
 Sun Oct 13 17:00:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- improve date conversions performance

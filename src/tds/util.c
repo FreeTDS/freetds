@@ -40,13 +40,11 @@
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
-#define CLOSESOCKET(a) closesocket(a)
 #else
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define CLOSESOCKET(a) close(a)
 #endif
 #include "tdsutil.h"
 #ifdef DMALLOC
@@ -54,7 +52,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.20 2002-10-11 20:22:16 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.21 2002-10-13 17:52:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

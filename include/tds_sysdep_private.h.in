@@ -17,15 +17,42 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
+#ifndef _tds_sysdep_private_h_
+#define _tds_sysdep_private_h_
+
+static char rcsid_tds_sysdep_private_h[]=
+	"$Id: tds_sysdep_private.h.in,v 1.1 2002-10-13 17:52:28 castellano Exp $";
+static void *no_unused_tds_sysdep_private_h_warn[] = {
+	rcsid_tds_sysdep_private_h,
+	no_unused_tds_sysdep_private_h_warn};
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <stdlib.h>
-#include "replacements.h"
+#define FREETDS_SYSCONFDIR "@sysconfdir@/"
 
-tds_sysdep_int64_type
-atoll(const char *nptr)
-{
-	return atol(nptr);
+#ifdef WIN32
+#define READSOCKET(a,b,c)	recv((a), (b), (c), 0L)
+#define WRITESOCKET(a,b,c)	send((a), (b), (c), 0L)
+#define CLOSESOCKET(a)		closesocket((a))
+#endif
+
+#ifndef READSOCKET
+#define READSOCKET(a,b,c)	read((a), (b), (c))
+#endif
+
+#ifndef WRITESOCKET
+#define WRITESOCKET(a,b,c)	write((a), (b), (c))
+#endif
+
+#ifndef CLOSESOCKET
+#define CLOSESOCKET(a)		close((a))
+#endif
+
+#ifdef __cplusplus
 }
+#endif 
+
+#endif /* _tds_sysdep_private_h_ */
+

@@ -17,15 +17,33 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
+#ifndef _tds_sysdep_public_h_
+#define _tds_sysdep_public_h_
+
+static char rcsid_tds_sysdep_public_h[]=
+	"$Id: tds_sysdep_public.h.in,v 1.1 2002-10-13 17:52:28 castellano Exp $";
+static void *no_unused_tds_sysdep_public_h_warn[] = {
+	rcsid_tds_sysdep_public_h,
+	no_unused_tds_sysdep_public_h_warn};
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <stdlib.h>
-#include "replacements.h"
+/*
+** This is where platform-specific changes need to be made.
+*/
 
-tds_sysdep_int64_type
-atoll(const char *nptr)
-{
-	return atol(nptr);
+#define tds_sysdep_int16_type @tds_sysdep_int16_type@	/* 16-bit int */
+#define tds_sysdep_int32_type @tds_sysdep_int32_type@	/* 32-bit int */
+#define tds_sysdep_int64_type @tds_sysdep_int64_type@	/* 64-bit int */
+
+#define tds_sysdep_real32_type @tds_sysdep_real32_type@	/* 32-bit real */
+#define tds_sysdep_real64_type @tds_sysdep_real64_type@ /* 64-bit real */
+
+#ifdef __cplusplus
 }
+#endif 
+
+#endif /* _tds_sysdep_public_h_ */
+

@@ -1,13 +1,16 @@
-include_HEADERS	=	cspublic.h ctpublic.h sybdb.h sybfront.h  \
-			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h \
-			ctlib.h sqldb.h sqlfront.h                        \
-			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h \
-			tdssrv.h
+include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctlib.h ctpublic.h \
+			dblib.h \
+			sqldb.h sqlfront.h \
+			sybdb.h sybfront.h \
+			syberror.h \
+			tds.h tdsconvert.h tdsodbc.h tdssrv.h tdsutil.h
+			tdsver.h \
+			tds_sysdep_public.h
 
-EXTRA_DIST     =    tds_configs.h.in tds_configs.h \
-		tdsiconv.h md4.h des.h
+EXTRA_DIST	=	tds_configs.h \
+			tdsiconv.h md4.h des.h
 
-all-local: tds_configs.h 
+all-local: tds_sysdep_private.h tds_sysdep_public.h
 
 maintainer-clean-local:
-	rm -f tds_configs.h
+	rm -f tds_sysdep_private.h tds_sysdep_public.h

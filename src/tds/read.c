@@ -26,16 +26,10 @@
 #include <dmalloc.h>
 #endif
 
-#ifdef WIN32
-#define READ(a,b,c) recv (a, b, c, 0L);
-#else
-#define READ(a,b,c) read (a, b, c);
-#endif
-
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.23 2002-09-30 15:48:44 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.24 2002-10-13 17:52:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -76,7 +70,7 @@ struct timeval selecttimeout;
 				now = time (NULL);
 				timeleft = tds->timeout - (now-start);
 			} while((retcode == 0) && timeleft > 0);
-			len = READ(tds->s, buf+got, buflen);
+			len = READSOCKET(tds->s, buf+got, buflen);
 			if (len <= 0) {
 				if (len < 0 && errno == EINTR) len = 0;
 				else return (-1); /* SOCKET_ERROR); */
@@ -93,12 +87,12 @@ struct timeval selecttimeout;
 			}
 		} /* while buflen... */
 	} else {
-		/* got = READ(tds->s, buf, buflen); */
+		/* got = READSOCKET(tds->s, buf, buflen); */
 		while (got < buflen) {
 			int len;
 			FD_SET (tds->s, &fds);
 			select (tds->s + 1, &fds, NULL, NULL, NULL);
-			len = READ(tds->s, buf + got, buflen - got);
+			len = READSOCKET(tds->s, buf + got, buflen - got);
 			if (len <= 0) {
 				if (len < 0 && (errno == EINTR || errno == EINPROGRESS)) len = 0;
 				else return (-1); /* SOCKET_ERROR); */

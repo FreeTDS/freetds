@@ -28,17 +28,6 @@
 #include <dmalloc.h>
 #endif
 
-#ifdef WIN32
-#define WRITE(a,b,c) send((a),(b),(c), 0L)
-#else 
-#define WRITE(a,b,c) write(a,b,c)
-#endif
-
-static char  software_version[]   = "$Id: write.c,v 1.19 2002-09-29 13:28:10 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
-
-
 /*
  * CRE 01262002 making buf a void * means we can put any type without casting
  *		much like read() and memcpy()
@@ -203,7 +192,7 @@ int retval;
 		/* moved socket writability check to own function -- bsb */
 		tds_check_socket_write(tds);
 
-		retval = WRITE(tds->s,p,left);
+		retval = WRITESOCKET(tds->s,p,left);
 
 		if (retval <= 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));

@@ -25,13 +25,13 @@ extern "C" {
 #endif
 
 static char  rcsid_replacements_h[] =
-         "$Id: replacements.h,v 1.3 2002-10-11 20:47:41 castellano Exp $";
+         "$Id: replacements.h,v 1.4 2002-10-13 17:52:28 castellano Exp $";
 static void *no_unused_replacements_h_warn[] = {
 	rcsid_replacements_h,
 	no_unused_replacements_h_warn};
 
 #include <stdarg.h>
-#include "tds_configs.h"
+#include "tds_sysdep_public.h"
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);
@@ -42,7 +42,7 @@ int vasprintf(char **ret, const char *fmt, va_list ap);
 #endif /* !HAVE_VASPRINTF */
 
 #if !HAVE_ATOLL
-rep_atoll_return_type atoll(const char *nptr);
+tds_sysdep_int64_type atoll(const char *nptr);
 #endif /* !HAVE_ATOLL */
 
 #if !HAVE_STRTOK_R
