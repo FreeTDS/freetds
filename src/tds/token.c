@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.159 2003-03-28 12:39:07 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.160 2003-03-28 13:20:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1270,6 +1270,12 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
+	}
+
+	/* read sql collation info */
+	/* TODO: we should use it ! */
+	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save)) {
+		tds_get_n(tds, curcol->column_collation, 5);
 	}
 
 	return TDS_SUCCEED;
