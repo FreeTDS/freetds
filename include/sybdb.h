@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.20 2002-09-16 19:47:58 castellano Exp $";
+"$Id: sybdb.h,v 1.21 2002-09-20 14:43:54 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -567,6 +567,7 @@ char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
 #define SYBESMSG        20018   
 #define SYBERPND        20019  
 #define SYBETIME        20003   /* SQL Server connection timed out. */
+#define SYBECOFL	20049	/* Data-conversion resulted in overflow. */
 #define SYBECLOS        20056   /* Error in closing network connection. */
 
 #define SYBETTS          20066
