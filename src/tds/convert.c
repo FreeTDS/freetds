@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.109 2002-12-28 20:22:51 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.110 2003-01-26 10:27:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -75,7 +75,6 @@ static TDS_INT tds_convert_int8(int srctype, const TDS_CHAR *src, int desttype, 
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
-extern const int tds_numeric_bytes_per_prec[];
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.115 2003-01-26 09:33:58 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.116 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -406,12 +406,20 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 				/* FIXME use also curcol->column_bindlen, 
 				 * for CHARBIND, curcol->column_bindlen < 0 use srclen
 				 * check limit for other bind types */
-				if (curcol->column_bindtype == STRINGBIND)
+				switch (curcol->column_bindtype) {
+				case STRINGBIND:
 					destlen = -2;
-				else if (curcol->column_bindtype == NTBSTRINGBIND)
+					break;
+				case NTBSTRINGBIND:
+					destlen = -1;
+					break;
+				default:
+					if (curcol->column_bindlen == 0)
 					destlen = -1;
 				else
 					destlen = curcol->column_bindlen;
+					break;
+				}
 
 				dbconvert(dbproc, srctype,	/* srctype  */
 					  src,	/* src      */

@@ -40,12 +40,10 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.68 2003-01-10 20:04:22 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.69 2003-01-26 10:27:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
-
-extern const int tds_numeric_bytes_per_prec[];
 
 /* All manner of client to server submittal functions */
 

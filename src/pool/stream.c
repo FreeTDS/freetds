@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.12 2002-12-25 11:19:32 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.13 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -195,7 +195,7 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 			return 0;
 		}
 		cur->column_name = (char *) malloc(namelen + 1);
-		strncpy(cur->column_name, &buf[pos], namelen);
+		strncpy(cur->column_name, (char*) &buf[pos], namelen);
 		cur->column_name[namelen] = '\0';
 		cur->next = NULL;
 

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.80 2003-01-23 14:56:58 freddy77 Exp $";
+	"$Id: tds.h,v 1.81 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -136,6 +136,13 @@ typedef struct tdsdaterec
 	TDS_INT   millisecond; /**< 0-999 */
 	TDS_INT   tzone;
 } TDSDATEREC;
+
+/**
+ * The following little table is indexed by precision and will
+ * tell us the number of bytes required to store the specified
+ * precision.
+ */
+extern const int tds_numeric_bytes_per_prec[];
 
 #define TDS_SUCCEED          1
 #define TDS_FAIL             0

@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.16 2002-12-14 14:39:52 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.17 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -126,8 +126,8 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 
 	/* argument 1 - the database object */
 
-	pdata->dbobject = malloc(strlen(argv[1]) + 1);
-	if (pdata->dbobject != (char *) NULL)
+	pdata->dbobject = (char *) malloc(strlen(argv[1]) + 1);
+	if (pdata->dbobject != NULL)
 		strcpy(pdata->dbobject, argv[1]);
 
 	strcpy(pdata->dbdirection, argv[2]);
@@ -217,7 +217,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			case 't':
 				pdata->tflag++;
 				if (strlen(arg) > 2) {
-					pdata->fieldterm = malloc(strlen(arg));
+					pdata->fieldterm = (char *) malloc(strlen(arg));
 					strcpy(pdata->fieldterm, &arg[2]);
 				} else
 					state = GET_FIELDTERM;
@@ -225,7 +225,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			case 'r':
 				pdata->rflag++;
 				if (strlen(arg) > 2) {
-					pdata->rowterm = malloc(strlen(arg));
+					pdata->rowterm = (char *) malloc(strlen(arg));
 					strcpy(pdata->rowterm, &arg[2]);
 				} else
 					state = GET_ROWTERM;
@@ -233,7 +233,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			case 'U':
 				pdata->Uflag++;
 				if (strlen(arg) > 2) {
-					pdata->user = malloc(strlen(arg));
+					pdata->user = (char *) malloc(strlen(arg));
 					strcpy(pdata->user, &arg[2]);
 				} else
 					state = GET_USER;
@@ -241,7 +241,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			case 'P':
 				pdata->Pflag++;
 				if (strlen(arg) > 2) {
-					pdata->pass = malloc(strlen(arg));
+					pdata->pass = (char *) malloc(strlen(arg));
 					strcpy(pdata->pass, &arg[2]);
 				} else
 					state = GET_PASS;
@@ -256,14 +256,14 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			case 'S':
 				pdata->Sflag++;
 				if (strlen(arg) > 2) {
-					pdata->server = malloc(strlen(arg));
+					pdata->server = (char *) malloc(strlen(arg));
 					strcpy(pdata->server, &arg[2]);
 				} else
 					state = GET_SERVER;
 				break;
 			case 'h':	/* hints */
 				if (strlen(arg) > 2) {
-					pdata->hint = malloc(strlen(arg));
+					pdata->hint = (char *) malloc(strlen(arg));
 					strcpy(pdata->hint, &arg[2]);
 				} else
 					state = GET_HINT;
@@ -300,22 +300,22 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_FIELDTERM:
-			pdata->fieldterm = malloc(strlen(arg) + 1);
+			pdata->fieldterm = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->fieldterm, arg);
 			state = GET_NEXTARG;
 			break;
 		case GET_ROWTERM:
-			pdata->rowterm = malloc(strlen(arg) + 1);
+			pdata->rowterm = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->rowterm, arg);
 			state = GET_NEXTARG;
 			break;
 		case GET_USER:
-			pdata->user = malloc(strlen(arg) + 1);
+			pdata->user = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->user, arg);
 			state = GET_NEXTARG;
 			break;
 		case GET_PASS:
-			pdata->pass = malloc(strlen(arg) + 1);
+			pdata->pass = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->pass, arg);
 			state = GET_NEXTARG;
 			break;
@@ -324,7 +324,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_SERVER:
-			pdata->server = malloc(strlen(arg) + 1);
+			pdata->server = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->server, arg);
 			state = GET_NEXTARG;
 			break;
@@ -353,11 +353,11 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 		/* Fill in some default values */
 
 		if (!pdata->tflag) {	/* field terminator not specified */
-			pdata->fieldterm = malloc(2);
+			pdata->fieldterm = (char *) malloc(2);
 			strcpy(pdata->fieldterm, "\t");
 		}
 		if (!pdata->rflag) {	/* row terminator not specified */
-			pdata->rowterm = malloc(2);
+			pdata->rowterm = (char *) malloc(2);
 			strcpy(pdata->rowterm, "\n");
 		}
 	}
@@ -408,7 +408,7 @@ LOGINREC *login;
 
 	/* set hint if any */
 	if (pdata->hint) {
-int erc = bcp_options(*pdbproc, BCPHINTS, pdata->hint, strlen(pdata->hint));
+int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE*) pdata->hint, strlen(pdata->hint));
 
 		if (erc != SUCCEED)
 			fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
@@ -580,13 +580,7 @@ pusage(void)
 }
 
 int
-err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr)
-     DBPROCESS *dbproc;
-     int severity;
-     int dberr;
-     int oserr;
-     char *dberrstr;
-     char *oserrstr;
+err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char* dberrstr, char* oserrstr)
 {
 
 	if (dberr) {
@@ -603,15 +597,7 @@ err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr)
 }
 
 int
-msg_handler(dbproc, msgno, msgstate, severity, msgtext, srvname, procname, line)
-     DBPROCESS *dbproc;
-     DBINT msgno;
-     int msgstate;
-     int severity;
-     char *msgtext;
-     char *srvname;
-     char *procname;
-     int line;
+msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char* msgtext, char* srvname, char* procname, int line)
 {
 	/*
 	 * ** If it's a database change message, we'll ignore it.

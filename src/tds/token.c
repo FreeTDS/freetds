@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.140 2003-01-06 20:18:37 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.141 2003-01-26 10:27:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -64,14 +64,6 @@ static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *cur
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int tds_process_env_chg(TDSSOCKET * tds);
 static const char * _tds_token_name(unsigned char marker); 
-
-
-/*
- * The following little table is indexed by precision and will
- * tell us the number of bytes required to store the specified
- * precision.
- */
-extern const int tds_numeric_bytes_per_prec[];
 
 /**
  * \defgroup token Results processing

@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.48 2003-01-13 05:17:28 vorlon Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.49 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -163,11 +163,11 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 
 					src = &(tds->res_info->current_row[col->column_offset]);
 					if (is_blob_type(col->column_type))
-						src = ((TDSBLOBINFO *) src)->textvalue;
+						src = (unsigned char*) ((TDSBLOBINFO *) src)->textvalue;
 					srclen = col->column_cur_size;
 
 
-					if (tds_convert(tds->tds_ctx, ctype, src, srclen, SYBVARCHAR, &dres) < 0)
+					if (tds_convert(tds->tds_ctx, ctype, (TDS_CHAR*) src, srclen, SYBVARCHAR, &dres) < 0)
 						continue;
 					if (print_rows)
 						fprintf(stdout, "%s\t", dres.c);
@@ -220,7 +220,7 @@ get_opt_flags(char *s, int *opt_flags)
 	int opt;
 
 	/* make sure we have enough elements */
-	argv = malloc(sizeof(char *) * strlen(s));
+	argv = (char**) malloc(sizeof(char *) * strlen(s));
 	if (!argv)
 		return 0;
 
@@ -408,7 +408,7 @@ main(int argc, char **argv)
 	int opt_flags = 0;
 
 	/* grab a login structure */
-	login = (void *) tds_alloc_login();
+	login = tds_alloc_login();
 
 	context = tds_alloc_context();
 	if (context->locale && !context->locale->date_fmt) {

@@ -1,3 +1,10 @@
+Sun Jan 26 11:27:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/freebcp.c src/apps/tsql.c:
+	* src/dblib/bcp.c src/pool/config.c src/pool/stream.c:
+	* src/pool/util.c src/server/login.c src/server/query.c:
+	* src/tds/convert.c src/tds/query.c src/tds/token.c:
+	- cleanup for compiling with C++ compiler (finished)
+
 Sun Jan 26 10:33:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- fix pointer to garbage after tds_connect

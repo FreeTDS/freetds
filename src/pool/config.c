@@ -35,7 +35,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char software_version[] = "$Id: config.c,v 1.8 2002-11-17 11:25:41 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.9 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -70,7 +70,7 @@ pool_read_conf_file(char *poolname, TDS_POOL * pool)
 static int
 pool_read_conf_sections(FILE * in, char *poolname, TDS_POOL * pool)
 {
-	unsigned char *section;
+	char *section;
 	int i, found = 0;
 
 	pool_read_conf_section(in, "global", pool);
@@ -100,7 +100,7 @@ static int
 pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 {
 	char line[256], option[256], value[256];
-	unsigned char *s;
+	char *s;
 	int i;
 	unsigned char p;
 	int insection = 0;

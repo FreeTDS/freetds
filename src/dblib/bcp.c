@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.48 2003-01-22 20:29:32 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.49 2003-01-26 10:27:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1917,7 +1917,7 @@ BCP_HOSTCOLINFO *hostcol;
 
 
 		if (topptr == (struct fflist *) NULL) {	/* first time */
-			if ((topptr = malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
+			if ((topptr = (struct fflist *) malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
 				fprintf(stderr, "out of memory\n");
 				return (FAIL);
 			}
@@ -1928,7 +1928,7 @@ BCP_HOSTCOLINFO *hostcol;
 			else
 				return (FAIL);
 		} else {
-			if ((curptr->nextptr = malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
+			if ((curptr->nextptr = (struct fflist *) malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
 				fprintf(stderr, "out of memory\n");
 				return (FAIL);
 			}
@@ -2092,8 +2092,8 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 				return (FALSE);
 
 			term[i] = '\0';
-			ci->terminator = malloc(i + 1);
-			strcpy(ci->terminator, term);
+			ci->terminator = (BYTE*) malloc(i + 1);
+			strcpy((char*) ci->terminator, term);
 			ci->term_len = strlen(term);
 
 			whichcol = TAB_COLNUM;
@@ -2293,7 +2293,7 @@ BYTE coldata[256];
 
 		hostcol = dbproc->host_columns[i];
 
-		dataptr = hostcol->host_var;
+		dataptr = (BYTE*) hostcol->host_var;
 
 		data_is_null = 0;
 		collen = 0;
