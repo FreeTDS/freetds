@@ -36,13 +36,14 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.60 2002-08-29 19:56:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.61 2002-08-30 04:55:05 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef unsigned short utf16_t;
 
 /* static int  _tds_pad_string(char *dest, int destlen); */
+static TDS_INT tds_convert_int1(int srctype,TDS_CHAR *src, int desttype,TDS_INT destlen , CONV_RESULT *cr);
 extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
@@ -233,8 +234,9 @@ char hex2[3];
       case SYBVARCHAR:
       case SYBTEXT:
 
-	 /* NOTE: do not return 0x on string, all library require no 0x 
-	  * prefix. isql/query analizer add automatically 0x */
+	 /* NOTE: Do not prepend 0x to string.  
+	  * The libraries all expect a bare string, without a 0x prefix. 
+	  * Applications such as isql and query analyzer provide the "0x" prefix. */
 
          /* 2 * source length + 1 for terminator */
 
@@ -360,6 +362,13 @@ TDS_INT tds_i;
             cr->ib[j] = hex1;
          }
 #else
+		if( srclen ) { /* ignore trailing blanks and nulls */
+			while( src[srclen-1] == ' ' || src[srclen-1] == '\0' ) {
+				if( --srclen == 0 ) 
+					break;
+			}
+		}
+
 		for ( i=0; i < srclen; i++ ) {
 			hex1 = src[i];
 			
@@ -606,17 +615,20 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			cr->ti = src[0];
 			return 1;
 			break;
-		/* conversions not allowed */
-		case SYBUNIQUE:
 		case SYBMONEY:
 		case SYBMONEY4:
-		case SYBDATETIME4:
-		case SYBDATETIME:
-		case SYBDATETIMN:
+			return tds_convert_int1( SYBINT1, (src[0])? "1" : "0", desttype, destlen, cr);
 			break;
 			/* TODO */
 		case SYBNUMERIC:
 		case SYBDECIMAL:
+
+		/* conversions not allowed */
+		case SYBUNIQUE:
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
 		default:
 			LOG_CONVERT();
             return TDS_FAIL;
@@ -1541,7 +1553,7 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 		CONVERSION_ERROR( tds, srctype, varchar, desttype );
 		depth = 0;
 
-		return TDS_FAIL; /* take the chance that length == 0, causing double recursion */
+		return TDS_FAIL;
 	}
 
 	return length;
@@ -2526,7 +2538,8 @@ utf16len(const utf16_t* s)
 			$yn = $yn[$i];	# default
 			$yn = 1 if $yn[$i] eq 'T';
 			$yn = 0 if $yn[$i] eq 'F';
-			
+			$yn = 0 if $yn[$i] eq 't';	# means it should be true, but isnt so far.
+
 			printf "$indent %-30.30s, %s", "{ SYB${from}, SYB${to}", "$yn }\n"; 
 
 			$i++;
@@ -2538,8 +2551,8 @@ __DATA__
           To
 From
           VARCHAR CHAR TEXT BINARY IMAGE INT1 INT2 INT4 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
-VARCHAR     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
-CHAR        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+VARCHAR     T      T   T    T 	T	 T	T	T	T	T   T	  T  	T   T    T	 T		T		T	   T
+CHAR        T      T   T    T 	T	 T	T	T	T	T   T	  T  	T   T    T	 T		T		T	   T
 TEXT        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
 BINARY      T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
 IMAGE       T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
