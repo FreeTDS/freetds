@@ -27,12 +27,11 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.9 2002-11-01 20:55:51 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: query.c,v 1.10 2002-11-17 11:30:57 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
-tds_get_query(TDSSOCKET *tds) 
+tds_get_query(TDSSOCKET * tds)
 {
 static unsigned char *query;
 static size_t query_buflen = 0;
@@ -42,13 +41,13 @@ int len;
 		query_buflen = 1024;
 		query = malloc(query_buflen);
 	}
-	tds_get_byte(tds); /* 33 */
-	len = tds_get_smallint(tds); /* query size +1 */
-	tds_get_n(tds,NULL,3);
+	tds_get_byte(tds);	/* 33 */
+	len = tds_get_smallint(tds);	/* query size +1 */
+	tds_get_n(tds, NULL, 3);
 	if (len > query_buflen) {
 		query_buflen = len;
 		query = realloc(query, query_buflen);
 	}
 	tds_get_n(tds, query, len - 1);
-	return (char *)query;
+	return (char *) query;
 }

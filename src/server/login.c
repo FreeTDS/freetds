@@ -43,62 +43,65 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.17 2002-11-10 10:55:23 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: login.c,v 1.18 2002-11-17 11:30:57 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
-tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsigned char *clear_pass) 
+tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass)
 {
-int i;
-const unsigned char xormask=0x5A;
-unsigned char hi_nibble,lo_nibble ;
-	for(i=0;i<len;i++) {
-		lo_nibble=(crypt_pass[i] << 4) ^ (xormask & 0xF0);
-		hi_nibble=(crypt_pass[i] >> 4) ^ (xormask & 0x0F);
-		clear_pass[i]=hi_nibble | lo_nibble;
+	int i;
+	const unsigned char xormask = 0x5A;
+	unsigned char hi_nibble, lo_nibble;
+
+	for (i = 0; i < len; i++) {
+		lo_nibble = (crypt_pass[i] << 4) ^ (xormask & 0xF0);
+		hi_nibble = (crypt_pass[i] >> 4) ^ (xormask & 0x0F);
+		clear_pass[i] = hi_nibble | lo_nibble;
 	}
 	return clear_pass;
 }
 
-TDSSOCKET *tds_listen(int ip_port) 
+TDSSOCKET *
+tds_listen(int ip_port)
 {
-TDSCONTEXT	*context;
-TDSSOCKET	*tds;
-struct sockaddr_in      sin;
-int	fd, s;
-size_t	len;
+TDSCONTEXT *context;
+TDSSOCKET *tds;
+struct sockaddr_in sin;
+int fd, s;
+size_t len;
 
-        sin.sin_addr.s_addr = INADDR_ANY;
-        sin.sin_port = htons((short)ip_port);
-        sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_port = htons((short) ip_port);
+	sin.sin_family = AF_INET;
 
-        if ((s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-                perror ("socket");
-                exit (1);
-        }
-        if (bind (s, (struct sockaddr *) &sin, sizeof (sin)) < 0) {
-                perror("bind");
-                exit (1);
-        }
-        listen (s, 5);
-        if ((fd = accept (s, (struct sockaddr *) &sin, &len)) < 0) {
-        	perror("accept");
-        	exit(1);
-        }
+	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror("socket");
+		exit(1);
+	}
+	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+		perror("bind");
+		exit(1);
+	}
+	listen(s, 5);
+	if ((fd = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+		perror("accept");
+		exit(1);
+	}
 	context = tds_alloc_context();
 	tds = tds_alloc_socket(context, 8192);
 	tds->s = fd;
-	tds->out_flag=0x02;
+	tds->out_flag = 0x02;
 	/* get_incoming(tds->s); */
 	return tds;
 }
 
-static char* tds_read_string(TDSSOCKET *tds, char** s, int size);
+static char *tds_read_string(TDSSOCKET * tds, char **s, int size);
 
-void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login)
+void
+tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 char *blockstr;
+
 /*
 	while (len = tds_read_packet(tds)) {
 		for (i=0;i<len;i++)
@@ -109,92 +112,93 @@ char *blockstr;
 	tds_read_string(tds, &login->host_name, 30);
 	tds_read_string(tds, &login->user_name, 30);
 	tds_read_string(tds, &login->password, 30);
-	tds_get_n(tds, NULL, 31); /* host process, junk for now */
-	tds_get_n(tds, NULL, 16); /* magic */
-	tds_read_string(tds, &login->app_name, 30); 
-	tds_read_string(tds, &login->server_name, 30); 
-	tds_get_n(tds, NULL, 256); /* secondary passwd...encryption? */
+	tds_get_n(tds, NULL, 31);	/* host process, junk for now */
+	tds_get_n(tds, NULL, 16);	/* magic */
+	tds_read_string(tds, &login->app_name, 30);
+	tds_read_string(tds, &login->server_name, 30);
+	tds_get_n(tds, NULL, 256);	/* secondary passwd...encryption? */
 	login->major_version = tds_get_byte(tds);
 	login->minor_version = tds_get_byte(tds);
-	tds_get_smallint(tds); /* unused part of protocol field */
-	tds_read_string(tds, &login->library, 10); 
-	tds_get_byte(tds); /* program version, junk it */
+	tds_get_smallint(tds);	/* unused part of protocol field */
+	tds_read_string(tds, &login->library, 10);
+	tds_get_byte(tds);	/* program version, junk it */
 	tds_get_byte(tds);
-	tds_get_smallint(tds); 
-	tds_get_n(tds, NULL, 3); /* magic */
-	tds_read_string(tds, &login->language, 30); 
-	tds_get_n(tds, NULL, 14); /* magic */
-	tds_read_string(tds, &login->char_set, 30); 
-	tds_get_n(tds, NULL, 1); /* magic */
-	tds_read_string(tds, &blockstr, 6); 
-	printf("block size %s\n",blockstr);
-	login->block_size=atoi(blockstr);
+	tds_get_smallint(tds);
+	tds_get_n(tds, NULL, 3);	/* magic */
+	tds_read_string(tds, &login->language, 30);
+	tds_get_n(tds, NULL, 14);	/* magic */
+	tds_read_string(tds, &login->char_set, 30);
+	tds_get_n(tds, NULL, 1);	/* magic */
+	tds_read_string(tds, &blockstr, 6);
+	printf("block size %s\n", blockstr);
+	login->block_size = atoi(blockstr);
 	tds_dstr_free(&blockstr);
-	tds_get_n(tds, NULL, tds->in_len - tds->in_pos); /* read junk at end */
+	tds_get_n(tds, NULL, tds->in_len - tds->in_pos);	/* read junk at end */
 }
 
-static char* 
-tds7_read_string(TDSSOCKET *tds, int len)
+static char *
+tds7_read_string(TDSSOCKET * tds, int len)
 {
-char *s;
+	char *s;
 
-	s = (char*) malloc(len+1);
+	s = (char *) malloc(len + 1);
 	tds_get_string(tds, s, len);
 	s[len] = 0;
 	return s;
 
 }
 
-int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login)
+int
+tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
-int a; 
-int host_name_len,user_name_len,password_len,app_name_len,server_name_len;
-int library_name_len,language_name_len;
+int a;
+int host_name_len, user_name_len, password_len, app_name_len, server_name_len;
+int library_name_len, language_name_len;
 unsigned char *unicode_string;
 char *buf;
 
-	a=tds_get_smallint(tds); /*total packet size*/
-	tds_get_n(tds,NULL,5);
-	a=tds_get_byte(tds);     /*TDS version*/
-	login->major_version=a>>4;
-	login->minor_version=a<<4;
-	tds_get_n(tds,NULL,3);   /*rest of TDS Version which is a 4 byte field*/
-	tds_get_n(tds,NULL,4);   /*desired packet size being requested by client*/
-	tds_get_n(tds,NULL,21);  /*magic1*/
-	a=tds_get_smallint(tds); /*current position*/
-	host_name_len=tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	user_name_len=tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	password_len=tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	app_name_len=tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	server_name_len=tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*total packet size */
+	tds_get_n(tds, NULL, 5);
+	a = tds_get_byte(tds);	/*TDS version */
+	login->major_version = a >> 4;
+	login->minor_version = a << 4;
+	tds_get_n(tds, NULL, 3);	/*rest of TDS Version which is a 4 byte field */
+	tds_get_n(tds, NULL, 4);	/*desired packet size being requested by client */
+	tds_get_n(tds, NULL, 21);	/*magic1 */
+	a = tds_get_smallint(tds);	/*current position */
+	host_name_len = tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	user_name_len = tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	password_len = tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	app_name_len = tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	server_name_len = tds_get_smallint(tds);
 	tds_get_smallint(tds);
 	tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	library_name_len=tds_get_smallint(tds);
-	a=tds_get_smallint(tds); /*current position*/
-	language_name_len=tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	library_name_len = tds_get_smallint(tds);
+	a = tds_get_smallint(tds);	/*current position */
+	language_name_len = tds_get_smallint(tds);
 	tds_get_smallint(tds);
 	tds_get_smallint(tds);
-	tds_get_n(tds,NULL,6);  /*magic2*/
-	a=tds_get_smallint(tds); /*partial packet size*/
-	a=tds_get_smallint(tds); /*0x30*/
-	a=tds_get_smallint(tds); /*total packet size*/
+	tds_get_n(tds, NULL, 6);	/*magic2 */
+	a = tds_get_smallint(tds);	/*partial packet size */
+	a = tds_get_smallint(tds);	/*0x30 */
+	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-	tds_dstr_set(&login->host_name,tds7_read_string(tds, host_name_len));
-	tds_dstr_set(&login->user_name,tds7_read_string(tds, user_name_len));
+	tds_dstr_set(&login->host_name, tds7_read_string(tds, host_name_len));
+	tds_dstr_set(&login->user_name, tds7_read_string(tds, user_name_len));
 
-	unicode_string = (unsigned char *) malloc(password_len*2);
-	buf = (unsigned char *) malloc(password_len+1);
-	tds_get_n(tds,unicode_string,password_len*2);
-	tds7_decrypt_pass(unicode_string,password_len*2,unicode_string);
-	tds7_unicode2ascii(tds,unicode_string,buf,password_len);
+	unicode_string = (unsigned char *) malloc(password_len * 2);
+	buf = (unsigned char *) malloc(password_len + 1);
+	tds_get_n(tds, unicode_string, password_len * 2);
+	tds7_decrypt_pass(unicode_string, password_len * 2, unicode_string);
+	tds7_unicode2ascii(tds, unicode_string, buf, password_len);
 	buf[password_len] = 0;
-	tds_dstr_set(&login->password,buf);
+	tds_dstr_set(&login->password, buf);
 	free(unicode_string);
 
 	tds_dstr_set(&login->app_name, tds7_read_string(tds, app_name_len));
@@ -202,35 +206,36 @@ char *buf;
 	tds_dstr_set(&login->library, tds7_read_string(tds, library_name_len));
 	tds_dstr_set(&login->language, tds7_read_string(tds, language_name_len));
 
-	tds_get_n(tds,NULL,7);  /*magic3*/
+	tds_get_n(tds, NULL, 7);	/*magic3 */
 	tds_get_byte(tds);
 	tds_get_byte(tds);
-	tds_get_n(tds,NULL,3);
+	tds_get_n(tds, NULL, 3);
 	tds_get_byte(tds);
-	a=tds_get_byte(tds);    /*0x82*/
-	tds_get_n(tds,NULL,22);
-	tds_get_byte(tds);      /*0x30*/
-	tds_get_n(tds,NULL,7);
-	a=tds_get_byte(tds);    /*0x30*/
-	tds_get_n(tds,NULL,3);
-	tds_dstr_copy(&login->char_set,""); /*empty char_set for TDS 7.0*/
-	login->block_size=0;        /*0 block size for TDS 7.0*/
-	login->encrypted=1;
-	return(0);
+	a = tds_get_byte(tds);	/*0x82 */
+	tds_get_n(tds, NULL, 22);
+	tds_get_byte(tds);	/*0x30 */
+	tds_get_n(tds, NULL, 7);
+	a = tds_get_byte(tds);	/*0x30 */
+	tds_get_n(tds, NULL, 3);
+	tds_dstr_copy(&login->char_set, "");	/*empty char_set for TDS 7.0 */
+	login->block_size = 0;	/*0 block size for TDS 7.0 */
+	login->encrypted = 1;
+	return (0);
 
 }
-static char* tds_read_string(TDSSOCKET *tds, char ** s, int size)
+static char *
+tds_read_string(TDSSOCKET * tds, char **s, int size)
 {
-char *tempbuf;
-int len;
+	char *tempbuf;
+	int len;
 
-	tempbuf = (char *) malloc(size+1);
-	tds_get_n(tds,tempbuf,size);
+	tempbuf = (char *) malloc(size + 1);
+	tds_get_n(tds, tempbuf, size);
 	tempbuf[size] = 0;
-	len=tds_get_byte(tds);
+	len = tds_get_byte(tds);
 	if (len <= size)
-		tempbuf[len]='\0';
-	
-	tds_dstr_set(s,tempbuf);
+		tempbuf[len] = '\0';
+
+	tds_dstr_set(s, tempbuf);
 	return tempbuf;
 }

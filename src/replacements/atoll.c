@@ -26,8 +26,8 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "replacements.h"
-static char  software_version[]   = "$Id: atoll.c,v 1.6 2002-10-19 03:02:35 jklowden Exp $";
-static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+static char software_version[] = "$Id: atoll.c,v 1.7 2002-11-17 11:28:12 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 tds_sysdep_int64_type
 atoll(const char *nptr)

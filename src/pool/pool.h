@@ -20,10 +20,8 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.5 2002-10-13 23:28:12 castellano Exp $";
-static void *no_unused_var_warn_pool_h[] = {rcsid_pool_h,
-					    no_unused_var_warn_pool_h};
+static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.6 2002-11-17 11:25:41 freddy77 Exp $";
+static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -37,21 +35,25 @@ static void *no_unused_var_warn_pool_h[] = {rcsid_pool_h,
 #define MAX_POOL_USERS 1024
 
 /* enums and typedefs */
-enum {
+enum
+{
 	TDS_SRV_LOGIN,
 	TDS_SRV_IDLE,
 	TDS_SRV_QUERY,
-	TDS_SRV_WAIT,    /* if no members are free wait */
+	TDS_SRV_WAIT,		/* if no members are free wait */
 	TDS_SRV_CANCEL,
 	TDS_SRV_DEAD
 };
 
-typedef struct tds_pool_user {
+typedef struct tds_pool_user
+{
 	TDSSOCKET *tds;
 	int user_state;
-} TDS_POOL_USER;
+}
+TDS_POOL_USER;
 
-typedef struct tds_pool_member {
+typedef struct tds_pool_member
+{
 	TDSSOCKET *tds;
 	/* sometimes we get a partial packet */
 	int need_more;
@@ -59,62 +61,62 @@ typedef struct tds_pool_member {
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 	/* 
-	** these variables are used for tracking the state of the TDS protocol 
-	** so we know when to return the state to TDS_COMPLETED.
-	*/
+	 * ** these variables are used for tracking the state of the TDS protocol 
+	 * ** so we know when to return the state to TDS_COMPLETED.
+	 */
 	int num_bytes_left;
 	unsigned char fragment[PGSIZ];
-} TDS_POOL_MEMBER;
+}
+TDS_POOL_MEMBER;
 
-typedef struct tds_pool {
+typedef struct tds_pool
+{
 	char *name;
 	char *user;
 	char *password;
 	char *server;
 	char *database;
 	int port;
-	int max_member_age; /* in seconds */
+	int max_member_age;	/* in seconds */
 	int min_open_conn;
 	int max_open_conn;
 	int num_members;
 	TDS_POOL_MEMBER *members;
 	int max_users;
 	TDS_POOL_USER *users;
-} TDS_POOL;
+}
+TDS_POOL;
 
 /* prototypes */
 /* main.c */
 TDS_POOL *pool_init(char *name);
-void pool_main_loop(TDS_POOL *pool);
+void pool_main_loop(TDS_POOL * pool);
 
 /* member.c */
-int pool_process_members(TDS_POOL *pool, fd_set *fds);
-TDSSOCKET *pool_mbr_login(TDS_POOL *pool);
-TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL *pool);
-void pool_mbr_init(TDS_POOL *pool);
+int pool_process_members(TDS_POOL * pool, fd_set * fds);
+TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
+TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool);
+void pool_mbr_init(TDS_POOL * pool);
 
 /* user.c */
-int pool_process_users(TDS_POOL *pool, fd_set *fds);
-void pool_user_init(TDS_POOL *pool);
-TDS_POOL_USER *pool_user_create(TDS_POOL *pool, int s, struct sockaddr_in *sin);
-void pool_free_user(TDS_POOL_USER *puser);
-void pool_user_read(TDS_POOL *pool, TDS_POOL_USER *puser);
-int pool_user_login(TDS_POOL *pool, TDS_POOL_USER *puser);
-void pool_user_query(TDS_POOL *pool, TDS_POOL_USER *puser);
+int pool_process_users(TDS_POOL * pool, fd_set * fds);
+void pool_user_init(TDS_POOL * pool);
+TDS_POOL_USER *pool_user_create(TDS_POOL * pool, int s, struct sockaddr_in *sin);
+void pool_free_user(TDS_POOL_USER * puser);
+void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
+int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
+void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */
-void dump_buf(const void *buf,int length);
-void dump_login(TDSLOGIN *login);
+void dump_buf(const void *buf, int length);
+void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
 
 /* stream.c */
-int pool_find_end_token(TDS_POOL_MEMBER *pmbr,
-	const unsigned char *buf,
-	int len);
+int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
 /* config.c */
-int pool_read_conf_file(char *poolname, TDS_POOL *pool);
+int pool_read_conf_file(char *poolname, TDS_POOL * pool);
 
 
 #endif
-

@@ -11,19 +11,18 @@
 #include <stdarg.h>
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.3 2002-10-11 14:49:34 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: asprintf.c,v 1.4 2002-11-17 11:28:12 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 int
 asprintf(char **ret, const char *fmt, ...)
 {
-  int len;
-  va_list ap;
+	int len;
+	va_list ap;
 
-  va_start(ap, fmt);
-  len = vasprintf(ret, fmt, ap);
-  va_end(ap);
-  return len;
+	va_start(ap, fmt);
+	len = vasprintf(ret, fmt, ap);
+	va_end(ap);
+	return len;
 }

@@ -53,17 +53,18 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char  software_version[]   = "$Id: member.c,v 1.18 2002-11-08 07:53:17 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+static char software_version[] = "$Id: member.c,v 1.19 2002-11-17 11:25:41 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
-static void pool_free_member(TDS_POOL_MEMBER *pmbr);
+static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
+static void pool_free_member(TDS_POOL_MEMBER * pmbr);
 
 /*
 ** pool_mbr_login open a single pool login, to be call at init time or
 ** to reconnect.
 */
-TDSSOCKET *pool_mbr_login(TDS_POOL *pool)
+TDSSOCKET *
+pool_mbr_login(TDS_POOL * pool)
 {
 TDSCONTEXT *context;
 TDSLOGIN *login;
@@ -74,8 +75,8 @@ char *query;
 char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login();
-	tds_set_passwd(login,pool->password);
-	tds_set_user(login,pool->user);
+	tds_set_passwd(login, pool->password);
+	tds_set_user(login, pool->user);
 	tds_set_app(login, "tdspool");
 #if HAVE_GETHOSTNAME
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
@@ -83,11 +84,11 @@ char hostname[MAXHOSTNAMELEN];
 		strncpy(hostname, "tdspool", MAXHOSTNAMELEN);
 	hostname[MAXHOSTNAMELEN - 1] = '\0';
 	tds_set_host(login, hostname);
-	tds_set_library(login,"TDS-Library");
-	tds_set_server(login,pool->server);
-	tds_set_charset(login,"iso_1");
-	tds_set_language(login,"us_english");
-	tds_set_packet(login,512);
+	tds_set_library(login, "TDS-Library");
+	tds_set_server(login, pool->server);
+	tds_set_charset(login, "iso_1");
+	tds_set_language(login, "us_english");
+	tds_set_packet(login, 512);
 	context = tds_alloc_context();
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
@@ -95,19 +96,19 @@ char hostname[MAXHOSTNAMELEN];
 	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
 		tds_free_connect(connect_info);
 		/* what to do? */
-		fprintf(stderr, "Could not open connection to server %s\n",pool->server);
+		fprintf(stderr, "Could not open connection to server %s\n", pool->server);
 		return NULL;
 	}
 	tds_free_connect(connect_info);
 	/* FIX ME -- tds_connect no longer preallocates the in_buf need to 
-	** do something like what tds_read_packet does */
-	tds->in_buf = (unsigned char *)malloc(BLOCKSIZ);
-	memset(tds->in_buf,0,BLOCKSIZ);
+	 * ** do something like what tds_read_packet does */
+	tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
+	memset(tds->in_buf, 0, BLOCKSIZ);
 
 	if (pool->database && strlen(pool->database)) {
 		query = (char *) malloc(strlen(pool->database) + 5);
 		sprintf(query, "use %s", pool->database);
-		rc = tds_submit_query(tds,query);
+		rc = tds_submit_query(tds, query);
 		free(query);
 		if (rc != TDS_SUCCEED) {
 			fprintf(stderr, "changing database failed\n");
@@ -115,9 +116,9 @@ char hostname[MAXHOSTNAMELEN];
 		}
 
 		do {
-			marker=tds_get_byte(tds);
-			tds_process_default_tokens(tds,marker);
-		} while (marker!=TDS_DONE_TOKEN);
+			marker = tds_get_byte(tds);
+			tds_process_default_tokens(tds, marker);
+		} while (marker != TDS_DONE_TOKEN);
 	}
 
 
@@ -125,41 +126,41 @@ char hostname[MAXHOSTNAMELEN];
 }
 
 static void
-pool_free_member(TDS_POOL_MEMBER *pmbr)
+pool_free_member(TDS_POOL_MEMBER * pmbr)
 {
 	if (!IS_TDSDEAD(pmbr->tds)) {
 		tds_close_socket(pmbr->tds);
 	}
 	pmbr->tds = NULL;
 	/* if he is allocated disconnect the client 
-	** otherwise we end up with broken client.
-	*/
-	if (pmbr->current_user) pool_free_user(pmbr->current_user);
+	 * ** otherwise we end up with broken client.
+	 */
+	if (pmbr->current_user)
+		pool_free_user(pmbr->current_user);
 	pmbr->state = TDS_COMPLETED;
 }
 
 void
-pool_mbr_init(TDS_POOL *pool)
+pool_mbr_init(TDS_POOL * pool)
 {
 TDS_POOL_MEMBER *pmbr;
 int i;
 
 	/* allocate room for pool members */
 
-	pool->members = (TDS_POOL_MEMBER *) 
-		malloc(sizeof(TDS_POOL_MEMBER)*pool->num_members);
-	memset(pool->members,'\0', 
-		sizeof(TDS_POOL_MEMBER) * pool->num_members);
+	pool->members = (TDS_POOL_MEMBER *)
+		malloc(sizeof(TDS_POOL_MEMBER) * pool->num_members);
+	memset(pool->members, '\0', sizeof(TDS_POOL_MEMBER) * pool->num_members);
 
 	/* open connections for each member */
 
-	for (i=0;i<pool->num_members;i++) {
+	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
 		if (i < pool->min_open_conn) {
 			pmbr->tds = pool_mbr_login(pool);
 			pmbr->last_used_tm = time(NULL);
 			if (!pmbr->tds) {
-				fprintf(stderr,"Could not open initial connection %d\n",i);
+				fprintf(stderr, "Could not open initial connection %d\n", i);
 				exit(1);
 			}
 		}
@@ -172,7 +173,8 @@ int i;
 ** check the fd_set for members returning data to the client, lookup the 
 ** client holding this member and forward the results.
 */
-int pool_process_members(TDS_POOL *pool, fd_set *fds)
+int
+pool_process_members(TDS_POOL * pool, fd_set * fds)
 {
 TDS_POOL_MEMBER *pmbr;
 TDS_POOL_USER *puser;
@@ -182,10 +184,11 @@ int cnt = 0;
 unsigned char *buf;
 time_t time_now;
 
-	for (i=0; i < pool->num_members; i++) {
-		pmbr = (TDS_POOL_MEMBER *) &pool->members[i];
+	for (i = 0; i < pool->num_members; i++) {
+		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
 
-		if (! pmbr->tds) break; /* dead connection */
+		if (!pmbr->tds)
+			break;	/* dead connection */
 
 		tds = pmbr->tds;
 		time_now = time(NULL);
@@ -193,32 +196,33 @@ time_t time_now;
 			pmbr->last_used_tm = time_now;
 			cnt++;
 			/* tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ); */
-			if (pool_packet_read(pmbr)) continue;
+			if (pool_packet_read(pmbr))
+				continue;
 
-			if (tds->in_len==0) {
-				fprintf(stderr,"Uh oh! member %d disconnected\n",i);
+			if (tds->in_len == 0) {
+				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				/* mark as dead */
 				pool_free_member(pmbr);
-			} else if (tds->in_len==-1) {
+			} else if (tds->in_len == -1) {
 				perror("read");
 			} else {
-				fprintf(stderr,"read %d bytes from member %d\n",tds->in_len,i);
+				fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i);
 				if (pmbr->current_user) {
 					puser = pmbr->current_user;
 					buf = tds->in_buf;
-					if (pool_find_end_token(pmbr,buf+8,tds->in_len-8)) {
+					if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) {
 						/* we are done...deallocate member */
 						pmbr->current_user = NULL;
 						pmbr->state = TDS_COMPLETED;
 						puser->user_state = TDS_SRV_IDLE;
 					}
-					write(puser->tds->s,buf,tds->in_len);
+					write(puser->tds->s, buf, tds->in_len);
 				}
 			}
 		}
 		age = time_now - pmbr->last_used_tm;
 		if (age > pool->max_member_age && i >= pool->min_open_conn) {
-			fprintf(stderr,"member %d is %d seconds old...closing\n",i,age);
+			fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
 			pool_free_member(pmbr);
 		}
 	}
@@ -229,20 +233,21 @@ time_t time_now;
 ** pool_find_idle_member
 ** returns the first pool member in TDS_COMPLETED (idle) state
 */
-TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL *pool)
+TDS_POOL_MEMBER *
+pool_find_idle_member(TDS_POOL * pool)
 {
 int i, active_members;
 TDS_POOL_MEMBER *pmbr;
 
 	active_members = 0;
-	for (i=0;i<pool->num_members;i++) {
+	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (pmbr->tds)  {
+		if (pmbr->tds) {
 			active_members++;
-			if (pmbr->state==TDS_COMPLETED) {
+			if (pmbr->state == TDS_COMPLETED) {
 				/* make sure member wasn't idle more that the timeout 
-				** otherwise it'll send the query and close leaving a
-				** hung client */
+				 * ** otherwise it'll send the query and close leaving a
+				 * ** hung client */
 				pmbr->last_used_tm = time(NULL);
 				return pmbr;
 			}
@@ -251,35 +256,36 @@ TDS_POOL_MEMBER *pmbr;
 	/* if we have dead connections we can open */
 	if (active_members < pool->num_members) {
 		pmbr = NULL;
-		for (i=0;i<pool->num_members;i++) {
+		for (i = 0; i < pool->num_members; i++) {
 			pmbr = &pool->members[i];
 			if (!pmbr->tds) {
-				fprintf(stderr,"No open connections left, opening member number %d\n",i);
+				fprintf(stderr, "No open connections left, opening member number %d\n", i);
 				pmbr->tds = pool_mbr_login(pool);
 				pmbr->last_used_tm = time(NULL);
 				break;
 			}
 		}
-		if (pmbr) return pmbr;
+		if (pmbr)
+			return pmbr;
 	}
-	fprintf(stderr,"No idle members left, increase MAX_POOL_CONN\n");
+	fprintf(stderr, "No idle members left, increase MAX_POOL_CONN\n");
 	return NULL;
 }
 
 static int
-pool_packet_read(TDS_POOL_MEMBER *pmbr)
+pool_packet_read(TDS_POOL_MEMBER * pmbr)
 {
 TDSSOCKET *tds;
 int packet_len;
 
 	tds = pmbr->tds;
-	
+
 	if (pmbr->need_more) {
 		tds->in_len += read(tds->s, &tds->in_buf[tds->in_len], BLOCKSIZ - tds->in_len);
 	} else {
 		tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ);
-	}	
-	packet_len = ntohs(*(short*)&tds->in_buf[2]);
+	}
+	packet_len = ntohs(*(short *) &tds->in_buf[2]);
 	if (tds->in_len < packet_len) {
 		pmbr->need_more = 1;
 	} else {
