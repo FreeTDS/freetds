@@ -1,3 +1,9 @@
+Mon Jul 28 10:18:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/Makefile.am install tdsiconv.h, for now
+	* src/apps/tsql.c check for CODESET
+	* src/dblib/dblib.c src/dblib/unittests/dbmorecmds.c
+	- fix dbmorecmds and its unit test
+
 Mon Jul 28 15:45:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merge from Steve patch:
@@ -28,6 +34,7 @@ Sun Jul 27 13:25:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	- small merge (statistics functions) from Steve patch
 	- some fixes for Sybase
 
+>>>>>>> 1.1066
 Fri Jul 25 16:11:29 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0014.c nicer user feedback
 
