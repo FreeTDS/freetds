@@ -1,3 +1,6 @@
+Wed Mar 26 22:22:37 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c: fix core if iODBC
+
 Fri Feb 28 12:37:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in: update rpm release to prevent clash
 
