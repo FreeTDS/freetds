@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.41 2002-11-06 12:40:08 freddy77 Exp $";
+	"$Id: tds.h,v 1.42 2002-11-07 10:02:27 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -659,7 +659,6 @@ void tds_free_connect(TDSCONNECTINFO *connect_info);
 void tds_free_all_results(TDSSOCKET *tds);
 void tds_free_results(TDSRESULTINFO *res_info);
 void tds_free_param_results(TDSPARAMINFO *param_info);
-void tds_free_column(TDSCOLINFO *column);
 void tds_free_msg(TDSMSGINFO *msg_info);
 int tds_put_n(TDSSOCKET *tds, const unsigned char *buf, int n);
 int tds_put_string(TDSSOCKET *tds, const char *buf,int len);

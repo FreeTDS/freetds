@@ -40,13 +40,14 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.48 2002-11-05 16:08:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.49 2002-11-07 10:02:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds);
 void tds_free_env(TDSSOCKET *tds);
+static void tds_free_column(TDSCOLINFO *column);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
@@ -462,7 +463,8 @@ void tds_free_all_results(TDSSOCKET *tds)
 	tds->comp_info = NULL;
     tds->num_comp_info = 0;
 }
-void tds_free_column(TDSCOLINFO *column)
+static void 
+tds_free_column(TDSCOLINFO *column)
 {
 	if (column->column_textvalue) TDS_ZERO_FREE(column->column_textvalue);
 	TDS_ZERO_FREE(column);
@@ -501,7 +503,8 @@ TDSLOCINFO *locale;
 	return locale;
 }
 static const unsigned char defaultcaps[] = 
-{0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
+{0x01,0x07,0x06,109,127,0xFF,0xFF,0xFF,0xFE,
+ 0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)
