@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.143 2003-02-09 01:20:48 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.144 2003-02-12 06:15:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2180,6 +2180,49 @@ TDSCOMPUTEINFO *info;
 	/* all done now allocate a row for tds_process_row to use */
 	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 5 \n");
 	info->current_row = tds_alloc_compute_row(info);
+
+	return TDS_SUCCEED;
+}
+
+int 
+tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG tds_argument, TDS_INT tds_argsize)
+{
+	static const TDS_TINYINT token = TDS_OPTIONCMD_TOKEN;
+	
+	int ret;
+	
+	const TDS_TINYINT command = tds_command;
+	const TDS_TINYINT option = tds_option;
+	const TDS_TINYINT argsize = (tds_argsize == TDS_NULLTERM)? 1 + strlen(tds_argument.c) : tds_argsize;
+
+	const TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
+	
+	tdsdump_log(TDS_DBG_INFO1, "%L entering %s::tds_send_optioncmd() \n", __FILE__);
+	
+	ret = tds_put_tinyint(tds, token);
+	ret = tds_put_smallint(tds, length);
+	ret = tds_put_tinyint(tds, command);
+	ret = tds_put_tinyint(tds, option);
+	ret = tds_put_tinyint(tds, argsize);
+	
+	switch (tds_argsize) {
+	case 1:
+		ret = tds_put_tinyint(tds, tds_argument.ti);
+		break;
+	case 4:
+		ret = tds_put_int(tds, tds_argument.i);
+		break;
+	case TDS_NULLTERM:
+		ret = tds_put_string(tds, tds_argument.c, argsize);
+		break;
+	default: 
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_send_optioncmd: failed: argsize is %d.\n", tds_argsize);
+		return -1;
+	}
+	
+	ret = tds_flush_packet(tds);
+	
+	/* TODO: read the server's response.  Don't use this function yet. */
 
 	return TDS_SUCCEED;
 }

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.75 2003-02-10 22:36:53 castellano Exp $";
+static char software_version[] = "$Id: ct.c,v 1.76 2003-02-12 06:15:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -307,6 +307,33 @@ char *set_buffer = NULL;
 			if (out_len)
 				*out_len = sizeof(intval);
 			break;
+		case CS_TDS_VERSION:
+			switch (tds_version(tds, NULL)) {
+			case 40:
+				(*(int *) buffer = CS_TDS_40);
+				break;
+			case 42:
+				(*(int *) buffer = CS_TDS_42);
+				break;
+			case 46:
+				(*(int *) buffer = CS_TDS_46);
+				break;
+			case 40 + 95:
+				(*(int *) buffer = CS_TDS_495);
+				break;
+			case 50:
+				(*(int *) buffer = CS_TDS_50);
+				break;
+			case 70:
+				(*(int *) buffer = CS_TDS_70);
+				break;
+			case 80:
+				(*(int *) buffer = CS_TDS_80);
+				break;
+			default:
+				return CS_FAIL;
+			}
+			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "%L Unknown property %d\n", property);
 			break;
@@ -499,6 +526,8 @@ TDSSOCKET *tds;
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
 		tds_flush_packet(tds);
 	}
+	
+	return CS_SUCCEED;
 }
 
 CS_RETCODE
@@ -1483,8 +1512,6 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 {
 TDSSOCKET *tds = cmd->con->tds_socket;
 TDSRESULTINFO *resinfo = tds->curr_resinfo;
-TDSBLOBINFO *blob_info;
-TDSCOLINFO *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_data_info() colnum %d\n", colnum);
 
@@ -1996,25 +2023,119 @@ TDSDYNAMIC *dyn;
 */
 }
 
+
 CS_RETCODE
 ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, CS_INT paramlen, CS_INT * outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_options() action = %s option = %d\n", CS_GET ? "CS_GET" : "CS_SET", option);
+	TDS_OPTION_CMD tds_command = 0;
+	TDS_OPTION tds_option = 0;
+	TDS_OPTION_ARG tds_argument;
+	TDS_INT  tds_argsize;
+
+	char * action_string = NULL;
+	int i;
+
+	/* boolean options can all be treated the same way */
+	static const struct TDS_BOOL_OPTION_MAP
+	{
+		CS_INT option;
+		TDS_OPTION tds_option;
+	} tds_bool_option_map[] = 
+	{
+		  { CS_OPT_ANSINULL, TDS_OPT_ANSINULL } 
+		, { CS_OPT_ANSINULL, TDS_OPT_ANSINULL } 
+		, { CS_OPT_CHAINXACTS, TDS_OPT_CHAINXACTS }
+		, { CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT }
+		, { CS_OPT_FIPSFLAG, TDS_OPT_FIPSFLAG }
+		, { CS_OPT_FORCEPLAN, TDS_OPT_FORCEPLAN }
+		, { CS_OPT_FORMATONLY, TDS_OPT_FORMATONLY }
+		, { CS_OPT_GETDATA, TDS_OPT_GETDATA }
+		, { CS_OPT_NOCOUNT, TDS_OPT_NOCOUNT }
+		, { CS_OPT_NOEXEC, TDS_OPT_NOEXEC }
+		, { CS_OPT_PARSEONLY, TDS_OPT_PARSEONLY }
+		, { CS_OPT_QUOTED_IDENT, TDS_OPT_QUOTED_IDENT }
+		, { CS_OPT_RESTREES, TDS_OPT_RESTREES }
+		, { CS_OPT_SHOWPLAN, TDS_OPT_SHOWPLAN }
+		, { CS_OPT_STATS_IO, TDS_OPT_STAT_IO, }
+		, { CS_OPT_STATS_TIME, TDS_OPT_STAT_TIME, }
+	};
 
 	if (param == NULL)
 		return CS_FAIL;
 
-	switch (option) {
-	case CS_OPT_ANSINULL:
+	/* 
+	 * Set the tds command 
+	 */
+	switch (action) {
+	case CS_GET:
+		tds_command = TDS_OPT_LIST; 	/* will be acknowledged by TDS_OPT_INFO */
+		action_string = "CS_GET";
+		tds_argsize = 0;
+		break;
+	case CS_SET:
+		tds_command = TDS_OPT_SET;
+		action_string = "CS_SET";
+		break;
+	case CS_CLEAR:
+		tds_command = TDS_OPT_DEFAULT;
+		action_string = "CS_CLEAR";
+		tds_argsize = 0;
+		break;
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L ct_options: invalid action = %d\n", action);
+		return CS_FAIL;
+	}
+
+	assert(tds_command && action_string);
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_options: %s, option = %d\n", action_string, option);
+
+	/*
+	 * Set the tds option
+	 *	The following TDS options apparently cannot be set with this function.  
+	 *	TDS_OPT_CHARSET
+	 *	TDS_OPT_CURREAD
+	 *	TDS_OPT_IDENTITYOFF
+	 *	TDS_OPT_IDENTITYON
+	 *	TDS_OPT_CURWRITE
+	 *	TDS_OPT_NATLANG
+	 *	TDS_OPT_ROWCOUNT
+	 *	TDS_OPT_TEXTSIZE
+	 */
+
+	/* 
+	 * First, take care of the easy cases, the booleans.  
+	 */
+	for (i=0; i < TDS_VECTOR_SIZE(tds_bool_option_map); i++) {
+		if (tds_bool_option_map[i].option == option) {
+			tds_option = tds_bool_option_map[i].tds_option;
+			break;
+		}
+	}
+
+	if (tds_option != 0) {	/* found a boolean */
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
+			tds_argument.ti = 1;
+			break;
 		case CS_FALSE:
-			break;	/* end valid choices */
+			tds_argument.ti = 0;
+			break;
 		default:
 			return CS_FAIL;
 		}
-		break;
+		tds_argsize = (action == CS_SET)? 1 : 0;
+		
+		goto SEND_OPTION;
+	}
+
+	/*
+	 * Non-booleans are more complicated.
+	 */
+	switch (option) {
 	case CS_OPT_ANSIPERM:
+	case CS_OPT_STR_RTRUNC:
+		/* no documented tds option */
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
@@ -2026,215 +2147,118 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	case CS_OPT_ARITHABORT:
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
+			tds_option = TDS_OPT_ARITHABORTON;
+			break;
 		case CS_FALSE:
-			break;	/* end valid choices */
+			tds_option = TDS_OPT_ARITHABORTOFF;
+			break;
 		default:
 			return CS_FAIL;
 		}
+		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
+		tds_argsize = (action == CS_SET)? 4 : 0;
 		break;
 	case CS_OPT_ARITHIGNORE:
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
+			tds_option = TDS_OPT_ARITHIGNOREON;
+			break;
 		case CS_FALSE:
-			break;	/* end valid choices */
+			tds_option = TDS_OPT_ARITHIGNOREOFF;
+			break;
 		default:
 			return CS_FAIL;
 		}
+		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
+		tds_argsize = (action == CS_SET)? 4 : 0;
 		break;
-
 	case CS_OPT_AUTHOFF:
+		tds_option = TDS_OPT_AUTHOFF;
+		tds_argument.c = (TDS_CHAR *) param;
+		tds_argsize = (action == CS_SET)? paramlen : 0;
+		break;
 	case CS_OPT_AUTHON:
+		tds_option = TDS_OPT_AUTHON;
+		tds_argument.c = (TDS_CHAR *) param;
+		tds_argsize = (action == CS_SET)? paramlen : 0;
 		break;
 
-	case CS_OPT_CHAINXACTS:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_CURCLOSEONXACT:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
 	case CS_OPT_DATEFIRST:
-		switch (*(int *) param) {
-		case CS_OPT_SUNDAY:
-		case CS_OPT_MONDAY:
-		case CS_OPT_TUESDAY:
-		case CS_OPT_WEDNESDAY:
-		case CS_OPT_THURSDAY:
-		case CS_OPT_FRIDAY:
-		case CS_OPT_SATURDAY:
-			break;	/* end valid choices */
+		tds_option = TDS_OPT_DATEFIRST;
+		switch (*(char *) param) {
+		case CS_OPT_SUNDAY:	tds_argument.ti = TDS_OPT_SUNDAY; 	break;
+		case CS_OPT_MONDAY:	tds_argument.ti = TDS_OPT_MONDAY; 	break;
+		case CS_OPT_TUESDAY:	tds_argument.ti = TDS_OPT_TUESDAY; 	break;
+		case CS_OPT_WEDNESDAY:	tds_argument.ti = TDS_OPT_WEDNESDAY; 	break;
+		case CS_OPT_THURSDAY:	tds_argument.ti = TDS_OPT_THURSDAY; 	break;
+		case CS_OPT_FRIDAY:	tds_argument.ti = TDS_OPT_FRIDAY; 	break;
+		case CS_OPT_SATURDAY:	tds_argument.ti = TDS_OPT_SATURDAY; 	break;
 		default:
 			return CS_FAIL;
 		}
+		tds_argument.ti = *(char*) param;
+		tds_argsize = (action == CS_SET)? 1 : 0;
 		break;
 	case CS_OPT_DATEFORMAT:
-		switch (*(int *) param) {
-		case CS_OPT_FMTMDY:
-		case CS_OPT_FMTDMY:
-		case CS_OPT_FMTYMD:
-		case CS_OPT_FMTYDM:
-		case CS_OPT_FMTMYD:
-		case CS_OPT_FMTDYM:
-			break;	/* end valid choices */
+		tds_option = TDS_OPT_DATEFORMAT;
+		switch (*(char *) param) {
+		case CS_OPT_FMTMDY:	tds_argument.ti = TDS_OPT_FMTMDY; 	break;        
+		case CS_OPT_FMTDMY:	tds_argument.ti = TDS_OPT_FMTDMY; 	break;        
+		case CS_OPT_FMTYMD:	tds_argument.ti = TDS_OPT_FMTYMD; 	break;        
+		case CS_OPT_FMTYDM:	tds_argument.ti = TDS_OPT_FMTYDM; 	break;        
+		case CS_OPT_FMTMYD:	tds_argument.ti = TDS_OPT_FMTMYD; 	break;        
+		case CS_OPT_FMTDYM:	tds_argument.ti = TDS_OPT_FMTDYM; 	break;        
 		default:
 			return CS_FAIL;
 		}
-		break;
-	case CS_OPT_FIPSFLAG:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_FORCEPLAN:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_FORMATONLY:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_GETDATA:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
+		tds_argument.ti = *(char*) param;
+		tds_argsize = (action == CS_SET)? 1 : 0;
 		break;
 	case CS_OPT_ISOLATION:
-		switch (*(int *) param) {
+		tds_option = TDS_OPT_ISOLATION;
+		switch (*(char *) param) {
+		case CS_OPT_LEVEL0:	/* CS_OPT_LEVEL0 requires SQL Server version 11.0 or later or Adaptive Server. */
+			/* no documented value */
+			tds_option = 0;
+			tds_argument.ti = 0;
+			break;
 		case CS_OPT_LEVEL1:
-		case CS_OPT_LEVEL0:
-		case CS_OPT_LEVEL3:	/* CS_OPT_LEVEL0 requires SQL Server version 11.0 or later or Adaptive Server. */
-			break;	/* end valid choices */
+			tds_argument.ti = TDS_OPT_LEVEL1;
+		case CS_OPT_LEVEL3:
+			tds_argument.ti = TDS_OPT_LEVEL3;
+			break;
 		default:
 			return CS_FAIL;
 		}
-		break;
-	case CS_OPT_NOCOUNT:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_NOEXEC:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_PARSEONLY:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_QUOTED_IDENT:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_RESTREES:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_SHOWPLAN:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_STATS_IO:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_STATS_TIME:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
-		break;
-	case CS_OPT_STR_RTRUNC:
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-		case CS_FALSE:
-			break;	/* end valid choices */
-		default:
-			return CS_FAIL;
-		}
+		tds_argsize = (action == CS_SET)? 1 : 0;
 		break;
 	case CS_OPT_TRUNCIGNORE:
+		tds_option = TDS_OPT_TRUNCABORT;	/* note inverted sense */
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
-			break;	/* end valid choices */
+			break;
 		default:
 			return CS_FAIL;
 		}
+		tds_argument.ti = ! *(char*) param;
+		tds_argsize = (action == CS_SET)? 1 : 0;
 		break;
 	default:
 		return CS_FAIL;	/* invalid option */
 	}
-	tdsdump_log(TDS_DBG_FUNC, "%L ct_option: UNIMPLEMENTED %d\n", *(int *) param);
+
+  SEND_OPTION:
+
+	tdsdump_log(TDS_DBG_FUNC, "%L ct_option: UNIMPLEMENTED %d\n", option);
+
+	tdsdump_log(TDS_DBG_FUNC, "\ttds_send_optioncmd will be option(%d) arg(%x) arglen(%d)\n"
+			, tds_option, tds_argument.i, tds_argsize);
+
 	return CS_SUCCEED;	/* return succeed for now unless inputs are wrong */
 	return CS_FAIL;
 
-}				/* ct_options */
+} /* end ct_options() */
 
 CS_RETCODE
 ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CONNECTION ** compconn, CS_COMMAND ** compcmd,

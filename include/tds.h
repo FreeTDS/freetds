@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.83 2003-02-11 05:20:02 jklowden Exp $";
+	"$Id: tds.h,v 1.84 2003-02-12 06:15:34 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -212,8 +212,9 @@ enum tds_end {
 #define TDS_DYNAMIC2_TOKEN        163  /* 0xA3 */
 #define TDS_TABNAME_TOKEN         164  /* 0xA4 */
 #define TDS_COLINFO_TOKEN         165  /* 0xA5 */
-#define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7                        */
-#define TDS_COMPUTE_RESULT_TOKEN  168  /* 0xA8                        */
+#define TDS_OPTIONCMD_TOKEN   	  166  /* 0xA6 */
+#define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7 */
+#define TDS_COMPUTE_RESULT_TOKEN  168  /* 0xA8 */
 #define TDS_ORDERBY_TOKEN         169  /* 0xA9    TDS_ORDER                 */
 #define TDS_ERROR_TOKEN           170  /* 0xAA                              */
 #define TDS_INFO_TOKEN            171  /* 0xAB                              */
@@ -302,6 +303,85 @@ sheesh! </rant>
 #define SYBAOPAVGU 0x50
 #define SYBAOPMIN  0x51
 #define SYBAOPMAX  0x52
+
+/** 
+ * options that can be sent with a TDS_OPTIONCMD token
+ */
+typedef enum {
+	  TDS_OPT_SET = 1		/* Set an option. */
+	, TDS_OPT_DEFAULT = 2		/* Set option to its default value. */
+	, TDS_OPT_LIST = 3		/* Request current setting of a specific option. */
+	, TDS_OPT_INFO = 4		/* Report current setting of a specific option. */
+} TDS_OPTION_CMD;
+
+typedef enum {
+	  TDS_OPT_DATEFIRST = 1		/* 0x01 */
+	, TDS_OPT_TEXTSIZE = 2		/* 0x02 */
+	, TDS_OPT_STAT_TIME = 3		/* 0x03 */
+	, TDS_OPT_STAT_IO = 4		/* 0x04 */
+	, TDS_OPT_ROWCOUNT = 5		/* 0x05 */
+	, TDS_OPT_NATLANG = 6		/* 0x06 */
+	, TDS_OPT_DATEFORMAT = 7	/* 0x07 */
+	, TDS_OPT_ISOLATION = 8		/* 0x08 */
+	, TDS_OPT_AUTHON = 9		/* 0x09 */
+	, TDS_OPT_CHARSET = 10		/* 0x0a */
+	, TDS_OPT_SHOWPLAN = 13		/* 0x0d */
+	, TDS_OPT_NOEXEC = 14		/* 0x0e */
+	, TDS_OPT_ARITHIGNOREON = 15	/* 0x0f */
+	, TDS_OPT_ARITHABORTON = 17	/* 0x11 */
+	, TDS_OPT_PARSEONLY = 18	/* 0x12 */
+	, TDS_OPT_GETDATA = 20		/* 0x14 */
+	, TDS_OPT_NOCOUNT = 21		/* 0x15 */
+	, TDS_OPT_FORCEPLAN = 23	/* 0x17 */
+	, TDS_OPT_FORMATONLY = 24	/* 0x18 */
+	, TDS_OPT_CHAINXACTS = 25	/* 0x19 */
+	, TDS_OPT_CURCLOSEONXACT = 26	/* 0x1a */
+	, TDS_OPT_FIPSFLAG = 27		/* 0x1b */
+	, TDS_OPT_RESTREES = 28		/* 0x1c */
+	, TDS_OPT_IDENTITYON = 29	/* 0x1d */
+	, TDS_OPT_CURREAD = 30		/* 0x1e */
+	, TDS_OPT_CURWRITE = 31		/* 0x1f */
+	, TDS_OPT_IDENTITYOFF = 32	/* 0x20 */
+	, TDS_OPT_AUTHOFF = 33		/* 0x21 */
+	, TDS_OPT_ANSINULL = 34		/* 0x22 */
+	, TDS_OPT_QUOTED_IDENT = 35	/* 0x23 */
+	, TDS_OPT_ARITHIGNOREOFF = 36	/* 0x24 */
+	, TDS_OPT_ARITHABORTOFF = 37	/* 0x25 */
+	, TDS_OPT_TRUNCABORT = 38	/* 0x26 */
+} TDS_OPTION;
+
+typedef union tds_option_arg
+{
+	TDS_TINYINT ti;
+  	TDS_INT i;
+	TDS_CHAR *c;
+} TDS_OPTION_ARG;
+
+static const TDS_INT TDS_OPT_ARITHOVERFLOW = 0x01;
+static const TDS_INT TDS_OPT_NUMERICTRUNC = 0x02;
+
+enum TDS_OPT_DATEFIRST_CHOICE {
+	  TDS_OPT_MONDAY= 1
+	, TDS_OPT_TUESDAY= 2
+	, TDS_OPT_WEDNESDAY= 3
+	, TDS_OPT_THURSDAY= 4
+	, TDS_OPT_FRIDAY= 5
+	, TDS_OPT_SATURDAY= 6
+	, TDS_OPT_SUNDAY= 7
+};
+
+enum TDS_OPT_DATEFORMAT_CHOICE {
+	  TDS_OPT_FMTMDY = 1
+	, TDS_OPT_FMTDMY = 2
+	, TDS_OPT_FMTYMD = 3
+	, TDS_OPT_FMTYDM = 4
+	, TDS_OPT_FMTMYD = 5
+	, TDS_OPT_FMTDYM = 6
+};
+enum TDS_OPT_ISOLATION_CHOICE {
+	  TDS_OPT_LEVEL1 = 1
+	, TDS_OPT_LEVEL3 = 3
+};
 
 #define TDS_ZERO_FREE(x) {free((x)); (x) = NULL;}
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
@@ -419,7 +499,7 @@ sheesh! </rant>
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
 
-/* TODO do a best check for alignment than this */
+/* TODO do a better check for alignment than this */
 typedef union { void *p; int i; } tds_align_struct;
 #define TDS_ALIGN_SIZE sizeof(tds_align_struct)
 
@@ -838,6 +918,7 @@ int tds_process_login_tokens(TDSSOCKET *tds);
 void tds_set_column_type(TDSCOLINFO *curcol, int type);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
+int tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG tds_argument, TDS_INT tds_argsize);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);

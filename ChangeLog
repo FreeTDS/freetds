@@ -1,3 +1,11 @@
+Wed Feb 12 01:10:25 EST 2003	JK Lowden <jklowden@schemamania.org>
+* src/dblib/bcp.c removed unused variable
+* include/cspublic.h include/tds.h src/tds/token.c src/ctlib/ct.c
+- more ct_options() support, getting close to useable.  
+* src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
+* src/ctlib/unittests/common.h
+- test for ct_options()
+
 Tue Feb 11 00:15:18 EST 20031	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h src/apps/tsql.c src/tds/config.c
 	- provide tds_get_compiletime_settings, view with "tsql -C".
