@@ -1,3 +1,32 @@
+* Jan 2003
+- Version 0.61
+- Dynamic SQL
+- Output parameters
+- Compute rows
+- Varbinary support
+- dsn-less ODBC connections
+- RPC support (db-lib)
+- Compatibility with DBD::Sybase 0.95
+- 68 new functions!  (see doc/api_status.txt)
+- Error/message handling rewritten, uses real error numbers
+- new sample programs
+- much cleaner code, warning-free compiles
+- namespace cleanup
+- public domain versions of functions for OSs that lack them
+- autoconf portability improvements
+- builds in HP-UX, Win32, and cygwin 
+- No dependency on OpenSSL
+	
+* Sep 2002
+- Version 0.60
+- Support for SQL Server 2000 datatypes and domain logins.  
+- Support and convertibility of all major datatypes.
+- Much expanded coverage of the ODBC API.  
+- An all-new BCP implementation, including host variable support.  
+- Character set conversions, via the iconv library.  
+- Threadsafe operation.  
+
+* [late 2001?]
 - tdspool now working for big endian systems
 - Fixed mem leak in ctlib
 - Added some descriptive text to the PWD file

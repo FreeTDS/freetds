@@ -1,7 +1,10 @@
 FreeTDS Installation
 
-   For complete instructions, see the FreeTDS Users Guide.
-   http://www.freetds.org/userguide/book1.html
+   For complete instructions, see the FreeTDS Users Guide.  It is 
+   included in the distribution as "doc/userguide.tgz"; simply untar and
+   enjoy.  It is also online:
+   
+   	http://www.freetds.org/userguide/
 
 Brief Instructions
 
@@ -9,9 +12,8 @@ Brief Instructions
    $ make 
    $ make install
 
-   (On FreeBSD use 'gmake' rather than 'make'.)
-
-   Edit the /etc/freetds/freetds.conf file to add servers.
+   Edit the /usr/local/etc/freetds.conf file to add servers.
+   Test the connection with /usr/local/tsql.  
    Build and test the package that requires FreeTDS.
 
 ------
@@ -48,8 +50,7 @@ The simplest way to compile this package is:
      Running `configure' takes awhile.  While running, it prints some
      messages telling which features it is checking for.
 
-  2. Type `make' to compile the package.  (Note-  FreeBSD users need to
-     use 'gmake' instead of the standard Berkeley make program.)
+  2. Type `make' to compile the package.
 
   3. Optionally, type `make check' to run any self-tests that come with
      the package.
@@ -119,20 +120,7 @@ you can set and what kinds of files go in them.
 with an extra prefix or suffix on their names by giving `configure' the
 option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
 
-Optional Features
-=================
-
-   Some packages pay attention to `--enable-FEATURE' options to
-`configure', where FEATURE indicates an optional part of the package.
-They may also pay attention to `--with-PACKAGE' options, where PACKAGE
-is something like `gnu-as' or `x' (for the X Window System).  The
-`README' should mention any `--enable-' and `--with-' options that the
-package recognizes.
-
-   For packages that use the X Window System, `configure' can usually
-find the X include and library files automatically, but if it doesn't,
-you can use the `configure' options `--x-includes=DIR' and
-`--x-libraries=DIR' to specify their locations.
+   For more information, try "./configure --help".  
 
 Specifying the System Type
 ==========================

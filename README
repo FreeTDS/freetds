@@ -5,7 +5,7 @@ README for FreeTDS
   http://www.freetds.org/userguide/
 
 FreeTDS is a free (open source) implementation of Sybase's db-lib,
-ct-lib, and ODBC libraries. Currently, dblib and ctlib are most
+ct-lib, and ODBC libraries. Currently, db-lib and ct-lib are most
 mature.  Both of these libraries have several programs known to
 compile and run against them.  ODBC is not quite as mature, but may
 work depending on your needs.
@@ -13,6 +13,10 @@ work depending on your needs.
 A copy of the userguide, in sgml and html form, is included in this 
 distribution.  It is an ordinary tarball; "make install" does not 
 install the html onto your system.  You may wish to do this yourself.  
+
+FreeTDS builds and runs on every flavor of unix-like systems we've heard of, as
+well as Win32 (with or without Cygwin), and Mac OS X.  Failure to build on your
+system is probably considered a bug.  
 
 Submissions of test programs (self-contained programs that demonstrate
 functionality or problems) are greatly appreciated.  They should
@@ -22,8 +26,82 @@ works against the pubs2 database. Unit tests for any of the libraries
 is appreciated
 
 FreeTDS is licensed under the Gnu LGPL license. See COPYING.LIB for
-details.
+details.  
 
+Other files you might want to peruse:
+
+AUTHORS		Who's involved
+BUGS		Some things we fixed, or think we did
+ChangeLog	Detailed list of changes
+NEWS		Summary of feature changes and fixes
+README		This file
+TODO		The roadmap, such as it is
+
+Also, doc/api_status.txt shows which functions are implemented.  
+
+************************************
+** Warning regarding Sybase 12.5! **
+************************************
+
+Do Not Use FreeTDS 0.61 with TDS version 4.2 to connect to Sybase 12.5. 
+Please!  
+
+While we don't like to put the bad news first, neither do we want you to hurt
+your server.  Late in the release cycle, we found that our implementation of
+TDS 4.2 gives Sybase 12.5 a bad case of heartburn.  In short: it crashed the
+server.  
+
+We don't know what it is about our version of TDS 4.2 that Sybase 12.5 doesn't
+like, and we'll be looking closely at that question.  But in the meanwhile,
+until we can find the problem and fix it, please don't use that combination. 
+Unless you want to help us test it, that is.  
+
+FreeTDS 0.61 works fine with Sybase 12.5 if you use TDS version 5.0.  
+
+If you are using Sybase 12.5 and anything above is not clear to you, please
+see the User Guide.  If it is still not clear after that, please write to the
+FreeTDS mailing list.  We'd rather answer your questions while your server is
+still running.  
+
+Thank you.  We return now to your regularly scheduled README, already in
+progress.  
+
+New location of installed files!
+================================
+
+With version 0.60, FreeTDS by default installed itself in the 
+/usr/local tree.  You can of course override this location using the 
+--prefix parameter of the configure script.  
+
+Rationale:  Although we're not very passionate on the subject, we feel the new
+installation directory will be easier for new users to use, because they won't
+have to make adjustments to the runtime linking behavior.  
+
+Prior to 0.60, FreeTDS installed into /usr/local/freetds.  If you wish to
+preserve that behavior, build 0.61 with your prefix set to the old location. 
+Example: ./configure --prefix=/usr/local/freetds/
+
+If you have a version older than 0.60 installed, and want to "get with the
+program" (use the new default locations), you will want to be sure that the
+old configuration files are preserved, and the old binaries are removed.  To
+do that, follow these steps:
+
+1) move your configuration files to the new location. Example:
+	cp /usr/local/freetds/etc/*.conf /usr/local/etc/
+
+2) remove your old installation
+	rm -fr /usr/local/freetds
+
+3) if you have modified your /etc/ld.so.conf file to include 
+/usr/local/freetds/lib, remove this and rerun "ldconfig"
+
+4) if you have modified startup scripts for apache or similar applications 
+to include /usr/local/freetds/lib in the LD_LIBRARY_PATH, be sure to 
+remove them now.
+
+Once you have installed FreeTDS and taken these steps, your new installation
+should work at least as well as your old one.  You may wish to try out "tsql" to
+test things.  See "man tsql" (!) for details.  
 
 Bug Submissions
 ---------------
@@ -69,13 +147,13 @@ Notes to Developers
 The code is split into several pieces.
 
 1) tds directory is the wire level stuff, it should be independent of
-   the library using it, this will allow DB-Lib, CT-Lib, and ODBC to
+   the library using it, this will allow db-lib, ct-lib, and ODBC to
    sit on top.
 
-2) dblib directory. This is the actual dblib code which runs on top of
+2) db-lib directory. This is the actual db-lib code which runs on top of
    tds.
 
-3) ctlib directory. This is the ctlib code which runs on top of tds. 
+3) ct-lib directory. This is the ct-lib code which runs on top of tds. 
 
 4) server directory. This will be a set of server routines basically
    to impersonate a dataserver, functions like send_login_ack() etc...
@@ -84,7 +162,7 @@ The code is split into several pieces.
    unixODBC as a driver manager.  You need to have one of those if you
    are using the ODBC CLI.
 
-6) unittests directories. Test harness code for ctlib, dblib and tds.
+6) unittests directories. Test harness code for ct-lib, db-lib and tds.
 
 6) samples directories. Sample code for getting started with Perl,
    PHP, etc...
@@ -97,7 +175,7 @@ The code is split into several pieces.
 Please look at doc/getting_started.txt for a description of what is
 going on in the code.
 
-Side note: I, as many free software authors, appreciate postcards from
+Side note: Brian, as many free software authors, appreciates postcards from
 all over. So if you live someplace neat (read: not Michigan) and want
-to send one, email me (camber@ais.org) for my current snail mail
+to send one, email him (camber@ais.org) for his current snail mail
 address.
