@@ -1,3 +1,7 @@
+Wed Oct 30 15:27:41 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h src/ctlib/unittests/t0006.c:
+	- mnylow is unsigned.
+
 Wed Oct 30 15:20:51 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/bcp.c:
 	- Eliminate a potential buffer overrun.  There's still
@@ -40,7 +44,7 @@ Mon Oct 28  13:35:08 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	- fix distribution problem after updating automake
 
 Sun Oct 27 22:29:21 EST 2002	nsc <Nicholas_Castellano@acml.com>
-	* src/.indent.pro
+	* src/.indent.pro:
 	- Changed many indentation settings, primarily to make the output more
 	  self-consistent.  Added "-nut" so the output looks good on any
 	  terminal, not just those with 5-column tab stops.  Also changed

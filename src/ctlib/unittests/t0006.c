@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char  software_version[]   = "$Id: t0006.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.7 2002-10-30 20:29:56 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 CS_CONTEXT *ctx; 
@@ -290,13 +290,13 @@ main(int argc, char **argv)
 
    DO_TEST(CS_INT test = 1234678; CS_MONEY test2; 
 		   test2.tdsoldmoney.mnyhigh = ((one * 1234678) * 10000) >> 32;
-		   test2.tdsoldmoney.mnylow = (TDS_INT)((one * 1234678) * 10000),
+		   test2.tdsoldmoney.mnylow = (TDS_UINT)((one * 1234678) * 10000),
 	   CS_INT_TYPE,&test,sizeof(test),
 	   CS_MONEY_TYPE,sizeof(test2),
 	   CS_SUCCEED,&test2,sizeof(test2));
    DO_TEST(CS_INT test = -8765; CS_MONEY test2; 
 		   test2.tdsoldmoney.mnyhigh = ((one * -8765) * 10000) >> 32;
-		   test2.tdsoldmoney.mnylow = (TDS_INT)((one * -8765) * 10000),
+		   test2.tdsoldmoney.mnylow = (TDS_UINT)((one * -8765) * 10000),
 	   CS_INT_TYPE,&test,sizeof(test),
 	   CS_MONEY_TYPE,sizeof(test2),
 	   CS_SUCCEED,&test2,sizeof(test2));

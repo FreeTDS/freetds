@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.30 2002-10-27 10:26:31 freddy77 Exp $";
+	"$Id: tds.h,v 1.31 2002-10-30 20:29:55 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -73,7 +73,7 @@ typedef struct tdsnumeric
 typedef struct tdsoldmoney
 {
 	TDS_INT         mnyhigh;
-	TDS_INT         mnylow;
+	TDS_UINT        mnylow;
 } TDS_OLD_MONEY;
 
 typedef union tdsmoney
