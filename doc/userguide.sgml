@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-30 09:49:50 $</date>
-		<releaseinfo>$Revision: 1.34 $</releaseinfo>
+		<date>$Date: 2002-10-10 17:13:45 $</date>
+		<releaseinfo>$Revision: 1.35 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -202,9 +202,9 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 			<title>Status of this document</title>
 			<para>
 The document you are reading is version 
-$Revision: 1.34 $
+$Revision: 1.35 $
 , dated 
-$Date: 2002-09-30 09:49:50 $
+$Date: 2002-10-10 17:13:45 $
 .  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>
@@ -1280,22 +1280,13 @@ The <productname>FreeTDS</productname> connection pool is a server process, it a
 To configure the pooling server, first make sure <productname>FreeTDS</productname> has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program. 
 		</para>
 <Note><para>
-The <productname>FreeTDS</productname> connection pool currently only supports <acronym>TDS</> version 4.2.
+The <productname>FreeTDS</productname> connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
 		<para>
-First build the pool server.  The pooling server was added to the <application>autoconf</application> scripts after 0.53, so if you have an earlier version, please use <productname>CVS</productname> or a nightly snapshot.  Although, <acronym>TDS</>Pool is built using <application>autoconf</application>, it does not build by default.  To build, simply <command>cd</command> into the <filename>src/pool</filename> directory and issue the <command>make</command> command.
+The pooling server was added to the <application>autoconf</application> scripts after 0.53, so if you have an earlier version, please use <productname>CVS</productname> or a nightly snapshot.
 		</para>
 		<para>
-<screen>
-<prompt>$ </prompt><userinput> cd src/pool</userinput>
-<prompt>$ </prompt><userinput> make</userinput>
-<prompt>$ </prompt><userinput> su -</userinput>
-<prompt>password: </prompt>
-<prompt># </prompt><userinput> make install</userinput>
-</screen>
-		</para>
-		<para>
-You will now find an executable named <command>tdspool</command> in the <filename>/usr/local/freetds/bin</filename> directory (or whatever directory you specified if configure was run using the <parameter>--with-prefix flag</parameter>).
+After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory you specified if configure was run using the <parameter>--with-prefix flag</parameter>).
 		</para>
 		<para>
 Next, edit the <filename>pool.conf</filename> file in the <productname>FreeTDS</productname>'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like the <filename>freetds.conf</filename> with a section name in brackets and options for each section in key/value pairs.
@@ -1332,7 +1323,7 @@ Just like the <filename>freetds.conf</filename> file there are two types of sect
 	<entry>server</entry>
 	<entry>none</entry>
 	<entry>The alias from the freetds.conf file representing the dataserver that will be connected to.</entry>
-	<entry>Any entry in the freetds.conf file</entry>
+	<entry>Any <emphasis>TDS 4.2</emphasis>entry in the freetds.conf file</entry>
 	</row>
 	<row>
 	<entry>database</entry>
