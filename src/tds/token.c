@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.44 2002-08-30 00:32:07 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.45 2002-08-30 00:42:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1699,4 +1699,5 @@ static int tds_get_cardinal_type(int datatype)
 		case XSYBCHAR: 
 			return SYBCHAR;
 	}
+	return datatype;
 }
