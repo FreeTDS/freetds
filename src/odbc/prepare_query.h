@@ -33,13 +33,13 @@
 #endif
 
 
-static char rcsid_prepare_query_h[] = "$Id: prepare_query.h,v 1.7 2004-03-24 16:21:43 freddy77 Exp $";
+static char rcsid_prepare_query_h[] = "$Id: prepare_query.h,v 1.8 2004-05-12 19:12:55 freddy77 Exp $";
 static void *no_unused_prepare_query_h_warn[] = { rcsid_prepare_query_h, no_unused_prepare_query_h_warn };
 
 
 SQLRETURN prepare_call(struct _hstmt *stmt);
 SQLRETURN native_sql(struct _hdbc *dbc, char *s);
-int start_parse_prepared_query(struct _hstmt *stmt);
+int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGER StrLen_or_Ind);
 
 #endif

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.34 2004-04-11 13:07:23 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.35 2004-05-12 19:12:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -101,7 +101,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
 SQLRETURN
-sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam)
+sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam, int compute_row)
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
@@ -205,15 +205,17 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 		}
 	}
 
-	/* allocate given space */
-	if (!tds_alloc_param_row(info, curcol))
-		return SQL_ERROR;
-
 	/* test source type */
 	/* TODO test intervals */
 	src_type = odbc_c_to_server_type(src_type);
 	if (src_type == TDS_FAIL)
 		return SQL_ERROR;
+
+	/* allocate given space */
+	if (compute_row) {
+		if (!tds_alloc_param_row(info, curcol))
+			return SQL_ERROR;
+	}
 
 	if (need_data) {
 		curcol->column_cur_size = 0;
@@ -224,9 +226,14 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 	assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
 	if (sql_len == SQL_NULL_DATA) {
 		curcol->column_cur_size = 0;
-		tds_set_null(info->current_row, nparam);
+		if (compute_row)
+			tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;
 	}
+
+	/* we have no data to convert, just return */
+	if (!compute_row)
+		return TDS_SUCCEED;
 
 	/* convert special parameters (not libTDS compatible) */
 	src = drec_apd->sql_desc_data_ptr;

@@ -1,3 +1,10 @@
+Wed May 12 21:11:53 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/prepare_query.c:
+	* src/odbc/prepare_query.h src/odbc/sql2tds.c:
+	* src/odbc/sql2tds.h src/odbc/unittests/prepare_results.c:
+	* src/tds/query.c:
+	- continue to implement getting information after SQLPrepare
+
 Tue May 11 21:55:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c: remove a warning
 

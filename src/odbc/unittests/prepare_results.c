@@ -2,13 +2,12 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.2 2004-03-11 10:29:08 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.3 2004-05-12 19:12:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-#ifdef ENABLE_DEVELOPING
 	SQLSMALLINT count, namelen, type, digits, nullable;
 	SQLUINTEGER size;
 	char name[128];
@@ -69,6 +68,5 @@ main(int argc, char *argv[])
 	Disconnect();
 
 	printf("Done.\n");
-#endif
 	return 0;
 }

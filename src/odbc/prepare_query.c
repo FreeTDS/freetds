@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.42 2004-04-11 13:07:22 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.43 2004-05-12 19:12:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -444,7 +444,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 #endif
 
 static int
-parse_prepared_query(struct _hstmt *stmt, int start)
+parse_prepared_query(struct _hstmt *stmt, int start, int compute_row)
 {
 	/* try setting this parameter */
 	TDSPARAMINFO *temp_params;
@@ -466,7 +466,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 
 		switch (sql2tds
 			(stmt->dbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
-			 stmt->params, nparam)) {
+			 stmt->params, nparam, compute_row)) {
 		case SQL_ERROR:
 			return SQL_ERROR;
 		case SQL_NEED_DATA:
@@ -477,7 +477,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 }
 
 int
-start_parse_prepared_query(struct _hstmt *stmt)
+start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
 {
 	/* TODO should be NULL already ?? */
 	tds_free_param_results(stmt->params);
@@ -487,7 +487,7 @@ start_parse_prepared_query(struct _hstmt *stmt)
 	if (!stmt->param_count)
 		return SQL_SUCCESS;
 	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
-	return parse_prepared_query(stmt, 1);
+	return parse_prepared_query(stmt, 1, compute_row);
 }
 
 int
@@ -549,5 +549,5 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 
 	/* continue with next parameter */
 	++stmt->param_num;
-	return parse_prepared_query(stmt, 0);
+	return parse_prepared_query(stmt, 0, 1);
 }

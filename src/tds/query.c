@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.135 2004-04-07 07:47:20 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.136 2004-05-12 19:12:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -676,7 +676,7 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int pa
  * \param query   language query with given placeholders (?)
  * \param id      string to identify the dynamic query. Pass NULL for automatic generation.
  * \param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
- * \param params  parameters to use. It can be NULL even if parameters are present
+ * \param params  parameters to use. It can be NULL even if parameters are present. Used only for TDS7+
  * \return TDS_FAIL or TDS_SUCCEED
  */
 /* TODO parse all results ?? */

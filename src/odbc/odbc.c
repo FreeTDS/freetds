@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.323 2004-05-05 08:27:48 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.324 2004-05-12 19:12:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2489,7 +2489,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	if (stmt->param_count) {
 		SQLRETURN res;
 
-		res = start_parse_prepared_query(stmt);
+		res = start_parse_prepared_query(stmt, 1);
 		if (SQL_SUCCESS != res)
 			ODBC_RETURN(stmt, res);
 	}
@@ -2511,7 +2511,7 @@ SQLExecute(SQLHSTMT hstmt)
 	/* TODO rebuild should be done for every bingings change, not every time */
 	/* TODO free previous parameters */
 	/* build parameters list */
-	res = start_parse_prepared_query(stmt);
+	res = start_parse_prepared_query(stmt, 1);
 	if (SQL_SUCCESS != res)
 		ODBC_RETURN(stmt, res);
 
@@ -3066,14 +3066,8 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	if (SQL_SUCCESS != prepare_call(stmt))
 		ODBC_RETURN(stmt, SQL_ERROR);
 
-#ifdef ENABLE_DEVELOPING
 	/* try to prepare query */
-	/* TODO try to prepare only getting informations (faster and optimizable) for mssql2k */
 	/* TODO support getting info for RPC */
-	/* 
-	 * TODO this should be done if all parameters are bounded or using TDS5 
-	 * binary_test for example do not work for this problem (post bind on image)
-	 */
 	if (!stmt->prepared_query_is_rpc) {
 		TDSDYNAMIC *dyn;
 
@@ -3081,6 +3075,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		TDS_INT rowtype;
 		int in_row = 0;
 		int done_flags;
+		TDSPARAMINFO *params = NULL;
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 		/* TODO needed ?? */
@@ -3089,15 +3084,43 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 			stmt->dyn = NULL;
 		}
 
+		/*
+		 * using TDS7+ we need parameters to prepare a query so try
+		 * to get them 
+		 * TDS5 do not need parameters type and we have always to
+		 * prepare sepatarely so this is not an issue
+		 */
+		if (IS_TDS7_PLUS(tds)) {
+			SQLRETURN res;
+
+			/* use current parameter informations if availables */
+			res = start_parse_prepared_query(stmt, 0);
+			if (res != SQL_SUCCESS) {
+				/*
+				 * not all parameters are bounded, prepare
+				 * with dummy parameters however we need to
+				 * prepare again later
+				 * TODO prepare only getting information
+				 */
+				stmt->need_reprepare = 1;
+			} else {
+				params = stmt->params;
+			}
+			/*
+			 * we can't reuse parsed parameters cause we didn't
+			 * compute row for execute
+			 */
+			stmt->param_num = 0;
+		}
+
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-		/* TODO use current parameter informations */
-		stmt->need_reprepare = 1;
-		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL) {
+		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
 			/* TODO ?? tds_free_param_results(params); */
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
 		/* try to go to the next recordset */
+		/* TODO merge with similar code */
 		desc_free_records(stmt->ird);
 		for (;;) {
 			switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
@@ -3148,7 +3171,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 			}
 		}
 	}
-#endif
 
 	ODBC_RETURN_(stmt);
 }
