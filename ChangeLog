@@ -1,3 +1,6 @@
+Tue Jan 14 12:33:38 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO: added ODBC needs for Star Office.
+
 Sun Jan 12 23:14:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	* src/apps/tsql.c:
 	- fix locale handling, which is currently a no-op on glibc
