@@ -1,3 +1,7 @@
+Wed Oct  9 16:36:26 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* samples/.cvsignore:
+	- Ignore generated files.
+
 Wed Oct  9 16:34:05 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dbutil.c:
 	- Provide Microsoft-compatible behavior when MSDBLIB is defined
