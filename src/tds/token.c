@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.237 2003-12-16 08:03:57 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.238 2003-12-16 10:07:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
