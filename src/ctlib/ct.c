@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.19 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.20 2002-08-17 06:18:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -537,12 +537,12 @@ CS_DATAFMT srcfmt, destfmt;
       srctype = curcol->column_type;
       desttype = _ct_get_server_type(curcol->column_bindtype);
       dest = (unsigned char *)curcol->varaddr;
-   
+  
       if (dest && !tds_get_null(resinfo->current_row,i)) {
 
          srctype = _ct_get_client_type(curcol->column_type, curcol->column_size);
 
-         if (is_blob_type(srctype)) {
+         if (is_blob_type(curcol->column_type)) {
             src = (unsigned char *)curcol->column_textvalue;
             srclen = curcol->column_textsize;
          } else {

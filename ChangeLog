@@ -1,3 +1,7 @@
+Fri Aug 17 08:16:30 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c:
+	- test on blob with tds type, not ct type
+
 Fri Aug 17 07:20:03 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am:
 	- moved LIBICONV link to LDADD, not LTLIBRARIES
