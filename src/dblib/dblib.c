@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.140 2003-04-15 15:03:25 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.141 2003-05-05 00:12:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1709,11 +1709,20 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			break;
 		}
 		return ret;
+	}	/* end srctype == desttype */
+
+	assert(srctype != desttype);
+	
+	/*
+	 * Character types need no conversion.  Just move the data.
+	 */
+	if (is_similar_type(srctype, desttype)) {
+		if (src && dest && srclen > 0 && destlen >= srclen) {
+			memcpy(dest, src, srclen);
+			return srclen;
+		}
 	}
-
-
-
-	/* srctype == desttype */
+	
 	/* FIXME what happen if client do not reset values ??? */
 	/* FIXME act differently for ms and sybase */
 	if (is_numeric_type(desttype)) {

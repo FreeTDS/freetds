@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.187 2003-05-03 18:46:29 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.188 2003-05-05 00:12:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1246,7 +1246,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
 	adjust_character_column_size(tds, curcol);
-
+	
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
@@ -3014,6 +3014,8 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 	if (is_unicode_type(curcol->on_server.column_type)) {
 		curcol->on_server.column_size = curcol->column_size;
 		curcol->column_size = determine_adjusted_size(tds->iconv_info, curcol->column_size);
+
+		curcol->iconv_info = tds->iconv_info;
 	}
 }
 

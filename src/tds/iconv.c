@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.58 2003-05-04 19:30:09 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.59 2003-05-05 00:12:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -53,8 +53,6 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
-static const char *tds_canonical_charset_name(const char *charset_name);
-static const char *tds_sybase_charset_name(const char *charset_name);
 
 /**
  * \ingroup libtds
@@ -206,7 +204,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 		if (error_cd == (iconv_t) - 1) {
 			/* TODO is ascii extension just copy (always ascii extension??) */
 			/* FIXME use iconv name for UTF-8 (some platform use different names) */
-			/* traslation to every charset is handled in UTF-8 and UCS-2 */
+			/* translation to every charset is handled in UTF-8 and UCS-2 */
 			error_cd = iconv_open(output_charset_name, "UTF-8");
 			if (error_cd == (iconv_t) - 1)
 				break;	/* what to do? */
@@ -233,6 +231,75 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 	*input_size -= output_size;
 	return output_size;
 #endif
+}
+/**
+ * Read a data file, passing the data through iconv().
+ * \return Count of bytes either not read, or read but not converted.  Returns zero on success.  
+ */
+size_t 
+tds_iconv_fread(iconv_t cd, FILE *stream, size_t field_len, size_t term_len, char *outbuf, size_t *outbytesleft)
+{
+	char buffer[16000];
+	ICONV_CONST char *ib;
+	size_t isize, nonreversible_conversions = 0;
+	
+	/*
+	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
+	 */ 
+	if (cd == (iconv_t) -1 || cd == NULL) {
+		assert(field_len <= *outbytesleft);
+		if (1 != fread(outbuf, field_len, 1, stream)) {
+			return field_len + term_len;
+		}
+		
+		/* toss any terminator, set up next field */
+		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
+			return term_len;
+		}
+		
+		return 0;
+	}
+	
+	assert(HAVE_ICONV);
+#if HAVE_ICONV
+	isize = (sizeof(buffer) < field_len)? sizeof(buffer) : field_len;
+	
+	for (ib=buffer; isize && 1 == fread((char*)ib, isize, 1, stream); ) {
+		
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n"
+					, isize, field_len, *outbytesleft);
+		field_len -= isize;
+		
+		nonreversible_conversions += iconv(cd, &ib, &isize, &outbuf, outbytesleft);
+
+		if (isize != 0) {	
+			switch(errno) {
+			case EINVAL:	/* incomplete multibyte sequence encountered in input */
+				memmove(buffer, buffer + sizeof(buffer) - isize, isize);
+				ib = buffer + isize;
+				isize = sizeof(buffer) - isize;
+				if (isize < field_len)
+					isize = field_len;
+				continue;
+			case E2BIG:	/* insufficient room in output buffer */
+			case EILSEQ:	/*    invalid multibyte sequence encountered in input */
+			default:
+				/* FIXME: emit message */
+				tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: error %d: %s.\n", errno, strerror(errno));
+				break;
+			}
+		}
+		isize = (sizeof(buffer) < field_len)? sizeof(buffer) : field_len;
+	}
+
+	if (!feof(stream)) {
+		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
+			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
+		}
+	}
+	
+#endif
+	return field_len + isize;
 }
 
 /* FIXME should change only singlebyte conversions */
@@ -315,7 +382,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 	int charsize = CHARSIZE(charset);
 	char ib[16];
 	char ob[16];
-	char *pib, *pob;
+	ICONV_CONST char *pib;
+	char *pob;
 	size_t il, ol, l;
 	iconv_t cd2;
 
@@ -366,17 +434,20 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 	memcpy(ib + l, *input, il);
 	il += l;
 
-	/* translate a characters */
+	/* translate a character */
 	pib = ib;
 	pob = ob;
 	ol = sizeof(ob);
 	iconv(cd2, &pib, &il, &pob, &ol);
 
+#if 0
 	/* adjust input */
 	l = (pib - ib) - sl;
 	*input += l;
 	*input_size -= l;
-
+#else
+	assert( 0 == strlen("iconv.c:442: `sl' undeclared (first use in this function)\n") );
+#endif
 	/* extract state */
 	pob = ib;
 	ol = sizeof(ib);
@@ -384,7 +455,7 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 
 	/* set input state */
 	pib = ib;
-	ib = sizeof(ib) - ol;
+	il = sizeof(ib) - ol;
 	pob = ob;
 	ol = sizeof(ob);
 	iconv(cd, &pib, &il, &pob, &ol);
@@ -419,7 +490,7 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
  * \returns canonical name, or NULL if lookup failed.
  * \remarks Returned name can be used in bytes_per_char(), above.
  */
-static const char *
+const char *
 tds_canonical_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {
@@ -436,7 +507,7 @@ tds_canonical_charset_name(const char *charset_name)
  * \returns Sybase name, or NULL if lookup failed.
  * \remarks Returned name can be sent to Sybase a server.
  */
-static const char *
+const char *
 tds_sybase_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {

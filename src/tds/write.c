@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.38 2003-04-16 16:25:34 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.39 2003-05-05 00:12:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -220,6 +220,94 @@ tds_put_byte(TDSSOCKET * tds, unsigned char c)
 	}
 	tds->out_buf[tds->out_pos++] = c;
 	return 0;
+}
+
+/** Write a column's data to the TDS bcp stream.  
+ *  Data may be null.
+ * \retval TDS_SUCCEED data written
+ * \retval TDS_FAIL must not write null data non-null column
+ * \remarks Most other write functions simply return zero.  
+ */ 
+int
+tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol)
+{
+	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
+	static const unsigned char GEN_NULL = 0x00;
+	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+						 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	
+	static const TDS_TINYINT textptr_size = 16;
+
+	TDS_TINYINT numeric_size;
+	
+	if (bcpcol->data_size == 0) {	
+		if (!bcpcol->db_nullable) {
+			/* too bad if the column is not nullable */
+			return TDS_FAIL;
+		}
+
+		/* Insert a NULL */
+		switch (bcpcol->on_server.column_type) {
+		case XSYBCHAR:
+		case XSYBVARCHAR:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+		case XSYBNCHAR:
+		case XSYBNVARCHAR:
+			tds_put_n(tds, CHARBIN_NULL, 2);
+			break;
+		default:
+			tds_put_byte(tds, GEN_NULL);
+			break;
+		}
+		return TDS_SUCCEED;	/* go home */
+	}
+	
+	switch (bcpcol->db_varint_size) {
+	case 4:
+		if (is_blob_type(bcpcol->db_type)) {
+			tds_put_byte(tds, textptr_size);
+			tds_put_n(tds, textptr, 16);
+			tds_put_n(tds, timestamp, 8);
+		}
+		tds_put_int(tds, bcpcol->data_size);
+		break;
+	case 2:
+		tds_put_smallint(tds, bcpcol->data_size);
+		break;
+	case 1:
+		if (is_numeric_type(bcpcol->db_type)) {
+			numeric_size = tds_numeric_bytes_per_prec[bcpcol->db_prec];
+			tds_put_byte(tds, numeric_size);
+		} else
+			tds_put_byte(tds, bcpcol->data_size);
+		break;
+	case 0:
+		break;
+	default:
+		assert(bcpcol->db_varint_size <= 4);
+		break;
+	}
+
+#ifdef WORDS_BIGENDIAN
+	tds_swap_datatype
+		(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
+#else
+	if (is_numeric_type(bcpcol->db_type)) {
+		tds_swap_datatype
+			(tds_get_conversion_type
+			 (bcpcol->db_type, bcpcol->db_length), bcpcol->data);
+	}
+#endif
+
+	if (is_numeric_type(bcpcol->db_type)) {
+		TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->data;
+		tds_put_n(tds, num->array, tds_numeric_bytes_per_prec[num->precision]);
+	} else
+		tds_put_n(tds, bcpcol->data, bcpcol->data_size);
+		
+	return TDS_SUCCEED;
 }
 
 int

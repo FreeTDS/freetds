@@ -37,6 +37,7 @@
 #endif /* HAVE_UNISTD_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include "tdsconvert.h"
 #include "sybfront.h"
 #include "sybdb.h"
@@ -62,7 +63,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.65 2003-04-08 07:14:09 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.66 2003-05-05 00:12:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -71,7 +72,7 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int _bcp_rtrim_varchar(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
-static int _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data);
+static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE *terminator, int term_len);
 
 
 RETCODE
@@ -157,6 +158,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 			bcpcol->tab_colnum = i + 1;	/* turn offset into ordinal */
 			bcpcol->db_type = resinfo->columns[i]->column_type;
+			bcpcol->iconv_info = resinfo->columns[i]->iconv_info;
 			bcpcol->db_length = resinfo->columns[i]->column_size;
 			bcpcol->db_nullable = resinfo->columns[i]->column_nullable;
 
@@ -186,7 +188,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			if (IS_TDS7_PLUS(tds)) {
 				bcpcol->db_usertype = resinfo->columns[i]->column_usertype;
 				bcpcol->db_flags = resinfo->columns[i]->column_flags;
-				bcpcol->db_type_save = resinfo->columns[i]->on_server.column_type;
+				bcpcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
+				bcpcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 				bcpcol->db_prec = resinfo->columns[i]->column_prec;
 				bcpcol->db_scale = resinfo->columns[i]->column_scale;
 				memcpy(bcpcol->db_collate, resinfo->columns[i]->column_collation, 5);
@@ -778,28 +781,19 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	return SUCCEED;
 }
 
-enum {nbuffers_term_data = 1000, buffer_size_term_data = 1 << 20, 
-	max_field_size_term_data = nbuffers_term_data * buffer_size_term_data};
-
 RETCODE
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error)
 {
-	static unsigned char *coldata_buffers[nbuffers_term_data] = {0};
-
 	BCP_COLINFO *bcpcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 
-	int i;
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
-	int collen;
-	int data_is_null;
-	int bytes_read;
-	int converted_data_size;
 	TDS_INT desttype;
 	BYTE *coldata;
 
+	int i, collen, data_is_null, converted_data_size;
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
@@ -811,9 +805,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		collen = 0;
 		hostcol->column_error = 0;
 
-		/* if a prefix length specified, read the correct */
-		/* amount of data...                              */
-
+		/* a prefix length, if extant, specifies how many bytes to read */
 		if (hostcol->prefix_len > 0) {
 
 			switch (hostcol->prefix_len) {
@@ -864,7 +856,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			}
 		}
 
-		/* Fixed Length data - this over-rides anything else specified */
+		/* Fixed Length data - this overrides anything else specified */
 
 		if (is_fixed_type(hostcol->datatype)) {
 			collen = tds_get_size_by_type(hostcol->datatype);
@@ -879,53 +871,74 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				return FAIL;
 			}
 		}
-
-		/* permanently allocate the first buffer of many we might need to hold incoming data from the file */
-		if (coldata_buffers[0] == NULL)
-			coldata_buffers[0] = (BYTE*) calloc(1, buffer_size_term_data);
-
-		assert(coldata_buffers[0]);
-		coldata = coldata_buffers[0];
-
+		
+		/*
+		 * The data file either contains prefixes stating the length, or is delimited.  
+		 * If delimited, we "measure" the field by looking for the terminator, then read it, 
+		 * and set collen to the field's post-iconv size.  
+		 */
 		if (hostcol->term_len > 0) {
-			/* a terminated field is specified - get the data into temporary space... */
-
-			bytes_read = _bcp_get_term_data(hostfile, hostcol, coldata_buffers);
-
-			if (bytes_read == -1) {
+			int file_bytes_left, col_bytes_left;
+			iconv_t cd;
+			 
+			collen = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
+			if (collen == -1) {
 				*row_error = TRUE;
+				/* FIXME emit message? _bcp_err_handler(dbproc, SYBEMEM); */
+				return (FAIL);
+			}
+			
+			/* 
+			 * Allocate a column buffer guaranteed to be big enough hold the post-iconv data.
+			 */
+			if (bcpcol->iconv_info) {
+				if (bcpcol->on_server.column_size > bcpcol->db_length) 
+					collen = (collen * bcpcol->on_server.column_size) / bcpcol->db_length;
+				cd = bcpcol->iconv_info->to_wire;
+			} else {
+				cd = (iconv_t) -1;
+			}
+
+			coldata = (BYTE*) calloc(1, 1+collen);
+			if (coldata == NULL) {
+				*row_error = TRUE;
+				_bcp_err_handler(dbproc, SYBEMEM);
+				return (FAIL);
+			}
+
+			/* 
+			 * Read and convert the data
+			 */			
+			col_bytes_left = collen;
+			file_bytes_left = tds_iconv_fread(cd, hostfile, collen, hostcol->term_len, coldata, &col_bytes_left);
+			collen -= col_bytes_left;
+			
+			if (file_bytes_left != 0) {
+				*row_error = TRUE;
+				free(coldata);
 				return FAIL;
 			}
 
-			if (collen)
-				collen = (bytes_read < collen) ? bytes_read : collen;
-			else
-				collen = bytes_read;
-
-			if (collen == 0)
-				data_is_null = 1;
-
-			if (collen > buffer_size_term_data) { 
-				/* several elements of coldata were read; reallocate single buffer */
-				coldata = (BYTE*) malloc(collen);
-				for (i=0; i < 1 + collen / buffer_size_term_data; i++) {
-					if (coldata)
-						memcpy(coldata + i * buffer_size_term_data, coldata_buffers[i], buffer_size_term_data);
-					if (i) { /* retain first buffer; no sense in reallocating every time */
-						free(coldata_buffers[i]);
-						coldata_buffers[i] = NULL;
-					}
-				}
-				if (coldata == NULL) {
-					_bcp_err_handler(dbproc, SYBEMEM);
-					return (FAIL);
-				}
+			/* TODO:  
+			 * 	Dates are a problem.  In theory, we should be able to read non-English dates, which
+			 * 	would contain non-ASCII characters.  One might suppose we should convert date
+			 * 	strings to ISO-8859-1 (or another canonical form) here, because tds_convert() can't be
+			 * 	expected to deal with encodings. But instead date strings are read verbatim and 
+			 * 	passed to tds_convert() without even waving to iconv().  For English dates, this works, 
+			 * 	because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
+			 */
+		} else { /* unterminated field */
+			coldata = (BYTE*) calloc(1, 1+collen);
+			if (coldata == NULL) {
+				*row_error = TRUE;
+				_bcp_err_handler(dbproc, SYBEMEM);
+				return (FAIL);
 			}
 
-		} else { /* unterminated field */
 			if (collen) {
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					_bcp_err_handler(dbproc, SYBEBCRE);
+					free(coldata);
 					return (FAIL);
 				}
 			}
@@ -936,8 +949,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 * then we've stumbled across the finish line.  Tell the caller we failed to read 
 		 * anything but encountered no error.
 		 */
-		if ( i == 0 && collen == 0 && feof(hostfile)) 
+		if ( i == 0 && collen == 0 && feof(hostfile)) {
+			free(coldata);
 			return (FAIL);
+		}
 
 		/* 
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
@@ -976,6 +991,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype,
 						  bcpcol->data, bcpcol->db_length);
 
+				free(coldata);
+				
 				if (converted_data_size == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
@@ -1001,30 +1018,28 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 }
 
 /*
- * Read a terminated variable from a hostfile 
- * \return 
- * 	- >0 count of bytes read into \a data
- * 	-  0 OK, nothing more to read
- * 	- -1 Error encountered (handler called)
+ * Look for the next terminator in a host data file, and return the data size.  
+ * \return size of field, excluding the terminator.  
+ * \remarks The current offset will be unchanged.  If an error was encountered, the returned size will be -1.  
+ * 	The caller should check for that possibility, but the appropriate message should already have been emitted.  
+ * 	The caller can then use tds_iconv_fread() to read-and-convert the file's data 
+ *	into host format, or, if we're not dealing with a character column, just fread(3).  
  */
-static int
-_bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data)
+static long int
+_bcp_measure_terminated_field(FILE * hostfile, BYTE *terminator, int term_len)
 {
-	int i = 0, ibuffer=0, bufpos = 0;
 	char *sample;
-	int sample_size, bytes_read;
-	unsigned char *pdata;
+	int sample_size, bytes_read=0;
+	long int size; 
+	
+	const long int initial_offset = ftell(hostfile);
 
-	assert(hostcol && hostcol->term_len > 0);
-
-	sample = (char *) malloc(hostcol->term_len);
-
-	/* data[0] must be allocated by the caller; we never free it */
-	assert (data);
-	if (data == NULL || data[0] == NULL)
+	sample = (char *) malloc(term_len);
+	
+	if (!sample) {
+		/* FIXME emit message */
 		return -1;
-
-	pdata = data[0];
+	}
 
 	for (sample_size = 1; (bytes_read = fread(sample, sample_size, 1, hostfile)) != 0; ) {
 
@@ -1033,18 +1048,22 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 		/*
 		 * Check for terminator.
 		 */
-		if (*sample == *hostcol->terminator) {
+		if (*sample == *terminator) {
 			int found = 0;
-			if (sample_size == hostcol->term_len) {	/* Did we read the  end  of a terminator? */
+			if (sample_size == term_len) {	/* Did we read the end of a terminator? */
 				/*
 				 * If we read a whole terminator, compare the whole sequence and, if found, go home. 
 				 */
-				found = 0 == memcmp(sample, hostcol->terminator, hostcol->term_len);
+				found = 0 == memcmp(sample, terminator, term_len);
 
-				if (found) {	/* stick on a NULL (why?) and return */
-					*pdata = '\0';
+				if (found) {
 					free(sample);  
-					return bufpos;
+					size = ftell(hostfile) - initial_offset;
+					if (size == -1 || 0 != fseek(hostfile, initial_offset, SEEK_SET))  {
+						/* FIXME emit message */
+						return -1;
+					}
+					return size - term_len;
 				} 
 			} else {
 				/* 
@@ -1053,38 +1072,16 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 				 */
 				assert(bytes_read == 1);
 				ungetc(*sample, hostfile);
-				sample_size = hostcol->term_len;
+				sample_size = term_len;
 				continue;
 			}
-			assert(sample_size == hostcol->term_len && !found);
+			assert(sample_size == term_len && !found);
 		}
 
 		sample_size = 1;
-
-		/* It's data.  Move it into the column buffer.  */
-		for (i=0; i < bytes_read; i++) {
-
-			*pdata++ = sample[i];
-			bufpos++;
-		
-			if (0 == bufpos % buffer_size_term_data) {	/* filled the buffer */
-				if (bufpos >= max_field_size_term_data)	/* no more room: give up */
-					data[++ibuffer] = 0;
-				else 
-					data[++ibuffer] = (char*) malloc(buffer_size_term_data);
-
-				pdata = data[ibuffer];
-			}
-
-			if (data[ibuffer] == NULL) 
-				break; /* drop out of loop, free buffers, and return -1 */
-		}
 	}
 
 	free(sample);  
-
-	if (bufpos == 0)
-		return 0;	/* OK, did not read part of a field. */
 
 	/*
 	 * To get here, we ran out of memory, or encountered an error (or EOF) with the file.  
@@ -1092,25 +1089,16 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 	 * we would have returned without attempting to read past end of file.  
 	 */
 
-	assert(bytes_read == 0 || data[ibuffer] == NULL);
-
 	if (feof(hostfile)) {
-		/* a cheat: we don't have dbproc, so pass zero */
-		_bcp_err_handler(0, SYBEBEOF);
-
+		if (initial_offset == ftell(hostfile)) {
+			return 0;
+		} else {
+			/* a cheat: we don't have dbproc, so pass zero */
+			_bcp_err_handler(0, SYBEBEOF);
+		}
 	} else if (ferror(hostfile)) {
 		_bcp_err_handler(0, SYBEBCRE);
-
-	} else if (data[ibuffer] == NULL) {
-		_bcp_err_handler(0, SYBEMEM);
-
 	} 
-
-	/* free the memory, because we're not going to return a size the caller can use to free it. */
-	for (i=1; i <= ibuffer; i++) {
-		free(data[i]);
-		data[i] = NULL;
-	}
 
 	return -1;
 }
@@ -1251,31 +1239,20 @@ RETCODE
 bcp_sendrow(DBPROCESS * dbproc)
 {
 
-TDSSOCKET *tds = dbproc->tds_socket;
-BCP_COLINFO *bcpcol;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	BCP_COLINFO *bcpcol;
 
-int i;
+	int i, ret;
 
-/* FIX ME -- calculate dynamically */
-unsigned char rowbuffer[ROWBUF_SIZE];
-int row_pos;
-int row_sz_pos;
-TDS_SMALLINT row_size;
+	/* FIX ME -- calculate dynamically */
+	unsigned char rowbuffer[ROWBUF_SIZE];
+	int row_pos;
+	int row_sz_pos;
+	TDS_SMALLINT row_size;
 
-int blob_cols = 0;
+	int blob_cols = 0;
 
-unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-};
-const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-unsigned char GEN_NULL = 0x00;
-
-TDS_NUMERIC *num;
-TDS_TINYINT numeric_size;
-TDS_TINYINT textptr_size = 16;
-
-unsigned char row_token = 0xd1;
+	unsigned char row_token = 0xd1;
 
 	if (dbproc->bcp_direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
@@ -1321,61 +1298,14 @@ unsigned char row_token = 0xd1;
 			tds_put_byte(tds, row_token);	/* 0xd1 */
 
 			for (i = 0; i < dbproc->bcp_colcount; i++) {
-				bcpcol = dbproc->bcp_columns[i];
 
-				if (bcpcol->data_size == 0) {	/* Are we trying to insert a NULL ? */
-					if (!bcpcol->db_nullable) {
-						/* too bad if the column is not nullable */
-						_bcp_err_handler(dbproc, SYBEBCNN);
-						return FAIL;
-					}
+				/* send the data for each column */
+				ret = tds7_put_bcpcol(tds, dbproc->bcp_columns[i]);
 
-					switch (bcpcol->db_type_save) {
-					case XSYBCHAR:
-					case XSYBVARCHAR:
-					case XSYBBINARY:
-					case XSYBVARBINARY:
-					case XSYBNCHAR:
-					case XSYBNVARCHAR:
-						tds_put_n(tds, CHARBIN_NULL, 2);
-						break;
-					default:
-						tds_put_byte(tds, GEN_NULL);
-						break;
-					}
-				} else {
-					switch (bcpcol->db_varint_size) {
-					case 4:
-						if (is_blob_type(bcpcol->db_type)) {
-							tds_put_byte(tds, textptr_size);
-							tds_put_n(tds, textptr, 16);
-							tds_put_n(tds, timestamp, 8);
-						}
-						tds_put_int(tds, bcpcol->data_size);
-						break;
-					case 2:
-						tds_put_smallint(tds, bcpcol->data_size);
-						break;
-					case 1:
-						if (is_numeric_type(bcpcol->db_type)) {
-							numeric_size = tds_numeric_bytes_per_prec[bcpcol->db_prec];
-							tds_put_byte(tds, numeric_size);
-						} else
-							tds_put_byte(tds, bcpcol->data_size);
-						break;
-					case 0:
-						break;
-					}
-
-					tds_swap_datatype
-						(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
-
-					if (is_numeric_type(bcpcol->db_type)) {
-						num = (TDS_NUMERIC *) bcpcol->data;
-						tds_put_n(tds, num->array, tds_numeric_bytes_per_prec[num->precision]);
-					} else
-						tds_put_n(tds, bcpcol->data, bcpcol->data_size);
+				if (ret == TDS_FAIL) {
+					_bcp_err_handler(dbproc, SYBEBCNN);
 				}
+					
 			}
 			return SUCCEED;
 		} else {	/* Not TDS 7 or 8 */
@@ -1442,46 +1372,31 @@ unsigned char row_token = 0xd1;
 static RETCODE
 _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-FILE *hostfile, *errfile = NULL;
-TDSSOCKET *tds = dbproc->tds_socket;
-BCP_COLINFO *bcpcol;
-BCP_HOSTCOLINFO *hostcol;
+	FILE *hostfile, *errfile = NULL;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	BCP_COLINFO *bcpcol;
+	BCP_HOSTCOLINFO *hostcol;
 
-	/* FIX ME -- calculate dynamically */
-unsigned char rowbuffer[ROWBUF_SIZE];
-int row_pos;
+		/* FIX ME -- calculate dynamically */
+	unsigned char rowbuffer[ROWBUF_SIZE];
+	int row_pos;
 
-	/* end of data pointer...the last byte of var data before the adjust table */
+		/* end of data pointer...the last byte of var data before the adjust table */
 
-int row_sz_pos;
-TDS_SMALLINT row_size;
+	int row_sz_pos;
+	TDS_SMALLINT row_size;
 
-const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-};
-const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-const unsigned char GEN_NULL = 0x00;
-const unsigned char row_token = 0xd1;
+	int i, ret, marker;
+	int blob_cols = 0;
+	int row_of_hostfile;
+	int rows_written_so_far;
+	int rows_copied_this_batch = 0;
+	int rows_copied_so_far = 0;
 
-TDS_NUMERIC *num;
-TDS_TINYINT numeric_size;
-TDS_TINYINT textptr_size = 16;
-
-int i;
-int marker;
-int blob_cols = 0;
-int row_of_hostfile;
-int rows_written_so_far;
-int rows_copied_this_batch = 0;
-int rows_copied_so_far = 0;
-
-int row_error;
-int row_error_count;
-long row_start;
-long row_end;
-int error_row_size;
-char *row_in_error;
+	int row_error, row_error_count;
+	long row_start, row_end;
+	int error_row_size;
+	char *row_in_error;
 
 	if (!(hostfile = fopen(dbproc->bcp_hostfile, "r"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
@@ -1560,71 +1475,15 @@ char *row_in_error;
 
 				if (IS_TDS7_PLUS(tds)) {
 
-					tds_put_byte(tds, row_token);	/* 0xd1 */
+					tds_put_byte(tds, TDS_ROW_TOKEN);	/* 0xd1 */
 
 					for (i = 0; i < dbproc->bcp_colcount; i++) {
-						bcpcol = dbproc->bcp_columns[i];
-
-						if (bcpcol->data_size == 0) {	/* Are we trying to insert a NULL ? */
-
-							switch (bcpcol->db_type_save) {
-							case XSYBCHAR:
-							case XSYBVARCHAR:
-							case XSYBBINARY:
-							case XSYBVARBINARY:
-							case XSYBNCHAR:
-							case XSYBNVARCHAR:
-								tds_put_n(tds, CHARBIN_NULL, 2);
-								break;
-							default:
-								tds_put_byte(tds, GEN_NULL);
-								break;
-							}
-						} else {
-							switch (bcpcol->db_varint_size) {
-							case 4:
-								if (is_blob_type(bcpcol->db_type)) {
-									tds_put_byte(tds, textptr_size);
-									tds_put_n(tds, textptr, 16);
-									tds_put_n(tds, timestamp, 8);
-								}
-								tds_put_int(tds, bcpcol->data_size);
-								break;
-							case 2:
-								tds_put_smallint(tds, bcpcol->data_size);
-								break;
-							case 1:
-								if (is_numeric_type(bcpcol->db_type)) {
-									numeric_size = tds_numeric_bytes_per_prec[bcpcol->db_prec];
-									tds_put_byte(tds, numeric_size);
-								} else
-									tds_put_byte(tds, bcpcol->data_size);
-								break;
-							case 0:
-								break;
-							default:
-								assert(bcpcol->db_varint_size <= 4);
-								break;
-							}
-
-#ifdef WORDS_BIGENDIAN
-							tds_swap_datatype
-								(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length),
-								 bcpcol->data);
-#else
-							if (is_numeric_type(bcpcol->db_type)) {
-								tds_swap_datatype
-									(tds_get_conversion_type
-									 (bcpcol->db_type, bcpcol->db_length), bcpcol->data);
-							}
-#endif
-
-							if (is_numeric_type(bcpcol->db_type)) {
-								num = (TDS_NUMERIC *) bcpcol->data;
-								tds_put_n(tds, num->array,
-									  tds_numeric_bytes_per_prec[num->precision]);
-							} else
-								tds_put_n(tds, bcpcol->data, bcpcol->data_size);
+					
+						/* send the data for each column */
+						ret = tds7_put_bcpcol(tds, dbproc->bcp_columns[i]);
+						
+						if (ret == TDS_FAIL) {
+							_bcp_err_handler(dbproc, SYBEBCNN);
 						}
 					}
 				} else {	/* Not TDS 7 or 8 */
@@ -1873,7 +1732,7 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB *clause, BCP_COLINFO * bcpcol, int first)
 	char buffer[32];
 	char *column_type = buffer;
 
-	switch (bcpcol->db_type_save) {
+	switch (bcpcol->on_server.column_type) {
 	case SYBINT1:
 		column_type = "tinyint";
 		break;
@@ -2082,7 +1941,7 @@ int i;
 			bcpcol = dbproc->bcp_columns[i];
 			tds_put_smallint(tds, bcpcol->db_usertype);
 			tds_put_smallint(tds, bcpcol->db_flags);
-			tds_put_byte(tds, bcpcol->db_type_save);
+			tds_put_byte(tds, bcpcol->on_server.column_type);
 
 			switch (bcpcol->db_varint_size) {
 			case 4:
@@ -2105,7 +1964,7 @@ int i;
 				tds_put_byte(tds, bcpcol->db_scale);
 			}
 			if (IS_TDS80(tds)
-			    && is_collate_type(bcpcol->db_type_save)) {
+			    && is_collate_type(bcpcol->on_server.column_type)) {
 				tds_put_n(tds, bcpcol->db_collate, 5);
 			}
 			if (is_blob_type(bcpcol->db_type)) {
@@ -2789,7 +2648,8 @@ int i;
 static int
 _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 {
-	const char *errmsg;
+	char buffer[80];
+	const char *errmsg = NULL;
 	char *p;
 	int severity;
 	int erc;
@@ -2963,11 +2823,19 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		severity = EXINFO;
 		break;
 
+	case SYBEBEOF:
+		errmsg = "Unexpected EOF encountered in BCP data-file.";
+		severity = EXUSER; /* ? */
+		break;
+
 	default:
-		errmsg = "Unknown bcp error";
+		sprintf( buffer, "Unknown bcp error (#%d)", bcp_errno);
+		errmsg = buffer;
 		severity = EXCONSISTENCY;
 		break;
 	}
 
+	assert(errmsg);
+	
 	return _dblib_client_msg(dbproc, bcp_errno, severity, errmsg);
 }
