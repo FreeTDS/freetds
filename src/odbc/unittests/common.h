@@ -16,7 +16,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.9 2003-12-20 13:23:38 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.10 2003-12-23 21:14:19 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern HENV Environment;
@@ -35,3 +35,9 @@ int Connect(void);
 int Disconnect(void);
 void Command(HSTMT stmt, const char *command);
 SQLRETURN CommandWithResult(HSTMT stmt, const char *command);
+
+#if !HAVE_SETENV
+void odbc_setenv(const char* name, const char *value, int overwrite);
+#define setenv odbc_setenv
+#endif
+

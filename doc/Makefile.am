@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.32 2003-12-23 16:29:10 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.33 2003-12-23 21:13:59 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -15,7 +15,7 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		userguide.dsl
 
 man_MANS	= freebcp.1 tsql.1
-data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
+nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
 
@@ -41,21 +41,10 @@ tsql.1: tsql.txt
 # else if we have access to distributed documentation, install that.  
 install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 	$(mkinstalldirs) $(DOCDIR)
-	if test !  -e $(DOCDIR)/userguide ; then \
-		cp -R $(srcdir)/$(DOCDIR)/userguide $(DOCDIR); \
-	fi
-	if test !  -e $(DOCDIR)/reference ; then \
-		cp -R $(srcdir)/$(DOCDIR)/reference $(DOCDIR); \
-	fi
-	ls -l $(DOCDIR)
-	$(INSTALL_DATA) -c $(DOCDIR)/userguide/* $(TARGET_DOCDIR)/userguide
-	$(INSTALL_DATA) -c $(DOCDIR)/reference/* $(TARGET_DOCDIR)/reference
-
-# To cajole automake into installing the documentation, we used the "data_DATA" variable, 
-# and gave two files to install.  After the real docs have been installed, we remove the
-# files automake installed for us. 
-install-data-hook:
-	rm -rf $(TARGET_DOCDIR)
+	if test -e $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
+	$(INSTALL_DATA) -c $$d/$(DOCDIR)/userguide/* $(TARGET_DOCDIR)/userguide
+	if test -e $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
+	$(INSTALL_DATA) -c $$d/$(DOCDIR)/reference/* $(TARGET_DOCDIR)/reference
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)

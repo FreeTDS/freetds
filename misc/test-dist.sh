@@ -58,10 +58,12 @@ mkdir build
 cd build
 ../autogen.sh
 make dist
+cd ..
+rm -rf build
 echo "make dist ok" >> "$LOG"
 
 # finally big test. I hope you have a fast machine :)
-if false; then
+./configure
 if test ! -e PWD -a -e "$ORIGDIR/../PWD"; then
 	cp "$ORIGDIR/../PWD" .
 fi
@@ -70,7 +72,6 @@ if test ! -e PWD -a -e "$ORIGDIR/PWD"; then
 fi
 make distcheck
 echo "make distcheck ok" >> "$LOG"
-fi
 
 # cleanup
 cd "$ORIGDIR"

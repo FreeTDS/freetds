@@ -1,3 +1,11 @@
+Tue Dec 23 22:13:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/odbc/unittests/common.c:
+	* src/odbc/unittests/common.h:
+	- fix portability issue in odbc unittests
+	* doc/Makefile.am: update
+	* misc/test-dist.sh: enable all tests (works)
+	* src/tds/iconv.c: update and test for indirect conversion
+
 Tue Dec 23 17:26:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am doc/Makefile.am:
 	- use cp instead of ln (distdir seem to have problems with links)
