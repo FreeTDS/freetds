@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.164 2003-05-13 19:10:51 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.165 2003-05-15 14:36:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1177,16 +1177,15 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
 	INIT_HSTMT;
 
-	stmt->param_count = 0;
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr))
-		return SQL_ERROR;
-
-	if (SQL_SUCCESS != prepare_call(stmt))
 		return SQL_ERROR;
 
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
 	stmt->param_count = tds_count_placeholders(stmt->query);
+
+	if (SQL_SUCCESS != prepare_call(stmt))
+		return SQL_ERROR;
 
 	if (stmt->param_count) {
 		SQLRETURN res;
@@ -1738,7 +1737,7 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	INIT_HSTMT;
 
 	tds = stmt->hdbc->tds_socket;
-	
+
 	/* test is this is current statement */
 	if (stmt->hdbc->current_statement != stmt) {
 		return SQL_ERROR;

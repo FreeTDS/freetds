@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.9 2003-04-25 11:54:01 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.10 2003-05-15 14:36:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -94,11 +94,16 @@ prepare_call(struct _hstmt *stmt)
 	 * not bigger than source string */
 	d = s;
 	while (*s) {
-		if (!quoted && (*s == '"' || *s == '\'')) {
+		/* TODO: use tds_skip_quoted in query.c */
+		/* TODO: test syntax like "select 1 as [pi]]p)p{?=call]]]]o], 2" on mssql7+ */
+		if (!quoted && (*s == '"' || *s == '\'' || *s == '[')) {
 			quoted = 1;
-			quote_char = *s;
+			quote_char = (*s == '[') ? ']' : *s;
 		} else if (quoted && *s == quote_char) {
-			quoted = 0;
+			if (s[1] == quote_char)
+				*d++ = *s++;
+			else
+				quoted = 0;
 		}
 
 		if (quoted) {

@@ -1,3 +1,8 @@
+Thu May 15 16:35:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c src/odbc/odbc.c src/odbc/odbc_util.c:
+	- some small changes
+	- support mssql quoting like [foo]
+
 Thu May 15 15:22:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/alternative_character_sets.h:
 	- place first GNU names
