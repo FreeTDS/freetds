@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.20 2003-09-24 20:28:21 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.21 2003-09-30 19:21:46 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.61
@@ -45,7 +45,9 @@ tsql.1: tsql.txt
 reference::
 	cd .. && make doxy
 	
-reference.tgz: reference
+# below is a trick to be sure reference is up-to-date
+reference.tgz: ../ChangeLog
+	test -f $(srcdir)/reference.tgz || cd .. && make doxy
 	tar czf reference.tgz reference
 	
 install-data-local: 
