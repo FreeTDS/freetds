@@ -1,3 +1,6 @@
+Wed Jan  1 17:59:12 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/unittests/t0002.c  added test for return status
+	
 Tue Dec 31 17:38:16 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* src/tds/util.c	re-indented variable declarations.  
 	* src/ctlib/ct.c	ct_res_info(): Added log entries.
