@@ -24,7 +24,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.5 2002-07-16 04:01:18 brianb Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.6 2002-07-16 05:53:07 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -78,7 +78,7 @@ CS_CONNECTION *con = NULL;
 		strncpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
 	}
 	if (!con) {
-		tds_reset_msg(msg);
+		tds_reset_msg_info(msg);
 		return;
 	}
 
@@ -87,5 +87,5 @@ CS_CONNECTION *con = NULL;
 	else if (con->ctx->_servermsg_cb)
 		con->ctx->_servermsg_cb(con->ctx,con,&errmsg);
 	
-	tds_reset_msg(msg);
+	tds_reset_msg_info(msg);
 }
