@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.52 2002-11-01 20:55:51 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.53 2002-11-01 22:51:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -176,7 +176,7 @@ tds_fix_connect(TDSCONNECTINFO *connect_info)
 	tds_config_env_tdshost(connect_info);
 }
 
-static int tds_try_conf_file(char *path, char *how, const char *server, TDSCONNECTINFO *connect_info)
+static int tds_try_conf_file(const char *path, const char *how, const char *server, TDSCONNECTINFO *connect_info)
 {
 int found = 0;
 FILE *in;

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.43 2002-11-01 22:06:46 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.44 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -660,7 +660,7 @@ void tds_free_login(TDSLOGIN *login)
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
 {
 TDSSOCKET *tds_socket;
-TDSICONVINFO *iconv;
+TDSICONVINFO *iconv_info;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
@@ -670,12 +670,12 @@ TDSICONVINFO *iconv;
 	tds_socket->parent = (char*)NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
 		goto Cleanup;
-	TEST_MALLOC(iconv,TDSICONVINFO);
-	tds_socket->iconv_info = (void *) iconv;
+	TEST_MALLOC(iconv_info,TDSICONVINFO);
+	tds_socket->iconv_info = (void *) iconv_info;
 	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
 #if HAVE_ICONV
-	iconv->cdfrom = (iconv_t)-1;
-	iconv->cdto = (iconv_t)-1;
+	iconv_info->cdfrom = (iconv_t)-1;
+	iconv_info->cdto = (iconv_t)-1;
 #endif
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                

@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.97 2002-11-01 20:55:52 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.98 2002-11-01 22:51:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -516,7 +516,6 @@ TDS_INT rc;
 		return string_to_numeric(src, src+srclen, cr);
 		break;
 	 case SYBUNIQUE: {
-		int i;
 		unsigned n = 0;
 		char c;
 		 /* parse formats like XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX 

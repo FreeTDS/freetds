@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.18 2002-10-28 17:34:41 castellano Exp $";
+         "$Id: cspublic.h,v 1.19 2002-11-01 22:51:33 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -622,7 +622,7 @@ CS_RETCODE cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT 
 CS_RETCODE cs_calc(CS_CONTEXT *ctx, CS_INT op, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_VOID *dest);
 CS_RETCODE cs_cmp(CS_CONTEXT *ctx, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_INT *result);
 CS_RETCODE cs_conv_mult(CS_CONTEXT *ctx, CS_LOCALE *srcloc, CS_LOCALE *destloc, CS_INT *conv_multiplier);
-CS_RETCODE cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT index, CS_VOID *buffer);
+CS_RETCODE cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer);
 CS_RETCODE cs_manage_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_CHAR *srcname, CS_INT srcnamelen, CS_INT desttype, CS_CHAR *destname, CS_INT destnamelen, CS_INT *conv_multiplier, CS_CONV_FUNC *func);
 CS_RETCODE cs_objects(CS_CONTEXT *ctx, CS_INT action, CS_OBJNAME *objname, CS_OBJDATA *objdata);
 CS_RETCODE cs_set_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC *func);

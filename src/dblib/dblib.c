@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.93 2002-11-01 20:55:47 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.94 2002-11-01 22:51:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -240,20 +240,20 @@ static int buffer_index_of_resultset_row(
 
 static void *buffer_row_address(
    DBPROC_ROWBUF *buf,    /* (U) buffer to clear                 */
-   int            index)  /* (I) raw index of row to return      */
+   int            idx)  /* (I) raw index of row to return      */
 {
    void   *result = NULL;
 
-   assert(index >= 0);
-   assert(index < buf->elcount);
+   assert(idx >= 0);
+   assert(idx < buf->elcount);
 
-   if (index>=buf->elcount || index<0)
+   if (idx>=buf->elcount || idx<0)
    {
       result = NULL;
    }
    else
    {
-      int   offset = buf->element_size * (index % buf->elcount);
+      int   offset = buf->element_size * (idx % buf->elcount);
       result = (char *)buf->rows + offset;
    }
    return result;
@@ -395,16 +395,16 @@ int            destlen;
 		}
 		if (curcol->column_varaddr) {
  			DBINT srclen = -1;
-			int   index = buffer_index_of_resultset_row(buf, row_num);
+			int   idx = buffer_index_of_resultset_row(buf, row_num);
          
-			assert (index >= 0);
+			assert (idx >= 0);
 				/* XXX now what? */
 				
 			if (is_blob_type(curcol->column_type)) {
 				srclen =  curcol->column_cur_size;
 				src = (BYTE *)curcol->column_textvalue;
 			} else {
-				src = ((BYTE *)buffer_row_address(buf, index)) 
+				src = ((BYTE *)buffer_row_address(buf, idx)) 
 					+ curcol->column_offset;
 			}
 			desttype = _db_get_server_type(curcol->column_bindtype);
@@ -571,7 +571,7 @@ dbstring_free(DBSTRING **dbstrp)
 }
 
 static void
-dbstring_concat(DBSTRING **dbstrp, char *p)
+dbstring_concat(DBSTRING **dbstrp, const char *p)
 {
 DBSTRING **strp = dbstrp;
 
@@ -595,7 +595,7 @@ DBSTRING **strp = dbstrp;
 }
 
 static void
-dbstring_assign(DBSTRING **dbstrp, char *p)
+dbstring_assign(DBSTRING **dbstrp, const char *p)
 {
   dbstring_free(dbstrp);
   dbstring_concat(dbstrp, p);
@@ -841,12 +841,12 @@ TDSSOCKET *tds;
 }
 
 RETCODE
-dbuse(DBPROCESS *dbproc, char *dbname)
+dbuse(DBPROCESS *dbproc, char *name)
 {
    tdsdump_log(TDS_DBG_FUNC, "%L inside dbuse()\n");
-   /* FIXME quote dbname if needed */
+   /* FIXME quote name if needed */
    if ((dbproc == NULL)
-       || (dbfcmd(dbproc, "use %s", dbname) == FAIL)
+       || (dbfcmd(dbproc, "use %s", name) == FAIL)
        || (dbsqlexec(dbproc) == FAIL)
        || (dbresults(dbproc) == FAIL)
        || (dbcanquery(dbproc) == FAIL))
@@ -1039,8 +1039,8 @@ RETCODE dbgetrow(
    DBINT row)
 {
    RETCODE   result = FAIL;
-   int       index = buffer_index_of_resultset_row(&(dbproc->row_buf), row);
-   if (-1 == index)
+   int       idx = buffer_index_of_resultset_row(&(dbproc->row_buf), row);
+   if (-1 == idx)
    {
       result = NO_MORE_ROWS;
    }
@@ -3958,7 +3958,7 @@ int resultlen;
 }
 
 int
-_dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, char *dberrstr)
+_dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, const char *dberrstr)
 {
 TDSSOCKET *tds = NULL;
 

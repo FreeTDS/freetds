@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.89 2002-11-01 22:06:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.90 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1414,7 +1414,7 @@ int tmp;
 ** back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
 ** proper recipient function for this message.
 */
-int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message)
+int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message)
 {
 int ret;
 TDSMSGINFO msg_info;

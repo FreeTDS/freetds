@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.46 2002-11-01 20:55:47 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.47 2002-11-01 22:51:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1524,7 +1524,7 @@ int elem;
 CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT datalen, CS_SMALLINT indicator)
 {
 TDSSOCKET *tds;
-TDSDYNAMIC *dyn;
+/* TDSDYNAMIC *dyn; */
 /* TDSINPUTPARAM *param; */
 int elem;
 

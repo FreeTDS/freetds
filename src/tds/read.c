@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: read.c,v 1.28 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.29 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -125,7 +125,6 @@ struct timeval selecttimeout;
 	} else {
 		/* got = READSOCKET(tds->s, buf, buflen); */
 		while (got < buflen) {
-			int len;
 			FD_SET (tds->s, &fds);
 			select (tds->s + 1, &fds, NULL, NULL, NULL);
 			len = READSOCKET(tds->s, buf + got, buflen - got);

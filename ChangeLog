@@ -1,3 +1,12 @@
+Fri Nov  1 17:49:49 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/cspublic.h include/dblib.h include/sybdb.h include/tds.h
+	  src/ctlib/cs.c src/ctlib/ct.c src/dblib/dblib.c src/pool/config.c
+	  src/tds/config.c src/tds/convert.c src/tds/login.c src/tds/mem.c
+	  src/tds/query.c src/tds/read.c src/tds/threadsafe.c src/tds/token.c
+	  src/tds/vstrbuild.c:
+	- Constify lots of function arguments, and clean up most shadow
+	  warnings.
+
 Fri Nov  1 23:03:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/odbc.c src/tds/mem.c src/tds/query.c:
 	* src/tds/token.c:

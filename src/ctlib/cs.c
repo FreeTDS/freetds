@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.28 2002-11-01 20:55:47 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.29 2002-11-01 22:51:33 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -109,7 +109,7 @@ _cs_get_user_api_layer_error(int error)
 }
 
 static char *
-_cs_get_msgstr(char *funcname, int layer, int origin, int severity, int number)
+_cs_get_msgstr(const char *funcname, int layer, int origin, int severity, int number)
 {
 char *m;
 
@@ -126,7 +126,7 @@ char *m;
 }
 
 static void
-_csclient_msg(CS_CONTEXT *ctx, char *funcname, int layer, int origin, int severity, int number, char *fmt, ...)
+_csclient_msg(CS_CONTEXT *ctx, const char *funcname, int layer, int origin, int severity, int number, const char *fmt, ...)
 {
 va_list ap;
 CS_CLIENTMSG cm;
@@ -666,7 +666,7 @@ cs_conv_mult(CS_CONTEXT *ctx, CS_LOCALE *srcloc, CS_LOCALE *destloc, CS_INT *con
 }
 
 CS_RETCODE
-cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT index, CS_VOID *buffer)
+cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_diag()\n");

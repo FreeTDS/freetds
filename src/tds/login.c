@@ -77,7 +77,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.60 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.61 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -95,7 +95,7 @@ void tds_set_port(TDSLOGIN *tds_login, int port)
 { 
 	tds_login->port=port; 
 }
-void tds_set_passwd(TDSLOGIN *tds_login, char *password)
+void tds_set_passwd(TDSLOGIN *tds_login, const char *password)
 { 
 	if (password) {
 		tds_dstr_zero(&tds_login->password);
@@ -106,19 +106,19 @@ void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled)
 {
 	tds_login->bulk_copy = enabled ? 0 : 1;
 }
-void tds_set_user(TDSLOGIN *tds_login, char *username)
+void tds_set_user(TDSLOGIN *tds_login, const char *username)
 {
 	tds_dstr_copy(&tds_login->user_name,username);
 }
-void tds_set_host(TDSLOGIN *tds_login, char *hostname)
+void tds_set_host(TDSLOGIN *tds_login, const char *hostname)
 {
 	tds_dstr_copy(&tds_login->host_name,hostname);
 }
-void tds_set_app(TDSLOGIN *tds_login, char *application)
+void tds_set_app(TDSLOGIN *tds_login, const char *application)
 {
 	tds_dstr_copy(&tds_login->app_name,application);
 }
-void tds_set_server(TDSLOGIN *tds_login, char *server)
+void tds_set_server(TDSLOGIN *tds_login, const char *server)
 {
 	if(!server || strlen(server) == 0) {
 		server = getenv("DSQUERY");
@@ -128,15 +128,15 @@ void tds_set_server(TDSLOGIN *tds_login, char *server)
 	}
 	tds_dstr_copy(&tds_login->server_name,server);
 }
-void tds_set_library(TDSLOGIN *tds_login, char *library)
+void tds_set_library(TDSLOGIN *tds_login, const char *library)
 {
 	tds_dstr_copy(&tds_login->library,library);
 }
-void tds_set_charset(TDSLOGIN *tds_login, char *charset)
+void tds_set_charset(TDSLOGIN *tds_login, const char *charset)
 {
 	tds_dstr_copy(&tds_login->char_set,charset);
 }
-void tds_set_language(TDSLOGIN *tds_login, char *language)
+void tds_set_language(TDSLOGIN *tds_login, const char *language)
 {
 	tds_dstr_copy(&tds_login->language,language);
 }

@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.6 2002-10-27 19:59:17 freddy77 Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.7 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -82,7 +82,7 @@ char skip = 0;
 }
 
 int
-tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, char *formats, int formatlen, va_list ap)
+tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen, va_list ap)
 {
 char *newformat;
 char *params;

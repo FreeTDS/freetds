@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.16 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.17 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -165,7 +165,7 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 }
 
 struct servent *
-tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen)
+tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen)
 {
 
 #ifdef NETDB_REENTRANT

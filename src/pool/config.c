@@ -35,7 +35,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.6 2002-11-01 20:55:50 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.7 2002-11-01 22:51:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -51,7 +51,7 @@ static void *no_unused_var_warn[] = {software_version,
 #define POOL_STR_MAX_POOL_USERS	"max pool users"
 
 static int pool_read_conf_sections(FILE *in, char *poolname, TDS_POOL *pool);
-static int pool_read_conf_section(FILE *in, char *section, TDS_POOL *pool);
+static int pool_read_conf_section(FILE *in, const char *section, TDS_POOL *pool);
 
 int pool_read_conf_file(char *poolname, TDS_POOL *pool)
 {
@@ -96,7 +96,7 @@ static int pool_config_boolean(char *value)
 }
 #endif
 
-static int pool_read_conf_section(FILE *in, char *section, TDS_POOL *pool)
+static int pool_read_conf_section(FILE *in, const char *section, TDS_POOL *pool)
 {
 char line[256], option[256], value[256];
 unsigned char *s;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.33 2002-11-01 22:06:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.34 2002-11-01 22:51:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,7 +62,7 @@ static void *no_unused_var_warn[] = {software_version,
  * @param query language query to submit
  * @return TDS_FAIL or TDS_SUCCEED
  */
-int tds_submit_query(TDSSOCKET *tds, char *query)
+int tds_submit_query(TDSSOCKET *tds, const char *query)
 {
 unsigned char *buf;
 int	bufsize;
@@ -119,7 +119,7 @@ TDS_INT bufsize2;
 }
 
 int
-tds_submit_queryf(TDSSOCKET *tds, char *queryf, ...)
+tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...)
 {
 va_list ap;
 char *query = NULL;

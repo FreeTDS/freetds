@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.30 2002-10-29 21:24:11 castellano Exp $";
+"$Id: sybdb.h,v 1.31 2002-11-01 22:51:33 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -405,7 +405,6 @@ DBINT dbcollen(DBPROCESS *dbproc, int column);
 char *dbcolname(DBPROCESS *dbproc, int column);
 char *dbcolsource(DBPROCESS *dbproc, int colnum);
 int dbcoltype(DBPROCESS *dbproc, int column);
-int dbcolutype(DBPROCESS *dbproc, int column);
 DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column);
 DBINT dbcolutype(DBPROCESS *dbprocess, int column);
 DBINT dbconvert(DBPROCESS *dbproc, int srctype, BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen);
@@ -522,7 +521,7 @@ RETCODE dbprrow(DBPROCESS *dbproc);
 char *dbprtype(int token);
 char *dbqual(DBPROCESS *dbprocess, int tabnum, char *tabname);
 DBBOOL DRBUF(DBPROCESS *dbprocess);
-DBINT dbreadpage(DBPROCESS *dbprocess, char *dbname, DBINT pageno, BYTE *buf);
+DBINT dbreadpage(DBPROCESS *dbprocess, char *p_dbname, DBINT pageno, BYTE *buf);
 STATUS dbreadtext(DBPROCESS *dbproc, void *buf, DBINT bufsize);
 void dbrecftos(char *filename);
 RETCODE dbrecvpassthru(DBPROCESS *dbprocess, DBVOIDPTR *bufp);
@@ -642,11 +641,11 @@ DBBINARY *dbtxptr(DBPROCESS *dbproc, int column);
 DBBINARY *dbtxtimestamp(DBPROCESS *dbproc, int column);
 DBBINARY *dbtxtsnewval(DBPROCESS *dbprocess);
 RETCODE dbtxtsput(DBPROCESS *dbprocess, DBBINARY newtxts, int colnum);
-RETCODE dbuse(DBPROCESS *dbproc, char *dbname);
+RETCODE dbuse(DBPROCESS *dbproc, char *name);
 DBBOOL dbcarylen(DBPROCESS *dbprocess, int column);
 const char *dbversion(void);
 DBBOOL dbwillconvert(int srctype, int desttype);
-RETCODE dbwritepage(DBPROCESS *dbprocess, char *dbname, DBINT pageno, DBINT size, BYTE *buf);
+RETCODE dbwritepage(DBPROCESS *dbprocess, char *p_dbname, DBINT pageno, DBINT size, BYTE *buf);
 RETCODE dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textptrlen, DBBINARY *timestamp, DBBOOL log, DBINT size, BYTE *text);
 int dbxlate(DBPROCESS *dbprocess, char *src, int srclen, char *dest, int destlen, DBXLATE *xlt, int *srcbytes_used, DBBOOL srcend, int status);
 

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.34 2002-11-01 22:06:43 freddy77 Exp $";
+	"$Id: tds.h,v 1.35 2002-11-01 22:51:33 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -696,25 +696,25 @@ int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 /* TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn); */
 void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);
-void tds_set_passwd(TDSLOGIN *tds_login, char *password);
+void tds_set_passwd(TDSLOGIN *tds_login, const char *password);
 void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled);
-void tds_set_user(TDSLOGIN *tds_login, char *username);
-void tds_set_app(TDSLOGIN *tds_login, char *application);
-void tds_set_host(TDSLOGIN *tds_login, char *hostname);
-void tds_set_library(TDSLOGIN *tds_login, char *library);
-void tds_set_server(TDSLOGIN *tds_login, char *server);
-void tds_set_charset(TDSLOGIN *tds_login, char *charset);
-void tds_set_language(TDSLOGIN *tds_login, char *language);
+void tds_set_user(TDSLOGIN *tds_login, const char *username);
+void tds_set_app(TDSLOGIN *tds_login, const char *application);
+void tds_set_host(TDSLOGIN *tds_login, const char *hostname);
+void tds_set_library(TDSLOGIN *tds_login, const char *library);
+void tds_set_server(TDSLOGIN *tds_login, const char *server);
+void tds_set_charset(TDSLOGIN *tds_login, const char *charset);
+void tds_set_language(TDSLOGIN *tds_login, const char *language);
 void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
 void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);
-int tds_submit_query(TDSSOCKET *tds, char *query);
-int tds_submit_queryf(TDSSOCKET *tds, char *queryf, ...);
+int tds_submit_query(TDSSOCKET *tds, const char *query);
+int tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...);
 int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
-int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message);
+int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
@@ -733,7 +733,7 @@ char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string
 char *tds_timestamp_str(char *str, int maxlen);
 struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
-struct servent *tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen);
+struct servent *tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen);
 
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
@@ -808,7 +808,7 @@ void tdsdump_log(int dbg_lvl, const char *fmt, ...);
 int tds_close_socket(TDSSOCKET *tds);
 
 /* vstrbuild.c */
-int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, char *formats, int formatlen, va_list ap);
+int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen, va_list ap);
 
 /* numeric.c */
 char *tds_money_to_string(TDS_MONEY *money, char *s);
