@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.13 2002-05-25 01:20:52 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.14 2002-05-29 12:42:13 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -587,7 +587,7 @@ TDS_INT ret;
 
 				/* its a date before 1900 */
 				if (dt_days > 2958463) {
-					dt_days = (unsigned int)4294967295 - dt_days;
+					dt_days = (unsigned int)0xffffffff - dt_days;
 					years = -1;
 					dty = days_this_year(years);
 					while ( dt_days >= dty ) {
@@ -1209,7 +1209,7 @@ int current_state;
        dt_days += (t->tm_mday - 1);
 
     } else {
-       dt_days = 4294967295;  /* 0xffffffff */
+       dt_days = 0xffffffff;
        for (i = -1; i > t->tm_year ; i--) {
            dty = days_this_year(i);
            dt_days -= dty;

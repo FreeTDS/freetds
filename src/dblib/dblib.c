@@ -30,11 +30,12 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.15 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.16 2002-05-29 12:42:09 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
+static int days_this_year(int years);
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);
 static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen);
@@ -300,6 +301,7 @@ TDSSOCKET     *tds;
 int            srctype;
 BYTE          *src;
 int            desttype;
+int			destlen;
 /* this should probably go somewhere else */
 TDS_NUMERIC	numeric;
    
@@ -339,24 +341,20 @@ TDS_NUMERIC	numeric;
 				_set_null_value(dbproc, curcol->varaddr, desttype, 
 					curcol->column_bindlen);
 	  		} else {
-           			dbconvert(dbproc,
+				if (curcol->column_bindtype == STRINGBIND)
+					destlen = -2;
+				else if (curcol->column_bindtype == NTBSTRINGBIND)
+					destlen = -1;
+				else
+					destlen = curcol->column_bindlen;
+
+           		dbconvert(dbproc,
 					srctype,			/* srctype  */
 					src,			/* src      */
 					srclen,			/* srclen   */
 					desttype,			/* desttype */
 					(BYTE *)curcol->varaddr,	/* dest     */
-					curcol->column_bindlen);	/* destlen  */
-				/* dbconvert will null terminate the string 
-				** if bindtype is STRINGBIND it should be 
-				** space padded to column_size
-				*/
-				if (curcol->column_type==SYBCHAR && 
-					curcol->column_bindtype==STRINGBIND) {
-					for (j=strlen(curcol->varaddr);j<curcol->column_size;j++) {
-						curcol->varaddr[j]=' ';
-					}
-					curcol->varaddr[j]='\0';
-				}
+					destlen);	/* destlen  */
 			} /* else not null */
 			}
 		}
@@ -1844,7 +1842,7 @@ int i;
 	dt_time = dt->dttime;
 
 	if (dt_days > 2958463) /* its a date before 1900 */ {
-		dt_days = (unsigned int)4294967295 - dt_days;
+		dt_days = (unsigned int)0xffffffff - dt_days;
 		wday = 7 - ( dt_days % 7); 
 		years = -1;
 		dty = days_this_year(years);
