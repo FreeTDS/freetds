@@ -1,3 +1,11 @@
+Sun Oct 27 22:29:21 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/.indent.pro
+	- Changed many indentation settings, primarily to make the output more
+	  self-consistent.  Added "-nut" so the output looks good on any
+	  terminal, not just those with 5-column tab stops.  Also changed
+	  a few things to match my personal preferences, so some of this
+	  may need more discussion before it's agreed upon.
+
 Sun Oct 27  20:56:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/dblib/dblib.c src/odbc/connectparams.c:
 	* src/odbc/odbc.c src/tds/token.c src/tds/vstrbuild.c:
