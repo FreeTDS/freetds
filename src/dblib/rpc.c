@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32.2.3 2005-01-06 01:51:18 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.4 2005-01-07 16:34:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -350,32 +350,12 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 
 		tdsdump_log(TDS_DBG_INFO1, "parm_info_alloc(): parameter null-ness = %d\n", param_is_null);
 
-		if (param_is_null) {
-			temp_datalen = 0;
-			temp_value = NULL;
-			switch (temp_type) {
-			case SYBINT1:
-			case SYBINT2:
-			case SYBINT4:
-				temp_type = SYBINTN;
-				break;
-			case SYBDATETIME:
-			case SYBDATETIME4:
-				temp_type = SYBDATETIMN;
-				break;
-			case SYBFLT8:
-				temp_type = SYBFLTN;
-				break;
-			case SYBBIT:
-				temp_type = SYBBITN;
-				break;
-			case SYBMONEY:
-			case SYBMONEY4:
-				temp_type = SYBMONEYN;
-				break;
-			default:
-				break;
+		if (param_is_null || (p->status & DBRPCRETURN)) {
+			if (param_is_null) {
+				temp_datalen = 0;
+				temp_value = NULL;
 			}
+			temp_type = tds_get_null_type(temp_type);
 		} else {
 			temp_value = p->value;
 			if (is_fixed_type(temp_type)) {

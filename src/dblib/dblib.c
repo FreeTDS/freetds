@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.3 2005-01-06 01:51:17 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.4 2005-01-07 16:34:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1754,6 +1754,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		switch (desttype) {
 
 		case SYBBINARY:
+		case SYBVARBINARY:
 		case SYBIMAGE:
 			if (srclen > destlen && destlen >= 0) {
 				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
@@ -1892,6 +1893,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	switch (desttype) {
 	case SYBBINARY:
+	case SYBVARBINARY:
 	case SYBIMAGE:
 		if (len > destlen && destlen >= 0) {
 			_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
