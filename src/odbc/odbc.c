@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.309 2004-03-12 15:38:33 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.310 2004-03-16 08:10:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -472,6 +472,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	int in_row = 0;
 	int done_flags;
 	int got_rows = 0;
+	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HSTMT;
 
@@ -483,6 +484,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	stmt->row_count = TDS_NO_COUNT;
 
+	/* TODO this code is TOO similar to _SQLExecute, merge it - freddy77 */
 	/* try to go to the next recordset */
 	for (;;) {
 		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
@@ -494,7 +496,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 #endif
 			odbc_populate_ird(stmt);
 			if (got_rows)
-				ODBC_RETURN(stmt, SQL_SUCCESS);
+				ODBC_RETURN(stmt, result);
 			ODBC_RETURN(stmt, SQL_NO_DATA);
 		case TDS_SUCCEED:
 			switch (result_type) {
@@ -502,7 +504,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case TDS_ROW_RESULT:
 				if (in_row) {
 					odbc_populate_ird(stmt);
-					ODBC_RETURN(stmt, SQL_SUCCESS);
+					ODBC_RETURN(stmt, result);
 				}
 				/* Skipping current result set's rows to access next resultset or proc's retval */
 				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
@@ -525,13 +527,15 @@ SQLMoreResults(SQLHSTMT hstmt)
 				}
 				if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 					break;
+				if (done_flags & TDS_DONE_ERROR)
+					result = SQL_ERROR;
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
 				/* FIXME here ??? */
 				if (!in_row)
 					tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
-				ODBC_RETURN(stmt, SQL_SUCCESS);
+				ODBC_RETURN(stmt, result);
 				break;
 
 				/*
@@ -543,9 +547,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 					got_rows = 1;
 					stmt->row_count = tds->rows_affected;
 				}
+				if (done_flags & TDS_DONE_ERROR)
+					result = SQL_ERROR;
 				if (in_row) {
 					odbc_populate_ird(stmt);
-					ODBC_RETURN(stmt, SQL_SUCCESS);
+					ODBC_RETURN(stmt, result);
 				}
 				/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
 				tds_free_all_results(tds);
@@ -557,7 +563,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case TDS_ROWFMT_RESULT:
 				if (in_row) {
 					odbc_populate_ird(stmt);
-					ODBC_RETURN(stmt, SQL_SUCCESS);
+					ODBC_RETURN(stmt, result);
 				}
 				stmt->row = 0;
 				stmt->row_count = TDS_NO_COUNT;

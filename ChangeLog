@@ -1,3 +1,6 @@
+Tue Mar 16 09:18:28 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: transaction test now works
+
 Tue Mar 16 09:04:02 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/transaction.c:
 	- updated to correct behavior
