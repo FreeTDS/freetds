@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.48 2002-09-17 22:13:01 castellano Exp $";
+	 "$Id: tds.h.in,v 1.49 2002-09-19 15:53:27 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -444,14 +444,17 @@ typedef struct tds_loc_info {
 typedef struct tds_column_info {
 	TDS_SMALLINT column_type;
 	TDS_SMALLINT column_type_save;
+	/* FIXME should this be INT ?? */
 	TDS_SMALLINT column_usertype;
 	TDS_SMALLINT column_flags;
 	TDS_INT column_size;
 	/** size written in variable (ie: char, text, binary) */
 	TDS_INT column_cur_size;
+	/* FIXME use a pointer to allocated buffer like column_textvalue avoiding multiple variable ?? */ 
 	TDS_INT column_offset;
 	TDS_TINYINT column_namelen;
 	TDS_TINYINT column_varint_size;
+	/* FIXME why 256. bigger limit is 128 ucs2 character ....*/
 	TDS_CHAR column_name[256];
 	TDS_SMALLINT column_bindtype;
 	TDS_SMALLINT column_bindfmt;
@@ -459,6 +462,7 @@ typedef struct tds_column_info {
 	TDS_CHAR *column_nullbind;
 	TDS_CHAR *varaddr;
 	TDS_CHAR *column_lenbind;
+	/* FIXME should be changed to tinyint ?? */
 	TDS_SMALLINT column_prec;
 	TDS_SMALLINT column_scale;
 	TDS_INT column_textpos;
@@ -571,6 +575,8 @@ struct tds_socket {
         int s;
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
+	/** version of product (Sybase/MS and full version) */
+	TDS_UINT product_version;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	unsigned char broken_dates;
 	/* in/out buffers */
@@ -739,6 +745,17 @@ void tds_answer_challenge(char *passwd, char *challenge,TDSANSWER* answer);
 #define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
 
 #define IS_TDSDEAD(x) (((x) == NULL) || ((x)->s < 0))
+
+/** Is DB product Sybase ? */
+#define TDS_IS_SYBASE(x) (!(x->product_version & 0x80000000u))
+/** Is product Microsoft SQL Server ? */
+#define TDS_IS_MSSQL(x) ((x->product_version & 0x80000000u)!=0)
+
+/** Get version number for ms sql*/
+#define TDS_MS_VER(maj,min,x) (0x80000000u|((maj)<<24)|((min)<<16)|(x))
+/* TODO test if not similar to ms one*/
+/** Get version number for Sybase*/
+#define TDS_SYB_VER(maj,min,x) (((maj)<<24)|((min)<<16)|(x)<<8)
 
 #ifdef __cplusplus
 }

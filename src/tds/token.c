@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.54 2002-09-17 17:56:17 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.55 2002-09-19 15:53:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -170,9 +170,10 @@ int tds_process_login_tokens(TDSSOCKET *tds)
 {
 int succeed=0;
 int marker;
-int len;
+int len, product_name_len;
 unsigned char major_ver, minor_ver;
 unsigned char ack;
+TDS_UINT product_version;
 #ifdef WORDS_BIGENDIAN
 char *tmpbuf;
 #endif
@@ -186,12 +187,39 @@ char *tmpbuf;
 				tds_process_auth(tds);
 				break;
 			case TDS_LOGIN_ACK_TOKEN:
+				/* TODO function */
 				len = tds_get_smallint(tds);
 				ack = tds_get_byte(tds);
 				major_ver = tds_get_byte(tds);
 				minor_ver = tds_get_byte(tds);
-				tds_get_n(tds, NULL, len-4);
-				tds_get_byte(tds);
+				tds_get_n(tds, NULL, 2);
+				product_name_len = tds_get_byte(tds);
+				product_version = 0;
+				/* TODO get server product and string */
+				len -= 10;
+				if (major_ver >= 7) {
+					product_version |= 0x80000000u;
+					tds_get_n(tds, NULL, len);
+				} else if (major_ver >= 5) {
+					tds_get_n(tds, NULL, len);
+				} else {
+					char buf[32+1];
+					int l = len > 32 ? 32 : len;
+					tds_get_n(tds, buf, l);
+					buf[l] = 0;
+					if (strstr(buf,"Microsoft"))
+						product_version |= 0x80000000u;
+					if (l < len)
+						tds_get_n(tds, NULL, len - l);
+				}
+				product_version |= 
+					((TDS_UINT)tds_get_byte(tds)) << 24;
+				product_version |= 
+					((TDS_UINT)tds_get_byte(tds)) << 16;
+				product_version |= 
+					((TDS_UINT)tds_get_byte(tds)) << 8;
+				product_version |= tds_get_byte(tds);
+				tds->product_version = product_version;
 #ifdef WORDS_BIGENDIAN
 /*
 				if (major_ver==7) {
@@ -1382,6 +1410,7 @@ int tds_process_cancel(TDSSOCKET *tds)
 {
 int marker, cancelled=0;
 
+	/* FIXME we must wait for cancel packet first, then wait for done */
 	do {
 		marker=tds_get_byte(tds);
 		if (marker==TDS_DONE_TOKEN) {
