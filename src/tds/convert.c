@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.27 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.28 2002-08-02 03:20:29 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2150,7 +2150,6 @@ SENSITIVITY T   T    F      F     F   F    F    F    F   F       F       F   F  
 #endif
 unsigned char
 tds_willconvert(int srctype, int desttype)
-    tdsdump_log(TDS_DBG_FUNC, "%L inside tds_willconvert()\n");
 {
 typedef struct { int srctype; int desttype; int yn; } ANSWER;
 const static ANSWER answers[] = {
@@ -2158,6 +2157,8 @@ const static ANSWER answers[] = {
 };
 int i;
 	
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_willconvert()\n");
+
 	for( i=0; i < sizeof(answers)/sizeof(ANSWER); i++ ){
 		if( srctype == answers[i].srctype 
 		 && desttype == answers[i].desttype )  {

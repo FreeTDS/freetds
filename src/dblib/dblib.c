@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.27 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.28 2002-08-02 03:20:29 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1071,7 +1071,7 @@ int         len;
              } else {
                 memcpy(dest, dres.ib, len);
                 free(dres.ib);
-                else {
+                /* else { */
                    for ( i = len ; i < destlen; i++ )
                        dest[i] = '\0';
                    ret = destlen;
