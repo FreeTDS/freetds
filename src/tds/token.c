@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.274 2004-12-15 15:03:20 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.275 2004-12-17 06:38:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -217,14 +217,14 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
-		tdsdump_log(TDS_DBG_WARN, "%s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_COLINFO_TOKEN:
 		return tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "%s:%d: Eating %s token\n", __FILE__, __LINE__, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default:
@@ -952,6 +952,7 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 			tds_process_params_result_token(tds);
 			break;
 		default:
+		tdsdump_log(TDS_DBG_INFO1, "tds_process_trailing_tokens(): putting back %s token\n", _tds_token_name(marker));
 			tds_unget_byte(tds);
 			return TDS_FAIL;
 
@@ -2579,11 +2580,13 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		msg.priv_msg_type = 1;
 		break;
 	default:
-		tdsdump_log(TDS_DBG_ERROR, "__FILE__:__LINE__: tds_process_msg() called with unknown marker '%d'!\n", (int) marker);
+		tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() called with unknown marker '%d'!\n", (int) marker);
 		tds_free_msg(&msg);
 		return TDS_FAIL;
 	}
 
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() reading message from server\n");
+	
 	rc = 0;
 	/* the message */
 	rc += tds_alloc_get_string(tds, &msg.message, tds_get_smallint(tds));
@@ -2644,6 +2647,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		tds->cur_dyn = NULL;
 
 		if (tds->tds_ctx->msg_handler) {
+			tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() calling client msg handler\n");
 			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg);
 		} else if (msg.msg_number) {
 			tdsdump_log(TDS_DBG_WARN,
@@ -2653,7 +2657,11 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 				    msg.msg_state, msg.server, msg.line_number, msg.message);
 		}
 	}
+	
 	tds_free_msg(&msg);
+	
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() returning TDS_SUCCEED\n");
+	
 	return TDS_SUCCEED;
 }
 

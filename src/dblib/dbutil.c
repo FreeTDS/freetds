@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.27 2004-10-19 11:15:02 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.28 2004-12-17 06:38:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -80,22 +80,18 @@ TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,DBNUMERIC,array);
 int
 _dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = NULL;
+	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
 
-	if (tds && tds->parent) {
-		dbproc = (DBPROCESS *) tds->parent;
+	/* 
+	 * Check to see if the user supplied a function, else ignore the message. 
+	 */
+	if (_dblib_msg_handler) {
+		_dblib_msg_handler(dbproc,
+				   msg->msg_number,
+				   msg->msg_state,
+				   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
 	}
-	if (msg->msg_number > 0) {
-		/* now check to see if the user supplied a function,
-		 * if not, ignore the problem
-		 */
-		if (_dblib_msg_handler) {
-			_dblib_msg_handler(dbproc,
-					   msg->msg_number,
-					   msg->msg_state,
-					   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
-		}
-	}
+
 	if (msg->msg_level > 10) {
 		/*
 		 * Sybase docs say SYBESMSG is generated only in specific

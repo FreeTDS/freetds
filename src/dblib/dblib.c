@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.192 2004-12-07 22:39:22 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.193 2004-12-17 06:38:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1415,6 +1415,12 @@ dbresults(DBPROCESS * dbproc)
 
 		case TDS_FAIL:
 			dbproc->dbresults_state = _DB_RES_INIT;
+			return FAIL;
+			break;
+			
+		default:
+			tdsdump_log(TDS_DBG_FUNC, "dbresults() does not recognize return code from process_result_tokens\n");
+			assert(0);
 			return FAIL;
 			break;
 		}
