@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.10 2002-11-22 12:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.11 2002-11-25 09:10:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -132,14 +132,21 @@ run_query(TDSSOCKET * tds, const char *query)
 
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 
-		if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_SUCCEED && result_type != TDS_CMD_FAIL) {
+		switch (result_type) {
+		case TDS_CMD_DONE:
+		case TDS_CMD_SUCCEED:
+		case TDS_CMD_FAIL:
+			/* ignore possible spurious result (TDS7+ send it) */
+		case TDS_STATUS_RESULT:
+			break;
+		default:
 			fprintf(stderr, "Error:  query should not return results\n");
 			return TDS_FAIL;
 		}
 	}
 	if (rc == TDS_FAIL) {
-		/* probably okay - DROP TABLE might cause this */
-		/* fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for '%s'\n", query); */
+		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for '%s'\n", query);
+		return TDS_FAIL;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
 		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
 		return TDS_FAIL;
