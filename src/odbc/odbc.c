@@ -52,7 +52,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.25 2002-05-27 20:12:43 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.26 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -104,7 +104,7 @@ typedef struct
 ** Bah!
 */
 
-static SQLRETURN change_database (SQLHDBC hdbc, char *database)
+static SQLRETURN change_database (SQLHDBC hdbc, SQLCHAR *database)
 {
    SQLRETURN ret;
    TDSSOCKET *tds;
@@ -142,9 +142,9 @@ static SQLRETURN do_connect (
    struct _hdbc *dbc = (struct _hdbc *) hdbc;
    struct _henv *env = dbc->henv;
 
-   tds_set_server (dbc->tds_login, server);
-   tds_set_user   (dbc->tds_login, user);
-   tds_set_passwd (dbc->tds_login, passwd);
+   tds_set_server (dbc->tds_login, (char*)server);
+   tds_set_user   (dbc->tds_login, (char*)user);
+   tds_set_passwd (dbc->tds_login, (char*)passwd);
    dbc->tds_socket = (void *) tds_connect(dbc->tds_login, env->locale, (void *)dbc);
 
    if (dbc->tds_socket == NULL)
@@ -312,14 +312,11 @@ struct _hstmt *stmt;
 	stmt=(struct _hstmt *)hstmt;
 	tds = stmt->hdbc->tds_socket;
 
-	/* are there results ? */
-	if (!tds->res_info || !tds->res_info->more_results)
-		return SQL_NO_DATA;
-
-	/* go to next recordset */
+        /* try to go to the next recordset */
 	switch(tds_process_result_tokens(tds))
 	{
 	case TDS_NO_MORE_RESULTS:
+                odbc_set_return_status(stmt);
 		return SQL_NO_DATA;
 	case TDS_SUCCEED:
 		return SQL_SUCCESS;
@@ -684,7 +681,17 @@ SQLRETURN SQL_API SQLConnect(
 
     strcpy (lastError, "");
 
-	if ( SQLGetPrivateProfileString( szDSN, "Servername", "", server, sizeof(server), "odbc.ini" ) < 1 )
+    if (SQL_NTS==cbDSN && szDSN)
+       cbDSN = strlen(szDSN);
+    if (SQL_NTS==cbUID && szUID)
+       cbUID = strlen(szUID);
+    if (SQL_NTS==cbAuthStr && szAuthStr)
+       cbAuthStr = strlen(szAuthStr);
+
+    memcpy( dsn, szDSN, cbDSN );
+    dsn[cbDSN] = 0;
+
+    if ( SQLGetPrivateProfileString( dsn, "Servername", "", server, sizeof(server), "odbc.ini" ) < 1 )
     {
        LogError ("Could not find Servername parameter");
        return SQL_ERROR;
@@ -692,30 +699,32 @@ SQLRETURN SQL_API SQLConnect(
 
     if ( !szUID || !strlen(szUID) ) 
     {
-       if ( SQLGetPrivateProfileString( szDSN, "UID", "", uid, sizeof(uid), "odbc.ini" ) < 1 )
+       if ( SQLGetPrivateProfileString( dsn, "UID", "", uid, sizeof(uid), "odbc.ini" ) < 1 )
        {
          LogError ("Could not find UID parameter");
          return SQL_ERROR;
        }
+    }else{
+        memcpy( uid, szUID, cbUID );
+        uid[cbUID] = 0;
     } 
-    else 
-        strcpy( uid, szUID );
 
     if ( !szAuthStr || !strlen(szAuthStr) ) 
     {
-       if ( SQLGetPrivateProfileString( szDSN, "PWD", "", pwd, sizeof(pwd), "odbc.ini" ) < 1 )
+       if ( SQLGetPrivateProfileString( dsn, "PWD", "", pwd, sizeof(pwd), "odbc.ini" ) < 1 )
        {
          LogError ("Could not find PWD parameter");
          return SQL_ERROR;
        }
+    }else{
+        memcpy( pwd, szAuthStr, cbAuthStr );
+        pwd[cbAuthStr] = 0;
     } 
-    else 
-        strcpy( pwd, szAuthStr );
 
     if ((ret = do_connect (hdbc, server, uid, pwd))!=SQL_SUCCESS)
        return ret;
 
-    if ( SQLGetPrivateProfileString( szDSN, "Database", "", database, sizeof(database), "odbc.ini" ) > 0 )
+    if ( SQLGetPrivateProfileString( dsn, "Database", "", database, sizeof(database), "odbc.ini" ) > 0 )
         return change_database(hdbc, database);
 
     return SQL_SUCCESS;
@@ -958,7 +967,13 @@ struct _hdbc *dbc;
 SQLRETURN SQL_API SQLDisconnect(
     SQLHDBC            hdbc)
 {
-	/* FIXME implement */
+        struct _hdbc *dbc;
+
+        CHECK_HDBC;
+
+        dbc = (struct _hdbc *) hdbc;
+        tds_free_socket(dbc->tds_socket);
+
 	return SQL_SUCCESS;
 }
 
@@ -1007,11 +1022,8 @@ TDSCOLINFO *colinfo;
 		return SQL_ERROR;
 	}
 
-	/* does anyone know how ODBC deals with multiple result sets? */
 	ret = tds_process_result_tokens(tds);
-	
 	if (ret==TDS_NO_MORE_RESULTS) {
-		/* DBD::ODBC expect SQL_SUCCESS on non-result returning queries */
 		return SQL_SUCCESS;
 	} else if (ret==TDS_SUCCEED) {
 		return SQL_SUCCESS;
@@ -1031,11 +1043,10 @@ int ret;
 	CHECK_HSTMT;
 
 	stmt->param_count = 0;
-	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, szSqlStr, cbSqlStr))
+	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, (char*)szSqlStr, cbSqlStr))
 		return SQL_ERROR;
-	if (SQL_SUCCESS!=odbc_fix_literals(stmt))
+	if (SQL_SUCCESS!=prepare_call(stmt))
 		return SQL_ERROR;
-
 
 	return _SQLExecute(hstmt);
 }
@@ -1046,7 +1057,7 @@ SQLRETURN SQL_API SQLExecute(
 	struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
 	CHECK_HSTMT;
-	if (SQL_SUCCESS!=odbc_fix_literals(stmt))
+        if (SQL_SUCCESS!=prepare_call(stmt))
 		return SQL_ERROR;
 
 	if (stmt->prepared_query) {
@@ -1068,7 +1079,7 @@ TDSCOLINFO *colinfo;
 int i;
 struct _hstmt *stmt;
 SQLINTEGER len=0;
-unsigned char *src;
+TDS_CHAR *src;
 int srclen;
 struct _sql_bind_info *cur;
 TDSLOCINFO *locale;
@@ -1110,12 +1121,13 @@ TDSLOCINFO *locale;
 	}
 	for (i=0;i<resinfo->num_cols;i++) {
       		colinfo = resinfo->columns[i];
+                colinfo->column_text_sqlgetdatapos = 0;
 		if (colinfo->varaddr) {
 			if (is_blob_type(colinfo->column_type)) {
 				src = colinfo->column_textvalue;
 				srclen = colinfo->column_textsize + 1;
 			} else {
-				src = &resinfo->current_row[colinfo->column_offset];
+                                src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
 				srclen = -1;
 			}
 			len = convert_tds2sql(locale, 
@@ -1125,10 +1137,6 @@ TDSLOCINFO *locale;
 			colinfo->column_bindtype, 
 			colinfo->varaddr, 
 			colinfo->column_bindlen);
-/*
-			strcpy(colinfo->varaddr, 
-			&resinfo->current_row[colinfo->column_offset]);
-*/
 		}
 		if (colinfo->column_lenbind) {
 			*((SQLINTEGER *)colinfo->column_lenbind)=len;
@@ -1335,7 +1343,7 @@ SQLRETURN SQL_API SQLPrepare(
 
 	CHECK_HSTMT;
 
-	if (SQL_SUCCESS!=odbc_set_stmt_prepared_query(stmt, szSqlStr, cbSqlStr))
+        if (SQL_SUCCESS!=odbc_set_stmt_prepared_query(stmt, (char*)szSqlStr, cbSqlStr))
 		return SQL_ERROR;
    
 	/* count parameters */
@@ -1470,7 +1478,7 @@ TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
 struct _hstmt *stmt;
-unsigned char *src;
+TDS_CHAR *src;
 int srclen;
 TDSLOCINFO *locale;
 
@@ -1492,10 +1500,12 @@ TDSLOCINFO *locale;
 		*pcbValue=SQL_NULL_DATA;
 	} else {
 		if (is_blob_type(colinfo->column_type)) {
+                        if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
+                                return SQL_NO_DATA;
 			src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_textsize + 1 - colinfo->column_text_sqlgetdatapos;
 		} else {
-			src = &resinfo->current_row[colinfo->column_offset];
+                        src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
 			srclen = -1;
 		}
 
@@ -1509,9 +1519,6 @@ TDSLOCINFO *locale;
 
 		if (is_blob_type(colinfo->column_type)){
 			colinfo->column_text_sqlgetdatapos += *pcbValue;
-			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
-				colinfo->column_text_sqlgetdatapos = 0;
-			else
 				return SQL_SUCCESS_WITH_INFO;
 		}
 	}
@@ -1587,6 +1594,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTATTR);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
+                        _set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
@@ -1636,6 +1644,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLGETINFO);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
+                        _set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
@@ -1652,9 +1661,70 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLTRANSACT);
 			return SQL_SUCCESS;
 			break;
-		default:
+                case SQL_API_SQLALLOCCONNECT :
+                case SQL_API_SQLALLOCENV :
+                case SQL_API_SQLALLOCHANDLE :
+                case SQL_API_SQLALLOCSTMT :
+                case SQL_API_SQLBINDCOL :
+                case SQL_API_SQLBINDPARAMETER :
+                case SQL_API_SQLCANCEL :
+                case SQL_API_SQLCLOSECURSOR :
+                case SQL_API_SQLCOLATTRIBUTE :
+                case SQL_API_SQLCOLUMNS :
+                case SQL_API_SQLCONNECT :
+                case SQL_API_SQLCOPYDESC :
+                case SQL_API_SQLDATASOURCES :
+                case SQL_API_SQLDESCRIBECOL :
+                case SQL_API_SQLDISCONNECT :
+                case SQL_API_SQLENDTRAN :
+                case SQL_API_SQLERROR :
+                case SQL_API_SQLEXECDIRECT :
+                case SQL_API_SQLEXECUTE :
+                case SQL_API_SQLFETCH :
+                case SQL_API_SQLFETCHSCROLL :
+                case SQL_API_SQLFREECONNECT :
+                case SQL_API_SQLFREEENV :
+                case SQL_API_SQLFREEHANDLE :
+                case SQL_API_SQLFREESTMT :
+                case SQL_API_SQLGETCONNECTATTR :
+                case SQL_API_SQLGETCONNECTOPTION :
+                case SQL_API_SQLGETCURSORNAME :
+                case SQL_API_SQLGETDATA :
+                case SQL_API_SQLGETDESCFIELD :
+                case SQL_API_SQLGETDESCREC :
+                case SQL_API_SQLGETDIAGFIELD :
+                case SQL_API_SQLGETDIAGREC :
+                case SQL_API_SQLGETENVATTR :
+                case SQL_API_SQLGETFUNCTIONS :
+                case SQL_API_SQLGETINFO :
+                case SQL_API_SQLGETSTMTATTR :
+                case SQL_API_SQLGETSTMTOPTION :
+                case SQL_API_SQLGETTYPEINFO :
+                case SQL_API_SQLMORERESULTS :
+                case SQL_API_SQLNUMPARAMS :
+                case SQL_API_SQLNUMRESULTCOLS :
+                case SQL_API_SQLPARAMDATA :
+                case SQL_API_SQLPREPARE :
+                case SQL_API_SQLPUTDATA :
+                case SQL_API_SQLROWCOUNT :
+                case SQL_API_SQLSETCONNECTATTR :
+                case SQL_API_SQLSETCONNECTOPTION :
+                case SQL_API_SQLSETCURSORNAME :
+                case SQL_API_SQLSETDESCFIELD :
+                case SQL_API_SQLSETDESCREC :
+                case SQL_API_SQLSETENVATTR :
+                case SQL_API_SQLSETPARAM :
+                case SQL_API_SQLSETSTMTATTR :
+                case SQL_API_SQLSETSTMTOPTION :
+                case SQL_API_SQLSPECIALCOLUMNS :
+                case SQL_API_SQLSTATISTICS :
+                case SQL_API_SQLTABLES :
+                case SQL_API_SQLTRANSACT :
 			*pfExists = 1; /* SQL_TRUE */
 			return SQL_SUCCESS;
+                default:
+                        *pfExists = 0;
+                        return SQL_SUCCESS;
 			break;
 	}
 	return SQL_SUCCESS;
@@ -1731,6 +1801,8 @@ int len;
 				return( SQL_SUCCESS_WITH_INFO);
 			}
 		}
+        } else {
+                memset((char *)rgbInfoValue, 0, (size_t)cbInfoValueMax);
 	}
 		
 	return SQL_SUCCESS;
@@ -1759,11 +1831,11 @@ struct _hstmt *stmt;
 	stmt = (struct _hstmt *) hstmt;
 	/* TODO for MSSQL6.5 + use sp_datatype_info fSqlType */
 	if (!fSqlType) {
-		const char *sql = "SELECT * FROM tds_typeinfo";
+                static const char *sql = "SELECT * FROM tds_typeinfo";
 		if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))
 			return SQL_ERROR;
 	} else {
-		const char *sql_templ = "SELECT * FROM tds_typeinfo WHERE SQL_DATA_TYPE = %d";
+                static const char *sql_templ = "SELECT * FROM tds_typeinfo WHERE SQL_DATA_TYPE = %d";
 		char sql[sizeof(*sql_templ)+20];
 		sprintf(sql, sql_templ, fSqlType);
 		if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, sql, strlen(sql)))

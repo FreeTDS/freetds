@@ -28,9 +28,69 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.1 2002-05-27 20:12:43 brianb Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.2 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+
+int prepare_call(struct _hstmt *stmt)
+{
+        char *s, *d, *p;
+        int i, quoted = 0, find_end = 0;
+        char quote_char;
+
+        if (stmt->prepared_query)
+                s=stmt->prepared_query;
+        else if (stmt->query)
+                s=stmt->query;
+        else
+                return SQL_ERROR;
+
+        // we can do it because result string will be
+        // not bigger than source string
+        d=s;
+        while (*s) {
+                if (!quoted && (*s=='"' || *s=='\'')) {
+                        quoted = 1;
+                        quote_char = *s;
+                } else if (quoted && *s==quote_char) {
+                        quoted = 0;
+                }
+
+                if (quoted){
+                        *d++=*s++;
+                }else if (find_end){
+                        if (*s=='}'){
+                                break;
+                        }else if (*s=='(' || *s==')'){
+                                *d++ = ' ';
+                                s++;
+                        }else{
+                                *d++=*s++;
+                        }
+                }else if (*s=='{'){
+                        char *pcall = strstr(s, "call ");
+                        if (!pcall){
+                                *d++=*s++;
+                        }else{
+                                int len;
+                                s++;
+                                len = pcall - s;
+                                if (memchr(s, '?', len))
+                                        stmt->prepared_query_is_func = 1;
+                                memcpy(d, "exec ", 5);
+                                d += 5;
+                                s += len + 5;
+                                find_end = 1;
+                        }
+                }else{
+                        *d++=*s++;
+                }
+        }
+        *d='\0';
+
+        return SQL_SUCCESS;
+}
 
 
 static int _get_sql_textsize(struct _sql_param_info *param)
@@ -232,7 +292,7 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 	if (start){
 		s          = stmt->prepared_query;
 		d          = stmt->query;
-		param_num  = 0;
+                param_num  = stmt->prepared_query_is_func?1:0;
 		quoted     = 0;
 	}else{
 		// load prepared_query parameters from stmt

@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.6 2002-05-25 01:20:52 brianb Exp $";
+         "$Id: tdsodbc.h,v 1.7 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
@@ -49,6 +49,7 @@ struct _hstmt {
 	int  prepared_query_param_num;
 	int  prepared_query_quoted;
 	char prepared_query_quote_char;
+        int  prepared_query_is_func;
 	// end prepared query stuff
 	struct _sql_bind_info *bind_head;
 	struct _sql_param_info *param_head;

@@ -25,11 +25,11 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.1 2002-05-29 10:58:25 brianb Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.2 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-int odbc_set_stmt_query(struct _hstmt *stmt, char *sql, int sql_len)
+int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
 {
 	if (sql_len==SQL_NTS)
 		sql_len = strlen(sql);
@@ -54,7 +54,7 @@ int odbc_set_stmt_query(struct _hstmt *stmt, char *sql, int sql_len)
 }
 
 
-int odbc_set_stmt_prepared_query(struct _hstmt *stmt, char *sql, int sql_len)
+int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len)
 {
 	if (sql_len==SQL_NTS)
 		sql_len = strlen(sql);
@@ -79,6 +79,30 @@ int odbc_set_stmt_prepared_query(struct _hstmt *stmt, char *sql, int sql_len)
 }
 
 
+void odbc_set_return_status(struct _hstmt *stmt)
+{
+    TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+
+        if (stmt->prepared_query_is_func && tds->has_status){
+                struct _sql_param_info *param;
+                param = odbc_find_param(stmt, 1);
+                if (param){
+                        int len = convert_tds2sql(stmt->hdbc->henv->locale,
+                        SYBINT4,
+                        (TDS_CHAR*)&tds->ret_status,
+                        sizeof(TDS_INT),
+                        param->param_sqltype,
+                        param->varaddr,
+                        param->param_bindlen);
+                        if (TDS_FAIL==len)
+                                return/* SQL_ERROR*/;
+                        *param->param_lenbind = len;
+                }
+        }
+    
+}
+
+
 struct _sql_param_info * 
 odbc_find_param(struct _hstmt *stmt, int param_num)
 {
@@ -95,64 +119,7 @@ odbc_find_param(struct _hstmt *stmt, int param_num)
 }
 
 
-int odbc_fix_literals(struct _hstmt *stmt)
-{
-	char *tmp,begin_tag[11];
-	char *s, *d, *p;
-	int i, quoted = 0, find_end = 0;
-	char quote_char;
-	int res;
-
-	if (stmt->prepared_query)
-	        s=stmt->prepared_query;
-	else if (stmt->query)
-	        s=stmt->query;
-	else
-		return SQL_ERROR;
-
-	tmp = malloc(strlen(s)+1);
-	if (!tmp)
-		return SQL_ERROR;
-
-        d=tmp;
-        while (*s) {
-		if (!quoted && (*s=='"' || *s=='\'')) {
-			quoted = 1;
-			quote_char = *s;
-		} else if (quoted && *s==quote_char) {
-			quoted = 0;
-		}
-		if (!quoted && find_end && *s=='}') {
-			s++; /* ignore the end of tag */
-		} else if (!quoted && *s=='{') {
-			for (p=s,i=0;*p && *p!=' ';p++) i++;
-			if (i>10) {
-				/* garbage */
-				*d++=*s++;
-			} else {
-				strncpy(begin_tag, s, i);
-				begin_tag[i] = '\0';
-				/* printf("begin tag %s\n", begin_tag); */
-				s += i;
-				find_end = 1;
-			}
-		} else {
-			*d++=*s++;	
-		}
-        }
-	*d='\0';
-	if (stmt->prepared_query)
-		res = odbc_set_stmt_prepared_query(stmt, tmp, strlen(tmp));
-	else
-		res = odbc_set_stmt_query(stmt, tmp, strlen(tmp));
-
-	free(tmp);
-		
-	return SQL_SUCCESS!=res?SQL_ERROR:SQL_SUCCESS;
-}
-
-
-int odbc_get_string_size(int size, char *str)
+int odbc_get_string_size(int size, SQLCHAR *str)
 {
 	if (!str) {
 		return 0;

@@ -1,3 +1,30 @@
+Wed May 29 07:02:37 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
+	* include/tdsodbc.h:
+	- add prepared_query_is_func member to struct _hstmt
+	* src/odbc/odbc.c:
+	- fix SQLMoreResults()
+	- fix SQLConnect()
+	- fix SQLDisconnect()
+	- use prepare_call() instead of odbc_fix_literals()
+	- fix getting long data
+	- delete some old comments
+	- fix SQLGetFunctions()
+	- fix SQLGetInfo()
+	- fix some type mismatch
+	* src/odbc/odbc_util.h:
+	- add odbc_set_return_status() declaration
+	- remove odbc_fix_literals() declaration
+	* src/odbc/odbc_util.c:
+	- add odbc_set_return_status() implementation
+	- remove odbc_fix_literals() implementation
+	* src/odbc/prepare_query.c:
+	- add prepare_call() implementation
+	- fix parse_prepared_query()
+	* src/odbc/prepare_query.h:
+	- add prepare_call() declaration
+	* src/tds/token.c:
+	- fix tds_process_result_tokens()
+
 Fri May 24 21:18:20 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
 	* include/tds.h.in:
 	- Add field TDS_INT column_text_sqlgetdatapos to TDSCOLINFO. We use it

@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.17 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.18 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -279,15 +279,21 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
 				break;
 			case TDS_ROW_TOKEN:
 				if (!result) {
+                                        tdsdump_log(TDS_DBG_INFO1, 
+                                            "%L processing result tokens. "
+                                            "Skipping row to access next "
+                                            "resultset or proc's retval\n");
+                                        if (TDS_FAIL==tds_process_row(tds))
+                                            return TDS_FAIL;
 				} else {
 					tds->res_info->rows_exist=1;
 					tds_unget_byte(tds);
 					return TDS_SUCCEED;
 				}
+                                break;
       			case TDS_RET_STAT_TOKEN:
 				tds->has_status=1;
 				tds->ret_status=tds_get_int(tds);
-				/* return TDS_SUCCEED; */
 				break;
 			case TDS5_DYN_TOKEN:
 				tds->cur_dyn_elem = tds_process_dynamic(tds);

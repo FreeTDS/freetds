@@ -31,11 +31,12 @@
 
 
 static char  rcsid_prepare_query_h [ ] =
-         "$Id: prepare_query.h,v 1.1 2002-05-27 20:12:43 brianb Exp $";
+         "$Id: prepare_query.h,v 1.2 2002-05-29 11:03:48 brianb Exp $";
 static void *no_unused_prepare_query_h_warn[]={rcsid_prepare_query_h, 
                                          no_unused_prepare_query_h_warn};
 
 
+int prepare_call(struct _hstmt *stmt);
 int start_parse_prepared_query(struct _hstmt *stmt);
 int continue_parse_prepared_query(struct _hstmt *stmt,
 				  SQLPOINTER DataPtr,
