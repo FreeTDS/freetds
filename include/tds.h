@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.32 2002-11-01 19:41:48 freddy77 Exp $";
+	"$Id: tds.h,v 1.33 2002-11-01 20:55:46 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -666,13 +666,6 @@ int tds_put_int(TDSSOCKET *tds, TDS_INT i);
 int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si);
 int tds_put_tinyint(TDSSOCKET *tds, TDS_TINYINT ti);
 int tds_put_byte(TDSSOCKET *tds, unsigned char c);
-unsigned char tds_get_byte(TDSSOCKET *tds);
-void tds_unget_byte(TDSSOCKET *tds);
-TDS_INT tds_get_int(TDSSOCKET *tds);
-TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
-char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
-char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
-char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int n);
 TDSRESULTINFO *tds_alloc_results(int num_cols);
 TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols);
 TDSCONTEXT *tds_alloc_context(void);
@@ -687,6 +680,7 @@ TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO
 void tds_fix_connect(TDSCONNECTINFO *connect_info);
 void tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info);
 void tds_lookup_host(const char *servername, const char *portname, char *ip, char *port);
+int tds_set_interfaces_file_loc(char *interfloc);
 
 TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
@@ -721,8 +715,6 @@ int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message);
-void  tds_set_parent(TDSSOCKET* tds, void* the_parent);
-void* tds_get_parent(TDSSOCKET* tds);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
@@ -742,16 +734,18 @@ char *tds_timestamp_str(char *str, int maxlen);
 struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct servent *tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen);
-int tds_version(TDSSOCKET *tds_socket, char *pversion_string);
 
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
 void tds_free_input_params(TDSDYNAMIC *dyn);
 void tds_free_dynamic(TDSSOCKET *tds);
 TDSSOCKET *tds_realloc_socket(int bufsize);
+void tds_free_compute_result(TDSCOMPUTEINFO *comp_info);
+void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge);
+int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 
 /* query.c */
 int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id);
@@ -767,6 +761,14 @@ void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
 int tds_process_column_row(TDSSOCKET *tds);
 int tds_is_fixed_token(int marker);
+int tds_process_login_tokens(TDSSOCKET *tds);
+int tds_is_result_row(TDSSOCKET *tds);
+int tds_is_result_set(TDSSOCKET *tds);
+int tds_is_end_of_results(TDSSOCKET *tds);
+int tds_is_error(TDSSOCKET *tds);
+int tds_is_message(TDSSOCKET *tds);
+int tds_is_doneinproc(TDSSOCKET *tds);
+int tds_is_control(TDSSOCKET *tds);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);
@@ -774,9 +776,35 @@ TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);
 /* write.c */
 int tds_put_bulk_data(TDSSOCKET *tds, const unsigned char *buf, TDS_INT bufsize);
 int tds_flush_packet(TDSSOCKET *tds);
+int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
 
 /* read.c */
+unsigned char tds_get_byte(TDSSOCKET *tds);
+void tds_unget_byte(TDSSOCKET *tds);
+unsigned char tds_peek(TDSSOCKET *tds);
+TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
+TDS_INT tds_get_int(TDSSOCKET *tds);
+char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int n);
+char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
+char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
+int tds_read_packet (TDSSOCKET *tds);
+
+/* util.c */
+void tds_set_parent(TDSSOCKET *tds, void *the_parent);
+void *tds_get_parent(TDSSOCKET *tds);
+void tds_ctx_set_parent(TDSCONTEXT *ctx, void *the_parent);
+void *tds_ctx_get_parent(TDSCONTEXT *ctx);
+int tds_swap_bytes(unsigned char *buf, int bytes);
+int tds_version(TDSSOCKET *tds_socket, char *pversion_string);
+void tdsdump_off(void);
+void tdsdump_on(void);
+int  tdsdump_open(const char *filename);
+int tdsdump_append(void);
+void tdsdump_close(void);
+void tdsdump_dump_buf(const void *buf, int length);
+void tdsdump_log(int dbg_lvl, const char *fmt, ...);
+int tds_close_socket(TDSSOCKET *tds);
 
 /* vstrbuild.c */
 int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, char *formats, int formatlen, va_list ap);

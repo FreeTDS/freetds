@@ -43,13 +43,12 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "tdsconvert.h"
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.14 2002-10-18 17:04:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.15 2002-11-01 20:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

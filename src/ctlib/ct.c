@@ -33,9 +33,8 @@
 
 #include "ctpublic.h"
 #include "ctlib.h"
-#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.45 2002-11-01 19:41:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.46 2002-11-01 20:55:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -40,11 +40,10 @@
 #endif /* HAVE_NETINET_IN_H */
 
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.14 2002-10-17 19:46:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.15 2002-11-01 20:55:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

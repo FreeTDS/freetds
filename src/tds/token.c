@@ -30,13 +30,12 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdsconvert.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.87 2002-11-01 19:41:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.88 2002-11-01 20:55:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -55,9 +55,8 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
-#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: main.c,v 1.12 2002-10-31 18:55:59 castellano Exp $";
+static char  software_version[]   = "$Id: main.c,v 1.13 2002-11-01 20:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* this will go away...starting with just 1 global pool */

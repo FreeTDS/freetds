@@ -34,10 +34,9 @@
 #include <strings.h>
 #include <sybfront.h>
 #include <sybdb.h>
-#include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.11 2002-10-18 17:04:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.12 2002-11-01 20:55:46 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

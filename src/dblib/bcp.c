@@ -35,7 +35,6 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "tdsconvert.h"
 #include "sybfront.h"
@@ -53,7 +52,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.32 2002-10-30 20:23:11 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.33 2002-11-01 20:55:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

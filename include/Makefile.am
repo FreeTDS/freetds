@@ -3,7 +3,7 @@ include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctlib.h ctpublic.h \
 			sqldb.h sqlfront.h \
 			sybdb.h sybfront.h \
 			syberror.h \
-			tds.h tdsconvert.h tdsodbc.h tdssrv.h tdsutil.h \
+			tds.h tdsconvert.h tdsodbc.h tdssrv.h \
 			tdsver.h
 
 nodist_include_HEADERS	=	tds_sysdep_public.h freetds_sysconfdir.h

@@ -53,9 +53,8 @@
 
 #include "tds.h"
 #include "tdsconvert.h"
-#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.38 2002-10-29 16:45:10 castellano Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.39 2002-11-01 20:55:46 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {

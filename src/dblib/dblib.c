@@ -48,7 +48,6 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
@@ -57,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.92 2002-11-01 19:41:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.93 2002-11-01 20:55:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

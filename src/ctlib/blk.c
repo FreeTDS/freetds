@@ -22,9 +22,8 @@
 #endif
 
 #include "bkpublic.h"
-#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: blk.c,v 1.4 2002-10-22 14:58:33 castellano Exp $";
+static char  software_version[]   = "$Id: blk.c,v 1.5 2002-11-01 20:55:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

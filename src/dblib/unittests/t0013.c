@@ -16,9 +16,8 @@
 #include <sqldb.h>
 
 #include "common.h"
-#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0013.c,v 1.9 2002-11-01 09:58:07 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0013.c,v 1.10 2002-11-01 20:55:48 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096

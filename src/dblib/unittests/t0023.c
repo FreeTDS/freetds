@@ -16,10 +16,9 @@
 #include <sqlfront.h>
 #include <sqldb.h>
 
-#include "tdsutil.h"
 #include "common.h"
 
-static char software_version[] = "$Id: t0023.c,v 1.2 2002-10-24 20:35:49 castellano Exp $";
+static char software_version[] = "$Id: t0023.c,v 1.3 2002-11-01 20:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

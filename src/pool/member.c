@@ -48,13 +48,12 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
-#include "tdsutil.h"
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char  software_version[]   = "$Id: member.c,v 1.16 2002-10-31 18:55:59 castellano Exp $";
+static char  software_version[]   = "$Id: member.c,v 1.17 2002-11-01 20:55:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static int pool_packet_read(TDS_POOL_MEMBER *pmbr);

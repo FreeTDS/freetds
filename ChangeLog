@@ -1,3 +1,24 @@
+Fri Nov  1 15:52:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/Makefile.am include/tds.h src/apps/freebcp.c
+	  src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c
+	  src/ctlib/unittests/t0009.c src/dblib/bcp.c src/dblib/dblib.c
+	  src/dblib/rpc.c src/dblib/xact.c src/dblib/unittests/t0001.c
+	  src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c
+	  src/dblib/unittests/t0012.c src/dblib/unittests/t0013.c
+	  src/dblib/unittests/t0014.c src/dblib/unittests/t0015.c
+	  src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c
+	  src/dblib/unittests/t0018.c src/dblib/unittests/t0020.c
+	  src/dblib/unittests/t0023.c src/odbc/convert_sql2string.c
+	  src/odbc/convert_tds2sql.c src/odbc/odbc.c src/odbc/odbc_util.c
+	  src/odbc/prepare_query.c src/pool/config.c src/pool/main.c
+	  src/pool/member.c src/server/login.c src/server/query.c
+	  src/server/unittest.c src/tds/config.c src/tds/convert.c
+	  src/tds/iconv.c src/tds/locale.c src/tds/login.c src/tds/mem.c
+	  src/tds/query.c src/tds/read.c src/tds/threadsafe.c src/tds/token.c
+	  src/tds/util.c src/tds/write.c
+	  include/tdsutil.h (removed):
+	- Merge tdsutil.h into tds.h.  Eliminate duplicate prototypes.
+
 Fri Nov  1 20:40:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c:
 	* src/tds/mem.c src/tds/query.c src/tds/token.c:

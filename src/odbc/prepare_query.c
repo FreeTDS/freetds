@@ -27,7 +27,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
@@ -35,7 +34,7 @@
 #include "odbc_util.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.11 2002-10-15 08:08:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.12 2002-11-01 20:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

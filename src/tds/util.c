@@ -50,12 +50,13 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "tdsutil.h"
+#include "tds.h"
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: util.c,v 1.24 2002-10-26 06:37:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.25 2002-11-01 20:55:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -34,7 +34,6 @@
 #endif
 
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdsiconv.h"
 #if HAVE_ICONV
 #include <iconv.h>
@@ -44,7 +43,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.27 2002-10-25 05:49:23 freddy77 Exp $";
+	"$Id: iconv.c,v 1.28 2002-11-01 20:55:52 castellano Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn

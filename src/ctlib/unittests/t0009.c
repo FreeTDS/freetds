@@ -8,10 +8,9 @@
 
 #include <stdio.h>
 #include <ctpublic.h>
-#include "tdsutil.h"
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.2 2002-10-24 20:35:49 castellano Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.3 2002-11-01 20:55:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve compute results */

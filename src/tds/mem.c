@@ -34,14 +34,13 @@
 #endif /* HAVE_UNISTD_H */
 
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.41 2002-11-01 19:41:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.42 2002-11-01 20:55:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

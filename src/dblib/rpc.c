@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
@@ -31,7 +30,7 @@
 #include <unistd.h>
 
 
-static char  software_version[]   = "$Id: rpc.c,v 1.4 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: rpc.c,v 1.5 2002-11-01 20:55:48 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -43,12 +43,11 @@
 #endif /* HAVE_NETDB_H */
 
 #include "tds.h"
-#include "tdsutil.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.15 2002-10-18 15:34:47 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.16 2002-11-01 20:55:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

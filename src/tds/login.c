@@ -66,15 +66,18 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif /* HAVE_SYS_IOCTL_H */
+
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdsstring.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.59 2002-10-23 02:21:24 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.60 2002-11-01 20:55:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

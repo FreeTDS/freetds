@@ -29,14 +29,13 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tdsutil.h"
 #include "tds.h"
 #include "tdsodbc.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.10 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.11 2002-11-01 20:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -57,9 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-#include "tdsutil.h"
-
-static char  software_version[]   = "$Id: read.c,v 1.27 2002-10-18 18:26:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.28 2002-11-01 20:55:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -25,10 +25,9 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "tds.h"
-#include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.8 2002-10-15 13:02:23 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.9 2002-11-01 20:55:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

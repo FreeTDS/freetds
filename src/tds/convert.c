@@ -51,13 +51,12 @@
 
 #include "tds.h"
 #include "tdsconvert.h"
-#include "tdsutil.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.96 2002-11-01 14:58:40 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.97 2002-11-01 20:55:52 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

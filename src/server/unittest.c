@@ -23,9 +23,8 @@
 
 #include <stdio.h>
 #include <tds.h>
-#include <tdsutil.h>
 
-static char  software_version[]   = "$Id: unittest.c,v 1.4 2002-10-19 03:02:35 jklowden Exp $";
+static char  software_version[]   = "$Id: unittest.c,v 1.5 2002-11-01 20:55:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 void dump_login(TDSLOGIN *login);
