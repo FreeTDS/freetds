@@ -1,3 +1,8 @@
+Fri Oct 18 14:59:06 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml src/odbc/connectparams.c src/odbc/odbc.c:
+	- added SQLSetConnectAttr function
+	- added some DSN configuration options
+
 Fri Oct 18 11:32:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml include/tds.h include/tdsstring.h:
 	* src/odbc/connectparams.c src/odbc/connectparams.h:

@@ -160,11 +160,9 @@ char *tdsver;
 		/* TODO 
 		trusted_connection = yes/no
 		*/
-		if (strcasecmp(p,"server")==0) {
+		if (strcasecmp(p,"SERVER")==0) {
 			dest_s = &connect_info->server_name;
-/*		} else if (strcasecmp(p,"servername")==0) {
-			dest = pszServer; */
-		} else if (strcasecmp(p,"database")==0) {
+		} else if (strcasecmp(p,"DATABASE")==0) {
 			dest_s = &connect_info->database;
 		} else if (strcasecmp(p,"UID")==0) {
 			dest_s = &connect_info->user_name;
@@ -172,10 +170,16 @@ char *tdsver;
 			dest_s = &connect_info->password;
 		} else if (strcasecmp(p,"APP")==0) {
 			dest_s = &connect_info->app_name;
-		} else if (strcasecmp(p,"port")==0) {
+		} else if (strcasecmp(p,"WSID")==0) {
+			dest_s = &connect_info->host_name;
+		} else if (strcasecmp(p,"LANGUAGE")==0) {
+			dest_s = &connect_info->language;
+		} else if (strcasecmp(p,"Port")==0) {
 			dest_i = &connect_info->port;
-		} else if (strcasecmp(p,"tds_version")==0) {
+		} else if (strcasecmp(p,"TDS_Version")==0) {
 			dest_s = &tdsver;
+/*		} else if (strcasecmp(p,"servername")==0) {
+			dest = pszServer; */
 		}
 		*end = '=';
 

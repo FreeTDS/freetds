@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.68 2002-10-18 09:34:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.69 2002-10-18 12:59:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2097,7 +2097,9 @@ SQLRETURN SQL_API SQLGetFunctions(
         case SQL_API_SQLGETDIAGREC :
         case SQL_API_SQLGETENVATTR :
         case SQL_API_SQLGETSTMTATTR :
-        case SQL_API_SQLSETCONNECTATTR :
+*/
+	case SQL_API_SQLSETCONNECTATTR :
+/*
         case SQL_API_SQLSETDESCFIELD :
         case SQL_API_SQLSETDESCREC :
         case SQL_API_SQLSETENVATTR :
@@ -2347,6 +2349,31 @@ SQLRETURN SQL_API SQLPutData(
     return _SQLExecute(hstmt);
 }
 
+
+SQLRETURN SQL_API SQLSetConnectAttr(SQLHDBC       hdbc,
+                                   SQLINTEGER     Attribute,
+                                   SQLPOINTER     ValuePtr,
+                                   SQLINTEGER     StringLength)
+{
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+SQLUINTEGER u_value = (SQLUINTEGER)ValuePtr;
+
+	CHECK_HDBC;
+	
+	switch(Attribute) {
+	case SQL_ATTR_AUTOCOMMIT:
+		/* spinellia@acm.org */
+		if (u_value == SQL_AUTOCOMMIT_ON)
+			return change_autocommit( hdbc, 1);
+		return change_autocommit( hdbc, 0);
+		break;
+/*	case SQL_ATTR_CONNECTION_TIMEOUT:
+		dbc->tds_socket->connect_timeout = u_value;
+		break; */
+	}
+	return SQL_ERROR;
+}
+
 SQLRETURN SQL_API SQLSetConnectOption(
                                      SQLHDBC            hdbc,
                                      SQLUSMALLINT       fOption,
@@ -2358,10 +2385,7 @@ SQLRETURN SQL_API SQLSetConnectOption(
     {
 	case SQL_AUTOCOMMIT:
 		/* spinellia@acm.org */
-		if (vParam == SQL_AUTOCOMMIT_ON)
-			return change_autocommit( hdbc, 1);
-		return change_autocommit( hdbc, 0);
-		break;
+		return SQLSetConnectAttr(hdbc,SQL_ATTR_AUTOCOMMIT,(SQLPOINTER)vParam,0);
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");
