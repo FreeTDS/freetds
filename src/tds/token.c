@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.218 2003-10-08 19:24:30 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.219 2003-10-22 02:11:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1234,6 +1234,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
+		/* TODO check if this column can have collation information associated */
 		adjust_character_column_size(tds, curcol);
 
 		/* skip locale */
@@ -1303,7 +1304,6 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
-	adjust_character_column_size(tds, curcol);
 
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
@@ -1311,12 +1311,16 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type))
+	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		/* based on true type as sent by server */
 		/* first 2 bytes are windows code (such as 0x409 for english)
-		 * * other 2 bytes ???
-		 * * last bytes is id in syscharsets */
+		 * other 2 bytes ???
+		 * last bytes is id in syscharsets */
 		tds_get_n(tds, curcol->column_collation, 5);
+		curcol->iconv_info = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+	}
+
+	adjust_character_column_size(tds, curcol);
 
 	if (is_blob_type(curcol->column_type)) {
 		curcol->table_namelen =
@@ -1434,6 +1438,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	/* TODO: we should use it ! */
 	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
+		curcol->iconv_info = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
 
 	/* Adjust column size according to client's encoding */
@@ -1838,6 +1843,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		switch (curcol->column_type) {
 		case SYBCHAR:
 		case XSYBCHAR:
+			if (curcol->column_size != curcol->on_server.column_size)
+				break;
 			/* FIXME use client charset */
 			fillchar = ' ';
 		case SYBBINARY:
@@ -3097,11 +3104,15 @@ static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 	/* FIXME: and sybase ?? and single char to utf8 ??? */
-	if (is_unicode_type(curcol->on_server.column_type)) {
-		curcol->on_server.column_size = curcol->column_size;
-		curcol->column_size = determine_adjusted_size(&tds->iconv_info[client2ucs2], curcol->column_size);
+	if (is_unicode_type(curcol->on_server.column_type))
+		curcol->iconv_info = tds->iconv_info[client2ucs2];
 
-		curcol->iconv_info = &tds->iconv_info[client2ucs2];
+	if (!curcol->iconv_info && IS_TDS7_PLUS(tds))
+		curcol->iconv_info = tds->iconv_info[client2server_chardata];
+
+	if (curcol->iconv_info) {
+		curcol->on_server.column_size = curcol->column_size;
+		curcol->column_size = determine_adjusted_size(curcol->iconv_info, curcol->column_size);
 	}
 }
 

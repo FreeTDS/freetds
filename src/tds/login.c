@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.112 2003-10-05 16:47:18 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.113 2003-10-22 02:11:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -841,10 +841,10 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		p = tds_dstr_cstr(&connect_info->password);
 		punicode = unicode_string;
 		unicode_left = sizeof(unicode_string);
-		rc = tds_iconv(tds, tds->iconv_info, to_server, &p, &password_len, &punicode, &unicode_left);
-		if (rc != -1) {
-			tdsdump_log(TDS_DBG_INFO1, "%L password \"%s\" could not be converted to USC-2\n", p);
-			assert(rc != -1);
+		if (tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
+		    (size_t) - 1) {
+			tdsdump_log(TDS_DBG_INFO1, "%L password \"%s\" could not be converted to UCS-2\n", p);
+			assert(0);
 		}
 		password_len = punicode - unicode_string;
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);

@@ -31,7 +31,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.19 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.20 2003-10-22 02:11:09 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -319,7 +319,6 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	while (remainder < n)
 		n /= 10, --i;
 	if (i <= numeric->scale) {
-		printf("i=%d s=%d\n", i, numeric->scale);
 		*s++ = '0';
 		*s++ = '.';
 		m = i;

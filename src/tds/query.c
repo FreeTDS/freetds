@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.105 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.106 2003-10-22 02:11:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -210,7 +210,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		if (!param_definition)
 			return TDS_FAIL;
 
-		converted_query = tds_convert_string(tds, &tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
 			free(param_definition);
 			return TDS_FAIL;
@@ -559,7 +559,7 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = params->columns[i]->column_namelen;
 		ob = param_str + l;
 		ol = size - l;
-		if (tds_iconv(tds, &tds->iconv_info[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+		if (tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;
 		param_str[l++] = ' ';
@@ -575,7 +575,7 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = strlen(declaration);
 		ob = param_str + l;
 		ol = size - l;
-		if (tds_iconv(tds, &tds->iconv_info[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+		if (tds_iconv(tds, tds->iconv_info[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;
 	}
@@ -733,7 +733,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 				return TDS_FAIL;
 		}
 
-		converted_query = tds_convert_string(tds, &tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
 			free(param_definition);
 			return TDS_FAIL;
@@ -815,7 +815,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 
 			/* TODO use a fixed buffer to avoid error ? */
 			converted_param =
-				tds_convert_string(tds, &tds->iconv_info[client2ucs2], curcol->column_name, len,
+				tds_convert_string(tds, tds->iconv_info[client2ucs2], curcol->column_name, len,
 						   &converted_param_len);
 			if (!converted_param)
 				return TDS_FAIL;
@@ -1298,8 +1298,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		converted_name =
-			tds_convert_string(tds, &tds->iconv_info[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
+		converted_name = tds_convert_string(tds, tds->iconv_info[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
 		if (!converted_name)
 			return TDS_FAIL;
 		tds_put_smallint(tds, converted_name_len / 2);

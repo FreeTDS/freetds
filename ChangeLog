@@ -1,3 +1,13 @@
+Tue Oct 21 21:29:07 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h include/tdsiconv.h
+	* src/odbc/odbc.c src/server/login.c
+	* src/tds/iconv.c src/tds/login.c src/tds/mem.c
+	* src/tds/numeric.c src/tds/query.c src/tds/read.c
+	* src/tds/token.c  src/tds/write.c
+	- Frediano's 1038-line patch from two days ago.  
+	- Convert TDSICONVINFO *iconv_info to **iconv_info, and 
+	- begin handling per-column encodings.  
+
 Sun Oct 19 13:00:14 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/unittests/Makefile.am
 	* src/odbc/unittests/common.c

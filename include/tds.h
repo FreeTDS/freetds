@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.148 2003-10-05 16:46:42 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.149 2003-10-22 02:11:09 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -973,7 +973,7 @@ struct tds_socket
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
 	int iconv_info_count;
-	TDSICONVINFO *iconv_info;
+	TDSICONVINFO **iconv_info;
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
@@ -1036,6 +1036,9 @@ void tds_iconv_open(TDSSOCKET * tds, const char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
+int tds_iconv_alloc(TDSSOCKET * tds);
+void tds_iconv_free(TDSSOCKET * tds);
+TDSICONVINFO *tds_iconv_from_lcid(TDSSOCKET * tds, int lcid);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);
