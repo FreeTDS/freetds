@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.7 2001-12-02 16:20:10 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.8 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1154,6 +1154,7 @@ int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: fFunction is %d\n", fFunction);
 	switch (fFunction) {
+#if ODBCVER >= 0x0300
 		case SQL_API_ODBC3_ALL_FUNCTIONS:
 /* 
 			for (i=0;i<SQL_API_ODBC3_ALL_FUNCTIONS_SIZE;i++) {
@@ -1220,6 +1221,7 @@ int i;
 
 			return SQL_SUCCESS;
 			break;
+#endif
 		case SQL_API_ALL_FUNCTIONS:
 			_set_func_exists(pfExists,SQL_API_SQLALLOCCONNECT);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCENV);
@@ -1262,7 +1264,7 @@ int i;
 			return SQL_SUCCESS;
 			break;
 		default:
-			*pfExists = SQL_TRUE;
+			*pfExists = 1; /* SQL_TRUE */
 			return SQL_SUCCESS;
 			break;
 	}

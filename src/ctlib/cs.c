@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.3 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -29,6 +29,7 @@ static void *no_unused_var_warn[] = {software_version,
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 {
 	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
+	memset(*ctx,'\0',sizeof(CS_CONTEXT));
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)

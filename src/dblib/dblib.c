@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.6 2001-11-22 23:37:16 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.7 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1041,6 +1041,47 @@ TDSSOCKET * tds;
 	if (column<1 || column>resinfo->num_cols) return -1;
 	colinfo = resinfo->columns[column-1];
 	return colinfo->column_size;
+}
+/* dbvarylen(), pkleef@openlinksw.com 01/21/02 */
+DBINT dbvarylen(DBPROCESS *dbproc, int column)
+{
+TDSCOLINFO * colinfo;
+TDSRESULTINFO *resinfo;
+TDSSOCKET *tds;
+
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	resinfo = tds->res_info;
+	if (column<1 || column>resinfo->num_cols) 
+		return FALSE;
+	colinfo = resinfo->columns[column-1];
+
+	if (tds_get_null (resinfo->current_row, column))
+		return TRUE;
+
+	switch (colinfo->column_type) {
+		/* variable length fields */
+		case SYBNVARCHAR:
+		case SYBVARBINARY:
+		case SYBVARCHAR:
+				return TRUE;
+		
+		/* types that can be null */
+		case SYBBITN:
+		case SYBDATETIMN:
+		case SYBDECIMAL:
+		case SYBFLTN:
+		case SYBINTN:
+		case SYBMONEYN:
+		case SYBNUMERIC:
+				return TRUE;
+
+		/* blob types */
+		case SYBIMAGE:
+		case SYBNTEXT:
+		case SYBTEXT:
+				return TRUE;
+	}
+	return FALSE;
 }
 DBINT dbdatlen(DBPROCESS *dbproc, int column)
 {

@@ -13,7 +13,7 @@ tds_configs.h: tds_configs.h.in Makefile
 	@echo "/* Generated from tds_configs.h.in on `date` */" > $@;  \
 	sed \
 		-e 's;%SYSCONFDIR%;$(sysconfdir);' \
-		tds_configs.h.in >> $@; \
+		$(srcdir)/tds_configs.h.in >> $@; \
 	chmod 444 $@
 
 maintainer-clean-local:

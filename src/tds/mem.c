@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.6 2002-01-18 03:33:47 vorlon Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.7 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -240,8 +240,8 @@ int i;
 		if (res_info->current_row) TDS_ZERO_FREE(res_info->current_row);
 		for (i=0;i<res_info->num_cols;i++)
 		{
-			if(res_info->columns[i])
-			tds_free_column(res_info->columns[i]);
+			if(res_info->columns && res_info->columns[i])
+				tds_free_column(res_info->columns[i]);
 		}
 		if (res_info->num_cols) TDS_ZERO_FREE(res_info->columns);
 		TDS_ZERO_FREE(res_info);

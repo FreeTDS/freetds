@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.11 2001-12-16 15:44:23 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.12 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -791,7 +791,7 @@ CS_RETCODE ct_cancel(CS_CONNECTION *conn, CS_COMMAND *cmd, CS_INT type)
          }
       }
       if (cmd->con->tds_socket) {
-         tds_free_results(cmd->con->tds_socket->res_info);
+         tds_free_all_results(cmd->con->tds_socket);
       }
       return ret;
    }

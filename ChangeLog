@@ -1,3 +1,27 @@
+Sun Jun 21 22:03:37 2002  Brian Bruns  <camber@ais.org>
+	
+	* src/ctlib/cs.c (cs_ctx_alloc):  Zero allocated structure. 
+	* src/tds/mem.c (tds_free_results): Tighter checking.  From Bernd Rothert 
+	<brothert@mzv.net>
+	* src/ctlib/ct.c (ct_cancel): all tds_free_all_results(), instead of
+	tds_free_results().  From Bernd Rothert <brothert@mzv.net>
+	* src/ctlib/ct.c (ct_cancel): all tds_free_all_results(), instead of
+	tds_free_results().  From Bernd Rothert <brothert@mzv.net>
+	* src/tds/login.c (tds_connect): Throw a message if trying to connect to 
+	a NULL config->ip_addr
+	* src/tds/config.c: Added FREETDSCONF env var to locate freetd.conf in 
+	non-standard place, and TDSHOST to specify hostname at runtime.  From 
+	Patrick van Kleef <pkleef@openlinksw.com>
+	* src/tds/token.c (tds_reset_msg): Check for null TDSSOCKET.  From 
+	Patrick van Kleef <pkleef@openlinksw.com>
+	* src/dblib/dblib.c (dbvarylen): Initial implementation.  From Patrick 
+	van Kleef <pkleef@openlinksw.com>
+	* src/odbc/odbc.c (SQLGetFunctions): Check ODBCVER for 
+	SQL_API_ODBC3_ALL_FUNCTIONS.  From Patrick van Kleef 
+	<pkleef@openlinksw.com>
+	* include/Makefile.am: Add $srcdir to tds_configs.h.in 
+	From Patrick van Kleef <pkleef@openlinksw.com>
+	
 Sat Jan 12 21:46:41 2002  James Cameron  <quozl@us.netrek.org>
 
 	* src/tds/login.c (tds_connect): verify that config->ip_addr is

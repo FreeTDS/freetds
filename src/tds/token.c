@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.10 2002-01-18 03:33:47 vorlon Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.11 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1256,19 +1256,22 @@ char *proc_name;
 
 int tds_reset_msg_info(TDSSOCKET *tds)
 {
-      tds->msg_info->priv_msg_type = 0;
-      tds->msg_info->msg_number = 0;
-      tds->msg_info->msg_state = 0;
-      tds->msg_info->msg_level = 0;
-      tds->msg_info->line_number = 0;
+	if (!tds) 
+		return 0;
 
-      if( tds->msg_info->message)
-              TDS_ZERO_FREE(tds->msg_info->message);
+	tds->msg_info->priv_msg_type = 0;
+	tds->msg_info->msg_number = 0;
+	tds->msg_info->msg_state = 0;
+	tds->msg_info->msg_level = 0;
+	tds->msg_info->line_number = 0;
 
-      if(tds->msg_info->server)
-              TDS_ZERO_FREE(tds->msg_info->server);
-      if(tds->msg_info->proc_name)
-              TDS_ZERO_FREE(tds->msg_info->proc_name);
+	if( tds->msg_info->message)
+		TDS_ZERO_FREE(tds->msg_info->message);
+	if(tds->msg_info->server)
+		TDS_ZERO_FREE(tds->msg_info->server);
+	if(tds->msg_info->proc_name)
+		TDS_ZERO_FREE(tds->msg_info->proc_name);
+
 	return 0;
 }
 

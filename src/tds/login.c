@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.12 2002-01-18 03:33:47 vorlon Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.13 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -118,6 +118,8 @@ time_t start, now;
 TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
 char query[30];
+char *tmpstr;
+
 
 FD_ZERO (&fds);                                    
 /* end */
@@ -155,24 +157,32 @@ FD_ZERO (&fds);
 	}
 
 	/* Jeff's hack - begin */
-        tds->timeout = (login->connect_timeout) ? login->query_timeout : 0;        
-        tds->longquery_timeout = (login->connect_timeout) ? login->longquery_timeout : 0;
-        tds->longquery_func = login->longquery_func;
-        tds->longquery_param = login->longquery_param;
+	tds->timeout = (login->connect_timeout) ? login->query_timeout : 0;        
+	tds->longquery_timeout = (login->connect_timeout) ? login->longquery_timeout : 0;
+	tds->longquery_func = login->longquery_func;
+	tds->longquery_param = login->longquery_param;
 	/* end */
 
-        /* verify that ip_addr is not NULL */
-        if (!config->ip_addr) {
-                tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
-                tds_free_config(config);
-                return NULL;
-        }
-        sin.sin_addr.s_addr = inet_addr(config->ip_addr);
-        if (sin.sin_addr.s_addr == -1) {
+	/* verify that ip_addr is not NULL */
+	if (!config->ip_addr) {
+		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
+		if (config->server_name) {
+			tmpstr = malloc(strlen(config->server_name)+100);
+			sprintf(tmpstr,"Server %s not found!",config->server_name);
+			tds_client_msg(tds, 10019, 9, 0, 0, tmpstr);
+			free(tmpstr);
+		} else {
+			tds_client_msg(tds, 10020, 9, 0, 0, "No server specified!");
+		}
+		tds_free_config(config);
+		return NULL;
+	}
+	sin.sin_addr.s_addr = inet_addr(config->ip_addr);
+	if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
 		tds_free_config(config);
 		return NULL;
-        }
+	}
 
        	sin.sin_family = AF_INET;
        	sin.sin_port = htons(config->port);

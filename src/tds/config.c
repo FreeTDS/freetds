@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.8 2002-01-18 03:33:46 vorlon Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.9 2002-01-22 03:28:17 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -55,6 +55,7 @@ static void tds_config_env_dsquery(TDSCONFIGINFO *config);
 static void tds_config_env_tdsdump(TDSCONFIGINFO *config);
 static void tds_config_env_tdsver(TDSCONFIGINFO *config);
 static void tds_config_env_tdsport(TDSCONFIGINFO *config);
+static void tds_config_env_tdshost(TDSCONFIGINFO *config);
 static int tds_read_conf_file(char *server, TDSCONFIGINFO *config);
 static int tds_read_conf_sections(FILE *in, char *server, TDSCONFIGINFO *config);
 static int tds_read_conf_section(FILE *in, char *section, TDSCONFIGINFO *config);
@@ -104,6 +105,7 @@ TDSCONFIGINFO *config;
 	tds_config_env_tdsdump(config);
 	tds_config_env_tdsport(config);
 	tds_config_env_dsquery(config);
+	tds_config_env_tdshost(config);
 	
 	/* And finally the login structure */
 	tds_config_login(config, login);
@@ -127,17 +129,30 @@ int found = 0;
 		fclose(in);
 	}
 	
-	home = getenv("HOME");
-	if (home!=NULL && home[0]!='\0') {
-		path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
-		sprintf(path,"%s/.freetds.conf",home);
-		in = fopen(path, "r");
-		if (in) {
-			tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s/.freetds.conf reading sections\n",home);
-			found = tds_read_conf_sections(in, server, config);
-			fclose(in);
+	/* FREETDSCONF env var, pkleef@openlinksw.com 01/21/02 */
+	path = getenv ("FREETDSCONF");
+	if (!found && path) {
+		if ((in = fopen (path, "r")) != NULL) {
+			tdsdump_log(TDS_DBG_INFO1, 
+				"%L Found conf file in %s reading sections\n",path);
+			found = tds_read_conf_sections (in, server, config);
+			fclose (in);
 		}
-		free(path);
+	}
+
+	if (!found) {
+		home = getenv("HOME");
+		if (home!=NULL && home[0]!='\0') {
+			path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
+			sprintf(path,"%s/.freetds.conf",home);
+			in = fopen(path, "r");
+			if (in) {
+				tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s/.freetds.conf reading sections\n",home);
+				found = tds_read_conf_sections(in, server, config);
+				fclose(in);
+			}
+			free(path);
+		}
 	}
 
 	return found;
@@ -429,6 +444,21 @@ char *tdsver;
 	}
 	return;
 }
+/* TDSHOST env var, pkleef@openlinksw.com 01/21/02 */
+static void tds_config_env_tdshost(TDSCONFIGINFO *config)
+{
+char *tdshost;
+char tmp[256];
+
+	if (tdshost=getenv("TDSHOST")) {
+		lookup_host (tdshost, NULL, tmp, NULL);
+		if (config->ip_addr)
+			free (config->ip_addr);
+		config->ip_addr = strdup (tmp);
+	}
+	return;
+}
+
 static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config)
 {
 	if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
@@ -658,6 +688,8 @@ free(pathname);
  *       to hold the ip and port numbers.  ip_addr should be at least 17
  *       bytes long and ip_port should be at least 6 bytes long.
  *
+ * Note: This function uses only the interfaces file and is deprecated.
+ *
  * Ret:  True if it found the server, false otherwise.
  *
  * ===========================================================================
@@ -668,78 +700,78 @@ int get_server_info(
    char *ip_port,  /* (O) string representation of port number */
    char *tds_ver)  /* (O) string value specifying which protocol version */
 {
-   ip_addr[0] = '\0';
-   ip_port[0] = '\0';
-   tds_ver[0] = '\0';
+	ip_addr[0] = '\0';
+	ip_port[0] = '\0';
+	tds_ver[0] = '\0';
 
-   if(!server || strlen(server) == 0) {
-         server = getenv("DSQUERY");
-         if(!server || strlen(server) == 0) {
-                server = "SYBASE";
-         }
-   }
-   /*
-    * Look for the server in the interf_file iff interf_file has been set.
-    */
-   if (ip_addr[0]=='\0' && interf_file[0]!='\0')
-   {
-      search_interface_file("", interf_file, server, ip_addr, ip_port, tds_ver);
-   }
+	if (!server || strlen(server) == 0) {
+		server = getenv("DSQUERY");
+		if(!server || strlen(server) == 0) {
+			server = "SYBASE";
+		}
+	}
 
-   /*
-    * if we haven't found the server yet then look for a $HOME/.interfaces file
-    */
-   if (ip_addr[0]=='\0')
-   {
-      char  *home = getenv("HOME");
-      if (home!=NULL && home[0]!='\0')
-      {
-         search_interface_file(home, ".interfaces", server, ip_addr, ip_port, tds_ver);
-      }
-   }
+	/*
+	* Look for the server in the interf_file iff interf_file has been set.
+	*/
+	if (ip_addr[0]=='\0' && interf_file[0]!='\0') {
+		search_interface_file("", interf_file, server, ip_addr, 
+			ip_port, tds_ver);
+	}
 
-   /*
-    * if we haven't found the server yet then look in $SYBBASE/interfaces file
-    */
-   if (ip_addr[0]=='\0')
-   {
-      char  *sybase = getenv("SYBASE");
-      if (sybase!=NULL && sybase[0]!='\0')
-      {
-         search_interface_file(sybase, "interfaces", server, ip_addr, ip_port, tds_ver);
-      } else {
-         search_interface_file("/etc/freetds", "interfaces", server, ip_addr, ip_port, tds_ver);
-      }
-   }
+	/*
+	* if we haven't found the server yet then look for a $HOME/.interfaces file
+	*/
+	if (ip_addr[0]=='\0') {
+		char  *home = getenv("HOME");
+		if (home!=NULL && home[0]!='\0') {
+			search_interface_file(home, ".interfaces", server, ip_addr, 
+				ip_port, tds_ver);
+		}
+	}
 
-   /*
-    * If we still don't have the server and port then assume the user
-    * typed an actual server name.
-    */
-   if (ip_addr[0]=='\0')
-   {
-      char  *tmp_port;
+	/*
+	* if we haven't found the server yet then look in $SYBBASE/interfaces file
+	*/
+	if (ip_addr[0]=='\0') {
+		char  *sybase = getenv("SYBASE");
+		if (sybase!=NULL && sybase[0]!='\0') {
+			search_interface_file(sybase, "interfaces", server, ip_addr, 
+				ip_port, tds_ver);
+		} else {
+			search_interface_file("/etc/freetds", "interfaces", server, 
+				ip_addr, ip_port, tds_ver);
+		}
+	}
 
-      /*
-       * Make a guess about the port number
-       */
+ 	/*
+ 	* If we still don't have the server and port then assume the user
+ 	* typed an actual server name.
+ 	*/
+ 	if (ip_addr[0]=='\0') {
+ 		char  *tmp_port;
+
+		/*
+		* Make a guess about the port number
+		*/
+
 #ifdef TDS50
-      tmp_port = "4000";
+		tmp_port = "4000";
 #else
-      tmp_port = "1433";
+		tmp_port = "1433";
 #endif
-      /* FIX ME -- Need a symbolic constant for the environment variable */
-      if (getenv("TDSPORT")!=NULL && getenv("DBLIB_PORT")[-1]!='\0')
-      {
-         tmp_port = getenv("TDSPORT");
-      }
+		/* FIX ME -- Need a symbolic constant for the environment variable */
+		if (getenv("TDSPORT")!=NULL) {
+			tmp_port = getenv("TDSPORT");
+		}
 
-      /*
-       * lookup the host and service
-       */
-      lookup_host(server, tmp_port, ip_addr, ip_port);
-   }
+		/*
+		* lookup the host and service
+		*/
+		lookup_host(server, tmp_port, ip_addr, ip_port);
 
-   return ip_addr[0]!='\0' && ip_port[0]!='\0';
+	}
+
+	return ip_addr[0]!='\0' && ip_port[0]!='\0';
 } /* get_server_info()  */
 
