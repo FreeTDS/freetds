@@ -1,3 +1,8 @@
+Tue Nov 20 12:44:13 2001  James Cameron  <quozl@us.netrek.org>
+
+	* autogen.sh: new file to perform package configuration from 'make
+	maintainer-clean' state, copied from Glade.
+
 Tue Nov 20 12:31:25 2001  James Cameron  <quozl@us.netrek.org>
 
 	* INSTALL.CVS: new file to explain process of building from CVS.
