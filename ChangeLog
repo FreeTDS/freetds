@@ -1,3 +1,8 @@
+Mon Sep 16 22:39:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/freetds.c:
+	- Fix a bug I introduced earlier today -- properly set the
+	  bcp direction in freebcp.
+
 Mon Sep 16 20:28:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/tds/asprintf.c:
 	- Provide a better/more portable {,v}asprintf() implementation

@@ -25,7 +25,7 @@
 #include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.7 2002-09-16 19:47:59 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.8 2002-09-17 02:41:10 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -70,11 +70,11 @@ int		ok = FALSE;
     }
 
     if (params.cflag) {            /* character format file */
-       ok = file_character(&params, dbproc, DB_IN );
+       ok = file_character(&params, dbproc, direction);
     } else if (params.nflag) {     /* native format file    */
-       ok = file_native(&params, dbproc, DB_IN );
+       ok = file_native(&params, dbproc, direction);
     } else if (params.fflag) {     /* formatted file        */
-       ok = file_formatted(&params, dbproc, DB_IN );
+       ok = file_formatted(&params, dbproc, direction);
     } else {
        ok = FALSE;
     }
