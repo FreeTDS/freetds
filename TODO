@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.101 2004-03-25 16:25:52 freddy77 Exp $
+To Do List	$Id: TODO,v 1.102 2004-04-01 18:35:11 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -52,8 +52,7 @@ Started in 0.63
   (in a future version ?)
 - header privatizations (removing tds.h dependency)  this is quite 
   important for future binary compatibility.
-  Add consistency test for dblib
-  Add also -Wl,-Bsymbolic or similar to libraries
+  - Add consistency test for dblib
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
@@ -102,6 +101,7 @@ For future versions (in priority order within library):
 . net.c file with all network stuff
 . detect if realloc/free accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
+. optimization: add -Wl,-Bsymbolic or similar to libraries
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 

@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.57 2004-02-09 22:59:33 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.58 2004-04-01 18:35:11 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -147,6 +147,8 @@ enum
 #define SYBCHAR	SYBCHAR
 	SYBVARCHAR = 39,	/* 0x27 */
 #define SYBVARCHAR	SYBVARCHAR
+	SYBINTN = 38,		/* 0x26 */
+#define SYBINTN	SYBINTN
 	SYBINT1 = 48,		/* 0x30 */
 #define SYBINT1	SYBINT1
 	SYBINT2 = 52,		/* 0x34 */
@@ -181,6 +183,12 @@ enum
 #define SYBNUMERIC	SYBNUMERIC
 	SYBDECIMAL = 106,	/* 0x6A */
 #define SYBDECIMAL	SYBDECIMAL
+	SYBFLTN = 109,		/* 0x6D */
+#define SYBFLTN	SYBFLTN
+	SYBMONEYN = 110,	/* 0x6E */
+#define SYBMONEYN	SYBMONEYN
+	SYBDATETIMN = 111	/* 0x6F */
+#define SYBDATETIMN	SYBDATETIMN
 };
 
 #define SYBAOPCNT  0x4b
