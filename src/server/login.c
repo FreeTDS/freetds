@@ -43,7 +43,7 @@
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.12 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.13 2002-10-15 03:46:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -87,7 +87,7 @@ size_t	len;
         	exit(1);
         }
 	context = tds_alloc_context();
-	tds = tds_alloc_socket(context, BUFSIZ);
+	tds = tds_alloc_socket(context, 8192);
 	tds->s = fd;
 	tds->out_flag=0x02;
 	/* get_incoming(tds->s); */

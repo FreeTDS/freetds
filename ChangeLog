@@ -1,3 +1,7 @@
+Mon Oct 14 23:44:58 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/server/login.c:
+	- Don't abuse BUFSIZ.
+
 Mon Oct 14 23:14:43 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Check for gethostbyname_r() in libd4r (for AIX).
