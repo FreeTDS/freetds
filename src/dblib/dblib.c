@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.40 2002-08-29 05:50:43 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.41 2002-08-29 22:01:29 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1228,7 +1228,7 @@ TDSSOCKET * tds;
 
         return SUCCEED;
 }
-DBINT DBCOUNT(DBPROCESS *dbproc)
+DBINT dbcount(DBPROCESS *dbproc)
 {
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
@@ -1754,7 +1754,7 @@ DBINT dbretstatus(DBPROCESS *dbproc)
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	return tds->ret_status;
 }
-RETCODE DBCMDROW(DBPROCESS *dbproc)
+RETCODE dbcmdrow(DBPROCESS *dbproc)
 {
         TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
         if (tds->res_info)
@@ -2181,17 +2181,17 @@ DBBOOL dbisopt(DBPROCESS *dbproc,int option, char *param)
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbisopt()\n");
 	return TRUE;
 }
-DBINT DBCURROW(DBPROCESS *dbproc)
+DBINT dbcurrow(DBPROCESS *dbproc)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURROW()\n");
 	return 0;
 }
-int DBCURCMD(DBPROCESS *dbproc)
+int dbcurcmd(DBPROCESS *dbproc)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBCURCMD()\n");
 	return 0;
 }
-RETCODE DBMORECMDS(DBPROCESS *dbproc)
+RETCODE dbmorecmds(DBPROCESS *dbproc)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED DBMORECMDS()\n");
 	return SUCCEED;
@@ -2560,7 +2560,7 @@ RETCODE dbpoll(DBPROCESS *dbproc, long milliseconds, DBPROCESS **ready_dbproc, i
 	return SUCCEED;
 }
 
-DBINT DBLASTROW(DBPROCESS *dbproc)
+DBINT dblastrow(DBPROCESS *dbproc)
 {
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
@@ -2585,7 +2585,7 @@ TDSSOCKET * tds;
 #endif
 }
 
-DBINT DBFIRSTROW(DBPROCESS *dbproc)
+DBINT dbfirstrow(DBPROCESS *dbproc)
 {
    DBINT   result;
 
@@ -2599,11 +2599,11 @@ DBINT DBFIRSTROW(DBPROCESS *dbproc)
    }
    return result;
 }
-int DBIORDESC(DBPROCESS *dbproc)
+int dbiordesc(DBPROCESS *dbproc)
 {
    return dbproc->tds_socket->s;
 }
-int DBIOWDESC(DBPROCESS *dbproc)
+int dbiowdesc(DBPROCESS *dbproc)
 {
    return dbproc->tds_socket->s;
 }
@@ -2632,7 +2632,7 @@ static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int 
 			break;
 	}
 }
-DBBOOL DBISAVAIL(DBPROCESS *dbproc)
+DBBOOL dbisavail(DBPROCESS *dbproc)
 {
 	return dbproc->avail_flag;
 }

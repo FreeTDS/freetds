@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.11 2002-08-29 20:12:24 freddy77 Exp $";
+"$Id: sybdb.h,v 1.12 2002-08-29 22:01:25 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -369,7 +369,8 @@ void dbclose(DBPROCESS *dbproc);
 void dbclrbuf(DBPROCESS *dbproc, DBINT n);
 RETCODE dbclropt(DBPROCESS *dbproc, int option, char *param);
 RETCODE dbcmd(DBPROCESS *dbproc, char *cmdstring);
-RETCODE DBCMDROW(DBPROCESS *dbproc);
+RETCODE dbcmdrow(DBPROCESS *dbproc);
+#define DBCMDROW(x) dbcmdrow((x))
 DBBOOL dbcolbrowse(DBPROCESS *dbprocess, int colnum);
 DBINT dbcollen(DBPROCESS *dbproc, int column);
 char *dbcolname(DBPROCESS *dbproc, int column);
@@ -379,9 +380,12 @@ DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column);
 DBINT dbcolutype(DBPROCESS *dbprocess, int column);
 DBINT dbconvert(DBPROCESS *dbproc, int srctype, BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen);
 DBINT dbconvert_ps(DBPROCESS *dbprocess, int srctype, BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen, DBTYPEINFO *typeinfo);
-DBINT DBCOUNT(DBPROCESS *dbproc);
-int DBCURCMD(DBPROCESS *dbproc);
-DBINT DBCURROW(DBPROCESS *dbproc);
+DBINT dbcount(DBPROCESS *dbproc);
+#define DBCOUNT(x) dbcount((x))
+int dbcurcmd(DBPROCESS *dbproc);
+#define DBCURCMD(x) dbcurcmd((x))
+DBINT dbcurrow(DBPROCESS *dbproc);
+#define DBCURROW(x) dbcurrow((x))
 RETCODE dbcursor(DBCURSOR *hc, DBINT optype, DBINT bufno, BYTE *table, BYTE *values);
 RETCODE dbcursorbind(DBCURSOR *hc, int col, int vartype, DBINT varlen, DBINT *poutlen, BYTE *pvaraddr, DBTYPEINFO *typeinfo);
 void dbcursorclose(DBCURSOR *hc);
@@ -406,7 +410,8 @@ DBBOOL dbdead(DBPROCESS *dbproc);
 EHANDLEFUNC dberrhandle(EHANDLEFUNC handler);
 void dbexit(void);
 RETCODE dbfcmd(DBPROCESS *dbproc, char *fmt, ...);
-DBINT DBFIRSTROW(DBPROCESS *dbproc);
+DBINT dbfirstrow(DBPROCESS *dbproc);
+#define DBFIRSTROW(x) dbfirstrow((x))
 RETCODE dbfree_xlate(DBPROCESS *dbprocess, DBXLATE *xlt_tosrv, DBXLATE *clt_todisp);
 void dbfreebuf(DBPROCESS *dbproc);
 void dbfreequal(char *qualptr);
@@ -424,11 +429,15 @@ int DBGETTIME(void);
 BYTE *dbgetuserdata(DBPROCESS *dbproc);
 DBBOOL dbhasretstat(DBPROCESS *dbproc);
 RETCODE dbinit(void);
-int DBIORDESC(DBPROCESS *dbproc);
-int DBIOWDESC(DBPROCESS *dbproc);
-DBBOOL DBISAVAIL(DBPROCESS *dbprocess);
+int dbiordesc(DBPROCESS *dbproc);
+#define DBIORDESC(x) dbiordesc((x))
+int dbiowdesc(DBPROCESS *dbproc);
+#define DBIOWDESC(x) dbiowdesc((x))
+DBBOOL dbisavail(DBPROCESS *dbprocess);
+#define DBISAVAIL(x) dbisavail((x))
 DBBOOL dbisopt(DBPROCESS *dbproc, int option, char *param);
-DBINT DBLASTROW(DBPROCESS *dbproc);
+DBINT dblastrow(DBPROCESS *dbproc);
+#define DBLASTROW(x) dblastrow((x))
 RETCODE dbload_xlate(DBPROCESS *dbprocess, char *srv_charset, char *clt_name, DBXLATE **xlt_tosrv, DBXLATE **xlt_todisp);
 DBSORTORDER *dbloadsort(DBPROCESS *dbprocess);
 LOGINREC *dblogin(void);
@@ -458,7 +467,8 @@ RETCODE dbmnyscale(DBPROCESS *dbproc, DBMONEY *dest, int multiplier, int addend)
 RETCODE dbmnysub(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *diff);
 RETCODE dbmnyzero(DBPROCESS *dbproc, DBMONEY *dest);
 char *dbmonthname(DBPROCESS *dbproc, char *language, int monthnum, DBBOOL shortform);
-RETCODE DBMORECMDS(DBPROCESS *dbproc);
+RETCODE dbmorecmds(DBPROCESS *dbproc);
+#define DBMORECMDS(x) dbmorecmds((x))
 RETCODE dbmoretext(DBPROCESS *dbproc, DBINT size, BYTE *text);
 MHANDLEFUNC dbmsghandle(MHANDLEFUNC handler);
 char *dbname(DBPROCESS *dbproc);
