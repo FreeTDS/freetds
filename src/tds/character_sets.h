@@ -80,6 +80,21 @@
 		, {"CP1133", 		1, 1}
 		, {"ISO-IR-166", 	1, 1}
 		, {"CP874", 		1, 1}
+		, {"CP936", 		1, 2}
+		, {"CN", 		1, 1}
+		, {"CP932", 		1, 2}
+		, {"CN-GB", 		1, 2}
+		, {"CP950", 		1, 2}
+		, {"CP949", 		1, 2}
+		, {"CP1361", 		1, 2}
+		, {"BIG-5", 		1, 2}
+		, {"BIG5-HKSCS", 	1, 2}
+		, {"SJIS", 		1, 2}
+		, {"EUC-KR", 		1, 2}
+		, {"VISCII", 		1, 1}
+		, {"ISO-IR-14", 	1, 1}
+		, {"EUC-JP", 		1, 3}
+		, {"EUC-TW", 		1, 4}
 		/*
 		 * Beyond this point, I don't know the right answers.  
 		 * If you can provide the correct min/max (byte/char) values, please
@@ -89,35 +104,20 @@
 		 */
 		, {"",	 		0, 0}	/* stopper row */
 		
-		, {"VISCII", 		1, 1}
 		, {"TCVN", 		1, 1}
-		, {"ISO-IR-14", 	1, 1}
 		, {"JISX0201-1976", 	1, 1}
 		, {"ISO-IR-87", 	1, 1}
 		, {"ISO-IR-159", 	1, 1}
-		, {"CN", 		1, 1}
 		, {"CHINESE", 		1, 1}
 		, {"CN-GB-ISOIR165", 	1, 1}
 		, {"ISO-IR-149", 	1, 1}
-		, {"EUC-JP", 		1, 1}
-		, {"SJIS", 		1, 1}
-		, {"CP932", 		1, 1}
 		, {"ISO-2022-JP", 	1, 1}
 		, {"ISO-2022-JP-1", 	1, 1}
 		, {"ISO-2022-JP-2", 	1, 1}
-		, {"CN-GB", 		1, 1}
-		, {"CP936", 		1, 1}
 		, {"GB18030", 		1, 1}
 		, {"ISO-2022-CN", 	1, 1}
 		, {"ISO-2022-CN-EXT", 	1, 1}
 		, {"HZ", 		1, 1}
-		, {"EUC-TW", 		1, 1}
-		, {"BIG-5", 		1, 1}
-		, {"CP950", 		1, 1}
-		, {"BIG5-HKSCS", 	1, 1}
-		, {"EUC-KR", 		1, 1}
-		, {"CP949", 		1, 1}
-		, {"CP1361", 		1, 1}
 		, {"ISO-2022-KR", 	1, 1}
 		/* stopper row */
 		, {"",	 		0, 0}

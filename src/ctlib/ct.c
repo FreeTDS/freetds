@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.108 2003-11-22 23:05:09 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.109 2003-11-30 12:02:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1575,9 +1575,9 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_UNIQUE_TYPE;
 		break;
 	case SYBLONGBINARY:
-		if (usertype == 35)
-			return CS_UNIVARCHAR_TYPE;
-		return CS_BINARY_TYPE;
+		if (usertype == USER_UNICHAR_TYPE || usertype == USER_UNIVARCHAR_TYPE)
+			return CS_UNICHAR_TYPE;
+		return CS_CHAR_TYPE;
 		break;
 	}
 
@@ -1646,8 +1646,8 @@ _ct_get_server_type(int datatype)
 	case CS_LONGBINARY_TYPE:	/* vicm */
 		return SYBLONGBINARY;
 		break;
-	case CS_UNIVARCHAR_TYPE:
-		return SYBUNIVARCHAR;
+	case CS_UNICHAR_TYPE:
+		return SYBVARCHAR;
 	default:
 		return -1;
 		break;

@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.43 2003-11-22 23:05:09 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.44 2003-11-30 12:02:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -343,6 +343,7 @@ CS_RETCODE ret;
 		tdsdump_log(TDS_DBG_FUNC, "%L cs_convert() srctype = desttype\n");
 		switch (desttype) {
 
+		case SYBLONGBINARY:
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
@@ -371,7 +372,7 @@ CS_RETCODE ret;
 				}
 			}
 			break;
-		case SYBUNIVARCHAR:
+
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.229 2003-11-28 16:53:14 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.230 2003-11-30 12:02:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1827,7 +1827,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 {
 	unsigned char *dest;
 	int len, colsize;
-	int fillchar, pos;
+	int fillchar;
 	TDSBLOBINFO *blob_info = NULL;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
@@ -1971,7 +1971,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_get_n(tds, blob_info->textvalue, colsize);
 		}
 	} else {		/* non-numeric and non-blob */
-		if (is_char_type(curcol->column_type)) {
+		if (curcol->iconv_info) {
 			/* this shouldn't fail here */
 			tdsdump_log(TDS_DBG_INFO1, "%L curcol->iconv_info? %d\n", (int)curcol->iconv_info);
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
@@ -1984,20 +1984,19 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			curcol->column_cur_size = colsize;
 		}
 
-		/* pad CHAR and BINARY types */
+		/* pad (UNI)CHAR and BINARY types */
 		fillchar = 0;
 		switch (curcol->column_type) {
+		/* extra handling for SYBLONGBINARY */
+		case SYBLONGBINARY:
+			if (curcol->column_usertype != USER_UNICHAR_TYPE)
+				break;
 		case SYBCHAR:
 		case XSYBCHAR:
 			if (curcol->column_size != curcol->on_server.column_size)
 				break;
 			/* FIXME use client charset */
 			fillchar = ' ';
-		/* just to prevent \0 to interrupt display, as long as we cannot decode utf-16 */
-		case SYBLONGBINARY:
-			for (pos= 0; pos < colsize; pos++) {
-				if (dest[pos] == '\0') { dest[pos]= '.'; }
-			}
 		case SYBBINARY:
 		case XSYBBINARY:
 			if (colsize < curcol->column_size)
@@ -3322,6 +3321,15 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 	/* FIXME: and sybase ?? and single char to utf8 ??? */
 	if (is_unicode_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2ucs2];
+
+	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16*/
+	if (curcol->on_server.column_type == SYBLONGBINARY && (
+		curcol->column_usertype == USER_UNICHAR_TYPE ||
+		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
+		/* FIXME ucs2 is not UTF-16... */
+		/* FIXME what happen if client is big endian ?? */
+		curcol->iconv_info = tds->iconv_info[client2ucs2];
+	}
 
 	if (!curcol->iconv_info && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2server_chardata];
