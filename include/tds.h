@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.145 2003-09-25 21:14:23 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.146 2003-09-28 23:28:18 ppeterd Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1021,7 +1021,7 @@ int tds_set_interfaces_file_loc(const char *interfloc);
 TDSLOCALE *tds_get_locale(void);
 unsigned char *tds_alloc_row(TDSRESULTINFO * res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
-char *tds_alloc_get_string(TDSSOCKET * tds, int len);
+int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
@@ -1179,6 +1179,8 @@ void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TD
 #define IS_TDS80(x) (x->major_version==8 && x->minor_version==0)
 
 #define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
+
+#define TDS_IS_SOCKET_INVALID(x) ((x) == INVALID_SOCKET)
 
 #define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
 
