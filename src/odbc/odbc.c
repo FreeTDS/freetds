@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.168 2003-05-19 09:25:04 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.169 2003-05-19 10:27:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -379,10 +379,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* ?? */
 			case TDS_CMD_DONE:
 				stmt->row = 0;
+				/* FIXME here ??? */
+				tds_free_all_results(tds);
+				return SQL_SUCCESS;
 				break;
 
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
+				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
 				return SQL_SUCCESS;
 			case TDS_PARAM_RESULT:
@@ -1776,12 +1780,8 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 		return SQL_ERROR;
 	}
 	*pcrow = -1;
-	if (tds->rows_affected == TDS_NO_COUNT) {
-		if (tds->res_info != NULL && tds->res_info->row_count != 0)
-			*pcrow = tds->res_info->row_count;
-	} else {
+	if (tds->rows_affected != TDS_NO_COUNT)
 		*pcrow = tds->rows_affected;
-	}
 	return SQL_SUCCESS;
 }
 

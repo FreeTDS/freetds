@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.3 2003-05-12 15:17:27 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.4 2003-05-19 10:27:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -96,6 +96,7 @@ main(int argc, char *argv[])
 	CheckRows(-1);
 
 	Fetch(SQL_SUCCESS);
+	CheckRows(-1);
 	Fetch(SQL_SUCCESS);
 	CheckCols(1);
 	CheckRows(-1);
