@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.88 2002-11-16 15:55:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.89 2002-11-21 07:05:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -751,11 +751,9 @@ SQLRETURN SQL_API SQLConnect(
                             SQLSMALLINT        cbAuthStr)
 {
 const char *DSN;
-char tmp[FILENAME_MAX];
 SQLRETURN   nRetVal;
 struct _hdbc *dbc = (struct _hdbc *) hdbc;
 TDSCONNECTINFO *connect_info;
-int	freetds_conf_less = 1;
 
 	CHECK_HDBC;
 
@@ -774,16 +772,14 @@ int	freetds_conf_less = 1;
 	else
 		DSN = "DEFAULT";
 
-	/* use old servername */
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "Servername", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		freetds_conf_less = 0;
-		tds_read_conf_file(connect_info, tmp);
+	if ( !odbc_get_dsn_info(DSN, connect_info) ) {
+		odbc_LogError( "Error getting DSN information" );
+		return SQL_ERROR;
 	}
 
-    /* username/password are never saved to ini file, 
-     * so you do not check in ini file */
-    /* user id */
+	/* username/password are never saved to ini file, 
+	 * so you do not check in ini file */
+	/* user id */
 	if ( szUID && (*szUID) )
 		tds_dstr_copy(&connect_info->user_name,szUID);
 
@@ -791,36 +787,13 @@ int	freetds_conf_less = 1;
 	if ( szAuthStr )
 		tds_dstr_copy(&connect_info->password,szAuthStr);
 
-	/* search for server (compatible with ms one) */
-	tmp[0] = '\0';
-	if (freetds_conf_less && SQLGetPrivateProfileString( DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->server_name,tmp);
-		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
-		tds_dstr_copy(&connect_info->ip_addr,tmp);
-	}
-
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "Port", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		connect_info->port = atoi(tmp);
-	}
-
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "TDS_Version", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_config_verstr(tmp,connect_info);
-	}
-
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->language,tmp);
-	}
-
 	/* DO IT */
 	if ( (nRetVal = do_connect( hdbc, connect_info)) != SQL_SUCCESS )
 		return nRetVal;
 
 	/* database */
-	if ( SQLGetPrivateProfileString( DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini" ) > 0 )
-		return change_database( hdbc, tmp );
+	if ( !tds_dstr_isempty(&connect_info->database) )
+		return change_database( hdbc, connect_info->database );
 
 	return SQL_SUCCESS;
 }

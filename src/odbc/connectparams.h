@@ -26,7 +26,7 @@
 #endif
 #endif
 
-static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.6 2002-11-08 08:03:47 freddy77 Exp $";
+static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.7 2002-11-21 07:05:38 freddy77 Exp $";
 static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unused_connectparams_h_warn };
 
 /*****************************
@@ -50,6 +50,8 @@ static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unus
  *
  *****************************/
 int tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info);
+
+int odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info);
 
 #ifndef HAVEODBCINST
 /*****************************

@@ -33,7 +33,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.22 2002-11-10 17:34:41 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.23 2002-11-21 07:05:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -57,6 +57,49 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static FILE *tdoGetIniFileName(void);
 
 #endif
+
+/** 
+ * Read connection information from given DSN
+ * @param DSN           DSN name
+ * @param connect_info  where to store connection info
+ * @return 1 if success 0 otherwhise */
+int 
+odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
+{
+	char tmp[FILENAME_MAX];
+	int freetds_conf_less = 1;
+
+	/* use old servername */
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Servername", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		freetds_conf_less = 0;
+		tds_read_conf_file(connect_info, tmp);
+	}
+
+	/* search for server (compatible with ms one) */
+	tmp[0] = '\0';
+	if (freetds_conf_less && SQLGetPrivateProfileString( DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->server_name,tmp);
+		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
+		tds_dstr_copy(&connect_info->ip_addr,tmp);
+	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Port", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		connect_info->port = atoi(tmp);
+	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "TDS_Version", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_config_verstr(tmp,connect_info);
+	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->language,tmp);
+	}
+	return 1;
+}
 
 /** 
  * Parse connection string and fill connect_info according
@@ -111,6 +154,14 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
 				tds_read_conf_file(connect_info, p);
+				reparse = 1;
+				p = pszConnectString;
+				*end = temp_c;
+				continue;
+			}
+		} else if (strcasecmp(option, "DSN") == 0) {
+			if (!reparse) {
+				odbc_get_dsn_info(p, connect_info);
 				reparse = 1;
 				p = pszConnectString;
 				*end = temp_c;
