@@ -1,3 +1,7 @@
+Wed Sep 17 21:29:21 PDT 2003	Peter Deacon <peterd@iea-software.com>
+	* src/tds/mem.c: added sqlstate mappings
+	* src/replacements/iconv.c: fix charset selection
+
 Wed Sep 17 09:22:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fix memory leak
