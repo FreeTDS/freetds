@@ -3,6 +3,7 @@ Tue Oct 24 19:07:15 Brian Bruns <camber@ais.org>
     * acconfig.h: needed for config header because of BSD_COMP
     * doc/faq/html: made XHTML 1.0 valid
     * src/*/*.c: added config.h include
+    * acinclude.m4: iconv autoconf macro
 
 Tue Oct 23 23:42:03 Brian Bruns <camber@ais.org>
     * src/tds/iconv.c: new iconv functions for handling TDS7 unicode
