@@ -1,3 +1,7 @@
+Thu Dec  5 12:28:37 EST 2002    JK Lowden <jklowden@schemamania.org>
+        * include/tds.h src/tds/token.c fix nchar handling in tds7_get_data_info
+        - allows bcp out to work with nchar datatype
+
 Thu Dec 05 16:52:34 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/FreeTDS.def win32/msvc6/FreeTDS.dsp:
 	* win32/msvc6/FreeTDS.dsw win32/msvc6/config.h:

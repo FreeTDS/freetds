@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.121 2002-12-04 22:37:29 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.122 2002-12-05 17:34:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -953,6 +953,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 TDS_SMALLINT tabnamelen;
 int colnamelen;
+unsigned char column_type;
 
 	/*  User defined data type of the column */
 	curcol->column_usertype = tds_get_smallint(tds);
@@ -963,7 +964,8 @@ int colnamelen;
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	tds_set_column_type(curcol, tds_get_byte(tds));
+	column_type = tds_get_byte(tds);
+	tds_set_column_type(curcol, column_type); 	/* sets "cardinal" type */
 
 	switch (curcol->column_varint_size) {
 	case 4:
@@ -985,7 +987,7 @@ int colnamelen;
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(curcol->column_type))
+	if (IS_TDS7_PLUS(tds) && is_collate_type(column_type)) 	/* based on true type as sent by server */
 		/* first 2 bytes are windows code (such as 0x409 for english)
 		 * other 2 bytes ???
 		 * last bytes is id in syscharsets */
@@ -1003,8 +1005,8 @@ int colnamelen;
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-        tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: type = %d(%s), column_varint_size %d\n", __LINE__, 
-                    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
+        tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: \n\ttype = %d (%s)\n\tcolumn_varint_size = %d\n\tcolname = %s\n\tcolnamelen = %d\n", 
+		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, curcol->column_name, curcol->column_namelen);
 
 	return TDS_SUCCEED;
 }

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.64 2002-12-02 20:53:49 freddy77 Exp $";
+	"$Id: tds.h,v 1.65 2002-12-05 17:34:30 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -324,7 +324,7 @@ sheesh! </rant>
 #define is_large_type(x) (x>128)
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
 #define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
-#define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x == XSYBNVARCHAR || x==SYBNTEXT)
+#define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 
 #define TDS_MAX_CAPABILITY	22
 #define MAXPRECISION 		80
