@@ -143,6 +143,7 @@ int tdoParseConnectString( char *pszConnectString,
                            char *pszUID, 
                            char *pszPWD )
 {
+    /* TODO */
     *pszDataSourceName  = '\0'; 
     *pszServer          = '\0';
     *pszDatabase        = '\0';
@@ -323,6 +324,7 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
     int len;
     char equals[] = "="; /* used for separator for strtok */
     char* token;
+    char* ptr;
 
     if ( ppszKey == NULL || ppszValue == NULL)
     {
@@ -345,7 +347,7 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
     /*
      * Extract name from name = value
      */
-    if ((token = strtok (line, equals)) == NULL) return 0;
+    if ((token = tds_strtok_r (line, equals, &ptr)) == NULL) return 0;
 
     len = strlen (token);
     while (len > 0 && isspace(token[len-1]))
@@ -358,7 +360,7 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
     /*
      * extract value from name = value
      */
-    token = strtok (NULL, equals);
+    token = tds_strtok_r (NULL, equals, &ptr);
     if (token == NULL) return 0;
     while (*token && isspace(token[0]))
         token++;

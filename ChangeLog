@@ -1,3 +1,16 @@
+Sat Sep 14 15:45:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/t0002.c:
+	- fix for thread safe compiled with iODBC
+	- check for out of memory connectiong
+	- do not try to read PWD and UID from ini (never there)
+	- user server in ini file for compatibility with windows
+	- fix return of SQLColAttributes and a small buffer overflow
+	- return correct value from SQLFreeHandle
+	- handle some other type in ODBC
+	- add test to check no drop of data dropping statement
+
 Sat Sep 14  8:41:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: return NULL on out-of-memory, do not core
 

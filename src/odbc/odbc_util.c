@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.5 2002-09-14 13:49:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -167,12 +167,10 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	case SYBTEXT:
 		return SQL_LONGVARCHAR;
 	case SYBBIT:
-		return SQL_BIT;
 	case SYBBITN:
-		/* FIXME correct ?*/
 		return SQL_BIT;
 	case SYBINT8:
-		break;
+		return SQL_BIGINT;
 	case SYBINT4:
 		return SQL_INTEGER;
 	case SYBINT2:
@@ -184,6 +182,7 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 			case 1: return SQL_TINYINT;
 			case 2: return SQL_SMALLINT;
 			case 4: return SQL_INTEGER;
+			case 8: return SQL_BIGINT;
 		}
 		break;
 	case SYBREAL:
@@ -225,7 +224,7 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	case XSYBNCHAR:
 		break;
 	case SYBUNIQUE:
-		break;
+		return SQL_GUID;
 	case SYBVARIANT:
 		break;
 	}

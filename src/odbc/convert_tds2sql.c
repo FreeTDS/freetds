@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.8 2002-09-04 20:18:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.9 2002-09-14 13:49:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -239,6 +239,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              memcpy(dest, &(ores.n), sizeof(TDS_NUMERIC));
              ret = sizeof(TDS_NUMERIC);
              break;
+	    /* TODO GUID*/
 
            default:
              break;

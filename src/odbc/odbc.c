@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.49 2002-09-13 19:25:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.50 2002-09-14 13:49:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -101,6 +101,7 @@ static SQLRETURN change_database (SQLHDBC hdbc, SQLCHAR *database)
     struct _hdbc *dbc = (struct _hdbc *) hdbc;
     char *query;
 
+    /* FIXME quote dbname if needed */
     tds = (TDSSOCKET *) dbc->tds_socket;
     query = (char *) malloc(strlen(database)+5);
     if (!query)
@@ -137,6 +138,8 @@ static SQLRETURN do_connect (
     tds_set_user   (dbc->tds_login, (char*)user);
     tds_set_passwd (dbc->tds_login, (char*)passwd);
     dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
+    if (!dbc->tds_socket)
+	return SQL_ERROR;
     tds_set_parent(dbc->tds_socket, (void *) dbc);
     if (tds_connect(dbc->tds_socket, dbc->tds_login) == TDS_FAIL) {
         odbc_LogError ("tds_connect failed");
@@ -681,34 +684,24 @@ SQLRETURN SQL_API SQLConnect(
     else
         strcpy( szDataSourceName, "DEFAULT" );
 
-    /* FIXME username/password are never saved to ini file... */
+    /* username/password are never saved to ini file, 
+     * so you do not check in ini file */
     /* user id */
+    szUser[0] = 0;
     if ( szUID && (*szUID) )
         strcpy( szUser, szUID );
-    else
-    {
-        if ( SQLGetPrivateProfileString( szDataSourceName, "UID", "", szUser, FILENAME_MAX, "odbc.ini" ) < 1 )
-        {
-            odbc_LogError( "Could not determine UID." );
-            return SQL_ERROR;
-        }
-    }
 
     /* password */
+    szPassword[0] = 0;
     if ( szAuthStr )
         strcpy( szPassword, szAuthStr );
-    else
-    {
-        if ( SQLGetPrivateProfileString( szDataSourceName, "PWD", "", szPassword, FILENAME_MAX, "odbc.ini" ) < 1 )
-        {
-            odbc_LogError( "Could not determine PWD." );
-            return SQL_ERROR;
-        }
-    }
 
     /* server */
+    /* search for servername or server (compatible with ms one) */
     *szServer = '\0';
-    SQLGetPrivateProfileString( szDataSourceName, "Servername", "localhost", szServer, FILENAME_MAX, "odbc.ini" );
+    if (SQLGetPrivateProfileString( szDataSourceName, "Servername", "", szServer, FILENAME_MAX, "odbc.ini" ) <= 0) {
+	    SQLGetPrivateProfileString( szDataSourceName, "Server", "localhost", szServer, FILENAME_MAX, "odbc.ini");
+    }
 
     /* DO IT */
     if ( (nRetVal = do_connect( hdbc, szServer, szUser, szPassword)) != SQL_SUCCESS )
@@ -862,13 +855,14 @@ SQLRETURN SQL_API SQLColAttributes(
     case SQL_COLUMN_NAME:
     case SQL_COLUMN_LABEL:
         len = strlen(colinfo->column_name);
-        cplen = len > cbDescMax ? cbDescMax : len;
+        cplen = len > (cbDescMax-1) ? (cbDescMax-1) : len;
         tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: copying %d bytes, len = %d, cbDescMax = %d\n",cplen, len, cbDescMax);
         strncpy(rgbDesc,colinfo->column_name,cplen);
         ((char *)rgbDesc)[cplen]='\0';
+	/* return length of full string, not only copied part */
         if (pcbDesc)
         {
-            *pcbDesc = cplen;
+            *pcbDesc = len;
         }
         break;
     case SQL_COLUMN_TYPE:
@@ -905,8 +899,12 @@ SQLRETURN SQL_API SQLColAttributes(
         {
         case SQL_CHAR:
         case SQL_VARCHAR:
+	case SQL_LONGVARCHAR:
             *pfDesc = colinfo->column_size;
             break;
+	case SQL_BIGINT:
+	    *pfDesc = 20;
+	    break;
         case SQL_INTEGER:
             *pfDesc = 10; /* -1000000000 */
             break;
@@ -922,10 +920,14 @@ SQLRETURN SQL_API SQLColAttributes(
         case SQL_FLOAT:
         case SQL_REAL:
         case SQL_DOUBLE:
-            *pfDesc = 16; /* FIX ME -- what should the correct size be? */
+            *pfDesc = 16; /* FIXME -- what should the correct size be? */
             break;
+	case SQL_GUID:
+	    *pfDesc = 35;
+	    break;
         }
         break;
+	/* FIXME other types ...*/
 	default:
 		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
 		break;
@@ -1153,13 +1155,13 @@ SQLRETURN SQL_API SQLFreeHandle(
     switch (HandleType)
     {
     case SQL_HANDLE_STMT:
-        _SQLFreeStmt(Handle,SQL_DROP);
+        return _SQLFreeStmt(Handle,SQL_DROP);
         break;
     case SQL_HANDLE_DBC:
-        _SQLFreeConnect(Handle);
+        return _SQLFreeConnect(Handle);
         break;
     case SQL_HANDLE_ENV:
-        _SQLFreeEnv(Handle);
+        return _SQLFreeEnv(Handle);
         break;
     }
     return SQL_ERROR;
@@ -1257,6 +1259,7 @@ _SQLFreeStmt(
         */
         if (tds->state==TDS_PENDING)
         {
+	    /* FIXME do not close other query !!! is this current query ?? */
             tds_send_cancel(tds);
             tds_process_cancel(tds);
         }
@@ -1614,6 +1617,7 @@ SQLRETURN SQL_API SQLGetData(
 	    /* calc how many bytes was readed */
 	    int readed = cbValueMax;
 	    /* char is always terminated...*/
+	    /* FIXME test on destination char ??? */
 	    if (nSybType == SYBTEXT) --readed;
 	    if (readed > *pcbValue)
 		    readed = *pcbValue;
@@ -2052,6 +2056,9 @@ SQLRETURN SQL_API SQLSetConnectOption(
 		if (vParam == SQL_AUTOCOMMIT_ON)
 			return SQL_SUCCESS;
 		/* if off fall through */
+		/* TODO implement 
+		 * mssql: SET IMPLICIT_TRANSACTION ON
+		 * sybase: SET CHAINED ON */
     default:
         tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
         odbc_LogError ("Statement option not implemented");
@@ -2189,6 +2196,7 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
         return SQL_ERROR;
     }
     free(query);
+    /* FIXME Sybase seem to return column in lower case, should be uppercase */
     return _SQLExecute(hstmt);
 }
 static int sql_to_c_type_default ( int sql_type )
