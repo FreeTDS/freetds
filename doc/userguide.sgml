@@ -972,6 +972,7 @@ The <type>dbm</type> library defines a function <function>dbopen</function> a na
 				<title>Microsoft's <quote>Integrated Security</quote></title>
 			<para>
 FreeTDS may be unable to connect to the server.  The error message that appears will be <emphasis>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</emphasis>.  To solve this, turn on <emphasis>SQL Server</emphasis> authentication:
+</para>
 			<ItemizedList>
 				<listitem><para>
 Open the <emphasis>SQL Server Enterprise Manager</emphasis>,

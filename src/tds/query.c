@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.4 2001-12-03 00:06:14 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.5 2001-12-13 15:15:06 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -148,6 +148,7 @@ TDSDYNAMIC *dyn;
 TDSINPUTPARAM *param;
 int elem, id_len;
 int i;
+int one = 1;
 
      tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
 
@@ -171,10 +172,11 @@ int i;
 	/* size */
 	tds_put_smallint(tds, 9 * dyn->num_params + 2); 
 	/* number of parameters */
-	tds_put_smallint(tds,dyn->num_params); 
+	tds_put_byte(tds,dyn->num_params); 
 	/* column detail for each parameter */
 	for (i=0;i<dyn->num_params;i++) {
 		param = dyn->params[i];
+		tds_put_byte(tds,0x00); 
 		tds_put_byte(tds,0x00); 
 		tds_put_byte(tds,0x00); 
 		tds_put_byte(tds,0x00); 
@@ -187,8 +189,8 @@ int i;
 		} else {
 			tds_put_byte(tds,0xff);
 		}
-		tds_put_byte(tds,0x00); 
 	}
+	tds_put_byte(tds,0x00); 
 
 /* row data */
 	tds_put_byte(tds,0xd7); 
@@ -196,6 +198,7 @@ int i;
 		param = dyn->params[i];
 		if (param->column_bindlen) {
 			tds_put_byte(tds,param->column_bindlen); 
+			param->varaddr = &one;
 			tds_put_n(tds, param->varaddr,param->column_bindlen); 
 		} else {
 			tds_put_byte(tds,strlen(param->varaddr)); 

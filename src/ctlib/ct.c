@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.9 2001-12-03 00:06:14 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.10 2001-12-13 15:15:06 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1250,7 +1250,8 @@ unsigned char *mask;
 		case CS_REQ_CURSOR:
 			*((CS_BOOL *)value)=mask[8]&0x40 ? CS_TRUE : CS_FALSE;break;
 		case CS_REQ_DYN:
-			*((CS_BOOL *)value)=CS_FALSE; /* mask[8]&0x80 ? CS_TRUE : CS_FALSE;*/ break;
+			*((CS_BOOL *)value)=mask[8]&0x80 ? CS_TRUE : CS_FALSE;break;
+			/* *((CS_BOOL *)value)=CS_FALSE; */
 		}
 	} else {
 		/* bad values */
@@ -1325,6 +1326,7 @@ TDSINPUTPARAM *param;
 int elem;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
+	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
 
 	tds = cmd->con->tds_socket;
 
