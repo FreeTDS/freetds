@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.98 2004-06-19 05:56:29 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.99 2004-07-27 13:45:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -125,18 +125,12 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	if (hfile != (char *) NULL) {
 
-		dbproc->hostfileinfo = malloc(sizeof(BCP_HOSTFILEINFO));
+		dbproc->hostfileinfo = calloc(1, sizeof(BCP_HOSTFILEINFO));
 
-		dbproc->hostfileinfo->hostfile = (char *) malloc(strlen(hfile) + 1);
-		strcpy(dbproc->hostfileinfo->hostfile, hfile);
+		dbproc->hostfileinfo->hostfile = strdup(hfile);
 
-		if (errfile != (char *) NULL) {
-			dbproc->hostfileinfo->errorfile = (char *) malloc(strlen(errfile) + 1);
-			strcpy(dbproc->hostfileinfo->errorfile, errfile);
-		} else {
-			dbproc->hostfileinfo->errorfile = (char *) NULL;
-		}
-
+		if (errfile != (char *) NULL)
+			dbproc->hostfileinfo->errorfile = strdup(errfile);
 	} else {
 		dbproc->hostfileinfo = NULL;
 	}
@@ -148,8 +142,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	memset(dbproc->bcpinfo, '\0', sizeof(DB_BCPINFO));
 
-	dbproc->bcpinfo->tablename = (char *) malloc(strlen(tblname) + 1);
-	strcpy(dbproc->bcpinfo->tablename, tblname);
+	dbproc->bcpinfo->tablename = strdup(tblname);
 
 	dbproc->bcpinfo->direction = direction;
 
@@ -178,16 +171,11 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			return FAIL;
 		}
 	
-		bindinfo->num_cols = resinfo->num_cols;
 		bindinfo->row_size = resinfo->row_size;
-	
-		bindinfo->columns = (TDSCOLUMN **) malloc(resinfo->num_cols * sizeof(TDSCOLUMN *));
 	
 		for (i = 0; i < bindinfo->num_cols; i++) {
 	
-			bindinfo->columns[i] = (TDSCOLUMN *) malloc(sizeof(TDSCOLUMN));
 			curcol = bindinfo->columns[i];
-			memset(curcol, '\0', sizeof(TDSCOLUMN));
 			
 			curcol->column_type = resinfo->columns[i]->column_type;
 			curcol->column_usertype = resinfo->columns[i]->column_usertype;

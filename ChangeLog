@@ -1,3 +1,7 @@
+Wed Jul 27 15:43:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/blk.c: fix possible buffer overflow
+	* src/dblib/bcp.c: fix memory leak, use strdup
+
 Tue Jul 27 10:28:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/blk.c: fix bulk for numeric types
 	* src/tds/write.c: do not log false errors

@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.14 2004-07-27 08:29:37 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.15 2004-07-27 13:45:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -330,9 +330,6 @@ blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT
 CS_RETCODE
 blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tnamelen)
 {
-
-	char tname[256];
-
 	TDSCOLUMN *curcol;
 
 	TDSSOCKET *tds;
@@ -356,12 +353,8 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		_ctclient_msg(blkdesc->con, "blk_init", 2, 6, 1, 139, "");
 		return CS_FAIL;
 	}
-	if (tnamelen == CS_NULLTERM) {
-		strcpy(tname, tablename);
-	} else {
-		strncpy(tname, tablename, tnamelen);
-		tname[tnamelen] = '\0';
-	}
+	if (tnamelen == CS_NULLTERM)
+		tnamelen = strlen(tablename);
 
 	/* free allocated storage in blkdesc & initialise flags, etc. */
 
@@ -381,9 +374,10 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		blkdesc->bindinfo = NULL;
 	}
 
-	
-	blkdesc->tablename = (char *) malloc(strlen(tname) + 1);
-	strcpy(blkdesc->tablename, tname);
+	/* string can be no-nul terminated so copy with memcpy */
+	blkdesc->tablename = (char *) malloc(tnamelen + 1);
+	memcpy(blkdesc->tablename, tablename, tnamelen);
+	blkdesc->tablename[tnamelen] = 0;
 
 	blkdesc->direction = direction;
 	blkdesc->bind_count = CS_UNUSED;
