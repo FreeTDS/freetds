@@ -1,3 +1,7 @@
+Fri Oct 25 00:44:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt include/sybdb.h src/dblib/dblib.c:
+	- Implement dbisopt().
+
 Thu Oct 24 23:37:54 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c:
 	- Add support for some server-side dboptions.

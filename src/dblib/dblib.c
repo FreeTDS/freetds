@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.84 2002-10-25 03:40:16 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.85 2002-10-25 04:45:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2763,6 +2763,11 @@ dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 {
 char *cmd;
 
+	if ((option < 0) || (option >= DBNUMOPTIONS)) {
+		_dblib_client_msg(dbproc, SYBEUNOP, EXNONFATAL, "Unknown option passed to dbsetopt().");
+		return FAIL;
+	}
+	dbproc->dbopts[option].optactive = 1;
 	switch (option) {
 	case DBARITHABORT:
 	case DBARITHIGNORE:
@@ -3312,6 +3317,10 @@ dbclropt(DBPROCESS *dbproc, int option, char *param)
 {
 char *cmd;
 
+	if ((option < 0) || (option >= DBNUMOPTIONS)) {
+		return FAIL;
+	}
+	dbproc->dbopts[option].optactive = 0;
 	switch (option) {
 	case DBARITHABORT:
 	case DBARITHIGNORE:
@@ -3338,11 +3347,15 @@ char *cmd;
 	return FAIL;
 }
 
-DBBOOL dbisopt(DBPROCESS *dbproc,int option, char *param)
+DBBOOL
+dbisopt(DBPROCESS *dbproc,int option, char *param)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbisopt()\n");
-	return TRUE;
+	if ((option < 0) || (option >= DBNUMOPTIONS)) {
+		return FALSE;
+	}
+	return dbproc->dbopts[option].optactive;
 }
+
 DBINT dbcurrow(DBPROCESS *dbproc)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcurrow()\n");
