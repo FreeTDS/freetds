@@ -16,14 +16,12 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		freebcp.1 tsql.1
 
 html:: $(srcdir)/userguide.sgml
-	if ! [ -d html ]; then \
-            mkdir html; \
-	fi
-	cd html; pwd; \
-	openjade -d ${DOCBOOK_DSL} -t sgml ../$(srcdir)/userguide.sgml; \
-	if ! [ -e index.html ]; then \
-		ln -s book1.htm index.html; \
-	fi
+	rm -rf html
+	mkdir html
+	cd html && pwd && \
+	openjade -d ${DOCBOOK_DSL} -t sgml ../$(srcdir)/userguide.sgml
+	test -f html/book1.htm
+	cd html && ln -s book1.htm index.html
 
 #	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml
 

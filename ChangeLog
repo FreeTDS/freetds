@@ -1,3 +1,7 @@
+Tue Sep 10 15:18:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: more check building html docs
+	* src/Makefile.am: include always odbc in distribution
+
 Mon Sep  9 21:31:39 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/tds/read.c: patch from lbayuk@mindspring.com to correct cancel 
 	handling w/PHP
