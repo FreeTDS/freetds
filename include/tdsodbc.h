@@ -49,7 +49,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.59 2003-11-04 19:01:46 jklowden Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.60 2003-11-09 07:50:27 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -157,10 +157,10 @@ typedef struct _hdesc TDS_DESC;
 
 struct _heattr
 {
-	SQLUINTEGER attr_connection_pooling;
-	SQLUINTEGER attr_cp_match;
-	SQLINTEGER attr_odbc_version;
-	SQLINTEGER attr_output_nts;
+	SQLUINTEGER connection_pooling;
+	SQLUINTEGER cp_match;
+	SQLINTEGER odbc_version;
+	SQLINTEGER output_nts;
 };
 
 struct _hchk
@@ -178,24 +178,24 @@ struct _henv
 
 struct _hcattr
 {
-	SQLUINTEGER attr_access_mode;
-	SQLUINTEGER attr_async_enable;
-	SQLUINTEGER attr_auto_ipd;
-	SQLUINTEGER attr_autocommit;
-	SQLUINTEGER attr_connection_dead;
-	SQLUINTEGER attr_connection_timeout;
-	DSTR attr_current_catalog;
-	SQLUINTEGER attr_login_timeout;
-	SQLUINTEGER attr_metadata_id;
-	SQLUINTEGER attr_odbc_cursors;
-	SQLUINTEGER attr_packet_size;
-	SQLHWND attr_quite_mode;
-	DSTR attr_translate_lib;
-	SQLUINTEGER attr_translate_option;
-	SQLUINTEGER attr_txn_isolation;
+	SQLUINTEGER access_mode;
+	SQLUINTEGER async_enable;
+	SQLUINTEGER auto_ipd;
+	SQLUINTEGER autocommit;
+	SQLUINTEGER connection_dead;
+	SQLUINTEGER connection_timeout;
+	DSTR current_catalog;
+	SQLUINTEGER login_timeout;
+	SQLUINTEGER metadata_id;
+	SQLUINTEGER odbc_cursors;
+	SQLUINTEGER packet_size;
+	SQLHWND quite_mode;
+	DSTR translate_lib;
+	SQLUINTEGER translate_option;
+	SQLUINTEGER txn_isolation;
 #ifdef TDS_NO_DM
-	SQLUINTEGER attr_trace;
-	DSTR attr_tracefile;
+	SQLUINTEGER trace;
+	DSTR tracefile;
 #endif
 };
 
@@ -219,52 +219,52 @@ struct _hdbc
 struct _hsattr
 {
 	/* TODO remove IRD, ARD, IPD, APD from statement, do not duplicate */
-/*	TDS_DESC *attr_app_row_desc; */
-/*	TDS_DESC *attr_app_param_desc; */
-	SQLUINTEGER attr_async_enable;
-	SQLUINTEGER attr_concurrency;
-	SQLUINTEGER attr_cursor_scrollable;
-	SQLUINTEGER attr_cursor_sensitivity;
-	SQLUINTEGER attr_cursor_type;
-	SQLUINTEGER attr_enable_auto_ipd;
-	SQLPOINTER attr_fetch_bookmark_ptr;
-	SQLUINTEGER attr_keyset_size;
-	SQLUINTEGER attr_max_length;
-	SQLUINTEGER attr_max_rows;
-	SQLUINTEGER attr_metadata_id;
-	SQLUINTEGER attr_noscan;
+/*	TDS_DESC *app_row_desc; */
+/*	TDS_DESC *app_param_desc; */
+	SQLUINTEGER async_enable;
+	SQLUINTEGER concurrency;
+	SQLUINTEGER cursor_scrollable;
+	SQLUINTEGER cursor_sensitivity;
+	SQLUINTEGER cursor_type;
+	SQLUINTEGER enable_auto_ipd;
+	SQLPOINTER fetch_bookmark_ptr;
+	SQLUINTEGER keyset_size;
+	SQLUINTEGER max_length;
+	SQLUINTEGER max_rows;
+	SQLUINTEGER metadata_id;
+	SQLUINTEGER noscan;
 	/* apd->sql_desc_bind_offset_ptr */
-	/* SQLUINTEGER *attr_param_bind_offset_ptr; */
+	/* SQLUINTEGER *param_bind_offset_ptr; */
 	/* apd->sql_desc_bind_type */
-	/* SQLUINTEGER attr_param_bind_type; */
+	/* SQLUINTEGER param_bind_type; */
 	/* apd->sql_desc_array_status_ptr */
-	/* SQLUSMALLINT *attr_param_operation_ptr; */
+	/* SQLUSMALLINT *param_operation_ptr; */
 	/* ipd->sql_desc_array_status_ptr */
-	/* SQLUSMALLINT *attr_param_status_ptr; */
+	/* SQLUSMALLINT *param_status_ptr; */
 	/* ipd->sql_desc_rows_processed_ptr */
-	/* SQLUSMALLINT *attr_params_processed_ptr; */
+	/* SQLUSMALLINT *params_processed_ptr; */
 	/* apd->sql_desc_array_size */
-	/* SQLUINTEGER attr_paramset_size; */
-	SQLUINTEGER attr_query_timeout;
-	SQLUINTEGER attr_retrieve_data;
+	/* SQLUINTEGER paramset_size; */
+	SQLUINTEGER query_timeout;
+	SQLUINTEGER retrieve_data;
 	/* ard->sql_desc_bind_offset_ptr */
-	/* SQLUINTEGER *attr_row_bind_offset_ptr; */
+	/* SQLUINTEGER *row_bind_offset_ptr; */
 	/* ard->sql_desc_array_size */
-	/* SQLUINTEGER attr_row_array_size; */
+	/* SQLUINTEGER row_array_size; */
 	/* ard->sql_desc_bind_type */
-	/* SQLUINTEGER attr_row_bind_type; */
-	SQLUINTEGER attr_row_number;
+	/* SQLUINTEGER row_bind_type; */
+	SQLUINTEGER row_number;
 	/* ard->sql_desc_array_status_ptr */
-	/* SQLUINTEGER *attr_row_operation_ptr; */
+	/* SQLUINTEGER *row_operation_ptr; */
 	/* ird->sql_desc_array_status_ptr */
-	/* SQLUINTEGER *attr_row_status_ptr; */
+	/* SQLUINTEGER *row_status_ptr; */
 	/* ird->sql_desc_rows_processed_ptr */
-	/* SQLUINTEGER *attr_rows_fetched_ptr; */
-	SQLUINTEGER attr_simulate_cursor;
-	SQLUINTEGER attr_use_bookmarks;
+	/* SQLUINTEGER *rows_fetched_ptr; */
+	SQLUINTEGER simulate_cursor;
+	SQLUINTEGER use_bookmarks;
 	/* SQLGetStmtAttr only */
-/*	TDS_DESC *attr_imp_row_desc; */
-/*	TDS_DESC *attr_imp_param_desc; */
+/*	TDS_DESC *imp_row_desc; */
+/*	TDS_DESC *imp_param_desc; */
 };
 
 struct _hstmt

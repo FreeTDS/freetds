@@ -1,3 +1,7 @@
+Sun Nov  9 08:48:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	- remove attr_ prefix from all attributes
+
 Sat Nov  8 18:51:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c:
 	* src/odbc/sql2tds.c:

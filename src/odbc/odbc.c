@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.264 2003-11-08 18:00:29 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.265 2003-11-09 07:50:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -218,7 +218,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
-		dbc->attr.attr_autocommit = state;
+		dbc->attr.autocommit = state;
 	}
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
@@ -274,10 +274,10 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 
 	switch (type) {
 	case TDS_ENV_DATABASE:
-		tds_dstr_copy(&dbc->attr.attr_current_catalog, newval);
+		tds_dstr_copy(&dbc->attr.current_catalog, newval);
 		break;
 	case TDS_ENV_PACKSIZE:
-		dbc->attr.attr_packet_size = atoi(newval);
+		dbc->attr.packet_size = atoi(newval);
 		break;
 	}
 }
@@ -299,7 +299,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 
 	tds_fix_connect(connect_info);
 
-	connect_info->connect_timeout = dbc->attr.attr_connection_timeout;
+	connect_info->connect_timeout = dbc->attr.connection_timeout;
 
 	/* fix login type */
 	if (!connect_info->try_domain_login) {
@@ -413,7 +413,7 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -456,7 +456,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 				  "@pktable_name", szPkTableName, cbPkTableName,
 				  "@fktable_qualifier", szFkCatalogName, cbFkCatalogName,
 				  "@fktable_owner", szFkSchemaName, cbFkSchemaName, "@fktable_name", szFkTableName, cbFkTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PKTABLE_CAT");
 		odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
 		odbc_col_setname(stmt, 5, "FKTABLE_CAT");
@@ -613,7 +613,7 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 		odbc_stat_execute(stmt, "sp_pkeys ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -634,7 +634,7 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@procedure_qualifier", szCatalogName, cbCatalogName,
 				  "@procedure_owner", szSchemaName, cbSchemaName,
 				  "@procedure_name", szProcName, cbProcName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 		odbc_col_setname(stmt, 8, "COLUMN_SIZE");
@@ -657,7 +657,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		odbc_stat_execute(stmt, "sp_stored_procedures ", 3,
 				  "@sp_name", szProcName, cbProcName,
 				  "@sp_owner", szSchemaName, cbSchemaName, "@sp_qualifier", szCatalogName, cbCatalogName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 	}
@@ -686,7 +686,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 		odbc_stat_execute(stmt, "sp_table_privileges ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -718,13 +718,13 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 			odbc_errs_add(&env->errs, "HY024", NULL, NULL);
 			ODBC_RETURN(env, SQL_ERROR);
 		}
-		env->attr.attr_odbc_version = (SQLINTEGER) Value;
+		env->attr.odbc_version = (SQLINTEGER) Value;
 		ODBC_RETURN(env, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_OUTPUT_NTS:
-		env->attr.attr_output_nts = (SQLINTEGER) Value;
+		env->attr.output_nts = (SQLINTEGER) Value;
 		/* TODO - Make this really work */
-		env->attr.attr_output_nts = SQL_TRUE;
+		env->attr.output_nts = SQL_TRUE;
 		ODBC_RETURN(env, SQL_SUCCESS);
 		break;
 	}
@@ -742,22 +742,22 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 
 	switch (Attribute) {
 	case SQL_ATTR_CONNECTION_POOLING:
-		src = &env->attr.attr_connection_pooling;
-		size = sizeof(env->attr.attr_connection_pooling);
+		src = &env->attr.connection_pooling;
+		size = sizeof(env->attr.connection_pooling);
 		break;
 	case SQL_ATTR_CP_MATCH:
-		src = &env->attr.attr_cp_match;
-		size = sizeof(env->attr.attr_cp_match);
+		src = &env->attr.cp_match;
+		size = sizeof(env->attr.cp_match);
 		break;
 	case SQL_ATTR_ODBC_VERSION:
-		src = &env->attr.attr_odbc_version;
-		size = sizeof(env->attr.attr_odbc_version);
+		src = &env->attr.odbc_version;
+		size = sizeof(env->attr.odbc_version);
 		break;
 	case SQL_ATTR_OUTPUT_NTS:
 		/* TODO handle output_nts flags */
-		env->attr.attr_output_nts = SQL_TRUE;
-		src = &env->attr.attr_output_nts;
-		size = sizeof(env->attr.attr_output_nts);
+		env->attr.output_nts = SQL_TRUE;
+		src = &env->attr.output_nts;
+		size = sizeof(env->attr.output_nts);
 		break;
 	default:
 		odbc_errs_add(&env->errs, "HY092", NULL, NULL);
@@ -906,30 +906,30 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	tds_dstr_init(&dbc->server);
 	tds_dstr_init(&dbc->dsn);
 
-	dbc->attr.attr_access_mode = SQL_MODE_READ_WRITE;
-	dbc->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
-	dbc->attr.attr_auto_ipd = SQL_FALSE;
+	dbc->attr.access_mode = SQL_MODE_READ_WRITE;
+	dbc->attr.async_enable = SQL_ASYNC_ENABLE_OFF;
+	dbc->attr.auto_ipd = SQL_FALSE;
 	/*
 	 * spinellia@acm.org
 	 * after login is enabled autocommit
 	 */
-	dbc->attr.attr_autocommit = SQL_AUTOCOMMIT_ON;
-	dbc->attr.attr_connection_dead = SQL_CD_TRUE;	/* No connection yet */
-	dbc->attr.attr_connection_timeout = 0;
+	dbc->attr.autocommit = SQL_AUTOCOMMIT_ON;
+	dbc->attr.connection_dead = SQL_CD_TRUE;	/* No connection yet */
+	dbc->attr.connection_timeout = 0;
 	/* This is set in the environment change function */
-	tds_dstr_init(&dbc->attr.attr_current_catalog);
-	dbc->attr.attr_login_timeout = 0;	/* TODO */
-	dbc->attr.attr_metadata_id = SQL_FALSE;
-	dbc->attr.attr_odbc_cursors = SQL_CUR_USE_IF_NEEDED;
-	dbc->attr.attr_packet_size = 0;
-	dbc->attr.attr_quite_mode = NULL;	/* We don't support GUI dialogs yet */
+	tds_dstr_init(&dbc->attr.current_catalog);
+	dbc->attr.login_timeout = 0;	/* TODO */
+	dbc->attr.metadata_id = SQL_FALSE;
+	dbc->attr.odbc_cursors = SQL_CUR_USE_IF_NEEDED;
+	dbc->attr.packet_size = 0;
+	dbc->attr.quite_mode = NULL;	/* We don't support GUI dialogs yet */
 #ifdef TDS_NO_DM
-	dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
-	tds_dstr_init(&dbc->attr.attr_tracefile);
+	dbc->attr.trace = SQL_OPT_TRACE_OFF;
+	tds_dstr_init(&dbc->attr.tracefile);
 #endif
-	tds_dstr_init(&dbc->attr.attr_translate_lib);
-	dbc->attr.attr_translate_option = 0;
-	dbc->attr.attr_txn_isolation = SQL_TXN_READ_COMMITTED;
+	tds_dstr_init(&dbc->attr.translate_lib);
+	dbc->attr.translate_option = 0;
+	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 
 	*phdbc = (SQLHDBC) dbc;
 
@@ -956,9 +956,9 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	memset(env, '\0', sizeof(TDS_ENV));
 
 	env->htype = SQL_HANDLE_ENV;
-	env->attr.attr_odbc_version = SQL_OV_ODBC2;
+	env->attr.odbc_version = SQL_OV_ODBC2;
 	/* TODO use it */
-	env->attr.attr_output_nts = SQL_TRUE;
+	env->attr.output_nts = SQL_TRUE;
 
 	ctx = tds_alloc_context();
 	if (!ctx) {
@@ -1070,23 +1070,23 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->orig_ard = stmt->ard;
 
 	/* set the default statement attributes */
-/*	stmt->attr.attr_app_param_desc = stmt->apd; */
-/*	stmt->attr.attr_app_row_desc = stmt->ard; */
-	stmt->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
-	stmt->attr.attr_concurrency = SQL_CONCUR_READ_ONLY;
-	stmt->attr.attr_cursor_scrollable = SQL_NONSCROLLABLE;
-	stmt->attr.attr_cursor_sensitivity = SQL_UNSPECIFIED;
-	stmt->attr.attr_cursor_type = SQL_CURSOR_FORWARD_ONLY;
-	stmt->attr.attr_enable_auto_ipd = dbc->attr.attr_auto_ipd = SQL_FALSE;
-	stmt->attr.attr_fetch_bookmark_ptr = NULL;
-/*	stmt->attr.attr_imp_param_desc = stmt->ipd; */
-/*	stmt->attr.attr_imp_row_desc = stmt->ird; */
-	stmt->attr.attr_keyset_size = 0;
-	stmt->attr.attr_max_length = 0;
-	stmt->attr.attr_max_rows = 0;
-	stmt->attr.attr_metadata_id = dbc->attr.attr_metadata_id;
+/*	stmt->attr.app_param_desc = stmt->apd; */
+/*	stmt->attr.app_row_desc = stmt->ard; */
+	stmt->attr.async_enable = SQL_ASYNC_ENABLE_OFF;
+	stmt->attr.concurrency = SQL_CONCUR_READ_ONLY;
+	stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
+	stmt->attr.cursor_sensitivity = SQL_UNSPECIFIED;
+	stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
+	stmt->attr.enable_auto_ipd = dbc->attr.auto_ipd = SQL_FALSE;
+	stmt->attr.fetch_bookmark_ptr = NULL;
+/*	stmt->attr.imp_param_desc = stmt->ipd; */
+/*	stmt->attr.imp_row_desc = stmt->ird; */
+	stmt->attr.keyset_size = 0;
+	stmt->attr.max_length = 0;
+	stmt->attr.max_rows = 0;
+	stmt->attr.metadata_id = dbc->attr.metadata_id;
 	/* TODO check this flag in prepare_call */
-	stmt->attr.attr_noscan = SQL_NOSCAN_OFF;
+	stmt->attr.noscan = SQL_NOSCAN_OFF;
 	assert(stmt->apd->header.sql_desc_bind_offset_ptr == NULL);
 	assert(stmt->apd->header.sql_desc_bind_type == SQL_PARAM_BIND_BY_COLUMN);
 	assert(stmt->apd->header.sql_desc_array_status_ptr == NULL);
@@ -1094,17 +1094,17 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	assert(stmt->ipd->header.sql_desc_rows_processed_ptr == NULL);
 	assert(stmt->apd->header.sql_desc_array_size == 1);
 	/* TODO use SQL_ATTR_QUERY_TIMEOUT set on the connection handle as statement default */
-	stmt->attr.attr_query_timeout = 0;
-	stmt->attr.attr_retrieve_data = SQL_RD_ON;
+	stmt->attr.query_timeout = 0;
+	stmt->attr.retrieve_data = SQL_RD_ON;
 	assert(stmt->ard->header.sql_desc_array_size == 1);
 	assert(stmt->ard->header.sql_desc_bind_offset_ptr == NULL);
 	assert(stmt->ard->header.sql_desc_bind_type == SQL_BIND_BY_COLUMN);
-	stmt->attr.attr_row_number = 0;
+	stmt->attr.row_number = 0;
 	assert(stmt->ard->header.sql_desc_array_status_ptr == NULL);
 	assert(stmt->ird->header.sql_desc_array_status_ptr == NULL);
 	assert(stmt->ird->header.sql_desc_rows_processed_ptr == NULL);
-	stmt->attr.attr_simulate_cursor = SQL_SC_NON_UNIQUE;
-	stmt->attr.attr_use_bookmarks = SQL_UB_OFF;
+	stmt->attr.simulate_cursor = SQL_SC_NON_UNIQUE;
+	stmt->attr.use_bookmarks = SQL_UB_OFF;
 
 	/* is not the same of using APD sql_desc_bind_type */
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
@@ -1429,7 +1429,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 #if SQL_COLUMN_TYPE != SQL_DESC_CONCISE_TYPE
 	case SQL_COLUMN_TYPE:
 		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
-		if (stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+		if (stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 			IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
 			break;
 		}
@@ -2239,7 +2239,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = strdup("");
 		drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
-								       col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+								       col->column_size, stmt->hdbc->henv->attr.odbc_version);
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -2273,7 +2273,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 	tds->longquery_func = longquery_cancel;
 	tds->longquery_param = stmt;
-	tds->longquery_timeout = stmt->attr.attr_query_timeout;
+	tds->longquery_timeout = stmt->attr.query_timeout;
 
 	/* check parameters are all OK */
 	if (stmt->params && stmt->param_num <= stmt->param_count)
@@ -2611,8 +2611,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	tds_free_socket(dbc->tds_socket);
 
 	/* free attributes */
-	tds_dstr_free(&dbc->attr.attr_current_catalog);
-	tds_dstr_free(&dbc->attr.attr_translate_lib);
+	tds_dstr_free(&dbc->attr.current_catalog);
+	tds_dstr_free(&dbc->attr.translate_lib);
 
 	tds_dstr_free(&dbc->server);
 	tds_dstr_free(&dbc->dsn);
@@ -2809,41 +2809,41 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->ard;
 		break;
 	case SQL_ATTR_ASYNC_ENABLE:
-		size = sizeof(stmt->attr.attr_async_enable);
-		src = &stmt->attr.attr_async_enable;
+		size = sizeof(stmt->attr.async_enable);
+		src = &stmt->attr.async_enable;
 		break;
 	case SQL_ATTR_CONCURRENCY:
-		size = sizeof(stmt->attr.attr_concurrency);
-		src = &stmt->attr.attr_concurrency;
+		size = sizeof(stmt->attr.concurrency);
+		src = &stmt->attr.concurrency;
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
-		size = sizeof(stmt->attr.attr_cursor_type);
-		src = &stmt->attr.attr_cursor_type;
+		size = sizeof(stmt->attr.cursor_type);
+		src = &stmt->attr.cursor_type;
 		break;
 	case SQL_ATTR_ENABLE_AUTO_IPD:
-		size = sizeof(stmt->attr.attr_enable_auto_ipd);
-		src = &stmt->attr.attr_enable_auto_ipd;
+		size = sizeof(stmt->attr.enable_auto_ipd);
+		src = &stmt->attr.enable_auto_ipd;
 		break;
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
-		size = sizeof(stmt->attr.attr_fetch_bookmark_ptr);
-		src = &stmt->attr.attr_fetch_bookmark_ptr;
+		size = sizeof(stmt->attr.fetch_bookmark_ptr);
+		src = &stmt->attr.fetch_bookmark_ptr;
 		break;
 	case SQL_ATTR_KEYSET_SIZE:
-		size = sizeof(stmt->attr.attr_keyset_size);
-		src = &stmt->attr.attr_keyset_size;
+		size = sizeof(stmt->attr.keyset_size);
+		src = &stmt->attr.keyset_size;
 		break;
 	case SQL_ATTR_MAX_LENGTH:
-		size = sizeof(stmt->attr.attr_max_length);
-		src = &stmt->attr.attr_max_length;
+		size = sizeof(stmt->attr.max_length);
+		src = &stmt->attr.max_length;
 		break;
 	case SQL_ATTR_MAX_ROWS:
-		size = sizeof(stmt->attr.attr_max_rows);
-		src = &stmt->attr.attr_max_rows;
+		size = sizeof(stmt->attr.max_rows);
+		src = &stmt->attr.max_rows;
 		break;
 		/* TODO SQL_ATTR_METADATA_ID */
 	case SQL_ATTR_NOSCAN:
-		size = sizeof(stmt->attr.attr_noscan);
-		src = &stmt->attr.attr_noscan;
+		size = sizeof(stmt->attr.noscan);
+		src = &stmt->attr.noscan;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
 		size = sizeof(stmt->apd->header.sql_desc_bind_offset_ptr);
@@ -2870,12 +2870,12 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->apd->header.sql_desc_array_size;
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:
-		size = sizeof(stmt->attr.attr_query_timeout);
-		src = &stmt->attr.attr_query_timeout;
+		size = sizeof(stmt->attr.query_timeout);
+		src = &stmt->attr.query_timeout;
 		break;
 	case SQL_ATTR_RETRIEVE_DATA:
-		size = sizeof(stmt->attr.attr_retrieve_data);
-		src = &stmt->attr.attr_retrieve_data;
+		size = sizeof(stmt->attr.retrieve_data);
+		src = &stmt->attr.retrieve_data;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
 		size = sizeof(stmt->ard->header.sql_desc_bind_offset_ptr);
@@ -2889,8 +2889,8 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->ard->header.sql_desc_bind_type;
 		break;
 	case SQL_ATTR_ROW_NUMBER:
-		size = sizeof(stmt->attr.attr_row_number);
-		src = &stmt->attr.attr_row_number;
+		size = sizeof(stmt->attr.row_number);
+		src = &stmt->attr.row_number;
 		break;
 	case SQL_ATTR_ROW_OPERATION_PTR:
 		size = sizeof(stmt->ard->header.sql_desc_array_status_ptr);
@@ -2909,20 +2909,20 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->ard->header.sql_desc_array_size;
 		break;
 	case SQL_ATTR_SIMULATE_CURSOR:
-		size = sizeof(stmt->attr.attr_simulate_cursor);
-		src = &stmt->attr.attr_simulate_cursor;
+		size = sizeof(stmt->attr.simulate_cursor);
+		src = &stmt->attr.simulate_cursor;
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
-		size = sizeof(stmt->attr.attr_use_bookmarks);
-		src = &stmt->attr.attr_use_bookmarks;
+		size = sizeof(stmt->attr.use_bookmarks);
+		src = &stmt->attr.use_bookmarks;
 		break;
 	case SQL_ATTR_CURSOR_SCROLLABLE:
-		size = sizeof(stmt->attr.attr_cursor_scrollable);
-		src = &stmt->attr.attr_cursor_scrollable;
+		size = sizeof(stmt->attr.cursor_scrollable);
+		src = &stmt->attr.cursor_scrollable;
 		break;
 	case SQL_ATTR_CURSOR_SENSITIVITY:
-		size = sizeof(stmt->attr.attr_cursor_sensitivity);
-		src = &stmt->attr.attr_cursor_sensitivity;
+		size = sizeof(stmt->attr.cursor_sensitivity);
+		src = &stmt->attr.cursor_sensitivity;
 		break;
 	case SQL_ATTR_IMP_ROW_DESC:
 		size = sizeof(stmt->ird);
@@ -3066,7 +3066,7 @@ change_transaction(TDS_DBC * dbc, int state)
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
-	if (dbc->attr.attr_autocommit == SQL_AUTOCOMMIT_ON || TDS_IS_MSSQL(tds))
+	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON || TDS_IS_MSSQL(tds))
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT" : "IF @@TRANCOUNT > 0 ROLLBACK";
 	else
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
@@ -3150,7 +3150,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 				  "@table_name", szTableName, cbTableName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 7, "COLUMN_SIZE");
@@ -3171,47 +3171,47 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 
 	switch (Attribute) {
 	case SQL_ATTR_AUTOCOMMIT:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_autocommit;
+		*((SQLUINTEGER *) Value) = dbc->attr.autocommit;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_CONNECTION_TIMEOUT:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_connection_timeout;
+		*((SQLUINTEGER *) Value) = dbc->attr.connection_timeout;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_ACCESS_MODE:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_access_mode;
+		*((SQLUINTEGER *) Value) = dbc->attr.access_mode;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_CURRENT_CATALOG:
-		p = tds_dstr_cstr(&dbc->attr.attr_current_catalog);
+		p = tds_dstr_cstr(&dbc->attr.current_catalog);
 		break;
 	case SQL_ATTR_LOGIN_TIMEOUT:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_login_timeout;
+		*((SQLUINTEGER *) Value) = dbc->attr.login_timeout;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_ODBC_CURSORS:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_odbc_cursors;
+		*((SQLUINTEGER *) Value) = dbc->attr.odbc_cursors;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_PACKET_SIZE:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_packet_size;
+		*((SQLUINTEGER *) Value) = dbc->attr.packet_size;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_QUIET_MODE:
-		*((SQLHWND *) Value) = dbc->attr.attr_quite_mode;
+		*((SQLHWND *) Value) = dbc->attr.quite_mode;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 #ifdef TDS_NO_DM
 	case SQL_ATTR_TRACE:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
+		*((SQLUINTEGER *) Value) = dbc->attr.trace;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_TRACEFILE:
-		p = tds_dstr_cstr(&dbc->attr.attr_tracefile);
+		p = tds_dstr_cstr(&dbc->attr.tracefile);
 		break;
 #endif
 	case SQL_ATTR_TXN_ISOLATION:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_txn_isolation;
+		*((SQLUINTEGER *) Value) = dbc->attr.txn_isolation;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_TRANSLATE_LIB:
@@ -3312,7 +3312,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			int readed = cbValueMax;
 
 			/* FIXME test on destination char ??? */
-			if (stmt->hdbc->henv->attr.attr_output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
+			if (stmt->hdbc->henv->attr.output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;
@@ -3863,7 +3863,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		UIVAL = SQL_SENSITIVE;
 		break;
 	case SQL_DATABASE_NAME:
-		p = tds_dstr_cstr(&dbc->attr.attr_current_catalog);
+		p = tds_dstr_cstr(&dbc->attr.current_catalog);
 		break;
 	case SQL_DATA_SOURCE_NAME:
 		p = tds_dstr_cstr(&dbc->dsn);
@@ -4396,7 +4396,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	/* TODO what about early Sybase products ? */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	sprintf(sql, sql_templ, fSqlType);
-	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3)
+	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3)
 		strcat(sql, ",3");
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -4495,11 +4495,11 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN(dbc, change_autocommit(dbc, u_value));
 		break;
 	case SQL_ATTR_CONNECTION_TIMEOUT:
-		dbc->attr.attr_connection_timeout = u_value;
+		dbc->attr.connection_timeout = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_ACCESS_MODE:
-		dbc->attr.attr_access_mode = u_value;
+		dbc->attr.access_mode = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_CURRENT_CATALOG:
@@ -4512,24 +4512,24 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN(dbc, ret);
 		break;
 	case SQL_ATTR_LOGIN_TIMEOUT:
-		dbc->attr.attr_login_timeout = u_value;
+		dbc->attr.login_timeout = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_ODBC_CURSORS:
-		dbc->attr.attr_odbc_cursors = u_value;
+		dbc->attr.odbc_cursors = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_PACKET_SIZE:
-		dbc->attr.attr_packet_size = u_value;
+		dbc->attr.packet_size = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_QUIET_MODE:
-		dbc->attr.attr_quite_mode = (SQLHWND) u_value;
+		dbc->attr.quite_mode = (SQLHWND) u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 #ifdef TDS_NO_DM
 	case SQL_ATTR_TRACE:
-		dbc->attr.attr_trace = u_value;
+		dbc->attr.trace = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_TRACEFILE:
@@ -4538,7 +4538,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		if (tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char *) ValuePtr, len))
+		if (tds_dstr_copyn(&dbc->attr.tracefile, (const char *) ValuePtr, len))
 			ODBC_RETURN(dbc, SQL_SUCCESS);
 		else {
 			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
@@ -4547,7 +4547,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		break;
 #endif
 	case SQL_ATTR_TXN_ISOLATION:
-		dbc->attr.attr_txn_isolation = u_value;
+		dbc->attr.txn_isolation = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 	case SQL_ATTR_TRANSLATE_LIB:
@@ -4616,49 +4616,49 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		}
 		break;
 	case SQL_ATTR_ASYNC_ENABLE:
-		if (stmt->attr.attr_async_enable != ui) {
+		if (stmt->attr.async_enable != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.attr_async_enable = ui;
+		stmt->attr.async_enable = ui;
 		break;
 	case SQL_ATTR_CONCURRENCY:
-		if (stmt->attr.attr_concurrency != ui) {
+		if (stmt->attr.concurrency != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_concurrency = ui;
+		stmt->attr.concurrency = ui;
 		break;
 	case SQL_ATTR_CURSOR_SCROLLABLE:
-		if (stmt->attr.attr_cursor_scrollable != ui) {
+		if (stmt->attr.cursor_scrollable != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.attr_cursor_scrollable = ui;
+		stmt->attr.cursor_scrollable = ui;
 		break;
 	case SQL_ATTR_CURSOR_SENSITIVITY:
-		if (stmt->attr.attr_cursor_sensitivity != ui) {
+		if (stmt->attr.cursor_sensitivity != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.attr_cursor_sensitivity = ui;
+		stmt->attr.cursor_sensitivity = ui;
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
-		if (stmt->attr.attr_cursor_type != ui) {
+		if (stmt->attr.cursor_type != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_cursor_type = ui;
+		stmt->attr.cursor_type = ui;
 		break;
 	case SQL_ATTR_ENABLE_AUTO_IPD:
-		if (stmt->attr.attr_enable_auto_ipd != ui) {
+		if (stmt->attr.enable_auto_ipd != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.attr_enable_auto_ipd = ui;
+		stmt->attr.enable_auto_ipd = ui;
 		break;
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
-		stmt->attr.attr_fetch_bookmark_ptr = ValuePtr;
+		stmt->attr.fetch_bookmark_ptr = ValuePtr;
 		break;
 	case SQL_ATTR_IMP_ROW_DESC:
 	case SQL_ATTR_IMP_PARAM_DESC:
@@ -4667,28 +4667,28 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		break;
 		/* TODO what's is this ??? */
 	case SQL_ATTR_KEYSET_SIZE:
-		stmt->attr.attr_keyset_size = ui;
+		stmt->attr.keyset_size = ui;
 		break;
 		/* TODO max length of data returned. Use SQL TEXTSIZE or just truncate ?? */
 	case SQL_ATTR_MAX_LENGTH:
-		if (stmt->attr.attr_max_length != ui) {
+		if (stmt->attr.max_length != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_max_length = ui;
+		stmt->attr.max_length = ui;
 		break;
 		/* TODO max row returned. Use SET ROWCOUNT */
 	case SQL_ATTR_MAX_ROWS:
-		if (stmt->attr.attr_max_rows != ui) {
+		if (stmt->attr.max_rows != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_max_rows = ui;
+		stmt->attr.max_rows = ui;
 		break;
 		/* TODO SQL_ATTR_METADATA_ID */
 		/* TODO use it !!! */
 	case SQL_ATTR_NOSCAN:
-		stmt->attr.attr_noscan = ui;
+		stmt->attr.noscan = ui;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
 		stmt->apd->header.sql_desc_bind_offset_ptr = ip;
@@ -4710,15 +4710,15 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:
-		stmt->attr.attr_query_timeout = ui;
+		stmt->attr.query_timeout = ui;
 		break;
 		/* retrieve data after positioning the cursor */
 	case SQL_ATTR_RETRIEVE_DATA:
-		if (stmt->attr.attr_retrieve_data != ui) {
+		if (stmt->attr.retrieve_data != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_retrieve_data = ui;
+		stmt->attr.retrieve_data = ui;
 		break;
 	case SQL_ATTR_ROW_ARRAY_SIZE:
 		assert(stmt->ard->header.sql_desc_array_size == 1);
@@ -4751,14 +4751,14 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ird->header.sql_desc_rows_processed_ptr = uip;
 		break;
 	case SQL_ATTR_SIMULATE_CURSOR:
-		if (stmt->attr.attr_simulate_cursor != ui) {
+		if (stmt->attr.simulate_cursor != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
-		stmt->attr.attr_simulate_cursor = ui;
+		stmt->attr.simulate_cursor = ui;
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
-		stmt->attr.attr_use_bookmarks = ui;
+		stmt->attr.use_bookmarks = ui;
 		break;
 	case SQL_ROWSET_SIZE:	/* although this is ODBC2 we must support this attribute */
 		stmt->sql_rowset_size = ui;
@@ -4853,7 +4853,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 				  "@owner", szSchemaName, cbSchemaName,
 				  "@qualifier", szCatalogName, cbCatalogName,
 				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
@@ -4913,7 +4913,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 8, "ORDINAL_POSITION");
@@ -4999,7 +4999,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType, cbTableType);
 	if (type)
 		free(type);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}

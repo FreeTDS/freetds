@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.28 2003-09-11 14:50:41 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.29 2003-11-09 07:50:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -448,17 +448,17 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->attr.attr_odbc_version;
+		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->attr.odbc_version;
 		errs = &((TDS_STMT *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
-		odbc_ver = ((TDS_DBC *) handle)->henv->attr.attr_odbc_version;
+		odbc_ver = ((TDS_DBC *) handle)->henv->attr.odbc_version;
 		errs = &((TDS_DBC *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
-		odbc_ver = ((TDS_ENV *) handle)->attr.attr_odbc_version;
+		odbc_ver = ((TDS_ENV *) handle)->attr.odbc_version;
 		errs = &((TDS_ENV *) handle)->errs;
 		break;
 
@@ -576,7 +576,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	default:
 		return SQL_INVALID_HANDLE;
 	}
-	odbc_ver = env->attr.attr_odbc_version;
+	odbc_ver = env->attr.odbc_version;
 
 	/* header (numRecord ignored) */
 	switch (diagIdentifier) {
