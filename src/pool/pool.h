@@ -20,7 +20,7 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.8 2003-04-30 18:51:38 freddy77 Exp $";
+static char rcsid_pool_h[] = "$Id: pool.h,v 1.9 2003-12-22 08:32:14 freddy77 Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H

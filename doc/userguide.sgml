@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-14 19:07:08 $</date>
-		<releaseinfo>$Revision: 1.75 $</releaseinfo>
+		<date>$Date: 2003-12-22 08:32:13 $</date>
+		<releaseinfo>$Revision: 1.76 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.75 $</>
-<member>$Date: 2003-12-14 19:07:08 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.75 2003-12-14 19:07:08 jklowden Exp $.</>
+<member>$Revision: 1.76 $</>
+<member>$Date: 2003-12-22 08:32:13 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.76 2003-12-22 08:32:13 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -523,7 +523,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2003-12-14 19:07:08 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2003-12-22 08:32:13 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -1392,7 +1392,7 @@ src/tds/unittests
 The unit tests rely on the <filename>PWD</> file in root of the FreeTDS source tree.  
 <filename>PWD</> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</>.  			</para>
 			<para>
-To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available dataserver in <filename>PWD</>. Note also that the ODBC unittests rely on a proper configuration of the <quote><literal>FreeTDS</></> driver entry in <filename>odbcinst.ini</>. 
+To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available dataserver in <filename>PWD</>. 
 			</para>
 			<para>
 <tip><para>
