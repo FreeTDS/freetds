@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.21 2002-07-08 23:02:57 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.22 2002-07-10 05:05:42 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,27 +107,26 @@ int tds_get_conversion_type(int srctype, int colsize)
 	return srctype;
 }
 
-/* reverted function to 1.12 logic; 1.13 patch was mistaken. July 2002 jkl */
+/**
+ * tds_convert copies from src to dest and returns the output data length,
+ * period.  All padding and termination is the responsibilty of the API library
+ * and is done post conversion.  
+ */
 static TDS_INT 
 tds_convert_text(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_UINT destlen)
 {
 int cplen;
 
-   switch(desttype) {
-      case SYBTEXT:
-	 cplen = srclen > destlen ? destlen : srclen;
-         memcpy(dest, src, cplen);
-         /* 2001-06-15 Deutsch changed [cplen-1] to [cplen] */
-         dest[cplen] = '\0';
-         return strlen(dest);
-      case SYBCHAR:
-	 cplen = srclen > destlen ? destlen : srclen;
-         memcpy(dest, src, cplen);
-		dest[cplen]='\0';
-         return strlen(dest);
-   }
-   return 0;
+	switch(desttype) {
+		case SYBTEXT:
+		case SYBCHAR:
+		case SYBBINARY:
+			cplen = srclen > destlen ? destlen : srclen;
+			memcpy(dest, src, cplen);
+			return cplen;
+	}
+	return 0;
 }
 
 static TDS_UINT 
@@ -854,8 +853,8 @@ TDS_UCHAR buf[37];
 		sprintf(buf,"%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			(int)u->Data1,(int)u->Data2,(int)u->Data3,
 			u->Data4[0], u->Data4[1],
-			u->Data5[0], u->Data5[1], u->Data5[2],
-			u->Data5[3], u->Data5[4], u->Data5[5]);
+			u->Data4[2], u->Data4[3], u->Data4[4],
+			u->Data4[5], u->Data4[6], u->Data4[7]);
 			any.c = buf;
 			break;
 		case SYBUNIQUE:
