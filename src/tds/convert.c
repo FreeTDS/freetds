@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.10 2002-03-15 02:01:41 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.11 2002-05-20 01:23:38 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -539,11 +539,11 @@ char tmpbuf[256];
 		case SYBCHAR:
 		case SYBVARCHAR:
 		/* FIX ME -- This fails for dates before 1902 or after 2038 */
-			if (destlen<0) {
-					memset(dest,' ',30);
-			} else {
-				memset(dest,' ',destlen);
-			}
+                        if (destlen < 0)
+                                destlen = 30;
+
+                        memset(dest,' ',destlen);
+
 			if (!src) {
 				*dest='\0';
 				return 0;

@@ -1,3 +1,14 @@
+Mon May 13 21:39:40 2002  Frediano Ziglio <freddy77@angelfire.com>
+
+	* doc/tds7.txt:
+	- update with info from source and other test
+
+Thu May  2 11:11:12 2002  Frediano Ziglio <freddy77@angelfire.com>
+
+	* src/odbc/odbc.c:
+	- cleanup Driver Manager functions
+	- clear param_count executing SQLExecDirect
+
 Fri Apr 26 19:04:55 2002  James Cameron  <quozl@us.netrek.org>
 
 	* doc/userguide.sgml: add link target to known issues section,
