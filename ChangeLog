@@ -1,3 +1,8 @@
+Mon Apr 15 22:18:49 EDT 2002	Brian Bruns  <camber@ais.org>
+
+	* src/tds/login.c(tds_connect): hooked up connect timeout from config file 
+	to actually work!
+
 Tue Apr  9 10:24:12 2002  Frediano Ziglio <freddy77@angelfire.com>
 
 	* src/odbc/odbc.c:

@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.18 2002-04-08 08:18:01 quozl Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.19 2002-04-16 02:22:04 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -119,6 +119,7 @@ TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
 char query[30];
 char *tmpstr;
+int connect_timeout = 0;
 
 
 FD_ZERO (&fds);                                    
@@ -162,10 +163,15 @@ FD_ZERO (&fds);
 		tds->date_fmt=strdup(config->date_fmt);
 	}
 	*/
+	if (login->connect_timeout) {
+		connect_timeout = login->connect_timeout;
+	} else if (config->connect_timeout) {
+		connect_timeout = config->connect_timeout;
+	}
 
 	/* Jeff's hack - begin */
-	tds->timeout = (login->connect_timeout) ? login->query_timeout : 0;        
-	tds->longquery_timeout = (login->connect_timeout) ? login->longquery_timeout : 0;
+	tds->timeout = (connect_timeout) ? login->query_timeout : 0;        
+	tds->longquery_timeout = (connect_timeout) ? login->longquery_timeout : 0;
 	tds->longquery_func = login->longquery_func;
 	tds->longquery_param = login->longquery_param;
 	/* end */
@@ -207,7 +213,7 @@ FD_ZERO (&fds);
         }
 
     /* Jeff's hack *** START OF NEW CODE *** */
-	if (login->connect_timeout) {
+	if (connect_timeout) {
 		start = time (NULL);
 		ioctl_blocking = 1; /* ~0; //TRUE; */
 		if (IOCTL(tds->s, FIONBIO, &ioctl_blocking) < 0) {
@@ -236,7 +242,7 @@ FD_ZERO (&fds);
 
 		now = time (NULL);
 
-		while ((retval == 0) && ((now-start) < login->connect_timeout)) {
+		while ((retval == 0) && ((now-start) < connect_timeout)) {
 			tds_msleep(1);
 			FD_SET (tds->s, &fds);
 			selecttimeout.tv_sec = 0;
@@ -245,7 +251,7 @@ FD_ZERO (&fds);
 			now = time (NULL);
     		}
 
-		if ((now-start) > login->connect_timeout) {
+		if ((now-start) > connect_timeout) {
 			tds_free_config(config);
 			tds_free_socket(tds);
 			return NULL;
