@@ -1,3 +1,11 @@
+Fri Jul  4 19:03:10 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/replacements/iconv.c verified working, passes unit tests
+	* include/tds.h include/tdsiconv.h
+	* src/server/login.c src/tds/iconv.c src/tds/login.c
+	* src/tds/mem.c src/tds/read.c src/tds/token.c src/tds/write.c
+	- new tds_iconv() follows iconv(3) signature and emits client-side
+	- messages in case of error.  This build does not require libiconv.  
+
 Thu Jul  3 21:27:37 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	* src/odbc/sql2tds.c src/tds/query.c:

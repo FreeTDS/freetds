@@ -44,6 +44,7 @@
 #endif
 
 #include <assert.h>
+#include <ctype.h>
 
 #include "tds.h"
 #include "tdsiconv.h"
@@ -54,7 +55,7 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.2 2003-07-01 05:33:14 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.3 2003-07-04 23:15:52 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -172,9 +173,9 @@ iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, siz
 				errno = EINVAL;
 				return (size_t)(-1);
 			}
-			*(*outbuf)++ = '\0';
 			*(*outbuf)++ = *(*inbuf)++;
-			*inbytesleft--;
+			*(*outbuf)++ = '\0';
+			(*inbytesleft)--;
 			*outbytesleft -= 2;
 		}
 		break;
@@ -182,22 +183,27 @@ iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, siz
 	case UCS2LE_Latin1:
 		/* input should be an even number of bytes */
 		if (*inbytesleft & 1) {
-			errno = EINVAL;
-			return (size_t)(-1);
-		}
-		while (*inbytesleft > 1 && *outbytesleft > 0) {
-			*inbytesleft--;
-			if (*(*inbuf)++ != '\0') {
-				errno = EILSEQ;
+			if ((*inbuf)[*inbytesleft-1] == '\0') {
+				(*inbytesleft)--;	/* ignore trailing NULL byte */
+			} else {
+				errno = EINVAL;
 				return (size_t)(-1);
 			}
+		}
+		while (*inbytesleft > 1 && *outbytesleft > 0) {
 			if ((int)cd == UCS2LE_ASCII && !isascii(**inbuf)) {
 				errno = EINVAL;
 				return (size_t)(-1);
 			}
 			*(*outbuf)++ = *(*inbuf)++;
-			*inbytesleft--;
-			*outbytesleft--;
+			(*inbytesleft)--;
+			(*outbytesleft)--;
+			
+			if (*(*inbuf)++ != '\0') {
+				errno = EILSEQ;
+				return (size_t)(-1);
+			}
+			(*inbytesleft)--;
 		}
 		break;
 	default:
