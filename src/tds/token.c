@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.46 2002-09-05 12:22:08 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.47 2002-09-06 21:13:27 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1265,7 +1265,7 @@ int len_sqlstate;
 		tds_unget_byte(tds);
 		tds->msg_info->proc_name=tds_msg_get_proc_name(tds);
 	} else {
-		tds->msg_info->proc_name=NULL;
+		tds->msg_info->proc_name=strdup("");
 	}
 
 	/* line number in the sql statement where the problem occured */
@@ -1309,16 +1309,14 @@ char *proc_name;
 
 	len_proc = tds_get_byte(tds);
 
-	if (len_proc > 0) {
-              /* its the length of a stored procedure name */
-              proc_name = (char*)malloc(len_proc+1);
-              tds_get_string(tds, proc_name, len_proc);
-              proc_name[len_proc] = '\0';
-	} else {
-
-              /* set the procname to null since there isn't one in the stream */
-              proc_name = (char*)NULL;
+	if (len_proc < 0) {
+		len_proc = 0;
 	}
+        proc_name = (char*)malloc(len_proc+1);
+	if (len_proc > 0) {
+              tds_get_string(tds, proc_name, len_proc);
+	}
+        proc_name[len_proc] = '\0';
 
 	return proc_name;
 
