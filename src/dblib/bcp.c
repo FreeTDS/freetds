@@ -61,7 +61,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.68 2003-05-28 14:51:52 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.69 2003-05-28 19:29:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1609,11 +1609,8 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	BCP_COLINFO *bcpcol;
 
 	TDS_INT result_type;
-	TDS_INT rowtype;
-	TDS_INT computeid;
 
 	int i;
-	int marker;
 	int firstcol;
 
 	char *query;
@@ -1677,22 +1674,8 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	/* result set from the "insert bulk" command.  */
 	/* we're going to ignore this....              */
 
-	if (IS_TDS50(tds)) {
-		if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
-			return FAIL;
-		}
-		if (!tds->res_info) {
-			return FAIL;
-		}
-
-		while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED);
-	} else {
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-		if (!is_end_token(marker)) {
-			return FAIL;
-		}
-	}
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return FAIL;
 
 	/* work out the number of "variable" columns -         */
 	/* either varying length type e.g. varchar or nullable */
@@ -1863,36 +1846,15 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB *clause, BCP_COLINFO * bcpcol, int first)
 static RETCODE
 _bcp_start_new_batch(DBPROCESS * dbproc)
 {
-
-TDSSOCKET *tds = dbproc->tds_socket;
-TDS_INT result_type;
-TDS_INT rowtype;
-TDS_INT computeid;
-int marker;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	TDS_INT result_type;
 
 	_bcp_err_handler(dbproc, SYBEBBCI);
 
-	if (IS_TDS50(tds)) {
+	tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
 
-		tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
-
-		if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
-			return FAIL;
-		}
-		if (!tds->res_info) {
-			return FAIL;
-		}
-
-		while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED);
-	} else {
-		tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
-
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-		if (!is_end_token(marker)) {
-			return FAIL;
-		}
-	}
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return FAIL;
 
 	tds->out_flag = 0x07;
 

@@ -1,3 +1,9 @@
+Wed May 28 21:31:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/dblib/bcp.c src/tds/token.c:
+	- end tds_process_end cleanup (now static)
+	- use tds_process_simple_query instead of 
+	  tds_get_byte/tds_process_default_tokens
+
 Wed May 28 21:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: tds_process_end cleanup
 
