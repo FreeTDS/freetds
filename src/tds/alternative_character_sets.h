@@ -27,7 +27,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 #if 0
-static char software_version[] = "$Id: alternative_character_sets.h,v 1.1 2003-04-14 03:07:27 jklowden Exp $";
+static char software_version[] = "$Id: alternative_character_sets.h,v 1.2 2003-04-15 02:59:52 jklowden Exp $";
 /*
 To regenerate this file, do:
 $ perl -x alternative_character_sets.h >/tmp/alternative_character_sets.h \
@@ -394,6 +394,5 @@ __END__
 	, {   "ANSI_X3.4-1968", "646"                    }	/* NetBSD default */
 	/* other operating systems */
 	
-	/* stopper row */
-	, {               NULL, NULL                     }
+	/* no stopper row; add your own */
 #endif

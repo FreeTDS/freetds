@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.52 2003-04-14 03:08:00 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.53 2003-04-15 02:59:52 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -271,7 +271,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 static int
 bytes_per_char(TDS_ENCODING * charset)
 {
-	TDS_ENCODING charsets[] = {
+	static const TDS_ENCODING charsets[] = {
 #include "character_sets.h"
 	};
 	int i;
@@ -328,17 +328,9 @@ skip_one_input_sequence(TDS_ENCODING *charset, const char **input)
 	return 0;
 }
 
-/**
- * Determine cannonical iconv character set name.  
- * \returns cannonical name, or NULL if lookup failed.
- * \remarks Returned name can be used in bytes_per_char(), above.
- */
-const char *
-tds_cannonical_charset_name(const char *charset_name)
+static const char *
+lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_name)
 {
-	CHARACTER_SET_ALIAS aliases[] = {
-#include "alternative_character_sets.h"
-	};
 	int i;
 	
 	if (!charset_name || *charset_name == '\0')
@@ -354,6 +346,38 @@ tds_cannonical_charset_name(const char *charset_name)
 	}
 
 	return NULL;
+}
+
+/**
+ * Determine cannonical iconv character set name.  
+ * \returns cannonical name, or NULL if lookup failed.
+ * \remarks Returned name can be used in bytes_per_char(), above.
+ */
+const char *
+tds_cannonical_charset_name(const char *charset_name)
+{
+	static const CHARACTER_SET_ALIAS aliases[] = {
+#		include "alternative_character_sets.h"
+		, 
+#		include "sybase_character_sets.h"
+	};
+
+	return lookup_charset_name(aliases, charset_name);
+}
+
+/**
+ * Determine the name Sybase uses for a character set, given a cannonical iconv name.  
+ * \returns Sybase name, or NULL if lookup failed.
+ * \remarks Returned name can be sent to Sybase a server.
+ */
+const char * 
+tds_sybase_charset_name(const char *charset_name)
+{
+	static const CHARACTER_SET_ALIAS aliases[] = {
+#		include "sybase_character_sets.h"
+	};
+
+	return lookup_charset_name(aliases, charset_name);
 }
 
 static char *
