@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.134 2003-07-05 15:09:15 jklowden Exp $";
+	"$Id: tds.h,v 1.135 2003-07-13 16:06:02 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -708,7 +708,8 @@ struct tdsiconvinfo
 	iconv_t to_wire;   /* conversion from client charset to server's format */
 	iconv_t from_wire; /* conversion from server's format to client charset */
 #define TDS_ENCODING_INDIRECT 1
-	/* ^^^ As of June 2003, no reference to this macro */
+	/* ^^^ As of June 2003, no reference to this macro 
+	 * It's just a TODO... freddy77 */
 	unsigned int flags;
 };
 
@@ -895,6 +896,7 @@ struct tds_socket {
 	TDS_SMALLINT minor_version;
 	/** version of product (Sybase/MS and full version) */
 	TDS_UINT product_version;
+	char *product_name;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	unsigned char broken_dates;
 	unsigned char option_flag2;

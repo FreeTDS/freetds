@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.88 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.89 2003-07-13 16:06:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -668,8 +668,8 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize);
 
 	tds_socket->parent = (char *) NULL;
-	tds_socket->option_flag2 = 0x03; /* TDS 7.0: 0x02 indicates ODBC driver; 
-						     0x01 means change to initial language must succeed */
+	tds_socket->option_flag2 = 0x03;	/* TDS 7.0: 0x02 indicates ODBC driver; 
+						 * 0x01 means change to initial language must succeed */
 	if (!(tds_socket->env = tds_alloc_env(tds_socket, bufsize)))
 		goto Cleanup;
 
@@ -732,6 +732,8 @@ tds_free_socket(TDSSOCKET * tds)
 			tds_iconv_close(tds);
 			free(tds->iconv_info);
 		}
+		if (tds->product_name)
+			free(tds->product_name);
 		TDS_ZERO_FREE(tds);
 	}
 }

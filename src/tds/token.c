@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.201 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.202 2003-07-13 16:06:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -269,7 +269,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 {
 	int succeed = TDS_FAIL;
 	int marker;
-	int len, product_name_len;
+	int len;
 	unsigned char major_ver, minor_ver;
 	unsigned char ack;
 	TDS_UINT product_version;
@@ -291,25 +291,23 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			major_ver = tds_get_byte(tds);
 			minor_ver = tds_get_byte(tds);
 			tds_get_n(tds, NULL, 2);
-			product_name_len = tds_get_byte(tds);
+			/* ignore product name length, see below */
+			tds_get_byte(tds);
 			product_version = 0;
-			/* TODO get server product and string */
+			/* get server product name */
+			/* compute length from packet, some version seem to fill this information wrongly */
 			len -= 10;
+			if (tds->product_name)
+				free(tds->product_name);
 			if (major_ver >= 7) {
-				product_version |= 0x80000000u;
-				tds_get_n(tds, NULL, len);
+				product_version = 0x80000000u;
+				tds->product_name = tds_alloc_get_string(tds, len / 2);
 			} else if (major_ver >= 5) {
-				tds_get_n(tds, NULL, len);
+				tds->product_name = tds_alloc_get_string(tds, len);
 			} else {
-				char buf[32 + 1];
-				int l = len > 32 ? 32 : len;
-
-				tds_get_n(tds, buf, l);
-				buf[l] = 0;
-				if (strstr(buf, "Microsoft"))
-					product_version |= 0x80000000u;
-				if (l < len)
-					tds_get_n(tds, NULL, len - l);
+				tds->product_name = tds_alloc_get_string(tds, len);
+				if (strstr(tds->product_name, "Microsoft"))
+					product_version = 0x80000000u;
 			}
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 24;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 16;
@@ -321,7 +319,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 				product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 			tds->product_version = product_version;
 #ifdef WORDS_BIGENDIAN
-			/* do a best check */
+			/* TODO do a best check */
 /*
 				
 				if (major_ver==7) {
