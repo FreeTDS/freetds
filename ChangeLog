@@ -1,3 +1,8 @@
+Thu Oct 31 14:10:03 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Drop libd4r for hpux altogether.  These are DCE-compatible
+	  functions, and don't behave like POSIX.
+
 Thu Oct 31 13:54:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/pool/main.c src/pool/member.c:
 	- Unconditionally define _XOPEN_SOURCE_EXTENDED and _POSIX_C_SOURCE.
