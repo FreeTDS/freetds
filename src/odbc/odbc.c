@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.247 2003-09-21 18:37:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.248 2003-09-23 08:23:08 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -200,7 +200,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 		else {
 			/* Sybase, do not use SET CHAINED but emulate for compatility */
 			if (state == SQL_AUTOCOMMIT_ON)
-				strcpy(query, "WHILE @@TRANCOUNT > 1 COMMIT COMMIT");
+				strcpy(query, "WHILE @@TRANCOUNT > 0 COMMIT");
 			else
 				strcpy(query, "BEGIN TRANSACTION");
 		}
@@ -1089,6 +1089,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	assert(stmt->ipd->header.sql_desc_array_status_ptr == NULL);
 	assert(stmt->ipd->header.sql_desc_rows_processed_ptr == NULL);
 	assert(stmt->apd->header.sql_desc_array_size == 1);
+	/* TODO use SQL_ATTR_QUERY_TIMEOUT set on the connection handle as statement default */
 	stmt->attr.attr_query_timeout = 0;
 	stmt->attr.attr_retrieve_data = SQL_RD_ON;
 	assert(stmt->ard->header.sql_desc_array_size == 1);
@@ -2219,6 +2220,16 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
+void
+longquery_cancel(long hint)
+{
+TDS_STMT *stmt = (TDS_STMT *)hint;
+assert(stmt != NULL);
+
+if (SQL_SUCCEEDED(SQLCancel((SQLHSTMT *)stmt)))
+	odbc_errs_add(&stmt->errs,"S1T00","Timeout expired",NULL);
+}
+
 static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2232,6 +2243,10 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->row = 0;
 
+	tds->longquery_func = longquery_cancel;
+	tds->longquery_param = (long)stmt;
+	tds->longquery_timeout = stmt->attr.attr_query_timeout;
+	
 	/* TODO submit rpc with more parameters */
 	if (stmt->param_count == 0 && stmt->prepared_query_is_rpc) {
 		/* get rpc name */
@@ -2302,6 +2317,10 @@ _SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
+	tds->longquery_timeout = 0;
+	tds->longquery_param = 0;
+	tds->longquery_func = 0;
+
 	odbc_populate_ird(stmt);
 	switch (ret) {
 	case TDS_NO_MORE_RESULTS:
@@ -2903,7 +2922,6 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->apd->header.sql_desc_array_size);
 		src = &stmt->apd->header.sql_desc_array_size;
 		break;
-		/* TODO use this attribute, set in tds_socket before every query */
 	case SQL_ATTR_QUERY_TIMEOUT:
 		size = sizeof(stmt->attr.attr_query_timeout);
 		src = &stmt->attr.attr_query_timeout;
@@ -4707,7 +4725,6 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_PARAMSET_SIZE:
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
-		/* TODO use it !!! */
 	case SQL_ATTR_QUERY_TIMEOUT:
 		stmt->attr.attr_query_timeout = ui;
 		break;
