@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.213 2003-09-28 23:26:36 ppeterd Exp $";
+static char software_version[] = "$Id: token.c,v 1.214 2003-09-29 02:24:17 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2200,13 +2200,13 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	rc = 0;
 	/* the message */
-	rc += tds_alloc_get_string(tds, &msg_info.message, tds_get_smallint(tds),&rc);
+	rc += tds_alloc_get_string(tds, &msg_info.message, tds_get_smallint(tds));
 
 	/* server name */
-	rc += tds_alloc_get_string(tds, &msg_info.server, tds_get_byte(tds),&rc);
+	rc += tds_alloc_get_string(tds, &msg_info.server, tds_get_byte(tds));
 
 	/* stored proc name if available */
-	rc += tds_alloc_get_string(tds, &msg_info.proc_name, tds_get_byte(tds),&rc);
+	rc += tds_alloc_get_string(tds, &msg_info.proc_name, tds_get_byte(tds));
 
 	/* line number in the sql statement where the problem occured */
 	msg_info.line_number = tds_get_smallint(tds);
