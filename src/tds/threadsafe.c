@@ -52,12 +52,24 @@
 #include <netdb.h>
 #endif /* HAVE_NETDB_H */
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
 #include "tds.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.30 2003-12-28 09:58:09 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.31 2003-12-28 10:09:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -118,7 +130,7 @@ tds_timestamp_str(char *str, int maxlen)
 # endif	/* NETDB_REENTRANT */
 #endif /* _REENTRANT */
 
-#if defined(HAVE_GETIPNODEBYNAME) || defined(HAVE_GETIPNODEBYADDR)
+#if !defined(NETDB_REENTRANT) && (defined(HAVE_GETIPNODEBYNAME) || defined(HAVE_GETIPNODEBYADDR))
 /**
  * Copy a hostent structure to an allocated buffer
  * @return 0 on success, -1 otherwise
@@ -203,7 +215,7 @@ tds_copy_hostent(struct hostent *he, struct hostent *result, char *buffer, int b
 struct hostent *
 tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
-#if defined(NETDB_REENTRANT) || !defined(_REENTRANT)
+#if defined(NETDB_REENTRANT)
 	return gethostbyname(servername);
 
 /* we have a better replacements */
@@ -249,7 +261,7 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 struct hostent *
 tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
-#if defined(NETDB_REENTRANT) || !defined(_REENTRANT)
+#if defined(NETDB_REENTRANT)
 	return gethostbyaddr(addr, len, type);
 
 #elif defined(HAVE_GETIPNODEBYADDR)
@@ -294,7 +306,7 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 struct servent *
 tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen)
 {
-#if defined(NETDB_REENTRANT) || !defined(_REENTRANT)
+#if defined(NETDB_REENTRANT)
 	return getservbyname(name, proto);
 
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_6)
