@@ -1,0 +1,97 @@
+%define	name	freetds 
+%define version 0.53 
+ 
+Name: %{name} 
+Version: %{version} 
+Release: 1 
+Vendor: www.freetds.org 
+Copyright: LGPL 
+Group: System Environment/Libraries 
+Source: ftp://ftp.metalab.unc.edu/pub/Linux/ALPHA/freetds/%{name}-%{version}.tgz 
+BuildRoot: /var/tmp/%{name}-buildroot 
+Summary: FreeTDS is a free re-implementation of the TDS (Tabular DataStream) protocol that is used by Sybase and Microsoft for their database products. 
+ 
+%description 
+FreeTDS is a project to document and implement the TDS (Tabular DataStream) protocol. TDS is used by Sybase and Microsoft for client to database server communications. FreeTDS includes call level interfaces for DB-Lib, CT-Lib, and ODBC.  
+ 
+%package devel 
+Group: Development/Libraries 
+Summary: Include files needed for development with FreeTDS 
+Requires: freetds = 0.53
+ 
+%description devel 
+The freetds-devel package contains the files necessary for development with with the Free TDS libraries. 
+ 
+%prep 
+%setup 
+ 
+%build 
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local 
+make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" 
+ 
+%install 
+rm -rf $RPM_BUILD_ROOT 
+mkdir -p $RPM_BUILD_ROOT%{_libdir} 
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/freetds 
+mkdir -p $RPM_BUILD_ROOT%{_includedir}/freetds 
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir} 
+
+install -c -m 644 freetds.conf $RPM_BUILD_ROOT%{_sysconfdir}
+
+libtool --mode=install /usr/bin/install -c -m 755 src/tds/libtds.la $RPM_BUILD_ROOT%{_libdir}/$p 
+libtool --mode=install /usr/bin/install -c -m 755 src/dblib/libsybdb.la $RPM_BUILD_ROOT%{_libdir}/$p 
+libtool --mode=install /usr/bin/install -c -m 755 src/ctlib/libct.la $RPM_BUILD_ROOT%{_libdir}/$p 
+libtool --mode=install /usr/bin/install -c -m 755 src/odbc/libtdsodbc.la $RPM_BUILD_ROOT%{_libdir}/$p 
+
+# devel 
+list="bkpublic cstypes cspublic ctlib ctpublic dblib sqldb sqlfront" 
+list="$list sybdb syberror sybfront tds tdsver tdsconvert tdsutil tds_configs" 
+for p in $list; do 
+	install -c -m 644 include/$p.h $RPM_BUILD_ROOT%{_includedir}/freetds 
+done 
+ 
+%post 
+/sbin/ldconfig 
+ 
+%clean 
+rm -rf $RPM_BUILD_ROOT 
+ 
+%files 
+%defattr(-,root,root) 
+%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README TODO 
+%{_libdir}/libct.a 
+%{_libdir}/libct.so.0.0.0 
+%{_libdir}/libsybdb.a 
+%{_libdir}/libsybdb.so.1.0.0 
+%{_libdir}/libtds.a 
+%{_libdir}/libtds.so.0.0.0 
+%{_libdir}/libtdsodbc.a 
+%{_libdir}/libtdsodbc.so.0.0.0 
+%config %{_sysconfdir}/freetds.conf 
+ 
+%files devel 
+%defattr (-,root,root) 
+%{_includedir}/freetds/bkpublic.h 
+%{_includedir}/freetds/cstypes.h 
+%{_includedir}/freetds/cspublic.h 
+%{_includedir}/freetds/ctlib.h 
+%{_includedir}/freetds/ctpublic.h 
+%{_includedir}/freetds/dblib.h 
+%{_includedir}/freetds/sqldb.h 
+%{_includedir}/freetds/sqlfront.h 
+%{_includedir}/freetds/sybdb.h 
+%{_includedir}/freetds/syberror.h 
+%{_includedir}/freetds/sybfront.h 
+%{_includedir}/freetds/tds.h 
+%{_includedir}/freetds/tdsver.h 
+%{_includedir}/freetds/tdsconvert.h 
+%{_includedir}/freetds/tdsutil.h 
+%{_includedir}/freetds/tds_configs.h 
+ 
+%changelog 
+* Thu Dec 20 2001 Brian Bruns <camber@ais.org> 
+- Modifications for 0.53 ver and removing interfaces file
+* Wed Jun 28 2001 Brian Bruns <camber@ais.org> 
+- Modifications for 0.52 ver and ODBC drivers 
+* Wed Feb 14 2001 David Hollis <dhollis@emagisoft.com> 
+- First stab at RPM for 0.51 ver 
