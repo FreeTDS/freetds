@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.4 2004-06-29 06:38:25 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -35,7 +35,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 {
 	char sql[512];
 	char *val = "test";
-	SQLINTEGER inttmp = 4;
+	SQLLEN ind = 4;
 	int id = 1;
 
 	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
@@ -45,11 +45,11 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 
 	success(2, SQLPrepare(Statement, (SQLCHAR *) sql, strlen(sql)));
 	if (bind1[0] == '?')
-		success(3, SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &inttmp));
+		success(3, SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind));
 	if (bind2[0] == '?')
 		success(4,
 			SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
-					 0, &inttmp));
+					 0, &ind));
 	success(5, SQLExecute(Statement));
 }
 

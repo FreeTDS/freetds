@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.5 2004-02-19 13:58:47 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -27,8 +27,8 @@ Test(int bind_before)
 	SQLSMALLINT InParam = 5;
 	SQLSMALLINT OutParam = 1;
 	SQLCHAR OutString[OUTSTRING_LEN];
-	SQLINTEGER cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
-	SQLINTEGER cbOutString = SQL_NTS;
+	SQLLEN cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
+	SQLLEN cbOutString = SQL_NTS;
 
 	Connect();
 

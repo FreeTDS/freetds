@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.2 2004-04-17 10:02:30 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.3 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -60,8 +60,8 @@ Test(int level)
 	SQLSMALLINT InParam = level;
 	SQLSMALLINT OutParam = 1;
 	SQLCHAR OutString[OUTSTRING_LEN];
-	SQLINTEGER cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
-	SQLINTEGER cbOutString = SQL_NTS;
+	SQLLEN cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
+	SQLLEN cbOutString = SQL_NTS;
 
 	char sql[80];
 

@@ -1,3 +1,18 @@
+Thu Oct 28 15:15:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/binary_test.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/convert_error.c src/odbc/unittests/data.c:
+	* src/odbc/unittests/date.c src/odbc/unittests/earlybind.c:
+	* src/odbc/unittests/funccall.c src/odbc/unittests/genparams.c:
+	* src/odbc/unittests/moreandcount.c src/odbc/unittests/norowset.c:
+	* src/odbc/unittests/params.c src/odbc/unittests/prepare_results.c:
+	* src/odbc/unittests/preperror.c src/odbc/unittests/print.c:
+	* src/odbc/unittests/putdata.c src/odbc/unittests/raiserror.c:
+	* src/odbc/unittests/rebindpar.c src/odbc/unittests/t0001.c:
+	* src/odbc/unittests/t0004.c src/odbc/unittests/tables.c:
+	* src/odbc/unittests/testodbc.c src/odbc/unittests/transaction.c:
+	* src/odbc/unittests/type.c src/odbc/unittests/typeinfo.c:
+	- fixes for 64-bit ODBC
+
 Thu Oct 28 14:39:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: more checks on odbc
 	* include/tdsodbc.h src/odbc/convert_tds2sql.c:

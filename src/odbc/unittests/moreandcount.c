@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.9 2004-09-09 10:58:15 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.10 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -29,7 +29,7 @@ CheckCols(int n)
 static void
 CheckRows(int n)
 {
-	SQLINTEGER rows;
+	SQLLEN rows;
 	SQLRETURN res;
 
 	res = SQLRowCount(Statement, &rows);

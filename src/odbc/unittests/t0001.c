@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.13 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.14 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -10,7 +10,7 @@ main(int argc, char *argv[])
 	int res;
 	int i;
 
-	SQLINTEGER cnamesize;
+	SQLLEN cnamesize;
 
 	const char *command;
 	SQLCHAR output[256];

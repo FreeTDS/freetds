@@ -1,9 +1,9 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.5 2004-03-28 18:34:17 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static SQLINTEGER cnamesize;
+static SQLLEN cnamesize;
 static SQLCHAR output[256];
 
 static void

@@ -3,7 +3,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.8 2004-09-03 14:24:27 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -11,7 +11,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 {
 	char sbuf[1024];
 	unsigned char out_buf[256];
-	SQLINTEGER out_len = 0;
+	SQLLEN out_len = 0;
 	SQL_NUMERIC_STRUCT *num;
 	int i;
 
@@ -66,7 +66,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 {
 	char sbuf[1024];
 	unsigned char out_buf[256];
-	SQLINTEGER out_len = 0;
+	SQLLEN out_len = 0;
 
 	SQLFreeStmt(Statement, SQL_UNBIND);
 	SQLFreeStmt(Statement, SQL_RESET_PARAMS);

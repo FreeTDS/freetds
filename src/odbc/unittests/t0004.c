@@ -2,15 +2,15 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.13 2003-06-03 06:26:21 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.14 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 Test(int use_indicator)
 {
 	char buf[128];
-	SQLINTEGER ind;
-	SQLINTEGER *pind = use_indicator ? &ind : NULL;
+	SQLLEN ind;
+	SQLLEN *pind = use_indicator ? &ind : NULL;
 
 	strcpy(buf, "I don't exist");
 	ind = strlen(buf);

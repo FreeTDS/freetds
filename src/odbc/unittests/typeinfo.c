@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.3 2004-10-13 18:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -52,7 +52,7 @@ static void
 CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type)
 {
 	SQLSMALLINT out_type;
-	SQLINTEGER ind;
+	SQLLEN ind;
 
 	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 2, SQL_C_SSHORT, &out_type, 0, &ind)))
 		ODBC_REPORT_ERROR("SQLBindCol failed");
@@ -89,7 +89,8 @@ DoTest(int version3)
 {
 	char name[128], params[128];
 	SQLSMALLINT type, is_unsigned;
-	SQLINTEGER col_size, min_scale, ind1, ind2, ind3, ind4, ind5, ind6;
+	SQLINTEGER col_size, min_scale;
+	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
 	SQLRETURN retcode;
 
 	use_odbc_version3 = version3;

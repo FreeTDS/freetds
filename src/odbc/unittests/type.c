@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.5 2004-09-03 14:24:27 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -99,6 +99,7 @@ main(int argc, char **argv)
 	const struct type *p;
 	char buf[16];
 	SQLINTEGER ind;
+	SQLLEN lind;
 	SQLHDESC desc;
 
 	Connect();
@@ -110,7 +111,7 @@ main(int argc, char **argv)
 	/* test C types */
 	for (p = types; p->name; ++p) {
 		if (SQL_SUCCEEDED
-		    (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &ind))) {
+		    (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &lind))) {
 			SQLSMALLINT concise_type, type, code;
 			SQLHDESC desc;
 

@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.8 2004-07-03 17:40:37 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -12,9 +12,9 @@ DoTest(int n)
 	SQLCHAR output[256];
 
 	SQLSMALLINT colType;
-	SQLUINTEGER colSize;
+	SQLULEN colSize;
 	SQLSMALLINT colScale, colNullable;
-	SQLINTEGER dataSize;
+	SQLLEN dataSize;
 
 	TIMESTAMP_STRUCT ts;
 

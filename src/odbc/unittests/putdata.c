@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.8 2004-09-03 14:24:27 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -13,7 +13,7 @@ static const char test_text[] =
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER ind;
+	SQLLEN ind;
 	int len = strlen(test_text), n, i;
 	const char *p;
 	SQLPOINTER ptr;

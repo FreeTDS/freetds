@@ -2,13 +2,14 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.10 2004-04-12 17:07:51 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.11 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER input, ind, ind2, ind3, ind4, output;
+	SQLINTEGER input, output;
+	SQLLEN ind, ind2, ind3, ind4;
 	SQLINTEGER out1;
 	char out2[30];
 

@@ -1,12 +1,13 @@
 #include "common.h"
 
-static char software_version[] = "$Id: earlybind.c,v 1.1 2003-05-11 08:33:48 freddy77 Exp $";
+static char software_version[] = "$Id: earlybind.c,v 1.2 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER id, ind1, ind2;
+	SQLINTEGER id;
+	SQLLEN ind1, ind2;
 	char name[64];
 
 	Connect();

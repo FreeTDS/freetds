@@ -2,13 +2,13 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.3 2004-03-12 16:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: preperror.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER cbInString = SQL_NTS;
+	SQLLEN cbInString = SQL_NTS;
 	char buf[256];
 	SQLRETURN ret;
 	unsigned char sqlstate[6];

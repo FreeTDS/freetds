@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.4 2003-05-02 19:05:16 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -67,10 +67,10 @@ clean_up(void)
 }
 
 static int
-test_insert(void *buf, SQLINTEGER buflen)
+test_insert(void *buf, SQLLEN buflen)
 {
 	SQLHSTMT stmt_handle;
-	SQLINTEGER strlen_or_ind;
+	SQLLEN strlen_or_ind;
 	const char *qstr = "insert into " TEST_TABLE_NAME " values (?)";
 
 	assert(Connection);
@@ -122,10 +122,10 @@ test_insert(void *buf, SQLINTEGER buflen)
 
 
 static int
-test_select(void *buf, SQLINTEGER buflen, SQLINTEGER * bytes_returned)
+test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 {
 	SQLHSTMT stmt_handle;
-	SQLINTEGER strlen_or_ind = 0;
+	SQLLEN strlen_or_ind = 0;
 	const char *qstr = "select * from " TEST_TABLE_NAME;
 
 	assert(Connection);
@@ -189,7 +189,7 @@ int
 main(int argc, char **argv)
 {
 	int i;
-	SQLINTEGER bytes_returned;
+	SQLLEN bytes_returned;
 
 	/* do not allocate so big memory in stack */
 	buf = (unsigned char *) malloc(TEST_BUF_LEN);

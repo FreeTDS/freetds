@@ -2,13 +2,13 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.4 2004-08-10 19:18:13 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 TestInsert(HSTMT stmt, char *buf)
 {
-	SQLINTEGER ind;
+	SQLLEN ind;
 	int l = strlen(buf);
 	char sql[200];
 
@@ -31,7 +31,7 @@ TestInsert(HSTMT stmt, char *buf)
 static void
 Test(int prebind)
 {
-	SQLINTEGER ind;
+	SQLLEN ind;
 	int i;
 	char buf[100];
 	HSTMT stmt;
