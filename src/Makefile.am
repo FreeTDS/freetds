@@ -1,5 +1,5 @@
 if ODBC
-SUBDIRS	=	tds ctlib dblib odbc server
+SUBDIRS	=	tds ctlib dblib odbc apps server
 else
-SUBDIRS	=	tds ctlib dblib server
+SUBDIRS	=	tds ctlib dblib apps server
 endif

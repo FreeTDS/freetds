@@ -184,5 +184,6 @@ AC_OUTPUT(include/tdsver.h include/tds.h \
 		src/ctlib/Makefile src/ctlib/unittests/Makefile \
 	src/server/Makefile \
 	src/pool/Makefile \
-	src/odbc/Makefile 
+	src/odbc/Makefile \
+	src/apps/Makefile 
 )

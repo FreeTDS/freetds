@@ -1,3 +1,9 @@
+Sun Jun  9 18:17:46 EDT 2002	Brian Bruns <camber@ais.org>
+	* src/apps/Makefile.am: initial implementation
+	* src/apps/freebcp.c: initial implementation (Bill Thompson)
+	* src/apps/freebcp.h: initial implementation (Bill Thompson)
+	* src/apps/tsql.c: initial implementation
+
 Sun Jun  9 09:47:34 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
 	* src/odbc/convert_sql2string.c:
 	- add checking of ODBC driver version
