@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.95 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.96 2003-09-17 22:40:11 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -883,10 +883,13 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(298, "22008");
 			SQLS_ENTRY(535, "22008");
 			SQLS_ENTRY(542, "22008");
+			SQLS_ENTRY(517, "22008");
 			SQLS_ENTRY(3607, "22012");	/* Div by zero */
 			SQLS_ENTRY(8134, "22012");
 			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(2627, "23000");	/* Constraint violation */
+			SQLS_ENTRY(515, "23000");
+			SQLS_ENTRY(544, "23000");
 			SQLS_ENTRY(547, "23000");
 			SQLS_ENTRY(550, "23000");
 			SQLS_ENTRY(4415, "23000");
@@ -921,6 +924,13 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(15626, "25000");
 			SQLS_ENTRY(18456, "28000");	/* Login failed? */
 			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
+			SQLS_ENTRY(8114, "37000");
+			SQLS_ENTRY(131, "37000");
+			SQLS_ENTRY(170, "37000");
+			SQLS_ENTRY(174, "37000");
+			SQLS_ENTRY(201, "37000");
+			SQLS_ENTRY(2526, "37000");
+			SQLS_ENTRY(8144, "37000");
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(17571, "42000");
 			SQLS_ENTRY(18002, "42000");
@@ -951,6 +961,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(113, "42000");
 			SQLS_ENTRY(2714, "42S01");	/* Table or view already exists */
 			SQLS_ENTRY(208, "42S02");	/* Table or view not found */
+			SQLS_ENTRY(3701, "42S02");
 			SQLS_ENTRY(1913, "42S11");	/* Index already exists */
 			SQLS_ENTRY(15605, "42S11");
 			SQLS_ENTRY(307, "42S12");	/* Index not found */
@@ -984,9 +995,11 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(3606, "22003");
 			SQLS_ENTRY(535, "22008");	/* Datetime out of range */
 			SQLS_ENTRY(542, "22008");
+			SQLS_ENTRY(517, "22008");
 			SQLS_ENTRY(3607, "22012");	/* Div by zero */
 			SQLS_ENTRY(245, "22018");	/* Syntax error? */
 			SQLS_ENTRY(544, "23000");	/* Constraint violation */
+			SQLS_ENTRY(233, "23000");
 			SQLS_ENTRY(545, "23000");
 			SQLS_ENTRY(546, "23000");
 			SQLS_ENTRY(547, "23000");
@@ -1013,6 +1026,12 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(3902, "25000");
 			SQLS_ENTRY(3903, "25000");
 			SQLS_ENTRY(6104, "37000");	/* Syntax error or access violation */
+			SQLS_ENTRY(102, "37000");
+			SQLS_ENTRY(7327, "37000");
+			SQLS_ENTRY(201, "37000");
+			SQLS_ENTRY(257, "37000");
+			SQLS_ENTRY(2526, "37000");
+			SQLS_ENTRY(11021, "37000");
 			SQLS_ENTRY(229, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(230, "42000");
 			SQLS_ENTRY(262, "42000");
@@ -1035,6 +1054,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(113, "42000");
 			SQLS_ENTRY(2714, "42S01");	/* Table or view already exists */
 			SQLS_ENTRY(208, "42S02");	/* Table or view not found */
+			SQLS_ENTRY(3701, "42S02");
 			SQLS_ENTRY(1913, "42S11");	/* Index already exists */
 			SQLS_ENTRY(307, "42S12");	/* Index not found */
 			SQLS_ENTRY(7010, "42S12");
