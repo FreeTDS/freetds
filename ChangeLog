@@ -1,3 +1,6 @@
+Wed Jan 22 15:56:39 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/api_status.txt updated db-lib status with Sybase's functions
+
 Wed Jan 22 15:23:32 EST 2003    JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c _bcp_exec_out(): no output for null columns 
 	* src/dblib/dblib.c dbconvert(): do not initialize dest if destlen = -1

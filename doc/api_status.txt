@@ -128,189 +128,261 @@ odbc	(all)	SQLStatistics	stub
 odbc	(all)	SQLTablePrivileges	stub
 odbc	(all)	SQLTables	OK
 odbc	(all)	SQLTransact	OK
-dblib	core	dbadata	OK
-dblib	core	dbadlen	OK
-dblib	core	dbaltbind	OK
-dblib	core	dbaltcolid	OK
-dblib	core	dbaltlen	OK
-dblib	core	dbaltop	OK
-dblib	core	dbalttype	OK
-dblib	core	dbaltutype	OK
-dblib	core	dbanullbind	OK
-dblib	core	dbbind	OK
-dblib	core	dbbylist	OK
-dblib	core	dbcancel	OK
-dblib	core	dbcanquery	OK
-dblib	core	dbchange	OK
-dblib	core	dbclose	OK
-dblib	core	dbclrbuf	OK
-dblib	core	dbclropt	partial
-dblib	core	dbcmd	OK
-dblib	core	dbcmdrow	OK
-dblib	core	dbcolinfo	
-dblib	core	dbcollen	OK
-dblib	core	dbcolname	OK
-dblib	core	dbcoltype	OK
-dblib	core	dbcolutype	OK
-dblib	core	dbconvert	OK
-dblib	core	dbcount	OK
-dblib	core	dbcurcmd	stub
-dblib	core	dbcurrow	stub
-dblib	core	dbdata	OK
-dblib	core	dbdataready	
-dblib	core	dbdatecrack	OK
-dblib	core	dbdatlen	OK
-dblib	core	dbdead	OK
-dblib	core	dbenlisttrans	
-dblib	core	dbenlistxatrans	
-dblib	core	dberrhandle	OK
-dblib	core	dbexit	OK
-dblib	core	dbfcmd	OK
-dblib	core	dbfirstrow	OK
-dblib	core	dbfreebuf	OK
-dblib	core	dbgetchar	OK
-dblib	core	dbgetmaxprocs	OK
-dblib	core	dbgetoff	
-dblib	core	dbgetpacket	OK
-dblib	core	dbgetrow	OK
-dblib	core	dbgettime	
-dblib	core	dbgetuserdata	OK
-dblib	core	dbinit	OK
-dblib	core	dbisavail	OK
-dblib	core	dbiscount	
-dblib	core	dbisopt	partial
-dblib	core	dblastrow	OK
-dblib	core	dblogin	OK
-dblib	core	dbloginfree	OK
-dblib	core	dbmorecmds	stub
-dblib	core	dbmsghandle	OK
-dblib	core	dbmny4add	OK
-dblib	core	dbmny4cmp	OK
-dblib	core	dbmny4copy	OK
-dblib	core	dbmny4divide	stub
-dblib	core	dbmny4minus	OK
-dblib	core	dbmny4mul	stub
-dblib	core	dbmny4sub	OK
-dblib	core	dbmny4zero	OK
-dblib	core	dbmnyadd	stub
-dblib	core	dbmnycmp	OK
-dblib	core	dbmnycopy	OK
-dblib	core	dbmnydec	stub
-dblib	core	dbmnydivide	stub
-dblib	core	dbmnydown	stub
-dblib	core	dbmnyinc	stub
-dblib	core	dbmnyinit	stub
-dblib	core	dbmnymaxneg	stub
-dblib	core	dbmnymaxpos	stub
-dblib	core	dbmnyminus	stub
-dblib	core	dbmnymul	stub
-dblib	core	dbmnyndigit	stub
-dblib	core	dbmnyscale	stub
-dblib	core	dbmnysub	stub
-dblib	core	dbmnyzero	OK
-dblib	core	dbname	OK
-dblib	core	dbnextrow	OK
-dblib	core	dbnullbind	OK
-dblib	core	dbnumalts	OK
-dblib	core	dbnumcols	OK
-dblib	core	dbnumcompute	OK
-dblib	core	dbnumorders	
-dblib	core	dbopen	OK
-dblib	core	dbordercol	
-dblib	core	dbprhead	OK
-dblib	core	dbprocerrhandle	
-dblib	core	dbprocinfo	
-dblib	core	dbprocmsghandle	
-dblib	core	dbprrow	OK
-dblib	core	dbprtype	OK
-dblib	core	dbresults	OK
-dblib	core	dbrows	OK
-dblib	core	dbrowtype	stub
-dblib	core	dbserverenum	
-dblib	core	dbservcharset	OK
-dblib	core	dbsetavail	OK
-dblib	core	dbsetlapp	OK
-dblib	core	dbsetlfallback	
-dblib	core	dbsetlhost	OK
-dblib	core	dbsetlnatlang	OK
-dblib	core	dbsetlogintime	OK
-dblib	core	dbsetlpacket	OK
-dblib	core	dbsetlpwd	OK
-dblib	core	dbsetlsecure	
-dblib	core	dbsetltime	
-dblib	core	dbsetluser	OK
-dblib	core	dbsetlversion	
-dblib	core	dbsetmaxprocs	OK
-dblib	core	dbsetnull	
-dblib	core	dbsetopt	partial
-dblib	core	dbsettime	stub
-dblib	core	dbsetuserdata	OK
-dblib	core	dbspid	OK
-dblib	core	dbsqlexec	OK
-dblib	core	dbsqlok	OK
-dblib	core	dbsqlsend	OK
-dblib	core	dbstrbuild	OK
-dblib	core	dbstrcpy	OK
-dblib	core	dbstrlen	OK
-dblib	core	dbtds	OK
-dblib	core	dbuse	OK
-dblib	core	dbvarylen	
-dblib	core	dbversion	OK
-dblib	core	dbwillconvert	OK
-dblib	core	dbwinexit (Windows only)	
-dblib	cursor	dbcursor	
-dblib	cursor	dbcursorbind	
-dblib	cursor	dbcursorclose	
-dblib	cursor	dbcursorcolinfo	
-dblib	cursor	dbcursorfetch	
-dblib	cursor	dbcursorfetchex	
-dblib	cursor	dbcursorinfo	
-dblib	cursor	dbcursorinfoex	
-dblib	cursor	dbcursoropen	
-dblib	procedure	dbhasretstat	OK
-dblib	procedure	dbnumrets	OK
-dblib	procedure	dbretdata	OK
-dblib	procedure	dbretlen	OK
-dblib	procedure	dbretname	OK
-dblib	procedure	dbretstatus	OK
-dblib	procedure	dbrettype	OK
-dblib	procedure	dbrpcexec	
-dblib	procedure	dbrpcinit	OK
-dblib	procedure	dbrpcparam	OK
-dblib	procedure	dbrpcsend	OK
-dblib	text	dbmoretext	OK
-dblib	text	dbreadtext	OK
-dblib	text	dbtxptr	OK
-dblib	text	dbtxtimestamp	OK
-dblib	text	dbtxtsnewval	
-dblib	text	dbtxtsput	
-dblib	text	dbupdatetext	
-dblib	text	dbwritetext	OK
-dblib	browse	dbcolbrowse	
-dblib	browse	dbcolsource	OK
-dblib	browse	dbfreequal	
-dblib	browse	dbqual	
-dblib	browse	dbtabbrowse	
-dblib	browse	dbtabcount	
-dblib	browse	dbtabname	
-dblib	browse	dbtabsource	
-dblib	browse	dbtsnewlen	
-dblib	browse	dbtsnewval	
-dblib	browse	dbtsput	
-dblib	bcp	bcp_batch	OK
-dblib	bcp	bcp_bind	OK
-dblib	bcp	bcp_colfmt	OK
-dblib	bcp	bcp_collen	OK
-dblib	bcp	bcp_colptr	OK
-dblib	bcp	bcp_columns	OK
-dblib	bcp	bcp_control	OK
-dblib	bcp	bcp_done	OK
-dblib	bcp	bcp_exec	OK
-dblib	bcp	bcp_init	OK
-dblib	bcp	bcp_moretext	stub
-dblib	bcp	bcp_readfmt	OK
-dblib	bcp	bcp_sendrow	OK
-dblib	bcp	BCP_SETL	OK
+dblib	(none)   	n/a				db12hour	
+dblib	(none)   	n/a				dbaltbind_ps	
+dblib	(none)   	n/a				dbbind_ps	
+dblib	(none)   	n/a				dbbufsize	
+dblib	(none)   	n/a				dbcharsetconv	
+dblib	(none)   	n/a				dbcoltypeinfo	
+dblib	(none)   	n/a				dbconvert_ps	
+dblib	(none)   	n/a				dbfreesort	
+dblib	(none)   	n/a				dbfree_xlate	
+dblib	(none)   	n/a				dbgetcharset	
+dblib	(none)   	n/a				dbgetloginfo	
+dblib	(none)   	n/a				dbgetlusername	
+dblib	(none)   	n/a				dbgetnatlang	
+dblib	(none)   	n/a				DBIORDESC	
+dblib	(none)   	n/a				DBIOWDESC	
+dblib	(none)   	n/a				dbloadsort	
+dblib	(none)   	n/a				dbload_xlate	
+dblib	(none)   	n/a				dbnpcreate	
+dblib	(none)   	n/a				dbnpdefine	
+dblib	(none)   	n/a				dbpoll		
+dblib	(none)   	n/a				DBRBUF		
+dblib	(none)   	n/a				dbreadpage	
+dblib	(none)   	n/a				dbrecftos	
+dblib	(none)   	n/a				dbrecvpassthru	
+dblib	(none)   	n/a				dbregdrop	
+dblib	(none)   	n/a				dbregexec	
+dblib	(none)   	n/a				dbreghandle	
+dblib	(none)   	n/a				dbreginit	
+dblib	(none)   	n/a				dbreglist	
+dblib	(none)   	n/a				dbregnowatch	
+dblib	(none)   	n/a				dbregparam	
+dblib	(none)   	n/a				dbregwatch	
+dblib	(none)   	n/a				dbregwatchlist	
+dblib	(none)   	n/a				dbrpwclr	
+dblib	(none)   	n/a				dbrpwset	
+dblib	(none)   	n/a				dbsafestr	
+dblib	(none)   	n/a				dbsechandle	
+dblib	(none)   	n/a				dbsendpassthru	
+dblib	(none)   	n/a				dbsetbusy	
+dblib	(none)   	n/a				dbsetdefcharset	
+dblib	(none)   	n/a				dbsetdeflang	
+dblib	(none)   	n/a				dbsetidle	
+dblib	(none)   	n/a				dbsetifile	
+dblib	(none)   	n/a				dbsetinterrupt	
+dblib	(none)   	n/a				DBSETLCHARSET	
+dblib	(none)   	n/a				DBSETLENCRYPT	
+dblib	(none)   	n/a				dbsetloginfo	
+dblib	(none)   	n/a				dbsetrow	
+dblib	(none)   	n/a				dbsetversion	
+dblib	(none)   	n/a				dbspr1row	
+dblib	(none)   	n/a				dbspr1rowlen	
+dblib	(none)   	n/a				dbsprhead	
+dblib	(none)   	n/a				dbsprline	
+dblib	(none)   	n/a				dbstrcmp	
+dblib	(none)   	n/a				dbstrsort	
+dblib	(none)   	n/a				dbtextsize	
+dblib	(none)   	n/a				dbwritepage	
+dblib	(none)   	n/a				dbxlate		
+dblib	bcp      	bcp_batch			(same)		OK
+dblib	bcp      	bcp_bind			(same)		OK
+dblib	bcp      	bcp_colfmt			(same)		OK
+dblib	bcp      	n/a				bcp_colfmt_ps	
+dblib	bcp      	bcp_collen			(same)		OK
+dblib	bcp      	bcp_colptr			(same)		OK
+dblib	bcp      	bcp_columns			(same)		OK
+dblib	bcp      	bcp_control			(same)		OK
+dblib	bcp      	bcp_done			(same)		OK
+dblib	bcp      	bcp_exec			(same)		OK
+dblib	bcp      	n/a				bcp_getl	OK
+dblib	bcp      	bcp_init			(same)		OK
+dblib	bcp      	bcp_moretext			(same)		stub
+dblib	bcp      	n/a				bcp_options	
+dblib	bcp      	bcp_readfmt			n/a		OK
+dblib	bcp      	bcp_sendrow			n/a		OK
+dblib	bcp      	BCP_SETL			n/a		OK
+dblib	browse   	dbcolbrowse			(same)		
+dblib	browse   	dbcolsource			(same)		OK
+dblib	browse   	dbfreequal			(same)		
+dblib	browse   	dbqual				(same)		
+dblib	browse   	dbtabbrowse			(same)		
+dblib	browse   	dbtabcount			(same)		
+dblib	browse   	dbtabname			(same)		
+dblib	browse   	dbtabsource			(same)		
+dblib	browse   	dbtsnewlen			(same)		
+dblib	browse   	dbtsnewval			(same)		
+dblib	browse   	dbtsput				(same)		
+dblib	core     	dbadata				(same)		OK
+dblib	core     	dbadlen				(same)		OK
+dblib	core     	dbaltbind			(same)		OK
+dblib	core     	dbaltcolid			(same)		OK
+dblib	core     	dbaltlen			(same)		OK
+dblib	core     	dbaltop				(same)		OK
+dblib	core     	dbalttype			(same)		OK
+dblib	core     	dbaltutype			(same)		OK
+dblib	core     	dbanullbind			(same)		OK
+dblib	core     	dbbind				(same)		OK
+dblib	core     	dbbylist			(same)		OK
+dblib	core     	dbcancel			(same)		OK
+dblib	core     	dbcanquery			(same)		OK
+dblib	core     	dbchange			(same)		OK
+dblib	core     	dbclose				(same)		OK
+dblib	core     	dbclrbuf			(same)		OK
+dblib	core     	dbclropt			(same)		partial
+dblib	core     	dbcmd				(same)		OK
+dblib	core     	dbcmdrow			DBCMDROW	OK
+dblib	core     	dbcolinfo			n/a		
+dblib	core     	dbcollen			(same)		OK
+dblib	core     	dbcolname			(same)		OK
+dblib	core     	dbcoltype			(same)		OK
+dblib	core     	dbcolutype			(same)		OK
+dblib	core     	dbconvert			(same)		OK
+dblib	core     	dbcount				DBCOUNT		OK
+dblib	core     	dbcurcmd			DBCURCMD	stub
+dblib	core     	dbcurrow			DBCURROW	stub
+dblib	core     	dbdata				(same)		OK
+dblib	core     	dbdataready			n/a		
+dblib	core     	dbdatecrack			(same)		OK
+dblib	core     	dbdatlen			(same)		OK
+dblib	core     	dbdead				DBDEAD		OK
+dblib	core     	dbenlisttrans			n/a		
+dblib	core     	dbenlistxatrans			n/a		
+dblib	core     	dberrhandle			(same)		OK
+dblib	core     	dbexit				(same)		OK
+dblib	core     	dbfcmd				(same)		OK
+dblib	core     	dbfirstrow			DBFIRSTROW	OK
+dblib	core     	dbfreebuf			(same)		OK
+dblib	core     	dbgetchar			(same)		OK
+dblib	core     	dbgetmaxprocs			(same)		OK
+dblib	core     	dbgetoff			(same)		
+dblib	core     	dbgetpacket			(same)		OK
+dblib	core     	dbgetrow			(same)		OK
+dblib	core     	dbgettime			DBGETTIME	
+dblib	core     	dbgetuserdata			(same)		OK
+dblib	core     	dbinit				(same)		OK
+dblib	core     	dbisavail			DBISAVAIL	OK
+dblib	core     	dbiscount			n/a		
+dblib	core     	dbisopt				(same)		partial
+dblib	core     	dblastrow			DBLASTROW	OK
+dblib	core     	dblogin				(same)		OK
+dblib	core     	dbloginfree			(same)		OK
+dblib	core     	dbmny4add			(same)		OK
+dblib	core     	dbmny4cmp			(same)		OK
+dblib	core     	dbmny4copy			(same)		OK
+dblib	core     	dbmny4divide			(same)		stub
+dblib	core     	dbmny4minus			(same)		OK
+dblib	core     	dbmny4mul			(same)		stub
+dblib	core     	dbmny4sub			(same)		OK
+dblib	core     	dbmny4zero			(same)		OK
+dblib	core     	dbmnyadd			(same)		stub
+dblib	core     	dbmnycmp			(same)		OK
+dblib	core     	dbmnycopy			(same)		OK
+dblib	core     	dbmnydec			(same)		stub
+dblib	core     	dbmnydivide			(same)		stub
+dblib	core     	dbmnydown			(same)		stub
+dblib	core     	dbmnyinc			(same)		stub
+dblib	core     	dbmnyinit			(same)		stub
+dblib	core     	dbmnymaxneg			(same)		stub
+dblib	core     	dbmnymaxpos			(same)		stub
+dblib	core     	dbmnyminus			(same)		stub
+dblib	core     	dbmnymul			(same)		stub
+dblib	core     	dbmnyndigit			(same)		stub
+dblib	core     	dbmnyscale			(same)		stub
+dblib	core     	dbmnysub			(same)		stub
+dblib	core     	dbmnyzero			(same)		OK
+dblib	core     	dbmorecmds			DBMORECMDS	stub
+dblib	core     	dbmsghandle			(same)		OK
+dblib	core     	dbname				(same)		OK
+dblib	core     	dbnextrow			(same)		OK
+dblib	core     	dbnullbind			(same)		OK
+dblib	core     	dbnumalts			(same)		OK
+dblib	core     	dbnumcols			(same)		OK
+dblib	core     	dbnumcompute			(same)		OK
+dblib	core     	dbnumorders			DBNUMORDERS	
+dblib	core     	dbopen				(same)		OK
+dblib	core     	dbordercol			(same)		
+dblib	core     	dbprhead			(same)		OK
+dblib	core     	dbprocerrhandle			n/a		
+dblib	core     	dbprocinfo			n/a		
+dblib	core     	dbprocmsghandle			n/a		
+dblib	core     	dbprrow				(same)		OK
+dblib	core     	dbprtype			(same)		OK
+dblib	core     	dbresults			(same)		OK
+dblib	core     	dbrows				DBROWS		OK
+dblib	core     	dbrowtype			DBROWTYPE	stub
+dblib	core     	dbservcharset			(same)		OK
+dblib	core     	dbserverenum			n/a		
+dblib	core     	dbsetavail			(same)		OK
+dblib	core     	dbsetlapp			DBSETLAPP	OK
+dblib	core     	dbsetlfallback			n/a		
+dblib	core     	dbsetlhost			DBSETLHOST	OK
+dblib	core     	dbsetlnatlang			DBSETLNATLANG	OK
+dblib	core     	dbsetlogintime			(same)		OK
+dblib	core     	dbsetlpacket			DBSETLPACKET	OK
+dblib	core     	dbsetlpwd			DBSETLPWD	OK
+dblib	core     	dbsetlsecure			n/a		
+dblib	core     	dbsetltime			n/a		
+dblib	core     	dbsetluser			DBSETLUSER	OK
+dblib	core     	dbsetlversion			n/a		
+dblib	core     	dbsetmaxprocs			(same)		OK
+dblib	core     	dbsetnull			(same)		
+dblib	core     	dbsetopt			(same)		partial
+dblib	core     	dbsettime			(same)		stub
+dblib	core     	dbsetuserdata			(same)		OK
+dblib	core     	dbspid				(same)		OK
+dblib	core     	dbsqlexec			(same)		OK
+dblib	core     	dbsqlok				(same)		OK
+dblib	core     	dbsqlsend			(same)		OK
+dblib	core     	dbstrbuild			(same)		OK
+dblib	core     	dbstrcpy			(same)		OK
+dblib	core     	dbstrlen			(same)		OK
+dblib	core     	dbtds				DBTDS		OK
+dblib	core     	dbuse				(same)		OK
+dblib	core     	dbvarylen			(same)		
+dblib	core     	dbversion			(same)		OK
+dblib	core     	dbwillconvert			(same)		OK
+dblib	core     	dbwinexit (Windows only)	n/a		
+dblib	cursor   	dbcursor			(same)		
+dblib	cursor   	dbcursorbind			(same)		
+dblib	cursor   	dbcursorclose			(same)		
+dblib	cursor   	dbcursorcolinfo			(same)		
+dblib	cursor   	dbcursorfetch			(same)		
+dblib	cursor   	dbcursorfetchex			n/a		
+dblib	cursor   	dbcursorinfo			(same)		
+dblib	cursor   	dbcursorinfoex			n/a		
+dblib	cursor   	dbcursoropen			(same)		
+dblib	datetime 	n/a				dbdate4cmp	
+dblib	datetime 	n/a				dbdate4zero	
+dblib	datetime 	n/a				dbdatechar	
+dblib	datetime 	n/a				dbdatecmp	
+dblib	datetime 	n/a				dbdatename	
+dblib	datetime 	n/a				dbdateorder	
+dblib	datetime 	n/a				dbdatepart	
+dblib	datetime 	n/a				dbdatezero	
+dblib	datetime 	n/a				dbdayname	
+dblib	datetime 	n/a				dbmonthname	
+dblib	procedure	dbhasretstat			(same)		OK
+dblib	procedure	dbnumrets			(same)		OK
+dblib	procedure	dbretdata			(same)		OK
+dblib	procedure	dbretlen			(same)		OK
+dblib	procedure	dbretname			(same)		OK
+dblib	procedure	dbretstatus			(same)		OK
+dblib	procedure	dbrettype			(same)		OK
+dblib	procedure	dbrpcexec			n/a		
+dblib	procedure	dbrpcinit			(same)		OK
+dblib	procedure	dbrpcparam			(same)		OK
+dblib	procedure	dbrpcsend			(same)		OK
+dblib	text     	dbmoretext			(same)		OK
+dblib	text     	dbreadtext			(same)		OK
+dblib	text     	dbtxptr				(same)		OK
+dblib	text     	dbtxtimestamp			(same)		OK
+dblib	text     	dbtxtsnewval			(same)		
+dblib	text     	dbtxtsput			(same)		
+dblib	text     	dbupdatetext			n/a		
+dblib	text     	dbwritetext			(same)		OK
+dblib	text     	dbwritetext			(same)		OK
 ctlib	(all)	ct_bind	OK	Bind server results to program variables.
 ctlib	(all)	ct_br_column		Retrieve information about a column generated by a browse mode select.
 ctlib	(all)	ct_br_table		Return information about browse mode tables.
