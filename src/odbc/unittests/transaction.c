@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.7 2004-03-15 19:39:35 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.8 2004-03-16 07:56:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -10,11 +10,11 @@ Test(int discard_test)
 	int result = 0;
 	SQLINTEGER rows;
 	int retcode = 0;
+	char buf[512];
+	unsigned char sqlstate[6];
 
-      	const char *createErrorProcedure = "CREATE PROCEDURE testerror AS\n"
-						"SELECT value FROM TestTransaction\n"
-						"SELECT value / (value-value) FROM TestTransaction\n"
-						;
+	const char *createErrorProcedure = "CREATE PROCEDURE testerror AS\n"
+		"SELECT value FROM TestTransaction\n" "SELECT value / (value-value) FROM TestTransaction\n";
 
 	/* select after insert is required to test data discarding */
 	char createProcedure[512];
@@ -106,43 +106,55 @@ Test(int discard_test)
 		retcode = 1;
 		goto cleanup;
 	}
-	if (SQLBindCol(Statement, 1, SQL_C_SLONG , &out_buf, sizeof(out_buf), &out_len) != SQL_SUCCESS) {
+	if (SQLBindCol(Statement, 1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len) != SQL_SUCCESS) {
 		ODBC_REPORT_ERROR("error: SQLBindCol: testerror");
 		retcode = 1;
 		goto cleanup;
 	}
 
-	/* FIXME this code work but is shouldn't, fix it */
-	exit(1);
-
-	do {
-		while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
-			printf("\t%ld\n", out_buf);
-			if (out_buf != 1) {
-				printf("error: expected to select 1 got %d\n", (int) out_buf);
-				retcode = 1;
-				goto cleanup;
-			}
-		}
-
-		if (result != SQL_NO_DATA) {
-			ODBC_REPORT_ERROR("error: SQLFetch: testerror");
+	while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
+		printf("\t%ld\n", out_buf);
+		if (out_buf != 1) {
+			printf("error: expected to select 1 got %d\n", (int) out_buf);
+			retcode = 1;
 			goto cleanup;
 		}
-
-		result = SQLMoreResults(Statement);
-		printf("SQLMoreResults returned %d\n", result);
-
-	} while (result == SQL_SUCCESS);
+	}
 
 	if (result != SQL_NO_DATA) {
-		ODBC_REPORT_ERROR("error: SQLMoreResults: testerror");
+		ODBC_REPORT_ERROR("error: SQLFetch: testerror");
+		goto cleanup;
+	}
+
+	result = SQLMoreResults(Statement);
+	printf("SQLMoreResults returned %d\n", result);
+
+	if (result != SQL_ERROR) {
+		printf("SQLMoreResults should return error\n");
+		retcode = 1;
+		goto cleanup;
+	}
+
+	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	if (result != SQL_SUCCESS && result != SQL_SUCCESS_WITH_INFO) {
+		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
+		retcode = 1;
+		goto cleanup;
+	}
+	printf("err=%s\n", buf);
+
+	result = SQLMoreResults(Statement);
+	printf("SQLMoreResults returned %d\n", result);
+	if (result != SQL_NO_DATA) {
+		printf("SQLMoreResults should return error");
+		retcode = 1;
 		goto cleanup;
 	}
 
       cleanup:
 	/* drop table */
 	CommandWithResult(Statement, "DROP PROCEDURE testinsert");
+	CommandWithResult(Statement, "DROP PROCEDURE testerror");
 
 	return retcode;
 }
