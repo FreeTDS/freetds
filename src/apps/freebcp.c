@@ -40,7 +40,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.25 2003-10-25 05:09:08 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.26 2003-10-31 18:55:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -125,7 +125,7 @@ static void unescape(char arg[])
 		switch (p[1]) {
 		case '0':
 			/* FIXME we use strlen() of field/row terminators, which obviously won't work here */
-			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n");
+			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n", __LINE__);
 			escaped = '\0';
 			break;
 		case 't':

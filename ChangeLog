@@ -1,3 +1,6 @@
+Fri Oct 31 13:49:02 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c fix line 128
+
 Wed Oct 29 10:18:29 EST 2003	 JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c 
 	- s/__func__/__FILE__/ for now
