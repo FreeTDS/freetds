@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.3 2003-12-05 22:00:59 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.4 2004-01-03 19:32:05 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -71,7 +71,7 @@ CPREFIX = ALL
 CINCLUDE = [],[.include],[.src.tds]$(ODBC_INC)
 
 .IFDEF __DEBUG__
-CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST/SHOW=ALL
+CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST=$(MMS$TARGET_NAME)/SHOW=ALL
 LDBGFLAGS = /DEBUG/MAP
 .ELSE
 CDBGFLAGS =
@@ -93,6 +93,7 @@ $(OBJ)$(OLB) :
 ASPRINTFOBJ = @ASPRINTFOBJ@
 VASPRINTFOBJ = @VASPRINTFOBJ@
 STRTOK_ROBJ = @STRTOK_ROBJ@
+LIBICONVOBJ = @LIBICONVOBJ@
 
 TDSOBJS = [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), [.src.tds]convert$(OBJ), \
 	[.src.tds]data$(OBJ), [.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
@@ -101,7 +102,7 @@ TDSOBJS = [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), [.src.tds]convert$(
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), \
-	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(STRTOK_ROBJ) \
+	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
 	[.vms]getpass$(OBJ)
 
 CTLIBOBJS = [.src.ctlib]blk$(OBJ), [.src.ctlib]cs$(OBJ), [.src.ctlib]ct$(OBJ), \
@@ -115,17 +116,19 @@ TDSSRVOBJS = [.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]l
 TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$(OBJ), \
 	[.src.pool]stream$(OBJ), [.src.pool]user$(OBJ), [.src.pool]util$(OBJ)
 
-TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), [.src.odbc]convert_sql2string$(OBJ), \
+TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), \
 	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]descriptor$(OBJ), [.src.odbc]error$(OBJ), \
 	[.src.odbc]native$(OBJ), [.src.odbc]odbc$(OBJ), [.src.odbc]odbc_checks$(OBJ), \
 	[.src.odbc]odbc_util$(OBJ) [.src.odbc]prepare_query$(OBJ), [.src.odbc]sql2tds$(OBJ)
 
 # This is the top-level target
 
-all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) \
-		$(TDSODBCSHR) buildchecks apps
+all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCSHR) buildchecks apps
 	@ write sys$output " "
-	@ write sys$output " Everything is up to date.  '$(MMS)$(MMSQUALIFIERS) check' to run test suite."
+        @ QUALIFIERS := $(MMSQUALIFIERS)
+        @ QUALIFIERS = QUALIFIERS - """" - """"
+        @ write sys$output " "
+        @ write sys$output " Everything is up to date. '$(MMS)''QUALIFIERS' check' to run test suite."
 
 
 # Configuration dependencies
@@ -141,6 +144,24 @@ $(DBLIBOBJS) : $(CONFIGS)
 
 $(TDSSRVOBJS) : $(CONFIGS)
 
+[.src.pool]config$(OBJ) : [.src.pool]config.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]main$(OBJ) : [.src.pool]main.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]member$(OBJ) : [.src.pool]member.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]stream$(OBJ) : [.src.pool]stream.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]user$(OBJ) : [.src.pool]user.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
+[.src.pool]util$(OBJ) : [.src.pool]util.c
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
+	
 $(TDSPOOLOBJS) : $(CONFIGS)
 
 $(TDSODBCOBJS) : $(CONFIGS)
@@ -190,6 +211,25 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ write historyh "void add_history(const char *s);"
 	@ close historyh
 
+# Work around MMS bug that confuses these with files in different
+# directories having the same names.
+
+[.src.tds]util$(OBJ) : [.src.tds]util.c
+
+[.src.tds]config$(OBJ) : [.src.tds]config.c
+
+[.src.tds]convert$(OBJ) : [.src.tds]convert.c
+
+[.src.dblib]rpc$(OBJ) : [.src.dblib]rpc.c
+
+[.src.tds]login$(OBJ) : [.src.tds]login.c
+
+[.src.server]login$(OBJ) : [.src.server]login.c
+
+[.src.tds]query$(OBJ) : [.src.tds]query.c
+
+[.src.server]query$(OBJ) : [.src.server]query.c
+
 # Build the libraries
 
 []libtds$(OLB) : libtds$(OLB)( $(TDSOBJS) )
@@ -214,43 +254,23 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 # Build the utility programs and the pool server
 
 apps : freebcp$(E) tsql$(E) tdspool$(E)
+	@ continue
 
 freebcp$(E) : [.src.apps]freebcp$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, \ 
-		[]libtds$(OLB)/library
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
 
 [.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c
 
 tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, \
-		[]libtds$(OLB)/library
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
 
 [.src.apps]tsql$(OBJ) : [.src.apps]tsql.c
 	@ define/nolog/user_mode readline [.include]
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
 tdspool$(E) : $(TDSPOOLOBJS) []libtdssrv$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), \
-		[]libtdssrv$(OLB)/library, []libtds$(OLB)/library
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), []libtdssrv$(OLB)/library, []libtds$(OLB)/library
 
-[.src.pool]config$(OBJ) : [.src.pool]config.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
-[.src.pool]main$(OBJ) : [.src.pool]main.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
-[.src.pool]member$(OBJ) : [.src.pool]member.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
-[.src.pool]stream$(OBJ) : [.src.pool]stream.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
-[.src.pool]user$(OBJ) : [.src.pool]user.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
-[.src.pool]util$(OBJ) : [.src.pool]util.c
-	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
 # Run the test suite
 
 check : buildchecks PWD libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
@@ -276,6 +296,7 @@ libtdscheck :
 	@ run/nodebug []dataread$(E)
 	@ run/nodebug []flags$(E)
 	@ run/nodebug []utf8_1$(E)
+	@ run/nodebug []utf8_2$(E)
 	@ set default [---]
 
 
@@ -347,19 +368,24 @@ tdsodbccheck :
 	@ run/nodebug []getdata$(E)
 	@ run/nodebug []type$(E)
 	@ run/nodebug []transaction$(E)
+	@ run/nodebug []genparams$(E)
+	@ run/nodebug []preperror$(E)
 	@ set default [---]
 
 buildchecks : libtdstests ctlibtests dblibtests $(ODBCTESTS)
+	@ continue
 
 libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]t0001$(E) [.src.tds.unittests]t0002$(E) \
 	[.src.tds.unittests]t0003$(E) [.src.tds.unittests]t0004$(E) [.src.tds.unittests]t0005$(E) \
 	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E) \
 	[.src.tds.unittests]convert$(E) [.src.tds.unittests]dataread$(E) [.src.tds.unittests]flags$(E) \
-	[.src.tds.unittests]utf8_1$(E)
+	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E)
+	@ continue
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
 	[.src.ctlib.unittests]t0004$(E) [.src.ctlib.unittests]t0005$(E) [.src.ctlib.unittests]t0006$(E) \
 	[.src.ctlib.unittests]t0007$(E) [.src.ctlib.unittests]t0008$(E) [.src.ctlib.unittests]t0009$(E)
+	@ continue
 
 dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.src.dblib.unittests]t0002$(E) \
 	[.src.dblib.unittests]t0003$(E) [.src.dblib.unittests]t0004$(E) [.src.dblib.unittests]t0005$(E) \
@@ -370,6 +396,7 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]t0018$(E) [.src.dblib.unittests]t0019$(E) [.src.dblib.unittests]t0020$(E) \
 	[.src.dblib.unittests]t0021$(E) [.src.dblib.unittests]t0022$(E) [.src.dblib.unittests]t0023$(E) \
 	[.src.dblib.unittests]dbmorecmds$(E)
+	@ continue
 
 odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
 	[.src.odbc.unittests]t0004$(E) [.src.odbc.unittests]connect$(E) [.src.odbc.unittests]print$(E) \
@@ -378,7 +405,8 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	[.src.odbc.unittests]binary_test$(E) [.src.odbc.unittests]moreandcount$(E) \
 	[.src.odbc.unittests]earlybind$(E) [.src.odbc.unittests]putdata$(E) [.src.odbc.unittests]params$(E) \
 	[.src.odbc.unittests]raiseerror$(E) [.src.odbc.unittests]getdata$(E) [.src.odbc.unittests]type$(E) \
-	[.src.odbc.unittests]transaction$(E) 
+	[.src.odbc.unittests]transaction$(E) [.src.odbc.unittests]genparams$(E) [.src.odbc.unittests]preperror$(E) 
+	@ continue
 
 # libtds test detailed dependencies
 
@@ -461,6 +489,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
 
 [.src.tds.unittests]utf8_1$(OBJ) : [.src.tds.unittests]utf8_1.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]utf8_2$(E) : [.src.tds.unittests]utf8_2$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]utf8_2$(OBJ) : [.src.tds.unittests]utf8_2.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # ctlib test detailed dependencies
@@ -802,6 +836,17 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]common$(OBJ) : [.src.odbc.unittests]common.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
+[.src.odbc.unittests]genparams$(E) : [.src.odbc.unittests]genparams$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]genparams$(OBJ) : [.src.odbc.unittests]genparams.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]preperror$(E) : [.src.odbc.unittests]preperror$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]preperror$(OBJ) : [.src.odbc.unittests]preperror.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # Clean up
 
@@ -822,4 +867,5 @@ clean : distclean
 	@ if f$search("[]descrip.mms") .nes. "" then delete/noconfirm []descrip.mms;*
 	@ if f$search("[.include]freetds_sysconfdir.h") .nes. "" then delete/noconfirm [.include]freetds_sysconfdir.h;*
 	@ if f$search("[.include]tds_sysdep_public.h") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h;*
+	@ if f$search("[.src.replacements]libiconv.c") .nes. "" then delete/noconfirm [.src.replacements]libiconv.c;*
 

@@ -16,7 +16,7 @@ $! License along with this library; if not, write to the
 $! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 $! Boston, MA 02111-1307, USA.
 $!
-$! $Id: configure.com,v 1.2 2003-05-20 11:34:41 freddy77 Exp $
+$! $Id: configure.com,v 1.3 2004-01-03 19:32:05 freddy77 Exp $
 $!
 $! CONFIGURE.COM -- run from top level source directory as @[.vms]configure
 $!
@@ -33,6 +33,20 @@ $ close version
 $ delete/noconfirm/nolog version.tmp;*
 $ versionstring = f$element(1, "=", f$edit(versionline, "COLLAPSE"))
 $ gosub check_crtl
+$!
+$! The system-supplied iconv() is fine, but unless the internationalization
+$! kit has been installed, we may not have the conversions we need.  Check
+$! for their presence and use the homegrown iconv() if necessary.
+$!
+$ IF F$SEARCH("SYS$I18N_ICONV:UCS-2_ISO8859-1.ICONV") .NES. "" -
+    .AND. F$SEARCH("SYS$I18N_ICONV:ISO8859-1_UCS-2.ICONV") .NES. ""
+$ THEN
+$   d_have_iconv = "1"
+$   SAY "Using system-supplied iconv()"
+$ ELSE
+$   d_have_iconv = "0"
+$   SAY "Using replacement iconv()"
+$ ENDIF
 $!
 $! Generate config.h
 $!
@@ -51,6 +65,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_STRTOK_R@"",""''d_strtok_r'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@VERSION@"",""""""''versionstring'"""""");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_HAVE_ICONV@"",""''d_have_iconv'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -67,21 +83,29 @@ $   asprintfobj = " "
 $ else
 $   asprintfobj = "[.src.replacements]asprintf$(OBJ),"
 $ endif
-$
+$!
 $ if d_vasprintf .eqs. "1" 
 $ then
 $   vasprintfobj = " "
 $ else
 $   vasprintfobj = "[.src.replacements]vasprintf$(OBJ),"
 $ endif
-$
+$!
 $ if d_strtok_r .eqs. "1" 
 $ then
 $   strtok_robj = " "
 $ else
 $   strtok_robj = "[.src.replacements]strtok_r$(OBJ),"
 $ endif
-$
+$!
+$ if d_have_iconv .eqs. "1" 
+$ then
+$   libiconvobj = " "
+$ else
+$   libiconvobj = "[.src.replacements]libiconv$(OBJ),"
+$   copy/noconfirm/nolog [.src.replacements]iconv.c [.src.replacements]libiconv.c
+$ endif
+$!
 $ open/write vmsconfigtmp vmsconfigtmp.com
 $ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
 $ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
@@ -95,6 +119,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@VASPRINTFOBJ@"",""''vasprintfobj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@STRTOK_ROBJ@"",""''strtok_robj'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"

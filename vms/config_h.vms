@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.3 2003-12-05 22:00:59 freddy77 Exp $ */
+/* $Id: config_h.vms,v 1.4 2004-01-03 19:32:05 freddy77 Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -98,7 +98,7 @@
 #define HAVE_GETUID 1
 
 /* Define if you have the iconv() function. */
-#define HAVE_ICONV 1
+#define HAVE_ICONV @D_HAVE_ICONV@
 
 /* Define to 1 if you have a 64-bit integral type. */
 #define HAVE_INT64 1
@@ -182,10 +182,14 @@
 #define HAVE_VASPRINTF @D_VASPRINTF@
 
 /* Define to 1 if you have the `vsnprintf' function. */
-#undef HAVE_VSNPRINTF
+#define HAVE_VSNPRINTF 0
 
 /* Define as const if the declaration of iconv() needs const. */
-#define ICONV_CONST
+#if HAVE_ICONV
+#  define ICONV_CONST
+#else
+#  define ICONV_CONST const
+#endif
 
 /* Define to value of INADDR_NONE if not provided by your system header files.
    */
@@ -264,6 +268,8 @@
 #include <limits.h>
 #define MAXPATHLEN PATH_MAX
 
+#define _PATH_DEVNULL "_NLA0:"
+
 /* FIXME: There are numerous signed/unsigned mismatches in the code
  * that should really be corrected, but this hushes the compiler for now.
  */
@@ -287,9 +293,21 @@ char *getpass( const char* prompt );
 #pragma extern_prefix "freetds_" (strtok_r)
 #endif /* !HAVE_STRTOK_R */
 
+#pragma extern_prefix restore
+
+#define tds_sysdep_intptr_type int	/* 32-bit int */
+
+#include <stddef.h> /* we need size_t for replacements */
 #include "replacements.h"
 
-#pragma extern_prefix restore
+/* If the CRTL ever complies with UNIX98 and defines socklen_t in
+ * sys/socket.h, this _may_ prevent a conflicting definition but
+ * still get us what we need in the meantime.
+ */
+#if !defined __SOCKLEN_T
+#   define __SOCKLEN_T 1
+    typedef __size_t socklen_t;
+#endif
 
 /* We only support unixODBC, so we do have this */
 #define HAVE_SQLGETPRIVATEPROFILESTRING 1

@@ -1,3 +1,7 @@
+Sat Jan 03 20:31:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
+	- applied Craig A. Berry patch for VMS
+
 Fri Jan 02 11:16:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/config.h:
 	- removed developing define
