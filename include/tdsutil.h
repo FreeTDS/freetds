@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+"$Id: tdsutil.h,v 1.2 2001-11-08 17:45:09 mlilback Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -74,6 +74,9 @@ extern int  tds_is_doneinproc(TDSSOCKET *tds);
 extern int  tds_is_control(TDSSOCKET *tds);
 
 extern int  tds_msleep(long usecs);
+/* added 'cause used but not declared (mlilback, 11/7/01) */
+extern TDS_INT tds_get_int(TDSSOCKET *tds);
+
 #ifdef __cplusplus
 #if 0
 { /* keep the paren matcher and indenter happy */
