@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.152 2003-07-28 15:10:36 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.153 2003-07-30 06:18:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4941,7 +4941,7 @@ dbmorecmds(DBPROCESS * dbproc)
 {
 	RETCODE rc;
 
-	if (dbproc->tds_socket->res_info->more_results == 0) {
+	if (dbproc->tds_socket->res_info == NULL || dbproc->tds_socket->res_info->more_results == 0) {
 		tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds: more_results == 0; returns FAIL\n");
 		return FAIL;
 	}
