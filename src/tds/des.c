@@ -44,7 +44,7 @@
 #include "des.h"
 
 static char software_version[] =
-	"$Id: des.c,v 1.8 2002-12-12 10:26:02 freddy77 Exp $";
+	"$Id: des.c,v 1.9 2002-12-18 03:33:58 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -609,7 +609,7 @@ static void spinit(DES_KEY * key)
 
 /* ECB MODE */
 
-int des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock output)
+int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock output)
 {
 	int j;
 	const unsigned char *plain = (const unsigned char *) plaintext;

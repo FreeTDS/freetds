@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: challenge.c,v 1.18 2002-12-10 17:00:39 freddy77 Exp $";
+static char software_version[] = "$Id: challenge.c,v 1.19 2002-12-18 03:33:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -86,11 +86,11 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDSANSW
 
 	/* hash the first 7 characters */
 	tds_convert_key(passwd_up, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
+	tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
 
 	/* hash the second 7 characters */
 	tds_convert_key(passwd_up + 7, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
+	tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
 
 	memset(hash + 16, 0, 5);
 
@@ -132,13 +132,13 @@ tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned
 	DES_KEY ks;
 
 	tds_convert_key(hash, &ks);
-	des_ecb_encrypt(challenge, 8, &ks, answer);
+	tds_des_ecb_encrypt(challenge, 8, &ks, answer);
 
 	tds_convert_key(&hash[7], &ks);
-	des_ecb_encrypt(challenge, 8, &ks, &answer[8]);
+	tds_des_ecb_encrypt(challenge, 8, &ks, &answer[8]);
 
 	tds_convert_key(&hash[14], &ks);
-	des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
+	tds_des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
 
 	memset(&ks, 0, sizeof(ks));
 }
