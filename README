@@ -2,7 +2,7 @@ README for FreeTDS
 
 * to build FreeTDS read the file INSTALL,
 * see also the FreeTDS Users Guide,
-http://www.freetds.org/userguide/book1.html
+  http://www.freetds.org/userguide/book1.html 
 
 FreeTDS is a free (open source) implementation of Sybase's db-lib,
 ct-lib, and ODBC libraries. Currently, dblib and ctlib are most
@@ -10,23 +10,16 @@ mature.  Both of these libraries have several programs known to
 compile and run against them.  ODBC is not quite as mature, but may
 work depending on your needs.
 
+A copy of the userguide, in sgml and html form, is included in this 
+distribution.  It is an ordinary tarball; "make install" does not 
+install the html onto your system.  You may wish to do this yourself.  
+
 Submissions of test programs (self-contained programs that demonstrate
 functionality or problems) are greatly appreciated.  They should
 create any tables needed (since we obviously don't have access to your
 database) and populate them.  One possible exception is test code that
 works against the pubs2 database. Unit tests for any of the libraries
 is appreciated
-
-FreeTDS will run at protocol versions 4.2, 5.0 and 7.0 and thus can
-access both Sybase and Microsoft SQL-Servers.  Note: Microsoft SQL
-servers do not support TDS version 5.0 and need to be configured with
-the --with-tdsver=4.2 flag.
-
-Support for TDS 7.0 (the version used by MS SQL Server 7.0) is now
-included.  It is not as mature as the other protocol versions, but is
-required to access large (more than 255 character) char/varchar
-fields.  That said, TDS 7.0 support can be configured by using the
---with-tdsver=7.0 when running configure.
 
 FreeTDS is licensed under the Gnu LGPL license. See COPYING.LIB for
 details.

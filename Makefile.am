@@ -9,7 +9,7 @@ EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
 		doc/tds_layer.txt doc/Makefile doc/userguide.sgml \
 		doc/basic_jdbc_question.html \
 		doc/faq.html doc/tds.html \
-		doc/doc/userguide.tgz \
+		doc/userguide.tgz \
 		freetds.conf locales.conf acconfig.h
 
 DEFDIR		=	$(prefix)
