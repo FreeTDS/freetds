@@ -1,3 +1,7 @@
+Wed Jan 22 15:23:32 EST 2003    JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c _bcp_exec_out(): no output for null columns 
+	* src/dblib/dblib.c dbconvert(): do not initialize dest if destlen = -1
+
 Tue Jan 21 14:06:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: add SQLEndTran function
 

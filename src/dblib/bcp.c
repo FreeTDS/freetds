@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.47 2003-01-10 18:13:24 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.48 2003-01-22 20:29:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -546,7 +546,11 @@ int rows_written;
 					else
 						memcpy(bcpcol->data, src, curcol->column_size);
 
-					bcpcol->data_size = curcol->column_cur_size;
+					/* null columns have zero output */
+					if (tds_get_null(resinfo->current_row, bcpcol->tab_colnum - 1))
+						bcpcol->data_size = 0;
+					else
+						bcpcol->data_size = curcol->column_cur_size;
 				}
 			}
 
@@ -666,10 +670,15 @@ int rows_written;
 					memset(&when, 0, sizeof(when));
 					tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
 					buflen = tds_strftime((char*)outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
-				} else
+				} else {
+					/* 
+					 * For null columns, the above work to determine the output buffer size is moot, 
+					 * because bcpcol->data_size is zero, so dbconvert() won't write anything, and returns zero. 
+					 */
 					buflen = dbconvert(dbproc,
 							   bcpcol->db_type,
 							   bcpcol->data, bcpcol->data_size, hostcol->datatype, outbuf, destlen);
+				}
 
 				/* FIX ME -- does not handle prefix_len == -1 */
 				/* The prefix */
