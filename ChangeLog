@@ -1,3 +1,6 @@
+Mon Jul 12 10:34:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: another memory leak fix
+
 Thu Jul 08 11:41:43 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: fixed memory leak
 

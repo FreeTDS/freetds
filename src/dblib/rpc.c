@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.28 2004-07-08 09:41:37 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.29 2004-07-12 08:35:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -371,6 +371,7 @@ param_clear(DBREMOTE_PROC_PARAM * pparam)
 	}
 
 	/* free self after clearing children */
+	if (pparam->name)
+		free(pparam->name);
 	free(pparam);
-	pparam = (DBREMOTE_PROC_PARAM *) NULL;
 }
