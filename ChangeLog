@@ -1,3 +1,7 @@
+Sat May  1 15:14:26 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in test for regex.h
+	* src/apps/bsqldb.c improve multi-batch handling.
+	
 Fri Apr 30 16:15:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fixed SQLGetInfo
 
