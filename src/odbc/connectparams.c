@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.50 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.51 2003-11-06 17:26:27 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -89,6 +89,11 @@ static FILE *tdoGetIniFileName(void);
  */
 static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault, LPSTR pRetBuffer, int nRetBuffer,
 				      LPCSTR pszFileName);
+#endif
+
+#if defined(FILENAME_MAX) && FILENAME_MAX < 512
+#undef FILENAME_MAX
+#define FILENAME_MAX 512
 #endif
 
 /** 
