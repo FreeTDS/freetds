@@ -23,7 +23,7 @@
 		<para>
 	FreeTDS is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It allows programs on many different operating systems to communicate with Sybase and Microsoft SQL Servers.  
 		</para>
-		<sect1>
+		<sect1 id="tdsprotocol">
 			<title>Background: The TDS Protocol</title>
 			<para>
 TDS is a protocol, a set of rules describing how to transmit data between two computers.  Like any protocol, it defines the types of messages that can be sent, and the order in which they may be sent.  Protocols describe the "bits on the wire", how data flow.  
@@ -51,7 +51,7 @@ FreeTDS was and is developed by observation and experimentation, which is to say
 			</para>
 		</sect1>
 		
-		<sect1>
+		<sect1 id="history">
 			<title>History</title>
 			<para>
 Founded in 1984, Sybase was the first RDBMS on the market designed for online transactions.  Prior to that, database management systems were either not relational, or were relegated to "decision support" applications where online response time was less important.  It gained widespread acceptance, especially within the financial industry.  In 1990 Sybase entered into a technology sharing agreement with Microsoft which resulted in Microsoft marketing its own SQL Server.  Microsoft released its version 1.1 (for OS/2) in 1990, and version 4.2 (originally OS/2 and later ported to NT) in 1992.
@@ -115,7 +115,7 @@ Brian Bruns, a Sybase DBA and originator of the FreeTDS project, had some dblib 
 			</para>
 		  </sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="projects">
 			<title>Current Projects, Language Bindings, and Alternatives</title>
 		  <sect2>
 			<title>Current Projects</title>
@@ -188,7 +188,7 @@ If you build it they will come.
 </para>
 </blockquote>
 		</para>
-		<sect1>
+		<sect1 id="gnu">
 			<title>The Gnu World</title>
 			<para>
 FreeTDS uses GNU Automake, Autconf, and LibTool for a somewhat portable package.
@@ -200,11 +200,11 @@ For many people, the preceding paragraph says it all (good or bad).  If you're f
 If the following nevertheless reads like gibberish, you might very well want to use something prepackaged (see <link linkend="alternatives">Alternatives</link>).  If it reads like a vaguely intelligible alien script that might yield to intensive research, we've included links to some of the usual suspects at the end of this chapter.  If it reads like a bad explanation of something you could explain better, please send us your version!  
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="packages">
     			<title>What to build: Packages, Tarballs, and the CVS</title>
 			<para>
-The latest FreeTDS package is version 0.51.  It is available from 
-	<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-0.512.tgz">
+The latest FreeTDS package is version 0.52.  It is available from 
+	<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-0.52.tgz">
 		<citetitle>iBiblio</citetitle></ulink> 
 and its mirrors.
 			</para>
@@ -216,7 +216,7 @@ For those behind firewalls or otherwise unable to access CVS, nightly snapshots 
 	<ulink url="ftp://freetds.internetcds.com/pub/freetds">freetds.internetcds.com</ulink> 
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="config">
     			<title>How to build: Configure and gmake</title>
 			<para>
 If you've built other Gnu projects, building FreeTDS is a fairly straightforward process. We have a terse and verbose description; pick your poison.  
@@ -261,7 +261,7 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--with-unixodbc 
 					</Parameter></term>
-				<listitem><para>Build with ODBC support and to use the unixODBC Driver Manager. (This option is not fully functional yet, and is here for future work).</para>
+				<listitem><para>Build with ODBC support and to use the unixODBC Driver Manager.</para>
 					</listitem>
 				</varlistentry>
 
@@ -309,7 +309,7 @@ With any luck, you've built and installed the FreeTDS libraries.  Of course, you
 			</para>
 		</sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="osissues">
     			<title>OS-specific Issues</title>
 			<para>
 			</para>
@@ -361,7 +361,7 @@ which is not a particularly wonderful solution but gets the job done.
 	
 <!-- ////////////////// CHAPTER /////////////////////// -->
 	
-	<chapter id="Install">
+	<chapter id="install">
 		<title>Install FreeTDS</title>
 		<para>
 <blockquote>
@@ -434,7 +434,7 @@ or with the newer SQL92 <command>CAST</command> syntax e.g.,
 			
 			
 		</sect1>
-		<sect1>
+		<sect1 id="envvar">
    			<title>Setting the environment variables</title>
 			<sect2>
 			<title>What they're for</title>
@@ -445,7 +445,7 @@ The environment variable <parameter>SYBASE</parameter> points to the FreeTDS run
 In the previous section, the FreeTDS libraries where installed <emphasis>somewhere</emphasis>.  You might know where (or your package manager might have decided for you), but FreeTDS doesn't know.  
 			</para>
 			<para>
-The primary use of <envar>SYBASE</envar> is to locate the <filename>interfaces</filename> file, which FreeTDS uses to find your database servers.  A secondary use is to point to the libraries.  Immediately below the directory pointed to by <envar>SYBASE</envar> is its <filename>lib</filename> subdirectory, where you'll find the libraries you made.  It's handy to point to these libraries e.g. with <envar>LDLIBRARY</envar> through <envar>SYBASE</envar>.  
+The primary use of <envar>SYBASE</envar> is to locate the <filename>interfaces</filename> file (if used), which FreeTDS uses to find your database servers.  A secondary use is to point to the libraries.  Immediately below the directory pointed to by <envar>SYBASE</envar> is its <filename>lib</filename> subdirectory, where you'll find the libraries you made.  It's handy to point to these libraries e.g. with <envar>LDLIBRARY</envar> through <envar>SYBASE</envar>.  
 			</para>
 			</sect3>
 			<sect3><title><parameter>TDSVER</parameter></title>
@@ -486,16 +486,158 @@ In csh:
 When you're done, you should see something very like this:
 <screen>
 <prompt>$ </prompt><userinput>ls $SYBASE</userinput>
-<computeroutput>include    interfaces lib</computeroutput>
+<computeroutput>etc include interfaces lib</computeroutput>
 </screen>
 			</para>
 			
 			</sect2>
 		</sect1>
-		<sect1>
+		<sect1 id="freetdsconf">
+    			<title>The <filename>freetds.conf</filename> File</title>
+			<sect2>
+			<title>What it does</title>
+			<para>
+There are two methods of configuring FreeTDS.  Under Sybase OpenClient there is a file called <filename>interfaces</filename> that defines servers available to the software.  FreeTDS inherited this file structure with minor alterations.  Starting with version 0.52, we felt that the file format could not support some of the more advanced options we needed.  Thus FreeTDS created a newer second format, loosely based on Samba's modified win ini format.  The <filename>interfaces</filename> remains supported for backward compatiblity and those running in a mixed FreeTDS/Sybase environment.
+			</para>
+			<para>
+The <filename>freetds.conf</filename> defines the dataservers available to freetds.  When FreeTDS receives a request to connect to a database server, it first looks up the servername in <filename>freetds.conf</filename>.  There, it finds a number of properties for the server such as the machine name (or address), port number to connect to, and the protocol version to use.
+			</para>
+			<para>
+The conf file is composed of two types of sections a [global] section and one section for each dataserver listed.  Settings in the [global] section affect all dataservers and can be overridden in the dataserver section.  For example
+			</para>
+<example>
+<title>An <filename>freetds.conf</filename> file example</title>
+<programlisting>
+[global]
+	tds version = 4.2
+
+[myserver]
+	host = ntbox.mydomain.com
+	port = 1433
+
+[myserver2]
+	host = unixbox.mydomain.com
+	port = 4000
+	tds version = 5.0
+</programlisting>
+</example>
+	<para>
+In this example the default tds version for all dataservers is set to 4.2.  It is then overridden for myserver2 (a sybase server) which uses 5.0.
+	</para>
+<table>
+<title>freetds.conf settings</title>
+<tgroup cols="4">
+<thead>
+	<row>
+	<entry>Name</entry>
+	<entry>Default</entry>
+	<entry>Meaning</entry>
+	<entry>Possible Values</entry>
+	</row>
+</thead>
+<tbody>
+	<row>
+	<entry>tds version</entry>
+	<entry>--with-tdsver value (5.0 if unspecified)</entry>
+	<entry>The TDS protocol version to use when connecting.</entry>
+	<entry>4.2, 5.0, 7.0</entry>
+	</row>
+	<row>
+	<entry>host</entry>
+	<entry>server name</entry>
+	<entry>The host that the dataserver is running on.</entry>
+	<entry>host name or IP address</entry>
+	</row>
+	<row>
+	<entry>port</entry>
+	<entry>1433 for TDS 4.2/7.0, 4000 for TDS 5.0</entry>
+	<entry>The port number that the dataserver is running at.</entry>
+	<entry>any valid port.  MS SQL Server defaults to 1433</entry>
+	</row>
+	<row>
+	<entry>initial block size</entry>
+	<entry>512</entry>
+	<entry>Specifies the maximum size of a protocol block.  Don't mess with unless you know what you are doing.</entry>
+	<entry>multiple of 512</entry>
+	</row>
+	<row>
+	<entry>swap broken dates</entry>
+	<entry>no</entry>
+	<entry>Forces a byte swap of date fields on big endian platforms to work around MS bug.</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>swap broken money</entry>
+	<entry>no</entry>
+	<entry>Forces a byte swap of money fields on big endian platforms to work around MS bug.</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>try server login</entry>
+	<entry>yes</entry>
+	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>try domain login</entry>
+	<entry>yes</entry>
+	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>nt domain</entry>
+	<entry>none</entry>
+	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>any</entry>
+	</row>
+	<row>
+	<entry>cross domain login</entry>
+	<entry>no</entry>
+	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>dump file</entry>
+	<entry>none</entry>
+	<entry>Specifies the location of a tds dump file and turns on logging</entry>
+	<entry>any valid file name</entry>
+	</row>
+	<row>
+	<entry>debug level</entry>
+	<entry>99</entry>
+	<entry>Sets granularity of logging. Higher number catches more.</entry>
+	<entry>0-99</entry>
+	</row>
+	<row>
+	<entry>timeout</entry>
+	<entry>none</entry>
+	<entry>Sets period to wait for response of query before timing out.</entry>
+	<entry>0-</entry>
+	</row>
+	<row>
+	<entry>connect timeout</entry>
+	<entry>none</entry>
+	<entry>Sets period to wait for response from connect before timing out.</entry>
+	<entry>0-</entry>
+	</row>
+	<row>
+	<entry>emulate little endian</entry>
+	<entry>no</entry>
+	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for TDS 7.0 on big end hosts</entry>
+	<entry>yes/no</entry>
+	</row>
+</tbody>
+</tgroup>
+</table>
+			</sect2>
+		</sect1>
+		<sect1 id="interfaces">
     			<title>The <filename>interfaces</filename> File</title>
 			<sect2>
 			<title>What it does</title>
+			<para>
+			<note><para>The <filename>interfaces</filename> file is retained for compatibility with Sybase environments.  It is recommeded that new users use the <link linkend="freetdsconf">freetds.conf</link> format instead.</para></note>
+			</para>
 			<para>
 The <filename>interfaces</filename> file aliases a symbolic server name to the host and port number of the dataserver.  When FreeTDS receives a request to connect to a database server, it looks up the servername in <filename>interfaces</filename>.  There, it finds the machine name (or address) and port number to connect to, that is, the port where the database server is listening.  
 			</para>
@@ -1126,6 +1268,28 @@ The -g is important to keep the symbol tables for debugging purposes.  Now you c
 <note><para>When compiling directly to FreeTDS you still must use the driver manager's header files.</para></note>
 			</para>
 		</sect1>
+		<sect1 id="unixodbc">
+			<title>The unixODBC Driver Manager</title>
+			<para>
+unixODBC is another popular ODBC driver manager available for Unix.
+			</para>
+			<para>
+Again, first build unixODBC according to the documentation or install it via RPM, DEB or other package manager.
+			</para>
+			<para>
+Now build freetds using the --with-unixodbc flag to specify the location where FreeTDS can find the include files from unixODBC.  For instance if unixODBC's header files are in /opt/unixodbc/include use '/opt/unixodbc'.  By default the location will be /usr/local.
+<screen>
+<prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds --with-unixodbc=/usr/local</userinput>
+<prompt>$ </prompt><userinput>gmake</userinput>
+<prompt>$ </prompt><userinput>su root</userinput>
+<prompt>Password: </prompt>
+<prompt>$ </prompt><userinput>gmake install</userinput>
+</screen>
+			</para>
+			<para>
+In this example the FreeTDS ODBC libraries will be installed in /usr/local/freetds/lib.  Now we need to tell the driver manager where to find them.  You can do this by editing your <filename>$HOME/.odbc.ini</filename> or the <filename>/etc/odbc.ini</filename> file.  The sample <filename>odbc.ini</filename> file that comes with FreeTDS in the samples directory will work for either supported driver manager. See the <link linkend="iodbc">iODBC section</link> for details.
+			</para>
+		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="troubleshooting">
@@ -1339,7 +1503,7 @@ Can be found at <ulink url="http://www.ibiblio.org/freetds/tds.html">ibiblio</ul
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
-	<chapter>
+	<chapter id="acknowledgements">
     			<title>Acknowledgements</title>
 		<sect1>
 	    		<title>Codesmyths</title>

@@ -26,7 +26,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.2 2001-10-16 21:57:37 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.3 2001-10-20 20:38:12 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -159,6 +159,12 @@ FD_ZERO (&fds);
 
 
         sin.sin_addr.s_addr = inet_addr(config->ip_addr);
+        if (sin.sin_addr.s_addr == -1) {
+		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
+		tds_free_config(config);
+		return NULL;
+        }
+
        	sin.sin_family = AF_INET;
        	sin.sin_port = htons(config->port);
 

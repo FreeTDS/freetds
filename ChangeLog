@@ -1,3 +1,9 @@
+Sat Oct 20 15:54:28 Brian Bruns <camber@ais.org>
+
+    * src/tds/login.c: error handling for return of inet_addr()
+    * doc/userguide.sgml: added freetds.conf and unixODBC sections, minor 
+      version updates
+
 Fri Oct 20 10:43:31 Brian Bruns <camber@ais.org>
 
     * src/tds/config.c: Added optional debugging of server lookup
