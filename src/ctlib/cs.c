@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.33 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.34 2003-03-05 13:14:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *
@@ -276,6 +276,7 @@ CS_RETCODE ret;
 		switch (desttype) {
 
 		case SYBBINARY:
+		case SYBVARBINARY:
 		case SYBIMAGE:
 			if (src_len > destlen) {
 				ret = CS_FAIL;
@@ -440,6 +441,7 @@ CS_RETCODE ret;
 
 	switch (desttype) {
 	case SYBBINARY:
+	case SYBVARBINARY:
 	case SYBIMAGE:
 
 		if (len > destlen) {

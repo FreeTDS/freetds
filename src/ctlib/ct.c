@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.78 2003-03-04 16:46:36 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.79 2003-03-05 13:14:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -46,11 +46,20 @@ static void *no_unused_var_warn[] = { software_version,
  * Read a row of data
  * @return 0 on success
  */
-static int _ct_bind_data(CS_COMMAND * cmd);
+static int _ct_bind_data(CS_COMMAND * cmd, CS_INT offset);
 static int _ct_get_client_type(int datatype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
+/* Added code for RPC functionality -SUHA */
+/* RPC Code changes starts here */
+
+static void rpc_clear(CSREMOTE_PROC * rpc);
+static void param_clear(CSREMOTE_PROC_PARAM * pparam);
+
+static TDSPARAMINFO* paraminfoalloc(CSREMOTE_PROC * rpc);
+
+/* RPC Code changes ends here */
 
 CS_RETCODE
 ct_exit(CS_CONTEXT * ctx, CS_INT unused)
@@ -334,6 +343,10 @@ char *set_buffer = NULL;
 				return CS_FAIL;
 			}
 			break;
+		case CS_PARENT_HANDLE:
+			*(CS_CONTEXT **)buffer = con->ctx;
+			break; 
+			
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "%L Unknown property %d\n", property);
 			break;
@@ -410,7 +423,6 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
-
 	/* TODO some type require different handling, save type and use it */
 	switch (type) {
 	case CS_LANG_CMD:
@@ -442,15 +454,54 @@ int query_len;
 		break;
 
 	case CS_RPC_CMD:
-		switch (option) {
-		case CS_RECOMPILE:	/* Recompile the stored procedure before executing it. */
-		case CS_NO_RECOMPILE:	/* Do not recompile the stored procedure before executing it. */
-		case CS_UNUSED:	/* Equivalent to CS_NO_RECOMPILE. */
-			break;
-		default:
+
+		/* Code changed for RPC functionality -SUHA*/
+		/* RPC code changes starts here */
+	
+		if (cmd == NULL)
+			return CS_FAIL;
+
+		rpc_clear(cmd->rpc);
+		cmd->rpc = (CSREMOTE_PROC *) malloc(sizeof(CSREMOTE_PROC));
+		if (cmd->rpc == (CSREMOTE_PROC *)NULL)
+			return CS_FAIL;
+
+		memset(cmd->rpc, 0, sizeof(CSREMOTE_PROC));
+
+		if (buflen == CS_NULLTERM) {
+			cmd->rpc->name = strdup(buffer);
+			if (cmd->rpc->name == (char *)NULL)
+				return CS_FAIL;
+		} else if (buflen > 0) {
+			cmd->rpc->name = (char *)malloc(buflen + 1);
+			if (cmd->rpc->name == (char *)NULL)
+				return CS_FAIL;
+			memset(cmd->rpc->name, 0, buflen + 1);
+			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
+		} else {
 			return CS_FAIL;
 		}
+
+		cmd->rpc->param_list =  NULL;
+
+		tdsdump_log(TDS_DBG_INFO1, "%L ct_command() added rpcname \"%s\"\n",cmd->rpc->name);
+
+		/* FIXME: I don't know the value for RECOMPILE, NORECOMPILE options. Hence assigning zero  */
+		switch (option) {
+			case CS_RECOMPILE:	/* Recompile the stored procedure before executing it. */
+				cmd->rpc->options = 0;
+				break;
+			case CS_NO_RECOMPILE:	/* Do not recompile the stored procedure before executing it. */
+				cmd->rpc->options = 0;
+				break;
+			case CS_UNUSED:	/* Equivalent to CS_NO_RECOMPILE. */
+				cmd->rpc->options = 0;
+				break;
+			default:
+				return CS_FAIL;
+		}
 		break;
+		/* RPC code changes ends here */
 
 	case CS_SEND_DATA_CMD:
 		switch (option) {
@@ -508,11 +559,41 @@ CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
 TDSSOCKET *tds;
+CS_RETCODE ret;
+CSREMOTE_PROC ** rpc;
+TDSPARAMINFO* pparam_info;
 
 	tds = cmd->con->tds_socket;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send()\n");
 	if (cmd->dynamic_cmd)
 		return ct_send_dyn(cmd);
+
+	/* Code changed for RPC functionality -SUHA */
+	/* RPC code changes starts here */
+
+	if (cmd->command_type == CS_RPC_CMD){
+		/* sanity */
+		if (   cmd == NULL
+			|| cmd->rpc == NULL	       /* ct_command should allocate pointer */
+			|| cmd->rpc->name == NULL) /* can't be ready without a name      */
+		{
+			return CS_FAIL;  
+		}
+
+		rpc = &(cmd->rpc);
+		pparam_info = paraminfoalloc(cmd->rpc);
+		ret = tds_submit_rpc(tds, cmd->rpc->name, pparam_info);
+
+		tds_free_param_results(pparam_info);
+
+		if (ret == TDS_FAIL) {
+			return CS_FAIL;
+		}
+	
+		return CS_SUCCEED;
+	}
+
+	/* RPC Code changes ends here */
 
 	if (cmd->command_type == CS_LANG_CMD) {
 		if (tds_submit_query(tds, cmd->query) == TDS_FAIL) {
@@ -564,6 +645,8 @@ int computeid;
 CS_INT res_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_results()\n");
+
+	cmd->bind_count = CS_UNUSED;
 
 	context = cmd->con->ctx;
 
@@ -656,6 +739,11 @@ CS_INT res_type;
 				return CS_SUCCEED;
 				break;
 
+			case CS_PARAM_RESULT:
+				cmd->row_prefetched = 1;
+				*result_type = res_type;
+				return CS_SUCCEED;
+				break;
 
 			case CS_STATUS_RESULT:
 				_ct_process_return_status(tds);
@@ -685,20 +773,42 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 TDSCOLINFO *colinfo;
 TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
-
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind()\n");
+CS_INT  bind_count;
 
 	tds = (TDSSOCKET *) cmd->con->tds_socket;
 	resinfo = tds->curr_resinfo;
 
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind() datafmt count = %d column_number = %d\n",datafmt->count, item);
+
 	/* check item value */
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
 		return CS_FAIL;
+
+	colinfo = resinfo->columns[item - 1];
+
+	/* check whether the request is for array binding and ensure that user */
+	/* supplies the same datafmt->count to the subsequent ct_bind calls    */
+	
+	bind_count = (datafmt->count == 0) ? 1 : datafmt->count;
+
+	/* first bind for this result set */
+
+	if (cmd->bind_count == CS_UNUSED) { 
+		cmd->bind_count = bind_count;
+	} else {
+		/* all subsequent binds for this result set - the bind counts must be the same */
+		if (cmd->bind_count != bind_count) {
+			/* TODO - put in a client msg callback here */
+			return CS_FAIL;
+		}
+	}
+		
+	/* bind the column_varaddr to the address of the buffer */
+
 	colinfo = resinfo->columns[item - 1];
 	colinfo->column_varaddr = (char *) buffer;
 	colinfo->column_bindtype = datafmt->datatype;
 	colinfo->column_bindfmt = datafmt->format;
-	tdsdump_log(TDS_DBG_INFO1, "%L inside ct_bind() item = %d datafmt->datatype = %d\n", item, datafmt->datatype);
 	colinfo->column_bindlen = datafmt->maxlength;
 	if (indicator) {
 		colinfo->column_nullbind = (TDS_CHAR *) indicator;
@@ -716,19 +826,23 @@ TDS_INT rowtype;
 TDS_INT computeid;
 TDS_INT ret;
 TDS_INT marker;
+TDS_INT temp_count;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()\n");
 
 	if (rows_read)
 		*rows_read = 0;
 
-	/* compute rows have been pre-fetched by ct_results() */
+	/* taking a copy of the cmd->bind_count value. */
+	temp_count = cmd->bind_count;
+
+	/* compute rows and parameter results have been pre-fetched by ct_results() */
 
 	if (cmd->row_prefetched) {
 		cmd->row_prefetched = 0;
 		cmd->get_data_item = 0;
 		cmd->get_data_bytes_returned = 0;
-		if (_ct_bind_data(cmd))
+		if (_ct_bind_data(cmd, 0))
 			return CS_ROW_FAIL;
 		if (rows_read)
 			*rows_read = 1;
@@ -738,59 +852,80 @@ TDS_INT marker;
 	if (cmd->empty_result) {
 		return CS_END_DATA;
 	}
-
 	if (cmd->curr_result_type == CS_COMPUTE_RESULT)
 		return CS_END_DATA;
 	if (cmd->curr_result_type == CS_CMD_FAIL)
 		return CS_CMD_FAIL;
 
 	marker = tds_peek(cmd->con->tds_socket);
-
-	if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
+	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) || 
+	    (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
 		return CS_END_DATA;
 
-	ret = tds_process_row_tokens(cmd->con->tds_socket, &rowtype, &computeid);
+	/* Array Binding Code changes start here */
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch() process_row_tokens returned %d\n", ret);
+	if ( cmd->bind_count == CS_UNUSED ) 
+		cmd->bind_count = 1;
 
-	if (ret == TDS_SUCCEED) {
+	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		cmd->get_data_item = 0;
-		cmd->get_data_bytes_returned = 0;
+		ret = tds_process_row_tokens(cmd->con->tds_socket, &rowtype, &computeid);
 
-		if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
-			if (_ct_bind_data(cmd))
-				return CS_ROW_FAIL;
-			if (rows_read)
-				*rows_read = 1;
+		tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()process_row_tokens returned %d\n", ret);
+
+		switch (ret) {
+			case TDS_SUCCEED: 
+				cmd->get_data_item = 0;
+				cmd->get_data_bytes_returned = 0;
+				if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+					if (_ct_bind_data(cmd, temp_count))
+						return CS_ROW_FAIL;
+					if (rows_read)
+						*rows_read = *rows_read + 1;
+				}
+				break;
+		
+			case TDS_NO_MORE_ROWS: 
+				return CS_END_DATA;
+				break;
+
+			default:
+				return CS_FAIL;
+				break;
 		}
-		return CS_SUCCEED;
-	} else if (ret == TDS_NO_MORE_ROWS) {
-		return CS_END_DATA;
-	} else
-		return CS_FAIL;
+
+		/* have we reached the end of the rows ? */
+
+		marker = tds_peek(cmd->con->tds_socket);
+
+		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
+			break;
+
+	} 
+
+	/* Array Binding Code changes end here */
+
+	return CS_SUCCEED;
 }
 
 static int
-_ct_bind_data(CS_COMMAND * cmd)
+_ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 {
 int i;
 TDSCOLINFO *curcol;
 TDSSOCKET *tds = cmd->con->tds_socket;
 TDSRESULTINFO *resinfo = tds->curr_resinfo;
 unsigned char *src;
-unsigned char *dest;
+unsigned char *dest, *temp_add;
 int result = 0;
 TDS_INT srctype, srclen, desttype, len;
 CS_CONTEXT *ctx = cmd->con->ctx;
-
 CS_DATAFMT srcfmt, destfmt;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_bind_data()\n");
 
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
-
 		if (curcol->column_nullbind) {
 			if (tds_get_null(resinfo->current_row, i)) {
 				*((CS_SMALLINT *) curcol->column_nullbind) = -1;
@@ -802,7 +937,17 @@ CS_DATAFMT srcfmt, destfmt;
 
 		srctype = curcol->column_type;
 		desttype = _ct_get_server_type(curcol->column_bindtype);
-		dest = (unsigned char *) curcol->column_varaddr;
+
+		/* Array Binding Code changes start here */
+		/* retrieve the initial bound column_varaddress */
+		temp_add = (unsigned char *) curcol->column_varaddr;
+
+		/* check for array binding cmd->bind_count >0 and skip for the */
+		/* first row ie for resinfo->row_count == 1, for which the address is temp_add itself. */
+
+		dest = temp_add + (offset *  curcol->column_bindlen);
+
+		/* Array Binding Code changes end here */
 
 		if (dest && !tds_get_null(resinfo->current_row, i)) {
 
@@ -811,11 +956,8 @@ CS_DATAFMT srcfmt, destfmt;
 			src = &(resinfo->current_row[curcol->column_offset]);
 			if (is_blob_type(curcol->column_type))
 				src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+
 			srclen = curcol->column_cur_size;
-
-			tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i,
-				    srclen, curcol->column_bindlen);
-
 			srcfmt.datatype = srctype;
 			srcfmt.maxlength = srclen;
 			srcfmt.locale = cmd->con->locale;
@@ -824,15 +966,15 @@ CS_DATAFMT srcfmt, destfmt;
 			destfmt.maxlength = curcol->column_bindlen;
 			destfmt.locale = cmd->con->locale;
 			destfmt.format = curcol->column_bindfmt;
-
 			/* if convert return FAIL mark error but process other columns */
 			if (cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED) {
 				result = 1;
 				len = 0;
+				tdsdump_log(TDS_DBG_INFO1, "%L \n  convert failed for %d \n", srcfmt.datatype);
 			}
-
+			
 			if (curcol->column_lenbind) {
-				tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() length binding len = %d\n", len);
+				
 				*((CS_INT *) curcol->column_lenbind) = len;
 			}
 
@@ -1042,8 +1184,8 @@ _ct_get_server_type(int datatype)
 	case CS_UNIQUE_TYPE:
 		return SYBUNIQUE;
 		break;
-	case CS_LONGBINARY_TYPE:        /* vicm */
- 		return SYBLONGBINARY;
+	case CS_LONGBINARY_TYPE:       /* vicm */
+		return SYBLONGBINARY;
 		break;
 	default:
 		return -1;
@@ -1235,7 +1377,16 @@ CS_RETCODE
 ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cmd_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
-	return CS_SUCCEED;
+	if (action == CS_GET) {
+		switch (property) {
+			case CS_PARENT_HANDLE:
+				*(CS_CONNECTION **)buffer = cmd->con;
+				break;
+			default:
+				break;
+		}
+	}
+	return CS_SUCCEED; 
 }
 
 CS_RETCODE
@@ -1939,6 +2090,7 @@ int query_len, id_len;
 TDSDYNAMIC *dyn;
 TDSSOCKET *tds;
 
+	cmd->command_type = CS_DYNAMIC_CMD;
 	cmd->dynamic_cmd = type;
 	switch (type) {
 	case CS_PREPARE:
@@ -1998,34 +2150,247 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 {
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
+char *name = NULL;
 
-/* TDSINPUTPARAM param; */
+/* Code changed for RPC functionality - SUHA*/
+/* RPC code changes starts here */
+CSREMOTE_PROC *rpc;
+CSREMOTE_PROC_PARAM **pparam;
+CSREMOTE_PROC_PARAM *param;
+int  param_is_null = 0;
+ /* RPC code changes ends here */
+
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
 
-	tds = cmd->con->tds_socket;
+	/* Code changed for RPC functionality - SUHA*/
+	/* RPC code changes starts here */
 
-	dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
+	if (cmd == NULL) return CS_FAIL;
 
-	/* TODO */
-	return CS_FAIL;
-/*
-	dyn = tds->dyns[elem];
-	param = tds_add_input_param(dyn);
-	param->column_type = _ct_get_server_type(datafmt->datatype);
-	param->varaddr = data;
-	if (datalen==CS_NULLTERM) {
-		param->column_bindlen = 0;
-	} else {
-		param->column_bindlen = datalen;
+	if (cmd->command_type == CS_RPC_CMD) {
+
+		if (cmd->rpc == NULL) {
+			fprintf (stdout, "RPC is NULL ct_param\n");
+			return CS_FAIL;
+		}
+
+		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
+
+		if (datafmt->namelen == CS_NULLTERM) {
+			param->name = strdup(datafmt->name);
+			if (param->name == (char *)NULL)
+				return CS_FAIL;
+		} else if (datafmt->namelen > 0) {
+			param->name = malloc(datafmt->namelen + 1);
+			if (param->name == NULL) 
+				return CS_FAIL;
+			memset(param->name, 0, datafmt->namelen + 1);
+			strncpy(param->name, datafmt->name, datafmt->namelen);
+		} 
+
+		param->status = datafmt->status;
+		tdsdump_log(TDS_DBG_INFO1, " ct_param() status = %d \n", param->status );
+
+		/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
+		/* to Server type, e.g. SYBINT2                      */
+
+		param->type   = _ct_get_server_type(datafmt->datatype);
+
+		param->maxlen = datafmt->maxlength;
+
+		if (is_fixed_type(param->type)) {
+			param->maxlen  = tds_get_size_by_type(param->type);
+		} 
+
+		param->datalen = malloc(sizeof(CS_INT));		
+		if (param->datalen == NULL)
+			return CS_FAIL;
+
+		*(param->datalen) = datalen;
+
+		param->ind = malloc(sizeof(CS_INT));		
+		if (param->ind == NULL)
+			return CS_FAIL;
+
+		*(param->ind) = indicator;
+
+		param->param_by_value = 1;
+
+		/* here's one way of passing a null parameter */
+
+		if (indicator == -1) {
+			param->value = NULL;
+			*(param->datalen) = 0;
+			param_is_null  = 1;
+		} else {
+
+			/* and here's another... */
+			if ( (datalen == 0 || datalen == CS_UNUSED) && data == NULL ) {
+				param->value = NULL;
+				*(param->datalen) = 0;
+				param_is_null  = 1;
+			} else {
+
+				/* datafmt.datalen is ignored for fixed length types */
+		
+				if (is_fixed_type(param->type)) {
+					*(param->datalen) = tds_get_size_by_type(param->type);
+				} else {
+					*(param->datalen) = (datalen == CS_UNUSED) ? 0 : datalen;
+				}
+				
+				if (*(param->datalen) && data) {
+					param->value = malloc(*(param->datalen));
+					if (param->value == NULL)
+						return CS_FAIL;
+					memcpy(param->value, data, *(param->datalen));
+					param->param_by_value = 1;
+				} else {
+					param->value = NULL;
+					*(param->datalen) = 0;
+					param_is_null  = 1;
+				}
+			}
+		}
+
+		if (param_is_null) {
+			switch (param->type) {
+				case SYBINT1:
+				case SYBINT2:
+				case SYBINT4:
+					param->type = SYBINTN;
+					break;
+				case SYBDATETIME:
+				case SYBDATETIME4:
+					param->type = SYBDATETIMN;
+					break;
+				case SYBFLT8:
+					param->type = SYBFLTN;
+					break;
+				case SYBBIT:
+					param->type = SYBBITN;
+					break;
+				case SYBMONEY:
+				case SYBMONEY4:
+					param->type = SYBMONEYN;
+					break;
+				default:
+					break;
+			}
+		}
+
+		rpc = cmd->rpc;
+		pparam = &rpc->param_list;
+		if (*pparam == NULL){
+			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		}
+		else {
+			while ((*pparam)->next != NULL){
+				pparam = &(*pparam)->next;
+			}
+
+			(*pparam)->next = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+			pparam = &(*pparam)->next;
+		}
+		*pparam = param;
+		(*pparam)->next = NULL;
+		tdsdump_log(TDS_DBG_INFO1, " ct_param() added parameter %s \n",(*param).name );
+		return CS_SUCCEED;
 	}
-	param->is_null = indicator;
 
-	return CS_SUCCEED;
-*/
+	/* RPC code changes ends here */
+
+	if (cmd->command_type == CS_DYNAMIC_CMD) {
+		tds = cmd->con->tds_socket;
+
+		dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
+	
+		/* TODO */
+		return CS_FAIL;
+	}
 }
 
+CS_RETCODE
+ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT *datalen, CS_SMALLINT *indicator)
+{
+TDSSOCKET *tds;
+TDSDYNAMIC *dyn;
+char *name = NULL;
+CSREMOTE_PROC *rpc;
+CSREMOTE_PROC_PARAM **pparam;
+CSREMOTE_PROC_PARAM *param;
+int  param_is_null = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_setparam()\n");
+
+	/* Code changed for RPC functionality - SUHA*/
+	/* RPC code changes starts here */
+
+	if (cmd == NULL) return CS_FAIL;
+
+	if (cmd->command_type == CS_RPC_CMD) {
+
+		if (cmd->rpc == NULL) {
+			fprintf (stdout, "RPC is NULL ct_param\n");
+			return CS_FAIL;
+		}
+
+		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
+
+		if (datafmt->namelen == CS_NULLTERM) {
+			param->name = strdup(datafmt->name);
+			if (param->name == (char *)NULL)
+				return CS_FAIL;
+		} else if (datafmt->namelen > 0) {
+			param->name = malloc(datafmt->namelen + 1);
+			if (param->name == NULL) 
+				return CS_FAIL;
+			memset(param->name, 0, datafmt->namelen + 1);
+			strncpy(param->name, datafmt->name, datafmt->namelen);
+		} 
+
+		param->status = datafmt->status;
+
+		/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
+		/* to Server type, e.g. SYBINT2                      */
+
+		param->type   = _ct_get_server_type(datafmt->datatype);
+
+		param->maxlen = datafmt->maxlength;
+
+		if (is_fixed_type(param->type)) {
+			param->maxlen  = tds_get_size_by_type(param->type);
+		} 
+
+		param->datalen = datalen;
+		param->ind     = indicator;
+		param->value   = data;
+		param->param_by_value = 0;
+
+		rpc = cmd->rpc;
+		pparam = &rpc->param_list;
+		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() reached here\n",(*param).name );
+		if (*pparam == NULL){
+			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		}
+		else {
+			while ((*pparam)->next != NULL){
+				pparam = &(*pparam)->next;
+			}
+
+			(*pparam)->next = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+			pparam = &(*pparam)->next;
+		}
+		*pparam = param;
+		(*pparam)->next = NULL;
+		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() added parameter %s \n",(*param).name );
+		return CS_SUCCEED;
+	}
+}
 
 CS_RETCODE
 ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, CS_INT paramlen, CS_INT * outlen)
@@ -2332,3 +2697,189 @@ enum
 
 	return TDS_SUCCEED;
 }
+
+/* Code added for RPC functionality  - SUHA */
+/* RPC code changes starts here */
+
+static const unsigned char *
+paramrowalloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
+{
+	const unsigned char *row = tds_alloc_param_row(params, curcol);
+	if (!row) return NULL;
+	memcpy(&params->current_row[curcol->column_offset], value, size);
+
+	return row;
+}
+
+/** 
+ * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
+ */
+static TDSPARAMINFO*
+paraminfoalloc(CSREMOTE_PROC * rpc)
+{
+	int i;
+	CSREMOTE_PROC_PARAM *p;
+	TDSCOLINFO *pcol;
+	TDSPARAMINFO *params=NULL;
+
+	int      temp_type;
+	CS_BYTE *temp_value;
+	CS_INT   temp_datalen;
+	int      param_is_null;
+	
+
+	/* sanity */
+	if (rpc == NULL) return NULL;
+
+	for (i=0, p = rpc->param_list; p != NULL; p = p->next, i++) {
+  		const unsigned char * prow;
+		if (!(params = tds_alloc_param_result(params))) {
+			fprintf(stderr, "out of rpc memory!");
+			return NULL;
+		}
+		
+		/* The parameteter data has been passed by reference */
+		/* i.e. using ct_setparam rather than ct_param       */
+
+		if (p->param_by_value == 0) {
+
+			param_is_null = 0;
+			temp_datalen  = 0;
+			temp_value    = NULL;
+			temp_type     = p->type;
+
+			/* here's one way of passing a null parameter */
+
+			if (*(p->ind) == -1) {
+				temp_value    = NULL;
+				temp_datalen  = 0;
+				param_is_null = 1;
+			} else {
+	
+				/* and here's another... */
+				if ( (*(p->datalen) == 0 || *(p->datalen) == CS_UNUSED) && p->value == NULL ) {
+					temp_value    = NULL;
+					temp_datalen  = 0;
+					param_is_null = 1;
+				} else {
+	
+					/* datafmt.datalen is ignored for fixed length types */
+			
+					if (is_fixed_type(temp_type)) {
+						temp_datalen = tds_get_size_by_type(temp_type);
+					} else {
+						temp_datalen = (*(p->datalen) == CS_UNUSED) ? 0 : *(p->datalen);
+					}
+					
+					if (temp_datalen && p->value) {
+						temp_value = p->value;
+					} else {
+						temp_value    = NULL;
+						temp_datalen  = 0;
+						param_is_null = 1;
+					}
+				}
+			}
+	
+			if (param_is_null) {
+				switch (temp_type) {
+					case SYBINT1:
+					case SYBINT2:
+					case SYBINT4:
+						temp_type = SYBINTN;
+						break;
+					case SYBDATETIME:
+					case SYBDATETIME4:
+						temp_type = SYBDATETIMN;
+						break;
+					case SYBFLT8:
+						temp_type = SYBFLTN;
+						break;
+					case SYBBIT:
+						temp_type = SYBBITN;
+						break;
+					case SYBMONEY:
+					case SYBMONEY4:
+						temp_type = SYBMONEYN;
+						break;
+					default:
+						break;
+				}
+			}
+		} else {
+			temp_type     = p->type;
+			temp_value    = p->value;
+			temp_datalen  = *(p->datalen);
+		}
+
+		pcol = params->columns[i];
+
+		/* meta data */
+		if (p->name) 
+			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
+
+		tds_set_column_type(pcol, temp_type);
+
+		if (pcol->column_varint_size) {
+			if (p->maxlen < 0)
+				return NULL;
+			pcol->column_size	= p->maxlen;
+		}
+
+		if (p->status == CS_RETURN)
+			pcol->column_output	= 1;
+		else
+			pcol->column_output	= 0;
+
+		/* actual data */
+		pcol->column_cur_size	= temp_datalen;
+		tdsdump_log(TDS_DBG_FUNC, "%L paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
+		tdsdump_log(TDS_DBG_FUNC, "%L paraminfoalloc: name = %s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
+					pcol->column_name, pcol->column_varint_size, pcol->column_type, pcol->column_cur_size, pcol->column_output);
+		prow = paramrowalloc(params, pcol, temp_value, temp_datalen);
+		if (!prow) {
+			fprintf(stderr, "out of memory for rpc row!");
+			return NULL;
+		}
+	}
+
+	return params;
+	
+}
+
+static void
+rpc_clear(CSREMOTE_PROC * rpc)
+{
+	if (rpc == NULL) return;
+	
+    param_clear(rpc->param_list);
+	
+	assert(rpc->name);
+	free(rpc->name);
+	free(rpc);
+}
+
+/**
+ * recursively erase the parameter list
+ */
+static void
+param_clear(CSREMOTE_PROC_PARAM * pparam)
+{
+	if (pparam == NULL) return;
+	
+	if (pparam->next) {
+		param_clear(pparam->next);
+	}
+	
+	/* free self after clearing children */
+
+	if (pparam->name)
+		free(pparam->name);
+	if (pparam->param_by_value)
+	 	free(pparam->value);
+		free(pparam->datalen);
+		free(pparam->ind);
+
+	free(pparam);
+}
+/* RPC Code changes ends here */

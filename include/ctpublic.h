@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_ctpublic_h [ ] =
-         "$Id: ctpublic.h,v 1.7 2002-11-06 16:45:16 castellano Exp $";
+         "$Id: ctpublic.h,v 1.8 2003-03-05 13:14:30 freddy77 Exp $";
 static void *no_unused_ctpublic_h_warn[]={rcsid_ctpublic_h, no_unused_ctpublic_h_warn};
 
 CS_RETCODE ct_init(CS_CONTEXT *ctx, CS_INT version);
@@ -60,6 +60,7 @@ CS_RETCODE ct_data_info(CS_COMMAND *cmd, CS_INT action, CS_INT colnum, CS_IODESC
 CS_RETCODE ct_capability(CS_CONNECTION *con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID *value);
 CS_RETCODE ct_dynamic(CS_COMMAND *cmd, CS_INT type, CS_CHAR *id, CS_INT idlen, CS_CHAR *buffer, CS_INT buflen);
 CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT datalen, CS_SMALLINT indicator);
+CS_RETCODE ct_setparam(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen, CS_SMALLINT *indicator);
 CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen);
 CS_RETCODE ct_poll(CS_CONTEXT *ctx, CS_CONNECTION *connection, CS_INT milliseconds, CS_CONNECTION **compconn, CS_COMMAND **compcmd, CS_INT *compid, CS_INT *compstatus);
 CS_RETCODE ct_cursor(CS_COMMAND *cmd, CS_INT type, CS_CHAR *name, CS_INT namelen, CS_CHAR *text, CS_INT tlen, CS_INT option);

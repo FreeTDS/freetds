@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.113 2003-03-05 09:46:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.114 2003-03-05 13:14:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -892,8 +892,12 @@ TDS_CHAR tmp_str[24];
 		case SYBCHAR:
 		case SYBTEXT:
 		case SYBVARCHAR:
-			/* TODO: fix for all platform */
+			/* TODO: fix for all platform. Search for lltoa/_i64toa */
+#ifndef WIN32
 			sprintf(tmp_str,"%lld",buf);
+#else
+			_i64toa(buf, tmp_str, 10);
+#endif
 			return string_to_result(tmp_str,cr);
 			break;
 		case SYBBINARY:
@@ -949,8 +953,12 @@ TDS_CHAR tmp_str[24];
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			/* TODO portability problem */
+			/* TODO portability problem. See above */
+#ifndef WIN32
 			sprintf(tmp_str,"%lld",buf);
+#else
+			_i64toa(buf, tmp_str, 10);
+#endif
 			return stringz_to_numeric(tmp_str,cr);
 			break;
 		/* conversions not allowed */
@@ -2964,6 +2972,7 @@ unsigned int num; /* we use unsigned here for best overflow check */
 			return TDS_CONVERT_SYNTAX;
 	
 		/* add a digit to number and check for overflow */
+		/* NOTE I didn't forget a digit, I check overflow before multiply to prevent overflow */
 		if (num > 214748364u)
 			return TDS_CONVERT_OVERFLOW;
 		num = num * 10u + (*p-'0');

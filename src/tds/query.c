@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.71 2003-03-05 09:46:36 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.72 2003-03-05 13:14:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -347,6 +347,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 	if (flags & TDS_PUT_DATA_USE_NAME) {
 		/* TODO use column_namelen ?? */
 		len = strlen(curcol->column_name);
+		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting param_name \n");
 		tds_put_byte(tds, len);	/* param name len */
 		tds_put_string(tds, curcol->column_name, len);
 	} else {
@@ -355,21 +356,24 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 	/* TODO support other flags (use defaul null/no metadata)
 	 * bit 1 (2 as flag) in TDS7+ is "default value" bit 
 	 * (what's the meaning of "default value" ?) */
+
+	tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info putting status \n");
 	tds_put_byte(tds, curcol->column_output);	/* status (input) */
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_int(tds, curcol->column_usertype);	/* usertype */
 	tds_put_byte(tds, curcol->column_type);
+
 	switch (curcol->column_varint_size) {
 	case 0:
 		break;
 	case 1:
-		tds_put_byte(tds, curcol->column_cur_size);
+		tds_put_byte(tds, curcol->column_size);
 		break;
 	case 2:
-		tds_put_smallint(tds, curcol->column_cur_size);
+		tds_put_smallint(tds, curcol->column_size);
 		break;
 	case 4:
-		tds_put_int(tds, curcol->column_cur_size);
+		tds_put_int(tds, curcol->column_size);
 		break;
 	}
 	if (is_numeric_type(curcol->column_type)) {
@@ -382,8 +386,11 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		tds_put_n(tds, tds->collation, 5);
 
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
-	if (!IS_TDS7_PLUS(tds))
+	if (!IS_TDS7_PLUS(tds)) {
+
+		tdsdump_log(TDS_DBG_ERROR, "%L HERE! \n");
 		tds_put_byte(tds, 0x00);	/* locale info length */
+	}
 	return TDS_SUCCEED;
 }
 
@@ -426,71 +433,155 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	TDSBLOBINFO *blob_info;
 	int colsize;
 	int is_null;
+	const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
+	const unsigned char GEN_NULL = 0x00;
+
+/* I don't think this is working as tds_set_null is not being called prior to this...
+   I can't figure out how where I should call tds_set_null() anyway....
 
 	is_null = tds_get_null(current_row, i);
+*/
 	colsize = curcol->column_cur_size;
+	if (colsize == 0)
+		is_null = 1;
+	else
+		is_null = 0;
 
-	/* put size of data */
-	src = &(current_row[curcol->column_offset]);
-	switch (curcol->column_varint_size) {
-	case 4:		/* Its a BLOB... */
-		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
-		if (!is_null) {
-			tds_put_byte(tds, 16);
-			tds_put_n(tds, blob_info->textptr, 16);
-			tds_put_n(tds, blob_info->timestamp, 8);
-			tds_put_int(tds, colsize);
+	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
+
+
+	if (IS_TDS7_PLUS(tds)) {
+		src = &(current_row[curcol->column_offset]);
+		if (is_null) {
+
+			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
+			switch(curcol->column_type) {
+                case XSYBCHAR:
+                case XSYBVARCHAR:
+                case XSYBBINARY:
+                case XSYBVARBINARY:
+                case XSYBNCHAR:
+                case XSYBNVARCHAR:
+				 	 tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting CHARBIN_NULL\n");
+                     tds_put_n(tds, CHARBIN_NULL, 2);
+                     break;
+                default:
+				 	 tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
+                     tds_put_byte(tds, GEN_NULL);
+                     break;
+
+            }
 		} else {
-			tds_put_byte(tds, 0);
-		}
-		break;
-	case 2:
-		if (!is_null)
-			tds_put_smallint(tds, colsize);
-		else
-			tds_put_smallint(tds, -1);
-		break;
-	case 1:
-		if (!is_null) {
-			if (is_numeric_type(curcol->column_type))
-				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
-			tds_put_byte(tds, colsize);
-		} else
-			tds_put_byte(tds, 0);
-		break;
-	case 0:
-		colsize = tds_get_size_by_type(curcol->column_type);
-		break;
-	}
-
-	if (is_null)
-		return TDS_SUCCEED;
-
-	/* put real data */
-	if (is_numeric_type(curcol->column_type)) {
-		TDS_NUMERIC buf;
-		num = (TDS_NUMERIC *) src;
-		if (IS_TDS7_PLUS(tds)) {
-			memcpy(&buf, num, sizeof(buf));
-			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
-			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
-			num = &buf;
-		}
-		tds_put_n(tds, num->array, colsize);
-	} else if (is_blob_type(curcol->column_type)) {
-		blob_info = (TDSBLOBINFO *) src;
-		tds_put_n(tds, blob_info->textvalue, colsize);
-	} else {
+			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n", curcol->column_varint_size);
+			switch (curcol->column_varint_size) {
+			case 4:		/* Its a BLOB... */
+				blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+				tds_put_byte(tds, 16);
+				tds_put_n(tds, blob_info->textptr, 16);
+				tds_put_n(tds, blob_info->timestamp, 8);
+				tds_put_int(tds, colsize);
+				break;
+			case 2:
+				tds_put_smallint(tds, colsize);
+				break;
+			case 1:
+				if (is_numeric_type(curcol->column_type))
+					colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+				tds_put_byte(tds, colsize);
+				break;
+			case 0:
+				colsize = tds_get_size_by_type(curcol->column_type);
+				break;
+			}
+		
+			/* put real data */
+			if (is_numeric_type(curcol->column_type)) {
+				TDS_NUMERIC buf;
+				num = (TDS_NUMERIC *) src;
+				memcpy(&buf, num, sizeof(buf));
+				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
+				num = &buf;
+				tds_put_n(tds, num->array, colsize);
+			} else if (is_blob_type(curcol->column_type)) {
+				blob_info = (TDSBLOBINFO *) src;
+				tds_put_n(tds, blob_info->textvalue, colsize);
+			} else {
 #ifdef WORDS_BIGENDIAN
-		unsigned char buf[64];
-		if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
-			tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
-			memcpy(buf, src, colsize);
-			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
-			src = buf;
-		}
+				unsigned char buf[64];
+				if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
+					tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+					memcpy(buf, src, colsize);
+					tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+					src = buf;
+				}
 #endif
-		tds_put_n(tds, src, colsize);
+				tds_put_n(tds, src, colsize);
+			}
+		}
+	} else {
+		/* put size of data */
+		src = &(current_row[curcol->column_offset]);
+		switch (curcol->column_varint_size) {
+		case 4:		/* Its a BLOB... */
+			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+			if (!is_null) {
+				tds_put_byte(tds, 16);
+				tds_put_n(tds, blob_info->textptr, 16);
+				tds_put_n(tds, blob_info->timestamp, 8);
+				tds_put_int(tds, colsize);
+			} else {
+				tds_put_byte(tds, 0);
+			}
+			break;
+		case 2:
+			if (!is_null)
+				tds_put_smallint(tds, colsize);
+			else
+				tds_put_smallint(tds, -1);
+			break;
+		case 1:
+			if (!is_null) {
+				if (is_numeric_type(curcol->column_type))
+					colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+				tds_put_byte(tds, colsize);
+			} else
+				tds_put_byte(tds, 0);
+			break;
+		case 0:
+			colsize = tds_get_size_by_type(curcol->column_type);
+			break;
+		}
+	
+		if (is_null)
+			return TDS_SUCCEED;
+	
+		/* put real data */
+		if (is_numeric_type(curcol->column_type)) {
+			TDS_NUMERIC buf;
+			num = (TDS_NUMERIC *) src;
+			if (IS_TDS7_PLUS(tds)) {
+				memcpy(&buf, num, sizeof(buf));
+				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
+				num = &buf;
+			}
+			tds_put_n(tds, num->array, colsize);
+		} else if (is_blob_type(curcol->column_type)) {
+			blob_info = (TDSBLOBINFO *) src;
+			tds_put_n(tds, blob_info->textvalue, colsize);
+		} else {
+#ifdef WORDS_BIGENDIAN
+			unsigned char buf[64];
+			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
+				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+				memcpy(buf, src, colsize);
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+				src = buf;
+			}
+#endif
+			tds_put_n(tds, src, colsize);
+		}
 	}
 	return TDS_SUCCEED;
 }

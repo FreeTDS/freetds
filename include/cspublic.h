@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.31 2003-02-12 06:15:34 jklowden Exp $";
+         "$Id: cspublic.h,v 1.32 2003-03-05 13:14:30 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -83,6 +83,30 @@ typedef CS_RETCODE (*CS_CSLIBMSG_FUNC)(CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_CLIENTMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
+ /* Code added for RPC functionality - SUHA */
+ /* RPC Code changes starts here */
+
+typedef struct _CSREMOTE_PROC_PARAM
+{
+	struct _CSREMOTE_PROC_PARAM *next;
+	char    *name;
+	int      status;
+	int      type;
+	CS_INT   maxlen;
+	CS_INT  *datalen;
+	CS_SMALLINT  *ind;
+	CS_BYTE *value;
+	int      param_by_value;
+} CSREMOTE_PROC_PARAM;
+
+typedef struct _CSREMOTE_PROC
+{
+	char *name;
+	CS_SMALLINT options;
+	CSREMOTE_PROC_PARAM *param_list;
+} CSREMOTE_PROC;
+
+/* RPC Code changes ends here */
 struct cs_context
 {
 	CS_INT date_convert_fmt;
@@ -132,6 +156,9 @@ typedef struct cs_iodesc {
 } CS_IODESC;
 
 
+/* Structure CS_COMMAND changed for RPC functionality -SUHA */
+/* Added CSREMOTE_PROC *rpc to CS_COMMAND structure */
+
 typedef struct cs_command
 {
 	CS_CHAR *query;
@@ -139,13 +166,17 @@ typedef struct cs_command
 	CS_CONNECTION *con;
 	short dynamic_cmd;
 	char  *dyn_id; 
-    int   row_prefetched;
-    int   empty_result;
-    int   curr_result_type;
+	int   row_prefetched;
+	int   empty_result;
+	int   curr_result_type;
+	/* Array Binding Code changes start here */
+	int   bind_count; 
+	/* Array Binding Code changes end here */  
 	int   get_data_item;
 	int   get_data_bytes_returned;
 	CS_IODESC *iodesc;
 	CS_INT send_data_started;
+	CSREMOTE_PROC *rpc;
 } CS_COMMAND;
 
 #define CS_MAX_MSG 1024
@@ -558,6 +589,8 @@ enum {
 #define CS_SEND_DATA_CMD	119
 #define CS_SUPPORTED 120
 #define CS_EXPOSE_FMTS 121
+#define CS_DYNAMIC_CMD 122
+#define CS_MSGTYPE 123
 #define CS_VERSION	9114
 #define CS_EXTRA_INF	9121
 

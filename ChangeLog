@@ -1,3 +1,13 @@
+Wed Mar 05 14:11:17 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/rpc_ct_setparam.c (added):
+	* src/ctlib/unittests/rpc_ct_param.c (added):
+	* src/ctlib/unittests/array_bind.c (added):
+	* include/cspublic.h include/ctpublic.h:
+	* src/ctlib/cs.c src/ctlib/ct.c src/dblib/rpc.c:
+	* src/tds/query.c:
+	- applied Bill Thompson patch
+	* src/tds/convert.c: fix some issue with win32
+
 Wed Mar 05 11:12:59 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: declare function
 
