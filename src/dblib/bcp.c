@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.46 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.47 2003-01-10 18:13:24 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1530,7 +1530,7 @@ int i;
 int marker;
 
 char *query;
-char colclause[1024];
+char colclause[4096];
 
 int firstcol;
 
@@ -2363,6 +2363,8 @@ BYTE coldata[256];
 			else
 				collen = bytes_read;
 
+     if (collen == 0)
+	 data_is_null = 1;
 
 			if (hostcol->tab_colnum) {
 				if (data_is_null) {
@@ -2378,12 +2380,7 @@ BYTE coldata[256];
 						return (FAIL);
 					}
 
-					if (desttype == SYBVARCHAR) {
-						bcpcol->data_size = _bcp_rtrim_varchar(bcpcol->data, converted_data_size);
-					} else {
-						bcpcol->data_size = converted_data_size;
-					}
-
+					bcpcol->data_size = converted_data_size;
 				}
 			}
 		} else {
@@ -2405,11 +2402,7 @@ BYTE coldata[256];
 						return (FAIL);
 					}
 
-					if (desttype == SYBVARCHAR) {
-						bcpcol->data_size = _bcp_rtrim_varchar(bcpcol->data, converted_data_size);
-					} else {
-						bcpcol->data_size = converted_data_size;
-					}
+					bcpcol->data_size = converted_data_size;
 				}
 			}
 		}
