@@ -1,3 +1,6 @@
+Wed Nov 12 23:45:02 PST 2003	Peter Deacon <peterd@iea-software.com>
+	* src/odbc/odbc.c: commit/rollback with pending results
+
 Sun Nov  9 08:48:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	- remove attr_ prefix from all attributes
