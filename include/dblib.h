@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.24 2005-02-09 16:15:10 jklowden Exp $";
+static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.25 2005-04-04 08:35:22 freddy77 Exp $";
 static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 enum {
@@ -170,10 +170,7 @@ DBINT _convert_char(int srctype, BYTE * src, int destype, BYTE * dest, DBINT des
 DBINT _convert_intn(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);
 
 RETCODE _bcp_clear_storage(DBPROCESS * dbproc);
-RETCODE _bcp_get_term_var(BYTE * dataptr, BYTE * term, int term_len);
 RETCODE _bcp_get_prog_data(DBPROCESS * dbproc);
-int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
-RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error);
 
 extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;

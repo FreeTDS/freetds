@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.121 2005-04-03 13:37:25 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.122 2005-04-04 08:35:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -81,6 +81,9 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static int rtrim(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
+static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error);
+static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
+static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
 
 RETCODE
@@ -802,7 +805,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	return SUCCEED;
 }
 
-RETCODE
+static RETCODE
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error)
 {
 	TDSCOLUMN *bcpcol = NULL;
@@ -2187,7 +2190,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 	return (SUCCEED);
 }
 
-int
+static int
 _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 {
 
@@ -2796,7 +2799,7 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
  * have been identified as character terminated,  
  * This is a low-level, internal function.  Call it correctly.  
  */
-RETCODE
+static RETCODE
 _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
 	int bufpos;

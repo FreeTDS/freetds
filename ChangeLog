@@ -1,3 +1,7 @@
+Mon Apr  4 10:34:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/dblib.h src/dblib/bcp.c:
+	- make static some functions
+
 Sun Apr  3 15:36:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/freebcp.c src/ctlib/cs.c src/ctlib/ct.c:
 	* src/ctlib/unittests/cancel.c src/dblib/bcp.c:
