@@ -1,3 +1,8 @@
+Mon Feb 23 17:18:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/data.c:
+	- improve portability test
+
 Mon Feb 23 16:21:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/data.c:
 	- add test to test data from server

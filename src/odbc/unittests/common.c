@@ -4,7 +4,9 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: common.c,v 1.26 2004-02-14 18:52:15 freddy77 Exp $";
+#include <ctype.h>
+
+static char software_version[] = "$Id: common.c,v 1.27 2004-02-23 16:13:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -37,10 +39,11 @@ check_lib(char *path, const char *file)
 /* some platforms do not have setenv, define a replacement */
 #if !HAVE_SETENV
 void
-odbc_setenv(const char* name, const char *value, int overwrite)
+odbc_setenv(const char *name, const char *value, int overwrite)
 {
 #if HAVE_PUTENV
 	char buf[1024];
+
 	sprintf(buf, "%s=%s", name, value);
 	putenv(buf);
 #endif
@@ -224,4 +227,40 @@ CommandWithResult(HSTMT stmt, const char *command)
 {
 	printf("%s\n", command);
 	return SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
+}
+
+static int ms_db = -1;
+int
+db_is_microsoft(void)
+{
+	char buf[64];
+	SQLSMALLINT len;
+	int i;
+
+	if (ms_db < 0) {
+		buf[0] = 0;
+		SQLGetInfo(Connection, SQL_DBMS_NAME, buf, sizeof(buf), &len);
+		for (i = 0; buf[i]; ++i)
+			buf[i] = tolower(buf[i]);
+		ms_db = (strstr(buf, "microsoft") != NULL);
+	}
+	return ms_db;
+}
+
+static int freetds_driver = -1;
+int
+driver_is_freetds(void)
+{
+	char buf[64];
+	SQLSMALLINT len;
+	int i;
+
+	if (freetds_driver < 0) {
+		buf[0] = 0;
+		SQLGetInfo(Connection, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
+		for (i = 0; buf[i]; ++i)
+			buf[i] = tolower(buf[i]);
+		freetds_driver = (strstr(buf, "tds") != NULL);
+	}
+	return freetds_driver;
 }

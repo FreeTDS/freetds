@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.2 2004-02-23 15:21:56 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.3 2004-02-23 16:13:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -107,12 +107,16 @@ main(int argc, char *argv[])
 	Test("SMALLMONEY", "765.4321", SQL_C_BINARY, big_endian ? "0074CBB1" : "B1CB7400");
 	Test("MONEY", "4321234.5678", SQL_C_BINARY, big_endian ? "0000000A0FA8114E" : "0A0000004E11A80F");
 
-	Test("NCHAR(7)", "donald", SQL_C_BINARY, "64006F006E0061006C0064002000");
-	Test("NTEXT", "duck", SQL_C_BINARY, "6400750063006B00");
-	Test("NVARCHAR(20)", "daffy", SQL_C_BINARY, "64006100660066007900");
+	/* behavior is different from MS ODBC */
+	if (db_is_microsoft() && !driver_is_freetds()) {
+		Test("NCHAR(7)", "donald", SQL_C_BINARY, "64006F006E0061006C0064002000");
+		Test("NTEXT", "duck", SQL_C_BINARY, "6400750063006B00");
+		Test("NVARCHAR(20)", "daffy", SQL_C_BINARY, "64006100660066007900");
+	}
 
-	Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
-	     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
+	if (db_is_microsoft())
+		Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
+		     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
 
 	Disconnect();
 
