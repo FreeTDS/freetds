@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.47 2002-11-01 22:51:34 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.48 2002-11-06 12:40:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -488,6 +488,7 @@ CS_INT        res_type;
                          return CS_FAIL;
                       break;
 
+                 case CS_CMD_SUCCEED:
                  case CS_CMD_DONE:
 
                       /* there's a distinction in ct-library     */

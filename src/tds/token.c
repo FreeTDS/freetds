@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.95 2002-11-05 19:48:11 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.96 2002-11-06 12:40:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -85,8 +85,7 @@ int tds_process_default_tokens(TDSSOCKET *tds, int marker)
 {
 int order_len;
 int tok_size;
-int   more_results;
-int   cancelled;
+int done_flags;
 
    tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() marker is %x\n", marker);
 
@@ -109,8 +108,8 @@ int   cancelled;
       case TDS_DONEPROC_TOKEN:
       case TDS_DONEINPROC_TOKEN:
       {
-         tds_process_end(tds, marker, &more_results, &cancelled);
-         if (!more_results) {
+		tds_process_end(tds, marker, &done_flags);
+		if (!(done_flags & TDS_DONE_MORE_RESULTS)) {
             tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() setting state to COMPLETED\n");
             tds->state=TDS_COMPLETED;
          }
@@ -352,7 +351,8 @@ int where = 0;
  *  @par
  *  <b>Values that indicate command status</b>
  *  <table>
- *   <tr><td>TDS_CMD_DONE</td><td>The results of a  command have been completely processed</td></tr>
+ *   <tr><td>TDS_CMD_SUCCEED</td><td>The results of a  command have been completely processed. This command return no rows.</td></tr>
+ *   <tr><td>TDS_CMD_DONE</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
  *   <tr><td>TDS_CMD_FAIL</td><td>The server encountered an error while executing a command</td></tr>
  *  </table>
  *  <b>Values that indicate results information is available</b>
@@ -392,8 +392,7 @@ int where = 0;
 int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type)
 {
 int marker;
-int more_results = 0;
-int cancelled;
+int done_flags;
 
 	if (tds->state==TDS_COMPLETED) {
         tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_result_tokens() state is COMPLETED\n");
@@ -479,9 +478,9 @@ int cancelled;
 			case TDS_DONE_TOKEN:
 			case TDS_DONEPROC_TOKEN:
 			case TDS_DONEINPROC_TOKEN:
-                if (tds_process_end(tds, marker, &more_results, &cancelled) == TDS_SUCCEED)
-					*result_type = TDS_CMD_DONE;
-                else
+				if (tds_process_end(tds, marker, &done_flags) == TDS_SUCCEED)
+					*result_type = (done_flags & TDS_DONE_COUNT) ? TDS_CMD_DONE : TDS_CMD_SUCCEED;
+				else
 					*result_type = TDS_CMD_FAIL;
 				return TDS_SUCCEED;
 				break;
@@ -522,8 +521,6 @@ int cancelled;
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid)
 {
 int marker;
-int   more_results;
-int   cancelled;
 TDS_SMALLINT compute_id;
 TDSRESULTINFO *info;
 int i;
@@ -577,7 +574,7 @@ int i;
 			case TDS_DONEPROC_TOKEN:
 			case TDS_DONEINPROC_TOKEN:
 
-				tds_process_end(tds, marker, &more_results, &cancelled);
+				tds_process_end(tds, marker, NULL);
                 *rowtype = TDS_NO_MORE_ROWS;
 				return TDS_NO_MORE_ROWS;
 
@@ -1374,17 +1371,16 @@ TDSRESULTINFO *info;
 TDS_INT tds_process_end(
    TDSSOCKET     *tds,
    int            marker,
-   int           *more_results_parm,
-   int           *was_cancelled_parm)
+   int           *flags_parm)
 {
 int more_results, was_cancelled, error;
 int tmp;
 
    tmp  = tds_get_smallint(tds);
 
-   more_results = (tmp & 0x1) != 0;
-   was_cancelled = (tmp & 0x20) != 0;
-   error         = (tmp & 0x2)  != 0;
+   more_results = (tmp & TDS_DONE_MORE_RESULTS) != 0;
+   was_cancelled = (tmp & TDS_DONE_CANCELLED) != 0;
+   error         = (tmp & TDS_DONE_ERROR)  != 0;
 
 
    tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_end() more_results = %d, was_cancelled = %d \n",
@@ -1393,10 +1389,8 @@ int tmp;
       tds->res_info->more_results=more_results;
    }
 
-   if (more_results_parm)
-	*more_results_parm = more_results;
-   if (was_cancelled_parm)
-	*was_cancelled_parm = was_cancelled;
+	if (flags_parm)
+		*flags_parm = tmp;
 
    if (was_cancelled || !(more_results)) {
        tds->state = TDS_COMPLETED;
@@ -1671,19 +1665,19 @@ char *proc_name;
 */
 int tds_process_cancel(TDSSOCKET *tds)
 {
-int marker, cancelled=0;
+int marker, done_flags=0;
 
 	/* FIXME we must wait for cancel packet first, then wait for done */
 	do {
 		marker=tds_get_byte(tds);
 		if (marker==TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL, &cancelled);
+			tds_process_end(tds, marker, &done_flags);
 		} else if (marker==0) {
-			cancelled = 1;
+			done_flags = TDS_DONE_CANCELLED;
 		} else {
 			tds_process_default_tokens(tds,marker);
 		}
-	} while (!cancelled);
+	} while (!(done_flags & TDS_DONE_CANCELLED));
 	tds->state = TDS_COMPLETED;
 
 	return 0;

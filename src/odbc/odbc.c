@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.82 2002-11-04 19:49:19 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.83 2002-11-06 12:40:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -346,18 +346,42 @@ SQLRETURN SQL_API SQLMoreResults(
     stmt=(struct _hstmt *)hstmt;
     tds = stmt->hdbc->tds_socket;
 
-    /* try to go to the next recordset */
-    switch (tds_process_result_tokens(tds, &result_type))
-    {
-    case TDS_NO_MORE_RESULTS:
-        odbc_set_return_status(stmt);
-        return SQL_NO_DATA_FOUND;
-    case TDS_SUCCEED:
-	/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result chenged */
-	stmt->row = 0;
-        return SQL_SUCCESS;
-    }
-    return SQL_ERROR;
+	/* try to go to the next recordset */
+	for(;;) {
+		switch (tds_process_result_tokens(tds, &result_type))
+		{
+		case TDS_NO_MORE_RESULTS:
+			return SQL_NO_DATA_FOUND;
+		case TDS_SUCCEED:
+			switch(result_type) {
+			case  TDS_COMPUTE_RESULT    :
+			case  TDS_ROW_RESULT        :
+			case  TDS_CMD_FAIL          :
+				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result chenged */
+				stmt->row = 0;
+				return SQL_SUCCESS;
+
+			case  TDS_STATUS_RESULT     :
+				odbc_set_return_status(stmt);
+				break;
+
+			/* ?? */
+			case  TDS_CMD_DONE          :
+				if (tds->res_info) {
+					stmt->row = 0;
+					return SQL_SUCCESS;
+				}
+
+			case  TDS_PARAM_RESULT      :
+			case  TDS_COMPUTEFMT_RESULT :
+			case  TDS_MSG_RESULT        :
+			case  TDS_ROWFMT_RESULT     :
+			case  TDS_DESCRIBE_RESULT   :
+				break;
+			}
+		}
+	}
+	return SQL_ERROR;
 }
 
 SQLRETURN SQL_API SQLNativeSql(
@@ -1166,11 +1190,12 @@ _SQLExecute( SQLHSTMT hstmt)
         case  TDS_PARAM_RESULT      :
         case  TDS_ROW_RESULT        :
         case  TDS_STATUS_RESULT     :
-        case  TDS_CMD_DONE          :
         case  TDS_CMD_FAIL          :
               done = 1;
               break;
 
+        case  TDS_CMD_DONE          :
+			if (tds->res_info) done = 1;
         case  TDS_COMPUTEFMT_RESULT :
         case  TDS_MSG_RESULT        :
         case  TDS_ROWFMT_RESULT     :
@@ -1293,8 +1318,11 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 			switch (result_type) {
 			case  TDS_COMPUTE_RESULT    :
 			case  TDS_ROW_RESULT        :
-			case  TDS_CMD_DONE          :
 			case  TDS_CMD_FAIL          :
+				done = 1;
+				break;
+
+			case  TDS_CMD_DONE          :
 				done = 1;
 				break;
 

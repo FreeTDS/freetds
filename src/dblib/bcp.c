@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.37 2002-11-04 19:49:18 castellano Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.38 2002-11-06 12:40:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1394,7 +1394,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				do {
 					marker = tds_get_byte(tds);
 					if (marker == TDS_DONE_TOKEN) {
-						tds_process_end(tds, marker, NULL, NULL);
+						tds_process_end(tds, marker, NULL);
 						rows_copied_this_batch = tds->rows_affected;
 						rows_copied_so_far += rows_copied_this_batch;
 					} else {
@@ -1418,7 +1418,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL, NULL);
+			tds_process_end(tds, marker, NULL);
 			rows_copied_this_batch = tds->rows_affected;
 			rows_copied_so_far += rows_copied_this_batch;
 			*rows_copied = rows_copied_so_far;
@@ -2065,7 +2065,7 @@ int rows_copied;
 
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL, NULL);
+			tds_process_end(tds, marker, NULL);
 			rows_copied = tds->rows_affected;
 		} else
 			tds_process_default_tokens(tds, marker);
@@ -2099,7 +2099,7 @@ int rows_copied = -1;
 
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL, NULL);
+			tds_process_end(tds, marker, NULL);
 			rows_copied = tds->rows_affected;
 		} else
 			tds_process_default_tokens(tds, marker);

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.40 2002-11-05 16:08:47 freddy77 Exp $";
+	"$Id: tds.h,v 1.41 2002-11-06 12:40:08 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -144,10 +144,19 @@ typedef struct tdsdaterec
 #define TDS_MSG_RESULT        4044
 #define TDS_COMPUTE_RESULT    4045
 #define TDS_CMD_DONE          4046
+#define TDS_CMD_SUCCEED       4047
 #define TDS_CMD_FAIL          4048
 #define TDS_ROWFMT_RESULT     4049
 #define TDS_COMPUTEFMT_RESULT 4050
 #define TDS_DESCRIBE_RESULT   4051
+
+enum tds_end {
+	TDS_DONE_MORE_RESULTS = 1,
+	TDS_DONE_ERROR = 2,
+	TDS_DONE_COUNT = 16,
+	TDS_DONE_CANCELLED = 32
+};
+
 
 /*
 ** TDS_ERROR indicates a successful processing, but an TDS_ERR_TOKEN or 
@@ -704,7 +713,7 @@ int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
-TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
+TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);

@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0005.c,v 1.7 2002-11-04 19:49:21 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.8 2002-11-06 12:40:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, const char *query);
@@ -128,7 +128,7 @@ int run_query(TDSSOCKET *tds, const char *query)
 
    while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
 
-      if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_FAIL) {
+      if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_SUCCEED && result_type != TDS_CMD_FAIL) {
          fprintf(stderr, "Error:  query should not return results\n");
          return TDS_FAIL;
       }

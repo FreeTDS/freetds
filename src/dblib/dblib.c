@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.96 2002-11-04 21:10:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.97 2002-11-06 12:40:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2869,8 +2869,7 @@ TDSSOCKET *tds;
 
 unsigned char   marker;
 int      done         = 0;
-int      more_results = 0;
-int      cancelled    = 0;
+int      done_flags = 0;
 
 RETCODE rc = SUCCEED;
 
@@ -2917,7 +2916,7 @@ RETCODE rc = SUCCEED;
        else if ( is_end_token(marker) ) {
 
 		       tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found end token\n");
-               if (tds_process_end(tds, marker, &more_results, &cancelled) != TDS_SUCCEED) {
+               if (tds_process_end(tds, marker, &done_flags) != TDS_SUCCEED) {
 		         tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
 			rc=FAIL;
                } else {
@@ -2931,7 +2930,7 @@ RETCODE rc = SUCCEED;
                /* NO_MORE_RESULTS, instead of SUCCEED. So we turn    */
                /* on this little flag to stop that happening...      */
 
-               if (!more_results)
+               if (!(done_flags & TDS_DONE_MORE_RESULTS))
                    dbproc->empty_result = 1;
 	} 
             else {
@@ -3563,7 +3562,7 @@ dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textp
 {
 char textptr_string[35]; /* 16 * 2 + 2 (0x) + 1 */
 char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
-int marker, more, cancelled;
+int marker;
 
     if (IS_TDSDEAD(dbproc->tds_socket)) return FAIL;
 
@@ -3587,7 +3586,7 @@ int marker, more, cancelled;
 		return FAIL;
 	}
 	
-	if (tds_process_end(dbproc->tds_socket, marker, &more, &cancelled) != TDS_SUCCEED) {
+	if (tds_process_end(dbproc->tds_socket, marker, NULL) != TDS_SUCCEED) {
 		return FAIL;
     }
 	

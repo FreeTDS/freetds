@@ -1,3 +1,12 @@
+Fri Nov  6 13:38:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/tds.h include/tdsodbc.h:
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/tds/token.c src/tds/unittests/t0004.c:
+	* src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	- add TDS_CMD_SUCCEED to tds_process_result_tokens result types
+	- tds_process_end set a variable that hold TDS_DONE_* flags
+	- update ODBC according (all this stuff started here)
+
 Fri Nov  5 20:47:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: pad CHAR and BINARY to proper value
 
