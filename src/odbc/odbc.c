@@ -49,12 +49,13 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.14 2002-02-05 06:22:08 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.15 2002-02-06 13:02:47 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 static SQLSMALLINT _odbc_get_client_type(int srv_type);
 static int _odbc_fix_literals(struct _hstmt *stmt);
+static int _odbc_fixup_sql(struct _hstmt *stmt);
 static int _odbc_get_server_type(int clt_type);
 static int _odbc_get_string_size(int size, char *str);
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR *phdbc);
@@ -64,6 +65,7 @@ static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
 static char *strncpy_null(char *dst, const char *src, int len);
+
 
 #define _MAX_ERROR_LEN 255
 static char lastError[_MAX_ERROR_LEN+1];
@@ -408,14 +410,58 @@ TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
 struct _hstmt *stmt;
+struct _sql_param_info *cur, *prev, *newitem;
 
 	stmt = (struct _hstmt *) hstmt;
+
+	/* find available item in list */
+	cur = stmt->param_head;
+	while (cur) {
+		if (cur->param_number==ipar) 
+			break;
+		cur = cur->next;
+	}
+	/* if this is a repeat */
+	if (cur) {
+		cur->param_type = fParamType;
+		cur->param_bindtype = fCType;
+		cur->param_sqltype = fSqlType;
+   		cur->param_bindlen = cbValueMax;
+   		cur->param_lenbind = (char *) pcbValue;
+   		cur->varaddr = (char *) rgbValue;
+	} else {
+		/* didn't find it create a new one */
+		newitem = (struct _sql_param_info *) 
+			malloc(sizeof(struct _sql_param_info));
+		memset(newitem, 0, sizeof(struct _sql_param_info));
+		newitem->param_number = ipar;
+		newitem->param_type = fParamType;
+		newitem->param_bindtype = fCType;
+		newitem->param_sqltype = fSqlType;
+   		newitem->param_bindlen = cbValueMax;
+   		newitem->param_lenbind = (char *) pcbValue;
+   		newitem->varaddr = (char *) rgbValue;
+		/* if there's no head yet */
+		if (! stmt->param_head) {
+			stmt->param_head = newitem;
+		} else {
+			/* find the tail of the list */
+			cur = stmt->param_head;
+			while (cur) {
+				prev = cur;
+				cur = cur->next;
+			}
+			prev->next = newitem;
+		}
+	}
+/*
 	tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
 	colinfo = tds->res_info->columns[ipar-1];
         colinfo->varaddr = (char *)rgbValue;
         colinfo->column_bindtype = fCType;
         colinfo->column_bindlen = cbValueMax;
         colinfo->column_lenbind = pcbValue;
+*/
 	return SQL_SUCCESS;
 }
 
@@ -499,7 +545,8 @@ SQLRETURN SQL_API SQLAllocStmt(
 	return _SQLAllocStmt(hdbc,phstmt);
 }
 
-SQLRETURN SQL_API SQLBindCol(
+SQLRETURN SQL_API 
+SQLBindCol(
     SQLHSTMT           hstmt,
     SQLUSMALLINT       icol,
     SQLSMALLINT        fCType,
@@ -507,24 +554,51 @@ SQLRETURN SQL_API SQLBindCol(
     SQLINTEGER         cbValueMax,
     SQLINTEGER FAR    *pcbValue)
 {
-   /*
-    * Copied this code from SQLBindParameter because it looks like it
-    * belongs here. - Ken
-    */
-   TDSCOLINFO * colinfo;
-   TDSRESULTINFO * resinfo;
-   TDSSOCKET * tds;
-   struct _hstmt *stmt;
+TDSCOLINFO * colinfo;
+TDSRESULTINFO * resinfo;
+TDSSOCKET * tds;
+struct _hstmt *stmt;
+struct _sql_bind_info *cur, *prev, *newitem;
 
-   stmt = (struct _hstmt *) hstmt;
-   tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
-   colinfo = tds->res_info->columns[icol-1];
-   colinfo->varaddr = (char *)rgbValue;
-   colinfo->column_bindtype = fCType;
-   colinfo->column_bindlen = cbValueMax;
-   colinfo->column_lenbind = pcbValue;
+	stmt = (struct _hstmt *) hstmt;
 
-   return SQL_SUCCESS;
+	/* find available item in list */
+	cur = stmt->bind_head;
+	while (cur) {
+		if (cur->column_number==icol) 
+			break;
+		cur = cur->next;
+	}
+	/* if this is a repeat */
+	if (cur) {
+		cur->column_bindtype = fCType;
+   		cur->column_bindlen = cbValueMax;
+   		cur->column_lenbind = (char *) pcbValue;
+   		cur->varaddr = (char *) rgbValue;
+	} else {
+		/* didn't find it create a new one */
+		newitem = (struct _sql_bind_info *) malloc(sizeof(struct _sql_bind_info));
+		memset(newitem, 0, sizeof(struct _sql_bind_info));
+		newitem->column_number = icol;
+		newitem->column_bindtype = fCType;
+   		newitem->column_bindlen = cbValueMax;
+   		newitem->column_lenbind = (char *) pcbValue;
+   		newitem->varaddr = (char *) rgbValue;
+		/* if there's no head yet */
+		if (! stmt->bind_head) {
+			stmt->bind_head = newitem;
+		} else {
+			/* find the tail of the list */
+			cur = stmt->bind_head;
+			while (cur) {
+				prev = cur;
+				cur = cur->next;
+			}
+			prev->next = newitem;
+		}
+	}
+
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLCancel(
@@ -839,27 +913,54 @@ SQLRETURN SQL_API SQLError(
    return result;
 }
 
-static SQLRETURN SQL_API _SQLExecute( SQLHSTMT hstmt)
+static SQLRETURN SQL_API 
+_SQLExecute( SQLHSTMT hstmt)
 {
 struct _hstmt *stmt = (struct _hstmt *) hstmt;
 int ret;
 TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+TDSCOLINFO *colinfo;
+struct _sql_bind_info *cur;
    
-   /* fprintf(stderr,"query = %s\n",stmt->query); */
-   _odbc_fix_literals(stmt);
+	_odbc_fix_literals(stmt);
+	if (stmt->param_head) {
+		_odbc_fixup_sql(stmt);
+	}
+	fprintf(stderr,"query = %s\n",stmt->query);
 
-   if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED)) {
-	LogError (tds->msg_info->message);
-   	return SQL_ERROR;
-   }
-   /* does anyone know how ODBC deals with multiple result sets? */
-   ret = tds_process_result_tokens(tds);
-   if (ret==TDS_NO_MORE_RESULTS) {
-	/* DBD::ODBC expect SQL_SUCCESS on non-result returning queries */
-   	return SQL_SUCCESS;
-   } else if (ret==TDS_SUCCEED) {
-   	return SQL_SUCCESS;
-   }
+	if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED)) {
+		LogError (tds->msg_info->message);
+		return SQL_ERROR;
+	}
+	/* does anyone know how ODBC deals with multiple result sets? */
+	ret = tds_process_result_tokens(tds);
+	
+	/* if we bound columns, transfer them to res_info now that we have one */
+	if (ret==TDS_SUCCEED && tds->res_info) {
+		cur = stmt->bind_head;
+		while (cur) {
+			if (cur->column_number>0 && 
+			cur->column_number < tds->res_info->num_cols) {
+				colinfo = tds->res_info->columns[cur->column_number-1];
+				colinfo->varaddr = cur->varaddr;
+				colinfo->column_bindtype = cur->column_bindtype;
+				colinfo->column_bindlen = cur->column_bindlen;
+				colinfo->column_lenbind = cur->column_lenbind;
+			} else {
+				/* log error ? */
+			}
+			cur = cur->next;
+		}
+	}
+
+	if (ret==TDS_NO_MORE_RESULTS) {
+		/* DBD::ODBC expect SQL_SUCCESS on non-result returning queries */
+		return SQL_SUCCESS;
+	} else if (ret==TDS_SUCCEED) {
+		return SQL_SUCCESS;
+	} else {
+		return SQL_ERROR;
+	}
 }
 
 SQLRETURN SQL_API SQLExecDirect(
@@ -984,28 +1085,51 @@ SQLRETURN SQL_API SQLFreeEnv(
 	return _SQLFreeEnv(henv);
 }
 
-static SQLRETURN SQL_API _SQLFreeStmt(
+static SQLRETURN SQL_API 
+_SQLFreeStmt(
     SQLHSTMT           hstmt,
     SQLUSMALLINT       fOption)
 {
 TDSSOCKET * tds;
 struct _hstmt *stmt=(struct _hstmt *)hstmt;
+struct _sql_bind_info *cur, *tmp;
 
-   if (fOption==SQL_DROP) {
-   	free (hstmt);
-   } else if (fOption==SQL_CLOSE) {
-	tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
-	/* 
-	** FIX ME -- otherwise make sure the current statement is complete
-	*/
-	if (tds->state==TDS_PENDING) {
-		tds_send_cancel(tds);
-		tds_process_cancel(tds);
+
+	/* if we have bound columns, free the temporary list */
+	if (stmt->bind_head) {
+		cur = stmt->bind_head;
+		while (cur) {
+			tmp = cur->next;
+			free(cur);
+			cur = tmp;
+		}
 	}
-   } else {
-	tdsdump_log(TDS_DBG_ERROR, "SQLFreeStmt: Unknown option %d\n", fOption);
-   }
-   return SQL_SUCCESS;
+
+	/* do the same for bound parameters */
+	if (stmt->bind_head) {
+		cur = stmt->bind_head;
+		while (cur) {
+			tmp = cur->next;
+			free(cur);
+			cur = tmp;
+		}
+	}
+
+	if (fOption==SQL_DROP) {
+		free (hstmt);
+	} else if (fOption==SQL_CLOSE) {
+		tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+		/* 
+		** FIX ME -- otherwise make sure the current statement is complete
+		*/
+		if (tds->state==TDS_PENDING) {
+			tds_send_cancel(tds);
+			tds_process_cancel(tds);
+		}
+	} else {
+		tdsdump_log(TDS_DBG_ERROR, "SQLFreeStmt: Unknown option %d\n", fOption);
+	}
+	return SQL_SUCCESS;
 }
 SQLRETURN SQL_API SQLFreeStmt(
     SQLHSTMT           hstmt,
@@ -1577,7 +1701,45 @@ SQLRETURN SQL_API SQLDataSources(
 {
 	return SQL_SUCCESS;
 }
-static int _odbc_fix_literals(struct _hstmt *stmt)
+static struct _sql_param_info * 
+_odbc_find_param(struct _hstmt *stmt, int param_num)
+{
+	/* fix me */
+	return stmt->param_head;
+}
+static int 
+_odbc_fixup_sql(struct _hstmt *stmt)
+{
+char tmp[4096];
+char *s, *d, *p;
+int param_num = 0;
+struct _sql_param_info *param;
+int len;
+
+	s=stmt->query;
+	d=tmp;
+	while (*s) {
+		if (*s=='?') {
+			param_num++;
+			if (param = _odbc_find_param(stmt, param_num)) {
+				printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype);
+				len = tds_convert(
+					_odbc_get_server_type(param->param_sqltype), 
+					param->varaddr, -1, 
+         				SYBVARCHAR, d, -1);
+			}
+			d+=len;
+			s++;	
+		} else {
+			*d++=*s++;	
+		}
+	}
+	*d='\0';
+	strcpy(stmt->query,tmp);
+}
+
+static int 
+_odbc_fix_literals(struct _hstmt *stmt)
 {
 char tmp[4096],begin_tag[11];
 char *s, *d, *p;

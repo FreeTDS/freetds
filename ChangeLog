@@ -1,3 +1,9 @@
+Wed Feb  6 07:32:32 EST 2002	Brian Bruns	<camber@ais.org>
+	* include/tdsodbc.h: add parameter binding link list
+	* src/odbc/odbc.c: added back temporary link list for column binds to be
+	bound later when we have a res_info struture.  Preliminary work on 
+	parameter binding too.
+ 
 Thu Jan 31 10:07:18 EST 2002	Brian Bruns	<camber@ais.org>
 	* include/sybdb.h: add back define for dbopen removed by ansi patch
 	* AUTHORS: Add Chris Eleved
