@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.10 2001-12-13 15:15:06 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.11 2001-12-16 15:44:23 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -913,6 +913,17 @@ CS_RETCODE ct_compute_info(CS_COMMAND *cmd, CS_INT type, CS_INT colnum, CS_VOID 
 CS_RETCODE ct_get_data(CS_COMMAND *cmd, CS_INT item, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_get_data()\n");
+	return CS_SUCCEED;
+}
+CS_RETCODE ct_send_data(CS_COMMAND *cmd, CS_VOID *buffer, CS_INT buflen)
+{
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send_data()\n");
+	return CS_SUCCEED;
+}
+CS_RETCODE ct_data_info(CS_COMMAND *cmd, CS_INT action, CS_INT colnum,
+CS_IODESC *iodesc)
+{
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_data_info()\n");
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_capability(CS_CONNECTION *con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID *value)

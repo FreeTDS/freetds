@@ -1,3 +1,7 @@
+Sun Dec 16 10:32:57 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/ctlib/ct.c: Add stubs for ct_send_data and ct_data_info per 
+	Michael Peppler for DBD::Sybase 0.94
 Thu Dec  6 11:53:04 2001  James Cameron  <quozl@us.netrek.org>
 
 	* doc/userguide.sgml: complete instructions for Microsoft SQL
