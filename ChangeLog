@@ -1,3 +1,7 @@
+Wed Feb 19 12:37:04 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in src/tds/threadsafe.c:
+	- fixed portability problem using localtime_r
+
 Tue Feb 18 11:28:43 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/Makefile.am: export only needed symbols
 	* win32/msvc6/FreeTDS.def: add SQLGetDiag* exports

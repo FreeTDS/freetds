@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.83 2003-02-05 18:33:20 castellano Exp $
+dnl $Id: configure.in,v 1.84 2003-02-19 11:38:06 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -277,6 +277,7 @@ AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 AC_raf_FUNC_WHICH_GETSERVBYNAME_R
 AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
 AC_tds_FUNC_WHICH_GETPWUID_R
+AC_tds_FUNC_WHICH_LOCALTIME_R
 
 AC_ARG_ENABLE(extra-checks,
   [  --enable-extra-checks   enable extra checks on code])
