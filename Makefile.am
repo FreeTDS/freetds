@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.21 2002-10-15 20:07:41 castellano Exp $
+# version $Id: Makefile.am,v 1.22 2002-10-28 12:36:24 freddy77 Exp $
 SUBDIRS		=	include src doc samples
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
@@ -19,7 +19,7 @@ install-data-local:
 test:
 	@echo "The 'make test' option has been replaced with 'make check'";
 
-all-redirect:
+all:
 	if test ! -f PWD; then cp $(srcdir)/PWD.in PWD; fi
 
 snapshot:
