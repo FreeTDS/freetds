@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.79 2002-11-01 20:55:50 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.80 2002-11-01 22:06:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1158,6 +1158,7 @@ _SQLExecute( SQLHSTMT hstmt)
     }
     stmt->hdbc->current_statement = stmt;
 
+    /* TODO review this, ODBC return parameter in other way, for compute I don't know */
     while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED)
     {
       switch (result_type) {
@@ -1215,6 +1216,8 @@ TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
 int marker;
 struct _sql_param_info *param;
+TDS_INT  result_type;
+int ret, done;
 #endif 
 struct _hstmt *stmt = (struct _hstmt *) hstmt;
 
@@ -1248,23 +1251,27 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		/* TODO rebuild should be done for every bingings change */
 		/*if (dyn->num_params != stmt->param_count) */ {
 			int i;
-			TDSINPUTPARAM *dynparam;
+			TDSPARAMINFO *params;
+			TDSCOLINFO *curcol;
+			tds_free_input_params(dyn);
 			tdsdump_log(TDS_DBG_INFO1,"Setting input parameters\n");
 			for(i=0; i < stmt->param_count; ++i) {
 				param = odbc_find_param(stmt, i+1);
 				if (!param) return SQL_ERROR;
 				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
-				if (i>=dyn->num_params) {
-					if (!(dynparam=tds_add_input_param(dyn)))
-						return SQL_ERROR;
-				} else {
-					dynparam = dyn->params[i];
-				}
+				if (!(params=tds_alloc_param_result(dyn->new_params)))
+					return SQL_ERROR;
+				dyn->new_params = params;
 				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
-				dynparam->column_type    = SYBVARCHAR; /* FIXME */
-				dynparam->column_varaddr        = param->varaddr;
-				dynparam->column_bindlen = *(SQLINTEGER*)param->param_lenbind;
-				dynparam->is_null        = 0;
+				/* add another type and copy data */
+				curcol = params->columns[i];
+				/* FIXME run only with VARCHAR */
+				curcol->column_type    = SYBVARCHAR;
+				curcol->column_size = *(SQLINTEGER*)param->param_lenbind;
+				curcol->column_varint_size = 1;
+				curcol->column_cur_size = *(SQLINTEGER*)param->param_lenbind;
+				tds_alloc_param_row(params, curcol);
+				memcpy(&params->current_row[curcol->column_offset], param->varaddr, *(SQLINTEGER*)param->param_lenbind);
 			}
 		}
 		tdsdump_log(TDS_DBG_INFO1,"End prepare, execute\n");
@@ -1274,16 +1281,34 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		
 		/* TODO copied from _SQLExecute, use a function... */
 		stmt->hdbc->current_statement = stmt;
-		switch(tds_process_result_tokens(tds)) {
-		case TDS_NO_MORE_RESULTS:
-		case TDS_SUCCEED:
-			return SQL_SUCCESS;
-			break;
+
+		done = 0;
+		while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED)
+		{
+			switch (result_type) {
+			case  TDS_COMPUTE_RESULT    :
+			case  TDS_ROW_RESULT        :
+			case  TDS_CMD_DONE          :
+			case  TDS_CMD_FAIL          :
+				done = 1;
+				break;
+
+			case  TDS_PARAM_RESULT      :
+			case  TDS_STATUS_RESULT     :
+			case  TDS_COMPUTEFMT_RESULT :
+			case  TDS_MSG_RESULT        :
+			case  TDS_ROWFMT_RESULT     :
+			case  TDS_DESCRIBE_RESULT   :
+				break;
+
+			}
+			if (done) break;
 		}
-		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n" );
-		return SQL_ERROR;
-	} else {
-//		return _SQLExecute(hstmt);
+		if (ret == TDS_NO_MORE_RESULTS) {
+			odbc_set_return_status(stmt);
+			return SQL_NO_DATA_FOUND;
+		}
+		return SQL_SUCCESS;
 	}
 #endif
 

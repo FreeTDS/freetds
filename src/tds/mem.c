@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.42 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.43 2002-11-01 22:06:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -59,6 +59,10 @@ void tds_free_env(TDSSOCKET *tds);
 #undef TEST_STRDUP
 #define TEST_STRDUP(dest,str) \
 	{if (!(dest = strdup(str))) goto Cleanup;}
+
+/* TODO do a best check for alignment than this, duplicate from token.c */
+union { void *p; int i; } align_struct;
+#define ALIGN_SIZE sizeof(align_struct)
 
 /**
  * \defgroup mem Memory allocation
@@ -160,18 +164,17 @@ TDSINPUTPARAM **params;
  */
 void tds_free_input_params(TDSDYNAMIC *dyn)
 {
-int i;
+TDSPARAMINFO *info;
 
-/* !!! TODO
-	if (dyn->num_params) {
-		for (i=0;i<dyn->num_params;i++) {
-			free(dyn->params[i]);
-		}
-		free(dyn->params);
-		dyn->num_params = 0;
+	info = dyn->new_params;
+	if (info) {
+		if (info->columns) free(info->columns);
+		if (info->current_row) free(info->current_row);
+		free(info);
+		dyn->new_params = NULL;
 	}
-*/
 }
+
 /** \fn void tds_free_dynamic(TDSSOCKET *tds)
  *  \brief Frees all dynamic statements for a given connection.
  *  \param tds the connection containing the dynamic statements to be freed.
@@ -240,6 +243,56 @@ TDSCOLINFO **cols;
 Cleanup:
 	free(colinfo);
 	return NULL;
+}
+
+/**
+ * Add another field to row. Is assumed that last TDSCOLINFO contain information about this.
+ * Update also info structure.
+ * @param info     parameters info where is contained row
+ * @param curparam parameter to retrieve size information
+ * @return NULL on failure or new row
+ */
+unsigned char *
+tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam)
+{
+int null_size, remainder, i;
+TDS_INT row_size;
+unsigned char *row;
+
+	null_size = (unsigned)(info->num_cols+(8*ALIGN_SIZE-1)) / 8u;
+	null_size = null_size - null_size % ALIGN_SIZE;
+	null_size -= info->null_info_size;
+	if (null_size < 0) null_size = 0;
+
+	curparam->column_offset = info->row_size;
+	/* the +1 are needed for terminater... still required (freddy77) */
+	row_size += info->row_size + curparam->column_size + 1 + null_size;
+	remainder = row_size % ALIGN_SIZE; 
+	if (remainder) row_size += (ALIGN_SIZE - remainder);
+
+	/* make sure the row buffer is big enough */
+	if (info->current_row) {
+		row = realloc(info->current_row, row_size);
+	} else {
+		row = (void *)malloc(row_size);
+	}
+	if (!row) return NULL;
+	info->current_row = row;
+	info->row_size = row_size;
+
+	/* expand null buffer */
+	if (null_size) {
+		memmove(row+info->null_info_size+null_size,
+			row+info->null_info_size,
+			row_size-null_size-info->null_info_size);
+		memset(row+info->null_info_size,0,null_size);
+		info->null_info_size += null_size;
+		for(i=0;i<info->num_cols;++i) {
+			info->columns[i]->column_offset += null_size;
+		}
+	}
+
+	return row;
 }
 
 /**
@@ -328,9 +381,7 @@ int null_sz;
 	}
 	res_info->num_cols = num_cols;
 	null_sz = (num_cols/8) + 1;
-	/* 4 byte alignment fix -- FIXME should be ifdef'ed to only platforms that 
-	** need it */
-	if (null_sz % 4) null_sz = ((null_sz/4)+1)*4;
+	if (null_sz % ALIGN_SIZE) null_sz = ((null_sz/ALIGN_SIZE)+1)*ALIGN_SIZE;
 	res_info->null_info_size = null_sz;
 	/* set the initial row size to the size of the null info */
 	res_info->row_size = res_info->null_info_size;

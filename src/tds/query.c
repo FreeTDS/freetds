@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.32 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.33 2002-11-01 22:06:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -501,7 +501,7 @@ int i, len;
 	/* size */
 	len = 2;
 	info = dyn->new_params;
-	for (i=0, len=0;i<info->num_cols;i++)
+	for (i=0;i<info->num_cols;i++)
 		len += tds_put_data_info_length(tds, info->columns[i]);
 	tds_put_smallint(tds, len);
 	/* number of parameters */

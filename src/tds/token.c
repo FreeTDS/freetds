@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.88 2002-11-01 20:55:53 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.89 2002-11-01 22:06:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,7 +72,7 @@ extern const int g__numeric_bytes_per_prec[];
  * (like result description, rows, data, errors and many other).
  */
 
-/* XXX do a best check for alignment than this */
+/* TODO do a best check for alignment than this */
 union { void *p; int i; } align_struct;
 #define ALIGN_SIZE sizeof(align_struct)
 
@@ -744,45 +744,20 @@ int hdrsize;
 TDSCOLINFO *curparam;
 TDSPARAMINFO *info;
 int remainder;
-int null_size = 0,i;
+int i;
 
 	hdrsize = tds_get_smallint(tds);
 	info = tds_alloc_param_result(tds->param_info);
 	tds->param_info = info;
 	curparam = info->columns[info->num_cols - 1];
-	if ((unsigned)(info->num_cols-1) % (8u*sizeof(ALIGN_SIZE)) == 0)
-		null_size = ALIGN_SIZE;
-		
+
 	/* FIXME check support for tds7+ (seem to use same format of tds5 for data...)
 	 * perhaps varint_size can be 2 or collation can be specified ?? */
 	tds_get_data_info(tds,curparam);
-	
+
 	curparam->column_cur_size = curparam->column_size; /* needed ?? */
 
-	curparam->column_offset = info->row_size;
-	/* the +1 are needed for terminater... still required (freddy77) */
-	info->row_size += curparam->column_size + 1 + null_size;
-	remainder = info->row_size % ALIGN_SIZE; 
-	if (remainder) info->row_size += (ALIGN_SIZE - remainder);
-
-	
-	/* make sure the row buffer is big enough */
-	if (info->current_row) {
-		info->current_row = realloc(info->current_row, info->row_size);
-	} else {
-		info->current_row = (void *)malloc(info->row_size);
-	}
-	/* expand null buffer */
-	if (null_size) {
-		memmove(info->current_row+info->null_info_size+null_size,
-			info->current_row+info->null_info_size,
-			info->row_size-null_size-info->null_info_size);
-		memset(info->current_row+info->null_info_size,0,null_size);
-		info->null_info_size += null_size;
-		for(i=0;i<info->num_cols;++i) {
-			info->columns[i]->column_offset += null_size;
-		}
-	}
+	tds_alloc_param_row(info, curparam);
 
 	i =  tds_get_data(tds,curparam,info->current_row,info->num_cols - 1);
 	/* is this the id of our prepared statement ?? */

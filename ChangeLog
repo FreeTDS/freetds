@@ -1,3 +1,8 @@
+Fri Nov  1 23:03:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/odbc.c src/tds/mem.c src/tds/query.c:
+	* src/tds/token.c:
+	- continued dynamic work
+
 Fri Nov  1 15:52:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in include/Makefile.am include/tds.h src/apps/freebcp.c
 	  src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c
