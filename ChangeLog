@@ -1,3 +1,7 @@
+Thu May 01 09:35:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/dbmorecmds.c src/tds/util.c:
+	- just some formatting
+
 Wed Apr 30 20:49:56 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/pool/main.c src/pool/member.c:
 	* src/pool/pool.h src/tds/token.c:

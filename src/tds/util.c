@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.35 2003-03-30 08:08:36 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.36 2003-05-01 07:35:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -274,24 +274,26 @@ tdsdump_dump_buf(const void *buf,	/* (I) buffer to dump                      */
 			/*
 			 * print the offset as a 4 digit hex number
 			 */
-			fprintf(dumpfile, "%04x  ", i);
+			fprintf(dumpfile, "%04x", i);
 
 			/*
 			 * print each byte in hex
 			 */
 			for (j = 0; j < bytesPerLine; j++) {
 				if (j == bytesPerLine / 2)
+					fprintf(dumpfile, "-");
+				else
 					fprintf(dumpfile, " ");
 				if (j + i >= length)
-					fprintf(dumpfile, "   ");
+					fprintf(dumpfile, "  ");
 				else
-					fprintf(dumpfile, "%02x ", data[i + j]);
+					fprintf(dumpfile, "%02x", data[i + j]);
 			}
 
 			/*
 			 * skip over to the ascii dump column
 			 */
-			fprintf(dumpfile, "  |");
+			fprintf(dumpfile, " |");
 
 			/*
 			 * print each byte in ascii

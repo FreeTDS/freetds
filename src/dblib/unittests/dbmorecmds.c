@@ -42,7 +42,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.1 2003-05-01 04:30:35 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.2 2003-05-01 07:35:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -144,7 +144,7 @@ main(int argc, char **argv)
 	if (more_count != 0) {
 		add_bread_crumb();
 		failed = 1;
-		fprintf(stdout, "Was expecting more_count = 0.");
+		fprintf(stdout, "Was expecting more_count = 0.\n");
 		exit(1);
 	}
 
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 	if (more_count != 2) {
 		add_bread_crumb();
 		failed = 1;
-		fprintf(stdout, "Was expecting more_count = 2.");
+		fprintf(stdout, "Was expecting more_count = 2.\n");
 		exit(1);
 	}
 
