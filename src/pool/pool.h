@@ -21,7 +21,7 @@
 #define _pool_h_
 
 static char  rcsid_pool [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.1 2001-10-13 00:02:54 brianb Exp $";
+         "$Header: /tmp/gitout/git/../freetds/freetds/src/pool/pool.h,v 1.2 2002-01-22 05:59:35 brianb Exp $";
 
 /* includes */
 #include <stdio.h>
@@ -36,16 +36,8 @@ static char  rcsid_pool [ ] =
 
 /* defines */
 #define PGSIZ 2048
-#define USER "guest"
-#define PASSWORD "sybase"
-#define SERVER "JDBC"
-#define DATABASE "pubs2"
-#define MAX_POOL_CONN 3
-#define MIN_POOL_CONN 1
-#define MAX_MBR_AGE 120
-#define MAX_POOL_USERS 1024
 #define BLOCKSIZ 512
-#define TDS_POOL_PORT 4001
+#define MAX_POOL_USERS 1024
 
 /* enums and typedefs */
 enum {
@@ -83,8 +75,10 @@ typedef struct tds_pool {
 	char *password;
 	char *server;
 	char *database;
+	int port;
 	int max_member_age; /* in seconds */
 	int min_open_conn;
+	int max_open_conn;
 	int num_members;
 	TDS_POOL_MEMBER *members;
 	int max_users;

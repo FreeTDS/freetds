@@ -1,5 +1,10 @@
-Sun Jun 21 22:03:37 2002  Brian Bruns  <camber@ais.org>
+Mon Jan 21 22:03:37 2002  Brian Bruns  <camber@ais.org>
 	
+	* src/pool/user.c: Fixed EINVAL accept() bug
+	* src/pool/config.c: initial implementation of tdspool config file
+	* src/pool/Makefile.am: autoconf'ed tdspool
+	* src/pool/pool.h: removed hard coded parameters
+	* src/pool/main.c: removed hard coded parameters
 	* src/ctlib/cs.c (cs_ctx_alloc):  Zero allocated structure. 
 	* src/tds/mem.c (tds_free_results): Tighter checking.  From Bernd Rothert 
 	<brothert@mzv.net>

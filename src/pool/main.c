@@ -57,13 +57,9 @@ int i;
 	pool = g_pool;
 	memset(pool,'\0',sizeof(TDS_POOL));
 	/* FIX ME -- read this from the conf file */
-	pool->num_members = MAX_POOL_CONN;
-	pool->max_member_age = MAX_MBR_AGE;
-	pool->min_open_conn = MIN_POOL_CONN;
-	pool->user = USER;
-	pool->password = PASSWORD;
-	pool->server = SERVER;
-	pool->database = DATABASE;
+	pool_read_conf_file(name, pool);
+	pool->num_members = pool->max_open_conn;
+
 	pool->name = (char *) malloc(strlen(name)+1);
 	strcpy(pool->name,name); 
 
@@ -118,13 +114,15 @@ fd_set rfds;
 
 /* fix me -- read the interfaces file and bind accordingly */
 	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons(TDS_POOL_PORT);
+	sin.sin_port = htons(pool->port);
 	sin.sin_family = AF_INET;
 
 	if ((s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror ("socket");
 		exit (1);
 	}
+
+	fprintf(stderr,"Listening on port %d\n",pool->port);
 	if (bind (s, (struct sockaddr *) &sin, sizeof (sin)) < 0) {
 		perror("bind");
 		exit (1);
@@ -192,13 +190,17 @@ fd_set rfds;
 	}
 }
 
-main()
+main(int argc, char **argv)
 {
 TDS_POOL *pool;
 
 	signal(SIGTERM, term_handler);
 	signal(SIGINT, term_handler);
-	pool = pool_init("main");
+	if (argc<2) {
+		fprintf(stderr,"Usage: tdspool <pool name>\n");
+		exit(1);
+	}
+	pool = pool_init(argv[1]);
 	pool_main_loop(pool);
 	fprintf(stdout,"tdspool Shutdown\n");
 }

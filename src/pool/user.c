@@ -45,6 +45,7 @@ int     len, i;
 	/* FIX ME -- the accepted connections just grow until we run out */
 	puser = (TDS_POOL_USER *) &pool->users[pool->max_users];
 	fprintf(stderr,"accepting connection\n");
+	len = sizeof(struct sockaddr);
 	if ((fd = accept (s, (struct sockaddr *) sin, &len)) < 0) {
 		perror("accept");
 		return NULL;
