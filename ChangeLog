@@ -1,3 +1,7 @@
+Tue Apr 29 10:40:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c src/tds/unittests/flags.c:
+	- update flags code and check for TDS7+
+
 Tue Apr 29 08:05:06 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c src/tds/unittests/flags.c:
 	- use expression flag in COLINFO

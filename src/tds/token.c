@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.180 2003-04-29 06:04:56 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.181 2003-04-29 08:46:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -481,6 +481,20 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 		case TDS7_RESULT_TOKEN:
 			tds7_process_result(tds);
 			*result_type = TDS_ROWFMT_RESULT;
+			/* handle browse information (if presents) */
+			/* TODO copied from below, function or put in results process */
+			marker = tds_get_byte(tds);
+			if (marker != TDS_TABNAME_TOKEN) {
+				tds_unget_byte(tds);
+				return TDS_SUCCEED;
+			}
+			tds_process_default_tokens(tds, marker);
+			marker = tds_get_byte(tds);
+			if (marker != TDS_COLINFO_TOKEN) {
+				tds_unget_byte(tds);
+				return TDS_SUCCEED;
+			}
+			tds_process_colinfo(tds);
 			return TDS_SUCCEED;
 			break;
 		case TDS_RESULT_TOKEN:
@@ -511,7 +525,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 				tds_unget_byte(tds);
 				return TDS_SUCCEED;
 			}
-			tds_process_default_tokens(tds, marker);
+			tds_process_colinfo(tds);
 			return TDS_SUCCEED;
 			break;
 		case TDS_PARAM_TOKEN:
@@ -988,6 +1002,8 @@ tds_process_colinfo(TDSSOCKET * tds)
 		/* TODO keep it */
 		if (col_info[2] & 0x20) {
 			l = tds_get_byte(tds);
+			if (IS_TDS7_PLUS(tds))
+				l *= 2;
 			tds_get_n(tds, NULL, l);
 			bytes_read += l + 1;
 		}

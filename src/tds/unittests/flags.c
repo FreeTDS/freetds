@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.3 2003-04-29 06:05:39 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.4 2003-04-29 08:46:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -35,11 +35,14 @@ fatal_error(const char *msg)
 }
 
 static void
-check_flags(TDSCOLINFO * curcol, int n, const char *res)
+check_flags(TDSCOLINFO * curcol, int n, const char *possible_results)
 {
 	char msg[256];
 	char flags[256];
 	int l;
+	char *all_res = strdup(possible_results);
+	char *res;
+	int correct = 0;
 
 	flags[0] = 0;
 	if (curcol->column_nullable)
@@ -56,7 +59,12 @@ check_flags(TDSCOLINFO * curcol, int n, const char *res)
 	if (l)
 		flags[l - 1] = 0;
 
-	if (strcmp(flags, res) != 0) {
+	/* one result is valid ?? */
+	for (res = strtok(all_res, "-"); res; res = strtok(NULL, "-"))
+		if (strcmp(flags, res) == 0)
+			correct = 1;
+
+	if (!correct) {
 		sprintf(msg, "flags:%s\nwrong column %d flags", flags, n + 1);
 		fatal_error(msg);
 	}
@@ -141,7 +149,7 @@ main(int argc, char **argv)
 		check_flags(info->columns[1], 1, "nullable writable");
 	else
 		check_flags(info->columns[1], 1, "writable");
-	check_flags(info->columns[2], 2, "writable key hidden");
+	check_flags(info->columns[2], 2, "writable key hidden-writable identity key hidden");
 
 	test_end();
 
