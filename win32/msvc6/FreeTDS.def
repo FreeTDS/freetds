@@ -18,7 +18,7 @@ EXPORTS
 	SQLError
 	SQLExecDirect
 	SQLExecute
-	SQLExtendedFetch
+;	SQLExtendedFetch 
 	SQLFetch
 	SQLForeignKeys
 	SQLFreeConnect
