@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.1 2005-01-19 19:33:49 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.2 2005-01-24 18:38:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -37,6 +37,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
+	/* here we can't use temporary table cause we use two connection */
 	CommandWithResult(Statement, "drop table test_timeout");
 	Command(Statement, "create table test_timeout(n numeric(18,0) primary key, t varchar(30))");
 	AutoCommit();

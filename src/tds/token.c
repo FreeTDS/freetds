@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.281 2005-01-20 16:19:01 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.282 2005-01-24 18:38:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1134,8 +1134,6 @@ tds_process_col_name(TDSSOCKET * tds)
 		memrc = -1;
 	tds->current_results = tds->res_info = info;
 
-	/* tell the upper layers we are processing results */
-	tds_set_state(tds, TDS_PENDING);
 	cur = head;
 
 	if (memrc != 0) {
@@ -1657,11 +1655,10 @@ tds7_process_result(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. set current_results to tds->res_info\n");
 	}
 
-	/* tell the upper layers we are processing results */
-	tds_set_state(tds, TDS_PENDING);
-
-	/* loop through the columns populating COLINFO struct from
-	 * server response */
+	/*
+	 * loop through the columns populating COLINFO struct from
+	 * server response
+	 */
 	for (col = 0; col < num_cols; col++) {
 
 		curcol = info->columns[col];
@@ -1789,9 +1786,6 @@ tds_process_result(TDSSOCKET * tds)
 		tds->current_results = tds->res_info;
 	}
 
-	/* tell the upper layers we are processing results */
-	tds_set_state(tds, TDS_PENDING);
-
 	/*
 	 * loop through the columns populating COLINFO struct from
 	 * server response
@@ -1861,12 +1855,11 @@ tds5_process_result(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "num_cols=%d\n", num_cols);
 
-	/* tell the upper layers we are processing results */
-	tds_set_state(tds, TDS_PENDING);
-
 	/* TODO reuse some code... */
-	/* loop through the columns populating COLINFO struct from
-	 * server response */
+	/*
+	 * loop through the columns populating COLINFO struct from
+	 * server response
+	 */
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
@@ -2759,6 +2752,7 @@ tds_process_cancel(TDSSOCKET * tds)
 		} else if (marker == 0) {
 			done_flags = TDS_DONE_CANCELLED;
 		} else {
+			/* FIXME this do not handle row format and we can't follow stream properly */
 			retcode = tds_process_default_tokens(tds, marker);
 		}
 	} while (retcode == TDS_SUCCEED && !(done_flags & TDS_DONE_CANCELLED));

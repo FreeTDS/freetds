@@ -1,3 +1,7 @@
+Mon Jan 24 19:37:48 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/timeout.c: comment
+	* src/tds/token.c: do set wrong state processing tokens
+
 Mon Jan 24 16:03:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* src/odbc/connectparams.c: check memory allocation
