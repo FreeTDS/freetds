@@ -1,3 +1,6 @@
+Fri Dec  5 15:23:48 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/numeric.c convert(money,char) to 2 decimal places
+
 Thu Dec 04 23:27:09 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.conf: updated removing old configurations
 

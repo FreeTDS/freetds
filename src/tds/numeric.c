@@ -27,11 +27,12 @@
 
 #include <tds.h>
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.20 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.21 2003-12-05 20:47:56 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -95,7 +96,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 			*s++ = '-';
 			i = -i;
 		}
-		sprintf(s, "0.%04d", i);
+		sprintf(s, "0.%02d", i);
 	}
 	return s;
 #else
@@ -103,10 +104,8 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	unsigned char product[MAXPRECISION];
 	const unsigned char *number;
 	unsigned char tmpnumber[8];
-	int num_bytes = 8;
-	int i;
-	int pos;
-	int neg = 0;
+	int i, num_bytes = 8;
+	int pos, neg = 0;
 
 	memset(multiplier, 0, MAXPRECISION);
 	memset(product, 0, MAXPRECISION);
@@ -153,6 +152,12 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	} else {
 		array_to_string(product, 4, s);
 	}
+
+	/* round to two decimal places */
+	if (s) {
+		sprintf(s, "0.%02f", atof(s));
+	}
+
 	return s;
 #endif
 }
