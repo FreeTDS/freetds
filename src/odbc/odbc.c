@@ -72,7 +72,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.103 2002-12-18 14:16:55 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.104 2002-12-18 20:21:44 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1948,6 +1948,21 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_FILE_USAGE:
 		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
 		break;
+	case SQL_ALTER_TABLE:
+		*uiInfoValue = SQL_AT_ADD_COLUMN
+			     | SQL_AT_ADD_COLUMN_DEFAULT
+			     | SQL_AT_ADD_COLUMN_SINGLE
+			     | SQL_AT_ADD_CONSTRAINT
+			     | SQL_AT_ADD_TABLE_CONSTRAINT
+			     | SQL_AT_CONSTRAINT_NAME_DEFINITION
+			     | SQL_AT_DROP_COLUMN_RESTRICT;
+		break;
+	case SQL_DATA_SOURCE_READ_ONLY:
+		/* TODO: determine the right answer from connection 
+			 attribute SQL_ATTR_ACCESS_MODE */
+		*uiInfoValue = 0;  /* false, writable */
+		break;
+
 		/* TODO support for other options */
 	default:
 		/* error HYC00 */
