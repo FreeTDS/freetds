@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.53 2004-10-14 08:16:43 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.54 2005-01-12 08:46:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -706,18 +706,21 @@ TDSDATEREC dr;
 CS_RETCODE
 cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
 {
+	/* TODO */
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 {
+	/* TODO */
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
+	/* TODO */
 	return CS_SUCCEED;
 }
 

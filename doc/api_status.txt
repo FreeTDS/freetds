@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.47 2004-11-29 08:42:46 freddy77 Exp $s
+# $Id: api_status.txt,v 1.48 2005-01-12 08:46:42 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -306,14 +306,14 @@ dblib	core     	dbmny4zero			(same)		OK
 dblib	core     	dbmnyadd			(same)		stub
 dblib	core     	dbmnycmp			(same)		OK
 dblib	core     	dbmnycopy			(same)		OK
-dblib	core     	dbmnydec			(same)		stub
+dblib	core     	dbmnydec			(same)		OK
 dblib	core     	dbmnydivide			(same)		stub
 dblib	core     	dbmnydown			(same)		stub
-dblib	core     	dbmnyinc			(same)		stub
+dblib	core     	dbmnyinc			(same)		OK
 dblib	core     	dbmnyinit			(same)		stub
-dblib	core     	dbmnymaxneg			(same)		stub
-dblib	core     	dbmnymaxpos			(same)		stub
-dblib	core     	dbmnyminus			(same)		stub
+dblib	core     	dbmnymaxneg			(same)		OK
+dblib	core     	dbmnymaxpos			(same)		OK
+dblib	core     	dbmnyminus			(same)		OK
 dblib	core     	dbmnymul			(same)		stub
 dblib	core     	dbmnyndigit			(same)		stub
 dblib	core     	dbmnyscale			(same)		stub

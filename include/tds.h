@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.201 2004-12-13 13:21:25 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.202 2005-01-12 08:46:51 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1129,7 +1129,7 @@ int tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si);
 #define tds_put_tinyint(tds, ti) tds_put_byte(tds,ti)
 int tds_put_byte(TDSSOCKET * tds, unsigned char c);
 TDSRESULTINFO *tds_alloc_results(int num_cols);
-TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int num_cols, int by_cols);
+TDSCOMPUTEINFO **tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols);
 TDSCONTEXT *tds_alloc_context(void);
 void tds_free_context(TDSCONTEXT * locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.120 2004-12-14 10:09:02 freddy77 Exp $
+To Do List	$Id: TODO,v 1.121 2005-01-12 08:46:36 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -16,6 +16,11 @@ Broken:
 . Update involving triggers may not set rows_affected correctly
   Cf. ML 08 Jan 2004 "New BUG: update/delete returns -1 instead of correct
       affected rows".  
+
+Working in progress:
+- ODBC fixing compute
+- logging bit flags to select levels and info types with defaults
+- fix timeout problem reported in ML
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().

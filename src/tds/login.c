@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.129 2004-12-03 16:47:47 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.130 2005-01-12 08:46:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -156,7 +156,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int retval;
 	int connect_timeout = 0;
 	int db_selected = 0;
-	char version[256];
+	char version[64];
 	char *str;
 	int len;
 
@@ -473,6 +473,7 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 	tds_put_n(tds, "NTLMSSP", 8);
 	tds_put_int(tds, 3);	/* sequence 3 */
 
+	/* FIXME *2 work only for single byte encodings */
 	current_pos = 64 + (domain_len + user_name_len + host_name_len) * 2;
 
 	tds_put_smallint(tds, 24);	/* lan man resp length */
@@ -694,6 +695,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, 0);
 
+	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->host_name), host_name_len);
 	if (!domain_login) {
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];

@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.11 2004-12-13 13:22:59 freddy77 Exp $
+$Id: NEWS,v 1.12 2005-01-12 08:46:36 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -20,6 +20,7 @@ libTDS API changes
   tds_cursor_* functions
 - add const char* file param to tdsdump_dump_buf and tdsdump_log and
   add line information in level
+- changed tds_alloc_compute_results declaration, pass a TDSSOCKET*
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.125 2004-12-05 20:05:08 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.126 2005-01-12 08:46:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -344,24 +344,24 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 }
 
 TDSCOMPUTEINFO **
-tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int num_cols, int by_cols)
+tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 {
 	int n;
 	TDSCOMPUTEINFO **comp_info;
 	TDSCOMPUTEINFO *cur_comp_info;
 
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
 
 	cur_comp_info = tds_alloc_compute_result(num_cols, by_cols);
 	if (!cur_comp_info)
 		return NULL;
 
-	n = *num_comp_results;
+	n = tds->num_comp_info;
 	if (n == 0)
 		comp_info = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
 	else
-		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * (n + 1));
+		comp_info = (TDSCOMPUTEINFO **) realloc(tds->comp_info, sizeof(TDSCOMPUTEINFO *) * (n + 1));
 
 	if (!comp_info) {
 		tds_free_compute_result(cur_comp_info);
@@ -369,9 +369,9 @@ tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int 
 	}
 
 	comp_info[n] = cur_comp_info;
-	*num_comp_results = n + 1;
+	tds->num_comp_info = n + 1;
 
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
 
 	return comp_info;
 }

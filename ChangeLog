@@ -1,3 +1,11 @@
+Wed Jan 12  9:43:34 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO doc/api_status.txt include/tds.h src/ctlib/cs.c:
+	* src/dblib/dblib.c src/tds/login.c src/tds/mem.c:
+	* src/tds/token.c:
+	- changed tds_alloc_compute_results declaration
+	- implemented some dbmny* function in dblib
+	- added some additional test in dblib
+
 Mon Jan 10 10:37:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c: improved
 

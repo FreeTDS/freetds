@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.276 2004-12-17 10:00:08 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.277 2005-01-12 08:46:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3174,7 +3174,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_cols = %d\n", num_cols);
 
-	if ((tds->comp_info = tds_alloc_compute_results(&(tds->num_comp_info), tds->comp_info, num_cols, 0)) == NULL)
+	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, 0)) == NULL)
 		memrc = -1;
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
@@ -3253,7 +3253,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	by_cols = tds_get_byte(tds);
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. by_cols = %d\n", by_cols);
 
-	if ((tds->comp_info = tds_alloc_compute_results(&(tds->num_comp_info), tds->comp_info, num_cols, by_cols)) == NULL)
+	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, by_cols)) == NULL)
 		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_comp_info = %d\n", tds->num_comp_info);

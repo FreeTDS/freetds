@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.197 2005-01-10 08:50:55 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.198 2005-01-12 08:46:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1445,14 +1445,8 @@ dbresults(DBPROCESS * dbproc)
 int
 dbnumcols(DBPROCESS * dbproc)
 {
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
-
-	tds = (TDSSOCKET *) dbproc->tds_socket;
-	resinfo = tds->res_info;
-	if (resinfo) {
-		return resinfo->num_cols;
-	}
+	if (dbproc && dbproc->tds_socket && dbproc->tds_socket->res_info)
+		return dbproc->tds_socket->res_info->num_cols;
 	return 0;
 }
 
@@ -1473,9 +1467,11 @@ dbnumcols(DBPROCESS * dbproc)
 char *
 dbcolname(DBPROCESS * dbproc, int column)
 {
-	TDSRESULTINFO *resinfo = dbproc->tds_socket->res_info;
+	TDSRESULTINFO *resinfo;
 
-	assert(resinfo);
+	if (!dbproc || !dbproc->tds_socket || !dbproc->tds_socket->res_info)
+		return NULL;
+	resinfo = dbproc->tds_socket->res_info;
 
 	if (column < 1 || column > resinfo->num_cols)
 		return NULL;
@@ -1796,7 +1792,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 				break;
 			default:
 				assert(destlen > 0);
-				if (srclen > destlen) {
+				if (destlen < 0 || srclen > destlen) {
 					_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
 					ret = -1;
 				} else {
@@ -1993,7 +1989,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			break;
 		default:
 			assert(destlen > 0);
-			if (len > destlen) {
+			if (destlen < 0 || len > destlen) {
 				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
 				ret = -1;
 				tdsdump_log(TDS_DBG_INFO1, "%d bytes type %d -> %d, destlen %d < %d required\n",
@@ -2258,7 +2254,8 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 DBINT
 dbcount(DBPROCESS * dbproc)
 {
-	assert(dbproc && dbproc->tds_socket);
+	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->rows_affected == TDS_NO_COUNT)
+		return -1;
 	return dbproc->tds_socket->rows_affected;
 }
 
@@ -2400,7 +2397,9 @@ DBINT
 dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol )
 {
 	DBTYPEINFO *ps;
-	assert( dbproc && pdbcol);
+
+	if (!dbproc || !pdbcol)
+		return FAIL;
 
 	strcpy(pdbcol->Name, dbcolname(dbproc, column));
 	strcpy(pdbcol->ActualName, dbcolname(dbproc, column));
@@ -2440,10 +2439,15 @@ dbcolsource(DBPROCESS * dbproc, int colnum)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = (TDSSOCKET *) dbproc->tds_socket;
-	resinfo = tds->res_info;
+	/* check valid state */
+	if (!dbproc || !dbproc->tds_socket || !dbproc->tds_socket->res_info)
+		return NULL;
+	resinfo = dbproc->tds_socket->res_info;
+
+	/* check column index */
+	if (colnum < 1 || colnum > resinfo->num_cols)
+		return NULL;
 	colinfo = resinfo->columns[colnum - 1];
 	assert(colinfo->column_name[colinfo->column_namelen] == 0);
 	return colinfo->column_name;
@@ -3906,13 +3910,14 @@ dbnumrets(DBPROCESS * dbproc)
 char *
 dbretname(DBPROCESS * dbproc, int retnum)
 {
-	TDSSOCKET *tds;
 	TDSPARAMINFO *param_info;
+
+	if (!dbproc || !dbproc->tds_socket)
+		return NULL;
 
 	dbnumrets(dbproc);
 
-	tds = (TDSSOCKET *) dbproc->tds_socket;
-	param_info = tds->param_info;
+	param_info = dbproc->tds_socket->param_info;
 	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
 	assert(param_info->columns[retnum - 1]->column_name[param_info->columns[retnum - 1]->column_namelen] == 0);
@@ -4232,6 +4237,8 @@ dbmsghandle(MHANDLEFUNC handler)
 RETCODE
 dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 {
+	if (!m1 || !m2 || !sum)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyadd()\n");
 	return SUCCEED;
 }
@@ -4251,6 +4258,8 @@ dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 RETCODE
 dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 {
+	if (!m1 || !m2 || !difference)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnysyb()\n");
 	return SUCCEED;
 }
@@ -4270,6 +4279,8 @@ dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 RETCODE
 dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 {
+	if (!m1 || !m2 || !prod)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymul()\n");
 	return SUCCEED;
 }
@@ -4289,6 +4300,8 @@ dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 RETCODE
 dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient)
 {
+	if (!m1 || !m2 || !quotient)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
@@ -4340,6 +4353,8 @@ dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2)
 RETCODE
 dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
 {
+	if (!amount)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
@@ -4373,12 +4388,14 @@ dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
  * \param amount address of a DBMONEY structure.  
  * \retval SUCCEED Always.  
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
- * \todo Unimplemented.
  */
 RETCODE
 dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymaxpos()\n");
+	if (!amount)
+		return FAIL;
+	amount->mnylow = 0xFFFFFFFFlu;
+	amount->mnyhigh = 0x7FFFFFFFl;
 	return SUCCEED;
 }
 
@@ -4390,12 +4407,14 @@ dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
  * \param amount address of a DBMONEY structure.  
  * \retval SUCCEED Always.  
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
- * \todo Unimplemented.
  */
 RETCODE
 dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymaxneg()\n");
+	if (!amount)
+		return FAIL;
+	amount->mnylow = 0;
+	amount->mnyhigh = -0x80000000l;
 	return SUCCEED;
 }
 
@@ -4415,6 +4434,8 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 RETCODE
 dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 {
+	if (!mnyptr)
+		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyndigit()\n");
 	return SUCCEED;
 }
@@ -4463,14 +4484,22 @@ dbmnydown(DBPROCESS * dbproc, DBMONEY * amount, int divisor, int *remainder)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param amount address of a DBMONEY structure.  
- * \retval SUCCEED Always.  
+ * \retval SUCCEED or FAIL if overflow or amount NULL.  
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
- * \todo Unimplemented.
  */
 RETCODE
 dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyinc()\n");
+	if (!amount)
+		return FAIL;
+	if (amount->mnylow != 0xFFFFFFFFlu) {
+		++amount->mnylow;
+		return SUCCEED;
+	}
+	if (amount->mnyhigh == 0x7FFFFFFFl)
+		return FAIL;
+	amount->mnylow = 0;
+	++amount->mnyhigh;
 	return SUCCEED;
 }
 
@@ -4480,14 +4509,22 @@ dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param amount address of a DBMONEY structure.  
- * \retval SUCCEED Always.  
+ * \retval SUCCEED or FAIL if overflow or amount NULL.  
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
- * \todo Unimplemented.
  */
 RETCODE
 dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydec()\n");
+	if (!amount)
+		return FAIL;
+	if (amount->mnylow != 0) {
+		--amount->mnylow;
+		return SUCCEED;
+	}
+	if (amount->mnyhigh == -0x80000000l)
+		return FAIL;
+	amount->mnylow = 0xFFFFFFFFlu;
+	--amount->mnyhigh;
 	return SUCCEED;
 }
 
@@ -4498,15 +4535,18 @@ dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param src address of a DBMONEY structure.  
  * \param dest \em output: result of negation. 
- * \retval SUCCEED Always.  
- * \retval FAIL  would be returned on overflow.  
+ * \retval SUCCEED or FAIL if overflow or src/dest NULL.
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
- * \todo Unimplemented.
  */
 RETCODE
 dbmnyminus(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyminus()\n");
+	if (!src || !dest)
+		return FAIL;
+	if (src->mnyhigh == -0x80000000l && src->mnylow == 0)
+		return FAIL;
+	dest->mnyhigh = -src->mnyhigh;
+	dest->mnylow = (~src->mnylow) + 1u;
 	return SUCCEED;
 }
 
@@ -4689,7 +4729,7 @@ dbmny4cmp(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param src address of a DBMONEY4 structure.  
  * \param dest \em output: new money. 
- * \retval SUCCEED always.  
+ * \retval SUCCEED or FAIL if src/dest NULL.
  * \sa dbmnycopy(), dbmnyminus(), dbmny4minus(). 
  */
 RETCODE
