@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.57 2004-01-05 05:53:36 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.58 2004-01-26 15:37:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -160,8 +160,27 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		tds->iconv_info[client2ucs2]->suppress.einval = len > 0; /* EINVAL matters only on the last chunk. */
-		if (-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))
-			break;
+		
+		if (-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
+		
+			if (errno == EINVAL  && tds->iconv_info[client2ucs2]->suppress.einval ) {
+				tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string: tds_iconv() encountered partial sequence "
+							     "(anticipated).  %d bytes remain. Continuing.\n", 
+							     len + (int) inbytesleft);
+			} else {
+				/* It's not an incomplete multibyte sequence, or it IS, but we're not anticipating one. */
+				tdsdump_log(TDS_DBG_NETWORK, "%L Error: tds_put_string: "
+							     "Gave up converting %d bytes due to error %d.\n", 
+							     (int) inbytesleft, errno);
+				tdsdump_log(TDS_DBG_NETWORK, "\tTroublesome bytes:\n\t%D\n", s, (int) inbytesleft);
+			}
+
+			if (poutbuf == outbuf) {	/* tds_iconv did not convert anything, avoid infinite loop */
+				tdsdump_log(TDS_DBG_NETWORK, "%L Error: tds_put_string: No conversion possible, giving up.\n");
+				break;
+			}
+		}
+		
 		len += inbytesleft;
 		bytes_out += poutbuf - outbuf;
 		tds_put_n(tds, outbuf, poutbuf - outbuf);
