@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.8 2003-07-30 16:08:26 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.9 2003-09-30 16:47:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -102,6 +102,9 @@ main(int argc, char **argv)
 
 		if (answers[i].srctype == answers[i].desttype)
 			continue;	/* don't attempt same types */
+
+		cr.n.precision = 8;
+		cr.n.scale = 2;
 
 		switch (answers[i].srctype) {
 		case SYBCHAR:
