@@ -311,25 +311,25 @@ ctlib	(all)	ct_wakeup		Call a connection's completion callback.
 ctlib	(all)	cs_calc		Perform an arithmetic operation on two operands.
 ctlib	(all)	cs_cmp		Compare two data values.
 ctlib	(all)	cs_config	partial	Set or retrieve CS-Library properties.
-ctlib	(all)	cs_conv_mult		Retrieve the conversion multiplier for converting character data from one character set to another.
+ctlib	(all)	cs_conv_mult	stub	Retrieve the conversion multiplier for converting character data from one character set to another.
 ctlib	(all)	cs_convert	OK	Convert a data value from one datatype, locale, or format to another datatype, locale, or format.
 ctlib	(all)	cs_ctx_alloc	OK	Allocate a CS_CONTEXT structure.
 ctlib	(all)	cs_ctx_drop	OK	Deallocate a CS_CONTEXT structure.
 ctlib	(all)	cs_ctx_global	OK	Allocate or return a CS_CONTEXT structure.
-ctlib	(all)	cs_diag		Manage inline error handling.
+ctlib	(all)	cs_diag	stub	Manage inline error handling.
 ctlib	(all)	cs_dt_crack	OK	Convert a machine-readable datetime value into a user-accessible format.
 ctlib	(all)	cs_dt_info	OK	Set or retrieve language-specific datetime information.
 ctlib	(all)	cs_loc_alloc	stub	Allocate a CS_LOCALE structure.
 ctlib	(all)	cs_loc_drop	stub	Deallocate a CS_LOCALE structure.
 ctlib	(all)	cs_locale	stub	Load a CS_LOCALE structure with localization values or retrieve the locale name previously used to load a CS_LOCALE structure.
-ctlib	(all)	cs_manage_convert		Install or retrieve a user-defined character set conversion routine.
-ctlib	(all)	cs_objects		Save, retrieve, or clear objects and data associated with them.
-ctlib	(all)	cs_set_convert		Install or retrieve a user-defined conversion routine.
-ctlib	(all)	cs_setnull		Define a null substitution value to be used when binding or converting NULL data.
+ctlib	(all)	cs_manage_convert	stub	Install or retrieve a user-defined character set conversion routine.
+ctlib	(all)	cs_objects	stub	Save, retrieve, or clear objects and data associated with them.
+ctlib	(all)	cs_set_convert	stub	Install or retrieve a user-defined conversion routine.
+ctlib	(all)	cs_setnull	stub	Define a null substitution value to be used when binding or converting NULL data.
 ctlib	(all)	cs_strbuild	OK	Construct native language message strings.
-ctlib	(all)	cs_strcmp		Compare two strings using a specified sort order.
-ctlib	(all)	cs_time		Retrieve the current date and time.
-ctlib	(all)	cs_will_convert		Indicate whether a specific datatype conversion is available in the Client/Server libraries.
+ctlib	(all)	cs_strcmp	stub	Compare two strings using a specified sort order.
+ctlib	(all)	cs_time	stub	Retrieve the current date and time.
+ctlib	(all)	cs_will_convert	stub	Indicate whether a specific datatype conversion is available in the Client/Server libraries.
 ctlib	(all)	blk_alloc	stub	Allocate a CS_BLKDESC structure.
 ctlib	(all)	blk_bind	stub	Bind a program variable and a database column.
 ctlib	(all)	blk_colval	stub	Server-side routine to obtain the column value from a formatted bulk copy row.

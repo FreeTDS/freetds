@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.17 2002-10-26 18:49:15 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.18 2002-10-28 17:34:41 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -577,6 +577,29 @@ enum {
 	CS_DATES_YMD3_YYYY
 };
 
+typedef CS_RETCODE (*CS_CONV_FUNC)(CS_CONTEXT *context, CS_DATAFMT *srcfmt, CS_VOID *src, CS_DATAFMT *detsfmt, CS_VOID *dest, CS_INT *destlen);
+
+typedef struct _cs_objname {
+	CS_BOOL thinkexists;
+	CS_INT object_type;
+	CS_CHAR last_name[CS_MAX_NAME];
+	CS_INT lnlen;
+	CS_CHAR first_name[CS_MAX_NAME];
+	CS_INT fnlen;
+	CS_VOID *scope;
+	CS_INT scopelen;
+	CS_VOID *thread;
+	CS_INT threadlen;
+} CS_OBJNAME;
+
+typedef struct _cs_objdata {
+	CS_BOOL actuallyexists;
+	CS_CONNECTION *connection;
+	CS_COMMAND *command;
+	CS_VOID *buffer;
+	CS_INT buflen;
+} CS_OBJDATA;
+
 /* */
 #define CS_FALSE	0
 #define CS_TRUE	1
@@ -595,6 +618,18 @@ CS_RETCODE cs_loc_alloc(CS_CONTEXT *ctx, CS_LOCALE **locptr);
 CS_RETCODE cs_loc_drop(CS_CONTEXT *ctx, CS_LOCALE *locale);
 CS_RETCODE cs_locale(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
 CS_RETCODE cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_INT item, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
+
+CS_RETCODE cs_calc(CS_CONTEXT *ctx, CS_INT op, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_VOID *dest);
+CS_RETCODE cs_cmp(CS_CONTEXT *ctx, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_INT *result);
+CS_RETCODE cs_conv_mult(CS_CONTEXT *ctx, CS_LOCALE *srcloc, CS_LOCALE *destloc, CS_INT *conv_multiplier);
+CS_RETCODE cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT index, CS_VOID *buffer);
+CS_RETCODE cs_manage_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_CHAR *srcname, CS_INT srcnamelen, CS_INT desttype, CS_CHAR *destname, CS_INT destnamelen, CS_INT *conv_multiplier, CS_CONV_FUNC *func);
+CS_RETCODE cs_objects(CS_CONTEXT *ctx, CS_INT action, CS_OBJNAME *objname, CS_OBJDATA *objdata);
+CS_RETCODE cs_set_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC *func);
+CS_RETCODE cs_setnull(CS_CONTEXT *ctx, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT buflen);
+CS_RETCODE cs_strcmp(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_INT type, CS_CHAR *str1, CS_INT len1, CS_CHAR *str2, CS_INT len2, CS_INT *result);
+CS_RETCODE cs_time(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen, CS_DATEREC *daterec);
+CS_RETCODE cs_will_convert(CS_CONTEXT *ctx, CS_INT srctype, CS_INT desttype, CS_BOOL *result);
 
 #ifdef __cplusplus
 }

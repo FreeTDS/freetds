@@ -48,7 +48,7 @@
 #include "tdsutil.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.25 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.26 2002-10-28 17:34:41 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -641,3 +641,92 @@ CS_RETCODE rc;
 	va_end(ap);
 	return rc;
 }
+
+CS_RETCODE
+cs_calc(CS_CONTEXT *ctx, CS_INT op, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_VOID *dest)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_calc()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_cmp(CS_CONTEXT *ctx, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_INT *result)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_cmp()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_conv_mult(CS_CONTEXT *ctx, CS_LOCALE *srcloc, CS_LOCALE *destloc, CS_INT *conv_multiplier)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_conv_mult()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT index, CS_VOID *buffer)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_diag()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_manage_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_CHAR *srcname, CS_INT srcnamelen, CS_INT desttype, CS_CHAR *destname, CS_INT destnamelen, CS_INT *conv_multiplier, CS_CONV_FUNC *func)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_manage_convert()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_objects(CS_CONTEXT *ctx, CS_INT action, CS_OBJNAME *objname, CS_OBJDATA *objdata)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_objects()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_set_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC *func)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_set_convert()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_setnull(CS_CONTEXT *ctx, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT buflen)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_setnull()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_strcmp(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_INT type, CS_CHAR *str1, CS_INT len1, CS_CHAR *str2, CS_INT len2, CS_INT *result)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_strcmp()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_time(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen, CS_DATEREC *daterec)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_time()\n");
+	return CS_FAIL;
+}
+
+CS_RETCODE
+cs_will_convert(CS_CONTEXT *ctx, CS_INT srctype, CS_INT desttype, CS_BOOL *result)
+{
+
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_will_convert()\n");
+	return CS_FAIL;
+}
+
