@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.69 2002-12-10 17:00:22 freddy77 Exp $";
+	"$Id: tds.h,v 1.70 2002-12-22 14:08:44 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -177,9 +177,9 @@ enum tds_end {
 #define TDS7_RESULT_TOKEN   129  /* 0x81    TDS 7.0 only              */
 #define TDS7_COMPUTE_RESULT_TOKEN   136  /* 0x88    TDS 7.0 only              */
 #define TDS_COL_NAME_TOKEN  160  /* 0xA0    TDS 4.2 only              */
-#define TDS_COL_INFO_TOKEN  161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
-/*#define  TDS_TABNAME   164 */
-/*#define  TDS_COL_INFO   165 */
+#define TDS_COLFMT_TOKEN    161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
+#define TDS_TABNAME_TOKEN   164
+#define TDS_COLINFO_TOKEN   165
 #define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7                        */
 #define TDS_COMPUTE_RESULT_TOKEN  168  /* 0xA8                        */
 #define TDS_ORDER_BY_TOKEN  169  /* 0xA9    TDS_ORDER                 */
@@ -294,7 +294,7 @@ sheesh! </rant>
 
 #define is_result_token(x) (x==TDS_RESULT_TOKEN    || \
 			x==TDS7_RESULT_TOKEN    || \
-			x==TDS_COL_INFO_TOKEN    || \
+			x==TDS_COLFMT_TOKEN    || \
 			x==TDS_COL_NAME_TOKEN)
 
 /* FIX ME -- not a complete list */

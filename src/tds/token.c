@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.127 2002-12-20 10:08:28 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.128 2002-12-22 14:08:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -161,6 +161,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_LOGIN_ACK_TOKEN:
 	case TDS_ORDER_BY_TOKEN:
 	case TDS_CONTROL_TOKEN:
+	case TDS_TABNAME_TOKEN: /* used for FOR BROWSE query */
+	case TDS_COLINFO_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
@@ -430,7 +432,7 @@ int done_flags;
 		case TDS_COL_NAME_TOKEN:
 			tds_process_col_name(tds);
 			break;
-		case TDS_COL_INFO_TOKEN:
+		case TDS_COLFMT_TOKEN:
 			tds_process_col_info(tds);
 			*result_type = TDS_ROWFMT_RESULT;
 			return TDS_SUCCEED;

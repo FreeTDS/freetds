@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.10 2002-11-17 11:25:41 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.11 2002-12-22 14:08:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -305,7 +305,7 @@ pool_is_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, 
 		ret = read_row(pmbr, buf, maxlen, bytes_read);
 	} else if (marker == TDS_COL_NAME_TOKEN) {
 		ret = read_col_name(pmbr, buf, maxlen, bytes_read);
-	} else if (marker == TDS_COL_INFO_TOKEN) {
+	} else if (marker == TDS_COLFMT_TOKEN) {
 		ret = read_col_info(pmbr, buf, maxlen, bytes_read);
 	} else {
 		ret = read_variable_token(pmbr, buf, maxlen, bytes_read);

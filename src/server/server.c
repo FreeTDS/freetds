@@ -28,7 +28,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.12 2002-12-02 13:39:12 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.13 2002-12-22 14:08:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -233,7 +233,7 @@ tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 int col, hdrsize = 0;
 TDSCOLINFO *curcol;
 
-	tds_put_byte(tds, TDS_COL_INFO_TOKEN);
+	tds_put_byte(tds, TDS_COLFMT_TOKEN);
 
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
