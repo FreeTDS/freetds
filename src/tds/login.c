@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.97 2003-05-13 09:44:58 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.98 2003-05-13 10:24:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -535,7 +535,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_byte(tds, magic7);
 
 	/* network packet size */
-	if (connect_info->block_size < 1000000)
+	if (connect_info->block_size < 1000000 && connect_info->block_size)
 		sprintf(blockstr, "%d", connect_info->block_size);
 	else
 		strcpy(blockstr, "512");

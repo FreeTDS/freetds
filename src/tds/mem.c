@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.82 2003-05-09 13:06:12 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.83 2003-05-13 10:24:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -580,7 +580,7 @@ tds_alloc_connect(TDSLOCALE * locale)
 	connect_info->major_version = TDS_DEF_MAJOR;
 	connect_info->minor_version = TDS_DEF_MINOR;
 	connect_info->port = TDS_DEF_PORT;
-	connect_info->block_size = TDS_DEF_BLKSZ;
+	connect_info->block_size = 0;
 	/* TODO use system default ?? */
 	if (!tds_dstr_copy(&connect_info->client_charset, "ISO-8859-1"))
 		goto Cleanup;
@@ -657,7 +657,8 @@ tds_free_login(TDSLOGIN * login)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
-	enum {iconv_info_count = 3};
+	enum
+	{ iconv_info_count = 3 };
 	TDSSOCKET *tds_socket;
 	TDSICONVINFO *iconv_info;
 

@@ -1,4 +1,9 @@
 Tue May 13 12:05:44 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.conf src/apps/tsql.c src/tds/login.c:
+	* src/tds/mem.c:
+	- honour server default block size (improving performance on mssql)
+
+Tue May 13 12:05:44 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c: handle correctly ntext
 
 Tue May 13 11:43:02 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>

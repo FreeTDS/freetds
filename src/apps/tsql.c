@@ -68,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.58 2003-05-08 08:15:25 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.59 2003-05-13 10:24:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -377,7 +377,6 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_set_server(login, servername);
 		tds_set_client_charset(login, charset);
 		tds_set_language(login, "us_english");
-		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
 		if (confile) {
 			tds_set_interfaces_file_loc(confile);
@@ -391,7 +390,6 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_set_port(login, port);
 		tds_set_client_charset(login, charset);
 		tds_set_language(login, "us_english");
-		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
 	}
 
