@@ -45,7 +45,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: util.c,v 1.3 2001-11-10 02:12:27 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.4 2001-11-10 02:28:53 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -216,6 +216,10 @@ void tdsdump_dump_buf(
    const int             bytesPerLine = 16;
    const unsigned char  *data         = buf;
 
+   if (g_append_mode) {
+      tdsdump_append();
+   }
+
    if (write_dump && dumpfile!=NULL)
    {
       for(i=0; i<length; i+=bytesPerLine)
@@ -252,6 +256,9 @@ void tdsdump_dump_buf(
          fprintf(dumpfile, "|\n");
       }
       fprintf(dumpfile, "\n");
+   }
+   if (g_append_mode) {
+      fclose(dumpfile);
    }
 } /* tdsdump_dump_buf()  */
 
@@ -364,6 +371,9 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
       }
    }
    fflush(dumpfile);
+   if (g_append_mode) {
+      fclose(dumpfile);
+   }
 } /* tdsdump_log()  */
 
 /* Jeff's hack*** NEW CODE *** */
