@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.46 2002-09-06 06:35:25 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.47 2002-09-06 07:23:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1595,7 +1595,7 @@ SQLRETURN SQL_API SQLGetData(
             if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
                 return SQL_NO_DATA_FOUND;
             src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
-            srclen = colinfo->column_textsize;
+            srclen = colinfo->column_textsize - colinfo->column_text_sqlgetdatapos;
         }
         else
         {
@@ -1613,8 +1613,16 @@ SQLRETURN SQL_API SQLGetData(
 
         if (is_blob_type(colinfo->column_type))
         {
-            colinfo->column_text_sqlgetdatapos += *pcbValue;
-            return SQL_SUCCESS_WITH_INFO;
+	    /* calc how many bytes was readed */
+	    int readed = cbValueMax;
+	    /* char is always terminated...*/
+	    if (nSybType == SYBTEXT) --readed;
+	    if (readed > *pcbValue)
+		    readed = *pcbValue;
+            colinfo->column_text_sqlgetdatapos += readed;
+	    /* not all readed ?? */
+	    if (colinfo->column_text_sqlgetdatapos < colinfo->column_textsize)
+		return SQL_SUCCESS_WITH_INFO;
         }
     }
     return SQL_SUCCESS;

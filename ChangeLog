@@ -1,3 +1,7 @@
+Fri Sep  6 09:22:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/t0001.c:
+	- fix text values retrieve and SQLGetData
+
 Fri Sep  6 08:33:37 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fix column display for int (too short)

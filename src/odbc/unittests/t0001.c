@@ -28,7 +28,8 @@ SQLCHAR output [256];
                     "col2 int not null,"
                     "col3 float not null,"
                     "col4 numeric(18,6) not null,"
-                    "col5 datetime not null)" );
+                    "col5 datetime not null,"
+		    "col6 text not null)" );
 
     printf("%s\n",command);
     if( SQLExecDirect( Statement, command, SQL_NTS ) 
@@ -43,7 +44,8 @@ SQLCHAR output [256];
                     "123456,"
                     "1234.56,"
                     "123456.78,"
-                    "'Sep 11 2001 10:00AM')" );
+                    "'Sep 11 2001 10:00AM',"
+		    "'just to check returned length...')" );
 
     printf("%s\n",command);
     if( SQLExecDirect( Statement, command, SQL_NTS ) 
@@ -70,9 +72,8 @@ SQLCHAR output [256];
         exit( 1 ); 
     } 
 
-    for ( i = 1 ; i < 6; i++ ) {
-       if( SQLGetData(Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize) 
-           != SQL_SUCCESS) { 
+    for ( i = 1 ; i <= 6; i++ ) {
+       if( SQLGetData(Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_SUCCESS ) { 
            printf( "Unable to get data col %d\n", i ); 
            CheckReturn(); 
            exit( 1 ); 
