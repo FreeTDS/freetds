@@ -1,3 +1,7 @@
+Fri Oct 18 13:29:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/.cvsignore:
+	- Don't ignore tds_sysdep_private.h
+
 Fri Oct 18 13:26:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds_configs.h include/tds_sysdep_private.h:
 	- Pull in freetds_sysconfdir.h from tds_configs.h

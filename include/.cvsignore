@@ -7,5 +7,4 @@ stamp-h.in
 config.h.in
 stamp-h
 stamp-h1
-tds_sysdep_private.h
 tds_sysdep_public.h
