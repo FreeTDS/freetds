@@ -1,0 +1,105 @@
+NAME
+  freebcp - bulk loading utility for Sybase and Microsoft databases
+SYNOPSIS
+  freebcp [database.[owner].]table_name {in | out} datafile 
+    { -c | -n | -f formatfile }
+    [-b batchsize] [-F firstrow] [-L lastrow] [-e errfile] 
+    [-I interfaces_file] [-m maxerrors] [-t field_term] [-r row_term] 
+    [-S servername] [-U username] [-P password]
+
+DESCRIPTION
+  freebcp is a utility program distributed with FreeTDS. 
+  freebcp replicates (in part at least) the functionality
+  of the "bcp" utility programs distributed by Sybase and Microsoft.
+
+  freebcp makes use of the dblib bcp api built into FreeTDS. This 
+  api is also available to application developers.
+
+  The manual pages or online help for Sybase or SQL Server can be 
+  referenced for more detailed information on "bcp" functionality.
+
+TABLES AND FILES
+  database      is optional if the table being copied is in your 
+                default database or in master. Otherwise, you must
+                specify a database name.
+
+  owner         is optional if you or the database owner are the owner 
+                of the table being copied.
+
+  table_name    is the name of the database table you wish to access. 
+
+  in | out      is the direction of the bulk copy operation. 
+                'in' indicates that data is being copied from a host
+                file into a database table, 'out' indicates that data
+                is being copied from a database table to a host file.
+
+  datafile      is the full path name of an operating system file.
+
+OPTIONS
+  -c            specifies that the host data file is in 'character' format. 
+		Briefly, this means the following: 
+                that all data in the file is (or will be written) in ASCII;
+                that the \t (tab) is the default field terminator; 
+                that \n (newline) is the default row terminator.
+
+  -n            specifies that the host data file is in 'native' format.
+                This is a format that freebcp will be able to process,
+                but is not portable or readable.
+
+  -f formatfile  specifies that the format of the host data file is described 
+                 by the specified formatfile. The format of formatfile
+                 is identical to that understood by Sybase or MS bcp,
+                 but is too complicated to describe here.
+
+  -b batchsize  is the number of rows per batch of data copied. Batching 
+                applies only when you are bulk copying into the
+                database. each batch of data is effectively 'committed'
+                into the database. the default value for batchsize is
+                1000 .
+
+  -F firstrow   is the number of the first row to copy from the input file or
+                database table the default is the first row. 
+
+  -L lastrow    is the number of the last row to copy from an input file  or
+                database table the default is the last row. 
+
+  -r row_term   specifies the row terminator. Default is newline ('\n') 
+
+  -t field_term  specifies the field terminator. Default is tab ('\t')
+
+  -S servername  specifies the name of the Database Server to which to connect. 
+
+  -U username   specifies a database login name. 
+
+  -P password   specifies a database password.
+
+
+NOTES
+  To date, freebcp has been tested against Sybase ASE 11, and SQL
+  Server 2000. There are currently a number of restrictions on its use.
+
+  When connecting to a Sybase database server, it is required that the
+  TDS 5.0 protocol be used. When connecting to a Microsoft SQL Server
+  2000 database server, the TDS 8\.0 protocol is required.
+
+  Theoretically both Sybase and Microsoft support the TDS 4.2 protocol,
+  but in reality they implement the bcp portion of TDS 4.2 differently.
+  Freetds has no way of knowing which type of server it's connected to,
+  hence TDS protocol 4.2 is not supported.
+
+HISTORY
+  freebcp first appeared in FreeTDS 0\.60
+
+AUTHORS
+  The freebcp utility was written by Bill Thompson
+  (thompbil@exchange.uk.ml.com)
+
+BUGS
+  Currently, there is no support for text data types in freebcp, when
+  SQL Server 2000 is the target database.
+
+  The following parameters are accepted but unimplemented
+	[-e errfile]              
+	[-I interfaces_file]      
+	[-m maxerrors]            
+
