@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.279 2005-01-12 20:44:33 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.280 2005-01-20 14:38:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -505,6 +505,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	TDS_INT rc;
 	int saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
+	int cancel_seen = 0;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -513,6 +514,9 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
 	}
+
+	if (tds_set_state(tds, TDS_READING) != TDS_READING)
+		return TDS_FAIL;
 
 	rc = TDS_SUCCEED;
 	for (;;) {
@@ -535,8 +539,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
 				} else {
-					if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-						return TDS_FAIL;
+					if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
+						break;
 					marker = tds_get_byte(tds);
 					if (marker != TDS_COLINFO_TOKEN) {
 						tds_unget_byte(tds);
@@ -553,30 +557,35 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
-					return TDS_SUCCEED;
+					rc = TDS_SUCCEED;
+					goto check_cancel;
 				}
-				if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-					return TDS_FAIL;
+				if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
+					break;
 				marker = tds_get_byte(tds);
 				if (marker != TDS_COLINFO_TOKEN) {
 					tds_unget_byte(tds);
-					return TDS_SUCCEED;
+					rc = TDS_SUCCEED;
+					goto check_cancel;
 				}
 				if (rc == TDS_FAIL)
-					return TDS_FAIL;
+					break;
 				else {
 					tds_process_colinfo(tds);
-					return TDS_SUCCEED;
+					rc = TDS_SUCCEED;
+					goto check_cancel;
 				}
 			}
 			break;
 		case TDS_RESULT_TOKEN:
 			*result_type = TDS_ROWFMT_RESULT;
-			return tds_process_result(tds);
+			rc = tds_process_result(tds);
+			goto check_cancel;
 			break;
 		case TDS_ROWFMT2_TOKEN:
 			*result_type = TDS_ROWFMT_RESULT;
-			return tds5_process_result(tds);
+			rc = tds5_process_result(tds);
+			goto check_cancel;
 			break;
 		case TDS_COLNAME_TOKEN:
 			rc = tds_process_col_name(tds);
@@ -588,19 +597,20 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			marker = tds_get_byte(tds);
 			if (marker != TDS_TABNAME_TOKEN) {
 				tds_unget_byte(tds);
-				return rc;
+				goto check_cancel;
 			}
-			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-				return TDS_FAIL;
+			if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
+				break;
 			marker = tds_get_byte(tds);
 			if (marker != TDS_COLINFO_TOKEN) {
 				tds_unget_byte(tds);
-				return rc;
+				goto check_cancel;
 			}
 			if (rc == TDS_FAIL)
-				return TDS_FAIL;
+				break;
 			tds_process_colinfo(tds);
-			return TDS_SUCCEED;
+			rc = TDS_SUCCEED;
+			goto check_cancel;
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
@@ -631,7 +641,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds_free_param_results(pinfo);
 			} else {
 				*result_type = TDS_PARAM_RESULT;
-				return tds_process_param_result_tokens(tds);
+				rc = tds_process_param_result_tokens(tds);
+				goto check_cancel;
 			}
 			break;
 		case TDS_COMPUTE_NAMES_TOKEN:
@@ -639,11 +650,13 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			break;
 		case TDS_COMPUTE_RESULT_TOKEN:
 			*result_type = TDS_COMPUTEFMT_RESULT;
-			return tds_process_compute_result(tds);
+			rc = tds_process_compute_result(tds);
+			goto check_cancel;
 			break;
 		case TDS7_COMPUTE_RESULT_TOKEN:
 			*result_type = TDS_COMPUTEFMT_RESULT;
-			return tds7_process_compute_result(tds);
+			rc = tds7_process_compute_result(tds);
+			goto check_cancel;
 			break;
 		case TDS_ROW_TOKEN:
 			/* overstepped the mark... */
@@ -660,13 +673,15 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			}
 			tds->current_results->rows_exist = 1;
 			tds_unget_byte(tds);
-			return TDS_SUCCEED;
+			rc = TDS_SUCCEED;
+			goto check_cancel;
 			break;
 		case TDS_CMP_ROW_TOKEN:
 			*result_type = TDS_COMPUTE_RESULT;
 			tds->res_info->rows_exist = 1;
 			tds_unget_byte(tds);
-			return TDS_SUCCEED;
+			rc = TDS_SUCCEED;
+			goto check_cancel;
 			break;
 		case TDS_RETURNSTATUS_TOKEN:
 			ret_status = tds_get_int(tds);
@@ -680,7 +695,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds->ret_status = ret_status;
 				*result_type = TDS_STATUS_RESULT;
 				tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens: return status is %d\n", tds->ret_status);
-				return TDS_SUCCEED;
+				rc = TDS_SUCCEED;
+				goto check_cancel;
 			}
 			break;
 		case TDS5_DYNAMIC_TOKEN:
@@ -706,42 +722,47 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			if (done_flags)
 				*done_flags &= ~TDS_DONE_ERROR;
 			*result_type = TDS_DONE_RESULT;
-			return rc;
+			goto check_cancel;
 			break;
 		case TDS5_PARAMFMT_TOKEN:
 			*result_type = TDS_DESCRIBE_RESULT;
-			return tds_process_dyn_result(tds);
+			rc = tds_process_dyn_result(tds);
+			goto check_cancel;
 			break;
 		case TDS5_PARAMFMT2_TOKEN:
 			*result_type = TDS_DESCRIBE_RESULT;
-			return tds5_process_dyn_result2(tds);
+			rc = tds5_process_dyn_result2(tds);
+			goto check_cancel;
 			break;
 		case TDS5_PARAMS_TOKEN:
 			*result_type = TDS_PARAM_RESULT;
-			return tds_process_params_result_token(tds);
+			rc = tds_process_params_result_token(tds);
+			goto check_cancel;
 			break;
 		case TDS_CURINFO_TOKEN:
 			rc = tds_process_cursor_tokens(tds);
 			break;
 		case TDS_DONE_TOKEN:
 			*result_type = TDS_DONE_RESULT;
-			return tds_process_end(tds, marker, done_flags);
+			rc = tds_process_end(tds, marker, done_flags);
+			goto check_cancel;
 		case TDS_DONEPROC_TOKEN:
 			rc = tds_process_end(tds, marker, done_flags);
 			switch (tds->internal_sp_called ) {
 				case 0: 
 				case TDS_SP_PREPARE: 
 					*result_type = TDS_DONEPROC_RESULT;
-					return rc;
+					goto check_cancel;
 					break;
 				case TDS_SP_CURSOROPEN: 
 					*result_type       = TDS_DONE_RESULT;
 					tds->rows_affected = saved_rows_affected;
-					return rc;
+					goto check_cancel;
 					break;
 				default:
 					*result_type = TDS_NO_MORE_RESULTS;
-					return TDS_NO_MORE_RESULTS;
+					rc = TDS_NO_MORE_RESULTS;
+					goto check_cancel;
 					break;
 			}
 			break;
@@ -755,15 +776,32 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				}
 			} else {
 				*result_type = TDS_DONEINPROC_RESULT;
-				return rc;
+				goto check_cancel;
 			}
 			break;
 		default:
 			rc = tds_process_default_tokens(tds, marker);
 			break;
 		}
-		if (rc != TDS_SUCCEED)
+		cancel_seen |= tds->in_cancel;
+		if (rc == TDS_FAIL) {
+			tds_set_state(tds, TDS_PENDING);
 			return rc;
+		}
+		continue;
+
+	check_cancel:
+		if (!tds->in_cancel && !cancel_seen) {
+			tds_set_state(tds, TDS_PENDING);
+			return rc;
+		}
+		cancel_seen = 1;
+		/* correct to return TDS_FAIL ?? */
+		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
+			/* TODO free all results ?? */
+			tds_set_state(tds, TDS_PENDING);
+			return TDS_FAIL;
+		}
 	}
 }
 
@@ -819,6 +857,7 @@ static int
 _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token)
 {
 	int marker;
+	int rc;
 	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
@@ -831,6 +870,9 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_ROWS;
 	}
+
+	if (tds_set_state(tds, TDS_READING) != TDS_READING)
+		return TDS_FAIL;
 
 	while (1) {
 
@@ -845,7 +887,8 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 			tds_unget_byte(tds);
 			if (rowtype)
 				*rowtype = TDS_NO_MORE_ROWS;
-			return TDS_NO_MORE_ROWS;
+			rc = TDS_NO_MORE_ROWS;
+			break;
 
 		case TDS_ROW_TOKEN:
 			if (tds->cur_cursor) {
@@ -858,40 +901,47 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 					tds->current_results = tds->res_info;
 			}
 
-			if (tds_process_row(tds) == TDS_FAIL)
-				return TDS_FAIL;
+			if ((rc=tds_process_row(tds)) == TDS_FAIL)
+				break;
 
 			if (rowtype)
 				*rowtype = TDS_REG_ROW;
 
-			return TDS_SUCCEED;
+			rc = TDS_SUCCEED;
+			break;
 
 		case TDS_CMP_ROW_TOKEN:
 			if (!rowtype) {
 				tds_unget_byte(tds);
-				return TDS_NO_MORE_ROWS;
+				rc = TDS_NO_MORE_ROWS;
+				break;
 			}
 			*rowtype = TDS_COMP_ROW;
-			return tds_process_compute(tds, computeid);
+			rc = tds_process_compute(tds, computeid);
+			break;
 
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
 		case TDS_DONEINPROC_TOKEN:
 			if (read_end_token) {
-				if (tds_process_end(tds, marker, NULL) == TDS_FAIL)
-					return TDS_FAIL;
+				if ((rc=tds_process_end(tds, marker, NULL)) == TDS_FAIL)
+					break;
 			} else {
 				tds_unget_byte(tds);
 			}
 			if (rowtype)
 				*rowtype = TDS_NO_MORE_ROWS;
-			return TDS_NO_MORE_ROWS;
+			rc = TDS_NO_MORE_ROWS;
+			break;
 
 		default:
-			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-				return TDS_FAIL;
-			break;
+			if ((rc=tds_process_default_tokens(tds, marker)) == TDS_FAIL)
+				break;
+			continue;
 		}
+
+		tds_set_state(tds, TDS_PENDING);
+		return rc;
 	}
 	return TDS_SUCCEED;
 }
@@ -918,6 +968,7 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 int
 tds_process_trailing_tokens(TDSSOCKET * tds)
 {
+	/* TODO handle cancel and state */
 	int marker;
 	int done_flags;
 
@@ -2283,8 +2334,10 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (flags_parm)
 		*flags_parm = tmp;
 
-	if (was_cancelled || !(more_results)) {
+	if (was_cancelled || (!more_results && !tds->in_cancel)) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
+		/* reset of in_cancel should must done before setting IDLE */
+		tds->in_cancel = 0;
 		tds_set_state(tds, TDS_IDLE);
 	}
 
@@ -2685,8 +2738,17 @@ tds_process_cancel(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
+	/* silly cases, nothing to do */
+	if (!tds->in_cancel)
+		return TDS_SUCCEED;
+	/* TODO handle cancellation sending data */
+	if (tds->state != TDS_PENDING)
+		return TDS_SUCCEED;
+
 	tds->queryStarttime = 0;
+	tds->timeout = 0;
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
+	/* TODO udate this shit, use tds_process_results_tokens/tds_process_row_tokens */
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {

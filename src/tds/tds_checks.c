@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.6 2004-12-15 08:23:47 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.7 2005-01-20 14:38:30 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -64,7 +64,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	case TDS_QUERYING:
 	case TDS_PENDING:
 	case TDS_IDLE:
-	case TDS_CANCELED:
+	case TDS_READING:
 		break;
 	default:
 		assert(invalid_state);

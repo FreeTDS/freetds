@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.21 2004-12-07 22:39:22 jklowden Exp $";
+static char software_version[] = "$Id: blk.c,v 1.22 2005-01-20 14:38:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -241,7 +241,8 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 	case CS_BLK_BATCH:
 
 		tds_flush_packet(tds);
-		tds->state = TDS_QUERYING;
+		/* TODO correct ?? */
+		tds_set_state(tds, TDS_PENDING);
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
@@ -267,7 +268,8 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 	case CS_BLK_ALL:
 
 		tds_flush_packet(tds);
-		tds_set_state(tds, TDS_QUERYING);
+		/* TODO correct ?? */
+		tds_set_state(tds, TDS_PENDING);
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;

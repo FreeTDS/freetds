@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.137 2005-01-17 19:13:15 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.138 2005-01-20 14:38:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -842,8 +842,8 @@ ct_send(CS_COMMAND * cmd)
 
 		if (something_to_send) {
 			tdsdump_log(TDS_DBG_WARN, "ct_send(): sending cursor commands\n");
-			tds_set_state(tds, TDS_QUERYING);
 			tds_flush_packet(tds);
+			tds_set_state(tds, TDS_PENDING);
 			something_to_send = 0;
 
 			/* reinsert ct-send_cursor handling here */
@@ -868,8 +868,8 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
-		tds_set_state(tds, TDS_QUERYING);
 		tds_flush_packet(tds);
+		tds_set_state(tds, TDS_PENDING);
 	}
 
 	return CS_SUCCEED;
@@ -2221,8 +2221,12 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 			return CS_FAIL;
 		}
 
+		/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
 		/* read the end token */
 		if (tds_process_simple_query(tds) != TDS_SUCCEED)
+			return CS_FAIL;
+
+		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.204 2005-01-13 15:18:30 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.205 2005-01-20 14:38:25 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -896,10 +896,10 @@ typedef struct tds_result_info
 /* values for tds->state */
 typedef enum _TDS_STATE
 {
+	TDS_IDLE,
 	TDS_QUERYING,
 	TDS_PENDING,
-	TDS_IDLE,
-	TDS_CANCELED,
+	TDS_READING,
 	TDS_DEAD
 } TDS_STATE;
 
@@ -1078,6 +1078,7 @@ struct tds_socket
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
 	TDS_STATE state;
+	volatile unsigned char in_cancel;
 	int rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT timeout;

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.352 2005-01-17 19:13:37 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.353 2005-01-20 14:38:29 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -700,10 +700,10 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	SQLRETURN res;
 
 	/* emulate for ODBC 2 DM */
-	res = SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMS_PROCESSED_PTR, pirow, 0);
+	res = _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMS_PROCESSED_PTR, pirow, 0);
 	if (res != SQL_SUCCESS)
 		return res;
-	return SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) crow, 0);
+	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) crow, 0);
 }
 
 SQLRETURN SQL_API

@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.53 2005-01-09 19:41:24 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.54 2005-01-20 14:38:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -104,21 +104,29 @@ tds_ctx_get_parent(TDSCONTEXT * ctx)
 TDS_STATE
 tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 {
-	static const char * const state_names[] = {    "TDS_QUERYING",
-						"TDS_PENDING",
-						"TDS_IDLE",
-						"TDS_CANCELED",
-						"TDS_DEAD"
-					    };
+	static const char * const state_names[] = {
+		"TDS_IDLE",
+	        "TDS_QUERYING",
+	        "TDS_PENDING",
+	        "TDS_READING",
+	        "TDS_DEAD"
+	};
 	assert(state < TDS_VECTOR_SIZE(state_names));
 	assert(tds->state < TDS_VECTOR_SIZE(state_names));
 	
 	tdsdump_log(TDS_DBG_ERROR, "Changing query state from %s to %s\n", state_names[tds->state], state_names[state]);
 	
 	switch(state) {
+		/* transition to READING are valid only from PENDING */
 	case TDS_PENDING:
+		if (tds->state != TDS_READING && tds->state != TDS_QUERYING)
+			break;
+		return tds->state = state;
+	case TDS_READING:
+		if (tds->state != TDS_PENDING)
+			break;
+		return tds->state = state;
 	case TDS_IDLE:
-	case TDS_CANCELED:
 	case TDS_DEAD:
 		return tds->state = state;
 		break;

@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.157 2005-01-15 18:28:48 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.158 2005-01-20 14:38:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -133,6 +133,14 @@ tds_convert_string_free(const char *original, const char *converted)
 	do { if (original != converted) free((char*) converted); } while(0)
 #endif
 
+static int
+tds_query_flush_packet(TDSSOCKET *tds)
+{
+	/* TODO depend on result ?? */
+	tds_set_state(tds, TDS_PENDING);
+	return tds_flush_packet(tds);
+}
+
 /**
  * tds_submit_query() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
@@ -199,8 +207,10 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		const char *converted_query;
 
 		param_definition = tds_build_params_definition(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
-		if (!param_definition)
+		if (!param_definition) {
+			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
+		}
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
@@ -228,7 +238,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
 	}
-	return tds_flush_packet(tds);
+	return tds_query_flush_packet(tds);
 }
 
 int
@@ -789,7 +799,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_n(tds, query, query_len);
 	}
 
-	rc = tds_flush_packet(tds);
+	rc = tds_query_flush_packet(tds);
 	if (rc != TDS_FAIL)
 		return rc;
 failure:
@@ -797,6 +807,8 @@ failure:
 	tds_free_dynamic(tds, dyn);
 	if (dyn_out)
 		*dyn_out = NULL;
+	/* TODO correct if writing fail ?? */
+	tds_set_state(tds, TDS_IDLE);
 	return TDS_FAIL;
 }
 
@@ -833,8 +845,10 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			return TDS_FAIL;
 
 		param_definition = tds_build_params_definition(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
-		if (!param_definition)
+		if (!param_definition) {
+			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
+		}
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
@@ -861,7 +875,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		}
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	/* allocate a structure for this thing */
@@ -1290,7 +1304,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 		tds->internal_sp_called = TDS_SP_EXECUTE;
 
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	if (dyn->emulated)
@@ -1316,7 +1330,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_params(tds, dyn->params, 0);
 
 	/* send it */
-	return tds_flush_packet(tds);
+	return tds_query_flush_packet(tds);
 }
 
 static void
@@ -1433,14 +1447,14 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_int(tds, dyn->num_id);
 
 		tds->internal_sp_called = TDS_SP_UNPREPARE;
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	if (dyn->emulated) {
 		tds->out_flag = 1;
 		/* just a dummy select to return some data */
 		tds_put_string(tds, "select 1 where 0=1", -1);
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	tds->out_flag = 0x0F;
@@ -1456,7 +1470,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds_put_smallint(tds, 0);
 
 	/* send it */
-	return tds_flush_packet(tds);
+	return tds_query_flush_packet(tds);
 }
 
 /**
@@ -1493,8 +1507,10 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
 		converted_name = tds_convert_string(tds, tds->char_convs[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
-		if (!converted_name)
+		if (!converted_name) {
+			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
+		}
 		tds_put_smallint(tds, converted_name_len / 2);
 		tds_put_n(tds, converted_name, converted_name_len);
 		tds_convert_string_free(rpc_name, converted_name);
@@ -1512,7 +1528,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			tds_put_data(tds, param, params->current_row, i);
 		}
 
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	if (IS_TDS50(tds)) {
@@ -1531,10 +1547,11 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME);
 
 		/* send it */
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	/* TODO continue, support for TDS4?? */
+	tds_set_state(tds, TDS_IDLE);
 	return TDS_FAIL;
 }
 
@@ -1548,13 +1565,19 @@ tds_send_cancel(TDSSOCKET * tds)
 {
 	CHECK_TDS_EXTRA(tds);
 
-	/* TODO discard any partial packet here */
+	/* one cancel it's sufficient */
+	if (tds->in_cancel || tds->state == TDS_IDLE)
+		return TDS_SUCCEED;
+
+	/* TODO discard any partial packet here ?? */
 	/* tds_init_write_buf(tds); */
 
+	/* disable timeout */
 	tds->queryStarttime = 0;
+	tds->timeout = 0;
+
 	tds->out_flag = 0x06;
-	tds->internal_sp_called = 0;
-	tds->cur_cursor = NULL;
+	tds->in_cancel = 1;
 	return tds_flush_packet(tds);
 }
 
@@ -1731,6 +1754,8 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2],
 						     cursor->query, strlen(cursor->query), &converted_query_len);
 		if (!converted_query) {
+			if (!*something_to_send)
+				tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
 		}
 
@@ -1858,7 +1883,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_tinyint(tds, 1);	/* Fetch Type : TDS_CUR_NEXT */
 
 		/* tds_put_int(tds, row#) Optional argument to fetch row at absolute/relative position */
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -1910,9 +1935,10 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_int(tds, cursor->cursor_rows);
 
 		tds->internal_sp_called = TDS_SP_CURSORFETCH;
-		return tds_flush_packet(tds);
+		return tds_query_flush_packet(tds);
 	}
 
+	tds_set_state(tds, TDS_IDLE);
 	return TDS_SUCCEED;
 }
 
@@ -1972,7 +1998,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_int(tds, cursor->cursor_id);
 		tds->internal_sp_called = TDS_SP_CURSORCLOSE;
 	}
-	return tds_flush_packet(tds);
+	return tds_query_flush_packet(tds);
 
 }
 
@@ -1999,7 +2025,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
 		tds_put_int(tds, cursor->cursor_id);	/* cursor id returned by the server is available now */
 		tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
-		res = tds_flush_packet(tds);
+		res = tds_query_flush_packet(tds);
 	}
 
 	/*
@@ -2138,7 +2164,7 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		s = e + 1;
 	}
 	
-	return tds_flush_packet(tds);
+	return tds_query_flush_packet(tds);
 }
 
 /* TODO add function to return type suitable for param
