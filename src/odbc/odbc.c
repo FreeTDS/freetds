@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.235 2003-08-30 13:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.236 2003-08-30 13:31:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -86,11 +86,8 @@ static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, 
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
 static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					 SQLINTEGER * StringLength);
-
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
-#endif
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
@@ -1320,9 +1317,6 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	ODBC_RETURN(stmt, result);
 }
 
-/* TODO use these 3 functions when we'll populate IRD 
- * TODO update SQLGetFunctions */
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN SQL_API
 _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
 		 SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc)
@@ -1478,8 +1472,8 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 {
 	switch (fDescType) {
 	case SQL_COLUMN_TYPE:
-		/* FIXME special case, get ODBC 2 type, not ODBC 3 SQL_DESC_TYPE (different for datetime) */
-		fDescType = SQL_DESC_TYPE;
+		/* FIXME special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
+		fDescType = SQL_DESC_CONCISE_TYPE;
 		break;
 	case SQL_COLUMN_NAME:
 		fDescType = SQL_DESC_NAME;
@@ -1512,115 +1506,6 @@ SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, (SQLINTEGER FAR *) pfDesc);
 }
 #endif
-#endif /* ENABLE_DEVELOPING */
-
-#ifndef ENABLE_DEVELOPING
-SQLRETURN SQL_API
-SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
-		 SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
-{
-	TDSSOCKET *tds;
-	TDSCOLINFO *colinfo;
-	int cplen, len = 0;
-	TDS_DBC *dbc;
-	SQLRETURN result = SQL_SUCCESS;
-
-	INIT_HSTMT;
-
-	IRD_CHECK;
-	dbc = stmt->hdbc;
-	tds = dbc->tds_socket;
-
-	/* dont check column index for these */
-	switch (fDescType) {
-	case SQL_COLUMN_COUNT:
-		if (!tds->res_info) {
-			*pfDesc = 0;
-		} else {
-			*pfDesc = tds->res_info->num_cols;
-		}
-		ODBC_RETURN(stmt, SQL_SUCCESS);
-		break;
-	}
-
-	if (!tds->res_info) {
-		odbc_errs_add(&stmt->errs, "07005", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	if (icol == 0 || icol > tds->res_info->num_cols) {
-		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-	colinfo = tds->res_info->columns[icol - 1];
-
-	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLColAttributes: fDescType is %d\n", fDescType);
-	switch (fDescType) {
-	case SQL_COLUMN_NAME:
-	case SQL_COLUMN_LABEL:
-		len = strlen(colinfo->column_name);
-		cplen = len;
-		if (len >= cbDescMax) {
-			cplen = cbDescMax - 1;
-			odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
-			result = SQL_SUCCESS_WITH_INFO;
-		}
-		tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: copying %d bytes, len = %d, cbDescMax = %d\n", cplen, len, cbDescMax);
-		strncpy((char *) rgbDesc, colinfo->column_name, cplen);
-		((char *) rgbDesc)[cplen] = '\0';
-		/* return length of full string, not only copied part */
-		if (pcbDesc) {
-			*pcbDesc = len;
-		}
-		break;
-	case SQL_COLUMN_TYPE:
-	case SQL_DESC_TYPE:
-		*pfDesc =
-			odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
-		tdsdump_log(TDS_DBG_INFO2,
-			    "odbc:SQLColAttributes: colinfo->column_type = %d," " colinfo->column_size = %d," " *pfDesc = %d\n",
-			    colinfo->column_type, colinfo->column_size, *pfDesc);
-		break;
-	case SQL_COLUMN_PRECISION:	/* this section may be wrong */
-		switch (colinfo->column_type) {
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			*pfDesc = colinfo->column_prec;
-			break;
-		case SYBCHAR:
-		case SYBVARCHAR:
-			*pfDesc = colinfo->column_size;
-			break;
-		case SYBDATETIME:
-		case SYBDATETIME4:
-		case SYBDATETIMN:
-			*pfDesc = 30;
-			break;
-			/* FIXME what to do with other types ?? */
-		default:
-			*pfDesc = 0;
-			break;
-		}
-		break;
-	case SQL_COLUMN_LENGTH:
-		*pfDesc = colinfo->column_size;
-		break;
-	case SQL_COLUMN_DISPLAY_SIZE:
-		*pfDesc =
-			odbc_sql_to_displaysize(odbc_tds_to_sql_type
-						(colinfo->column_type, colinfo->column_size,
-						 stmt->hdbc->henv->attr.attr_odbc_version), colinfo->column_size,
-						colinfo->column_prec);
-		break;
-		/* FIXME other types ... */
-	default:
-		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
-		break;
-	}
-
-	ODBC_RETURN(stmt, result);
-}
-#endif /* !ENABLE_DEVELOPING */
 
 SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)
@@ -3422,7 +3307,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
 		API3_(SQL_API_SQLCLOSECURSOR);
-		API3_(SQL_API_SQLCOLATTRIBUTE);
+		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
@@ -3514,7 +3399,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
 		API3_(SQL_API_SQLCLOSECURSOR);
-		API3_(SQL_API_SQLCOLATTRIBUTE);
+		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
@@ -3603,8 +3488,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
 		API3_(SQL_API_SQLCLOSECURSOR);
-		API3_(SQL_API_SQLCOLATTRIBUTE);
+		API3X(SQL_API_SQLCOLATTRIBUTE);
+	/* TODO strange... */
+#if SQL_API_SQLCOLATTRIBUTE != SQL_API_SQLCOLATTRIBUTES
 		API_X(SQL_API_SQLCOLATTRIBUTES);
+#endif
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);

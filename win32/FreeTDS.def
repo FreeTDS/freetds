@@ -8,6 +8,7 @@ EXPORTS
 	SQLBindParameter
 ;	SQLBrowseConnect
 	SQLCancel
+	SQLColAttribute
 	SQLColAttributes
 	SQLColumnPrivileges
 	SQLColumns

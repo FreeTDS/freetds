@@ -26,6 +26,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLBindParam=PROCEDURE,-
 		SQLBindParameter=PROCEDURE,-
 		SQLCancel=PROCEDURE,-
+		SQLColAttribute=PROCEDURE,-
 		SQLColAttributes=PROCEDURE,-
 		SQLColumnPrivileges=PROCEDURE,-
 		SQLColumns=PROCEDURE,-
