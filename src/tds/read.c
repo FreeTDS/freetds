@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.10 2002-08-22 19:12:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.11 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -181,7 +181,7 @@ char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int max)
 int i = 0;
 char c;
 
-	while (c = tds_get_byte(tds)) {
+	while ((c = tds_get_byte(tds))) {
 		if (i < (max - 1) && dest)
 			dest[i++] = c;
 	}

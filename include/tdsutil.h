@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.3 2002-08-16 16:45:20 freddy77 Exp $";
+"$Id: tdsutil.h,v 1.4 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -64,6 +64,8 @@ extern void tdsdump_off();
 extern void tdsdump_on();
 extern void tdsdump_close();
 extern void tdsdump_log(int dbg_lvl, const char *fmt, ...);
+extern void tdsdump_dump_buf(const void *buf, int length);
+		      
 
 extern int  tds_is_result_row(TDSSOCKET *tds);
 extern int  tds_is_result_set(TDSSOCKET *tds);

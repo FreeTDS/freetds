@@ -36,13 +36,13 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.50 2002-08-22 16:13:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.51 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef unsigned short utf16_t;
 
-static int  _tds_pad_string(char *dest, int destlen);
+/* static int  _tds_pad_string(char *dest, int destlen); */
 extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
@@ -55,6 +55,8 @@ static int string_to_numeric(const char *instr, const char *pend, CONV_RESULT *c
  */
 static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
 
+static size_t 
+tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm *timeptr);
 static int  store_hour(char *, char *, struct tds_time *);
 static int  store_time(char *, struct tds_time * );
 static int  store_yymmdd_date(char *, struct tds_time *);
@@ -62,6 +64,7 @@ static int  store_monthname(char *, struct tds_time *);
 static int  store_numeric_date(char *, struct tds_time *);
 static int  store_mday(char *, struct tds_time *);
 static int  store_year(int,  struct tds_time *);
+static int  days_this_year (int years);
 static int  is_timeformat(char *);
 static int  is_numeric(char *);
 static int  is_alphabetic(char *);
@@ -1095,7 +1098,7 @@ struct tds_tm when;
 	return TDS_FAIL;
 }
 
-int days_this_year (int years)
+static int days_this_year (int years)
 {
 int year;
 
@@ -1890,6 +1893,7 @@ short int bytes, places, point_found, sign, digits;
   return 0;
 }
 
+/*
 static int _tds_pad_string(char *dest, int destlen)
 {
 int i=0;
@@ -1901,7 +1905,7 @@ int i=0;
 	}
 	return i;
 }
- 
+*/
 
 static int is_numeric_dateformat(char *t)
 {
@@ -2597,6 +2601,7 @@ int i;
 	dr->minute      = mins;
 	dr->second      = secs;
 	dr->millisecond = ms;
+	return TDS_SUCCEED;
 }
 
 /**

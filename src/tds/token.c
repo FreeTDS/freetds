@@ -20,11 +20,12 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#include "tdsconvert.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.37 2002-08-22 19:12:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.38 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -40,6 +41,8 @@ static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static void tds_process_dyn_result(TDSSOCKET *tds);
 static int tds_process_dynamic(TDSSOCKET *tds);
+static int tds_process_auth(TDSSOCKET *tds);
+static int tds_get_varint_size(int datatype);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
@@ -215,11 +218,12 @@ char *tmpbuf;
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_login_tokens() returning %d\n",succeed);
 	return succeed;
 }
-int tds_process_auth(TDSSOCKET *tds)
+
+static int tds_process_auth(TDSSOCKET *tds)
 {
 int pdu_size, ntlm_size;
 char nonce[10];
-char domain[30];
+/* char domain[30]; */
 int where = 0;
 
 	pdu_size = tds_get_smallint(tds);
@@ -885,8 +889,7 @@ unsigned char *dest;
 */
 static int tds_process_row(TDSSOCKET *tds)
 {
-int colsize, i, j, sign, num_pos;
-unsigned char b_val;
+int colsize, i;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 unsigned char *dest;
@@ -1662,7 +1665,7 @@ TDS_NUMERIC *num;
 ** tds_get_varint_size() returns the size of a variable length integer
 ** returned in a TDS 7.0 result string
 */
-int tds_get_varint_size(int datatype)
+static int tds_get_varint_size(int datatype)
 {
 	switch(datatype) {
 		case SYBTEXT:

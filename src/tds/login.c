@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.34 2002-08-22 19:12:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.35 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -309,9 +309,11 @@ FD_ZERO (&fds);
 }
 int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	
-   char *tmpbuf;
-   int tmplen;
+/*   char *tmpbuf;
+   int tmplen;*/
+#ifdef WORDS_BIGENDIAN
    unsigned char be1[]= {0x02,0x00,0x06,0x04,0x08,0x01};
+#endif
    unsigned char le1[]= {0x03,0x01,0x06,0x0a,0x09,0x01};
    unsigned char magic2[]={0x00,0x00};
    
@@ -319,7 +321,9 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    
 /* these seem to endian flags as well 13,17 on intel/alpha 12,16 on power */
    
+#ifdef WORDS_BIGENDIAN
    unsigned char be2[]= {0x00,12,16};
+#endif
    unsigned char le2[]= {0x00,13,17};
    
    /* 

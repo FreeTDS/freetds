@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.3 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.4 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -88,7 +88,6 @@ char line[256], option[256], value[256], *s;
 int i;
 char p;
 int insection = 0;
-char tmp[256];
 int found = 0;
 
 	while (fgets(line, 256, in)) {

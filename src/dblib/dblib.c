@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.36 2002-08-22 03:41:57 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.37 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2111,6 +2111,7 @@ int i;
 	di->second      = dr.second;
 	di->millisecond = dr.millisecond;
 #endif
+	return SUCCEED;
 }
 
 void dbrpwclr(LOGINREC *login)

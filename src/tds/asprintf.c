@@ -17,8 +17,9 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <assert.h>
+#include <string.h>
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.1 2002-08-22 03:27:51 jklowden Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.2 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 static jmp_buf env;

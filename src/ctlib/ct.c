@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.22 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.23 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -358,6 +358,7 @@ CS_RETCODE ct_send_dyn(CS_COMMAND *cmd)
 		else 
 			return CS_SUCCEED;
 	}
+	return CS_FAIL;
 }
 CS_RETCODE ct_send(CS_COMMAND *cmd)
 {
@@ -392,7 +393,7 @@ TDSDYNAMIC *dyn;
 			return CS_SUCCEED;
 		}
 	}
-
+	return CS_FAIL;
 }
 CS_RETCODE ct_results(CS_COMMAND *cmd, CS_INT *result_type)
 {
@@ -702,6 +703,7 @@ int _ct_get_client_type(int datatype, int size)
       		return CS_UNIQUE_TYPE;
 		break;
    }
+   /* FIXME what to return here ? */
 }
 int _ct_get_server_type(int datatype)
 {

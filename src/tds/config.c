@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.23 2002-08-23 08:15:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.24 2002-08-23 13:10:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -500,7 +500,7 @@ static void tds_config_env_tdshost(TDSCONFIGINFO *config)
 char *tdshost;
 char tmp[256];
 
-	if (tdshost=getenv("TDSHOST")) {
+	if ((tdshost=getenv("TDSHOST"))) {
 		lookup_host (tdshost, NULL, tmp, NULL);
 		if (config->ip_addr)
 			free (config->ip_addr);

@@ -1,3 +1,10 @@
+Fri Aug 23 15:08:49 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsconvert.h include/tdsutil.h src/ctlib/ct.c:
+	* src/dblib/dblib.c src/tds/asprintf.c src/tds/config.c:
+	* src/tds/convert.c src/tds/locale.c src/tds/login.c:
+	* src/tds/read.c src/tds/token.c:
+	- removed some warning
+
 Thu Aug 22 21:06:01 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	(patches from castellano)
 	* configure.in:
