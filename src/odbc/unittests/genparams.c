@@ -3,7 +3,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.4 2004-02-22 11:36:51 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.5 2004-02-22 11:46:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -21,6 +21,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	/* build store procedure to test */
 	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, '%s')", type, type, value_to_convert);
 	Command(Statement, sbuf);
+	memset(out_buf, 0, sizeof(out_buf));
 
 	/* bind parameter */
 	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, 18, 0, out_buf, sizeof(out_buf), &out_len) !=
@@ -149,6 +150,8 @@ main(int argc, char *argv[])
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
 	Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
+	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, "979400002CAAFB00");
+	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, "979400004096FB00");
 
 	Disconnect();
 

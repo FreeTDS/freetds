@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.3 2004-02-19 13:58:47 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.4 2004-02-22 11:46:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -119,7 +119,7 @@ TestRawODBCPreparedQuery(void)
 	/* MAKE QUERY */
 
 	Command(Statement, "CREATE TABLE #Products ("
-		"ProductID int IDENTITY (1, 1) NOT NULL ,"
+		"ProductID int NOT NULL ,"
 		"ProductName nvarchar (40) ,"
 		"SupplierID int NULL ,"
 		"CategoryID int NULL ,"
@@ -130,13 +130,11 @@ TestRawODBCPreparedQuery(void)
 		"ReorderLevel smallint NULL ,"
 		"Discontinued bit NOT NULL "
 		") "
-		"SET IDENTITY_INSERT #Products ON SET NOCOUNT ON "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(9,'Mishi Kobe Niku',4,6,'18 - 500 g pkgs.',97.00,29,0,0,1) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(10,'Ikura',4,8,'12 - 200 ml jars',31.00,31,0,0,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(74,'Longlife Tofu',4,7,'5 kg pkg.',10.00,4,20,5,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(11,'Queso Cabrales',5,4,'1 kg pkg.',21.00,22,30,30,0) "
-		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0) "
-		"SET IDENTITY_INSERT #Products OFF");
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0)");
 	SQLCloseCursor(Statement);
 
 	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
@@ -212,7 +210,7 @@ TestRawODBCDirectQuery(void)
 	/* MAKE QUERY */
 
 	Command(Statement, "CREATE TABLE #Products ("
-		"ProductID int IDENTITY (1, 1) NOT NULL ,"
+		"ProductID int NOT NULL ,"
 		"ProductName nvarchar (40) ,"
 		"SupplierID int NULL ,"
 		"CategoryID int NULL ,"
@@ -223,13 +221,11 @@ TestRawODBCDirectQuery(void)
 		"ReorderLevel smallint NULL ,"
 		"Discontinued bit NOT NULL "
 		") "
-		"SET IDENTITY_INSERT #Products ON SET NOCOUNT ON "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(1,'Chai',1,1,'10 boxes x 20 bags',18.00,39,0,10,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(2,'Chang',1,1,'24 - 12 oz bottles',19.00,17,40,25,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(3,'Aniseed Syrup',1,2,'12 - 550 ml bottles',10.00,13,70,25,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(4,'Chef Anton''s Cajun Seasoning',2,2,'48 - 6 oz jars',22.00,53,0,0,0) "
-		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) "
-		"SET IDENTITY_INSERT #Products OFF");
+		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
 	SQLCloseCursor(Statement);
 
 	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierId = ?");
