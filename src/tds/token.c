@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.189 2003-05-08 03:14:58 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.190 2003-05-08 08:15:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -57,8 +57,6 @@ static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
 static int tds_process_auth(TDSSOCKET * tds);
-static int tds_get_varint_size(int datatype);
-static int tds_get_cardinal_type(int datatype);
 static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int tds_process_env_chg(TDSSOCKET * tds);
@@ -1176,7 +1174,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 			break;
 		}
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
-		
+
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
 		adjust_character_column_size(tds, curcol);
@@ -1246,7 +1244,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
 	adjust_character_column_size(tds, curcol);
-	
+
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
@@ -1320,25 +1318,6 @@ tds7_process_result(TDSSOCKET * tds)
 	info->current_row = tds_alloc_row(info);
 
 	return TDS_SUCCEED;
-
-}
-
-/**
- * Set type of column initializing all dependency 
- * @param curcol column to set
- * @param type   type to set
- */
-void
-tds_set_column_type(TDSCOLINFO * curcol, int type)
-{
-	/* set type */
-	curcol->on_server.column_type = type;
-	curcol->column_type = tds_get_cardinal_type(type);
-
-	/* set size */
-	curcol->column_varint_size = tds_get_varint_size(type);
-	if (curcol->column_varint_size == 0)
-		curcol->column_cur_size = curcol->column_size = tds_get_size_by_type(type);
 
 }
 
@@ -1872,8 +1851,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	done_count_valid = (tmp & TDS_DONE_COUNT) != 0;
 
 
-	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() more_results = %d, was_cancelled = %d \n",
-		    more_results, was_cancelled);
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() more_results = %d, was_cancelled = %d \n", more_results, was_cancelled);
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
 		if (tds->curr_resinfo == NULL)
@@ -1960,7 +1938,6 @@ tds_process_env_chg(TDSSOCKET * tds)
 	char *oldval = NULL;
 	char *newval = NULL;
 	int new_block_size;
-	TDSENVINFO *env = tds->env;
 	int lcid;
 
 	size = tds_get_smallint(tds);
@@ -2002,7 +1979,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	switch (type) {
 	case TDS_ENV_PACKSIZE:
 		new_block_size = atoi(newval);
-		if (new_block_size > env->block_size) {
+		if (new_block_size > tds->env->block_size) {
 			tdsdump_log(TDS_DBG_INFO1, "%L increasing block size from %s to %d\n", oldval, new_block_size);
 			/* 
 			 * I'm not aware of any way to shrink the 
@@ -2484,50 +2461,6 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 }
 
 /**
- * tds_get_varint_size() returns the size of a variable length integer
- * returned in a TDS 7.0 result string
- */
-static int
-tds_get_varint_size(int datatype)
-{
-	switch (datatype) {
-	case SYBLONGBINARY:
-	case SYBTEXT:
-	case SYBNTEXT:
-	case SYBIMAGE:
-		/* TODO support this strange type */
-	case SYBVARIANT:
-		return 4;
-	case SYBVOID:
-	case SYBINT1:
-	case SYBBIT:
-	case SYBINT2:
-	case SYBINT4:
-	case SYBINT8:
-	case SYBDATETIME4:
-	case SYBREAL:
-	case SYBMONEY:
-	case SYBDATETIME:
-	case SYBFLT8:
-	case SYBMONEY4:
-	case SYBSINT1:
-	case SYBUINT2:
-	case SYBUINT4:
-	case SYBUINT8:
-		return 0;
-	case XSYBNCHAR:
-	case XSYBNVARCHAR:
-	case XSYBCHAR:
-	case XSYBVARCHAR:
-	case XSYBBINARY:
-	case XSYBVARBINARY:
-		return 2;
-	default:
-		return 1;
-	}
-}
-
-/**
  * tds5_get_varint_size5() returns the size of a variable length integer
  * returned in a TDS 5.1 result string
  */
@@ -2573,26 +2506,6 @@ tds5_get_varint_size(int datatype)
 	default:
 		return 1;
 	}
-}
-
-static int
-tds_get_cardinal_type(int datatype)
-{
-	switch (datatype) {
-	case XSYBVARBINARY:
-		return SYBVARBINARY;
-	case XSYBBINARY:
-		return SYBBINARY;
-	case SYBNTEXT:
-		return SYBTEXT;
-	case XSYBNVARCHAR:
-	case XSYBVARCHAR:
-		return SYBVARCHAR;
-	case XSYBNCHAR:
-	case XSYBCHAR:
-		return SYBCHAR;
-	}
-	return datatype;
 }
 
 /**

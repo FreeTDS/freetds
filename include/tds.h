@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.121 2003-05-06 03:46:33 jklowden Exp $";
+	"$Id: tds.h,v 1.122 2003-05-08 08:15:25 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -971,34 +971,6 @@ TDSLOCALE *tds_get_locale(void);
 unsigned char *tds_alloc_row(TDSRESULTINFO *res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
 char *tds_alloc_get_string(TDSSOCKET *tds, int len); 
-TDSLOGIN *tds_alloc_login(void);
-TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
-void tds_free_login(TDSLOGIN *login);
-TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE *locale);
-TDSLOCALE *tds_alloc_locale(void);
-void tds_free_locale(TDSLOCALE *locale);
-int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
-void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
-void tds_set_port(TDSLOGIN *tds_login, int port);
-void tds_set_passwd(TDSLOGIN *tds_login, const char *password);
-void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled);
-void tds_set_user(TDSLOGIN *tds_login, const char *username);
-void tds_set_app(TDSLOGIN *tds_login, const char *application);
-void tds_set_host(TDSLOGIN *tds_login, const char *hostname);
-void tds_set_library(TDSLOGIN *tds_login, const char *library);
-void tds_set_server(TDSLOGIN *tds_login, const char *server);
-void tds_set_client_charset(TDSLOGIN *tds_login, const char *charset);
-void tds_set_language(TDSLOGIN *tds_login, const char *language);
-void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
-void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);
-int tds_submit_query(TDSSOCKET *tds, const char *query, TDSPARAMINFO *params);
-int tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...);
-int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
-int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
-int tds_process_default_tokens(TDSSOCKET *tds, int marker);
-int tds_process_trailing_tokens(TDSSOCKET * tds);
-TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
-int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
@@ -1030,11 +1002,33 @@ void tds_free_compute_result(TDSCOMPUTEINFO *comp_info);
 void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp);
 unsigned char *tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET *tds, int msgnum);
+TDSLOGIN *tds_alloc_login(void);
+TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
+void tds_free_login(TDSLOGIN *login);
+TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE *locale);
+TDSLOCALE *tds_alloc_locale(void);
+void tds_free_locale(TDSLOCALE *locale);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge);
+void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
+void tds_set_port(TDSLOGIN *tds_login, int port);
+void tds_set_passwd(TDSLOGIN *tds_login, const char *password);
+void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled);
+void tds_set_user(TDSLOGIN *tds_login, const char *username);
+void tds_set_app(TDSLOGIN *tds_login, const char *application);
+void tds_set_host(TDSLOGIN *tds_login, const char *hostname);
+void tds_set_library(TDSLOGIN *tds_login, const char *library);
+void tds_set_server(TDSLOGIN *tds_login, const char *server);
+void tds_set_client_charset(TDSLOGIN *tds_login, const char *charset);
+void tds_set_language(TDSLOGIN *tds_login, const char *language);
+void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
+void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);
+int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 
 /* query.c */
+int tds_submit_query(TDSSOCKET *tds, const char *query, TDSPARAMINFO *params);
+int tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out, TDSPARAMINFO * params);
 int tds_submit_execute(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_send_cancel(TDSSOCKET *tds);
@@ -1052,10 +1046,20 @@ void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET *tds);
 int tds_process_trailing_tokens(TDSSOCKET * tds);
-void tds_set_column_type(TDSCOLINFO *curcol, int type);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG *tds_argument, TDS_INT *tds_argsize);
+int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
+int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
+int tds_process_default_tokens(TDSSOCKET *tds, int marker);
+int tds_process_trailing_tokens(TDSSOCKET * tds);
+TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
+int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
+
+/* data.c */
+void tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type);
+void tds_set_column_type(TDSCOLINFO *curcol, int type);
+
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);

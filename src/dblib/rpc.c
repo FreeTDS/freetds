@@ -45,13 +45,13 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.20 2003-05-08 03:14:57 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.21 2003-05-08 08:15:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 
-static TDSPARAMINFO *param_info_alloc(DBREMOTE_PROC * rpc);
+static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
 
 /**
  * Initialize a remote procedure call. 
@@ -196,7 +196,7 @@ dbrpcsend(DBPROCESS * dbproc)
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;
-		TDSPARAMINFO *pparam_info = param_info_alloc(rpc);
+		TDSPARAMINFO *pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
 
 		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
 		;
@@ -232,7 +232,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLINFO * curcol, void *value, int siz
  * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
  */
 static TDSPARAMINFO *
-param_info_alloc(DBREMOTE_PROC * rpc)
+param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 {
 	int i;
 	DBREMOTE_PROC_PARAM *p;
@@ -258,7 +258,7 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		/* meta data */
 		if (p->name)
 			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-		tds_set_column_type(pcol, p->type);
+		tds_set_param_type(tds, pcol, p->type);
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
 				return NULL;

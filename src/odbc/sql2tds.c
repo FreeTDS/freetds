@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.8 2003-04-30 08:47:02 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.9 2003-05-08 08:15:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -69,7 +69,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 	/* TODO what happen for unicode types ?? */
-	tds_set_column_type(curcol, dest_type);
+	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
 	if (curcol->column_varint_size != 0)
 		curcol->column_cur_size = curcol->column_size = *param->param_lenbind;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);

@@ -68,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.57 2003-05-08 03:59:57 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.58 2003-05-08 08:15:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -84,7 +84,7 @@ void print_usage(char *progname);
 int get_opt_flags(char *s, int *opt_flags);
 void populate_login(TDSLOGIN * login, int argc, char **argv);
 int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg);
-void slurp_input_file(char * fname, char ** mybuf, int * bufsz, int * line);
+void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 
 #ifndef HAVE_READLINE
 char *readline(char *prompt);
@@ -100,16 +100,14 @@ readline(char *prompt)
 	if (fgets(line, 1000, stdin) == NULL) {
 		return NULL;
 	}
-	for (i = strlen(line); i > 0; i--) {
+	for (i = strlen(line); i > 0; --i) {
 		if (line[i] == '\n') {
 			line[i] = '\0';
 			break;
 		}
 	}
-	buf = (char *) malloc(strlen(line) + 1);
-	strcpy(buf, line);
 
-	return buf;
+	return strdup(line);
 }
 
 void
@@ -174,11 +172,11 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 
 					src = &(tds->res_info->current_row[col->column_offset]);
 					if (is_blob_type(col->column_type))
-						src = (unsigned char*) ((TDSBLOBINFO *) src)->textvalue;
+						src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
 					srclen = col->column_cur_size;
 
 
-					if (tds_convert(tds->tds_ctx, ctype, (TDS_CHAR*) src, srclen, SYBVARCHAR, &dres) < 0)
+					if (tds_convert(tds->tds_ctx, ctype, (TDS_CHAR *) src, srclen, SYBVARCHAR, &dres) < 0)
 						continue;
 					if (print_rows)
 						fprintf(stdout, "%s\t", dres.c);
@@ -197,8 +195,8 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		}
 
 		if (opt_flags & OPT_VERSION) {
-	char version[64];
-	int line = 0;
+			char version[64];
+			int line = 0;
 
 			line = tds_version(tds, version);
 			if (line) {
@@ -219,7 +217,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 void
 print_usage(char *progname)
 {
-	fprintf(stderr, 
+	fprintf(stderr,
 		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n\t%s -C\n",
 		progname, progname);
 }
@@ -232,7 +230,7 @@ get_opt_flags(char *s, int *opt_flags)
 	int opt;
 
 	/* make sure we have enough elements */
-	argv = (char**) malloc(sizeof(char *) * strlen(s));
+	argv = (char **) malloc(sizeof(char *) * strlen(s));
 	if (!argv)
 		return 0;
 
@@ -283,7 +281,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	charset = locale_charset();
 # else
 	charset = nl_langinfo(CODESET);
-# endif 
+# endif
 #endif
 
 	if (locale)
@@ -322,20 +320,17 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n", 
-				"Compile-time settings (established with the \"configure\" script):", 
-				"Version:", settings->freetds_version, 
-				/* settings->last_update */
-				"MS db-lib source compatibility:", settings->msdblib? "yes" : "no",
-				"Sybase binary compatibility:", 
-					(settings->sybase_compat == -1? "unknown" :(settings->sybase_compat? "yes" : "no")), 
-				"Thread safety:", settings->threadsafe? "yes" : "no",
-				"iconv library:", settings->libiconv? "yes" : "no",
-				
-				"TDS version:", settings->tdsver, 
-				"iODBC:", settings->iodbc? "yes" : "no",
-				"unixodbc:", settings->unixodbc? "yes" : "no"
-			       );	
+			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n",
+			       "Compile-time settings (established with the \"configure\" script):",
+			       "Version:", settings->freetds_version,
+			       /* settings->last_update */
+			       "MS db-lib source compatibility:", settings->msdblib ? "yes" : "no",
+			       "Sybase binary compatibility:",
+			       (settings->sybase_compat == -1 ? "unknown" : (settings->sybase_compat ? "yes" : "no")),
+			       "Thread safety:", settings->threadsafe ? "yes" : "no",
+			       "iconv library:", settings->libiconv ? "yes" : "no",
+			       "TDS version:", settings->tdsver,
+			       "iODBC:", settings->iodbc ? "yes" : "no", "unixodbc:", settings->unixodbc ? "yes" : "no");
 			exit(0);
 			break;
 		default:
@@ -366,7 +361,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		exit(1);
 	}
 	if (!password) {
-	char *tmp = getpass("Password: ");
+		char *tmp = getpass("Password: ");
 
 		password = strdup(tmp);
 	}
@@ -428,25 +423,26 @@ tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg)
 }
 
 void
-slurp_input_file(char * fname, char ** mybuf, int * bufsz, int * line)
+slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line)
 {
 	FILE *fp = NULL;
 	register char *n;
 	char linebuf[1024];
 	char *s = NULL;
 
-	if ( (fp = fopen( fname, "r" )) == NULL ) {
+	if ((fp = fopen(fname, "r")) == NULL) {
 		fprintf(stderr, "Unable to open input file '%s': %s\n", fname, strerror(errno));
 		return;
 	}
-	while ( (s = fgets( linebuf, sizeof(linebuf), fp )) != NULL ) {
+	while ((s = fgets(linebuf, sizeof(linebuf), fp)) != NULL) {
 		while (strlen(*mybuf) + strlen(s) + 2 > *bufsz) {
 			*bufsz *= 2;
 			*mybuf = (char *) realloc(*mybuf, *bufsz);
 		}
 		strcat(*mybuf, s);
 		n = strrchr(s, '\n');
-		if (n != NULL) *n = '\0';
+		if (n != NULL)
+			*n = '\0';
 		add_history(s);
 		(*line)++;
 	}
@@ -505,12 +501,12 @@ main(int argc, char **argv)
 		if (s != NULL) {
 			if (s2)
 				free(s2);
-			s2 = strdup(s);  /* copy that can be safely mangled by str functions */
-			cmd =  strtok(s2," \t");
+			s2 = strdup(s);	/* copy that can be safely mangled by str functions */
+			cmd = strtok(s2, " \t");
 		}
-		if (!cmd) 
+		if (!cmd)
 			continue;
-			
+
 		if (!s || !strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
 			break;
 		}
@@ -530,7 +526,7 @@ main(int argc, char **argv)
 			line = 0;
 			mybuf[0] = '\0';
 		} else if (!strcmp(cmd, ":r")) {
-			slurp_input_file( strtok(NULL," \t"), &mybuf, &bufsz, &line );
+			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &line);
 		} else {
 			while (strlen(mybuf) + strlen(s) + 2 > bufsz) {
 				bufsz *= 2;

@@ -1,3 +1,12 @@
+Thu May  8 10:10:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: sort function declarations
+	* src/apps/tsql.c: use strdup to copy string
+	* src/ctlib/ct.c src/dblib/rpc.c src/odbc/odbc_util.c:
+	* src/odbc/sql2tds.c src/tds/Makefile.am src/tds/token.c:
+	* src/tds/data.c(added):
+	- add data.c and put some function here (from token.c)
+	- added tds_set_param_type function
+
 Wed May  7 23:58:33 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/apps/tsql.c default to CHARSET_ISO1
 

@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.93 2003-05-08 03:14:57 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.94 2003-05-08 08:15:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -73,7 +73,7 @@ static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVER
 static void rpc_clear(CSREMOTE_PROC * rpc);
 static void param_clear(CSREMOTE_PROC_PARAM * pparam);
 
-static TDSPARAMINFO *paraminfoalloc(CS_PARAM * first_param);
+static TDSPARAMINFO *paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param);
 
 /* RPC Code changes ends here */
 
@@ -697,7 +697,7 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		rpc = &(cmd->rpc);
-		pparam_info = paraminfoalloc(cmd->rpc->param_list);
+		pparam_info = paraminfoalloc(tds, cmd->rpc->param_list);
 		ret = tds_submit_rpc(tds, cmd->rpc->name, pparam_info);
 
 		tds_free_param_results(pparam_info);
@@ -714,7 +714,7 @@ ct_send(CS_COMMAND * cmd)
 	if (cmd->command_type == CS_LANG_CMD) {
 		ret = CS_FAIL;
 		if (cmd->input_params) {
-			pparam_info = paraminfoalloc(cmd->input_params);
+			pparam_info = paraminfoalloc(tds, cmd->input_params);
 			ret = tds_submit_query(tds, cmd->query, pparam_info);
 			tds_free_param_results(pparam_info);
 		} else {
@@ -798,8 +798,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 		tdsret = tds_process_result_tokens(tds, &res_type);
 
-		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() process_result_tokens returned %d (type %d) \n",
-			    tdsret, res_type);
+		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() process_result_tokens returned %d (type %d) \n", tdsret, res_type);
 
 		switch (tdsret) {
 		case TDS_SUCCEED:
@@ -2789,7 +2788,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLINFO * curcol, void *value, int size)
  * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
  */
 static TDSPARAMINFO *
-paraminfoalloc(CS_PARAM * first_param)
+paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 {
 	int i;
 	CS_PARAM *p;
@@ -2894,7 +2893,7 @@ paraminfoalloc(CS_PARAM * first_param)
 		if (p->name)
 			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
 
-		tds_set_column_type(pcol, temp_type);
+		tds_set_param_type(tds, pcol, temp_type);
 
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
