@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.228 2003-08-28 22:08:19 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.229 2003-08-28 22:33:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -96,7 +96,7 @@ static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
-static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
+static int odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 
@@ -152,21 +152,25 @@ static void odbc_ird_check(TDS_STMT * stmt);
 */
 
 static int
-odbc_col_setname(TDS_STMT * stmt, int colpos, char *name)
+odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 {
 	TDSRESULTINFO *resinfo;
 	int retcode = -1;
 
 	IRD_CHECK;
+
+#if ENABLE_EXTRA_CHECKS
 	if (colpos > 0 && stmt->hdbc->tds_socket != NULL && (resinfo = stmt->hdbc->tds_socket->res_info) != NULL) {
-		--colpos;
 		if (colpos <= resinfo->num_cols) {
 			/* TODO set column_namelen, see overflow */
-			strcpy(resinfo->columns[colpos]->column_name, name);
-			resinfo->columns[colpos]->column_namelen = strlen(name);
+			strcpy(resinfo->columns[colpos - 1]->column_name, name);
+			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
 			retcode = 0;
 		}
-		/* FIXME only this code at end ... */
+	}
+#endif
+	if (colpos > 0 && colpos <= stmt->ird->header.sql_desc_count) {
+		--colpos;
 		if (stmt->ird->records[colpos].sql_desc_label)
 			free(stmt->ird->records[colpos].sql_desc_label);
 		stmt->ird->records[colpos].sql_desc_label = strdup(name);
@@ -3376,7 +3380,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	context = stmt->hdbc->henv->tds_ctx;
 	locale = context->locale;
 	resinfo = tds->res_info;
-	if (icol == 0 || icol > tds->res_info->num_cols) {
+	if (icol <= 0 || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -3408,8 +3412,9 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			/* calc how many bytes was readed */
 			int readed = cbValueMax;
 
-			/* char is always terminated... */
+			/* FIXME char is not always terminated... */
 			/* FIXME test on destination char ??? */
+			/* FIXME what happen if readed == 0 here ?? */
 			if (nSybType == SYBTEXT)
 				--readed;
 			if (readed > *pcbValue)
@@ -4415,13 +4420,18 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 static void
 odbc_upper_column_names(TDS_STMT * stmt)
 {
+#if ENABLE_EXTRA_CHECKS
 	TDSRESULTINFO *resinfo;
 	TDSCOLINFO *colinfo;
 	TDSSOCKET *tds;
+#endif
 	int icol;
 	char *p;
+	TDS_DESC *ird;
 
 	IRD_CHECK;
+
+#if ENABLE_EXTRA_CHECKS
 	tds = stmt->hdbc->tds_socket;
 	if (!tds || !tds->res_info)
 		return;
@@ -4434,10 +4444,18 @@ odbc_upper_column_names(TDS_STMT * stmt)
 		for (p = colinfo->column_name; *p; ++p)
 			if ('a' <= *p && *p <= 'z')
 				*p = *p & (~0x20);
-		/* FIXME only this at end of works ... */
-		if (stmt->ird->records[icol].sql_desc_label)
-			free(stmt->ird->records[icol].sql_desc_label);
-		stmt->ird->records[icol].sql_desc_label = strdup(colinfo->column_name);
+	}
+#endif
+
+	ird = stmt->ird;
+	for (icol = ird->header.sql_desc_count; --icol >= 0;) {
+		struct _drecord *drec = &ird->records[icol];
+
+		/* upper case */
+		/* TODO procedure */
+		for (p = drec->sql_desc_label; *p; ++p)
+			if ('a' <= *p && *p <= 'z')
+				*p = *p & (~0x20);
 	}
 }
 
