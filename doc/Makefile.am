@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.15 2003-03-25 07:27:57 jklowden Exp $
+# version: $Id: Makefile.am,v 1.16 2003-03-27 07:34:12 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.61
@@ -50,9 +50,9 @@ reference.tgz: reference
 	tar czf reference.tgz reference
 	
 install: 
-	$(mkinstalldirs) $(prefix)/share/doc/freetds; \
-	ln -s `pwd`/*.tgz $(prefix)/share/doc/freetds; \
-	cd $(prefix)/share/doc/freetds; \
+	$(mkinstalldirs) @prefix@/share/doc/freetds; \
+	ln -s `pwd`/*.tgz @prefix@/share/doc/freetds; \
+	cd @prefix@/share/doc/freetds; \
 	tar xzf reference.tgz; \
 	tar xzf userguide.tgz; \
 	rm userguide.tgz reference.tgz
