@@ -1,3 +1,7 @@
+Sun Oct 13 23:49:13 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/.cvsignore:
+	- Update with new generated files.
+
 Sun Oct 13 23:45:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Current configure.in doesn't actually work with Autoconf 2.53.
