@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.91 2002-10-12 14:45:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.92 2002-10-12 18:42:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1891,6 +1891,15 @@ int current_state;
         tok = strtok_r((char *)NULL, " ,", &lasts);
     }
 
+/* TODO test and replace code below */
+#if 0
+	i = (t->tm_mon - 13) / 12;
+	dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
+		(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
+		(3 * ( ( y + 400 + i ) / 100 ) ) / 4 +
+		t->tm_mday - 109544;
+#endif
+    
     /* 1900 or after */ 
     if (t->tm_year >= 0) {
        dt_days = 0;
@@ -1933,41 +1942,18 @@ int current_state;
 
     free(in);
 
-    if ( desttype == SYBDATETIME ) {
-       cr->dt.dtdays = dt_days;
-
-       dt_time = 0;
-
-       for (i = 0; i < t->tm_hour ; i++)
-           dt_time += 3600;
-
-       for (i = 0; i < t->tm_min ; i++)
-           dt_time += 60;
-
-       dt_time += t->tm_sec;
-
-       cr->dt.dttime = dt_time * 300;
-
-       conv_ms = (int) ((float)((float)t->tm_ms / 1000.0) * 300.0);
-       tdsdump_log(TDS_DBG_FUNC, "%L inside string_to_datetime() ms = %d (%d)\n", conv_ms, t->tm_ms);
-       cr->dt.dttime += conv_ms;
-       return sizeof(TDS_DATETIME);
-    } else {
-       /* SYBDATETIME4 */ 
-       cr->dt4.days = dt_days;
-
-       dt_time = 0;
-
-       for (i = 0; i < t->tm_hour ; i++)
-           dt_time += 60;
-
-       for (i = 0; i < t->tm_min ; i++)
-           dt_time += 1;
-
-        cr->dt4.minutes = dt_time;
-       return sizeof(TDS_DATETIME4);
-
-    }
+	/* TODO check for overflow */
+	if ( desttype == SYBDATETIME ) {
+		cr->dt.dtdays = dt_days;
+		dt_time = (t->tm_hour * 60 + t->tm_min ) * 60 + t->tm_sec;
+		cr->dt.dttime = dt_time * 300 + (t->tm_ms * 300 / 1000);
+		return sizeof(TDS_DATETIME);
+	} else {
+		/* SYBDATETIME4 */ 
+		cr->dt4.days = dt_days;
+		cr->dt4.minutes = t->tm_hour * 60 + t->tm_min;
+		return sizeof(TDS_DATETIME4);
+	}
 
 }
 
@@ -2755,22 +2741,30 @@ int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
 
-    if ( datetype == SYBDATETIME ) {
-       dt = (TDS_DATETIME *)di;
-   	   dt_days = dt->dtdays;
-   	   dt_time = dt->dttime;
-    } 
-    else if (datetype == SYBDATETIME4 ) {
-            dt4 = (TDS_DATETIME4 *)di;
-   	        dt_days = dt4->days;
-   	        dt_time = dt4->minutes;
-         } 
-         else
-            return TDS_FAIL;
+	if ( datetype == SYBDATETIME ) {
+		dt = (TDS_DATETIME *)di;
+		dt_time = dt->dttime;
+		ms = ((dt_time % 300) * 1000) / 300 ;
+		dt_time = dt_time / 300;
+		secs = dt_time % 60;
+		dt_time = dt_time / 60;
+		dt_days = dt->dtdays;
+	} 
+	else if (datetype == SYBDATETIME4 ) {
+		dt4 = (TDS_DATETIME4 *)di;
+		secs = 0;
+		ms = 0;
+		dt_days = dt4->days;
+		dt_time = dt4->minutes;
+	} 
+	else
+		return TDS_FAIL;
           
 
+	/* -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 
+	 * 2958463 is maximun (9999-12-31) */
 	if (dt_days > 2958463) /* its a date before 1900 */ {
-	  	dt_days = 0xffffffff - dt_days; 
+		dt_days = 0xffffffff - dt_days; 
 
 		wday = 7 - ( dt_days % 7); 
 		years = -1;
@@ -2823,37 +2817,8 @@ int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
 		days = dt_days;
 	}
 
-    if ( datetype == SYBDATETIME ) {
-
-	   secs = dt_time / 300;
-   	   ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
-   
-   	   hours = 0;
-   	   while ( secs >= 3600 ) {
-   		   hours++; 
-   		   secs -= 3600;
-   	   }
-   
-   	   mins = 0;
-   
-   	   while ( secs >= 60 ) {
-   		   mins++; 
-   		   secs -= 60;
-   	   }
-    } 
-    else {
-
-      hours = 0;
-      mins  = dt_time;
-      secs  = 0;
-      ms    = 0;
-
-      while ( mins >= 60 ) {
-          hours++;
-          mins -= 60;
-      }
-
-    }
+	hours = dt_time / 60;
+	mins  = dt_time % 60;
 
 	dr->year        = 1900 + years;
 	dr->month       = months;
