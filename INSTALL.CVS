@@ -1,3 +1,4 @@
+$Id: INSTALL.CVS,v 1.5 2004-11-27 22:05:50 jklowden Exp $
 Building FreeTDS from CVS
 James Cameron <james.cameron@compaq.com>
 
@@ -18,7 +19,7 @@ connecting to the CVS server.  Then follow these steps:
 	$ (autoconf --version; automake --version; libtool --version) |grep GNU
 	autoconf (GNU Autoconf) 2.57
 	automake (GNU automake) 1.7.3
-	ltmain.sh (GNU libtool) 1.4a (1.641.2.255 2001/05/22 10:39:30)
+	ltmain.sh (GNU libtool) 1.5.6 (1.1220.2.94 2004/04/10 16:27:27)
 	
 	The above are used to generate the distributions.  
 	You may get away with older versions, as far back as 2.53 for autoconf.
@@ -56,4 +57,4 @@ We have a backup location, too, via anonymous ftp:
 	ftp://rt.fm/pub/freetds/ (thanks to Joshua Stein <jcs@rt.fm>)
 	
 --
-$Id: INSTALL.CVS,v 1.4 2003-10-06 03:20:46 jklowden Exp $
+$Id: INSTALL.CVS,v 1.5 2004-11-27 22:05:50 jklowden Exp $
