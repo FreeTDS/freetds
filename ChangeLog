@@ -1,3 +1,8 @@
+Thu Feb 12 18:36:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/testodbc.c(added):
+	- added an old test from David Fraser (not finished)
+
 Thu Feb 12 17:55:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: support nullable money
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
