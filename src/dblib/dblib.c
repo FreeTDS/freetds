@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.4 2001-11-07 21:02:38 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,8 +42,8 @@ static int _get_printable_size(TDSCOLINFO *colinfo);
 int (*g_dblib_msg_handler)() = NULL;
 int (*g_dblib_err_handler)() = NULL;
 TDSCONTEXT *g_tds_context = NULL;
-extern int (*g_tds_msg_handler)();
-extern int (*g_tds_err_handler)();
+extern int (*g_tds_msg_handler)(void*);
+extern int (*g_tds_err_handler)(void*);
 #ifdef TDS42
 int g_dblib_version = DBVERSION_42;
 #endif
@@ -402,6 +402,7 @@ void dbloginfree(LOGINREC *login)
 RETCODE DBSETLCHARSET(LOGINREC *login, char *charset)
 {
 	tds_set_charset(login->tds_login,charset);
+	return SUCCEED;
 }
 RETCODE DBSETLPACKET(LOGINREC *login, short packet_size)
 {
@@ -451,6 +452,7 @@ DBPROCESS *dbopen(LOGINREC *login,char *server)
       tds_add_connection(g_tds_context, dbproc->tds_socket);
    } else {
       fprintf(stderr,"DB-Library: Login incorrect.\n");
+      free(dbproc); /* memory leak fix (mlilback, 11/17/01) */
       return NULL;
    }
    
@@ -984,7 +986,11 @@ TDSSOCKET * tds;
 			else if (colinfo->column_size==4)
 				return SYBDATETIME4;
 		case SYBMONEYN:
-			return SYBMONEY;
+			/* needs to be based on column size (mlilback, 11/7/01) */
+			if (colinfo->column_size==4)
+				return SYBMONEY4;
+			else
+				return SYBMONEY;
 		case SYBFLTN:
 			if (colinfo->column_size==8)
 				return SYBFLT8;
@@ -1004,10 +1010,8 @@ TDSSOCKET * tds;
 }
 DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column)
 {
-/* FIXME -- this is not thread safe, we would need to move typeinfo into
-** the dbproc structure, however that seems a waste for such a little used
-** function...maybe malloc it when used, cleanup on dbclose() */
-static DBTYPEINFO typeinfo;
+/* moved typeinfo from static into dbproc structure to make thread safe. 
+	(mlilback 11/7/01) */
 TDSCOLINFO * colinfo;
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
@@ -1015,9 +1019,9 @@ TDSSOCKET * tds;
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
 	colinfo = resinfo->columns[column-1];
-	typeinfo.precision = colinfo->column_prec;
-	typeinfo.scale = colinfo->column_scale;
-	return &typeinfo;
+	dbproc->typeinfo.precision = colinfo->column_prec;
+	dbproc->typeinfo.scale = colinfo->column_scale;
+	return &dbproc->typeinfo;
 }
 char *dbcolsource(DBPROCESS *dbproc,int colnum)
 {
@@ -1050,28 +1054,20 @@ TDSSOCKET * tds;
 DBINT ret;
 
 	/* FIX ME -- this is the columns info, need per row info */
+	/* Fixed by adding cur_row_size to colinfo, filled in by process_row
+		in token.c. (mlilback, 11/7/01) */
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
 	if (column<1 || column>resinfo->num_cols) return -1;
 	colinfo = resinfo->columns[column-1];
 	tdsdump_log(TDS_DBG_INFO1, "%L dbdatlen() type = %d\n",colinfo->column_type);
 	
-        if (tds_get_null(resinfo->current_row,column-1)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning 0\n");
-		return 0;
-	} else if (colinfo->column_type==SYBVARCHAR) {
-		ret = strlen(&resinfo->current_row[colinfo->column_offset]);
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n",ret);
-		return(ret);
-	} else if (is_blob_type(colinfo->column_type)) {
-		ret = colinfo->column_textsize;
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n",ret);
-		return(ret);
-	} else {
-		ret = colinfo->column_size;
-		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n",ret);
-                return ret;
-	}
+	if (tds_get_null(resinfo->current_row,column-1))
+		ret = 0;
+	else
+		ret = colinfo->cur_row_size;
+	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbdatlen() returning %d\n",ret);
+	return ret;
 }
 BYTE *dbdata(DBPROCESS *dbproc, int column)
 {
@@ -1543,12 +1539,28 @@ DBBOOL DBDEAD(DBPROCESS *dbproc)
 		return TRUE;
 }
 
+dberrhandle_func
+dberrhandler(dberrhandle_func inHandler)
+{
+	dberrhandle_func old = (dberrhandle_func)g_dblib_err_handler;
+	g_dblib_err_handler = (int(*)())inHandler;
+	return old;
+} 
+
 int (*dberrhandle(int (*handler)())) ()
 {
    int (*retFun)() = g_dblib_err_handler;
 
    g_dblib_err_handler = handler;
    return retFun;
+}
+
+dbmsghandle_func
+dbmsghandler(dbmsghandle_func inHandler)
+{
+	dbmsghandle_func old = (dbmsghandle_func)g_dblib_msg_handler;
+	g_dblib_msg_handler = (int(*)())inHandler;
+	return old;
 }
 
 int (*dbmsghandle(int (*handler)()))()
@@ -1658,6 +1670,10 @@ time_t secs_from_epoch;
 int millis;
 
 	secs_from_epoch = ((dt->dtdays - 25567)*24*60*60) + (dt->dttime/300);
+	/* Mac OS 8/9 uses Jan 1, 1904 as the epoch. (mlilback, 11/7/01) */
+#if TARGET_API_MAC_OS8
+	secs_from_epoch += ((365L * 66L) + 17) * 24L * 60L * 60L;
+#endif
 	millis = dt->dttime%300;
 	t = (struct tm *) gmtime(&secs_from_epoch);
 #ifndef MSDBLIB
