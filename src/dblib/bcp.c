@@ -69,16 +69,17 @@
 
 typedef struct _pbcb
 {
-	unsigned char *pb;
+	char *pb;
 	int cb;
+	unsigned int from_malloc;
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.112 2005-01-14 16:49:47 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.113 2005-01-16 09:45:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
-static RETCODE _bcp_build_bulk_insert_stmt(TDS_PBCB *, TDSCOLUMN *, int);
+static RETCODE _bcp_build_bulk_insert_stmt(TDSSOCKET *, TDS_PBCB *, TDSCOLUMN *, int);
 static RETCODE _bcp_free_storage(DBPROCESS * dbproc);
 static RETCODE _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
@@ -1658,16 +1659,16 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	int bcp_record_size       = 0;
 
 	char *query;
-	unsigned char clause_buffer[4096] = { 0 };
-
-	TDS_PBCB colclause;
-
-	colclause.pb = clause_buffer;
-	colclause.cb = sizeof(clause_buffer);
 
 	if (IS_TDS7_PLUS(tds)) {
 		int erc;
 		char *hint;
+		TDS_PBCB colclause;
+		char clause_buffer[4096] = { 0 };
+
+		colclause.pb = clause_buffer;
+		colclause.cb = sizeof(clause_buffer);
+		colclause.from_malloc = 0;
 
 		firstcol = 1;
 
@@ -1676,12 +1677,12 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 
 			if (dbproc->bcpinfo->identity_insert_on) {
 				if (!bcpcol->column_timestamp) {
-					_bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
+					_bcp_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
 					firstcol = 0;
 				}
 			} else {
 				if (!bcpcol->column_identity && !bcpcol->column_timestamp) {
-					_bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
+					_bcp_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
 					firstcol = 0;
 				}
 			}
@@ -1700,7 +1701,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		erc = asprintf(&query, "insert bulk %s (%s) %s", dbproc->bcpinfo->tablename, colclause.pb, hint);
 
 		free(hint);
-		if (colclause.pb != clause_buffer)
+		if (colclause.from_malloc)
 			TDS_ZERO_FREE(colclause.pb);	/* just for good measure; not used beyond this point */
 
 		if (erc < 0) {
@@ -1834,11 +1835,12 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 }
 
 static RETCODE
-_bcp_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
+_bcp_build_bulk_insert_stmt(TDSSOCKET * tds, TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
 	char buffer[32];
 	char *column_type = buffer;
 
+	/* TODO reuse function in tds/query.c */
 	switch (bcpcol->on_server.column_type) {
 	case SYBINT1:
 		column_type = "tinyint";
@@ -1967,23 +1969,25 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 		return FAIL;
 	}
 
-	if (clause->cb < strlen((char *)clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 4 : 6)) {
-		unsigned char *temp = malloc(2 * clause->cb);
+	if (clause->cb < strlen(clause->pb) + tds_quote_id(tds, NULL, bcpcol->column_name, bcpcol->column_namelen) + strlen(column_type) + ((first) ? 2 : 4)) {
+		char *temp = (char *) malloc(2 * clause->cb);
 
 		if (!temp)
 			return FAIL;
-		strcpy((char *)temp, (char *)clause->pb);
+		strcpy(temp, clause->pb);
+		if (clause->from_malloc)
+			free(clause->pb);
+		clause->from_malloc = 1;
 		clause->pb = temp;
 		clause->cb *= 2;
 	}
 
 	if (!first)
-		strcat((char *)clause->pb, ", ");
+		strcat(clause->pb, ", ");
 
-	strcat((char *)clause->pb, "[");
-	strcat((char *)clause->pb, bcpcol->column_name);
-	strcat((char *)clause->pb, "] ");
-	strcat((char *)clause->pb, column_type);
+	tds_quote_id(tds, strchr(clause->pb, 0), bcpcol->column_name, bcpcol->column_namelen);
+	strcat(clause->pb, " ");
+	strcat(clause->pb, column_type);
 
 	return SUCCEED;
 }
