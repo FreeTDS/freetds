@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0018.c,v 1.13 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0018.c,v 1.14 2005-01-09 13:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -107,11 +107,28 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "select\n");
-	dbcmd(dbproc, "select * from #dblib0018 order by i");
+	dbcmd(dbproc, "select * into #tmp0 from #dblib0018\nselect * from #tmp0 order by i");
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
+	fprintf(stdout, "Checking for an empty result set.\n");
+	if (dbresults(dbproc) != SUCCEED) {
+		add_bread_crumb();
+		failed = 1;
+		fprintf(stdout, "Was expecting a result set.\n");
+		exit(1);
+	}
+	add_bread_crumb();
 
+	if(DBROWS(dbproc) != FAIL) {
+		add_bread_crumb();
+		failed = 1;
+		fprintf(stdout, "Was expecting no rows to be available.\n");
+		exit(1);
+	}
+	add_bread_crumb();
+
+	fprintf(stdout, "Checking for a result set with content.\n");
 	if (dbresults(dbproc) != SUCCEED) {
 		add_bread_crumb();
 		failed = 1;

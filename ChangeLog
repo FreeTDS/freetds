@@ -1,3 +1,6 @@
+Sun Jan  9 14:51:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/t0018.c: improved from #1088672
+
 Sun Jan  9 14:24:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c src/tds/convert.c:
 	- fix output parameter on mssql
