@@ -1,3 +1,6 @@
+Wed Dec 31 08:54:06 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/threadsafe.c: remove warning on FreeBSD
+
 Tue Dec 30 15:44:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c src/tds/token.c:
 	- comments

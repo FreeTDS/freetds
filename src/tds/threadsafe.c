@@ -44,6 +44,10 @@
 
 #include <stdio.h>
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -69,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.31 2003-12-28 10:09:34 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.32 2003-12-31 07:54:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
