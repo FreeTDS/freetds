@@ -1,8 +1,11 @@
+Wed Dec 15 10:45:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/sybdb.h: workaround for PHP
+
 Sun Dec 12 19:12:35 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in src/server/Makefile.am src/tds/Makefile.am
 	- bumped version for libtdssrv; added comment
 	- Release 0.63
-	
+
 Sat Dec 11 09:30:31 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c:
 	- improved, patch from Adrian Daley

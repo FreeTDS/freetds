@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64.2.2 2004-12-01 03:52:47 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64.2.3 2004-12-15 09:45:30 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -609,6 +609,13 @@ DBPROCESS *dbopen(LOGINREC * login, char *server);
 #else
 #define   dbopen(x,y) tdsdbopen((x),(y), 0)
 #endif
+
+/* fix PHP problem */
+#ifdef PHP_SYBASE_DBOPEN
+#undef PHP_SYBASE_DBOPEN
+#define PHP_SYBASE_DBOPEN dbopen
+#endif
+
 int dbordercol(DBPROCESS * dbprocess, int order);
 RETCODE dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason);
 void dbprhead(DBPROCESS * dbproc);
