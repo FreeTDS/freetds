@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include "replacements.h"
 
-atoll_return_t
+rep_atoll_return_type
 atoll(const char *nptr)
 {
 	return atol(nptr);

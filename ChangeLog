@@ -1,3 +1,9 @@
+Fri Oct 11 16:38:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/.cvsignore include/tds_configs.h.in
+	  src/replacements/atoll.c
+	  include/replacements.h (added) include/replacements.h.in (removed):
+	- Migrate return type of replacement atoll() into tds_configs.h.
+
 Fri Oct 11 16:21:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/config.c src/tds/locale.c src/tds/util.c:
 	- Remove some obsolete references to paths.h and PATH_MAX.

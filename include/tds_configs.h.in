@@ -21,7 +21,7 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h.in,v 1.4 2002-10-11 19:58:19 freddy77 Exp $";
+	 "$Id: tds_configs.h.in,v 1.5 2002-10-11 20:47:41 castellano Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus
@@ -51,6 +51,8 @@ typedef @real@               TDS_REAL;      /* 32 bit float    */
 typedef @float@              TDS_FLOAT;     /* 64 bit float    */
 typedef @int64@              TDS_INT8;      /* 64 bit integer  */
 typedef unsigned @int64@     TDS_UINT8;     /* 64 bit integer  */
+
+typedef @int64@ rep_atoll_return_type;
 
 #define FREETDS_SYSCONFDIR "@sysconfdir@"
 #define FREETDS_SYSCONFFILE "@sysconfdir@/freetds.conf"
