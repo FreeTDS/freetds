@@ -1,3 +1,9 @@
+Wed Oct 13 20:28:53 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/ct_cursor.c(added):
+	* src/ctlib/unittests/ct_cursors.c(added):
+	* src/ctlib/unittests/.cvsignore src/ctlib/unittests/Makefile.am:
+	- added 2 tests for ctlib cursor stuff from Bill Thompson
+
 Wed Oct 13 20:05:39 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/typeinfo.c:
 	- fix problem with SQLGetTypeInfo and sybase

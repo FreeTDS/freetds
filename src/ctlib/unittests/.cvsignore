@@ -27,4 +27,6 @@ cs_config
 cancel
 blk_in
 blk_out
+ct_cursor
+ct_cursors
 
