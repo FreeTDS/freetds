@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <libgen.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -65,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.85 2003-11-02 09:55:15 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.86 2003-12-03 08:38:43 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -391,7 +392,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	TDSCONNECTINFO *connect_info = (TDSCONNECTINFO *) param;
 	char tmp[256];
 
-	/* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
 	tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
 
 	if (!strcmp(option, TDS_STR_VERSION)) {
@@ -445,8 +445,11 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_dstr_copy(&connect_info->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
 		tds_g_append_mode = tds_config_boolean(value);
-	} else
-		tdsdump_log(TDS_DBG_INFO1, "%L UNRECOGNIZED option '%s'...ignoring.\n", option);
+	} else {
+		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s'...ignoring.\n", option);
+		fprintf(stderr, "FreeTDS: %s:%d: ignoring unrecognized option '%s'\n", 
+				basename(__FILE__), __LINE__, option);
+	}
 }
 
 static void
