@@ -1,3 +1,26 @@
+Thu Nov  8 14:05:49 EST 2001	Mark Lilback <mark@lilback.com>
+	* src/tds/config.c: check for nulls before calling strlen, sets
+	config->id_addr
+	* src/tds/write.c: added explicit return instead of using implied
+	* src/dblib/dbutil.c: added function parameters to message handler
+	declarations
+	* src/dblib/bcp.c: modified hardcoded rowbuffer size to use a #define
+	that is lowered for Mac OS 8/9
+	* include/tdsutil.h: added declaration of tds_get_int
+	* include/cspublic.h: added function parameters to mesage handler 
+	declarations
+	* include/sybdb.h: added functions for proper error handling, missing 
+	dbcoltypeinfo declaration, added typeinfo struct to DBPROCESS
+	* include/tds.h: added fields to colinfo struct
+	* include/tds.h.in: added fields to colinfo struct
+	* src/dblib/dblib.c: proper error handling possible, colinfo function 
+	thread safe, time adjustment on Mac OS
+	* src/tds/convert.c: added missing return statements
+	* src/tds/numeric.c: added missing return statements
+	* src/tds/token.c: retrieves column info that was being ignored, message 
+	number swapped on big endian systems
+	
+
 Wed Nov  7 22:18:02 CST 2001    Steve Langasek <vorlon@netexpress.net>
 	* Removed --enable-dbmfix configure option, because there's no longer
 	a reason to ever disable this
