@@ -48,7 +48,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.11 2002-08-09 02:55:49 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.12 2002-09-09 01:34:33 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -238,19 +238,16 @@ void tdsdump_dump_buf(
          /*
           * print each byte in hex
           */
-         for(j=i; j<length && (j-i)<bytesPerLine; j++)
+         for(j=0; j<bytesPerLine; j++)
          {
-            fprintf(dumpfile, "%02x ", data[j]);
-            if (j-i == bytesPerLine/2) fprintf(dumpfile, " ");
+            if (j == bytesPerLine/2) fprintf(dumpfile, " ");
+            if (j+i >= length) fprintf(dumpfile, "   ");
+            else fprintf(dumpfile, "%02x ", data[i+j]);
          }
          
          /*
           * skip over to the ascii dump column
           */
-         for(; 0!=(j % bytesPerLine); j++)
-         {
-            fprintf(dumpfile, "   ");
-         }
          fprintf(dumpfile, "  |");
 
          /*
