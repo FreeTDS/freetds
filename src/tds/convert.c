@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.20 2002-07-06 18:47:36 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.21 2002-07-08 23:02:57 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,6 +107,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 	return srctype;
 }
 
+/* reverted function to 1.12 logic; 1.13 patch was mistaken. July 2002 jkl */
 static TDS_INT 
 tds_convert_text(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_UINT destlen)
@@ -115,18 +116,20 @@ int cplen;
 
    switch(desttype) {
       case SYBTEXT:
+	 cplen = srclen > destlen ? destlen : srclen;
+         memcpy(dest, src, cplen);
+         /* 2001-06-15 Deutsch changed [cplen-1] to [cplen] */
+         dest[cplen] = '\0';
+         return strlen(dest);
       case SYBCHAR:
 	 cplen = srclen > destlen ? destlen : srclen;
          memcpy(dest, src, cplen);
-         dest[cplen-1] = '\0';
+		dest[cplen]='\0';
          return strlen(dest);
-      case SYBBINARY:
-	 cplen = srclen > destlen ? destlen : srclen;
-         memcpy(dest, src, cplen);
-         return cplen;
    }
    return 0;
 }
+
 static TDS_UINT 
 utf16len(const utf16_t* s)
 {
