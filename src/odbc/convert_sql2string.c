@@ -50,7 +50,7 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.20 2002-12-06 16:54:36 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.21 2002-12-14 15:05:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -97,7 +97,7 @@ _odbc_get_server_type(int c_type)
 	case SQL_C_STINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
-	/* ODBC date formats are completely differect from SQL one */
+		/* ODBC date formats are completely differect from SQL one */
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:

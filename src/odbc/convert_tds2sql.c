@@ -37,7 +37,7 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.25 2002-11-29 22:11:04 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.26 2002-12-14 15:05:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -46,22 +46,22 @@ extern const int tds_numeric_bytes_per_prec[];
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, TDS_UINT destlen)
 {
-TDS_INT nDestSybType;
-TDS_INT nRetVal = TDS_FAIL;
+	TDS_INT nDestSybType;
+	TDS_INT nRetVal = TDS_FAIL;
 
-CONV_RESULT ores;
+	CONV_RESULT ores;
 
-TDSDATEREC dr;
-DATE_STRUCT *dsp;
-TIME_STRUCT *tsp;
-TIMESTAMP_STRUCT *tssp;
-SQL_NUMERIC_STRUCT *num;
+	TDSDATEREC dr;
+	DATE_STRUCT *dsp;
+	TIME_STRUCT *tsp;
+	TIMESTAMP_STRUCT *tssp;
+	SQL_NUMERIC_STRUCT *num;
 
-TDS_UINT *uip;
-TDS_USMALLINT *usip;
+	TDS_UINT *uip;
+	TDS_USMALLINT *usip;
 
-int ret = TDS_FAIL;
-int i, cplen;
+	int ret = TDS_FAIL;
+	int i, cplen;
 
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
