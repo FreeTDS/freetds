@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.71 2003-05-15 06:59:40 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.72 2003-05-15 13:32:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -80,6 +80,8 @@ static const TDS_ENCODING canonic_charsets[] = {
 static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charsets[0])];
 static int iconv_initialized = 0;
 
+enum { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
+
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
@@ -90,16 +92,16 @@ tds_iconv_init(void)
 	iconv_t cd;
 
 	/* first entries should be constants */
-	assert(strcmp(canonic_charsets[0].name, "ISO-8859-1") == 0);
-	assert(strcmp(canonic_charsets[1].name, "UTF-8") == 0);
-	assert(strcmp(canonic_charsets[2].name, "UCS-2LE") == 0);
-	assert(strcmp(canonic_charsets[3].name, "UCS-2BE") == 0);
+	assert(strcmp(canonic_charsets[POS_ISO1].name, "ISO-8859-1") == 0);
+	assert(strcmp(canonic_charsets[POS_UTF8].name, "UTF-8") == 0);
+	assert(strcmp(canonic_charsets[POS_UCS2LE].name, "UCS-2LE") == 0);
+	assert(strcmp(canonic_charsets[POS_UCS2BE].name, "UCS-2BE") == 0);
 
 	/* fast tests for GNU-iconv */
 	cd = iconv_open("ISO-8859-1", "UTF-8");
 	if (cd != (iconv_t) - 1) {
-		iconv_names[0] = "ISO-8859-1";
-		iconv_names[1] = "UTF-8";
+		iconv_names[POS_ISO1] = "ISO-8859-1";
+		iconv_names[POS_UTF8] = "UTF-8";
 		iconv_close(cd);
 	} else {
 
@@ -115,34 +117,34 @@ tds_iconv_init(void)
 
 				cd = iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
 				if (cd != (iconv_t) - 1) {
-					iconv_names[0] = iconv_aliases[i].alias;
-					iconv_names[1] = iconv_aliases[j].alias;
+					iconv_names[POS_ISO1] = iconv_aliases[i].alias;
+					iconv_names[POS_UTF8] = iconv_aliases[j].alias;
 					iconv_close(cd);
 					break;
 				}
 			}
-			if (iconv_names[0])
+			if (iconv_names[POS_ISO1])
 				break;
 		}
 		/* required characters not found !!! */
-		if (!iconv_names[0])
+		if (!iconv_names[POS_ISO1])
 			return 1;
 	}
 
 	/* now search for UCS-2 */
-	cd = iconv_open(iconv_names[0], "UCS-2LE");
+	cd = iconv_open(iconv_names[POS_ISO1], "UCS-2LE");
 	if (cd != (iconv_t) - 1) {
-		iconv_names[2] = "UCS-2LE";
+		iconv_names[POS_UCS2LE] = "UCS-2LE";
 		iconv_close(cd);
 	}
-	cd = iconv_open(iconv_names[0], "UCS-2BE");
+	cd = iconv_open(iconv_names[POS_ISO1], "UCS-2BE");
 	if (cd != (iconv_t) - 1) {
-		iconv_names[3] = "UCS-2BE";
+		iconv_names[POS_UCS2BE] = "UCS-2BE";
 		iconv_close(cd);
 	}
 
 	/* long search needed ?? */
-	if (!iconv_names[2] || !iconv_names[3]) {
+	if (!iconv_names[POS_UCS2LE] || !iconv_names[POS_UCS2BE]) {
 		for (i = 0; iconv_aliases[i].name; ++i) {
 			if (strncmp(iconv_aliases[i].name, "UCS-2", 5) != 0)
 				continue;
@@ -154,6 +156,7 @@ tds_iconv_init(void)
 				size_t il, ol;
 				ICONV_CONST char *pib;
 				char *pob;
+				int byte_sequence = 0;
 
 				/* try to convert 'A' and check result */
 				ib[0] = 0x41;
@@ -163,21 +166,31 @@ tds_iconv_init(void)
 				ol = 4;
 				ob[0] = ob[1] = 0;
 				if (iconv(cd, &pib, &il, &pob, &ol) != (size_t) - 1) {
+					/* byte order sequence ?? */
+					if (ol == 0) {
+						ob[0] = ob[2];
+						byte_sequence = 1;
+						/* TODO save somewhere */
+					}
+					
+					/* save name without sequence (if present) */
 					if (ob[0])
-						iconv_names[2] = iconv_aliases[i].alias;
+						il = POS_UCS2LE;
 					else
-						iconv_names[3] = iconv_aliases[i].alias;
+						il = POS_UCS2BE;
+					if (!iconv_names[il] || !byte_sequence)
+						iconv_names[il] = iconv_aliases[i].alias;
 				}
 				iconv_close(cd);
 			}
-
-			if (iconv_names[2] && iconv_names[3])
-				break;
 		}
 	}
 	/* we need a UCS-2 (big endian or little endian) */
-	if (!iconv_names[2] && !iconv_names[3])
+	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE])
 		return 1;
+
+	for (i= 0; i < 4; ++i)
+		tdsdump_log(TDS_DBG_INFO1, "names for %s: %s\n", iconv_aliases[i].name, iconv_names[i] ? iconv_names[i] : "(null)");
 
 	/* success (it should always occurs) */
 	return 0;

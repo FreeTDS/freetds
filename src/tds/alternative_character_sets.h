@@ -24,7 +24,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 /*
- * $Id: alternative_character_sets.h,v 1.8 2003-05-15 06:48:40 jklowden Exp $
+ * $Id: alternative_character_sets.h,v 1.9 2003-05-15 13:32:08 freddy77 Exp $
  */
  
 /* 
@@ -45,10 +45,10 @@
 	, {         "US-ASCII", "US"                     }
 	, {         "US-ASCII", "646"                    }	/* NetBSD default */
  	 /* ISO_8859-1 */
+	, {       "ISO-8859-1", "ISO-8859-1"             }
 	, {       "ISO-8859-1", "CP819"                  }
 	, {       "ISO-8859-1", "CSISOLATIN1"            }
 	, {       "ISO-8859-1", "IBM819"                 }
-	, {       "ISO-8859-1", "ISO-8859-1"             }
 	, {       "ISO-8859-1", "ISO-IR-100"             }
 	, {       "ISO-8859-1", "ISO8859-1"              }
 	, {       "ISO-8859-1", "ISO_8859-1"             }
@@ -58,15 +58,15 @@
 	, {       "ISO-8859-1", "iso81"                  }
 	, {       "ISO-8859-1", "iso88591"               }
  	 /* UCS-2 */
+	, {            "UCS-2", "UCS-2"                  }
 	, {            "UCS-2", "CSUNICODE"              }
 	, {            "UCS-2", "ISO-10646-UCS-2"        }
-	, {            "UCS-2", "UCS-2"                  }
 	, {            "UCS-2", "UCS2"                   }
 	, {            "UCS-2", "ucs2"                   }
 	, {   "UCS-2-INTERNAL", "UCS-2-INTERNAL"         }
 	, {    "UCS-2-SWAPPED", "UCS-2-SWAPPED"          }
-	, {          "UCS-2BE", "CSUNICODE11"            }
 	, {          "UCS-2BE", "UCS-2BE"                }
+	, {          "UCS-2BE", "CSUNICODE11"            }
 	, {          "UCS-2BE", "UNICODE-1-1"            }
 	, {          "UCS-2BE", "UNICODEBIG"             }
 	, {          "UCS-2LE", "UCS-2LE"                }
@@ -144,18 +144,18 @@
 	, {           "CP1258", "cp1258"                 }
 	, {           "CP1361", "CP1361"                 }
 	, {           "CP1361", "JOHAB"                  }
-	, {            "CP850", "850"                    }
 	, {            "CP850", "CP850"                  }
+	, {            "CP850", "850"                    }
 	, {            "CP850", "CSPC850MULTILINGUAL"    }
 	, {            "CP850", "IBM850"                 }
 	, {            "CP850", "cp850"                  }
-	, {            "CP862", "862"                    }
 	, {            "CP862", "CP862"                  }
+	, {            "CP862", "862"                    }
 	, {            "CP862", "CSPC862LATINHEBREW"     }
 	, {            "CP862", "IBM862"                 }
 	, {            "CP862", "cp862"                  }
-	, {            "CP866", "866"                    }
 	, {            "CP866", "CP866"                  }
+	, {            "CP866", "866"                    }
 	, {            "CP866", "CSIBM866"               }
 	, {            "CP866", "IBM866"                 }
 	, {            "CP866", "cp866"                  }
@@ -168,13 +168,13 @@
 	, {            "CP949", "CP949"                  }
 	, {            "CP949", "UHC"                    }
 	, {            "CP950", "CP950"                  }
-	, {           "EUC-JP", "CSEUCPKDFMTJAPANESE"    }
 	, {           "EUC-JP", "EUC-JP"                 }
+	, {           "EUC-JP", "CSEUCPKDFMTJAPANESE"    }
 	, {           "EUC-JP", "EUCJP"                  }
 	, {           "EUC-JP", "EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE"}
 	, {           "EUC-JP", "eucJP"                  }
-	, {           "EUC-KR", "CSEUCKR"                }
 	, {           "EUC-KR", "EUC-KR"                 }
+	, {           "EUC-KR", "CSEUCKR"                }
 	, {           "EUC-KR", "EUCKR"                  }
 	, {           "EUC-KR", "eucKR"                  }
 	, {           "EUC-TW", "CSEUCTW"                }
@@ -186,18 +186,18 @@
 	, {      "GEORGIAN-PS", "GEORGIAN-PS"            }
 	, {               "HZ", "HZ"                     }
 	, {               "HZ", "HZ-GB-2312"             }
-	, {      "ISO-2022-CN", "CSISO2022CN"            }
 	, {      "ISO-2022-CN", "ISO-2022-CN"            }
+	, {      "ISO-2022-CN", "CSISO2022CN"            }
 	, {  "ISO-2022-CN-EXT", "ISO-2022-CN-EXT"        }
-	, {      "ISO-2022-JP", "CSISO2022JP"            }
 	, {      "ISO-2022-JP", "ISO-2022-JP"            }
+	, {      "ISO-2022-JP", "CSISO2022JP"            }
 	, {    "ISO-2022-JP-1", "ISO-2022-JP-1"          }
-	, {    "ISO-2022-JP-2", "CSISO2022JP2"           }
 	, {    "ISO-2022-JP-2", "ISO-2022-JP-2"          }
-	, {      "ISO-2022-KR", "CSISO2022KR"            }
+	, {    "ISO-2022-JP-2", "CSISO2022JP2"           }
 	, {      "ISO-2022-KR", "ISO-2022-KR"            }
-	, {      "ISO-8859-10", "CSISOLATIN6"            }
+	, {      "ISO-2022-KR", "CSISO2022KR"            }
 	, {      "ISO-8859-10", "ISO-8859-10"            }
+	, {      "ISO-8859-10", "CSISOLATIN6"            }
 	, {      "ISO-8859-10", "ISO-IR-157"             }
 	, {      "ISO-8859-10", "ISO8859-10"             }
 	, {      "ISO-8859-10", "ISO_8859-10"            }
@@ -227,9 +227,9 @@
 	, {      "ISO-8859-16", "ISO-IR-226"             }
 	, {      "ISO-8859-16", "ISO_8859-16"            }
 	, {      "ISO-8859-16", "ISO_8859-16:2000"       }
+	, {       "ISO-8859-2", "ISO-8859-2"             }
 	, {       "ISO-8859-2", "CSISOLATIN2"            }
 	, {       "ISO-8859-2", "ISO8859-2"              }
-	, {       "ISO-8859-2", "ISO-8859-2"             }
 	, {       "ISO-8859-2", "ISO-IR-101"             }
 	, {       "ISO-8859-2", "ISO_8859-2"             }
 	, {       "ISO-8859-2", "ISO_8859-2:1987"        }
@@ -237,8 +237,8 @@
 	, {       "ISO-8859-2", "LATIN2"                 }
 	, {       "ISO-8859-2", "iso82"                  }
 	, {       "ISO-8859-2", "iso88592"               }
-	, {       "ISO-8859-3", "CSISOLATIN3"            }
 	, {       "ISO-8859-3", "ISO-8859-3"             }
+	, {       "ISO-8859-3", "CSISOLATIN3"            }
 	, {       "ISO-8859-3", "ISO-IR-109"             }
 	, {       "ISO-8859-3", "ISO_8859-3"             }
 	, {       "ISO-8859-3", "ISO_8859-3:1988"        }
@@ -246,8 +246,8 @@
 	, {       "ISO-8859-3", "LATIN3"                 }
 	, {       "ISO-8859-3", "iso83"                  }
 	, {       "ISO-8859-3", "iso88593"               }
-	, {       "ISO-8859-4", "CSISOLATIN4"            }
 	, {       "ISO-8859-4", "ISO8859-4"              }
+	, {       "ISO-8859-4", "CSISOLATIN4"            }
 	, {       "ISO-8859-4", "ISO-8859-4"             }
 	, {       "ISO-8859-4", "ISO-IR-110"             }
 	, {       "ISO-8859-4", "ISO_8859-4"             }
@@ -256,39 +256,40 @@
 	, {       "ISO-8859-4", "LATIN4"                 }
 	, {       "ISO-8859-4", "iso84"                  }
 	, {       "ISO-8859-4", "iso88594"               }
+	, {       "ISO-8859-5", "ISO-8859-5"             }
 	, {       "ISO-8859-5", "CSISOLATINCYRILLIC"     }
 	, {       "ISO-8859-5", "CYRILLIC"               }
 	, {       "ISO-8859-5", "ISO8859-5"              }
-	, {       "ISO-8859-5", "ISO-8859-5"             }
 	, {       "ISO-8859-5", "ISO-IR-144"             }
 	, {       "ISO-8859-5", "ISO8859-5"              }
 	, {       "ISO-8859-5", "ISO_8859-5"             }
 	, {       "ISO-8859-5", "ISO_8859-5:1988"        }
 	, {       "ISO-8859-5", "iso85"                  }
 	, {       "ISO-8859-5", "iso88595"               }
+	, {       "ISO-8859-6", "ISO-8859-6"             }
 	, {       "ISO-8859-6", "ARABIC"                 }
 	, {       "ISO-8859-6", "ASMO-708"               }
 	, {       "ISO-8859-6", "CSISOLATINARABIC"       }
 	, {       "ISO-8859-6", "ECMA-114"               }
-	, {       "ISO-8859-6", "ISO-8859-6"             }
 	, {       "ISO-8859-6", "ISO-IR-127"             }
 	, {       "ISO-8859-6", "ISO8859-6"              }
 	, {       "ISO-8859-6", "ISO_8859-6"             }
 	, {       "ISO-8859-6", "ISO_8859-6:1987"        }
 	, {       "ISO-8859-6", "iso86"                  }
 	, {       "ISO-8859-6", "iso88596"               }
+	, {       "ISO-8859-7", "ISO-8859-7"             }
 	, {       "ISO-8859-7", "CSISOLATINGREEK"        }
 	, {       "ISO-8859-7", "ECMA-118"               }
 	, {       "ISO-8859-7", "ELOT_928"               }
 	, {       "ISO-8859-7", "GREEK"                  }
 	, {       "ISO-8859-7", "GREEK8"                 }
-	, {       "ISO-8859-7", "ISO-8859-7"             }
 	, {       "ISO-8859-7", "ISO-IR-126"             }
 	, {       "ISO-8859-7", "ISO8859-7"              }
 	, {       "ISO-8859-7", "ISO_8859-7"             }
 	, {       "ISO-8859-7", "ISO_8859-7:1987"        }
 	, {       "ISO-8859-7", "iso87"                  }
 	, {       "ISO-8859-7", "iso88597"               }
+	, {       "ISO-8859-8", "ISO-8859-8"             }
 	, {       "ISO-8859-8", "CSISOLATINHEBREW"       }
 	, {       "ISO-8859-8", "HEBREW"                 }
 	, {       "ISO-8859-8", "ISO8859-8"              }
@@ -297,8 +298,8 @@
 	, {       "ISO-8859-8", "ISO_8859-8:1988"        }
 	, {       "ISO-8859-8", "iso88"                  }
 	, {       "ISO-8859-8", "iso88598"               }
-	, {       "ISO-8859-9", "CSISOLATIN5"            }
 	, {       "ISO-8859-9", "ISO-8859-9"             }
+	, {       "ISO-8859-9", "CSISOLATIN5"            }
 	, {       "ISO-8859-9", "ISO-IR-148"             }
 	, {       "ISO-8859-9", "ISO8859-9"              }
 	, {       "ISO-8859-9", "ISO_8859-9"             }
@@ -307,19 +308,19 @@
 	, {       "ISO-8859-9", "LATIN5"                 }
 	, {       "ISO-8859-9", "iso88599"               }
 	, {       "ISO-8859-9", "iso89"                  }
-	, {        "ISO-IR-14", "CSISO14JISC6220RO"      }
 	, {        "ISO-IR-14", "ISO-IR-14"              }
+	, {        "ISO-IR-14", "CSISO14JISC6220RO"      }
 	, {        "ISO-IR-14", "ISO646-JP"              }
 	, {        "ISO-IR-14", "JIS_C6220-1969-RO"      }
 	, {        "ISO-IR-14", "JP"                     }
-	, {       "ISO-IR-149", "CSKSC56011987"          }
 	, {       "ISO-IR-149", "ISO-IR-149"             }
+	, {       "ISO-IR-149", "CSKSC56011987"          }
 	, {       "ISO-IR-149", "KOREAN"                 }
 	, {       "ISO-IR-149", "KSC_5601"               }
 	, {       "ISO-IR-149", "KS_C_5601-1987"         }
 	, {       "ISO-IR-149", "KS_C_5601-1989"         }
-	, {       "ISO-IR-159", "CSISO159JISX02121990"   }
 	, {       "ISO-IR-159", "ISO-IR-159"             }
+	, {       "ISO-IR-159", "CSISO159JISX02121990"   }
 	, {       "ISO-IR-159", "JIS_X0212"              }
 	, {       "ISO-IR-159", "JIS_X0212-1990"         }
 	, {       "ISO-IR-159", "JIS_X0212.1990-0"       }
@@ -333,8 +334,8 @@
 	, {       "ISO-IR-166", "TIS620.2533-1"          }
 	, {       "ISO-IR-166", "thai8"                  }
 	, {       "ISO-IR-166", "tis620"                 }
-	, {        "ISO-IR-87", "CSISO87JISX0208"        }
 	, {        "ISO-IR-87", "ISO-IR-87"              }
+	, {        "ISO-IR-87", "CSISO87JISX0208"        }
 	, {        "ISO-IR-87", "JIS0208"                }
 	, {        "ISO-IR-87", "JIS_C6226-1983"         }
 	, {        "ISO-IR-87", "JIS_X0208"              }
@@ -342,17 +343,17 @@
 	, {        "ISO-IR-87", "JIS_X0208-1990"         }
 	, {        "ISO-IR-87", "X0208"                  }
 	, {             "JAVA", "JAVA"                   }
-	, {    "JISX0201-1976", "CSHALFWIDTHKATAKANA"    }
 	, {    "JISX0201-1976", "JISX0201-1976"          }
+	, {    "JISX0201-1976", "CSHALFWIDTHKATAKANA"    }
 	, {    "JISX0201-1976", "JIS_X0201"              }
 	, {    "JISX0201-1976", "X0201"                  }
-	, {           "KOI8-R", "CSKOI8R"                }
 	, {           "KOI8-R", "KOI8-R"                 }
+	, {           "KOI8-R", "CSKOI8R"                }
 	, {          "KOI8-RU", "KOI8-RU"                }
 	, {           "KOI8-T", "KOI8-T"                 }
 	, {           "KOI8-U", "KOI8-U"                 }
-	, {              "MAC", "CSMACINTOSH"            }
 	, {              "MAC", "MAC"                    }
+	, {              "MAC", "CSMACINTOSH"            }
 	, {              "MAC", "MACINTOSH"              }
 	, {              "MAC", "MACROMAN"               }
 	, {        "MACARABIC", "MACARABIC"              }
@@ -368,25 +369,25 @@
 	, {       "MACUKRAINE", "MACUKRAINE"             }
 	, {        "MULELAO-1", "MULELAO-1"              }
 	, {         "NEXTSTEP", "NEXTSTEP"               }
+	, {           "ROMAN8", "ROMAN8"                 }
 	, {           "ROMAN8", "CSHPROMAN8"             }
 	, {           "ROMAN8", "HP-ROMAN8"              }
 	, {           "ROMAN8", "R8"                     }
-	, {           "ROMAN8", "ROMAN8"                 }
 	, {           "ROMAN8", "roma8"                  }
 	, {           "ROMAN8", "roman8"                 }
+	, {             "SJIS", "SJIS"                   }
 	, {             "SJIS", "CSSHIFTJIS"             }
 	, {             "SJIS", "MS_KANJI"               }
 	, {             "SJIS", "SHIFT-JIS"              }
 	, {             "SJIS", "SHIFT_JIS"              }
-	, {             "SJIS", "SJIS"                   }
 	, {             "SJIS", "sjis"                   }
 	, {             "TCVN", "TCVN"                   }
 	, {             "TCVN", "TCVN-5712"              }
 	, {             "TCVN", "TCVN5712-1"             }
 	, {             "TCVN", "TCVN5712-1:1993"        }
+	, {            "UCS-4", "UCS-4"                  }
 	, {            "UCS-4", "CSUCS4"                 }
 	, {            "UCS-4", "ISO-10646-UCS-4"        }
-	, {            "UCS-4", "UCS-4"                  }
 	, {            "UCS-4", "UCS4"                   }
 	, {            "UCS-4", "ucs4"                   }
 	, {   "UCS-4-INTERNAL", "UCS-4-INTERNAL"         }
@@ -400,12 +401,12 @@
 	, {           "UTF-32", "UTF-32"                 }
 	, {         "UTF-32BE", "UTF-32BE"               }
 	, {         "UTF-32LE", "UTF-32LE"               }
+	, {            "UTF-7", "UTF-7"                  }
 	, {            "UTF-7", "CSUNICODE11UTF7"        }
 	, {            "UTF-7", "UNICODE-1-1-UTF-7"      }
-	, {            "UTF-7", "UTF-7"                  }
 	, {            "UTF-7", "UTF7"                   }
-	, {           "VISCII", "CSVISCII"               }
 	, {           "VISCII", "VISCII"                 }
+	, {           "VISCII", "CSVISCII"               }
 	, {           "VISCII", "VISCII1.1-1"            }
 
 	/* 

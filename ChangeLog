@@ -1,3 +1,9 @@
+Thu May 15 15:22:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/alternative_character_sets.h:
+	- place first GNU names
+	* src/tds/iconv.c: use some symbolic constants
+	* src/tds/locale.c: cleanup
+
 Thu May 15 02:46:52 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/alternative_character_sets.h 
 	- removed perl code, sorted by canonical name

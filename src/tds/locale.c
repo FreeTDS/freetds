@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: locale.c,v 1.18 2003-04-21 09:05:58 freddy77 Exp $";
+static char software_version[] = "$Id: locale.c,v 1.19 2003-05-15 13:32:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -68,12 +68,9 @@ tds_get_locale(void)
 		tds_read_conf_section(in, "default", tds_parse_locale, locale);
 
 		s = getenv("LANG");
-		if (s && s[0] && (s = strdup(s))) {
+		if (s && s[0]) {
 			rewind(in);
-			for (i = 0; i < strlen(s); i++)
-				s[i] = tolower(s[i]);
 			tds_read_conf_section(in, s, tds_parse_locale, locale);
-			free(s);
 		}
 
 		fclose(in);
