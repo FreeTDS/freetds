@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.107 2003-12-06 20:20:53 ppeterd Exp $";
+static char software_version[] = "$Id: mem.c,v 1.107.2.1 2004-05-04 07:07:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -157,6 +157,10 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	for (i = 0; i < tds->num_dyns; ++i)
 		if (dyn == tds->dyns[i]) {
 			tds->dyns[i] = tds->dyns[--tds->num_dyns];
+			if (tds->num_dyns == 0) { 
+				free(tds->dyns); 
+				tds->dyns = NULL; 
+			} 
 			break;
 		}
 

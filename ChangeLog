@@ -1,3 +1,6 @@
+Tue May 04 09:06:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c: backported memory leak fix
+
 Tue Apr 13 19:30:04 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/raiserror.c(renamed):
