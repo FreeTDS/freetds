@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.111 2003-11-24 21:09:34 freddy77 Exp $
+dnl $Id: configure.in,v 1.112 2003-11-25 02:29:00 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -275,29 +275,41 @@ if test "$with_odbc_nodm"; then
 	odbc=true
 fi
 
-# odbc not specified, try to detect it
-if test x$odbc != xtrue; then
-	AC_CHECK_LIB(iodbc, SQLConnect, [AC_CHECK_HEADER([isql.h], [odbc=true
-iodbc=true
-CPPFLAGS="$CPPFLAGS -DIODBC"
-ODBCLIB="-liodbc"])], 
-	[AC_CHECK_LIB(odbc, SQLConnect, [AC_CHECK_HEADER([sql.h], [odbc=true
-unixodbc=true
-CPPFLAGS="$CPPFLAGS -DUNIXODBC"
-ODBCLIB="-lodbc"])] )] )
-fi
-if test x$odbc = xtrue; then
-	if test x$unixodbc = xtrue; then
-		AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -lodbcinst"
-AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
-	elif test x$iodbc = xtrue; then
-		AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -liodbcinst"
-AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
+AC_ARG_ENABLE(odbc,
+	AC_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
+	[build_odbc=$enableval], [build_odbc=yes])
+AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
+  
+if test "$build_odbc" = "yes"
+then
+	# odbc not specified, try to detect it
+	echo looking for installed odbc driver manager
+	if test "$odbc" != "true"; then
+		AC_CHECK_LIB(iodbc, SQLConnect, [AC_CHECK_HEADER([isql.h], [odbc=true
+	iodbc=true
+	CPPFLAGS="$CPPFLAGS -DIODBC"
+	ODBCLIB="-liodbc"])], 
+		[AC_CHECK_LIB(odbc, SQLConnect, [AC_CHECK_HEADER([sql.h], [odbc=true
+	unixodbc=true
+	CPPFLAGS="$CPPFLAGS -DUNIXODBC"
+	ODBCLIB="-lodbc"])] )] )
 	fi
+	if test "$odbc" = "true"; then
+		if test "$unixodbc" = "true"; then
+			AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -lodbcinst"
+	AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
+		elif test "$iodbc" = "true"; then
+			AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -liodbcinst"
+	AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
+		fi
+	fi
+
+else 
+	AC_MSG_NOTICE(odbc disabled)	
 fi
 
-AM_CONDITIONAL(ODBC, test x$odbc = xtrue)
-AM_CONDITIONAL(UNIXODBC, test x$unixodbc = xtrue)
+AM_CONDITIONAL(ODBC, test "$odbc" = "true")
+AM_CONDITIONAL(UNIXODBC, test "$unixodbc" = "true")
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
 AC_SUBST(ODBCLIB)
