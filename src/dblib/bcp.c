@@ -43,7 +43,7 @@ extern int (*g_dblib_err_handler)();
 
 extern int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.7 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.8 2002-06-19 05:56:52 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -171,7 +171,7 @@ char query[256];
 
            bcpcol->data_size    = 0;
 
-           if (IS_TDS80(tds)) 
+           if (IS_TDS7_PLUS(tds)) 
            {
               bcpcol->db_usertype    = resinfo->columns[i]->column_usertype;
               bcpcol->db_flags       = resinfo->columns[i]->column_flags;
@@ -1140,7 +1140,7 @@ unsigned char row_token         = 0xd1;
        /* set packet type to send bulk data */
        tds->out_flag = 0x07;
    
-       if (IS_TDS80(tds))
+       if (IS_TDS7_PLUS(tds))
        {
           _bcp_send_colmetadata(dbproc);
        }
@@ -1153,7 +1153,7 @@ unsigned char row_token         = 0xd1;
     if (_bcp_get_prog_data(dbproc) == SUCCEED) 
     {
 
-       if (IS_TDS70(tds) || IS_TDS80(tds))
+       if (IS_TDS7_PLUS(tds))
        {
           tds_put_byte(tds, row_token);       /* 0xd1 */
 
@@ -1325,7 +1325,7 @@ unsigned char row_token         = 0xd1;
 
     tds->out_flag = 0x07;
 
-    if (IS_TDS80(tds))
+    if (IS_TDS7_PLUS(tds))
     {
        _bcp_send_colmetadata(dbproc);
     }
@@ -1344,7 +1344,7 @@ unsigned char row_token         = 0xd1;
            )
         {
 
-           if (IS_TDS70(tds) || IS_TDS80(tds))
+           if (IS_TDS7_PLUS(tds))
            {
               tds_put_byte(tds, row_token);       /* 0xd1 */
 
@@ -1395,8 +1395,10 @@ unsigned char row_token         = 0xd1;
                        case 0: break;
                      }
 
+#ifdef WORDS_BIGENDIAN
                      tds_swap_datatype(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length),
                                        bcpcol->data);
+#endif
                      
                      if (is_numeric_type(bcpcol->db_type)) 
                      {
@@ -1551,7 +1553,7 @@ char query[256];
 char colclause[256];
 int  firstcol;
 
-    if (IS_TDS70(tds) || IS_TDS80(tds))
+    if (IS_TDS7_PLUS(tds))
     {
        firstcol = 1;
        strcpy(colclause,"");
@@ -1560,7 +1562,7 @@ int  firstcol;
        {
            bcpcol = dbproc->bcp_columns[i];
 
-           if (IS_TDS80(tds))
+           if (IS_TDS7_PLUS(tds))
            {
               _bcp_build_bulk_insert_stmt(colclause, bcpcol, firstcol);
               firstcol = 0;
@@ -1758,7 +1760,7 @@ int        marker;
 
     tds->out_flag = 0x07;
 
-    if (IS_TDS80(tds))
+    if (IS_TDS7_PLUS(tds))
     {
        _bcp_send_colmetadata(dbproc);
     }
@@ -1778,7 +1780,7 @@ char         unicode_string[256];
 int i;
 
 
-  if (IS_TDS80(tds))
+  if (IS_TDS7_PLUS(tds))
   {
     /* Deep joy! - for TDS 8 we have to send a 
        colmetadata message followed by row data 
@@ -1811,7 +1813,7 @@ int i;
           tds_put_byte(tds,bcpcol->db_prec); 
           tds_put_byte(tds,bcpcol->db_scale);
        }
-       if (is_collate_type(bcpcol->db_type_save)) 
+       if (IS_TDS80(tds) && is_collate_type(bcpcol->db_type_save)) 
        {
           tds_put_n(tds,bcpcol->db_collate, 5); 
        }
