@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.174 2003-04-25 11:54:01 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.175 2003-04-25 18:34:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -295,12 +295,14 @@ tds_process_login_tokens(TDSSOCKET * tds)
 				if (l < len)
 					tds_get_n(tds, NULL, len - l);
 			}
-			/* FIXME MSSQL 6.5 and 7.0 seem to return strange values for this 
-			 * using TDS 4.2, something like 5F 06 32 FF for 65 */
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 24;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 16;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 8;
 			product_version |= tds_get_byte(tds);
+			/* MSSQL 6.5 and 7.0 seem to return strange values for this 
+			 * using TDS 4.2, something like 5F 06 32 FF for 6.50 */
+			if (major_ver == 4 && minor_ver == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
+				product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 			tds->product_version = product_version;
 #ifdef WORDS_BIGENDIAN
 			/* do a best check */
@@ -1635,20 +1637,22 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			colsize = determine_adjusted_size(tds->iconv_info, colsize);
 
 		if (is_blob_type(curcol->column_type)) {
+			TDS_CHAR *p;
+
 			/* This seems wrong.  text and image have the same wire format, 
 			 * but I don't see any reason to convert image data.  --jkl
 			 */
 			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 
-			if (blob_info->textvalue == NULL) {
-				blob_info->textvalue = (TDS_CHAR *) malloc(colsize);
+			p = blob_info->textvalue;
+			if (!p) {
+				p = (TDS_CHAR *) malloc(colsize);
 			} else {
-				/* FIXME memory leak if realloc return NULL */
-				blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, colsize);
+				p = (TDS_CHAR *) realloc(p, colsize);
 			}
-			if (blob_info->textvalue == NULL) {
+			if (!p)
 				return TDS_FAIL;
-			}
+			blob_info->textvalue = p;
 			if (is_char_type(curcol->column_type))
 				colsize = tds_get_char_data(tds, blob_info->textvalue, colsize, curcol);
 			else
