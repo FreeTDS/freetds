@@ -1,47 +1,63 @@
+Tue Oct 30 13:23:27 2001  James Cameron  <quozl@us.netrek.org>
+
+	* include/Makefile.am (maintainer-clean-local): clean up after
+	generation of tds_configs.h
+
+	* freetds.conf: improve formatting and layout of configuration
+	file, and add a few fragments of additional information.
+
 Mon Oct 29 18:40:03 EST 2001 Brian Bruns <camber@ais.org>
-	* src/tds/token.c(tds_process_env_chg): Add special handling for 
-     environment change type 7.
+	
+	* src/tds/token.c(tds_process_env_chg): add special handling for
+	environment change type 7.
 
 Fri Oct 26 07:11:05 2001  Brian Bruns <camber@ais.org>
-	* src/tds/token.c(tds_process_msg): called message handler will be passed 
-     tdssocket instead of the parent structure.
-	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup dbproc as above
-	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup connection as above
-	* src/tds/login.c(tds_connect): Take in second param 'parent' so callbacks
-	can be called before having an established connection.
-	* src/ctlib/ct.c: remove call to tds_set_parent and pass into tds_connect
-	* src/dblib/dblib.c: remove call to tds_set_parent and pass into 
+	
+	* src/tds/token.c(tds_process_msg): called message handler will be
+	passed tdssocket instead of the parent structure.
+	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup dbproc as
+	above
+	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup connection
+	as above
+	* src/tds/login.c(tds_connect): Take in second param 'parent' so
+	callbacks can be called before having an established connection.
+	* src/ctlib/ct.c: remove call to tds_set_parent and pass into
 	tds_connect
-	* src/odbc/odbc.c: remove call to tds_set_parent and pass NULL to 
+	* src/dblib/dblib.c: remove call to tds_set_parent and pass into
 	tds_connect
-	* src/tds/config.c(tds_alloc_config): add default hostname returned from
-	gethostname() to fix TDS 7 problem.
+	* src/odbc/odbc.c: remove call to tds_set_parent and pass NULL to
+	tds_connect
+	* src/tds/config.c(tds_alloc_config): add default hostname
+	returned from gethostname() to fix TDS 7 problem.
 
 Thu Oct 25 10:58:38 2001  James Cameron  <quozl@us.netrek.org>
 
 	* configure.in: add include/tds_configs.h to AC_OUTPUT
 	
 Tue Oct 24 19:07:15 2001 Brian Bruns <camber@ais.org>
-    * configure.in: Added AM_CONFIG_HEADER
-    * acconfig.h: needed for config header because of BSD_COMP
-    * doc/faq/html: made XHTML 1.0 valid
-    * src/*/*.c: added config.h include
-    * acinclude.m4: iconv autoconf macro
+	
+	* configure.in: Added AM_CONFIG_HEADER
+	* acconfig.h: needed for config header because of BSD_COMP
+	* doc/faq/html: made XHTML 1.0 valid
+	* src/*/*.c: added config.h include
+	* acinclude.m4: iconv autoconf macro
 
 Tue Oct 23 23:42:03 2001 Brian Bruns <camber@ais.org>
-    * src/tds/iconv.c: new iconv functions for handling TDS7 unicode
-    * src/tds/login.c: tds7_ascii2unicode() and tds7_unicode2ascii() moved to iconv.c
-    * aclocal.m4: iconv detection
+	
+	* src/tds/iconv.c: new iconv functions for handling TDS7 unicode
+	* src/tds/login.c: tds7_ascii2unicode() and tds7_unicode2ascii()
+	moved to iconv.c
+	* aclocal.m4: iconv detection
 
 Sat Oct 20 15:54:28 2001 Brian Bruns <camber@ais.org>
 
-    * src/tds/login.c: error handling for return of inet_addr()
-    * doc/userguide.sgml: added freetds.conf and unixODBC sections, minor 
-      version updates
+	* src/tds/login.c: error handling for return of inet_addr()
+	* doc/userguide.sgml: added freetds.conf and unixODBC sections,
+	minor version updates
 
 Fri Oct 20 10:43:31 Brian Bruns <camber@ais.org>
 
-    * src/tds/config.c: Added optional debugging of server lookup
+	* src/tds/config.c: Added optional debugging of server lookup
 
 Fri Oct 19 12:26:02 2001  James Cameron  <quozl@us.netrek.org>
 
