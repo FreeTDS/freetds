@@ -95,6 +95,12 @@
 		, {"ISO-IR-14", 	1, 1}
 		, {"EUC-JP", 		1, 3}
 		, {"EUC-TW", 		1, 4}
+		, {"ISO-2022-JP", 	1, 1}
+		, {"ISO-2022-KR", 	1, 2}
+		, {"ISO-2022-CN", 	1, 4}
+		, {"ISO-2022-CN-EXT", 	1, 4}
+		, {"ISO-2022-JP-2", 	1, 1}
+		, {"GB18030", 		1, 4}
 		/*
 		 * Beyond this point, I don't know the right answers.  
 		 * If you can provide the correct min/max (byte/char) values, please
@@ -111,14 +117,8 @@
 		, {"CHINESE", 		1, 1}
 		, {"CN-GB-ISOIR165", 	1, 1}
 		, {"ISO-IR-149", 	1, 1}
-		, {"ISO-2022-JP", 	1, 1}
 		, {"ISO-2022-JP-1", 	1, 1}
-		, {"ISO-2022-JP-2", 	1, 1}
-		, {"GB18030", 		1, 1}
-		, {"ISO-2022-CN", 	1, 1}
-		, {"ISO-2022-CN-EXT", 	1, 1}
 		, {"HZ", 		1, 1}
-		, {"ISO-2022-KR", 	1, 1}
 		/* stopper row */
 		, {"",	 		0, 0}
 		

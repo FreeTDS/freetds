@@ -1,3 +1,7 @@
+Tue Dec 02 18:40:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/character_sets.h src/tds/encodings.h:
+	- updated tables for ISO-2022-* charsets
+
 Mon Dec 01 08:34:27 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/tables.sql src/odbc/Makefile.am:
 	- removed tables.sql

@@ -1,6 +1,6 @@
 /*
- * This file produced from encodings.pl on Sun Nov 30 13:37:58 2003
- * $Id: encodings.h,v 1.9 2003-11-30 12:42:12 freddy77 Exp $
+ * This file produced from encodings.pl on Tue Dec  2 18:38:15 2003
+ * $Id: encodings.h,v 1.10 2003-12-02 17:40:32 freddy77 Exp $
  */
 static const TDS_ENCODING canonic_charsets[] = {
 	{        "ISO-8859-1",	1, 1},	/*   0 */
@@ -37,16 +37,16 @@ static const TDS_ENCODING canonic_charsets[] = {
 	{            "EUC-JP",	1, 3},	/*  31 */
 	{            "EUC-KR",	1, 2},	/*  32 */
 	{            "EUC-TW",	1, 4},	/*  33 */
-	{           "GB18030",	1, 1},	/*  34 */
+	{           "GB18030",	1, 4},	/*  34 */
 	{  "GEORGIAN-ACADEMY",	1, 1},	/*  35 */
 	{       "GEORGIAN-PS",	1, 1},	/*  36 */
 	{                "HZ",	1, 1},	/*  37 */
-	{       "ISO-2022-CN",	1, 1},	/*  38 */
-	{   "ISO-2022-CN-EXT",	1, 1},	/*  39 */
+	{       "ISO-2022-CN",	1, 4},	/*  38 */
+	{   "ISO-2022-CN-EXT",	1, 4},	/*  39 */
 	{       "ISO-2022-JP",	1, 1},	/*  40 */
 	{     "ISO-2022-JP-1",	1, 1},	/*  41 */
 	{     "ISO-2022-JP-2",	1, 1},	/*  42 */
-	{       "ISO-2022-KR",	1, 1},	/*  43 */
+	{       "ISO-2022-KR",	1, 2},	/*  43 */
 	{       "ISO-8859-10",	1, 1},	/*  44 */
 	{       "ISO-8859-13",	1, 1},	/*  45 */
 	{       "ISO-8859-14",	1, 1},	/*  46 */
