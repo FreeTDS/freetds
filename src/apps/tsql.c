@@ -284,7 +284,22 @@ TDSCONTEXT *context;
 	if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 		done = 1;
 	}
+	if (!strcmp(s,"version")) {
+		done = tds_version( tds, mybuf );
+		if( done )
+			printf( "using TDS version %s\n", mybuf );
+	}
+
 	while (!done) {
+		if (!strcmp(s,"GO")) {
+			char version[64], message[128];
+			strcpy(s, "go");
+			line = tds_version( tds, version );
+			if( line ) {
+				sprintf( message, "using TDS version %s", version );
+				tds_client_msg(context, tds, line, line, line, line, message);
+			}
+		}
 		if (!strcmp(s,"go")) {
 			line = 0;
 			do_query(tds, mybuf);
@@ -307,6 +322,11 @@ TDSCONTEXT *context;
 		s=readline(prompt);
 		if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 			done = 1;
+		}
+		if (!strcmp(s,"version")) {
+			done = tds_version( tds, mybuf );
+			if( done )
+				printf( "using TDS version %s\n", mybuf );
 		}
 	}
 
