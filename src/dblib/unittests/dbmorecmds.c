@@ -42,7 +42,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.2 2003-05-01 07:35:30 freddy77 Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.3 2003-05-01 15:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -129,7 +129,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "select 1\n");
-	dbcmd(dbproc, "select count(*) from #dblib0024 order by i");
+	dbcmd(dbproc, "select count(*) from #dblib0024 -- order by i");
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
