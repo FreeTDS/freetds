@@ -23,7 +23,7 @@
 #include <sybfront.h>
 
 static char  rcsid_sqlfront_h [ ] =
-         "$Id: sqlfront.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: sqlfront.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_sqlfront_h_warn[]={rcsid_sqlfront_h, no_unused_sqlfront_h_warn};
 
 

@@ -3,7 +3,7 @@
 /*  only include this if you need access to PWD information  */
 /*  #include "common.h"  */
 
-static char  software_version[]   = "$Id: t0001.c,v 1.1 2001-10-12 23:29:06 brianb Exp $";
+static char  software_version[]   = "$Id: t0001.c,v 1.1.1.1 2001-10-12 23:29:06 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_syberror_h [ ] =
-         "$Id: syberror.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: syberror.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_syberror_h_warn[]={rcsid_syberror_h, no_unused_syberror_h_warn};
 
 

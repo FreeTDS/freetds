@@ -27,7 +27,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.1 2001-10-12 23:29:01 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.1.1.1 2001-10-12 23:29:01 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

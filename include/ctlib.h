@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_ctlib_h [ ] =
-         "$Id: ctlib.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: ctlib.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_ctlib_h_warn[]={rcsid_ctlib_h, no_unused_ctlib_h_warn};
 
 #include <tds.h>

@@ -19,7 +19,7 @@
 
 #include <bkpublic.h>
 
-static char  software_version[]   = "$Id: blk.c,v 1.1 2001-10-12 23:29:05 brianb Exp $";
+static char  software_version[]   = "$Id: blk.c,v 1.1.1.1 2001-10-12 23:29:05 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

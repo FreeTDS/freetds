@@ -24,7 +24,7 @@
 
 
 static char  rcsid_sqldb_h [ ] =
-         "$Id: sqldb.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: sqldb.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_sqldb_h_warn[]={rcsid_sqldb_h, no_unused_sqldb_h_warn};
 
 

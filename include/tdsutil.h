@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+"$Id: tdsutil.h,v 1.1.1.1 2001-10-12 23:28:55 brianb Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 

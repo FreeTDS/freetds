@@ -21,7 +21,7 @@
 #define _bkpublic_h_
 
 static char  rcsid_bkpublic_h [ ] =
-         "$Id: bkpublic.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: bkpublic.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_bkpublic_h_warn[]={rcsid_bkpublic_h, no_unused_bkpublic_h_warn};
 
 /* seperate this stuff out later */

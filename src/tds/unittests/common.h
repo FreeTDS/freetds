@@ -3,7 +3,7 @@
 #define COMMON_h
 
 static char  rcsid_common_h [ ] =
-         "$Id: common.h,v 1.1 2001-10-12 23:29:04 brianb Exp $";
+         "$Id: common.h,v 1.1.1.1 2001-10-12 23:29:04 brianb Exp $";
 static void *no_unused_common_h_warn[]={rcsid_common_h, no_unused_common_h_warn};
 
 extern char PASSWORD[512];

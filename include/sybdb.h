@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+"$Id: sybdb.h,v 1.1.1.1 2001-10-12 23:28:55 brianb Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE

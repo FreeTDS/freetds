@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 static char  rcsid_cstypes_h [ ] =
-         "$Id: cstypes.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: cstypes.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_cstypes_h_warn[]={rcsid_cstypes_h, no_unused_cstypes_h_warn};
 
 

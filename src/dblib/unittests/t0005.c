@@ -17,7 +17,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0005.c,v 1.1 2001-10-12 23:29:11 brianb Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.1.1.1 2001-10-12 23:29:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

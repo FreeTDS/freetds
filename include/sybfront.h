@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybfront_h [ ] =
-         "$Id: sybfront.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+         "$Id: sybfront.h,v 1.1.1.1 2001-10-12 23:28:55 brianb Exp $";
 static void *no_unused_sybfront_h_warn[]={rcsid_sybfront_h, no_unused_sybfront_h_warn};
 
 

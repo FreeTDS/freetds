@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: dblib.h,v 1.1.1.1 2001-10-12 23:28:56 brianb Exp $";
 static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 
 

@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_ctpublic_h [ ] =
-         "$Id: ctpublic.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+         "$Id: ctpublic.h,v 1.1.1.1 2001-10-12 23:28:55 brianb Exp $";
 static void *no_unused_ctpublic_h_warn[]={rcsid_ctpublic_h, no_unused_ctpublic_h_warn};
 
 

@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.1 2001-10-12 23:28:57 brianb Exp $";
+         "$Id: tdsconvert.h,v 1.1.1.1 2001-10-12 23:28:57 brianb Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
