@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.44 2003-12-30 12:44:40 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.45 2004-01-16 21:03:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -243,60 +243,61 @@ tdsdump_close(void)
 
 /**
  * Dump the contents of data into the log file in a human readable format.
+ * \param buf      buffer to dump
+ * \param length   number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(const void *buf,	/* (I) buffer to dump                      */
-		 int length)
-{				/* (I) number of bytes in the buffer       */
+tdsdump_dump_buf(const void *buf, int length)
+{
 	int i;
 	int j;
 	const int bytesPerLine = 16;
 	const unsigned char *data = (const unsigned char *) buf;
 
-	if (write_dump && dumpfile != NULL) {
-		for (i = 0; i < length; i += bytesPerLine) {
-			/*
-			 * print the offset as a 4 digit hex number
-			 */
-			fprintf(dumpfile, "%04x", i);
+	if (!write_dump || !dumpfile)
+		return;
 
-			/*
-			 * print each byte in hex
-			 */
-			for (j = 0; j < bytesPerLine; j++) {
-				if (j == bytesPerLine / 2)
-					fprintf(dumpfile, "-");
-				else
-					fprintf(dumpfile, " ");
-				if (j + i >= length)
-					fprintf(dumpfile, "  ");
-				else
-					fprintf(dumpfile, "%02x", data[i + j]);
-			}
+	for (i = 0; i < length; i += bytesPerLine) {
+		/*
+		 * print the offset as a 4 digit hex number
+		 */
+		fprintf(dumpfile, "%04x", i);
 
-			/*
-			 * skip over to the ascii dump column
-			 */
-			fprintf(dumpfile, " |");
-
-			/*
-			 * print each byte in ascii
-			 */
-			for (j = i; j < length && (j - i) < bytesPerLine; j++) {
-				if (j - i == bytesPerLine / 2)
-					fprintf(dumpfile, " ");
-				fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
-			}
-			fprintf(dumpfile, "|\n");
+		/*
+		 * print each byte in hex
+		 */
+		for (j = 0; j < bytesPerLine; j++) {
+			if (j == bytesPerLine / 2)
+				fprintf(dumpfile, "-");
+			else
+				fprintf(dumpfile, " ");
+			if (j + i >= length)
+				fprintf(dumpfile, "  ");
+			else
+				fprintf(dumpfile, "%02x", data[i + j]);
 		}
-		fprintf(dumpfile, "\n");
+
+		/*
+		 * skip over to the ascii dump column
+		 */
+		fprintf(dumpfile, " |");
+
+		/*
+		 * print each byte in ascii
+		 */
+		for (j = i; j < length && (j - i) < bytesPerLine; j++) {
+			if (j - i == bytesPerLine / 2)
+				fprintf(dumpfile, " ");
+			fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
+		}
+		fprintf(dumpfile, "|\n");
 	}
+	fprintf(dumpfile, "\n");
 }				/* tdsdump_dump_buf()  */
 
 
-/* ============================== tdsdump_log() ==============================
- * 
- * Def:  This function write a message to the debug log.  fmt is a printf-like
+/**
+ * This function write a message to the debug log.  fmt is a printf-like
  *       format string.  It recognizes the following format characters:
  *          d     The next argument is printed as a decimal number
  *          x     The next argument is printed as a hexadecimal number
@@ -309,95 +310,95 @@ tdsdump_dump_buf(const void *buf,	/* (I) buffer to dump                      */
  *                The next argument is a pointer to the buffer
  *                and the argument after that is the number 
  *                of bytes in the buffer.
- * 
- * Ret:  void
- * 
- * ===========================================================================
+ *
  */
 void
 tdsdump_log(int debug_lvl, const char *fmt, ...)
 {
-	int ret = 0;
+	const char *ptr;
+	va_list ap;
 
-	if (debug_lvl > tds_g_debug_lvl)
+	if (debug_lvl > tds_g_debug_lvl || !write_dump)
 		return;
 
-	if (tds_g_append_mode) {
-		ret = tdsdump_append();
-	}
-	if (write_dump && dumpfile != NULL) {
-		const char *ptr;
-		va_list ap;
+	if (tds_g_append_mode && !tdsdump_append())
+		return;
 
-		va_start(ap, fmt);
+	if (dumpfile == NULL)
+		return;
 
-		if (tds_g_append_mode) {
-			fprintf(dumpfile, "pid: %d:", (int) getpid());
+	va_start(ap, fmt);
+
+	if (tds_g_append_mode)
+		fprintf(dumpfile, "pid: %d:", (int) getpid());
+
+	for (ptr = fmt; *ptr != '\0'; ptr++) {
+		if (*ptr != '%') {
+			fputc(*ptr, dumpfile);
+			continue;
 		}
 
-		for (ptr = fmt; *ptr != '\0'; ptr++) {
-			if (*ptr == '%') {
-				ptr++;
-				switch (*ptr) {
-				case 's':
-					{
-						char *s = va_arg(ap, char *);
+		ptr++;
+		switch (*ptr) {
+		case 's':
+			{
+				char *s = va_arg(ap, char *);
 
-						if (s)
-							fputs(s, dumpfile);
-						else
-							fputs("(null)", dumpfile);
-						break;
-					}
-				case 'd':
-					{
-						int i = va_arg(ap, int);
-
-						fprintf(dumpfile, "%d", i);
-						break;
-					}
-				case 'u':
-					{
-						int i = va_arg(ap, int);
-
-						fprintf(dumpfile, "%u", i);
-						break;
-					}
-				case 'x':
-					{
-						int i = va_arg(ap, int);
-
-						fprintf(dumpfile, "%x", i);
-						break;
-					}
-				case 'D':
-					{
-						char *buf = va_arg(ap, char *);
-						int len = va_arg(ap, int);
-
-						tdsdump_dump_buf(buf, len);
-						break;
-					}
-				case 'L':	/* current local time */
-					{
-						char buf[128];
-
-						fputs(tds_timestamp_str(buf, 127), dumpfile);
-					}
-				default:
-					break;
-				}
-			} else {
-				fputc(*ptr, dumpfile);
+				if (s)
+					fputs(s, dumpfile);
+				else
+					fputs("(null)", dumpfile);
+				break;
 			}
+		case 'd':
+			{
+				int i = va_arg(ap, int);
+
+				fprintf(dumpfile, "%d", i);
+				break;
+			}
+		case 'u':
+			{
+				int i = va_arg(ap, int);
+
+				fprintf(dumpfile, "%u", i);
+				break;
+			}
+		case 'x':
+			{
+				int i = va_arg(ap, int);
+
+				fprintf(dumpfile, "%x", i);
+				break;
+			}
+		case 'D':
+			{
+				char *buf = va_arg(ap, char *);
+				int len = va_arg(ap, int);
+
+				tdsdump_dump_buf(buf, len);
+				break;
+			}
+		case 'L':	/* current local time */
+			{
+				char buf[128];
+
+				fputs(tds_timestamp_str(buf, 127), dumpfile);
+				break;
+			}
+		case '%':
+			fputc('%', dumpfile);
+			break;
 		}
+	}
 
-		fflush(dumpfile);
+	fflush(dumpfile);
 
-		if (tds_g_append_mode && ret) {
+	if (tds_g_append_mode) {
+		if (dumpfile && dumpfile != stdout && dumpfile != stderr) {
 			fclose(dumpfile);
-			dumpfile = NULL;
 		}
+		dumpfile = NULL;
 	}
 }				/* tdsdump_log()  */
 
