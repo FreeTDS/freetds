@@ -46,7 +46,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.35 2004-12-31 19:17:41 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.36 2004-12-31 20:31:26 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -283,7 +283,6 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 			break;
 		case '?':
 		default:
-			fprintf(stderr, "Unrecognized option '%c'.\n", optopt);
 			pusage();
 			return (FALSE);
 		}
