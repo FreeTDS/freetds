@@ -1,3 +1,8 @@
+Tue Oct 07 22:05:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: avoid wrong dependency under Linux
+	* freetds.spec.in doc/Makefile.am: fixes for RH9
+	* src/odbc/odbc.c: remove warning, cleanup
+
 Sun Oct  5 23:18:46 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* INSTALL.CVS added information about CVS tarballs.
 	

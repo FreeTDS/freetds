@@ -46,7 +46,7 @@ and can be installed even if FreeTDS main package is not installed
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --enable-threadsafe --sysconfdir=%{_sysconfdir}
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --sysconfdir=%{_sysconfdir}
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
@@ -54,6 +54,7 @@ rm -rf "$RPM_BUILD_ROOT"
 gunzip -c doc/userguide.tgz | tar x
 gunzip -c doc/reference.tgz | tar x
 make DESTDIR="$RPM_BUILD_ROOT" install
+rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds"
 
 %post 
 /sbin/ldconfig 

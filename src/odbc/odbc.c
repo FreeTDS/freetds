@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.254 2003-09-28 23:24:01 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.255 2003-10-07 20:07:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -96,7 +96,7 @@ static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
-static int odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
+static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 
@@ -153,11 +153,12 @@ static void odbc_ird_check(TDS_STMT * stmt);
 ** Bah!
 */
 
-static int
+static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 {
+#if ENABLE_EXTRA_CHECKS
 	TDSRESULTINFO *resinfo;
-	int retcode = -1;
+#endif
 
 	IRD_CHECK;
 
@@ -167,17 +168,16 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 			/* TODO see overflow */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
 			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
-			retcode = 0;
 		}
 	}
 #endif
+
 	if (colpos > 0 && colpos <= stmt->ird->header.sql_desc_count) {
 		--colpos;
 		if (stmt->ird->records[colpos].sql_desc_label)
 			free(stmt->ird->records[colpos].sql_desc_label);
 		stmt->ird->records[colpos].sql_desc_label = strdup(name);
 	}
-	return retcode;
 }
 
 /* spinellia@acm.org : copied shamelessly from change_database */
