@@ -1,3 +1,9 @@
+Tue Dec 17 13:17:08 CEST 2002	Mark Lilback <mark@lilback.com>
+	* src/ctlib/ct.c: 
+	- added _ct_fetchable_results to tell if results fetchable
+	- fixed ct_result to return CS_SUCCEED if results not fetchable
+	- fixed ct_fetch to return CS_CMD_FAIL if results are CS_CMD_FAIL
+
 Tue Dec 17 14:25:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: fix wrong size setting causing buffer overflow
 
