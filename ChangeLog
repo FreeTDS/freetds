@@ -1,3 +1,7 @@
+Thu May 22 15:04:21 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/unittests/dataread.c:
+	- Avoid shadow warnings for "type".
+
 Thu May 22 14:53:06 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c:
 	- Avoid shadow warnings for "chkintr" and "hndlintr".
