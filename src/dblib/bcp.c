@@ -45,7 +45,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.17 2002-09-17 22:13:01 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.18 2002-09-20 14:53:37 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -54,7 +54,7 @@ static RETCODE _bcp_build_bulk_insert_stmt(char *, BCP_COLINFO *, int );
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int     _bcp_rtrim_varchar(char *, int );
-static void    _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno);
+static int     _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno);
 
 
 RETCODE bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
@@ -2546,7 +2546,7 @@ int i;
 
 }
 
-static void
+static int
 _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno)
 {
 char *errmsg;
@@ -2710,11 +2710,5 @@ int severity;
     break;
   }
 
-  if (g_dblib_err_handler) {
-    if (g_dblib_err_handler(dbproc, severity, bcp_errno, -1, errmsg, NULL)
-	== INT_EXIT) {
-      exit(EXIT_FAILURE);
-    }
-  }
-  return;
+  return _dblib_client_msg(dbproc, bcp_errno, severity, errmsg);
 }
