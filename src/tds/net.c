@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.8 2005-01-24 15:07:24 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.9 2005-01-24 20:26:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -713,7 +713,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		if (retval < 0)
 			break;
 		/* got data, read and parse */
-		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 0) {
+		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3) {
 			char *p;
 			long l;
 
