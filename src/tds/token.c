@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.250 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.251 2004-03-09 16:05:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -895,10 +895,10 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 int
 tds_process_simple_query(TDSSOCKET * tds)
 {
-TDS_INT res_type;
-TDS_INT done_flags;
-TDS_INT row_type;
-int     rc;
+	TDS_INT res_type;
+	TDS_INT done_flags;
+	TDS_INT row_type;
+	int     rc;
 
 	while ((rc = tds_process_result_tokens(tds, &res_type, &done_flags)) == TDS_SUCCEED) {
 		switch (res_type) {
@@ -917,7 +917,7 @@ int     rc;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
 			case TDS_DONEINPROC_RESULT:
-                if ((done_flags & TDS_DONE_ERROR) != 0) 
+				if ((done_flags & TDS_DONE_ERROR) != 0) 
 					return TDS_FAIL;
 				break;
 
@@ -929,8 +929,7 @@ int     rc;
 		return TDS_FAIL;
 	}
 
-    return TDS_SUCCEED;
-
+	return TDS_SUCCEED;
 }
 
 /** 
