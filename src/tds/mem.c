@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.97 2003-09-18 07:26:35 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.98 2003-09-23 08:24:18 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -835,6 +835,7 @@ tds_alloc_client_sqlstate(int msgnum)
 	char *p = NULL;
 
 	switch (msgnum) {
+		SQLS_ENTRY(17000, "S1T00");	/* timeouts ??? */
 		SQLS_ENTRY(20004, "08S01");	/* Communication link failure */
 		SQLS_ENTRY(20006, "08S01");
 		SQLS_ENTRY(20009, "08S01");
