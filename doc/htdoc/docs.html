@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: docs.html,v 1.1 2003-08-04 03:50:03 jklowden Exp $ -->
+<!-- $Id: docs.html,v 1.2 2004-01-11 22:39:13 jklowden Exp $ -->
 <head>
 <title>FreeTDS.org</title>
 </head>
@@ -29,30 +29,42 @@ Documentation&nbsp;&nbsp;|&nbsp;
 <font size="+3"><b>D</b></font>ocumentation
 </p>
 <table width="80%" align="center">
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
-FreeTDS has two basic pieces of end-user documentation, the FAQ and the Users Guide.
+FreeTDS has three basic pieces of end-user documentation, the FAQ, the User Guide, and the Reference Manual.
 </td></tr>
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
 The <a href="faq.html">Frequently Asked Questions (FAQ)</a> list covers questions the come up often on the mailing list and usually contains known bugs and work arounds, questions about feature support, and common pitfalls first time users may encounter.
 </td></tr>
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
-The <a href="/userguide/">FreeTDS User Guide</a> covers how to use FreeTDS to do specific tasks, like how to build FreeTDS, how to make your servers work with FreeTDS, how to configure PHP with FreeTDS, and a nice <a href="http://www.freetds.org/userguide/troubleshooting.html">Troubleshooting</a> section.
+The FreeTDS <a href="/userguide/">User Guide</a> covers how to use FreeTDS to do specific tasks, like how to build FreeTDS, how to make your servers work with FreeTDS, how to configure PHP with FreeTDS, and a nice <a href="http://www.freetds.org/userguide/troubleshooting.html">Troubleshooting</a> section.
 </td></tr>
+
+<tr><td>&nbsp;</td></tr>
+<tr><td>
+The FreeTDS <a href="/reference/">Reference Manual</a> is our start at documenting the APIs.  In general, the definitive API documentation is available online from the vendors.  It will be a big job for us to replace that, and at the rate we're going, we never will.  Our first goal is to document our implementation: which functions work, and how well.  We haven't reached even that goal yet.  <P> The reference manual is generated with <a href="http://www.stack.nl/~dimitri/doxygen/">Doxygen</a>.
+</td></tr>
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
 If you have checked both of these documents and have not found the answer to your problem, the <a href="http://lists.ibiblio.org/pipermail/freetds/">Mailing List Archive</a> is available for searching.
 </td></tr>
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
 If you are interested in the format of the TDS protocol itself there is some <a href="tds.html">preliminary documentation</a> included with the distribution.
 </td></tr>
+
 <tr><td>&nbsp;</td></tr>
 <tr><td>
 Programming documentation including the definition of the libtds API (the low-level interface to the TDS protocol used by dblib, ct-lib, and ODBC) is shipped in the doc/ directory of the source tree.
 </td></tr>
+
 </table>
 
 </body>
