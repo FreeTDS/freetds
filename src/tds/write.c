@@ -59,6 +59,13 @@
 #include <dmalloc.h>
 #endif
 
+static char software_version[] =
+	"$Id: write.c,v 1.22 2002-10-14 13:36:55 castellano Exp $";
+static void *no_unused_var_warn[] = {
+	software_version,
+	no_unused_var_warn
+};
+
 /*
  * CRE 01262002 making buf a void * means we can put any type without casting
  *		much like read() and memcpy()

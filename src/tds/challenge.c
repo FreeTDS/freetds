@@ -35,6 +35,13 @@
 #include <dmalloc.h>
 #endif
 
+static char software_version[] =
+	"$Id: challenge.c,v 1.16 2002-10-14 13:36:54 castellano Exp $";
+static void *no_unused_var_warn[] = {
+	software_version,
+	no_unused_var_warn
+};
+
 /**
  * \defgroup auth Authentication
  * Functions for handling authentication.

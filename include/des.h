@@ -1,6 +1,13 @@
 #ifndef DES_H
 #define DES_H
 
+static char rcsid_des_h[] =
+	"$Id: des.h,v 1.5 2002-10-14 13:36:53 castellano Exp $";
+static void *no_unused_des_h_warn[] = {
+	rcsid_des_h,
+	no_unused_des_h_warn
+};
+
 typedef unsigned char des_cblock[8];
 
 typedef struct des_key {

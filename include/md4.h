@@ -1,6 +1,13 @@
 #ifndef MD4_H
 #define MD4_H
 
+static char rcsid_md4_h[] =
+	"$Id: md4.h,v 1.2 2002-10-14 13:36:53 castellano Exp $";
+static void *no_unused_md4_h_warn[] = {
+	rcsid_md4_h,
+	no_unused_md4_h_warn
+};
+
 struct MD4Context {
 	TDS_UINT buf[4];
 	TDS_UINT bits[2];

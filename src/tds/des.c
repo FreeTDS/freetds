@@ -43,6 +43,13 @@
 #include "tds.h"
 #include "des.h"
 
+static char software_version[] =
+	"$Id: des.c,v 1.7 2002-10-14 13:36:54 castellano Exp $";
+static void *no_unused_var_warn[] = {
+	software_version,
+	no_unused_var_warn
+};
+
 static void permute_ip(des_cblock inblock, DES_KEY *key, des_cblock outblock);
 static void permute_fp(des_cblock inblock, DES_KEY *key, des_cblock outblock);
 static void perminit_ip(DES_KEY *key);

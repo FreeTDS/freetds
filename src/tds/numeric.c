@@ -31,6 +31,13 @@
 #include <dmalloc.h>
 #endif
 
+static char software_version[] =
+	"$Id: numeric.c,v 1.12 2002-10-14 13:36:55 castellano Exp $";
+static void *no_unused_var_warn[] = {
+	software_version,
+	no_unused_var_warn
+};
+
 /* 
 ** these routines use arrays of unsigned char to handle arbitrary
 ** precision numbers.  All-in-all it's probably pretty slow, but it

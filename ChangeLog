@@ -1,3 +1,8 @@
+Mon Oct 14 09:35:35 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/des.h include/md4.h src/tds/challenge.c src/tds/des.c
+	  src/tds/iconv.c src/tds/md4.c src/tds/numeric.c src/tds/write.c:
+	- Add CVS identification.
+
 Mon Oct 14 11:18:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c: fix compile under rh7.3
 

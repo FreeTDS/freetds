@@ -39,6 +39,13 @@
 #include "tds.h"
 #include "md4.h"
 
+static char software_version[] =
+	"$Id: md4.c,v 1.4 2002-10-14 13:36:54 castellano Exp $";
+static void *no_unused_var_warn[] = {
+	software_version,
+	no_unused_var_warn
+};
+
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */
 #else
