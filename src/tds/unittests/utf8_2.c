@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.3 2003-12-11 22:05:35 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.4 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -43,7 +43,7 @@ test(int n, int type)
 	TDS_INT result_type;
 	TDS_INT row_type;
 	char buf[1024], tmp[1024];
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	unsigned char *src;
 	int done_flags;
 	int i;
@@ -109,9 +109,9 @@ test(int n, int type)
 	src = tds->curr_resinfo->current_row + curcol->column_offset;
 
 	if (is_blob_type(curcol->column_type)) {
-		TDSBLOBINFO *bi = (TDSBLOBINFO *) src;
+		TDSBLOB *blob = (TDSBLOB *) src;
 
-		src = (unsigned char *) bi->textvalue;
+		src = (unsigned char *) blob->textvalue;
 	}
 
 	prefix[0] = 0;
@@ -175,19 +175,19 @@ test(int n, int type)
 }
 
 static int
-err_handler(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg_info)
+err_handler(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	int error = 0;
 
-	if (strstr(msg_info->message, "EINVAL")) {
+	if (strstr(msg->message, "EINVAL")) {
 		++einval_count;
 		if (einval_error)
 			error = 1;
-	} else if (strstr(msg_info->message, "could not be converted")) {
+	} else if (strstr(msg->message, "could not be converted")) {
 		++eilseq_count;
 		if (eilseq_error)
 			error = 1;
-	} else if (strstr(msg_info->message, "E2BIG")) {
+	} else if (strstr(msg->message, "E2BIG")) {
 		++e2big_count;
 		error = 1;
 	} else {
@@ -195,7 +195,7 @@ err_handler(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg_info)
 	}
 
 	if (error) {
-		fprintf(stderr, "Unexpected in %s error: %s\n", test_name, msg_info->message);
+		fprintf(stderr, "Unexpected in %s error: %s\n", test_name, msg->message);
 		g_result = 1;
 	}
 	return 0;

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.57 2004-01-08 10:27:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.58 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -159,7 +159,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 
 	for (i = 0; i < info->num_cols; ++i) {
 		struct _drecord *drec_apd, *drec_ipd;
-		TDSCOLINFO *colinfo = info->columns[i];
+		TDSCOLUMN *colinfo = info->columns[i];
 		TDS_CHAR *src;
 		int srclen;
 		SQLINTEGER len;
@@ -187,7 +187,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 
 		src = (TDS_CHAR *) & info->current_row[colinfo->column_offset];
 		if (is_blob_type(colinfo->column_type))
-			src = ((TDSBLOBINFO *) src)->textvalue;
+			src = ((TDSBLOB *) src)->textvalue;
 		srclen = colinfo->column_cur_size;
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)
@@ -395,7 +395,7 @@ odbc_c_to_server_type(int c_type)
 
 /* TODO return just constant buffer */
 char *
-odbc_server_to_sql_typename(TDSCOLINFO * col, int odbc_ver)
+odbc_server_to_sql_typename(TDSCOLUMN * col, int odbc_ver)
 {
 	/* FIXME finish */
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.82 2004-01-20 09:56:16 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.83 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -351,33 +351,33 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information
  * \return TDS_SUCCEED or TDS_FAIL (probably memory error on text data)
- * \todo put a TDSICONVINFO structure in every TDSCOLINFO
+ * \todo put a TDSICONVINFO structure in every TDSCOLUMN
  */
 int
-tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLINFO * curcol)
+tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN * curcol)
 {
 	size_t in_left;
-	TDSBLOBINFO *blob_info = NULL;
+	TDSBLOB *blob = NULL;
 	char *dest = row_buffer;
 
 	if (is_blob_type(curcol->column_type)) {
-		blob_info = (TDSBLOBINFO *) row_buffer;
-		dest = blob_info->textvalue;
+		blob = (TDSBLOB *) row_buffer;
+		dest = blob->textvalue;
 	}
 
 	/* 
 	 * dest is usually a column buffer, allocated when the column's metadata are processed 
 	 * and reused for each row.  
-	 * For blobs, dest is blob_info->textvalue, and can be reallocated or freed
+	 * For blobs, dest is blob->textvalue, and can be reallocated or freed
 	 * TODO: reallocate if blob and no space 
 	 */
 	 
 	/* silly case, empty string */
 	if (wire_size == 0) {
 		curcol->column_cur_size = 0;
-		if (blob_info) {
-			free(blob_info->textvalue);
-			blob_info->textvalue = NULL;
+		if (blob) {
+			free(blob->textvalue);
+			blob->textvalue = NULL;
 		}
 		return TDS_SUCCEED;
 	}
@@ -392,7 +392,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLINF
 		 * TDS5/UTF-8 -> use server
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
-		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
+		in_left = blob ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 

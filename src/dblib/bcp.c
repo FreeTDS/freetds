@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.86 2004-01-06 02:40:11 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.87 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -485,7 +485,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	BCP_COLINFO *bcpcol = NULL;
-	TDSCOLINFO *curcol = NULL;
+	TDSCOLUMN *curcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 	BYTE *src;
 	int srctype;
@@ -571,7 +571,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				src = &resinfo->current_row[curcol->column_offset];
 
 				if (is_blob_type(curcol->column_type)) {
-					src = (BYTE *) ((TDSBLOBINFO *) src)->textvalue;
+					src = (BYTE *) ((TDSBLOB *) src)->textvalue;
 				}
 
 				srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);

@@ -33,7 +33,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.20 2003-06-30 04:59:06 jklowden Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.21 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -43,7 +43,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * know what it really was.  
  */
 int
-dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
+dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = NULL;
 
@@ -76,7 +76,7 @@ dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * ms
 }
 
 int
-dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
+dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = NULL;
 	int rc = INT_CANCEL;

@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.8 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.9 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -35,7 +35,7 @@ fatal_error(const char *msg)
 }
 
 static void
-check_flags(TDSCOLINFO * curcol, int n, const char *possible_results)
+check_flags(TDSCOLUMN * curcol, int n, const char *possible_results)
 {
 	char msg[256];
 	char flags[256];

@@ -66,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.67 2003-12-26 18:11:07 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.68 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -81,7 +81,7 @@ int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static void tsql_print_usage(const char *progname);
 int get_opt_flags(char *s, int *opt_flags);
 void populate_login(TDSLOGIN * login, int argc, char **argv);
-int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg);
+int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
 void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 
 #ifndef HAVE_READLINE
@@ -119,7 +119,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 {
 	int rows = 0;
 	int rc, i;
-	TDSCOLINFO *col;
+	TDSCOLUMN *col;
 	int ctype;
 	CONV_RESULT dres;
 	unsigned char *src;
@@ -170,7 +170,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 
 					src = &(tds->res_info->current_row[col->column_offset]);
 					if (is_blob_type(col->column_type))
-						src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+						src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 					srclen = col->column_cur_size;
 
 
@@ -405,7 +405,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 }
 
 int
-tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg)
+tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	if (msg->msg_number == 0) {
 		fprintf(stderr, "%s\n", msg->message);
@@ -458,7 +458,7 @@ main(int argc, char **argv)
 	TDSSOCKET *tds;
 	TDSLOGIN *login;
 	TDSCONTEXT *context;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	int opt_flags = 0;
 
 	/* grab a login structure */
@@ -479,13 +479,13 @@ main(int argc, char **argv)
 	/* Try to open a connection */
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
-	connect_info = tds_read_config_info(NULL, login, context->locale);
-	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
-		tds_free_connect(connect_info);
+	connection = tds_read_config_info(NULL, login, context->locale);
+	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
+		tds_free_connection(connection);
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	/* give the buffer an initial size */
 	bufsz = 4096;
 	mybuf = (char *) malloc(bufsz);

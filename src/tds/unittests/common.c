@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.21 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.22 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -49,7 +49,7 @@ TDSCONTEXT *test_context = NULL;
 int
 try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
 {
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 
 	if (verbose) {
 		fprintf(stdout, "Entered tds_try_login()\n");
@@ -91,16 +91,16 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	test_context = tds_alloc_context();
 	*tds = tds_alloc_socket(test_context, 512);
 	tds_set_parent(*tds, NULL);
-	connect_info = tds_read_config_info(NULL, *login, test_context->locale);
-	if (!connect_info || tds_connect(*tds, connect_info) == TDS_FAIL) {
-		if (connect_info) {
+	connection = tds_read_config_info(NULL, *login, test_context->locale);
+	if (!connection || tds_connect(*tds, connection) == TDS_FAIL) {
+		if (connection) {
 			*tds = NULL;
-			tds_free_connect(connect_info);
+			tds_free_connection(connection);
 		}
 		fprintf(stderr, "tds_connect() failed\n");
 		return TDS_FAIL;
 	}
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 
 	return TDS_SUCCEED;
 }

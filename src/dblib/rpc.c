@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.22 2003-09-21 18:37:42 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.23 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -217,7 +217,7 @@ dbrpcsend(DBPROCESS * dbproc)
  * Tell the TDSPARAMINFO structure where the data go.  This is a kind of "bind" operation.
  */
 static const unsigned char *
-param_row_alloc(TDSPARAMINFO * params, TDSCOLINFO * curcol, void *value, int size)
+param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
 
@@ -236,7 +236,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 {
 	int i;
 	DBREMOTE_PROC_PARAM *p;
-	TDSCOLINFO *pcol;
+	TDSCOLUMN *pcol;
 	TDSPARAMINFO *params = NULL;
 
 	/* sanity */

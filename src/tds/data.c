@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.2 2003-08-06 19:32:46 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.3 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_get_cardinal_type(int datatype);
@@ -40,7 +40,7 @@ static int tds_get_varint_size(int datatype);
  * @param type   type to set
  */
 void
-tds_set_column_type(TDSCOLINFO * curcol, int type)
+tds_set_column_type(TDSCOLUMN * curcol, int type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
@@ -59,7 +59,7 @@ tds_set_column_type(TDSCOLINFO * curcol, int type)
  * @param type   type to set
  */
 void
-tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type)
+tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 {
 	if (IS_TDS7_PLUS(tds)) {
 		switch (type) {

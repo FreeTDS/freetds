@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.113 2004-01-26 08:44:27 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.114 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -482,7 +482,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	char *server;
 	int needfree = 0;
 	CS_CONTEXT *ctx;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_connect() servername = %s\n", servername ? servername : "NULL");
 
@@ -501,20 +501,20 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
 		return CS_FAIL;
 	tds_set_parent(con->tds_socket, (void *) con);
-	if (!(connect_info = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale))) {
+	if (!(connection = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale))) {
 		tds_free_socket(con->tds_socket);
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
-	if (tds_connect(con->tds_socket, connect_info) == TDS_FAIL) {
+	if (tds_connect(con->tds_socket, connection) == TDS_FAIL) {
 		con->tds_socket = NULL;
-		tds_free_connect(connect_info);
+		tds_free_connection(connection);
 		if (needfree)
 			free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
 	}
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 
 	if (needfree)
 		free(server);
@@ -1132,7 +1132,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 CS_RETCODE
 ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * copied, CS_SMALLINT * indicator)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	CS_CONNECTION *con = cmd->con;
@@ -1369,7 +1369,7 @@ static int
 _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 {
 	int i;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	TDSRESULTINFO *resinfo = tds->curr_resinfo;
 	unsigned char *src;
@@ -1421,7 +1421,7 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 
 			src = &(resinfo->current_row[curcol->column_offset]);
 			if (is_blob_type(curcol->column_type))
-				src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+				src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 			srclen = curcol->column_cur_size;
 			srcfmt.datatype = srctype;
@@ -1719,7 +1719,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	int len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_describe()\n");
@@ -1792,7 +1792,7 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	CS_INT int_val;
 	int i;
 
@@ -1891,7 +1891,7 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	CS_INT int_val;
 	CS_SMALLINT *dest_by_col_ptr;
 	CS_TINYINT *src_by_col_ptr;
@@ -1970,8 +1970,8 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	TDSCOLINFO *curcol;
-	TDSBLOBINFO *blob_info;
+	TDSCOLUMN *curcol;
+	TDSBLOB *blob;
 	unsigned char *src;
 	TDS_INT srclen;
 
@@ -1998,7 +1998,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		src = &(resinfo->current_row[curcol->column_offset]);
 		if (is_blob_type(curcol->column_type))
-			src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 		srclen = curcol->column_cur_size;
 
@@ -2022,10 +2022,10 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
 
-		blob_info = (TDSBLOBINFO *) & (resinfo->current_row[curcol->column_offset]);
-		memcpy(cmd->iodesc->timestamp, blob_info->timestamp, CS_TS_SIZE);
+		blob = (TDSBLOB *) & (resinfo->current_row[curcol->column_offset]);
+		memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
 		cmd->iodesc->timestamplen = CS_TS_SIZE;
-		memcpy(cmd->iodesc->textptr, blob_info->textptr, CS_TP_SIZE);
+		memcpy(cmd->iodesc->textptr, blob->textptr, CS_TP_SIZE);
 		cmd->iodesc->textptrlen = CS_TP_SIZE;
 
 		/* if we have enough buffer to cope with all the data */
@@ -2050,7 +2050,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		curcol = resinfo->columns[item - 1];
 		src = &(resinfo->current_row[curcol->column_offset]);
 		if (is_blob_type(curcol->column_type))
-			src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 		/* and adjust the data and length based on */
 		/* what we may have already returned       */
@@ -3169,7 +3169,7 @@ static int
 _ct_process_return_status(TDSSOCKET * tds)
 {
 	TDSRESULTINFO *info;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 
 	enum
 	{ num_cols = 1 };
@@ -3210,7 +3210,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 /* RPC code changes starts here */
 
 static const unsigned char *
-paramrowalloc(TDSPARAMINFO * params, TDSCOLINFO * curcol, void *value, int size)
+paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
 
@@ -3229,7 +3229,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 {
 	int i;
 	CS_PARAM *p;
-	TDSCOLINFO *pcol;
+	TDSCOLUMN *pcol;
 	TDSPARAMINFO *params = NULL;
 
 	int temp_type;

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.51 2003-11-06 17:26:27 jklowden Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.52 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -99,11 +99,11 @@ static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR
 /** 
  * Read connection information from given DSN
  * @param DSN           DSN name
- * @param connect_info  where to store connection info
+ * @param connection    where to store connection info
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
+odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 {
 	char tmp[FILENAME_MAX];
 	int freetds_conf_less = 1;
@@ -113,7 +113,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Servername", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		freetds_conf_less = 0;
-		tds_read_conf_file(connect_info, tmp);
+		tds_read_conf_file(connection, tmp);
 	}
 
 	/* search for server (compatible with ms one) */
@@ -123,85 +123,85 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 			address_specified = 1;
 			/* TODO parse like MS */
 			tds_lookup_host(tmp, tmp);
-			tds_dstr_copy(&connect_info->ip_addr, tmp);
+			tds_dstr_copy(&connection->ip_addr, tmp);
 		}
 
 		tmp[0] = '\0';
 		if (SQLGetPrivateProfileString(DSN, "Server", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-			tds_dstr_copy(&connect_info->server_name, tmp);
+			tds_dstr_copy(&connection->server_name, tmp);
 			if (!address_specified) {
-				tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
-				tds_dstr_copy(&connect_info->ip_addr, tmp);
+				tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
+				tds_dstr_copy(&connection->ip_addr, tmp);
 			}
 		}
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Port", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		connect_info->port = atoi(tmp);
+		connection->port = atoi(tmp);
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "TDS_Version", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_config_verstr(tmp, connect_info);
+		tds_config_verstr(tmp, connection);
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->language, tmp);
+		tds_dstr_copy(&connection->language, tmp);
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->database, tmp);
+		tds_dstr_copy(&connection->database, tmp);
 	}
 #if 0
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Authentication", "Server", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		if (!strcasecmp(tmp, "Server")) {
-			connect_info->try_domain_login = 0;
-			connect_info->try_server_login = 1;
+			connection->try_domain_login = 0;
+			connection->try_server_login = 1;
 		} else if (!strcasecmp(tmp, "Domain")) {
-			connect_info->try_domain_login = 1;
-			connect_info->try_server_login = 0;
+			connection->try_domain_login = 1;
+			connection->try_server_login = 0;
 		} else if (!strcasecmp(tmp, "Both")) {
-			connect_info->try_server_login = 1;
-			connect_info->try_domain_login = 1;
+			connection->try_server_login = 1;
+			connection->try_domain_login = 1;
 		} else {
 			/* default to server authentication */
-			connect_info->try_domain_login = 0;
-			connect_info->try_server_login = 1;
+			connection->try_domain_login = 0;
+			connection->try_server_login = 1;
 		}
 	}
 #endif
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Domain", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->default_domain, tmp);
+		tds_dstr_copy(&connection->default_domain, tmp);
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "TextSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		connect_info->text_size = atoi(tmp);
+		connection->text_size = atoi(tmp);
 	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "PacketSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		connect_info->block_size = atoi(tmp);
+		connection->block_size = atoi(tmp);
 	}
 
 	return 1;
 }
 
 /** 
- * Parse connection string and fill connect_info according
+ * Parse connection string and fill connection according
  * @param connect_string     connect string
  * @param connect_string_end connect string end (pointer to char past last)
- * @param connect_info       where to store connection info
+ * @param connection         where to store connection info
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info)
+odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection)
 {
 	const char *p, *end;
 	DSTR *dest_s, value;
@@ -252,49 +252,49 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 		if (strcasecmp(option, "SERVER") == 0) {
 			/* ignore if servername specified */
 			if (!reparse) {
-				dest_s = &connect_info->server_name;
+				dest_s = &connection->server_name;
 				tds_lookup_host(tds_dstr_cstr(&value), tmp);
-				if (!tds_dstr_copy(&connect_info->ip_addr, tmp)) {
+				if (!tds_dstr_copy(&connection->ip_addr, tmp)) {
 					tds_dstr_free(&value);
 					return 0;
 				}
 			}
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
-				tds_read_conf_file(connect_info, tds_dstr_cstr(&value));
+				tds_read_conf_file(connection, tds_dstr_cstr(&value));
 				reparse = 1;
 				p = connect_string;
 				continue;
 			}
 		} else if (strcasecmp(option, "DSN") == 0) {
 			if (!reparse) {
-				odbc_get_dsn_info(tds_dstr_cstr(&value), connect_info);
+				odbc_get_dsn_info(tds_dstr_cstr(&value), connection);
 				reparse = 1;
 				p = connect_string;
 				continue;
 			}
 		} else if (strcasecmp(option, "DATABASE") == 0) {
-			dest_s = &connect_info->database;
+			dest_s = &connection->database;
 		} else if (strcasecmp(option, "UID") == 0) {
-			dest_s = &connect_info->user_name;
+			dest_s = &connection->user_name;
 		} else if (strcasecmp(option, "PWD") == 0) {
-			dest_s = &connect_info->password;
+			dest_s = &connection->password;
 		} else if (strcasecmp(option, "APP") == 0) {
-			dest_s = &connect_info->app_name;
+			dest_s = &connection->app_name;
 		} else if (strcasecmp(option, "WSID") == 0) {
-			dest_s = &connect_info->host_name;
+			dest_s = &connection->host_name;
 		} else if (strcasecmp(option, "LANGUAGE") == 0) {
-			dest_s = &connect_info->language;
+			dest_s = &connection->language;
 		} else if (strcasecmp(option, "Port") == 0) {
-			connect_info->port = atoi(tds_dstr_cstr(&value));
+			connection->port = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "TDS_Version") == 0) {
-			tds_config_verstr(tds_dstr_cstr(&value), connect_info);
+			tds_config_verstr(tds_dstr_cstr(&value), connection);
 		} else if (strcasecmp(option, "Domain") == 0) {
-			dest_s = &connect_info->default_domain;
+			dest_s = &connection->default_domain;
 		} else if (strcasecmp(option, "TextSize") == 0) {
-			connect_info->text_size = atoi(tds_dstr_cstr(&value));
+			connection->text_size = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "PacketSize") == 0) {
-			connect_info->block_size = atoi(tds_dstr_cstr(&value));
+			connection->block_size = atoi(tds_dstr_cstr(&value));
 			/* TODO "Address" field */
 		}
 

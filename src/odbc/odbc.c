@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.292 2004-01-20 08:31:09 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.293 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -91,7 +91,7 @@ static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQL
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 static void longquery_cancel(void *param);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
-static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
+static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
@@ -282,7 +282,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 }
 
 static SQLRETURN
-odbc_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
+odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 {
 	TDS_ENV *env = dbc->env;
 
@@ -296,21 +296,21 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 	/* Set up our environment change hook */
 	dbc->tds_socket->env_chg_func = odbc_env_change;
 
-	tds_fix_connect(connect_info);
+	tds_fix_connection(connection);
 
-	connect_info->connect_timeout = dbc->attr.connection_timeout;
+	connection->connect_timeout = dbc->attr.connection_timeout;
 
 	/* fix login type */
-	if (!connect_info->try_domain_login) {
-		if (strchr(tds_dstr_cstr(&connect_info->user_name), '\\')) {
-			connect_info->try_domain_login = 1;
-			connect_info->try_server_login = 0;
+	if (!connection->try_domain_login) {
+		if (strchr(tds_dstr_cstr(&connection->user_name), '\\')) {
+			connection->try_domain_login = 1;
+			connection->try_server_login = 0;
 		}
 	}
-	if (!connect_info->try_domain_login && !connect_info->try_server_login)
-		connect_info->try_server_login = 1;
+	if (!connection->try_domain_login && !connection->try_server_login)
+		connection->try_server_login = 1;
 
-	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
+	if (tds_connect(dbc->tds_socket, connection) == TDS_FAIL) {
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -323,7 +323,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut, SQLUSMALLINT fDriverCompletion)
 {
 	SQLRETURN ret;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	int conlen = odbc_get_string_size(cbConnStrIn, szConnStrIn);
 
 	INIT_HDBC;
@@ -348,8 +348,8 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	}
 #endif
 
-	connect_info = tds_alloc_connect(dbc->env->tds_ctx->locale);
-	if (!connect_info) {
+	connection = tds_alloc_connection(dbc->env->tds_ctx->locale);
+	if (!connection) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -358,30 +358,30 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	if (hwnd)
 		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
 
-	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connect_info);
+	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
 
 	/* TODO what should be correct behavior for output string?? -- freddy77 */
 	if (szConnStrOut)
 		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, (const char *) szConnStrIn, conlen);
 
-	if (tds_dstr_isempty(&connect_info->server_name)) {
-		tds_free_connect(connect_info);
+	if (tds_dstr_isempty(&connection->server_name)) {
+		tds_free_connection(connection);
 		odbc_errs_add(&dbc->errs, "IM007", "Could not find Servername or server parameter", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	if (tds_dstr_isempty(&connect_info->user_name)) {
-		tds_free_connect(connect_info);
+	if (tds_dstr_isempty(&connection->user_name)) {
+		tds_free_connection(connection);
 		odbc_errs_add(&dbc->errs, "IM007", "Could not find UID parameter", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	if ((ret = odbc_connect(dbc, connect_info)) != SQL_SUCCESS) {
-		tds_free_connect(connect_info);
+	if ((ret = odbc_connect(dbc, connection)) != SQL_SUCCESS) {
+		tds_free_connection(connection);
 		ODBC_RETURN(dbc, ret);
 	}
 
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	if (dbc->errs.num_errors != 0)
 		ODBC_RETURN(dbc, SQL_SUCCESS_WITH_INFO);
 	ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -515,7 +515,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
-				if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+				if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 					break;
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
@@ -1241,7 +1241,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	   SQLSMALLINT cbAuthStr)
 {
 	SQLRETURN result;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 
 	INIT_HDBC;
 
@@ -1262,8 +1262,8 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 #endif
 
-	connect_info = tds_alloc_connect(dbc->env->tds_ctx->locale);
-	if (!connect_info) {
+	connection = tds_alloc_connection(dbc->env->tds_ctx->locale);
+	if (!connection) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1275,8 +1275,8 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
 
-	if (!odbc_get_dsn_info(tds_dstr_cstr(&dbc->dsn), connect_info)) {
-		tds_free_connect(connect_info);
+	if (!odbc_get_dsn_info(tds_dstr_cstr(&dbc->dsn), connection)) {
+		tds_free_connection(connection);
 		odbc_errs_add(&dbc->errs, "IM007", "Error getting DSN information", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1287,8 +1287,8 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	 */
 	/* user id */
 	if (szUID && (*szUID)) {
-		if (!tds_dstr_copyn(&connect_info->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID))) {
-			tds_free_connect(connect_info);
+		if (!tds_dstr_copyn(&connection->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID))) {
+			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
@@ -1296,20 +1296,20 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 
 	/* password */
 	if (szAuthStr) {
-		if (!tds_dstr_copyn(&connect_info->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr))) {
-			tds_free_connect(connect_info);
+		if (!tds_dstr_copyn(&connection->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr))) {
+			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 	}
 
 	/* DO IT */
-	if ((result = odbc_connect(dbc, connect_info)) != SQL_SUCCESS) {
-		tds_free_connect(connect_info);
+	if ((result = odbc_connect(dbc, connection)) != SQL_SUCCESS) {
+		tds_free_connection(connection);
 		ODBC_RETURN(dbc, result);
 	}
 
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	if (dbc->errs.num_errors != 0)
 		ODBC_RETURN(dbc, SQL_SUCCESS_WITH_INFO);
 	ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -1613,7 +1613,7 @@ SQLDisconnect(SQLHDBC hdbc)
 }
 
 static int
-odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
+odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc;
@@ -2179,7 +2179,7 @@ odbc_ird_check(TDS_STMT * stmt)
 {
 	TDS_DESC *ird = stmt->ird;
 	struct _drecord *drec;
-	TDSCOLINFO *col;
+	TDSCOLUMN *col;
 	TDSRESULTINFO *res_info = NULL;
 	int cols = 0, i;
 
@@ -2210,7 +2210,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 {
 	TDS_DESC *ird = stmt->ird;
 	struct _drecord *drec;
-	TDSCOLINFO *col;
+	TDSCOLUMN *col;
 	TDSRESULTINFO *res_info;
 	int num_cols;
 	int i;
@@ -2393,7 +2393,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
-			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+			if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 				break;
 			if (done_flags & TDS_DONE_ERROR)
 				result = SQL_ERROR;
@@ -2434,6 +2434,8 @@ _SQLExecute(TDS_STMT * stmt)
 	odbc_populate_ird(stmt);
 	switch (ret) {
 	case TDS_NO_MORE_RESULTS:
+		if (stmt->dbc->current_statement == stmt)
+			stmt->dbc->current_statement = NULL;
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			result = SQL_SUCCESS_WITH_INFO;
 		if (result == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
@@ -2510,7 +2512,7 @@ _SQLFetch(TDS_STMT * stmt)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	int i;
 	SQLINTEGER len = 0;
 	TDS_CHAR *src;
@@ -2583,7 +2585,7 @@ _SQLFetch(TDS_STMT * stmt)
 		if (drec_ard->sql_desc_data_ptr) {
 			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 			if (is_blob_type(colinfo->column_type))
-				src = ((TDSBLOBINFO *) src)->textvalue;
+				src = ((TDSBLOB *) src)->textvalue;
 			srclen = colinfo->column_cur_size;
 			/* TODO support SQL_C_DEFAULT */
 			len = convert_tds2sql(context,
@@ -3296,7 +3298,7 @@ SQLRETURN SQL_API
 SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLINTEGER cbValueMax,
 	   SQLINTEGER FAR * pcbValue)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	TDS_CHAR *src;
@@ -3339,7 +3341,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 			/* 2003-8-29 check for an old bug -- freddy77 */
 			assert(colinfo->column_text_sqlgetdatapos >= 0);
-			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+			src = ((TDSBLOB *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
 			srclen = colinfo->column_cur_size;
@@ -4376,7 +4378,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 {
 #if ENABLE_EXTRA_CHECKS
 	TDSRESULTINFO *resinfo;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSSOCKET *tds;
 #endif
 	int icol;
@@ -4452,7 +4454,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	n = 0;
 	while (tds->res_info) {
 		TDSRESULTINFO *resinfo;
-		TDSCOLINFO *colinfo;
+		TDSCOLUMN *colinfo;
 		char *name;
 
 		/* if next is varchar leave next for SQLFetch */

@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.19 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.20 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -34,7 +34,7 @@ main(int argc, char **argv)
 	int row_count, i;
 
 	/* variables for conversions */
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSRESULTINFO *resinfo;
 	unsigned char *src;
 

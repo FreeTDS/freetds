@@ -56,11 +56,11 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.160 2003-12-26 18:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.161 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
-static int _get_printable_size(TDSCOLINFO * colinfo);
+static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
@@ -380,7 +380,7 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 {				/* (I) resultset row number                    */
 
 	int i;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int srctype;
@@ -420,7 +420,7 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 			src = ((BYTE *) buffer_row_address(buf, idx)) + curcol->column_offset;
 			srclen = curcol->column_cur_size;
 			if (is_blob_type(curcol->column_type)) {
-				src = (BYTE *) ((TDSBLOBINFO *) src)->textvalue;
+				src = (BYTE *) ((TDSBLOB *) src)->textvalue;
 			}
 			desttype = _db_get_server_type(curcol->column_bindtype);
 			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
@@ -911,7 +911,7 @@ DBPROCESS *
 tdsdbopen(LOGINREC * login, char *server)
 {
 	DBPROCESS *dbproc;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	char temp_filename[256];
 
 	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
@@ -942,12 +942,12 @@ tdsdbopen(LOGINREC * login, char *server)
 	dbproc->dbcurdb[0] = '\0';
 	dbproc->servcharset[0] = '\0';
 
-	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
-	if (!connect_info)
+	connection = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
+	if (!connection)
 		return NULL;
 
 	if (g_dblib_login_timeout >= 0) {
-		connect_info->connect_timeout = g_dblib_login_timeout;
+		connection->connect_timeout = g_dblib_login_timeout;
 	}
 
 	dbproc->dbchkintr = NULL;
@@ -955,12 +955,12 @@ tdsdbopen(LOGINREC * login, char *server)
 	dbproc->tds_socket->chkintr = dblib_chkintr;
 	dbproc->tds_socket->hndlintr = dblib_hndlintr;
 
-	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
+	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
 		dbproc->tds_socket = NULL;
-		tds_free_connect(connect_info);
+		tds_free_connection(connection);
 		return NULL;
 	}
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;
 
@@ -2006,7 +2006,7 @@ dbconvert_ps(DBPROCESS * dbproc,
 RETCODE
 dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr)
 {
-	TDSCOLINFO *colinfo = NULL;
+	TDSCOLUMN *colinfo = NULL;
 	TDSRESULTINFO *resinfo = NULL;
 	TDSSOCKET *tds = NULL;
 	int srctype = -1;
@@ -2096,7 +2096,7 @@ dbsetifile(char *filename)
 RETCODE
 dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2138,7 +2138,7 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -2243,7 +2243,7 @@ dbwillconvert(int srctype, int desttype)
 int
 dbcoltype(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2274,7 +2274,7 @@ dbcoltype(DBPROCESS * dbproc, int column)
 int
 dbcolutype(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2296,7 +2296,7 @@ DBTYPEINFO *
 dbcoltypeinfo(DBPROCESS * dbproc, int column)
 {
 	/* moved typeinfo from static into dbproc structure to make thread safe.  (mlilback 11/7/01) */
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2321,7 +2321,7 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 char *
 dbcolsource(DBPROCESS * dbproc, int colnum)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2344,7 +2344,7 @@ dbcolsource(DBPROCESS * dbproc, int colnum)
 DBINT
 dbcollen(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2370,7 +2370,7 @@ dbcollen(DBPROCESS * dbproc, int column)
 DBINT
 dbvarylen(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2421,7 +2421,7 @@ dbvarylen(DBPROCESS * dbproc, int column)
 DBINT
 dbdatlen(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	DBINT ret;
@@ -2456,7 +2456,7 @@ dbdatlen(DBPROCESS * dbproc, int column)
 BYTE *
 dbdata(DBPROCESS * dbproc, int column)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
@@ -2470,7 +2470,7 @@ dbdata(DBPROCESS * dbproc, int column)
 		return NULL;
 	}
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOBINFO *) (resinfo->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE *) ((TDSBLOB *) (resinfo->current_row + colinfo->column_offset))->textvalue;
 	}
 
 	return (BYTE *) & resinfo->current_row[colinfo->column_offset];
@@ -2510,7 +2510,7 @@ dbcancel(DBPROCESS * dbproc)
 DBINT
 dbspr1rowlen(DBPROCESS * dbproc)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int col, len = 0, collen, namlen;
@@ -2547,7 +2547,7 @@ dbspr1rowlen(DBPROCESS * dbproc)
 RETCODE
 dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	TDSDATEREC when;
@@ -2632,7 +2632,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 RETCODE
 dbprrow(DBPROCESS * dbproc)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int i, col, collen, namlen, len;
@@ -2854,7 +2854,7 @@ dbprrow(DBPROCESS * dbproc)
 }
 
 static int
-_get_printable_size(TDSCOLINFO * colinfo)
+_get_printable_size(TDSCOLUMN * colinfo)
 {
 	switch (colinfo->column_type) {
 	case SYBINTN:
@@ -2916,7 +2916,7 @@ _get_printable_size(TDSCOLINFO * colinfo)
 RETCODE
 dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int i, col, len, collen, namlen;
@@ -2973,7 +2973,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 RETCODE
 dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int i, col, collen, namlen;
@@ -3035,7 +3035,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 void
 dbprhead(DBPROCESS * dbproc)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	int i, col, len, collen, namlen;
@@ -3309,7 +3309,7 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -3353,7 +3353,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDS_SMALLINT compute_id;
 	int i;
 	DBINT ret;
@@ -3402,7 +3402,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -3478,7 +3478,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 {
 	TDSSOCKET *tds = NULL;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo = NULL;
+	TDSCOLUMN *colinfo = NULL;
 
 	TDS_SMALLINT compute_id;
 
@@ -3543,7 +3543,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -3571,7 +3571,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 #endif
 
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOBINFO *) (info->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE *) ((TDSBLOB *) (info->current_row + colinfo->column_offset))->textvalue;
 	}
 
 	return (BYTE *) & info->current_row[colinfo->column_offset];
@@ -3593,7 +3593,7 @@ dbaltop(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -3802,7 +3802,7 @@ dbretname(DBPROCESS * dbproc, int retnum)
 BYTE *
 dbretdata(DBPROCESS * dbproc, int retnum)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSPARAMINFO *param_info;
 	TDSSOCKET *tds;
 
@@ -3828,7 +3828,7 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 int
 dbretlen(DBPROCESS * dbproc, int retnum)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSPARAMINFO *param_info;
 	TDSSOCKET *tds;
 
@@ -4993,7 +4993,7 @@ dbmorecmds(DBPROCESS * dbproc)
 int
 dbrettype(DBPROCESS * dbproc, int retnum)
 {
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDSPARAMINFO *param_info;
 	TDSSOCKET *tds;
 
@@ -5178,7 +5178,7 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSBLOBINFO *blob_info;
+	TDSBLOB *blob;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (!tds->res_info)
@@ -5189,8 +5189,8 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 		return NULL;
 	if (!is_blob_type(resinfo->columns[column]->column_type))
 		return NULL;
-	blob_info = (TDSBLOBINFO *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
-	return (DBBINARY *) blob_info->timestamp;
+	blob = (TDSBLOB *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
+	return (DBBINARY *) blob->timestamp;
 }
 
 /**
@@ -5207,7 +5207,7 @@ dbtxptr(DBPROCESS * dbproc, int column)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSBLOBINFO *blob_info;
+	TDSBLOB *blob;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (!tds->res_info)
@@ -5218,8 +5218,8 @@ dbtxptr(DBPROCESS * dbproc, int column)
 		return NULL;
 	if (!is_blob_type(resinfo->columns[column]->column_type))
 		return NULL;
-	blob_info = (TDSBLOBINFO *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
-	return (DBBINARY *) blob_info->textptr;
+	blob = (TDSBLOB *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
+	return (DBBINARY *) blob->textptr;
 }
 
 /**
@@ -5317,7 +5317,7 @@ STATUS
 dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 {
 	TDSSOCKET *tds;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	int cpbytes, bytes_avail, rc;
 	TDS_INT rowtype;
 	TDS_INT computeid;
@@ -5352,7 +5352,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	/* find the number of bytes to return */
 	bytes_avail = curcol->column_cur_size - curcol->column_textpos;
 	cpbytes = bytes_avail > bufsize ? bufsize : bytes_avail;
-	memcpy(buf, &((TDSBLOBINFO *) (resinfo->current_row + curcol->column_offset))->textvalue[curcol->column_textpos], cpbytes);
+	memcpy(buf, &((TDSBLOB *) (resinfo->current_row + curcol->column_offset))->textvalue[curcol->column_textpos], cpbytes);
 	curcol->column_textpos += cpbytes;
 	return cpbytes;
 }
@@ -5680,7 +5680,7 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -5717,7 +5717,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDSCOLINFO *colinfo;
+	TDSCOLUMN *colinfo;
 	TDS_SMALLINT compute_id;
 	int i;
 
@@ -6024,4 +6024,3 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	}
 	return "(unknown)";
 }
-	

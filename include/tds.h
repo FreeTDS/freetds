@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.167 2003-12-31 11:33:10 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.168 2004-01-27 21:56:44 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -685,7 +685,7 @@ typedef struct tds_login
 	DSTR client_charset;
 } TDSLOGIN;
 
-typedef struct tds_connect_info
+typedef struct tds_connection
 {
 	/* first part of structure is the same of login one */
 	DSTR server_name; /**< server name (in freetds.conf) */
@@ -725,7 +725,7 @@ typedef struct tds_connect_info
 	int try_domain_login;
 	int xdomain_auth;
 	int emul_little_endian;
-} TDSCONNECTINFO;
+} TDSCONNECTION;
 
 typedef struct tds_locale
 {
@@ -738,12 +738,12 @@ typedef struct tds_locale
  * Information about blobs (e.g. text or image).
  * current_row contains this structure.
  */
-typedef struct tds_blob_info
+typedef struct tds_blob
 {
 	TDS_CHAR *textvalue;
 	TDS_CHAR textptr[16];
 	TDS_CHAR timestamp[8];
-} TDSBLOBINFO;
+} TDSBLOB;
 
 /** 
  * TDS 8.0 collation information.
@@ -781,7 +781,7 @@ enum
 /** 
  * Metadata about columns in regular and compute rows 
  */
-typedef struct tds_column_info
+typedef struct tds_column
 {
 	TDS_SMALLINT column_type;	/**< This type can be different from wire type because 
 	 				 * conversion (e.g. UCS-2->Ascii) can be applied.    
@@ -838,7 +838,7 @@ typedef struct tds_column_info
 	TDS_CHAR *column_lenbind;
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
-} TDSCOLINFO;
+} TDSCOLUMN;
 
 typedef struct
 {
@@ -877,7 +877,7 @@ typedef struct tds_result_info
 {
 	/* TODO those fields can became a struct */
 	TDS_SMALLINT num_cols;
-	TDSCOLINFO **columns;
+	TDSCOLUMN **columns;
 	TDS_INT row_size;
 	int null_info_size;
 	unsigned char *current_row;
@@ -933,7 +933,7 @@ typedef struct tds_result_info TDSCOMPUTEINFO;
 
 typedef TDSRESULTINFO TDSPARAMINFO;
 
-typedef struct tds_msg_info
+typedef struct tds_message
 {
 	TDS_SMALLINT priv_msg_type;
 	TDS_SMALLINT line_number;
@@ -944,7 +944,7 @@ typedef struct tds_msg_info
 	TDS_CHAR *message;
 	TDS_CHAR *proc_name;
 	TDS_CHAR *sql_state;
-} TDSMSGINFO;
+} TDSMESSAGE;
 
 typedef struct tds_upd_col
 {
@@ -991,13 +991,13 @@ typedef struct _tds_cursor
 /*
  * Current environment as reported by the server
  */
-typedef struct tds_env_info
+typedef struct tds_env
 {
 	int block_size;
 	char *language;
 	char *charset;
 	char *database;
-} TDSENVINFO;
+} TDSENV;
 
 typedef struct tds_dynamic
 {
@@ -1020,8 +1020,8 @@ struct tds_context
 	TDSLOCALE *locale;
 	void *parent;
 	/* handler */
-	int (*msg_handler) (TDSCONTEXT *, TDSSOCKET *, TDSMSGINFO *);
-	int (*err_handler) (TDSCONTEXT *, TDSSOCKET *, TDSMSGINFO *);
+	int (*msg_handler) (TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
+	int (*err_handler) (TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 };
 
 enum TDS_ICONV_INFO_ENTRY
@@ -1075,7 +1075,7 @@ struct tds_socket
 	void (*longquery_func) (void *param);
 	void *longquery_param;
 	time_t queryStarttime;
-	TDSENVINFO *env;
+	TDSENV *env;
 	/* dynamic placeholder stuff */
 	int num_dyns;
 	TDSDYNAMIC *cur_dyn;
@@ -1087,7 +1087,7 @@ struct tds_socket
 	TDSICONVINFO **iconv_info;
 
 	/** config for login stuff. After login this field is NULL */
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	int spid;
 	TDS_UCHAR collation[5];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
@@ -1101,11 +1101,11 @@ void tds_set_timeouts(TDSLOGIN * tds_login, int connect_timeout, int query_timeo
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
 void tds_free_socket(TDSSOCKET * tds);
-void tds_free_connect(TDSCONNECTINFO * connect_info);
+void tds_free_connection(TDSCONNECTION * connection);
 void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
-void tds_free_msg(TDSMSGINFO * msg_info);
+void tds_free_msg(TDSMESSAGE * message);
 void tds_free_cursor(TDS_CURSOR *cursor);
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
 int tds_put_string(TDSSOCKET * tds, const char *buf, int len);
@@ -1124,10 +1124,10 @@ TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 int tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
-int tds_read_conf_file(TDSCONNECTINFO * connect_info, const char *server);
-TDSCONNECTINFO *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
-void tds_fix_connect(TDSCONNECTINFO * connect_info);
-void tds_config_verstr(const char *tdsver, TDSCONNECTINFO * connect_info);
+int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
+TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
+void tds_fix_connection(TDSCONNECTION * connection);
+void tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
 void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 
@@ -1169,13 +1169,13 @@ void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, int bufsize);
 void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 void tds_free_compute_results(TDSCOMPUTEINFO ** comp_info, TDS_INT num_comp);
-unsigned char *tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam);
+unsigned char *tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam);
 char *tds_alloc_client_sqlstate(int msgnum);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
-TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE * locale);
+TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCALE * locale);
 TDS_CURSOR * tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen);
@@ -1195,7 +1195,7 @@ void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
 void tds_set_language(TDSLOGIN * tds_login, const char *language);
 void tds_set_version(TDSLOGIN * tds_login, short major_ver, short minor_ver);
 void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size);
-int tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
+int tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection);
 
 /* query.c */
 int tds_submit_query(TDSSOCKET * tds, const char *query);
@@ -1225,7 +1225,7 @@ int tds_process_cancel(TDSSOCKET * tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET * tds);
-void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
+void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
@@ -1237,8 +1237,8 @@ int tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level,
 int tds_do_until_done(TDSSOCKET * tds);
 
 /* data.c */
-void tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type);
-void tds_set_column_type(TDSCOLINFO * curcol, int type);
+void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
+void tds_set_column_type(TDSCOLUMN * curcol, int type);
 
 
 /* tds_convert.c */
@@ -1259,7 +1259,7 @@ unsigned char tds_peek(TDSSOCKET * tds);
 TDS_SMALLINT tds_get_smallint(TDSSOCKET * tds);
 TDS_INT tds_get_int(TDSSOCKET * tds);
 int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size);
-int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * curcol);
+int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
 int tds_read_packet(TDSSOCKET * tds);

@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.8 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.9 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -76,14 +76,14 @@ test(const char *type, const char *value, const char *result)
 
 	while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
 
-		TDSCOLINFO *curcol = tds->curr_resinfo->columns[0];
+		TDSCOLUMN *curcol = tds->curr_resinfo->columns[0];
 		unsigned char *src = tds->curr_resinfo->current_row + curcol->column_offset;
 		int conv_type = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		if (is_blob_type(curcol->column_type)) {
-			TDSBLOBINFO *bi = (TDSBLOBINFO *) src;
+			TDSBLOB *blob = (TDSBLOB *) src;
 
-			src = (unsigned char *) bi->textvalue;
+			src = (unsigned char *) blob->textvalue;
 		}
 
 		if (tds_convert(test_context, conv_type, src, curcol->column_cur_size, SYBVARCHAR, &cr) < 0) {

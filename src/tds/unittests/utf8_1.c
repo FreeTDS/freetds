@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.4 2004-01-26 13:39:35 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.5 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -162,13 +162,13 @@ test(const char *type, const char *test_name)
 	i = 0;
 	while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
 
-		TDSCOLINFO *curcol = tds->curr_resinfo->columns[0];
+		TDSCOLUMN *curcol = tds->curr_resinfo->columns[0];
 		unsigned char *src = tds->curr_resinfo->current_row + curcol->column_offset;
 
 		if (is_blob_type(curcol->column_type)) {
-			TDSBLOBINFO *bi = (TDSBLOBINFO *) src;
+			TDSBLOB *blob = (TDSBLOB *) src;
 
-			src = (unsigned char *) bi->textvalue;
+			src = (unsigned char *) blob->textvalue;
 		}
 
 		strcpy(buf, to_utf8(strings[i], tmp));

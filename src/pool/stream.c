@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.15 2003-09-21 18:37:43 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.16 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -122,7 +122,7 @@ read_variable_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen
 static int
 read_row(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	int i, colsize;
 	int pos = 1;		/* skip marker */
@@ -162,7 +162,7 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 	int namelen;
 	struct tmp_col_struct *head = NULL, *cur = NULL, *prev;
 	int col;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
 	/* header size */
@@ -235,7 +235,7 @@ read_col_info(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 	TDS_SMALLINT hdrsize;
 	int pos = 0;
 	int col, rest;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	TDSSOCKET *tds = pmbr->tds;
 

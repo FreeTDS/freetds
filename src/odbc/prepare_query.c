@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.39 2003-11-22 17:22:25 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.40 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -496,7 +496,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 	struct _drecord *drec_apd, *drec_ipd;
 	int len;
 	int need_bytes;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 
 	if (!stmt->params)
 		return SQL_ERROR;
@@ -523,19 +523,19 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 
 	/* copy to destination */
 	if (is_blob_type(curcol->column_type)) {
-		TDSBLOBINFO *blob_info = (TDSBLOBINFO *) (stmt->params->current_row + curcol->column_offset);
+		TDSBLOB *blob = (TDSBLOB *) (stmt->params->current_row + curcol->column_offset);
 		TDS_CHAR *p;
 
-		if (blob_info->textvalue)
-			p = (TDS_CHAR *) realloc(blob_info->textvalue, len + curcol->column_cur_size);
+		if (blob->textvalue)
+			p = (TDS_CHAR *) realloc(blob->textvalue, len + curcol->column_cur_size);
 		else {
 			assert(curcol->column_cur_size == 0);
 			p = (TDS_CHAR *) malloc(len);
 		}
 		if (!p)
 			return SQL_ERROR;
-		blob_info->textvalue = p;
-		memcpy(blob_info->textvalue + curcol->column_cur_size, DataPtr, len);
+		blob->textvalue = p;
+		memcpy(blob->textvalue + curcol->column_cur_size, DataPtr, len);
 	} else {
 		memcpy(stmt->params->current_row + curcol->column_cur_size, DataPtr, len);
 	}

@@ -41,14 +41,14 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.124 2003-12-28 17:53:55 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.125 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const char *param_definition,
 				  int param_length);
-static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
-static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
+static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
+static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
 static int tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 static const char *tds_skip_comment(const char *s);
@@ -179,7 +179,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 int
 tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
-	TDSCOLINFO *param;
+	TDSCOLUMN *param;
 	int query_len, i;
 
 	if (!query)
@@ -443,7 +443,7 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
  * \param out    buffer to hold declaration
  */
 static void
-tds_get_column_declaration(TDSSOCKET * tds, TDSCOLINFO * curcol, char *out)
+tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
 
@@ -847,7 +847,7 @@ int
 tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int query_len;
-	TDSCOLINFO *param;
+	TDSCOLUMN *param;
 	char *tmp_id = NULL;
 	TDSDYNAMIC *dyn;
 	int id_len;
@@ -980,7 +980,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
  * \return TDS_SUCCEED or TDS_FAIL
  */
 static int
-tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
+tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len;
 
@@ -1060,7 +1060,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
  * \return TDS_SUCCEED or TDS_FAIL
  */
 static int
-tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
+tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len = 8;
 
@@ -1086,11 +1086,11 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
  * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
-tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i)
+tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i)
 {
 	unsigned char *src;
 	TDS_NUMERIC *num;
-	TDSBLOBINFO *blob_info = NULL;
+	TDSBLOB *blob = NULL;
 	int colsize;
 	int is_null;
 
@@ -1123,8 +1123,8 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			    curcol->column_varint_size);
 
 		if (is_blob_type(curcol->column_type)) {
-			blob_info = (TDSBLOBINFO *) src;
-			src = blob_info->textvalue;
+			blob = (TDSBLOB *) src;
+			src = blob->textvalue;
 		}
 
 		/* convert string if needed */
@@ -1152,7 +1152,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
 			break;
@@ -1181,7 +1181,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
 			num = &buf;
 			tds_put_n(tds, num->array, colsize);
-		} else if (blob_info) {
+		} else if (blob) {
 			tds_put_n(tds, s, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
@@ -1204,10 +1204,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		/* put size of data */
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
 			tds_put_byte(tds, 16);
-			tds_put_n(tds, blob_info->textptr, 16);
-			tds_put_n(tds, blob_info->timestamp, 8);
+			tds_put_n(tds, blob->textptr, 16);
+			tds_put_n(tds, blob->timestamp, 8);
 			tds_put_int(tds, colsize);
 			break;
 		case 2:
@@ -1237,9 +1237,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			}
 			tds_put_n(tds, num->array, colsize);
 		} else if (is_blob_type(curcol->column_type)) {
-			blob_info = (TDSBLOBINFO *) src;
+			blob = (TDSBLOB *) src;
 			/* FIXME ICONV handle conversion when needed */
-			tds_put_n(tds, blob_info->textvalue, colsize);
+			tds_put_n(tds, blob->textvalue, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
@@ -1268,7 +1268,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 int
 tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
-	TDSCOLINFO *param;
+	TDSCOLUMN *param;
 	TDSPARAMINFO *info;
 	int id_len;
 	int i;
@@ -1479,7 +1479,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 int
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
-	TDSCOLINFO *param;
+	TDSCOLUMN *param;
 	int rpc_name_len, i;
 	int num_params = params ? params->num_cols : 0;
 
@@ -2043,7 +2043,7 @@ tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
 static int
 tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 {
-	TDSCOLINFO *curcol = params->columns[n];
+	TDSCOLUMN *curcol = params->columns[n];
 	CONV_RESULT cr;
 	TDS_INT res;
 	TDS_CHAR *src = &params->current_row[curcol->column_offset];
@@ -2053,7 +2053,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	char buf[256];
 	
 	if (is_blob_type(curcol->column_type))
-		src = ((TDSBLOBINFO *)src)->textvalue;
+		src = ((TDSBLOB *)src)->textvalue;
 	
 	/* we could try to use only tds_convert but is not good in all cases */
 	switch (curcol->column_type) {

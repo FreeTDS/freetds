@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.30 2004-01-09 23:18:20 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.31 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -105,10 +105,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
-	TDSBLOBINFO *blob_info;
+	TDSBLOB *blob;
 	char *src;
 	unsigned char *dest;
-	TDSCOLINFO *curcol = info->columns[nparam];
+	TDSCOLUMN *curcol = info->columns[nparam];
 	int len;
 	TDS_DATETIME dt;
 	TDS_NUMERIC num;
@@ -277,10 +277,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		free(ores.c);
 		break;
 	case SYBTEXT:
-		blob_info = (TDSBLOBINFO *) dest;
-		if (blob_info->textvalue)
-			free(blob_info->textvalue);
-		blob_info->textvalue = ores.c;
+		blob = (TDSBLOB *) dest;
+		if (blob->textvalue)
+			free(blob->textvalue);
+		blob->textvalue = ores.c;
 		break;
 	case SYBBINARY:
 	case SYBVARBINARY:
@@ -291,10 +291,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		break;
 	case SYBLONGBINARY:
 	case SYBIMAGE:
-		blob_info = (TDSBLOBINFO *) dest;
-		if (blob_info->textvalue)
-			free(blob_info->textvalue);
-		blob_info->textvalue = ores.ib;
+		blob = (TDSBLOB *) dest;
+		if (blob->textvalue)
+			free(blob->textvalue);
+		blob->textvalue = ores.ib;
 		break;
 	case SYBINTN:
 	case SYBINT1:

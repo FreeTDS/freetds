@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.14 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.15 2004-01-27 21:56:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -54,7 +54,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* Test currently disabled during TDSENVINFO changes */
+	/* Test currently disabled during TDSENV changes */
 	if (verbose) {
 		fprintf(stdout, "database changed to %s\n", tds->env->database);
 	}

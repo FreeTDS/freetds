@@ -42,12 +42,12 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.107 2003-12-06 20:20:53 ppeterd Exp $";
+static char software_version[] = "$Id: mem.c,v 1.108 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
 
-static TDSENVINFO *tds_alloc_env(TDSSOCKET * tds, int bufsize);
+static TDSENV *tds_alloc_env(TDSSOCKET * tds, int bufsize);
 static void tds_free_env(TDSSOCKET * tds);
 
 #undef TEST_MALLOC
@@ -212,18 +212,18 @@ TDSPARAMINFO *
 tds_alloc_param_result(TDSPARAMINFO * old_param)
 {
 	TDSPARAMINFO *param_info;
-	TDSCOLINFO *colinfo;
-	TDSCOLINFO **cols;
+	TDSCOLUMN *colinfo;
+	TDSCOLUMN **cols;
 
-	colinfo = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
+	colinfo = (TDSCOLUMN *) malloc(sizeof(TDSCOLUMN));
 	if (!colinfo)
 		return NULL;
-	memset(colinfo, 0, sizeof(TDSCOLINFO));
+	memset(colinfo, 0, sizeof(TDSCOLUMN));
 
 	if (!old_param || !old_param->num_cols) {
-		cols = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *));
+		cols = (TDSCOLUMN **) malloc(sizeof(TDSCOLUMN *));
 	} else {
-		cols = (TDSCOLINFO **) realloc(old_param->columns, sizeof(TDSCOLINFO *) * (old_param->num_cols + 1));
+		cols = (TDSCOLUMN **) realloc(old_param->columns, sizeof(TDSCOLUMN *) * (old_param->num_cols + 1));
 	}
 	if (!cols)
 		goto Cleanup;
@@ -247,14 +247,14 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 }
 
 /**
- * Add another field to row. Is assumed that last TDSCOLINFO contain information about this.
+ * Add another field to row. Is assumed that last TDSCOLUMN contain information about this.
  * Update also info structure.
  * @param info     parameters info where is contained row
  * @param curparam parameter to retrieve size information
  * @return NULL on failure or new row
  */
 unsigned char *
-tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
+tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 {
 	int null_size, i;
 	TDS_INT row_size;
@@ -274,7 +274,7 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 	if (is_numeric_type(curparam->column_type)) {
 		row_size = sizeof(TDS_NUMERIC);
 	} else if (is_blob_type(curparam->column_type)) {
-		row_size = sizeof(TDSBLOBINFO);
+		row_size = sizeof(TDSBLOB);
 	} else {
 		row_size = curparam->column_size;
 	}
@@ -296,7 +296,7 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 		return NULL;
 	/* if is a blob reset buffer */
 	if (is_blob_type(curparam->column_type))
-		memset(row + info->row_size, 0, sizeof(TDSBLOBINFO));
+		memset(row + info->row_size, 0, sizeof(TDSBLOB));
 	info->current_row = row;
 	info->row_size = row_size;
 
@@ -329,14 +329,14 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
 	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
 
-	TEST_CALLOC(info->columns, TDSCOLINFO *, num_cols);
-	memset(info->columns, '\0', sizeof(TDSCOLINFO *) * num_cols);
+	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
+	memset(info->columns, '\0', sizeof(TDSCOLUMN *) * num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
 	for (col = 0; col < num_cols; col++) {
-		TEST_MALLOC(info->columns[col], TDSCOLINFO);
-		memset(info->columns[col], '\0', sizeof(TDSCOLINFO));
+		TEST_MALLOC(info->columns[col], TDSCOLUMN);
+		memset(info->columns[col], '\0', sizeof(TDSCOLUMN));
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
@@ -395,7 +395,7 @@ tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int 
 TDSRESULTINFO *
 tds_alloc_results(int num_cols)
 {
-/*TDSCOLINFO *curcol;
+/*TDSCOLUMN *curcol;
  */
 	TDSRESULTINFO *res_info;
 	int col;
@@ -403,10 +403,10 @@ tds_alloc_results(int num_cols)
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	memset(res_info, '\0', sizeof(TDSRESULTINFO));
-	TEST_CALLOC(res_info->columns, TDSCOLINFO *, num_cols);
+	TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
 	for (col = 0; col < num_cols; col++) {
-		TEST_MALLOC(res_info->columns[col], TDSCOLINFO);
-		memset(res_info->columns[col], '\0', sizeof(TDSCOLINFO));
+		TEST_MALLOC(res_info->columns[col], TDSCOLUMN);
+		memset(res_info->columns[col], '\0', sizeof(TDSCOLUMN));
 	}
 	res_info->num_cols = num_cols;
 	null_sz = (unsigned) (num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
@@ -479,7 +479,7 @@ void
 tds_free_results(TDSRESULTINFO * res_info)
 {
 	int i;
-	TDSCOLINFO *curcol;
+	TDSCOLUMN *curcol;
 
 	if (!res_info)
 		return;
@@ -488,7 +488,7 @@ tds_free_results(TDSRESULTINFO * res_info)
 		for (i = 0; i < res_info->num_cols; i++)
 			if ((curcol = res_info->columns[i]) != NULL) {
 				if (res_info->current_row && is_blob_type(curcol->column_type) && curcol->column_offset) {
-					free(((TDSBLOBINFO *) (res_info->current_row + curcol->column_offset))->textvalue);
+					free(((TDSBLOB *) (res_info->current_row + curcol->column_offset))->textvalue);
 				}
 				free(curcol);
 			}
@@ -570,61 +570,61 @@ static const unsigned char defaultcaps[] = { 0x01, 0x09, 0x00, 0x00, 0x06, 0x6D,
  * @param locale locale information (copied to configuration information)
  * @result allocated structure or NULL if out of memory
  */
-TDSCONNECTINFO *
-tds_alloc_connect(TDSLOCALE * locale)
+TDSCONNECTION *
+tds_alloc_connection(TDSLOCALE * locale)
 {
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	char hostname[128];
 
-	TEST_MALLOC(connect_info, TDSCONNECTINFO);
-	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
-	tds_dstr_init(&connect_info->server_name);
-	tds_dstr_init(&connect_info->language);
-	tds_dstr_init(&connect_info->server_charset);
-	tds_dstr_init(&connect_info->host_name);
-	tds_dstr_init(&connect_info->app_name);
-	tds_dstr_init(&connect_info->user_name);
-	tds_dstr_init(&connect_info->password);
-	tds_dstr_init(&connect_info->library);
-	tds_dstr_init(&connect_info->ip_addr);
-	tds_dstr_init(&connect_info->database);
-	tds_dstr_init(&connect_info->dump_file);
-	tds_dstr_init(&connect_info->default_domain);
-	tds_dstr_init(&connect_info->client_charset);
+	TEST_MALLOC(connection, TDSCONNECTION);
+	memset(connection, '\0', sizeof(TDSCONNECTION));
+	tds_dstr_init(&connection->server_name);
+	tds_dstr_init(&connection->language);
+	tds_dstr_init(&connection->server_charset);
+	tds_dstr_init(&connection->host_name);
+	tds_dstr_init(&connection->app_name);
+	tds_dstr_init(&connection->user_name);
+	tds_dstr_init(&connection->password);
+	tds_dstr_init(&connection->library);
+	tds_dstr_init(&connection->ip_addr);
+	tds_dstr_init(&connection->database);
+	tds_dstr_init(&connection->dump_file);
+	tds_dstr_init(&connection->default_domain);
+	tds_dstr_init(&connection->client_charset);
 
 	/* fill in all hardcoded defaults */
-	if (!tds_dstr_copy(&connect_info->server_name, TDS_DEF_SERVER))
+	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
 		goto Cleanup;
-	connect_info->major_version = TDS_DEF_MAJOR;
-	connect_info->minor_version = TDS_DEF_MINOR;
-	connect_info->port = TDS_DEF_PORT;
-	connect_info->block_size = 0;
+	connection->major_version = TDS_DEF_MAJOR;
+	connection->minor_version = TDS_DEF_MINOR;
+	connection->port = TDS_DEF_PORT;
+	connection->block_size = 0;
 	/* TODO use system default ?? */
-	if (!tds_dstr_copy(&connect_info->client_charset, "ISO-8859-1"))
+	if (!tds_dstr_copy(&connection->client_charset, "ISO-8859-1"))
 		goto Cleanup;
 	if (locale) {
 		if (locale->language)
-			if (!tds_dstr_copy(&connect_info->language, locale->language))
+			if (!tds_dstr_copy(&connection->language, locale->language))
 				goto Cleanup;
 		if (locale->char_set)
-			if (!tds_dstr_copy(&connect_info->server_charset, locale->char_set))
+			if (!tds_dstr_copy(&connection->server_charset, locale->char_set))
 				goto Cleanup;
 	}
-	if (tds_dstr_isempty(&connect_info->language)) {
-		if (!tds_dstr_copy(&connect_info->language, TDS_DEF_LANG))
+	if (tds_dstr_isempty(&connection->language)) {
+		if (!tds_dstr_copy(&connection->language, TDS_DEF_LANG))
 			goto Cleanup;
 	}
-	connect_info->try_server_login = 1;
+	connection->try_server_login = 1;
 	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
 	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's truncated */
-	if (!tds_dstr_copy(&connect_info->host_name, hostname))
+	if (!tds_dstr_copy(&connection->host_name, hostname))
 		goto Cleanup;
 
-	memcpy(connect_info->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
-	return connect_info;
+	memcpy(connection->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
+	return connection;
       Cleanup:
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	return NULL;
 }
 
@@ -792,35 +792,35 @@ tds_free_locale(TDSLOCALE * locale)
 }
 
 void
-tds_free_connect(TDSCONNECTINFO * connect_info)
+tds_free_connection(TDSCONNECTION * connection)
 {
-	tds_dstr_free(&connect_info->server_name);
-	tds_dstr_free(&connect_info->host_name);
-	tds_dstr_free(&connect_info->language);
-	tds_dstr_free(&connect_info->server_charset);
-	tds_dstr_free(&connect_info->ip_addr);
-	tds_dstr_free(&connect_info->database);
-	tds_dstr_free(&connect_info->dump_file);
-	tds_dstr_free(&connect_info->default_domain);
-	tds_dstr_free(&connect_info->client_charset);
-	tds_dstr_free(&connect_info->app_name);
-	tds_dstr_free(&connect_info->user_name);
+	tds_dstr_free(&connection->server_name);
+	tds_dstr_free(&connection->host_name);
+	tds_dstr_free(&connection->language);
+	tds_dstr_free(&connection->server_charset);
+	tds_dstr_free(&connection->ip_addr);
+	tds_dstr_free(&connection->database);
+	tds_dstr_free(&connection->dump_file);
+	tds_dstr_free(&connection->default_domain);
+	tds_dstr_free(&connection->client_charset);
+	tds_dstr_free(&connection->app_name);
+	tds_dstr_free(&connection->user_name);
 	/* cleared for security reason */
-	tds_dstr_zero(&connect_info->password);
-	tds_dstr_free(&connect_info->password);
-	tds_dstr_free(&connect_info->library);
-	TDS_ZERO_FREE(connect_info);
+	tds_dstr_zero(&connection->password);
+	tds_dstr_free(&connection->password);
+	tds_dstr_free(&connection->library);
+	TDS_ZERO_FREE(connection);
 }
 
-static TDSENVINFO *
+static TDSENV *
 tds_alloc_env(TDSSOCKET * tds, int bufsize)
 {
-	TDSENVINFO *env;
+	TDSENV *env;
 
-	env = (TDSENVINFO *) malloc(sizeof(TDSENVINFO));
+	env = (TDSENV *) malloc(sizeof(TDSENV));
 	if (!env)
 		return NULL;
-	memset(env, '\0', sizeof(TDSENVINFO));
+	memset(env, '\0', sizeof(TDSENV));
 	env->block_size = bufsize;
 
 	return env;
@@ -841,22 +841,22 @@ tds_free_env(TDSSOCKET * tds)
 }
 
 void
-tds_free_msg(TDSMSGINFO * msg_info)
+tds_free_msg(TDSMESSAGE * message)
 {
-	if (msg_info) {
-		msg_info->priv_msg_type = 0;
-		msg_info->msg_number = 0;
-		msg_info->msg_state = 0;
-		msg_info->msg_level = 0;
-		msg_info->line_number = 0;
-		if (msg_info->message)
-			TDS_ZERO_FREE(msg_info->message);
-		if (msg_info->server)
-			TDS_ZERO_FREE(msg_info->server);
-		if (msg_info->proc_name)
-			TDS_ZERO_FREE(msg_info->proc_name);
-		if (msg_info->sql_state)
-			TDS_ZERO_FREE(msg_info->sql_state);
+	if (message) {
+		message->priv_msg_type = 0;
+		message->msg_number = 0;
+		message->msg_state = 0;
+		message->msg_level = 0;
+		message->line_number = 0;
+		if (message->message)
+			TDS_ZERO_FREE(message->message);
+		if (message->server)
+			TDS_ZERO_FREE(message->server);
+		if (message->proc_name)
+			TDS_ZERO_FREE(message->proc_name);
+		if (message->sql_state)
+			TDS_ZERO_FREE(message->sql_state);
 	}
 }
 

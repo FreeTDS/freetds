@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.26 2003-09-25 21:14:24 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.27 2004-01-27 21:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -69,7 +69,7 @@ pool_mbr_login(TDS_POOL * pool)
 	TDSCONTEXT *context;
 	TDSLOGIN *login;
 	TDSSOCKET *tds;
-	TDSCONNECTINFO *connect_info;
+	TDSCONNECTION *connection;
 	int rc;
 	char *query;
 	char hostname[MAXHOSTNAMELEN];
@@ -92,14 +92,14 @@ pool_mbr_login(TDS_POOL * pool)
 	context = tds_alloc_context();
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
-	connect_info = tds_read_config_info(NULL, login, context->locale);
-	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
-		tds_free_connect(connect_info);
+	connection = tds_read_config_info(NULL, login, context->locale);
+	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
+		tds_free_connection(connection);
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n", pool->server);
 		return NULL;
 	}
-	tds_free_connect(connect_info);
+	tds_free_connection(connection);
 	/* FIX ME -- tds_connect no longer preallocates the in_buf need to 
 	 * ** do something like what tds_read_packet does */
 	tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
