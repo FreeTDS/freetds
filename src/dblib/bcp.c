@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.57 2003-03-12 06:19:59 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.58 2003-03-12 21:29:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -986,71 +986,78 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 	return SUCCEED;
 }
 
-/**
+/*
  * Read a terminated variable from a hostfile 
  */
 static int
 _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data)
 {
 	int i = 0, ibuffer=0;
-	int termfound = 1;
-	char x;
-	char *tester = NULL;
+	char x, *sample = &x;
 	int bufpos = 0;
 	int found = 0;
 	unsigned char *pdata;
 
 	if (hostcol->term_len > 1)
-		tester = (char *) malloc(hostcol->term_len);
+		sample = (char *) malloc(hostcol->term_len);
 
 	/* data[0] must be allocated by the caller; we never free it */
-
 	assert (data);
 	if (data == NULL || data[0] == NULL)
 		return -1;
 
-	while (data[ibuffer] && !found && (x = getc(hostfile)) != EOF) {
-		pdata = data[ibuffer] + bufpos - (ibuffer * buffer_size_term_data);
-		if (x != *hostcol->terminator) {
-			*pdata = x;
+	pdata = data[0];
+
+	while (data[ibuffer] && !found && (*sample = getc(hostfile)) != EOF) {
+		
+		int bytes_read = 1;
+
+		/* Did we find the start of a terminator? */
+		if (*sample == *hostcol->terminator) {
+
+			/* 
+			 * Hit the first character of a column terminator.  Is it a whole terminator, or is it data?  
+			 * Back up, read a whole terminator, and compare.
+			 */
+			ungetc(*sample, hostfile);
+			bytes_read = fread(sample, hostcol->term_len, 1, hostfile);
+			bytes_read *= hostcol->term_len;
+
+			if (bytes_read < hostcol->term_len) {
+				if (feof(hostfile)) {
+					/* a cheat: we don't have dbproc, so pass zero */
+					_bcp_err_handler(0, SYBEBEOF);
+				} else {
+					_bcp_err_handler(0, SYBEBCRE);
+				}
+				break;
+			}
+
+			found = 0 == memcmp(sample, hostcol->terminator, hostcol->term_len);
+			
+			if (found) {	/* stick on a NULL (why?) and return */
+				*pdata = '\0';
+				break;
+			} 
+		}
+
+		/* It's data.  Move it into the column buffer.  */
+		for (i=0; i < bytes_read; i++) {
+
+			*pdata++ = sample[i];
 			bufpos++;
-			if (0 == bufpos % buffer_size_term_data) {
+		
+			if (0 == bufpos % buffer_size_term_data) {	/* filled the buffer */
 				if (bufpos >= max_field_size_term_data)	/* no more room: give up */
 					data[++ibuffer] = 0;
-				else
+				else 
 					data[++ibuffer] = (char*) malloc(buffer_size_term_data);
-			}
-		} else {
-			if (hostcol->term_len == 1) {
-				*pdata = '\0';
-				found = 1;
-			} else {
-				ungetc(x, hostfile);
-				fread(tester, hostcol->term_len, 1, hostfile);
-				termfound = 1;
-				for (i=0; i < hostcol->term_len; i++) {
-					if (*(tester + i) != *(hostcol->terminator + i))
-						termfound = 0;
-				}
-				if (termfound) {
-					*pdata = '\0';
-					found = 1;
-				} else {
-					for (i = 0; i < hostcol->term_len; i++, pdata++) {
-						*pdata = *(tester + i);
-						if (0 == buffer_size_term_data % ++bufpos) {
-							if (bufpos >= max_field_size_term_data)	/* no more room: give up */
-								data[++ibuffer] = 0;
-							else
-								data[++ibuffer] = (char*) malloc(buffer_size_term_data);
-						}
-						if (data[ibuffer] == NULL) 
-							break; /* should drop out of loop, free buffers, and return -1 */
 
-						pdata = data[ibuffer] + bufpos - (ibuffer * buffer_size_term_data);
-					}
-				}
+				pdata = data[ibuffer];
 			}
+
+			if (data[ibuffer] == NULL) 
+				break; /* drop out of loop, free buffers, and return -1 */
 		}
 	}
 
@@ -1064,7 +1071,6 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 	}
 
 	return (-1);
-
 }
 
 /**
