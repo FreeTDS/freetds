@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.21 2003-03-12 06:19:46 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.22 2003-03-19 17:05:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -294,6 +294,13 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				else
 					state = GET_TEXTSIZE;
 				break;
+			case 'A':
+				pdata->Aflag++;
+				if (strlen(arg) > 2)
+					pdata->packetsize = atoi(&arg[2]);
+				else
+					state = GET_PACKETSIZE;
+				break;
 			default:
 				fprintf(stderr, "Unknown option '%c'.\n", arg[1]);
 				return (FALSE);
@@ -356,6 +363,10 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			break;
 		case GET_TEXTSIZE:
 			pdata->textsize = atoi(arg);
+			state = GET_NEXTARG;
+			break;
+		case GET_PACKETSIZE:
+			pdata->packetsize = atoi(arg);
 			state = GET_NEXTARG;
 			break;
 
@@ -427,6 +438,12 @@ LOGINREC *login;
 	DBSETLUSER(login, pdata->user);
 	DBSETLPWD(login, pdata->pass);
 	DBSETLAPP(login, "FreeBCP");
+
+	/* if packet size specified, set in login record */
+
+	if (pdata->Aflag && pdata->packetsize > 0) {
+		DBSETLPACKET(login, pdata->packetsize);
+	}
 
 	/* Enable bulk copy for this connection. */
 
@@ -604,7 +621,7 @@ int li_rowsread;
 void
 pusage(void)
 {
-	fprintf(stderr, "usage: bcp [[database_name.]owner.]table_name {in | out} datafile\n");
+	fprintf(stderr, "usage:  freebcp [[database_name.]owner.]table_name {in | out} datafile\n");
 	fprintf(stderr, "        [-m maxerrors] [-f formatfile] [-e errfile]\n");
 	fprintf(stderr, "        [-F firstrow] [-L lastrow] [-b batchsize]\n");
 	fprintf(stderr, "        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
@@ -613,7 +630,7 @@ pusage(void)
 	fprintf(stderr, "        [-A packet size] [-J client character set]\n");
 	fprintf(stderr, "        [-T text or image size] [-E] [-N] [-X]  [-y sybase_dir]\n");
 	fprintf(stderr, "        [-Mlabelname labelvalue] [-labeled]\n");
-	fprintf(stderr, "example: bcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
+	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
 
 int

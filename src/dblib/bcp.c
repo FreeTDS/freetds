@@ -62,7 +62,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.59 2003-03-14 20:00:41 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.60 2003-03-19 17:05:15 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1739,8 +1739,10 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	char *query;
 	char clause_buffer[4096] = {0};
 
-	TDS_PBCB colclause = { clause_buffer, sizeof(clause_buffer) };
+	TDS_PBCB colclause; 
 
+	colclause.pb = clause_buffer;
+	colclause.cb = sizeof(clause_buffer);
 
 	if (IS_TDS7_PLUS(tds)) {
 		int erc;

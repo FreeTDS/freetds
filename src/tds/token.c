@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.153 2003-03-07 16:46:13 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.154 2003-03-19 17:05:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1542,7 +1542,7 @@ TDSRESULTINFO *info;
 TDS_INT
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
-int more_results, was_cancelled, error;
+int more_results, was_cancelled, error, done_count_valid;
 int tmp;
 
 	tmp = tds_get_smallint(tds);
@@ -1550,12 +1550,16 @@ int tmp;
 	more_results = (tmp & TDS_DONE_MORE_RESULTS) != 0;
 	was_cancelled = (tmp & TDS_DONE_CANCELLED) != 0;
 	error = (tmp & TDS_DONE_ERROR) != 0;
+	done_count_valid = (tmp & TDS_DONE_COUNT) != 0;
 
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_end() more_results = %d, was_cancelled = %d \n",
 		    more_results, was_cancelled);
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
+		if (tds->curr_resinfo == NULL)
+			tds->curr_resinfo = tds->res_info;
+
 	}
 
 	if (flags_parm)
@@ -1570,7 +1574,13 @@ int tmp;
 	/* rows affected is in the tds struct because a query may affect rows but
 	 * have no result set. */
 
-	tds->rows_affected = tds_get_int(tds);
+	if (done_count_valid)
+		tds->rows_affected = tds_get_int(tds);
+	else {
+		tmp = tds_get_int(tds); /* throw it away */
+		tds->rows_affected = TDS_NO_COUNT;
+	}
+
 
 	if (error)
 		return TDS_FAIL;

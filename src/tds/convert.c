@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.116 2003-03-06 11:28:04 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.117 2003-03-19 17:05:18 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2167,6 +2167,12 @@ int   digits   = 0;
 
 }
 
+/* This function will check if an alphanumeric string */
+/* holds a date in any of the following formats :     */
+/*    DD-MON-YYYY */
+/*    DD-MON-YY   */
+/*    DDMONYY     */
+/*    DDMONYYYY   */
 static int is_dd_mon_yyyy(char *t)
 {
 char *instr ;
@@ -2184,38 +2190,66 @@ char  month[4];
 
 	instr++;
 
-	if (*instr != '-')
-		return(0);
+	if (*instr == '-') {
+		instr++;
+	
+		strncpy(month, instr, 3);
+	    month[3] = '\0';
+	
+		if (!is_monthname(month))
+			return(0);
+	
+		instr += 3;
+	
+		if (*instr != '-')
+			return(0);
+	
+		instr++;
+		if (!isdigit((unsigned char) *instr))
+			return(0);
+	
+		instr++;
+		if (!isdigit((unsigned char) *instr))
+			return(0);
+	
+		instr++;
+		
+		if ( *instr ) {
+			if (!isdigit((unsigned char) *instr))
+				return(0);
+		
+			instr++;
+			if (!isdigit((unsigned char) *instr))
+				return(0);
+		}
+	
+	} else {
 
-	instr++;
-
-	strncpy(month, instr, 3);
-    month[3] = '\0';
-
-	if (!is_monthname(month))
-		return(0);
-
-	instr += 3;
-
-	if (*instr != '-')
-		return(0);
-
-	instr++;
-	if (!isdigit((unsigned char) *instr))
-		return(0);
-
-	instr++;
-	if (!isdigit((unsigned char) *instr))
-		return(0);
-
-	instr++;
-	if (!isdigit((unsigned char) *instr))
-		return(0);
-
-	instr++;
-	if (!isdigit((unsigned char) *instr))
-		return(0);
-
+		strncpy(month, instr, 3);
+	    month[3] = '\0';
+	
+		if (!is_monthname(month))
+			return(0);
+	
+		instr += 3;
+	
+		if (!isdigit((unsigned char) *instr))
+			return(0);
+	
+		instr++;
+		if (!isdigit((unsigned char) *instr))
+			return(0);
+	
+		instr++;
+		if ( *instr ) {
+			if (!isdigit((unsigned char) *instr))
+				return(0);
+		
+			instr++;
+			if (!isdigit((unsigned char) *instr))
+				return(0);
+		}
+	}
 
     return(1);
 
@@ -2429,19 +2463,33 @@ int  year;
        t->tm_mday = mday;
     else
        return 0; 
-	strncpy(mon, &datestr[3], 3);
-	mon[3] = '\0';
 
-	if (!store_monthname(mon, t))
-       return 0; 
-
-	strncpy(yyyy, &datestr[7], 4);
-	yyyy[4] = '\0';
-	year = atoi(yyyy);
-
-    return store_year(year, t);
+	if ( datestr[2] == '-' ) {
+		strncpy(mon, &datestr[3], 3);
+		mon[3] = '\0';
+	
+		if (!store_monthname(mon, t))
+	       return 0; 
+	
+		strcpy(yyyy, &datestr[7]);
+		year = atoi(yyyy);
+	
+	    return store_year(year, t);
+	} else {
+		strncpy(mon, &datestr[2], 3);
+		mon[3] = '\0';
+	
+		if (!store_monthname(mon, t))
+	       return 0; 
+	
+		strcpy(yyyy, &datestr[5]);
+		year = atoi(yyyy);
+	
+	    return store_year(year, t);
+	}
 
 }
+
 static int store_monthname(char *datestr , struct tds_time *t)
 {
 

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.84 2003-03-19 02:13:43 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.85 2003-03-19 17:05:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -63,6 +63,100 @@ static void param_clear(CSREMOTE_PROC_PARAM * pparam);
 static TDSPARAMINFO* paraminfoalloc(CS_PARAM * first_param);
 
 /* RPC Code changes ends here */
+
+static const char *
+_ct_get_layer(int layer)
+{
+	switch (layer) {
+	case 1:
+		return "user api layer";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized layer";
+}
+
+static const char *
+_ct_get_origin(int origin)
+{
+	switch (origin) {
+	case 1:
+		return "external error";
+		break;
+	case 2:
+		return "internal CT-Library error";
+		break;
+	case 4:
+		return "common library error";
+		break;
+	case 5:
+		return "intl library error";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized origin";
+}
+
+static const char *
+_ct_get_user_api_layer_error(int error)
+{
+	switch (error) {
+	case 137:
+		return "A bind count of %1! is not consistent with the count supplied for existing binds. The current bind count is %2!.";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized error";
+}
+
+static char *
+_ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int number)
+{
+	char *m;
+
+	if (asprintf(&m, 
+				"%s: %s: %s: %s", 
+				funcname, _ct_get_layer(layer), _ct_get_origin(origin), _ct_get_user_api_layer_error(number) 
+				) < 0) {
+		return NULL;
+	}
+	return m;
+}
+
+static void
+_ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, const char *fmt, ...)
+{
+	CS_CONTEXT *ctx = con->ctx;
+	va_list ap;
+	CS_CLIENTMSG cm;
+	char *msgstr;
+
+	va_start(ap, fmt);
+
+	if (ctx->_clientmsg_cb) {
+		cm.severity = severity;
+		cm.msgnumber = (((layer << 24) & 0xFF000000)
+				| ((origin << 16) & 0x00FF0000)
+				| ((severity << 8) & 0x0000FF00)
+				| ((number) & 0x000000FF));
+		msgstr = _ct_get_msgstr(funcname, layer, origin, severity, number);
+		tds_vstrbuild(cm.msgstring, CS_MAX_MSG, &(cm.msgstringlen), msgstr, CS_NULLTERM, fmt, CS_NULLTERM, ap);
+		cm.msgstring[cm.msgstringlen] = '\0';
+		free(msgstr);
+		cm.osnumber = 0;
+		cm.osstring[0] = '\0';
+		cm.osstringlen = 0;
+		cm.status = 0;
+		/* cm.sqlstate */
+		cm.sqlstatelen = 0;
+		ctx->_clientmsg_cb(ctx, con, &cm);
+	}
+
+	va_end(ap);
+}
 
 CS_RETCODE
 ct_exit(CS_CONTEXT * ctx, CS_INT unused)
@@ -793,6 +887,7 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 TDSCOLINFO *colinfo;
 TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
+CS_CONNECTION *con = cmd->con;
 CS_INT  bind_count;
 
 	tds = (TDSSOCKET *) cmd->con->tds_socket;
@@ -818,7 +913,7 @@ CS_INT  bind_count;
 	} else {
 		/* all subsequent binds for this result set - the bind counts must be the same */
 		if (cmd->bind_count != bind_count) {
-			/* TODO - put in a client msg callback here */
+			_ctclient_msg(con, "ct_bind", 1, 1, 1, 137, "%d, %d", bind_count, cmd->bind_count);
 			return CS_FAIL;
 		}
 	}
@@ -1338,12 +1433,7 @@ CS_INT int_val;
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	case CS_ROW_COUNT:
-		/* resinfo check by kostya@warmcat.excom.spb.su */
-		if (resinfo) {
-			int_val = resinfo->row_count;
-		} else {
-			int_val = tds->rows_affected;
-		}
+		int_val = tds->rows_affected;
 		tdsdump_log(TDS_DBG_FUNC, "%L ct_res_info(): Number of rows is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;

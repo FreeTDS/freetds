@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.75 2003-03-07 14:19:14 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.76 2003-03-19 17:05:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -91,7 +91,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 
 	tds_free_all_results(tds);
 
-	tds->rows_affected = 0;
+	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 
 	query_len = strlen(query);
@@ -315,7 +315,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	if (dyn_out)
 		*dyn_out = dyn;
 
-	tds->rows_affected = 0;
+	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	query_len = strlen(query);
 
@@ -647,7 +647,7 @@ int i;
 
 	/* TODO check this code, copied from tds_submit_prepare */
 	tds_free_all_results(tds);
-	tds->rows_affected = 0;
+	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 
 	tds->cur_dyn = dyn;
@@ -779,7 +779,7 @@ int id_len;
 
 	/* TODO check this code, copied from tds_submit_prepare */
 	tds_free_all_results(tds);
-	tds->rows_affected = 0;
+	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 
 	tds->cur_dyn = dyn;
@@ -839,7 +839,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	}
 
 	tds_free_all_results(tds);
-	tds->rows_affected = 0;
+	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 
 	/* distinguish from dynamic query  */

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.93 2003-03-11 20:30:55 jklowden Exp $";
+	"$Id: tds.h,v 1.94 2003-03-19 17:05:10 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -169,6 +169,8 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_REG_ROW          -1
 #define TDS_NO_MORE_ROWS     -2
 #define TDS_COMP_ROW         -3
+
+#define TDS_NO_COUNT         -1
 
 #define TDS_ROW_RESULT        4040
 #define TDS_PARAM_RESULT      4042

@@ -1,3 +1,15 @@
+Wed Mar 19 11:53:19 EST 2003 	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h include/tds.h
+	* src/apps/freebcp.c src/apps/freebcp.h
+	- support for the -A flag (packet size) 
+	* src/ctlib/ct.c
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/tds/convert.c src/tds/query.c src/tds/token.c
+	- Applied "various fixes" patch #706303 from Bill Thompson:
+	-  correctly return the "rows affected" count
+	-  ct-lib layer error handling via callbacks
+	-  datetime character formats: ddmonyy, ddmonyyyy, dd-mon-yy 
+
 Wed Mar 19 01:36:04 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c add more doxygen comments, more indentation
 	

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.132 2003-03-19 06:39:27 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.133 2003-03-19 17:05:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -2084,18 +2084,14 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \returns 
  * 	- for insert/update/delete, count of rows affected.
- * 	- for select, count of rows returned so far.
+ * 	- for select, count of rows returned, after all rows have been fetched.  
  * \sa DBCOUNT(), dbnextrow(), dbresults().
  */
 DBINT
 dbcount(DBPROCESS * dbproc)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
-
-	if (tds->res_info)
-		return tds->res_info->row_count;
-	else
-		return tds->rows_affected;
+	assert(dbproc && dbproc->tds_socket);
+	return dbproc->tds_socket->rows_affected;
 }
 
 /**

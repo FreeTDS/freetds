@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.35 2003-03-06 23:58:44 mlilback Exp $";
+         "$Id: cspublic.h,v 1.36 2003-03-19 17:05:09 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -553,7 +553,7 @@ enum {
 #define CS_COMP_BYLIST	54
 #define CS_COMP_OP	55
 #define CS_COMP_COLID	56
-#define CS_NO_COUNT	57
+#define CS_NO_COUNT	TDS_NO_COUNT
 #define CS_ROW_COUNT	59
 #define CS_OP_SUM	60
 #define CS_OP_AVG	61
