@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.41 2003-12-31 08:04:52 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.42 2003-12-31 13:38:59 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -182,7 +182,7 @@ dblib.api.sgml: dblib.api
 	rm  .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail
 
 dblib.api: api_status.txt
-	grep ^dblib $(srcdir)/api_status.txt > .dblib.api
+	grep '^dblib' $(srcdir)/api_status.txt > .dblib.api
 	test -s  .dblib.api
 	mv .dblib.api dblib.api
 
@@ -209,7 +209,7 @@ ctlib.api.sgml: ctlib.api
 	rm  .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail
 
 ctlib.api: api_status.txt
-	grep ^ctlib $(srcdir)/api_status.txt > .ctlib.api
+	grep '^ctlib' $(srcdir)/api_status.txt > .ctlib.api
 	test -s  .ctlib.api
 	mv .ctlib.api ctlib.api
 
@@ -235,7 +235,7 @@ odbc.api.sgml: odbc.api
 	rm  .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail
 
 odbc.api: api_status.txt
-	grep ^odbc $(srcdir)/api_status.txt > .odbc.api
+	grep '^odbc' $(srcdir)/api_status.txt > .odbc.api
 	test -s  .odbc.api
 	mv .odbc.api odbc.api
 

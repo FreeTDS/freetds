@@ -1,3 +1,7 @@
+Wed Dec 31 14:38:41 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: some shell do not like '^' in arguments
+	* doc/txt2man: fix gawk problems if utf8 is enabled
+
 Wed Dec 31 12:32:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsstring.h src/tds/tdsstring.c:
 	- make DSTR more compiler-alike
