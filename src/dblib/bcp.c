@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.50 2003-02-04 13:28:29 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.51 2003-02-05 19:17:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -262,7 +262,11 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	   int host_termlen, int table_colnum)
 {
 BCP_HOSTCOLINFO *hostcol;
-
+#ifdef MSDBLIB
+	/* Microsoft specifies a "file_termlen" of zero if there's no terminator */
+	if (host_termlen == 0)
+		host_termlen = -1;
+#endif
 	if (dbproc->bcp_direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
@@ -304,14 +308,19 @@ BCP_HOSTCOLINFO *hostcol;
 	if (is_fixed_type(host_type) && (host_collen != -1 && host_collen != 0))
 		return FAIL;
 
+	/* if there's a valid terminator, it needs a nonzero length.  If there's no terminator, its length should show that.  */
+	assert ((host_term != NULL && host_termlen >= 0) || (host_term == NULL && host_termlen == -1));
+
 	hostcol = dbproc->host_columns[host_colnum - 1];
 
 	hostcol->host_column = host_colnum;
 	hostcol->datatype = host_type;
 	hostcol->prefix_len = host_prefixlen;
 	hostcol->column_len = host_collen;
-	hostcol->terminator = (BYTE *) malloc(host_termlen + 1);
-	memcpy(hostcol->terminator, host_term, host_termlen);
+	if (host_term && host_termlen > 0) { 
+		hostcol->terminator = (BYTE *) malloc(host_termlen + 1);
+		memcpy(hostcol->terminator, host_term, host_termlen);
+	}
 	hostcol->term_len = host_termlen;
 	hostcol->tab_colnum = table_colnum;
 

@@ -1,3 +1,6 @@
+Wed Feb  5 14:12:47 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c don't copy null pointer in bcp_colfmt
+
 Wed Feb  5 13:30:29 EST 2003	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Add autoconf check for ANSI-compliant const.
