@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.25 2002-12-28 11:33:53 freddy77 Exp $
+To Do List	$Id: TODO,v 1.26 2003-01-05 15:50:25 freddy77 Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
@@ -33,7 +33,6 @@ For future versions (in priority order within library):
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character.
-. set database during login process (work in progress)
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type
 . tdsping program for testing purposes
@@ -81,4 +80,5 @@ Done (removed from above):
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
 . autoconf the connection pooling stuff
 . DBLIB: output params (tests)
+. set database during login process (work in progress)
 

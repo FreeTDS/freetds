@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.114 2003-01-05 13:42:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.115 2003-01-05 15:50:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -105,35 +105,6 @@ static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 ** beg for GUI tools"
 ** Bah!
 */
-
-static SQLRETURN
-change_database(TDS_DBC * dbc, char *database)
-{
-	SQLRETURN ret;
-	TDSSOCKET *tds;
-	char *query;
-	TDS_INT result_type;
-
-	tds = dbc->tds_socket;
-	query = (char *) malloc(tds_quote_id(tds, NULL, database) + 5);
-	if (!query) {
-		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
-	}
-	strcpy(query, "use ");
-	tds_quote_id(tds, query + 4, database);
-	ret = tds_submit_query(tds, query);
-	free(query);
-	if (ret != TDS_SUCCEED) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not change Database");
-		return SQL_ERROR;
-	}
-
-	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
-		return SQL_ERROR;
-
-	return SQL_SUCCESS;
-}
 
 /* spinellia@acm.org : copied shamelessly from change_database */
 static SQLRETURN
@@ -231,12 +202,6 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	}
 
 	if ((ret = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
-		tds_free_connect(connect_info);
-		return ret;
-	}
-
-	if (!tds_dstr_isempty(&connect_info->database)) {
-		ret = change_database(dbc, connect_info->database);
 		tds_free_connect(connect_info);
 		return ret;
 	}
@@ -711,13 +676,6 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 
 	/* DO IT */
 	if ((result = do_connect(dbc, connect_info)) != SQL_SUCCESS) {
-		tds_free_connect(connect_info);
-		return result;
-	}
-
-	/* database */
-	if (!tds_dstr_isempty(&connect_info->database)) {
-		result = change_database(dbc, connect_info->database);
 		tds_free_connect(connect_info);
 		return result;
 	}

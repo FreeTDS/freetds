@@ -1,4 +1,13 @@
-Sun Jan  5 15:27:401 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sun Jan  5 16:48:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: cleanup
+	* src/odbc/odbc.c: do not set database (now useless)
+	* src/odbc/unittests/t0001.c src/odbc/unittests/t0002.c:
+	* src/odbc/unittests/t0003.c:
+	- do not reset TDSDUMP environment
+	* src/tds/login.c: set database during login if specified
+	* src/tds/token.c: update docs on tds_process_simple_query
+
+Sun Jan  5 15:27:40 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: prevent error setting length of NULL to 0
 	* src/ctlib/unittests/t0002.c: do not try to print NULL data
 	* src/dblib/dblib.c: cleanup for C++ compile

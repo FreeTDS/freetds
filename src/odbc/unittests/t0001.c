@@ -15,7 +15,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0001.c,v 1.8 2002-11-22 15:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.9 2003-01-05 15:50:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -29,8 +29,6 @@ main(int argc, char *argv[])
 
 	SQLCHAR command[512];
 	SQLCHAR output[256];
-
-	setenv("TDSDUMP", "", 1);
 
 	Connect();
 
