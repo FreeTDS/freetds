@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.43 2003-08-26 10:14:38 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.44 2003-08-26 14:57:36 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -138,10 +138,6 @@ struct _hdesc
 	SQLRETURN lastrc;
 };
 
-typedef struct _hdesc IRD;
-typedef struct _hdesc IPD;
-typedef struct _hdesc ARD;
-typedef struct _hdesc APD;
 typedef struct _hdesc TDS_DESC;
 
 #define DESC_IRD	1
@@ -208,7 +204,7 @@ struct _hdbc
 	struct _hstmt *current_statement;
 	struct _sql_errors errs;
 	struct _hcattr attr;
-	ARD *uad[MAX_APP_DESC];
+	TDS_DESC *uad[MAX_APP_DESC];
 	SQLRETURN lastrc;
 };
 
@@ -242,13 +238,13 @@ struct _hstmt
 struct _sql_param_info
 {
 	int param_number;
-	int sql_desc_parameter_type;
-/*	int param_type; */
-	int param_bindtype;
-	int param_sqltype;
-	char *varaddr;
-	int param_bindlen;
-	SQLINTEGER *param_lenbind;
+	int ipd_sql_desc_parameter_type;
+	int apd_sql_desc_type;
+	int ipd_sql_desc_type;
+	char *apd_sql_desc_data_ptr;
+	int apd_sql_desc_octet_length;
+	/* also APD SQL_DESC_INDICATOR_PTR */
+	SQLINTEGER *apd_sql_desc_octet_length_ptr;
 	/** this parameter is used if provided param_lenbind is NULL */
 	SQLINTEGER param_inlen;
 	struct _sql_param_info *next;

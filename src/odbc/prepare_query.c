@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.30 2003-08-14 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.31 2003-08-26 14:57:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -50,18 +50,18 @@ _get_sql_textsize(struct _sql_param_info *param)
 {
 	int len;
 
-	switch (param->param_sqltype) {
+	switch (param->ipd_sql_desc_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
 	case SQL_BIT:
-		len = *param->param_lenbind;
+		len = *param->apd_sql_desc_octet_length_ptr;
 		break;
 	case SQL_BINARY:
 	case SQL_VARBINARY:
 	case SQL_LONGVARBINARY:
 		/* allocate space for hex encoding "0x" prefix and terminating NULL */
-		len = 2 * (*param->param_lenbind) + 3;
+		len = 2 * (*param->apd_sql_desc_octet_length_ptr) + 3;
 		break;
 	case SQL_DATE:
 		len = 15;
@@ -109,9 +109,9 @@ _get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
 {
 	int len = 0;
 
-	switch (*param->param_lenbind) {
+	switch (*param->apd_sql_desc_octet_length_ptr) {
 	case SQL_NTS:
-		len = strlen(param->varaddr) + 1;
+		len = strlen(param->apd_sql_desc_data_ptr) + 1;
 		break;
 	case SQL_NULL_DATA:
 		len = 4;
@@ -123,7 +123,7 @@ _get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
 		len = -1;
 		break;
 	default:
-		len = *param->param_lenbind;
+		len = *param->apd_sql_desc_octet_length_ptr;
 		if (0 > len)
 			len = SQL_LEN_DATA_AT_EXEC(len);
 		else
@@ -157,10 +157,10 @@ _calculate_params_size(TDS_STMT * stmt)
 static int
 _need_comma(struct _sql_param_info *param)
 {
-	if (SQL_NULL_DATA == param->sql_desc_parameter_type)
+	if (SQL_NULL_DATA == param->ipd_sql_desc_parameter_type)
 		return 0;
 
-	switch (param->param_sqltype) {
+	switch (param->ipd_sql_desc_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
@@ -178,7 +178,7 @@ _get_len_data_at_exec(struct _sql_param_info *param)
 {
 	int len = 0;
 
-	switch (*param->param_lenbind) {
+	switch (*param->apd_sql_desc_octet_length_ptr) {
 	case SQL_NTS:
 	case SQL_NULL_DATA:
 	case SQL_DEFAULT_PARAM:
@@ -186,7 +186,7 @@ _get_len_data_at_exec(struct _sql_param_info *param)
 		len = -1;
 		break;
 	default:
-		len = *param->param_lenbind;
+		len = *param->apd_sql_desc_octet_length_ptr;
 		if (0 > len)
 			len = SQL_LEN_DATA_AT_EXEC(len);
 		else
@@ -284,12 +284,13 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_ERROR;
 
 			need_comma = _need_comma(param);
-			/* printf("ctype is %d %d %d\n",param->sql_desc_parameter_type, param->param_bindtype, param->param_sqltype); */
+			/* printf("ctype is %d %d %d\n",param->ipd_sql_desc_parameter_type, 
+			 * param->apd_sql_desc_type, param->ipd_sql_desc_type); */
 
 			if (need_comma)
 				*d++ = comma;
 
-			if (param->param_bindtype == SQL_C_BINARY) {
+			if (param->apd_sql_desc_type == SQL_C_BINARY) {
 				memcpy(d, "0x", 2);
 				d += 2;
 			}
@@ -305,7 +306,8 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(context, param->param_bindtype, param->varaddr, *param->param_lenbind, d, -1);
+			len = convert_sql2string(context, param->apd_sql_desc_type, param->apd_sql_desc_data_ptr,
+						 *param->apd_sql_desc_octet_length_ptr, d, -1);
 			if (TDS_FAIL == len)
 				return SQL_ERROR;
 
@@ -393,7 +395,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		StrLen_or_Ind = need_bytes;
 
 	/* put parameter into query */
-	len = convert_sql2string(context, param->param_bindtype, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
+	len = convert_sql2string(context, param->apd_sql_desc_type, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
 	if (TDS_FAIL == len)
 		return SQL_ERROR;
 

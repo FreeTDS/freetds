@@ -1,3 +1,9 @@
+Tue Aug 26 16:57:11 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- some header cleanup (do not define IRD, IPD, ARD, APD as types)
+	- rename some field (parameter to prepare desc code)
+
 Tue Aug 26 12:14:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merging Steve Murphree patch

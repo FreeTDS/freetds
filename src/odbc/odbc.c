@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.218 2003-08-26 10:14:38 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.219 2003-08-26 14:57:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -782,37 +782,38 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		stmt->param_head = cur;
 	}
 
-	cur->sql_desc_parameter_type = fParamType;
-	cur->param_bindtype = fCType;
+	cur->ipd_sql_desc_parameter_type = fParamType;
+	cur->apd_sql_desc_type = fCType;
 	if (fCType == SQL_C_DEFAULT) {
-		cur->param_bindtype = odbc_sql_to_c_type_default(fSqlType);
-		if (cur->param_bindtype == 0) {
+		cur->apd_sql_desc_type = odbc_sql_to_c_type_default(fSqlType);
+		if (cur->apd_sql_desc_type == 0) {
 			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	} else {
-		cur->param_bindtype = fCType;
+		cur->apd_sql_desc_type = fCType;
 	}
-	cur->param_sqltype = fSqlType;
-	if (cur->param_bindtype == SQL_C_CHAR)
-		cur->param_bindlen = cbValueMax;
+	cur->ipd_sql_desc_type = fSqlType;
+	if (cur->apd_sql_desc_type == SQL_C_CHAR)
+		cur->apd_sql_desc_octet_length = cbValueMax;
 	if (!pcbValue) {
+		/* TODO check when we'll use descriptor... descriptors can be relocated !!! */
 		cur->param_inlen = 0;
-		cur->param_lenbind = &cur->param_inlen;
+		cur->apd_sql_desc_octet_length_ptr = &cur->param_inlen;
 		/* TODO add XML if defined */
-		if (cur->param_bindtype == SQL_C_CHAR || cur->param_bindtype == SQL_C_BINARY) {
+		if (cur->apd_sql_desc_type == SQL_C_CHAR || cur->apd_sql_desc_type == SQL_C_BINARY) {
 			cur->param_inlen = SQL_NTS;
 		} else {
 			/* FIXME check what happen to DATE/TIME types */
-			int size = tds_get_size_by_type(odbc_get_server_type(cur->param_bindtype));
+			int size = tds_get_size_by_type(odbc_get_server_type(cur->apd_sql_desc_type));
 
 			if (size > 0)
 				cur->param_inlen = size;
 		}
 	} else {
-		cur->param_lenbind = pcbValue;
+		cur->apd_sql_desc_octet_length_ptr = pcbValue;
 	}
-	cur->varaddr = (char *) rgbValue;
+	cur->apd_sql_desc_data_ptr = (char *) rgbValue;
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -1466,13 +1467,10 @@ SQLRETURN SQL_API
 SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength,
 		SQLINTEGER * StringLength)
 {
-	IRD *ird;
 	struct _drecord *drec;
 	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HDESC;
-
-	ird = desc;
 
 #define COUT(src) result = odbc_set_string_i(Value, BufferLength, StringLength, src, -1);
 
@@ -1488,45 +1486,45 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	/* dont check column index for these */
 	switch (fDescType) {
 	case SQL_DESC_ALLOC_TYPE:
-		IOUT(SQLSMALLINT, ird->header.sql_desc_alloc_type);
+		IOUT(SQLSMALLINT, desc->header.sql_desc_alloc_type);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_ARRAY_SIZE:
-		IOUT(SQLUINTEGER, ird->header.sql_desc_array_size);
+		IOUT(SQLUINTEGER, desc->header.sql_desc_array_size);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_ARRAY_STATUS_PTR:
-		IOUT(SQLUSMALLINT *, ird->header.sql_desc_array_status_ptr);
+		IOUT(SQLUSMALLINT *, desc->header.sql_desc_array_status_ptr);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_BIND_OFFSET_PTR:
-		IOUT(SQLINTEGER *, ird->header.sql_desc_bind_offset_ptr);
+		IOUT(SQLINTEGER *, desc->header.sql_desc_bind_offset_ptr);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_BIND_TYPE:
-		IOUT(SQLINTEGER, ird->header.sql_desc_bind_type);
+		IOUT(SQLINTEGER, desc->header.sql_desc_bind_type);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_COUNT:
-		IOUT(SQLSMALLINT, ird->header.sql_desc_count);
+		IOUT(SQLSMALLINT, desc->header.sql_desc_count);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	case SQL_DESC_ROWS_PROCESSED_PTR:
-		IOUT(SQLUINTEGER *, ird->header.sql_desc_rows_processed_ptr);
+		IOUT(SQLUINTEGER *, desc->header.sql_desc_rows_processed_ptr);
 		ODBC_RETURN(desc, SQL_SUCCESS);
 		break;
 	}
 
-	if (!ird->header.sql_desc_count) {
+	if (!desc->header.sql_desc_count) {
 		odbc_errs_add(&desc->errs, "07005", NULL, NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	if (icol < 1 || icol > ird->header.sql_desc_count) {
+	if (icol < 1 || icol > desc->header.sql_desc_count) {
 		odbc_errs_add(&desc->errs, "07009", "Column out of range", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
-	drec = &ird->records[icol - 1];
+	drec = &desc->records[icol - 1];
 
 	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetDescField: fDescType is %d\n", fDescType);
 
@@ -4007,7 +4005,7 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 		if (!param)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
-		*prgbValue = param->varaddr;
+		*prgbValue = param->apd_sql_desc_data_ptr;
 		ODBC_RETURN(stmt, SQL_NEED_DATA);
 	}
 
