@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.30 2003-04-25 17:05:24 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.31 2003-04-29 18:52:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -65,6 +65,7 @@ int
 odbc_get_server_type(int c_type)
 {
 	switch (c_type) {
+	/* FIXME this should be dependent on size of data !!! */
 	case SQL_C_BINARY:
 		return SYBBINARY;
 		/* TODO what happen if varchar is more than 255 characters long */

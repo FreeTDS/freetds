@@ -1,3 +1,9 @@
+Tue Apr 29 20:52:25 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/odbc_util.c:
+	- some comment, improve binary
+	* src/tds/query.c:
+	- small optimization for TDS8
+
 Tue Apr 29 12:03:58 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/binary_test.c(added):

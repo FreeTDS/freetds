@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.80 2003-04-06 10:00:00 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.81 2003-04-29 18:52:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -789,8 +789,15 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		/* RPC on sp_execute */
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		tds_put_smallint(tds, 12);
-		tds_put_n(tds, "s\0p\0_\0u\0n\0p\0r\0e\0p\0a\0r\0e", 24);
+		if (IS_TDS80(tds)) {
+			/* save some byte for mssql2k */
+			/* TODO use similar method even above */
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, 15);
+		} else {
+			tds_put_smallint(tds, 12);
+			tds_put_n(tds, "s\0p\0_\0u\0n\0p\0r\0e\0p\0a\0r\0e", 24);
+		}
 		tds_put_smallint(tds, 0);	/* flags */
 
 		/* id of prepared statement */
