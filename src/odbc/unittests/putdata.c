@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.4 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.5 2004-03-11 20:18:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -18,6 +18,7 @@ main(int argc, char *argv[])
 	const char *p;
 	SQLPOINTER ptr;
 	unsigned char buf[256], *pb;
+	SQLRETURN retcode;
 
 	Connect();
 
@@ -126,6 +127,36 @@ main(int argc, char *argv[])
 
 	/* check state  and reset some possible buffers */
 	Command(Statement, "DECLARE @i2 INT");
+
+
+	/* test len == 0 case from ML */
+	if (SQLFreeStmt(Statement, SQL_RESET_PARAMS) != SQL_SUCCESS) {
+		printf("SQLFreeStmt error\n");
+		exit(1);
+	}
+
+	if (SQLPrepare(Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS) != SQL_SUCCESS) {
+		printf("Unable to prepare statement\n");
+		exit(1);
+	}
+
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 50, 0, (PTR) 2, 0, &ind) != SQL_SUCCESS) {
+		printf("SQLBindParameter error\n");
+		exit(1);
+	}
+
+	ind = SQL_LEN_DATA_AT_EXEC(0);
+
+	if ((retcode = SQLExecute(Statement)) != SQL_NEED_DATA) {
+		printf("Wrong result executing statement (retcode=%d)\n", (int) retcode);
+		exit(1);
+	}
+	while (retcode == SQL_NEED_DATA) {
+		retcode = SQLParamData(Statement, &ptr);
+		if (retcode == SQL_NEED_DATA) {
+			SQLPutData(Statement, "abc", 3);
+		}
+	}
 
 	/* TODO check inserts ... */
 	/* TODO test cancel inside SQLExecute */

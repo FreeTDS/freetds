@@ -1,3 +1,9 @@
+Thu Mar 11 21:27:31 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	- fix strange problem with make distcheck
+	* src/odbc/unittests/putdata.c:
+	- imported SQLPutData test from ML (not working)
+
 Thu Mar 11 20:49:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: fix double free
 
