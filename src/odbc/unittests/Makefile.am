@@ -1,9 +1,9 @@
-# $Id: Makefile.am,v 1.27.2.1 2004-03-28 14:19:48 freddy77 Exp $
+# $Id: Makefile.am,v 1.27.2.2 2004-04-13 17:16:22 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
 			binary_test moreandcount earlybind \
-			putdata params raiseerror getdata \
+			putdata params raiserror getdata \
 			transaction \
 			type genparams preperror
 
@@ -25,7 +25,7 @@ moreandcount_SOURCES	= moreandcount.c common.c common.h
 earlybind_SOURCES	= earlybind.c common.c common.h
 putdata_SOURCES	= putdata.c common.c common.h
 params_SOURCES	= params.c common.c common.h
-raiseerror_SOURCES	= raiseerror.c common.c common.h
+raiserror_SOURCES	= raiserror.c common.c common.h
 getdata_SOURCES	= getdata.c common.c common.h
 type_SOURCES	= type.c common.c common.h
 transaction_SOURCES = transaction.c common.c common.h

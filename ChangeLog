@@ -1,3 +1,8 @@
+Tue Apr 13 19:30:04 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/raiserror.c(renamed):
+	- backported test
+
 Fri Apr  9 18:44:16 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/Makefile.am src/apps/bsqldb.c added 
 	* README document 0.62.3 changes
