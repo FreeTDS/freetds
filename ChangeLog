@@ -1,3 +1,8 @@
+Mon Dec  8 02:30:24 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/Makefile.am doc/userguide.sgml
+	- Prepare UG for 0.62 release.  Added ODBC chapter.  
+	- Still needs integration with reference manual.  
+	
 Sun Dec  7 14:19:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c: small optimization
 	* src/odbc/odbc.c src/odbc/sql2tds.c:

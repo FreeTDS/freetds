@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.23 2003-11-28 16:53:14 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.24 2003-12-08 07:35:06 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.62
@@ -14,26 +14,34 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
 		userguide.tgz reference.tgz
 
-html::	userguide.tgz reference.tgz
+tarballs:	userguide.tgz reference.tgz
 
 dist:	userguide.tgz man reference.tgz
 
-# To make the userguide, export DOCBOOK_DSL TO point to docbook.dsl.
-
-userguide.tgz: $(srcdir)/userguide.sgml
+# To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
+ug: userguide.tgz
+userguide.tgz: $(srcdir)/userguide.sgml userguide/index.htm
+	tar -czf userguide.tgz userguide/*; 
+	
+userguide/index.htm: $(srcdir)/userguide.sgml userguide
+	cd userguide && \
 	if test -n "${DOCBOOK_DSL}"; then \
-	        rm -rf html && \
-	        mkdir html && \
-	        cd html && pwd && \
-	        openjade -d ${DOCBOOK_DSL} -t sgml ../$(srcdir)/userguide.sgml; \
-	        test -f book1.htm && \
-	        ln -s book1.htm index.html && cd .. && \
-	        if ! [ -L userguide ]; then \
-	                ln -s html userguide; \
-	        fi; \
-	        tar czf userguide.tgz userguide/*; \
+	        openjade -d ../userguide.dsl -t sgml ../$(srcdir)/userguide.sgml; \
+	else	\
+		echo '<html><P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a></html>' 	\
+			> index.htm; \
 	fi
+	test -f userguide/index.htm
+	cd userguide && if [ ! -L index.html ]; then ln -s index.htm index.html; fi
 
+userguide: $(srcdir)/userguide.sgml userguide.dsl
+	if [ ! -d userguide ]; then mkdir userguide; fi
+
+userguide.dsl: $(srcdir)/userguide.dsl.in
+	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
+		$(srcdir)/userguide.dsl.in > .userguide.dsl
+	mv .userguide.dsl userguide.dsl
+	
 man:	freebcp.1 tsql.1
 
 freebcp.1: freebcp.txt
