@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131.2.5 2003-08-01 05:27:28 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.6 2003-12-03 15:28:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2145,8 +2145,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	   SQLSMALLINT FAR * pcbInfoValue)
 {
 	const char *p = NULL;
-	SQLSMALLINT *siInfoValue = (SQLSMALLINT *) rgbInfoValue;
-	SQLUINTEGER *uiInfoValue = (SQLUINTEGER *) rgbInfoValue;
+	SQLSMALLINT  *siInfoValue  = (SQLSMALLINT *) rgbInfoValue;
+	SQLUINTEGER  *uiInfoValue  = (SQLUINTEGER *) rgbInfoValue;
+	SQLUSMALLINT *usiInfoValue = (SQLUSMALLINT *) rgbInfoValue;
 
 	INIT_HDBC;
 
@@ -2184,7 +2185,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		*uiInfoValue = SQL_TXN_READ_COMMITTED;
 		break;
 	case SQL_FILE_USAGE:
-		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
+		*usiInfoValue = SQL_FILE_NOT_SUPPORTED;
 		break;
 	case SQL_ALTER_TABLE:
 		*uiInfoValue = SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT

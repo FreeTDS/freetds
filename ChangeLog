@@ -1,3 +1,6 @@
+Wed Dec 03 16:27:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix for SQL_FILE_USAGE core
+
 Mon Aug 18 18:12:04 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/odbc/prepare_query.c:
 	* src/odbc/connectparams.c src/odbc/connectparams.h:
