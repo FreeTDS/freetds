@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.48 2003-04-21 09:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.49 2003-05-02 09:18:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -319,6 +319,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 	unsigned int in_left, wire_size;
 
 	/* avoid integer division truncation */
+	/* TODO size should be wire size.... */
 	wire_size = (size * curcol->on_server.column_size) / curcol->column_size;
 
 	if (size == 0) {
@@ -327,6 +328,13 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 	}
 
 	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size, size);
+
+	/* silly case: discard */
+	if (dest == NULL) {
+		tds_get_n(tds, NULL, wire_size);
+		TEMP_FREE;
+		return wire_size;
+	}
 
 	/*
 	 * The next test is crude.  The question we're trying to answer is, 
@@ -342,11 +350,6 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 	 */
 
 	if (curcol->column_size != curcol->on_server.column_size) {	/* TODO: remove this test */
-		if (dest == NULL) {
-			tds_get_n(tds, NULL, wire_size);
-			TEMP_FREE;
-			return wire_size;
-		}
 		p = dest;
 		in_left = 0;
 		while (wire_size > 0) {
@@ -358,6 +361,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 			tds_get_n(tds, &temp[in_left], in_size - in_left);
 			tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: read %d of %d.\n", in_size - in_left, wire_size);
 			in_left = in_size;
+			/* FIXME ICONV size is the size to read, not the buffer size (also never decremented... bad) */
 			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, size);
 			wire_size -= in_size - in_left;
 
