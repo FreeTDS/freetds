@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.115 2003-04-28 19:35:22 freddy77 Exp $";
+	"$Id: tds.h,v 1.116 2003-04-30 13:12:56 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -275,47 +275,89 @@ enum tds_end {
 and 4 have there own codes but nullable ints are lumped into INTN
 sheesh! </rant>
 */
-#define SYBCHAR      47   /* 0x2F */
-#define SYBVARCHAR   39   /* 0x27 */
-#define SYBINTN      38   /* 0x26 */
-#define SYBINT1      48   /* 0x30 */
-#define SYBINT2      52   /* 0x34 */
-#define SYBINT4      56   /* 0x38 */
-#define SYBINT8     127   /* 0x7F */
-#define SYBFLT8      62   /* 0x3E */
-#define SYBDATETIME  61   /* 0x3D */
-#define SYBBIT       50   /* 0x32 */
-#define SYBTEXT      35   /* 0x23 */
-#define SYBNTEXT     99   /* 0x63 */
-#define SYBIMAGE     34   /* 0x22 */
-#define SYBMONEY4    122  /* 0x7A */
-#define SYBMONEY     60   /* 0x3C */
-#define SYBDATETIME4 58   /* 0x3A */
-#define SYBREAL      59   /* 0x3B */
-#define SYBBINARY    45   /* 0x2D */
-#define SYBVOID      31   /* 0x1F */
-#define SYBVARBINARY 37   /* 0x25 */
-#define SYBNVARCHAR  103  /* 0x67 */
-#define SYBBITN      104  /* 0x68 */
-#define SYBNUMERIC   108  /* 0x6C */
-#define SYBDECIMAL   106  /* 0x6A */
-#define SYBFLTN      109  /* 0x6D */
-#define SYBMONEYN    110  /* 0x6E */
-#define SYBDATETIMN  111  /* 0x6F */
-#define XSYBCHAR     175  /* 0xAF */
-#define XSYBVARCHAR  167  /* 0xA7 */
-#define XSYBNVARCHAR 231  /* 0xE7 */
-#define XSYBNCHAR    239  /* 0xEF */
-#define XSYBVARBINARY 165  /* 0xA5 */
-#define XSYBBINARY    173  /* 0xAD */
-#define SYBLONGBINARY 225  /* 0xE1 */
-#define SYBSINT1      64  /* 0x40 */
-#define SYBUINT2      65  /* 0x41 */
-#define SYBUINT4      66  /* 0x42 */
-#define SYBUINT8      67  /* 0x43 */
+typedef enum {
+	SYBCHAR = 47, 	/* 0x2F */
+#define SYBCHAR	SYBCHAR
+	SYBVARCHAR = 39, 	/* 0x27 */
+#define SYBVARCHAR	SYBVARCHAR
+	SYBINTN = 38, 	/* 0x26 */
+#define SYBINTN	SYBINTN
+	SYBINT1 = 48, 	/* 0x30 */
+#define SYBINT1	SYBINT1
+	SYBINT2 = 52, 	/* 0x34 */
+#define SYBINT2	SYBINT2
+	SYBINT4 = 56, 	/* 0x38 */
+#define SYBINT4	SYBINT4
+	SYBINT8 = 127, 	/* 0x7F */
+#define SYBINT8	SYBINT8
+	SYBFLT8 = 62, 	/* 0x3E */
+#define SYBFLT8	SYBFLT8
+	SYBDATETIME = 61, 	/* 0x3D */
+#define SYBDATETIME	SYBDATETIME
+	SYBBIT = 50, 	/* 0x32 */
+#define SYBBIT	SYBBIT
+	SYBTEXT = 35, 	/* 0x23 */
+#define SYBTEXT	SYBTEXT
+	SYBNTEXT = 99, 	/* 0x63 */
+#define SYBNTEXT	SYBNTEXT
+	SYBIMAGE = 34, 	/* 0x22 */
+#define SYBIMAGE	SYBIMAGE
+	SYBMONEY4 = 122, 	/* 0x7A */
+#define SYBMONEY4	SYBMONEY4
+	SYBMONEY = 60, 	/* 0x3C */
+#define SYBMONEY	SYBMONEY
+	SYBDATETIME4 = 58, 	/* 0x3A */
+#define SYBDATETIME4	SYBDATETIME4
+	SYBREAL = 59, 	/* 0x3B */
+#define SYBREAL	SYBREAL
+	SYBBINARY = 45, 	/* 0x2D */
+#define SYBBINARY	SYBBINARY
+	SYBVOID = 31, 	/* 0x1F */
+#define SYBVOID	SYBVOID
+	SYBVARBINARY = 37, 	/* 0x25 */
+#define SYBVARBINARY	SYBVARBINARY
+	SYBNVARCHAR = 103, 	/* 0x67 */
+#define SYBNVARCHAR	SYBNVARCHAR
+	SYBBITN = 104, 	/* 0x68 */
+#define SYBBITN	SYBBITN
+	SYBNUMERIC = 108, 	/* 0x6C */
+#define SYBNUMERIC	SYBNUMERIC
+	SYBDECIMAL = 106, 	/* 0x6A */
+#define SYBDECIMAL	SYBDECIMAL
+	SYBFLTN = 109, 	/* 0x6D */
+#define SYBFLTN	SYBFLTN
+	SYBMONEYN = 110, 	/* 0x6E */
+#define SYBMONEYN	SYBMONEYN
+	SYBDATETIMN = 111, 	/* 0x6F */
+#define SYBDATETIMN	SYBDATETIMN
+	XSYBCHAR = 175, 	/* 0xAF */
+#define XSYBCHAR	XSYBCHAR
+	XSYBVARCHAR = 167, 	/* 0xA7 */
+#define XSYBVARCHAR	XSYBVARCHAR
+	XSYBNVARCHAR = 231, 	/* 0xE7 */
+#define XSYBNVARCHAR	XSYBNVARCHAR
+	XSYBNCHAR = 239, 	/* 0xEF */
+#define XSYBNCHAR	XSYBNCHAR
+	XSYBVARBINARY = 165, 	/* 0xA5 */
+#define XSYBVARBINARY	XSYBVARBINARY
+	XSYBBINARY = 173, 	/* 0xAD */
+#define XSYBBINARY	XSYBBINARY
+	SYBLONGBINARY = 225, 	/* 0xE1 */
+#define SYBLONGBINARY	SYBLONGBINARY
+	SYBSINT1 = 64, 	/* 0x40 */
+#define SYBSINT1	SYBSINT1
+	SYBUINT2 = 65, 	/* 0x41 */
+#define SYBUINT2	SYBUINT2
+	SYBUINT4 = 66, 	/* 0x42 */
+#define SYBUINT4	SYBUINT4
+	SYBUINT8 = 67, 	/* 0x43 */
+#define SYBUINT8	SYBUINT8
 
-#define SYBUNIQUE    36    /* 0x24 */
-#define SYBVARIANT   0x62
+	SYBUNIQUE = 36, 	/* 0x24 */
+#define SYBUNIQUE	SYBUNIQUE
+	SYBVARIANT = 98, 	/* 0x62 */
+#define SYBVARIANT	SYBVARIANT
+} TDS_SERVER_TYPE;
 
 #define SYBAOPCNT  0x4b
 #define SYBAOPCNTU 0x4c
@@ -939,7 +981,7 @@ char *tds_alloc_lookup_sqlstate(TDSSOCKET *tds, int msgnum);
 int tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge);
 
 /* query.c */
-int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out);
+int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out, TDSPARAMINFO * params);
 int tds_submit_execute(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_send_cancel(TDSSOCKET *tds);
 const char *tds_next_placeholders(const char *start);

@@ -40,11 +40,11 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.83 2003-04-30 08:47:04 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.84 2003-04-30 13:13:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
-static void tds7_put_query_params(TDSSOCKET * tds, const char *query);
+static void tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 
@@ -117,7 +117,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
 		tds_put_smallint(tds, 0);
 
-		tds7_put_query_params(tds, query);
+		tds7_put_query_params(tds, query, params);
 
 		for (i = 0; i < params->num_cols; i++) {
 			param = params->columns[i];
@@ -214,10 +214,160 @@ tds_count_placeholders(const char *query)
 }
 
 /**
+ * Return declaration for column (like "varchar(20)")
+ * \param curcol column
+ * \param out    buffer to hold declaration
+ */
+static void
+tds_get_column_declaration(TDSSOCKET * tds, TDSCOLINFO * curcol, char *out)
+{
+	const char *fmt = NULL;
+
+	switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
+	case XSYBCHAR:
+	case SYBCHAR:
+		fmt = "CHAR(%d)";
+		break;
+	case SYBVARCHAR:
+	case XSYBVARCHAR:
+		fmt = "VARCHAR(%d)";
+		break;
+	case SYBINT1:
+		fmt = "TINYINT";
+		break;
+	case SYBINT2:
+		fmt = "SMALLINT";
+		break;
+	case SYBINT4:
+		fmt = "INT";
+		break;
+	case SYBINT8:
+		/* TODO even for Sybase ?? */
+		fmt = "BIGINT";
+		break;
+	case SYBFLT8:
+		fmt = "FLOAT";
+		break;
+	case SYBDATETIME:
+		fmt = "DATETIME";
+		break;
+	case SYBBIT:
+		fmt = "BIT";
+		break;
+	case SYBTEXT:
+		fmt = "TEXT";
+		break;
+	case SYBLONGBINARY:	/* TODO correct ?? */
+	case SYBIMAGE:
+		fmt = "IMAGE";
+		break;
+	case SYBMONEY4:
+		fmt = "SMALLMONEY";
+		break;
+	case SYBMONEY:
+		fmt = "MONEY";
+		break;
+	case SYBDATETIME4:
+		fmt = "SMALLDATETIME";
+		break;
+	case SYBREAL:
+		fmt = "REAL";
+		break;
+	case SYBBINARY:
+	case XSYBBINARY:
+		fmt = "BINARY";
+		break;
+	case SYBVARBINARY:
+	case XSYBVARBINARY:
+		fmt = "VARBINARY(%d)";
+		break;
+	case SYBNUMERIC:
+		fmt = "NUMERIC(%d,%d)";
+		goto numeric_decimal;
+	case SYBDECIMAL:
+		fmt = "DECIMAL(%d,%d)";
+	      numeric_decimal:
+		sprintf(out, fmt, curcol->column_prec, curcol->column_scale);
+		return;
+		break;
+		/* nullable types should not occur here... */
+	case SYBFLTN:
+	case SYBMONEYN:
+	case SYBDATETIMN:
+	case SYBBITN:
+	case SYBINTN:
+		assert(0);
+		/* TODO... */
+	case SYBNTEXT:
+	case SYBVOID:
+	case SYBNVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case SYBSINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+	case SYBUNIQUE:
+	case SYBVARIANT:
+		out[0] = 0;
+		return;
+		break;
+	}
+
+	/* fill out */
+	sprintf(out, fmt, curcol->column_size);
+}
+
+/**
+ * Return string with declared parameters
+ * \param paramss parameters to build declaration
+ * \param out_len length in buffer
+ * \return allocated and filled string or NULL on failure
+ */
+static char *
+tds_build_params_string(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
+{
+	int size = 512;
+
+	/* TODO check out of memory */
+	char *param_str = (char *) malloc(512);
+	char *p;
+	int l = 0;
+
+	if (!param_str)
+		return NULL;
+	param_str[0] = 0;
+	for (i = 0; i < params->num_cols; ++i) {
+		if (l > 0)
+			param_str[l++] = ',';
+
+		/* realloc on insufficient space */
+		if (l < (size - 24)) {
+			p = (char *) realloc(param_str, size += 512);
+			if (!p) {
+				free(param_str);
+				return NULL;
+			}
+			param_str = p;
+		}
+
+		/* append this parameter */
+		tds_get_column_declaration(tds, params->columns[i], param_str + l);
+		if (!param_str[l]) {
+			free(param_str);
+			return NULL;
+		}
+		l += strlen(param_str + l);
+	}
+	*out_len = l;
+	return param_str;
+}
+
+/**
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
  */
 static void
-tds7_put_query_params(TDSSOCKET * tds, const char *query)
+tds7_put_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int len, i, n;
 	const char *s, *e;
@@ -277,7 +427,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query)
  */
 /* TODO parse all results ?? */
 int
-tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out)
+tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
 	int id_len, query_len;
 	TDSDYNAMIC *dyn;
@@ -335,7 +485,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
 
-		tds7_put_query_params(tds, query);
+		tds7_put_query_params(tds, query, params);
 
 		/* 1 param ?? why ? flags ?? */
 		tds_put_byte(tds, 0);

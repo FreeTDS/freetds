@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.155 2003-04-29 19:37:13 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.156 2003-04-30 13:12:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1227,7 +1227,7 @@ SQLExecute(SQLHSTMT hstmt)
 			TDS_INT result_type;
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn) == TDS_FAIL)
+			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL)
 				return SQL_ERROR;
 			if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
 				return SQL_ERROR;

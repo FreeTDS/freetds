@@ -1,3 +1,8 @@
+Wed Apr 30 15:12:16 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/odbc/odbc.c src/tds/query.c:
+	- improve dynamic query (not finished)
+	- server types enum
+
 Wed Apr 30 10:59:10 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: flags update
 

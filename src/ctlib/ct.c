@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.91 2003-04-21 09:05:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.92 2003-04-30 13:12:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -658,7 +658,7 @@ ct_send_dyn(CS_COMMAND * cmd)
 
 	if (cmd->dynamic_cmd == CS_PREPARE) {
 		cmd->dynamic_cmd = 0;
-		if (tds_submit_prepare(cmd->con->tds_socket, cmd->query, cmd->dyn_id, NULL) == TDS_FAIL)
+		if (tds_submit_prepare(cmd->con->tds_socket, cmd->query, cmd->dyn_id, NULL, NULL) == TDS_FAIL)
 			return CS_FAIL;
 		else
 			return CS_SUCCEED;
