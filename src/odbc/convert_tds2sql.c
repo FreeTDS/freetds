@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.29 2003-01-09 17:12:46 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.30 2003-01-11 16:40:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -69,7 +69,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
-	nDestSybType = _odbc_get_server_type(desttype);
+	nDestSybType = odbc_get_server_type(desttype);
 	if (nDestSybType == TDS_FAIL)
 		return TDS_CONVERT_NOAVAIL;
 
@@ -163,12 +163,13 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ret = sizeof(TIMESTAMP_STRUCT);
 		break;
 
-	case SQL_BIGINT:
+#ifdef SQL_C_SBIGINT
 	case SQL_C_SBIGINT:
 	case SQL_C_UBIGINT:
 		memcpy(dest, &(ores.bi), sizeof(TDS_INT8));
 		ret = sizeof(TDS_INT8);
 		break;
+#endif
 
 	case SQL_C_LONG:
 	case SQL_C_SLONG:
@@ -212,7 +213,6 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ret = sizeof(TDS_REAL);
 		break;
 
-	case SQL_DECIMAL:
 	case SQL_C_NUMERIC:
 		/* ODBC numeric is quite different from TDS one ... */
 		num = (SQL_NUMERIC_STRUCT *) dest;

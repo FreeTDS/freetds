@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.20 2003-01-10 09:27:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.21 2003-01-11 16:40:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -104,17 +104,17 @@ odbc_set_return_status(struct _hstmt *stmt)
 #endif
 
 	if (stmt->prepared_query_is_func && tds->has_status) {
-	struct _sql_param_info *param;
+		struct _sql_param_info *param;
 
 		param = odbc_find_param(stmt, 1);
 		if (param) {
-	int len = convert_tds2sql(context,
-				  SYBINT4,
-				  (TDS_CHAR *) & tds->ret_status,
-				  sizeof(TDS_INT),
-				  param->param_sqltype,
-				  param->varaddr,
-				  param->param_bindlen);
+			int len = convert_tds2sql(context,
+						  SYBINT4,
+						  (TDS_CHAR *) & tds->ret_status,
+						  sizeof(TDS_INT),
+						  param->param_sqltype,
+						  param->varaddr,
+						  param->param_bindlen);
 
 			if (TDS_FAIL == len)
 				return /* SQL_ERROR */ ;
@@ -158,7 +158,7 @@ odbc_get_string_size(int size, SQLCHAR * str)
  * Convert type from database to ODBC
  */
 SQLSMALLINT
-odbc_get_client_type(int col_type, int col_size)
+odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 {
 	/* FIXME finish */
 	switch (col_type) {
@@ -175,6 +175,7 @@ odbc_get_client_type(int col_type, int col_size)
 		return SQL_BIT;
 #if (ODBCVER >= 0x0300)
 	case SYBINT8:
+		/* TODO return numeric for odbc2 and convert bigint to numeric */
 		return SQL_BIGINT;
 #endif
 	case SYBINT4:
@@ -218,6 +219,10 @@ odbc_get_client_type(int col_type, int col_size)
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
+#if (ODBCVER >= 0x0300)
+		if (odbc_ver == 3)
+			return SQL_TYPE_TIMESTAMP;
+#endif
 		return SQL_TIMESTAMP;
 	case SYBBINARY:
 		return SQL_BINARY;
@@ -242,4 +247,43 @@ odbc_get_client_type(int col_type, int col_size)
 #endif
 	}
 	return SQL_UNKNOWN_TYPE;
+}
+
+int
+odbc_sql_to_c_type_default(int sql_type)
+{
+
+	switch (sql_type) {
+
+	case SQL_CHAR:
+	case SQL_VARCHAR:
+	case SQL_LONGVARCHAR:
+	case SQL_DECIMAL:
+	case SQL_NUMERIC:
+	case SQL_GUID:
+		return SQL_C_CHAR;
+	case SQL_BIT:
+		return SQL_C_BIT;
+	case SQL_TINYINT:
+		return SQL_C_UTINYINT;
+	case SQL_SMALLINT:
+		return SQL_C_SSHORT;
+	case SQL_INTEGER:
+		return SQL_C_SLONG;
+	case SQL_BIGINT:
+		return SQL_C_SBIGINT;
+	case SQL_REAL:
+		return SQL_C_FLOAT;
+	case SQL_FLOAT:
+	case SQL_DOUBLE:
+		return SQL_C_DOUBLE;
+	case SQL_DATE:
+		return SQL_C_DATE;
+	case SQL_TIME:
+		return SQL_C_TIME;
+	case SQL_TIMESTAMP:
+		return SQL_C_TIMESTAMP;
+	default:
+		return 0;
+	}
 }

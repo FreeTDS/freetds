@@ -1,3 +1,23 @@
+Sat Jan 11 17:30:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	All this stuff modified from a patch of  Viktar Klimkovitch
+	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:
+	* src/odbc/convert_tds2sql.c:
+	- do not mix sql type to c type
+	- some comment added
+	- renamed _odbc_get_server_type to odbc_get_server_type
+	* src/odbc/error.c: cleanup
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- renamed odbc_get_client_type to odbc_tds_to_sql_type and 
+	  add version parameter
+	- check if sql2tds fail
+	- more support for SQLGetStmtAttr
+	- some other options for SQLGetInfo (we do not support cursors)
+	- move sql_to_c_type_default from odbc.c to odbc_util.c
+	- reindented
+	* src/odbc/sql2tds.c:
+	- handle sql type correctly (not as c type)
+	- sql2tds return same errors of tds_convert
+
 Fri Jan 10 21:04:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/tds/login.c:
 	- some comment added

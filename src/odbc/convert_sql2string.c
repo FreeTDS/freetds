@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.25 2003-01-10 09:27:00 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.26 2003-01-11 16:40:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -62,27 +62,21 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * to the SQL_C_* type.
  */
 int
-_odbc_get_server_type(int c_type)
+odbc_get_server_type(int c_type)
 {
 	switch (c_type) {
 	case SQL_C_BINARY:
 		return SYBBINARY;
+	/* TODO what happen if varchar is more than 255 characters long */
 	case SQL_C_CHAR:
-		return SYBCHAR;
-	case SQL_VARCHAR:
 		return SYBVARCHAR;
-	case SQL_LONGVARCHAR:
-		return SYBTEXT;
 	case SQL_C_FLOAT:
 		return SYBREAL;
 	case SQL_C_DOUBLE:
 		return SYBFLT8;
-	case SQL_NUMERIC:
-		return SYBNUMERIC;
 	case SQL_C_BIT:
 		return SYBBIT;
 #if (ODBCVER >= 0x0300)
-	case SQL_BIGINT:
 	case SQL_C_SBIGINT:
 	case SQL_C_UBIGINT:
 		return SYBINT8;
@@ -101,7 +95,7 @@ _odbc_get_server_type(int c_type)
 	case SQL_C_STINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
-		/* ODBC date formats are completely differect from SQL one */
+	/* ODBC date formats are completely differect from SQL one */
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
@@ -109,6 +103,10 @@ _odbc_get_server_type(int c_type)
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
 		return SYBDATETIME;
+	/* ODBC numeric/decimal formats are completely differect from tds one */
+	case SQL_C_NUMERIC:
+		break;
+	/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
 	case SQL_C_INTERVAL_DAY:
@@ -122,6 +120,9 @@ _odbc_get_server_type(int c_type)
 	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
 	case SQL_C_INTERVAL_HOUR_TO_SECOND:
 	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
+#ifdef SQL_C_WCHAR
+	case SQL_C_WCHAR:
+#endif
 		break;
 	}
 	return TDS_FAIL;
@@ -142,7 +143,7 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 
 	memset(&src_tm, 0, sizeof(src_tm));
 
-	/* FIX ME -- This fails for dates before 1902 or after 2038 */
+	/* FIXME -- This fails for dates before 1902 or after 2038 */
 	switch (srctype) {
 	case SQL_C_DATE:
 	case SQL_C_TYPE_DATE:
@@ -172,6 +173,7 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 		return TDS_FAIL;
 	}
 
+	/* TODO add fraction precision, use tds version */
 	ret = strftime(tmpbuf, sizeof(tmpbuf), dfmt, &src_tm);
 	if (!ret) {
 		dest[0] = '\0';	/* set empty string and return */
@@ -242,9 +244,12 @@ static const char *str_null = "null";
 */
 	}
 
-	res = tds_convert(context, _odbc_get_server_type(srctype), src, srclen, SYBVARCHAR, &ores);
+	/* TODO check srctype passed */
+	/* FIXME test type returned from function */
+	res = tds_convert(context, odbc_get_server_type(srctype), src, srclen, SYBVARCHAR, &ores);
 
 	if (res < 0) {
+		/* FIXME do not print error but return it  */
 		fprintf(stderr, "convert_sql2string(): Attempting to convert unknown "
 			"source type %d (size %d) into string\n", srctype, srclen);
 	} else {

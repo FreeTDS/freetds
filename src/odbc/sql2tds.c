@@ -41,12 +41,16 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.3 2003-01-02 20:04:20 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.4 2003-01-11 16:40:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 extern const int tds_numeric_bytes_per_prec[];
 
+/**
+ * Convert parameters to libtds format
+ * return same result of tds_convert
+ */
 int
 sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCOLINFO * curcol)
 {
@@ -57,9 +61,10 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->param_sqltype);
 
 	/* what type to convert ? */
-	dest_type = _odbc_get_server_type(param->param_sqltype);
+	/* TODO avoid this double conversion */
+	dest_type = odbc_get_server_type(odbc_sql_to_c_type_default(param->param_sqltype));
 	if (dest_type == TDS_FAIL)
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 	/* TODO what happen for unicode types ?? */
 	tds_set_column_type(curcol, dest_type);
@@ -69,19 +74,19 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 
 	/* allocate given space */
 	if (!tds_alloc_param_row(info, curcol))
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* TODO what happen to data ?? */
 	/* convert parameters */
-	src_type = _odbc_get_server_type(param->param_bindtype);
+	src_type = odbc_get_server_type(param->param_bindtype);
 	if (src_type == TDS_FAIL)
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	res = tds_convert(context, src_type, param->varaddr, *param->param_lenbind, dest_type, &ores);
 	if (res < 0)
-		return TDS_FAIL;
+		return res;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* truncate ?? */
@@ -108,5 +113,5 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 		break;
 	}
 
-	return TDS_SUCCEED;
+	return res;
 }

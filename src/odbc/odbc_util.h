@@ -32,15 +32,16 @@
 #include "isqlext.h"
 #endif
 
-static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.7 2003-01-03 12:00:38 freddy77 Exp $";
+static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.8 2003-01-11 16:40:30 freddy77 Exp $";
 static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
 int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len);
 void odbc_set_return_status(struct _hstmt *stmt);
 
-SQLSMALLINT odbc_get_client_type(int col_type, int col_size);
+SQLSMALLINT odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver);
 int odbc_get_string_size(int size, SQLCHAR * str);
+int odbc_sql_to_c_type_default(int sql_type);
 
 struct _sql_param_info *odbc_find_param(struct _hstmt *stmt, int param_num);
 
