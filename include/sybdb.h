@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64.2.1 2004-11-28 10:48:00 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64.2.2 2004-12-01 03:52:47 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -101,11 +101,6 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBCMDNONE 0
 #define DBCMDPEND 1
 #define DBCMDSENT 2
-
-#define DBRESINIT 0
-#define DBRESSUCC 1
-#define DBRESDONE 2
-#define DBRESCMDS 0x80
 
 typedef int RETCODE;
 

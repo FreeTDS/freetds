@@ -1,3 +1,9 @@
+Tue Nov 30 22:50:51 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h include/sybdb.h
+	* src/dblib/dblib.c src/dblib/rpc.c
+	* src/dblib/unittests/dbmorecmds.c
+	- handle empty results sets in dbresults
+
 Tue Nov 30 21:19:06 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/Makefile.am libtds is version 4.0.0
 

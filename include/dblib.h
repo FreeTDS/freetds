@@ -28,8 +28,16 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.21 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.21.2.1 2004-12-01 03:52:47 jklowden Exp $";
 static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
+
+enum {
+	  _DB_RES_INIT            = 0
+	, _DB_RES_RESULTSET_EMPTY = 1
+	, _DB_RES_RESULTSET_ROWS  = 2
+	, _DB_RES_NEXT_RESULT     = 3
+	, _DB_RES_NO_MORE_RESULTS = 4
+};
 
 struct tds_dblib_loginrec
 {

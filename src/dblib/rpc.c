@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32 2004-07-29 10:22:40 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.1 2004-12-01 03:52:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -232,7 +232,7 @@ dbrpcsend(DBPROCESS * dbproc)
 		return FAIL;
 	}
 
-	dbproc->dbresults_state = DBRESINIT;
+	dbproc->dbresults_state = _DB_RES_INIT;
 
 	/* FIXME do stuff */
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend()\n");
