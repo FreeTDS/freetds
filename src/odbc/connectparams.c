@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.55 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.56 2004-11-07 09:35:53 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -113,6 +113,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "Servername", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		freetds_conf_less = 0;
+		tds_dstr_copy(&connection->server_name, tmp);
 		tds_read_conf_file(connection, tmp);
 	}
 
@@ -250,7 +251,7 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 			return 0;
 
 		if (strcasecmp(option, "SERVER") == 0) {
-			/* ignore if servername specified */
+			/* ignore if servername or DSN specified */
 			if (!reparse) {
 				dest_s = &connection->server_name;
 				tds_lookup_host(tds_dstr_cstr(&value), tmp);
@@ -261,6 +262,7 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 			}
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
+				tds_dstr_copy(&connection->server_name, tds_dstr_cstr(&value));
 				tds_read_conf_file(connection, tds_dstr_cstr(&value));
 				reparse = 1;
 				p = connect_string;
