@@ -58,6 +58,7 @@ TDSSOCKET *pool_mbr_login(TDS_POOL *pool)
 TDSCONTEXT *context;
 TDSLOGIN *login;
 TDSSOCKET *tds;
+TDSCONNECTINFO *connect_info;
 int rc, marker;
 char *query;
 char hostname[MAXHOSTNAMELEN];
@@ -80,11 +81,14 @@ char hostname[MAXHOSTNAMELEN];
 	context = tds_alloc_context();
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
-  	if (tds_connect(tds, login) == TDS_FAIL) {
+	connect_info = tds_read_config_info(NULL, login, context->locale);
+	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
+		tds_free_connect(connect_info);
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n",pool->server);
 		return NULL;
 	}
+	tds_free_connect(connect_info);
 	/* FIX ME -- tds_connect no longer preallocates the in_buf need to 
 	** do something like what tds_read_packet does */
 	tds->in_buf = (unsigned char *)malloc(BLOCKSIZ);

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.45 2002-10-17 20:45:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.46 2002-10-17 21:21:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -477,7 +477,15 @@ static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login)
 	if (login->port) {
 		connect_info->port = login->port;
 	}
-
+	if (login->connect_timeout)
+		connect_info->connect_timeout = login->connect_timeout;
+	
+	/* copy other info not present in configuration file */
+	connect_info->query_timeout = login->query_timeout;
+	connect_info->longquery_timeout = login->longquery_timeout;
+	connect_info->longquery_func = login->longquery_func;
+	connect_info->longquery_param = login->longquery_param;
+	memcpy(connect_info->capabilities,login->capabilities,TDS_MAX_CAPABILITY);
 }
 
 static void tds_config_env_dsquery(TDSCONNECTINFO *connect_info)

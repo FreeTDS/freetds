@@ -357,6 +357,7 @@ int bufsz = 4096;
 TDSSOCKET *tds;
 TDSLOGIN *login;
 TDSCONTEXT *context;
+TDSCONNECTINFO *connect_info;
 int opt_flags = 0;
 
 	/* grab a login structure */
@@ -377,11 +378,14 @@ int opt_flags = 0;
 	/* Try to open a connection*/
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
-	if (tds_connect(tds, login) == TDS_FAIL) {
+	connect_info = tds_read_config_info(NULL, login, context->locale);
+	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
+		tds_free_connect(connect_info);
 		/* FIX ME -- need to hook up message/error handlers */
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
+	tds_free_connect(connect_info);
 	/* give the buffer an initial size */
 	bufsz = 4096;
 	mybuf = (char *) malloc(bufsz);

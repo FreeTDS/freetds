@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.36 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.37 2002-10-17 21:21:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -301,6 +301,7 @@ ct_connect(CS_CONNECTION *con, CS_CHAR *servername, CS_INT snamelen)
 char *server;
 int needfree=0;
 CS_CONTEXT *ctx;
+TDSCONNECTINFO *connect_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_connect() servername = %s\n", servername);
 
@@ -318,11 +319,14 @@ CS_CONTEXT *ctx;
 	ctx = con->ctx;
 	con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512);
 	tds_set_parent(con->tds_socket, (void *) con);
-	if (tds_connect(con->tds_socket, con->tds_login) == TDS_FAIL) {
+	connect_info = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale);
+	if (!connect_info || tds_connect(con->tds_socket, connect_info) == TDS_FAIL) {
+		tds_free_connect(connect_info);
 		if (needfree) free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
 	}
+	tds_free_connect(connect_info);
 
 	if (needfree) free(server);
 

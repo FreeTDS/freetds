@@ -1,4 +1,10 @@
 Thu Oct 17 22:44:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/dblib.c src/odbc/odbc.c src/pool/member.c:
+	* src/tds/config.c src/tds/login.c src/tds/unittests/common.c:
+	- tds_connect accept a TDSCONNECTINFO instead of TDSLOGIN
+
+Thu Oct 17 22:44:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tds_configs.h include/tdsutil.h:
 	* src/tds/config.c src/tds/login.c src/tds/mem.c:
 	- renamed TDSCONFIGINFO to TDSCONNECTINFO

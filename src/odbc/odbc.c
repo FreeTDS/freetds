@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.66 2002-10-14 19:09:11 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.67 2002-10-17 21:21:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -184,20 +184,24 @@ static SQLRETURN do_connect (
                             SQLCHAR FAR *passwd
                             )
 {
-    struct _hdbc *dbc = (struct _hdbc *) hdbc;
-    struct _henv *env = dbc->henv;
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+struct _henv *env = dbc->henv;
+TDSCONNECTINFO *connect_info;
 
     tds_set_server (dbc->tds_login, (char*)server);
     tds_set_user   (dbc->tds_login, (char*)user);
     tds_set_passwd (dbc->tds_login, (char*)passwd);
     dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
     if (!dbc->tds_socket)
-	return SQL_ERROR;
-    tds_set_parent(dbc->tds_socket, (void *) dbc);
-    if (tds_connect(dbc->tds_socket, dbc->tds_login) == TDS_FAIL) {
-        odbc_LogError ("tds_connect failed");
-        return SQL_ERROR;
-    }
+		return SQL_ERROR;
+	tds_set_parent(dbc->tds_socket, (void *) dbc);
+	connect_info = tds_read_config_info(NULL, dbc->tds_login, env->tds_ctx->locale);
+	if (!connect_info || tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
+		tds_free_connect(connect_info);
+		odbc_LogError ("tds_connect failed");
+		return SQL_ERROR;
+	}
+	tds_free_connect(connect_info);
 
     return SQL_SUCCESS;
 }

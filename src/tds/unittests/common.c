@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.6 2002-10-03 18:46:08 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.7 2002-10-17 21:21:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -46,6 +46,7 @@ int try_tds_login(
    int verbose)
 {
 TDSCONTEXT *context;
+TDSCONNECTINFO *connect_info;
 
    if (verbose)	{ fprintf(stdout, "Entered tds_try_login()\n"); }
    if (! login) {
@@ -80,10 +81,13 @@ TDSCONTEXT *context;
    context = tds_alloc_context();
    *tds = tds_alloc_socket(context, 512);
    tds_set_parent(*tds, NULL);
-   if (tds_connect(*tds, *login) == TDS_FAIL) {
-      fprintf(stderr, "tds_connect() failed\n");
-      return TDS_FAIL;
-   }
+	connect_info = tds_read_config_info(NULL, *login, context->locale);
+	if (!connect_info || tds_connect(*tds, connect_info) == TDS_FAIL) {
+		tds_free_connect(connect_info);
+		fprintf(stderr, "tds_connect() failed\n");
+		return TDS_FAIL;
+	}
+	tds_free_connect(connect_info);
 
    return TDS_SUCCEED;
 }

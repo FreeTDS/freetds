@@ -74,7 +74,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.56 2002-10-17 20:45:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.57 2002-10-17 21:21:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -159,7 +159,7 @@ void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int 
 }
 
 int
-tds_connect(TDSSOCKET *tds, TDSLOGIN *login)
+tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 {
 struct sockaddr_in      sin;
 /* Jeff's hack - begin */
@@ -168,17 +168,10 @@ struct timeval selecttimeout;
 fd_set fds;                                          
 int retval;                                         
 time_t start, now;
-TDSCONNECTINFO *connect_info;
 /* 13 + max string of 32bit int, 30 should cover it */
 int connect_timeout = 0;
-TDSLOCINFO *locale = NULL;
 
 	FD_ZERO(&fds);
-
-	if (tds->tds_ctx) {
-		locale = tds->tds_ctx->locale;
-	}
-	connect_info = tds_read_config_info(NULL, login, locale);
 
 	/*
 	** If a dump file has been specified, start logging
@@ -210,17 +203,13 @@ TDSLOCINFO *locale = NULL;
 		tds->date_fmt=strdup(connect_info->date_fmt);
 	}
 	*/
-	if (login->connect_timeout) {
-		connect_timeout = login->connect_timeout;
-	} else if (connect_info->connect_timeout) {
-		connect_timeout = connect_info->connect_timeout;
-	}
+	connect_timeout = connect_info->connect_timeout;
 
 	/* Jeff's hack - begin */
-	tds->timeout = (connect_timeout) ? login->query_timeout : 0;        
-	tds->longquery_timeout = (connect_timeout) ? login->longquery_timeout : 0;
-	tds->longquery_func = login->longquery_func;
-	tds->longquery_param = login->longquery_param;
+	tds->timeout = (connect_timeout) ? connect_info->query_timeout : 0;
+	tds->longquery_timeout = (connect_timeout) ? connect_info->longquery_timeout : 0;
+	tds->longquery_func = connect_info->longquery_func;
+	tds->longquery_param = connect_info->longquery_param;
 	/* end */
 
 	/* verify that ip_addr is not NULL */
@@ -232,14 +221,12 @@ TDSLOCINFO *locale = NULL;
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "%L No server specified!\n");
 		}
-		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 	sin.sin_addr.s_addr = inet_addr(connect_info->ip_addr);
 	if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", connect_info->ip_addr);
-		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
@@ -247,12 +234,11 @@ TDSLOCINFO *locale = NULL;
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(connect_info->port);
 
-	memcpy(tds->capabilities,login->capabilities,TDS_MAX_CAPABILITY);
+	memcpy(tds->capabilities,connect_info->capabilities,TDS_MAX_CAPABILITY);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Connecting addr %s port %d\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 	if ((tds->s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror ("socket");
-		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
         }
@@ -262,7 +248,6 @@ TDSLOCINFO *locale = NULL;
 		start = time (NULL);
 		ioctl_blocking = 1; /* ~0; //TRUE; */
 		if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
-			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -270,7 +255,6 @@ TDSLOCINFO *locale = NULL;
 		if (retval < 0 && errno == EINPROGRESS) retval = 0;
 		if (retval < 0) {
 			perror("src/tds/login.c: tds_connect (timed)");
-			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -289,7 +273,6 @@ TDSLOCINFO *locale = NULL;
 		if ((now-start) > connect_timeout) {
 			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
 				"Server is unavailable or does not exist.");
-			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -303,7 +286,6 @@ TDSLOCINFO *locale = NULL;
 		}
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
 			"Server is unavailable or does not exist.");
-		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
         }
@@ -312,16 +294,15 @@ TDSLOCINFO *locale = NULL;
 
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag=0x10;
-		tds7_send_login(tds,connect_info);	
+		tds7_send_login(tds,connect_info);
 	} else {
 		tds->out_flag=0x02;
-		tds_send_login(tds,connect_info);	
+		tds_send_login(tds,connect_info);
 	}
 	if (!tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, 
 			"Login incorrect.");
-		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
@@ -335,7 +316,6 @@ TDSLOCINFO *locale = NULL;
 	}
 
 	tds->connect_info = NULL;
-	tds_free_connect(connect_info);
 	return TDS_SUCCEED;
 }
 
