@@ -21,13 +21,13 @@
 #define CONNECTPARAMS_H
 
 #ifdef UNIXODBC
-    #ifndef HAVEODBCINST
-        #define HAVEODBCINST
-    #endif
+#ifndef HAVEODBCINST
+#define HAVEODBCINST
+#endif
 #endif
 
-static char  rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
-static void *no_unused_connectparams_h_warn[]={rcsid_connectparams_h, no_unused_connectparams_h_warn};
+static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.6 2002-11-08 08:03:47 freddy77 Exp $";
+static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unused_connectparams_h_warn };
 
 /*****************************
  * tdoParseConnectString
@@ -49,7 +49,7 @@ static void *no_unused_connectparams_h_warn[]={rcsid_connectparams_h, no_unused_
  *  - I doubt pszDataSourceName is useful here?
  *
  *****************************/
-int tdoParseConnectString( char *pszConnectString, TDSCONNECTINFO* connect_info );
+int tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info);
 
 #ifndef HAVEODBCINST
 /*****************************
@@ -79,15 +79,8 @@ int tdoParseConnectString( char *pszConnectString, TDSCONNECTINFO* connect_info 
  *    expect see tdoGetIniFileName().
  *
  *****************************/
-int SQLGetPrivateProfileString( LPCSTR  pszSection,
-                                LPCSTR  pszEntry,
-                                LPCSTR  pszDefault,
-                                LPSTR   pRetBuffer,
-                                int     nRetBuffer,
-                                LPCSTR  pszFileName
-                              );
+int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault, LPSTR pRetBuffer, int nRetBuffer,
+			       LPCSTR pszFileName);
 #endif
 
 #endif
-
-
