@@ -1,3 +1,6 @@
+Fri Jan 30 17:09:21 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c better message for failed iconv init.
+
 Fri Jan 30 16:16:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c:
 	* src/tds/write.c:

@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.106 2004-01-29 17:03:17 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.107 2004-01-30 22:15:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -191,7 +191,7 @@ tds_iconv_init(void)
 	}
 	/* we need a UCS-2 (big endian or little endian) */
 	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE])
-		return 1;
+		return 2;
 
 	ucs2pos = iconv_names[POS_UCS2LE] ? POS_UCS2LE : POS_UCS2BE;
 	ucs2name = iconv_names[ucs2pos];
@@ -318,7 +318,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 {
 	static const char *UCS_2LE = "UCS-2LE";
 	const char *name;
-	int fOK;
+	int fOK, ret;
 
 	TDS_ENCODING *client = &tds->iconvs[client2ucs2]->client_charset;
 	TDS_ENCODING *server = &tds->iconvs[client2ucs2]->server_charset;
@@ -334,8 +334,13 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 #else
 	/* initialize */
 	if (!iconv_initialized) {
-		if (tds_iconv_init()) {
-			assert(0);
+		if ((ret = tds_iconv_init()) > 0) {
+			static char *names[] = { "ISO 8859-1", "UTF-8" };
+			assert(ret < 3);
+			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
+						  "could not find a name for %s that your iconv accepts.\n"
+						  "use: \"configure --disable-libiconv\"", ret, names[ret-1]);
+			assert(ret == 0);
 			return;
 		}
 		iconv_initialized = 1;
