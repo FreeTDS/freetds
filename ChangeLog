@@ -1,3 +1,7 @@
+Tue Sep  9 14:00:57 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/contrib.html doc/htdoc/faq.html
+	- removed references to 'book1.html'
+
 Thu Sep 04 10:56:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/type.c src/tds/unittests/t0003.c:
 	- remove warnings
