@@ -12,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_config.c,v 1.3 2003-12-29 21:44:57 freddy77 Exp $";
+static char software_version[] = "$Id: cs_config.c,v 1.4 2004-09-08 12:51:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -21,8 +21,8 @@ main(int argc, char **argv)
 	int verbose = 1;
 	CS_CONTEXT *ctx;
 
-    CS_CHAR string_in[16], string_out[16];
-    CS_INT  int_in,        int_out;
+	CS_CHAR string_in[16], string_out[16];
+	CS_INT  int_in,        int_out;
 	CS_INT ret_len;
 
 	if (verbose) {
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-    strcpy(string_out,"XXXXXXXXXXXXXXX");
+	strcpy(string_out,"XXXXXXXXXXXXXXX");
 
 	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 4, &ret_len)
 	    != CS_SUCCEED) {
@@ -89,7 +89,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Testing CS_SET/GET USERDATA with int\n");
 
-    int_in = 255;
+	int_in = 255;
 
 	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)&int_in,  sizeof(int), NULL)
 	    != CS_SUCCEED) {
@@ -106,12 +106,12 @@ main(int argc, char **argv)
 		fprintf(stdout, "returned value >%d< not as stored >%d<\n", int_out, int_in);
 		return 1;
 	}
-    if (ret_len != (sizeof(int))) {
+	if (ret_len != (sizeof(int))) {
 		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, sizeof(int));
 		return 1;
 	}
 
+	cs_ctx_drop(ctx);
 
-
-    return 0;
+	return 0;
 }

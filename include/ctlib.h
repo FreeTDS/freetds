@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.15 2004-07-21 19:28:01 freddy77 Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.16 2004-09-08 12:51:23 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -229,6 +229,7 @@ int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindi
 int _ct_get_client_type(int datatype, int usertype, int size);
 void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
 		   const char *fmt, ...);
+CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 
 #ifdef __cplusplus
 #if 0

@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.17 2004-07-29 20:05:30 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.18 2004-09-08 12:51:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -280,10 +280,12 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 	
 		if (blkdesc->tablename) {
 			free(blkdesc->tablename);
+			blkdesc->tablename = NULL;
 		}
 	
 		if (blkdesc->insert_stmt) {
 			free(blkdesc->insert_stmt);
+			blkdesc->insert_stmt = NULL;
 		}
 	
 		if (blkdesc->bindinfo) {
@@ -306,9 +308,17 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 CS_RETCODE
 blk_drop(CS_BLKDESC * blkdesc)
 {
+	if (!blkdesc)
+		return CS_SUCCEED;
 
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_drop()\n");
-	return CS_FAIL;
+	if (blkdesc->tablename)
+		free(blkdesc->tablename);
+	if (blkdesc->insert_stmt)
+		free(blkdesc->insert_stmt);
+	tds_free_results(blkdesc->bindinfo);
+	free(blkdesc);
+
+	return CS_SUCCEED;
 }
 
 CS_RETCODE

@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: get_send_data.c,v 1.1 2003-03-27 07:39:06 jklowden Exp $";
+static char software_version[] = "$Id: get_send_data.c,v 1.2 2004-09-08 12:51:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -36,8 +36,8 @@ main(int argc, char **argv)
 
 	CS_INT  id;
 	CS_CHAR name[600];
-    CS_CHAR *nameptr;
-    CS_INT  getlen;
+	CS_CHAR *nameptr;
+	CS_INT  getlen;
 
 	char large_sql[1024];
 	char len600[601];
@@ -45,7 +45,7 @@ main(int argc, char **argv)
 	char temp[11];
 
 	char *textptr;
-    CS_IODESC iodesc;
+	CS_IODESC iodesc;
 
 	len600[0] = 0;
 	name[0] = 0;
@@ -197,7 +197,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-    if ((ret = ct_command(cmd, CS_SEND_DATA_CMD, NULL, CS_UNUSED, CS_COLUMN_DATA)) != CS_SUCCEED) {
+	if ((ret = ct_command(cmd, CS_SEND_DATA_CMD, NULL, CS_UNUSED, CS_COLUMN_DATA)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_command(CS_SEND_DATA_CMD) failed.\n");
 		return 1;
 	}               
@@ -205,7 +205,7 @@ main(int argc, char **argv)
 	iodesc.total_txtlen = 800;
 	iodesc.log_on_update = CS_TRUE;
 
-    if (ct_data_info(cmd, CS_SET, CS_UNUSED, &iodesc) != CS_SUCCEED) {
+	if (ct_data_info(cmd, CS_SET, CS_UNUSED, &iodesc) != CS_SUCCEED) {
 		fprintf(stderr, "ct_data_info() failed\n");
 		return 1;
 	}

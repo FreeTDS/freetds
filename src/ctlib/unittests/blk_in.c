@@ -266,6 +266,8 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	blk_drop(blkdesc);
+
 	printf("%d rows copied.\n", count);
 
 	printf("done\n");

@@ -11,7 +11,7 @@
 #include <bkpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: blk_out.c,v 1.2 2004-05-18 08:08:53 freddy77 Exp $";
+static char software_version[] = "$Id: blk_out.c,v 1.3 2004-09-08 12:51:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
@@ -168,6 +168,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "blk_rowxfer_mult() failed\n");
 		return 1;
 	}
+
+	blk_drop(blkdesc);
 
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

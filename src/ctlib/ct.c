@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.122 2004-07-29 10:22:40 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.123 2004-09-08 12:51:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -63,7 +63,6 @@ int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindi
 static CS_INT ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message);
 static CS_INT ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message);
 static CS_INT ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count);
-static CS_INT ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 static CS_INT ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message);
 static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message);
 
@@ -1513,6 +1512,8 @@ ct_cmd_drop(CS_COMMAND * cmd)
 			free(cmd->rpc->name);
 			free(cmd->rpc);
 		}
+		if (cmd->iodesc)
+			free(cmd->iodesc);
 		free(cmd);
 	}
 	return CS_SUCCEED;
@@ -2800,24 +2801,23 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
-		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, datalen, indicator, 0))
+		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, datalen, indicator, 0)) {
+			free(param);
 			return CS_FAIL;
+		}
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
 		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() reached here\n");
-		if (*pparam == NULL) {
-			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		} else {
+		if (*pparam != NULL) {
 			while ((*pparam)->next != NULL) {
 				pparam = &(*pparam)->next;
 			}
 
-			(*pparam)->next = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 			pparam = &(*pparam)->next;
 		}
 		*pparam = param;
-		(*pparam)->next = NULL;
+		param->next = NULL;
 		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() added parameter %s \n", (*param).name);
 		return CS_SUCCEED;
 	}
@@ -3623,7 +3623,7 @@ ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID
 	case CS_CLEAR:
 		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
-		return (ct_diag_clearmsg(conn->ctx, type));
+		return _ct_diag_clearmsg(conn->ctx, type);
 		break;
 
 	case CS_GET:
@@ -3828,8 +3828,8 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	}
 }
 
-static CS_INT
-ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
+CS_INT
+_ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 {
 	struct cs_diag_msg_client *curptr, *freeptr;
 	struct cs_diag_msg_svr *scurptr, *sfreeptr;

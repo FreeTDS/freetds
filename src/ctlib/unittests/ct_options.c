@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_options.c,v 1.2 2003-02-12 21:46:14 freddy77 Exp $";
+static char software_version[] = "$Id: ct_options.c,v 1.3 2004-09-08 12:51:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Set and get options with ct_options */
@@ -62,6 +62,7 @@ main(int argc, char *argv[])
 	ret = ct_con_props(conn, action, option, &param, paramlen, &outlen);
 	if (param != CS_TDS_50) {
 		fprintf(stdout, "%s: ct_options implemented only in TDS 5.0.\n", __FILE__);
+		try_ctlogout(ctx, conn, cmd, verbose);
 		return 0;
 	}
 
