@@ -14,4 +14,10 @@ t0009
 connect_fail
 tdsdump.out
 ct_options
+rpc_ct_setparam
+rpc_ct_param
+lang_ct_param
+get_send_data
+cs_diag
+array_bind
 
