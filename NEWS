@@ -1,8 +1,14 @@
-$Id: NEWS,v 1.7 2004-11-28 20:44:11 freddy77 Exp $
+$Id: NEWS,v 1.8 2004-12-03 16:47:42 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
 - moved network stuff in net.c
+
+libTDS API changes
+- tds_connect do not free TDSSOCKET* on failure
+- TDSSOCKET->env it's no more a pointer
+- tds_free_compute_result and tds_free_compute_results are now static
+- removed TDSSOCKET->out_len, not used
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

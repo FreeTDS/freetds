@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.122 2004-12-02 13:20:44 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.123 2004-12-03 16:47:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -85,40 +85,24 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 TDSDYNAMIC *
 tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 {
-	int i;
-	TDSDYNAMIC *dyn;
-	TDSDYNAMIC **dyns;
+	TDSDYNAMIC *dyn, *curr;
 
 	/* check to see if id already exists (shouldn't) */
-	for (i = 0; i < tds->num_dyns; i++) {
-		if (!strcmp(tds->dyns[i]->id, id)) {
+	for (curr = tds->dyns; curr != NULL; curr = curr->next)
+		if (!strcmp(curr->id, id)) {
 			/* id already exists! just return it */
-			return (tds->dyns[i]);
+			return curr;
 		}
-	}
 
 	dyn = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
 	if (!dyn)
 		return NULL;
 	memset(dyn, 0, sizeof(TDSDYNAMIC));
 
-	assert(tds->num_dyns >= 0 && (tds->num_dyns > 0 || tds->dyns == NULL));
+	/* insert into list */
+	dyn->next = tds->dyns;
+	tds->dyns = dyn;
 
-	if (!tds->num_dyns) {
-		/* if this is the first dynamic stmt */
-		dyns = (TDSDYNAMIC **) malloc(sizeof(TDSDYNAMIC *));
-	} else {
-		/* ok, we have a list and need to add another */
-		dyns = (TDSDYNAMIC **) realloc(tds->dyns, sizeof(TDSDYNAMIC *) * (tds->num_dyns + 1));
-	}
-
-	if (!dyns) {
-		free(dyn);
-		return NULL;
-	}
-	tds->dyns = dyns;
-	tds->dyns[tds->num_dyns] = dyn;
-	++tds->num_dyns;
 	strncpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 	dyn->id[TDS_MAX_DYNID_LEN - 1] = '\0';
 
@@ -150,18 +134,16 @@ tds_free_input_params(TDSDYNAMIC * dyn)
 void
 tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
-	int i;
+	TDSDYNAMIC **pcurr;
 
 	/* avoid pointer to garbage */
 	if (tds->cur_dyn == dyn)
 		tds->cur_dyn = NULL;
 
 	/* free from tds */
-	for (i = 0; i < tds->num_dyns; ++i)
-		if (dyn == tds->dyns[i]) {
-			tds->dyns[i] = tds->dyns[--tds->num_dyns];
-			if (tds->num_dyns == 0)
-				TDS_ZERO_FREE(tds->dyns);
+	for (pcurr = &tds->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
+		if (dyn == *pcurr) {
+			*pcurr = dyn->next;
 			break;
 		}
 
@@ -181,24 +163,20 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 void
 tds_free_all_dynamic(TDSSOCKET * tds)
 {
-	int i;
-	TDSDYNAMIC *dyn;
+	TDSDYNAMIC *curr, *next;
+	
+	curr = tds->dyns;
 
-	for (i = 0; i < tds->num_dyns; i++) {
-		dyn = tds->dyns[i];
-		if (!dyn)
-			continue;
-		tds_free_input_params(dyn);
-		if (dyn->query)
-			free(dyn->query);
-		free(dyn);
-	}
-	if (tds->dyns)
-		TDS_ZERO_FREE(tds->dyns);
-	tds->num_dyns = 0;
+	tds->dyns = NULL;
 	tds->cur_dyn = NULL;
 
-	return;
+	for (; curr != NULL; curr = next) {
+		next = curr->next;
+		tds_free_input_params(curr);
+		if (curr->query)
+			free(curr->query);
+		free(curr);
+	}
 }
 
 /** \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
@@ -654,7 +632,7 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TEST_MALLOC(cursor, TDSCURSOR);
 	memset(cursor, '\0', sizeof(TDSCURSOR));
 
-	if ( tds->cursor == (TDSCURSOR *) NULL ) {
+	if ( tds->cursor == NULL ) {
 		++new_cursor_id;
 		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d to head\n", new_cursor_id);
 		tds->cursor = cursor;
@@ -687,41 +665,41 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	return cursor;
 
       Cleanup:
-	if (new_cursor_id)
-		tds_free_cursor(tds, new_cursor_id);
+	if (cursor)
+		tds_free_cursor(tds, cursor);
 	return NULL;
 }
 
 void
-tds_free_cursor(TDSSOCKET *tds, TDS_INT client_cursor_id)
+tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 {
 	TDSCURSOR *victim = NULL;
 	TDSCURSOR *prev = NULL;
 	TDSCURSOR *next = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", cursor->client_cursor_id);
 	victim = tds->cursor;
 
-	if (tds->client_cursor_id == client_cursor_id)
-		tds->client_cursor_id = 0;
+	if (tds->cur_cursor == cursor)
+		tds->cur_cursor = NULL;
 
 	if (victim == NULL) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", client_cursor_id);
+		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", cursor->client_cursor_id);
 		return;
 	}
 
 	for (;;) {
-		if (victim->client_cursor_id == client_cursor_id)
+		if (victim == cursor)
 			break;
 		prev = victim;
 		victim = victim->next;
 		if (victim == NULL) {
-			tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cannot find cursor_id %d\n", client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cannot find cursor_id %d\n", cursor->client_cursor_id);
 			return;
 		}
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d found\n", client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d found\n", cursor->client_cursor_id);
 
 	next = victim->next;
 
@@ -750,7 +728,7 @@ tds_free_cursor(TDSSOCKET *tds, TDS_INT client_cursor_id)
 		tds->cursor = next;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinked list\n");
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", cursor->client_cursor_id);
 }
 
 TDSLOGIN *
@@ -851,7 +829,7 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_free_env(tds);
 		tds_free_all_dynamic(tds);
 		while (tds->cursor)
-			tds_free_cursor(tds, tds->cursor->client_cursor_id);
+			tds_free_cursor(tds, tds->cursor);
 		if (tds->in_buf)
 			free(tds->in_buf);
 		if (tds->out_buf)

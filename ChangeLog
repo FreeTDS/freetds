@@ -1,3 +1,12 @@
+Fri Dec 03 17:46:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS: update
+	* include/tds.h src/ctlib/ct.c src/tds/mem.c src/tds/query.c:
+	* src/tds/tds_checks.c src/tds/token.c:
+	- update docs
+	- make dynamics a linked list
+	- use a pointer to current cursor instead of client_id in TDSSOCKET
+	* src/tds/login.c: update docs
+
 Thu Dec 02 14:20:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c src/tds/iconv.c:
 	* src/tds/mem.c src/tds/tds_checks.c src/tds/token.c:

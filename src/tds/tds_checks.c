@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.3 2004-12-02 13:20:44 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.4 2004-12-03 16:47:47 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -53,6 +53,8 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	const int invalid_state = 0;
 	int found, i;
 	int result_found = 0;
+	TDSDYNAMIC *cur_dyn = NULL;
+	TDSCURSOR *cur_cursor = NULL;
 
 	assert(tds);
 
@@ -106,22 +108,24 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 			result_found = 1;
 	}
 
-	/* test cursor */
-	if (tds->cursor) {
-		tds_check_cursor_extra(tds->cursor);
-		if (tds->current_results == tds->cursor->res_info)
+	/* test cursors */
+	found = 0;
+	for (cur_cursor = tds->cursor; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
+		tds_check_cursor_extra(cur_cursor);
+		if (tds->current_results == cur_cursor->res_info)
 			result_found = 1;
+		if (cur_cursor == tds->cur_cursor)
+			found = 1;
 	}
+	assert(found || tds->cur_cursor == NULL);
 
 	/* test num_dyms, cur_dyn, dyns*/
 	found = 0;
-	assert(tds->num_dyns >= 0);
-	for (i = 0; i < tds->num_dyns; ++i) {
-		assert(tds->dyns);
-		if (tds->dyns[i] == tds->cur_dyn)
+	for (cur_dyn = tds->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next) {
+		if (cur_dyn == tds->cur_dyn)
 			found = 1;
-		tds_check_dynamic_extra(tds->dyns[i]);
-		if (tds->current_results == tds->dyns[i]->res_info)
+		tds_check_dynamic_extra(cur_dyn);
+		if (tds->current_results == cur_dyn->res_info)
 			result_found = 1;
 	}
 	assert(found || tds->cur_dyn == NULL);
@@ -234,6 +238,9 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 			|| (i==0 && res_info->columns[i]->column_offset == 0) 
 			|| (res_info->columns[i]->column_offset == res_info->row_size && res_info->columns[i]->column_size == 0));
 	}
+
+	/* TODO check that column_offset are sequential, check size of current_row and column_offset[i+1]-column_offset[i] == size */
+
 	assert(res_info->row_size >= 0);
 	assert(res_info->null_info_size <= res_info->row_size);
 	/* space for parameters can be computed later */

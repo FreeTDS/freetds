@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.128 2004-11-28 20:44:18 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.129 2004-12-03 16:47:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -147,7 +147,6 @@ tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size
 /**
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
- *        If the function fail connection is deleted
  * @param connection info for connection
  * @return TDS_FAIL or TDS_SUCCEED
  */

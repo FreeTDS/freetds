@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.145 2004-12-01 13:11:35 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.146 2004-12-03 16:47:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -92,7 +92,7 @@ tds_to_quering(TDSSOCKET * tds)
 	/* TODO check this code, copied from tds_submit_prepare */
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->client_cursor_id = 0;
+	tds->cur_cursor = NULL;
 	tds->internal_sp_called = 0;
 
 	tds->state = TDS_QUERYING;
@@ -1560,7 +1560,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	tds->queryStarttime = 0;
 	tds->out_flag = 0x06;
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = 0;
+	tds->cur_cursor = NULL;
 	return tds_flush_packet(tds);
 }
 
@@ -1741,7 +1741,7 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = client_cursor_id;
+	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
 
@@ -1845,7 +1845,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = client_cursor_id;
+	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
@@ -1904,7 +1904,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = client_cursor_id;
+	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
 
@@ -2013,7 +2013,7 @@ tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = client_cursor_id;
+	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
@@ -2081,7 +2081,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 	tds->queryStarttime = time(NULL);
 
 	tds->internal_sp_called = 0;
-	tds->client_cursor_id = client_cursor_id;
+	tds->cur_cursor = cursor;
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
@@ -2101,7 +2101,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 	 */
 
 	if (IS_TDS7_PLUS(tds))
-		tds_free_cursor(tds, client_cursor_id);
+		tds_free_cursor(tds, cursor);
 
 	return res;
 

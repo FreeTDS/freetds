@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.196 2004-12-02 13:20:42 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.197 2004-12-03 16:47:45 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -974,24 +974,24 @@ typedef struct _tds_cursor_status
 
 typedef struct _tds_cursor 
 {
-	TDS_INT length;			/* total length of the remaining datastream */
-	TDS_TINYINT cursor_name_len;	/* length of cursor name > 0 and <= 30  */
-	char *cursor_name;		/* name of the cursor */
-	TDS_INT cursor_id;		/* cursor id returned by the server after cursor declare */
-	TDS_INT client_cursor_id;       /* cursor id used internally by client side */
-	TDS_TINYINT options;		/* read only|updatable */
-	TDS_TINYINT hasargs;		/* cursor parameters exists ? */
-	TDS_USMALLINT query_len;	/* SQL query length */
-	char *query;                 	/* SQL query */
+	struct _tds_cursor *next;	/**< next in linked list, keep first */
+	TDS_INT length;			/**< total length of the remaining datastream */
+	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
+	char *cursor_name;		/**< name of the cursor */
+	TDS_INT cursor_id;		/**< cursor id returned by the server after cursor declare */
+	TDS_INT client_cursor_id;       /**< cursor id used internally by client side */
+	TDS_TINYINT options;		/**< read only|updatable */
+	TDS_TINYINT hasargs;		/**< cursor parameters exists ? */
+	TDS_USMALLINT query_len;	/**< SQL query length */
+	char *query;                 	/**< SQL query */
 	/* TODO for updatable columns */
-	TDS_TINYINT number_upd_cols;	/* number of updatable columns */
-	TDS_INT cursor_rows;		/* number of cursor rows to fetch */
+	TDS_TINYINT number_upd_cols;	/**< number of updatable columns */
+	TDS_INT cursor_rows;		/**< number of cursor rows to fetch */
 	/*TODO when cursor has parameters*/
 	/*TDS_PARAM *param_list;	 cursor parameter */
-	TDSUPDCOL *cur_col_list;	/* updatable column list */
+	TDSUPDCOL *cur_col_list;	/**< updatable column list */
 	TDS_CURSOR_STATUS status;
 	TDSRESULTINFO *res_info;
-	struct _tds_cursor *next;
 } TDSCURSOR;
 
 /*
@@ -1007,6 +1007,7 @@ typedef struct tds_env
 
 typedef struct tds_dynamic
 {
+	struct tds_dynamic *next;	/**< next in linked list, keep first */
 	char id[30];
 	int dyn_state;
 	/** numeric id for mssql7+*/
@@ -1073,7 +1074,9 @@ struct tds_socket
 	TDS_INT num_comp_info;
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
-	TDSCURSOR *cursor;
+	TDSCURSOR *cur_cursor;	/**< cursor in use */
+	TDSCURSOR *cursor;	/**< linked list of cursors allocated for this connection */
+/*	int client_cursor_id; */      /* cursor id used internally by client side */
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
 	TDS_TINYINT state;
@@ -1085,10 +1088,10 @@ struct tds_socket
 	void *longquery_param;
 	time_t queryStarttime;
 	TDSENV env;
+
 	/* dynamic placeholder stuff */
-	int num_dyns;
-	TDSDYNAMIC *cur_dyn;
-	TDSDYNAMIC **dyns;
+	TDSDYNAMIC *cur_dyn;	/**< dynamic structure in use */
+	TDSDYNAMIC *dyns;	/**< list of dynamic allocate for this connection */
 
 	int emul_little_endian;
 	char *date_fmt;
@@ -1098,13 +1101,13 @@ struct tds_socket
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTION *connection;
+
 	int spid;
 	TDS_UCHAR collation[5];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int (*chkintr) (TDSSOCKET * tds);
 	int (*hndlintr) (TDSSOCKET * tds);
 	int internal_sp_called;
-	int client_cursor_id;       /* cursor id used internally by client side */
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *param), void *longquery_param);
@@ -1116,7 +1119,7 @@ void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
-void tds_free_cursor(TDSSOCKET * tds, TDS_INT cursor_id);
+void tds_free_cursor(TDSSOCKET * tds, TDSCURSOR * cursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);

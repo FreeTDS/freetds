@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.132 2004-12-02 13:20:42 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.133 2004-12-03 16:47:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1381,7 +1381,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		return CS_FAIL;
 	}
 
-	tds->client_cursor_id = cmd->client_cursor_id;
+	tds->cur_cursor = cursor;
 
 	while ((tds_process_result_tokens(tds, &restype, &done_flags)) == TDS_SUCCEED) {
 		switch (restype) {
