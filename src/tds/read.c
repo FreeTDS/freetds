@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.8 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.9 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -173,6 +173,22 @@ unsigned char bytes[4];
 }
 
 
+/*
+ * fetches a null terminated ascii string
+ */
+char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int max)
+{
+int i = 0;
+char c;
+
+	while (c = tds_get_byte(tds)) {
+		if (i < (max - 1) && dest)
+			dest[i++] = c;
+	}
+	if (dest) dest[i]='\0';
+
+	return dest;
+}
 char *tds_get_string(TDSSOCKET *tds, void *dest, int need)
 {
 char *temp;

@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.7 2002-07-15 03:29:58 brianb Exp $";
+         "$Id: cspublic.h,v 1.8 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -117,13 +117,8 @@ typedef struct cs_datafmt {
 	int usertype;
 } CS_DATAFMT;
 
-typedef struct cs_money {
-	int dummy;
-} CS_MONEY;
-
-typedef struct cs_money4 {
-	int dummy;
-} CS_MONEY4;
+typedef TDS_MONEY  CS_MONEY;
+typedef TDS_MONEY4 CS_MONEY4;
 
 typedef TDS_DATETIME CS_DATETIME;
 

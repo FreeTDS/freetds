@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.26 2002-07-16 02:50:46 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.27 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -934,6 +934,7 @@ static int _db_get_server_type(int bindtype)
  * a dest len of -1 and a desttype of SYBCHAR means the output buffer
  * should be null-teminated.  
  */
+
 DBINT dbconvert(DBPROCESS *dbproc,
 		int srctype,
 		BYTE *src,
@@ -942,25 +943,222 @@ DBINT dbconvert(DBPROCESS *dbproc,
 		BYTE *dest,
 		DBINT destlen)
 {
-TDS_UINT len;
-DBINT length;
+TDSSOCKET *tds = NULL;
 
-	if (srclen==-1)
-		srclen = strlen((char *)src);
-		
-	/*
-	 * a -1 destlen is legal, but we have to be more specific with
-	 * tds_convert, and implies the output buffer should be null-teminated.
-	 */
-	len = (destlen == -1)? srclen : destlen;
-	length = tds_convert (g_dblib_ctx->tds_ctx,
-						srctype,  (TDS_CHAR *)src,  srclen, 
-						desttype, (TDS_CHAR *)dest, len);
-						
-	if (length > 0 && destlen == -1 && desttype == SYBCHAR) 
-		((TDS_CHAR *)dest)[length++] = '\0';
-		
-	return length;
+CONV_RESULT dres;
+DBINT       ret;
+int         i;
+int         len;
+
+	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() srctype = %d desttype = %d\n",srctype, desttype);
+
+	if (dbproc) {
+		tds = (TDSSOCKET *) dbproc->tds_socket;
+	}
+
+    if (src == NULL || srclen == 0) {
+
+       /* FIX set appropriate NULL value for destination type */
+       memset(dest,'\0', destlen);
+       return 0;
+    }
+
+    /* srclen of -1 means the source data is definitely NULL terminated */
+    if (srclen == -1) 
+       srclen = strlen((char *)src);
+
+    if (dest == NULL) {
+       /* FIX call error handler */
+       return -1;
+    }
+    
+
+    /* oft times we are asked to convert a data type to itself */
+
+    if (srctype == desttype) {
+
+	   tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() srctype == desttype\n");
+       switch (desttype) {
+
+          case SYBBINARY:
+          case SYBIMAGE:
+               if (srclen > destlen ) {
+                  ret = FAIL;
+               }
+               else {
+                  memcpy(dest, src, srclen);
+                  ret = srclen;
+               }
+               break;
+
+          case SYBCHAR:
+          case SYBVARCHAR:
+          case SYBTEXT:
+
+               /* srclen of -1 means the source data is definitely NULL terminated */
+
+           	   if (srclen == -1) 
+                  srclen = strlen((char *)src);
+
+               if (destlen == 0 || destlen < -2) {
+                  ret = FAIL;
+               }
+               else if (destlen == -1) { /* rtrim and null terminate */
+                  memcpy(dest,src,srclen);
+                  dest[srclen] = '\0';
+                  for (i = srclen; dest[i] == ' ' || dest[i] == '\0'; i--)
+                      dest[i]='\0';
+                  ret = strlen(dest);
+               }
+               else if (destlen == -2) { /* just null terminate */
+                  memcpy(dest,src,srclen);
+                  dest[srclen] = '\0';
+                  ret = strlen(dest);
+               }
+               else { /* destlen is > 0 */
+                  if (srclen > destlen) {
+                     fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
+                     ret = -1;
+                  }
+                  else {
+                     memcpy(dest, src, srclen);
+                     for (i = srclen; i < destlen; i++ )
+                       dest[i] = ' ';
+                     ret = destlen;
+                  }
+               }
+                  
+               break;
+          case SYBINT1: 
+          case SYBINT2:
+          case SYBINT4:
+          case SYBINT8:
+          case SYBFLT8:
+          case SYBREAL:
+          case SYBBIT:
+          case SYBBITN:
+          case SYBMONEY:
+          case SYBMONEY4:
+          case SYBDATETIME:
+          case SYBDATETIME4:
+          case SYBUNIQUE:
+               memcpy(dest, src, get_size_by_type(desttype));
+               ret = get_size_by_type(desttype);
+               break;
+
+          case SYBNUMERIC:
+          case SYBDECIMAL:
+               memcpy(dest, src, sizeof(DBNUMERIC));
+               ret = sizeof(DBNUMERIC);
+               break;
+
+       }
+    }          /* srctype == desttype */
+
+
+	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
+
+	len = tds_convert (g_dblib_ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, 
+                       desttype, destlen, &dres);
+
+    switch (desttype) {
+        case SYBBINARY:
+        case SYBIMAGE:
+
+             if (len > destlen) {
+                fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
+                ret = -1;
+             } else {
+                memcpy(dest, dres.ib, len);
+                free(dres.ib);
+                else {
+                   for ( i = len ; i < destlen; i++ )
+                       dest[i] = '\0';
+                   ret = destlen;
+             }
+             break;
+        case SYBINT1:
+             memcpy(dest,&(dres.ti),1);
+             ret = 1;
+             break;
+        case SYBINT2:
+             memcpy(dest,&(dres.si),2);
+             ret = 2;
+             break;
+        case SYBINT4:
+             memcpy(dest,&(dres.i),4);
+             ret = 4;
+             break;
+        case SYBFLT8:
+             memcpy(dest,&(dres.f),8);
+             ret = 8;
+             break;
+        case SYBREAL:
+             memcpy(dest,&(dres.r),4);
+             ret = 4;
+             break;
+        case SYBBIT:
+        case SYBBITN:
+             memcpy(dest,&(dres.ti),1);
+             ret = 1;
+             break;
+        case SYBMONEY:
+             memcpy(dest,&(dres.m),sizeof(TDS_MONEY));
+             ret = sizeof(TDS_MONEY);
+             break;
+        case SYBMONEY4:
+             memcpy(dest,&(dres.m4),sizeof(TDS_MONEY4));
+             ret = sizeof(TDS_MONEY4);
+             break;
+        case SYBDATETIME:
+             memcpy(dest,&(dres.dt),sizeof(TDS_DATETIME));
+             ret = sizeof(TDS_DATETIME);
+             break;
+        case SYBDATETIME4:
+             memcpy(dest,&(dres.dt4),sizeof(TDS_DATETIME4));
+             ret = sizeof(TDS_DATETIME4);
+             break;
+        case SYBNUMERIC:
+        case SYBDECIMAL:
+             memcpy(dest,&(dres.n), sizeof(TDS_NUMERIC));
+             ret = sizeof(TDS_NUMERIC);
+             break;
+        case SYBCHAR:
+        case SYBVARCHAR:
+        case SYBTEXT:
+
+	         tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting character data destlen = %d \n", destlen);
+             if (destlen == 0 || destlen < -2) {
+                ret = FAIL;
+             }
+             else if (destlen == -1) { /* rtrim and null terminate */
+                strcpy(dest, dres.c);
+                for (i = strlen(dest); dest[i] == ' ' || dest[i] == '\0'; i--)
+                    dest[i]='\0';
+                ret = strlen(dest);
+             }
+             else if (destlen == -2) { /* just null terminate */
+                strcpy(dest,dres.c);
+                ret = strlen(dest);
+             }
+             else { /* destlen is > 0 */
+                if (strlen(dres.c) > destlen) {
+                   fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
+                   ret = -1;
+                }
+                else
+                   memcpy(dest, dres.c, strlen(dres.c));
+                   for (i = strlen(dres.c); i < destlen; i++ )
+                       dest[i] = ' ';
+                   ret = destlen;
+             }
+                
+             free(dres.c);
+
+             break;
+
+     }
+     return(ret);
 }
 
 RETCODE dbbind(
@@ -974,8 +1172,10 @@ RETCODE dbbind(
    TDSRESULTINFO *resinfo = NULL;
    TDSSOCKET     *tds     = NULL;
    int            srctype = -1;   
+   int            desttype = -1;   
    int            okay    = TRUE; /* so far, so good */
 
+	tdsdump_log(TDS_DBG_INFO1, "%L dbbind() column = %d %d %d\n",column, vartype, varlen);
 	dbproc->avail_flag = FALSE;
    /* 
     * Note on logic-  I'm using a boolean variable 'okay' to tell me if
@@ -986,32 +1186,33 @@ RETCODE dbbind(
     * "if (okay)" statement.  Once okay becomes false we skip everything 
     * else.
     */
-   okay = (dbproc!=NULL && dbproc->tds_socket!=NULL && varaddr!=NULL);
+	okay = (dbproc!=NULL && dbproc->tds_socket!=NULL && varaddr!=NULL);
 
-   if (okay)
-   {
-      tds     = (TDSSOCKET *) dbproc->tds_socket;
-      resinfo = tds->res_info;
-   }
+	if (okay) {
+		tds = (TDSSOCKET *) dbproc->tds_socket;
+		resinfo = tds->res_info;
+	}
    
-   okay = okay && ((column >= 1) && (column <= resinfo->num_cols));
+	okay = okay && ((column >= 1) && (column <= resinfo->num_cols));
 
-   if (okay)
-   {
-      colinfo  = resinfo->columns[column-1];
-      srctype = tds_get_conversion_type(colinfo->column_type,
-                                     colinfo->column_size);
-      okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
-   }
+	if (okay) {
+		colinfo  = resinfo->columns[column-1];
+		srctype = tds_get_conversion_type(colinfo->column_type,
+					colinfo->column_size);
+		desttype = _db_get_server_type(vartype);
 
-   if (okay)
-   {   
-      colinfo->varaddr         = (char *)varaddr;
-      colinfo->column_bindtype = vartype;
-      colinfo->column_bindlen  = varlen;
-   }
+		tdsdump_log(TDS_DBG_INFO1, "%L dbbind() srctype = %d desttype = %d \n",srctype, desttype);
 
-   return okay ? SUCCEED : FAIL;
+		okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
+	}
+
+	if (okay) {   
+		colinfo->varaddr         = (char *)varaddr;
+		colinfo->column_bindtype = vartype;
+		colinfo->column_bindlen  = varlen;
+	}
+
+	return okay ? SUCCEED : FAIL;
 } /* dbbind()  */
 
 void dbsetifile(char *filename)
@@ -2232,8 +2433,9 @@ char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	tds_convert(g_dblib_ctx->tds_ctx, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
-	tds_convert(g_dblib_ctx->tds_ctx, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
+    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+
 	sprintf(query, "writetext bulk %s %s timestamp = %s",
 		objname, textptr_string, timestamp_string); 
 	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {

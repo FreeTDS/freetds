@@ -30,7 +30,9 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.25 2002-07-15 03:29:58 brianb Exp $";
+#define DOMAIN 1
+
+static char  software_version[]   = "$Id: login.c,v 1.26 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -538,6 +540,60 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 	return 0;
 }
 
+int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge)
+{
+int rc;
+int current_pos;
+char *domain="CLDE00000091MEH";
+char *username="t3624bb";
+char *password="auqafina";
+char *hostname="CLDE00000091MEH";
+char *answer;
+
+	tds->out_flag=0x10;
+	tds_put_n(tds, "NTLMSSP", 8);
+	tds_put_smallint(tds, 3); /* sequence 3 */
+	tds_put_smallint(tds, 0); 
+
+	current_pos = 64;
+	tds_put_smallint(tds, 0x18);  /* lan man resp length */
+	tds_put_smallint(tds, 0x18);  /* lan man resp length */
+	tds_put_smallint(tds, current_pos);  /* resp offset */
+	tds_put_smallint(tds, 0x00);
+
+	tds_put_smallint(tds, 0x00);  /* nt resp length */
+	tds_put_smallint(tds, 0x00);  /* nt resp length */
+	tds_put_smallint(tds, 0x00);  /* nt resp offset */
+	tds_put_smallint(tds, 0x00);
+
+	tds_put_smallint(tds, strlen(domain));  
+	tds_put_smallint(tds, strlen(domain));  
+	tds_put_smallint(tds, current_pos);
+	tds_put_smallint(tds, 0x00);
+	
+	current_pos += strlen(domain);
+	tds_put_smallint(tds, strlen(username));  
+	tds_put_smallint(tds, strlen(username));  
+	tds_put_smallint(tds, current_pos);
+	tds_put_smallint(tds, 0x00);
+
+	current_pos += strlen(username);
+	tds_put_smallint(tds, strlen(hostname));  
+	tds_put_smallint(tds, strlen(hostname));  
+	tds_put_smallint(tds, current_pos);
+	tds_put_smallint(tds, 0x00);
+
+	tds_put_n(tds, domain, strlen(domain));
+	tds_put_n(tds, username, strlen(username));
+	tds_put_n(tds, hostname, strlen(hostname));
+	
+	tds_answer_challenge(password, challenge);
+	tds_put_n(tds, answer, 24);
+
+	rc|=tds_flush_packet(tds);
+
+	return rc;
+}
 /*
 ** tds7_send_login() -- Send a TDS 7.0 login packet
 ** TDS 7.0 login packet is vastly different and so gets its own function
@@ -546,6 +602,7 @@ int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	
 int rc;
 unsigned char magic1[] = 
+#ifndef DOMAIN
 	{6,0x83,0xf2,0xf8,  /* Client Program version */
      0xff,0x0,0x0,0x0,  /* Client PID */
      0x0,0xe0,0x03,0x0, /* Connection ID of the Primary Server (?) */
@@ -555,11 +612,31 @@ unsigned char magic1[] =
      0xff,              /* reserved Flags */
      0xff,0x36,0x04,0x00,
      0x00};
-/* also seen
-	{6,0x7d,0x0f,0xfd,0xff,0x0,0x0,0x0,0x0,
-	0xe0,0x83,0x0,0x0,0x68,0x01,0x00,0x00,
-	0x09,0x04,0x00,0x00};
-*/
+#else
+	{6,0x7d,0x0f,0xfd,
+     0xff,0x0,0x0,0x0,  /* Client PID */
+	/* the 0x80 in the third byte controls whether this is a domain login 
+	 * or not  0x80 = yes, 0x00 = no */
+     0x0,0xe0,0x83,0x0, /* Connection ID of the Primary Server (?) */
+     0x0,               /* Option Flags 1 */
+     0x68,              /* Option Flags 2 */
+	0x01,
+	0x00,
+	0x00,0x09,0x04,0x00,
+     0x00};
+#endif
+#if 0
+/* also seen */
+	{6,0x7d,0x0f,0xfd,
+	0xff,0x0,0x0,0x0,
+	0x0,0xe0,0x83,0x0,
+	0x0,
+	0x68,
+	0x01,
+	0x00,
+	0x00,0x09,0x04,0x00,
+	0x00};
+#endif
 unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
 /* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 unsigned char magic3[] = "NTLMSSP";
@@ -567,7 +644,7 @@ unsigned char unicode_string[255];
 int packet_size;
 int size1;
 int current_pos;
-int domain_login = 0;
+int domain_login = 1;
 
 int user_name_len = config->user_name ? strlen(config->user_name) : 0;
 int host_name_len = config->host_name ? strlen(config->host_name) : 0;
@@ -577,7 +654,7 @@ int server_name_len = config->server_name ? strlen(config->server_name) : 0;
 int library_len = config->library ? strlen(config->library) : 0;
 int language_len = config->language ? strlen(config->language) : 0;
 
-   if (!domain_login) {
+#ifndef DOMAIN
    	size1 = 86 + (
 			host_name_len +
 			user_name_len +
@@ -586,14 +663,14 @@ int language_len = config->language ? strlen(config->language) : 0;
 			server_name_len +
 			library_len +
 			language_len)*2;
-   } else {
+#else
    	size1 = 86 + (
 			host_name_len +
 			app_name_len +
 			server_name_len +
 			library_len +
 			language_len)*2;
-   }
+#endif
    packet_size = size1 + 48;
    tds_put_smallint(tds,packet_size);
    tds_put_n(tds,NULL,5);
@@ -611,7 +688,7 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,host_name_len);
    current_pos += host_name_len * 2;
-   if (!domain_login) {
+#ifndef DOMAIN
    	/* username */
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,user_name_len);
@@ -620,12 +697,12 @@ int language_len = config->language ? strlen(config->language) : 0;
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,password_len);
    	current_pos += password_len * 2;
-   } else {
+#else
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
-   }
+#endif
    /* app name */
    tds_put_smallint(tds,current_pos);
    tds_put_smallint(tds,app_name_len);
@@ -673,10 +750,11 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds7_ascii2unicode(tds,config->language, unicode_string, 255);
    tds_put_n(tds,unicode_string,language_len * 2);
 
-   /* from here to the end of the packet is totally unknown */
+   /* from here to the end of the packet is the NTLMSSP authentication */
    tds_put_n(tds,magic3,7);
-   /* next two bytes -- possibly version number (NTLMSSP v1) */
+   /* null */
    tds_put_byte(tds,0);
+   /* sequence 1 client -> server */
    tds_put_byte(tds,1);
    tds_put_n(tds,NULL,3);
    tds_put_byte(tds,6);

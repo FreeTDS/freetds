@@ -48,7 +48,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.9 2002-07-05 20:23:49 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.10 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -228,6 +228,7 @@ void tdsdump_dump_buf(
          for(j=i; j<length && (j-i)<bytesPerLine; j++)
          {
             fprintf(dumpfile, "%02x ", data[j]);
+            if (j-i == bytesPerLine/2) fprintf(dumpfile, " ");
          }
          
          /*
@@ -245,6 +246,7 @@ void tdsdump_dump_buf(
          for(j=i; j<length && (j-i)<bytesPerLine; j++)
          {
             fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
+            if (j-i == bytesPerLine/2) fprintf(dumpfile, " ");
          }
          fprintf(dumpfile, "|\n");
       }

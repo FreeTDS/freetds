@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.30 2002-07-16 17:34:02 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.31 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -70,7 +70,10 @@ int   cancelled;
    }
 
    switch(marker) {
-      case TDS_ENV_CHG_TOKEN:
+	case TDS_AUTH_TOKEN:
+		tds_process_auth(tds);
+		break;
+	case TDS_ENV_CHG_TOKEN:
       {
          tds_process_env_chg(tds);
          break;
@@ -175,6 +178,8 @@ char *tmpbuf;
 	do {
 		marker=tds_get_byte(tds);
 		switch(marker) {
+			case TDS_AUTH_TOKEN:
+				tds_process_auth(tds);
 			case TDS_LOGIN_ACK_TOKEN:
 				len = tds_get_smallint(tds);
 				ack = tds_get_byte(tds);
@@ -208,6 +213,48 @@ char *tmpbuf;
 	} while (marker!=TDS_DONE_TOKEN);
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_login_tokens() returning %d\n",succeed);
 	return succeed;
+}
+int tds_process_auth(TDSSOCKET *tds)
+{
+int pdu_size, ntlm_size;
+char nonce[10];
+char domain[30];
+int where = 0;
+
+	pdu_size = tds_get_smallint(tds); where += 2;
+	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
+
+	tds_get_ntstring(tds, NULL, 0); /* NTLMSSP\0 */ 
+	where += 8;
+	tds_get_byte(tds); /* sequence -> 2 */
+	where++;
+	tds_get_n(tds, NULL, 7); /* ? */
+	where += 7;
+	ntlm_size = tds_get_smallint(tds); /* size of remainder of ntlmssp packet */
+	where += 2;
+	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN NTLMSSP size %d\n", ntlm_size);
+	tds_get_n(tds, NULL, 2); /* ? */
+	tds_get_n(tds, NULL, 2); /* ? */
+	tds_get_n(tds, NULL, 2); /* ? */
+	where += 6;
+	tds_get_n(tds, nonce, 8); 
+	where += 8;
+	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce\n");
+	tdsdump_dump_buf(nonce, 8);
+	tds_get_n(tds, NULL, 16); 
+	where += 16;
+	
+	//tds_get_ntstring(tds, domain, 30); 
+	//tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
+	//where += strlen(domain);
+	
+
+	tds_get_n(tds, NULL, pdu_size - ntlm_size); 
+	tdsdump_log(TDS_DBG_INFO1,"%L Draining %d bytes\n", pdu_size - ntlm_size);
+
+	tds7_send_auth(tds, nonce);
+
+	return TDS_SUCCEED;
 }
 /*
 ** tds_process_result_tokens() is called after submitting a query with

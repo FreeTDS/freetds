@@ -21,9 +21,26 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.7 2002-07-15 03:29:58 brianb Exp $";
+         "$Id: tdsconvert.h,v 1.8 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
+
+typedef union conv_result {
+    TDS_TINYINT     ti;
+    TDS_SMALLINT    si;
+    TDS_INT         i;
+    TDS_FLOAT       f;
+    TDS_REAL        r;
+    TDS_CHAR        *c;
+    TDS_MONEY       m;
+    TDS_MONEY4      m4;
+    TDS_DATETIME    dt;
+    TDS_DATETIME4   dt4;
+    TDS_NUMERIC     n;
+    TDS_VARBINARY   vb;
+    TDS_CHAR        *ib;
+    TDS_UNIQUE      u;
+} CONV_RESULT;
 
 struct tds_tm;
 static size_t tds_strftime(char *buf, size_t maxsize, const char *format, 
@@ -47,7 +64,7 @@ extern int _get_conversion_type(int srctype, int colsize);
 extern unsigned char tds_willconvert(int srctype, int desttype);
 
 TDS_INT tds_convert(TDSCONTEXT *context, int srctype, TDS_CHAR *src, 
-		TDS_UINT srclen, int desttype, TDS_CHAR *dest, TDS_UINT destlen);
+		TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);
 
 struct  tds_time {
 int tm_year;

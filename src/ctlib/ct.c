@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.18 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.19 2002-08-02 03:13:00 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -518,6 +518,8 @@ unsigned char *dest;
 TDS_INT srctype, srclen, desttype, destlen, len;
 CS_CONTEXT *ctx = cmd->con->ctx;
 
+CS_DATAFMT srcfmt, destfmt;
+
    tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_bind_data()\n");
 
    for (i=0; i<resinfo->num_cols; i++) {
@@ -535,12 +537,11 @@ CS_CONTEXT *ctx = cmd->con->ctx;
       srctype = curcol->column_type;
       desttype = _ct_get_server_type(curcol->column_bindtype);
       dest = (unsigned char *)curcol->varaddr;
-      tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() converting column %d from type %d to type %d\n", 
-         i, srctype, desttype);
    
       if (dest && !tds_get_null(resinfo->current_row,i)) {
-         srctype = tds_get_conversion_type(srctype, curcol->column_size);
-         destlen = curcol->column_bindlen;
+
+         srctype = _ct_get_client_type(curcol->column_type, curcol->column_size);
+
          if (is_blob_type(srctype)) {
             src = (unsigned char *)curcol->column_textvalue;
             srclen = curcol->column_textsize;
@@ -548,46 +549,25 @@ CS_CONTEXT *ctx = cmd->con->ctx;
             src = &(resinfo->current_row[curcol->column_offset]);
             srclen = curcol->column_size;
          }
-         tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, destlen);
-         len = tds_convert(ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
-         tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
-   
-         /* XXX need utf16 support (NCHAR,NVARCHAR,NTEXT) */
-         switch (curcol->column_bindfmt) {
-            case CS_FMT_NULLTERM:
-               if (desttype==SYBCHAR || desttype==SYBVARCHAR
-                || desttype==SYBTEXT) {
-                  if (destlen > len)  dest[len] = '\0';
-                  else                dest[len-1] = '\0';
-                  len++; /* CS_FMT_NULLTERM includes the null in the size */
-               }
-               break;      
-            case CS_FMT_UNUSED:
-               break;      
-            case CS_FMT_PADBLANK:
-               if (desttype==SYBCHAR || desttype==SYBVARCHAR
-                || desttype==SYBTEXT) {
-                  if (destlen > len) {
-                      memset(dest+len, (int)' ', destlen - len);
-                  }
-               }
-               break;      
-            case CS_FMT_PADNULL:
-               if (desttype==SYBCHAR   || desttype==SYBVARCHAR
-                || desttype==SYBBINARY || desttype==SYBVARBINARY
-                || desttype==SYBTEXT   || desttype==SYBIMAGE) {
-                  if (destlen > len) {
-                      memset(dest+len, 0, destlen - len);
-                  }
-               }
-               break;      
-            default:
-               break;
-         }
+
+         tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, curcol->column_bindlen);
+
+         srcfmt.datatype  = srctype;
+         srcfmt.maxlength = srclen;
+         srcfmt.locale    = cmd->con->locale;
+
+         destfmt.datatype  = curcol->column_bindtype;
+         destfmt.maxlength = curcol->column_bindlen;
+         destfmt.locale    = cmd->con->locale;
+         destfmt.format    = curcol->column_bindfmt;
+
+         cs_convert(ctx, &srcfmt, (CS_VOID *)src, &destfmt, (CS_VOID *)dest, &len);
+
          if (curcol->column_lenbind) {
             tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() length binding len = %d\n", len);
             *((CS_INT *)curcol->column_lenbind) = len;
          }
+
       }
    }
 }
