@@ -568,7 +568,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit55]
-FileName=..\..\src\replacements\iconv_r.c
+FileName=..\..\src\replacements\iconv.c
 Folder=Replacements
 Compile=1
 CompileCpp=0
