@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.12 2002-09-25 05:54:19 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.13 2002-09-25 15:51:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,7 +107,7 @@ int id_len, query_len;
 
 	if (!query || !id) return TDS_FAIL;
 
-	if (!IS_TDS50(tds) /* || !IS_TDS7_PLUS(tds) */) {
+	if (!IS_TDS50(tds) /* && !IS_TDS7_PLUS(tds) */ ) ) {
 		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Dynamic placeholders only supported under TDS 5.0");
 		return TDS_FAIL;
@@ -119,17 +119,6 @@ int id_len, query_len;
 	}
 	tds_free_all_results(tds);
 
-	/* FIXME add support for mssql, use RPC and sp_prepare */
-	/*
-	tds->out_flag = 3; RPC
-	tds_put_byte(10);
-	tds_put_n(tds,"s\0p\0_\0p\0r\0e\0p\0a\0r\0e",20);
-	tds_put_smallint(0);
-
-	return param handle
-	string with parameters types
-	string with sql statement
-	 */
 	/* allocate a structure for this thing */
 	tds_alloc_dynamic(tds, id);
 
@@ -137,6 +126,54 @@ int id_len, query_len;
 	tds->state = TDS_QUERYING;
 	id_len = strlen(id);
 	query_len = strlen(query);
+
+	/* FIXME add support for mssql, use RPC and sp_prepare */
+	if (0 && IS_TDS7_PLUS(tds)) {
+		int len;
+
+		tds->out_flag = 3; /* RPC */
+		/* procedure name */
+		tds_put_smallint(tds,10);
+		tds_put_n(tds,"s\0p\0_\0p\0r\0e\0p\0a\0r\0e",20);
+		tds_put_smallint(tds,0); 
+
+		/* return param handle (int) */
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,1); /* result */
+		tds_put_byte(tds,SYBINTN);
+		tds_put_byte(tds,4);
+		tds_put_byte(tds,0);
+	
+		/* string with parameters types */
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
+		tds_put_int(tds,len);
+		tds_put_int(tds,len);
+		/* TODO */
+		/* tds_put_n(tds,params_string,len); */
+	
+		/* string with sql statement */
+		/* TODO build param strings from parameters */
+		len = strlen(query);
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
+		tds_put_int(tds,query_len);
+		tds_put_int(tds,query_len);
+		tds_put_n(tds,query,query_len);
+
+		/* 1 param ?? why ? */
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,SYBINT4);
+		tds_put_int(tds,1);
+		
+		tds->out_flag = 0xf; /* default */
+
+		tds_flush_packet(tds);
+		return TDS_SUCCEED;
+	}
 
 	tds_put_byte(tds,0xe7); 
 	tds_put_smallint(tds,query_len + id_len*2 + 21); 
@@ -172,8 +209,47 @@ int one = 1;
 
 	id_len = strlen(id);
 
+     /* FIXME if id is not found ?? */
      elem = tds_lookup_dynamic(tds, id);
      dyn = tds->dyns[elem];
+
+	/* FIXME add support for mssql, use RPC and sp_prepare */
+	if (0 && IS_TDS7_PLUS(tds)) {
+		/* RPC on sp_execute */
+		tds->out_flag = 3; /* RPC */
+		/* procedure name */
+		tds_put_smallint(tds,10);
+		tds_put_n(tds,"s\0p\0_\0e\0x\0e\0c\0u\0t\0e",20);
+		tds_put_smallint(tds,0); 
+		
+		/* id of prepared statement */
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,0);
+		tds_put_byte(tds,SYBINT4);
+		tds_put_int(tds,dyn->num_id);
+
+		for (i=0;i<dyn->num_params;i++) {
+			param = dyn->params[i];
+			tds_put_byte(tds,0x00); 
+			tds_put_byte(tds,0x00); 
+			tds_put_byte(tds,param->column_type); 
+			/* TODO out length correctly based on type */
+			if (param->column_bindlen) { 
+				tds_put_byte(tds,param->column_bindlen);
+				tds_put_byte(tds,param->column_bindlen); 
+				tds_put_n(tds, param->varaddr,param->column_bindlen); 
+			} else {
+				tds_put_byte(tds,0xff);
+				tds_put_byte(tds,strlen(param->varaddr)); 
+				tds_put_n(tds, param->varaddr,strlen(param->varaddr)); 
+			}
+		}
+		
+		tds->out_flag = 0xf; /* default */
+
+		tds_flush_packet(tds);
+		return TDS_SUCCEED;
+	}
 
 /* dynamic id */
 	tds_put_byte(tds,0xe7); 
@@ -237,6 +313,9 @@ int one = 1;
 */
 int tds_send_cancel(TDSSOCKET *tds)
 {
+	/* TODO discard any partial packet here */
+	/* tds_init_write_buf(tds); */
+
         tds->out_flag=0x06;
         tds_flush_packet(tds);
 
