@@ -2,7 +2,6 @@ Makefile
 Makefile.in
 tdsver.h
 config.h
-tds.h
 stamp-h.in
 config.h.in
 stamp-h
