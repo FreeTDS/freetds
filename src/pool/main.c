@@ -55,7 +55,11 @@ TDS_POOL *pool;
 	pool = g_pool;
 	memset(pool,'\0',sizeof(TDS_POOL));
 	/* FIX ME -- read this from the conf file */
-	pool_read_conf_file(name, pool);
+	if (!pool_read_conf_file(name, pool)) {
+		fprintf(stderr, "Configuration for pool ``%s'' not found.\n",
+			name);
+		exit(EXIT_FAILURE);
+	}
 	pool->num_members = pool->max_open_conn;
 
 	pool->name = (char *) malloc(strlen(name)+1);
