@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.236 2003-12-12 14:34:39 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.237 2003-12-16 08:03:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2183,6 +2183,9 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 			tds->state = TDS_DEAD;
 		}
 	}
+
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgnum, message, tds->state);
+
 	return 0;
 }
 

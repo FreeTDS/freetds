@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.76 2003-12-09 20:52:33 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.77 2003-12-16 08:03:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -110,24 +110,62 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = 1;
 		selecttimeout.tv_usec = 0;
-		retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);
-		if (retcode < 0) {
-			if (sock_errno != EINTR) {
-				return (-1);
-			}
-		} else if (retcode > 0) {
-#ifndef MSG_NOSIGNAL
+
+		retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);	/* retcode == 0 indicates a timeout, OK */
+
+		if( retcode != 0 ) {
+			if( retcode < 0 ) {
+				if (sock_errno != EINTR) {
+					char *msg = strerror(sock_errno);
+					tdsdump_log(TDS_DBG_NETWORK, "%L goodread select: errno=%d, \"%s\", returning -1\n", errno, (msg)? msg : "(unknown)");
+					return -1;
+				}
+				goto OK_TIMEOUT;
+			} 
+			/*
+			 * select succeeded: let's read.
+			 */
+#			ifndef MSG_NOSIGNAL
 			len = READSOCKET(tds->s, buf + got, buflen);
-#else
+# 			else
 			len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
-#endif
-			if (len > 0) {
-				buflen -= len;
-				got += len;
-			} else if ((len == 0) || ((sock_errno != EINTR) && (sock_errno != EINPROGRESS))) {
-				return (-1);
+# 			endif
+
+			if (len < 0) {
+				char *msg = strerror(sock_errno);
+				tdsdump_log(TDS_DBG_NETWORK, "%L goodread: errno=%d, \"%s\"\n", errno, (msg)? msg : "(unknown)");
+				
+				switch (errno) {
+				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
+				case EINTR:		/* If interrupted by a signal before it reads any data. */
+				case EINPROGRESS:	/* A lengthy operation on a non-blocking object is in progress. */
+					/* EINPROGRESS is not a documented errno for read(2), afaict.  Remove following assert if it trips.  --jkl */
+					assert(errno != EINPROGRESS);
+					break;	/* try again */
+
+				case EBADF:
+				/*   EBADMSG: not always defined */
+				case EDEADLK:
+				case EFAULT:
+				case EINVAL:
+				case EIO:
+				case ENOLCK:
+				case ENOSPC:
+				case ENXIO:
+				default:
+					return -1;
+					break;
+				}
 			}
-		}
+
+			if (len == 0) 
+				return -1;
+
+			buflen -= len;
+			got += len;
+		} 
+		
+		OK_TIMEOUT:
 		now = time(NULL);
 		if (tds->longquery_func && tds->queryStarttime && tds->longquery_timeout) {
 			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
