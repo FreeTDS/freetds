@@ -12,10 +12,49 @@ cd "$DIR/.."
 ORIGDIR="$PWD"
 DIR="$ORIGDIR/misc"
 
+INFO="<table border=\"1\">
+  <tr>
+    <th>Hostname</th>
+    <td>`hostname | sed 's,\..*$,,; s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g'`</td>
+  </tr>
+  <tr>
+    <th>gcc version</th>
+    <td>`gcc --version 2> /dev/null | grep 'GCC' | sed 's,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g'`</td>
+  </tr>
+  <tr>
+    <th>uname -a</th>
+    <td>`uname -a | sed 's,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g'`</td>
+  </tr>
+  <tr>
+    <th>date</th>
+    <td>`date '+%Y-%m-%d'`</td>
+  </tr>
+</table>
+<br />"
+
+# create html template
+echo "<html>
+<head>
+<title>{TITLE}</title>
+<style>
+.error { color: red }
+.info  { color: blue }
+</style>
+</head>
+<body>
+<h1>{TITLE}</h1>
+<p><a href=\"out.html\">Main</a></p>
+$INFO
+{CONTENT}
+<p><a href=\"out.html\">Main</a></p>
+</body>
+</html>
+" > "$DIR/tmp1.tmpl"
+
 output_html () {
-	SRC=$1
-	DST=$2
-	cat "$SRC" | perl -e '$fn = $ARGV[0]; shift @ARGV;
+	SRC=$2
+	DST=$3
+	cat "$SRC" | perl -e '$fn = shift @ARGV; $title = shift @ARGV;
 @a = <>;
 $_ = join("", @a);
 s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g;
@@ -31,8 +70,11 @@ open(TMP, "<$fn") || die("open");
 @a = <TMP>;
 $a = join("", @a);
 close(TMP);
+$_ = $title;
+s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g;
+$a =~ s,{TITLE},$_,g;
 $a =~ s,{CONTENT},$html,;
-print $a' "$DIR/tmp1.tmpl" > "$DST"
+print $a' "$DIR/tmp1.tmpl" "$1"  > "$DST"
 }
 
 # function to save output
@@ -42,8 +84,11 @@ output_save () {
 	OUT=$1
 	shift
 	classifier "$@" > "$DIR/$OUT.txt"
-	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
 	RES=$?
+
+	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
+	output_html "$COMMENT" "$DIR/$OUT.txt" "$DIR/$OUT.html"
+
 	WARN=":-)"
 	if test `cat "$DIR/$OUT.txt" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
 		WARN=":-("
@@ -61,6 +106,7 @@ output_save () {
 out_init () {
 	echo "<html>
 <body>
+$INFO
 " > "$DIR/out.html"
 }
 
@@ -137,13 +183,9 @@ fi
 # parse all tests
 echo Processing output ...
 
-output_html "$DIR/make.txt" "$DIR/make.html"
-output_html "$DIR/maketest.txt" "$DIR/maketest.html"
-
 NUM=1
 out_header "Tests  Success  No warnings  log  VG Success  VG no warnings  VG no errors  VG no leaks  VG log"
 for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL-TEST:,,g; s,:FULL-TEST.*,,g' `; do
-	echo $CUR
 	TESTLINE="$CUR"
 	
 	# split file name and results
@@ -153,24 +195,19 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	CUR=`echo $CUR | sed "s,:$RES1\$,,"`
 
 	TEST=`echo $CUR | sed "s,^$ORIGDIR/,,g"`
-	echo $CUR
 	echo $TEST
-	echo $NUM
 
 	# patch make test page
 	OUT=""
 	if test -f "$CUR.test_output"; then
-		output_html "$CUR.test_output" "$DIR/test$NUM.html"
+		output_html "$TEST" "$CUR.test_output" "$DIR/test$NUM.html"
 		OUT="<a href=\"test$NUM.html\">$TEST</a> "
 	fi
 	if test -f "$CUR.vg.test_output"; then
-		output_html "$CUR.vg.test_output" "$DIR/vgtest$NUM.html"
+		output_html "$TEST" "$CUR.vg.test_output" "$DIR/vgtest$NUM.html"
 		OUT="$OUT<a href=\"vgtest$NUM.html\">$TEST (ValGrind)</a>"
 	fi
 
-	# replace code in check.txt
-	cat "$DIR/check.html" | sed "s,FULL-TEST:$TESTLINE:FULL-TEST,$OUT,g" > "$DIR/check.tmp" && mv "$DIR/check.tmp" "$DIR/check.html"
-	
 	# make output
 	LOG1="not present"
 	WARN1=unknown
