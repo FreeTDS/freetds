@@ -491,7 +491,7 @@ write information to on how the configuration information is being
 obtained, e.g. from environment variables, a freetds.conf file, or interface file.
           </para>
           <para>
-For more information on logging, see the section below so titled.
+For more information on logging, see <link linkend="Logging">Logging</link>.
           </para>
         </sect3>
       </sect2>
@@ -1712,7 +1712,7 @@ If you get output like this the dataserver is listening.  If you get a 'Connecti
 Assuming both ping and telnet worked ok, the last possibility is that the SQL Server is accepting only 'domain' logins.  This applys only to Microsoft SQL Server and you'll need to have your DBA verify that 'server logins' are allowed.
 			</para>
 		</sect1>
-		<sect1>
+		<sect1 id="Logging">
 			<title>Logging</title>
 			<para>
 Log files can be turned on using the <parameter>TDSDUMP</parameter> environment variable.  For instance, setting the location of a dumpfile
