@@ -1,3 +1,7 @@
+Fri Mar 12 17:28:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/preperror.c: copied test from DBD::ODBC
+	* src/tds/token.c: catch error on tds_process_simple_query
+
 Fri Mar 12 16:45:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: fix mssql2k core using null TEXTs
 
