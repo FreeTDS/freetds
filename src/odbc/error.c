@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.24 2003-08-01 06:40:48 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.25 2003-08-01 15:51:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -442,8 +442,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
-	/* FIXME change type, possible overflow */
-	unsigned char odbc_ver = SQL_OV_ODBC2;
+	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0 || !handle)
 		return SQL_ERROR;
@@ -543,8 +542,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	struct _sql_errors *errs = NULL;
 	const char *msg;
 
-	/* FIXME possible int overflow, change type */
-	unsigned char odbc_ver = SQL_OV_ODBC2;
+	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 	int cplen;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;

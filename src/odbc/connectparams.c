@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.45 2003-07-30 12:37:24 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.46 2003-08-01 15:51:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -386,16 +386,13 @@ tdoGetIniFileName()
 
 #ifdef UNIXODBC
 
-/* FIXME unixODBC header seem broken... */
-/* #include <odbcinstext.h> */
-
-#if !defined(INI_MAX_PROPERTY_NAME) || !defined(INI_MAX_PROPERTY_VALUE)
 /*
  * Begin BIG Hack.
  *  
- * We need these from idbcinstext.h but it wants to 
+ * We need these from odbcinstext.h but it wants to 
  * include <log.h> and <ini.h>, which are not in the 
- * standard include path.  XXX smurph 
+ * standard include path.  XXX smurph
+ * confirmed by unixODBC stuff, odbcinstext.h shouldn't be installed. freddy77
  */
 #define     INI_MAX_LINE            1000
 #define     INI_MAX_OBJECT_NAME     INI_MAX_LINE
@@ -427,7 +424,6 @@ ODBCINSTPROPERTY, *HODBCINSTPROPERTY;
 /* 
  * End BIG Hack.
  */
-#endif
 
 int ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty);
 

@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.34 2003-05-31 16:12:14 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.35 2003-08-01 15:51:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -147,7 +147,6 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 
 	memset(&src_tm, 0, sizeof(src_tm));
 
-	/* FIXME -- This fails for dates before 1902 or after 2038 */
 	switch (srctype) {
 	case SQL_C_DATE:
 	case SQL_C_TYPE_DATE:

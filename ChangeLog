@@ -1,3 +1,8 @@
+Fri Aug 01 17:50:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/odbc/convert_sql2string.c:
+	* src/odbc/error.c:
+	- remove some FIXME from code
+
 Fri Aug 01 15:45:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- do not cause invalid data with variant, replace with NULL
