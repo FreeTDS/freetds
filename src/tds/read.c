@@ -19,6 +19,9 @@
 
 #include <config.h>
 #include "tds.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifdef WIN32
 #define CLOSE(a) closesocket(a)
@@ -31,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.6 2002-03-27 22:04:46 vorlon Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

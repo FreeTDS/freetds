@@ -43,9 +43,12 @@
 #include <arpa/inet.h>
 #endif
 #include "tdsutil.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.6 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -20,8 +20,11 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char  software_version[]   = "$Id: query.c,v 1.7 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.8 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -20,6 +20,9 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifdef WIN32                                           
 #define IOCTL(a,b,c) ioctlsocket(a, b, c)
@@ -27,7 +30,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.23 2002-06-25 00:50:12 jklowden Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.24 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -280,7 +283,6 @@ FD_ZERO (&fds);
 		tds->out_flag=0x02;
 		tds_send_login(tds,config);	
 	}
-	/* get_incoming(tds->s);  */
 	if (!tds_process_login_tokens(tds)) {
 		tds_free_socket(tds);
 		tds = NULL;

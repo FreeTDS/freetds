@@ -21,6 +21,9 @@
 #include "tds.h"
 #ifdef HAVE_SSL
 #include <openssl/des.h>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 /*
  * The following code is based on some psuedo-C code from ronald@innovation.ch

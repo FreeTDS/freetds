@@ -44,8 +44,11 @@
 #endif
 #include "tds.h"
 #include "tdsutil.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.2 2002-05-25 01:20:52 brianb Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.3 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -21,6 +21,9 @@
 #include "tds.h"
 #include "tdsutil.h"
 #include <signal.h> /* GW ADDED */
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifdef WIN32
 #define WRITE(a,b,c) send((a),(b),(c), 0L)
@@ -28,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.6 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

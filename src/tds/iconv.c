@@ -28,6 +28,9 @@
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 void tds_iconv_open(TDSSOCKET *tds, char *charset)
 {

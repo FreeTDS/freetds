@@ -20,6 +20,9 @@
 #include <config.h>
 #include <tds.h>
 #include <stdio.h>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 /* 
 ** these routines use arrays of unsigned char to handle arbitrary

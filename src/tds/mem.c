@@ -20,8 +20,11 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.11 2002-07-01 22:11:42 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.12 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,8 +110,7 @@ TDSDYNAMIC *dyn;
 		tds_free_input_params(dyn);
 		free(dyn);
 	}
-	free(tds->dyns);
-	tds->dyns = NULL;
+	if (tds->dyns) TDS_ZERO_FREE(tds->dyns);
 	tds->num_dyns = 0;
 	
 	return;

@@ -24,8 +24,11 @@
 #include <time.h>
 #include <assert.h>
 #include <errno.h>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.16 2002-06-26 01:44:27 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.17 2002-07-04 12:32:51 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
