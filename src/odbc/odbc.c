@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.332 2004-07-21 14:51:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.333 2004-07-21 15:20:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2677,38 +2677,30 @@ _SQLFetch(TDS_STMT * stmt)
 				} else {
 					int len;
 
-					if (c_type == SQL_C_CHAR || c_type == SQL_C_BINARY || c_type == SQL_C_VARBOOKMARK) {
+					/* this shit is mine -- freddy77 */
+					switch (c_type) {
+					case SQL_C_CHAR:
+					case SQL_C_BINARY:
 						len = drec_ard->sql_desc_octet_length;
-					} else {
-						/* this shit is mine -- freddy77 */
-						int server_type = odbc_c_to_server_type(c_type);
-
-						switch (server_type) {
-						case SYBDATETIME:
-							switch (c_type) {
-							case SQL_C_TYPE_DATE:
-							case SQL_C_DATE:
-								len = sizeof(DATE_STRUCT);
-								break;
-							case SQL_C_TYPE_TIME:
-							case SQL_C_TIME:
-								len = sizeof(TIME_STRUCT);
-								break;
-							default:
-								assert(0);
-							case SQL_C_TYPE_TIMESTAMP:
-							case SQL_C_TIMESTAMP:
-								len = sizeof(TIMESTAMP_STRUCT);
-								break;
-							}
-							break;
-						case SYBNUMERIC:
-							len = sizeof(SQL_NUMERIC_STRUCT);
-							break;
-						default:
-							len = tds_get_size_by_type(server_type);
-							break;
-						}
+						break;
+					case SQL_C_DATE:
+					case SQL_C_TYPE_DATE:
+						len = sizeof(DATE_STRUCT);
+						break;
+					case SQL_C_TIME:
+					case SQL_C_TYPE_TIME:
+						len = sizeof(TIME_STRUCT);
+						break;
+					case SQL_C_TIMESTAMP:
+					case SQL_C_TYPE_TIMESTAMP:
+						len = sizeof(TIMESTAMP_STRUCT);
+						break;
+					case SQL_C_NUMERIC:
+						len = sizeof(SQL_NUMERIC_STRUCT);
+						break;
+					default:
+						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
+						break;
 					}
 					if (len <= 0) {
 						row_status = SQL_ROW_ERROR;
