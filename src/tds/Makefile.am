@@ -9,7 +9,7 @@ libtds_objects_la_LIBADD=
 lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
 libtds_la_LDFLAGS	= -version-info 1:1:0
-libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) $(top_srcdir)/src/replacements/libreplacements.la
+libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
 EXTRA_DIST	= tds_willconvert.h
 
 if HAVE_DOXYGEN
