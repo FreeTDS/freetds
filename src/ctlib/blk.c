@@ -25,7 +25,7 @@
 
 #include "ctpublic.h"
 #include "ctlib.h"
-
+#include "replacements.h"
 
 #include <stdlib.h>
 
@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.11 2004-05-18 15:05:49 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.12 2004-06-13 13:18:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );

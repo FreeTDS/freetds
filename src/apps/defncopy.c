@@ -46,8 +46,9 @@
 
 #include <sqlfront.h>
 #include <sybdb.h>
+#include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.3 2004-04-13 09:07:43 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.4 2004-06-13 13:18:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

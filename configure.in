@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.133 2004-06-12 17:01:00 freddy77 Exp $
+dnl $Id: configure.in,v 1.134 2004-06-13 13:18:27 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -221,13 +221,14 @@ AC_C_BIGENDIAN
 AC_C_CONST
 for freetds_ldflag in "-Wl,-Bsymbolic" "-Bsymbolic"; do
 	AC_MSG_CHECKING([whether we can use $freetds_ldflag])
-	saved_CFLAGS=$CFLAGS
-	CFLAGS="$CFLAGS $freetds_ldflag"
+	saved_LDFLAGS=$LDFLAGS
+	LDFLAGS="$LDFLAGS $freetds_ldflag"
 	AC_TRY_LINK(,[return 1],ac_cv_use_freetds_flag="yes",ac_cv_use_freetds_flag="no")
-	CFLAGS=$saved_CFLAGS
+	LDFLAGS=$saved_LDFLAGS
 	AC_MSG_RESULT($ac_cv_use_freetds_flag)
 	if test "$ac_cv_use_freetds_flag" = "yes"; then
-		FREETDS_SYMBOLIC="$freetds_ldflag"
+		# use always -Wl libtool wants it
+		FREETDS_SYMBOLIC="-Wl,-Bsymbolic"
 		break;
 	fi
 done
