@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.2 2004-03-31 18:40:54 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.3 2004-05-22 17:25:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -22,6 +22,7 @@ int
 main(int argc, char *argv[])
 {
 	SQLRETURN retcode;
+	HSTMT stmt, tmp_stmt;
 
 	Connect();
 
@@ -57,6 +58,24 @@ main(int argc, char *argv[])
 		printf("Message invalid\n");
 		return 1;
 	}
+
+	SQLFetch(Statement);
+	SQLFetch(Statement);
+	SQLFetch(Statement);
+	SQLMoreResults(Statement);
+
+	if (SQLAllocStmt(Connection, &stmt) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to allocate statement");
+
+	Command(Statement, "SELECT * FROM sysobjects");
+
+	if (CommandWithResult(stmt, "SELECT * FROM sysobjects") != SQL_ERROR)
+		ODBC_REPORT_ERROR("Error expected");
+
+	tmp_stmt = Statement;
+	Statement = stmt;
+
+	ReadError();
 
 	Disconnect();
 

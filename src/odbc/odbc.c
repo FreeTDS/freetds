@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.325 2004-05-16 15:33:14 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.326 2004-05-22 17:25:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1249,11 +1249,15 @@ SQLCancel(SQLHSTMT hstmt)
 	INIT_HSTMT;
 	tds = stmt->dbc->tds_socket;
 
+	/* FIXME test current statement */
+
 	if (tds_send_cancel(tds) == TDS_FAIL)
 		ODBC_RETURN(stmt, SQL_ERROR);
 
 	if (tds_process_cancel(tds) == TDS_FAIL)
 		ODBC_RETURN(stmt, SQL_ERROR);
+
+	stmt->dbc->current_statement = NULL;
 
 	ODBC_RETURN_(stmt);
 }
@@ -2328,6 +2332,18 @@ _SQLExecute(TDS_STMT * stmt)
 		/* TODO what error ?? */
 		return SQL_ERROR;
 
+	if (tds->state != TDS_IDLE) {
+		if (tds->state == TDS_DEAD) {
+			odbc_errs_add(&stmt->errs, "08S01", NULL, NULL);
+		} else {
+			odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		}
+		return SQL_ERROR;
+	}
+
+	/* catch all errors */
+	stmt->dbc->current_statement = stmt;
+
 	if (stmt->prepared_query_is_rpc) {
 		/* get rpc name */
 		/* TODO change method */
@@ -2377,7 +2393,6 @@ _SQLExecute(TDS_STMT * stmt)
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
-			stmt->dbc->current_statement = stmt;
 			if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 				dyn = stmt->dyn;
 				stmt->dyn = NULL;
@@ -2396,7 +2411,6 @@ _SQLExecute(TDS_STMT * stmt)
 		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	stmt->dbc->current_statement = stmt;
 	stmt->row_count = TDS_NO_COUNT;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
