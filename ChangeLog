@@ -1,3 +1,6 @@
+Mon Feb 10 17:04:14 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h src/ctlib/ct.c sqsh 1.7 now behaves properly
+
 Mon Feb 10 16:45:15 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c corrected termlen assertion
 	* src/odbc/odbc.c define SQLULEN only #ifndef

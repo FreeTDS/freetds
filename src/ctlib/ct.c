@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.73 2003-02-04 13:28:28 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.74 2003-02-10 22:07:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -542,6 +542,12 @@ CS_INT res_type;
 		return ct_results_dyn(cmd, result_type);
 	}
 
+	if (cmd->empty_result) {
+		cmd->empty_result = 0;
+		*result_type = CS_CMD_DONE;
+		return CS_SUCCEED;
+	} 
+
 	tds = cmd->con->tds_socket;
 
 	cmd->row_prefetched = 0;
@@ -566,6 +572,7 @@ CS_INT res_type;
 			switch (res_type) {
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
+
 				if (context->config.cs_expose_formats) {
 					*result_type = res_type;
 					return CS_SUCCEED;
@@ -601,8 +608,19 @@ CS_INT res_type;
 				/* depending on whether a command returned */
 				/* results or not...                          */
 
-				if (tds->res_info)
-					*result_type = CS_CMD_DONE;
+				if (tds->res_info) {
+					if (!tds->res_info->rows_exist) {
+						if (cmd->empty_result) {
+							cmd->empty_result = 0;
+							*result_type = CS_CMD_DONE;
+						} else {
+							cmd->empty_result = 1;
+							*result_type = CS_ROW_RESULT;
+						}
+					} else {
+						*result_type = CS_CMD_DONE;
+					}
+				}
 				else
 					*result_type = CS_CMD_SUCCEED;
 
@@ -686,6 +704,10 @@ TDS_INT marker;
 		if (rows_read)
 			*rows_read = 1;
 		return CS_SUCCEED;
+	}
+
+	if (cmd->empty_result) {
+		return CS_END_DATA;
 	}
 
 	if (cmd->curr_result_type == CS_COMPUTE_RESULT)

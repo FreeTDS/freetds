@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.29 2003-02-04 13:28:26 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.30 2003-02-10 22:06:59 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -140,6 +140,7 @@ typedef struct cs_command
 	short dynamic_cmd;
 	char  *dyn_id; 
     int   row_prefetched;
+    int   empty_result;
     int   curr_result_type;
 	int   get_data_item;
 	int   get_data_bytes_returned;
