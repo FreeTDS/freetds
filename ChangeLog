@@ -1,3 +1,12 @@
+Thu Mar 14 20:53:46 EST 2002	Brian Bruns <camber@ais.org>
+
+	* acinclude.m4: added macro for openssl
+	* configure.in: added --with-ssl option
+	* src/ctlib/unittest/Makefile.am: added t0005 test
+	* src/tds/Makefile.am: added challege.c to compile list
+	* src/tds/convert.c: fix datetime -> string convert for -1 destlen
+	* src/tds/token.c: fix dynamic token handling if not seen prior
+
 Mon Mar 06 20:43:22 EST 2002	Mark Lilback <mark@lilback.com>
 
 	* src/tds/config.c: does not do a lookup if passed an ip address. 

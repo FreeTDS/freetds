@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "tds.h"
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_SSL
 #include <openssl/des.h>
 
 /*
@@ -112,4 +112,4 @@ des_cblock key;
 	des_set_key(&key, ks);
 }
 
-#endif /* HAVE_OPENSSL */
+#endif /* HAVE_SSL */

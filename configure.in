@@ -18,6 +18,7 @@ AC_PROG_INSTALL
 AC_ARG_PROGRAM
 AM_PROG_LIBTOOL
 AM_ICONV
+CHECK_SSL
 
 dnl ------------------------------------------------------------
 dnl Checks for libraries.

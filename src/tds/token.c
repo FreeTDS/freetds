@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.14 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.15 2002-03-15 02:01:41 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1463,15 +1463,20 @@ TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 TDSDYNAMIC *dyn;
 
-	dyn = tds->dyns[tds->cur_dyn_elem];
-	tds_free_results(dyn->res_info);
-
 	hdrsize = tds_get_smallint(tds);
-
-	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
-	dyn->res_info = tds_alloc_results(num_cols);
-	info = dyn->res_info;
+
+	if (tds->cur_dyn_elem) {
+		dyn = tds->dyns[tds->cur_dyn_elem];
+		tds_free_results(dyn->res_info);
+		/* read number of columns and allocate the columns structure */
+		dyn->res_info = tds_alloc_results(num_cols);
+		info = dyn->res_info;
+	} else {
+		tds_free_results(tds->res_info);
+		tds->res_info = tds_alloc_results(num_cols);
+		info = tds->res_info;
+	}
 
 	for (col=0;col<info->num_cols;col++) {
 		curcol=info->columns[col];
@@ -1485,7 +1490,7 @@ TDSDYNAMIC *dyn;
 			curcol->column_size = get_size_by_type(curcol->column_type);
 		}
 		tds_get_byte(tds);
-		fprintf(stderr,"elem %d coltype %d size %d\n",tds->cur_dyn_elem, curcol->column_type, curcol->column_size);
+		/* fprintf(stderr,"elem %d coltype %d size %d\n",tds->cur_dyn_elem, curcol->column_type, curcol->column_size); */
 	}
 }
 
