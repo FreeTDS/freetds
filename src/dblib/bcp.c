@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.103 2004-10-19 11:15:01 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.104 2004-11-17 18:47:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -870,9 +870,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			}
 		}
 
-		/* if (Max) column length specified take that into consideration. */
-
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
+		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
 
 		if (!data_is_null && hostcol->column_len >= 0) {
 			if (hostcol->column_len == 0)
@@ -884,6 +882,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					collen = hostcol->column_len;
 			}
 		}
+
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
 
 		/* Fixed Length data - this overrides anything else specified */
 
@@ -905,7 +905,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 * If delimited, we "measure" the field by looking for the terminator, then read it, 
 		 * and set collen to the field's post-iconv size.  
 		 */
-		if (hostcol->term_len > 0) {
+		if (hostcol->term_len > 0) { /* delimited data file */
 			int file_bytes_left;
 			size_t col_bytes_left;
 			iconv_t cd;
@@ -928,6 +928,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				if (bcpcol->on_server.column_size > bcpcol->column_size)
 					collen = (collen * bcpcol->on_server.column_size) / bcpcol->column_size;
 				cd = bcpcol->char_conv->to_wire;
+				tdsdump_log(TDS_DBG_FUNC, "Adjusted collen is %d.\n", collen);
+
 			} else {
 				cd = (iconv_t) - 1;
 			}
@@ -946,6 +948,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			col_bytes_left = collen;
 			file_bytes_left = tds_iconv_fread(cd, hostfile, collen, hostcol->term_len, (TDS_CHAR *)coldata, &col_bytes_left);
 			collen -= col_bytes_left;
+
+			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
 
 			if (file_bytes_left != 0) {
 				tdsdump_log(TDS_DBG_FUNC, "Error in %s, col %d: %d of %d bytes unread\nfile_bytes_left != 0!\n", 
@@ -989,7 +993,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					collen = 0;
 					data_is_null = 1;
 				}
+
+				tdsdump_log(TDS_DBG_FUNC, "Length read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
 			}
+
 			coldata = (BYTE *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
@@ -1007,6 +1014,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				 *	 As of 0.62, this *should* actually work.  All that remains is to change the
 				 *	 call and test it. 
 				 */
+				tdsdump_log(TDS_DBG_FUNC, "Reading %d bytes from hostfile.\n", collen);
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					free(coldata);
 					if (i == 0 && feof(hostfile))
@@ -1032,11 +1040,13 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		/* 
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
 		 */
+		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
-				bcpcol->bcp_column_data->datalen = 0;
 				bcpcol->bcp_column_data->null_column = 1;
+				bcpcol->bcp_column_data->datalen = 0;
 			} else {
+				bcpcol->bcp_column_data->null_column = 0;
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
 				/* special hack for text columns */
@@ -1082,7 +1092,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				/* trim trailing blanks from character data */
 				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
 					bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data, 
-															bcpcol->bcp_column_data->datalen);
+											  bcpcol->bcp_column_data->datalen);
 				}
 			}
 			if (!hostcol->column_error) {
@@ -1592,8 +1602,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_error = 0;
 	}
 
-	fclose(errfile);
-	errfile = NULL;
+	if (errfile) {
+		fclose(errfile);
+		errfile = NULL;
+	}
 
 	if (fclose(hostfile) != 0) {
 		_bcp_err_handler(dbproc, SYBEBCUC);

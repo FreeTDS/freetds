@@ -1,3 +1,7 @@
+Wed Nov 17 13:44:25 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c Fix null handling and don't close closed errfile.
+	* src/apps/freebcp.c dump username to stderr if FREEBCP envar set
+	
 Tue Nov  9 10:53:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c:
 	- fix possible compile error including both regex.h and libgen.h
