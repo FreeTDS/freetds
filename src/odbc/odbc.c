@@ -22,6 +22,7 @@
  *==============================================================
  * BSB          Brian Bruns     camber@ais.org
  * PAH          Peter Harvey    pharvey@codebydesign.com
+ * SMURPH       Steve Murphree  smurph@smcomp.com
  *
  ***************************************************************
  * DATE         PROGRAMMER  CHANGE
@@ -67,23 +68,25 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.203 2003-08-03 14:05:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.204 2003-08-04 15:14:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
 static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
+static SQLRETURN SQL_API _SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
 static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
-static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
-static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
-static void log_unimplemented_type(const char function_name[], int fType);
+static SQLRETURN SQL_API _SQLFreeDesc(SQLHDESC hdesc);
 static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
+static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
+static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
+static void log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
@@ -797,6 +800,9 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 	case SQL_HANDLE_ENV:
 		return _SQLAllocEnv(OutputHandle);
 		break;
+	case SQL_HANDLE_DESC:
+		return _SQLAllocDesc(InputHandle, OutputHandle);
+		break;
 	}
 	return SQL_ERROR;
 }
@@ -897,6 +903,33 @@ SQLRETURN SQL_API
 SQLAllocEnv(SQLHENV FAR * phenv)
 {
 	return _SQLAllocEnv(phenv);
+}
+
+static SQLRETURN SQL_API
+_SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
+{
+	TDS_DESC *desc = NULL;
+	int i;
+
+	INIT_HDBC;
+
+	for (i = 0; i < MAX_APP_DESC; ++i) {
+		if (dbc->uad[i] == NULL) {
+			dbc->uad[i] = desc_alloc(dbc, DESC_ARD, SQL_DESC_ALLOC_USER);
+			if (dbc->uad[i] == NULL) {
+				odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
+				ODBC_RETURN(dbc, SQL_ERROR);
+			}
+			desc = dbc->uad[i];
+		}
+	}
+
+	if (i == MAX_APP_DESC && desc == NULL) {
+		odbc_errs_add(&dbc->errs, "HY014", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+	*phstmt = (SQLHDESC) desc;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 static SQLRETURN SQL_API
@@ -1693,6 +1726,9 @@ SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 	case SQL_HANDLE_ENV:
 		return _SQLFreeEnv(Handle);
 		break;
+	case SQL_HANDLE_DESC:
+		return _SQLFreeDesc(Handle);
+		break;
 	}
 	return SQL_ERROR;
 }
@@ -1700,6 +1736,8 @@ SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 static SQLRETURN SQL_API
 _SQLFreeConnect(SQLHDBC hdbc)
 {
+	int i;
+
 	INIT_HDBC;
 
 	tds_free_socket(dbc->tds_socket);
@@ -1711,6 +1749,11 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	tds_dstr_free(&dbc->server);
 	tds_dstr_free(&dbc->dsn);
 
+	for (i = 0; i < MAX_APP_DESC; i++) {
+		if (dbc->uad[i]) {
+			desc_free(dbc->uad[i]);
+		}
+	}
 	odbc_errs_reset(&dbc->errs);
 
 	free(dbc);
@@ -1730,8 +1773,8 @@ _SQLFreeEnv(SQLHENV henv)
 {
 	INIT_HENV;
 
-	tds_free_context(env->tds_ctx);
 	odbc_errs_reset(&env->errs);
+	tds_free_context(env->tds_ctx);
 	free(env);
 
 	return SQL_SUCCESS;
@@ -1828,6 +1871,28 @@ SQLRETURN SQL_API
 SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 {
 	return _SQLFreeStmt(hstmt, fOption);
+}
+
+static SQLRETURN SQL_API
+_SQLFreeDesc(SQLHDESC hdesc)
+{
+	int i;
+	TDS_DBC *dbc = NULL;
+
+	INIT_HDESC;
+
+	if (IS_HDBC(desc->parent)) {
+		dbc = (TDS_DBC *) desc->parent;
+
+		for (i = 0; i < MAX_APP_DESC; ++i) {
+			if (dbc->uad[i] == desc) {
+				desc_free(desc);
+				dbc->uad[i] = NULL;
+				break;
+			}
+		}
+	}
+	return SQL_SUCCESS;
 }
 
 #if (ODBCVER >= 0x0300)

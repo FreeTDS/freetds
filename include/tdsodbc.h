@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.39 2003-08-01 15:16:30 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.40 2003-08-04 15:14:08 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -194,6 +194,8 @@ struct _hcattr
 	SQLUINTEGER attr_txn_isolation;
 };
 
+#define MAX_APP_DESC	100
+
 struct _hstmt;
 struct _hdbc
 {
@@ -206,6 +208,7 @@ struct _hdbc
 	struct _hstmt *current_statement;
 	struct _sql_errors errs;
 	struct _hcattr attr;
+	ARD *uad[MAX_APP_DESC];
 	SQLRETURN lastrc;
 };
 

@@ -1,3 +1,8 @@
+Mon Aug 04 17:12:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merge from Steve patch:
+	 - merged _SQLAllocDesc and _SQLFreeDesc
+
 Mon Aug 04 14:44:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c src/tds/token.c:
 	- fix problem when server change charset coding
