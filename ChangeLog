@@ -1,3 +1,8 @@
+Fri Sep 20 14:15:21 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* Makefile.am	added version string
+	* doc/Makefile.am 	added version string
+				html builds if DOCBOOK_DSL is defined	
+	* doc/freebcp.txt	fixed minor glitches
 Fri Sep 20 10:37:07 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/token.c:
 	- Only invoke the client error handler with SYBESMSG per the conditions
