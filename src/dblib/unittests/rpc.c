@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.17 2005-01-07 04:53:29 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.18 2005-01-10 09:38:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -43,6 +43,7 @@ static const char procedure_sql[] =
 		"BEGIN \n"
 			"select @null_input = max(convert(varchar(30), name)) from systypes \n"
 			"select @first_type = min(convert(varchar(30), name)) from systypes \n"
+			"select name from sysobjects where 0=1\n"
 			"select distinct convert(varchar(30), name) as 'type'  from systypes \n"
 				"where name in ('int', 'char', 'text') \n"
 			"select @nrows = @@rowcount \n"
@@ -120,6 +121,8 @@ main(int argc, char **argv)
 	char param_data1[64];
 	int param_data2;
 	RETCODE erc, row_code;
+	int num_resultset = 0;
+	int num_empty_resultset = 0;
 
 	set_malloc_options();
 	
@@ -211,11 +214,14 @@ main(int argc, char **argv)
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
 		if (erc == SUCCEED) {
 			const int ncols = dbnumcols(dbproc);
+			int empty_resultset = 1;
+			++num_resultset;
 			printf("bound 1 of %d columns ('%s') in result %d.\n", ncols, dbcolname(dbproc, 1), ++r);
 			dbbind(dbproc, 1, STRINGBIND, -1, (BYTE *) teststr);
 			
 			printf("\t%s\n\t-----------\n", dbcolname(dbproc, 1));
 			while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
+				empty_resultset = 0;
 				if (row_code == REG_ROW) {
 					printf("\t%s\n", teststr);
 				} else {
@@ -225,6 +231,8 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
+			if (empty_resultset)
+				++num_empty_resultset;
 			
 			/* check return status */
 			printf("retrieving return status...\n");
@@ -257,8 +265,7 @@ main(int argc, char **argv)
 			
 		} else {
 			add_bread_crumb();
-			puts("Expected a result set.\n");
-			fprintf(stdout, "Expected a result set.\n");
+			fprintf(stderr, "Expected a result set.\n");
 			exit(1);
 		}
 	} /* while dbresults */
@@ -267,25 +274,36 @@ main(int argc, char **argv)
 	 * Test the last parameter for expected outcome 
 	 */
 	if ((save_param.name == NULL) || strcmp(save_param.name, param2)) {
-		fprintf(stdout, "Expected retname to be '%s', got ", param2);
+		fprintf(stderr, "Expected retname to be '%s', got ", param2);
 		if (save_param.name == NULL) 
-			fprintf(stdout, "<NULL> instead.\n");
+			fprintf(stderr, "<NULL> instead.\n");
 		else
-			fprintf(stdout, "'%s' instead.\n", save_param.name);
+			fprintf(stderr, "'%s' instead.\n", save_param.name);
 		exit(1);
 	}
 	if (strcmp(save_param.value, "3")) {
-		fprintf(stdout, "Expected retdata to be 3.\n");
+		fprintf(stderr, "Expected retdata to be 3.\n");
 		exit(1);
 	}
 	if (save_param.type != SYBINT4) {
-		fprintf(stdout, "Expected rettype to be SYBINT4 was %d.\n", save_param.type);
+		fprintf(stderr, "Expected rettype to be SYBINT4 was %d.\n", save_param.type);
 		exit(1);
 	}
 	if (save_param.len != 4) {
-		fprintf(stdout, "Expected retlen to be 4.\n");
+		fprintf(stderr, "Expected retlen to be 4.\n");
 		exit(1);
 	}
+
+	/* Test number of results set */
+	if (num_resultset != 3) {
+		fprintf(stderr, "Expected 3 resultset got %d.\n", num_resultset);
+		exit(1);
+	}
+	if (num_empty_resultset != 1) {
+		fprintf(stderr, "Expected an empty resultset got %d.\n", num_empty_resultset);
+		exit(1);
+	}
+	printf("Got correctly %d resultset and %d empty resultset.\n", num_resultset, num_empty_resultset);
 
 	printf("done\n");
 

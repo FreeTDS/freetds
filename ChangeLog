@@ -1,3 +1,6 @@
+Mon Jan 10 10:37:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c: improved
+
 Mon Jan 10  9:50:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/dblib.c:
 	- constify
