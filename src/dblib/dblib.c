@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.112 2003-01-05 15:50:27 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.113 2003-01-10 18:12:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3002,7 +3002,7 @@ RETCODE rc = SUCCEED;
 	while (!done) {
 
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %d\n", marker);
+		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %x\n", marker);
 
 		/* If we hit a result token, then we know  */
 		/* everything is fine with the command...  */
