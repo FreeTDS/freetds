@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctpublic.h>
 
-static char  software_version[]   = "$Id: common.c,v 1.1 2001-10-12 23:29:06 brianb Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.2 2002-08-29 05:46:44 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -31,6 +31,7 @@ CS_RETCODE read_login_info()
       else if (!strcmp(s1,"PWD"))	{ strcpy(PASSWORD,s2); }
       else if (!strcmp(s1,"DB"))	{ strcpy(DATABASE,s2); }
    }
+   fclose(in);
    return CS_SUCCEED;
 }
 
