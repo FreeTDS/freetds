@@ -1,3 +1,6 @@
+Fri Jan 10 13:24:37 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix stupid bug
+
 Fri Jan 10 10:25:36 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c src/odbc/odbc_util.c:
 	- return SQL_REAL for SYBREAL, not SQL_FLOAT

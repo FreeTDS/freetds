@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.122 2003-01-09 17:12:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.123 2003-01-10 12:25:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2374,28 +2374,28 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		strcpy(p, ",@table_name=\'");
 		p += 14;
 		strncpy(p, (const char *) szTableName, tlen);
-		*p += tlen;
+		p += tlen;
 		*p++ = '\'';
 	}
 	if (slen) {
 		strcpy(p, ",@table_owner=\'");
 		p += 15;
 		strncpy(p, (const char *) szSchemaName, slen);
-		*p += slen;
+		p += slen;
 		*p++ = '\'';
 	}
 	if (clen) {
 		strcpy(p, ",@table_qualifier=\'");
 		p += 19;
 		strncpy(p, (const char *) szCatalogName, clen);
-		*p += clen;
+		p += clen;
 		*p++ = '\'';
 	}
 	if (ttlen) {
 		strcpy(p, ",@table_type=\'");
 		p += 14;
 		strncpy(p, (const char *) szTableType, ttlen);
-		*p += ttlen;
+		p += ttlen;
 		*p++ = '\'';
 	}
 	query[sizeof(sptables) - 1] = ' ';
