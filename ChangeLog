@@ -1,3 +1,15 @@
+Tue Apr 29 21:36:49 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	* src/odbc/sql2tds.c src/odbc/sql2tds.h:
+	- avoid converting from odbc datatype -> odbc c datatype -> server 
+	  type (this cause some problems like SQL_LONGVARCHAR -> SYBVARCHAR
+	  instead of SQL_LONGVARCHAR -> SYBIMAGE)
+	* src/odbc/unittests/binary_test.c:
+	- small fix, set textsize to avoid truncating
+	* src/tds/query.c:
+	- fix blob in mssql, some comment added
+
 Tue Apr 29 20:52:25 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c src/odbc/odbc_util.c:
 	- some comment, improve binary

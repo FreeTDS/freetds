@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.25 2003-04-29 18:52:29 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.26 2003-04-29 19:37:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -279,7 +279,7 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
-	/* FIXME why ? */
+		/* FIXME why ? */
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
 	case SQL_GUID:
@@ -309,11 +309,74 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_VARBINARY:
 	case SQL_LONGVARBINARY:
 		return SQL_C_BINARY;
-	/* TODO */
+		/* TODO */
 	case SQL_TYPE_DATE:
 	case SQL_TYPE_TIME:
 	case SQL_TYPE_TIMESTAMP:
-	/* TODO interval types */
+		/* TODO interval types */
+	default:
+		return 0;
+	}
+}
+
+int
+odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
+{
+
+	switch (sql_type) {
+
+	case SQL_CHAR:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBCHAR;
+		return SYBCHAR;
+	case SQL_VARCHAR:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBVARCHAR;
+		return SYBVARCHAR;
+	case SQL_LONGVARCHAR:
+		return SYBTEXT;
+	case SQL_DECIMAL:
+		return SYBDECIMAL;
+	case SQL_NUMERIC:
+		return SYBNUMERIC;
+	case SQL_GUID:
+		if (IS_TDS7_PLUS(tds))
+			return SYBUNIQUE;
+		return 0;
+	case SQL_BIT:
+		return SYBBITN;
+	case SQL_TINYINT:
+		return SYBINT1;
+	case SQL_SMALLINT:
+		return SYBINT2;
+	case SQL_INTEGER:
+		return SYBINT4;
+	case SQL_BIGINT:
+		return SYBINT8;
+	case SQL_REAL:
+		return SYBREAL;
+	case SQL_FLOAT:
+	case SQL_DOUBLE:
+		return SYBFLT8;
+	case SQL_DATE:
+	case SQL_TIME:
+	case SQL_TIMESTAMP:
+		return SYBDATETIME;
+	case SQL_BINARY:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBBINARY;
+		return SYBBINARY;
+	case SQL_VARBINARY:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBVARBINARY;
+		return SYBVARBINARY;
+	case SQL_LONGVARBINARY:
+		return SYBIMAGE;
+		/* TODO */
+	case SQL_TYPE_DATE:
+	case SQL_TYPE_TIME:
+	case SQL_TYPE_TIMESTAMP:
+		/* TODO interval types */
 	default:
 		return 0;
 	}

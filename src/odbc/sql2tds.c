@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.5 2003-01-12 20:28:37 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.6 2003-04-29 19:37:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -53,7 +53,7 @@ extern const int tds_numeric_bytes_per_prec[];
  * return same result of tds_convert
  */
 int
-sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCOLINFO * curcol)
+sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCOLINFO * curcol)
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
@@ -62,8 +62,7 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->param_sqltype);
 
 	/* what type to convert ? */
-	/* TODO avoid this double conversion */
-	dest_type = odbc_get_server_type(odbc_sql_to_c_type_default(param->param_sqltype));
+	dest_type = odbc_sql_to_server_type(dbc->tds_socket, param->param_sqltype);
 	if (dest_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
@@ -85,7 +84,7 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	res = tds_convert(context, src_type, param->varaddr, *param->param_lenbind, dest_type, &ores);
+	res = tds_convert(dbc->henv->tds_ctx, src_type, param->varaddr, *param->param_lenbind, dest_type, &ores);
 	if (res < 0)
 		return res;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.81 2003-04-29 18:52:29 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.82 2003-04-29 19:37:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -99,6 +99,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
+		/* FIXME use converted size, not input size and convert string */
 		tds_put_int(tds, query_len + 1);
 		tds_put_byte(tds, params ? 1 : 0);	/* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
@@ -508,9 +509,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			switch (curcol->column_varint_size) {
 			case 4:	/* Its a BLOB... */
 				blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
-				tds_put_byte(tds, 16);
-				tds_put_n(tds, blob_info->textptr, 16);
-				tds_put_n(tds, blob_info->timestamp, 8);
+				/* mssql require only size */
 				tds_put_int(tds, colsize);
 				break;
 			case 2:
@@ -538,6 +537,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_n(tds, num->array, colsize);
 			} else if (is_blob_type(curcol->column_type)) {
 				blob_info = (TDSBLOBINFO *) src;
+				/* FIXME support conversions */
 				tds_put_n(tds, blob_info->textvalue, colsize);
 			} else {
 #ifdef WORDS_BIGENDIAN
@@ -605,6 +605,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_n(tds, num->array, colsize);
 		} else if (is_blob_type(curcol->column_type)) {
 			blob_info = (TDSBLOBINFO *) src;
+			/* FIXME handle conversion when needed */
 			tds_put_n(tds, blob_info->textvalue, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN

@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.1 2003-04-29 10:05:35 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.2 2003-04-29 19:37:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -189,10 +189,11 @@ main(int argc, char **argv)
 
 	/* do not allocate so big memory in stack */
 	buf = (unsigned char *) malloc(TEST_BUF_LEN);
-	
+
 	Connect();
 
 	Command(Statement, "create table " TEST_TABLE_NAME " (im IMAGE)");
+	Command(Statement, "SET TEXTSIZE 1000000");
 
 	/* populate test buffer with ramp */
 	for (i = 0; i < TEST_BUF_LEN; i++) {
