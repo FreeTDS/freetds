@@ -38,7 +38,11 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: sql2tds.c,v 1.1 2002-11-30 14:11:36 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: sql2tds.c,v 1.2 2002-12-18 14:06:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

@@ -34,7 +34,11 @@
 #include "odbc_util.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: prepare_query.c,v 1.15 2002-11-08 16:21:41 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: prepare_query.c,v 1.16 2002-12-18 14:06:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int

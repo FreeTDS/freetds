@@ -1,3 +1,10 @@
+Wed Dec 18 15:05:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/odbc/convert_sql2string.c:
+	* src/odbc/convert_tds2sql.c src/odbc/native.c:
+	* src/odbc/odbc_util.c src/odbc/prepare_query.c:
+	* src/odbc/sql2tds.c:
+	- added dmalloc support to odbc
+
 Wed Dec 18 11:28:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: implement tds_submit_unprepare
 

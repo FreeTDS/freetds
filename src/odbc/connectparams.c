@@ -43,7 +43,11 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.29 2002-12-14 14:54:00 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: connectparams.c,v 1.30 2002-12-18 14:06:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST

@@ -35,7 +35,11 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: odbc_util.c,v 1.12 2002-11-08 16:13:55 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: odbc_util.c,v 1.13 2002-12-18 14:06:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
