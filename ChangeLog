@@ -1,3 +1,7 @@
+Sun May 30 15:29:14 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* TODO marked some documentation items as "done".  
+	* src/dblib/bcp.c trim trailing blanks on char and varchar data
+	
 Thu May 27 23:13:10 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/dblib.c doc/api_status.txt
 	- added dbcolinfo

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.110 2004-05-13 05:19:43 freddy77 Exp $
+To Do List	$Id: TODO,v 1.111 2004-05-30 20:22:41 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -36,9 +36,6 @@ Postponed to 0.63 version
   - update table of working configurations
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
-. FAQ
-  - multiple statements question
-  - PHP workaround with multiple connections (see ML)
 
 Started in 0.63
 - rationalize libtds structure and *_alloc functions 
@@ -148,3 +145,7 @@ For future versions (in priority order within library):
   server
 . Server API needs more work, especially for TDS 5.0/7.0
 
+Done
+. FAQ
+  - multiple statements question
+  - PHP workaround with multiple connections (see ML)
