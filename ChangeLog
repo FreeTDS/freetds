@@ -1,3 +1,8 @@
+Sun Nov 10 18:21:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/tds.h src/tds/config.c src/tds/threadsafe.c:
+	- add tds_get_homedir function for reading home directory location
+	  in a safer way and use it
+
 Sun Nov 10 17:17:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/config.c src/tds/convert.c:
 	* src/tds/iconv.c src/tds/login.c src/tds/token.c:

@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.57 2002-11-10 16:18:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.58 2002-11-10 17:22:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -198,6 +198,24 @@ FILE *in;
 	return found;
 }
 
+
+/**
+ * Return filename from HOME directory
+ * @return allocated string or NULL if error
+ */
+static char*
+tds_get_home_file(const char *file)
+{
+char *home, *path;
+	home = tds_get_homedir();
+	if (!home)
+		return NULL;
+	if (asprintf(&path, "%s/%s", home, file) < 0)
+		path = NULL
+	free(home);
+	return path;
+}
+
 /**
  * Read configuration info for given server
  * return 0 on error
@@ -208,7 +226,7 @@ FILE *in;
 int
 tds_read_conf_file(TDSCONNECTINFO *connect_info, const char *server)
 {
-char  *home, *path = NULL;
+char  *path = NULL;
 int found = 0; 
 
 	if (interf_file) {
@@ -226,18 +244,12 @@ int found = 0;
 	}
 
 	if (!found) {
-		/* FIXME use getpwent for security */
-		home = getenv("HOME");
-		if (home && home[0]!='\0') {
-			if (asprintf(&path,"%s/.freetds.conf",home) < 0) {
-				/* out of memory condition; don't attempt a log message */
-				/* should we try the OS log? */
-				fprintf(stderr, "config.c (line %d): no memory\n", __LINE__);
-				return 0;
-			}
+		path = tds_get_home_file(".freetds.conf");
+		if (path) {
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, connect_info);
+			free(path);
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "%L ...$HOME not set.  Trying %s.\n", FREETDS_SYSCONFFILE);
+			tdsdump_log(TDS_DBG_INFO2, "%L ...Error getting ~/.freetds.conf.  Trying %s.\n", FREETDS_SYSCONFFILE);
 		}
 	}
 
@@ -890,12 +902,11 @@ get_server_info(
 	* if we haven't found the server yet then look for a $HOME/.interfaces file
 	*/
 	if (ip_addr[0]=='\0') {
-		/* FIXME use getpwent, see above */
-		char  *home = getenv("HOME");
-		if (home!=NULL && home[0]!='\0') {
-                        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/.interfaces.\n", home);
-			search_interface_file(home, ".interfaces", server, ip_addr,
-				ip_port, tds_ver);
+		char *path = tds_get_home_file(".interfaces");
+		if (path) {
+                        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s.\n", path);
+			search_interface_file("", path, server, ip_addr, ip_port, tds_ver);
+			free(path);
 		}
 	}
 
@@ -919,8 +930,8 @@ get_server_info(
  	* If we still don't have the server and port then assume the user
  	* typed an actual server name.
  	*/
- 	if (ip_addr[0]=='\0') {
- 		const char  *tmp_port;
+	if (ip_addr[0]=='\0') {
+		const char  *tmp_port, *env_port;
 
 		/*
 		* Make a guess about the port number
@@ -931,12 +942,11 @@ get_server_info(
 #else
 		tmp_port = "1433";
 #endif
-		/* FIX ME -- Need a symbolic constant for the environment variable */
-		if (getenv("TDSPORT")!=NULL) {
-			tmp_port = getenv("TDSPORT");
-                        tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s from $TDSPORT.\n",tmp_port);
+		if ( (env_port=getenv("TDSPORT")) != NULL ) {
+			tmp_port = env_port;
+			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s from $TDSPORT.\n",tmp_port);
 		}
-                else tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s as a guess.\n",tmp_port);
+		else tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s as a guess.\n",tmp_port);
 
 
 		/*

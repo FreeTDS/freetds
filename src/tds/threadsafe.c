@@ -21,6 +21,10 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -30,6 +34,10 @@
 # else
 #  include <time.h>
 # endif
+#endif
+
+#if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
+#include <pwd.h>
 #endif
 
 #include <stdio.h>
@@ -47,7 +55,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.17 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.18 2002-11-10 17:22:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -187,5 +195,35 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 
 	return result;
 
+#endif
+}
+
+char *
+tds_get_homedir()
+{
+/* if is available getpwuid_r use it */
+#if defined(HAVE_GETUID) && defined(HAVE_GETPWUID_R)
+struct passwd *pw, bpw;
+char buf[1024];
+
+	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw))
+		return NULL;
+	return strdup(pw->pw_dir);
+#else
+/* if getpwuid is available use it for no reentrant (getpwuid is not reentrant) */
+#if defined(HAVE_GETUID) && defined(HAVE_GETPWUID) && !defined(_REENTRANT)
+struct passwd *pw;
+
+	pw = getpwuid(getuid());
+	if (!pw) 
+		return NULL;
+	return strdup(pw->pw_dir);
+#else
+char *home;
+	home = getenv("HOME");
+	if (!home && !home[0])
+		return NULL;
+	return strdup(home);
+#endif
 #endif
 }

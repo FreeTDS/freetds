@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.47 2002-11-10 16:18:26 freddy77 Exp $";
+	"$Id: tds.h,v 1.48 2002-11-10 17:22:48 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -741,6 +741,7 @@ char *tds_timestamp_str(char *str, int maxlen);
 struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct servent *tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen);
+char *tds_get_homedir(void);
 
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
