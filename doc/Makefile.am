@@ -11,9 +11,9 @@ DOCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
 man_MANS	= freebcp.1 tsql.1
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
-		policy.txt tds7.txt tds_layer.txt Makefile userguide.sgml \
+		policy.txt tds7.txt tds_layer.txt userguide.sgml \
 		basic_jdbc_question.html faq.html tds.html userguide.tgz \
-		txt2man
+		txt2man freebcp.txt tsql.txt
 
 html:: $(srcdir)/userguide.sgml
 	if ! [ -d html ]; then \
