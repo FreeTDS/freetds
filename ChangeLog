@@ -1,3 +1,6 @@
+Thu Mar 06 12:26:01 EST 2003  Mark Lilback <mark@lilback.com>
+	* include/cspublic.h src/ctlib/ct.c: refactored rpc code for other uses
+
 Thu Mar 06 12:45:01 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- remove some memory leak

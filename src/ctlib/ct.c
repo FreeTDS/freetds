@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.81 2003-03-06 11:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.82 2003-03-06 17:24:53 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -50,6 +50,9 @@ static int _ct_bind_data(CS_COMMAND * cmd, CS_INT offset);
 static int _ct_get_client_type(int datatype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
+
+static int _ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data, 
+	CS_INT *datalen, CS_SMALLINT *indicator, CS_BYTE byvalue);
 
 /* Added code for RPC functionality -SUHA */
 /* RPC Code changes starts here */
@@ -2157,9 +2160,8 @@ TDSDYNAMIC *dyn;
 /* Code changed for RPC functionality - SUHA*/
 /* RPC code changes starts here */
 CSREMOTE_PROC *rpc;
-CSREMOTE_PROC_PARAM **pparam;
-CSREMOTE_PROC_PARAM *param;
-int  param_is_null = 0;
+CS_PARAM **pparam;
+CS_PARAM *param;
  /* RPC code changes ends here */
 
 
@@ -2181,108 +2183,8 @@ int  param_is_null = 0;
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
-		if (datafmt->namelen == CS_NULLTERM) {
-			param->name = strdup(datafmt->name);
-			if (param->name == (char *)NULL)
-				return CS_FAIL;
-		} else if (datafmt->namelen > 0) {
-			param->name = malloc(datafmt->namelen + 1);
-			if (param->name == NULL) 
-				return CS_FAIL;
-			memset(param->name, 0, datafmt->namelen + 1);
-			strncpy(param->name, datafmt->name, datafmt->namelen);
-		} 
-
-		param->status = datafmt->status;
-		tdsdump_log(TDS_DBG_INFO1, " ct_param() status = %d \n", param->status );
-
-		/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
-		/* to Server type, e.g. SYBINT2                      */
-
-		param->type   = _ct_get_server_type(datafmt->datatype);
-
-		param->maxlen = datafmt->maxlength;
-
-		if (is_fixed_type(param->type)) {
-			param->maxlen  = tds_get_size_by_type(param->type);
-		} 
-
-		param->datalen = malloc(sizeof(CS_INT));		
-		if (param->datalen == NULL)
+		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, &datalen, &indicator, 1))
 			return CS_FAIL;
-
-		*(param->datalen) = datalen;
-
-		param->ind = malloc(sizeof(CS_INT));		
-		if (param->ind == NULL)
-			return CS_FAIL;
-
-		*(param->ind) = indicator;
-
-		param->param_by_value = 1;
-
-		/* here's one way of passing a null parameter */
-
-		if (indicator == -1) {
-			param->value = NULL;
-			*(param->datalen) = 0;
-			param_is_null  = 1;
-		} else {
-
-			/* and here's another... */
-			if ( (datalen == 0 || datalen == CS_UNUSED) && data == NULL ) {
-				param->value = NULL;
-				*(param->datalen) = 0;
-				param_is_null  = 1;
-			} else {
-
-				/* datafmt.datalen is ignored for fixed length types */
-		
-				if (is_fixed_type(param->type)) {
-					*(param->datalen) = tds_get_size_by_type(param->type);
-				} else {
-					*(param->datalen) = (datalen == CS_UNUSED) ? 0 : datalen;
-				}
-				
-				if (*(param->datalen) && data) {
-					param->value = malloc(*(param->datalen));
-					if (param->value == NULL)
-						return CS_FAIL;
-					memcpy(param->value, data, *(param->datalen));
-					param->param_by_value = 1;
-				} else {
-					param->value = NULL;
-					*(param->datalen) = 0;
-					param_is_null  = 1;
-				}
-			}
-		}
-
-		if (param_is_null) {
-			switch (param->type) {
-				case SYBINT1:
-				case SYBINT2:
-				case SYBINT4:
-					param->type = SYBINTN;
-					break;
-				case SYBDATETIME:
-				case SYBDATETIME4:
-					param->type = SYBDATETIMN;
-					break;
-				case SYBFLT8:
-					param->type = SYBFLTN;
-					break;
-				case SYBBIT:
-					param->type = SYBBITN;
-					break;
-				case SYBMONEY:
-				case SYBMONEY4:
-					param->type = SYBMONEYN;
-					break;
-				default:
-					break;
-			}
-		}
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
@@ -2341,35 +2243,8 @@ CSREMOTE_PROC_PARAM *param;
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
-		if (datafmt->namelen == CS_NULLTERM) {
-			param->name = strdup(datafmt->name);
-			if (param->name == (char *)NULL)
-				return CS_FAIL;
-		} else if (datafmt->namelen > 0) {
-			param->name = malloc(datafmt->namelen + 1);
-			if (param->name == NULL) 
-				return CS_FAIL;
-			memset(param->name, 0, datafmt->namelen + 1);
-			strncpy(param->name, datafmt->name, datafmt->namelen);
-		} 
-
-		param->status = datafmt->status;
-
-		/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
-		/* to Server type, e.g. SYBINT2                      */
-
-		param->type   = _ct_get_server_type(datafmt->datatype);
-
-		param->maxlen = datafmt->maxlength;
-
-		if (is_fixed_type(param->type)) {
-			param->maxlen  = tds_get_size_by_type(param->type);
-		} 
-
-		param->datalen = datalen;
-		param->ind     = indicator;
-		param->value   = data;
-		param->param_by_value = 0;
+		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, datalen, indicator, 0))
+			return CS_FAIL;
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
@@ -2886,3 +2761,121 @@ param_clear(CSREMOTE_PROC_PARAM * pparam)
 	free(pparam);
 }
 /* RPC Code changes ends here */
+
+
+static int
+_ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT *datalen, 
+	CS_SMALLINT *indicator, CS_BYTE byvalue)
+{
+int  param_is_null = 0;
+
+	if (datafmt->namelen == CS_NULLTERM) {
+		param->name = strdup(datafmt->name);
+		if (param->name == (char *)NULL)
+			return CS_FAIL;
+	} else if (datafmt->namelen > 0) {
+		param->name = malloc(datafmt->namelen + 1);
+		if (param->name == NULL) 
+			return CS_FAIL;
+		memset(param->name, 0, datafmt->namelen + 1);
+		strncpy(param->name, datafmt->name, datafmt->namelen);
+	} 
+	
+	param->status = datafmt->status;
+	tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() status = %d \n", param->status );
+	
+	/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
+	/* to Server type, e.g. SYBINT2                      */
+	
+	param->type   = _ct_get_server_type(datafmt->datatype);
+	
+	param->maxlen = datafmt->maxlength;
+	
+	if (is_fixed_type(param->type)) {
+		param->maxlen  = tds_get_size_by_type(param->type);
+	} 
+	
+	param->param_by_value = byvalue;
+
+	if (byvalue) {
+		param->datalen = malloc(sizeof(CS_INT));		
+		if (param->datalen == NULL)
+			return CS_FAIL;
+		
+		*(param->datalen) = *datalen;
+		
+		param->ind = malloc(sizeof(CS_INT));		
+		if (param->ind == NULL)
+			return CS_FAIL;
+		
+		*(param->ind) = *indicator;
+		
+		/* here's one way of passing a null parameter */
+		
+		if (*indicator == -1) {
+			param->value = NULL;
+			*(param->datalen) = 0;
+			param_is_null  = 1;
+		} else {
+		
+			/* and here's another... */
+			if ( (*datalen == 0 || *datalen == CS_UNUSED) && data == NULL ) {
+				param->value = NULL;
+				*(param->datalen) = 0;
+				param_is_null  = 1;
+			} else {
+		
+				/* datafmt.datalen is ignored for fixed length types */
+		
+				if (is_fixed_type(param->type)) {
+					*(param->datalen) = tds_get_size_by_type(param->type);
+				} else {
+					*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
+				}
+				
+				if (*(param->datalen) && data) {
+					param->value = malloc(*(param->datalen));
+					if (param->value == NULL)
+						return CS_FAIL;
+					memcpy(param->value, data, *(param->datalen));
+					param->param_by_value = 1;
+				} else {
+					param->value = NULL;
+					*(param->datalen) = 0;
+					param_is_null  = 1;
+				}
+			}
+		}
+		
+		if (param_is_null) {
+			switch (param->type) {
+				case SYBINT1:
+				case SYBINT2:
+				case SYBINT4:
+					param->type = SYBINTN;
+					break;
+				case SYBDATETIME:
+				case SYBDATETIME4:
+					param->type = SYBDATETIMN;
+					break;
+				case SYBFLT8:
+					param->type = SYBFLTN;
+					break;
+				case SYBBIT:
+					param->type = SYBBITN;
+					break;
+				case SYBMONEY:
+				case SYBMONEY4:
+					param->type = SYBMONEYN;
+					break;
+				default:
+					break;
+			}
+		}
+	} else { /* not by value, i.e. by reference */
+		param->datalen = datalen;
+		param->ind     = indicator;
+		param->value   = data;
+	}
+	return CS_SUCCEED;
+}

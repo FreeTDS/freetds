@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.33 2003-03-05 20:31:00 mlilback Exp $";
+         "$Id: cspublic.h,v 1.34 2003-03-06 17:24:41 mlilback Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -83,12 +83,13 @@ typedef CS_RETCODE (*CS_CSLIBMSG_FUNC)(CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_CLIENTMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
- /* Code added for RPC functionality - SUHA */
- /* RPC Code changes starts here */
 
-typedef struct _CSREMOTE_PROC_PARAM
+/* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
+	places, too. */
+
+typedef struct _CS_PARAM
 {
-	struct _CSREMOTE_PROC_PARAM *next;
+	struct _CS_PARAM *next;
 	char    *name;
 	int      status;
 	int      type;
@@ -97,7 +98,13 @@ typedef struct _CSREMOTE_PROC_PARAM
 	CS_SMALLINT  *ind;
 	CS_BYTE *value;
 	int      param_by_value;
-} CSREMOTE_PROC_PARAM;
+} CS_PARAM;
+
+
+ /* Code added for RPC functionality - SUHA */
+ /* RPC Code changes starts here */
+
+typedef CS_PARAM CSREMOTE_PROC_PARAM;
 
 typedef struct _CSREMOTE_PROC
 {
@@ -107,6 +114,7 @@ typedef struct _CSREMOTE_PROC
 } CSREMOTE_PROC;
 
 /* RPC Code changes ends here */
+
 struct cs_context
 {
 	CS_INT date_convert_fmt;
