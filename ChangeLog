@@ -1,3 +1,14 @@
+Mon May 03 20:49:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c win32/FreeTDS.def win32/Makefile.am:
+	* win32/initnet.c win32/dev-cpp/FreeTDS.dev:
+	* win32/dev-cpp/Makefile.win win32/msvc6/FreeTDS.dsp:
+	* win32/msvc6/Makefile.am:
+	* win32/installfreetds.bat (added) win32/resource.h (added):
+	* win32/setup.rc (added) win32/winlogin.c (added):
+	* win32/winsetup.c (added):
+	- merged Steve Kirkendall patch for win32
+	- updated makefiles and projects for win32
+
 Mon May 03 20:44:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: fix for sed
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.320 2004-04-30 14:16:55 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.321 2004-05-03 18:50:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -353,11 +353,23 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	/* we dont support a dialog box */
-	if (hwnd)
-		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
-
+	/* parse the DSN string */
 	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
+
+	/* add login info */
+	if (hwnd) {
+#ifdef WIN32
+		/* prompt for login information */
+		if (!get_login_info(hwnd, connection)) {
+			tds_free_connection(connection);
+			odbc_errs_add(&dbc->errs, "08001", "User canceled login", NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+#else
+		/* we dont support a dialog box */
+		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
+#endif
+	}
 
 	/* TODO what should be correct behavior for output string?? -- freddy77 */
 	if (szConnStrOut)

@@ -6,11 +6,14 @@
 
 #include <windows.h>
 
+HINSTANCE hinstFreeTDS;
+
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	WSADATA wsaData;
 
+	hinstFreeTDS = hinstDLL;
 	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
 #if defined(_MSC_VER) && defined(_DEBUG)

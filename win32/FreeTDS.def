@@ -72,3 +72,6 @@ EXPORTS
 	SQLTablePrivileges
 	SQLTables
 	SQLTransact
+	ConfigDSN
+	ConfigDriver
+	ConfigTranslator

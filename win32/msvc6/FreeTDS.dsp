@@ -69,7 +69,8 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "_FREETDS_LIBRARY_SOURCE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x410 /d "_DEBUG"
@@ -141,6 +142,14 @@ SOURCE=..\..\src\odbc\prepare_query.c
 # Begin Source File
 
 SOURCE=..\..\src\odbc\sql2tds.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\winlogin.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\winsetup.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -230,6 +239,10 @@ SOURCE=..\..\include\tdsver.h
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=..\setup.rc
+# End Source File
 # End Group
 # Begin Group "Replacements"
 
@@ -296,7 +309,15 @@ SOURCE=..\..\src\tds\md4.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\tds\md5.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\tds\mem.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\tds\net.c
 # End Source File
 # Begin Source File
 
