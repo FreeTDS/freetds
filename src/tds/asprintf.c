@@ -21,7 +21,7 @@
 #include <assert.h>
 #endif
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.3 2002-08-29 15:43:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.4 2002-08-30 13:04:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -57,6 +57,9 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   *ret = buf;
   return len;
 #else
+# ifndef _SC_PAGE_SIZE
+#  define _SC_PAGE_SIZE _SC_PAGESIZE
+# endif
   volatile char *buf = NULL;
   volatile unsigned int pgs;
   struct sigaction sa, osa;

@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.62 2002-08-30 06:01:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.63 2002-08-30 13:04:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1305,6 +1305,30 @@ TDS_INT8 mymoney;
 	    return string_to_result(tmp_str,cr);
             break;
 
+		case SYBINT1:
+			if (!IS_TINYINT(the_value))
+				return TDS_FAIL;
+			cr->ti = the_value;
+			return 1;
+			break;
+		case SYBINT2:
+			if (!IS_SMALLINT(the_value))
+				return TDS_FAIL;
+			cr->si = the_value;
+			return 2;
+			break;
+		case SYBINT4:
+			if (!IS_INT(the_value))
+				return TDS_FAIL;
+			cr->i = the_value;
+			return 4;
+			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = the_value ? 1 : 0;
+			return 1;
+			break;
+
       case SYBFLT8:
             cr->f = the_value;
             return 8;
@@ -1332,7 +1356,7 @@ TDS_INT8 mymoney;
 	  case SYBDATETIME:
 	  case SYBDATETIMN:
 	    break;
-	/* TODO int, bit, numeric */
+	/* TODO numeric */
       default:
 	    LOG_CONVERT();
             return TDS_FAIL;
@@ -1355,12 +1379,37 @@ char      tmp_str[25];
             sprintf(tmp_str,"%.15g", the_value);
 	    return string_to_result(tmp_str,cr);
             break;
+
+		case SYBINT1:
+			if (!IS_TINYINT(the_value))
+				return TDS_FAIL;
+			cr->ti = the_value;
+			return 1;
+			break;
+		case SYBINT2:
+			if (!IS_SMALLINT(the_value))
+				return TDS_FAIL;
+			cr->si = the_value;
+			return 2;
+			break;
+		case SYBINT4:
+			if (!IS_INT(the_value))
+				return TDS_FAIL;
+			cr->i = the_value;
+			return 4;
+			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = the_value ? 1 : 0;
+			return 1;
+			break;
+
       case SYBMONEY:
-            cr->m.mny = the_value * 10000;
+            cr->m.mny = (TDS_INT8)the_value * 10000.0;
             return sizeof(TDS_MONEY);
             break;
       case SYBMONEY4:
-            cr->m4.mny4 = the_value * 10000;
+            cr->m4.mny4 = the_value * 10000.0;
             return sizeof(TDS_MONEY4);
             break;
       case SYBREAL:
@@ -1377,7 +1426,7 @@ char      tmp_str[25];
 	case SYBDATETIME:
 	case SYBDATETIMN:
 		break;
-	/* TODO int, bit, numeric */
+	/* TODO numeric */
       default:
 		LOG_CONVERT();
 			return TDS_FAIL;
