@@ -37,6 +37,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef WIN32
+#include <process.h>
+#endif
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
@@ -45,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.142 2005-02-21 14:44:19 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.143 2005-03-12 11:48:37 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);

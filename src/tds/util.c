@@ -52,6 +52,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef WIN32
+#include <process.h>
+#endif
+
 #include "tds.h"
 #include "tds_checks.h"
 
@@ -59,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.58 2005-02-16 19:25:05 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.59 2005-03-12 11:47:37 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */

@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static const char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.15 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.16 2005-03-12 11:47:02 ppeterd Exp $";
 static const void *const no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -45,7 +45,6 @@ extern "C"
 
 #define TDSSOCK_EINTR WSAEINTR
 #define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
-#define getpid() GetCurrentThreadId()
 #define sock_errno WSAGetLastError()
 #ifndef __MINGW32__
 typedef DWORD pid_t;

@@ -61,6 +61,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
+#ifdef WIN32
+#include <process.h>
+#endif
+
 #include "tds.h"
 #include "tds_configs.h"
 #include "tdsstring.h"
@@ -69,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.106 2005-02-09 16:15:16 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.107 2005-03-12 11:49:35 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
