@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.17 2005-02-09 16:15:11 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.18 2005-02-22 16:04:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -228,7 +228,7 @@ next_query(DBPROCESS *dbproc)
 		/* 'go' or 'GO' separates command batches */
 		const char *p = query_line;
 		if (strncasecmp(p, "go", 2) == 0) {
-			for (p+=2; isspace(*p); p++) {
+			for (p+=2; isspace((unsigned char) *p); p++) {
 				if (*p == '\n')
 					return 1;
 			}

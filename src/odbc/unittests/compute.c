@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.7 2005-01-14 15:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.8 2005-02-22 16:04:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -60,13 +60,13 @@ CheckFetch(const char *c1name, const char *c1, const char *c2)
 
 	if (strlen(c1) != ind1 || strcmp(c1, col1) != 0) {
 		fprintf(stderr, "%s:%d: Column 1 error '%s' (%d) expected '%s' (%d)\n", __FILE__, main_line, col1, (int) ind1, c1,
-			strlen(c1));
+			(int) strlen(c1));
 		error = 1;
 	}
 
 	if (strlen(c2) != ind2 || strcmp(c2, col2) != 0) {
 		fprintf(stderr, "%s:%d: Column 2 error '%s' (%d) expected '%s' (%d)\n", __FILE__, main_line, col2, (int) ind2, c2,
-			strlen(c2));
+			(int) strlen(c2));
 		error = 1;
 	}
 

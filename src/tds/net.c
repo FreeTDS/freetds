@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.13 2005-02-15 13:04:31 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.14 2005-02-22 16:04:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -725,7 +725,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		msg[0] = 4;
 		strncpy(msg + 1, instance, sizeof(msg) - 2);
 		msg[sizeof(msg) - 1] = 0;
-		sendto(s, msg, strlen(msg) + 1, 0, &sin, sizeof(sin));
+		sendto(s, msg, strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
 		FD_ZERO(&fds);
 		FD_SET(s, &fds);

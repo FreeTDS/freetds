@@ -166,7 +166,7 @@ restart:
 		if (p < end) {
 			if ((flags & RPP_SEVENBIT))
 				ch &= 0x7f;
-			if (isalpha(ch)) {
+			if (isalpha((unsigned char) ch)) {
 				if ((flags & RPP_FORCELOWER))
 					ch = tolower(ch);
 				if ((flags & RPP_FORCEUPPER))

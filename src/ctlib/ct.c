@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.144 2005-02-16 19:24:50 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.145 2005-02-22 16:04:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2665,8 +2665,8 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
 		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			table_namelen, table_namelen, curcol->table_name,
-			column_namelen, column_namelen, curcol->column_name);
+			(int) table_namelen, (int) table_namelen, curcol->table_name,
+			(int) column_namelen, (int) column_namelen, curcol->column_name);
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
 
