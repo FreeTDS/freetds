@@ -9,8 +9,7 @@ It's pretty simple, basically:
 	ftp://ftp.ibiblio.org/pub/linux/ALPHA/freetds/
    and post message to list, update web pages.  
    repeat 2-3 as necessary.
-4) tag cvs: 'cvs tag R0_60' from the top level directory
-5) check out tagged version, do a 'make dist', release tarball
-6) edit freetds.spec file for version and any changes since previous 
-   build and create rpm with 'rpm -ba freetds.spec' (i think),
-   post these to ibiblio as well.
+4) tag cvs: 'cvs tag R0_61' from the top level directory
+5) check out tagged version, do a 'make distcheck', release tarball
+6) create rpm with 'rpm -ta freetds-0.61.tar.gz', post these to 
+   ibiblio as well.
