@@ -79,12 +79,12 @@ AC_ARG_WITH(ssl,
         ssldir="$dir"
         if test -f "$dir/include/openssl/ssl.h"; then
             found_ssl="yes";
-            CFLAGS="$CFLAGS -I$ssldir/include/openssl -DHAVE_SSL";
+            CFLAGS="$CFLAGS -I$ssldir/include/openssl ";
             break;
         fi
         if test -f "$dir/include/ssl.h"; then
             found_ssl="yes";
-            CFLAGS="$CFLAGS -I$ssldir/include/ -DHAVE_SSL";
+            CFLAGS="$CFLAGS -I$ssldir/include/ ";
             break
         fi
     done
@@ -95,6 +95,7 @@ AC_ARG_WITH(ssl,
         LIBS="$LIBS -lssl -lcrypto";
         LDFLAGS="$LDFLAGS -L$ssldir/lib";
         HAVE_SSL=yes
+        AC_DEFINE(HAVE_SSL, 1, [Define if you have the SSL.])
     fi
     AC_SUBST(HAVE_SSL)
 ],

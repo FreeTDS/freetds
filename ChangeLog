@@ -1,3 +1,7 @@
+Sun Mar 24 09:19:19 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* acinclude.m4: modified SSL check to use config.h
+
 Thu Mar 21 22:21:29 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* include/tdsodbc.h: added row field to stmt struct
