@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.71 2002-10-31 19:11:59 castellano Exp $
+dnl $Id: configure.in,v 1.72 2002-10-31 21:15:58 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -25,7 +25,7 @@ AC_CANONICAL_HOST
 netdb_reentrant=no
 case $host in
   *-*-osf*)
-    CPPFLAGS="$CPPFLAGS -D_OSF_SOURCE"
+    CPPFLAGS="$CPPFLAGS -D_OSF_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_POSIX_C_SOURCE=199506L"
     netdb_reentrant=yes
     ;;
   *-*-hpux11*)
@@ -37,7 +37,6 @@ if test $netdb_reentrant = yes; then
     AC_DEFINE(NETDB_REENTRANT, 1, [Define to 1 if the BSD-style netdb interface is reentrant.])
 fi
 
-CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED -D_POSIX_C_SOURCE=199506L"
 AC_GNU_SOURCE
 
 dnl ------------------------------------------------------------
