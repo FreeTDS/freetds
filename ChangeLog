@@ -1,3 +1,8 @@
+Sat Jan 31 11:58:02 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO include/tdsiconv.h src/replacements/iconv.c:
+	* src/tds/iconv.c:
+	- --disable-libiconv works again
+
 Fri Jan 30 17:09:21 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c better message for failed iconv init.
 

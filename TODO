@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.93 2004-01-09 05:00:20 jklowden Exp $
+To Do List	$Id: TODO,v 1.94 2004-01-31 10:56:48 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -32,7 +32,7 @@ Postponed to 0.63 version
   freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
 . Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
-. Rationalize libtds structure and *_alloc functions (ML 5 December 2002, sb:"names")
+. Rationalize libtds structure and *_alloc functions (ML 5 December 2002, sb:"names") (work in progress)
 . be able to disable iconv for BCP (see Sybase documentation)
 . UTF-8 unit tests (libTDS)
   - very large column name (128 on mssql), no-english to UTF-8 client
@@ -77,6 +77,7 @@ For future versions (in priority order within library):
 . support encrypted connections
 . read on partial packet, do not wait entire one
 . net.c file with all network stuff
+. detect if realloc/free accepts NULL pointers
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 

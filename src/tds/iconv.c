@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.107 2004-01-30 22:15:58 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.108 2004-01-31 10:56:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -102,11 +102,11 @@ tds_iconv_init(void)
 	assert(strcmp(canonic_charsets[POS_UCS2BE].name, "UCS-2BE") == 0);
 
 	/* fast tests for GNU-iconv */
-	cd = iconv_open("ISO-8859-1", "UTF-8");
+	cd = tds_sys_iconv_open("ISO-8859-1", "UTF-8");
 	if (cd != (iconv_t) - 1) {
 		iconv_names[POS_ISO1] = "ISO-8859-1";
 		iconv_names[POS_UTF8] = "UTF-8";
-		iconv_close(cd);
+		tds_sys_iconv_close(cd);
 	} else {
 
 		/* search names for ISO8859-1 and UTF-8 */
@@ -119,11 +119,11 @@ tds_iconv_init(void)
 				if (iconv_aliases[j].canonic != POS_UTF8)
 					continue;
 
-				cd = iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
+				cd = tds_sys_iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
 				if (cd != (iconv_t) - 1) {
 					iconv_names[POS_ISO1] = iconv_aliases[i].alias;
 					iconv_names[POS_UTF8] = iconv_aliases[j].alias;
-					iconv_close(cd);
+					tds_sys_iconv_close(cd);
 					break;
 				}
 			}
@@ -136,15 +136,15 @@ tds_iconv_init(void)
 	}
 
 	/* now search for UCS-2 */
-	cd = iconv_open(iconv_names[POS_ISO1], "UCS-2LE");
+	cd = tds_sys_iconv_open(iconv_names[POS_ISO1], "UCS-2LE");
 	if (cd != (iconv_t) - 1) {
 		iconv_names[POS_UCS2LE] = "UCS-2LE";
-		iconv_close(cd);
+		tds_sys_iconv_close(cd);
 	}
-	cd = iconv_open(iconv_names[POS_ISO1], "UCS-2BE");
+	cd = tds_sys_iconv_open(iconv_names[POS_ISO1], "UCS-2BE");
 	if (cd != (iconv_t) - 1) {
 		iconv_names[POS_UCS2BE] = "UCS-2BE";
-		iconv_close(cd);
+		tds_sys_iconv_close(cd);
 	}
 
 	/* long search needed ?? */
@@ -153,7 +153,7 @@ tds_iconv_init(void)
 			if (strncmp(canonic_charsets[iconv_aliases[i].canonic].name, "UCS-2", 5) != 0)
 				continue;
 
-			cd = iconv_open(iconv_aliases[i].alias, iconv_names[POS_ISO1]);
+			cd = tds_sys_iconv_open(iconv_aliases[i].alias, iconv_names[POS_ISO1]);
 			if (cd != (iconv_t) - 1) {
 				char ib[1];
 				char ob[4];
@@ -169,7 +169,7 @@ tds_iconv_init(void)
 				il = 1;
 				ol = 4;
 				ob[0] = ob[1] = 0;
-				if (iconv(cd, &pib, &il, &pob, &ol) != (size_t) - 1) {
+				if (tds_sys_iconv(cd, &pib, &il, &pob, &ol) != (size_t) - 1) {
 					/* byte order sequence ?? */
 					if (ol == 0) {
 						ob[0] = ob[2];
@@ -185,7 +185,7 @@ tds_iconv_init(void)
 					if (!iconv_names[il] || !byte_sequence)
 						iconv_names[il] = iconv_aliases[i].alias;
 				}
-				iconv_close(cd);
+				tds_sys_iconv_close(cd);
 			}
 		}
 	}
@@ -216,16 +216,16 @@ tds_get_iconv_name(int charset)
 	assert(iconv_initialized);
 
 	/* try using canonic name and UTF-8 and UCS2 */
-	cd = iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
+	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
 	if (cd != (iconv_t) - 1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
-		iconv_close(cd);
+		tds_sys_iconv_close(cd);
 		return;
 	}
-	cd = iconv_open(ucs2name, canonic_charsets[charset].name);
+	cd = tds_sys_iconv_open(ucs2name, canonic_charsets[charset].name);
 	if (cd != (iconv_t) - 1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
-		iconv_close(cd);
+		tds_sys_iconv_close(cd);
 		return;
 	}
 
@@ -234,17 +234,17 @@ tds_get_iconv_name(int charset)
 		if (iconv_aliases[i].canonic != charset)
 			continue;
 
-		cd = iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
+		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
 		if (cd != (iconv_t) - 1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
-			iconv_close(cd);
+			tds_sys_iconv_close(cd);
 			return;
 		}
 
-		cd = iconv_open(ucs2name, iconv_aliases[i].alias);
+		cd = tds_sys_iconv_open(ucs2name, iconv_aliases[i].alias);
 		if (cd != (iconv_t) - 1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
-			iconv_close(cd);
+			tds_sys_iconv_close(cd);
 			return;
 		}
 	}
@@ -466,12 +466,12 @@ tds_iconv_info_init(TDSICONV * iconv, const char *client_name, const char *serve
 		return 0;
 	}
 
-	iconv->to_wire = iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
+	iconv->to_wire = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
 	if (iconv->to_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 	}
 
-	iconv->from_wire = iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
+	iconv->from_wire = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
 	if (iconv->from_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 	}
@@ -481,10 +481,10 @@ tds_iconv_info_init(TDSICONV * iconv, const char *client_name, const char *serve
 		tds_iconv_info_close(iconv);
 
 		/* TODO reuse some conversion, client charset is usually constant in all connection (or ISO8859-1) */
-		iconv->to_wire = iconv_open(iconv_names[POS_UTF8], iconv_names[client_canonical]);
-		iconv->to_wire2 = iconv_open(iconv_names[server_canonical], iconv_names[POS_UTF8]);
-		iconv->from_wire = iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
-		iconv->from_wire2 = iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
+		iconv->to_wire = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[client_canonical]);
+		iconv->to_wire2 = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[POS_UTF8]);
+		iconv->from_wire = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
+		iconv->from_wire2 = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
 
 		if (iconv->to_wire == (iconv_t) - 1 || iconv->to_wire2 == (iconv_t) - 1
 		    || iconv->from_wire == (iconv_t) - 1 || iconv->from_wire2 == (iconv_t) - 1) {
@@ -513,7 +513,7 @@ _iconv_close(iconv_t * cd)
 	static const iconv_t invalid = (iconv_t) - 1;
 
 	if (*cd != invalid) {
-		iconv_close(*cd);
+		tds_sys_iconv_close(*cd);
 		*cd = invalid;
 	}
 }
@@ -661,7 +661,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 			int temp_errno;
 			size_t temp_irreversible;
 
-			temp_irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pb, &l);
+			temp_irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pb, &l);
 			temp_errno = errno;
 
 			/* convert partial */
@@ -669,7 +669,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 			l = sizeof(tmp) - l;
 			for (;;) {
 				errno = 0;
-				irreversible = iconv(cd2, (ICONV_CONST char **) &pb, &l, outbuf, outbytesleft);
+				irreversible = tds_sys_iconv(cd2, (ICONV_CONST char **) &pb, &l, outbuf, outbytesleft);
 				if (irreversible != (size_t) - 1) {
 					if (*inbytesleft)
 						break;
@@ -716,14 +716,14 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 				tmp[n] = (*inbuf)[n + 1];
 				tmp[n + 1] = (*inbuf)[n];
 			}
-			irreversible = iconv(cd, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
+			irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
 			il = pib - tmp;
 			*inbuf += il;
 			*inbytesleft -= il;
 			if (irreversible != (size_t) - 1 && *inbytesleft)
 				continue;
 		} else {
-			irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
+			irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
 		}
 		if (irreversible != (size_t) - 1)
 			break;
@@ -749,7 +749,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		 * do not convert singlebyte <-> singlebyte.
 		 */
 		if (error_cd == invalid) {
-			error_cd = iconv_open(output_charset_name, iconv_names[POS_UTF8]);
+			error_cd = tds_sys_iconv_open(output_charset_name, iconv_names[POS_UTF8]);
 			if (error_cd == invalid) {
 				break;	/* what to do? */
 			}
@@ -759,7 +759,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		pquest_mark = quest_mark;
 
 		p = *outbuf;
-		irreversible = iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
+		irreversible = tds_sys_iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
 
 		if (irreversible == (size_t) - 1)
 			break;
@@ -822,7 +822,7 @@ end_loop:
 	}
 
 	if (error_cd != invalid) {
-		iconv_close(error_cd);
+		tds_sys_iconv_close(error_cd);
 	}
 
 	return irreversible;
@@ -874,7 +874,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 			    *outbytesleft);
 		field_len -= isize;
 
-		nonreversible_conversions += iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
+		nonreversible_conversions += tds_sys_iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
 
 		if (isize != 0) {
 			switch (errno) {
@@ -1076,11 +1076,11 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 	/* extract state from iconv */
 	pob = ib;
 	ol = sizeof(ib);
-	iconv(cd, NULL, NULL, &pob, &ol);
+	tds_sys_iconv(cd, NULL, NULL, &pob, &ol);
 
 	/* init destination conversion */
 	/* TODO use largest fixed size for this platform */
-	cd2 = iconv_open("UCS-4", charset->name);
+	cd2 = tds_sys_iconv_open("UCS-4", charset->name);
 	if (cd2 == (iconv_t) - 1)
 		return 0;
 
@@ -1097,7 +1097,7 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 	pob = ob;
 	/* TODO use size of largest fixed charset */
 	ol = 4;
-	iconv(cd2, &pib, &il, &pob, &ol);
+	tds_sys_iconv(cd2, &pib, &il, &pob, &ol);
 
 	/* adjust input */
 	l = (pib - ib) - l;
@@ -1107,16 +1107,16 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 	/* extract state */
 	pob = ib;
 	ol = sizeof(ib);
-	iconv(cd, NULL, NULL, &pob, &ol);
+	tds_sys_iconv(cd, NULL, NULL, &pob, &ol);
 
 	/* set input state */
 	pib = ib;
 	il = sizeof(ib) - ol;
 	pob = ob;
 	ol = sizeof(ob);
-	iconv(cd, &pib, &il, &pob, &ol);
+	tds_sys_iconv(cd, &pib, &il, &pob, &ol);
 
-	iconv_close(cd2);
+	tds_sys_iconv_close(cd2);
 
 	return l;
 }
