@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.40 2003-12-29 15:52:48 jklowden Exp $
+# version: $Id: Makefile.am,v 1.41 2003-12-31 08:04:52 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -48,10 +48,10 @@ tsql.1: tsql.txt
 # else if we have access to distributed documentation, install that.  
 install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 	$(mkinstalldirs) $(DOCDIR)
-	if test -e $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
+	if test -r $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
 		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/userguide ';'
-	if test -e $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
+	if test -r $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) -exec \
 		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/reference ';'
 	find $(srcdir)/images -name \*.gif -exec \
@@ -100,7 +100,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	make odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
-		if test -e $(DISTRIBUTED_UG_DIR) -a ! -e $(DOCDIR)/userguide ; then \
+		if test -r $(DISTRIBUTED_UG_DIR) -a ! -r $(DOCDIR)/userguide ; then \
 			cp -R $(DISTRIBUTED_UG_DIR) $(DOCDIR); \
 		fi; \
 	fi
@@ -112,7 +112,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 		if test -L userguide.sgml; then rm userguide.sgml; fi; \
 	fi
 # if still no joy, create a stub
-	if test ! -e $@ ; then \
+	if test ! -r $@ ; then \
 		echo '<html><P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a></html>' 	\
 		> .index.htm && \
 		mv .index.htm $@; \
@@ -132,12 +132,12 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	$(mkinstalldirs) $(DOCDIR)
 	cd .. && make doxy 2> doc/doxy.log
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
-	if test -e $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
+	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
 # if we don't find the source, generate a stub
 	$(mkinstalldirs) $(DOCDIR)/reference
-	if test ! -e $@ ; then \
+	if test ! -r $@ ; then \
 		cd $(DOCDIR)/reference && \
 		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
 			> .index.html &&  \
