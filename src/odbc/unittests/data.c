@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.6 2004-03-11 14:19:33 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.7 2004-03-11 15:06:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -69,11 +69,15 @@ int
 main(int argc, char *argv[])
 {
 	int big_endian = 1;
+	char version[32];
+	SQLSMALLINT version_len;
 
 	Connect();
 
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
+	memset(version, 0, sizeof(version));
+	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
 
 #ifdef ENABLE_DEVELOPING
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, "38 0 1 7B");
@@ -100,7 +104,7 @@ main(int argc, char *argv[])
 	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
 	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
 	/* TODO some Sybase versions */
-	if (db_is_microsoft()) {
+	if (db_is_microsoft() && strncmp(version, "08.00.", 6) == 0) {
 		int old_result = result;
 
 		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
