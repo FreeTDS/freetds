@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.13 2002-10-13 23:52:02 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.14 2002-10-17 13:58:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -94,18 +94,18 @@ struct tm res;
 
 /*
  * If reentrant code was not requested, we don't care reentrancy, so
- * just assume the standard BSD socket interface is reentrant and use it.
+ * just assume the standard BSD netdb interface is reentrant and use it.
  */
 #ifndef _REENTRANT
-# ifndef SOCK_REENTRANT
-#  define SOCK_REENTRANT 1
-# endif /* SOCK_REENTRANT */
+# ifndef NETDB_REENTRANT
+#  define NETDB_REENTRANT 1
+# endif /* NETDB_REENTRANT */
 #endif /* _REENTRANT */
 
 struct hostent *
 tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
-#ifdef SOCK_REENTRANT
+#ifdef NETDB_REENTRANT
 	return gethostbyname(servername);
 
 #else
@@ -130,7 +130,7 @@ struct hostent   *
 tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
 
-#ifdef SOCK_REENTRANT
+#ifdef NETDB_REENTRANT
 	return gethostbyaddr(addr, len, type);
 
 #else
@@ -155,7 +155,7 @@ struct servent *
 tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen)
 {
 
-#ifdef SOCK_REENTRANT
+#ifdef NETDB_REENTRANT
 	return getservbyname(name, proto);
 
 #else

@@ -1,3 +1,8 @@
+Thu Oct 17 09:56:05 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/tds_sysdep_private.h.in src/tds/threadsafe.c:
+	- Rename SOCK_REENTRANT to NETDB_REENTRANT.
+	- Move definition of same for osf1 into configure.in.
+
 Tue Oct 15 16:22:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/Makefile.am:
 	- Make txt2man failures nonfatal.  txt2man is not portable
