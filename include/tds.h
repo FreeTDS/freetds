@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.123 2003-05-09 13:06:11 freddy77 Exp $";
+	"$Id: tds.h,v 1.124 2003-05-17 18:10:29 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -1039,6 +1039,7 @@ int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params);
 int tds_quote_id(TDSSOCKET * tds, char* buffer, const char *id);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
+const char *tds_skip_quoted(const char *s);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET *tds);

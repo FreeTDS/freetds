@@ -29,6 +29,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdsodbc.h"
 #include "odbc_util.h"
@@ -38,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.28 2003-05-15 14:36:40 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.29 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -52,9 +54,13 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  *  \@{ 
  */
 
-int
-odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
+static int
+odbc_set_stmt(TDS_STMT * stmt, char **dest, const char *sql, int sql_len)
 {
+	char *p;
+
+	assert(dest == &stmt->prepared_query || dest == &stmt->query);
+
 	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
 	else if (sql_len <= 0)
@@ -62,59 +68,43 @@ odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
 
 	stmt->param_count = 0;
 	stmt->prepared_query_is_func = 0;
+	stmt->prepared_query_is_rpc = 0;
+
 	if (stmt->prepared_query) {
 		free(stmt->prepared_query);
 		stmt->prepared_query = NULL;
 	}
 
-	if (stmt->query)
+	if (stmt->query) {
 		free(stmt->query);
+		stmt->query = NULL;
+	}
 
-	stmt->query = (char *) malloc(sql_len + 1);
-	if (!stmt->query)
+	*dest = p = (char *) malloc(sql_len + 1);
+	if (!p)
 		return SQL_ERROR;
 
 	if (sql) {
-		memcpy(stmt->query, sql, sql_len);
-		stmt->query[sql_len] = 0;
+		memcpy(p, sql, sql_len);
+		p[sql_len] = 0;
 	} else {
-		stmt->query[0] = 0;
+		p[0] = 0;
 	}
 
 	return SQL_SUCCESS;
+}
+
+int
+odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
+{
+	return odbc_set_stmt(stmt, &stmt->query, sql, sql_len);
 }
 
 
 int
 odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 {
-	if (sql_len == SQL_NTS)
-		sql_len = strlen(sql);
-	else if (sql_len <= 0)
-		return SQL_ERROR;
-
-	stmt->param_count = 0;
-	stmt->prepared_query_is_func = 0;
-	if (stmt->query) {
-		free(stmt->query);
-		stmt->query = NULL;
-	}
-
-	if (stmt->prepared_query)
-		free(stmt->prepared_query);
-
-	stmt->prepared_query = (char *) malloc(sql_len + 1);
-	if (!stmt->prepared_query)
-		return SQL_ERROR;
-
-	if (sql) {
-		memcpy(stmt->prepared_query, sql, sql_len);
-		stmt->prepared_query[sql_len] = 0;
-	} else {
-		stmt->prepared_query[0] = 0;
-	}
-
-	return SQL_SUCCESS;
+	return odbc_set_stmt(stmt, &stmt->prepared_query, sql, sql_len);
 }
 
 

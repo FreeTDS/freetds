@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.25 2003-05-17 12:47:45 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.26 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -249,8 +249,6 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 	struct _sql_param_info *param;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
-	char quote_char = 0;
-	int quoted = 0;
 	int len;
 	int need_comma;
 
@@ -269,18 +267,16 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 	}
 
 	while (*s) {
-		/* TODO: use tds_skip_quoted in query.c */
-		if (!quoted && (*s == '"' || *s == '\'' || *s == '[')) {
-			quoted = 1;
-			quote_char = (*s == '[') ? ']' : *s;
-		} else if (quoted && *s == quote_char) {
-			if (s[1] == quote_char)
-				*d++ = *s++;
-			else
-				quoted = 0;
+		if (*s == '"' || *s == '\'' || *s == '[') {
+			size_t len_quote = tds_skip_quoted(s) - s;
+
+			memmove(d, s, len_quote);
+			s += len_quote;
+			d += len_quote;
+			continue;
 		}
 
-		if (*s == '?' && !quoted) {
+		if (*s == '?') {
 			param_num++;
 
 			param = odbc_find_param(stmt, param_num);

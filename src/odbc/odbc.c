@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.165 2003-05-15 14:36:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.166 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1117,10 +1117,8 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->row = 0;
 
-	if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED)) {
-/*        odbc_LogError (tds->msg_info->message); */
+	if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED))
 		return SQL_ERROR;
-	}
 	stmt->hdbc->current_statement = stmt;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
@@ -1216,10 +1214,6 @@ SQLExecute(SQLHSTMT hstmt)
 #endif
 
 	INIT_HSTMT;
-
-	/* translate to native format */
-	if (SQL_SUCCESS != prepare_call(stmt))
-		return SQL_ERROR;
 
 #ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
@@ -1725,6 +1719,10 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 
 	/* count parameters */
 	stmt->param_count = tds_count_placeholders(stmt->prepared_query);
+
+	/* trasform to native (one time, not for every SQLExecute) */
+	if (SQL_SUCCESS != prepare_call(stmt))
+		return SQL_ERROR;
 
 	return SQL_SUCCESS;
 }

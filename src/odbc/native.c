@@ -26,6 +26,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <ctype.h>
+#include <assert.h>
 
 #include "tds.h"
 #include "tdsodbc.h"
@@ -35,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.10 2003-05-15 14:36:39 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.11 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -75,40 +76,34 @@ static void *no_unused_var_warn[] = { software_version,
 int
 prepare_call(struct _hstmt *stmt)
 {
-	char *s, *d, *p;
-	int quoted = 0;
-	char quote_char = 0;
+	char *s, *d, *p, *buf;
 	int nest_syntax = 0;
 
 	/* list of bit, used as stack, is call ? FIXME limites size... */
 	unsigned long is_calls = 0;
 
 	if (stmt->prepared_query)
-		s = stmt->prepared_query;
+		buf = stmt->prepared_query;
 	else if (stmt->query)
-		s = stmt->query;
+		buf = stmt->query;
 	else
 		return SQL_ERROR;
 
 	/* we can do it because result string will be
 	 * not bigger than source string */
-	d = s;
+	d = s = buf;
 	while (*s) {
-		/* TODO: use tds_skip_quoted in query.c */
 		/* TODO: test syntax like "select 1 as [pi]]p)p{?=call]]]]o], 2" on mssql7+ */
-		if (!quoted && (*s == '"' || *s == '\'' || *s == '[')) {
-			quoted = 1;
-			quote_char = (*s == '[') ? ']' : *s;
-		} else if (quoted && *s == quote_char) {
-			if (s[1] == quote_char)
-				*d++ = *s++;
-			else
-				quoted = 0;
+		if (*s == '"' || *s == '\'' || *s == '[') {
+			size_t len_quote = tds_skip_quoted(s) - s;
+
+			memmove(d, s, len_quote);
+			s += len_quote;
+			d += len_quote;
+			continue;
 		}
 
-		if (quoted) {
-			*d++ = *s++;
-		} else if (*s == '{') {
+		if (*s == '{') {
 			char *pcall;
 
 			while (isspace(*++s));
@@ -161,6 +156,43 @@ prepare_call(struct _hstmt *stmt)
 		}
 	}
 	*d = '\0';
+
+	/* now detect RPC */
+	stmt->prepared_query_is_rpc = 0;
+	s = buf;
+	while (isspace(*s))
+		++s;
+	if (strncasecmp(s, "exec", 4) != 0 || !isspace(s[4]))
+		return SQL_SUCCESS;
+	s += 5;
+	while (isspace(*s))
+		++s;
+	p = s;
+	if (*s == '[') {
+		s = (char *) tds_skip_quoted(s);
+	} else {
+		/* FIXME: stop at other characters ??? */
+		while (!isspace(*s))
+			++s;
+	}
+	--s;			/* trick, now s point to no blank */
+	for (;;) {
+		while (isspace(*++s));
+		if (!*s)
+			break;
+		if (*s != '?')
+			return SQL_SUCCESS;
+		while (isspace(*++s));
+		if (!*s)
+			break;
+		if (*s != ',')
+			return SQL_SUCCESS;
+	}
+	stmt->prepared_query_is_rpc = 1;
+
+	/* remove unneeded exec */
+	assert(!*d);
+	memmove(buf, p, d - p + 1);
 
 	return SQL_SUCCESS;
 }

@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.27 2003-05-17 12:47:45 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.28 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -137,6 +137,7 @@ struct _hstmt
 	int prepared_query_need_bytes;
 	int prepared_query_param_num;
 	int prepared_query_is_func;
+	int prepared_query_is_rpc;
 	/* end prepared query stuff */
 	struct _sql_bind_info *bind_head;
 	struct _sql_param_info *param_head;

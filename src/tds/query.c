@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.91 2003-05-13 12:42:27 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.92 2003-05-17 18:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -181,7 +181,7 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
  * @param s pointer to first quoting character (should be '," or [)
  * @return character after quoting
  */
-static const char *
+const char *
 tds_skip_quoted(const char *s)
 {
 	const char *p = s;
