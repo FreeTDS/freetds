@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.32 2003-01-14 22:14:21 freddy77 Exp $
+To Do List	$Id: TODO,v 1.33 2003-01-16 14:29:23 freddy77 Exp $
 ------------
 Broken:
 . tds_connect free tds structure on failure. This cause in some condition
@@ -57,7 +57,8 @@ For future versions (in priority order within library):
   (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
 
   odbc
-. Someone broke early binding in ODBC
+. Someone broke early binding in ODBC 
+  (fixed, add check for early bind, and multiple recordset)
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types)
 . dynamic query (work in progress, lack unprepare)
 . get a solid corpus of unittests for ODBC, and have it become a top tier API.
