@@ -103,6 +103,10 @@ SOURCE=..\..\src\odbc\convert_tds2sql.c
 # End Source File
 # Begin Source File
 
+SOURCE=\cpp\freetds\freetds\src\odbc\error.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\FreeTDS.def
 # End Source File
 # Begin Source File

@@ -1,3 +1,11 @@
+Tue Jan  7 15:41:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c:
+	- avoid free(NULL)
+	* src/odbc/odbc.c:
+	- rewrite function checking using some macro
+	* win32/msvc6/FreeTDS.dsp:
+	- add error.c
+
 Tue Jan  7 11:25:00 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c: small fix
 	* src/odbc/unittests/print.c: finished
