@@ -1,3 +1,7 @@
+Fri Oct 11 16:21:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/config.c src/tds/locale.c src/tds/util.c:
+	- Remove some obsolete references to paths.h and PATH_MAX.
+
 Mon Oct 11 21:56:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/Makefile.am include/tds_configs.h.in:
 	* include/tds.h.in (removed) include/tds.h (added):

@@ -37,13 +37,9 @@
 #include <limits.h>
 #include <assert.h>
 #include <ctype.h>
-#ifdef __DGUX__
-#include <paths.h>
-#endif
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
-#define PATH_MAX 255
 #define CLOSESOCKET(a) closesocket(a)
 #else
 #include <netdb.h>
@@ -58,7 +54,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.19 2002-10-02 20:38:57 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.20 2002-10-11 20:22:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

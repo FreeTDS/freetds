@@ -27,13 +27,9 @@
 #include <limits.h>
 #include <assert.h>
 #include <ctype.h>
-#ifdef __DGUX__
-#include <paths.h>
-#endif
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
-#define PATH_MAX 255
 #endif
 #ifndef WIN32
 #include <netdb.h>
@@ -47,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.8 2002-10-07 17:51:01 castellano Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.9 2002-10-11 20:22:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
