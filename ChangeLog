@@ -1,3 +1,9 @@
+Wed Jan 29 00:04:49 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* INSTALL NEWS README	Updated for upcoming release
+	* configure.in doc/Makefile.am 
+	* src/dblib/Makefile.am src/tds/Makefile.am
+	- bumped release number and .so version number.
+	
 Tue Jan 28 15:27:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: add come todo for Python
 	* include/cspublic.h: add missing constants for Python
