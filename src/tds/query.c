@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.151 2004-12-07 22:39:21 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.152 2004-12-07 22:41:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -71,7 +71,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
  */
 
 /**
- * Change state to TDS_QUERING
+ * Change state to TDS_QUERYING
  * \return TDS_FAIL or TDS_SUCCESS
  */
 static int
