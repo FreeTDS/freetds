@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.46 2002-12-28 19:50:58 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.47 2003-01-02 17:27:51 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -379,7 +379,12 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 int
 tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
-	if (msg->msg_number > 0 && msg->msg_number != 5701 && msg->msg_number != 20018) {
+	if (msg->msg_number == 0) {
+		fprintf(stderr, "%s\n", msg->message);
+		return 0;
+	}
+
+	if (msg->msg_number != 5701 && msg->msg_number != 20018) {
 		fprintf(stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
 			msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message);
 	}
