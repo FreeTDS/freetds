@@ -70,9 +70,9 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.86 2004-03-18 10:51:07 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.87 2004-04-07 07:47:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-static int read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io,
+static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
 
 /**
@@ -334,7 +334,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->iconvs[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, tds->char_convs[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= string_len);
@@ -346,7 +346,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 /**
  * Fetch character data the wire.
  * Output is NOT null terminated.
- * If \a iconv is not NULL, convert data accordingly.
+ * If \a char_conv is not NULL, convert data accordingly.
  * \param row_buffer  destination buffer in current_row. Can't be NULL
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information
@@ -382,7 +382,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		return TDS_SUCCEED;
 	}
 
-	if (curcol->iconv) {
+	if (curcol->char_conv) {
 		/*
 		 * TODO The conversion should be selected from curcol and tds version
 		 * TDS8/single -> use curcol collation
@@ -393,7 +393,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, curcol->iconv, to_client, &wire_size, &dest, &in_left);
+		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 
 							 wire_size, curcol->column_cur_size);
@@ -650,7 +650,7 @@ tds_read_packet(TDSSOCKET * tds)
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
+read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);
@@ -664,9 +664,9 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io
 	const size_t max_output = *outbytesleft;
 
 	/* cast away const for message suppression sub-structure */
-	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv->suppress;
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress;
 
-	memset(suppress, 0, sizeof(iconv->suppress));
+	memset(suppress, 0, sizeof(char_conv->suppress));
 	
 	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
 		assert(bufp >= temp);
@@ -681,7 +681,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io
 		/* Convert chunk and write to dest. */
 		bufp = temp; /* always convert from start of buffer */
 		suppress->einval = *wire_size > 0; /* EINVAL matters only on the last chunk. */
-		if ((size_t)-1 == tds_iconv(tds, iconv, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
+		if ((size_t)-1 == tds_iconv(tds, char_conv, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
 			if (errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "

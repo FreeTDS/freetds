@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.31 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.32 2004-04-07 07:47:19 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -148,7 +148,7 @@ struct tdsiconvinfo
 #endif
 
 size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
-size_t tds_iconv(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io,
+size_t tds_iconv(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 const char *tds_canonical_charset_name(const char *charset_name);
 const char *tds_sybase_charset_name(const char *charset_name);

@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.92 2004-04-05 21:51:01 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.93 2004-04-07 07:47:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -161,7 +161,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 			bcpcol->tab_colnum = i + 1;	/* turn offset into ordinal */
 			bcpcol->db_type = resinfo->columns[i]->column_type;
-			bcpcol->iconv = resinfo->columns[i]->iconv;
+			bcpcol->char_conv = resinfo->columns[i]->char_conv;
 			bcpcol->db_length = resinfo->columns[i]->column_size;
 			bcpcol->db_nullable = resinfo->columns[i]->column_nullable;
 
@@ -948,10 +948,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			/* 
 			 * Allocate a column buffer guaranteed to be big enough hold the post-iconv data.
 			 */
-			if (bcpcol->iconv) {
+			if (bcpcol->char_conv) {
 				if (bcpcol->on_server.column_size > bcpcol->db_length)
 					collen = (collen * bcpcol->on_server.column_size) / bcpcol->db_length;
-				cd = bcpcol->iconv->to_wire;
+				cd = bcpcol->char_conv->to_wire;
 			} else {
 				cd = (iconv_t) - 1;
 			}

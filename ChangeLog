@@ -1,3 +1,10 @@
+Wed Apr 07 09:58:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdsiconv.h src/dblib/bcp.c:
+	* src/server/login.c src/tds/iconv.c src/tds/login.c:
+	* src/tds/query.c src/tds/read.c src/tds/token.c:
+	* src/tds/write.c src/tds/unittests/utf8_2.c:
+	- fixed macro definition
+
 Tue Apr 06 10:26:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/raiseerror.c: improved
 

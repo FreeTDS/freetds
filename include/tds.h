@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.175 2004-03-31 18:41:24 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.176 2004-04-07 07:47:18 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -806,7 +806,7 @@ typedef struct tds_column
 		TDS_INT column_size;
 	} on_server;
 
-	const TDSICONV *iconv;	/**< refers to previously allocated iconv information */
+	const TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
@@ -853,7 +853,7 @@ typedef struct
 		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
-	const TDSICONV *iconv;	/**< refers to previously allocated iconv information */
+	const TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
 	TDS_SMALLINT db_usertype;
 	TDS_TINYINT db_varint_size;
 	TDS_INT db_length;	/* size of field according to database */
@@ -1029,7 +1029,7 @@ enum TDS_ICONV_ENTRY
 	  client2ucs2
 	, client2server_chardata
 	, iso2server_metadata
-	, initial_iconv_count	/* keep last */
+	, initial_char_conv_count	/* keep last */
 };
 
 struct tds_socket
@@ -1083,8 +1083,8 @@ struct tds_socket
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
-	int iconv_count;
-	TDSICONV **iconvs;
+	int char_conv_count;
+	TDSICONV **char_convs;
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTION *connection;

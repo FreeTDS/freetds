@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.257 2004-04-05 15:26:50 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.258 2004-04-07 07:47:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -69,7 +69,7 @@ static int tds5_get_varint_size(int datatype);
 static int tds5_process_result(TDSSOCKET * tds);
 static int tds5_process_dyn_result2(TDSSOCKET * tds);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
-static int determine_adjusted_size(const TDSICONV * iconv, int size);
+static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
 static int _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token);
@@ -1423,10 +1423,10 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 * other 2 bytes ???
 		 * last bytes is id in syscharsets */
 		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->iconv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+		curcol->char_conv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
 	
-	/* NOTE adjustements must be done after curcol->iconv initialization */
+	/* NOTE adjustements must be done after curcol->char_conv initialization */
 	adjust_character_column_size(tds, curcol);
 
 	if (is_blob_type(curcol->column_type)) {
@@ -1565,7 +1565,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	/* TODO: we should use it ! */
 	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->iconv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+		curcol->char_conv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
 
 	/* Adjust column size according to client's encoding */
@@ -1950,7 +1950,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		 * Here we allocate memory, if need be.  
 		 */
 		/* TODO this can lead to a big waste of memory */
-		new_blob_size = determine_adjusted_size(curcol->iconv, colsize);
+		new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
 		
 		/* NOTE we use an extra pointer (p) to avoid lose of memory in the case realloc fails */
 		p = blob->textvalue;
@@ -1977,7 +1977,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			tds_get_n(tds, blob->textvalue, colsize);
 		}
 	} else {		/* non-numeric and non-blob */
-		if (curcol->iconv) {
+		if (curcol->char_conv) {
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {	
@@ -3375,7 +3375,7 @@ static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	if (is_unicode_type(curcol->on_server.column_type))
-		curcol->iconv = tds->iconvs[client2ucs2];
+		curcol->char_conv = tds->char_convs[client2ucs2];
 
 	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16*/
 	if (curcol->on_server.column_type == SYBLONGBINARY && (
@@ -3383,27 +3383,27 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
 		/* FIXME ucs2 is not UTF-16... */
 		/* FIXME what happen if client is big endian ?? */
-		curcol->iconv = tds->iconvs[client2ucs2];
+		curcol->char_conv = tds->char_convs[client2ucs2];
 	}
 
 	/* FIXME: and sybase ?? */
-	if (!curcol->iconv && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
-		curcol->iconv = tds->iconvs[client2server_chardata];
+	if (!curcol->char_conv && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
+		curcol->char_conv = tds->char_convs[client2server_chardata];
 
-	if (!curcol->iconv)
+	if (!curcol->char_conv)
 		return;
 
 	curcol->on_server.column_size = curcol->column_size;
-	curcol->column_size = determine_adjusted_size(curcol->iconv, curcol->column_size);
+	curcol->column_size = determine_adjusted_size(curcol->char_conv, curcol->column_size);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L adjust_character_column_size:\n"
 				   "\tServer charset: %s\n"
 				   "\tServer column_size: %d\n"
 				   "\tClient charset: %s\n"
 				   "\tClient column_size: %d\n", 
-				   curcol->iconv->server_charset.name, 
+				   curcol->char_conv->server_charset.name, 
 				   curcol->on_server.column_size, 
-				   curcol->iconv->client_charset.name, 
+				   curcol->char_conv->client_charset.name, 
 				   curcol->column_size);
 }
 
@@ -3415,15 +3415,15 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
  * for example, the client is UTF-8.  
  */
 static int
-determine_adjusted_size(const TDSICONV * iconv, int size)
+determine_adjusted_size(const TDSICONV * char_conv, int size)
 {
-	if (!iconv)
+	if (!char_conv)
 		return size;
 
-	size *= iconv->client_charset.max_bytes_per_char;
-	if (size % iconv->server_charset.min_bytes_per_char)
-		size += iconv->server_charset.min_bytes_per_char;
-	size /= iconv->server_charset.min_bytes_per_char;
+	size *= char_conv->client_charset.max_bytes_per_char;
+	if (size % char_conv->server_charset.min_bytes_per_char)
+		size += char_conv->server_charset.min_bytes_per_char;
+	size /= char_conv->server_charset.min_bytes_per_char;
 
 	return size;
 }

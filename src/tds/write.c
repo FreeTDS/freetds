@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.62 2004-03-18 10:51:07 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.63 2004-04-07 07:47:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -127,8 +127,8 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	char outbuf[256], *poutbuf;
 	size_t inbytesleft, outbytesleft, bytes_out = 0;
 
-	client = &tds->iconvs[client2ucs2]->client_charset;
-	server = &tds->iconvs[client2ucs2]->server_charset;
+	client = &tds->char_convs[client2ucs2]->client_charset;
+	server = &tds->char_convs[client2ucs2]->server_charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
@@ -153,15 +153,15 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		return len;
 	}
 
-	memset(&tds->iconvs[client2ucs2]->suppress, 0, sizeof(tds->iconvs[client2ucs2]->suppress));
-	tds->iconvs[client2ucs2]->suppress.e2big = 1;
+	memset(&tds->char_convs[client2ucs2]->suppress, 0, sizeof(tds->char_convs[client2ucs2]->suppress));
+	tds->char_convs[client2ucs2]->suppress.e2big = 1;
 	inbytesleft = len;
 	while (inbytesleft) {
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", (int) inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		
-		if ((size_t)-1 == tds_iconv(tds, tds->iconvs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
+		if ((size_t)-1 == tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
 		
 			if (errno == EINVAL) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string: tds_iconv() encountered partial sequence. "
