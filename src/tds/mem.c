@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.16 2002-08-16 17:33:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.17 2002-08-25 07:37:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -365,6 +365,7 @@ void tds_free_login(TDSLOGIN *login)
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
 {
 TDSSOCKET *tds_socket;
+TDSICONVINFO *iconv;
 
 	tds_socket = (TDSSOCKET *) malloc(sizeof(TDSSOCKET));
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
@@ -375,8 +376,11 @@ TDSSOCKET *tds_socket;
 	memset(tds_socket->msg_info,'\0',sizeof(TDSMSGINFO));
 	tds_socket->parent = (char*)NULL;
 	tds_socket->env = tds_alloc_env(tds_socket);
-	tds_socket->iconv_info = (void *) malloc(sizeof(TDSICONVINFO));
+	iconv = (TDSICONVINFO *) malloc(sizeof(TDSICONVINFO));
+	tds_socket->iconv_info = (void *) iconv;
 	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
+	iconv->cdfrom = (iconv_t)-1;
+	iconv->cdto = (iconv_t)-1;
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                
 	tds_init_write_buf(tds_socket);

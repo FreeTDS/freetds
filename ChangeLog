@@ -1,3 +1,11 @@
+Sun Aug 25 09:34:34 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c:
+	- best conversion from unicode, replace wrong characters with '?'
+	  (both iconv and C code)
+	- do not return garbage data
+	* src/tds/mem.c:
+	- init iconv cd to -1 to avoid possible wrong iconv_close calls
+
 Fri Aug 23 21:35:19 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in include/tdsconvert.h src/ctlib/ct.c:
 	* src/ctlib/ctutil.c src/dblib/bcp.c src/dblib/dblib.c:

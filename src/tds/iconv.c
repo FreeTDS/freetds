@@ -83,9 +83,12 @@ char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string
 TDSICONVINFO *iconv_info;
 int i;
 #if HAVE_ICONV
-const char *in_ptr;
+char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
+char quest_mark[] = "?\0"; /* best to live no-const */
+char *pquest_mark; 
+size_t lquest_mark;
 #endif
 
 	if (!in_string) return NULL;
@@ -97,17 +100,40 @@ size_t out_bytes, in_bytes;
      	in_bytes = len * 2;
      	in_ptr = (char *)in_string;
      	out_ptr = out_string;
-	/* FIXME if invalid add another character */
-     	iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+     	while (iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t)-1) {
+		/* iconv call can reset errno */
+		i = errno;
+		/* reset iconv state */
+		iconv(iconv_info->cdfrom, NULL, NULL, NULL, NULL);
+		if (i != EILSEQ) break;
+
+		/* skip one UCS-2 sequnce */
+		in_ptr += 2;
+		in_bytes -= 2;
+
+		/* replace invalid with '?' */
+		pquest_mark = quest_mark;
+		lquest_mark = 2;
+		iconv(iconv_info->cdfrom, &pquest_mark, &lquest_mark, &out_ptr, &out_bytes);
+		if (out_bytes == 0) break;
+	}
+	/* FIXME best method ?? there is no way to return 
+	 * less or more than len characters */
+	/* something went wrong fill remaining with zeroes 
+	 * avoiding returning garbage data */
+	if (out_bytes) memset(out_ptr,0,out_bytes);
 	out_string[len] = '\0';
 
      	return out_string;
 	}
 #endif
 
-	/* no iconv, strip high order byte to produce 7bit ascii */
+	/* no iconv, strip high order byte if zero or replace with '?' 
+	 * this is the same of converting to ISO8859-1 charset using iconv */
+	/* FIXME update docs */
 	for (i=0;i<len;++i) {
-		out_string[i]=in_string[i*2];
+		out_string[i] = 
+			in_string[i*2+1] ? '?' : in_string[i*2];
 	}
 	out_string[i]='\0';
 	return out_string;
@@ -126,7 +152,7 @@ register int i;
 size_t string_length;
 TDSICONVINFO *iconv_info;
 #if HAVE_ICONV
-const char *in_ptr;
+char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 #endif
