@@ -1,3 +1,11 @@
+Thu Sep 18 16:17:57 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c
+	- small edits, added tds_iconv_info_close utility function
+	* src/tds/encodings.h src/tds/encodings.pl
+	- cannot look up charset "646" properly 
+	- attempted to fix off-by-one in src/tds/encodings.h
+	- but ran out of time.  
+
 Thu Sep 18 11:26:59 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/vasprintf.c
 	- Fix off-by-one error in vsnprintf-based vasprintf() replacement.

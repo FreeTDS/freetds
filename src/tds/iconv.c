@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.83 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.84 2003-09-18 20:25:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -65,6 +65,7 @@ static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_nam
 static int tds_iconv_init(void);
 static int tds_canonical_charset(const char *charset_name);
 static void _iconv_close(iconv_t * cd);
+static void tds_iconv_info_close(TDSICONVINFO* iconv_info);
 
 
 /**
@@ -425,22 +426,21 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 
 	/* try indirect conversions */
 	if (iconv_info->to_wire == (iconv_t) - 1 || iconv_info->from_wire == (iconv_t) - 1) {
-		_iconv_close(&iconv_info->to_wire);
-		_iconv_close(&iconv_info->from_wire);
+		tds_iconv_info_close(iconv_info);
 
 		/* TODO reuse some conversion, client charset is usually constant in all connection (or ISO8859-1) */
 		iconv_info->to_wire = iconv_open(ucs2name, iconv_names[client_canonical]);
 		iconv_info->to_wire2 = iconv_open(iconv_names[server_canonical], ucs2name);
 		iconv_info->from_wire = iconv_open(ucs2name, iconv_names[server_canonical]);
 		iconv_info->from_wire2 = iconv_open(iconv_names[client_canonical], ucs2name);
+
 		if (iconv_info->to_wire == (iconv_t) - 1 || iconv_info->to_wire2 == (iconv_t) - 1
 		    || iconv_info->from_wire == (iconv_t) - 1 || iconv_info->from_wire2 == (iconv_t) - 1) {
-			_iconv_close(&iconv_info->to_wire);
-			_iconv_close(&iconv_info->to_wire2);
-			_iconv_close(&iconv_info->from_wire);
-			_iconv_close(&iconv_info->from_wire2);
+
+			tds_iconv_info_close(iconv_info);
 			return 0;
 		}
+
 		iconv_info->flags |= TDS_ENCODING_INDIRECT;
 		return 1;
 	}
@@ -462,6 +462,15 @@ _iconv_close(iconv_t * cd)
 		*cd = invalid;
 	}
 }
+
+static void
+tds_iconv_info_close(TDSICONVINFO* iconv_info)
+{
+	_iconv_close(&iconv_info->to_wire);
+	_iconv_close(&iconv_info->to_wire2);
+	_iconv_close(&iconv_info->from_wire);
+	_iconv_close(&iconv_info->from_wire2);
+}
 #endif
 
 void
@@ -471,10 +480,7 @@ tds_iconv_close(TDSSOCKET * tds)
 	int i;
 
 	for (i = 0; i < tds->iconv_info_count; i++) {
-		_iconv_close(&tds->iconv_info[i].to_wire);
-		_iconv_close(&tds->iconv_info[i].to_wire2);
-		_iconv_close(&tds->iconv_info[i].from_wire);
-		_iconv_close(&tds->iconv_info[i].from_wire2);
+		tds_iconv_info_close(tds->iconv_info + i);
 	}
 #endif
 }
@@ -569,7 +575,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	p = *outbuf;
 	for (;;) {
 		irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
-		if (irreversible != (size_t) - 1)
+		if (irreversible != invalid)
 			break;
 
 		if (errno != EILSEQ || io != to_client)
@@ -580,14 +586,13 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		 */
 		one_character = skip_one_input_sequence(cd, input_charset, inbuf, inbytesleft);
 
-		/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
 		if (!one_character)
 			break;
 
 		/* 
-		 * To replace invalid input with '?', we have to convert an UTF-8 '?' into the output character set.  
-		 * In unimaginably weird circumstances, this might  be impossible.
-		 * We use UTF-8 instead of ASCII because some implementation 
+		 * To replace invalid input with '?', we have to convert a UTF-8 '?' into the output character set.  
+		 * In unimaginably weird circumstances, this might be impossible.
+		 * We use UTF-8 instead of ASCII because some implementations 
 		 * do not convert singlebyte <-> singlebyte.
 		 */
 		if (error_cd == invalid) {
@@ -603,7 +608,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		p = *outbuf;
 		irreversible = iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
 
-		if (irreversible == (size_t) - 1)
+		if (irreversible == invalid)
 			break;
 
 		*inbuf += one_character;
@@ -624,7 +629,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	switch (errno) {
 	case EILSEQ:		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
-			if (irreversible == (size_t) - 1) {
+			if (irreversible == invalid) {
 				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0,
 					       "WARNING! Some character(s) could not be converted into client's character set. ");
 			} else {
@@ -738,10 +743,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 	TDSICONVINFO *iconv_info = &tds->iconv_info[client2server_chardata];
 
 	/* Close any previously opened iconv descriptors */
-	_iconv_close(&iconv_info->to_wire);
-	_iconv_close(&iconv_info->to_wire2);
-	_iconv_close(&iconv_info->from_wire);
-	_iconv_close(&iconv_info->from_wire2);
+	tds_iconv_info_close(iconv_info);
 
 	tds_iconv_info_init(iconv_info, iconv_info->client_charset.name, charset);
 
@@ -751,10 +753,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 
 	iconv_info = &tds->iconv_info[iso2server_metadata];
 
-	_iconv_close(&iconv_info->to_wire);
-	_iconv_close(&iconv_info->to_wire2);
-	_iconv_close(&iconv_info->from_wire);
-	_iconv_close(&iconv_info->from_wire2);
+	tds_iconv_info_close(iconv_info);
 
 	tds_iconv_info_init(iconv_info, "ISO-8859-1", charset);
 #endif
