@@ -1,3 +1,6 @@
+Sat Jan 11 18:06:26 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/t0003.c: cleanup and more SQLMoreResults test
+
 Sat Jan 11 17:30:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	All this stuff modified from a patch of  Viktar Klimkovitch
 	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:

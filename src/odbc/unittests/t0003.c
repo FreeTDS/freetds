@@ -12,7 +12,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.8 2003-01-05 15:50:27 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.9 2003-01-11 17:06:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -31,14 +31,9 @@ main(int argc, char *argv[])
 	}
 
 	Command(Statement, "create table #odbctestdata (i int)");
-//      Command(Statement,"insert #odbctestdata values (123)" );
 
+	/* test that 2 empty result set are returned correctly */
 	Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
-
-/*	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		printf("Data expected\n");
-		exit(1);
-	}*/
 
 	if (SQLFetch(Statement) != SQL_NO_DATA) {
 		printf("Data not expected\n");
@@ -51,10 +46,29 @@ main(int argc, char *argv[])
 	}
 	printf("Getting next recordset\n");
 
-/*	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		printf("Data expected\n");
+	if (SQLFetch(Statement) != SQL_NO_DATA) {
+		printf("Data not expected\n");
 		exit(1);
-	}*/
+	}
+
+	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
+		printf("Not expected another recordset\n");
+		exit(1);
+	}
+
+	/* test that skipping a no empty result go to other result set */
+	Command(Statement, "insert into #odbctestdata values(123)");
+
+	if (SQLMoreResults(Statement) != SQL_SUCCESS) {
+		printf("Expected another recordset\n");
+		exit(1);
+	}
+	printf("Getting next recordset\n");
+
+	if (SQLFetch(Statement) != SQL_SUCCESS) {
+		printf("Expecting a row\n");
+		exit(1);
+	}
 
 	if (SQLFetch(Statement) != SQL_NO_DATA) {
 		printf("Data not expected\n");
