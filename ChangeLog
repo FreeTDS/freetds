@@ -1,3 +1,15 @@
+Tue Apr 01 13:59:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/lang_error.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	- add error to test error in row
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/connect.c src/odbc/unittests/date.c:
+	* src/odbc/unittests/funccall.c src/odbc/unittests/norowset.c:
+	* src/odbc/unittests/print.c src/odbc/unittests/t0001.c:
+	* src/odbc/unittests/t0002.c src/odbc/unittests/t0003.c:
+	* src/odbc/unittests/t0004.c:
+	- put some #includes in common.h
+
 Tue Apr 01 12:26:20 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- Peter Deacon patch

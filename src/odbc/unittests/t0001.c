@@ -1,21 +1,6 @@
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
 #include "common.h"
 
-
-static char software_version[] = "$Id: t0001.c,v 1.11 2003-03-27 10:01:01 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.12 2003-04-01 12:01:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
