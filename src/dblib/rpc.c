@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.22.2.1 2004-07-14 09:09:40 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.22.2.2 2004-07-15 07:25:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -196,14 +196,22 @@ dbrpcsend(DBPROCESS * dbproc)
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;
-		TDSPARAMINFO *pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
+		TDSPARAMINFO *pparam_info = NULL;
+
+		/*
+		 * liam@inodes.org: allow stored procedures to have no
+		 * paramaters
+		 */
+		if (rpc->param_list != NULL) {
+			pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
+			if (!pparam_info)
+				return FAIL;
+		}
 
 		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
-		;
-		/* TODO free parameters */
-		if (erc == TDS_FAIL) {
+		tds_free_param_results(pparam_info);
+		if (erc == TDS_FAIL)
 			return FAIL;
-		}
 	}
 
 	/* free up the memory */
@@ -237,7 +245,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	int i;
 	DBREMOTE_PROC_PARAM *p;
 	TDSCOLINFO *pcol;
-	TDSPARAMINFO *params = NULL;
+	TDSPARAMINFO *params = NULL, *new_params;
 
 	/* sanity */
 	if (rpc == NULL)
@@ -248,10 +256,12 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	for (i = 0, p = rpc->param_list; p != NULL; p = p->next, i++) {
 		const unsigned char *prow;
 
-		if (!(params = tds_alloc_param_result(params))) {
+		if (!(new_params = tds_alloc_param_result(params))) {
+			tds_free_param_results(params);
 			fprintf(stderr, "out of rpc memory!");
 			return NULL;
 		}
+		new_params = params;
 
 		pcol = params->columns[i];
 
@@ -263,8 +273,10 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 		tds_set_param_type(tds, pcol, p->type);
 		if (pcol->column_varint_size) {
-			if (p->maxlen < 0)
+			if (p->maxlen < 0) {
+				tds_free_param_results(params);
 				return NULL;
+			}
 			pcol->column_size = p->maxlen;
 
 			/* actual data */
@@ -275,6 +287,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		prow = param_row_alloc(params, pcol, p->value, pcol->column_cur_size);
 
 		if (!prow) {
+			tds_free_param_results(params);
 			fprintf(stderr, "out of memory for rpc row!");
 			return NULL;
 		}
@@ -282,7 +295,6 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	}
 
 	return params;
-
 }
 
 /**
