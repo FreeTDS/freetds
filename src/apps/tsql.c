@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <config.h>
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
 #endif
