@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.95 2004-09-20 08:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.96 2004-11-02 15:18:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1039,7 +1039,7 @@ tds_get_compiletime_settings(void)
 			, 0
 #		endif
 			, -1	/* unknown: sybase_compat only a makefile setting, so far. */
-#		ifdef THREAD_SAFE
+#		ifdef _REENTRANT
 			, 1
 #		else
 			, 0
