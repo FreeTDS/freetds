@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.111 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.112 2004-09-16 11:42:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -59,7 +59,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #if !HAVE_ICONV_ALWAYS
 static int bytes_per_char(TDS_ENCODING * charset);
 #endif
-static const char *lcid2charset(int lcid);
+static const char *collate2charset(int sql_collate, int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *server_name);
 static int tds_iconv_init(void);
@@ -994,9 +994,9 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 
 /* change singlebyte conversions according to server */
 void
-tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
+tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid)
 {
-	tds_srv_charset_changed(tds, lcid2charset(lcid));
+	tds_srv_charset_changed(tds, collate2charset(sql_collate, lcid));
 }
 
 #if !HAVE_ICONV_ALWAYS
@@ -1200,13 +1200,57 @@ tds_sybase_charset_name(const char *charset_name)
 }
 
 static const char *
-lcid2charset(int lcid)
+collate2charset(int sql_collate, int lcid)
 {
 	/* The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
 
 	const char *cp = NULL;
+
+	switch (sql_collate) {
+	case 30:		/* SQL_Latin1_General_CP437_BIN */
+	case 31:		/* SQL_Latin1_General_CP437_CS_AS */
+	case 32:		/* SQL_Latin1_General_CP437_CI_AS */
+	case 33:		/* SQL_Latin1_General_Pref_CP437_CI_AS */
+	case 34:		/* SQL_Latin1_General_CP437_CI_AI */
+		return "CP437";
+	case 40:		/* SQL_Latin1_General_CP850_BIN */
+	case 41:		/* SQL_Latin1_General_CP850_CS_AS */
+	case 42:		/* SQL_Latin1_General_CP850_CI_AS */
+	case 43:		/* SQL_Latin1_General_Pref_CP850_CI_AS */
+	case 44:		/* SQL_Latin1_General_CP850_CI_AI */
+	case 49:		/* SQL_1xCompat_CP850_CI_AS */
+	case 55:		/* SQL_AltDiction_CP850_CS_AS */
+	case 56:		/* SQL_AltDiction_Pref_CP850_CI_AS */
+	case 57:		/* SQL_AltDiction_CP850_CI_AI */
+	case 58:		/* SQL_Scandinavian_Pref_CP850_CI_AS */
+	case 59:		/* SQL_Scandinavian_CP850_CS_AS */
+	case 60:		/* SQL_Scandinavian_CP850_CI_AS */
+	case 61:		/* SQL_AltDiction_CP850_CI_AS */
+		return "CP850";
+	case 81:		/* SQL_Latin1_General_CP1250_CS_AS */
+	case 82:		/* SQL_Latin1_General_CP1250_CI_AS */
+		return "CP1250";
+	case 105:		/* SQL_Latin1_General_CP1251_CS_AS */
+	case 106:		/* SQL_Latin1_General_CP1251_CI_AS */
+		return "CP1251";
+	case 113:		/* SQL_Latin1_General_CP1253_CS_AS */
+	case 114:		/* SQL_Latin1_General_CP1253_CI_AS */
+	case 120:		/* SQL_MixDiction_CP1253_CS_AS */
+	case 121:		/* SQL_AltDiction_CP1253_CS_AS */
+	case 124:		/* SQL_Latin1_General_CP1253_CI_AI */
+		return "CP1253";
+	case 137:		/* SQL_Latin1_General_CP1255_CS_AS */
+	case 138:		/* SQL_Latin1_General_CP1255_CI_AS */
+		return "CP1255";
+	case 145:		/* SQL_Latin1_General_CP1256_CS_AS */
+	case 146:		/* SQL_Latin1_General_CP1256_CI_AS */
+		return "CP1256";
+	case 153:		/* SQL_Latin1_General_CP1257_CS_AS */
+	case 154:		/* SQL_Latin1_General_CP1257_CI_AS */
+		return "CP1257";
+	}
 
 	switch (lcid & 0xffff) {
 	case 0x405:
@@ -1376,9 +1420,9 @@ lcid2charset(int lcid)
  * Get iconv information from a LCID (to support different column encoding under MSSQL2K)
  */
 TDSICONV *
-tds_iconv_from_lcid(TDSSOCKET * tds, int lcid)
+tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid)
 {
-	const char *charset = lcid2charset(lcid);
+	const char *charset = collate2charset(sql_collate, lcid);
 
 #if ENABLE_EXTRA_CHECKS
 	assert(strcmp(tds_canonical_charset_name(charset), charset) == 0);

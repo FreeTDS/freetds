@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.262 2004-08-01 19:05:14 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.263 2004-09-16 11:42:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1458,9 +1458,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 * last bytes is id in syscharsets
 		 */
 		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->char_conv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+		curcol->char_conv =
+			tds_iconv_from_collate(tds, curcol->column_collation[4],
+					       curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
-	
+
 	/* NOTE adjustements must be done after curcol->char_conv initialization */
 	adjust_character_column_size(tds, curcol);
 
@@ -1602,7 +1604,9 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	/* TODO: we should use it ! */
 	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->char_conv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+		curcol->char_conv =
+			tds_iconv_from_collate(tds, curcol->column_collation[4],
+					       curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
 
 	/* Adjust column size according to client's encoding */
@@ -2300,7 +2304,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 			tds_get_n(tds, tds->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
 			lcid = (tds->collation[0] + ((int) tds->collation[1] << 8) + ((int) tds->collation[2] << 16)) & 0xffffflu;
-			tds7_srv_charset_changed(tds, lcid);
+			tds7_srv_charset_changed(tds, tds->collation[4], lcid);
 		}
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
