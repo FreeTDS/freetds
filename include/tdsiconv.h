@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.27 2003-12-12 10:32:11 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.28 2003-12-12 10:43:16 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -90,9 +90,12 @@ enum ICONV_CD_VALUE
 	 */
 };
 
-iconv_t iconv_open(const char *tocode, const char *fromcode);
-size_t iconv(iconv_t cd, const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
-int iconv_close(iconv_t cd);
+iconv_t tds_rep_iconv_open(const char *tocode, const char *fromcode);
+size_t tds_rep_iconv(iconv_t cd, const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
+int tds_rep_iconv_close(iconv_t cd);
+#define iconv_open tds_rep_iconv_open
+#define iconv tds_rep_iconv
+#define iconv_close tds_rep_iconv_close
 #endif /* !HAVE_ICONV */
 
 

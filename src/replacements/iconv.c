@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.8 2003-12-12 10:32:12 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.9 2003-12-12 10:43:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 
@@ -72,7 +72,7 @@ static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
  * Inputs are FreeTDS canonical names, no other. No alias list is consulted.  
  */
 iconv_t 
-iconv_open (const char* tocode, const char* fromcode)
+tds_rep_iconv_open (const char* tocode, const char* fromcode)
 {
 	int i;
 	unsigned int fromto;
@@ -134,13 +134,13 @@ iconv_open (const char* tocode, const char* fromcode)
 } 
 
 int 
-iconv_close (iconv_t cd)
+tds_rep_iconv_close (iconv_t cd)
 {
 	return 0;
 }
 
 size_t 
-iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
+tds_rep_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
 {
 	size_t copybytes;
 	const unsigned char *p;
