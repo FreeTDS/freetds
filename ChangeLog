@@ -1,3 +1,8 @@
+Thu Dec 05 16:52:34 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/FreeTDS.def win32/msvc6/FreeTDS.dsp:
+	* win32/msvc6/FreeTDS.dsw win32/msvc6/config.h:
+	- files for compile ODBC driver under msvc6 (work in progress)
+
 Wed Dec  4 16:46:53 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* TODO:
 	- Remove a completed item from TODO, add a note about a known bug.
