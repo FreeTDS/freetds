@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.1 2003-12-18 17:59:22 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.2 2003-12-18 20:05:43 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -239,7 +239,7 @@ main(int argc, char **argv)
 		        exit(1);
 		}
 	}
-#if 0
+#if 1
 	rows_sent = bcp_batch(dbproc);
 	if (rows_sent == -1) {
 		fprintf(stdout, "batch failed\n");

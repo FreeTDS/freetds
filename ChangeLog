@@ -1,3 +1,7 @@
+Thu Dec 18 14:36:33 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/bcp.c enabled call to bcp_batch()
+	* src/tds/token.c tds_client_msg() does not mark session dead.
+
 Thu Dec 18 11:20:53 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h corrected is_fixed_type
 	* src/dblib/bcp.c rewrote _bcp_get_term_var, better logging 
