@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.17 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.18 2002-07-05 03:52:46 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -76,15 +76,6 @@ static int is_monthname(char *);
 static int is_numeric_dateformat(char *);
 
 extern int g__numeric_bytes_per_prec[];
-
-/* 
-this needs to go... 
-it won't handle binary or text/image when they are added
-it's not thread safe
-it works for the moment though til i decide how i really want to handle it
-*/
-static TDS_CHAR tmp_str[4096];  
-
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -325,6 +316,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 DBANY any;
+TDS_CHAR tmp_str[4];
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -378,6 +370,7 @@ tds_convert_int1(int srctype,TDS_CHAR *src,
 {
 TDS_TINYINT buf;
 DBANY any;
+TDS_CHAR tmp_str[16];
 
 	memcpy(&buf, src, sizeof(buf));
 	switch(desttype) {
@@ -406,6 +399,7 @@ tds_convert_int2(int srctype,TDS_CHAR *src,
 {
 TDS_SMALLINT buf;
 DBANY any;
+TDS_CHAR tmp_str[16];
 	
 	memcpy(&buf,src,sizeof(buf));
 	switch(desttype) {
@@ -432,6 +426,7 @@ tds_convert_int4(int srctype,TDS_CHAR *src,
 {
 TDS_INT buf;
 DBANY any;
+TDS_CHAR tmp_str[16];
 	
 	memcpy(&buf,src,sizeof(buf));
 	switch(desttype) {

@@ -5,6 +5,7 @@ Thu Jul  4 08:29:22 EDT 2002	Brian Bruns <camber@ais.org>
 		long query) 
 	* src/tds/config.c: (from freddy77) fix buffer overflow
 	* src/server/login.c: (from chend) tds7 login reader with mods by me
+	* src/server/convert.c: (from freddy77) remove global temp buffer
 
 Mon Jul  1 18:06:23 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/tds/mem.c: add fields to tds_free_config and call tds_free_msg in
