@@ -973,15 +973,27 @@ The <type>dbm</type> library defines a function <function>dbopen</function> a na
 			<para>
 FreeTDS may be unable to connect to the server.  The error message that appears will be <emphasis>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</emphasis>.  To solve this, turn on <emphasis>SQL Server</emphasis> authentication:
 			<ItemizedList>
-				<listitem><para>Microsoft SQL Server 7
-					</para><para>
-Open the <emphasis>SQL Server Enterprise Manager</emphasis> navigate to the server, right mouse click and select <emphasis>Properties</emphasis>.  A properties window will appear.  Flip to the <emphasis>Security</emphasis> tab and change the <emphasis>Authentication</emphasis> field to <emphasis>SQL Server and Windows NT</emphasis>, apply the changes and try again.
+				<listitem><para>
+Open the <emphasis>SQL Server Enterprise Manager</emphasis>,
 					</para></listitem>
-				<listitem><para>Microsoft SQL Server 2000
-					</para><para>
-(to be determined).
+				<listitem><para>
+Select the server,
+					</para></listitem>
+				<listitem><para>
+Right mouse click and choose <emphasis>Properties</emphasis>.  A properties window will appear.
+					</para></listitem>
+				<listitem><para>
+Choose the <emphasis>Security</emphasis> tab.  The security properties will be displayed.
+					</para></listitem>
+				<listitem><para>
+Change the <emphasis>Authentication</emphasis> field to <emphasis>SQL Server and Windows</emphasis>,
+					</para></listitem>
+				<listitem><para>
+Apply the changes and try again.
 					</para></listitem>
 			</ItemizedList>
+			<para>
+These instructions apply to Microsoft SQL Server 7 and SQL Server 2000.
 			</para>
 			<para>
 Microsoft supports two security models in three permutations:

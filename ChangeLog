@@ -1,3 +1,8 @@
+Thu Dec  6 11:53:04 2001  James Cameron  <quozl@us.netrek.org>
+
+	* doc/userguide.sgml: complete instructions for Microsoft SQL
+	Server 2000.
+
 Wed Dec  5 15:45:49 2001  James Cameron  <quozl@us.netrek.org>
 
 	* doc/userguide.sgml: describe precise sequence to turn on SQL
