@@ -1,3 +1,6 @@
+Tue Jan 13 20:54:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: discard EED info only
+
 Mon Jan 12 18:05:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: fix problem of last patch
 

@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.63 2003-12-19 10:29:25 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.64 2004-01-13 19:55:31 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -278,14 +278,8 @@ struct _hstmt
 	char *query;
 	/* begin prepared query stuff */
 	char *prepared_query;
-	/** point inside prepared_query, position to continue processing (read) */
-/*	char *prepared_query_s; */
-	/** point inside query, position to continue processing (write) */
-/*	char *prepared_query_d; */
-/*	int prepared_query_need_bytes; */
-/*	int prepared_query_param_num; */
-	int prepared_query_is_func;
-	int prepared_query_is_rpc;
+	unsigned prepared_query_is_func:1;
+	unsigned prepared_query_is_rpc:1;
 	/* end prepared query stuff */
 
 	/** parameters saved */
@@ -327,7 +321,7 @@ SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
 SQLRETURN desc_free_records(TDS_DESC * desc);
 
-/* fix a buf in MingW headers */
+/* fix a bug in MingW headers */
 #ifdef __MINGW32__
 #if SQL_INTERVAL_YEAR == (100 + SQL_CODE_SECOND)
 
