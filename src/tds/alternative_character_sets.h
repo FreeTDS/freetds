@@ -27,7 +27,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 #if 0
-static char software_version[] = "$Id: alternative_character_sets.h,v 1.6 2003-05-14 09:15:06 freddy77 Exp $";
+static char software_version[] = "$Id: alternative_character_sets.h,v 1.7 2003-05-14 15:02:08 freddy77 Exp $";
 /*
 To regenerate this file, do:
 $ perl -x alternative_character_sets.h >/tmp/alternative_character_sets.h \
@@ -136,6 +136,7 @@ __END__
 	, {       "ISO-8859-1", "L1"                     }
 	, {       "ISO-8859-1", "LATIN1"                 }
 	, {       "ISO-8859-1", "CSISOLATIN1"            }
+	, {       "ISO-8859-1", "iso88591"               }
 	, {       "ISO-8859-1", "iso81"                  }
 	, {       "ISO-8859-2", "ISO-8859-2"             }
 	, {       "ISO-8859-2", "ISO-IR-101"             }
@@ -144,6 +145,7 @@ __END__
 	, {       "ISO-8859-2", "L2"                     }
 	, {       "ISO-8859-2", "LATIN2"                 }
 	, {       "ISO-8859-2", "CSISOLATIN2"            }
+	, {       "ISO-8859-2", "iso88592"               }
 	, {       "ISO-8859-2", "iso82"                  }
 	, {       "ISO-8859-3", "ISO-8859-3"             }
 	, {       "ISO-8859-3", "ISO-IR-109"             }
@@ -152,6 +154,7 @@ __END__
 	, {       "ISO-8859-3", "L3"                     }
 	, {       "ISO-8859-3", "LATIN3"                 }
 	, {       "ISO-8859-3", "CSISOLATIN3"            }
+	, {       "ISO-8859-3", "iso88593"               }
 	, {       "ISO-8859-3", "iso83"                  }
 	, {       "ISO-8859-4", "ISO-8859-4"             }
 	, {       "ISO-8859-4", "ISO-IR-110"             }
@@ -160,6 +163,7 @@ __END__
 	, {       "ISO-8859-4", "L4"                     }
 	, {       "ISO-8859-4", "LATIN4"                 }
 	, {       "ISO-8859-4", "CSISOLATIN4"            }
+	, {       "ISO-8859-4", "iso88594"               }
 	, {       "ISO-8859-4", "iso84"                  }
 	, {       "ISO-8859-5", "ISO-8859-5"             }
 	, {       "ISO-8859-5", "ISO8859-5"              }
@@ -168,6 +172,7 @@ __END__
 	, {       "ISO-8859-5", "ISO_8859-5"             }
 	, {       "ISO-8859-5", "ISO_8859-5:1988"        }
 	, {       "ISO-8859-5", "CSISOLATINCYRILLIC"     }
+	, {       "ISO-8859-5", "iso88595"               }
 	, {       "ISO-8859-5", "iso85"                  }
 	, {       "ISO-8859-6", "ISO-8859-6"             }
 	, {       "ISO-8859-6", "ISO8859-6"              }
@@ -178,6 +183,7 @@ __END__
 	, {       "ISO-8859-6", "ISO_8859-6"             }
 	, {       "ISO-8859-6", "ISO_8859-6:1987"        }
 	, {       "ISO-8859-6", "CSISOLATINARABIC"       }
+	, {       "ISO-8859-6", "iso88596"               }
 	, {       "ISO-8859-6", "iso86"                  }
 	, {       "ISO-8859-7", "ISO-8859-7"             }
 	, {       "ISO-8859-7", "ISO8859-7"              }
@@ -189,6 +195,7 @@ __END__
 	, {       "ISO-8859-7", "ISO_8859-7"             }
 	, {       "ISO-8859-7", "ISO_8859-7:1987"        }
 	, {       "ISO-8859-7", "CSISOLATINGREEK"        }
+	, {       "ISO-8859-7", "iso88597"               }
 	, {       "ISO-8859-7", "iso87"                  }
 	, {       "ISO-8859-8", "ISO-8859-8"             }
 	, {       "ISO-8859-8", "ISO8859-8"              }
@@ -197,6 +204,7 @@ __END__
 	, {       "ISO-8859-8", "ISO_8859-8"             }
 	, {       "ISO-8859-8", "ISO_8859-8:1988"        }
 	, {       "ISO-8859-8", "CSISOLATINHEBREW"       }
+	, {       "ISO-8859-8", "iso88598"               }
 	, {       "ISO-8859-8", "iso88"                  }
 	, {       "ISO-8859-9", "ISO-8859-9"             }
 	, {       "ISO-8859-9", "ISO8859-9"              }
@@ -206,6 +214,7 @@ __END__
 	, {       "ISO-8859-9", "L5"                     }
 	, {       "ISO-8859-9", "LATIN5"                 }
 	, {       "ISO-8859-9", "CSISOLATIN5"            }
+	, {       "ISO-8859-9", "iso88599"               }
 	, {       "ISO-8859-9", "iso89"                  }
 	, {      "ISO-8859-10", "ISO-8859-10"            }
 	, {      "ISO-8859-10", "ISO8859-10"             }
@@ -231,6 +240,7 @@ __END__
 	, {      "ISO-8859-15", "ISO-IR-203"             }
 	, {      "ISO-8859-15", "ISO_8859-15"            }
 	, {      "ISO-8859-15", "ISO_8859-15:1998"       }
+	, {      "ISO-8859-15", "iso885915"              }
 	, {      "ISO-8859-15", "iso815"                 }
 	, {      "ISO-8859-16", "ISO-8859-16"            }
 	, {      "ISO-8859-16", "ISO-IR-226"             }
@@ -309,6 +319,7 @@ __END__
 	, {           "ROMAN8", "HP-ROMAN8"              }
 	, {           "ROMAN8", "R8"                     }
 	, {           "ROMAN8", "CSHPROMAN8"             }
+	, {           "ROMAN8", "roman8"                 }
 	, {           "ROMAN8", "roma8"                  }
 	, {         "NEXTSTEP", "NEXTSTEP"               }
 	, {        "ARMSCII-8", "ARMSCII-8"              }
@@ -325,6 +336,7 @@ __END__
 	, {       "ISO-IR-166", "TIS620.2529-1"          }
 	, {       "ISO-IR-166", "TIS620.2533-0"          }
 	, {       "ISO-IR-166", "TIS620.2533-1"          }
+	, {       "ISO-IR-166", "tis620"                 }
 	, {       "ISO-IR-166", "thai8"                  }
 	, {            "CP874", "CP874"                  }
 	, {            "CP874", "WINDOWS-874"            }
@@ -424,6 +436,7 @@ __END__
 	, {           "EUC-KR", "EUC-KR"                 }
 	, {           "EUC-KR", "EUCKR"                  }
 	, {           "EUC-KR", "CSEUCKR"                }
+	, {           "EUC-KR", "eucKR"                  }
 	, {            "CP949", "CP949"                  }
 	, {            "CP949", "UHC"                    }
 	, {           "CP1361", "CP1361"                 }
