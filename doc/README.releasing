@@ -10,7 +10,7 @@ It's pretty simple, basically:
 5) ftp user guide to www.freetds.org/userguide/.  
    repeat 3-4 as necessary.
 6) Log into ibiblio.  Trim rc# from tarball.  Update web site.  
-7) Create rpm with 'rpm -ta freetds-0.61.tar.gz', post these to 
+7) Create rpm with 'rpmbuild -ta freetds-0.61.tar.gz', post these to 
    ibiblio as well.
    
 Announcements to:
