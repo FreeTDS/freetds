@@ -1,3 +1,9 @@
+Wed Jul 30 12:00:31 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* INSTALL.CVS pointer to source forge, update
+	* TODO moved completed tasks to "done" section
+	* doc/api_status.txt added dbmorecmds
+	* src/tds/unittests/convert.c minor assert fix 
+
 Wed Jul 30 14:36:36 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c: small update
 
