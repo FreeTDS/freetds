@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.7 2003-08-05 12:23:35 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.8 2003-08-15 07:10:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -58,19 +58,6 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	ReadError();
-
-	/* test raiseerror */
-	command = "RAISERROR('Error encountered!', 11, 1)";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS) != SQL_ERROR) {
-		printf("SQLExecDirect returned strange results\n");
-		return 1;
-	}
-	ReadError();
-	if (!strstr((char *) output, "Error encountered!")) {
-		printf("Message invalid\n");
-		return 1;
-	}
 
 	Disconnect();
 

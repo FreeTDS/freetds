@@ -1,3 +1,9 @@
+Fri Aug 15 09:09:i12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/mem.c:
+	- applyed Peter Deacon patch (transaction fix)
+	* src/odbc/unittests/print.c:
+	- revert commit, separated RAISEERROR test
+
 Thu Aug 14 23:00:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/tds/query.c:

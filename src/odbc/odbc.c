@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.213 2003-08-14 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.214 2003-08-15 07:10:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2240,7 +2240,7 @@ change_transaction(TDS_DBC * dbc, int state)
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
-	if (tds_submit_query(tds, state ? "commit" : "rollback", NULL) != TDS_SUCCEED) {
+	if (tds_submit_query(tds, state ? "IF @@TRANCOUNT > 0 commit" : "IF @@TRANCOUNT > 0 rollback", NULL) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK", NULL);
 		return SQL_ERROR;
 	}

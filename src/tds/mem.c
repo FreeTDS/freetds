@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.91 2003-08-06 19:32:46 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.92 2003-08-15 07:10:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -873,6 +873,21 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(16917, "24000");
 			SQLS_ENTRY(16946, "24000");
 			SQLS_ENTRY(16950, "24000");
+			SQLS_ENTRY(266, "25000");	/* Invalid transaction state */
+			SQLS_ENTRY(626, "25000");
+			SQLS_ENTRY(627, "25000");
+			SQLS_ENTRY(628, "25000");
+			SQLS_ENTRY(3902, "25000");
+			SQLS_ENTRY(3903, "25000");
+			SQLS_ENTRY(3916, "25000");
+			SQLS_ENTRY(3918, "25000");
+			SQLS_ENTRY(3919, "25000");
+			SQLS_ENTRY(3921, "25000");
+			SQLS_ENTRY(3922, "25000");
+			SQLS_ENTRY(3926, "25000");
+			SQLS_ENTRY(7969, "25000");
+			SQLS_ENTRY(8506, "25000");
+			SQLS_ENTRY(15626, "25000");
 			SQLS_ENTRY(18456, "28000");	/* Login failed? */
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(17571, "42000");
@@ -956,6 +971,15 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(6259, "24000");
 			SQLS_ENTRY(6260, "24000");
 			SQLS_ENTRY(562, "24000");
+			SQLS_ENTRY(277, "25000");	/* Invalid transaction state */
+			SQLS_ENTRY(611, "25000");
+			SQLS_ENTRY(627, "25000");
+			SQLS_ENTRY(628, "25000");
+			SQLS_ENTRY(641, "25000");
+			SQLS_ENTRY(642, "25000");
+			SQLS_ENTRY(1276, "25000");
+			SQLS_ENTRY(3902, "25000");
+			SQLS_ENTRY(3903, "25000");
 			SQLS_ENTRY(229, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(230, "42000");
 			SQLS_ENTRY(262, "42000");
