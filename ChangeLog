@@ -1,7 +1,7 @@
 Tue Jun 10 21:06:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am: fix distribution problem
 
-Mon Jun 10 09:21:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Tue Jun 10 09:21:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c src/tds/login.c:
 	- small improves to iconv stuff
 
