@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.6 2004-03-11 19:15:11 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.7 2004-03-12 12:42:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -107,7 +107,7 @@ TestRawODBCPreparedQuery(void)
 	SQLRETURN status;
 	SQLCHAR queryString[200];
 	SQLINTEGER lenOrInd = 0;
-	SQLINTEGER supplierId = 4;
+	SQLSMALLINT supplierId = 4;
 	int count;
 
 	AB_FUNCT(("TestRawODBCPreparedQuery (in)"));
@@ -198,7 +198,7 @@ TestRawODBCDirectQuery(void)
 	SQLRETURN status;
 	SQLCHAR queryString[200];
 	SQLINTEGER lenOrInd = 0;
-	SQLINTEGER supplierId = 1;
+	SQLSMALLINT supplierId = 1;
 	int count;
 
 	AB_FUNCT(("TestRawODBCDirectQuery (in)"));
