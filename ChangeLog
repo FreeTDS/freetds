@@ -1,3 +1,8 @@
+Fri Apr  1 15:33:17 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* autogen.sh use autoregen
+	* configure.in src/tds/Makefile.am 
+	- build num_limits.h only if numlimits.pl is present.
+
 Wed Mar 30 11:53:58 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/tds/Makefile.am reformatted
 
