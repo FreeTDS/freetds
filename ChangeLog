@@ -1,3 +1,8 @@
+Thu Jan  8 23:51:01 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in new candidate 0.62rc5
+	* src/tds/iconv.c ignore 'unknown' charset from server
+	* TODO reflect status for release.
+	
 Fri Jan 09 00:08:44 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/transaction.c:
 	- add a fix for old unixODBC
