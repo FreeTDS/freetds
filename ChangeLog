@@ -1,3 +1,8 @@
+Fri Apr  9 18:44:16 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/Makefile.am src/apps/bsqldb.c added 
+	* README document 0.62.3 changes
+	* configure.in Release 0.62.3
+
 Tue Apr 06 10:45:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: backported fix for RAISERROR
 
