@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.20 2003-03-10 14:20:13 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.21 2003-03-12 06:19:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -407,14 +407,19 @@ LOGINREC *login;
 		return (FALSE);
 
 	/* Install the user-supplied error-handling and message-handling
-	 * ** routines. They are defined at the bottom of this source file.
+	 * routines. They are defined at the bottom of this source file.
 	 */
 
 	dberrhandle(err_handler);
 	dbmsghandle(msg_handler);
 
-	/* Allocate and initialize the LOGINREC structure to be used
-	 * ** to open a connection to SQL Server.
+	/* If the interfaces file was specified explicitly, set it. */
+	if (pdata->interfacesfile != NULL)
+		dbsetifile(pdata->interfacesfile);
+
+	/* 
+	 * Allocate and initialize the LOGINREC structure to be used 
+	 * to open a connection to SQL Server.
 	 */
 
 	login = dblogin();
