@@ -31,12 +31,17 @@
 #include "isqlext.h"
 #endif
 
+#if defined(WIN32) && ODBCVER <= 0x0351
+typedef SQLUINTEGER SQLULEN;
+typedef SQLINTEGER SQLLEN;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.19 2003-01-08 10:32:18 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.20 2003-02-06 09:47:56 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
