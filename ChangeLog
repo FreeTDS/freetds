@@ -1,3 +1,7 @@
+Sun Apr 04 11:18:58 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- backported Bill Thompson patch on DONE handling
+
 Thu Apr 01 16:35:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/preperror.c:
 	* src/tds/token.c:

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.160 2003-12-26 18:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.160.2.1 2004-04-04 09:07:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1306,7 +1306,6 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
-		case TDS_DONEINPROC_RESULT:
 			if (!(done_flags & TDS_DONE_ERROR)) {
 				if (dbproc->dbresults_state == DBRESINIT) {
 					done = 1;
@@ -3862,8 +3861,6 @@ dbsqlok(DBPROCESS * dbproc)
 	int done = 0, done_flags;
 	TDS_INT result_type;
 
-	RETCODE rc = SUCCEED;
-
 	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlok() \n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
@@ -3900,7 +3897,7 @@ dbsqlok(DBPROCESS * dbproc)
 
 		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
 		case TDS_NO_MORE_RESULTS:
-			return rc;
+			return SUCCEED;
 			break;
 
 		case TDS_FAIL:
@@ -3918,7 +3915,6 @@ dbsqlok(DBPROCESS * dbproc)
 				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
-			case TDS_DONEINPROC_RESULT:
 				if (done_flags & TDS_DONE_ERROR) {
 					tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
 					return FAIL;
@@ -3927,12 +3923,14 @@ dbsqlok(DBPROCESS * dbproc)
 					return SUCCEED;
 				}
 				break;
+			default:
+				break;
 			}
 			break;
 		}
 	}
 
-	return rc;
+	return SUCCEED;
 }
 
 /**
