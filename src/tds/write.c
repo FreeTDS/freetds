@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.8 2002-07-04 14:43:32 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -122,14 +122,79 @@ int tds_init_write_buf(TDSSOCKET *tds)
 	tds->out_pos=8;
 	return 0;
 }
-int tds_write_packet(TDSSOCKET *tds,unsigned char final)
+
+static int 
+tds_check_socket_write(TDSSOCKET *tds)
 {
-static int retval;
-void (*oldsig)(int);
-fd_set fds;
+int retcode = 0;
 struct timeval selecttimeout;
 time_t start, now;
-int retcode = 0;
+fd_set fds;
+ 
+	/* Jeffs hack *** START OF NEW CODE */
+	start = time(NULL);
+	FD_ZERO (&fds);
+	selecttimeout.tv_sec = 0;
+	selecttimeout.tv_usec = 0;
+	now = time(NULL);
+ 
+	while ((retcode == 0) && ((now-start) < tds->timeout)) {
+		tds_msleep(1);
+		FD_SET (tds->s, &fds);
+		selecttimeout.tv_sec = 0;
+		selecttimeout.tv_usec = 0;
+		retcode = select (tds->s + 1, NULL, &fds, NULL, &selecttimeout);
+		if (retcode < 0 && errno == EINTR) {
+			retcode = 0;
+		}
+
+		now = time (NULL);
+	}
+	return retcode;
+	/* Jeffs hack *** END OF NEW CODE */
+}
+
+/* goodwrite function adapted from patch by freddy77 */
+static int
+goodwrite(TDSSOCKET *tds)
+{
+int left;
+char *p;
+int result = 1;
+int retval;
+
+	left = tds->out_pos;
+	p = tds->out_buf;
+  
+	while (left > 0) {
+		/* If there's a timeout, we need to sit and wait for socket 
+		/* writability */
+		if (tds->timeout) {
+			/* moved socket writability check to own function -- bsb */
+			tds_check_socket_write(tds);
+		}
+
+		retval = WRITE(tds->s,p,left);
+
+		if (retval <= 0) {
+			fprintf(stderr, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
+			tds_client_msg(tds, 10018, 9, 0, 0, "The connection was closed");
+			tds->in_pos=0;
+			tds->in_len=0;
+			close(tds->s);
+			tds->s=0;
+			result = 0;
+			break;
+		}
+		left -= retval;
+		p += retval;
+	}
+	return result;
+}
+int tds_write_packet(TDSSOCKET *tds,unsigned char final)
+{
+int retcode;
+void (*oldsig)(int);
 
 	tds->out_buf[0]=tds->out_flag;
 	tds->out_buf[1]=final;
@@ -139,54 +204,21 @@ int retcode = 0;
 		tds->out_buf[6]=0x01;
 	}
 
-        tdsdump_log(TDS_DBG_NETWORK, "Sending packet @ %L\n%D\n", tds->out_buf, tds->out_pos);
+	tdsdump_log(TDS_DBG_NETWORK, "Sending packet @ %L\n%D\n", tds->out_buf, tds->out_pos);
+
 	oldsig=signal (SIGPIPE, SIG_IGN);
+	/* FIXME remove all print from a library, log only if enable */
 	if (oldsig==SIG_ERR) {
 		fprintf(stderr, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
 	}
 
-     /* Jeffs hack *** NEW CODE */
-     /* If there's a timeout, we need to sit and wait for socket writability */
-	if (tds->timeout) {
-		start = time(NULL);
-
-		FD_ZERO (&fds);
-    
-		selecttimeout.tv_sec = 0;
-		selecttimeout.tv_usec = 0;
-
-		now = time(NULL);
-
-		while ((retcode == 0) && ((now-start) < tds->timeout)) {
-			tds_msleep(1);
-			FD_SET (tds->s, &fds);
-			selecttimeout.tv_sec = 0;
-			selecttimeout.tv_usec = 0;
-			retcode = select (tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-			if (retcode < 0 && errno == EINTR) {
-				retcode = 0;
-			}
-
-			now = time (NULL);
-          }
-	}
-/* Jeffs hack *** END OF NEW CODE */
-	retval=write(tds->s,tds->out_buf,tds->out_pos);
+	retcode=goodwrite(tds);
 
 	if (signal(SIGPIPE, oldsig)==SIG_ERR) {
  		fprintf(stderr, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
- 	if (retval < 0) {
-		fprintf(stderr, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
-		tds_client_msg(tds, 10018, 9, 0, 0, "The connection was closed");
-		tds->in_pos=0;
-		tds->in_len=0;
-		close(tds->s);
-		tds->s=0;
-		return 0;
-	}
 /* GW added in check for write() returning <0 and SIGPIPE checking */
-	return 1;
+	return retcode;
 }
 int tds_flush_packet(TDSSOCKET *tds)
 {
