@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.95 2004-02-09 16:01:33 freddy77 Exp $
+To Do List	$Id: TODO,v 1.96 2004-02-10 16:52:54 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -78,6 +78,7 @@ For future versions (in priority order within library):
 . read on partial packet, do not wait entire one
 . net.c file with all network stuff
 . detect if realloc/free accepts NULL pointers
+. support for password longer than 30 characters under Sybase
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
