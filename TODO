@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.82 2003-11-28 16:54:42 freddy77 Exp $
+To Do List	$Id: TODO,v 1.83 2003-12-04 22:21:22 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -129,6 +129,7 @@ For future versions (in priority order within library):
     changing only SQL_DESC_TYPE (with SQLSetDescField)
 . constants parameters in call syntax (ie {?=func(10,?)} )
 . test and fix: select with compute
+. test and fix: hidden fields (FOR BROWSE select)
 
   pool
 . get connection pooling working with all protocol versions
