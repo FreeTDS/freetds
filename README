@@ -1,3 +1,13 @@
+README for FreeTDS 0.62.1
+Saturday, 14 January 2004
+
+The 0.62 release included one late change that had not been thoroughly tested. 
+This 0.62.1 release corrects that error.  A patch to convert 0.62 to 0.62.1 can
+be found on ftp.ibiblio.org.  
+
+The regular README follows.  
+
+
 README for FreeTDS 0.62  
 Saturday, 10 January 2004
 
