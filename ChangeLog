@@ -1,3 +1,9 @@
+Fri Jan  7 11:30:04 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* configure.in 0.63RC8
+	* src/dblib/dblib.c src/dblib/rpc.c 
+	- return parameters have nonnull type but may be null.
+	* src/tds/convert.c handle SYBVARBINARY
+
 Thu Jan  6 22:18:38 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in src/dblib/unittests/rpc.c
 	- 0.63RC7: correct rpc unittest
