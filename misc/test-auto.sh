@@ -179,7 +179,7 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 		ERR1=":-)"
 		WARN1=":-)"
 		LOG1="<a href=\"test$NUM.html\">log</a>"
-		if test `cat "$CUR.test_output" | sed 's,^+2:,2:,g' | grep '^+\?2:' | wc -l` != 0; then
+		if test `cat "$CUR.test_output" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
 			WARN1=":("
 		fi
 		if test $RES1 != 0; then
@@ -199,7 +199,7 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 		LEAK=":-)"
 		VGERR=":-)"
 		LOG2="<a href=\"vgtest$NUM.html\">log</a>"
-		if test `cat "$CUR.vg.test_output" | sed 's,^+2:,2:,g' | grep '^+\?2:' | wc -l` != 0; then
+		if test `cat "$CUR.vg.test_output" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
 			WARN2=":("
 		fi
 		if test `cat "$CUR.vg.test_output" | grep ':==.*no leaks are possible' | wc -l` == 0; then

@@ -22,6 +22,7 @@ fi
 # log test executed to retrieve lately by main script
 FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
 echo "FULL-TEST:$FILE:$RES1:$RES2:FULL-TEST"
+echo Tested $FILE 1>&2
 
 # return always succes, test verified later
 exit 0
