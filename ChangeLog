@@ -1,3 +1,6 @@
+Mon Jan 26 10:40:29 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/write.c handle large UTF-8 inputs to tds_put_string()
+
 Mon Jan 19 10:33:32 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* vms/configure.com:
 	- patch from Craig A. Berry for iconv detect problem
