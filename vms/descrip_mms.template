@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.6.2.1 2004-12-02 06:20:50 jklowden Exp $
+# $Id: descrip_mms.template,v 1.6.2.2 2005-02-03 09:39:14 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -235,7 +235,13 @@ $(TDSODBCOBJS) : $(CONFIGS)
 
 [.src.tds]convert$(OBJ) : [.src.tds]convert.c
 
+[.src.tds]data$(OBJ) : [.src.tds]data.c
+
+[.src.dblib]bcp$(OBJ) : [.src.dblib]bcp.c
+
 [.src.dblib]rpc$(OBJ) : [.src.dblib]rpc.c
+
+[.src.odbc]error$(OBJ) : [.src.odbc]error.c
 
 [.src.tds]login$(OBJ) : [.src.tds]login.c
 
