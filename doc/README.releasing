@@ -1,0 +1,14 @@
+It's pretty simple, basically:
+
+1) change the version number.
+   places I know of: configure.in, include/tdsver.h, and UG
+2) put out a -rcx (x=1; x!=right; x++)
+   to do this I just do a 'make dist' and mv the tar.gz file to the right 
+   name.
+3) ftp to ibiblio and post message to list, update web pages.  repeat 2-3 
+   as necessary.
+4) tag cvs: 'cvs tag R0_60' from the top level directory
+5) check out tagged version, do a 'make dist', release tarball
+6) edit freetds.spec file for version and any changes since previous 
+   build and create rpm with 'rpm -ba freetds.spec' (i think),
+   post these to ibiblio as well.
