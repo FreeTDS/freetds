@@ -1,3 +1,8 @@
+Tue Apr 29 12:03:58 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/binary_test.c(added):
+	- add test for binary data from Gerhard Esterhuizen
+
 Tue Apr 29 10:40:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c src/tds/unittests/flags.c:
 	- update flags code and check for TDS7+
