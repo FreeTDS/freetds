@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.58 2002-12-28 19:50:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.59 2003-02-27 11:23:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -272,7 +272,7 @@ int null_sz;
 	memset(info,'\0',sizeof(TDSCOMPUTEINFO));
 
 	TEST_MALLOCN(info->columns, TDSCOLINFO*, num_cols);
-	memset(info,'\0',sizeof(TDSCOLINFO*) * num_cols);
+	memset(info->columns,'\0',sizeof(TDSCOLINFO*) * num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;

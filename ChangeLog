@@ -1,3 +1,7 @@
+Thu Feb 27 20:50:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: small change
+	* src/tds/mem.c: fix wrong memory clean causing core
+
 Thu Feb 27 11:54:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: added other TODO
 
