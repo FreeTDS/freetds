@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.133 2005-02-02 19:09:21 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.134 2005-02-04 14:04:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -318,6 +318,11 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	int len;
 	char blockstr[16];
+
+	if (strchr(tds_dstr_cstr(&connection->user_name), '\\') != NULL) {
+		tdsdump_log(TDS_DBG_ERROR, "NT login not support using TDS 4.x or 5.0\n");
+		return TDS_FAIL;
+	}
 
 	if (IS_TDS42(tds)) {
 		memcpy(protocol_version, "\004\002\000\000", 4);

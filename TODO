@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.130 2005-01-30 10:09:38 freddy77 Exp $
+To Do List	$Id: TODO,v 1.131 2005-02-04 14:04:03 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -22,6 +22,12 @@ Working in progress:
 . logging bit flags to select levels and info types with defaults
 . support for named instances under mssql2k
   . utility to get port
+. cancellation
+  . ctlib seems to hang reading row while in IDLE state
+. fix timeout problem reported in ML
+. support encrypted connections
+  . mssql
+  . sybase
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
@@ -40,7 +46,6 @@ Postponed to 0.64 version
 
 For future versions (in priority order within library):
   All:
-. fix timeout problem reported in ML
 . move error message macro/prototype to tds.h.in; use in dblib.c.
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
@@ -68,7 +73,6 @@ For future versions (in priority order within library):
   from bradleyb@u.washington.edu re: "Domain Login Support, connecting to MSSQL issue"
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
   (see http://linux-cifs.samba.org/ for LGPL implementation)
-. support encrypted connections
 . read on partial packet, do not wait entire one
 . detect if realloc/free accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
