@@ -198,6 +198,7 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 		fprintf(stderr, "blk_bind() failed\n");
 		return CS_FAIL;
 	}
+	return CS_SUCCEED;
 }
 
 
@@ -242,7 +243,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = blk_init(blkdesc, CS_BLK_IN, table_name, CS_NULLTERM );
+	ret = blk_init(blkdesc, CS_BLK_IN, (char *) table_name, CS_NULLTERM );
 
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "blk_init() failed\n");

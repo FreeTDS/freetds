@@ -29,7 +29,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.12 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.13 2004-07-22 13:37:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -72,7 +72,7 @@ set_malloc_options(void)
 }
 
 int
-read_login_info(int argc, const char *argv[])
+read_login_info(int argc, char **argv)
 {
 	extern char *optarg;
 	extern int optind;

@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.4 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.5 2004-07-22 13:37:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -175,7 +175,7 @@ bind(DBPROCESS * dbproc)
 }
 
 int
-main(int argc, const char *argv[])
+main(int argc, char **argv)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

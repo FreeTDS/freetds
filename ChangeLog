@@ -1,3 +1,10 @@
+Thu Jul 22 15:37:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/blk_in.c src/ctlib/unittests/cancel.c:
+	* src/dblib/unittests/bcp.c src/dblib/unittests/common.c:
+	* src/dblib/unittests/common.h src/dblib/unittests/t0013.c:
+	* src/dblib/unittests/t0014.c:
+	- remove warning compiling
+
 Thu Jul 22 15:08:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: small test fix
 
