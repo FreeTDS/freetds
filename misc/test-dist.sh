@@ -8,6 +8,7 @@ DIR=`dirname $0`
 cd "$DIR/.."
 
 # remove old distributions
+touch freetds-dummy
 find freetds-* -type d ! -perm -200 -exec chmod u+w {} ';'
 rm -rf freetds-*
 

@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.23 2003-12-24 09:01:56 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.24 2003-12-29 22:37:31 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -396,3 +396,40 @@ else
 fi
 ])
 
+dnl This macro came from internet, appear in lftp, rsync and others..
+AC_DEFUN([TYPE_SOCKLEN_T],
+[
+  AC_CHECK_TYPE([socklen_t], ,[
+    AC_MSG_CHECKING([for socklen_t equivalent])
+    AC_CACHE_VAL([xml_cv_socklen_t_equiv],
+    [
+      # Systems have either "struct sockaddr *" or
+      # "void *" as the second argument to getpeername
+      xml_cv_socklen_t_equiv=
+      for arg2 in "struct sockaddr" void; do
+        for t in int size_t unsigned long "unsigned long"; do
+          AC_TRY_COMPILE([
+            #include <sys/types.h>
+            #include <sys/socket.h>
+
+            int getpeername (int, $arg2 *, $t *);
+          ],[
+            $t len;
+            getpeername(0,0,&len);
+          ],[
+            xml_cv_socklen_t_equiv="$t"
+            break
+          ])
+        done
+      done
+
+      if test "x$xml_cv_socklen_t_equiv" = x; then
+        AC_MSG_ERROR([Cannot find a type to use in place of socklen_t])
+      fi
+    ])
+    AC_MSG_RESULT($xml_cv_socklen_t_equiv)
+    AC_DEFINE_UNQUOTED(socklen_t, $xml_cv_socklen_t_equiv,
+                      [type to use in place of socklen_t if not defined])],
+    [#include <sys/types.h>
+#include <sys/socket.h>])
+])

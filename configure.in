@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.119 2003-12-24 09:01:56 freddy77 Exp $
+dnl $Id: configure.in,v 1.120 2003-12-29 22:37:31 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -186,6 +186,8 @@ AC_EGREP_CPP(yes,
     AC_DEFINE(BSD_COMP, 1, [Define to 1 if you need BSD_COMP defined to get FIONBIO defined.]) AC_MSG_RESULT(need -DBSD_COMP),
     AC_MSG_RESULT(no))
     ])
+
+TYPE_SOCKLEN_T
 
 dnl ------------------------------------------------------------
 dnl Checks for compiler characteristics.

@@ -35,6 +35,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
@@ -43,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.16 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.17 2003-12-29 22:37:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -68,7 +72,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 {
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET fd;
-	size_t len;
+	socklen_t len;
 
 	/* FIX ME -- the accepted connections just grow until we run out */
 	puser = (TDS_POOL_USER *) & pool->users[pool->max_users];

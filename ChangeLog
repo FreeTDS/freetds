@@ -1,3 +1,8 @@
+Mon Dec 29 23:37:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in src/pool/user.c src/server/login.c:
+	- fix problem with Linux Amd64 problem
+	* misc/test-dist.sh: fix error if freetds-* is not present
+
 Mon Dec 29 22:44:33 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/cs_config.c src/odbc/unittests/transaction.c:
 	- remove warnings compiling unittests
