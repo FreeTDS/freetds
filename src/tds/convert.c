@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.77 2002-09-22 08:01:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.78 2002-09-23 02:47:32 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1007,7 +1007,7 @@ int i;
     memcpy(&mymoney, src+4, 4);
 #endif
 
-#	if HAVE_ATOLL
+#	if (SIZEOF_LONG_LONG > 0)
     tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
 #	else
     tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
@@ -1020,7 +1020,7 @@ int i;
 #ifdef UseBillsMoney
 			if (mymoney <= -10000 || mymoney >= 10000) {
 
-#		if HAVE_ATOLL
+#		if (SIZEOF_LONG_LONG > 0)
             sprintf(rawlong,"%lld", mymoney);
 #		else
             sprintf(rawlong,"%ld", mymoney);
