@@ -4,7 +4,7 @@ project.  There are likely to be portions of code that do not follow this
 style, but ideally all would.
 
 We are of course not trying to dictate how you code, but patches or submissions 
-to CVS should be converted to this style prior to commiting.  The indent program
+to CVS should be converted to this style prior to committing.  The indent program
 found on most Unix systems will do this nicely.
 
 Code Blocks
@@ -40,7 +40,7 @@ Variables in FreeTDS should be all lower case with words separated by '_'
 (underscore).  Furthermore, brevity is valued but not at the expense of clarity.
 For instance, the variable 'minor_ver' is clear enough in context and doesn't 
 need to be labeled 'minor_version'.  The counter example to this is that the 
-variable 'can' is rather ambigious and be expanded to 'cancelled' for clarity.
+variable 'can' is rather ambiguous and be expanded to 'canceled' for clarity.
 
 The sole exception to this is arguments to the ODBC functions.  ODBC because of 
 its lineage uses hungarian notation for the names of the function arguments.

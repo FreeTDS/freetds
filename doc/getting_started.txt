@@ -55,7 +55,7 @@ reading the results back from the server and doing something with them.  The
 logic in these routines should not be hard to follow.  The return stream is 
 broken up into a series of 'messages' (not to be confused with actual messages
 returned from the server). Each one starts with a marker (marker is my word for
-it, not Sybases or anyone elses).  include/tds.h defines all the markers and in
+it, not Sybase's or anyone else's).  include/tds.h defines all the markers and in
 general there will be one tds_process_*() function for each marker unless it is
 not worth looking at, in which case tds_process_default_tokens() will read past
 it. 

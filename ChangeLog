@@ -1,3 +1,8 @@
+Thu Sep  5 22:42:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/CodingStyle doc/faq.html doc/getting_started.txt:
+	* doc/userguide.sgml:
+	- fix some more spelling errors.
+
 Thu Sep  5  15:46:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: make --sysconfdir option work and make distcheck work
 

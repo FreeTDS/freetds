@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-05 04:58:41 $</date>
-		<releaseinfo>$Revision: 1.27 $</releaseinfo>
+		<date>$Date: 2002-09-06 02:45:43 $</date>
+		<releaseinfo>$Revision: 1.28 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -68,7 +68,7 @@ At about the same time, Sybase introduced a more powerful <quote>successor</quot
 <systemitem class="library">ct-lib</systemitem>, <systemitem class="library">db-lib</systemitem>, and <systemitem class="library">ODBC</systemitem> are <acronym>API</>s that -- however different their programming style may be -- all use <productname>netlib</productname> to communicate to the server.  The language they use is <acronym>TDS</>.  
 			</para>
 			<para>
-The <acronym>TDS</> protocol comes in serveral flavors, most of which have never
+The <acronym>TDS</> protocol comes in several flavors, most of which have never
 been openly documented.  If anything, it's probably considered to be something like a trade secret, or at least proprietary technology.  The exception is TDS 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.
 			</para>
 			<para>
@@ -539,7 +539,7 @@ In addition, <productname>FreeTDS</productname> will look for a file <filename>.
 The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETDSCONF</envar>.  See <link linkend="envvar">Environment Variables</link>, below.  
 			</para>
 			<para>
-<productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the systemwide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly
+<productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly
 configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
            		</para>
 		</sect2>
@@ -2280,14 +2280,14 @@ In the example above, the <literal>hostname</literal> was entered as an IP addre
 	</Appendix>
 	<Appendix><title>About Unicode, UCS-2, and UTF-8</title>
 			<para>
-For better or worse, <productname>FreeTDS</productname> brings the otherwise innocent programmer into contact with the arcane business of how data are stored and transported.  <productname>FreeTDS</productname> is a data communcations library that of course connects to databases, which are charged with storing information in a way that is neutral to all architectures and languages.  On the surface, that might not seem very complex, even worth discussing.  Under the surface, things are not so simple.  
+For better or worse, <productname>FreeTDS</productname> brings the otherwise innocent programmer into contact with the arcane business of how data are stored and transported.  <productname>FreeTDS</productname> is a data communications library that of course connects to databases, which are charged with storing information in a way that is neutral to all architectures and languages.  On the surface, that might not seem very complex, even worth discussing.  Under the surface, things are not so simple.  
 			</para>
 		<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 			<para>
 The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages, all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
 			</para>
 			<para>
-Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinquishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
+Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
 			</para>
 			<para>
 The important thing to understand is that the designation of 65 for <literal>A</literal> and so on is a choice.  It's an <emphasis>encoding standard</emphasis>, made necessary by the old simple fact that computers store numbers, not letters.  <acronym>ASCII</> is so ubiquitous these days that it's hard sometimes to remember there was a time when it was but one of a set of competing encoding standards.  Others you probably have heard of include <acronym>EBCDIC</> and the Baudot systems, but they are by no means the only historical alternatives, nor the only modern ones.  
@@ -2337,10 +2337,10 @@ The Unicode folks knew about Endianism, of course, and had to address it.  A Uni
 		</section>
 		<section id="UnicodeUtf"><title>Unicode Transformation Format: UTF-8</title>
 			<para>
-The presence of nulls embedded in character data and of byte order issues make straight Unicode i.e., UCS-2 or UCS-4 hard to work with in a heterogenenous environment.  Too many opportunities arise for the data to be truncated or misinterpreted, and too many systems would fail even to transmit such data.  In short, when 16-bit data are thrust into a multiarchitecture 8-bit world, it frequently bodes ill for the data.  
+The presence of nulls embedded in character data and of byte order issues make straight Unicode i.e., UCS-2 or UCS-4 hard to work with in a heterogeneous environment.  Too many opportunities arise for the data to be truncated or misinterpreted, and too many systems would fail even to transmit such data.  In short, when 16-bit data are thrust into a multi-architecture 8-bit world, it frequently bodes ill for the data.  
 			</para>
 			<para>
-To answer that problem, to make Unicode transmissible and unambiguous to most machines, several <quote>transformation formats</quote> were adopted.  Their goals were generally similar: to create a generally recognized format that would unambiguously and safely convey Unicode information between machines and across the internet.  To do that, they sought to remove nulls and endianism from the data stream.  The most popular one -- practically the only one used -- is known as UTF-8.  
+To answer that problem, to make Unicode transmissible and unambiguous to most machines, several <quote>transformation formats</quote> were adopted.  Their goals were generally similar: to create a generally recognized format that would unambiguously and safely convey Unicode information between machines and across the Internet.  To do that, they sought to remove nulls and endianism from the data stream.  The most popular one -- practically the only one used -- is known as UTF-8.  
 			</para>
 			<para>
 UTF-8 found wide acceptance for many reasons.  UTF-8 represents any Unicode character as a combination of 1-4 bytes.  The number of bytes required depends on the integer value of the Unicode character, and only one byte is used to represent the old <acronym>ASCII</> range (0-127).  UTF-8 does not use zero to represent any part of any character (except for the <acronym>ASCII</> NUL).  In consequence, UTF-8 is efficient with respect to space, has no endianism issues, and embeds no nulls.  UTF-8 strings can be treated as plain old <acronym>ASCII</> strings.  These properties make UTF-8 data relatively easy for systems accustomed to processing <acronym>ASCII</> data.  
@@ -2371,7 +2371,7 @@ While UTF-8 solves many technical problems, it doesn't magically transform every
 Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most application linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library; one is available (and frequently employed) from GNU.  The <quote>to</quote> format for <productname>iconv</productname> can be set in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.  
 			</para>
 			<para>
-At some future time, <productname>FreeTDS</productname> aims to support Unicode and other multibyte character sets.  It does not do so at the current time.  
+At some future time, <productname>FreeTDS</productname> aims to support Unicode and other multi-byte character sets.  It does not do so at the current time.  
 			</para>
 			<para>
 Sybase servers, by the way, transmit their data in the character set requested by the client at login time.  The available character sets is fairly small, but includes UTF-8.  While  <productname>FreeTDS</productname> <emphasis>could</emphasis> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making <productname>FreeTDS</productname>'s capability in this regard largely redundant and irrelevant.  
