@@ -59,15 +59,15 @@ rm -rf $RPM_BUILD_ROOT
 %files 
 %defattr(-,root,root) 
 %doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README TODO 
-%{_libdir}/libct.a 
-%{_libdir}/libct.so.0.0.0 
-%{_libdir}/libsybdb.a 
-%{_libdir}/libsybdb.so.1.0.0 
-%{_libdir}/libtds.a 
-%{_libdir}/libtds.so.0.0.0 
-%{_libdir}/libtdsodbc.a 
-%{_libdir}/libtdsodbc.so.0.0.0 
-%config %{_sysconfdir}/freetds.conf 
+%{_libdir}/libct.a
+%{_libdir}/libct.so*
+%{_libdir}/libsybdb.a
+%{_libdir}/libsybdb.so*
+%{_libdir}/libtds.a
+%{_libdir}/libtds.so*
+%{_libdir}/libtdsodbc.a
+%{_libdir}/libtdsodbc.so*
+%config %{_sysconfdir}/freetds.conf
  
 %files devel 
 %defattr (-,root,root) 
