@@ -1,6 +1,10 @@
 SUBDIRS		=	include src
 
-EXTRA_DIST	=	interfaces freetds.conf samples/debug.c PWD BUGS
+EXTRA_DIST	=	interfaces freetds.conf samples/debug.c PWD BUGS \
+				samples/README samples/dyntest.c samples/odbc.ini \
+				samples/odbctest.php samples/odbctest.pl \
+				samples/test.php samples/test.pl
+
 
 DEFDIR		=	$(prefix)
 ETC			=	$(sysconfdir)
