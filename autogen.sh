@@ -81,7 +81,7 @@ if test -z "$*"; then
 fi
 
 case $CC in
-xlc )
+ *)
   am_opt=--include-deps;;
 esac
 
