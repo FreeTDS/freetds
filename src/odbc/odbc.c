@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.318 2004-04-19 12:19:09 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.319 2004-04-21 09:11:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1653,6 +1653,7 @@ odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	return 1;
 }
 
+/* TODO optimize, change only if some data change (set same value should not set this flag) */
 #define DESC_SET_NEED_REPREPARE \
 	do {\
 		if (desc->type == DESC_IPD) {\
@@ -2225,6 +2226,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
+	/* TODO set error */
 	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS)
 		return SQL_ERROR;
 
@@ -2564,6 +2566,7 @@ _SQLFetch(TDS_STMT * stmt)
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
 
+	/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
 	switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
 	case TDS_NO_MORE_ROWS:
 		stmt->row_count = tds->rows_affected;

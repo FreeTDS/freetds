@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.106 2004-04-17 10:06:14 freddy77 Exp $
+To Do List	$Id: TODO,v 1.107 2004-04-21 09:11:13 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -41,7 +41,7 @@ Postponed to 0.63 version
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
 . FAQ
-  - multiple statemets question
+  - multiple statements question
   - PHP workaround with multiple connections (see ML)
 
 Started in 0.63
@@ -61,9 +61,6 @@ Started in 0.63
 - ODBC data test fails for numeric, convert.c do not convert 
   NUMERIC ->NUMERIC changing precision/scale
   * this part never worked, commented
-- SQLFetch do not return error if error on rows. Fixed ? (2004-4-17)
-- see problems raised by sqlserver tests in DBD::ODBC (SQLPrepare)
-  (change parameter binding after execute)
 - fix putdata test
 
 For future versions (in priority order within library):
@@ -165,6 +162,8 @@ Done in 0.63
 . ODBC: use tds_dstr* functions to store descriptor infos
 . header privatizations (removing tds.h dependency)  this is quite 
   important for future binary compatibility.
+. ODBC: SQLFetch returns error correctly
+. ODBC: fix problem rebinding parameters
 
 Done in 0.62
 . cursor support in ct-lib
