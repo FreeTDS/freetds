@@ -35,6 +35,7 @@ AC_CHECK_HEADERS(malloc.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(netinet/in.h)
 AC_HAVE_INADDR_NONE
 
 dnl ------------------------------------------------------------
