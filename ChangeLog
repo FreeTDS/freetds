@@ -1,3 +1,6 @@
+Thu Dec  9 00:03:28 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* autogen.sh add ident tag
+	
 Wed Dec 08 12:00:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4:
 	- do not put library dir in LDFLAGS
