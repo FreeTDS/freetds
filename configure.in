@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.101 2003-07-19 23:38:44 jklowden Exp $
+dnl $Id: configure.in,v 1.102 2003-09-22 20:12:49 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -201,15 +201,15 @@ AC_MSG_RESULT(checking compile-time options)
 AC_ARG_WITH(tdsver,
 [  --with-tdsver=VERSION   TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]])
 if test "$with_tdsver" = "4.2"; then
-	CPPFLAGS="$CPPFLAGS -DTDS42"
+	AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default])
 elif test "$with_tdsver" = "4.6"; then
-	CPPFLAGS="$CPPFLAGS -DTDS46"
+	AC_DEFINE(TDS46, 1, [Define to use TDS 4.6 by default])
 elif test "$with_tdsver" = "7.0"; then
-	CPPFLAGS="$CPPFLAGS -DTDS70"
+	AC_DEFINE(TDS70, 1, [Define to use TDS 7.0 by default])
 elif test "$with_tdsver" = "8.0"; then
-	CPPFLAGS="$CPPFLAGS -DTDS80"
+	AC_DEFINE(TDS80, 1, [Define to use TDS 8.0 by default])
 else
-	CPPFLAGS="$CPPFLAGS -DTDS50"
+	AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default])
 fi
 
 AC_ARG_WITH(iodbc,

@@ -1,12 +1,12 @@
 # Project: FreeTDS
-# Makefile created by Dev-C++ 4.9.8.0
+# Makefile created by Dev-C++ 4.9.8.2
 
 CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = 
-OBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o $(RES)
-LINKOBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o $(RES)
+OBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o $(RES)
+LINKOBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_sql2string.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib" -lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -s --def ../FreeTds.def -Wl,--enable-stdcall-fixup 
 INCS =  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
 CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
@@ -130,3 +130,9 @@ $(BIN): $(LINKOBJ)
 
 ../../src/tds/data.o: ../../src/tds/data.c
 	$(CC) -c ../../src/tds/data.c -o ../../src/tds/data.o $(CFLAGS)
+
+../../src/odbc/descriptor.o: ../../src/odbc/descriptor.c
+	$(CC) -c ../../src/odbc/descriptor.c -o ../../src/odbc/descriptor.o $(CFLAGS)
+
+../../src/odbc/odbc_checks.o: ../../src/odbc/odbc_checks.c
+	$(CC) -c ../../src/odbc/odbc_checks.c -o ../../src/odbc/odbc_checks.o $(CFLAGS)

@@ -248,7 +248,7 @@ SOURCE=..\..\src\replacements\asprintf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\replacements\iconv_r.c
+SOURCE=.\iconv_replacement.c
 # End Source File
 # Begin Source File
 

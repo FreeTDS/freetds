@@ -1,1 +1,1 @@
-EXTRA_DIST	= FreeTDS.dsp FreeTDS.dsw
+EXTRA_DIST	= FreeTDS.dsp FreeTDS.dsw iconv_replacement.c

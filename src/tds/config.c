@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.79 2003-08-06 19:32:46 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.80 2003-09-22 20:12:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1016,20 +1016,22 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
-#		ifdef TDS42
-			, "4.2"
-#		endif
 #		ifdef TDS46
 			, "4.6"
-#		endif
+#		else
 #		ifdef TDS50
 			, "5.0"
-#		endif
+#		else
 #		ifdef TDS70
 			, "7.0"
-#		endif
+#		else
 #		ifdef TDS80
 			, "8.0"
+#		else
+			, "4.2"
+#		endif
+#		endif
+#		endif
 #		endif
 #		ifdef IODBC
 			, 1

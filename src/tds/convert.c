@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.123 2003-05-20 15:31:00 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.124 2003-09-22 20:12:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2877,7 +2877,7 @@ tds_willconvert(int srctype, int desttype)
 		int yn;
 	}
 	ANSWER;
-	const static ANSWER answers[] = {
+	static const ANSWER answers[] = {
 #	include "tds_willconvert.h"
 	};
 	int i;

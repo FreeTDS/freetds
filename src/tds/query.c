@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.102 2003-09-21 18:37:43 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.103 2003-09-22 20:12:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -611,13 +611,13 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const c
 				tds_put_string(tds, buf, -1);
 			}
 		} else {
-			tds_put_int(tds, -1);
+			tds_put_int(tds, 0);
 			if (IS_TDS80(tds))
 				tds_put_n(tds, tds->collation, 5);
 			tds_put_int(tds, -1);
 		}
 	} else {
-		tds_put_int(tds, param_length ? param_length : -1);
+		tds_put_int(tds, param_length);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
 		tds_put_int(tds, param_length ? param_length : -1);

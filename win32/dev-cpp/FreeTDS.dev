@@ -9,7 +9,7 @@ CppCompiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOUR
 Includes=..;../../include
 Linker=-lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32_@@_-s --def ../FreeTds.def_@@_-Wl,--enable-stdcall-fixup_@@_
 Libs=
-UnitCount=56
+UnitCount=59
 Folders="Header Files",LibTDS,Replacements,"Resource Files","Source Files"
 ObjFiles=
 PrivateResource=
@@ -25,7 +25,9 @@ CommandLine=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=000000000101000000
+CompilerSettings=0000000001010000000
+UseCustomMakefile=0
+CustomMakefile=
 
 [Unit1]
 FileName=..\..\src\odbc\connectparams.c
@@ -603,4 +605,35 @@ LegalTrademarks=
 OriginalFilename=FreeTDS.exe
 ProductName=FreeTDS
 ProductVersion=0.1
+AutoIncBuildNr=0
+
+[Unit57]
+FileName=..\..\src\odbc\descriptor.c
+CompileCpp=0
+Folder=Source Files
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit58]
+FileName=..\..\src\odbc\odbc_checks.c
+CompileCpp=0
+Folder=Source Files
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit59]
+FileName=..\..\src\odbc\odbc_checks.h
+CompileCpp=1
+Folder=Header Files
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
 

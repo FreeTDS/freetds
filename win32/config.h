@@ -228,3 +228,6 @@
 #ifdef _MSC_VER
 #define HAVE_ODBCSS_H 1
 #endif
+
+#define TDS42 1
+

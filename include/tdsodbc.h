@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.54 2003-08-31 14:22:19 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.55 2003-09-22 20:12:50 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -305,6 +305,41 @@ SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
 SQLRETURN desc_free_records(TDS_DESC * desc);
+
+/* fix a buf in MingW headers */
+#ifdef __MINGW32__
+#if SQL_INTERVAL_YEAR == (100 + SQL_CODE_SECOND)
+
+#undef SQL_INTERVAL_YEAR
+#undef SQL_INTERVAL_MONTH
+#undef SQL_INTERVAL_DAY
+#undef SQL_INTERVAL_HOUR
+#undef SQL_INTERVAL_MINUTE
+#undef SQL_INTERVAL_SECOND
+#undef SQL_INTERVAL_YEAR_TO_MONTH
+#undef SQL_INTERVAL_DAY_TO_HOUR
+#undef SQL_INTERVAL_DAY_TO_MINUTE
+#undef SQL_INTERVAL_DAY_TO_SECOND
+#undef SQL_INTERVAL_HOUR_TO_MINUTE
+#undef SQL_INTERVAL_HOUR_TO_SECOND
+#undef SQL_INTERVAL_MINUTE_TO_SECOND
+
+#define SQL_INTERVAL_YEAR					(100 + SQL_CODE_YEAR)
+#define SQL_INTERVAL_MONTH					(100 + SQL_CODE_MONTH)
+#define SQL_INTERVAL_DAY					(100 + SQL_CODE_DAY)
+#define SQL_INTERVAL_HOUR					(100 + SQL_CODE_HOUR)
+#define SQL_INTERVAL_MINUTE					(100 + SQL_CODE_MINUTE)
+#define SQL_INTERVAL_SECOND                	(100 + SQL_CODE_SECOND)
+#define SQL_INTERVAL_YEAR_TO_MONTH			(100 + SQL_CODE_YEAR_TO_MONTH)
+#define SQL_INTERVAL_DAY_TO_HOUR			(100 + SQL_CODE_DAY_TO_HOUR)
+#define SQL_INTERVAL_DAY_TO_MINUTE			(100 + SQL_CODE_DAY_TO_MINUTE)
+#define SQL_INTERVAL_DAY_TO_SECOND			(100 + SQL_CODE_DAY_TO_SECOND)
+#define SQL_INTERVAL_HOUR_TO_MINUTE			(100 + SQL_CODE_HOUR_TO_MINUTE)
+#define SQL_INTERVAL_HOUR_TO_SECOND			(100 + SQL_CODE_HOUR_TO_SECOND)
+#define SQL_INTERVAL_MINUTE_TO_SECOND		(100 + SQL_CODE_MINUTE_TO_SECOND)
+
+#endif
+#endif
 
 #ifdef __cplusplus
 #if 0

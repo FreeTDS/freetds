@@ -173,7 +173,8 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
 		/* copy strings */
-#define CCOPY(name) if (!(dest_rec->name=strdup(src_rec->name))) return SQL_ERROR;
+		/* TODO avoid all this conversions */
+#define CCOPY(name) if (!(dest_rec->name=(SQLCHAR*)strdup((char*) src_rec->name))) return SQL_ERROR;
 		CCOPY(sql_desc_base_column_name);
 		CCOPY(sql_desc_base_table_name);
 		CCOPY(sql_desc_catalog_name);

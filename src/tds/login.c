@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.106 2003-09-17 07:31:15 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.107 2003-09-22 20:12:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -305,7 +305,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 #ifdef SO_KEEPALIVE
 	len = 1;
-	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, &len, sizeof(len));
+	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
 	/* Jeff's hack *** START OF NEW CODE *** */

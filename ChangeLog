@@ -1,3 +1,18 @@
+Mon Sep 22 22:07:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/msvc6/iconv_replacement.c(added):
+	* win32/config.h win32/dev-cpp/FreeTDS.dev:
+	* win32/dev-cpp/Makefile.win win32/msvc6/FreeTDS.dsp:
+	* win32/msvc6/Makefile.am:
+	- updated win32 compile (odbc)
+	* configure.in: small update
+	* include/tdsodbc.h src/odbc/convert_sql2string.c:
+	- fix for MingW header bug causing error compiling
+	* src/odbc/descriptor.c src/odbc/odbc_util.c:
+	* src/tds/convert.c src/tds/login.c:
+	- remove some warnings
+	* src/tds/config.c: assure correct structure initilization
+	* src/tds/query.c: fix problem with sp_prepare and mssql7
+
 Sun Sep 21 20:34:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/dblib/rpc.c src/odbc/odbc.c src/pool/stream.c:
