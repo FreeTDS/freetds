@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.3 2001-10-26 18:16:07 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -229,6 +229,7 @@ void tds_free_column(TDSCOLINFO *column)
 TDSCONFIGINFO *tds_alloc_config()
 {
 TDSCONFIGINFO *config;
+char hostname[30];
 	
 	config = (TDSCONFIGINFO *) malloc(sizeof(TDSCONFIGINFO));
 	memset(config, '\0', sizeof(TDSCONFIGINFO));
@@ -242,6 +243,10 @@ TDSCONFIGINFO *config;
         config->language = strdup(TDS_DEF_LANG);
         config->char_set = strdup(TDS_DEF_CHARSET);
 	config->try_server_login = 1;
+	memset(hostname,'\0', 30);
+	gethostname(hostname,30);
+	hostname[29]='\0'; /* make sure it's truncated */
+	config->host_name = strdup(hostname);
 	
 	return config;
 }

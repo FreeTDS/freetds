@@ -10,6 +10,8 @@ Fri Oct 26 07:11:05 2001  Brian Bruns <camber@ais.org>
 	tds_connect
 	* src/odbc/odbc.c: remove call to tds_set_parent and pass NULL to 
 	tds_connect
+	* src/tds/config.c(tds_alloc_config): add default hostname returned from
+	gethostname() to fix TDS 7 problem.
 
 Thu Oct 25 10:58:38 2001  James Cameron  <quozl@us.netrek.org>
 
