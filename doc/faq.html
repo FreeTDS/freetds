@@ -27,18 +27,19 @@ Home&nbsp;&nbsp;|&nbsp;
 <h1>FAQ</h1>
 
 <p><font size="-1">
-
-This is a list of frequently asked questions and answers about
-FreeTDS.  It is updated between releases of FreeTDS to cover problems
-since the last release.
+The <a href="http://www.freetds.org/userguide/book1.html">FreeTDS User
+Guide</a>, included in each release, is the appropriate place for new
+users to start.  
+</p>
 <p>
 
-On the other hand, the <a
-href="http://www.freetds.org/userguide/book1.html">FreeTDS User
-Guide</a>, included in each release, is the appropriate place for new
-users to start.<p>
+This list of frequently asked questions and answers about
+FreeTDS is updated between releases to cover problems
+since the last release.  And to answer perennial questions (there are some).  You will find find mention of "Release 0.60".  There is none such (yet); that number refers to the current development version.  The last release of FreeTDS was version 0.53
+<p>
 
-<div align=right><i>$Id: faq.html,v 1.14 2002-07-03 06:43:32 jklowden Exp $</i></div>
+
+<div align=right><i>$Id: faq.html,v 1.15 2002-08-24 18:40:57 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -181,7 +182,7 @@ Problems Running<ul>
 
 <p>FreeTDS is a free re-implementation of the TDS (Tabular Data Stream) protocol
 that is used by Sybase and Microsoft for their database products. It currently
-implements TDS 4.2, 5.0 and 7.0, and can communicate with
+implements TDS 4.2, 5.0, 7.0 and 8.0, and can communicate with
 any Sybase product as well as Microsoft SQL Server.</p>
 
 <p>FreeTDS comes with a low level library (the TDS layer) along with a
@@ -413,7 +414,7 @@ statement:</p>
 <dl><!-- second level list of terms -->
 	<dt><tt>--with-tdsver=VERSION</tt></dt>
 	<dd>specify the fallback TDS version 
-	<br>(4.2, 4.6, 5.0, or 7.0) [default is 5.0].</dd>
+	<br>(4.2, 4.6, 5.0, 7.0 or 8.0) [default is 5.0].</dd>
 	<dt><tt>--enable-msdblib</tt></dt>
 	<dd>enable Microsoft APIs and behavior for DBLib (useful only for porting Win32 dblib apps)</dd>
 	<dt><tt>--enable-dbmfix</tt></dt>
@@ -425,6 +426,17 @@ statement:</p>
 	<dd>build shared libraries [default=yes]</dd>
 	<dt><tt>--enable-static</tt></dt>
 	<dd>build static libraries [default=yes]</dd>
+
+	<dt><tt>--with-libiconv-prefix=DIR</tt></dt>
+	<dd>search for libiconv in DIR/include and DIR/lib. required for FreeBSD. iconv is a library for converting between charsets.</dd>
+	<dt><tt>--with-iodbc=DIR</tt></dt>
+	<dd>build odbc driver against iODBC in DIR</dd>
+	<dt><tt>  --with-unixodbc=DIR</tt></dt>
+	<dd> build odbc driver against unixODBC in DIR</dd>
+	<dt><tt>--with-ssl</tt></dt>
+	<dd>enable ssl. This option enable NT domain authentication for ms sql server (use with TDS7/8). This stuff have not been tested very much.</dd>
+	<dt><tt>--enable-threadsafe</tt></dt>
+	<dd>compile for thread safety [default=no]. Some environment have problem with theadsafe socket function. Use with care.</dd>
 </dl> <!-- end nested dictionary list -->
 
 <p>
@@ -437,9 +449,9 @@ SQL Server 7 and above.</p>
 
 <p>
 Many programs look for the <var>SYBASE</var> environment variable in order to
-find the library's home. You will want to set this to the main tds
-directory.  For example if <code>FreeTDS</code> is installed in
-<tt>/usr/local</tt>, then your <var>SYBASE</var> variable would be set to
+find the library's home. You will want to set this to the main FreeTDS
+directory.  For example, if <code>FreeTDS</code> is installed in
+<tt>/usr/local/freetds</tt> (meaning the libaries were installed in <tt>/usr/local/freetds/lib</tt>), then your <var>SYBASE</var> variable would be set to
 <tt>/usr/local/freetds</tt>.</p>
 
 <a name="other_environment_variables"></a>
@@ -448,7 +460,7 @@ directory.  For example if <code>FreeTDS</code> is installed in
 <ul>
 <li>
 <var>TDSVER</var> will override the default TDS version, possible values are 4.2, 5.0,
-and 7.0</li>
+7.0 and 8.0</li>
 
 <li>
 <var>TDSDUMP</var> will specify a location for a log file for debugging. Beware that
@@ -711,13 +723,13 @@ For <tt>DBD::Sybase</tt> edit the Makefile after running <b><kbd>perl Makefile.P
 If you have a Solaris machine and the requisite <tt>autoconf</tt> skills to fix this, a patch would be appreciated.
 </p>
 
+<p>Status: <em>fixed in CVS version as of August 2002</em></p>
+
 <a name="DBD_Sybase093"></a>
 <h3>I couldn't get DBD::Sybase 0.93 to compile.</h3>
 
 
-<p>DBD::Sybase 0.93 uses some features of ct-lib not currently available
-in FreeTDS, we are working on adding them.  Until then, try DBD::Sybase
-0.91 which should work fine.  
+<p>Use DBD::Sybase 0.94 or above.   
 </p>
 
 <a name="build_macosx"></a>
@@ -910,8 +922,7 @@ connections in either Windows NT Authentication Mode or Mixed Mode. After
 successful connection to SQL Server, the security mechanism is the same
 for both modes.
 </p>
-<p>
-We are very close to getting domain authentication working.  If you have access to a SQL Server in domain authentication mode and can do a network trace, let us know!
+<p>Update: support for "Windows NT Authentication" has been added in 0.60. This code is quite new, hasn't seen much use and might work.  ;)
 </p>
 
 <A name=textdata></a>
