@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.94 2003-11-22 22:54:16 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.95 2003-11-23 09:12:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -605,6 +605,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	size_t irreversible;
 	char one_character;
 	char *p;
+	int eilseq_raised = 0;
 	/* cast away const-ness */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv_info->suppress;
 
@@ -698,6 +699,9 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		if (irreversible != (size_t) - 1)
 			break;
 
+		if (errno == EILSEQ)
+			eilseq_raised = 1;
+
 		if (errno != EILSEQ || io != to_client)
 			break;
 		/* 
@@ -746,10 +750,8 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		}
 	}
 
-	switch (errno) {
-	case EILSEQ:		/* invalid multibyte input sequence encountered */
-		if (suppress->eilseq)
-			break;
+	if (eilseq_raised && !suppress->eilseq) {
+		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
 			if (irreversible == (size_t) - 1) {
 				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0,
@@ -766,7 +768,9 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 				       "Some character(s) could not be converted.");
 		}
 		suppress->eilseq = 1;
-		break;
+	}
+
+	switch (errno) {
 	case EINVAL:		/* incomplete multibyte sequence is encountered */
 		if (suppress->einval)
 			break;
