@@ -1,3 +1,8 @@
+Wed Sep 24 13:35:49 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/odbc/odbc.c src/tds/login.c
+	- Add more ODBC2 support to SQLSetStmtAttr and 
+	- change longquery support.
+
 Tue Sep 23 20:54:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tds_sysdep_public.h.in:
 	* src/pool/user.c src/server/login.c:

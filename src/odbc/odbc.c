@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.250 2003-09-23 17:39:56 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.251 2003-09-24 17:38:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -91,7 +91,7 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
-static void longquery_cancel(long hint);
+static void longquery_cancel(void *param);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -1371,6 +1371,9 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	/* dont check column index for these */
 	switch (fDescType) {
+#if SQL_COLUMN_COUNT != SQL_DESC_COUNT
+	case SQL_COLUMN_COUNT:
+#endif
 	case SQL_DESC_COUNT:
 		IOUT(SQLUSMALLINT, ird->header.sql_desc_count);
 		ODBC_RETURN(stmt, SQL_SUCCESS);
@@ -1406,9 +1409,37 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_DESC_CATALOG_NAME:
 		COUT(drec->sql_desc_catalog_name);
 		break;
+#if SQL_COLUMN_TYPE != SQL_DESC_CONCISE_TYPE
+	case SQL_COLUMN_TYPE:
+		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
+		if (stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
+			IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
+			break;
+		}
+
+		/* get type and convert it to ODBC 2 type */
+		{
+			SQLSMALLINT type = drec->sql_desc_concise_type;
+
+			switch (type) {
+			case SQL_TYPE_DATE:
+				type = SQL_DATE;
+				break;
+			case SQL_TYPE_TIME:
+				type = SQL_TIME;
+				break;
+			case SQL_TYPE_TIMESTAMP:
+				type = SQL_TIMESTAMP;
+				break;
+			}
+			IOUT(SQLSMALLINT, type);
+		}
+		break;
+#else
 	case SQL_DESC_CONCISE_TYPE:
 		IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
 		break;
+#endif
 	case SQL_DESC_DISPLAY_SIZE:
 		IOUT(SQLINTEGER, drec->sql_desc_display_size);
 		break;
@@ -1418,6 +1449,8 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_DESC_LABEL:
 		COUT(drec->sql_desc_label);
 		break;
+		/* FIXME special cases for SQL_COLUMN_LENGTH */
+	case SQL_COLUMN_LENGTH:
 	case SQL_DESC_LENGTH:
 		IOUT(SQLINTEGER, drec->sql_desc_length);
 		break;
@@ -1430,9 +1463,15 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_DESC_LOCAL_TYPE_NAME:
 		COUT(drec->sql_desc_literal_suffix);
 		break;
+#if SQL_COLUMN_NAME != SQL_DESC_NAME
+	case SQL_COLUMN_NAME:
+#endif
 	case SQL_DESC_NAME:
 		COUT(drec->sql_desc_name);
 		break;
+#if SQL_COLUMN_NULLABLE != SQL_DESC_NULLABLE
+	case SQL_COLUMN_NULLABLE:
+#endif
 	case SQL_DESC_NULLABLE:
 		IOUT(SQLSMALLINT, drec->sql_desc_nullable);
 		break;
@@ -1442,12 +1481,16 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_DESC_OCTET_LENGTH:
 		IOUT(SQLINTEGER, drec->sql_desc_octet_length);
 		break;
+		/* FIXME special cases for SQL_COLUMN_PRECISION */
+	case SQL_COLUMN_PRECISION:
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLUSMALLINT, drec->sql_desc_precision);
 		else
 			*((SQLUSMALLINT *) pfDesc) = drec->sql_desc_length;
 		break;
+		/* FIXME special cases for SQL_COLUMN_SCALE */
+	case SQL_COLUMN_SCALE:
 	case SQL_DESC_SCALE:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLUSMALLINT, drec->sql_desc_scale);
@@ -1498,54 +1541,6 @@ SQLRETURN SQL_API
 SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 		 SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
 {
-	SQLRETURN rc;
-	SQLSMALLINT type;
-
-	INIT_HSTMT;
-
-	switch (fDescType) {
-	case SQL_COLUMN_TYPE:
-		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
-		fDescType = SQL_DESC_CONCISE_TYPE;
-		if (stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3)
-			break;
-		/* get type and convert it to ODBC 2 type */
-		rc = _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, &type);
-		switch (type) {
-		case SQL_TYPE_DATE:
-			type = SQL_DATE;
-			break;
-		case SQL_TYPE_TIME:
-			type = SQL_TIME;
-			break;
-		case SQL_TYPE_TIMESTAMP:
-			type = SQL_TIMESTAMP;
-			break;
-		}
-		if (pfDesc)
-			*((SQLSMALLINT *) pfDesc) = type;
-		return rc;
-		break;
-	case SQL_COLUMN_NAME:
-		fDescType = SQL_DESC_NAME;
-		break;
-	case SQL_COLUMN_NULLABLE:
-		fDescType = SQL_DESC_NULLABLE;
-		break;
-	case SQL_COLUMN_COUNT:
-		fDescType = SQL_DESC_COUNT;
-		break;
-		/* FIXME special cases even for SQL_COLUMN_LENGTH, SQL_COLUMN_PRECISION and SQL_COLUMN_SCALE */
-	case SQL_COLUMN_PRECISION:
-		fDescType = SQL_DESC_PRECISION;
-		break;
-	case SQL_COLUMN_SCALE:
-		fDescType = SQL_DESC_SCALE;
-		break;
-	case SQL_COLUMN_LENGTH:
-		fDescType = SQL_DESC_LENGTH;
-		break;
-	}
 	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
 }
 
@@ -2225,13 +2220,14 @@ odbc_populate_ird(TDS_STMT * stmt)
 }
 
 static void
-longquery_cancel(long hint)
+longquery_cancel(void *param)
 {
-TDS_STMT *stmt = (TDS_STMT *)hint;
-assert(stmt != NULL);
+	TDS_STMT *stmt = (TDS_STMT *) param;
 
-if (SQL_SUCCEEDED(SQLCancel((SQLHSTMT *)stmt)))
-	odbc_errs_add(&stmt->errs,"S1T00","Timeout expired",NULL);
+	assert(stmt != NULL);
+
+	if (SQL_SUCCEEDED(SQLCancel((SQLHSTMT *) stmt)))
+		odbc_errs_add(&stmt->errs, "S1T00", "Timeout expired", NULL);
 }
 
 static SQLRETURN SQL_API
@@ -2248,7 +2244,7 @@ _SQLExecute(TDS_STMT * stmt)
 	stmt->row = 0;
 
 	tds->longquery_func = longquery_cancel;
-	tds->longquery_param = (long)stmt;
+	tds->longquery_param = stmt;
 	tds->longquery_timeout = stmt->attr.attr_query_timeout;
 	
 	/* TODO submit rpc with more parameters */
@@ -2322,8 +2318,8 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 	}
 	tds->longquery_timeout = 0;
-	tds->longquery_param = 0;
-	tds->longquery_func = 0;
+	tds->longquery_param = NULL;
+	tds->longquery_func = NULL;
 
 	odbc_populate_ird(stmt);
 	switch (ret) {

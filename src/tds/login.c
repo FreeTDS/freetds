@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.108 2003-09-23 18:56:22 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.109 2003-09-24 17:38:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -182,7 +182,7 @@ tds_set_timeouts(TDSLOGIN * tds_login, int connect_timeout, int query_timeout, i
 }
 
 void
-tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (long), long longquery_param)
+tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *), void *longquery_param)
 {				/* Jeff's hack */
 	tds_login->longquery_func = longquery_func;
 	tds_login->longquery_param = longquery_param;
