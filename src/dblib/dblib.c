@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.146 2003-05-28 14:51:52 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.147 2003-05-28 19:11:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3854,7 +3854,22 @@ dbsqlok(DBPROCESS * dbproc)
 	/* we're looking for a result token or a done token.         */
 
 	while (!done) {
-/*
+		marker = tds_peek(tds);
+		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %x\n", marker);
+
+		/* If we hit a result token, then we know  */
+		/* everything is fine with the command...  */
+
+		if (is_result_token(marker)) {
+			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
+			return SUCCEED;
+		}
+
+		/* if we hit an end token, for example if the command */
+		/* submitted returned no data (like an insert), then  */
+		/* we have to process the end token to extract the    */
+		/* status code therein....but....                     */
+
 		switch (tds_process_result_tokens(tds, &result_type)) {
 		case TDS_NO_MORE_RESULTS:
 			return rc;
@@ -3867,57 +3882,23 @@ dbsqlok(DBPROCESS * dbproc)
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_ROWFMT_RESULT:
-				dbproc->dbresults_state = DBRESINIT;
-				buffer_clear(&(dbproc->row_buf));
-				return buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
-				break;
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
 			case TDS_COMPUTEFMT_RESULT:
+				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
 				return SUCCEED;
 				break;
 			case TDS_CMD_FAIL:
+				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
 				return FAIL;
 				break;
+			case TDS_CMD_SUCCEED:
 			case TDS_CMD_DONE:
+				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was success\n");
 				return SUCCEED;
 				break;		
 			}
 			break;
-		}
-*/	
-		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() marker is %x\n", marker);
-
-		/* If we hit a result token, then we know  */
-		/* everything is fine with the command...  */
-
-		if (is_result_token(marker)) {
-			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
-			tds_unget_byte(tds);
-			return SUCCEED;
-		}
-
-		/* if we hit an end token, for example if the command */
-		/* submitted returned no data (like an insert), then  */
-		/* we have to process the end token to extract the    */
-		/* status code therein....but....                     */
-
-		if (is_end_token(marker)) {
-
-			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found end token\n");
-			if (tds_process_end(tds, marker, NULL) != TDS_SUCCEED) {
-				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was error\n");
-				rc = FAIL;
-			} else {
-				tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() end status was success\n");
-				rc = SUCCEED;
-			}
-			done = 1;
-
-		} else {
-			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found throwaway token\n");
-			tds_process_default_tokens(tds, marker);
 		}
 	}
 
@@ -5253,6 +5234,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 		return FAIL;
 		
 	dbproc->tds_socket->out_flag = 0x07;
+	dbproc->tds_socket->state = TDS_QUERYING;
 	tds_put_int(dbproc->tds_socket, size);
 
 	if (!text) {

@@ -1,3 +1,6 @@
+Wed May 28 21:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: tds_process_end cleanup
+
 Wed May 28 16:51:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
 	- tds_process_end cleanup
