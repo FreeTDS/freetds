@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.103 2003-09-22 20:12:51 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.104 2003-09-23 08:27:18 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1340,6 +1340,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	/* TODO discard any partial packet here */
 	/* tds_init_write_buf(tds); */
 
+	tds->queryStarttime = 0;
 	tds->out_flag = 0x06;
 	return tds_flush_packet(tds);
 }
