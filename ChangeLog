@@ -1,3 +1,8 @@
+Mon Sep 16 16:59:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/cspublic.h include/ctpublic.h src/ctlib/unittests/common.h:
+	- Add some prototypes for "gcc -Wall" in src/ctlib/unittests
+	  (not finished yet)
+
 Mon Sep 16 16:26:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/unittests/common.h src/tds/unittests/t0001.c
 	  src/tds/unittests/t0003.c src/tds/unittests/t0004.c
