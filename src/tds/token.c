@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.63 2002-09-25 05:54:19 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.64 2002-09-26 15:56:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,6 +52,10 @@ static int tds_get_cardinal_type(int datatype);
 */
 extern const int g__numeric_bytes_per_prec[];
 
+
+/* XXX do a best check for alignment than this */
+union { void *p; int i; } align_struct;
+#define ALIGN_SIZE sizeof(align_struct)
 
 
 /*
@@ -515,9 +519,6 @@ TDSRESULTINFO *info;
 TDS_SMALLINT tabnamesize;
 int bytes_read = 0;
 int rest;
-/* XXX do a best check for alignment than this */
-union { void *p; int i; } align_struct;
-const int align = sizeof(align_struct);
 int remainder;
 char ci_flags[4];
 
@@ -565,9 +566,9 @@ char ci_flags[4];
 			info->row_size += curcol->column_size + 1;
 		}
 		if (IS_TDS42(tds)) {
-			remainder = info->row_size % align; 
+			remainder = info->row_size % ALIGN_SIZE; 
 			if (remainder)
-				info->row_size += (align - remainder);
+				info->row_size += (ALIGN_SIZE - remainder);
 		}
 	}
 
@@ -682,9 +683,8 @@ int remainder;
 		}
 		curcol->column_offset = info->row_size;
 		info->row_size += curcol->column_size + 1;
-		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % 4; 
-		if (remainder) info->row_size += (4 - remainder);
+		remainder = info->row_size % ALIGN_SIZE; 
+		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
 
 		tds_get_byte(tds);
 	}
@@ -795,8 +795,8 @@ int remainder;
 		}
 		
 		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % 4;
-		if (remainder) info->row_size += (4 - remainder);
+		remainder = info->row_size % ALIGN_SIZE;
+		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
 		
 	}
 
@@ -884,8 +884,8 @@ int remainder;
 
 
 		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % 4; 
-		if (remainder) info->row_size += (4 - remainder);
+		remainder = info->row_size % ALIGN_SIZE; 
+		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
 
 		tds_get_byte(tds); /* ? */
 	}
