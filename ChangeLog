@@ -1,3 +1,7 @@
+Thu Aug 07 23:08:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- fixed bug calling SQLBindParam (reported by David Fraser)
+
 Thu Aug 07 16:21:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c:
 	- fix binding with ODBC3 DATE/TIME data
