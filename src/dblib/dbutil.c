@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.7 2002-07-16 04:01:21 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.8 2002-07-16 11:20:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -82,7 +82,7 @@ int dblib_handle_info_message(void *ctxptr, void *tdsptr, void *msgptr)
 
 int dblib_handle_err_message(void *ctxptr, void *tdsptr, void *msgptr)
 {
-	TDSCONTEXT *tds_ctx = (TDSSOCKET *) ctxptr;
+	TDSCONTEXT *tds_ctx = (TDSCONTEXT *) ctxptr;
 	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
 	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 	DBPROCESS *dbproc = NULL;
