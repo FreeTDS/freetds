@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.43 2003-12-16 16:30:56 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.44 2003-12-30 12:44:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -299,6 +299,7 @@ tdsdump_dump_buf(const void *buf,	/* (I) buffer to dump                      */
  * Def:  This function write a message to the debug log.  fmt is a printf-like
  *       format string.  It recognizes the following format characters:
  *          d     The next argument is printed as a decimal number
+ *          x     The next argument is printed as a hexadecimal number
  *          u     The next argument is printed as an unsigned decimal number
  *          p     The pid of the running process
  *          s     The next argument is printed as a character string

@@ -1,3 +1,7 @@
+Tue Dec 30 13:43:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c  src/tds/convert.c src/tds/util.c:	
+	- removed Amd64 warnings
+
 Tue Dec 30 11:26:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/tds.h include/tds_sysdep_public.h.in:
 	* src/odbc/odbc.c win32/tds_sysdep_public.h:

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.286 2003-12-30 10:27:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.287 2003-12-30 12:44:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1986,7 +1986,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	case SQL_DESC_COUNT:
 		{
-			int n = (int) Value;
+			int n = (int) (TDS_INTPTR) Value;
 
 			if (n <= 0 || n > 4000) {
 				odbc_errs_add(&desc->errs, "07009", NULL, NULL);
@@ -2024,9 +2024,9 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	case SQL_DESC_CONCISE_TYPE:
 		if (desc->type == DESC_IPD)
-			result = odbc_set_concise_sql_type((SQLSMALLINT) (int) Value, drec, 0);
+			result = odbc_set_concise_sql_type((SQLSMALLINT) (TDS_INTPTR) Value, drec, 0);
 		else
-			result = odbc_set_concise_c_type((SQLSMALLINT) (int) Value, drec, 0);
+			result = odbc_set_concise_c_type((SQLSMALLINT) (TDS_INTPTR) Value, drec, 0);
 		if (result != SQL_SUCCESS)
 			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
 		break;

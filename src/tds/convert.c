@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.129 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.130 2003-12-30 12:44:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1158,11 +1158,6 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 	memcpy(&mymoney, src + 4, 4);
 #endif
 
-#	if (SIZEOF_LONG_LONG > 0)
-	tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
-#	else
-	tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
-#	endif
 	switch (desttype) {
 	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
