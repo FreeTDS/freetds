@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.144 2003-04-01 10:28:05 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.145 2003-04-02 08:21:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1021,7 +1021,7 @@ _SQLExecute(TDS_STMT * stmt)
 			if (tds->res_info)
 				done = 1;
 			break;
-		/* ignore metadata, stop at done or row */
+			/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_ROWFMT_RESULT:
 			break;
@@ -1033,17 +1033,19 @@ _SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
-	if (ret == TDS_NO_MORE_RESULTS) {
+	switch (ret) {
+	case TDS_NO_MORE_RESULTS:
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			return SQL_SUCCESS_WITH_INFO;
 		return result;
-	} else if (ret == TDS_SUCCEED) {
+	case TDS_SUCCEED:
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			return SQL_SUCCESS_WITH_INFO;
 		return result;
-	} else {
+	default:
+		/* TODO test what happened, report correct error to client */
 		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n");
-		return result;
+		return SQL_ERROR;
 	}
 }
 
@@ -1574,7 +1576,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 SQLRETURN SQL_API
 SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 {
-	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
 	INIT_HSTMT;

@@ -51,9 +51,9 @@ make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
 rm -rf "$RPM_BUILD_ROOT"
-make DESTDIR="$RPM_BUILD_ROOT" install
 gunzip -c doc/userguide.tgz | tar x
 gunzip -c doc/reference.tgz | tar x
+make DESTDIR="$RPM_BUILD_ROOT" install
 
 %post 
 /sbin/ldconfig 

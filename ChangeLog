@@ -1,3 +1,11 @@
+Wed Apr 02 10:20:12 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: check for odbcss.h
+	* freetds.spec.in:
+	- applied Chad Wagner patch for RPM documentation
+	* src/odbc/odbc.c:
+	- applied Peter Daecon patch for _SQLExecute
+	- remove a warning
+
 Tue Apr  1 16:32:59 EST 2003	JK Lowden <jklowden@schemamania.org>	
 	* doc/Makefile.am fix installation, I hope
 	* src/dblib/dblib.c fix bug #709430 in dbcolname
