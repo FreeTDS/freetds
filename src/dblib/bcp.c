@@ -74,7 +74,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.108 2004-12-31 19:17:49 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.109 2005-01-10 08:50:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -404,7 +404,8 @@ RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
 	int i;
-	static const char *hints[] = { "ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS", NULL
+	static const char *const hints[] = {
+		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS", NULL
 	};
 
 	if (!dbproc)

@@ -1,3 +1,9 @@
+Mon Jan 10  9:50:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c src/dblib/dblib.c:
+	- constify
+	- check input
+	* src/dblib/rpc.c: fix column_cur_size value
+
 Sun Jan  9 20:40:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c src/tds/des.c src/tds/iconv.c:
 	* src/tds/util.c:

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.196 2005-01-07 16:59:41 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.197 2005-01-10 08:50:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -837,7 +837,7 @@ dbstring_get(DBSTRING * dbstr)
 	return ret;
 }
 
-static const char *opttext[DBNUMOPTIONS] = {
+static const char *const opttext[DBNUMOPTIONS] = {
 	"parseonly",
 	"estimate",
 	"showplan",
@@ -5669,11 +5669,16 @@ dbregexec(DBPROCESS * dbproc, DBUSMALLINT options)
 const char *
 dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform)
 {
-	static const char *shortmon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	static const char *longmon[] = { "January", "February", "March", "April", "May", "June",
+	static const char shortmon[][4] = {
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	};
+	static const char *const longmon[] = {
+		"January", "February", "March", "April", "May", "June",
 		"July", "August", "September", "October", "November", "December"
 	};
 
+	if (monthnum < 1 || monthnum > 12)
+		return NULL;
 	return (shortform) ? shortmon[monthnum - 1] : longmon[monthnum - 1];
 }
 
