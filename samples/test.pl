@@ -16,7 +16,15 @@ die "Unable for connect to server $DBI::errstr"
 my $rc;
 my $sth;
 
-$sth = $dbh->prepare("select \@\@version");
+if (@ARGV > 3) {
+	$query = $ARGV[3];
+} else {
+	$query = "select \@\@version";
+}
+
+$sth = $dbh->prepare($query);
+print $sth->{"ChopBlanks"} = 0;
+
 if($sth->execute) {
     while(@dat = $sth->fetchrow) {
 		print "@dat\n";
