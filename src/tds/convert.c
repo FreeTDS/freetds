@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.32 2002-08-06 04:38:24 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.33 2002-08-06 07:09:37 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -248,7 +248,6 @@ tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 int           ret;
 int           i, j;
 unsigned char hex1;
-unsigned char nyb1, nyb2;
 int           inp;
 
 TDS_INT8     mymoney;
@@ -326,25 +325,28 @@ int point_found, places;
          }
 #else
 		for ( i=0; i < srclen; i++ ) {
-			inp = src[i];
-			cr->ib[i/2] = 0;
+			hex1 = src[i];
 			
-			if( '0' <= inp <= '9' )
-				inp &= '0';
+			if( '0' <= hex1 && hex1 <= '9' )
+				hex1 &= 0x0f;
 			else {
-				inp &= 'a' ^ 'A';	/* mask off 0x20 */
-				if( 'A' <= inp <= 'F' ) {
-					inp &= 'A';
-					inp += 10;
+				hex1 &= 0x20 ^ 0xff;	/* mask off 0x20 to ensure upper case */
+				if( 'A' <= hex1 && hex1 <= 'F' ) {
+					hex1 &= 0x0f;
+					hex1 += 9;
 				} else {
 					fprintf(stderr,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
 					return;
 				}
 			}
-			assert( 0 <= inp <= 16 );
+			assert( hex1 < 0x10 );
 			
-			cr->ib[i/2] <<= 4;
-			cr->ib[i/2] |= inp;
+			if( i & 1 ) 
+				cr->ib[i/2] <<= 4;
+			else
+				cr->ib[i/2] = 0;
+				
+			cr->ib[i/2] |= hex1;
 		}
 #endif
          return (srclen / 2);
@@ -395,7 +397,7 @@ int point_found, places;
 
          for(; *ptr; ptr++)                      /* deal with the rest */
          {
-            if (isdigit(*ptr) )                   /* its a number */
+            if (isdigit(*ptr) )                   /* it's a number */
             {  
                mynumber[i++] = *ptr;
                if (point_found)                  /* if we passed a decimal point */
@@ -805,7 +807,7 @@ TDS_INT ret;
 				memcpy(&dt_days, src, 4);
 				memcpy(&dt_time, src + 4, 4);
 
-				/* its a date before 1900 */
+				/* it's a date before 1900 */
 				if (dt_days > 2958463) { 	/* what's 2958463? */
 					dt_days = 0xffffffff  - dt_days; 
 					/* year */
@@ -1539,7 +1541,7 @@ struct diglist *freeptr = (struct diglist *)NULL;
 
   for(; *ptr; ptr++)                      /* deal with the rest */
   {
-     if (isdigit(*ptr))                   /* its a number */
+     if (isdigit(*ptr))                   /* it's a number */
      {  
         mynumber[i++] = *ptr;
         if (point_found)                  /* if we passed a decimal point */
