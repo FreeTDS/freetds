@@ -48,11 +48,15 @@
 #include <regex.h>
 #endif
 
+#if ! HAVE_BASENAME
+char *basename(char *path);
+#endif
+
 #include <sqlfront.h>
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.7 2004-10-19 09:17:49 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.8 2004-10-21 03:21:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -794,3 +798,31 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 
 	return 0;
 }
+
+
+#if ! HAVE_BASENAME
+/*
+ * Replacement for basename(3)
+ *
+ * cf: http://www.opengroup.org/onlinepubs/007908799/xsh/basename.html
+ *
+ * The basename() function may modify the string pointed to by path, 
+ * and may return a pointer to static storage that may then be overwritten 
+ * by a subsequent call to basename(). 
+ */
+char *basename(char *path)
+{
+	char *p;
+	
+	if (path == NULL)
+		return path;
+	
+	for (p = path + strlen(path) - 1; *p == '/'; p--) {
+		*p = '\0';
+	}
+	
+	p = strrchr(path, '/');
+	
+	return (p)? p : path;
+}
+#endif HAVE_BASENAME
