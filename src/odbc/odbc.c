@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.195 2003-07-28 15:27:51 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.196 2003-07-28 21:52:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2649,17 +2649,75 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	tds = dbc->tds_socket;
 
 	switch (fInfoType) {
+	case SQL_ACCESSIBLE_PROCEDURES:
+	case SQL_ACCESSIBLE_TABLES:
+		p = "Y";
+		break;
+	case SQL_ACTIVE_CONNECTIONS:
+		*uiInfoValue = 0;
+		break;
+#if (ODBCVER >= 0x0300)
+	case SQL_ACTIVE_ENVIRONMENTS:
+		*uiInfoValue = 0;
+		break;
+#endif /* ODBCVER >= 0x0300 */
 	case SQL_ACTIVE_STATEMENTS:
 		*siInfoValue = 1;
 		break;
+#if (ODBCVER >= 0x0300)
+	case SQL_AGGREGATE_FUNCTIONS:
+		*uiInfoValue = SQL_AF_ALL;
+		break;
+	case SQL_ALTER_DOMAIN:
+		*uiInfoValue = 0;
+		break;
+#endif /* ODBCVER >= 0x0300 */
 	case SQL_ALTER_TABLE:
 		*uiInfoValue =
 			SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT | SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT |
 			SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
 		break;
+#if (ODBCVER >= 0x0300)
+	case SQL_ASYNC_MODE:
+		/* TODO we hope so in a not-too-far future */
+		/* *uiInfoValue = SQL_AM_STATEMENT; */
+		*uiInfoValue = SQL_AM_NONE;
+		break;
+	case SQL_BATCH_ROW_COUNT:
+		*uiInfoValue = SQL_BRC_EXPLICIT;
+		break;
+	case SQL_BATCH_SUPPORT:
+		*uiInfoValue = SQL_BS_ROW_COUNT_EXPLICIT | SQL_BS_ROW_COUNT_PROC | SQL_BS_SELECT_EXPLICIT | SQL_BS_SELECT_PROC;
+		break;
+#endif /* ODBCVER >= 0x0300 */
+	case SQL_BOOKMARK_PERSISTENCE:
+		/* TODO ??? */
+		*uiInfoValue = SQL_BP_DELETE | SQL_BP_SCROLL | SQL_BP_UPDATE;
+		break;
+	case SQL_CATALOG_LOCATION:
+		*siInfoValue = SQL_CL_START;
+		break;
+#if (ODBCVER >= 0x0300)
+	case SQL_CATALOG_NAME:
+		p = "Y";
+		break;
+#endif /* ODBCVER >= 0x0300 */
+	case SQL_CATALOG_NAME_SEPARATOR:
+		p = ".";
+		break;
+	case SQL_CATALOG_TERM:
+		p = "database";
+		break;
 	case SQL_CATALOG_USAGE:
 		*uiInfoValue = SQL_CU_DML_STATEMENTS | SQL_CU_PROCEDURE_INVOCATION | SQL_CU_TABLE_DEFINITION;
 		break;
+		/* TODO 
+		 * case SQL_COLLATION_SEQ:
+		 *      break; */
+	case SQL_COLUMN_ALIAS:
+		p = "Y";
+		break;
+		/* TODO continue check here... -- freddy77 */
 	case SQL_CURSOR_COMMIT_BEHAVIOR:
 		/* currently cursors are not supported however sql server close automaticly cursors on commit */
 		*usiInfoValue = SQL_CB_CLOSE;
@@ -3227,30 +3285,6 @@ log_unimplemented_type(const char function_name[], int fType)
 	const char *name, *category;
 
 	switch (fType) {
-	case SQL_ACCESSIBLE_PROCEDURES:
-		name = "SQL_ACCESSIBLE_PROCEDURES";
-		category = "Data Source Information";
-		break;
-	case SQL_ACCESSIBLE_TABLES:
-		name = "SQL_ACCESSIBLE_TABLES";
-		category = "Data Source Information";
-		break;
-	case SQL_ACTIVE_CONNECTIONS:
-		name = "SQL_MAX_DRIVER_CONNECTIONS/SQL_ACTIVE_CONNECTIONS";
-		category = "Renamed for ODBC 3.x";
-		break;
-	case SQL_ACTIVE_ENVIRONMENTS:
-		name = "SQL_ACTIVE_ENVIRONMENTS";
-		category = "Driver Information";
-		break;
-	case SQL_AGGREGATE_FUNCTIONS:
-		name = "SQL_AGGREGATE_FUNCTIONS";
-		category = "Supported SQL";
-		break;
-	case SQL_ALTER_DOMAIN:
-		name = "SQL_ALTER_DOMAIN";
-		category = "Supported SQL";
-		break;
 #ifdef SQL_ALTER_SCHEMA
 	case SQL_ALTER_SCHEMA:
 		name = "SQL_ALTER_SCHEMA";
@@ -3263,33 +3297,9 @@ log_unimplemented_type(const char function_name[], int fType)
 		category = "Supported SQL";
 		break;
 #endif
-	case SQL_ASYNC_MODE:
-		name = "SQL_ASYNC_MODE";
-		category = "Driver Information";
-		break;
-	case SQL_BATCH_ROW_COUNT:
-		name = "SQL_BATCH_ROW_COUNT";
-		category = "Driver Information";
-		break;
-	case SQL_BATCH_SUPPORT:
-		name = "SQL_BATCH_SUPPORT";
-		category = "Driver Information";
-		break;
-	case SQL_BOOKMARK_PERSISTENCE:
-		name = "SQL_BOOKMARK_PERSISTENCE";
-		category = "Data Source Information";
-		break;
-	case SQL_CATALOG_NAME:
-		name = "SQL_CATALOG_NAME";
-		category = "Supported SQL";
-		break;
 	case SQL_COLLATION_SEQ:
 		name = "SQL_COLLATION_SEQ";
 		category = "Data Source Information";
-		break;
-	case SQL_COLUMN_ALIAS:
-		name = "SQL_COLUMN_ALIAS";
-		category = "Supported SQL";
 		break;
 	case SQL_CONCAT_NULL_BEHAVIOR:
 		name = "SQL_CONCAT_NULL_BEHAVIOR";

@@ -1,3 +1,6 @@
+Mon Jul 28 23:50:13 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: merge some SQLGetInfo stuff
+
 Mon Jul 28 17:26:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c src/odbc/odbc.c:
 	- some fixes after merge
