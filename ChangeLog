@@ -1,3 +1,7 @@
+Thu Jan  9 16:17:10 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/date.c(added):
+	- added test for date under ODBC (do not pass...)
+
 Wed Jan  8 10:57:32 EST 2003    JK Lowden <jklowden@schemamania.org>
 	* src/odbc/odbc.c added logging function for unimplemented options
 	* src/tds/iconv.c added log of character set in iconv
