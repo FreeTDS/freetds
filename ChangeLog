@@ -1,3 +1,6 @@
+Wed Jul 30 14:36:36 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c: small update
+
 Wed Jul 30 02:15:44 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/tds.html fixed an internal link
 	* src/dblib/dblib.c dbmorecmds tolerates missing result set.
