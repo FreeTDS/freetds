@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.84 2003-09-18 20:25:50 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.85 2003-09-19 06:15:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -65,7 +65,7 @@ static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_nam
 static int tds_iconv_init(void);
 static int tds_canonical_charset(const char *charset_name);
 static void _iconv_close(iconv_t * cd);
-static void tds_iconv_info_close(TDSICONVINFO* iconv_info);
+static void tds_iconv_info_close(TDSICONVINFO * iconv_info);
 
 
 /**
@@ -464,7 +464,7 @@ _iconv_close(iconv_t * cd)
 }
 
 static void
-tds_iconv_info_close(TDSICONVINFO* iconv_info)
+tds_iconv_info_close(TDSICONVINFO * iconv_info)
 {
 	_iconv_close(&iconv_info->to_wire);
 	_iconv_close(&iconv_info->to_wire2);
@@ -575,7 +575,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	p = *outbuf;
 	for (;;) {
 		irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
-		if (irreversible != invalid)
+		if (irreversible != (size_t) - 1)
 			break;
 
 		if (errno != EILSEQ || io != to_client)
@@ -608,7 +608,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		p = *outbuf;
 		irreversible = iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
 
-		if (irreversible == invalid)
+		if (irreversible == (size_t) - 1)
 			break;
 
 		*inbuf += one_character;
@@ -629,7 +629,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	switch (errno) {
 	case EILSEQ:		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
-			if (irreversible == invalid) {
+			if (irreversible == (size_t) - 1) {
 				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0,
 					       "WARNING! Some character(s) could not be converted into client's character set. ");
 			} else {

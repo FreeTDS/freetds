@@ -1,3 +1,6 @@
+Fri Sep 19 08:15:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c: revert, wrong type constant
+
 Fri Sep 19 08:10:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/encodings.h src/tds/encodings.pl:
 	- remove empty charset
