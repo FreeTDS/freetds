@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.118 2003-12-03 10:42:09 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.119 2003-12-06 13:43:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -2012,7 +2012,6 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	
 	int i;
 	char buf[256];
-	static const char hex[16] = "0123456789ABCDEF";
 	
 	if (is_blob_type(curcol->column_type))
 		src = ((TDSBLOBINFO *)src)->textvalue;
@@ -2023,8 +2022,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 		tds_put_n(tds, "0x", 2);
 		for (i=0; src_len; ++src, --src_len) {
-			buf[i++] = hex[*src >> 4 & 0xF];
-			buf[i++] = hex[*src & 0xF];
+			buf[i++] = tds_hex_digits[*src >> 4 & 0xF];
+			buf[i++] = tds_hex_digits[*src & 0xF];
 			if (i == 256) {
 				tds_put_n(tds, buf, i);
 				i = 0;

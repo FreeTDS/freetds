@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.158 2003-11-30 12:02:04 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.159 2003-12-06 13:43:53 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1234,6 +1234,7 @@ void tds_set_column_type(TDSCOLINFO * curcol, int type);
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr);
 int tds_get_conversion_type(int srctype, int colsize);
+extern const char tds_hex_digits[];
 
 /* write.c */
 int tds_put_bulk_data(TDSSOCKET * tds, const unsigned char *buf, TDS_INT bufsize);

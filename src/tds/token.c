@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.233 2003-12-04 22:03:16 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.234 2003-12-06 13:43:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3204,7 +3204,7 @@ tds_prtype(int token)
 		TYPE(SYBINT1, "tinyint");
 		TYPE(SYBINT2, "smallint");
 		TYPE(SYBINT4, "int");
-		TYPE(SYBINT8, "long long");
+		TYPE(SYBINT8, "bigint");
 		TYPE(SYBINTN, "integer-null");
 		TYPE(SYBMONEY4, "smallmoney");
 		TYPE(SYBMONEY, "money");

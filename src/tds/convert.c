@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.128 2003-12-06 10:56:59 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.129 2003-12-06 13:43:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -139,6 +139,8 @@ static int is_numeric_dateformat(char *);
 static TDS_UINT utf16len(const utf16_t * s);
 static const char *tds_prtype(int token);
 #endif
+
+const char tds_hex_digits[16] = "0123456789abcdef";
 
 /**
  * Return type suitable for conversions (convert all nullable types to 
@@ -244,7 +246,6 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	int cplen;
 	int s;
 	char *c;
-	char hex2[3];
 
 	switch (desttype) {
 	case CASE_ALL_CHAR:
@@ -261,9 +262,8 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 		c = cr->c;
 
 		for (s = 0; s < srclen; s++) {
-			sprintf(hex2, "%02x", src[s]);
-			*c++ = hex2[0];
-			*c++ = hex2[1];
+			*c++ = tds_hex_digits[src[s]>>4];
+			*c++ = tds_hex_digits[src[s]&0xF];
 		}
 
 		*c = '\0';

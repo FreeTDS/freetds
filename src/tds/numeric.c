@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.22 2003-12-06 10:56:59 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.23 2003-12-06 13:43:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -92,11 +92,13 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	mymoney = (mymoney / 50 + 1 ) / 2;
 	frac = mymoney % 100;
 	mymoney /= 100;
+	/* if machine is 64 bit you do not need to split mymoney */
+#if SIZEOF_LONG < 8
 	if (mymoney >= 1000000000) {
 		sprintf(p, "%ld%09ld.%02d", (long)(mymoney / 1000000000), (long)(mymoney % 1000000000), frac);
-	} else {
+	} else
+#endif
 		sprintf(p, "%ld.%02d", (long)mymoney, frac);
-	}
 	return s;
 #else
 	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];

@@ -1,3 +1,10 @@
+Sat Dec  6 14:43:1 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/convert.c src/tds/numeric.c:
+	* src/tds/query.c src/tds/token.c src/tds/unittests/convert.c:
+	- some optimization for money
+	- improve binary -> char conversions performance
+	* src/tds/unittests/dataread.c: test bif MONEY value
+
 Sat Dec  6 11:55:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c src/tds/numeric.c:
 	* src/tds/unittests/dataread.c:
