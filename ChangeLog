@@ -1,3 +1,28 @@
+Tue Jul 16 01:16:29 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	+ src/tds/tds_willconvert.h added, to support dbwillconvert
+	+ src/tds/convert.c slightly modified to insert comments in tds_willconvert.h
+
+Mon Jul 15 03:29:58 EDT 2002	Brian Bruns <camber@ais.org>
+	implemented TDSCONTEXT changes for message handling, affecting:
+	+ include/cspublic.h
+	+ include/tdsconvert.h
+	+ include/tdsodbc.h
+	+ src/ctlib/ct.c
+	+ src/odbc/convert_sql2string.c
+	+ src/odbc/convert_sql2string.h
+	+ src/odbc/convert_tds2sql.c
+	+ src/odbc/convert_tds2sql.h
+	+ src/odbc/odbc.c
+	+ src/odbc/odbc_util.c
+	+ src/odbc/prepare_query.c
+	+ src/server/login.c
+	+ src/tds/convert.c
+	+ src/tds/login.c
+	+ src/tds/mem.c
+	+ src/tds/query.c
+	+ src/tds/read.c
+	+ src/tds/write.c
+	+ src/tds/unittests/common.c	
 Sun Jul 14 23:25:21 EDT 2002	Brian Bruns <camber@ais.org>
 	+src/tds/mem.c: added tds_alloc_context/free_context
 	*src/tds/token.c: call handlers with context param
@@ -11,7 +36,7 @@ Thu Jul 11 23:06:00 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/dblib/dblib.c: implement dbsafestr
 	*src/dblib/unittest/t0021.c: dbsafestr test
 
-Thu Jul 11 01:47:47 EDT 2002
+Thu Jul 11 01:47:47 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	+ src/tds/convert.c, implement tds_willconvert
 	+ include/tds_willconvert.h, perl-generated static data 
 	+ src/tds/convert.c, implement tds_willconvert
