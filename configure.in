@@ -186,6 +186,14 @@ if test "$enable_msdblib" = "yes" ; then
 	CFLAGS="$CFLAGS -DMSDBLIB"
 fi
 
+dnl Enable or disable thread safetiness
+dnl This option is not enabled for default because some 
+dnl implementation or reentrant api are not very safe
+AC_ARG_ENABLE(threadsafe,
+  [  --enable-threadsafe     compile for thread safety [default=no]])
+if test "$enable_threadsafe" == "yes" ; then
+	CFLAGS="$CFLAGS -D_REENTRANT -D_THREAD_SAFE"
+fi
 
 dnl ------------------------------------------------------------
 dnl Final output
