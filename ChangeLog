@@ -1,3 +1,9 @@
+Tue Sep  3 20:35:49 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/userguide.sgml:
+	- Applied patch #604084 from Brian with various corrections.
+	- A few more corrections of my own
+	- Document the --enable-sybase-compat configure flag.
+
 Tue Sep  3 14:49:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c: small optimization (full tested)
 
