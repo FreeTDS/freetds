@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.48 2002-10-18 09:34:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.49 2002-10-24 10:31:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -76,8 +76,7 @@ static void tds_config_env_tdsdump(TDSCONNECTINFO *connect_info);
 static void tds_config_env_tdsver(TDSCONNECTINFO *connect_info);
 static void tds_config_env_tdsport(TDSCONNECTINFO *connect_info);
 static void tds_config_env_tdshost(TDSCONNECTINFO *connect_info);
-static int tds_read_conf_file(char *server, TDSCONNECTINFO *connect_info);
-static int tds_read_conf_sections(FILE *in, char *server, TDSCONNECTINFO *connect_info);
+static int tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info);
 static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info);
 static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info);
 static int tds_config_boolean(char *value);
@@ -133,7 +132,7 @@ int opened = 0;
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
-	if (! tds_read_conf_file(login->server_name, connect_info)) {
+	if (! tds_read_conf_file(connect_info, login->server_name)) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "%L Failed in reading conf file.  Trying interface files.\n");
 		tds_read_interfaces(login->server_name, connect_info);
@@ -142,14 +141,9 @@ int opened = 0;
 	if( parse_server_name_for_port( connect_info, login ) ) {
 		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", connect_info->server_name, login->port);
 	}
-	
-	/* Now check the environment variables */
-	tds_config_env_tdsver(connect_info);
-	tds_config_env_tdsdump(connect_info);
-	tds_config_env_tdsport(connect_info);
-	tds_config_env_dsquery(connect_info);
-	tds_config_env_tdshost(connect_info);
-	
+
+	tds_fix_connect(connect_info);
+
 	/* And finally the login structure */
 	tds_config_login(connect_info, login);
 
@@ -162,6 +156,7 @@ int opened = 0;
 void 
 tds_fix_connect(TDSCONNECTINFO *connect_info)
 {
+	/* Now check the environment variables */
 	tds_config_env_tdsver(connect_info);
 	tds_config_env_tdsdump(connect_info);
 	tds_config_env_tdsport(connect_info);
@@ -169,7 +164,7 @@ tds_fix_connect(TDSCONNECTINFO *connect_info)
 	tds_config_env_tdshost(connect_info);
 }
 
-static int tds_try_conf_file(char *path, char *how, char *server, TDSCONNECTINFO *connect_info)
+static int tds_try_conf_file(char *path, char *how, const char *server, TDSCONNECTINFO *connect_info)
 {
 int found = 0;
 FILE *in;
@@ -191,8 +186,12 @@ FILE *in;
 	return found;
 }
 
-static int
-tds_read_conf_file(char *server, TDSCONNECTINFO *connect_info)
+/**
+ * Read configuration info for given server
+ * return 0 on error
+ */
+int
+tds_read_conf_file(TDSCONNECTINFO *connect_info, const char *server)
 {
 char  *home, *path = NULL;
 int found = 0; 
@@ -233,7 +232,7 @@ int found = 0;
 
 	return found;
 }
-static int tds_read_conf_sections(FILE *in, char *server, TDSCONNECTINFO *connect_info)
+static int tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info)
 {
 unsigned char *section;
 int i, found = 0;

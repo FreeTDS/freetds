@@ -49,7 +49,7 @@
 #define max_line 256
 static char line[max_line];
 
-static char  software_version[]   = "$Id: connectparams.c,v 1.16 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: connectparams.c,v 1.17 2002-10-24 10:31:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*****************************
@@ -151,6 +151,8 @@ char *p,*end; /*,*dest; */
 char **dest_s;
 int *dest_i;
 char *tdsver;
+char *server_name;
+int reparse = 0; /* flag for indicate second parse of string */
 
 	for(p=pszConnectString;;) {
 		end = strchr(p,'=');
@@ -159,12 +161,16 @@ char *tdsver;
 		dest_s = NULL;
 		dest_i = NULL;
 		tds_dstr_init(&tdsver);
+		tds_dstr_init(&server_name);
 		*end = 0;
 		/* TODO 
 		trusted_connection = yes/no
 		*/
 		if (strcasecmp(p,"SERVER")==0) {
-			dest_s = &connect_info->server_name;
+			/* ignore if servername specified */
+			if (reparse) dest_s = &connect_info->server_name;
+		} else if (strcasecmp(p,"SERVERNAME")==0) {
+			if (!reparse) dest_s = &server_name;
 		} else if (strcasecmp(p,"DATABASE")==0) {
 			dest_s = &connect_info->database;
 		} else if (strcasecmp(p,"UID")==0) {
@@ -181,8 +187,6 @@ char *tdsver;
 			dest_i = &connect_info->port;
 		} else if (strcasecmp(p,"TDS_Version")==0) {
 			dest_s = &tdsver;
-/*		} else if (strcasecmp(p,"servername")==0) {
-			dest = pszServer; */
 		}
 		*end = '=';
 
@@ -214,6 +218,13 @@ char *tdsver;
 			char tmp[256];
 			tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
 			tds_dstr_copy(&connect_info->ip_addr,tmp);
+		}
+		if (dest_s == &server_name) {
+			tds_read_conf_file(connect_info, server_name);
+			tds_dstr_free(&server_name);
+			reparse = 1;
+			p = pszConnectString;
+			continue;
 		}
 
 		p = end;

@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.72 2002-10-23 20:45:33 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.73 2002-10-24 10:31:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -733,6 +733,7 @@ char tmp[FILENAME_MAX];
 SQLRETURN   nRetVal;
 struct _hdbc *dbc = (struct _hdbc *) hdbc;
 TDSCONNECTINFO *connect_info;
+int	freetds_conf_less = 1;
 
 	CHECK_HDBC;
 
@@ -751,6 +752,13 @@ TDSCONNECTINFO *connect_info;
 	else
 		DSN = "DEFAULT";
 
+	/* use old servername */
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Servername", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		freetds_conf_less = 0;
+		tds_read_conf_file(connect_info, tmp);
+	}
+
     /* username/password are never saved to ini file, 
      * so you do not check in ini file */
     /* user id */
@@ -761,10 +769,9 @@ TDSCONNECTINFO *connect_info;
 	if ( szAuthStr )
 		tds_dstr_copy(&connect_info->password,szAuthStr);
 
-	/* server */
-	/* search for servername or server (compatible with ms one) */
+	/* search for server (compatible with ms one) */
 	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+	if (freetds_conf_less && SQLGetPrivateProfileString( DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->server_name,tmp);
 		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
 		tds_dstr_copy(&connect_info->ip_addr,tmp);
