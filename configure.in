@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.118 2003-12-23 21:13:58 freddy77 Exp $
+dnl $Id: configure.in,v 1.119 2003-12-24 09:01:56 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -217,7 +217,7 @@ dnl ------------------------------------------------------------
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-[  --with-tdsver=VERSION   TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]])
+AC_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]]))
 if test "$with_tdsver" = "4.2"; then
 	AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default])
 elif test "$with_tdsver" = "4.6"; then
@@ -231,7 +231,7 @@ else
 fi
 
 AC_ARG_WITH(iodbc,
-[  --with-iodbc=DIR        build odbc driver against iODBC in DIR])
+AC_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
 if test "$with_iodbc"; then
 	if echo "$with_iodbc" | grep -v '^/'; then
 		with_iodbc="$PWD/$with_iodbc"
@@ -245,7 +245,7 @@ if test "$with_iodbc"; then
 fi
 
 AC_ARG_WITH(unixodbc,
-[  --with-unixodbc=DIR     build odbc driver against unixODBC in DIR])
+AC_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
 if test "$with_unixodbc"; then
 	if echo "$with_unixodbc" | grep -v '^/'; then
 		with_unixodbc="$PWD/$with_unixodbc"
@@ -259,7 +259,7 @@ if test "$with_unixodbc"; then
 fi
 
 AC_ARG_WITH(odbc_nodm,
-[  --with-odbc-nodm=DIR     build odbc without driver manager (headers in DIR])
+AC_HELP_STRING([--with-odbc-nodm=DIR], [build odbc without driver manager (headers in DIR)]))
 if test "$with_odbc_nodm"; then
 	if echo "$with_odbc_nodm" | grep -v '^/'; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
@@ -336,14 +336,14 @@ AC_ARG_ENABLE(pool,
  AM_CONDITIONAL(INCPOOL, test "$enable_pool" != "no")
 
 AC_ARG_ENABLE(msdblib,
-  [  --enable-msdblib        for MS style dblib])
+  AC_HELP_STRING([--enable-msdblib], [for MS style dblib]))
 
 if test "$enable_msdblib" = "yes" ; then
 	CPPFLAGS="$CPPFLAGS -DMSDBLIB"
 fi
 
 AC_ARG_ENABLE(sybase-compat,
-  [  --enable-sybase-compat  enable increased Open Client binary compatibility])
+  AC_HELP_STRING([--enable-sybase-compat], [enable increased Open Client binary compatibility]))
 AM_CONDITIONAL(SYBASE_COMPAT, test x$enable_sybase_compat = xyes)
 
 AC_MSG_CHECKING(threadsafety)
@@ -380,19 +380,19 @@ else
 fi
 
 AC_ARG_ENABLE(extra-checks,
-  [  --enable-extra-checks   enable extra checks on code])
+  AC_HELP_STRING([--enable-extra-checks], [enable extra checks on code]))
 if test "$enable_extra_checks" = "yes" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_EXTRA_CHECKS, 1, [Define to enable extra checks on code])
 fi
 
 AC_ARG_ENABLE(developing,
-  [  --enable-developing     enable code still in develop])
+  AC_HELP_STRING([--enable-developing], [enable code still in develop]))
 if test "$enable_developing" = "yes" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_DEVELOPING, 1, [Define to enable work in progress code])
 fi
 
 AC_ARG_ENABLE(distcheck_build,
-  [  --enable-distcheck-build used internally for testing])
+  AC_HELP_STRING([--enable-distcheck-build], [used internally for testing]))
 if test "$enable_distcheck_build" = "yes" ; then
 	AM_CONDITIONAL(DISTCHECK_BUILD, true)
 else
