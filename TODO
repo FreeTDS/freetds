@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.139 2005-03-25 16:32:00 freddy77 Exp $
+To Do List	$Id: TODO,v 1.140 2005-04-05 09:16:01 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -115,7 +115,6 @@ For future versions (in priority order within library):
   same login.
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
-. autoinstall for RPM (register driver in odbcinst.ini)
 . SQLDescribeParam (Sybase seems to require it)
 . change ODBC_RETURN to return errs.lastrc (not to set) and use errs.lastrc
   to store error, cache some errors (truncated output)

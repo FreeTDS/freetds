@@ -1,5 +1,20 @@
 %define	name	@PACKAGE@
 %define	version	@VERSION@
+
+# compute some additional dependency from vendor name
+# 
+
+# RedHat
+%define tds_builddep_redhat unixODBC-devel >= 2.0.0
+%define tds_dep_suse glibc-locale
+
+# SUSE
+%define tds_builddep_suse unixODBC-devel >= 2.0.0
+
+%undefine tds_builddep
+%{expand:%%{expand:%%{?tds_builddep_%{?_vendor}:%%%%define tds_builddep %%{?tds_builddep_%{?_vendor}}}}}
+%undefine tds_dep
+%{expand:%%{expand:%%{?tds_dep_%{?_vendor}:%%%%define tds_dep %%{?tds_dep_%{?_vendor}}}}}
  
 Name: %{name} 
 Version: %{version} 
@@ -8,7 +23,9 @@ Vendor: www.freetds.org
 License: LGPL 
 Group: System Environment/Libraries 
 Source: http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/%{name}-%{version}.tar.gz 
-BuildRoot: %{_tmppath}/%{name}-buildroot 
+BuildRoot: %{_tmppath}/%{name}-buildroot
+%{?tds_builddep:BuildRequires: %{tds_builddep}}
+%{?tds_dep:Requires: %tds_dep}
 Summary: FreeTDS is a free re-implementation of the TDS (Tabular DataStream) protocol that is used by Sybase and Microsoft for their database products. 
  
 %description 
@@ -26,6 +43,7 @@ Requires: freetds = %{version}
 Group: System Environment/Libraries
 Summary: FreeTDS ODBC Driver for unixODBC
 Requires: unixODBC >= 2.0.0
+%{?tds_dep:Requires: %tds_dep}
 
 %package doc
 Group: Documentation
@@ -56,6 +74,21 @@ rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds-%{version}"
 
 %post 
 /sbin/ldconfig 
+
+%post unixodbc
+echo "[FreeTDS]
+Description = FreeTDS unixODBC Driver
+Driver = %{_libdir}/libtdsodbc.so.0
+Setup = %{_libdir}/libtdsodbc.so.0" | odbcinst -i -d -r > /dev/null 2>&1 || true
+echo "[SQL Server]
+Description = FreeTDS unixODBC Driver
+Driver = %{_libdir}/libtdsodbc.so.0
+Setup = %{_libdir}/libtdsodbc.so.0" | odbcinst -i -d -r > /dev/null 2>&1 || true
+
+%preun unixodbc
+odbcinst -u -d -n 'FreeTDS' > /dev/null 2>&1 || true
+odbcinst -u -d -n 'SQL Server' > /dev/null 2>&1 || true
+
  
 %clean 
 rm -rf $RPM_BUILD_ROOT 

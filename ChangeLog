@@ -1,3 +1,9 @@
+Tue Apr  5 11:15:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: updates
+	* freetds.spec.in:
+	- improved dependency for RedHat and SUSE
+	- install drivers in unixODBC
+
 Tue Apr  5 10:36:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: committed new debug flag option
 
