@@ -46,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.133 2005-02-07 14:23:40 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.134 2005-02-08 09:23:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -688,8 +688,6 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 		tds->current_results = NULL;
 	tds_free_results(victim->res_info);
 
-	free(victim);
-
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinking list\n");
 
 	if (prev)
@@ -699,6 +697,8 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinked list\n");
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", cursor->cursor_id);
+
+	free(victim);
 }
 
 TDSLOGIN *
@@ -805,6 +805,8 @@ tds_free_socket(TDSSOCKET * tds)
 #ifdef HAVE_GNUTLS
 		if (tds->tls_session)
 			gnutls_deinit(tds->tls_session);
+		if (tds->tls_credentials)
+			gnutls_certificate_free_credentials(tds->tls_credentials);
 #endif
 		tds_close_socket(tds);
 		if (tds->date_fmt)

@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.135 2005-02-07 14:23:40 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.136 2005-02-08 09:23:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -952,6 +952,8 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	gnutls_global_set_log_level(11);
 	gnutls_global_set_log_function(tds_tls_log);
 
+	/* TODO: perhaps some functions can fail, check it... */
+
 	gnutls_certificate_allocate_credentials (&xcred);
 
 	/* Initialize TLS session */
@@ -976,12 +978,14 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* Perform the TLS handshake */
 	ret = gnutls_handshake (session);
 	if (ret < 0) {
+		gnutls_certificate_free_credentials(xcred);
 		gnutls_deinit (session);
 		tdsdump_log(TDS_DBG_INFO1, "*** Handshake failed: %s\n", gnutls_strerror (ret));
 		return TDS_FAIL;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "- Handshake succeeded!!\n");
 	tds->tls_session = session;
+	tds->tls_credentials = xcred;
 
 	ret = tds7_send_login(tds, connection);
 
@@ -989,6 +993,8 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (crypt_flag == 0) {
 		gnutls_deinit(tds->tls_session);
 		tds->tls_session = NULL;
+		gnutls_certificate_free_credentials(tds->tls_credentials);
+		tds->tls_credentials = NULL;
 	}
 	
 	return ret;

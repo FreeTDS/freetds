@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.18 2005-01-10 09:38:25 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.19 2005-02-08 09:23:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -32,12 +32,13 @@ typedef struct {
 	int type, len;
 } RETPARAM;
 
-RETPARAM* save_retparam(RETPARAM *param, char *name, char *value, int type, int len);
+static RETPARAM* save_retparam(RETPARAM *param, char *name, char *value, int type, int len);
 
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"
 			"  @null_input varchar(30) OUTPUT \n"
 			", @first_type varchar(30) OUTPUT \n"
+			", @nullout int OUTPUT\n"
 			", @nrows int OUTPUT \n"
 		"AS \n"
 		"BEGIN \n"
@@ -85,11 +86,13 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	return res;
 }
 
-RETPARAM*
+static RETPARAM*
 save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
 {
-	free(param->name);
-	free(param->value);
+	if (param->name)
+		free(param->name);
+	if (param->value)
+		free(param->value);
 	
 	param->name = strdup(name);
 	param->value = strdup(value);
@@ -115,11 +118,13 @@ main(int argc, char **argv)
 	char proc[] = "#t0022", 
 	     param0[] = "@null_input", 
 	     param1[] = "@first_type", 
-	     param2[] = "@nrows";
+	     param2[] = "@nullout",
+	     param3[] = "@nrows";
 	char *proc_name = proc;
 
 	char param_data1[64];
 	int param_data2;
+	int param_data3;
 	RETCODE erc, row_code;
 	int num_resultset = 0;
 	int num_empty_resultset = 0;
@@ -186,13 +191,21 @@ main(int argc, char **argv)
 	}
 
 	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param2, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ -1, (BYTE *) & param_data2);
+	erc = dbrpcparam(dbproc, param2, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ 0, (BYTE *) & param_data2);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcparam\n");
+		failed = 1;
+	}
+
+	printf("executing dbrpcparam\n");
+	erc = dbrpcparam(dbproc, param3, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ -1, (BYTE *) & param_data3);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcparam\n");
 		failed = 1;
 	}
 
 	printf("executing dbrpcsend\n");
+	param_data3 = 0x11223344;
 	erc = dbrpcsend(dbproc);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcsend\n");
@@ -273,8 +286,8 @@ main(int argc, char **argv)
 	/* 
 	 * Test the last parameter for expected outcome 
 	 */
-	if ((save_param.name == NULL) || strcmp(save_param.name, param2)) {
-		fprintf(stderr, "Expected retname to be '%s', got ", param2);
+	if ((save_param.name == NULL) || strcmp(save_param.name, param3)) {
+		fprintf(stderr, "Expected retname to be '%s', got ", param3);
 		if (save_param.name == NULL) 
 			fprintf(stderr, "<NULL> instead.\n");
 		else
@@ -326,5 +339,11 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
 	free_bread_crumb();
+
+	if (save_param.name)
+		free(save_param.name);
+	if (save_param.value)
+		free(save_param.value);
+
 	return failed ? 1 : 0;
 }

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.214 2005-02-07 14:23:40 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.215 2005-02-08 09:23:36 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1106,6 +1106,7 @@ struct tds_socket
 	int internal_sp_called;
 
 	void *tls_session;
+	void *tls_credentials;
 };
 
 int tds_init_write_buf(TDSSOCKET * tds);

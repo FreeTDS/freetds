@@ -1,3 +1,9 @@
+Tue Feb  8 10:22:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c: improved, fix leak
+	* include/tds.h src/tds/login.c src/tds/mem.c:
+	- fix leak using SSL
+	- free access to not allocated data
+
 Mon Feb  7 15:22:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* configure.in include/tds.h src/tds/login.c src/tds/mem.c:
