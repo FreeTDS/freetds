@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.204 2003-08-04 15:14:08 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.205 2003-08-05 09:03:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -275,7 +275,6 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 		connect_info->try_server_login = 1;
 
 	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
-		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -2686,6 +2685,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	   SQLSMALLINT FAR * pcbInfoValue)
 {
 	const char *p = NULL;
+	char buf[32];
 	TDSSOCKET *tds;
 	int is_ms;
 	unsigned int smajor;
@@ -2794,10 +2794,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = tds->product_name;
 		break;
 	case SQL_DBMS_VER:
-		if (rgbInfoValue && cbInfoValueMax > 5)
-			tds_version(dbc->tds_socket, (char *) rgbInfoValue);
-		else
-			p = "unknown version";
+		if (!dbc->tds_socket)
+			return SQL_ERROR;
+		odbc_rdbms_version(dbc->tds_socket, buf);
+		p = buf;
 		break;
 	case SQL_DEFAULT_TXN_ISOLATION:
 		*uiInfoValue = SQL_TXN_READ_COMMITTED;

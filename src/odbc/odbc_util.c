@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.34 2003-07-31 12:52:05 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.35 2003-08-05 09:03:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -615,6 +615,14 @@ odbc_set_string_i(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLINTEGER FAR * pcbB
 		((char *) buffer)[len] = 0;
 	}
 	return result;
+}
+
+/** Returns the version of the RDBMS in the ODBC format */
+void
+odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
+{
+	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((tds->product_version & 0x7F000000) >> 24),
+		(int) ((tds->product_version & 0x00FF0000) >> 16), (int) (tds->product_version & 0x0000FFFF));
 }
 
 /** \@} */

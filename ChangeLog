@@ -1,3 +1,7 @@
+Tue Aug 05 10:57:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- applied Peter Daecon patch (present also in Steve Murphree one)
+
 Tue Aug  5 01:00:29 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am removed faq and basic question
 	
