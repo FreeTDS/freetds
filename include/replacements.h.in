@@ -25,10 +25,12 @@ extern "C" {
 #endif
 
 static char  rcsid_replacements_h[] =
-         "$Id: replacements.h.in,v 1.1 2002-09-23 03:30:16 castellano Exp $";
+         "$Id: replacements.h.in,v 1.2 2002-09-23 04:07:24 castellano Exp $";
 static void *no_unused_replacements_h_warn[] = {
 	rcsid_replacements_h,
 	no_unused_replacements_h_warn};
+
+#include <stdarg.h>
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);
