@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.97 2002-11-06 12:40:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.98 2002-11-06 16:45:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -482,7 +482,9 @@ void dbloginfree(LOGINREC *login)
 		free(login);
 	}
 }
-RETCODE dbsetlname(LOGINREC *login, char *value, int which)
+
+RETCODE
+dbsetlname(LOGINREC *login, const char *value, int which)
 {
 	switch (which) {
 	case DBSETHOST:
@@ -768,7 +770,8 @@ TDSCONNECTINFO *connect_info;
 	return dbproc;
 }
 
-RETCODE dbfcmd(DBPROCESS *dbproc, char *fmt, ...)
+RETCODE
+dbfcmd(DBPROCESS *dbproc, const char *fmt, ...)
 {
 va_list ap;
 char *s;
@@ -787,7 +790,8 @@ RETCODE ret;
 	return ret;
 }
 
-RETCODE	dbcmd(DBPROCESS *dbproc, char *cmdstring)
+RETCODE
+dbcmd(DBPROCESS *dbproc, const char *cmdstring)
 {
 int newsz;
 void *p;
@@ -1230,13 +1234,8 @@ static int _db_get_server_type(int bindtype)
  * should be null-terminated.  
  */
 
-DBINT dbconvert(DBPROCESS *dbproc,
-		int srctype,
-		BYTE *src,
-		DBINT srclen,
-		int desttype,
-		BYTE *dest,
-		DBINT destlen)
+DBINT
+dbconvert(DBPROCESS *dbproc, int srctype, const BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen)
 {
 TDSSOCKET *tds = NULL;
 
@@ -1261,7 +1260,7 @@ DBNUMERIC   *num;
 
     /* srclen of -1 means the source data is definitely NULL terminated */
     if (srclen == -1) 
-       srclen = strlen((char *)src);
+       srclen = strlen((const char *) src);
 
     if (dest == NULL) {
        /* FIX call error handler */
@@ -1297,7 +1296,7 @@ DBNUMERIC   *num;
                /* srclen of -1 means the source data is definitely NULL terminated */
 
            	   if (srclen == -1) 
-                  srclen = strlen((char *)src);
+                  srclen = strlen((const char *) src);
 
                if (destlen == 0 || destlen < -2) {
                   ret = FAIL;
@@ -1376,9 +1375,7 @@ DBNUMERIC   *num;
 		
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
 
-	len = tds_convert(g_dblib_ctx->tds_ctx,
-		srctype, (TDS_CHAR *)src, srclen, 
-		desttype, &dres);
+	len = tds_convert(g_dblib_ctx->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -1978,7 +1975,7 @@ dbprrow(DBPROCESS *dbproc)
   int selcol;
   int linechar;
   int op;
-  char *opname;
+  const char *opname;
 
   /* these are for compute rows */
   DBINT computeid, num_cols, colid;
@@ -2718,7 +2715,7 @@ int             i;
 }
 
 RETCODE
-dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
+dbsetopt(DBPROCESS *dbproc, int option, const char *char_param, int int_param)
 {
 char *cmd;
 
@@ -3478,7 +3475,8 @@ dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest)
 	return SUCCEED;
 }
 
-RETCODE dbsafestr(DBPROCESS *dbproc,char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
+RETCODE
+dbsafestr(DBPROCESS *dbproc, const char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
 {
 int i, j = 0;
 int squote = FALSE, dquote = FALSE;
@@ -3525,10 +3523,12 @@ int squote = FALSE, dquote = FALSE;
 	dest[j]='\0';
 	return SUCCEED;
 }
-char *dbprtype(int token)
+
+const char *
+dbprtype(int token)
 {
 
-   return (char*)tds_prtype(token);
+   return tds_prtype(token);
 
 } 
 
@@ -3726,16 +3726,19 @@ RETCODE dbregexec(
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbregexec()\n");
 	return SUCCEED;
 }
-char      *dbmonthname(DBPROCESS *dbproc,char *language,int monthnum,DBBOOL shortform)
+
+const char *
+dbmonthname(DBPROCESS *dbproc, char *language, int monthnum, DBBOOL shortform)
 {
 static const char *shortmon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 static const char *longmon[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
 	if (shortform)
-		return (char*)shortmon[monthnum-1];
+		return shortmon[monthnum-1];
 	else
-		return (char*)longmon[monthnum-1];
+		return longmon[monthnum-1];
 }
+
 char      *dbname(DBPROCESS *dbproc)
 {
 	return NULL;

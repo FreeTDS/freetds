@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.48 2002-11-06 12:40:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.49 2002-11-06 16:45:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -346,7 +346,9 @@ CS_RETCODE ct_cmd_alloc(CS_CONNECTION *con, CS_COMMAND **cmd)
 
 	return CS_SUCCEED;
 }
-CS_RETCODE ct_command(CS_COMMAND *cmd, CS_INT type, CS_VOID *buffer, CS_INT buflen, CS_INT option)
+
+CS_RETCODE
+ct_command(CS_COMMAND *cmd, CS_INT type, const CS_VOID *buffer, CS_INT buflen, CS_INT option)
 {
 int query_len;
 
@@ -359,11 +361,12 @@ int query_len;
 	}
 	if (cmd->query) free(cmd->query);
 	cmd->query = (char *) malloc(query_len + 1);
-	strncpy(cmd->query,(char *)buffer,query_len);
+	strncpy(cmd->query, (const char *) buffer, query_len);
 	cmd->query[query_len]='\0';
 
 	return CS_SUCCEED;
 }
+
 CS_RETCODE ct_send_dyn(CS_COMMAND *cmd)
 {
 	if (cmd->dynamic_cmd==CS_PREPARE) {

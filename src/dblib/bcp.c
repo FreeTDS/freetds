@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.38 2002-11-06 12:40:08 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.39 2002-11-06 16:45:16 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -67,7 +67,7 @@ static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 
 
 RETCODE
-bcp_init(DBPROCESS * dbproc, char *tblname, char *hfile, char *errfile, int direction)
+bcp_init(DBPROCESS *dbproc, const char *tblname, const char *hfile, const char *errfile, int direction)
 {
 
 	TDSSOCKET *tds = dbproc->tds_socket;
@@ -254,10 +254,8 @@ int i;
 }
 
 RETCODE
-bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type,
-	   int host_prefixlen, DBINT host_collen, BYTE * host_term, int host_termlen, int table_colnum)
+bcp_colfmt(DBPROCESS *dbproc, int host_colnum, int host_type, int host_prefixlen, DBINT host_collen, const BYTE *host_term, int host_termlen, int table_colnum)
 {
-
 BCP_HOSTCOLINFO *hostcol;
 
 	if (dbproc->bcp_direction == 0) {
@@ -313,7 +311,6 @@ BCP_HOSTCOLINFO *hostcol;
 	hostcol->tab_colnum = table_colnum;
 
 	return SUCCEED;
-
 }
 
 
