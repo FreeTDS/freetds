@@ -145,14 +145,16 @@ if test "$with_iodbc"; then
 	odbc=true
 fi
 
-AC_ARG_WITH(iodbc,
+AC_ARG_WITH(unixodbc,
 [  --with-unixodbc=DIR     build odbc driver against unixODBC in DIR])
 if test "$with_unixodbc"; then
 	CFLAGS="$CFLAGS -DUNIXODBC"
 	ODBC_INC=$with_unixodbc/include
 	odbc=true
+	unixodbc=true
 fi
 AM_CONDITIONAL(ODBC, test x$odbc = xtrue)
+AM_CONDITIONAL(UNIXODBC, test x$unixodbc = xtrue)
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
 
