@@ -1,3 +1,7 @@
+Sat Mar 29 20:32:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- add support for PARAMFMT2 token (from Sybase patch)
+
 Sat Mar 29 19:58:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsiconv.h src/server/login.c:
 	* src/tds/iconv.c src/tds/mem.c src/tds/read.c:

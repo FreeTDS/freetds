@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.161 2003-03-29 18:58:48 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.162 2003-03-29 19:32:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -66,6 +66,8 @@ static int tds_process_params_result_token(TDSSOCKET * tds);
 static int tds_process_dyn_result(TDSSOCKET * tds);
 static int tds5_get_varint_size(int datatype);
 static int tds5_process_result(TDSSOCKET * tds);
+static void tds5_process_dyn_result2(TDSSOCKET * tds);
+
 
 /**
  * \ingroup libtds
@@ -165,6 +167,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		/* store discarded parameters in param_info, not in old dynamic */
 		tds->cur_dyn = NULL;
 		tds_process_dyn_result(tds);
+		break;
+	case TDS5_PARAMFMT2_TOKEN:
+		tds->cur_dyn = NULL;
+		tds5_process_dyn_result2(tds);
 		break;
 	case TDS5_PARAMS_TOKEN:
 		/* save params */
@@ -508,6 +514,11 @@ int done_flags;
 			*result_type = TDS_DESCRIBE_RESULT;
 			return TDS_SUCCEED;
 			break;
+		case TDS5_PARAMFMT2_TOKEN:
+			tds5_process_dyn_result2(tds);
+			*result_type = TDS_DESCRIBE_RESULT;
+			return TDS_SUCCEED;
+			break;
 		case TDS5_PARAMS_TOKEN:
 			tds_process_params_result_token(tds);
 			*result_type = TDS_PARAM_RESULT;
@@ -678,6 +689,9 @@ int done_flags;
 				break;
 			case TDS5_PARAMFMT_TOKEN:
 				tds_process_dyn_result(tds);
+				break;
+			case TDS5_PARAMFMT2_TOKEN:
+				tds5_process_dyn_result2(tds);
 				break;
 			case TDS5_PARAMS_TOKEN:
 				tds_process_params_result_token(tds);
@@ -2160,6 +2174,101 @@ TDSDYNAMIC *dyn;
 
 	info->current_row = tds_alloc_row(info);
 	return TDS_SUCCEED;
+}
+
+/**
+ *  New TDS 5.0 token for describing output parameters
+ */
+static void
+tds5_process_dyn_result2(TDSSOCKET * tds)
+{
+	int hdrsize;
+	int col, num_cols;
+	TDSCOLINFO *curcol;
+	TDSPARAMINFO *info;
+	TDSDYNAMIC *dyn;
+
+	hdrsize = tds_get_int(tds);
+	num_cols = tds_get_smallint(tds);
+
+	if (tds->cur_dyn) {
+		dyn = tds->cur_dyn;
+		tds_free_param_results(dyn->res_info);
+		/* read number of columns and allocate the columns structure */
+		dyn->res_info = tds_alloc_results(num_cols);
+		info = dyn->res_info;
+	} else {
+		tds_free_param_results(tds->param_info);
+		tds->param_info = tds_alloc_results(num_cols);
+		info = tds->param_info;
+	}
+	tds->curr_resinfo = info;
+
+	for (col = 0; col < info->num_cols; col++) {
+		curcol = info->columns[col];
+
+		/* TODO reuse tds_get_data_info code, sligthly different */
+
+		/* column name */
+		curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name));
+		curcol->column_name[curcol->column_namelen] = '\0';
+
+		/* column status */
+		curcol->column_flags = tds_get_int(tds);
+		curcol->column_nullable = (curcol->column_flags & 0x20) > 0;
+
+		/* user type */
+		curcol->column_usertype = tds_get_int(tds);
+
+		/* column type */
+		tds_set_column_type(curcol, tds_get_byte(tds));
+
+		/* FIXME this should be done by tds_set_column_type */
+		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
+		/* column size */
+		switch (curcol->column_varint_size) {
+		case 5:
+			curcol->column_size = tds_get_int(tds);
+			break;
+		case 4:
+			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
+				curcol->column_size = tds_get_int(tds);
+				/* read table name */
+				curcol->table_namelen = tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name));
+			} else
+				tdsdump_log(TDS_DBG_INFO1, "%L UNHANDLED TYPE %x\n", curcol->column_type);
+			break;
+		case 2:
+			curcol->column_size = tds_get_smallint(tds);
+			break;
+		case 1:
+			curcol->column_size = tds_get_byte(tds);
+			break;
+		case 0:
+			break;
+		}
+
+		/* numeric and decimal have extra info */
+		if (is_numeric_type(curcol->column_type)) {
+			curcol->column_prec = tds_get_byte(tds);	/* precision */
+			curcol->column_scale = tds_get_byte(tds);	/* scale */
+		}
+
+		/* discard Locale */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+
+		tds_add_row_column_size(info, curcol);
+
+		tdsdump_log(TDS_DBG_INFO1, "%L elem %d:\n", col);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_name=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d, unicode=%d\n",
+			    curcol->column_flags,
+			    curcol->column_usertype, curcol->column_type, curcol->column_varint_size, curcol->column_unicodedata);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
+			    curcol->column_size, curcol->column_prec, curcol->column_scale);
+	}
+
+	info->current_row = tds_alloc_row(info);
 }
 
 /**
