@@ -1,3 +1,11 @@
+Fri Aug 16 10:26:12 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	+ src/tds/convert.c:
+	- rewritten tds_atoi (to string_to_int), because atoi
+	return 0 on bad string (such as "foo"), also work on
+	unterminated string and do test on number overflow
+	- check for overflow converting between int types
+	- add test check to test conversion from char to int
+
 Fri Aug 16 08:05:42 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	+ src/tds/convert.c: converting from bit:
 	- return correct values

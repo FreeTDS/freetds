@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.38 2002-08-16 06:08:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.39 2002-08-16 08:29:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -53,6 +53,11 @@ extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
 static int  string_to_numeric(char *instr, CONV_RESULT *cr);
+/**
+ * convert a number in string to TDS_INT return TDS_FAIL if failure
+ */
+static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
+
 static int  store_hour(char *, char *, struct tds_time *);
 static int  store_time(char *, struct tds_time * );
 static int  store_yymmdd_date(char *, struct tds_time *);
@@ -71,10 +76,8 @@ static TDS_UINT utf16len(const utf16_t* s);
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern int g__numeric_bytes_per_prec[];
 
-static int tds_atoi(const char *buf);
-#define atoi(x) tds_atoi((x))
-
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
+#define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -254,6 +257,7 @@ char         mynumber[39];
 
 char *ptr;
 int point_found, places;
+TDS_INT tds_i;
 
    
    switch(desttype) {
@@ -349,18 +353,26 @@ int point_found, places;
          return (srclen / 2);
          break;
       case SYBINT1:
-	 	if( IS_TINYINT( atoi(src) ) ) {
-	         cr->ti = atoi(src);
+		if (string_to_int(src,src + srclen,&tds_i) == TDS_FAIL)
+			return TDS_FAIL;
+		if( IS_TINYINT( tds_i ) ) {
+			cr->ti = tds_i;
      	    return 1;
 		}
-		return 0;
+		return TDS_FAIL;
          break;
       case SYBINT2:
-         cr->si = atoi(src);
+		if (string_to_int(src,src + srclen,&tds_i) == TDS_FAIL)
+			return TDS_FAIL;
+		if ( !IS_SMALLINT(tds_i) )
+			return TDS_FAIL;
+		cr->si = tds_i;
          return 2;
          break;
       case SYBINT4:
-         cr->i = atoi(src);
+		if (string_to_int(src,src + srclen,&tds_i) == TDS_FAIL)
+			return TDS_FAIL;
+		cr->i = tds_i;
          return 4;
          break;
       case SYBFLT8:
@@ -373,7 +385,9 @@ int point_found, places;
          break;
       case SYBBIT:
       case SYBBITN:
-         cr->ti = (atoi(src)>0) ? 1 : 0;
+		if (string_to_int(src,src + srclen,&tds_i) == TDS_FAIL)
+			return TDS_FAIL;
+		cr->ti = tds_i ? 1 : 0;
          return 1;
          break;
       case SYBMONEY:
@@ -567,6 +581,8 @@ TDS_CHAR tmp_str[16];
             return strlen(tmp_str);
 			break;
 		case SYBINT1:
+			if (!IS_TINYINT(buf))
+				return TDS_FAIL;
 			cr->ti = buf;
             return 1;
 			break;
@@ -623,10 +639,14 @@ TDS_CHAR tmp_str[16];
             return strlen(tmp_str);
 			break;
 		case SYBINT1:
+			if (!IS_TINYINT(buf))
+				return TDS_FAIL;
 			cr->ti = buf;
             return 1;
 			break;
 		case SYBINT2:
+			if ( !IS_SMALLINT(buf) )
+				return TDS_FAIL;
 			cr->si = buf;
             return 2;
 			break;
@@ -2450,35 +2470,69 @@ int i;
  * n.b. it is possible to embed all sorts of non-printable characters, but we
  * only check for spaces.  at this time, no one on the project has tested anything else.  
  */
-#undef atoi
-int
-tds_atoi(const char *buf)
+static TDS_INT
+string_to_int(const char *buf,const char *pend,TDS_INT* res)
 {
 enum { blank = ' ' };
-char *s;
 const char *p;
-int 	i;
+int	sign;
+unsigned int num; /* we use unsigned here for best overflow check */
 	
-	s = strchr( buf, blank );
-	if( !s )
-		return atoi(buf);
+	p = buf;
 	
-	while( *s++ == blank );		/* ignore trailing */
-	
-	if( *s == '\0' )
-		return atoi(buf);
-	
-	s = (char*) malloc( strlen(buf) );
-	
-	for( i=0, p=buf; *p != '\0'; p++ ) {
-		if( *p != blank )
-			s[i++] = *p;
+	/* ignore leading spaces */
+	while( p != pend && *p == blank )
+		++p;
+	if (p==pend) return TDS_FAIL;
+
+	/* check for sign */
+	sign = 0;
+	switch ( *p ) {
+	case '-':
+		sign = 1;
+		/* fall thru */
+	case '+':
+		/* skip spaces between sign and number */
+		++p;
+		while( p != pend && *p == blank )
+			++p;
+		break;
 	}
-	s[i] = '\0';
 	
-	i = atoi(s);
-	free(s);
+	/* a digit must be present */
+	if (p == pend )
+		return TDS_FAIL;
+
+	num = 0;
+	for(;p != pend;++p) {
+		/* check for trailing spaces */
+		if (*p == blank) {
+			while( p != pend && *++p == blank);
+			if (p!=pend) return TDS_FAIL;
+			break;
+		}
 	
-	return i;
+		/* must be a digit */
+		if (!isdigit(*p))
+			return TDS_FAIL;
+	
+		/* add a digit to number and check for overflow */
+		if (num > 214748364u)
+			return TDS_FAIL;
+		num = num * 10u + (*p-'0');
+	}
+	
+	/* check for overflow and convert unsigned to signed */
+	if (sign) {
+		if (num > 2147483648u)
+			return TDS_FAIL;
+		*res = 0 - num;
+	} else {
+		if (num >= 2147483648u)
+			return TDS_FAIL;
+		*res = num;
+	}
+	
+	return TDS_SUCCEED;
 }
 
