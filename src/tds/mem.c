@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.61 2003-03-23 20:13:51 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.62 2003-03-24 10:03:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -730,31 +730,30 @@ tds_free_msg(TDSMSGINFO *msg_info)
 char *tds_alloc_lookup_sqlstate(TDSSOCKET *tds, int msgnum)
 {
 char *p = NULL;
-if (TDS_IS_MSSQL(tds))
-	{
-	switch(msgnum) // MSSQL Server
-		{
-		SQLS_ENTRY(8153,"01003");   // Null in aggregate
-		SQLS_ENTRY(512,"21000");	// Subquery returns more than one value
-		SQLS_ENTRY(213,"21S01");	// Insert column list mismatch
-		SQLS_ENTRY(1774,"21S02");	// Ref column mismatch
-		SQLS_ENTRY(8152,"22001");	// String data would be truncated
-		SQLS_ENTRY(5146,"22003");	// Numeric value out of range
-		SQLS_ENTRY(220,"22003");	// Arithmetic overflow
+
+	if (TDS_IS_MSSQL(tds)) {
+		switch(msgnum) { /* MSSQL Server */
+		SQLS_ENTRY(8153,"01003");	/* Null in aggregate */
+		SQLS_ENTRY(512,"21000");	/* Subquery returns more than one value */
+		SQLS_ENTRY(213,"21S01");	/* Insert column list mismatch */
+		SQLS_ENTRY(1774,"21S02");	/* Ref column mismatch */
+		SQLS_ENTRY(8152,"22001");	/* String data would be truncated */
+		SQLS_ENTRY(5146,"22003");	/* Numeric value out of range */
+		SQLS_ENTRY(220,"22003");	/* Arithmetic overflow */
 		SQLS_ENTRY(232,"22003");
 		SQLS_ENTRY(3606,"22003");
 		SQLS_ENTRY(8115,"22003");
-		SQLS_ENTRY(210,"22007");	// Invalid datetime format
+		SQLS_ENTRY(210,"22007");	/* Invalid datetime format */
 		SQLS_ENTRY(241,"22007");
 		SQLS_ENTRY(295,"22007");
-		SQLS_ENTRY(242,"22008");	// Datetime out of range
+		SQLS_ENTRY(242,"22008");	/* Datetime out of range */
 		SQLS_ENTRY(296,"22008");
 		SQLS_ENTRY(298,"22008");
 		SQLS_ENTRY(535,"22008");
 		SQLS_ENTRY(542,"22008");
-		SQLS_ENTRY(3607,"22012");	// Div by zero
+		SQLS_ENTRY(3607,"22012");	/* Div by zero */
 		SQLS_ENTRY(8134,"22012");
-		SQLS_ENTRY(2627,"23000");	// Constraint violation
+		SQLS_ENTRY(2627,"23000");	/* Constraint violation */
 		SQLS_ENTRY(547,"23000");
 		SQLS_ENTRY(550,"23000");
 		SQLS_ENTRY(4415,"23000");
@@ -767,12 +766,12 @@ if (TDS_IS_MSSQL(tds))
 		SQLS_ENTRY(10065,"23000");
 		SQLS_ENTRY(11011,"23000");
 		SQLS_ENTRY(11040,"23000");
-		SQLS_ENTRY(16999,"24000");	// Invalid cursor state
+		SQLS_ENTRY(16999,"24000");	/* Invalid cursor state */
 		SQLS_ENTRY(16905,"24000");
 		SQLS_ENTRY(16917,"24000");
 		SQLS_ENTRY(16946,"24000");
 		SQLS_ENTRY(16950,"24000");
-		SQLS_ENTRY(17308,"42000");	// Syntax/Access violation
+		SQLS_ENTRY(17308,"42000");	/* Syntax/Access violation */
 		SQLS_ENTRY(17571,"42000");
 		SQLS_ENTRY(18002,"42000");
 		SQLS_ENTRY(229,"42000");
@@ -800,42 +799,39 @@ if (TDS_IS_MSSQL(tds))
 		SQLS_ENTRY(20604,"42000");
 		SQLS_ENTRY(21049,"42000");
 		SQLS_ENTRY(113,"42000");
-		SQLS_ENTRY(2714,"42S01");	// Table or view already exists
-		SQLS_ENTRY(208,"42S02");	// Table or view not found
-		SQLS_ENTRY(1913,"42S11");	// Index already exists
+		SQLS_ENTRY(2714,"42S01");	/* Table or view already exists */
+		SQLS_ENTRY(208,"42S02");	/* Table or view not found */
+		SQLS_ENTRY(1913,"42S11");	/* Index already exists */
 		SQLS_ENTRY(15605,"42S11");
-		SQLS_ENTRY(307,"42S12");	// Index not found
+		SQLS_ENTRY(307,"42S12");	/* Index not found */
 		SQLS_ENTRY(308,"42S12");
 		SQLS_ENTRY(10033,"42S12");
 		SQLS_ENTRY(15323,"42S12");
 		SQLS_ENTRY(18833,"42S12");
-		SQLS_ENTRY(4925,"42S21"); // Column already exists
+		SQLS_ENTRY(4925,"42S21");	/* Column already exists */
 		SQLS_ENTRY(21255,"42S21");
-		SQLS_ENTRY(1911,"42S22"); // Column not found
+		SQLS_ENTRY(1911,"42S22");	/* Column not found */
 		SQLS_ENTRY(4924,"42S22");
 		SQLS_ENTRY(4926,"42S22");
 		SQLS_ENTRY(15645,"42S22");
 		SQLS_ENTRY(21166,"42S22");
 		}
-	}
-else
-	{
-	switch(msgnum) // Sybase
-		{
-		SQLS_ENTRY(9501,"01003");   // Null in aggregate
-		SQLS_ENTRY(512,"21000");	// Subquery returns more than one value
-		SQLS_ENTRY(213,"21S01");	// Insert column list mismatch
-		SQLS_ENTRY(1715,"21S02");	// Ref column mismatch
-		SQLS_ENTRY(9502,"22001");	// String data would be truncated
-		SQLS_ENTRY(220,"22003");	// Arithmetic overflow
+	} else {
+		switch(msgnum) { /* Sybase */
+		SQLS_ENTRY(9501,"01003");	/* Null in aggregate */
+		SQLS_ENTRY(512,"21000");	/* Subquery returns more than one value */
+		SQLS_ENTRY(213,"21S01");	/* Insert column list mismatch */
+		SQLS_ENTRY(1715,"21S02");	/* Ref column mismatch */
+		SQLS_ENTRY(9502,"22001");	/* String data would be truncated */
+		SQLS_ENTRY(220,"22003");	/* Arithmetic overflow */
 		SQLS_ENTRY(227,"22003");
 		SQLS_ENTRY(232,"22003");
 		SQLS_ENTRY(247,"22003");
 		SQLS_ENTRY(3606,"22003");
-		SQLS_ENTRY(535,"22008");	// Datetime out of range
+		SQLS_ENTRY(535,"22008");	/* Datetime out of range */
 		SQLS_ENTRY(542,"22008");
-		SQLS_ENTRY(3607,"22012");	// Div by zero
-		SQLS_ENTRY(544,"23000");	// Constraint violation
+		SQLS_ENTRY(3607,"22012");	/* Div by zero */
+		SQLS_ENTRY(544,"23000");	/* Constraint violation */
 		SQLS_ENTRY(545,"23000");
 		SQLS_ENTRY(546,"23000");
 		SQLS_ENTRY(547,"23000");
@@ -844,7 +840,7 @@ else
 		SQLS_ENTRY(550,"23000");
 		SQLS_ENTRY(1505,"23000");
 		SQLS_ENTRY(1508,"23000");
-		SQLS_ENTRY(565,"24000");	// Invalid cursor state
+		SQLS_ENTRY(565,"24000");	/* Invalid cursor state */
 		SQLS_ENTRY(558,"24000");
 		SQLS_ENTRY(559,"24000");
 		SQLS_ENTRY(6235,"24000");
@@ -852,7 +848,7 @@ else
 		SQLS_ENTRY(6259,"24000");
 		SQLS_ENTRY(6260,"24000");
 		SQLS_ENTRY(562,"24000");
-		SQLS_ENTRY(229,"42000");	// Syntax/Access violation
+		SQLS_ENTRY(229,"42000");	/* Syntax/Access violation */
 		SQLS_ENTRY(230,"42000");
 		SQLS_ENTRY(262,"42000");
 		SQLS_ENTRY(4602,"42000");
@@ -872,28 +868,27 @@ else
 		SQLS_ENTRY(18350,"42000");
 		SQLS_ENTRY(18351,"42000");
 		SQLS_ENTRY(113,"42000");
-		SQLS_ENTRY(2714,"42S01");	// Table or view already exists
-		SQLS_ENTRY(208,"42S02");	// Table or view not found
-		SQLS_ENTRY(1913,"42S11");	// Index already exists
-		SQLS_ENTRY(307,"42S12");	// Index not found
+		SQLS_ENTRY(2714,"42S01");	/* Table or view already exists */
+		SQLS_ENTRY(208,"42S02");	/* Table or view not found */
+		SQLS_ENTRY(1913,"42S11");	/* Index already exists */
+		SQLS_ENTRY(307,"42S12");	/* Index not found */
 		SQLS_ENTRY(7010,"42S12");
 		SQLS_ENTRY(18091,"42S12");
-		SQLS_ENTRY(1921,"42S21");	// Column already exists
-		SQLS_ENTRY(1720,"42S22");	// Column not found
+		SQLS_ENTRY(1921,"42S21");	/* Column already exists */
+		SQLS_ENTRY(1720,"42S22");	/* Column not found */
 		SQLS_ENTRY(4934,"42S22");
 		SQLS_ENTRY(18117,"42S22");
 		}
 	}
 
-if (p != NULL && (p = strdup(p)) != NULL)
-	{
-	// Convert known ODBC 3.x states listed above to 2.x
-	if (p[0] == '4' && p[1] == '2' && p[2] == 'S'){
-	    p[0] =  'S';   p[1] =  '0';   p[2] =  '0';}
+	if (p != NULL && (p = strdup(p)) != NULL) {
+		/* FIXME correct here ?? */
+		/* Convert known ODBC 3.x states listed above to 2.x */
+		if (memcmp(p, "42S" , 3) == 0)
+			memcpy(p, "S00", 3);
 
-	return p;
+		return p;
 	}
-else
 	return NULL;
 }
 

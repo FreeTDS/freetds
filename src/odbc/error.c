@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.10 2003-03-23 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.11 2003-03-24 10:03:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -331,26 +331,24 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		stmt = ((TDS_STMT *) handle);
 		dbc = stmt->hdbc;
 		env = dbc->henv;
-		odbc_ver = env->odbc_ver;
 		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
 		env = dbc->henv;
-		odbc_ver = env->odbc_ver;
 		errs = &dbc->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
 		env = ((TDS_ENV *) handle);
-		odbc_ver = env->odbc_ver;
 		errs = &env->errs;
 		break;
 
 	default:
 		return SQL_INVALID_HANDLE;
 	}
+	odbc_ver = env->odbc_ver;
 
 	/* header (numRecord ignored) */
 	switch (diagIdentifier) {
@@ -394,7 +392,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			return SQL_ERROR;
 
 		/* FIXME I'm not sure this is correct.*/
-		if (stmt != NULL && stmt->hdbc != NULL && stmt->hdbc->tds_socket != NULL) {
+		if (stmt->hdbc != NULL && stmt->hdbc->tds_socket != NULL) {
 			tsock = stmt->hdbc->tds_socket;
 			if (tsock->rows_affected == TDS_NO_COUNT) {
 				/* FIXME use row_count ?? */
@@ -439,14 +437,16 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		*(SQLINTEGER *) buffer = SQL_COLUMN_NUMBER_UNKNOWN;
 		break;
 
-#ifdef WIN32			// Is this ok for unix?
+#ifdef SQL_DIAG_SS_MSGSTATE
 	case SQL_DIAG_SS_MSGSTATE:
 		if (errs->errs[numRecord].msgstate == 0)
 			return SQL_ERROR;
 		else
 			*(SQLINTEGER *) buffer = errs->errs[numRecord].msgstate;
 		break;
+#endif
 
+#ifdef SQL_DIAG_SS_LINE
 	case SQL_DIAG_SS_LINE:
 		if (errs->errs[numRecord].linenum == 0)
 			return SQL_ERROR;

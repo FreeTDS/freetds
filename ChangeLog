@@ -1,3 +1,10 @@
+Mon Mar 24 11:01:20 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c:
+	- small fixes
+	* src/tds/mem.c:
+	- remove c++ style comments
+	- reindent
+	
 Sun Mar 23 22:03:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsodbc.h src/odbc/error.c:
 	- remove some warnings
