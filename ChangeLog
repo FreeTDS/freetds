@@ -1,3 +1,8 @@
+Mon Mar 15 10:25:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/replacements/vasprintf.c:
+	- fix bus error on machine where malloc(0) is a problem and
+	  vsnprintf return -1 on insufficient buffer
+
 Sat Mar 06 14:59:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- fix invalid cursor state on SQLRowCount
