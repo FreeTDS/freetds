@@ -1,3 +1,6 @@
+Fri Apr  4 15:27:39 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c implement dbmorecmds(). 
+
 Thu Apr 03 22:16:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/connectparams.h:
 	- avoid allocating memory for all string

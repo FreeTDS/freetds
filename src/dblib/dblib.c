@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.138 2003-04-01 21:43:16 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.139 2003-04-04 20:30:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1222,6 +1222,11 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 		return FAIL;
 
 	done = 0;
+
+	if (dbproc->dbresults_state & DBRESCMDS) {
+		dbproc->dbresults_state &= ~DBRESCMDS;
+		return dbproc->dbresults_retcode;
+	}
 
 	while (!done && (retcode = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 		tdsdump_log(TDS_DBG_FUNC, "%L inside dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
@@ -4844,8 +4849,8 @@ dbcurcmd(DBPROCESS * dbproc)
 	return 0;
 }
 
-/** \internal
- * \ingroup dblib_internal
+/** 
+ * \ingroup dblib_api
  * \brief See if more commands are to be processed.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4854,6 +4859,23 @@ dbcurcmd(DBPROCESS * dbproc)
 RETCODE
 dbmorecmds(DBPROCESS * dbproc)
 {
+	RETCODE rc;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside dbmorecmds()\n");
+
+	/*
+ 	 * Call dbresults, stow its return code and mark its state as "already called".  
+	 * Then return an interpretation of the return code. 
+	 * When the caller follows up with dbresults(), it will return the saved return code immediately.  
+	 */
+	
+	rc = dbresults_r(dbproc, 0);
+
+	dbproc->dbresults_state |= DBRESCMDS;
+	dbproc->dbresults_retcode = rc;
+
+	return (rc == SUCCEED)? SUCCEED : FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmorecmds()\n");
 	return SUCCEED;
 }

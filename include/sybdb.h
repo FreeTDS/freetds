@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.46 2003-04-03 08:59:15 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.47 2003-04-04 20:30:19 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -105,6 +105,7 @@ static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn 
 #define DBRESINIT 0
 #define DBRESSUCC 1
 #define DBRESDONE 2
+#define DBRESCMDS 0x80
 
 typedef int RETCODE;
 
@@ -353,6 +354,7 @@ typedef struct
 	int noautofree;
 	int more_results;	/* boolean.  Are we expecting results? */
 	int dbresults_state;
+	int dbresults_retcode;
 	BYTE *user_data;	/* see dbsetuserdata() and dbgetuserdata() */
 	unsigned char *dbbuf;	/* is dynamic!                   */
 	int dbbufsz;
