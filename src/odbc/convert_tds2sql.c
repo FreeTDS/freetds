@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2003-2004  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -41,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.37 2003-11-13 13:52:52 jklowden Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.38 2004-03-08 12:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -67,6 +68,29 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
 	assert(desttype != SQL_C_DEFAULT);
+
+	/* special case for binary type */
+	if (desttype == SQL_C_BINARY) {
+		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %d \n", destlen);
+
+		if (is_numeric_type(srctype)) {
+			desttype = SQL_C_NUMERIC;
+		} else {
+			ret = srclen;
+			if (destlen > 0) {
+				cplen = (destlen > srclen) ? srclen : destlen;
+				assert(cplen >= 0);
+				/* do not NULL terminate binary buffer */
+				memcpy(dest, src, cplen);
+			} else {
+				/* if destlen == 0 we return only length */
+				if (destlen != 0)
+					ret = TDS_FAIL;
+			}
+			return ret;
+		}
+	}
+
 	nDestSybType = odbc_c_to_server_type(desttype);
 	if (nDestSybType == TDS_FAIL)
 		return TDS_CONVERT_NOAVAIL;
@@ -233,22 +257,8 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 #endif
 
 	case SQL_C_BINARY:
-		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %d \n", destlen);
-
-		ret = nRetVal;
-		if (destlen > 0) {
-			cplen = (destlen > nRetVal) ? nRetVal : destlen;
-			assert(cplen >= 0);
-			/* do not NULL terminate binary buffer */
-			memcpy(dest, ores.ib, cplen);
-		} else {
-			/* if destlen == 0 we return only length */
-			if (destlen != 0)
-				ret = TDS_FAIL;
-		}
-
-		free(ores.ib);
-		break;
+		/* type already handled */
+		assert(desttype != SQL_C_BINARY);
 
 	default:
 		break;

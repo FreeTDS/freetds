@@ -1,3 +1,7 @@
+Mon Mar 08 13:42:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_tds2sql.c src/odbc/unittests/genparams.c:
+	- fixed conversions from server to binary type
+
 Mon Mar 08 11:38:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fixed row counts problem in prepared
 	* src/odbc/unittests/moreandcount.c:

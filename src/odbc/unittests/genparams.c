@@ -3,7 +3,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.6 2004-02-23 07:07:01 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.7 2004-03-08 12:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -141,23 +141,27 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 int
 main(int argc, char *argv[])
 {
-	int test = 1;
 	int big_endian = 1;
 
 	Connect();
 
 	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
-	
-	if (((char*)&test)[0] == 1)
+
+	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
-	Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
+	/* MS driver behavior for output parameters is different */
+	if (driver_is_freetds())
+		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
+	else
+		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
 	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
-	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FB9640" : "979400004096FB00");
+	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
+	     big_endian ? "0000949700FB9640" : "979400004096FB00");
 
 	Disconnect();
 
