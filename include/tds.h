@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.39 2002-11-05 13:11:05 freddy77 Exp $";
+	"$Id: tds.h,v 1.40 2002-11-05 16:08:47 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -546,15 +546,6 @@ typedef struct tds_param_info {
 	unsigned char *current_row;
 } TDSPARAMINFO;
 
-/*
-typedef struct tds_input_param {
-	TDS_SMALLINT column_type;
-	TDS_CHAR *varaddr;
-	TDS_UINT column_bindlen;
-	TDS_CHAR is_null;
-} TDSINPUTPARAM;
-*/
-
 typedef struct tds_msg_info {
       TDS_SMALLINT priv_msg_type;
       TDS_SMALLINT line_number;
@@ -583,8 +574,6 @@ typedef struct tds_dynamic {
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
 	TDSRESULTINFO *res_info;
-/*	int num_params;
-	TDSINPUTPARAM **params; */
 	TDSPARAMINFO *new_params;
 } TDSDYNAMIC;
 
@@ -696,7 +685,6 @@ TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale);
 TDSLOCINFO *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCINFO *locale);
 int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
-/* TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn); */
 void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);
 void tds_set_passwd(TDSLOGIN *tds_login, const char *password);

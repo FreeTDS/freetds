@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.47 2002-11-05 08:06:57 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.48 2002-11-05 16:08:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -116,41 +116,6 @@ TDSDYNAMIC **dyns;
 
 	return tds->dyns[tds->num_dyns++];
 }
-
-/** \fn TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
- *  \brief Allocate a dynamic statement.
- *  \param dyn the dynamic statement to bind this parameter to.
- *  \return a pointer to the allocated structure (NULL on failure).
- *
- *  tds_add_input_param adds a parameter to a dynamic statement.
- */
-/* TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
-{
-TDSINPUTPARAM *param;
-TDSINPUTPARAM **params;
-
-	param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
-	if (!param) return NULL;
-	memset(param,'\0',sizeof(TDSINPUTPARAM));
-
-	if (!dyn->num_params) {
-		params = (TDSINPUTPARAM **) 
-			malloc(sizeof(TDSINPUTPARAM *));
-	} else {
-		params = (TDSINPUTPARAM **) 
-			realloc(dyn->params, 
-			sizeof(TDSINPUTPARAM *) * (dyn->num_params+1));
-	}
-	if (!params) {
-		free(param);
-		return NULL;
-	}
-	dyn->params = params;
-	dyn->params[dyn->num_params] = param;
-	dyn->num_params++;
-	return param;
-}
-*/
 
 /** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
  *  \brief Frees all allocated input parameters of a dynamic statement.
