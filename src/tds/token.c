@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.94 2002-11-05 08:06:57 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.95 2002-11-05 19:48:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1162,9 +1162,8 @@ static int
 tds_get_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i)
 {
 unsigned char *dest;
-TDS_NUMERIC *num;
-TDS_VARBINARY *varbin;
 int len,colsize;
+int fillchar;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
@@ -1210,6 +1209,7 @@ int len,colsize;
 	tds_clr_null(current_row, i);
 
 	if (is_numeric_type(curcol->column_type)) {
+		TDS_NUMERIC *num;
 
 		/* 
 		** handling NUMERIC datatypes: 
@@ -1238,6 +1238,8 @@ int len,colsize;
 		}
 
 	} else if (curcol->column_type == SYBVARBINARY) {
+		TDS_VARBINARY *varbin;
+
 		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
 		varbin->len = colsize;
 		/*  It is important to re-zero out the whole
@@ -1282,6 +1284,21 @@ int len,colsize;
 				return TDS_FAIL;
 			tds_get_n(tds,dest,colsize);
 		}
+
+		/* pad CHAR and BINARY types */
+		fillchar = 0;
+		switch(curcol->column_type) {
+		case SYBCHAR:
+		case XSYBCHAR:
+			fillchar = ' ';
+		case SYBBINARY:
+		case XSYBBINARY:
+			if (colsize < curcol->column_size)
+				memset(dest + colsize, fillchar, curcol->column_size - colsize);
+			colsize = curcol->column_size;
+			break;
+		}
+
 		if (curcol->column_type == SYBDATETIME4) {
 			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}
