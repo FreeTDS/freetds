@@ -1,3 +1,7 @@
+Sun Oct 27 14:08:16 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt include/ctpublic.h src/ctlib/ct.c:
+	- Add stub for ct_cursor().
+
 Sun Oct 27  12:25:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/connectparams.c src/odbc/convert_tds2sql.c:
 	* src/odbc/odbc.c src/tds/config.c src/tds/locale.c TODO:

@@ -276,7 +276,7 @@ ctlib	(all)	ct_con_drop	OK	Deallocate a CS_CONNECTION structure.
 ctlib	(all)	ct_con_props	OK	Set or retrieve connection structure properties.
 ctlib	(all)	ct_config	OK	Set or retrieve context properties.
 ctlib	(all)	ct_connect	OK	Connect to a server.
-ctlib	(all)	ct_cursor		Initiate a Client-Library cursor command.
+ctlib	(all)	ct_cursor	stub	Initiate a Client-Library cursor command.
 ctlib	(all)	ct_data_info		Define or retrieve a data I/O descriptor structure.
 ctlib	(all)	ct_debug		Manage debug library operations.
 ctlib	(all)	ct_describe	OK	Return a description of result data.
