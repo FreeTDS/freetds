@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.43 2002-08-29 19:56:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.44 2002-08-30 00:32:07 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -43,6 +43,7 @@ static void tds_process_dyn_result(TDSSOCKET *tds);
 static int tds_process_dynamic(TDSSOCKET *tds);
 static int tds_process_auth(TDSSOCKET *tds);
 static int tds_get_varint_size(int datatype);
+static int tds_get_cardinal_type(int datatype);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
@@ -697,32 +698,10 @@ int remainder;
 
 		curcol->column_unicodedata = 0;
 
-		switch(curcol->column_type) {
-			case XSYBVARBINARY: 
-				curcol->column_type=SYBVARBINARY;
-				break;
-			case XSYBBINARY: 
-				curcol->column_type=SYBBINARY;
-				break;
-			case XSYBNVARCHAR: 
-				curcol->column_type=SYBVARCHAR;
-				curcol->column_unicodedata = 1;
-				break;
-			case SYBNTEXT:
-				curcol->column_type=SYBTEXT;
-				curcol->column_unicodedata = 1;
-				break;
-			case XSYBVARCHAR: 
-				curcol->column_type=SYBVARCHAR;
-				break;
-			case XSYBNCHAR: 
-				curcol->column_type=SYBCHAR;
-				curcol->column_unicodedata = 1;
-				break;
-			case XSYBCHAR: 
-				curcol->column_type=SYBCHAR;
-				break;
-		}
+		if (is_unicode(curcol->column_type))
+			curcol->column_unicodedata = 1;
+
+		curcol->column_type = tds_get_cardinal_type(curcol->column_type);
 
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
@@ -1704,4 +1683,20 @@ static int tds_get_varint_size(int datatype)
 	}
 }
 
-
+static int tds_get_cardinal_type(int datatype)
+{
+	switch(datatype) {
+		case XSYBVARBINARY: 
+			return SYBVARBINARY;
+		case XSYBBINARY: 
+			return SYBBINARY;
+		case SYBNTEXT:
+			return SYBTEXT;
+		case XSYBNVARCHAR: 
+		case XSYBVARCHAR: 
+			return SYBVARCHAR;
+		case XSYBNCHAR: 
+		case XSYBCHAR: 
+			return SYBCHAR;
+	}
+}

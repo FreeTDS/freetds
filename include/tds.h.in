@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.36 2002-08-29 05:44:19 jklowden Exp $";
+	 "$Id: tds.h.in,v 1.37 2002-08-30 00:32:07 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -311,7 +311,7 @@ sheesh! </rant>
 /* large type means it has a two byte size field */
 #define is_large_type(x) (x>128)
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
-#define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR)
+#define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x == XSYBNVARCHAR || x==SYBNTEXT)
 
 #define TDS_MAX_CAPABILITY	18
