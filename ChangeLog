@@ -1,3 +1,7 @@
+Thu Mar 11 20:21:37 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/testodbc.c src/tds/query.c:
+	- fix test for Sybase
+
 Thu Mar 11 16:43:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* misc/test-dist.sh: small fix
 

@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.131 2004-02-25 07:15:06 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.132 2004-03-11 19:15:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -864,17 +864,36 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 
 	if (!dyn)
 		return TDS_FAIL;
+	/* check is no parameters */
+	if (params &&  !params->num_cols)
+		params = NULL;
+
+	/* TDS 4.2, emulate prepared statements */
+	/*
+	 * TODO Sybase seems to not support parameters in prepared execdirect
+	 * so use language or prepare and then exec
+	 */
+	if (!IS_TDS50(tds) || params) {
+		int ret = TDS_SUCCEED;
+
+		dyn->emulated = 1;
+		dyn->params = params;
+		dyn->query = strdup(query);
+		if (!dyn->query)
+			ret = TDS_FAIL;
+		if (ret != TDS_FAIL)
+			ret = tds_to_quering(tds);
+		if (ret != TDS_FAIL)
+			ret = tds_submit_emulated_execute(tds, dyn);
+		tds_free_dynamic(tds, dyn);
+		return ret;
+	}
+
 	tds->cur_dyn = dyn;
 
 	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
 	tds->internal_sp_called = 0;
-
-	/* TDS 4.2, emulate prepared statements */
-	if (!IS_TDS50(tds)) {
-		dyn->emulated = 1;
-		return tds_submit_emulated_execute(tds, dyn);
-	}
 
 	tds->out_flag = 0x0F;
 
@@ -1979,6 +1998,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	
 	int i;
 	char buf[256];
+	int quote = 0;
 	
 	if (is_blob_type(curcol->column_type))
 		src = ((TDSBLOB *)src)->textvalue;
@@ -2007,13 +2027,18 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	/* TODO date, use iso format */
 	case SYBDATETIME:
 	case SYBDATETIME4:
+	case SYBDATETIMN:
+	case SYBUNIQUE:
+		quote = 1;
 	default:
 		res = tds_convert(tds->tds_ctx, tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
 		if (res < 0)
 			return TDS_FAIL;
-		tds_put_n(tds, "\'", 1);
+		if (quote)
+			tds_put_n(tds, "\'", 1);
 		tds_quote_and_put(tds, cr.c, cr.c + res);
-		tds_put_n(tds, "\'", 1);
+		if (quote)
+			tds_put_n(tds, "\'", 1);
 		free(cr.c);
 	}
 	return TDS_SUCCEED;

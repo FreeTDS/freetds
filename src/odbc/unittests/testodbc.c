@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.5 2004-03-11 12:21:30 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.6 2004-03-11 19:15:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -120,10 +120,10 @@ TestRawODBCPreparedQuery(void)
 
 	Command(Statement, "CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
-		"ProductName nvarchar (40) ,"
+		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
 		"CategoryID int NULL ,"
-		"QuantityPerUnit nvarchar (20)  ,"
+		"QuantityPerUnit varchar (20)  ,"
 		"UnitPrice money NULL ,"
 		"UnitsInStock smallint NULL ,"
 		"UnitsOnOrder smallint NULL ,"
@@ -211,10 +211,10 @@ TestRawODBCDirectQuery(void)
 
 	Command(Statement, "CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
-		"ProductName nvarchar (40) ,"
+		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
 		"CategoryID int NULL ,"
-		"QuantityPerUnit nvarchar (20)  ,"
+		"QuantityPerUnit varchar (20)  ,"
 		"UnitPrice money NULL ,"
 		"UnitsInStock smallint NULL ,"
 		"UnitsOnOrder smallint NULL ,"
@@ -228,7 +228,7 @@ TestRawODBCDirectQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
 	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
-	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierId = ?");
+	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
@@ -294,6 +294,11 @@ TestRawODBCGuid(void)
 	AB_FUNCT(("TestRawODBCGuid (in)"));
 
 	Connect();
+	
+	if (!db_is_microsoft()) {
+		Disconnect();
+		return TRUE;
+	}
 
 	AB_PRINT(("Creating #pet table"));
 
