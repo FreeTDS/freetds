@@ -1,3 +1,7 @@
+Mon Aug 26 16:17:12 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- add comment for not add 0x for binary->char conversions
+
 Sun Aug 25 09:34:34 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c:
 	- best conversion from unicode, replace wrong characters with '?'

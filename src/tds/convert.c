@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.52 2002-08-23 19:36:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.53 2002-08-26 14:18:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -208,6 +208,9 @@ char hex2[3];
       case SYBCHAR:
       case SYBVARCHAR:
       case SYBTEXT:
+
+	 /* NOTE: do not return 0x on string, all library require no 0x 
+	  * prefix. isql/query analizer add automatically 0x */
 
          /* 2 * source length + 1 for terminator */
 
