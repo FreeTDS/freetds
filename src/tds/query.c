@@ -29,7 +29,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.25 2002-10-05 14:49:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.26 2002-10-07 17:51:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -405,7 +405,7 @@ int
 tds_get_dynid(TDSSOCKET *tds,char **id)
 {
 	inc_num = (inc_num+1) & 0xffff;
-	if (asprintf(id,"dyn%x_%d",(int)tds,inc_num)<0) return TDS_FAIL;
+	if (asprintf(id,"dyn%lx_%d",(long)tds,inc_num)<0) return TDS_FAIL;
 	return TDS_SUCCEED;
 }
 

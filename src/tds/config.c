@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.37 2002-10-02 21:00:33 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.38 2002-10-07 17:51:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -197,13 +197,14 @@ int found = 0;
 }
 static int tds_read_conf_sections(FILE *in, char *server, TDSCONFIGINFO *config)
 {
-char *section;
+unsigned char *section;
 int i, found = 0;
 
 	tds_read_conf_section(in, "global", config);
 	rewind(in);
 	section = strdup(server);
-	for (i=0;i<strlen(section);i++) section[i]=tolower(section[i]);
+	for (i = 0; i < strlen(section); i++)
+		section[i] = tolower(section[i]);
 	found = tds_read_conf_section(in, section, config);
 	free(section);
 
@@ -225,9 +226,10 @@ static int tds_config_boolean(char *value)
 
 static int tds_read_conf_section(FILE *in, char *section, TDSCONFIGINFO *config)
 {
-char line[256], option[256], value[256], *s;
+char line[256], option[256], value[256];
+unsigned char *s;
+unsigned char p;
 int i;
-char p;
 int insection = 0;
 char tmp[256];
 int found = 0;
@@ -686,7 +688,7 @@ static void search_interface_file(
    char       *tds_ver) /* (O) Protocol version to use when connecting   */
 {
 char  *pathname;
-char  line[255];
+unsigned char line[255];
 char  tmp_ip[sizeof(line)];
 char  tmp_port[sizeof(line)];
 char  tmp_ver[sizeof(line)];

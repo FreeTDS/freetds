@@ -42,7 +42,7 @@ test(int srctype, void *srcdata, int srclen, int dsttype, int dstlen)
 	sprintf(out,"len=%d",len);
 	p = s;
 	for(i=0; i<sizeof(buf); ++i) {
-		*p++ = isprint(buf[i])?buf[i]:'.';
+		*p++ = isprint((unsigned char) buf[i])?buf[i]:'.';
 		sprintf(strchr(out,0)," %02X",(unsigned char)buf[i]);
 	}
 	*p = 0;

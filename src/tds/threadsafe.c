@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.10 2002-10-02 19:31:27 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.11 2002-10-07 17:51:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -70,7 +70,7 @@ struct tm res;
 	strftime(str, maxlen - 6, "%Y-%m-%d %H:%M:%S", tm);
 
 #if HAVE_GETTIMEOFDAY
-	sprintf(usecs, ".%06lu", tv.tv_usec);
+	sprintf(usecs, ".%06lu", (long) tv.tv_usec);
 	strcat(str, usecs);
 #endif
 

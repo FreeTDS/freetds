@@ -152,7 +152,7 @@ char message[128];
 			gettimeofday(&stop,NULL);
 			sprintf(message,"Total time for processing %d rows: %ld msecs\n", 
 				rows, 
-				((stop.tv_sec - start.tv_sec) * 1000) + 
+				(long) ((stop.tv_sec - start.tv_sec) * 1000) + 
 				((stop.tv_usec -  start.tv_usec) / 1000));
 			tds_client_msg(tds->tds_ctx, tds, 1, 1, 1, 1, message);
 		 }
