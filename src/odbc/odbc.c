@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.240 2003-08-31 14:22:19 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.241 2003-08-31 14:38:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3238,41 +3238,15 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 SQLRETURN SQL_API
 SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
-	return (_SQLGetConnectAttr(hdbc, Attribute, Value, BufferLength, StringLength));
+	return _SQLGetConnectAttr(hdbc, Attribute, Value, BufferLength, StringLength);
 }
 #endif
 
-/* TODO is this OK ??? see function below */
 SQLRETURN SQL_API
 SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 {
-	return (_SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_IS_POINTER, NULL));
+	return _SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL);
 }
-
-#if 0
-SQLRETURN SQL_API
-SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
-{
-	/* TODO implement more options
-	 * AUTOCOMMIT required by DBD::ODBC
-	 */
-	INIT_HDBC;
-
-	switch (fOption) {
-	case SQL_AUTOCOMMIT:
-		*((SQLUINTEGER *) pvParam) = dbc->autocommit_state;
-		ODBC_RETURN(dbc, SQL_SUCCESS);
-	case SQL_TXN_ISOLATION:
-		*((SQLUINTEGER *) pvParam) = SQL_TXN_READ_COMMITTED;
-		ODBC_RETURN(dbc, SQL_SUCCESS);
-	default:
-		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetConnectOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&dbc->errs, "HY000", "Statement option not implemented", NULL);
-		ODBC_RETURN(dbc, SQL_ERROR);
-	}
-	ODBC_RETURN(dbc, SQL_SUCCESS);
-}
-#endif
 
 SQLRETURN SQL_API
 SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLINTEGER cbValueMax,
@@ -4567,34 +4541,14 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 SQLRETURN SQL_API
 SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	return (_SQLSetConnectAttr(hdbc, Attribute, ValuePtr, StringLength));
+	return _SQLSetConnectAttr(hdbc, Attribute, ValuePtr, StringLength);
 }
 
 SQLRETURN SQL_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 {
-	return (_SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, 0));
+	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
-
-/* TODO correct code above ??? see documentation */
-#if 0
-SQLRETURN SQL_API
-SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
-{
-	INIT_HDBC;
-
-	switch (fOption) {
-	case SQL_AUTOCOMMIT:
-		/* spinellia@acm.org */
-		return SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) vParam, 0);
-	default:
-		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&dbc->errs, "HY092", NULL, NULL);
-		ODBC_RETURN(dbc, SQL_ERROR);
-	}
-	ODBC_RETURN(dbc, SQL_SUCCESS);
-}
-#endif
 
 static SQLRETURN SQL_API
 _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)

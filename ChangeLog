@@ -1,3 +1,6 @@
+Sun Aug 31 16:37:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: cleanup and small updates
+
 Sun Aug 31 16:22:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- more work on SQLSetStmtAttr
