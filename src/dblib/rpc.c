@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.24 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.25 2004-03-25 19:10:54 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -119,7 +119,24 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 }
 
 /**
- * Add a parameter to a remote procedure call. 
+ * \ingroup dblib_api
+ * \brief Add a parameter to a remote procedure call.
+ * Call between dbrpcinit() and dbrpcsend()
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param paramname literal name of the parameter, according to the stored procedure (starts with '@').  Optional.  
+ *        If not used, parameters will be passed in order instead of by name. 
+ * \param status must be DBRPCRETURN, if this parameter is a return parameter, else 0. 
+ * \param type datatype of the value parameter e.g., SYBINT4, SYBCHAR.
+ * \param maxlen Maximum output size of the parameter's value to be returned by the stored procedure, usually the size of your host variable. 
+ *        Fixed-length datatypes take -1 (NULL or not).  
+ *        Non-OUTPUT parameters also use -1.  
+ *	   Use 0 to send a NULL value for a variable length datatype.  
+ * \param datalen For variable-length datatypes, the byte size of the data to be sent, exclusive of any null terminator. 
+ *        For fixed-length datatypes use -1.  To send a NULL value, use 0.  
+ * \param value Address of your host variable.  
+ * \retval SUCCEED normal.
+ * \retval FAIL on error
+ * \sa dbrpcinit(), dbrpcsend()
  */
 RETCODE
 dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
@@ -134,6 +151,30 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 		return FAIL;
 	if (dbproc->rpc == NULL)
 		return FAIL;
+
+	/* Correctness:
+	 * Parameter 			maxlen 		datalen 
+	 * -----------------------	-------------------	----------------------------------
+	 * Fixed-length 		-1 			-1 
+	 * Fixed-length, NULL 	-1 			 0 
+	 * Variable-length 		Max output size	input size without null terminator 
+	 * Variable-length, NULL 	 0 			 0 
+	 */
+	if (is_char_type(type)) {
+		if (maxlen < 0 || datalen < 0) {
+			tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam(): variable-length type %d, maxlen=%d, datalen=%d\n", 
+							type, maxlen, datalen);
+			return FAIL;
+		}
+	} else {
+		if (maxlen != -1 || datalen > 0) {
+			tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam(): fixed-length type %d, maxlen=%d, datalen=%d\n", 
+							type, maxlen, datalen);
+			return FAIL;
+		}
+	}
+
+	/* TODO add other tests for correctness */
 
 	/* allocate */
 	param = (DBREMOTE_PROC_PARAM *) malloc(sizeof(DBREMOTE_PROC_PARAM));
@@ -263,8 +304,12 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 		tds_set_param_type(tds, pcol, p->type);
 		if (pcol->column_varint_size) {
-			if (p->maxlen < 0)
+			if (p->maxlen < 0) {
+				tdsdump_log(TDS_DBG_FUNC, "%L param_info_alloc(): p->maxlen is %d"
+							     "parameters of variable-size datatypes "
+							     "require a non-negative input length\n", p->maxlen);
 				return NULL;
+			}
 			pcol->column_size = p->maxlen;
 
 			/* actual data */

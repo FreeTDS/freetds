@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.12 2004-03-25 16:03:28 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.13 2004-03-25 19:10:54 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -29,13 +29,15 @@ static int init_proc(DBPROCESS * dbproc, const char *name);
 
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"
-			"@nrows int OUTPUT \n"
+			"  @first_type varchar(30) OUTPUT \n"
+			", @nrows int OUTPUT \n"
 		"AS \n"
 		"BEGIN \n"
+			"select @first_type = min(convert(varchar(30), name)) from systypes \n"
 			"select distinct convert(varchar(30), name) as 'type'  from systypes \n"
-				"where name like '%%int%%' \n"
+				"where name in ('int', 'char', 'text') \n"
 			"select @nrows = @@rowcount \n"
-			"select distinct convert(varchar(30), name) as name  from sysobjects where type = 'S'"
+			"select distinct convert(varchar(30), name) as name  from sysobjects where type = 'S' \n"
 			"return 42 \n"
 		"END \n";
 
@@ -82,9 +84,14 @@ main(int argc, char **argv)
 	char teststr[1024];
 	int failed = 0;
 	char *retname = NULL;
-	int rettype = 0, retlen = 0, retval = 0xdeadbeef;
-	char proc[] = "#t0022", param[] = "@nrows";
+	int rettype = 0, retlen = 0;
+	char proc[] = "#t0022", 
+	     param1[] = "@first_type", 
+	     param2[] = "@nrows";
 	char *proc_name = proc;
+
+	char param_data1[64];
+	int param_data2;
 	RETCODE erc, row_code;
 
 	set_malloc_options();
@@ -131,7 +138,14 @@ main(int argc, char **argv)
 	}
 
 	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, sizeof(retval), (BYTE *) & retval);
+	erc = dbrpcparam(dbproc, param1, DBRPCRETURN, SYBCHAR, /*maxlen= */ sizeof(param_data1), /* datlen= */ 0, (BYTE *) & param_data1);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcparam\n");
+		failed = 1;
+	}
+
+	printf("executing dbrpcparam\n");
+	erc = dbrpcparam(dbproc, param2, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ -1, (BYTE *) & param_data2);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcparam\n");
 		failed = 1;
@@ -149,7 +163,7 @@ main(int argc, char **argv)
 	erc = dbsqlok(dbproc);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbsqlok\n");
-		failed = 1;
+		exit(1);
 	}
 
 	add_bread_crumb();
@@ -176,7 +190,7 @@ main(int argc, char **argv)
 			/* check return status */
 			printf("retrieving return status... ");
 			if (dbhasretstat(dbproc) == TRUE) {
-				printf("(return status %d)\n", dbretstatus(dbproc));
+				printf("%d\n", dbretstatus(dbproc));
 			} else {
 				printf("none\n");
 			}
@@ -205,8 +219,10 @@ main(int argc, char **argv)
 		}
 	} /* while dbresults */
 	
-	if ((retname == NULL) || strcmp(retname, param)) {
-		fprintf(stdout, "Expected retname to be '%s', got ", param);
+	/* test the last parameter for expected outcome */
+
+	if ((retname == NULL) || strcmp(retname, param2)) {
+		fprintf(stdout, "Expected retname to be '%s', got ", param2);
 		if (retname == NULL) 
 			fprintf(stdout, "<NULL> instead.\n");
 		else
