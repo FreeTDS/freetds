@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.216 2003-08-24 09:46:15 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.217 2003-08-25 21:13:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1601,7 +1601,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLSMALLINT, drec->sql_desc_parameter_type);
 		break;
 	case SQL_DESC_PRECISION:
-		if (drec->sql_desc_concise_type == SQL_NUMERIC)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			/* TODO support date/time */
@@ -1611,7 +1611,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLSMALLINT, drec->sql_desc_rowver);
 		break;
 	case SQL_DESC_SCALE:
-		if (drec->sql_desc_concise_type == SQL_NUMERIC)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*((SQLSMALLINT *) Value) = 0;
