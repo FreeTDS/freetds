@@ -1,3 +1,6 @@
+Mon May 12 17:17:14 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/moreandcount.c: improved
+
 Mon May 12 10:52:55 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: rollback...
 

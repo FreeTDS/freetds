@@ -2,8 +2,29 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.2 2003-05-07 12:48:56 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.3 2003-05-12 15:17:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static void
+CheckCols(int n)
+{
+	SQLSMALLINT cols;
+	SQLRETURN res;
+
+	res = SQLNumResultCols(Statement, &cols);
+	if (res != SQL_SUCCESS) {
+		if (res == SQL_ERROR && n < 0)
+			return;
+		fprintf(stderr, "Unable to get column numbers\n");
+		CheckReturn();
+		exit(1);
+	}
+
+	if (cols != n) {
+		fprintf(stderr, "Expected %d columns returned %d\n", n, (int) cols);
+		exit(1);
+	}
+}
 
 static void
 CheckRows(int n)
@@ -71,35 +92,44 @@ main(int argc, char *argv[])
 	}
 
 	printf("Result 1\n");
+	CheckCols(1);
 	CheckRows(-1);
 
 	Fetch(SQL_SUCCESS);
 	Fetch(SQL_SUCCESS);
+	CheckCols(1);
 	CheckRows(-1);
 	Fetch(SQL_NO_DATA);
+	CheckCols(1);
 	CheckRows(2);
 
 	NextResults(SQL_SUCCESS);
 
 	printf("Result 2\n");
+	CheckCols(0);
 	CheckRows(1);
 
 	NextResults(SQL_SUCCESS);
 
 	printf("Result 3\n");
+	CheckCols(0);
 	CheckRows(2);
 
 	NextResults(SQL_SUCCESS);
 
 	printf("Result 4\n");
+	CheckCols(1);
 	CheckRows(-1);
 	Fetch(SQL_SUCCESS);
+	CheckCols(1);
 	CheckRows(-1);
 	Fetch(SQL_NO_DATA);
+	CheckCols(1);
 	CheckRows(1);
 
 	NextResults(SQL_NO_DATA);
 
+	CheckCols(-1);
 	CheckRows(-2);
 
 	Disconnect();
