@@ -194,12 +194,8 @@ int  opt;
 	if (password) free(password);
 	if (servername) free(servername);
 }
-int tsql_handle_message(void *ctxptr, void *tdsptr, void *msgptr)
+int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-	TDSCONTEXT *context = (TDSCONTEXT *) ctxptr;
-	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
-	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
-
      if( msg->msg_number > 0  && msg->msg_number != 5701) {
 		fprintf (stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
                          msg->msg_number,

@@ -24,18 +24,18 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.7 2002-08-09 02:55:48 brianb Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.8 2002-08-16 21:01:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* all this was copied directly from the dblib functions */
-int ctlib_handle_info_message(void *ctxptr,void *tdsptr, void *msgptr)
+int ctlib_handle_info_message(TDSCONTEXT *ctx,TDSSOCKET *tds, TDSMSGINFO *msg)
 {
 /* CS_CONNECTION *con = (CS_CONNECTION *)bStruct;
 TDSSOCKET* tds = (TDSSOCKET *tds) con->tds_socket; */
 CS_CLIENTMSG errmsg; 
 
-	return ctlib_handle_err_message(ctxptr, tdsptr, msgptr);
+	return ctlib_handle_err_message(ctx, tds, msg);
 /*
 	memset(&errmsg,'\0',sizeof(errmsg));
 	errmsg.msgnumber=tds->msg_info->msg_number;
@@ -51,11 +51,8 @@ CS_CLIENTMSG errmsg;
 */
 }
 
-int ctlib_handle_err_message(void *ctxptr, void *tdsptr, void *msgptr)
+int ctlib_handle_err_message(TDSCONTEXT *ctx_tds, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-TDSCONTEXT *ctx_tds = (TDSCONTEXT *) ctxptr;
-TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
-TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 CS_SERVERMSG errmsg;
 CS_CONNECTION *con = NULL;
 CS_CONTEXT *ctx = NULL;

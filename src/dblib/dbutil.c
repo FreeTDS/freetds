@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.8 2002-07-16 11:20:35 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.9 2002-08-16 21:01:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,11 +37,8 @@ extern int (*g_dblib_err_handler)(DBPROCESS*,TDS_SMALLINT,TDS_SMALLINT,TDS_SMALL
  * recieves an informational message from the server that it can be dealt with
  * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
  * TDS layer didn't what it really was */
-int dblib_handle_info_message(void *ctxptr, void *tdsptr, void *msgptr)
+int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-	TDSCONTEXT *tds_ctx = (TDSCONTEXT *) ctxptr;
-	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
-	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
@@ -80,11 +77,8 @@ int dblib_handle_info_message(void *ctxptr, void *tdsptr, void *msgptr)
         return 1;
 }
 
-int dblib_handle_err_message(void *ctxptr, void *tdsptr, void *msgptr)
+int dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-	TDSCONTEXT *tds_ctx = (TDSCONTEXT *) ctxptr;
-	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
-	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {

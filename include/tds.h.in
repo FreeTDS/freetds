@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.32 2002-08-16 17:10:52 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.33 2002-08-16 21:01:25 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -550,15 +550,19 @@ typedef struct tds_dynamic {
 	TDSINPUTPARAM **params;
 } TDSDYNAMIC;
 
-typedef struct tds_context {
+/* forward declaration */
+typedef struct tds_context TDSCONTEXT;
+typedef struct tds_socket  TDSSOCKET;
+
+struct tds_context {
 	TDSLOCINFO *locale;
 	void *parent;
 	/* handler */
-	int (*msg_handler)(void *, void *, void *);
-	int (*err_handler)(void *, void *, void *);
-} TDSCONTEXT;
+	int (*msg_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
+	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
+};
 
-typedef struct tds_socket {
+struct tds_socket {
 	/* fixed and connect time */
         int s;
 	TDS_SMALLINT major_version;
@@ -603,7 +607,7 @@ typedef struct tds_socket {
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONFIGINFO *config;
-} TDSSOCKET;
+};
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
 void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery);

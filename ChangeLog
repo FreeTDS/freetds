@@ -1,3 +1,9 @@
+Fri Aug 16 22:52:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* include/ctlib.h include/dblib.h include/tds.h.in
+	* src/apps/tsql.c src/ctlib/ctutil.c src/dblib/dbutil.c:
+	- use pointer to structure instead of void for message handler
+	  functions
+
 Fri Aug 16 19:54:55 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c:
 	- test conversion result
