@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.23 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.24 2003-12-07 06:13:08 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -157,7 +157,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 
 	/* round to two decimal places */
 	if (s) {
-		sprintf(s, "0.%02f", atof(s));
+		sprintf(s, "%.02f", atof(s));
 	}
 
 	return s;

@@ -1,3 +1,6 @@
+Sun Dec  7 01:09:42 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/numeric.c fixed tds_money_to_string: s/0.%02f/%.02f/
+	
 Sat Dec  6 23:50:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- make tds_skip_comment static
