@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.16 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.17 2004-12-02 13:20:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -49,17 +49,17 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (!tds || !tds->env || !tds->env->database) {
+	if (!tds || !tds->env.database) {
 		fprintf(stderr, "No database ??\n");
 		return 1;
 	}
 
 	/* Test currently disabled during TDSENV changes */
 	if (verbose) {
-		fprintf(stdout, "database changed to %s\n", tds->env->database);
+		fprintf(stdout, "database changed to %s\n", tds->env.database);
 	}
-	if (strcmp(tds->env->database, "tempdb")) {
-		fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env->database);
+	if (strcmp(tds->env.database, "tempdb")) {
+		fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env.database);
 		return 1;
 	}
 

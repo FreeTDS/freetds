@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.269 2004-12-01 13:11:36 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.270 2004-12-02 13:20:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1602,6 +1602,8 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		    curcol->column_varint_size,
 		    curcol->column_size, curcol->on_server.column_size);
 
+	CHECK_COLUMN_EXTRA(curcol);
+
 	return TDS_SUCCEED;
 }
 
@@ -1669,6 +1671,8 @@ tds7_process_result(TDSSOCKET * tds)
 
 		tds_add_row_column_size(info, curcol);
 	}
+
+	CHECK_TDS_EXTRA(tds);
 
 	/* all done now allocate a row for tds_process_row to use */
 	if ((info->current_row = tds_alloc_row(info)) != NULL)
@@ -2511,7 +2515,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	switch (type) {
 	case TDS_ENV_PACKSIZE:
 		new_block_size = atoi(newval);
-		if (new_block_size > tds->env->block_size) {
+		if (new_block_size > tds->env.block_size) {
 			tdsdump_log(TDS_DBG_INFO1, "increasing block size from %s to %d\n", oldval, new_block_size);
 			/* 
 			 * I'm not aware of any way to shrink the 
@@ -2523,13 +2527,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 		}
 		break;
 	case TDS_ENV_DATABASE:
-		dest = &tds->env->database;
+		dest = &tds->env.database;
 		break;
 	case TDS_ENV_LANG:
-		dest = &tds->env->language;
+		dest = &tds->env.language;
 		break;
 	case TDS_ENV_CHARSET:
-		dest = &tds->env->charset;
+		dest = &tds->env.charset;
 		tds_srv_charset_changed(tds, newval);
 		break;
 	}

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.190 2004-12-01 03:55:13 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.191 2004-12-02 13:20:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3244,10 +3244,10 @@ dbgetpacket(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
 
-	if (!tds || !tds->env) {
+	if (!tds) {
 		return TDS_DEF_BLKSZ;
 	} else {
-		return tds->env->block_size;
+		return tds->env.block_size;
 	}
 }
 

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.17 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.18 2004-12-02 13:20:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -84,7 +84,7 @@ main(int argc, char **argv)
 	 * The heart of the test
 	 */
 	if (verbose) {
-		fprintf(stdout, "block size %d\n", tds->env->block_size);
+		fprintf(stdout, "block size %d\n", tds->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
 	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.131 2004-12-02 12:37:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.132 2004-12-02 13:20:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -462,8 +462,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			memcpy(buffer, &intval, sizeof(intval));
 			break;
 		case CS_PACKETSIZE:
-			if (tds && tds->env)
-				intval = tds->env->block_size;
+			if (tds)
+				intval = tds->env.block_size;
 			else
 				intval = tds_login->block_size;
 			memcpy(buffer, &intval, sizeof(intval));

@@ -1,3 +1,10 @@
+Thu Dec 02 14:20:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c src/tds/iconv.c:
+	* src/tds/mem.c src/tds/tds_checks.c src/tds/token.c:
+	* src/tds/write.c src/tds/unittests/t0003.c:
+	* src/tds/unittests/t0004.c:
+	- make TDSSOCKET->env just a field so to avoid the extra allocation
+
 Thu Dec 02 13:36:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/tds/unittests/dynamic1.c:
 	- fix for tests

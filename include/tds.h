@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.195 2004-12-02 12:37:55 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.196 2004-12-02 13:20:42 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1063,10 +1063,10 @@ struct tds_socket
 	unsigned char out_flag;
 	unsigned char last_packet;
 	void *parent;
-	/*
+	/**
 	 * info about current query. 
 	 * Contain information in process, even normal results and compute.
-	 * This pointer shouldn't be freed.
+	 * This pointer shouldn't be freed it's just an alias to another structure.
 	 */
 	TDSRESULTINFO *current_results;
 	TDSRESULTINFO *res_info;
@@ -1084,11 +1084,12 @@ struct tds_socket
 	void (*longquery_func) (void *param);
 	void *longquery_param;
 	time_t queryStarttime;
-	TDSENV *env;
+	TDSENV env;
 	/* dynamic placeholder stuff */
 	int num_dyns;
 	TDSDYNAMIC *cur_dyn;
 	TDSDYNAMIC **dyns;
+
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;

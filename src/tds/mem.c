@@ -42,12 +42,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.121 2004-12-02 12:37:54 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.122 2004-12-02 13:20:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
 
-static TDSENV *tds_alloc_env(TDSSOCKET * tds, int bufsize);
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
 static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
@@ -808,8 +807,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->parent = (char *) NULL;
 	tds_socket->option_flag2 = 0x03;	/* TDS 7.0: 0x02 indicates ODBC driver; 
 						 * 0x01 means change to initial language must succeed */
-	if (!(tds_socket->env = tds_alloc_env(tds_socket, bufsize)))
-		goto Cleanup;
+	tds_socket->env.block_size = bufsize;
 
 	if (tds_iconv_alloc(tds_socket))
 		goto Cleanup;
@@ -832,14 +830,14 @@ tds_realloc_socket(TDSSOCKET * tds, int bufsize)
 {
 	unsigned char *new_out_buf;
 
-	assert(tds && tds->env && tds->out_buf);
+	assert(tds && tds->out_buf);
 
-	if (tds->env->block_size == bufsize)
+	if (tds->env.block_size == bufsize)
 		return tds;
 
 	if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize)) != NULL) {
 		tds->out_buf = new_out_buf;
-		tds->env->block_size = bufsize;
+		tds->env.block_size = bufsize;
 		return tds;
 	}
 	return NULL;
@@ -903,32 +901,15 @@ tds_free_connection(TDSCONNECTION * connection)
 	free(connection);
 }
 
-static TDSENV *
-tds_alloc_env(TDSSOCKET * tds, int bufsize)
-{
-	TDSENV *env;
-
-	env = (TDSENV *) malloc(sizeof(TDSENV));
-	if (!env)
-		return NULL;
-	memset(env, '\0', sizeof(TDSENV));
-	env->block_size = bufsize;
-
-	return env;
-}
-
 static void
 tds_free_env(TDSSOCKET * tds)
 {
-	if (tds->env) {
-		if (tds->env->language)
-			free(tds->env->language);
-		if (tds->env->charset)
-			free(tds->env->charset);
-		if (tds->env->database)
-			free(tds->env->database);
-		TDS_ZERO_FREE(tds->env);
-	}
+	if (tds->env.language)
+		TDS_ZERO_FREE(tds->env.language);
+	if (tds->env.charset)
+		TDS_ZERO_FREE(tds->env.charset);
+	if (tds->env.database)
+		TDS_ZERO_FREE(tds->env.database);
 }
 
 void

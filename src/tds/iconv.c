@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.114 2004-10-14 08:16:43 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.115 2004-12-02 13:20:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -368,8 +368,8 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 * TODO: the server hasn't reported its charset yet, so this logic can't work here.  
 	 *       not sure what to do about that yet.  
 	 */
-	if (tds->env && tds->env->charset) {
-		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], charset, tds->env->charset);
+	if (tds->env.charset) {
+		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], charset, tds->env.charset);
 		if (!fOK)
 			return;
 	}
@@ -380,8 +380,8 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	name = UCS_2LE;
 	if (tds->major_version < 7) {
 		name = "ISO-8859-1";
-		if (tds->env && tds->env->charset)
-			name = tds->env->charset;
+		if (tds->env.charset)
+			name = tds->env.charset;
 	}
 	fOK = tds_iconv_info_init(tds->char_convs[iso2server_metadata], "ISO-8859-1", name);
 

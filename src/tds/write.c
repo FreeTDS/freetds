@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.67 2004-11-28 14:28:20 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.68 2004-12-02 13:20:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -65,7 +65,7 @@ tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 	assert(n >= 0);
 
 	for (; n;) {
-		left = tds->env->block_size - tds->out_pos;
+		left = tds->env.block_size - tds->out_pos;
 		if (left <= 0) {
 			tds_write_packet(tds, 0x0);
 			tds_init_write_buf(tds);
@@ -227,7 +227,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 int
 tds_put_byte(TDSSOCKET * tds, unsigned char c)
 {
-	if (tds->out_pos >= tds->env->block_size) {
+	if (tds->out_pos >= tds->env.block_size) {
 		tds_write_packet(tds, 0x0);
 		tds_init_write_buf(tds);
 	}
@@ -239,7 +239,7 @@ int
 tds_init_write_buf(TDSSOCKET * tds)
 {
 	/* TODO needed ?? */
-	memset(tds->out_buf, '\0', tds->env->block_size);
+	memset(tds->out_buf, '\0', tds->env.block_size);
 	tds->out_pos = 8;
 	return 0;
 }
