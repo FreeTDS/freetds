@@ -1,3 +1,6 @@
+Thu Apr 03 07:56:32 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: updated function support for SQLForeignKeys
+
 Wed Apr 02 22:57:54 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: applied Peter Deacon patch on SQLColumns
 
