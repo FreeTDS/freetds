@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.131 2005-02-04 14:04:03 freddy77 Exp $
+To Do List	$Id: TODO,v 1.132 2005-02-07 14:23:37 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -20,10 +20,15 @@ Working in progress:
 . ct_dynamic and friends needed for DBD::Sybase placeholder support
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
 . logging bit flags to select levels and info types with defaults
+  . remove level (not updated) and add flag
+    use 0xtttlll where ttt = type, lll level so we can use also
+    0ttttllll (octal notation), use strtoul
 . support for named instances under mssql2k
   . utility to get port
+  . review TODO in procedure, check cluster
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
+    (tds_peek in not pending hang... update)
 . fix timeout problem reported in ML
 . support encrypted connections
   . mssql

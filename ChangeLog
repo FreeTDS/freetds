@@ -1,3 +1,10 @@
+Mon Feb  7 15:22:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* configure.in include/tds.h src/tds/login.c src/tds/mem.c:
+	* src/tds/net.c:
+	- support for encrypted connection under mssql
+	- fix memory leak freeing result with text (introduced recently)
+
 Fri Feb  4 15:02:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* src/tds/login.c: do not send NT login using TDS < 7.0

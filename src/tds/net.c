@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004  Ziglio Frediano
+ * Copyright (C) 2004, 2005  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -87,11 +87,15 @@
 #include <signal.h>
 #include <assert.h>
 
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.11 2005-01-31 13:08:07 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.12 2005-02-07 14:23:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -222,8 +226,8 @@ tds_close_socket(TDSSOCKET * tds)
  * Loops until we have received buflen characters 
  * return -1 on failure 
  */
-static int
-goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
+int
+tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
 	int got = 0;
 	int len, retcode;
@@ -263,7 +267,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if( retcode < 0 ) {
 				if (sock_errno != TDSSOCK_EINTR) {
 					char *msg = strerror(sock_errno);
-					tdsdump_log(TDS_DBG_NETWORK, "goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
+					tdsdump_log(TDS_DBG_NETWORK, "tds_goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
 					return -1;
 				}
 				goto OK_TIMEOUT;
@@ -279,7 +283,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 			if (len < 0) {
 				char *msg = strerror(sock_errno);
-				tdsdump_log(TDS_DBG_NETWORK, "goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
+				tdsdump_log(TDS_DBG_NETWORK, "tds_goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
 				
 				switch (sock_errno) {
 				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
@@ -312,6 +316,9 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 			buflen -= len;
 			got += len;
+
+			if (unfinished)
+				return got;
 		} 
 
 
@@ -348,6 +355,16 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	/* FIXME on timeout this assert got true... */
 	assert(buflen == 0);
 	return (got);
+}
+
+static int
+goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
+{
+#ifdef HAVE_GNUTLS
+	if (tds->tls_session)
+		return gnutls_record_recv(tds->tls_session, buf, buflen);
+#endif
+	return tds_goodread(tds, buf, buflen, 0);
 }
 
 /**
@@ -548,15 +565,11 @@ tds_check_socket_write(TDSSOCKET * tds)
 }
 
 /* goodwrite function adapted from patch by freddy77 */
-static int
-goodwrite(TDSSOCKET * tds, unsigned char last)
+int
+tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
 {
-	int left;
-	unsigned char *p;
+	int left = len;
 	int retval;
-
-	left = tds->out_pos;
-	p = tds->out_buf;
 
 	while (left > 0) {
 		/*
@@ -584,7 +597,7 @@ goodwrite(TDSSOCKET * tds, unsigned char last)
 			tds->in_pos = 0;
 			tds->in_len = 0;
 			tds_close_socket(tds);
-			return TDS_FAIL;
+			return -1;
 		}
 		left -= retval;
 		p += retval;
@@ -601,13 +614,13 @@ goodwrite(TDSSOCKET * tds, unsigned char last)
 	}
 #endif
 
-	return TDS_SUCCEED;
+	return len;
 }
 
 int
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
-	int retcode;
+	int sent;
 
 #if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	void (*oldsig) (int);
@@ -617,7 +630,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_buf[1] = final;
 	tds->out_buf[2] = (tds->out_pos) / 256u;
 	tds->out_buf[3] = (tds->out_pos) % 256u;
-	if (IS_TDS7_PLUS(tds))
+	if (IS_TDS7_PLUS(tds) && !tds->connection)
 		tds->out_buf[6] = 0x01;
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
@@ -629,7 +642,12 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	}
 #endif
 
-	retcode = goodwrite(tds, final);
+#ifdef HAVE_GNUTLS
+	if (tds->tls_session)
+		sent = gnutls_record_send(tds->tls_session, tds->out_buf, tds->out_pos);
+	else
+#endif
+		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
 
 #if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
@@ -638,7 +656,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
-	return retcode;
+	return sent <= 0 ? TDS_FAIL : TDS_SUCCEED;
 }
 
 /**

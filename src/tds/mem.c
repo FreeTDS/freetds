@@ -35,6 +35,10 @@
 
 #include <assert.h>
 
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#endif
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
@@ -42,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.132 2005-02-02 19:09:21 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.133 2005-02-07 14:23:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -450,7 +454,7 @@ tds_free_results(TDSRESULTINFO * res_info)
 				if (curcol->bcp_terminator)
 					free(curcol->bcp_terminator);
 				tds_free_bcp_column_data(curcol->bcp_column_data);
-				if (res_info->current_row && is_blob_type(curcol->column_type) && curcol->column_offset) {
+				if (res_info->current_row && is_blob_type(curcol->column_type)) {
 					free(((TDSBLOB *) (res_info->current_row + curcol->column_offset))->textvalue);
 				}
 				free(curcol);
@@ -798,6 +802,10 @@ tds_free_socket(TDSSOCKET * tds)
 			free(tds->in_buf);
 		if (tds->out_buf)
 			free(tds->out_buf);
+#ifdef HAVE_GNUTLS
+		if (tds->tls_session)
+			gnutls_deinit(tds->tls_session);
+#endif
 		tds_close_socket(tds);
 		if (tds->date_fmt)
 			free(tds->date_fmt);

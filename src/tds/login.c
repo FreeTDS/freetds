@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2005  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -44,10 +45,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.134 2005-02-04 14:04:07 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.135 2005-02-07 14:23:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
+static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 
 void
@@ -219,15 +221,17 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED)
 		return TDS_FAIL;
 
-	if (IS_TDS7_PLUS(tds)) {
-		tds->out_flag = 0x10;
-		tds7_send_login(tds, connection);
+	if (IS_TDS80(tds)) {
+		retval = tds8_do_login(tds, connection);
+		db_selected = 1;
+	} else if (IS_TDS7_PLUS(tds)) {
+		retval = tds7_send_login(tds, connection);
 		db_selected = 1;
 	} else {
 		tds->out_flag = 0x02;
-		tds_send_login(tds, connection);
+		retval = tds_send_login(tds, connection);
 	}
-	if (!tds_process_login_tokens(tds)) {
+	if (retval == TDS_FAIL || !tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, "Login incorrect.");
 		return TDS_FAIL;
@@ -581,6 +585,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int domain_len = strlen(domain);
 	int auth_len = 0;
 
+	tds->out_flag = 0x10;
+
 	/* avoid overflow limiting password */
 	if (password_len > 128)
 		password_len = 128;
@@ -772,4 +778,219 @@ tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_p
 		crypt_pass[i] = hi_nibble | lo_nibble;
 	}
 	return crypt_pass;
+}
+
+#ifdef HAVE_GNUTLS
+
+#include <gnutls/gnutls.h>
+
+static ssize_t 
+tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	int have;
+
+	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
+	
+	/* if we have some data send it */
+	if (tds->out_pos > 8)
+		tds_flush_packet(tds);
+
+	if (tds->tls_session) {
+		/* read directly from socket */
+		return tds_goodread(tds, data, len, 1);
+	}
+
+	for(;;) {
+		have = tds->in_len - tds->in_pos;
+		tdsdump_log(TDS_DBG_INFO1, "have %d\n", have);
+		assert(have >= 0);
+		if (have > 0)
+			break;
+		tdsdump_log(TDS_DBG_INFO1, "before read\n");
+		if (tds_read_packet(tds) < 0)
+			return -1;
+		tdsdump_log(TDS_DBG_INFO1, "after read\n");
+	}
+	if (len > have)
+		len = have;
+	tdsdump_log(TDS_DBG_INFO1, "read %d bytes\n", len);
+	memcpy(data, tds->in_buf + tds->in_pos, len);
+	tds->in_pos += len;
+	return len;
+}
+
+static ssize_t 
+tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
+	
+	if (tds->tls_session) {
+		/* write to socket directly */
+		return tds_goodwrite(tds, data, len, 1);
+	}
+	tds_put_n(tds, data, len);
+	return len;
+}
+
+
+static void
+tds_tls_log( int level, const char* s)
+{
+	tdsdump_log(TDS_DBG_INFO1, "GNUTLS: level %d:\n  %s", level, s);
+}
+#endif
+
+static int
+tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+{
+#ifdef HAVE_GNUTLS
+	gnutls_session session;
+	gnutls_certificate_credentials xcred;
+
+	static const int kx_priority[] = {
+		GNUTLS_KX_RSA_EXPORT, 
+		GNUTLS_KX_RSA, GNUTLS_KX_DHE_DSS, GNUTLS_KX_DHE_RSA, 
+		0
+	};
+	static const int cipher_priority[] = {
+		GNUTLS_CIPHER_ARCFOUR_40,
+		GNUTLS_CIPHER_DES_CBC,
+/*	GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
+	GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
+*/
+		0
+	};
+	static const int comp_priority[] = { GNUTLS_COMP_NULL, 0 };
+	static const int mac_priority[] = {
+		GNUTLS_MAC_SHA, GNUTLS_MAC_MD5, 0
+	};
+	int ret;
+#endif
+
+	int i, len;
+	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
+	int instance_name_len = strlen(instance_name) + 1;
+	TDS_CHAR crypt_flag;
+#define START_POS 21
+#define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
+	TDS_UCHAR buf[] = {
+		/* netlib version */
+		0, UI16BE(START_POS), UI16BE(6),
+		/* encryption */
+		1, UI16BE(START_POS + 6), UI16BE(1),
+		/* instance */
+		2, UI16BE(START_POS + 6 + 1), UI16BE(instance_name_len),
+		/* process id */
+		3, UI16BE(START_POS + 6 + 1 + instance_name_len), UI16BE(4),
+		/* end */
+		0xff,
+		/* netlib value */
+		8, 0, 1, 0x55, 0, 0,
+		/* encryption, normal */
+		0
+	};
+	TDS_UCHAR *p;
+
+	assert(sizeof(buf) == START_POS + 7);
+
+	/* do prelogin */
+	tds->out_flag = 0x12;
+
+	tds_put_n(tds, buf, sizeof(buf));
+	tds_put_n(tds, instance_name, instance_name_len);
+	tds_put_int(tds, getpid());
+	if (tds_flush_packet(tds) == TDS_FAIL)
+		return TDS_FAIL;
+
+	/* now process reply from server */
+	len = tds_read_packet(tds);
+	if (len <= 0 || tds->in_flag != 4)
+		return TDS_FAIL;
+
+	/* the only thing we care is flag */
+	p = tds->in_buf;
+	/* default 2, no certificate, no encryption */
+	crypt_flag = 2;
+	for (i = 0;; i += 5) {
+		TDS_UCHAR type;
+		int off, l;
+
+		if (i >= len)
+			return TDS_FAIL;
+		type = p[i];
+		if (type == 0xff)
+			break;
+		/* check packet */
+		if (i+4 >= len)
+			return TDS_FAIL;
+		off = (((int) p[i+1]) << 8) | p[i+2];
+		l = (((int) p[i+3]) << 8) | p[i+4];
+		if (off > len || (off+l) > len)
+			return TDS_FAIL;
+		if (type == 1 && l >= 1) {
+			crypt_flag = p[off];
+		}
+	}
+	/* we readed all packet */
+	tds->in_pos += len;
+	/* TODO some mssql version do not set last packet, update tds according */
+
+	/* no encryption required, just exit */
+	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
+	if (crypt_flag == 2)
+		return tds7_send_login(tds, connection);
+
+#ifndef HAVE_GNUTLS
+	return TDS_FAIL;
+#else
+	/* here we have to do encryption ... */
+
+	/* FIXME place somewhere else, deinit at end */
+	gnutls_global_init ();
+	gnutls_global_set_log_level(11);
+	gnutls_global_set_log_function(tds_tls_log);
+
+	gnutls_certificate_allocate_credentials (&xcred);
+
+	/* Initialize TLS session */
+	gnutls_init (&session, GNUTLS_CLIENT);
+	gnutls_transport_set_ptr (session, tds);
+	gnutls_transport_set_pull_function (session, tds_pull_func);
+	gnutls_transport_set_push_function (session, tds_push_func);
+
+	/* use default priorities... */
+	gnutls_set_default_priority (session);
+
+	/* ... but overwrite some */
+	gnutls_cipher_set_priority(session, cipher_priority);
+	gnutls_compression_set_priority(session, comp_priority);
+	gnutls_kx_set_priority(session, kx_priority);
+	gnutls_mac_set_priority(session, mac_priority);
+
+	/* put the anonymous credentials to the current session */
+	gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, xcred);
+
+
+	/* Perform the TLS handshake */
+	ret = gnutls_handshake (session);
+	if (ret < 0) {
+		gnutls_deinit (session);
+		tdsdump_log(TDS_DBG_INFO1, "*** Handshake failed: %s\n", gnutls_strerror (ret));
+		return TDS_FAIL;
+	}
+	tdsdump_log(TDS_DBG_INFO1, "- Handshake succeeded!!\n");
+	tds->tls_session = session;
+
+	ret = tds7_send_login(tds, connection);
+
+	/* if flag is 0 it means that after login server continue not encrypted */
+	if (crypt_flag == 0) {
+		gnutls_deinit(tds->tls_session);
+		tds->tls_session = NULL;
+	}
+	
+	return ret;
+#endif
 }
