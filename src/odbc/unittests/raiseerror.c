@@ -2,7 +2,7 @@
 
 /* test RAISEERROR in a store procedure, from Tom Rogers tests */
 
-static char software_version[] = "$Id: raiseerror.c,v 1.2 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: raiseerror.c,v 1.3 2003-12-03 09:37:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	printf("   Return Code = %d\n", (int) ReturnCode);
 
 	if (!SQL_SUCCEEDED(result) || ReturnCode != 0) {
-		fprintf(stderr, "Something went wrong!\n");
+		fprintf(stderr, "SQLExecute failed!\n");
 		return 1;
 	}
 
@@ -76,6 +76,7 @@ main(int argc, char *argv[])
 
 	if (strstr(MessageText, "An error occurred") == NULL) {
 		fprintf(stderr, "Wrong error returned!\n");
+		fprintf(stderr, "Error returned: %s\n", MessageText);
 		return 1;
 	}
 

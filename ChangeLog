@@ -1,3 +1,8 @@
+Wed Dec 03 10:34:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/odbc/Makefile.am:
+	- ODBC driver do not require ODBC DM library
+	* src/odbc/unittests/raiseerror.c: more verbose
+
 Wed Dec  3 03:33:01 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/tsql.txt updated and clarified (I hope)
 	* doc/userguide.sgml applied Freddy's modified patch and more
