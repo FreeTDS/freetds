@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.12 2004-10-14 14:27:50 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.13 2004-10-14 14:47:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -150,12 +150,14 @@ main(int argc, char **argv)
 	test("MONEY", "123.3450", "123.35");
 	/* very long money, this test int64 operations too */
 	test("MONEY", "123456789012345.67", NULL);
-	/* test bigger money */
+	/* test smaller money */
 	test("MONEY", "-922337203685477.5808", "-922337203685477.58");
 	test("SMALLMONEY", "89123.12", NULL);
 	test("SMALLMONEY", "-123.3400", "-123.34");
 	test("SMALLMONEY", "-123.3450", "-123.35");
 	test("SMALLMONEY", "123.3450", "123.35");
+	/* test smallest smallmoney */
+	test("SMALLMONEY", "-214748.3648", "-214748.36");
 
 	/* char */
 	test("CHAR(10)", "pippo", "pippo     ");

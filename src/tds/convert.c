@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.143 2004-10-14 14:27:50 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.144 2004-10-14 14:47:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1097,7 +1097,8 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 		p = tmp_str;
 		if (mny.mny4 < 0) {
 			*p++ = '-';
-			dollars = (-mny.mny4 / 50 + 1 ) / 2;
+			/* here (-mny.mny4 / 50 + 1 ) / 2 can cause overflow in -mny.mny4 */
+			dollars = -(mny.mny4 / 50 - 1 ) / 2;
 		} else {
 			dollars = (mny.mny4 / 50 + 1 ) / 2;
 		}

@@ -1,3 +1,7 @@
+Thu Oct 14 16:46:13 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c src/tds/unittests/dataread.c:
+	- even smallmoney has a arithmetic overflow
+
 Thu Oct 14 16:26:21 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: small optimization for 32bit machine
 	* src/tds/numeric.c src/tds/unittests/dataread.c:
