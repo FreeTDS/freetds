@@ -39,11 +39,11 @@
 
 typedef struct _pbcb
 {
-	unsigned char *pb;
+	char *pb;
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.26 2005-02-18 12:56:52 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.27 2005-03-29 09:57:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -755,7 +755,7 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 	int bcp_record_size       = 0;
 
 	char *query;
-	unsigned char clause_buffer[4096] = { 0 };
+	char clause_buffer[4096] = { 0 };
 
 	TDS_PBCB colclause;
 

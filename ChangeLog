@@ -1,3 +1,7 @@
+Tue Mar 29 11:57:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/server/query.c src/ctlib/blk.c:
+	- remove some warnings
+
 Mon Mar 28 09:52:42 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c src/tds/unittests/convert.c:
 	- optimizations for char -> numeric conversions

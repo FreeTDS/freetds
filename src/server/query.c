@@ -27,7 +27,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.13 2004-05-27 14:50:06 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.14 2005-03-29 09:57:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -112,7 +112,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				len = tds_get_byte(tds) + 1;/* sproc name size +1 */
 				if (len > query_buflen) {
 					query_buflen = len;
-					query = (unsigned char *) realloc(query, query_buflen);
+					query = (char *) realloc(query, query_buflen);
 				}
 
 				/*
