@@ -55,7 +55,7 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.4 2003-08-01 15:23:00 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.5 2003-09-18 03:22:32 ppeterd Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -79,6 +79,8 @@ iconv_open (const char* tocode, const char* fromcode)
 {
 	typedef struct _fromto { char *name; unsigned char pos; } FROMTO;
 	int i, ipos;
+	int size;
+	unsigned short largest;
 	unsigned short fromto;
 	static char first_time = 1; 
 	FROMTO encodings[2] = { {NULL, 0xFF}, {NULL, 0xFF} };
@@ -93,8 +95,11 @@ iconv_open (const char* tocode, const char* fromcode)
 	
 	/* match both inputs to our canonical names */
 	for (i=0; i < sizeof(encodings)/sizeof(FROMTO); i++) {
+		largest = 0;
 		for (ipos=0; canonic_charsets[ipos].min_bytes_per_char > 0; ipos++) {
-			if (0 == strncmp(encodings[i].name, canonic_charsets[ipos].name, strlen(canonic_charsets[ipos].name))) {
+			size = strlen(canonic_charsets[ipos].name);
+			if (largest < size && 0 == strncmp(encodings[i].name, canonic_charsets[ipos].name, size)) {
+				largest = size;
 				encodings[i].pos = ipos;
 			}
 		}
