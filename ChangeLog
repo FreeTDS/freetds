@@ -1,3 +1,10 @@
+Thu Mar 27 10:37:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/array_bind.c :
+	* src/ctlib/unittests/connect_fail.c:
+	* src/ctlib/unittests/cs_diag.c:
+	* src/ctlib/unittests/rpc_ct_param.c:
+	- remove some warnings
+
 Thu Mar 27 01:30:27 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/apps/tsql.c Patch #699749 by Craig A. Berry, add ":r"
 	* include/tds.h added declaration

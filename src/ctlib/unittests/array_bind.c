@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: array_bind.c,v 1.1 2003-03-05 13:14:31 freddy77 Exp $";
+static char software_version[] = "$Id: array_bind.c,v 1.2 2003-03-27 09:38:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	CS_RETCODE ret;
 	CS_RETCODE results_ret;
 	CS_INT result_type;
-	CS_INT num_cols, compute_id;
+	CS_INT num_cols;
 
 	CS_DATAFMT datafmt;
 	CS_INT datalength;

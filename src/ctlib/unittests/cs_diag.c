@@ -7,7 +7,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_diag.c,v 1.1 2003-03-27 07:39:06 jklowden Exp $";
+static char software_version[] = "$Id: cs_diag.c,v 1.2 2003-03-27 09:38:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -20,8 +20,6 @@ main(int argc, char **argv)
 {
 	int verbose = 1;
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
-	CS_COMMAND *cmd;
 	CS_RETCODE ret;
 	CS_DATAFMT srcfmt;
 	CS_INT src = 32768;
@@ -89,7 +87,7 @@ main(int argc, char **argv)
 	
 	}
 
-	if (ret = cs_diag(ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message) != CS_NOMSG) {
+	if ((ret = cs_diag(ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message)) != CS_NOMSG) {
 		fprintf(stderr, "cs_diag(CS_GET) did not fail with CS_NOMSG\n");
 		return 1;
 	}

@@ -2,22 +2,29 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STRING_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdio.h>
 #include <ctpublic.h>
 #include "common.h"
 
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.1 2003-03-05 13:14:31 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.2 2003-03-27 09:38:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
+static CS_INT ex_display_dlen(CS_DATAFMT * column);
+static CS_RETCODE ex_display_header(CS_INT numcols, CS_DATAFMT columns[]);
 
 typedef struct _ex_column_data
 {
@@ -37,11 +44,8 @@ main(int argc, char *argv[])
 	int verbose = 0;
 
 	CS_RETCODE ret;
-	CS_RETCODE results_ret;
 	CS_INT res_type;
 	CS_INT num_cols;
-
-	CS_INT datalength;
 
 	CS_CHAR cmdbuf[4096];
 
@@ -536,9 +540,9 @@ main(int argc, char *argv[])
 
 	return 0;
 }
+
 static CS_INT
-ex_display_dlen(column)
-     CS_DATAFMT *column;
+ex_display_dlen(CS_DATAFMT * column)
 {
 CS_INT len;
 
@@ -597,9 +601,7 @@ CS_INT len;
 }
 
 static CS_RETCODE
-ex_display_header(numcols, columns)
-     CS_INT numcols;
-     CS_DATAFMT columns[];
+ex_display_header(CS_INT numcols, CS_DATAFMT columns[])
 {
 CS_INT i;
 CS_INT l;
@@ -636,8 +638,8 @@ CS_RETCODE
 ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
 	fprintf(stdout, "\nOpen Client Message:\n");
-	fprintf(stdout, "Message number: LAYER = (%ld) ORIGIN = (%ld) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
-	fprintf(stdout, "SEVERITY = (%ld) NUMBER = (%ld)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
+	fprintf(stdout, "Message number: LAYER = (%ld) ORIGIN = (%ld) ", (long)CS_LAYER(errmsg->msgnumber), (long)CS_ORIGIN(errmsg->msgnumber));
+	fprintf(stdout, "SEVERITY = (%ld) NUMBER = (%ld)\n", (long)CS_SEVERITY(errmsg->msgnumber), (long)CS_NUMBER(errmsg->msgnumber));
 	fprintf(stdout, "Message String: %s\n", errmsg->msgstring);
 	if (errmsg->osstringlen > 0) {
 		fprintf(stdout, "Operating System Error: %s\n", errmsg->osstring);
@@ -651,8 +653,8 @@ CS_RETCODE
 ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
 	fprintf(stdout, "\nServer message:\n");
-	fprintf(stdout, "Message number: %ld, Severity %ld, ", srvmsg->msgnumber, srvmsg->severity);
-	fprintf(stdout, "State %ld, Line %ld\n", srvmsg->state, srvmsg->line);
+	fprintf(stdout, "Message number: %ld, Severity %ld, ", (long) srvmsg->msgnumber, (long) srvmsg->severity);
+	fprintf(stdout, "State %ld, Line %ld\n", (long) srvmsg->state, (long) srvmsg->line);
 
 	if (srvmsg->svrnlen > 0) {
 		fprintf(stdout, "Server '%s'\n", srvmsg->svrname);
