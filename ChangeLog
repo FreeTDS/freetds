@@ -1,3 +1,6 @@
+Sun Jun 30 20:35:41 EDT 2002	Brian Bruns <camber@ais.org>
+	*include/sybdb.h: add defines for severity levels
+
 Fri Jun 28 00:10:15 EDT 2002	Brian Bruns <camber@ais.org>
 	*configure.in: change version number in preparation for 0.60
 
