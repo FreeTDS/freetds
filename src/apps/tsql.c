@@ -33,6 +33,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -66,16 +67,20 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.69 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.70 2004-06-28 05:24:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
 {
-	OPT_VERSION = 0x01,
-	OPT_TIMER = 0x02,
+	OPT_VERSION =  0x01,
+	OPT_TIMER =    0x02,
 	OPT_NOFOOTER = 0x04,
-	OPT_NOHEADER = 0x08
+	OPT_NOHEADER = 0x08,
+	OPT_QUIET =    0x10
 };
+
+static int global_opt_flags = 0;
+#define QUIET (global_opt_flags & OPT_QUIET)
 
 int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static void tsql_print_usage(const char *progname);
@@ -94,7 +99,8 @@ readline(char *prompt)
 	char line[1000];
 	int i = 0;
 
-	printf("%s", prompt);
+	if (!QUIET)
+	    printf("%s", prompt);
 	if (fgets(line, 1000, stdin) == NULL) {
 		return NULL;
 	}
@@ -228,17 +234,20 @@ get_opt_flags(char *s, int *opt_flags)
 	int opt;
 
 	/* make sure we have enough elements */
-	argv = (char **) malloc(sizeof(char *) * strlen(s));
+	assert(s && opt_flags);
+	argv = (char **) calloc(strlen(s) + 2, sizeof(char*));
 	if (!argv)
 		return 0;
 
 	/* parse the command line and assign to argv */
+	argv[argc++] = "tsql";
 	argv[argc++] = strtok(s, " ");
-	if (argv[0])
+	if (argv[argc - 1])
 		while ((argv[argc++] = strtok(NULL, " ")) != NULL);
 
+	*opt_flags = 0;
 	optind = 0;		/* reset getopt */
-	while ((opt = getopt(argc - 1, argv, "fhtv")) != -1) {
+	while ((opt = getopt(argc - 1, argv, "fhqtv")) != -1) {
 		switch (opt) {
 		case 'f':
 			*opt_flags |= OPT_NOFOOTER;
@@ -251,6 +260,9 @@ get_opt_flags(char *s, int *opt_flags)
 			break;
 		case 'v':
 			*opt_flags |= OPT_VERSION;
+			break;
+		case 'q':
+			*opt_flags |= OPT_QUIET;
 			break;
 		}
 	}
@@ -271,6 +283,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	int opt;
 	const char *locale = NULL;
 	char *charset = NULL;
+	char *opt_flags_str = NULL;
 
 	setlocale(LC_ALL, "");
 	locale = setlocale(LC_ALL, NULL);
@@ -283,17 +296,12 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		charset = nl_langinfo(CODESET);
 #endif
 
-	if (locale)
-		printf("locale is \"%s\"\n", locale);
-	if (charset) {
-		printf("locale charset is \"%s\"\n", charset);
-	} else {
-		charset = "ISO-8859-1";
-		printf("using default charset \"%s\"\n", charset);
-	}
 
-	while ((opt = getopt(argc, argv, "H:S:I:V::P:U:p:vC")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:V::P:U:p:vCo:")) != -1) {
 		switch (opt) {
+		case 'o':
+			opt_flags_str = optarg;
+			break;
 		case 'H':
 			hostname = (char *) malloc(strlen(optarg) + 1);
 			strcpy(hostname, optarg);
@@ -337,6 +345,26 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			exit(1);
 			break;
 		}
+	}
+
+	if (opt_flags_str != NULL) {
+		char *minus_flags = malloc(strlen(opt_flags_str) + 2);
+		if (minus_flags != NULL) {
+			*minus_flags = '-';
+			strcpy(&minus_flags[1], opt_flags_str);
+			get_opt_flags(minus_flags, &global_opt_flags);
+			free(minus_flags);
+		}
+	}
+
+
+	if (locale)
+		if (!QUIET) printf("locale is \"%s\"\n", locale);
+	if (charset) {
+		if (!QUIET) printf("locale charset is \"%s\"\n", charset);
+	} else {
+		charset = "ISO-8859-1";
+		if (!QUIET) printf("using default charset \"%s\"\n", charset);
 	}
 
 	/* validate parameters */
@@ -412,7 +440,8 @@ tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
 		return 0;
 	}
 
-	if (msg->msg_number != 5701 && msg->msg_number != 20018) {
+	if (msg->msg_number != 5701 && msg->msg_number != 5703
+	    && msg->msg_number != 20018) {
 		fprintf(stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
 			msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message);
 	}
@@ -517,7 +546,8 @@ main(int argc, char **argv)
 		}
 		if (!strncmp(cmd, "go", 2)) {
 			line = 0;
-			get_opt_flags(s, &opt_flags);
+			get_opt_flags(s + 2, &opt_flags);
+			opt_flags ^= global_opt_flags;
 			do_query(tds, mybuf, opt_flags);
 			mybuf[0] = '\0';
 		} else if (!strcmp(cmd, "reset")) {

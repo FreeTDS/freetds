@@ -1,3 +1,7 @@
+Mon Jun 28 01:22:12 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/tsql.c src/tds/config.c applied patches from Christos
+	* doc/userguide.sgml small updates and clarifications.
+	
 Fri Jun 25 21:41:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: fix -Bsymbolic option detect
 

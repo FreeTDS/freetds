@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.92 2004-05-02 07:30:40 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.93 2004-06-28 05:24:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -950,11 +950,23 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		 * Make a guess about the port number
 		 */
 
+		if (connection->port == 0) {
+			/*
+			 * Not set in the [global] section of the
+			 * configure file, take a guess.
+			 */
 #ifdef TDS50
-		ip_port = 4000;
+			ip_port = 4000;
 #else
-		ip_port = 1433;
+			ip_port = 1433;
 #endif
+		} else {
+			/*
+			 * Preserve setting from the [global] section
+			 * of the configure file.
+			 */
+			ip_port = connection->port;
+		}
 		if ((env_port = getenv("TDSPORT")) != NULL) {
 			ip_port = tds_lookup_port(env_port);
 			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_port' to %s from $TDSPORT.\n", env_port);
