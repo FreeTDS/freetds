@@ -1,4 +1,8 @@
+Tue Nov  4 03:03:38 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml Updated for 0.62, except for ODBC
+	
 Mon Nov  3 11:35:02 EST 2003	JK Lowden <jklowden@schemamania.org>
+	- Applied Frediano's patch:
 	* include/tds.h src/tds/query.c
 	- add sql_submit_execdirect procedure
 	- cleanup

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-11-03 05:45:51 $</date>
-		<releaseinfo>$Revision: 1.67 $</releaseinfo>
+		<date>$Date: 2003-11-04 08:07:21 $</date>
+		<releaseinfo>$Revision: 1.68 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.67 $</>
-<member>$Date: 2003-11-03 05:45:51 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.67 2003-11-03 05:45:51 jklowden Exp $.</>
+<member>$Revision: 1.68 $</>
+<member>$Date: 2003-11-04 08:07:21 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.68 2003-11-04 08:07:21 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -197,13 +197,15 @@ The <systemitem class="library">db-lib</systemitem> and <systemitem class="libra
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <application>freebcp</application>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
-The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  It has reportedly been used with <application>Star Office</>.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
-The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and with 0.61 it began to comply with the ODBC 3.0 specification.
-0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).
+The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  
+The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and 0.61 began to comply with the ODBC 3.0 specification.
+0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 			</para>
 			<para>
 Basic <acronym>API</> coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
 			</para> 
+			<para>How big is it?  <productname>FreeTDS</productname> has almost 50,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Big Mac &reg; and the Edsel.  
+			</para>
 		</sect2>
 		<sect2>
 			<title>Languages besides C and Java</title>
@@ -473,7 +475,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X &reg;</title>
-			<para>As of this writing ($Date: 2003-11-03 05:45:51 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-11-04 08:07:21 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -626,11 +628,10 @@ The default location of <filename>freetds.conf</filename> is determined by the  
 In addition, <productname>FreeTDS</productname> will look for a file <filename>.freetds.conf</filename> in the user's home directory (<filename>~/.freetds.conf</filename>).  
 			</para>
 			<para>
-The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETDSCONF</envar>.  See <link linkend="envvar">Environment Variables</link>, below.  
+The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETD</envar> (or <envar>FREETDSCONF</envar>, same effect).  See <link linkend="envvar">Environment Variables</link>, below.  
 			</para>
 			<para>
-<productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly
-configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
+<productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
            		</para>
 		</sect2>
 		<sect2 id="freetdsconfformat">
@@ -660,6 +661,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</para>
 	<para>
 Usually, it is sufficient to state the only server's hostname and TDS protocol.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
+	<tip><para>Some people seem to feel safer using the IP address for the server, rather than its name.  We don't recommend you do that.  Use the name, and benefit from the inherent advantages.  That's why DNS was invented in the first place, you know, and you normally <emphasis>should</> be able to find your server by its name.  Beyond that, if you do use a number, <productname>FreeTDS</productname> will ask DNS for that number's name (a <firstterm>reverse lookup</>).  A properly configured DNS will execute a reverse lookup just as fast as a forward lookup, but not every DNS is properly configured.  If yours isn't, you'll wait awhile, unless you take evasive action.  </para></tip>
 	</para>
 	<para>
 It bears mentioning here that prior versions of <productname>FreeTDS</productname> were quite fussy about domain logins, forcing users to make explicit per-server entries in <filename>freetds.conf</>.  That is no longer the case.  If the username has the form <parameter>DOMAIN\username</>, <productname>FreeTDS</productname> will automatically use a domain login.  
@@ -785,7 +787,7 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<row>
 	<entry>text size</entry>
 	<entry>4,294,967,295</entry>
-	<entry>default value of TEXTSIZE, in bytes.  Affects column width of <type>text</type> and <type>image</type> datatypes.  </entry>
+	<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
 	<entry>0 to 4,294,967,295</entry>
 	</row>
 	<row>
@@ -923,56 +925,77 @@ You can use environment variables to
 
 This section covers the first two items.  For information about environment variables that control logging, see <link linkend="logging">Logging</link>
 			</para>
-			
-			<sect3><title><envar>SYBASE</envar></title>
-
 			<para>
-The environment variable <envar>SYBASE</envar> points to the <productname>FreeTDS</productname> run-time directory.  That convention originated with SYBASE, and many programs still rely on the <envar>SYBASE</envar> to discover the location of the <quote>SYBASE</quote> libraries.  
+In a typical system, no environment variables need be used.  They're sometimes handy for testing, for instance setting <envar>TDSVER</> to check if a connection problem is due to using the wrong protocol version.  And they have other uses, described below.  But they're just knobs, so don't feel you have to turn every one.  
 			</para>
 
-			<para>
-The primary use of <envar>SYBASE</envar> is to advertise the location of the <productname>FreeTDS</productname> libraries.  A secondary use is to point to the location of the <filename>interfaces</filename> file (if used, see the <link linkend="interfacesfile">Appendix</link>).   
-			</para>
-			</sect3>
-			
-			<sect3><title id="TDSVER"><envar>TDSVER</envar></title>
-			<para>
-The environment variable <envar>TDSVER</envar> governs the version of the <acronym>TDS</> protocol used to connect to your server.  For a given server, <productname>FreeTDS</productname> inspects four sources in the following order to determine which <acronym>TDS</> protocol version to use.
-			</para>
+<variablelist>
+	<varlistentry>
+		<term id="FREETDS"><envar>FREETDS</envar></term>
+		<listitem>
+			<para>may be used to specify the name and location of the <filename>freetds.conf</filename> file.  In prior versions of <productname>FreeTDS</productname>, this variable was known as <envar>FREETDSCONF</envar>. </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term id="TDSVER"><envar>TDSVER</envar></term>
+		<listitem>
+			<para>governs the version of the <acronym>TDS</> protocol used to connect to your server.  For a given server, <productname>FreeTDS</productname> inspects four sources in the following order to determine which <acronym>TDS</> protocol version to use, using the first one it finds.  </para>
 			<orderedlist>
-				<listitem><para>The value specified in the <envar>TDSVER</envar> environment variable
+				<listitem><para>The value specified in <envar>TDSVER</envar> 
 					</para></listitem>
 				<listitem><para>A <filename>freetds.conf</filename> file entry (see below)
 					</para></listitem>
 				<listitem><para>The <filename>interfaces</filename> file entry (see below)
 					</para></listitem>
 				<listitem><para>The <parameter>--with-tdsver</parameter> option passed to <command>configure</command>
-					</para></listitem
+					</para></listitem>
 			</orderedlist>
-        		</sect3>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term id="TDSPORT"><envar>TDSPORT</envar></term>
+		<listitem>
+			<para>specifies a TCP port number at which the dataserver is listening.  It overrides the default port (1433 for TDS 4.2/7.0/8.0, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.</para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term id="SYBASE"><envar>SYBASE</envar></term>
+		<listitem>
+			<para>points to the <productname>FreeTDS</productname> run-time directory.  Use of this variable originated with Sybase (the company), and many programs still rely on <envar>SYBASE</envar> to discover the location of the <quote>SYBASE</quote> libraries.  </para>
 			
-        		 <sect3><title><envar>FREETDSCONF</envar></title>
-        		 <para>
-The <envar>FREETDSCONF</envar> environment variable may be
-used to specify the name and location of the <filename>freetds.conf</filename> file.
+			<para>The primary use of <envar>SYBASE</envar> is to advertise the location of the <productname>FreeTDS</productname> libraries.  A secondary use is to point to the location of the <filename>interfaces</filename> file (if used, see the <link  linkend="interfacesfile">Appendix</link>), which some programs examine directly.  </para>
+
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term id="TDSQUERY"><envar>TDSQUERY</envar> </term>
+		<term id="DSQUERY"><envar>DSQUERY</envar></term>
+		<listitem>
+			<para>provides a server name to connect to if none is specified by the application.  <envar>DSQUERY</envar> is the historical Sybase name for this variable.
 			</para>
-		        </sect3>
-        		 <sect3><title id="TDSPORT"><envar>TDSPORT</envar></title>
-        		 <para>
-The <envar>TDSPORT</envar> environment variable specifies a TCP port number to be
-used to connect to the dataserver with.  It overrides the version default port (1433 for TDS 4.2/7.0/8.0, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.
-			</para>
-		        </sect3>
-        		 <sect3><title><envar>TDSQUERY</envar> and <envar>DSQUERY</envar></title>
-        		 <para>
-The <envar>TDSQUERY</envar> environment variable provides a server name to connect to if none is specified by the application.  DSQUERY is the historical Sybase name for this variable.
-			</para>
-		        </sect3>
-        		 <sect3><title id="TDSHOST"><envar>TDSHOST</envar></title>
-        		 <para>
-The <envar>TDSHOST</envar> environment variable overrides the host specified in the <filename>freetds.conf</>.
-			</para>
-		        </sect3>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term id="TDSHOST"><envar>TDSHOST</envar></term>
+		<listitem>
+			<para>overrides the host specified in the <filename>freetds.conf</>.</para>
+		</listitem>
+	</varlistentry>	
+	<!--	
+	<varlistentry>
+		<term></term>
+		<listitem>
+			<para></para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term></term>
+		<listitem>
+			<para></para>
+		</listitem>
+	</varlistentry>	 
+	-->
+</variablelist>
 			</sect2>
 			
 			<sect2>
@@ -1720,7 +1743,7 @@ To set up freetds over stunnel between a Linux webserver and a W2k SQL server:
 	<chapter id="software">
 		<title>How to get what works with it working</title>
 		<para>
-The following programs are known to work to some extent with <productname>FreeTDS</productname>, here you will find any special instructions on getting them compiled or running.
+The following programs are known to work to some extent with <productname>FreeTDS</productname>.  Here you will find any special instructions for getting them compiled or running.
 		</para>
 		<sect1>
 			<title><application>SQSH</application></title>
@@ -2469,7 +2492,7 @@ Will generate a log file named <filename>freetds.log</filename> in the <filename
 		<listitem>
 			<para>Set <envar>TDSDUMPCONFIG</envar> to a file to
 write information to on how the configuration information is being
-obtained, e.g. from environment variables, a <filename>freetds.conf</filename> file, or <filename>interfaces</filename> file.  Sometimes it's unclear what source of information <productname>FreeTDS</productname> is using to connect to a give dataserver.  This variable can make that bright and clear.  </para>
+obtained, e.g. from environment variables, a <filename>freetds.conf</filename> file, or <filename>interfaces</filename> file.  Sometimes it's unclear what source of information <productname>FreeTDS</productname> is using to connect to a given dataserver.  This variable can make that bright and clear.  </para>
 			<para>If set to the null string, the log file name will default to <filename>/tmp/tdsconfig.log.<replaceable>9999</replaceable></filename>, where <replaceable>9999</replaceable> is the pid of the process generating the log. </para>
 		</listitem>
 	</varlistentry>	
@@ -2578,22 +2601,41 @@ still fail.  It also helps to report the version numbers of PHP, and
 		<sect1 id="seemtooslow">
 			<title>Slow connection or data retrieval</title>
 			<para>
-Some people refer that <productname>FreeTDS</productname> seem slower than other connections. 
-Many time this is due to wrongly configured logging features. 
-Please check your freetds.conf file, "dump file" entry should empty.
-			</para>
-			<para>
-Another issue is related to IP resolving. <productname>FreeTDS</productname> do always a reverse lookup of the name.
-In some configuration this can be a problem. Try inserting <programlisting>#define NOREVERSELOOKUPS</programlisting> at beginning of src/tds/config.c.
-			</para>
+<productname>FreeTDS</productname> is <emphasis>not</> slow.  We know this because we've tested it.  It's measurably slower than the vendors' products for some operations, but it's not noticeably slower and it's certainly no laggard.  If your experience is different, if you're waiting 30 seconds for simple operations or minutes instead of seconds for for query results, something is up with your setup.  There are two likely culprits.  
+		</para>
+
+<itemizedlist mark='bullet'>
+	<listitem>
+		<para>Logging.  If everything seems a bit sluggish, check to make sure logging is turned off <envar>TDSDUMP</> should not be defined, and there should be no <literal>dump file</>  mentioned in <filename>freetds.conf</>.  You can double-check by setting <envar>TDSDUMPCONFIG</> temporarily, which will log only the startup process. </para>
+	</listitem>
+	<listitem>
+		<para>DNS.  If connecting to the server takes 30 seconds or 1 minute, you could do worse than to check your <filename>resolv.conf</>.  Use <command>host</> or <command>nslookup</> to confirm that <productname>FreeTDS</productname> can actually resolve the name/address you provided in <filename>freetds.conf</>.  Give particular attention to reverse DNS lookups, if you were forced (or thought you were forced) to identify the server by number, instead of by name, as Vint intended.  You can defeat <productname>FreeTDS</productname>'s automatic reverse-DNS lookup feature by inserting
+		<programlisting>
+		#define NOREVERSELOOKUPS
+		</programlisting>
+in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
+		</para>
+	</listitem>
+</itemizedlist>
+
+
 		</sect1>
 		</chapter>
 	<chapter id="help">
 		<title>Getting Help</title>
-		<para>
-		</para>
-		<sect1>
-    			<title>Isolate the cause</title>
+<epigraph>
+<attribution>Beatles</>
+<para><literallayout>
+	Help me if you can, I'm feeling down
+	And I do appreciate you being 'round.
+	Help me get my feet back on the ground,
+	Won't you please, please help me?
+</literallayout></para>
+</epigraph>
+			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowlegable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
+			</para>
+			
+		<sect1><title>Isolate the cause</title>
 			<para>
 Successful problem isolation will yield earliest resolution.  You (believe it or not) have more information about your environment than anyone else does, and have the greatest motivation to solve your problem.  The resources at your disposal will be much more useful if the problem is specific.  (Sorry if this is obvious.  If it is, you might be surprised how often it's not.)
 			</para>
@@ -2607,22 +2649,40 @@ If you can demonstrate the problem with <application>tsql</> or <application>sqs
 On the plus side, the list includes people with a variety of backgrounds, who frequently answer questions that aren't really about <productname>FreeTDS</productname> <foreignphrase>per se</foreignphrase>.  Clear questions have sometimes even led to submitting patches to other projects.  
 			</para>
 		</sect1>
-		<sect1>
-			<title>Mailing list archive</title>
-			<para>
-The <productname>FreeTDS</productname> mailing list <ulink url="http://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.  
+		<sect1><title>The Mailing List</title>
+<epigraph>
+<attribution>3 Henry VI, I, ii, approximately</>
+<para><literallayout>
+	In them I trust; for they are [hackers]
+	Witty, courteous, liberal, full of spirit.
+</literallayout></para>
+</epigraph>
+
+ 		
+		<sect2><title>The Archive</title>
+			
+			<para>The <productname>FreeTDS</productname> mailing list <ulink url="http://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.  
 			</para>
-		</sect1>
-		<sect1 id="mailinglist">
+			<para>New developments between releases tend <emphasis>not</> to be announced on the website.  The website is updated only intermittently, when we post a new release or <productname>FreeTDS</productname> is somehow in the news, say.  If you found a bug or need a feature, you may find it was announced/discussed/fixed by perusing the archive.  
+			</para>
+		</sect2>
+		<sect2 id="mailinglist">
     			<title>Ask the list</title>
 			<para>
 Many of the original authors and anyone maintaining or extending the code reads the list.  The traffic tends to be bursty.  It usually focuses on build problems and troubleshooting.  Again, the more specific your question, the sooner you'll get a useful reply (if it comes).  
-			<tip><para>
-It's your subject line, <emphasis>Use it</emphasis>!  Try to convey source of the problem (not how you feel about it) in four words</para></tip>  
 			</para>
+			  
 			<para>
-It's important to convey your setup and configuration.  
-<simplelist type=vert columns=1>
+			Please, do not email the authors directly. You may well be ignored because they're they type that gets a ton of mail.  Anyone willing to address your question reads the list, and you don't want to offend anyone willing to help you by going about it the wrong way.
+			</para>
+		</sect2>
+		</sect1>
+		
+		<sect1><title>What to include when asking for help</title>
+		<sect2><title>Waddya got?</title>
+			
+			<para>It's important to convey your setup and configuration.  
+<simplelist type='vert' columns='1'>
 	<member><productname>SQL Server</productname> version</member>
 	<member><productname>FreeTDS</productname> version (or snapshot date, if not a release)</member>
 	<member>which client library you are using</member>
@@ -2630,68 +2690,68 @@ It's important to convey your setup and configuration.
 	<member>your client OS and hardware architecture</member>
 </simplelist>
 			</para>
-			<para>
-			Please, do not email the authors directly. You may well be ignored because they're they type that gets a ton of mail.  Anyone willing to address your question reads the list, and you don't want to offend anyone willing to help you by going about it the wrong way.
+		</sect2>
+		
+		<sect2><title>What Happened?</title>
+		
+			<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</> and attach the log to your message.  Messages are currently limited to 75 KB attachments, and the logs are quite detailed, so make your query as short as possible.  If necessary, trim the log; <command>gzip</> is also your friend here.  It's always a good idea to post it on a website were people can fetch it if they're so inclined.  
 			</para>
-		</sect1>
-		<sect1>
-			<title>What to include when asking for help</title>
-			<para>
-The best possible scenario is, you write a program similar to the ones in the unittests directories. It should be small and demonstrate the problem.  These are usually fixed in a jiffy.
+			<para>Think about it this way: If you attach a log no one reads, you wasted some bandwidth.  If you don't attach one and someone asks you for it, you wasted a day.  Like that.  			</para>
+		</sect2>
+		
+		<sect2><title>Help the Help</title>
+		
+			<para>If you've found an error, weakness, misbehavior, discrepancy, call-it-what-you-will in one of the published <acronym>API</>s, it's very helpful if you write a unit test for it, and tell us what the Microsoft or Sybase behavior is.  Those problems get <emphasis>fixed</>.  Oftentimes, right away.  Everyone who's sent us a unit test has gotten their feature in the next release.  If you don't, you'll at least get an explanation.  
 			</para>
 			<para>
-Moving down, Perl or PHP code provided it creates all the tables it needs and populates them will generally result in a quick fix.  A stand alone query that will run in <application>SQSH</application> also works well.
+Moving down, Perl or PHP code provided it creates all the tables it needs and populates them will generally result in a quick fix.  A stand-alone query that will run in <application>SQSH</application> also works well.  Here again, it helps to attach a log.  
 			<tip><para>If you provide an SQL query in your question to the list, provide a table definition, too.  Problems are often related to specific datatypes, so a table definition is an absolute must.  You can run <command>sp_help <parameter>table</parameter></command> to generate one.  </para></tip>
-			</para>
-			<para>
-Be clear about your setup.  Which row of the <link linkend="configurations">Configurations Section</link> represents yours?  Indicate whether you're using the  <acronym>JDBC</> or C libraries.  Try changing the value of <envar>TDSVER</envar>, to see if it is specifically related to the protocol level.  The server version would be helpful if known, you may execute <command>select @@version</command> to find it.  
 			</para>
 			<para>
 It is very helpful if you can show an example of the problem using <productname>sqsh</> or <productname>tsql</> (the latter is included in with <productname>FreeTDS</productname>).  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
 			</para>
-<para>If the problem is a segmentation fault or bus error, obtain a
+<para>If the problem is a segmentation fault or bus error, that's bad.  Please obtain a
 backtrace and include it in your mail.  See the <link
 linkend=pagenodata>"Page contains no data"</link> section for how to
 do this.</para>
 
+		</sect2>
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="contrib">
 		<title>Helping</title>
-<epigraph>
+<epigraph> 
+<attribution>Bertrand Russell</>
 <para>
-	Rage, rage against the dark!
+	The time you enjoy wasting is not wasted time. 
 </para>
 </epigraph>
 		<para>
-<productname>FreeTDS</productname> is a cooperative, volunteer effort.  The list traffic is not always warm and cuddly, but flame wars are unknown and the signal to noise ratio is pretty high for its venue.  Many people have contributed patches, and few have been turned away.  
+<productname>FreeTDS</productname> is a cooperative, volunteer effort.  Flame wars on the list are unknown and the signal to noise ratio is pretty high for its venue.  Many people have contributed patches, and few have been turned away.  
 		</para>
 		<sect1>
 			<title>Pick a weak spot and fix it.</title>
 			<para>
 
 			<ItemizedList>
-				<listitem><para>The <systemitem class="library">ODBC</systemitem> driver in particular needs work.
-					</para></listitem>
-				<listitem><para>There is no API documentation.
-					</para></listitem>
-				<listitem><para>Support for <acronym>TDS</> 8.0 is not yet fully working.  
-					</para></listitem>
+				<listitem>
+					<para>We don't have enough non-English speakers to test our character set conversion features.  Anyone willing to participate in that way would be most welcome.  </para>
+					</listitem>
+				<listitem>
+					<para>The <systemitem class="library">ODBC</systemitem> driver in particular needs work.  It's a big <acronym>API</>.</para>
+					</listitem>
+				<listitem>
+					<para>Support for <acronym>TDS</> 8.0 is not yet fully working.  </para>
+					</listitem>
+				<listitem>
+					<para>Canonical examples of using the each library would be very helpful to newcomers.  </para>
+					</listitem>
+				<listitem>
+					<para>An isql for db-lib, odbc, Perl, and PHP would all make debugging and testing easier for everyone.  </para>
+					</listitem>
 			</ItemizedList>
 			</para>
-		<sect2>
-    			<title>Isolate bugs</title>
-			<para>
-
-			<ItemizedList>
-				<listitem><para>Write a unittest.
-					</para></listitem>
-				<listitem><para>A specialized ISQL would be helpful, one that returned very explicit error messages, for when things go awry.
-					</para></listitem>
-			</ItemizedList>
-			</para>
-		</sect2>
 		<sect2>
     			<title>Send a patch</title>
 			<para>
@@ -2704,16 +2764,16 @@ Good patches are nearly always applied in short order.  Patches uploaded to <uli
 Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
 			</para>
 			<para>
-The User Guide is maintained in SGML DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be gratefully emended by yours truly.  
+The User Guide is maintained in SGML DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.  
 			</para>
 		</sect2>
 		<sect2>
     			<title>Document an <acronym>API</></title>
 			<para>
-There is no independent reference manual to <productname>FreeTDS</productname>; the <acronym>API</> documents are the work of the server vendors.  Our intention is to use <productname>doxygen</productname>, which can extract documentation directly from comments in the source code.  If you'd like to participate in this effort, please join the mailing list to learn how to get started.  
+We have just begun an independent reference manual to <productname>FreeTDS</productname>; the main <acronym>API</> documents are the work of the server vendors.  We're using <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen</>, which extracts documentation directly from comments in the source code, and we're maybe 25% done. 
 			</para>
 			<para>
-The <acronym>TDS</> protocol is partly documented, but the <acronym>API</> to <filename>libtds</filename> is not.  
+The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</> to <filename>libtds</filename> and <systemitem class="library">db-lib</>, but much remains.  
 			</para>
 		</sect2>
 		<sect2>
