@@ -89,13 +89,13 @@ output_save () {
 	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
 	output_html "$COMMENT" "$DIR/$OUT.txt" "$DIR/$OUT.html"
 
-	WARN=":-)"
+	WARN="no :-)"
 	if test `cat "$DIR/$OUT.txt" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
-		WARN=":-("
+		WARN="yes :-("
 	fi
-	ERR=":-)"
+	ERR="yes :-)"
 	if test $RES != 0; then
-		ERR=":-("
+		ERR="no :-("
 		WARN=ignored
 	fi
 	
@@ -115,7 +115,7 @@ out_header () {
 }
 
 out_row () {
-	echo "$1" | sed 's,   *,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>,; s,<td>:-)</td>,<td><font color="green">yes</font></td>,g; s,<td>:-(</td>,<td bgcolor="red">no</td>,g; s,<td>:(</td>,<td bgcolor="yellow">no</td>,g' >> "$DIR/out.html"
+	echo "$1" | sed 's,   *,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>,; s,<td>\([^<]*\):-)</td>,<td><font color="green">\1</font></td>,g; s,<td>\([^<]*\):-(</td>,<td bgcolor="red">\1</td>,g; s,<td>\([^<]*\):(</td>,<td bgcolor="yellow">\1</td>,g' >> "$DIR/out.html"
 }
 
 out_footer () {
@@ -138,7 +138,7 @@ find "$DIR" -name \*.html -type f -exec rm {} \;
 #fi
 
 out_init
-out_header "Operation  Success  No warning  Log"
+out_header "Operation  Success  Warnings  Log"
 
 echo Making ...
 MAKE=make
@@ -180,7 +180,7 @@ fi
 echo Processing output ...
 
 NUM=1
-out_header "Tests  Success  No warnings  log  VG Success  VG no warnings  VG no errors  VG no leaks  VG log"
+out_header "Tests  Success  Warnings  log  VG Success  VG warnings  VG errors  VG leaks  VG log"
 for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL-TEST:,,g; s,:FULL-TEST.*,,g' `; do
 	TESTLINE="$CUR"
 	
@@ -209,14 +209,14 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	WARN1=unknown
 	ERR1=unknown
 	if test -f "$CUR.test_output"; then
-		ERR1=":-)"
-		WARN1=":-)"
+		ERR1="yes :-)"
+		WARN1="no :-)"
 		LOG1="<a href=\"test$NUM.html\">log</a>"
 		if test `cat "$CUR.test_output" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
-			WARN1=":("
+			WARN1="yes :("
 		fi
 		if test $RES1 != 0; then
-			ERR1=":-("
+			ERR1="no :-("
 			WARN1=ignored
 		fi
 	fi
@@ -227,22 +227,22 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	LEAK=unknown
 	VGERR=unknown
 	if test -f "$CUR.vg.test_output"; then
-		WARN2=":-)"
-		ERR2=":-)"
-		LEAK=":-)"
-		VGERR=":-)"
+		WARN2="no :-)"
+		ERR2="yes :-)"
+		LEAK="no :-)"
+		VGERR="no :-)"
 		LOG2="<a href=\"vgtest$NUM.html\">log</a>"
 		if test `cat "$CUR.vg.test_output" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
-			WARN2=":("
+			WARN2="yes :("
 		fi
 		if test `cat "$CUR.vg.test_output" | grep ':==.*no leaks are possible' | wc -l` == 0; then
-			LEAK=":-("
+			LEAK="yes :-("
 		fi
 		if test `cat "$CUR.vg.test_output" | grep 'ERROR SUMMARY: 0 errors from 0 contexts' | wc -l` == 0; then
-			VGERR=":-("
+			VGERR="yes :-("
 		fi
 		if test $RES2 != 0; then
-			ERR2=":-("
+			ERR2="no :-("
 			WARN2=ignored
 		fi
 	fi

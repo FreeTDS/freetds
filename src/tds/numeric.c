@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.28 2005-02-08 13:51:18 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.29 2005-03-23 16:51:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -332,3 +332,144 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 
 	return TDS_SUCCEED;
 }
+
+#ifndef HAVE_INT64
+#define TDS_WORD  TDS_USMALLINT
+#define TDS_DWORD TDS_UINT
+#define TDS_WORD_DDIGIT 4
+#else
+#define TDS_WORD  TDS_UINT
+#define TDS_DWORD TDS_UINT8
+#define TDS_WORD_DDIGIT 9
+#endif
+
+/* include to check limits */
+#include "num_limits.h"
+
+TDS_INT
+tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
+{
+	static const TDS_WORD factors[] = {
+		1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
+	};
+
+	TDS_WORD packet[(sizeof(numeric->array) - 1) / sizeof(TDS_WORD)];
+
+	unsigned int i, packet_len;
+	int scale_diff, bytes;
+
+	if (numeric->precision < 1 || numeric->precision > MAXPRECISION || numeric->scale > numeric->precision)
+		return TDS_CONVERT_FAIL;
+
+	if (new_scale > numeric->precision)
+		return TDS_CONVERT_FAIL;
+
+	scale_diff = new_scale - numeric->scale;
+	if (scale_diff == 0)
+		return sizeof(TDS_NUMERIC);;
+
+	/* package number */
+	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
+	for (i = 0; bytes > 0; bytes -= sizeof(TDS_WORD), ++i) {
+		/*
+		 * note that if bytes are smaller we have a small buffer
+		 * overflow in numeric->array however is not a problem
+		 * cause overflow occurs in numeric and number is fixed below
+		 */
+#ifndef HAVE_INT64
+		packet[i] = numeric->array[bytes] + numeric->array[bytes-1] * 0x100u;
+#else
+		packet[i] = numeric->array[bytes] + numeric->array[bytes-1] * 0x100u
+			 + numeric->array[bytes-2] * 0x10000u + numeric->array[bytes-3] * 0x1000000u;
+#endif
+	}
+	/* fix last packet */
+	if (bytes < 0)
+		packet[i-1] &= 0xffffffffu >> (8 * -bytes);
+	packet_len = i;
+
+	if (scale_diff > 0) {
+		/* check overflow before multiply */
+		int n = numeric->precision - scale_diff;
+		if (n == 0) {
+			/* must be zero */
+			for (i = 0; i < packet_len; ++i)
+				if (packet[i] != 0)
+					return TDS_CONVERT_OVERFLOW;
+			return sizeof(TDS_NUMERIC);
+		} else {
+			/* check limit */
+			int l, stop;
+			TDS_WORD *limit = &limits[limit_indexes[n] + LIMIT_INDEXES_ADJUST * n];
+			l = limit_indexes[n+1] - limit_indexes[n] + LIMIT_INDEXES_ADJUST;
+			stop = n / (sizeof(TDS_WORD) * 8);
+			for (i = packet_len; --i >= l + stop; )
+				if (packet[i] > 0)
+					return TDS_CONVERT_OVERFLOW;
+			for (i = l + stop; --i > stop; ++limit)
+				if (packet[i] > *limit)
+					return TDS_CONVERT_OVERFLOW;
+				else if (packet[i] < *limit)
+					goto ok;
+			if (packet[i] >= *limit)
+				return TDS_CONVERT_OVERFLOW;
+ok:
+		}
+		
+		
+		/* multiply */
+		do {
+			/* multiply by at maximun TDS_WORD_DDIGIT */
+			unsigned int n = scale_diff > TDS_WORD_DDIGIT ? TDS_WORD_DDIGIT : scale_diff;
+			TDS_WORD factor = factors[n];
+			TDS_WORD carry = 0;
+			scale_diff -= n; 
+			for (i = 0; i < packet_len; ++i) {
+				TDS_DWORD n = packet[i] * ((TDS_DWORD) factor) + carry;
+				packet[i] = (TDS_WORD) n;
+				carry = n >> (8 * sizeof(TDS_WORD));
+			}
+			if (carry)
+				return TDS_CONVERT_OVERFLOW;
+		} while (scale_diff > 0);
+	} else {
+		/* divide */
+		scale_diff = -scale_diff;
+		do {
+			unsigned int n = scale_diff > TDS_WORD_DDIGIT ? TDS_WORD_DDIGIT : scale_diff;
+			TDS_WORD factor = factors[n];
+			TDS_WORD borrow = 0;
+			scale_diff -= n;
+			for (i = packet_len; i > 0; ) {
+				TDS_DWORD n = (((TDS_DWORD) borrow) << (8 * sizeof(TDS_WORD))) + packet[--i];
+				packet[i] = n / factor;
+				borrow = n % factor;
+			}
+		} while (scale_diff > 0);
+	}
+
+	/* back to our format */
+	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
+	for (i = 0; bytes >= sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
+		numeric->array[bytes]   = (TDS_UCHAR) packet[i];
+		numeric->array[bytes-1] = (TDS_UCHAR) (packet[i] >> 8);
+#ifdef HAVE_INT64
+		numeric->array[bytes-2] = (TDS_UCHAR) (packet[i] >> 16);
+		numeric->array[bytes-3] = (TDS_UCHAR) (packet[i] >> 24);
+#endif
+	}
+
+	if (bytes) {
+		TDS_WORD remainder = packet[i];
+		do {
+			numeric->array[bytes] = (TDS_UCHAR) remainder;
+			remainder >>= 8;
+		} while (--bytes);
+	}
+	numeric->scale = new_scale;
+
+	/* TODO for multiply we should check for overflow ... */
+
+	return sizeof(TDS_NUMERIC);
+}
+

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.41 2004-12-13 10:59:59 freddy77 Exp $
+# $Id: Makefile.am,v 1.42 2005-03-23 16:51:43 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -35,7 +35,9 @@ doxy: doxyfile  $(libtds_objects_la_SOURCES)
 	$(DOXYGEN) doxyfile
 endif
 
+# numeric.pl is not charset but build with charset
 charset:
 	perl sybase_character_sets.h.pl > sybase_character_sets.h
 	perl encodings.pl > encodings.h
+	perl numeric.pl > num_limits.h
 
