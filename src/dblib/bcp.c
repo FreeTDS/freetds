@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.51 2003-02-05 19:17:08 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.52 2003-02-10 21:48:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -308,8 +308,13 @@ BCP_HOSTCOLINFO *hostcol;
 	if (is_fixed_type(host_type) && (host_collen != -1 && host_collen != 0))
 		return FAIL;
 
-	/* if there's a valid terminator, it needs a nonzero length.  If there's no terminator, its length should show that.  */
-	assert ((host_term != NULL && host_termlen >= 0) || (host_term == NULL && host_termlen == -1));
+	/* 
+	 * If there's a positive terminator length, we need a valid terminator pointer.
+	 * If the terminator length is 0 or -1, then there's no terminator.
+	 * FIXME: look up the correct error code for a bad terminator pointer or length and return that before arriving here.   
+	 */
+	assert ((host_termlen > 0)? (host_term != NULL) : 1);
+
 
 	hostcol = dbproc->host_columns[host_colnum - 1];
 
@@ -317,7 +322,7 @@ BCP_HOSTCOLINFO *hostcol;
 	hostcol->datatype = host_type;
 	hostcol->prefix_len = host_prefixlen;
 	hostcol->column_len = host_collen;
-	if (host_term && host_termlen > 0) { 
+	if (host_term && host_termlen >= 0) { 
 		hostcol->terminator = (BYTE *) malloc(host_termlen + 1);
 		memcpy(hostcol->terminator, host_term, host_termlen);
 	}
