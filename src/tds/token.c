@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.147 2003-02-13 21:25:12 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.148 2003-02-22 09:19:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -200,14 +200,16 @@ TDSCOLINFO *curcol;
 	if (tds->res_info->num_cols != 1) {
 		return TDS_FAIL;
 	}
-	curcol = tds->res_info->columns[0];
-	if (curcol->column_type != SYBINT2 && (curcol->column_type != SYBINTN || curcol->column_size != 2)) {
-		return TDS_FAIL;
-	}
 	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
-	tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
+	curcol = tds->res_info->columns[0];
+	if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
+		tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
+	} else if (curcol->column_type == SYBINT4 || (curcol->column_type == SYBINTN && curcol->column_size == 4)) {
+		tds->spid = *((TDS_UINT *) (tds->res_info->current_row + curcol->column_offset));
+	} else
+		return TDS_FAIL;
 	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_NO_MORE_ROWS) {
 		return TDS_FAIL;
 	}
