@@ -1,4 +1,8 @@
+Thu Feb 13 00:44:32 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tdsodbc.h  applied Frediano's SQLULEN patch
+
 Wed Feb 12 22:46:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+
 	* src/ctlib/unittests/ct_options.c:
 	- use small hack to check bus error on some machines
 
