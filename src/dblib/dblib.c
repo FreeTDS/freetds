@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.164 2004-01-31 15:19:52 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.165 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -553,8 +553,8 @@ dbinit(void)
 	 * Set the functions in the TDS layer to point to the correct info/err
 	 * message handler functions 
 	 */
-	g_dblib_ctx.tds_ctx->msg_handler = dblib_handle_info_message;
-	g_dblib_ctx.tds_ctx->err_handler = dblib_handle_err_message;
+	g_dblib_ctx.tds_ctx->msg_handler = _dblib_handle_info_message;
+	g_dblib_ctx.tds_ctx->err_handler = _dblib_handle_err_message;
 
 
 	if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {

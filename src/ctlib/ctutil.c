@@ -31,12 +31,12 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.18 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.19 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* error handler */
 int
-ctlib_handle_client_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
+_ct_handle_client_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	CS_CLIENTMSG errmsg;
 	CS_CONNECTION *con = NULL;
@@ -67,7 +67,7 @@ ctlib_handle_client_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * 
 
 /* message handler */
 int
-ctlib_handle_server_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
+_ct_handle_server_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	CS_SERVERMSG errmsg;
 	CS_CONNECTION *con = NULL;

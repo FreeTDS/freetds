@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.15 2004-01-28 20:37:42 freddy77 Exp $";
+static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.16 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 struct tds_dblib_loginrec
@@ -142,10 +142,10 @@ struct tds_dblib_dbprocess
 /*
 ** internal prototypes
 */
-int dblib_handle_info_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
-int dblib_handle_err_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
+int _dblib_handle_info_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
+int _dblib_handle_err_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
 int _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr);
-void dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
+void _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
 
 DBINT _convert_char(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);
 DBINT _convert_intn(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);

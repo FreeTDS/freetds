@@ -1,3 +1,14 @@
+Sat Jan 31 17:05:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/ctlib.h include/dblib.h src/ctlib/Makefile.am:
+	* src/ctlib/ct.c src/ctlib/ctutil.c:
+	* src/ctlib/unittests/array_bind.c:
+	* src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/ct_diagclient.c:
+	* src/ctlib/unittests/t0009.c:
+	* src/dblib/Makefile.am src/dblib/dblib.c:
+	* src/dblib/dbutil.c:
+	- export only required function from libraries
+
 Sat Jan 31 16:20:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- memory leak patch from Edward Quackenbush

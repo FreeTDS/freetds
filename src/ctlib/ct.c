@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.115 2004-01-30 15:16:00 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.116 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -183,8 +183,8 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 	/* uncomment the next line to get pre-login trace */
 	/* tdsdump_open("/tmp/tds2.log"); */
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_init()\n");
-	ctx->tds_ctx->msg_handler = ctlib_handle_server_message;
-	ctx->tds_ctx->err_handler = ctlib_handle_client_message;
+	ctx->tds_ctx->msg_handler = _ct_handle_server_message;
+	ctx->tds_ctx->err_handler = _ct_handle_client_message;
 	return CS_SUCCEED;
 }
 

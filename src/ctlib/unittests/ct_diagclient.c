@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.2 2003-04-10 11:44:34 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.3 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -219,7 +219,6 @@ main(int argc, char *argv[])
 	case CS_END_RESULTS:
 		break;
 	case CS_FAIL:
-		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() failed\n");
 		fprintf(stderr, "ct_results() failed.\n");
 		return 1;
 		break;

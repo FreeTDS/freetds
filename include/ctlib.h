@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.8 2004-01-27 21:56:44 freddy77 Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.9 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -83,8 +83,8 @@ CT_COLINFO;
 /*
  * internal prototypes
  */
-int ctlib_handle_server_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
-int ctlib_handle_client_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
+int _ct_handle_server_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
+int _ct_handle_client_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
 int _ct_get_server_type(int datatype);
 
 #ifdef __cplusplus

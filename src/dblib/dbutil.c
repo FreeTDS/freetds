@@ -34,7 +34,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.22 2004-01-28 20:37:43 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.23 2004-01-31 16:07:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -44,7 +44,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * know what it really was.  
  */
 int
-dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+_dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = NULL;
 
@@ -77,7 +77,7 @@ dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * ms
 }
 
 int
-dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+_dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = NULL;
 	int rc = INT_CANCEL;
@@ -144,7 +144,7 @@ dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg
 }
 
 void
-dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version)
+_dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version)
 {
 	switch (version) {
 	case DBVERSION_42:
