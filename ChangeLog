@@ -1,3 +1,9 @@
+Tue Sep 23 01:03:12 PDT 2003	Peter Deacon <peterd@iea-software.com>
+	* src/odbc/odbc.c src/tds/mem.c src/tds/query.c
+	* src/tds/read.c src/tds/token.c
+	- add SQL_ATTR_QUERY_TIMEOUT support on statement handle
+	- check cancel return codes
+
 Mon Sep 22 22:07:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/iconv_replacement.c(added):
 	* win32/config.h win32/dev-cpp/FreeTDS.dev:
