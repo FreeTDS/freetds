@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.14 2004-12-01 22:40:45 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.15 2004-12-14 08:37:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -75,9 +75,9 @@ typedef struct _options
 	char 	*servername, 
 		*database, 
 		*appname, 
-		 hostname[128], 
-		*colsep,
-		*input_filename, 
+		 hostname[128];
+	const char *colsep;
+	char	*input_filename, 
 		*output_filename, 
 		*error_filename; 
 } OPTIONS;
@@ -734,6 +734,7 @@ static void unescape(char arg[])
 		if (!isdigit((unsigned char) escaped)) {
 			*p++ = escaped;
 			memmove(p, p+1, 1 + strlen(p+1));
+			escaped = '1';
 		}
 	}
 }
@@ -790,8 +791,8 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			options->error_filename = strdup(optarg);
 			break;
 		case 't':
+			unescape(optarg);
 			options->colsep = strdup(optarg);
-			unescape(options->colsep);
 			break;
 		case 'v':
 			options->fverbose = 1;

@@ -1,9 +1,11 @@
+Tue Dec 14 09:36:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c: remove a warning
+
 Mon Dec 13 19:28:34 EST 2004	Brian Bruns <brian@bruns.com>
 	* src/pool/pool.h: add reference to assign member to TDS_POOL_USER
 	* src/pool/main.c: comment out debug message
 	* src/pool/member.c:
 	* src/pool/user.c: fix cleanup routines on read/write error
-
 
 Mon Dec 13 20:21:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/pool/config.c src/pool/member.c src/pool/pool.h:
