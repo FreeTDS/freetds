@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.4 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.5 2001-11-26 00:17:37 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -719,7 +719,7 @@ struct _hdbc *dbc;
 				case SQL_TINYINT:
 					*pfDesc = 4;
 					break;
-				case SQL_DATETIME:
+				case SQL_DATE:
 					*pfDesc = 19;
 					break;
 			}
