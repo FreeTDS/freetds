@@ -1,44 +1,15 @@
-Recently Fixed
---------------
-1. Bug under SQL 7 with large (> 512 bytes) queries.  (default block size
-   is changed by the server)
-2. ct_cancel/dbcancel doesn't work right
-3. Negative smallmoney values not working
-4. change in dbsqlexec has broken query pending client msg under dblib
-5. Core dump on failed login see dblib/unittests/t0001
-   (return from dbproc() not checked, but should it coredump?)
-6. make clean doesn't do obdc or unittests directories
-7. make dist doesn't work right.
-8. Check int sizes in autoconf
-9. 20030123 make distclean doesn't handle unittest directories.
-10. 20030123 Stored procedure return statuses not propagated
-
 
 Believed Fixed
 --------------
-1. missing digit on numeric/float types under some clients
-2. text values getting truncated to 255 bytes under TDS 7. (can someone
-   provide more detail?)
-3. code to send COL_NAME and COL_INFO tokens are not in the server stuff.
-4. tds_get_*int() and tds_put_*int() should handle either endianess on any 
-   platform. Breaks TDS 7.0 under big end machines.
+1. code to send COL_NAME and COL_INFO tokens are not in the server stuff.
 
 Needs Fixing
 ------------
-1. Text values not being handled for ctlib/dblib, tds works
-   (I think dblib works, but ctlib needs work)
-2. Fix formatting of dbprhead/dbprrow...its a little off
+1. Fix formatting of dbprhead/dbprrow...its a little off
    (Anybody care?)
-4. text/image does not work for row buffering under dblib.
-5. Intermittant crash with PHP apache module. (Unknown marker messages
-   appear in the log...)
-6. dbwritetext() and friends do not work under TDS 7.0
-7. There is a bug with the order of returns from ct_results() such that rows
+2. text/image does not work for row buffering under dblib.
+3. dbwritetext() and friends do not work under TDS 7.0
+4. There is a bug with the order of returns from ct_results() such that rows
    affected doesn't show up in sqsh.
-8. dbsqlexec() needs a dbresults() loop on error and shouldn't
-9. freetds.conf requires server names to be lower case.
 
-Reported but not confirmed
---------------------------
-1. Insert/Update queries reported not to work on TDS 7. (couldn't confirm)
 

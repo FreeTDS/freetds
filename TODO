@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.107 2004-04-21 09:11:13 freddy77 Exp $
+To Do List	$Id: TODO,v 1.108 2004-04-25 08:54:51 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -157,71 +157,3 @@ For future versions (in priority order within library):
 
 Tests
 - "if 0 = 1 select 1" should not fail
-
-Done in 0.63
-. ODBC: use tds_dstr* functions to store descriptor infos
-. header privatizations (removing tds.h dependency)  this is quite 
-  important for future binary compatibility.
-. ODBC: SQLFetch returns error correctly
-. ODBC: fix problem rebinding parameters
-
-Done in 0.62
-. cursor support in ct-lib
-. fix PHP problem handling empty recordsets. See messages on ML:
-  Damian Kramer, September 23, "Possible bug in freeTDS"
-  Steve Hanselman, September 16 "Issue with freetds 0.61.2 ..."
-  Done, consequent to ct-lib cursor patch. 
-. ODBC: improve, best error report (finish and test, see error.c FIXME and TODO)
-. ct-lib: support ct_diag (for Python)
-. ODBC test: how work mssql driver using SQLMoreResults/SQLRowCount and batch 
-  like SELECT INSERT INSERT SELECT ?
-  (SQLMoreResults skip row counts for INSERT?)
-. ODBC: Check (and fix if needed) call to {?=store(?)} does it bind correctly?
-  seem not replace first parameters
-. ODBC test: what happen on:
-  - "select id,name from sysobjects where name = 'sysobjects'"
-  - SQLMoreResults
-  - SQLMoreResults 
-. Someone broke early binding in ODBC 
-  (fixed, added check for early bind, and multiple recordset)
-. ODBC: configure should detect iODBC or unixODBC automatically
-. ODBC: Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
-. freebcp should understand \n as newline. Also \r and \0 (null byte).
-. --without-libiconv to switch off iconv library
-. ODBC: test NUMERIC parameter
-. ODBC: dynamic query
-  - SQLPutData do not work
-  - Sybase and blobs do not work
-    port code for string building from ODBC to libtds
-    (required also for some test working using tds4.2)
-
-Done (removed from above):
-. Extend TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
-  server charsets.  Every TDSCOLINFO holding character data should point to one of
-  these elements.  
-. src/dblib/unittests/t0017.c (bcp) is broken, perhaps for above reason.
-. Change tds_get_char_data() per Frediano's suggestion, ML 2 May 2003, "tds_get_char_data and iconv".
-. Rewrite tds_iconv (again):
-	* use iconv() signature.
-	* rely on TDSCOLINFO::iconv_info for conversion descriptor, instead 
-	  of inferring it from the column sizes.  
-	* On read error, emit Msg 2403, Severity 16 (EX_INFO):
-		"WARNING! Some character(s) could not be converted into client's character set. Unconverted bytes were changed to question marks ('?')."
-	* On write error emit Msg 2402, Severity 16 (EX_USER):
-		"Error converting client characters into server's character set. Some character(s) could not be converted."
-	  and return an error code.  Do not proceed.  
-	* Cf. ML 16 Apr 2003. "conversion error management".
-. Add doxygen to the nightly build
-. "make install" should put the UG in PREFIX/share/doc/freetds/userguide
-. "make install" should put doxygen html in PREFIX/share/doc/freetds/reference
-. Move website docs (not UG) to doc/htdoc, put in CVS
-. Add bcp support to tds/dblib/ctlib. (started in dblib)
-. RPC stuff not implemented (work in progress, libtds ok)
-. Add support for TDS 8.0 (login works)
-. TDS 7 Unicode to native charset conversion using iconv (partly done)
-. autoconf the connection pooling stuff
-. DBLIB: output params (tests)
-. set database during login process
-. libtds: dynamic query
-. ctlib: null returns zero-length string(see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
-

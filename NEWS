@@ -1,3 +1,63 @@
+* 0.63
+- ODBC: use tds_dstr* functions to store descriptor infos
+- header privatizations (removing tds.h dependency)  this is quite 
+  important for future binary compatibility.
+- ODBC: SQLFetch returns error correctly
+- ODBC: fix problem rebinding parameters
+
+* 0.62
+- ct-lib: cursor support
+- fixed PHP problem handling empty recordsets. See messages on ML:
+  Damian Kramer, September 23, "Possible bug in freeTDS"
+  Steve Hanselman, September 16 "Issue with freetds 0.61.2 ..."
+- ODBC: improved, best error report
+- ct-lib: support ct_diag (for Python)
+- ODBC: fixed SQLMoreResults/SQLRowCount and batch behavior
+- ODBC: fixes call to {?=store(?)}
+- ODBC: multiple record with
+  "select id,name from sysobjects where name = 'sysobjects'"
+- ODBC: fixed early binding
+- ODBC: autodetect iODBC or unixODBC during configure
+- ODBC: implemented option 109 in SQLGetConnectOption (for OpenOffice)
+- freebcp understand \n as newline. Also \r and \0 (null byte).
+- added --without-libiconv configure option to switch off iconv library
+- ODBC: test and fixes for NUMERIC parameter
+- ODBC: dynamic query
+  - SQLPutData
+  - Sybase and blobs
+    ported code for string building from ODBC to libtds
+- extended TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
+  server charsets.  Every TDSCOLINFO holding character data should point to 
+  one of these elements.  
+- dblib: src/dblib/unittests/t0017.c (bcp) fixed
+- changed tds_get_char_data(), ML 2 May 2003, "tds_get_char_data and iconv".
+- rewrote tds_iconv:
+ - use iconv() signature.
+ - rely on TDSCOLINFO::iconv_info for conversion descriptor, instead 
+   of inferring it from the column sizes.  
+ - on read error, emit Msg 2403, Severity 16 (EX_INFO):
+   "WARNING! Some character(s) could not be converted into client's character 
+   set. Unconverted bytes were changed to question marks ('?')."
+ - on write error emit Msg 2402, Severity 16 (EX_USER):
+   "Error converting client characters into server's character set. Some 
+   character(s) could not be converted."
+   and return an error code.  Do not proceed.  
+ - Cf. ML 16 Apr 2003. "conversion error management".
+- added doxygen to the nightly build
+- "make install" put the UG in PREFIX/share/doc/freetds/userguide
+- "make install" put doxygen html in PREFIX/share/doc/freetds/reference
+- moved website docs (not UG) to doc/htdoc, put in CVS
+- added bcp support to tds/dblib/ctlib. (started in dblib)
+- RPC stuff
+- added support for TDS 8.0
+- TDS 7 Unicode to native charset conversion using iconv
+- autoconf the connection pooling stuff
+- DBLIB: output params
+- set database during login process
+- libtds: dynamic query
+- ctlib: null returns zero-length string
+  (see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
+
 * Jan 2003
 - Version 0.61
 - Dynamic SQL
