@@ -11,7 +11,7 @@
 #      Sybase or MS SQL server, there may be many database per server.  tempdb
 #      is a good default choice if unsure.
 #
-UID=sa
-PWD=btester
-SRV=btest
+UID=guest
+PWD=sybase
+SRV=JDBC
 DB=tempdb
