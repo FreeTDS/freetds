@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.55 2002-09-19 15:53:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.56 2002-09-20 14:37:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1341,12 +1341,8 @@ int len_sqlstate;
 	if (tds->tds_ctx->msg_handler) {
 	  /* First, invoke the message handler. */
 	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, tds->msg_info);
-
-	  /* Next, invoke the error handler to indicate that a msg was sent */
-	  tds_client_msg(tds->tds_ctx, tds, 20018, 5, -1, 1,
-			 "General SQL Server error: Check messages from the SQL Server.");
 	} else {
-		if(tds->msg_info->msg_number)
+		if (tds->msg_info->msg_number)
 			tdsdump_log(TDS_DBG_WARN,
 			"%L Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
 			tds->msg_info->msg_number,
@@ -1356,6 +1352,15 @@ int len_sqlstate;
 			tds->msg_info->line_number,
 			tds->msg_info->message);
 		tds_free_msg(tds->msg_info);
+	}
+	/*
+	 * Next, invoke the error handler to indicate that a msg was sent
+	 * if it was a syntax error or high severity.
+	 */
+	if ((tds->msg_info->msg_number == 102)
+	    || (tds->msg_info->msg_level > 16)) {
+		tds_client_msg(tds->tds_ctx, tds, 20018, 5, -1, 1,
+			 "General SQL Server error: Check messages from the SQL Server.");
 	}
 	return rc;
 }
