@@ -30,3 +30,7 @@ install-data-local:
 
 test:
 	@echo "The 'make test' option has been replaced with 'make check'";
+
+all-redirect:
+	if test ! -f PWD; then cp $(srcdir)/PWD PWD; fi
+
