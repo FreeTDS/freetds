@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.77 2002-10-27 19:59:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.78 2002-11-01 14:58:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2212,7 +2212,17 @@ SQLRETURN SQL_API SQLGetInfo(
 
     switch (fInfoType)
     {
-    case SQL_DRIVER_NAME: /* ODBC 2.0 */
+	/* TODO dbms name and version can be safed from login... */
+	case SQL_DBMS_NAME:
+		p = "SQL Server";
+		break;
+	case SQL_DBMS_VER:
+		p = "unknown version";
+		break;
+	case SQL_DRIVER_VER:
+		p = VERSION;
+		break;
+	case SQL_DRIVER_NAME: /* ODBC 2.0 */
         p = "libtdsodbc.so";
         break;
     case SQL_DRIVER_ODBC_VER:

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.50 2002-10-27 10:26:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.51 2002-11-01 14:58:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -87,22 +87,31 @@ extern int g_append_mode;
 
 static char *interf_file = NULL;
 
-/*
-** tds_read_config_info() will fill the tds connect_info structure based on configuration 
-** information gathered in the following order:
-** 1) Program specified in TDSLOGIN structure
-** 2) The environment variables TDSVER, TDSDUMP, TDSPORT, TDSQUERY, TDSHOST
-** 3) A config file with the following search order:
-**    a) a readable file specified by environment variable FREETDSCONF
-**    b) a readable file in ~/.freetds.conf
-**    c) a readable file in $prefix/etc/freetds.conf
-** 3) ~/.interfaces if exists
-** 4) $SYBASE/interfaces if exists
-** 5) TDS_DEF_* default values
-**
-** .tdsrc and freetds.conf have been added to make the package easier to 
-** integration with various Linux and *BSD distributions.
-*/ 
+/**
+ * \defgroup config Configuration
+ * Handle reading of configuration
+ */
+
+/** \addtogroup config
+ *  \@{ 
+ */
+
+/**
+ * tds_read_config_info() will fill the tds connect_info structure based on configuration 
+ * information gathered in the following order:
+ * 1) Program specified in TDSLOGIN structure
+ * 2) The environment variables TDSVER, TDSDUMP, TDSPORT, TDSQUERY, TDSHOST
+ * 3) A config file with the following search order:
+ *    a) a readable file specified by environment variable FREETDSCONF
+ *    b) a readable file in ~/.freetds.conf
+ *    c) a readable file in $prefix/etc/freetds.conf
+ * 3) ~/.interfaces if exists
+ * 4) $SYBASE/interfaces if exists
+ * 5) TDS_DEF_* default values
+ *
+ * .tdsrc and freetds.conf have been added to make the package easier to 
+ * integration with various Linux and *BSD distributions.
+ */ 
 TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale)
 {
 TDSCONNECTINFO *connect_info;
@@ -153,6 +162,10 @@ int opened = 0;
 	return connect_info;
 }        
 
+/**
+ * Fix configuration after reading it. 
+ * Currently this read some environment variables and replace some options.
+ */
 void 
 tds_fix_connect(TDSCONNECTINFO *connect_info)
 {
@@ -189,6 +202,9 @@ FILE *in;
 /**
  * Read configuration info for given server
  * return 0 on error
+ * @param connect_info where to store configuration
+ * @param server       section of file configuration that hold 
+ *                     configuration for a server
  */
 int
 tds_read_conf_file(TDSCONNECTINFO *connect_info, const char *server)
@@ -262,6 +278,13 @@ static int tds_config_boolean(const char *value)
 	}
 }
 
+/**
+ * Read a section of configuration file (INI style file)
+ * @param in             configuration file
+ * @param section        section to read
+ * @param tds_conf_parse callback that receive every entry in section
+ * @param param          parameter to pass to callback function
+ */
 int 
 tds_read_conf_section(FILE *in, const char *section, TDSCONFPARSE tds_conf_parse, void *param)
 {
@@ -590,6 +613,10 @@ tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info)
 	}
 }
 
+/**
+ * Set the full name of interface file
+ * @param interf file name
+ */
 int
 tds_set_interfaces_file_loc(char *interf)
 {
@@ -609,19 +636,14 @@ tds_set_interfaces_file_loc(char *interf)
 	return TDS_SUCCEED;
 }
 
-/* ============================== tds_lookup_host() ==============================
+/**
+ * Given a servername and port name or number, lookup the
+ * hostname and service.  The server ip will be stored in the
+ * string 'servername' in dotted-decimal notation.  The service port
+ * number will be stored in string form in the 'port' parameter.
  *
- * Def:  Given a servername and port name or number, lookup the
- *       hostname and service.  The server ip will be stored in the
- *       string 'servername' in dotted-decimal notation.  The service port
- *       number will be stored in string form in the 'port' parameter.
- *
- *       If we can't determine both the IP address and port number then
- *       'ip' and 'port' will be set to empty strings.
- *
- * Ret:  void
- *
- * ===========================================================================
+ * If we can't determine both the IP address and port number then
+ * 'ip' and 'port' will be set to empty strings.
  */
 void tds_lookup_host(
    const char  *servername,  /* (I) name of the server                  */
@@ -824,18 +846,16 @@ free(pathname);
 } /* search_interface_file()  */
 
 
-/* ============================ get_server_info() ============================
+/**
+ * Try to find the IP number and port for a (possibly) logical server name.
  *
- * Def:  Try to find the IP number and port for a (possibly) logical server
- *       name.
- *
- * Note: It is the callers responsibility to supply large enough buffers
+ * @note It is the callers responsibility to supply large enough buffers
  *       to hold the ip and port numbers.  ip_addr should be at least 17
  *       bytes long and ip_port should be at least 6 bytes long.
  *
- * Note: This function uses only the interfaces file and is deprecated.
+ * @note This function uses only the interfaces file and is deprecated.
  *
- * Ret:  True if it found the server, false otherwise.
+ * @return True if it found the server, false otherwise.
  *
  * ===========================================================================
  */
@@ -971,3 +991,4 @@ static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *l
         return 0;/* FALSE */
 }
 
+/** \@} */

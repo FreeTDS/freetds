@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.24 2002-11-01 09:58:07 freddy77 Exp $
+# version $Id: Makefile.am,v 1.25 2002-11-01 15:02:54 freddy77 Exp $
 SUBDIRS		=	include src doc samples
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
@@ -16,8 +16,10 @@ install-data-local:
 		$(INSTALL_DATA) $(srcdir)/locales.conf $(ETC)/locales.conf; \
 	fi
 
+# enable some cheat so make distcheck work (see below)
 DISTCHECK_CONFIGURE_FLAGS	=	--enable-distcheck-build
 
+# for default we do not uninstall configuration (they can be changed)
 if DISTCHECK_BUILD
 uninstall-local:
 	$(RM) $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
@@ -28,8 +30,10 @@ test:
 
 all:
 if DISTCHECK_BUILD
+# if we are inside a make distcheck copy our real password file
 	if test ! -f PWD -a -f $(srcdir)/../PWD; then cp $(srcdir)/../PWD PWD; fi
 endif
+# this prevent the store of passwords in CVS
 	if test ! -f PWD; then cp $(srcdir)/PWD.in PWD; fi
 
 snapshot:

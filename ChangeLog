@@ -1,3 +1,9 @@
+Fri Nov  1 15:57:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am: added some comments
+	* src/odbc/odbc.c: patch by Daniel Morgan
+	* src/tds/config.c src/tds/convert.c src/tds/tds.dox:
+	- enabled and updated doxygen documentation
+
 Fri Nov  1 12:16:05 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/README.releasing: updated
 

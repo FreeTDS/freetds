@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.95 2002-10-24 10:31:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.96 2002-11-01 14:58:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -68,6 +68,15 @@ static TDS_INT tds_convert_int2(int srctype, const TDS_CHAR *src, int desttype, 
 static TDS_INT tds_convert_int4(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static TDS_INT tds_convert_int8(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
+
+/**
+ * \defgroup convert Conversion
+ */
+
+/** \addtogroup convert
+ *  \@{ 
+ */
+
 /**
  * convert a number in string to a TDSNUMERIC
  * @return sizeof(TDS_NUMERIC) on success, TDS_CONVERT_* failure code on failure 
@@ -2966,3 +2975,4 @@ tds_prtype(int token)
 }
 #endif
 
+/** \@} */
