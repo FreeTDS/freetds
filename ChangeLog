@@ -1,3 +1,7 @@
+Thu Feb 13 11:53:55 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c
+	- Bill Thompson's dbresults patch
+
 Thu Feb 13 01:01:47 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c field and row-terminator fix from Craig A. Berry
 	* src/tds/token.c small repair to ct_options

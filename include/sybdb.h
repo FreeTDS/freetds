@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.41 2003-02-11 02:46:50 jklowden Exp $";
+"$Id: sybdb.h,v 1.42 2003-02-13 16:58:05 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -96,6 +96,10 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBCMDNONE 0
 #define DBCMDPEND 1
 #define DBCMDSENT 2
+
+#define DBRESINIT 0
+#define DBRESSUCC 1
+#define DBRESDONE 2
 
 typedef int	 RETCODE;
 
@@ -340,7 +344,7 @@ typedef struct {
    
    int             noautofree;
    int             more_results; /* boolean.  Are we expecting results? */
-   int             empty_result; /* boolean.  has dbsqlok eaten the results ? */
+   int             dbresults_state; 
    BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
    unsigned char  *dbbuf; /* is dynamic!                   */
    int             dbbufsz;

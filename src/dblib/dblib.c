@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.117 2003-02-11 02:46:50 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.118 2003-02-13 16:58:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -864,6 +864,7 @@ void *p;
 
 	dbproc->avail_flag = FALSE;
 
+	tdsdump_log(TDS_DBG_FUNC, "%L inside dbcmd() bufsz = %d\n", dbproc->dbbufsz);
 	if (dbproc->command_state == DBCMDSENT ) {
 		if (!dbproc->noautofree) {
 			dbfreebuf(dbproc);
@@ -901,12 +902,15 @@ TDSSOCKET *tds;
 	if (dbproc == NULL) {
 		return FAIL;
 	}
+	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlexec()\n");
+
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (IS_TDSDEAD(tds))
 		return FAIL;
 
 	if (tds->res_info && tds->res_info->more_results) {
-		dbresults(dbproc);
+		while(dbresults(dbproc) == SUCCEED)
+		;
 	}
 
 	if (SUCCEED == (rc = dbsqlsend(dbproc))) {
@@ -1040,32 +1044,46 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
-		case TDS_PARAM_RESULT:
-		case TDS_CMD_FAIL:
 			done = 1;
 			break;
 
+		case TDS_CMD_SUCCEED:
 		case TDS_CMD_DONE:
+		case TDS_CMD_FAIL:
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_MSG_RESULT:
 		case TDS_ROWFMT_RESULT:
 		case TDS_DESCRIBE_RESULT:
 		case TDS_STATUS_RESULT:
+		case TDS_PARAM_RESULT:
+		default:
 			break;
-
 		}
 	}
+
 	switch (retcode) {
 	case TDS_SUCCEED:
+		dbproc->dbresults_state = DBRESSUCC;
 		return SUCCEED;
 		break;
+
 	case TDS_NO_MORE_RESULTS:
-		return NO_MORE_RESULTS;
+		if (dbproc->dbresults_state == DBRESINIT) {
+			dbproc->dbresults_state = DBRESSUCC;
+			return SUCCEED;
+		} else {
+			if (dbproc->dbresults_state == DBRESSUCC) {
+				dbproc->dbresults_state = DBRESDONE;
+				return NO_MORE_RESULTS;
+			}
+		}
 		break;
+
 	case TDS_FAIL:
 	default:
 		break;
 	}
+
 	return FAIL;
 }
 
@@ -1086,10 +1104,6 @@ RETCODE rc;
 	if (dbproc == NULL)
 		return FAIL;
 
-	if (dbproc->empty_result) {
-		dbproc->empty_result = 0;
-		return SUCCEED;
-	}
 	rc = dbresults_r(dbproc, 0);
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbresults() returning %d\n", rc);
 	return rc;
@@ -3013,8 +3027,6 @@ RETCODE rc = SUCCEED;
 
 	}
 
-	dbproc->empty_result = 0;
-
 	/* See what the next packet from the server is. */
 
 	/* 1. we want to skip any messages which are not processable */
@@ -3053,13 +3065,6 @@ RETCODE rc = SUCCEED;
 			}
 			done = 1;
 
-			/* ...dbsqlok() has now eaten the end token. This may */
-			/* cause a subsequent call to dbresults() to return   */
-			/* NO_MORE_RESULTS, instead of SUCCEED. So we turn    */
-			/* on this little flag to stop that happening...      */
-
-			if (!(done_flags & TDS_DONE_MORE_RESULTS))
-				dbproc->empty_result = 1;
 		} else {
 			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found throwaway token\n");
 			tds_process_default_tokens(tds, marker);
@@ -3993,7 +3998,9 @@ TDS_INT result_type;
 
 	dbproc->avail_flag = FALSE;
 	dbproc->envchange_rcv = 0;
+	dbproc->dbresults_state = DBRESINIT;
 
+	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlsend()\n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (tds->res_info && tds->res_info->more_results) {
 		/* 
@@ -4011,6 +4018,7 @@ TDS_INT result_type;
 		 *
 		 */
 
+		dbproc->command_state = DBCMDSENT;
 		result = FAIL;
 	} else {
 		if (dbproc->dboptcmd) {
