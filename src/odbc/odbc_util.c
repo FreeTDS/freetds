@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.35 2003-08-05 09:03:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.36 2003-08-07 14:22:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -547,9 +547,14 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 	case SQL_FLOAT:
 	case SQL_DOUBLE:
 		return SYBFLT8;
+		/* ODBC version 2 */
 	case SQL_DATE:
 	case SQL_TIME:
 	case SQL_TIMESTAMP:
+		/* ODBC version 3 */
+	case SQL_TYPE_DATE:
+	case SQL_TYPE_TIME:
+	case SQL_TYPE_TIMESTAMP:
 		return SYBDATETIME;
 	case SQL_BINARY:
 		return SYBBINARY;
@@ -557,10 +562,6 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 		return SYBVARBINARY;
 	case SQL_LONGVARBINARY:
 		return SYBIMAGE;
-		/* TODO */
-	case SQL_TYPE_DATE:
-	case SQL_TYPE_TIME:
-	case SQL_TYPE_TIMESTAMP:
 		/* TODO interval types */
 	default:
 		return 0;

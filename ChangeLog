@@ -1,3 +1,8 @@
+Thu Aug 07 16:21:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	- fix binding with ODBC3 DATE/TIME data
+	- fix SQLExecute return if some error raised
+
 Wed Aug  6 11:45:57 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/dbmorecmds.c use query instead of sp_help
 	* include/tds.h better enumerated flags for TDS_DONE
