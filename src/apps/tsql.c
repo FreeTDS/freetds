@@ -99,7 +99,7 @@ TDS_INT srclen;
 				srclen = col->column_cur_size;
 
 	 
-                    if(tds_convert(tds, tds->tds_ctx,
+                    if(tds_convert(tds->tds_ctx,
  					ctype,
 					src,
  					srclen,
