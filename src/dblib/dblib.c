@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.43 2002-08-30 18:42:55 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.44 2002-08-30 18:47:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -571,18 +571,15 @@ TDSSOCKET *tds;
    return rc;
 }
 
-RETCODE dbuse(DBPROCESS *dbproc,char *dbname)
+RETCODE
+dbuse(DBPROCESS *dbproc, char *dbname)
 {
-char query[255];
-/* int retval; */
-
-   if (dbproc == NULL) return FAIL;
-   /* FIXME quote if needed, check for overflow*/
-   sprintf(query,"use %s",dbname);
-   dbcmd(dbproc,query);
-   dbsqlexec(dbproc);
-   while (dbresults(dbproc)!=NO_MORE_RESULTS)
-      while (dbnextrow(dbproc)!=NO_MORE_ROWS);
+   /* FIXME quote dbname if needed */
+   if ((dbproc == NULL)
+       || (dbfcmd(dbproc, "use %s", dbname) == FAIL)
+       || (dbsqlexec(dbproc) == FAIL)
+       || (dbcanquery(dbproc) == FAIL))
+      return FAIL;
    return SUCCEED;
 }
 
