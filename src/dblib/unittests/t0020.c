@@ -20,7 +20,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0020.c,v 1.11 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: t0020.c,v 1.12 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -64,6 +64,8 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	add_bread_crumb();
+	dbloginfree(login);
+	add_bread_crumb();
 
 	dbcmd(dbproc, "select dsjfkl dsjf");
 	fprintf(stderr, "The following invalid column error is normal.\n");
@@ -91,5 +93,6 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	free_bread_crumb();
 	return failed ? 1 : 0;
 }

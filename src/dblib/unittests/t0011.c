@@ -23,7 +23,7 @@
  */
 
 
-static char software_version[] = "$Id: t0011.c,v 1.8 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.9 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -59,6 +59,7 @@ main(int argc, char **argv)
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
+	dbloginfree(login);
 
 	fprintf(stdout, "Dropping table\n");
 	dbcmd(dbproc, "drop table #dblib0011");

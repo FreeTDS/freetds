@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0022.c,v 1.16 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.17 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -63,7 +63,7 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	add_bread_crumb();
-
+	dbloginfree(login);
 	add_bread_crumb();
 
 	fprintf(stdout, "Dropping proc\n");
@@ -109,6 +109,8 @@ main(int argc, char **argv)
 		fprintf(stdout, "WARNING:  This is likely due to a bug in Microsoft\n");
 		fprintf(stdout, "WARNING:  SQL Server 7.0 SP3 and later.\n");
 		fprintf(stdout, "WARNING:  Please try again using TDS protocol 4.2.\n");
+		dbexit();
+		free_bread_crumb();
 		exit(0);
 	}
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
@@ -150,7 +152,10 @@ main(int argc, char **argv)
 		/* nop */
 	}
 	add_bread_crumb();
+	dbexit();
+	add_bread_crumb();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	free_bread_crumb();
 	return failed ? 1 : 0;
 }

@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.21 2004-07-22 13:37:55 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.22 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -69,6 +69,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 		dbuse(blobproc, DATABASE);
 	}
+	dbloginfree(login);
 	fprintf(stdout, "After logon\n");
 
 	fprintf(stdout, "About to read binary input file\n");
@@ -256,6 +257,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	free(blob);
 	dbexit();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);

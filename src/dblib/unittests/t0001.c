@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.17 2004-04-27 01:05:49 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.18 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -76,6 +76,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "Unable to connect to %s\n", SERVER);
 		return 1;
 	}
+	add_bread_crumb();
+	dbloginfree(login);
+	add_bread_crumb();
 
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
@@ -194,5 +197,6 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	free_bread_crumb();
 	return failed ? 1 : 0;
 }

@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.5 2004-07-22 13:37:55 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.6 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -212,6 +212,8 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	add_bread_crumb();
+	dbloginfree(login);
+	add_bread_crumb();
 
 	add_bread_crumb();
 
@@ -268,9 +270,12 @@ main(int argc, char **argv)
 		/* nop */
 	}
 	add_bread_crumb();
+	dbexit();
+	add_bread_crumb();
 
 	failed = 0;
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	free_bread_crumb();
 	return failed ? 1 : 0;
 }

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.115 2004-09-08 12:51:24 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.116 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -491,6 +491,8 @@ tds_free_results(TDSRESULTINFO * res_info)
 	if (res_info->num_cols && res_info->columns) {
 		for (i = 0; i < res_info->num_cols; i++)
 			if ((curcol = res_info->columns[i]) != NULL) {
+				if (curcol->bcp_terminator)
+					free(curcol->bcp_terminator);
 				tds_free_bcp_column_data(curcol->bcp_column_data);
 				if (res_info->current_row && is_blob_type(curcol->column_type) && curcol->column_offset) {
 					free(((TDSBLOB *) (res_info->current_row + curcol->column_offset))->textvalue);

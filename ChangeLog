@@ -1,3 +1,20 @@
+Thu Sep 09 10:52:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c src/dblib/unittests/bcp.c:
+	* src/dblib/unittests/common.c src/dblib/unittests/common.h:
+	* src/dblib/unittests/dbmorecmds.c src/dblib/unittests/rpc.c:
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c:
+	* src/dblib/unittests/t0003.c src/dblib/unittests/t0004.c:
+	* src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c:
+	* src/dblib/unittests/t0007.c src/dblib/unittests/t0008.c:
+	* src/dblib/unittests/t0009.c src/dblib/unittests/t0010.c:
+	* src/dblib/unittests/t0011.c src/dblib/unittests/t0012.c:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c:
+	* src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c:
+	* src/dblib/unittests/t0020.c src/dblib/unittests/t0022.c:
+	* src/dblib/unittests/t0023.c src/tds/mem.c:
+	- fix some memory leaks (mainly bcp code and tests)
+
 Wed Sep 08 17:10:27 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c src/tds/unittests/convert.c:
 	- remove memory leak

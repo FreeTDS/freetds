@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.100 2004-07-29 10:22:40 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.101 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1492,8 +1492,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		}
 	}
 
-	if (_bcp_start_copy_in(dbproc) == FAIL)
+	if (_bcp_start_copy_in(dbproc) == FAIL) {
+		fclose(errfile);
 		return (FAIL);
+	}
 
 	tds->out_flag = 0x07;
 
@@ -1571,8 +1573,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	
 						tds->state = TDS_QUERYING;
 	
-						if (tds_process_simple_query(tds) != TDS_SUCCEED)
+						if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+							fclose(errfile);
 							return FAIL;
+						}
 							
 						*rows_copied += tds->rows_affected;
 	
@@ -1588,6 +1592,9 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_start = ftell(hostfile);
 		row_error = 0;
 	}
+
+	fclose(errfile);
+	errfile = NULL;
 
 	if (fclose(hostfile) != 0) {
 		_bcp_err_handler(dbproc, SYBEBCUC);
@@ -2841,6 +2848,7 @@ _bcp_free_storage(DBPROCESS * dbproc)
 					free(dbproc->hostfileinfo->host_columns[i]->terminator);
 					dbproc->hostfileinfo->host_columns[i]->terminator = NULL;
 				}
+				tds_free_bcp_column_data(dbproc->hostfileinfo->host_columns[i]->bcp_column_data);
 				free(dbproc->hostfileinfo->host_columns[i]);
 				dbproc->hostfileinfo->host_columns[i] = NULL;
 			}

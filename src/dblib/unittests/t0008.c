@@ -19,7 +19,7 @@
 
 
 
-static char software_version[] = "$Id: t0008.c,v 1.9 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.10 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -64,6 +64,8 @@ main(int argc, char **argv)
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
+	add_bread_crumb();
+	dbloginfree(login);
 	add_bread_crumb();
 
 #ifdef MICROSOFT_DBLIB
@@ -144,6 +146,11 @@ main(int argc, char **argv)
 		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "dblib %s for %s\n", last_read == 48 ? "okay" : "failed", __FILE__);
+			add_bread_crumb();
+			dbexit();
+			add_bread_crumb();
+
+			free_bread_crumb();
 			return (last_read == 48) ? 0 : 1;
 		}
 		add_bread_crumb();
@@ -163,6 +170,11 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
+	add_bread_crumb();
+	dbexit();
+	add_bread_crumb();
+
 	fprintf(stderr, "dblib failed for %s\n", __FILE__);
+	free_bread_crumb();
 	return 1;
 }

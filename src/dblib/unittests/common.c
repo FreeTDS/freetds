@@ -29,7 +29,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.13 2004-07-22 13:37:55 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.14 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -215,6 +215,21 @@ add_bread_crumb(void)
 	tmp->next = breadcrumbs;
 
 	breadcrumbs = tmp;
+}
+
+void
+free_bread_crumb(void)
+{
+	memcheck_t *tmp, *ptr = breadcrumbs;
+
+	check_crumbs();
+
+	while (ptr) {
+		tmp = ptr->next;
+		free(ptr);
+		ptr = tmp;
+	}
+	num_breadcrumbs = 0;
 }
 
 int

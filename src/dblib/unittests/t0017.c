@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.17 2004-04-27 01:05:50 jklowden Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.18 2004-09-09 08:54:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -64,6 +64,7 @@ main(int argc, char *argv[])
 	if (strlen(DATABASE)) {
 		dbuse(dbproc, DATABASE);
 	}
+	dbloginfree(login);
 	fprintf(stdout, "After logon\n");
 
 	fprintf(stdout, "Dropping table\n");
