@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.6 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.7 2001-10-30 01:16:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -435,9 +435,9 @@ int domain_login = 0;
    tds_put_smallint(tds,packet_size);
    tds_put_n(tds,NULL,5);
    if (IS_TDS80(tds)) {
-      tds_put_byte(tds,0x70);
-   } else {
       tds_put_byte(tds,0x80);
+   } else {
+      tds_put_byte(tds,0x70);
    }
    tds_put_n(tds,NULL,7);
    tds_put_n(tds,magic1,21);
