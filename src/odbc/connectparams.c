@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.36 2003-04-01 21:43:22 jklowden Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.37 2003-04-01 22:07:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -125,8 +125,10 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 	char tmp[256];
 	char temp_c;
 
+	assert(pszConnectString);
 	pszConnectString = strdup(pszConnectString);	/* copy the string so we can hack at it */
-	for (p = pszConnectString;;) {
+
+	for (p = pszConnectString; p && *p;) {
 		dest_s = NULL;
 
 		/* parse option */
@@ -222,7 +224,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 	}
 
 	free(pszConnectString); 
-	return 1;
+	return p != NULL;
 }
 
 /* TODO: now even iODBC support SQLGetPrivateProfileString, best check */
