@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.16 2002-09-08 13:22:36 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.17 2002-09-10 01:37:36 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -386,7 +386,8 @@ int           x = 0, have, need;
 		tds->in_len=0;
 		tds->in_pos=0;
 		tds->last_packet=1;
-		return(-1);
+		/* return 0 if header found but no payload */
+		return len ? -1 : 0;
 	}
 
 	/* Set the last packet flag */

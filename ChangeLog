@@ -1,3 +1,7 @@
+Mon Sep  9 21:31:39 EDT 2002	Brian Bruns <camber@ais.org>
+	* src/tds/read.c: patch from lbayuk@mindspring.com to correct cancel 
+	handling w/PHP
+
 Mon Sep  9 12:30:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* .cvsignore include/.cvsignore src/apps/.cvsignore
 	  src/odbc/unittests/.cvsignore src/pool/.cvsignore:
