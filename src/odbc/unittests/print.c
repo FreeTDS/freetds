@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.8 2003-08-15 07:10:41 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.9 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -20,14 +20,11 @@ int
 main(int argc, char *argv[])
 {
 	SQLINTEGER cnamesize;
-	const char *command;
 
 	Connect();
 
 	/* issue print statement and test message returned */
-	command = "print 'Test message'";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS) != SQL_SUCCESS_WITH_INFO) {
+	if (CommandWithResult(Statement, "print 'Test message'") != SQL_SUCCESS_WITH_INFO) {
 		printf("SQLExecDirect should return SQL_SUCCESS_WITH_INFO\n");
 		return 1;
 	}
@@ -38,9 +35,7 @@ main(int argc, char *argv[])
 	}
 
 	/* issue invalid command and test error */
-	command = "SELECT donotexistsfield FROM donotexiststable";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS) != SQL_ERROR) {
+	if (CommandWithResult(Statement, "SELECT donotexistsfield FROM donotexiststable") != SQL_ERROR) {
 		printf("SQLExecDirect returned strange results\n");
 		return 1;
 	}

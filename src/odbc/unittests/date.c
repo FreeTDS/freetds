@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.5 2003-04-01 12:01:35 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.6 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -9,7 +9,6 @@ DoTest(int n)
 {
 	int res;
 
-	char command[512];
 	SQLCHAR output[256];
 
 	SQLSMALLINT colType;
@@ -19,10 +18,7 @@ DoTest(int n)
 
 	TIMESTAMP_STRUCT ts;
 
-	sprintf(command, "select convert(datetime, '2002-12-27 18:43:21')");
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
-	    != SQL_SUCCESS) {
+	if (CommandWithResult(Statement, "select convert(datetime, '2002-12-27 18:43:21')") != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);

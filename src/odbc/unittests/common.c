@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.18 2003-10-19 17:05:37 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.19 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -138,13 +138,14 @@ Disconnect(void)
 	return 0;
 }
 
-void 
+void
 Command(HSTMT stmt, const char *command)
 {
 	int result = 0;
+
 	printf("%s\n", command);
 	result = SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
-	if ( result != SQL_SUCCESS) {
+	if (result != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);

@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.38 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.39 2003-11-08 18:00:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -106,7 +106,7 @@ odbc_c_to_server_type(int c_type)
 		return SYBDATETIME;
 		/* ODBC numeric/decimal formats are completely differect from tds one */
 	case SQL_C_NUMERIC:
-		break;
+		return SYBNUMERIC;
 		/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:

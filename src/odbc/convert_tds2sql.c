@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.35 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.36 2003-11-08 18:00:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -66,11 +66,13 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
+	assert(desttype != SQL_C_DEFAULT);
 	nDestSybType = odbc_c_to_server_type(desttype);
 	if (nDestSybType == TDS_FAIL)
 		return TDS_CONVERT_NOAVAIL;
 
 	if (is_numeric_type(nDestSybType)) {
+		/* TODO use descriptor information ?? */
 		ores.n.precision = 18;
 		ores.n.scale = 0;
 	}

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.51 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.52 2003-11-08 18:00:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -188,6 +188,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 		if (is_blob_type(colinfo->column_type))
 			src = ((TDSBLOBINFO *) src)->textvalue;
 		srclen = colinfo->column_cur_size;
+		/* TODO support SQL_C_DEFAULT */
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
 				      drec_apd->sql_desc_concise_type, drec_apd->sql_desc_data_ptr,
 				      drec_apd->sql_desc_octet_length);
@@ -651,12 +652,12 @@ odbc_get_param_len(TDSSOCKET * tds, struct _drecord *drec_apd, struct _drecord *
 		if (drec_apd->sql_desc_concise_type == SQL_C_CHAR || drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
-			int type =
-				(drec_apd->sql_desc_concise_type !=
-				 SQL_C_DEFAULT) ? odbc_c_to_server_type(drec_apd->
-									sql_desc_concise_type) : odbc_sql_to_server_type(tds,
-															 drec_ipd->
-															 sql_desc_concise_type);
+			int type;
+			
+			if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
+				type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
+			else 
+				type = odbc_sql_to_server_type(tds, drec_ipd->sql_desc_concise_type);
 
 			/* FIXME check what happen to DATE/TIME types */
 			size = tds_get_size_by_type(type);

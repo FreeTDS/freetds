@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: norowset.c,v 1.2 2003-04-01 12:01:37 freddy77 Exp $";
+static char software_version[] = "$Id: norowset.c,v 1.3 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Test that a select following a store procedure execution return results */
@@ -10,14 +10,11 @@ main(int argc, char *argv[])
 {
 	int res;
 	char output[256];
-	const char *command;
 	SQLINTEGER dataSize;
 
 	Connect();
 
-	command = "drop proc sp_norowset_test";
-	printf("%s\n", command);
-	SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS);
+	CommandWithResult(Statement, "drop proc sp_norowset_test");
 
 	Command(Statement, "create proc sp_norowset_test as begin declare @i int end");
 

@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.3 2003-07-24 21:04:00 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.4 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -29,16 +29,12 @@ main(int argc, char *argv[])
 	SQLCHAR OutString[OUTSTRING_LEN];
 	SQLINTEGER cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
 	SQLINTEGER cbOutString = SQL_NTS;
-	const char *command;
 
 	Connect();
 
 	/* drop proc */
-	command = "drop proc spTestProc";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS) != SQL_SUCCESS) {
+	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
-	}
 
 	/* create proc */
 	Command(Statement, sp_define);

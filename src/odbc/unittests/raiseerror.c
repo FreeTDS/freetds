@@ -2,7 +2,7 @@
 
 /* test RAISEERROR in a store procedure, from Tom Rogers tests */
 
-static char software_version[] = "$Id: raiseerror.c,v 1.1 2003-08-08 10:19:46 freddy77 Exp $";
+static char software_version[] = "$Id: raiseerror.c,v 1.2 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -35,8 +35,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	printf("%s\n", create_proc);
-	if (SQLExecDirect(Statement, (SQLCHAR *) create_proc, SQL_NTS) != SQL_SUCCESS) {
+	if (CommandWithResult(Statement, create_proc) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to create temporary store, probably not mssql (required for this test)\n");
 		return 0;
 	}

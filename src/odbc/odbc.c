@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.263 2003-11-06 17:26:32 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.264 2003-11-08 18:00:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -822,10 +822,10 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec = &apd->records[ipar - 1];
 
 	if (odbc_set_concise_c_type(fCType, drec, 0) != SQL_SUCCESS) {
-			desc_alloc_records(apd, orig_apd_size);
-			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
-		}
+		desc_alloc_records(apd, orig_apd_size);
+		odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 	/* TODO other types ?? handle SQL_C_DEFAULT */
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
@@ -2515,7 +2515,7 @@ SQLFetch(SQLHSTMT hstmt)
 	if (stmt->ird->header.sql_desc_rows_processed_ptr)
 		fetched_ptr = stmt->ird->header.sql_desc_rows_processed_ptr;
 	*fetched_ptr = 0;
-		
+
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
 

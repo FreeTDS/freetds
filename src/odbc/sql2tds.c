@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.24 2003-11-03 16:46:08 jklowden Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.25 2003-11-08 18:00:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -112,8 +112,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	TDSCOLINFO *curcol = info->columns[nparam];
 	int len;
 	TDS_DATETIME dt;
+	TDS_NUMERIC num;
+	SQL_NUMERIC_STRUCT *sql_num;
 	SQLINTEGER sql_len;
-	int need_data = 0;
+	int need_data = 0, i;
 
 	/* TODO procedure, macro ?? see prepare_query */
 	sql_len = odbc_get_param_len(dbc->tds_socket, drec_apd, drec_ipd);
@@ -189,27 +191,12 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	/* TODO what happen to numeric ?? */
-	/* convert parameters */
-	src = drec_apd->sql_desc_data_ptr;
-	switch (drec_apd->sql_desc_concise_type) {
-	case SQL_C_DATE:
-	case SQL_C_TIME:
-	case SQL_C_TIMESTAMP:
-	case SQL_C_TYPE_DATE:
-	case SQL_C_TYPE_TIME:
-	case SQL_C_TYPE_TIMESTAMP:
-		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dt);
-		src = (char *) &dt;
-		src_type = SYBDATETIME;
-		break;
-	default:
-		if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
-			src_type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
-		else
-			src_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
-		break;
-	}
+	/* test type */
+	/* TODO test intervals */
+	if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
+		src_type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
+	else
+		src_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 	if (src_type == TDS_FAIL)
 		return SQL_ERROR;
 
@@ -225,6 +212,40 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		return TDS_SUCCEED;
 	}
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
+
+	/* convert special parameters (not libTDS compatible) */
+	src = drec_apd->sql_desc_data_ptr;
+	switch (drec_apd->sql_desc_concise_type) {
+	case SQL_C_DATE:
+	case SQL_C_TIME:
+	case SQL_C_TIMESTAMP:
+	case SQL_C_TYPE_DATE:
+	case SQL_C_TYPE_TIME:
+	case SQL_C_TYPE_TIMESTAMP:
+		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dt);
+		src = (char *) &dt;
+		break;
+	case SQL_C_NUMERIC:
+		sql_num = (SQL_NUMERIC_STRUCT *) src;
+		num.precision = sql_num->precision;
+		num.scale = sql_num->scale;
+		num.array[0] = sql_num->sign ^ 1;
+		/* TODO test precision so client do not crash our library ?? */
+		i = tds_numeric_bytes_per_prec[num.precision];
+		memcpy(num.array + 1, sql_num->val, i);
+		tds_swap_bytes(num.array + 1, i);
+		++i;
+		if (i < sizeof(num.array))
+			memset(num.array + i, 0, sizeof(num.array) - i);
+		src = (char *) &num;
+		
+		/* set output */
+		/* TODO use descriptors informations ?? */
+		ores.n.precision = 18;
+		ores.n.scale = 2;
+		break;
+	/* TODO intervals */
+	}
 
 	res = tds_convert(dbc->henv->tds_ctx, src_type, src, len, dest_type, &ores);
 	if (res < 0)

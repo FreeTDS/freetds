@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.6 2003-08-29 20:37:48 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.7 2003-11-08 18:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -11,16 +11,11 @@ main(int argc, char *argv[])
 	SQLINTEGER input, ind, ind2, ind3, ind4, output;
 	SQLINTEGER out1;
 	char out2[30];
-	const char *command;
 
 	Connect();
 
-	command = "drop proc simpleresult";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
-	    != SQL_SUCCESS) {
+	if (CommandWithResult(Statement, "drop proc simpleresult") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
-	}
 
 	Command(Statement, "create proc simpleresult @i int as begin return @i end");
 
@@ -83,12 +78,8 @@ main(int argc, char *argv[])
 
 	Command(Statement, "drop proc simpleresult");
 
-	command = "drop proc simpleresult2";
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)
-	    != SQL_SUCCESS) {
+	if (CommandWithResult(Statement, "drop proc simpleresult2") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
-	}
 
 	/* test output parameter */
 	Command(Statement,
