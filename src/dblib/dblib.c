@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.174 2004-05-17 15:17:02 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.175 2004-05-28 03:19:15 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -2322,6 +2322,48 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 	dbproc->typeinfo.scale = colinfo->column_scale;
 	return &dbproc->typeinfo;
 }
+
+/**
+ * \ingroup dblib_api
+ * \brief Get a bunch of column attributes with a single call (Microsoft-compatibility feature).  
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param type must be CI_REGULAR.  (CI_ALTERNATE and CI_CURSOR are defined by the vendor, but are not yet implemented).
+ * \param column Nth in the result set, starting from 1.
+ * \param computeid (ignored)
+ * \param pdbcol address of structure to be populated by this function.  
+ * \return SUCCEED or FAIL. 
+ * \sa dbcolbrowse(), dbqual(), dbtabbrowse(), dbtabcount(), dbtabname(), dbtabsource(), dbtsnewlen(), dbtsnewval(), dbtsput().
+ * \todo Support compute and cursor rows. 
+ */
+DBINT	
+dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol )
+{
+	DBTYPEINFO *ps;
+	assert( dbproc && pdbcol);
+
+	strcpy(pdbcol->Name, dbcolname(dbproc, column));
+	strcpy(pdbcol->ActualName, dbcolname(dbproc, column));
+	
+	pdbcol->Type = dbcoltype(dbproc, column);
+	pdbcol->UserType = dbcolutype(dbproc, column);
+	pdbcol->MaxLength = dbcollen(dbproc, column);
+	pdbcol->Null = pdbcol->VarLength = dbvarylen(dbproc, column);
+
+	ps = dbcoltypeinfo(dbproc, column);
+
+	if( ps ) {
+		pdbcol->Precision = ps->precision;
+		pdbcol->Scale = ps->scale;
+	}
+
+	if( computeid ) {
+		strcpy(pdbcol->TableName, dbcolname(dbproc, column));
+	}
+
+	return SUCCEED;
+}
+
 
 /**
  * \ingroup dblib_api

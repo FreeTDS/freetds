@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.58 2004-04-01 18:35:11 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.59 2004-05-28 03:19:15 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -272,6 +272,33 @@ struct dbstring
 };
 typedef struct dbstring DBSTRING;
 
+/* Used by dbcolinfo */
+enum
+{ MAXCOLNAMELEN = 512 }; /* duplicates TDS_SYSNAME_SIZE */
+typedef enum { CI_REGULAR=1, CI_ALTERNATE=2, CI_CURSOR=3 } CI_TYPE;
+
+typedef struct 
+{ 
+    DBINT SizeOfStruct; 
+    DBCHAR  Name[MAXCOLNAMELEN+2]; 
+    DBCHAR  ActualName[MAXCOLNAMELEN+2]; 
+    DBCHAR  TableName[MAXCOLNAMELEN+2]; 
+    SHORT Type; 
+    DBINT UserType; 
+    DBINT MaxLength; 
+    BYTE  Precision; 
+    BYTE  Scale; 
+    BOOL  VarLength; 
+    BYTE  Null; 
+    BYTE  CaseSensitive; 
+    BYTE  Updatable; 
+    BOOL  Identity; 
+
+} DBCOL; 
+/* end dbcolinfo stuff */
+
+
+
 /* a large list of options, DBTEXTSIZE is needed by sybtcl */
 #define DBPARSEONLY      0
 #define DBESTIMATE       1
@@ -445,6 +472,7 @@ RETCODE dbcmdrow(DBPROCESS * dbproc);
 
 #define DBCMDROW(x) dbcmdrow((x))
 DBBOOL dbcolbrowse(DBPROCESS * dbprocess, int colnum);
+RETCODE	dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol);
 DBINT dbcollen(DBPROCESS * dbproc, int column);
 char *dbcolname(DBPROCESS * dbproc, int column);
 char *dbcolsource(DBPROCESS * dbproc, int colnum);

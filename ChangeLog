@@ -1,3 +1,8 @@
+Thu May 27 23:13:10 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c doc/api_status.txt
+	- added dbcolinfo
+	* doc/htdoc/faq.html added PHP note about pending results
+	
 Thu May 27 16:48:57 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdssrv.h src/tds/read.c src/server/login.c:
 	* src/server/query.c src/server/server.c:
@@ -23,7 +28,7 @@ Tue May 18 10:07:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h src/ctlib/blk.c src/ctlib/unittests/blk_in.c:
 	* src/ctlib/unittests/blk_out.c src/ctlib/unittests/cancel.c:
 	- remove some warnings
-	- move declaration of no-static function in ctlib.h
+	- move declaration of non-static function in ctlib.h
 
 Mon May 17 17:15:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/tds.h src/ctlib/blk.c:

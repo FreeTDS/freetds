@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.43 2004-01-11 21:45:21 jklowden Exp $s
+# $Id: api_status.txt,v 1.44 2004-05-28 03:19:15 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -260,7 +260,7 @@ dblib	core     	dbclrbuf			(same)		OK
 dblib	core     	dbclropt			(same)		partial
 dblib	core     	dbcmd				(same)		OK
 dblib	core     	dbcmdrow			DBCMDROW	OK
-dblib	core     	dbcolinfo			n/a		
+dblib	core     	dbcolinfo			n/a		OK
 dblib	core     	dbcollen			(same)		OK
 dblib	core     	dbcolname			(same)		OK
 dblib	core     	dbcoltype			(same)		OK
