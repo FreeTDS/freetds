@@ -13,7 +13,7 @@ man_MANS	= freebcp.1 tsql.1
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds7.txt tds_layer.txt userguide.sgml \
 		basic_jdbc_question.html faq.html tds.html userguide.tgz \
-		txt2man freebcp.txt tsql.txt
+		freebcp.1 tsql.1
 
 html:: $(srcdir)/userguide.sgml
 	if ! [ -d html ]; then \
@@ -27,7 +27,7 @@ html:: $(srcdir)/userguide.sgml
 
 #	openjade -d ${DOCBOOK}/dsssl/modular/html/docbook.dsl -t sgml ../userguide.sgml
 
-dist::	man userguide.tgz
+dist::	userguide.tgz
 
 userguide.tgz: html
 	if ! [ -L userguide ]; then \
@@ -37,10 +37,10 @@ userguide.tgz: html
 
 man:	freebcp.1 tsql.1
 
-freebcp.1:  $(srcdir)/freebcp.txt
+freebcp.1:
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
 	
-tsql.1: $(srcdir)/tsql.txt
+tsql.1:
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
 
 	
