@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.61 2002-08-30 04:55:05 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.62 2002-08-30 06:01:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -362,11 +362,10 @@ TDS_INT tds_i;
             cr->ib[j] = hex1;
          }
 #else
-		if( srclen ) { /* ignore trailing blanks and nulls */
-			while( src[srclen-1] == ' ' || src[srclen-1] == '\0' ) {
-				if( --srclen == 0 ) 
-					break;
-			}
+		/* ignore trailing blanks and nulls */
+		while( srclen > 0 && (src[srclen-1] == ' ' || src[srclen-1] == '\0') ) {
+			if( --srclen == 0 ) 
+				break;
 		}
 
 		for ( i=0; i < srclen; i++ ) {
