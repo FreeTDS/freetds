@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.61 2004-06-17 15:39:57 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.62 2004-10-06 09:34:41 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -135,7 +135,9 @@ typedef int (*DB_DBHNDLINTR_FUNC) (void *dbproc);
 #undef STATUS
 #endif
 typedef int STATUS;
-typedef unsigned char BOOL;
+#if !defined(_WINDEF_) && !defined(_WINDEF_H)
+typedef int BOOL;
+#endif
 #endif
 
 #if !defined(_FREETDS_LIBRARY_SOURCE) || !defined(_tds_h_)

@@ -143,7 +143,9 @@
 /* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-/* #undef HAVE_SYS_TIME_H */
+#ifdef __GNUC__
+# define HAVE_SYS_TIME_H 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
@@ -213,10 +215,14 @@
 #define STDC_HEADERS 1
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#define TIME_WITH_SYS_TIME 1
+#ifdef __GNUC__
+# define TIME_WITH_SYS_TIME 1
+#else
+# define TIME_WITH_SYS_TIME 0
+#endif
 
 /* Version number of package */
-#define VERSION "0.62"
+#define VERSION "0.63"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

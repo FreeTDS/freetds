@@ -1,3 +1,7 @@
+Wed Oct 06 11:33:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/sybdb.h win32/config.h:
+	- some minor fix for win32
+
 Thu Sep 23 13:24:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/data.c:
 	- convert data using input parameters
