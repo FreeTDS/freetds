@@ -1,3 +1,7 @@
+Mon Aug 04 14:44:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c src/tds/token.c:
+	- fix problem when server change charset coding
+
 Mon Aug 04 11:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c: cleanup and small changes
 

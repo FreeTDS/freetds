@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.203 2003-08-01 13:46:38 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.204 2003-08-04 12:45:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1990,9 +1990,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 			tds_get_n(tds, tds->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
 			lcid = (tds->collation[0] + ((int) tds->collation[1] << 8) + ((int) tds->collation[2] << 16)) & 0xffffflu;
-#if ENABLE_DEVELOPING
 			tds7_srv_charset_changed(tds, lcid);
-#endif
 		}
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));

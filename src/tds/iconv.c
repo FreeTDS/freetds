@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.80 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.81 2003-08-04 12:45:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -654,23 +654,23 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 	return field_len + isize;
 }
 
-/* FIXME should change only singlebyte conversions */
+/* change singlebyte conversions according to server */
 void
 tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
 #if HAVE_ICONV_ALWAYS
-	TDSICONVINFO *iconv_info = tds->iconv_info;
+	TDSICONVINFO *iconv_info = &tds->iconv_info[client2server_chardata];
 
 	const char *charset = lcid2charset(lcid);
 
 	/* 
 	 * Close any previously opened iconv descriptors. 
 	 */
-	if (tds->iconv_info->to_wire != (iconv_t) - 1)
-		iconv_close(tds->iconv_info->to_wire);
+	if (iconv_info->to_wire != (iconv_t) - 1)
+		iconv_close(iconv_info->to_wire);
 
-	if (tds->iconv_info->from_wire != (iconv_t) - 1)
-		iconv_close(tds->iconv_info->from_wire);
+	if (iconv_info->from_wire != (iconv_t) - 1)
+		iconv_close(iconv_info->from_wire);
 
 	tds_iconv_info_init(iconv_info, iconv_info->client_charset.name, charset);
 #endif
