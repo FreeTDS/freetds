@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.24 2002-08-02 03:20:29 brianb Exp $";
+	 "$Id: tds.h.in,v 1.25 2002-08-04 13:43:10 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -135,6 +135,20 @@ typedef struct tdsunique
     TDS_USMALLINT Data3;
     TDS_UCHAR     Data4[8];
 } TDS_UNIQUE;
+
+typedef struct tdsdaterec
+{
+	TDS_INT   year;
+	TDS_INT   month;
+	TDS_INT   day;
+	TDS_INT   dayofyear;
+	TDS_INT   weekday;
+	TDS_INT   hour;
+	TDS_INT   minute;
+	TDS_INT   second;
+	TDS_INT   millisecond;
+	TDS_INT   tzone;
+} TDSDATEREC;
 
 #define TDS_NO_MORE_ROWS     -2
 #define TDS_SUCCEED          1

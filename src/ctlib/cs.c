@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.10 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.11 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -363,28 +363,27 @@ CS_DATETIME *dt;
 CS_DATETIME4 *dt4;
 time_t tmp_secs_from_epoch;
 struct tm *t;
+TDSDATEREC dr;
 
 	if (datetype == CS_DATETIME_TYPE) {
-	   dt = (TDS_DATETIME *)dateval;
-		tmp_secs_from_epoch = ((dt->dtdays - 25567) * (24*60*60)) 
-			+ (dt->dttime / 300);
+		dt = (TDS_DATETIME *)dateval;
+		tds_datecrack(SYBDATETIME, dt, &dr);
 	} else if (datetype == CS_DATETIME4_TYPE) {
 		dt4 = (TDS_DATETIME4 *)dateval;
-		tmp_secs_from_epoch = ((dt4->days - 25567) * (24*60*60)) 
-			+ (dt4->minutes * 60);
+		tds_datecrack(SYBDATETIME4, dt4, &dr);
 	} else {
 		return CS_FAIL;
 	}
    	t = (struct tm *) gmtime(&tmp_secs_from_epoch);
-	daterec->dateyear   = t->tm_year + 1900;
-	daterec->datemonth  = t->tm_mon;
-	daterec->datedmonth = t->tm_mday;
-	daterec->datedyear  = t->tm_yday;
-	daterec->datedweek  = t->tm_wday;
-	daterec->datehour   = t->tm_hour;
-	daterec->dateminute = t->tm_min;
-	daterec->datesecond = t->tm_sec;
-	daterec->datetzone   = 0; /* ??? */
+	daterec->dateyear   = dr.year;
+	daterec->datemonth  = dr.month;
+	daterec->datedmonth = dr.day;
+	daterec->datedyear  = dr.dayofyear;
+	daterec->datedweek  = dr.weekday;
+	daterec->datehour   = dr.hour;
+	daterec->dateminute = dr.minute;
+	daterec->datesecond = dr.second;
+	daterec->datetzone   = 0; 
 
 	return CS_SUCCEED;
 }

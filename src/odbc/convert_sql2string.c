@@ -20,12 +20,13 @@
 #include <config.h>
 #include <tdsutil.h>
 #include <tds.h>
+#include <tdsconvert.h>
 #include "convert_sql2string.h"
 #include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.5 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -165,6 +166,7 @@ convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srcl
 		TDS_CHAR *dest, TDS_INT destlen, int param_lenbind)
 {
 	int res;
+	CONV_RESULT ores;
 
 	static char *str_null = "null";
 	if (SQL_NULL_DATA==param_lenbind){
@@ -203,17 +205,18 @@ convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srcl
 	}
 
 	res = tds_convert(context, 
-		_odbc_get_server_ctype(srctype),
-		src,
-		srclen, 
-		SYBVARCHAR, 
-		dest, 
-		destlen);
+		_odbc_get_server_ctype(srctype), src, srclen, 
+		SYBVARCHAR, destlen, &ores);
 
-	if (TDS_FAIL==res)
+	if (TDS_FAIL==res) {
 		fprintf(stderr,"convert_sql2string(): Attempting to convert unknown "
 			       "source type %d (size %d) into string\n",
 			       srctype,srclen);
+	} else {
+		strcpy(dest, ores.c);
+		res = strlen(ores.c);
+		free(ores.c);
+	}
 
 	return res;
 }

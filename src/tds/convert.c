@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.28 2002-08-02 03:20:29 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.29 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -60,6 +60,7 @@ static int  is_monthname(char *);
 static int  is_numeric_dateformat(char *);
 static TDS_UINT utf16len(const utf16_t* s);
 
+#define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern int g__numeric_bytes_per_prec[];
 
 extern int (*g_tds_err_handler)(void*);
@@ -99,21 +100,22 @@ static TDS_INT tds_convert_text(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 {
 int cplen;
 
-   switch(desttype) {
-      case SYBTEXT:
-      case SYBCHAR:
-      case SYBVARCHAR:
-           cr->c = malloc(srclen + 1);
-           memset(cr->c, '\0', srclen + 1);
-           memcpy(cr->c, src, srclen);
-           return srclen;
-           break;
-
-      default:
-           fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
-           return TDS_FAIL;
-           break;
-   }
+	switch(desttype) {
+		case SYBTEXT:
+		case SYBCHAR:
+		case SYBVARCHAR:
+			cr->c = malloc(srclen + 1);
+			test_alloc(cr->c);
+			memset(cr->c, '\0', srclen + 1);
+			memcpy(cr->c, src, srclen);
+			return srclen;
+			break;
+	
+		default:
+			fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
+			return TDS_FAIL;
+			break;
+	}
 }
 
 static TDS_INT 
@@ -190,6 +192,7 @@ int  ret;
          /* 2 * source length + 1 for terminator */
 
          cr->c = malloc((srclen * 2) + 1);
+		test_alloc(cr->c);
 
          c = cr->c;
 
@@ -205,6 +208,7 @@ int  ret;
       case SYBIMAGE:
       case SYBBINARY:
          cr->ib = malloc(srclen);
+		test_alloc(cr->ib);
          memcpy(cr->ib, src, srclen);
          return srclen;
          break;
@@ -246,6 +250,7 @@ int point_found, places;
       case SYBNVARCHAR:
       case SYBTEXT:
 		 cr->c = malloc(srclen + 1);
+		test_alloc(cr->c);
 		 memset(cr->c, '\0', srclen + 1);
 		 memcpy(cr->c, src, srclen);
          return srclen; 
@@ -265,6 +270,7 @@ int point_found, places;
          /* the string which represents it in hexadecimal     */
 
          cr->ib = malloc(srclen / 2);
+		test_alloc(cr->ib);
 
          /* hey, I know this looks a bit cruddy,   */
          /* and I'm sure it can all be done in one */
@@ -453,6 +459,7 @@ TDS_CHAR tmp_str[5];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
             cr->c = malloc(strlen(tmp_str) + 1);
+			test_alloc(cr->c);
 			strcpy(cr->c,tmp_str);
             return strlen(tmp_str);
 			break;
@@ -495,6 +502,7 @@ TDS_CHAR tmp_str[16];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
             cr->c = malloc(strlen(tmp_str) + 1);
+			test_alloc(cr->c);
 			strcpy(cr->c,tmp_str);
             return strlen(tmp_str);
 			break;
@@ -537,6 +545,7 @@ TDS_CHAR tmp_str[16];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
             cr->c = malloc(strlen(tmp_str) + 1);
+			test_alloc(cr->c);
 			strcpy(cr->c,tmp_str);
             return strlen(tmp_str);
 			break;
@@ -577,6 +586,7 @@ char tmpstr[MAXPRECISION];
 		case SYBVARCHAR:
 			tds_numeric_to_string(src,tmpstr);
             cr->c = malloc(strlen(tmpstr) + 1);
+			test_alloc(cr->c);
             strcpy(cr->c, tmpstr);
             return strlen(tmpstr);
 			break;
@@ -620,6 +630,7 @@ TDS_INT8 mymoney;
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%02lu",dollars,fraction/100);
             cr->c = malloc(strlen(tmp_str) + 1);
+		test_alloc(cr->c);
             strcpy(cr->c, tmp_str);
             return strlen(tmp_str);
 			break;
@@ -676,6 +687,7 @@ int i;
             strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
             
             cr->c = malloc(strlen(tmpstr) + 1);
+		test_alloc(cr->c);
             strcpy(cr->c, tmpstr);
             return strlen(tmpstr);
             break;
@@ -797,6 +809,7 @@ TDS_INT ret;
 
 				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 				cr->c = malloc (strlen(whole_date_string) + 1);
+				test_alloc(cr->c);
 				strcpy(cr->c , whole_date_string);
                 return strlen(whole_date_string);
 			}
@@ -895,6 +908,7 @@ TDS_INT ret;
 				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 
 				cr->c = malloc (strlen(whole_date_string) + 1);
+				test_alloc(cr->c);
 				strcpy(cr->c , whole_date_string);
                 return strlen(whole_date_string);
 			}
@@ -939,6 +953,7 @@ TDS_INT8 mymoney;
       case SYBVARCHAR:
             sprintf(tmp_str,"%.7g", the_value);
             cr->c = malloc(strlen(tmp_str) + 1);
+		test_alloc(cr->c);
             strcpy(cr->c, tmp_str);
             return strlen(tmp_str);
             break;
@@ -985,6 +1000,7 @@ char      tmp_str[25];
       case SYBVARCHAR:
             sprintf(tmp_str,"%.15g", the_value);
             cr->c = malloc(strlen(tmp_str) + 1);
+		test_alloc(cr->c);
             strcpy(cr->c, tmp_str);
             return strlen(tmp_str);
             break;
@@ -1030,6 +1046,7 @@ TDS_UCHAR buf[37];
         			u->Data4[2], u->Data4[3], u->Data4[4],
         			u->Data4[5], u->Data4[6], u->Data4[7]);
             cr->c = malloc(strlen(buf) + 1);
+		test_alloc(cr->c);
    			strcpy(cr->c,buf);
             return strlen(buf);
    			break;
@@ -1164,6 +1181,7 @@ int current_state;
 	t = &mytime;
 
 	in = (char *)malloc(strlen(instr));
+	test_alloc(in);
 	strcpy (in , instr );
 
 	tok = tds_strtok_r (in, " ,", &lasts);
@@ -2169,4 +2187,131 @@ int i;
 
 	return 0;
 
+}
+TDS_INT tds_datecrack( TDS_INT datetype, void *di, TDSDATEREC *dr )
+{
+
+TDS_DATETIME  *dt;
+TDS_DATETIME4 *dt4;
+
+unsigned int dt_days;
+unsigned int dt_time;
+
+
+int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
+int i;
+
+    if ( datetype == SYBDATETIME ) {
+       dt = (TDS_DATETIME *)di;
+   	   dt_days = dt->dtdays;
+   	   dt_time = dt->dttime;
+    } 
+    else if (datetype == SYBDATETIME4 ) {
+            dt4 = (TDS_DATETIME4 *)di;
+   	        dt_days = dt4->days;
+   	        dt_time = dt4->minutes;
+         } 
+         else
+            return TDS_FAIL;
+          
+
+	if (dt_days > 2958463) /* its a date before 1900 */ {
+	  	dt_days = 0xffffffff - dt_days; 
+
+		wday = 7 - ( dt_days % 7); 
+		years = -1;
+		dty = days_this_year(years);
+
+        
+		while ( dt_days >= dty ) {
+			years--; 
+			dt_days -= dty;
+			dty = days_this_year(years);
+		}
+		if (dty == 366 )
+			dim[1] = 29;
+		else
+			dim[1] = 28;
+
+		ydays = dty - dt_days;
+		months = 11;
+ 
+		while (dt_days > dim[months] ) {
+			dt_days -= dim[months];
+			months--;
+		}
+
+		days = dim[months] - dt_days;
+	} else {
+		wday = ( dt_days + 1 ) % 7; /* 'cos Jan 1 1900 was Monday */
+
+		dt_days++;
+		years = 0;
+		dty = days_this_year(years);
+		while ( dt_days > dty ) {
+			years++; 
+			dt_days -= dty;
+			dty = days_this_year(years);
+		}
+
+		if (dty == 366 )
+			dim[1] = 29;
+		else
+			dim[1] = 28;
+
+		ydays = dt_days;
+		months = 0;
+		while (dt_days > dim[months] ) {
+			dt_days -= dim[months];
+			months++;
+		}
+
+		days = dt_days;
+	}
+
+    if ( datetype == SYBDATETIME ) {
+
+	   secs = dt_time / 300;
+   	   ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
+   
+   	   hours = 0;
+   	   while ( secs >= 3600 ) {
+   		   hours++; 
+   		   secs -= 3600;
+   	   }
+   
+   	   mins = 0;
+   
+   	   while ( secs >= 60 ) {
+   		   mins++; 
+   		   secs -= 60;
+   	   }
+    } 
+    else {
+
+      hours = 0;
+      mins  = dt_time;
+      secs  = 0;
+      ms    = 0;
+
+      while ( mins >= 60 ) {
+          hours++;
+          mins -= 60;
+      }
+
+    }
+
+	dr->year        = 1900 + years;
+	dr->month       = months;
+	dr->day         = days;
+	dr->dayofyear   = ydays;
+	dr->weekday     = wday;
+	dr->hour        = hours;
+	dr->minute      = mins;
+	dr->second      = secs;
+	dr->millisecond = ms;
 }

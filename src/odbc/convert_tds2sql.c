@@ -20,12 +20,13 @@
 #include <config.h>
 #include <tdsutil.h>
 #include <tds.h>
+#include <tdsconvert.h>
 #include "convert_tds2sql.h"
 #include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.5 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,74 +38,45 @@ static void *no_unused_var_warn[] = {software_version,
 static int _odbc_get_server_type(int clt_type)
 {
 	switch (clt_type) {
-	case SQL_CHAR:
-	case SQL_VARCHAR:
+
+	case SQL_C_CHAR:
 		return SYBCHAR;
-	case SQL_BIT:
-		return SYBBIT;
-	case SQL_TINYINT:
-		return SYBINT1;
-	case SQL_SMALLINT:
-		return SYBINT2;
-	case SQL_INTEGER:
+
+	case SQL_C_DATE:
+	case SQL_C_TIME:
+	case SQL_C_TIMESTAMP:
+		return SYBDATETIME;
+
+	case SQL_C_LONG:
+	case SQL_C_ULONG:
+	case SQL_C_SLONG:
 		return SYBINT4;
-	case SQL_DOUBLE:
+
+	case SQL_C_SHORT:
+	case SQL_C_USHORT:
+	case SQL_C_SSHORT:
+		return SYBINT2;
+
+	case SQL_C_TINYINT:
+	case SQL_C_UTINYINT:
+	case SQL_C_STINYINT:
+		return SYBINT1;
+
+	case SQL_C_DOUBLE:
 		return SYBFLT8;
-	case SQL_DECIMAL:
-		return SYBDECIMAL;
-	case SQL_NUMERIC:
-		return SYBNUMERIC;
-	case SQL_FLOAT:
+
+	case SQL_C_FLOAT:
 		return SYBREAL;
-	case SQL_LONGVARCHAR:
-		return SYBTEXT;
-	case SQL_BINARY:
-		return SYBBINARY;
+
+	case SQL_C_NUMERIC:
+		return SYBNUMERIC;
+
+	case SQL_C_BIT:
+		return SYBBIT;
+
 	}
 	return TDS_FAIL;
 }
-
-
-static TDS_INT 
-convert_datetime2sql(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
-	int desttype,TDS_CHAR *dest,TDS_INT destlen)
-{
-	time_t           tmp_secs_from_epoch;
-	TDS_DATETIME     *src_d  = (TDS_DATETIME*)src;
-	TDS_DATETIME4    *src_d4 = (TDS_DATETIME4*)src;
-
-	switch(desttype) {
-	case SQL_TIMESTAMP:
-	/* FIX ME -- This fails for dates before 1902 or after 2038 */
-		{
-			TIMESTAMP_STRUCT *dest_d = (TIMESTAMP_STRUCT*)dest;
-			struct tm t;
-
-			if (!src || !dest || destlen<sizeof(TIMESTAMP_STRUCT))
-				return TDS_FAIL;
-
-			if (SYBDATETIME==srctype)
-			    tmp_secs_from_epoch = ((src_d->dtdays - 25567)*24*60*60) + (src_d->dttime/300);
-			else
-			    tmp_secs_from_epoch = ((src_d4->days - 25567)*24*60*60) + (src_d4->minutes*60);
-			// This function is not thread safe !!!
-			gmtime_r(&tmp_secs_from_epoch, &t);
-
-			dest_d->year     = t.tm_year + 1900;
-			dest_d->month    = t.tm_mon  + 1;
-			dest_d->day      = t.tm_mday;
-			dest_d->hour     = t.tm_hour;
-			dest_d->minute   = t.tm_min;
-			dest_d->second   = t.tm_sec;
-			dest_d->fraction = 0;
-
-			return sizeof(TIMESTAMP_STRUCT);
-		}
-		break;
-	}
-	return TDS_FAIL;
-}
-
 
 TDS_INT 
 convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen,
@@ -112,68 +84,159 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
 {
     TDS_INT nDestSybType;
     TDS_INT nRetVal;
+
+    CONV_RESULT ores;
+
+    TDSDATEREC        dr;
+    DATE_STRUCT      *dsp;
+    TIME_STRUCT      *tsp;
+    TIMESTAMP_STRUCT *tssp;
+
+    TDS_UINT         *uip;
+    TDS_USMALLINT    *usip;
+
+    int ret;
+    int i;
         
-	/*
-         * I guess tds_convert(), mostly, converts to formats which make us happy for SQL but 
-         * DATETIME seems to be at least one exception in such a case we fail here and do our
-         * own conversion.
-         */
+        tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
+
         nDestSybType = _odbc_get_server_type( desttype );
+
         if ( nDestSybType != TDS_FAIL )
         {
-            nRetVal = tds_convert(context, 
-		srctype,
-		src,
-		srclen, 
-		nDestSybType, 
-		dest, 
-		destlen);
-            return nRetVal;
+            nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, destlen, &ores);
         }
         
-	switch(srctype) {
-//		case SYBCHAR:
-//		case SYBVARCHAR:
-//		case SYBNVARCHAR:
-//			break;
-//		case SYBMONEY4:
-//			break;
-//		case SYBMONEY:
-//			break;
-//		case SYBNUMERIC:
-//		case SYBDECIMAL:
-//			break;
-//		case SYBBIT:
-//		case SYBBITN:
-//			break;
-//		case SYBINT1:
-//			break;
-//		case SYBINT2:
-//			break;
-//		case SYBINT4:
-//			break;
-//		case SYBREAL:
-//			break;
-//		case SYBFLT8:
-//			break;
-		case SYBDATETIME:
-		case SYBDATETIME4:
-			convert_datetime2sql(context,srctype,src,desttype,dest,destlen);
-			break;
-//		case SYBVARBINARY:
-//			break;
-//		case SYBIMAGE:
-//		case SYBBINARY:
-//			break;
-//		case SYBTEXT:
-//			break;
-//		case SYBNTEXT:
-//			break;
-		default:
-			fprintf(stderr,"convert_tds2sql(): Attempting to convert unknown "
-				       "source type %d (size %d) into %d (size %d) \n",
-				       srctype,srclen,desttype,destlen);
+	    switch(desttype) {
 
-	}
-	return TDS_FAIL;
+           case SQL_C_CHAR:
+             tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
+
+             if (destlen > 0) {
+                memset(dest, '\0', destlen);  
+                if (strlen(ores.c) >= destlen) {
+                   memcpy(dest, ores.c, strlen(ores.c) - 1);  
+                }
+                else {
+                   memcpy(dest, ores.c, strlen(ores.c));
+/*                 for (i = strlen(ores.c); i < destlen; i++ )
+                       dest[i] = ' ';
+*/
+                }
+                ret = destlen;
+             }
+             else {
+                ret = TDS_FAIL;
+             }
+
+             free(ores.c);
+
+             break;
+
+		   case SQL_C_DATE:
+
+             /* we've already converted the returned value to a SYBDATETIME */
+             /* now decompose date into constituent parts...                */
+
+             tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+
+             dsp = (DATE_STRUCT *) dest;
+
+             dsp->year  = dr.year;
+             dsp->month = dr.month;
+             dsp->day   = dr.day;
+
+             ret = sizeof(DATE_STRUCT);
+             break;
+
+		   case SQL_C_TIME:
+
+             /* we've already converted the returned value to a SYBDATETIME */
+             /* now decompose date into constituent parts...                */
+
+             tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+
+             tsp = (TIME_STRUCT *) dest;
+
+             tsp->hour   = dr.hour;
+             tsp->minute = dr.minute;
+             tsp->second = dr.second;
+
+             ret = sizeof(TIME_STRUCT);
+             break;
+
+		   case SQL_C_TIMESTAMP:
+
+             /* we've already converted the returned value to a SYBDATETIME */
+             /* now decompose date into constituent parts...                */
+
+             tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+
+             tssp = (TIMESTAMP_STRUCT *) dest;
+
+             tssp->year     = dr.year;
+             tssp->month    = dr.month;
+             tssp->day      = dr.day;
+             tssp->hour     = dr.hour;
+             tssp->minute   = dr.minute;
+             tssp->second   = dr.second;
+             tssp->fraction = dr.millisecond * 1000000;
+
+             ret = sizeof(TIMESTAMP_STRUCT);
+             break;
+
+	       case SQL_C_LONG:
+       	   case SQL_C_SLONG:
+             memcpy(dest, &(ores.i), sizeof(TDS_INT));
+             ret = sizeof(TDS_INT);
+             break;
+
+       	   case SQL_C_ULONG:
+             uip  = (TDS_UINT *)dest;
+             *uip = ores.i;
+             ret  = sizeof(TDS_UINT);
+             break;
+
+	       case SQL_C_SHORT:
+       	   case SQL_C_SSHORT:
+             memcpy(dest, &(ores.si), sizeof(TDS_SMALLINT));
+             ret = sizeof(TDS_SMALLINT);
+             break;
+
+       	   case SQL_C_USHORT:
+             usip = (TDS_USMALLINT *)dest;
+             *usip = ores.si;
+             ret = sizeof(TDS_USMALLINT);
+             break;
+
+	       case SQL_C_TINYINT:
+       	   case SQL_C_STINYINT:
+       	   case SQL_C_UTINYINT:
+       	   case SQL_C_BIT:
+             memcpy(dest, &(ores.ti), sizeof(TDS_TINYINT));
+             ret = sizeof(TDS_TINYINT);
+             break;
+
+	       case SQL_C_DOUBLE:
+             memcpy(dest, &(ores.f), sizeof(TDS_FLOAT));
+             ret  = sizeof(TDS_FLOAT);
+             break;
+
+	       case SQL_C_FLOAT:
+             memcpy(dest, &(ores.r), sizeof(TDS_REAL));
+             ret  = sizeof(TDS_REAL);
+             break;
+
+           case SQL_C_NUMERIC:
+             memcpy(dest, &(ores.n), sizeof(TDS_NUMERIC));
+             ret = sizeof(TDS_NUMERIC);
+             break;
+
+           default:
+             break;
+
+        }
+
+	    return ret;
+
 }

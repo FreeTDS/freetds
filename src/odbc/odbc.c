@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.37 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.38 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -64,6 +64,7 @@ static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
 static char *strncpy_null(char *dst, const char *src, int len);
+static int sql_to_c_type_default ( int sql_type );
 
 
 /* utils to check handles */
@@ -460,13 +461,22 @@ SQLRETURN SQL_API SQLBindParameter(
         stmt->param_head = cur;
     }
 
-    cur->param_type = fParamType;
-    cur->param_bindtype = fCType;
-    cur->param_sqltype = fSqlType;
-    cur->param_bindlen = cbValueMax;
-    cur->param_lenbind = (char *) pcbValue;
-    cur->varaddr = (char *) rgbValue;
-    return SQL_SUCCESS;
+	cur->param_type = fParamType;
+	cur->param_bindtype = fCType;
+	if (fCType == SQL_C_DEFAULT) {
+		cur->param_bindtype = sql_to_c_type_default(fSqlType);
+		if (cur->param_bindtype==0)
+			return SQL_ERROR;
+	} else {
+		cur->param_bindtype = fCType;
+	}
+	cur->param_sqltype = fSqlType;
+	if (cur->param_bindtype==SQL_C_CHAR)
+		cur->param_bindlen = cbValueMax;
+	cur->param_lenbind = (char *) pcbValue;
+	cur->varaddr = (char *) rgbValue;
+
+	return SQL_SUCCESS;
 }
 
 #if (ODBCVER >= 0x0300)
@@ -522,15 +532,21 @@ SQLRETURN SQL_API SQLAllocConnect(
 static SQLRETURN SQL_API _SQLAllocEnv(
                                      SQLHENV FAR       *phenv)
 {
-    struct _henv *env;
+struct _henv *env;
 
-    env = (struct _henv*) malloc(sizeof(struct _henv));
-    if (!env)
+	env = (struct _henv*) malloc(sizeof(struct _henv));
+
+	if (!env)
         return SQL_ERROR;
-    memset(env,'\0',sizeof(struct _henv));
+
+	memset(env,'\0',sizeof(struct _henv));
 	env->tds_ctx = tds_alloc_context();
-    *phenv = (SQLHENV)env;
-    return SQL_SUCCESS;
+	if (!env->tds_ctx->locale->date_fmt) {
+		env->tds_ctx->locale->date_fmt = strdup("%b %e %Y");
+	}
+	*phenv = (SQLHENV)env;
+
+	return SQL_SUCCESS;
 }
 SQLRETURN SQL_API SQLAllocEnv(
                              SQLHENV FAR       *phenv)
@@ -838,6 +854,7 @@ SQLRETURN SQL_API SQLColAttributes(
     switch (fDescType)
     {
     case SQL_COLUMN_NAME:
+    case SQL_COLUMN_LABEL:
         len = strlen(colinfo->column_name);
         cplen = len > cbDescMax ? cbDescMax : len;
         tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: copying %d bytes, len = %d, cbDescMax = %d\n",cplen, len, cbDescMax);
@@ -898,6 +915,9 @@ SQLRETURN SQL_API SQLColAttributes(
             break;
         }
         break;
+	default:
+		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
+		break;
     }
     return SQL_SUCCESS;
 }
@@ -2150,3 +2170,39 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
     free(query);
     return _SQLExecute(hstmt);
 }
+static int sql_to_c_type_default ( int sql_type )
+{
+
+	switch (sql_type) {
+	
+		case SQL_CHAR:
+		case SQL_VARCHAR:
+		case SQL_LONGVARCHAR:
+		case SQL_DECIMAL:
+		case SQL_NUMERIC:
+		case SQL_GUID:
+			return SQL_C_CHAR;
+		case SQL_BIT:
+			return SQL_C_BIT;
+		case SQL_TINYINT:
+			return SQL_C_UTINYINT;
+		case SQL_SMALLINT:
+			return SQL_C_SSHORT;
+		case SQL_INTEGER:
+			return SQL_C_SLONG;
+		case SQL_REAL:
+			return SQL_C_FLOAT;
+		case SQL_FLOAT:
+		case SQL_DOUBLE:
+			return SQL_C_DOUBLE;
+		case SQL_DATE:
+			return SQL_C_DATE;
+		case SQL_TIME:
+			return SQL_C_TIME;
+		case SQL_TIMESTAMP:
+			return SQL_C_TIMESTAMP;
+		default:
+			return 0;
+	}
+}
+

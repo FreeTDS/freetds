@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.28 2002-08-02 03:20:29 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.29 2002-08-04 13:43:11 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2085,112 +2085,33 @@ RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2)
 }
 RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt)
 {
-unsigned int dt_days;
-unsigned int dt_time;
+TDSDATEREC dr;
 
 
-int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
-int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
 int i;
 
-	dt_days = dt->dtdays;
-	dt_time = dt->dttime;
-
-	if (dt_days > 2958463) /* its a date before 1900 */ {
-	  	dt_days = 0xffffffff - dt_days; 
-/*
-	 	dt_days = (unsigned int)4294967295U - dt_days;
-*/
-		wday = 7 - ( dt_days % 7); 
-		years = -1;
-		dty = days_this_year(years);
-
-        
-		while ( dt_days >= dty ) {
-			years--; 
-			dt_days -= dty;
-			dty = days_this_year(years);
-		}
-		if (dty == 366 )
-			dim[1] = 29;
-		else
-			dim[1] = 28;
-
-		ydays = dty - dt_days;
-		months = 11;
- 
-		while (dt_days > dim[months] ) {
-			dt_days -= dim[months];
-			months--;
-		}
-
-		days = dim[months] - dt_days;
-	} else {
-		wday = ( dt_days + 1 ) % 7; /* 'cos Jan 1 1900 was Monday */
-
-		dt_days++;
-		years = 0;
-		dty = days_this_year(years);
-		while ( dt_days > dty ) {
-			years++; 
-			dt_days -= dty;
-			dty = days_this_year(years);
-		}
-
-		if (dty == 366 )
-			dim[1] = 29;
-		else
-			dim[1] = 28;
-
-		ydays = dt_days;
-		months = 0;
-		while (dt_days > dim[months] ) {
-			dt_days -= dim[months];
-			months++;
-		}
-
-		days = dt_days;
-	}
-
-	secs = dt_time / 300;
-	ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
-
-	hours = 0;
-	while ( secs >= 3600 ) {
-		hours++; 
-		secs -= 3600;
-	}
-
-	mins = 0;
-
-	while ( secs >= 60 ) {
-		mins++; 
-		secs -= 60;
-	}
+	tds_datecrack(SYBDATETIME, dt, &dr);
 
 #ifndef MSDBLIB
-	di->dateyear    = 1900 + years;
-	di->datemonth   = months;
-	di->datedmonth  = days;
-	di->datedyear   = ydays;
-	di->datedweek   = wday;
-	di->datehour    = hours;
-	di->dateminute  = mins;
-	di->datesecond  = secs;
-	di->datemsecond = ms;
+	di->dateyear    = dr.year;
+	di->datemonth   = dr.month;
+	di->datedmonth  = dr.day;
+	di->datedyear   = dr.dayofyear;
+	di->datedweek   = dr.weekday;
+	di->datehour    = dr.hour;
+	di->dateminute  = dr.minute;
+	di->datesecond  = dr.second;
+	di->datemsecond = dr.millisecond;
 #else
-	di->year        = 1900 + years;
-	di->month       = months;
-	di->day         = days;
-	di->dayofyear   = ydays;
-	di->weekday     = wday;
-	di->hour        = hours;
-	di->minute      = mins;
-	di->second      = secs;
-	di->millisecond = ms;
+	di->year        = dr.year;
+	di->month       = dr.month;
+	di->day         = dr.day;
+	di->dayofyear   = dr.dayofyear;
+	di->weekday     = dr.weekday;
+	di->hour        = dr.hour;
+	di->minute      = dr.minute;
+	di->second      = dr.second;
+	di->millisecond = dr.millisecond;
 #endif
 }
 
