@@ -24,14 +24,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-}
-#endif
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.44 2003-03-12 21:29:38 jklowden Exp $";
+"$Id: sybdb.h,v 1.45 2003-03-18 06:19:56 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
+
+/**
+ * @file sybdb.h
+ * Main include file for db-lib
+ */
 
 #ifdef FALSE
 #undef FALSE
