@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.38 2003-08-01 06:40:47 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.39 2003-08-01 15:16:30 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -75,7 +75,8 @@ void odbc_errs_reset(struct _sql_errors *errs);
 void odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, const char *server);
 
 /** Add an error to list. This functions is for error that came from server */
-void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum, int msgstate, const char *server);
+void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum,
+			 int msgstate, const char *server);
 
 struct _dheader
 {
@@ -158,12 +159,12 @@ struct _heattr
 
 struct _hchk
 {
-	SQLSMALLINT htype;      /* do not reorder this field */
+	SQLSMALLINT htype;	/* do not reorder this field */
 };
 
 struct _henv
 {
-	SQLSMALLINT htype;      /* do not reorder this field */
+	SQLSMALLINT htype;	/* do not reorder this field */
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
 	struct _heattr attr;
@@ -196,11 +197,11 @@ struct _hcattr
 struct _hstmt;
 struct _hdbc
 {
-	SQLSMALLINT htype;      /* do not reorder this field */
+	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _henv *henv;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
-	DSTR server;	/* aka Instance */
+	DSTR server;		/* aka Instance */
 	/** statement executing */
 	struct _hstmt *current_statement;
 	struct _sql_errors errs;
@@ -210,7 +211,7 @@ struct _hdbc
 
 struct _hstmt
 {
-	SQLSMALLINT htype;      /* do not reorder this field */
+	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _hdbc *hdbc;
 	char *query;
 	/* begin prepared query stuff */
