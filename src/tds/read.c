@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.51 2003-05-03 13:16:24 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.52 2003-05-13 10:06:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -357,11 +357,12 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 		    curcol->column_cur_size);
 
 	/* TODO: reallocate if blob and no space */
-	p = dest;
-	pend = p + curcol->column_size;
 	if (blob_info) {
-		p = blob_info->textvalue;
+		dest = p = blob_info->textvalue;
 		pend = p + curcol->column_cur_size;
+	} else {
+		p = dest;
+		pend = p + curcol->column_size;
 	}
 
 	/*
