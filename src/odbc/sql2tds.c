@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.23 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.24 2003-11-03 16:46:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -99,9 +99,9 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 
 /**
  * Convert parameters to libtds format
- * return same result of tds_convert
+ * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
-int
+SQLRETURN
 sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam)
 {
 	int dest_type, src_type, res;
@@ -113,6 +113,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	int len;
 	TDS_DATETIME dt;
 	SQLINTEGER sql_len;
+	int need_data = 0;
 
 	/* TODO procedure, macro ?? see prepare_query */
 	sql_len = odbc_get_param_len(dbc->tds_socket, drec_apd, drec_ipd);
@@ -123,7 +124,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 	if (dest_type == TDS_FAIL)
-		return TDS_CONVERT_FAIL;
+		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
@@ -141,14 +142,36 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		case SQL_DEFAULT_PARAM:
 		case SQL_DATA_AT_EXEC:
 			/* TODO */
-			return TDS_CONVERT_FAIL;
+			return SQL_ERROR;
 			break;
 		default:
-			if (sql_len < 0)
-				return TDS_CONVERT_FAIL;
-			/* len = SQL_LEN_DATA_AT_EXEC(sql_len); */
-			else
+			if (sql_len < 0) {
+				/* test for SQL_CHAR/SQL_BINARY */
+				switch (drec_apd->sql_desc_concise_type) {
+				case SQL_C_CHAR:
+				case SQL_C_BINARY:
+					break;
+				case SQL_C_DEFAULT:
+					switch (drec_ipd->sql_desc_concise_type) {
+					case SQL_CHAR:
+					case SQL_VARCHAR:
+					case SQL_LONGVARCHAR:
+					case SQL_BINARY:
+					case SQL_VARBINARY:
+					case SQL_LONGVARBINARY:
+						break;
+					default:
+						return SQL_ERROR;
+					}
+					break;
+				default:
+					return SQL_ERROR;
+				}
+				len = SQL_LEN_DATA_AT_EXEC(sql_len);
+				need_data = 1;
+			} else {
 				len = sql_len;
+			}
 
 		}
 		curcol->column_cur_size = curcol->column_size = len;
@@ -163,7 +186,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 
 	/* allocate given space */
 	if (!tds_alloc_param_row(info, curcol))
-		return TDS_CONVERT_FAIL;
+		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* TODO what happen to numeric ?? */
@@ -181,16 +204,19 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		src_type = SYBDATETIME;
 		break;
 	default:
-		src_type =
-			(drec_apd->sql_desc_concise_type !=
-			 SQL_C_DEFAULT) ? odbc_c_to_server_type(drec_apd->sql_desc_concise_type) : odbc_sql_to_server_type(dbc->
-															   tds_socket,
-															   drec_ipd->
-															   sql_desc_concise_type);
+		if (drec_apd->sql_desc_concise_type != SQL_C_DEFAULT)
+			src_type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
+		else
+			src_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 		break;
 	}
 	if (src_type == TDS_FAIL)
-		return TDS_CONVERT_FAIL;
+		return SQL_ERROR;
+
+	if (need_data) {
+		curcol->column_cur_size = 0;
+		return SQL_NEED_DATA;
+	}
 
 	/* set null */
 	if (sql_len == SQL_NULL_DATA || drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
@@ -202,10 +228,11 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 
 	res = tds_convert(dbc->henv->tds_ctx, src_type, src, len, dest_type, &ores);
 	if (res < 0)
-		return res;
+		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* truncate ?? */
+	/* TODO what happen for blobs ?? */
 	if (res > curcol->column_size)
 		res = curcol->column_size;
 
@@ -275,5 +302,5 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		break;
 	}
 
-	return res;
+	return SQL_SUCCESS;
 }

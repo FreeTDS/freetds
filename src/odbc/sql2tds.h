@@ -20,9 +20,9 @@
 #ifndef SQL2TDS_H
 #define SQL2TDS_H
 
-static char rcsid_sql2tds_h[] = "$Id: sql2tds.h,v 1.4 2003-08-29 20:37:48 freddy77 Exp $";
+static char rcsid_sql2tds_h[] = "$Id: sql2tds.h,v 1.5 2003-11-03 16:46:08 jklowden Exp $";
 static void *no_unused_sql2tds_h_warn[] = { rcsid_sql2tds_h, no_unused_sql2tds_h_warn };
 
-int sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam);
+SQLRETURN sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam);
 
 #endif /* SQL2TDS_H */

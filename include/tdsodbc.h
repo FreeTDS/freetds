@@ -49,7 +49,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.57 2003-11-02 09:59:33 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.58 2003-11-03 16:46:07 jklowden Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -268,14 +268,20 @@ struct _hstmt
 	/* begin prepared query stuff */
 	char *prepared_query;
 	/** point inside prepared_query, position to continue processing (read) */
-	char *prepared_query_s;
+/*	char *prepared_query_s; */
 	/** point inside query, position to continue processing (write) */
-	char *prepared_query_d;
-	int prepared_query_need_bytes;
-	int prepared_query_param_num;
+/*	char *prepared_query_d; */
+/*	int prepared_query_need_bytes; */
+/*	int prepared_query_param_num; */
 	int prepared_query_is_func;
 	int prepared_query_is_rpc;
 	/* end prepared query stuff */
+
+	/** parameters saved */
+	TDSPARAMINFO *params;
+	/** last valid parameter in params, it's a ODBC index (from 1 relative to descriptor) */
+	int param_num;
+
 	/** number of parameter in current query */
 	unsigned int param_count;
 	int row;

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.5 2003-09-11 14:50:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.6 2003-11-03 16:46:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -56,6 +56,8 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 	odbc_check_desc_extra(stmt->ird);
 	odbc_check_desc_extra(stmt->apd);
 	odbc_check_desc_extra(stmt->ipd);
+	assert(!stmt->prepared_query_is_func || stmt->prepared_query_is_rpc);
+	assert(stmt->param_num <= stmt->param_count + 1);
 }
 
 static void

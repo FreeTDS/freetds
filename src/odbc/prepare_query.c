@@ -37,14 +37,16 @@
 #include "prepare_query.h"
 #include "convert_sql2string.h"
 #include "odbc_util.h"
+#include "sql2tds.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.35 2003-10-05 16:46:42 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.36 2003-11-03 16:46:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#if 0
 static int
 _get_sql_textsize(struct _drecord *drec_ipd, SQLINTEGER sql_len)
 {
@@ -431,5 +433,115 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 	stmt->prepared_query_need_bytes = 0;
 
 	/* continue parsing */
+	return parse_prepared_query(stmt, 0);
+}
+#endif
+
+static int
+parse_prepared_query(struct _hstmt *stmt, int start)
+{
+	/* try setting this parameter */
+	TDSPARAMINFO *temp_params;
+	int nparam = stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1);
+
+	for (; stmt->param_num <= stmt->param_count; ++nparam, ++stmt->param_num) {
+		/* find binded parameter */
+		if (stmt->param_num > stmt->apd->header.sql_desc_count || stmt->param_num > stmt->ipd->header.sql_desc_count) {
+			/* TODO set error */
+			return SQL_ERROR;
+		}
+
+		/* add a columns to parameters */
+		if (!(temp_params = tds_alloc_param_result(stmt->params))) {
+			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+			return SQL_ERROR;
+		}
+		stmt->params = temp_params;
+
+		switch (sql2tds
+			(stmt->hdbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
+			 stmt->params, nparam)) {
+		case SQL_ERROR:
+			return SQL_ERROR;
+		case SQL_NEED_DATA:
+			return SQL_NEED_DATA;
+		}
+	}
+	return SQL_SUCCESS;
+}
+
+int
+start_parse_prepared_query(struct _hstmt *stmt)
+{
+	/* TODO should be NULL already ?? */
+	tds_free_param_results(stmt->params);
+	stmt->params = NULL;
+	stmt->param_num = 0;
+
+	if (!stmt->param_count)
+		return SQL_SUCCESS;
+	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
+	return parse_prepared_query(stmt, 1);
+}
+
+int
+continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGER StrLen_or_Ind)
+{
+	struct _drecord *drec_apd, *drec_ipd;
+	int len;
+	int need_bytes;
+	TDSCOLINFO *curcol;
+
+	if (!stmt->params)
+		return SQL_ERROR;
+
+	if (stmt->param_num > stmt->apd->header.sql_desc_count || stmt->param_num > stmt->ipd->header.sql_desc_count)
+		return SQL_ERROR;
+	drec_apd = &stmt->apd->records[stmt->param_num - 1];
+	drec_ipd = &stmt->ipd->records[stmt->param_num - 1];
+
+	curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
+	assert(curcol->column_cur_size < curcol->column_size);
+	need_bytes = curcol->column_size - curcol->column_cur_size;
+
+	if (SQL_NTS == StrLen_or_Ind)
+		len = strlen((char *) DataPtr);
+	else if (SQL_DEFAULT_PARAM == StrLen_or_Ind || StrLen_or_Ind < 0)
+		/* FIXME: I don't know what to do */
+		return SQL_ERROR;
+	else
+		len = StrLen_or_Ind;
+
+	if (len > need_bytes)
+		len = need_bytes;
+
+	/* copy to destination */
+	if (is_blob_type(curcol->column_type)) {
+		TDSBLOBINFO *blob_info = (TDSBLOBINFO *) (stmt->params->current_row + curcol->column_offset);
+		TDS_CHAR *p;
+
+		if (blob_info->textvalue)
+			p = (TDS_CHAR *) realloc(blob_info->textvalue, len + curcol->column_cur_size);
+		else {
+			assert(curcol->column_cur_size == 0);
+			p = (TDS_CHAR *) malloc(len);
+		}
+		if (!p)
+			return SQL_ERROR;
+		blob_info->textvalue = p;
+		memcpy(blob_info->textvalue + curcol->column_cur_size, DataPtr, len);
+	} else {
+		memcpy(stmt->params->current_row + curcol->column_cur_size, DataPtr, len);
+	}
+	curcol->column_cur_size += len;
+
+	need_bytes -= len;
+	if (need_bytes > 0) {
+		/* stop parsing and ask more data */
+		return SQL_NEED_DATA;
+	}
+
+	/* continue with next parameter */
+	++stmt->param_num;
 	return parse_prepared_query(stmt, 0);
 }
