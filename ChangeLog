@@ -1,3 +1,7 @@
+Sun Mar 02 21:32:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/numeric.c src/tds/unittests/t0008.c:
+	- new implementation for tds_numeric_to_string
+
 Sun Mar 02 16:14:39 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/numeric.c: start to rewrite tds_numeric_to_string
 

@@ -31,7 +31,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.16 2003-03-02 15:17:28 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.17 2003-03-02 20:32:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -157,6 +157,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 #endif
 }
 
+#if 0
 char *
 tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 {
@@ -185,6 +186,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	array_to_string(product, numeric->scale, s);
 	return s;
 }
+#endif
 static int
 multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
 {
@@ -243,7 +245,7 @@ array_to_string(unsigned char *array, int scale, char *s)
 }
 
 char *
-tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s)
+tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 {
 	const unsigned char *number;
 
@@ -255,7 +257,7 @@ tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s)
 	unsigned int *p;
 
 	int num_bytes;
-	unsigned int remainder, n;
+	unsigned int remainder, n, i, m;
 
 	/* a bit of debug */
 #if ENABLE_EXTRA_CHECKS
@@ -280,7 +282,15 @@ tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s)
 	while (!*pnum) {
 		++pnum;
 		if (pnum == packet_end) {
-			strcpy(s, "0");
+			*s++ = '0';
+			if (numeric->scale) {
+				*s++ = '.';
+				i = numeric->scale;
+				do {
+					*s++ = '0';
+				} while (--i);
+			}
+			*s++ = 0;
 			return s;
 		}
 	}
@@ -302,11 +312,35 @@ tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s)
 	}
 
 	/* transform to 10 base number and output */
-	/* TODO finish */
-	for (; p != packet10k + TDS_VECTOR_SIZE(packet10k); ++p) {
-		sprintf(s, "%04d", *p);
-		s += 4;
+	i = 4 * ((packet10k + TDS_VECTOR_SIZE(packet10k)) - p);	/* current digit */
+	/* skip leading zeroes */
+	n = 1000;
+	remainder = *p;
+	while (remainder < n)
+		n /= 10, --i;
+	if (i <= numeric->scale) {
+		printf("i=%d s=%d\n", i, numeric->scale);
+		*s++ = '0';
+		*s++ = '.';
+		m = i;
+		while (m < numeric->scale)
+			*s++ = '0', ++m;
 	}
+	for (;;) {
+		*s++ = (remainder / n) + '0';
+		--i;
+		remainder %= n;
+		n /= 10;
+		if (!n) {
+			n = 1000;
+			if (++p == packet10k + TDS_VECTOR_SIZE(packet10k))
+				break;
+			remainder = *p;
+		}
+		if (i == numeric->scale)
+			*s++ = '.';
+	}
+	*s++ = 0;
 
 	return s;
 }
