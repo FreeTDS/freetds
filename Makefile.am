@@ -1,4 +1,4 @@
-SUBDIRS		=	include src
+SUBDIRS		=	include src doc
 
 EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
 		samples/README samples/dyntest.c samples/odbc.ini \
@@ -10,7 +10,6 @@ EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
 		doc/basic_jdbc_question.html \
 		doc/faq.html doc/tds.html \
 		freetds.conf locales.conf acconfig.h
-
 
 DEFDIR		=	$(prefix)
 ETC		=	$(sysconfdir)

@@ -9,6 +9,9 @@ Sat Sep  7 23:36:06 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/userguide.sgml:
 	- Fix a few more spelling errors.
 
+Sat Sep  7 10:57:27 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* configure.in	Set prefix to /usr/local, sysconfdir becomes /usr/local/etc
+	
 Fri Sep  6 17:23:00 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/token.c:
 	- Ensure proc_name parameter to message handlers is never NULL.
