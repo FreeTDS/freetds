@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.260 2003-11-03 16:46:08 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.261 2003-11-04 19:01:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -145,13 +145,13 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
 
 /*
-**
-** Note: I *HATE* hungarian notation, it has to be the most idiotic thing
-** I've ever seen. So, you will note it is avoided other than in the function
-** declarations. "Gee, let's make our code totally hard to read and they'll
-** beg for GUI tools"
-** Bah!
-*/
+ *
+ * Note: I *HATE* hungarian notation, it has to be the most idiotic thing
+ * I've ever seen. So, you will note it is avoided other than in the function
+ * declarations. "Gee, let's make our code totally hard to read and they'll
+ * beg for GUI tools"
+ * Bah!
+ */
 
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
@@ -817,17 +817,11 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	}
 	drec = &apd->records[ipar - 1];
 
-	/* FIXME this field can be SQL_C_DEFAULT... */
-	if (fCType == SQL_C_DEFAULT) {
-		if (odbc_set_concise_type(odbc_sql_to_c_type_default(fSqlType), drec, 0) != SQL_SUCCESS) {
+	if (odbc_set_concise_c_type(fCType, drec, 0) != SQL_SUCCESS) {
 			desc_alloc_records(apd, orig_apd_size);
 			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-	} else {
-		/* TODO test error */
-		odbc_set_concise_type(fCType, drec, 0);
-	}
 	/* TODO other types ?? */
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
@@ -846,7 +840,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	drec->sql_desc_parameter_type = fParamType;
 	/* TODO test error */
-	odbc_set_concise_type(fSqlType, drec, 0);
+	odbc_set_concise_sql_type(fSqlType, drec, 0);
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -1181,8 +1175,8 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	drec = &ard->records[icol - 1];
 
-	/* TODO test error, support SQL_C_DEFAULT ?? */
-	odbc_set_concise_type(fCType, drec, 0);
+	/* TODO test error */
+	odbc_set_concise_c_type(fCType, drec, 0);
 	drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -1629,7 +1623,10 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	drec = &desc->records[nRecordNumber];
 
 	/* check for valid types and return "HY021" if not */
-	concise_type = odbc_get_concise_type(nType, nSubType);
+	if (desc->type == DESC_IPD)
+		concise_type = odbc_get_concise_sql_type(nType, nSubType);
+	else
+		concise_type = odbc_get_concise_c_type(nType, nSubType);
 	if (nType == SQL_INTERVAL || nType == SQL_DATETIME) {
 		if (!concise_type) {
 			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
@@ -1983,8 +1980,13 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
-		if ((result = odbc_set_concise_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
+		if (desc->type == DESC_IPD) {
+			if ((result = odbc_set_concise_sql_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
+				odbc_errs_add(&desc->errs, "HY021", "Descriptor type read only", NULL);
+		} else {
+			if ((result = odbc_set_concise_c_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
 			odbc_errs_add(&desc->errs, "HY021", "Descriptor type read only", NULL);
+		}
 		break;
 	case SQL_DESC_DATA_PTR:
 		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
@@ -2186,8 +2188,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		drec->sql_desc_catalog_name = strdup("");
 		/* TODO test error ?? */
-		odbc_set_concise_type(odbc_server_to_sql_type
-				      (col->column_type, col->column_size, stmt->hdbc->henv->attr.attr_odbc_version), drec, 0);
+		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->column_type, col->column_size), drec, 0);
 		drec->sql_desc_display_size =
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
@@ -2326,6 +2327,7 @@ _SQLExecute(TDS_STMT * stmt)
 	stmt->hdbc->current_statement = stmt;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
+	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
 	while ((ret = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_COMPUTE_RESULT:
@@ -2445,6 +2447,7 @@ SQLExecute(SQLHSTMT hstmt)
 		ODBC_RETURN(stmt, SQL_ERROR);
 
 	/* TODO rebuild should be done for every bingings change, not every time */
+	/* TODO free previous parameters */
 	/* build parameters list */
 	res = start_parse_prepared_query(stmt);
 	if (SQL_SUCCESS != res)
@@ -3284,7 +3287,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			/* calc how many bytes was readed */
 			int readed = cbValueMax;
 
-			/* FIXME char is not always terminated... */
+			/* TODO char is not always terminated... */
 			/* FIXME test on destination char ??? */
 			if (nSybType == SYBTEXT && readed > 0)
 				--readed;
@@ -4275,13 +4278,13 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_UNION:
 		UIVAL = SQL_U_UNION | SQL_U_UNION_ALL;
 		break;
-#if 0
 		/* TODO finish */
 	case SQL_USER_NAME:
 		/* TODO this is not correct username */
-		p = tds_dstr_cstr(&dbc->tds_login->user_name);
+		/* p = tds_dstr_cstr(&dbc->tds_login->user_name); */
+		/* make OpenOffice happy :) */
+		p = "";
 		break;
-#endif
 	case SQL_XOPEN_CLI_YEAR:
 		/* TODO check specifications */
 		p = "1995";
@@ -4361,7 +4364,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	tds = stmt->hdbc->tds_socket;
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
-	/* FIXME what about early Sybase products ? */
+	/* TODO what about early Sybase products ? */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	sprintf(sql, sql_templ, fSqlType);
 	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3)

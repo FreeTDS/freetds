@@ -35,13 +35,14 @@
 #include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
+#include "odbc_util.h"
 #include "odbc_checks.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.6 2003-11-03 16:46:08 jklowden Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.7 2003-11-04 19:01:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -61,113 +62,16 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 }
 
 static void
-odbc_check_drecord(struct _drecord *drec)
+odbc_check_drecord(TDS_DESC * desc, struct _drecord *drec)
 {
-	const int invalid_desc_type = 0;
-	const int invalid_datetime_interval_code = 0;
-	int concise_type = 0;
-
 	assert(drec->sql_desc_concise_type != SQL_INTERVAL && drec->sql_desc_concise_type != SQL_DATETIME);
 
-	switch (drec->sql_desc_type) {
-	case SQL_BIT:
-	case SQL_SMALLINT:
-	case SQL_TINYINT:
-	case SQL_INTEGER:
-	case SQL_BIGINT:
-		/* FIXME correct ?? */
-	case SQL_C_SSHORT:
-	case SQL_C_SLONG:
-	case SQL_C_DEFAULT:
-
-	case SQL_GUID:
-
-	case SQL_BINARY:
-	case SQL_VARBINARY:
-	case SQL_LONGVARBINARY:
-
-	case SQL_CHAR:
-	case SQL_VARCHAR:
-	case SQL_LONGVARCHAR:
-
-	case SQL_DECIMAL:
-	case SQL_NUMERIC:
-
-	case SQL_FLOAT:
-	case SQL_REAL:
-	case SQL_DOUBLE:
-		assert(drec->sql_desc_type == drec->sql_desc_concise_type);
-		assert(drec->sql_desc_datetime_interval_code == 0);
-		break;
-
-	case SQL_DATETIME:
-		switch (drec->sql_desc_datetime_interval_code) {
-		case SQL_CODE_DATE:
-			concise_type = SQL_TYPE_DATE;
-			break;
-		case SQL_CODE_TIME:
-			concise_type = SQL_TYPE_TIME;
-			break;
-		case SQL_CODE_TIMESTAMP:
-			concise_type = SQL_TYPE_TIMESTAMP;
-			break;
-		default:
-			assert(invalid_datetime_interval_code);
-			break;
-		}
-		assert(drec->sql_desc_concise_type == concise_type);
-		break;
-
-	case SQL_INTERVAL:
-		switch (drec->sql_desc_datetime_interval_code) {
-		case SQL_CODE_DAY:
-			concise_type = SQL_INTERVAL_DAY;
-			break;
-		case SQL_CODE_DAY_TO_HOUR:
-			concise_type = SQL_INTERVAL_DAY_TO_HOUR;
-			break;
-		case SQL_CODE_DAY_TO_MINUTE:
-			concise_type = SQL_INTERVAL_DAY_TO_MINUTE;
-			break;
-		case SQL_CODE_DAY_TO_SECOND:
-			concise_type = SQL_INTERVAL_DAY_TO_SECOND;
-			break;
-		case SQL_CODE_HOUR:
-			concise_type = SQL_INTERVAL_HOUR;
-			break;
-		case SQL_CODE_HOUR_TO_MINUTE:
-			concise_type = SQL_INTERVAL_HOUR_TO_MINUTE;
-			break;
-		case SQL_CODE_HOUR_TO_SECOND:
-			concise_type = SQL_INTERVAL_HOUR_TO_SECOND;
-			break;
-		case SQL_CODE_MINUTE:
-			concise_type = SQL_INTERVAL_MINUTE;
-			break;
-		case SQL_CODE_MINUTE_TO_SECOND:
-			concise_type = SQL_INTERVAL_MINUTE_TO_SECOND;
-			break;
-		case SQL_CODE_MONTH:
-			concise_type = SQL_INTERVAL_MONTH;
-			break;
-		case SQL_CODE_SECOND:
-			concise_type = SQL_INTERVAL_SECOND;
-			break;
-		case SQL_CODE_YEAR:
-			concise_type = SQL_INTERVAL_YEAR;
-			break;
-		case SQL_CODE_YEAR_TO_MONTH:
-			concise_type = SQL_INTERVAL_YEAR_TO_MONTH;
-			break;
-		default:
-			assert(invalid_datetime_interval_code);
-			break;
-		}
-		assert(drec->sql_desc_concise_type == concise_type);
-		break;
-
-	default:
-		assert(invalid_desc_type);
+	if (desc->type == DESC_IPD || desc->type == DESC_IRD) {
+		assert(odbc_get_concise_sql_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) ==
+		       drec->sql_desc_concise_type && drec->sql_desc_concise_type != 0);
+	} else {
+		assert(odbc_get_concise_c_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) ==
+		       drec->sql_desc_concise_type && drec->sql_desc_concise_type != 0);
 	}
 }
 
@@ -178,8 +82,30 @@ odbc_check_desc_extra(TDS_DESC * desc)
 
 	assert(desc && desc->htype == SQL_HANDLE_DESC);
 	assert(desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_USER);
+	assert((desc->type != DESC_IPD && desc->type != DESC_IRD) || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO);
 	for (i = 0; i < desc->header.sql_desc_count; ++i) {
-		odbc_check_drecord(&desc->records[i]);
+		odbc_check_drecord(desc, &desc->records[i]);
+	}
+}
+
+void
+odbc_check_struct_extra(void *p)
+{
+	const int invalid_htype = 0;
+
+	switch (((struct _hchk *) p)->htype) {
+	case SQL_HANDLE_ENV:
+		break;
+	case SQL_HANDLE_DBC:
+		break;
+	case SQL_HANDLE_STMT:
+		odbc_check_stmt_extra((TDS_STMT *) p);
+		break;
+	case SQL_HANDLE_DESC:
+		odbc_check_desc_extra((TDS_DESC *) p);
+		break;
+	default:
+		assert(invalid_htype);
 	}
 }
 
