@@ -1,13 +1,12 @@
 /*
- * This file produced from encodings.pl on Thu Sep 18 16:14:51 2003
- * $Id: encodings.h,v 1.5 2003-09-18 20:25:55 jklowden Exp $
+ * This file produced from ./encodings.pl on Fri Sep 19 08:08:08 2003
+ * $Id: encodings.h,v 1.6 2003-09-19 06:10:15 freddy77 Exp $
  */
 static const TDS_ENCODING canonic_charsets[] = {
 	{        "ISO-8859-1",	1, 1},	/*   0 */
 	{             "UTF-8",	1, 4},	/*   1 */
 	{           "UCS-2LE",	2, 2},	/*   2 */
 	{           "UCS-2BE",	2, 2},	/*   3 */
-	{                  "",	0, 0},		
 	{         "ARMSCII-8",	1, 1},	/*   4 */
 	{             "BIG-5",	1, 1},	/*   5 */
 	{        "BIG5-HKSCS",	1, 1},	/*   6 */

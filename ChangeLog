@@ -1,3 +1,7 @@
+Fri Sep 19 08:10:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/encodings.h src/tds/encodings.pl:
+	- remove empty charset
+
 Thu Sep 18 16:17:57 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c
 	- small edits, added tds_iconv_info_close utility function

@@ -3,7 +3,7 @@
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.5 2003-09-18 20:25:55 jklowden Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.6 2003-09-19 06:10:15 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();
@@ -12,6 +12,7 @@ while(<IN>)
 {
 	if (/{.*"(.*)".*,\s*([0-9]+)\s*,\s*([0-9]+)\s*}/)
 	{
+		next if !$1;
 		$charsets{$1} = [$2,$3];
 	}
 }
