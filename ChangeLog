@@ -1,3 +1,7 @@
+Tue Apr 13 20:16:53 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ct.c apply patch by iain.calder@blueyonder.co.uk, see ML
+	* src/dblib/bcp.c correct timestamp comments
+	
 Tue Apr 13 11:21:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c src/apps/defncopy.c:
 	- remove warnings

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.117 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.118 2004-04-14 00:22:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1462,6 +1462,12 @@ ct_cmd_drop(CS_COMMAND * cmd)
 			free(cmd->query);
 		if (cmd->input_params)
 			param_clear(cmd->input_params);
+		if (cmd->rpc) {
+			if (cmd->rpc->param_list)
+				param_clear(cmd->rpc->param_list);
+			free(cmd->rpc->name);
+			free(cmd->rpc);
+		}
 		free(cmd);
 	}
 	return CS_SUCCEED;
@@ -2664,6 +2670,8 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 		}
 
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		if (!param)
+			return CS_FAIL;
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, &datalen, &indicator, 1)) {
@@ -2673,18 +2681,11 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
-		if (*pparam == NULL) {
-			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		} else {
-			while ((*pparam)->next != NULL) {
-				pparam = &(*pparam)->next;
-			}
-
-			(*pparam)->next = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		while (*pparam) {
 			pparam = &(*pparam)->next;
 		}
+
 		*pparam = param;
-		(*pparam)->next = NULL;
 		tdsdump_log(TDS_DBG_INFO1, " ct_param() added rpc parameter %s \n", (*param).name);
 		return CS_SUCCEED;
 		break;
@@ -3171,11 +3172,13 @@ _ct_process_return_status(TDSSOCKET * tds)
 {
 	TDSRESULTINFO *info;
 	TDSCOLUMN *curcol;
+	TDS_INT saved_status;
 
 	enum
 	{ num_cols = 1 };
 
 	assert(tds);
+	saved_status = tds->ret_status;
 	tds_free_all_results(tds);
 
 	/* allocate the columns structure */
@@ -3202,7 +3205,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 
 	assert(0 <= curcol->column_offset && curcol->column_offset < info->row_size);
 
-	*(TDS_INT *) (info->current_row + curcol->column_offset) = tds->ret_status;
+	*(TDS_INT *) (info->current_row + curcol->column_offset) = saved_status;
 
 	return TDS_SUCCEED;
 }
