@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.47 2002-10-17 22:36:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.48 2002-10-18 09:34:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -80,9 +80,7 @@ static int tds_read_conf_file(char *server, TDSCONNECTINFO *connect_info);
 static int tds_read_conf_sections(FILE *in, char *server, TDSCONNECTINFO *connect_info);
 static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info);
 static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info);
-static void tds_config_verstr(char *tdsver, TDSCONNECTINFO *connect_info);
 static int tds_config_boolean(char *value);
-static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
 static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login );
 static int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
@@ -160,6 +158,16 @@ int opened = 0;
 	}
 	return connect_info;
 }        
+
+void 
+tds_fix_connect(TDSCONNECTINFO *connect_info)
+{
+	tds_config_env_tdsver(connect_info);
+	tds_config_env_tdsdump(connect_info);
+	tds_config_env_tdsport(connect_info);
+	tds_config_env_dsquery(connect_info);
+	tds_config_env_tdshost(connect_info);
+}
 
 static int tds_try_conf_file(char *path, char *how, char *server, TDSCONNECTINFO *connect_info)
 {
@@ -356,7 +364,7 @@ int found = 0;
 					connect_info->connect_timeout = atoi(value);
 			} else if (!strcmp(option,TDS_STR_HOST)) {
 				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
-   				lookup_host(value, NULL, tmp, NULL);
+   				tds_lookup_host(value, NULL, tmp, NULL);
 				tds_dstr_copy(&connect_info->ip_addr,tmp);
 				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",connect_info->ip_addr);
 			} else if (!strcmp(option,TDS_STR_PORT)) {
@@ -427,7 +435,7 @@ static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login)
 		/*
 		if (connect_info->ip_addr) free(connect_info->ip_addr);
 		connect_info->ip_addr = calloc(sizeof(char),18);
-		lookup_host(connect_info->host_name, NULL, connect_info->ip_addr, NULL);
+		tds_lookup_host(connect_info->host_name, NULL, connect_info->ip_addr, NULL);
 		*/
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
@@ -534,7 +542,7 @@ char *tdshost;
 char tmp[256];
 
 	if ((tdshost=getenv("TDSHOST"))) {
-		lookup_host (tdshost, NULL, tmp, NULL);
+		tds_lookup_host (tdshost, NULL, tmp, NULL);
 		tds_dstr_copy(&connect_info->ip_addr,tmp);
                 tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n",tmp, tdshost);
 
@@ -542,7 +550,13 @@ char tmp[256];
 	return;
 }
 
-static void tds_config_verstr(char *tdsver, TDSCONNECTINFO *connect_info)
+/**
+ * Set TDS version from given string
+ * @param tdsver tds string version
+ * @param connect_info where to store information
+ */
+void 
+tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info)
 {
 	if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
 		connect_info->major_version=4;
@@ -586,7 +600,7 @@ tds_set_interfaces_file_loc(char *interf)
 	return TDS_SUCCEED;
 }
 
-/* ============================== lookup_host() ==============================
+/* ============================== tds_lookup_host() ==============================
  *
  * Def:  Given a servername and port name or number, lookup the
  *       hostname and service.  The server ip will be stored in the
@@ -600,7 +614,7 @@ tds_set_interfaces_file_loc(char *interf)
  *
  * ===========================================================================
  */
-static void lookup_host(
+void tds_lookup_host(
    const char  *servername,  /* (I) name of the server                  */
    const char  *portname,    /* (I) name or number of the port          */
    char        *ip,          /* (O) dotted-decimal ip address of server */
@@ -664,7 +678,7 @@ static void lookup_host(
    } else {
 	sprintf(port, "%d", num);
    }
-} /* lookup_host()  */
+} /* tds_lookup_host()  */
 
 static int hexdigit(char c)
 {
@@ -795,7 +809,7 @@ free(pathname);
    /*
     * Look up the host and service
     */
-   lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
+   tds_lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
    tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n",ip_addr);
    strcpy(tds_ver,tmp_ver);
 } /* search_interface_file()  */
@@ -901,7 +915,7 @@ int get_server_info(
 		/*
 		* lookup the host and service
 		*/
-		lookup_host(server, tmp_port, ip_addr, ip_port);
+		tds_lookup_host(server, tmp_port, ip_addr, ip_port);
 
 	}
 
@@ -938,7 +952,7 @@ static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *l
         {
             char tmp[256];
 
-		lookup_host (connect_info->server_name, NULL, tmp, NULL);
+		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
 		tds_dstr_copy(&connect_info->ip_addr,tmp);
         }
 

@@ -27,6 +27,8 @@
 #include <sys/stat.h>
 #include <sqltypes.h>
 
+#include "tds.h"
+#include "tdsstring.h"
 #include "connectparams.h"
 #include "replacements.h"
 
@@ -140,37 +142,40 @@ static int tdoGetNextEntry  ( FILE *hFile, char **ppszKey, char **ppszValue );
 
 #endif
 
-int tdoParseConnectString( char *pszConnectString, 
-                           char *pszDataSourceName, 
-                           char *pszServer, 
-                           char *pszDatabase, 
-                           char *pszUID, 
-                           char *pszPWD )
+int tdoParseConnectString( char *pszConnectString, TDSCONNECTINFO* connect_info)
 {
-char *p,*end,*dest;
-
-	*pszDataSourceName  = '\0'; 
-	*pszServer          = '\0';
-	*pszDatabase        = '\0';
-	*pszUID             = '\0';
-	*pszPWD             = '\0';
+char *p,*end; /*,*dest; */
+char **dest_s;
+int *dest_i;
+char *tdsver;
 
 	for(p=pszConnectString;;) {
 		end = strchr(p,'=');
 		if (!end) break;
 
-		dest = NULL;
+		dest_s = NULL;
+		dest_i = NULL;
+		tds_dstr_init(&tdsver);
 		*end = 0;
+		/* TODO 
+		trusted_connection = yes/no
+		*/
 		if (strcasecmp(p,"server")==0) {
-			dest = pszServer;
-		} else if (strcasecmp(p,"servername")==0) {
-			dest = pszServer;
+			dest_s = &connect_info->server_name;
+/*		} else if (strcasecmp(p,"servername")==0) {
+			dest = pszServer; */
 		} else if (strcasecmp(p,"database")==0) {
-			dest = pszDatabase;
+			dest_s = &connect_info->database;
 		} else if (strcasecmp(p,"UID")==0) {
-			dest = pszUID;
+			dest_s = &connect_info->user_name;
 		} else if (strcasecmp(p,"PWD")==0) {
-			dest = pszPWD;
+			dest_s = &connect_info->password;
+		} else if (strcasecmp(p,"APP")==0) {
+			dest_s = &connect_info->app_name;
+		} else if (strcasecmp(p,"port")==0) {
+			dest_i = &connect_info->port;
+		} else if (strcasecmp(p,"tds_version")==0) {
+			dest_s = &tdsver;
 		}
 		*end = '=';
 
@@ -185,12 +190,23 @@ char *p,*end,*dest;
 		if (!end) end = strchr(p,0);
 		
 		/* copy to destination */
-		if (dest) {
+		if (dest_s) {
 			int cplen = end - p;
-			if (cplen > (FILENAME_MAX-1))
-				cplen = (FILENAME_MAX-1);
-			memcpy(dest,p,cplen);
-			dest[cplen] = 0;
+			/* TODO check memory problems */
+			tds_dstr_copyn(dest_s,p,cplen);
+		} else if (dest_i) {
+			/* TODO finish */
+			*dest_i = atoi(p);
+		}
+		if (dest_s == &tdsver) {
+			tds_config_verstr(tdsver,connect_info);
+			tds_dstr_free(&tdsver);
+		
+		}
+		if (dest_s == &connect_info->server_name) {
+			char tmp[256];
+			tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
+			tds_dstr_copy(&connect_info->ip_addr,tmp);
 		}
 
 		p = end;

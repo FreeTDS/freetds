@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.22 2002-10-17 21:20:59 freddy77 Exp $";
+	"$Id: tds.h,v 1.23 2002-10-18 09:34:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -630,7 +630,14 @@ TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
 TDSCONTEXT *tds_alloc_context(void);
 void tds_free_context(TDSCONTEXT *locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
+
+/* config.c */
 TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
+void tds_fix_connect(TDSCONNECTINFO *connect_info);
+void tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info);
+void tds_lookup_host(const char *servername, const char *portname, char *ip, char *port);
+
+
 TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
 char *tds_msg_get_proc_name(TDSSOCKET *tds);

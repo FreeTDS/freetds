@@ -25,11 +25,15 @@ static inline char* tds_dstr_copy(char **s,const char* src)
 	return (*s = strdup(src));
 }
 
+/** copy a buffer of characters */
+char* tds_dstr_copyn(char **s,const char* src,unsigned int length);
+
 /** set a string from another buffer */
-#define tds_dstr_set(s,src) \
-	{ char **p = (s); \
-	if (*p != tds_str_empty) free(*p); \
-	*p = (src); }
+static inline char* tds_dstr_set(char **s,char *src)
+{
+	if (*s != tds_str_empty) free(*s);
+	return (*s = (src));
+}
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \

@@ -57,6 +57,7 @@
 
 #include "tds.h"
 #include "tdsodbc.h"
+#include "tdsstring.h"
 #include "tdsutil.h"
 #include "tdsconvert.h"
 
@@ -66,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.67 2002-10-17 21:21:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.68 2002-10-18 09:34:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -177,33 +178,21 @@ struct _hdbc *dbc = (struct _hdbc *) hdbc;
 	return SQL_SUCCESS;
 }
 
-static SQLRETURN do_connect (
-                            SQLHDBC hdbc,
-                            SQLCHAR FAR *server,
-                            SQLCHAR FAR *user,
-                            SQLCHAR FAR *passwd
-                            )
+static SQLRETURN do_connect ( SQLHDBC hdbc, TDSCONNECTINFO *connect_info )
 {
 struct _hdbc *dbc = (struct _hdbc *) hdbc;
 struct _henv *env = dbc->henv;
-TDSCONNECTINFO *connect_info;
 
-    tds_set_server (dbc->tds_login, (char*)server);
-    tds_set_user   (dbc->tds_login, (char*)user);
-    tds_set_passwd (dbc->tds_login, (char*)passwd);
-    dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
-    if (!dbc->tds_socket)
+	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
+	if (!dbc->tds_socket)
 		return SQL_ERROR;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
-	connect_info = tds_read_config_info(NULL, dbc->tds_login, env->tds_ctx->locale);
-	if (!connect_info || tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
-		tds_free_connect(connect_info);
+	tds_fix_connect(connect_info);
+	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
 		odbc_LogError ("tds_connect failed");
 		return SQL_ERROR;
 	}
-	tds_free_connect(connect_info);
-
-    return SQL_SUCCESS;
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLDriverConnect(
@@ -216,48 +205,48 @@ SQLRETURN SQL_API SQLDriverConnect(
                                   SQLSMALLINT FAR   *pcbConnStrOut,
                                   SQLUSMALLINT       fDriverCompletion)
 {
-    char szDataSourceName[FILENAME_MAX];
-    char szServer[FILENAME_MAX];
-    char szDatabase[FILENAME_MAX];
-    char szUID[FILENAME_MAX];
-    char szPWD[FILENAME_MAX];
-    SQLRETURN ret;
+SQLRETURN ret;
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+TDSCONNECTINFO *connect_info;
 
-    CHECK_HDBC;
+	CHECK_HDBC;
 
-    odbc_LogError("");
+	
+	odbc_LogError("");
 
-    tdoParseConnectString( szConnStrIn, 
-                           szDataSourceName,
-                           szServer,
-                           szDatabase,
-                           szUID,
-                           szPWD );
+	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
+	if ( !connect_info )
+	{
+		odbc_LogError( "Out of memory" );
+		return SQL_ERROR;
+	}
 
-    if ( !(*szServer) )
-    {
-        odbc_LogError( "Could not find Servername parameter" );
-        return SQL_ERROR;
-    }
+	tdoParseConnectString( szConnStrIn, connect_info );
 
-    if ( !(*szUID) )
-    {
-        odbc_LogError( "Could not find UID parameter" );
-        return SQL_ERROR;
-    }
+	if ( tds_dstr_empty(connect_info->server_name) )
+	{
+		odbc_LogError( "Could not find Servername parameter" );
+		return SQL_ERROR;
+	}
 
-    if ( (ret = do_connect( hdbc, szServer, szUID, szPWD )) != SQL_SUCCESS )
-    {
-        return ret;
-    }
+	if ( tds_dstr_empty(connect_info->user_name) )
+	{
+		odbc_LogError( "Could not find UID parameter" );
+		return SQL_ERROR;
+	}
 
-    if ( *szDatabase )
-    {
-        return change_database( hdbc, szDatabase );
-    }
+	if ( (ret = do_connect( hdbc, connect_info )) != SQL_SUCCESS )
+	{
+		return ret;
+	}
 
-    /* use the default database */
-    return SQL_SUCCESS;
+	if ( !tds_dstr_empty(connect_info->database) )
+	{
+		return change_database( hdbc, connect_info->database );
+	}
+
+	/* use the default database */
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLBrowseConnect(
@@ -726,51 +715,72 @@ SQLRETURN SQL_API SQLConnect(
                             SQLCHAR FAR       *szAuthStr,
                             SQLSMALLINT        cbAuthStr)
 {
-    char szDataSourceName[FILENAME_MAX];
-    char szServer[FILENAME_MAX];
-    char szDatabase[FILENAME_MAX];
-    char szUser[FILENAME_MAX];
-    char szPassword[FILENAME_MAX];
-    SQLRETURN   nRetVal;
+#define TO_STRING(s) #s
+const char *DSN;
+char tmp[FILENAME_MAX];
+SQLRETURN   nRetVal;
+struct _hdbc *dbc = (struct _hdbc *) hdbc;
+TDSCONNECTINFO *connect_info;
 
-    CHECK_HDBC;
+	CHECK_HDBC;
 
-    odbc_LogError("");
+	odbc_LogError("");
 
-    /* data source name */
-    if ( szDSN || (*szDSN) )
-        strncpy( szDataSourceName, szDSN, FILENAME_MAX );
-    else
-        strcpy( szDataSourceName, "DEFAULT" );
+	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
+	if ( !connect_info )
+	{
+		odbc_LogError( "Out of memory" );
+		return SQL_ERROR;
+	}
+
+	/* data source name */
+	if ( szDSN || (*szDSN) )
+		DSN = szDSN;
+	else
+		DSN = "DEFAULT";
 
     /* username/password are never saved to ini file, 
      * so you do not check in ini file */
     /* user id */
-    szUser[0] = 0;
-    if ( szUID && (*szUID) )
-        strcpy( szUser, szUID );
+	if ( szUID && (*szUID) )
+		tds_dstr_copy(&connect_info->user_name,szUID);
 
-    /* password */
-    szPassword[0] = 0;
-    if ( szAuthStr )
-        strcpy( szPassword, szAuthStr );
+	/* password */
+	if ( szAuthStr )
+		tds_dstr_copy(&connect_info->password,szAuthStr);
 
-    /* server */
-    /* search for servername or server (compatible with ms one) */
-    *szServer = '\0';
-    if (SQLGetPrivateProfileString( szDataSourceName, "Servername", "", szServer, FILENAME_MAX, "odbc.ini" ) <= 0) {
-	    SQLGetPrivateProfileString( szDataSourceName, "Server", "localhost", szServer, FILENAME_MAX, "odbc.ini");
-    }
+	/* server */
+	/* search for servername or server (compatible with ms one) */
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->server_name,tmp);
+		tds_lookup_host (connect_info->server_name, NULL, tmp, NULL);
+		tds_dstr_copy(&connect_info->ip_addr,tmp);
+	}
+	/* TODO support old style servername (using freetds.conf) */
+	/* if (SQLGetPrivateProfileString( DSN, "Servername", "", szServer, FILENAME_MAX, "odbc.ini" ) <= 0) { } */
 
-    /* DO IT */
-    if ( (nRetVal = do_connect( hdbc, szServer, szUser, szPassword)) != SQL_SUCCESS )
-        return nRetVal;
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Port", TO_STRING(TDS_DEF_PORT), tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		connect_info->port = atoi(tmp);
+	}
 
-    /* database */
-    if ( SQLGetPrivateProfileString( szDataSourceName, "Database", "", szDatabase, FILENAME_MAX, "odbc.ini" ) > 0 )
-        return change_database( hdbc, szDatabase );
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "TDS_Version", TO_STRING(TDS_DEF_MAJOR) "." TO_STRING(TDS_DEF_MINOR), tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_config_verstr(tmp,connect_info);
+	}
 
-    return SQL_SUCCESS;
+	/* TODO support other options, some code should be putted in connectparams.c */
+
+	/* DO IT */
+	if ( (nRetVal = do_connect( hdbc, connect_info)) != SQL_SUCCESS )
+		return nRetVal;
+
+	/* database */
+	if ( SQLGetPrivateProfileString( DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini" ) > 0 )
+		return change_database( hdbc, tmp );
+
+	return SQL_SUCCESS;
 }
 
 SQLRETURN SQL_API SQLDescribeCol(

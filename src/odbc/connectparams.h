@@ -46,12 +46,7 @@
  *  - I doubt pszDataSourceName is useful here?
  *
  *****************************/
-int tdoParseConnectString( char *pszConnectString, 
-                           char *pszDataSourceName, 
-                           char *pszServer, 
-                           char *pszDatabase, 
-                           char *pszUID, 
-                           char *pszPWD );
+int tdoParseConnectString( char *pszConnectString, TDSCONNECTINFO* connect_info );
 
 #ifndef HAVEODBCINST
 /*****************************

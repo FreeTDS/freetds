@@ -1,3 +1,10 @@
+Fri Oct 18 11:32:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml include/tds.h include/tdsstring.h:
+	* src/odbc/connectparams.c src/odbc/connectparams.h:
+	* src/odbc/odbc.c src/tds/config.c src/tds/mem.c:
+	* src/tds/tdsstring.c:
+	- ODBC: implemented DSNless and freetds.conf'less connections
+
 Fri Oct 18 00:35:48 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsstring.h src/tds/config.c src/tds/login.c:
 	* src/tds/mem.c:

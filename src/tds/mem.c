@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.36 2002-10-17 22:36:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.37 2002-10-18 09:34:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -406,6 +406,9 @@ TDSLOCINFO *locale;
 
 	return locale;
 }
+
+static const unsigned char defaultcaps[] = {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
+
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)
@@ -462,6 +465,7 @@ char hostname[30];
 	if (!tds_dstr_copy(&connect_info->host_name,hostname))
 		goto Cleanup;
 	
+	memcpy(connect_info->capabilities,defaultcaps,TDS_MAX_CAPABILITY);
 	return connect_info;
 Cleanup:
 	tds_free_connect(connect_info);
@@ -470,7 +474,6 @@ Cleanup:
 TDSLOGIN *tds_alloc_login(void)
 {
 TDSLOGIN *tds_login;
-static const unsigned char defaultcaps[] = {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
 char *tdsver;
 
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-18 04:07:47 $</date>
-		<releaseinfo>$Revision: 1.38 $</releaseinfo>
+		<date>$Date: 2002-10-18 09:34:05 $</date>
+		<releaseinfo>$Revision: 1.39 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.38 $
+$Revision: 1.39 $
 , dated 
-$Date: 2002-10-18 04:07:47 $ (CVS control number $Id: userguide.sgml,v 1.38 2002-10-18 04:07:47 jklowden Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2002-10-18 09:34:05 $ (CVS control number $Id: userguide.sgml,v 1.39 2002-10-18 09:34:05 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -1811,8 +1811,6 @@ Description     = Sybase JDBC Server
 Trace           = No
 Servername      = JDBC
 Database        = pubs2
-UID             = guest
-PWD             = sybase
 
 [Default]
 Driver          = /usr/local/freetds/lib/libtdsodbc.so
@@ -1833,6 +1831,113 @@ The <literal>-g</literal> is important to keep the symbol tables for debugging p
 			<para>
 <note><para>When compiling directly to <productname>FreeTDS</productname> you still must use the driver manager's header files.</para></note>
 			</para>
+
+<!-- //////////////////// new work on ODBC (dsnless and freetds.conf'less) ////////////// -->
+
+<para>New configuration methos (dnsless and freetds.conf'less)</para>
+<tip><sidebar><para>
+This part of documentation is still in developing, so is subject to change. 
+Old server specification not supported (using freetds.conf), domain authentication not tested, global of freetds.conf never readed.
+</para></sidebar></tip>
+
+<para>
+Current CVS version support DSNless connection and freetds.conf'less connection. This mean that all connection informations
+can be stored in odbc.ini. To support this method some options has been added. 
+</para>
+
+<para>
+<table>
+<title>odbc.ini entries</title>
+<tgroup cols="4">
+<thead>
+	<row>
+	<entry>Name</entry>
+	<entry>Default</entry>
+	<entry>Meaning</entry>
+	<entry>Possible Values</entry>
+	</row>
+</thead>
+<tbody>
+	<row>
+	<entry>Servername</entry>
+	<entry>none</entry>
+	<entry>This is old server specification. This refer to freetds.conf server name, not real server. If you want
+	       to use freetds.conf'less configuration use Server instead. Work in progress: for the moment it doesn't work. </entry>
+	<entry>A valid freetds.conf server section</entry>
+	</row>
+	<row>
+	<entry>Server</entry>
+	<entry>none</entry>
+	<entry>This specify the name of the real server. Used in freetds.conf'less configuration.</entry>
+	<entry>A server name or an address (ip)</entry>
+	</row>
+	<row>
+	<entry>Port</entry>
+	<entry>depend from TDS version specified with configure</entry>
+	<entry>This the tcp/ip port of SQL Server.</entry>
+	<entry>Any TCP port</entry>
+	</row>
+	<row>
+	<entry>UID</entry>
+	<entry>none</entry>
+	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
+	      To use domain authentication and specify domain use the format "domain\password". Work in progress: domain auth not tested.</entry>
+	<entry>Any valid user</entry>
+	</row>
+	<row>
+	<entry>PWD</entry>
+	<entry>empty</entry>
+	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
+	      Clear text password (use domain password for domain authentication).</entry>
+	<entry>Any</entry>
+	</row>
+	<row>
+	<entry>TDS_Version</entry>
+	<entry>depend from TDS version specified with configure</entry>
+	<entry>TDS protocol version to use (ie 5.0, 7.0).</entry>
+	<entry>Any valid protocol version</entry>
+	</row>
+	<row>
+	<entry>APP</entry>
+	<entry>none</entry>
+	<entry>Application name.</entry>
+	<entry>Any</entry>
+	</row>
+	<row>
+	<entry>Trusted_Connection</entry>
+	<entry>No</entry>
+	<entry>Use trusted connection (mssql domain authentication). Work in progress: not supported, use UID=domain\user</entry>
+	<entry>Yes or No</entry>
+	</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<example>
+<title>Sample DSNless <filename>odbc.ini</filename> File (adapted from previous example)</title>
+<programlisting>
+;
+;  odbc.ini
+;
+[ODBC Data Sources]
+ JDBC = Sybase JDBC Server
+
+[JDBC]
+Driver          = /usr/local/freetds/lib/libtdsodbc.so
+Description     = Sybase JDBC Server
+Trace           = No
+Server          = JDBC
+Database        = pubs2
+Port            = 4444
+TDS_Version     = 5.0
+
+[Default]
+Driver          = /usr/local/freetds/lib/libtdsodbc.so
+</programlisting>
+</example>
+
+
 		</sect1>
 		<sect1 id="unixodbc">
 			<title>The <productname>unixODBC</productname> Driver Manager</title>
