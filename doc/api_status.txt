@@ -141,7 +141,7 @@ dblib	core	dbexit	OK
 dblib	core	dbfcmd	OK
 dblib	core	dbfirstrow	OK
 dblib	core	dbfreebuf	OK
-dblib	core	dbgetchar	
+dblib	core	dbgetchar	OK
 dblib	core	dbgetmaxprocs	
 dblib	core	dbgetoff	
 dblib	core	dbgetpacket	OK
@@ -149,7 +149,7 @@ dblib	core	dbgetrow	OK
 dblib	core	dbgettime	
 dblib	core	dbgetuserdata	stub
 dblib	core	dbinit	OK
-dblib	core	dbisavail	
+dblib	core	dbisavail	OK
 dblib	core	dbiscount	
 dblib	core	dbisopt	stub
 dblib	core	dblastrow	OK
@@ -190,15 +190,15 @@ dblib	core	dbsetluser	OK
 dblib	core	dbsetlversion	
 dblib	core	dbsetmaxprocs	stub
 dblib	core	dbsetnull	
-dblib	core	dbsetopt	OK
+dblib	core	dbsetopt	partial
 dblib	core	dbsettime	stub
 dblib	core	dbsetuserdata	OK
 dblib	core	dbsqlexec	OK
 dblib	core	dbsqlok	OK
 dblib	core	dbsqlsend	OK
 dblib	core	dbstrbuild	OK
-dblib	core	dbstrcpy	stub
-dblib	core	dbstrlen	stub
+dblib	core	dbstrcpy	OK
+dblib	core	dbstrlen	OK
 dblib	core	dbtds	OK
 dblib	core	dbuse	OK
 dblib	core	dbvarylen	
@@ -215,12 +215,12 @@ dblib	cursor	dbcursorinfo
 dblib	cursor	dbcursorinfoex	
 dblib	cursor	dbcursoropen	
 dblib	procedure	dbhasretstat	OK
-dblib	procedure	dbnumrets	stub
-dblib	procedure	dbretdata	stub
-dblib	procedure	dbretlen	stub
-dblib	procedure	dbretname	stub
+dblib	procedure	dbnumrets	OK
+dblib	procedure	dbretdata	OK
+dblib	procedure	dbretlen	OK
+dblib	procedure	dbretname	OK
 dblib	procedure	dbretstatus	OK
-dblib	procedure	dbrettype	stub
+dblib	procedure	dbrettype	OK
 dblib	procedure	dbrpcexec	
 dblib	procedure	dbrpcinit	stub
 dblib	procedure	dbrpcparam	OK
