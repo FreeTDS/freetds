@@ -1,3 +1,10 @@
+Mon Jan  5 00:45:00 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in set to 0.62rc2
+	* doc/htdoc/index.html doc/htdoc/news.html
+	- announce 0.62 release candidate availability
+	* src/dblib/bcp.c src/tds/write.c
+	- completed patch from Christos for native bcp null handling
+	
 Sat Jan 03 20:31:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
 	- applied Craig A. Berry patch for VMS

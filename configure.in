@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.122 2004-01-02 08:22:21 freddy77 Exp $
+dnl $Id: configure.in,v 1.123 2004-01-05 05:52:51 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -13,11 +13,12 @@ dnl ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 define(TDSDATE, esyscmd(echo -n $(date +"%Y%m%d")))
-AM_INIT_AUTOMAKE(freetds, 0.62.dev.TDSDATE)
+dnl AM_INIT_AUTOMAKE(freetds, 0.62.dev.TDSDATE)
+dnl Post-release: uncomment above line, and remove below line.  
+AM_INIT_AUTOMAKE(freetds, 0.62rc2)
 AM_CONFIG_HEADER(include/config.h)
+	dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
-
-dnl configuration directory will be /usr/local/etc
 
 dnl ------------------------------------------------------------
 dnl Host-specific configuration
