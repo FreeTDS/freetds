@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.67 2004-09-20 08:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.68 2004-09-23 11:10:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -302,7 +302,11 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		break;
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
+#ifdef SQL_GUID
 		return SQL_GUID;
+#else
+		return SQL_CHAR;
+#endif
 	case SYBVARIANT:
 		break;
 #endif
@@ -341,8 +345,10 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_SBIGINT:
 	case SQL_C_UBIGINT:
 		return SYBINT8;
+#ifdef SQL_C_GUID
 	case SQL_C_GUID:
 		return SYBUNIQUE;
+#endif
 #endif
 	case SQL_C_LONG:
 	case SQL_C_SLONG:
@@ -516,9 +522,11 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_DOUBLE:
 		size = 24;	/* FIXME -- what should the correct size be? */
 		break;
+#ifdef SQL_GUID
 	case SQL_GUID:
 		size = 36;
 		break;
+#endif
 	default:
 		/* FIXME TODO finish, should support ALL types (interval) */
 		size = 40;
@@ -542,9 +550,11 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
 		return SQL_C_CHAR;
+#ifdef SQL_GUID
 	case SQL_GUID:
 		/* TODO return SQL_C_CHAR for Sybase ?? */
 		return SQL_C_GUID;
+#endif
 	case SQL_BIT:
 		return SQL_C_BIT;
 	case SQL_TINYINT:
@@ -595,10 +605,12 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 		return SYBDECIMAL;
 	case SQL_NUMERIC:
 		return SYBNUMERIC;
+#ifdef SQL_GUID
 	case SQL_GUID:
 		if (IS_TDS7_PLUS(tds))
 			return SYBUNIQUE;
 		return 0;
+#endif
 	case SQL_BIT:
 		return SYBBITN;
 	case SQL_TINYINT:
@@ -728,6 +740,11 @@ odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struc
 	return len;
 }
 
+#ifdef SQL_GUID
+# define TYPE_NORMAL_SQL_GUID TYPE_NORMAL(SQL_GUID)
+#else
+# define TYPE_NORMAL_SQL_GUID
+#endif
 #define SQL_TYPES \
 	TYPE_NORMAL(SQL_BIT) \
 	TYPE_NORMAL(SQL_SMALLINT) \
@@ -735,7 +752,7 @@ odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struc
 	TYPE_NORMAL(SQL_INTEGER) \
 	TYPE_NORMAL(SQL_BIGINT) \
 \
-	TYPE_NORMAL(SQL_GUID) \
+	TYPE_NORMAL_SQL_GUID \
 \
 	TYPE_NORMAL(SQL_BINARY) \
 	TYPE_NORMAL(SQL_VARBINARY) \
@@ -821,6 +838,11 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 #undef TYPE_VERBOSE_END
 }
 
+#ifdef SQL_C_GUID
+# define TYPE_NORMAL_SQL_C_GUID TYPE_NORMAL(SQL_C_GUID)
+#else
+# define TYPE_NORMAL_SQL_C_GUID
+#endif
 #define C_TYPES \
 	TYPE_NORMAL(SQL_C_BIT) \
 	TYPE_NORMAL(SQL_C_SHORT) \
@@ -835,7 +857,7 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 	TYPE_NORMAL(SQL_C_USHORT) \
 	TYPE_NORMAL(SQL_C_ULONG) \
 \
-	TYPE_NORMAL(SQL_C_GUID) \
+	TYPE_NORMAL_SQL_C_GUID \
 	TYPE_NORMAL(SQL_C_DEFAULT) \
 \
 	TYPE_NORMAL(SQL_C_BINARY) \

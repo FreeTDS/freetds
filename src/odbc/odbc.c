@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.342 2004-09-09 10:58:15 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.343 2004-09-23 11:10:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1930,9 +1930,11 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 			/* TODO support date/time */
 			*((SQLSMALLINT *) Value) = 0;
 		break;
+#ifdef SQL_DESC_ROWVER
 	case SQL_DESC_ROWVER:
 		IOUT(SQLSMALLINT, drec->sql_desc_rowver);
 		break;
+#endif
 	case SQL_DESC_SCALE:
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
@@ -2147,10 +2149,12 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		else
 			IIN(SQLUINTEGER, drec->sql_desc_length);
 		break;
+#ifdef SQL_DESC_ROWVER
 	case SQL_DESC_ROWVER:
 		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
 		result = SQL_ERROR;
 		break;
+#endif
 	case SQL_DESC_SCALE:
 		DESC_SET_NEED_REPREPARE;
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
