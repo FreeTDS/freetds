@@ -2,7 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>2002-06-16</date>
+		<date>$Date: 2002-09-04 07:20:03 $</date>
+		<releaseinfo>$Revision: 1.26 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -14,6 +15,20 @@
 			<othername>K.</othername>
 			<surname>Lowden</surname>
 		</author>
+		<copyright>
+		  <year>2001</year>
+		  <year>2002</year>
+		  <holder>Brian Bruns and James K. Lowden</holder>
+		</copyright>
+		<legalnotice><para>
+      Permission is granted to copy, distribute and/or modify this document
+      under the terms of the GNU Free Documentation License, Version 1.1
+      or any later version published by the Free Software Foundation;
+      with no Invariant Sections, with no
+      Front-Cover Texts, and with no Back-Cover Texts.
+      A copy of the license is included in the section entitled <link linkend="gfdl">GNU
+      Free Documentation License</link>.</para>
+		</legalnotice>
 	</bookinfo>
 
 	<toc></toc>
@@ -35,7 +50,7 @@
 In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries -- each with its own <acronym>API</> -- that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and  <acronym>JDBC</> have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.  
 			</para>
 			<para>
-The <acronym>TDS</> protocol was designed and developed by Sybase Inc.for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with a flexible pair of products called <productname>netlib</productname> and <systemitem class="library">db-lib</systemitem>.
+The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with a flexible pair of products called <productname>netlib</productname> and <systemitem class="library">db-lib</systemitem>.
   			</para>
 			<para>
 <productname>netlib</productname>'s job was to ferry data between the two computers.  To do that, it had to deal with the underlying network protocol.  Remember, in those days <acronym>TCP/IP</> was not the ubiquitous thing it is today.  Besides <acronym>TCP/IP</>, <productname>netlib</productname> ran on <acronym>DECnet</>, <acronym>IPX/SPX</>, <acronym>NetBEUI</> and the like.   
@@ -97,7 +112,7 @@ Introduced for <productname>SQL Server 7.0</productname>.  Includes support for 
 			  Microsoft</term>
 			<listitem>
 			<para>
-Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer types (64-bit <structname>int</structname>s). <productname>FreeTDS</productname> support for 8.0 is new, so if you run into difficulty <productname>SQL Server 2000</productname> continues to support <acronym>TDS</> 4.2 and 7.0.
+Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer (64-bit <structname>int</structname>) and <quote>variant</quote> datatypes. 
 			</para>
 			</listitem></varlistentry>
 
@@ -138,7 +153,7 @@ As of version 0.60, the <systemitem class="library">db-lib</systemitem> and <sys
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <application>freebcp</application>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
-The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your applications needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your application's needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 			</para>
 			<para>
 Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			</para>
@@ -146,7 +161,7 @@ Detailed information about the extent of the <acronym>API</> coverage is being p
 		<sect2>
 			<title>Languages besides C and Java</title>
 			<para>
-You may be wondering how these libraries fit with Perl, PHP, TCL, python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>s, for which <productname>FreeTDS</productname> is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using <productname>FreeTDS</productname> to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
+You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>s, for which <productname>FreeTDS</productname> is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using <productname>FreeTDS</productname> to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
 			</para>
 			<para>
 <productname>FreeTDS</productname> is a source code library, though, not a binary one.  It has to be linked to a program.  For it to be useful to you in any way, you have to be prepared to break out your build tools.  
@@ -265,6 +280,24 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<title><application>./configure</application> options</title>
 
 			<varlistentry>
+				<term><Parameter>--prefix=PREFIX
+					</Parameter></term>
+				<listitem><para>         install architecture-independent files in PREFIX
+                          </para>
+					<para>The default is <literal>/usr/local</literal> if this argument is not passed to <Command>configure</Command>.  In versions prior to 0.60, the default was <literal>/usr/local/freetds</literal>.  </para>
+					</listitem>
+				</varlistentry>
+
+			<varlistentry>
+				<term><Parameter>--sysconfdir=DIR
+					</Parameter></term>
+				<listitem><para>         read-only single-machine data in DIR
+                          </para>
+					<para>The default is <literal>/etc/freetds</literal> (contrary to what <command>./configure --help</command> may say) if this argument is not passed to <Command>configure</Command>.  In versions prior to 0.60, the default was <literal>PREFIX/etc/</literal>.  </para>
+					</listitem>
+				</varlistentry>
+
+			<varlistentry>
 				<term><Parameter>--with-tdsver
 					</Parameter></term>
 				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, and <literal>8.0</literal> (experimental).  </para>
@@ -339,15 +372,18 @@ This section is mostly a place holder, because <productname>FreeTDS</productname
 			<para>
 One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  
 			</para>
-		<sect2>
-    			<title><application>ldconfig</application> and <parameter>LD_LIBRARY_PATH</parameter></title>
+		<!--sect2-->
+			<sidebar>
+    			<title><application>ldconfig</application> and 
+			
+			<parameter>LD_LIBRARY_PATH</parameter></title>
 			<para>
 On OS's with shared libraries (Linux usually), pay attention to <command><application>ldconfig</application></command>.  After the installation, you may have to let the system know about the new libraries.
 			</para>
 			<para>
 <quote>Installing</quote> a library is not really a meaningful concept, except insofar as you might put it into <filename>/usr/local/lib</filename> or somewhere where the operating system will be able to find it. That is the purpose of <parameter>LD_LIBRARY_PATH</parameter> (<parameter>LIBPATH</parameter> on AIX): it works just the same as <parameter>PATH</parameter>, but instead of a colon-separated list of directories containing executables, it's a colon-separated list of directories containing shared objects (<filename>*.so</filename> files) i.e., dynamic libraries. You can consider a library installed, more or less, if the directory it's in is listed in <parameter>LD_LIBRARY_PATH</parameter>. 			</para>
 			<para>
-If the <productname>FreeTDS</productname> <command>make install</command> puts its <filename>*.so</filename> files in a directory not included in <parameter>LD_LIBRARY_PATH</parameter>, you can either modify <parameter>LD_LIBRARY_PATH</parameter> (assuming <productname>FreeTDS</productname> is installed in <filename>/usr/local/freetds</filename>
+The <productname>FreeTDS</productname> <command>make install</command> may put its <filename>*.so</filename> files in a directory not included in <parameter>LD_LIBRARY_PATH</parameter>, depending on what your set <parameter>--prefix</parameter> to.  If so, you can either modify <parameter>LD_LIBRARY_PATH</parameter> (assuming <productname>FreeTDS</productname> is installed in <filename>/usr/local/freetds</filename>
 			</para>
 <screen>
 <prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/freetds/lib</userinput>
@@ -375,7 +411,8 @@ To determine whether this is all working, you can run <command>ldd</command> (if
 			</para>
 			<para>
 			</para>
-		</sect2>
+			</sidebar>
+		<!-- end sect2-->
 		</sect1>
 	</chapter>
 	
@@ -576,7 +613,9 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>try domain login</entry>
 	<entry>yes</entry>
-	<entry>(Experimental) Attempt a domain login (requires OpenSSL).</entry>
+	<entry>(Experimental) Attempt a domain login (requires OpenSSL).  
+		<emphasis> Setting try domain login has the effect 
+				of disallowing server logins!</emphasis></entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
@@ -1087,7 +1126,7 @@ In this example we want to force connections to a server named <literal>mssql</l
 <acronym>TDS</> 7.0 uses 2-byte Unicode (<acronym>UCS-2</>) to transfer all textual data between servers and clients.  By default, <productname>FreeTDS</productname> converts this data to 8-bit <acronym>ASCII</> representation by stripping the high order byte.  This is generally sufficient for western languages such as English, but produces garbage for other languages.
 			</para>
 			<para>
-Since, most Unix tools and languages do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
+Since, most Unix tools and languages do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.  Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.
 			</para>
 			<para>
 To list all supported iconv character sets under Linux, use the <application>iconv</application> command.
@@ -1552,7 +1591,7 @@ First build <productname>FreeTDS</productname> normally.
 Then build PHP with support for <quote>Sybase</quote>
 <screen>
 <prompt>$ </prompt><userinput>cd php</userinput>
-<prompt>$ </prompt><userinput>./configure --with-sybase=/usr/local/freetds</userinput>
+<prompt>$ </prompt><userinput>./configure --with-sybase-ct=/usr/local/freetds</userinput>
 <prompt>$ </prompt><userinput>make</userinput>
 <prompt>$ </prompt><userinput>su root</userinput>
 <prompt>Password: </prompt>
@@ -1962,6 +2001,9 @@ Moving down, Perl or PHP code provided it creates all the tables it needs and po
 			<para>
 Be clear about your setup.  Which row of the <link linkend="configurations">Configurations Section</link> represents yours?  Indicate whether you're using the  <acronym>JDBC</> or C libraries.  Try changing the value of <envar>TDSVER</envar>, to see if it is specifically related to the protocol level.  The server version would be helpful if known, you may execute <command>select @@version</command> to find it.  
 			</para>
+			<para>
+It is very helpful if you can show an example of the problem using <productname>sqsh</> or <productname>tsql</> (the latter is included in with <productname>FreeTDS</productname>).  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
+			</para>
 <para>If the problem is a segmentation fault or bus error, obtain a
 backtrace and include it in your mail.  See the <link
 linkend=pagenodata>"Page contains no data"</link> section for how to
@@ -1987,7 +2029,7 @@ do this.</para>
 			<ItemizedList>
 				<listitem><para>The <systemitem class="library">ODBC</systemitem> driver in particular needs work.
 					</para></listitem>
-				<listitem><para>BCP is incomplete.
+				<listitem><para>There is no API documentation.
 					</para></listitem>
 				<listitem><para>Support for <acronym>TDS</> 8.0 is not yet fully working.  
 					</para></listitem>
@@ -2009,19 +2051,19 @@ do this.</para>
 		<sect1>
     			<title>Send a patch.</title>
 			<para>
-To the list!  Good patches are nearly always applied in short order.  
+Good patches are nearly always applied in short order.  Patches uploaded to <ulink url="http://sourceforge.net/tracker/?group_id=33106&amp;atid=407808">SourceForge</ulink> trigger automatic notification to the <productname>FreeTDS</productname>  mailing list.  
 			</para>
 		</sect1>
 		<sect1>
     			<title>Correct this User Guide</title>
 			<para>
-Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>
+Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
 			</para>
 		</sect1>
 		<sect1>
     			<title>Document an <acronym>API</></title>
 			<para>
-There is no independent reference manual to <productname>FreeTDS</productname>; the <acronym>API</> documents are the work of the server vendors.  Document known differences between <productname>FreeTDS</productname> and the reference <acronym>API</>s, things known to work/not work.
+There is no independent reference manual to <productname>FreeTDS</productname>; the <acronym>API</> documents are the work of the server vendors.  Our intention is to use <productname>doxygen</productname>, which can extract documentation directly from comments in the source code.  If you'd like to participate in this effort, please join the mailing list to learn how to get started.  
 			</para>
 			<para>
 The <acronym>TDS</> protocol is partly documented, but the <acronym>API</> to <filename>tdslib</filename> is not.  
@@ -2061,6 +2103,7 @@ Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ul
 		<sect1>
 			<title>TDS <acronym>API</> [future reference]</title>
 			<para>
+Basic API coverage information is available at <ulink url="http://www.freetds.org//api_status.txt">www.freetds.org</ulink>.
 			</para>
 		</sect1>
 		<sect1>
@@ -2241,10 +2284,10 @@ For better or worse, <productname>FreeTDS</productname> brings the otherwise inn
 			</para>
 		<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 			<para>
-The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages, all use <acronym>ASCII</> to represent English (or English-like) text.  But let's look under the hood a little bit, and examine our assumptions.  
+The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages, all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
 			</para>
 			<para>
-Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them is that the operating system's tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinquishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>A</literal>B, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
+Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinquishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
 			</para>
 			<para>
 The important thing to understand is that the designation of 65 for <literal>A</literal> and so on is a choice.  It's an <emphasis>encoding standard</emphasis>, made necessary by the old simple fact that computers store numbers, not letters.  <acronym>ASCII</> is so ubiquitous these days that it's hard sometimes to remember there was a time when it was but one of a set of competing encoding standards.  Others you probably have heard of include <acronym>EBCDIC</> and the Baudot systems, but they are by no means the only historical alternatives, nor the only modern ones.  
@@ -2255,34 +2298,551 @@ The important thing to understand is that the designation of 65 for <literal>A</
 <acronym>ASCII</> won, it would seem, but the race goes not to the swift.  <acronym>ASCII</> has many limitations, the most egregious of which is, it's not much good for anything besides English.  It encodes all the letters and punctuation (almost) of the English alphabet, but is useless for German, Russian, and Greek, to say nothing of Chinese.  
 			</para>
 			<para>
-The <acronym>ASCII</> assigns one byte to every character, but deals only with 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English -- even English with em dashes and (&cent;)cent signs -- arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of non-English languages, notably excluding ideographic languages, such as Chinese.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  
+<acronym>ASCII</> assigns one byte to every character, but deals only with 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English -- even English with em dashes and cent (&cent;) signs -- arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of non-English languages, notably excluding ideographic languages such as Chinese.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  
+	
 			</para>
 			<para>
-The upshot is, there is no uniform standard, no agreement on the meaning of a byte, particularly if that byte's value is greater than 127.  Let's say your client machine sends <literal>HELLO</literal> and your database stores it as  <literal>72 69 76 76 79</literal>.  When another client retrieves that value, it will convert it into human-readable by applying an encoding standard.  If everything's tightly wrapped, it will use the very same encoding as your database used (and the same one you had in mind when you sent it), and that client will also see <literal>HELLO</literal>.  If things are not so tightly wrapped, but that client is fortunate enough to be using a similar standard to what you were using, say, ISO 8859-1, he'll still see <literal>HELLO</literal>.  But Greek clients are not so lucky (there are three ISO 8859 standards for Greek), and text sent as Greek will be meaningless if retrieved as, say, Hebrew.  
+The upshot is, there is no uniform standard, no agreement on the meaning of a byte, particularly if that byte's value is greater than 127.  Let's say your client machine sends <literal>HELLO</literal> and your database stores it as  <literal>72 69 76 76 79</literal>.  When another client retrieves that value, it will convert it into human-readable form by applying an encoding standard.  If everything's tightly wrapped, it will use the very same encoding that your database used (and the same one you had in mind when you sent it), and that client will also see <literal>HELLO</literal>.  If things are not so tightly wrapped but that client is fortunate enough to be using a similar standard to what you were using, say, ISO 8859-1, he'll still see <literal>HELLO</literal>.  Most languages based on the Roman alphabet can be represented by ISO 8859-1, and are thus interchangeable.  Beyond that, things get quickly messy.  Greek clients, for one, are not so lucky: there are three ISO 8859 standards for Greek, all mutually incompatible.  
 
-For more information, see Roman Czyborra's <ulink url="http://wwwwbs.cs.tu-berlin.de/user/czyborra/charsets/">ISO 8859 Alphabet Soup</ulink>
+For more information, see <ulink url="http://czyborra.com/charsets/iso8859.html">ISO 8859 Alphabet Soup</ulink>.  Roman Czyborra's site is very informative; take your time there if you don't want your head to spin.  
 			</para>
 			<para>
-Database servers need to know what encoding standard to employ, too.  It's not obvious at first, but notions like <quote>uppercase</quote> and <quote>lowercase</quote>, trailing blanks, and colation rules all depend on what letter is meant by what number.  
+Database servers need to know what encoding standard to employ, too.  It's not obvious at first, but notions like <quote>uppercase</quote> and <quote>lowercase</quote>, trailing blanks, and colation rules all depend on what letter is meant by what number.  (Colation even depends on what culture is interpreting the letters.)  
 			</para>
 		</section>
 		<section id="Unicode"><title>Unicode: East meets West</title>
 			<para>
-<acronym>ASCII</> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is Unicode, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nacent 32-bit forms, too, but they are neither complete nor in common use.  
+<acronym>ASCII</> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nacent 32-bit forms, too, but they are neither complete nor in common use.  
 			</para>
 			<para>
-In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends <acronym>ASCII</> to 16 and 32 bits.  The first 127 values remain in Unicode as in <acronym>ASCII</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.  
+In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends the most prevelant <quote>8-bit <acronym>ASCII</></quote>,  <acronym>ISO-8859-1</>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO-8859-1</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.  
 			</para>
 			<para>
 UCS-2 is the system employed by Microsoft NT-based systems.  Microsoft database servers store UCS-2 strings in <type>nchar</type> and <type>nvarchar</type> datatypes.  Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol around UCS-2: all character data are encoded according to UCS-2 on the wire.  
 			</para>
+		</section>
+		<section id="Unicodegoodbad"><title>Unicode's Pluses and Minuses</title>
 			<para>
-endians of integers.
-
-UTF-8
-
+You will read from time to time that Unicode is not perfect.  Surprise, surprise: it's true.  From a linguistic point of view, Unicode is incomplete; in particular, UCS-2 is demonstrably too small (!) to hold all the forms of Chinese ideographs used over the centuries.  (It is, however, quite useful and widely employed in representing modern Chinese.)  Of more common concern to programmers are Unicode's technical problems, or rather, Unix's technical shortcomings <foreignphrase>vis-a-vis</foreignphrase> any encoding more complex than <acronym>ISO-8859-x</>.  
+			</para>
+			<para>
+The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</> Compact,</quote> if you will.  Assumptions about <acronym>ASCII</> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.  
+			</para>
+			<para>
+Even if every OS were magically rid of all <acronym>ASCII</> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> <ulink url="http://www.noveltheory.com/TechPapers/endian.asp">explanations</ulink> on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in homogeneous environments.  
+			</para>
+			<para>
+The Unicode folks knew about Endianism, of course, and had to address it.  A Unicode bytestream is supposed to begin with a byte-order mark.  Needless to say, perhaps, many don't.  
+			</para>
+		</section>
+		<section id="UnicodeUtf"><title>Unicode Transformation Format: UTF-8</title>
+			<para>
+The presence of nulls embedded in character data and of byte order issues make straight Unicode i.e., UCS-2 or UCS-4 hard to work with in a heterogenenous environment.  Too many opportunities arise for the data to be truncated or misinterpreted, and too many systems would fail even to transmit such data.  In short, when 16-bit data are thrust into a multiarchitecture 8-bit world, it frequently bodes ill for the data.  
+			</para>
+			<para>
+To answer that problem, to make Unicode transmissible and unambiguous to most machines, several <quote>transformation formats</quote> were adopted.  Their goals were generally similar: to create a generally recognized format that would unambiguously and safely convey Unicode information between machines and across the internet.  To do that, they sought to remove nulls and endianism from the data stream.  The most popular one -- practically the only one used -- is known as UTF-8.  
+			</para>
+			<para>
+UTF-8 found wide acceptance for many reasons.  UTF-8 represents any Unicode character as a combination of 1-4 bytes.  The number of bytes required depends on the integer value of the Unicode character, and only one byte is used to represent the old <acronym>ASCII</> range (0-127).  UTF-8 does not use zero to represent any part of any character (except for the <acronym>ASCII</> NUL).  In consequence, UTF-8 is efficient with respect to space, has no endianism issues, and embeds no nulls.  UTF-8 strings can be treated as plain old <acronym>ASCII</> strings.  These properties make UTF-8 data relatively easy for systems accustomed to processing <acronym>ASCII</> data.  
+			</para>
+			<para>
+Here's a small example showing the difference between UCS-2 and UTF-8.  
+			<example>
+<title><quote>HELLO</quote> in UCS-2 and UTF-8</title>
+<screen>
+$ echo HELLO | iconv -f ascii -t UCS-2 | hexdump -C
+00000000  00 48 00 45 00 4c 00 4c  00 4f 00 0a              |.H.E.L.L.O..|
+0000000c
+$ echo HELLO | iconv -f ascii -t utf-8 | hexdump -C
+00000000  48 45 4c 4c 4f 0a                                 |HELLO.|
+00000006
+$ echo HELLO | hexdump -C
+00000000  48 45 4c 4c 4f 0a                                 |HELLO.|
+00000006
+</screen>
+			</example>
+It is the similarity of the last two outputs that makes UTF-8 so attractive.  It behaves like <acronym>ASCII</> when <acronym>ASCII</>'s all that's needed.  But it lacks <acronym>ASCII</>'s limitations.  			</para>
+			<para>
+While UTF-8 solves many technical problems, it doesn't magically transform every <acronym>ASCII</>-assuming system into a Unicode system.  For example, to display Unicode data -- even Unicode data in UTF-8 format -- correctly, the system still needs a suitable font.  And it must distinguish the buffer size (and byte count) from the character count.  
+			</para>
+		</section>
+		<section id="UnicodeFreeTDS"><title>Unicode and FreeTDS</title>
+			<para>
+Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most application linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library; one is available (and frequently employed) from GNU.  The <quote>to</quote> format for <productname>iconv</productname> can be set in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.  
+			</para>
+			<para>
+At some future time, <productname>FreeTDS</productname> aims to support Unicode and other multibyte character sets.  It does not do so at the current time.  
+			</para>
+			<para>
+Sybase servers, by the way, transmit their data in the character set requested by the client at login time.  The available character sets is fairly small, but includes UTF-8.  While  <productname>FreeTDS</productname> <emphasis>could</emphasis> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making <productname>FreeTDS</productname>'s capability in this regard largely redundant and irrelevant.  
 			</para>
 		
 		</section>
 	</Appendix>
+<appendix id="gfdl">
+<title>GNU Free Documentation License</title>
+<!-- - GNU Project - Free Software Foundation (FSF) -->
+<!-- LINK REV="made" HREF="mailto:webmasters@gnu.org" -->
+
+
+  <!-- sect1>
+    <title>GNU Free Documentation License</title -->
+
+    <para>Version 1.1, March 2000</para>
+
+    <blockquote id="fsf-copyright">
+      <para>Copyright (C) 2000  Free Software Foundation, Inc.
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.</para>
+    </blockquote>
+
+  <sect1 id="gfdl-0">
+    <title>PREAMBLE</title>
+
+    <para>The purpose of this License is to make a manual, textbook,
+    or other written document "free" in the sense of freedom: to
+    assure everyone the effective freedom to copy and redistribute it,
+    with or without modifying it, either commercially or
+    noncommercially.  Secondarily, this License preserves for the
+    author and publisher a way to get credit for their work, while not
+    being considered responsible for modifications made by
+    others.</para>
+
+    <para>This License is a kind of "copyleft", which means that
+    derivative works of the document must themselves be free in the
+    same sense.  It complements the GNU General Public License, which
+    is a copyleft license designed for free software.</para>
+
+    <para>We have designed this License in order to use it for manuals
+    for free software, because free software needs free documentation:
+    a free program should come with manuals providing the same
+    freedoms that the software does.  But this License is not limited
+    to software manuals; it can be used for any textual work,
+    regardless of subject matter or whether it is published as a
+    printed book.  We recommend this License principally for works
+    whose purpose is instruction or reference.</para>
+  </sect1>
+
+  <sect1 id="gfdl-1">
+    <title>APPLICABILITY AND DEFINITIONS</title>
+
+    <para>This License applies to any manual or other work that
+    contains a notice placed by the copyright holder saying it can be
+    distributed under the terms of this License.  The "Document",
+    below, refers to any such manual or work.  Any member of the
+    public is a licensee, and is addressed as "you".</para>
+
+    <para>A "Modified Version" of the Document means any work
+    containing the Document or a portion of it, either copied
+    verbatim, or with modifications and/or translated into another
+    language.</para>
+
+    <para>A "Secondary Section" is a named appendix or a front-matter
+    section of the Document that deals exclusively with the
+    relationship of the publishers or authors of the Document to the
+    Document's overall subject (or to related matters) and contains
+    nothing that could fall directly within that overall subject.
+    (For example, if the Document is in part a textbook of
+    mathematics, a Secondary Section may not explain any mathematics.)
+    The relationship could be a matter of historical connection with
+    the subject or with related matters, or of legal, commercial,
+    philosophical, ethical or political position regarding
+    them.</para>
+
+    <para>The "Invariant Sections" are certain Secondary Sections
+    whose titles are designated, as being those of Invariant Sections,
+    in the notice that says that the Document is released under this
+    License.</para>
+
+    <para>The "Cover Texts" are certain short passages of text that
+    are listed, as Front-Cover Texts or Back-Cover Texts, in the
+    notice that says that the Document is released under this
+    License.</para>
+
+    <para>A "Transparent" copy of the Document means a
+    machine-readable copy, represented in a format whose specification
+    is available to the general public, whose contents can be viewed
+    and edited directly and straightforwardly with generic text
+    editors or (for images composed of pixels) generic paint programs
+    or (for drawings) some widely available drawing editor, and that
+    is suitable for input to text formatters or for automatic
+    translation to a variety of formats suitable for input to text
+    formatters.  A copy made in an otherwise Transparent file format
+    whose markup has been designed to thwart or discourage subsequent
+    modification by readers is not Transparent.  A copy that is not
+    "Transparent" is called "Opaque".</para>
+
+    <para>Examples of suitable formats for Transparent copies include
+    plain ASCII without markup, Texinfo input format, LaTeX input
+    format, SGML or XML using a publicly available DTD, and
+    standard-conforming simple HTML designed for human modification.
+    Opaque formats include PostScript, PDF, proprietary formats that
+    can be read and edited only by proprietary word processors, SGML
+    or XML for which the DTD and/or processing tools are not generally
+    available, and the machine-generated HTML produced by some word
+    processors for output purposes only.</para>
+
+    <para>The "Title Page" means, for a printed book, the title page
+    itself, plus such following pages as are needed to hold, legibly,
+    the material this License requires to appear in the title page.
+    For works in formats which do not have any title page as such,
+    "Title Page" means the text near the most prominent appearance of
+    the work's title, preceding the beginning of the body of the
+    text.</para>
+  </sect1>
+
+  <sect1 id="gfdl-2">
+    <title>VERBATIM COPYING</title>
+
+    <para>You may copy and distribute the Document in any medium,
+    either commercially or noncommercially, provided that this
+    License, the copyright notices, and the license notice saying this
+    License applies to the Document are reproduced in all copies, and
+    that you add no other conditions whatsoever to those of this
+    License.  You may not use technical measures to obstruct or
+    control the reading or further copying of the copies you make or
+    distribute.  However, you may accept compensation in exchange for
+    copies.  If you distribute a large enough number of copies you
+    must also follow the conditions in section 3.</para>
+
+    <para>You may also lend copies, under the same conditions stated
+    above, and you may publicly display copies.</para>
+  </sect1>
+
+  <sect1 id="gfdl-3">
+    <title>COPYING IN QUANTITY</title>
+
+    <para>If you publish printed copies of the Document numbering more
+    than 100, and the Document's license notice requires Cover Texts,
+    you must enclose the copies in covers that carry, clearly and
+    legibly, all these Cover Texts: Front-Cover Texts on the front
+    cover, and Back-Cover Texts on the back cover.  Both covers must
+    also clearly and legibly identify you as the publisher of these
+    copies.  The front cover must present the full title with all
+    words of the title equally prominent and visible.  You may add
+    other material on the covers in addition.  Copying with changes
+    limited to the covers, as long as they preserve the title of the
+    Document and satisfy these conditions, can be treated as verbatim
+    copying in other respects.</para>
+
+    <para>If the required texts for either cover are too voluminous to
+    fit legibly, you should put the first ones listed (as many as fit
+    reasonably) on the actual cover, and continue the rest onto
+    adjacent pages.</para>
+
+    <para>If you publish or distribute Opaque copies of the Document
+    numbering more than 100, you must either include a
+    machine-readable Transparent copy along with each Opaque copy, or
+    state in or with each Opaque copy a publicly-accessible
+    computer-network location containing a complete Transparent copy
+    of the Document, free of added material, which the general
+    network-using public has access to download anonymously at no
+    charge using public-standard network protocols.  If you use the
+    latter option, you must take reasonably prudent steps, when you
+    begin distribution of Opaque copies in quantity, to ensure that
+    this Transparent copy will remain thus accessible at the stated
+    location until at least one year after the last time you
+    distribute an Opaque copy (directly or through your agents or
+    retailers) of that edition to the public.</para>
+
+    <para>It is requested, but not required, that you contact the
+    authors of the Document well before redistributing any large
+    number of copies, to give them a chance to provide you with an
+    updated version of the Document.</para>
+  </sect1>
+
+  <sect1 id="gfdl-4">
+    <title>MODIFICATIONS</title>
+
+    <para>You may copy and distribute a Modified Version of the
+    Document under the conditions of sections 2 and 3 above, provided
+    that you release the Modified Version under precisely this
+    License, with the Modified Version filling the role of the
+    Document, thus licensing distribution and modification of the
+    Modified Version to whoever possesses a copy of it.  In addition,
+    you must do these things in the Modified Version:</para>
+
+    <orderedlist numeration="upperalpha">
+      <listitem><para>Use in the Title Page
+      (and on the covers, if any) a title distinct from that of the
+      Document, and from those of previous versions (which should, if
+      there were any, be listed in the History section of the
+      Document).  You may use the same title as a previous version if
+      the original publisher of that version gives permission.</para>
+      </listitem>
+
+      <listitem><para>List on the Title Page,
+      as authors, one or more persons or entities responsible for
+      authorship of the modifications in the Modified Version,
+      together with at least five of the principal authors of the
+      Document (all of its principal authors, if it has less than
+      five).</para>
+      </listitem>
+
+      <listitem><para>State on the Title page
+      the name of the publisher of the Modified Version, as the
+      publisher.</para>
+      </listitem>
+
+      <listitem><para>Preserve all the
+      copyright notices of the Document.</para>
+      </listitem>
+
+      <listitem><para>Add an appropriate
+      copyright notice for your modifications adjacent to the other
+      copyright notices.</para>
+      </listitem>
+
+      <listitem><para>Include, immediately
+      after the copyright notices, a license notice giving the public
+      permission to use the Modified Version under the terms of this
+      License, in the form shown in the Addendum below.</para>
+      </listitem>
+
+      <listitem><para>Preserve in that license
+      notice the full lists of Invariant Sections and required Cover
+      Texts given in the Document's license notice.</para>
+      </listitem>
+
+      <listitem><para>Include an unaltered
+      copy of this License.</para>
+      </listitem>
+
+      <listitem><para>Preserve the section
+      entitled "History", and its title, and add to it an item stating
+      at least the title, year, new authors, and publisher of the
+      Modified Version as given on the Title Page.  If there is no
+      section entitled "History" in the Document, create one stating
+      the title, year, authors, and publisher of the Document as given
+      on its Title Page, then add an item describing the Modified
+      Version as stated in the previous sentence.</para>
+      </listitem>
+
+      <listitem><para>Preserve the network
+      location, if any, given in the Document for public access to a
+      Transparent copy of the Document, and likewise the network
+      locations given in the Document for previous versions it was
+      based on.  These may be placed in the "History" section.  You
+      may omit a network location for a work that was published at
+      least four years before the Document itself, or if the original
+      publisher of the version it refers to gives permission.</para>
+      </listitem>
+
+      <listitem><para>In any section entitled
+      "Acknowledgements" or "Dedications", preserve the section's
+      title, and preserve in the section all the substance and tone of
+      each of the contributor acknowledgements and/or dedications
+      given therein.</para>
+      </listitem>
+
+      <listitem><para>Preserve all the
+      Invariant Sections of the Document, unaltered in their text and
+      in their titles.  Section numbers or the equivalent are not
+      considered part of the section titles.</para>
+      </listitem>
+
+      <listitem><para>Delete any section
+      entitled "Endorsements".  Such a section may not be included in
+      the Modified Version.</para>
+      </listitem>
+
+      <listitem><para>Do not retitle any
+      existing section as "Endorsements" or to conflict in title with
+      any Invariant Section.</para>
+      </listitem>
+    </orderedlist>
+    
+    <para>If the Modified Version includes new front-matter sections
+    or appendices that qualify as Secondary Sections and contain no
+    material copied from the Document, you may at your option
+    designate some or all of these sections as invariant.  To do this,
+    add their titles to the list of Invariant Sections in the Modified
+    Version's license notice.  These titles must be distinct from any
+    other section titles.</para>
+
+    <para>You may add a section entitled "Endorsements", provided it
+    contains nothing but endorsements of your Modified Version by
+    various parties--for example, statements of peer review or that
+    the text has been approved by an organization as the authoritative
+    definition of a standard.</para>
+
+    <para>You may add a passage of up to five words as a Front-Cover
+    Text, and a passage of up to 25 words as a Back-Cover Text, to the
+    end of the list of Cover Texts in the Modified Version.  Only one
+    passage of Front-Cover Text and one of Back-Cover Text may be
+    added by (or through arrangements made by) any one entity.  If the
+    Document already includes a cover text for the same cover,
+    previously added by you or by arrangement made by the same entity
+    you are acting on behalf of, you may not add another; but you may
+    replace the old one, on explicit permission from the previous
+    publisher that added the old one.</para>
+
+    <para>The author(s) and publisher(s) of the Document do not by
+    this License give permission to use their names for publicity for
+    or to assert or imply endorsement of any Modified Version.</para>
+  </sect1>
+
+  <sect1 id="gfdl-5">
+    <title>COMBINING DOCUMENTS</title>
+
+    <para>You may combine the Document with other documents released
+    under this License, under the terms defined in section 4 above for
+    modified versions, provided that you include in the combination
+    all of the Invariant Sections of all of the original documents,
+    unmodified, and list them all as Invariant Sections of your
+    combined work in its license notice.</para>
+
+    <para>The combined work need only contain one copy of this
+    License, and multiple identical Invariant Sections may be replaced
+    with a single copy.  If there are multiple Invariant Sections with
+    the same name but different contents, make the title of each such
+    section unique by adding at the end of it, in parentheses, the
+    name of the original author or publisher of that section if known,
+    or else a unique number.  Make the same adjustment to the section
+    titles in the list of Invariant Sections in the license notice of
+    the combined work.</para>
+
+    <para>In the combination, you must combine any sections entitled
+    "History" in the various original documents, forming one section
+    entitled "History"; likewise combine any sections entitled
+    "Acknowledgements", and any sections entitled "Dedications".  You
+    must delete all sections entitled "Endorsements."</para>
+  </sect1>
+
+  <sect1 id="gfdl-6">
+    <title>COLLECTIONS OF DOCUMENTS</title>
+
+    <para>You may make a collection consisting of the Document and
+    other documents released under this License, and replace the
+    individual copies of this License in the various documents with a
+    single copy that is included in the collection, provided that you
+    follow the rules of this License for verbatim copying of each of
+    the documents in all other respects.</para>
+
+    <para>You may extract a single document from such a collection,
+    and distribute it individually under this License, provided you
+    insert a copy of this License into the extracted document, and
+    follow this License in all other respects regarding verbatim
+    copying of that document.</para>
+  </sect1>
+
+  <sect1 id="gfdl-7">
+    <title>AGGREGATION WITH INDEPENDENT WORKS</title>
+    
+    <para>A compilation of the Document or its derivatives with other
+    separate and independent documents or works, in or on a volume of
+    a storage or distribution medium, does not as a whole count as a
+    Modified Version of the Document, provided no compilation
+    copyright is claimed for the compilation.  Such a compilation is
+    called an "aggregate", and this License does not apply to the
+    other self-contained works thus compiled with the Document, on
+    account of their being thus compiled, if they are not themselves
+    derivative works of the Document.</para>
+
+    <para>If the Cover Text requirement of section 3 is applicable to
+    these copies of the Document, then if the Document is less than
+    one quarter of the entire aggregate, the Document's Cover Texts
+    may be placed on covers that surround only the Document within the
+    aggregate.  Otherwise they must appear on covers around the whole
+    aggregate.</para>
+  </sect1>
+
+  <sect1 id="gfdl-8">
+    <title>TRANSLATION</title>
+
+    <para>Translation is considered a kind of modification, so you may
+    distribute translations of the Document under the terms of section
+    4.  Replacing Invariant Sections with translations requires
+    special permission from their copyright holders, but you may
+    include translations of some or all Invariant Sections in addition
+    to the original versions of these Invariant Sections.  You may
+    include a translation of this License provided that you also
+    include the original English version of this License.  In case of
+    a disagreement between the translation and the original English
+    version of this License, the original English version will
+    prevail.</para>
+  </sect1>
+
+  <sect1 id="gfdl-9">
+    <title>TERMINATION</title>
+    
+    <para>You may not copy, modify, sublicense, or distribute the
+    Document except as expressly provided for under this License.  Any
+    other attempt to copy, modify, sublicense or distribute the
+    Document is void, and will automatically terminate your rights
+    under this License.  However, parties who have received copies, or
+    rights, from you under this License will not have their licenses
+    terminated so long as such parties remain in full
+    compliance.</para>
+  </sect1>
+
+  <sect1 id="gfdl-10">
+    <title>FUTURE REVISIONS OF THIS LICENSE</title>
+
+    <para>The Free Software Foundation may publish new, revised
+    versions of the GNU Free Documentation License from time to time.
+    Such new versions will be similar in spirit to the present
+    version, but may differ in detail to address new problems or
+    concerns.  See <ulink
+    url="http://www.gnu.org/copyleft/">http://www.gnu.org/copyleft/</ulink>.</para>
+
+    <para>Each version of the License is given a distinguishing
+    version number.  If the Document specifies that a particular
+    numbered version of this License "or any later version" applies to
+    it, you have the option of following the terms and conditions
+    either of that specified version or of any later version that has
+    been published (not as a draft) by the Free Software Foundation.
+    If the Document does not specify a version number of this License,
+    you may choose any version ever published (not as a draft) by the
+    Free Software Foundation.</para>
+  </sect1>
+
+  <sect1 id="gfdl-11">
+    <title>How to use this License for your documents</title>
+
+    <para>To use this License in a document you have written, include
+    a copy of the License in the document and put the following
+    copyright and license notices just after the title page:</para>
+
+<blockquote id="sample-copyright"><para>
+      Copyright (c)  YEAR  YOUR NAME.
+      Permission is granted to copy, distribute and/or modify this document
+      under the terms of the GNU Free Documentation License, Version 1.1
+      or any later version published by the Free Software Foundation;
+      with the Invariant Sections being LIST THEIR TITLES, with the
+      Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+      A copy of the license is included in the section entitled "GNU
+      Free Documentation License".
+</para></blockquote>
+
+    <para>If you have no Invariant Sections, write "with no Invariant
+    Sections" instead of saying which ones are invariant.  If you have
+    no Front-Cover Texts, write "no Front-Cover Texts" instead of
+    "Front-Cover Texts being LIST"; likewise for Back-Cover
+    Texts.</para>
+
+    <para>If your document contains nontrivial examples of program
+    code, we recommend releasing these examples in parallel under your
+    choice of free software license, such as the GNU General Public
+    License, to permit their use in free software.</para>
+  </sect1>
+
+</appendix>
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:nil
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-parent-document: ("referenz.sgml" "appendix")
+sgml-exposed-tags:nil
+sgml-local-ecat-files:nil
+sgml-local-catalogs: CATALOG
+sgml-validate-command: "nsgmls -s referenz.sgml"
+ispell-skip-sgml: t
+End:
+-->
 </book>
