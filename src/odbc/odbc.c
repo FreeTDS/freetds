@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.147 2003-04-02 19:48:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.148 2003-04-02 20:58:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -182,6 +182,27 @@ change_autocommit(TDS_DBC * dbc, int state)
 	return SQL_SUCCESS;
 }
 
+static void
+odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
+{
+	TDS_DBC *dbc;
+
+	if (tds == NULL) {
+		return;
+	}
+	dbc = (TDS_DBC *) tds->parent;
+	if (!dbc)
+		return;
+
+	/* TODO copy it */
+	switch (type) {
+	case TDS_ENV_DATABASE:
+		break;
+	case TDS_ENV_CHARSET:
+		break;
+	}
+}
+
 static SQLRETURN
 do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 {
@@ -193,6 +214,7 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 		return SQL_ERROR;
 	}
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
+	dbc->tds_socket->env_chg_func = odbc_env_change;
 	tds_fix_connect(connect_info);
 
 	/* fix login type */
@@ -1937,55 +1959,47 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	   SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,	/* column_name */
 	   SQLSMALLINT cbColumnName)
 {
-	char szQuery[4096];
-	int nTableName = odbc_get_string_size(cbTableName, szTableName);
-	int nTableOwner = odbc_get_string_size(cbSchemaName, szSchemaName);
-	int nTableQualifier = odbc_get_string_size(cbCatalogName, szCatalogName);
-	int nColumnName = odbc_get_string_size(cbColumnName, szColumnName);
-	int bNeedComma = 0;
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
 
 	INIT_HSTMT;
 
-	sprintf(szQuery, "exec sp_columns ");
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+	cbColumnName = odbc_get_string_size(cbColumnName, szColumnName);
 
-	if (nTableName) {
-		strcat(szQuery, "@table_name = '");
-		strncat(szQuery, (const char *) szTableName, nTableName);
-		strcat(szQuery, "'");
-		bNeedComma = 1;
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + cbColumnName + 110)) != NULL) {
+		strcpy(proc, "sp_columns ");	/* 11 */
+		p = proc + 11;
+
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@column_name=", szColumnName, cbColumnName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+					odbc_col_setname(stmt, 7, "COLUMN_SIZE");
+					odbc_col_setname(stmt, 8, "BUFFER_LENGTH");
+					odbc_col_setname(stmt, 9, "DECIMAL_DIGITS");
+					odbc_col_setname(stmt, 10, "NUM_PREC_RADIX");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
 	}
-
-	if (nTableOwner) {
-		if (bNeedComma)
-			strcat(szQuery, ", ");
-		strcat(szQuery, "@table_owner = '");
-		strncat(szQuery, (const char *) szSchemaName, nTableOwner);
-		strcat(szQuery, "'");
-		bNeedComma = 1;
-	}
-
-	if (nTableQualifier) {
-		if (bNeedComma)
-			strcat(szQuery, ", ");
-		strcat(szQuery, "@table_qualifier = '");
-		strncat(szQuery, (const char *) szCatalogName, nTableQualifier);
-		strcat(szQuery, "'");
-		bNeedComma = 1;
-	}
-
-	if (nColumnName) {
-		if (bNeedComma)
-			strcat(szQuery, ", ");
-		strcat(szQuery, "@column_name = '");
-		strncat(szQuery, (const char *) szColumnName, nColumnName);
-		strcat(szQuery, "'");
-		bNeedComma = 1;
-	}
-
-	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, szQuery, strlen(szQuery)))
-		return SQL_ERROR;
-
-	return _SQLExecute(stmt);
+	return retcode;
 }
 
 SQLRETURN SQL_API
