@@ -1,3 +1,8 @@
+Tue Oct 15 11:32:15 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- Add time.h include stuff, needed for struct timeval on
+	  some systems.
+
 Tue Oct 15 11:30:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Use newest LTLIBOBJS hack, fixes support for autoconf 2.53
