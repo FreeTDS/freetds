@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.264 2004-09-20 08:21:20 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.265 2004-10-13 11:06:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -456,10 +456,10 @@ tds_process_auth(TDSSOCKET * tds)
  *  <b>Values that indicate results information is available</b>
  *  <table><tr>
  *    <td>TDS_ROWFMT_RESULT</td><td>Regular Data format information</td>
- *    <td>tds->res_info now contains the result details ; tds->curr_resinfo now points to that data</td>
+ *    <td>tds->res_info now contains the result details ; tds->current_results now points to that data</td>
  *   </tr><tr>
  *    <td>TDS_COMPUTEFMT_ RESULT</td><td>Compute data format information</td>
- *    <td>tds->comp_info now contains the result data; tds->curr_resinfo now points to that data</td>
+ *    <td>tds->comp_info now contains the result data; tds->current_results now points to that data</td>
  *   </tr><tr>
  *    <td>TDS_DESCRIBE_RESULT</td><td></td>
  *    <td></td>
@@ -494,6 +494,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
 	TDSCOLUMN   *curcol;
 	int rc;
+	int saved_rows_affected = tds->rows_affected;;
 	TDS_INT ret_status;
 
 	if (tds->state == TDS_IDLE) {
@@ -502,7 +503,6 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		return TDS_NO_MORE_RESULTS;
 	}
 
-	tds->curr_resinfo = NULL;
 	for (;;) {
 
 		marker = tds_get_byte(tds);
@@ -604,7 +604,24 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tdsdump_log(TDS_DBG_FUNC, "no of hidden return parameters %d\n", pinfo->num_cols);
 				if(tds->internal_sp_called == TDS_SP_CURSOROPEN) {
 					curcol = pinfo->columns[0];
-					tds->cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+					if (tds->client_cursor_id) {
+						TDS_CURSOR  *mycursor;
+
+						tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
+						mycursor = tds->cursor; 
+						while (mycursor->client_cursor_id != tds->client_cursor_id) {
+							mycursor = mycursor->next;
+							tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
+						}
+					
+						if (mycursor->client_cursor_id != tds->client_cursor_id) {
+							tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
+							return TDS_FAIL;
+						}
+						mycursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d in client cursor id %d \n", 
+							    mycursor->cursor_id, mycursor->client_cursor_id);
+					} 
 				}
 				if(tds->internal_sp_called == TDS_SP_PREPARE) {
 					curcol = pinfo->columns[0];
@@ -634,8 +651,25 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		case TDS_ROW_TOKEN:
 			/* overstepped the mark... */
 			*result_type = TDS_ROW_RESULT;
-			tds->res_info->rows_exist = 1;
-			tds->curr_resinfo = tds->res_info;
+			if (tds->client_cursor_id) {
+				TDS_CURSOR  *mycursor;
+
+				mycursor = tds->cursor; 
+				while (mycursor->client_cursor_id != tds->client_cursor_id) {
+					mycursor = mycursor->next;
+				}
+			
+				if (mycursor->client_cursor_id != tds->client_cursor_id) {
+					tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
+					return TDS_FAIL;
+				}
+				tds->current_results = mycursor->res_info;
+				tdsdump_log(TDS_DBG_INFO1, "tds_process_result_tokens(). set current_results to mycursor->res_info\n");
+			} else {
+				if (tds->res_info)
+					tds->current_results = tds->res_info;
+			}
+			tds->current_results->rows_exist = 1;
 			tds_unget_byte(tds);
 			return TDS_SUCCEED;
 			break;
@@ -709,17 +743,35 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			return TDS_SUCCEED;
 		case TDS_DONEPROC_TOKEN:
 			tds_process_end(tds, marker, done_flags);
-			if (tds->internal_sp_called && tds->internal_sp_called != TDS_SP_PREPARE) {
-				*result_type = TDS_NO_MORE_RESULTS;
-				return TDS_NO_MORE_RESULTS;
+			switch (tds->internal_sp_called ) {
+				case 0: 
+				case TDS_SP_PREPARE: 
+					*result_type = TDS_DONEPROC_RESULT;
+					return TDS_SUCCEED;
+					break;
+				case TDS_SP_CURSOROPEN: 
+					*result_type       = TDS_DONE_RESULT;
+					tds->rows_affected = saved_rows_affected;
+					return TDS_SUCCEED;
+					break;
+				default:
+					*result_type = TDS_NO_MORE_RESULTS;
+					return TDS_NO_MORE_RESULTS;
+					break;
 			}
-			*result_type = TDS_DONEPROC_RESULT;
-			return TDS_SUCCEED;
 			break;
 		case TDS_DONEINPROC_TOKEN:
 			tds_process_end(tds, marker, done_flags);
-			*result_type = TDS_DONEINPROC_RESULT;
-			return TDS_SUCCEED;
+			if (tds->internal_sp_called == TDS_SP_CURSOROPEN  ||
+				tds->internal_sp_called == TDS_SP_CURSORFETCH ||
+				tds->internal_sp_called == TDS_SP_CURSORCLOSE ) {
+				if (tds->rows_affected != TDS_NO_COUNT) {
+					saved_rows_affected = tds->rows_affected;
+				}
+			} else {
+				*result_type = TDS_DONEINPROC_RESULT;
+				return TDS_SUCCEED;
+			}
 			break;
 		default:
 			if (tds_process_default_tokens(tds, marker) == TDS_FAIL) {
@@ -780,6 +832,7 @@ static int
 _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token)
 {
 	int marker;
+	TDS_CURSOR *mycursor;
 
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
@@ -804,11 +857,27 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 			return TDS_NO_MORE_ROWS;
 
 		case TDS_ROW_TOKEN:
+			if (tds->client_cursor_id) {
+				mycursor = tds->cursor; 
+				while (mycursor->client_cursor_id != tds->client_cursor_id) {
+					mycursor = mycursor->next;
+				}
+			
+				if (mycursor->client_cursor_id != tds->client_cursor_id) {
+					tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
+					return TDS_FAIL;
+				}
+				tds->current_results = mycursor->res_info;
+				tdsdump_log(TDS_DBG_INFO1, "tds_process_row_tokens(). set current_results to mycursor->res_info\n");
+			} else {
+				if (tds->res_info)
+					tds->current_results = tds->res_info;
+			}
+
 			if (tds_process_row(tds) == TDS_FAIL)
 				return TDS_FAIL;
 
 			*rowtype = TDS_REG_ROW;
-			tds->curr_resinfo = tds->res_info;
 
 			return TDS_SUCCEED;
 
@@ -1037,7 +1106,8 @@ tds_process_col_name(TDSSOCKET * tds)
 
 	if ((info = tds_alloc_results(num_cols)) == NULL)
 		memrc = -1;
-	tds->curr_resinfo = tds->res_info = info;
+	tds->current_results = tds->res_info = info;
+
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
 	cur = head;
@@ -1110,7 +1180,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
-	/* TODO use curr_resinfo instead of res_info ?? */
+	/* TODO use current_results instead of res_info ?? */
 	info = tds->res_info;
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -1178,8 +1248,8 @@ tds_process_colinfo(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
-	/* TODO use curr_resinfo instead of res_info ?? */
-	info = tds->res_info;
+	info = tds->current_results;
+
 	while (bytes_read < hdrsize) {
 
 		tds_get_n(tds, col_info, 3);
@@ -1217,7 +1287,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	TDSPARAMINFO *info;
 	int i;
 
-	/* TODO check if curr_resinfo is a param result */
+	/* TODO check if current_results is a param result */
 
 	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
 	hdrsize = tds_get_smallint(tds);
@@ -1255,7 +1325,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 	while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
 		tds_process_param_result(tds, pinfo);
 	}
-	tds->curr_resinfo = *pinfo;
+	tds->current_results = *pinfo;
 	tds_unget_byte(tds);
 	return TDS_SUCCEED;
 }
@@ -1270,8 +1340,8 @@ tds_process_params_result_token(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
 
-	/* TODO check if curr_resinfo is a param result */
-	info = tds->curr_resinfo;
+	/* TODO check if current_results is a param result */
+	info = tds->current_results;
 	if (!info)
 		return TDS_FAIL;
 
@@ -1506,6 +1576,7 @@ tds7_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
+	TDS_CURSOR *mycursor;
 
 	/* read number of columns and allocate the columns structure */
 
@@ -1521,10 +1592,28 @@ tds7_process_result(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
-	if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-		return TDS_FAIL;
-	info = tds->res_info;
-	tds->curr_resinfo = tds->res_info;
+	if (tds->client_cursor_id) {
+		mycursor = tds->cursor; 
+		while (mycursor->client_cursor_id != tds->client_cursor_id) {
+			mycursor = mycursor->next;
+		}
+	
+		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
+			return TDS_FAIL;
+		}
+		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+		info = mycursor->res_info;
+		tds->current_results = mycursor->res_info;
+		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. set current_results to mycursor->res_info\n");
+	} else {
+		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+		info = tds->res_info;
+		tds->current_results = tds->res_info;
+		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. set current_results to tds->res_info\n");
+	}
 
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
@@ -1628,6 +1717,7 @@ tds_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
+	TDS_CURSOR *mycursor;
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
@@ -1636,11 +1726,28 @@ tds_process_result(TDSSOCKET * tds)
 
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
-	if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-		return TDS_FAIL;
 
-	info = tds->res_info;
-	tds->curr_resinfo = tds->res_info;
+	if (tds->client_cursor_id) {
+		mycursor = tds->cursor; 
+		while (mycursor->client_cursor_id != tds->client_cursor_id) {
+			mycursor = mycursor->next;
+		}
+	
+		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
+			return TDS_FAIL;
+		}
+		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+		info = mycursor->res_info;
+		tds->current_results = mycursor->res_info;
+	} else {
+		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+	
+		info = tds->res_info;
+		tds->current_results = tds->res_info;
+	}
 
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
@@ -1680,6 +1787,7 @@ tds5_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
+	TDS_CURSOR *mycursor;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result\n");
 
@@ -1696,9 +1804,26 @@ tds5_process_result(TDSSOCKET * tds)
 
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
-	if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-		return TDS_FAIL;
-	info = tds->res_info;
+
+	if (tds->client_cursor_id) {
+		mycursor = tds->cursor; 
+		while (mycursor->client_cursor_id != tds->client_cursor_id) {
+			mycursor = mycursor->next;
+		}
+	
+		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
+			return TDS_FAIL;
+		}
+		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+		info = mycursor->res_info;
+	} else {
+		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
+			return TDS_FAIL;
+		info = tds->res_info;
+	}
+	tds->current_results = info;
 
 	tdsdump_log(TDS_DBG_INFO1, "num_cols=%d\n", num_cols);
 
@@ -1851,7 +1976,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 		if (info->computeid == compute_id)
 			break;
 	}
-	tds->curr_resinfo = info;
+	tds->current_results = info;
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
@@ -2115,12 +2240,9 @@ tds_process_row(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
-	/* TODO use curr_resinfo ?? */
-	info = tds->res_info;
+	info = tds->current_results;
 	if (!info)
 		return TDS_FAIL;
-
-	tds->curr_resinfo = info;
 
 	info->row_count++;
 	for (i = 0; i < info->num_cols; i++) {
@@ -2161,8 +2283,8 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
-		if (tds->curr_resinfo == NULL)
-			tds->curr_resinfo = tds->res_info;
+		if (tds->current_results == NULL)
+			tds->current_results = tds->res_info;
 
 	}
 
@@ -2696,7 +2818,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 			return TDS_FAIL;
 		info = tds->param_info;
 	}
-	tds->curr_resinfo = info;
+	tds->current_results = info;
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -2743,7 +2865,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			return TDS_FAIL;
 		info = tds->param_info;
 	}
-	tds->curr_resinfo = info;
+	tds->current_results = info;
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -3016,7 +3138,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
 
 	info = tds->comp_info[tds->num_comp_info - 1];
-	tds->curr_resinfo = info;
+	tds->current_results = info;
 
 	info->computeid = compute_id;
 
@@ -3093,7 +3215,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_comp_info = %d\n", tds->num_comp_info);
 
 	info = tds->comp_info[tds->num_comp_info - 1];
-	tds->curr_resinfo = info;
+	tds->current_results = info;
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 0\n");
 
@@ -3147,6 +3269,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	char name[30];	
 	unsigned char cursor_cmd;
 	TDS_SMALLINT cursor_status;
+	TDS_CURSOR *mycursor;
 	
 	hdrsize  = tds_get_smallint(tds);
 	cursor_id = tds_get_int(tds);
@@ -3164,13 +3287,24 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	if (hdrsize == sizeof(TDS_INT))
 		rowcount = tds_get_int(tds); 
 
-	if (tds->cursor) {
-		tds->cursor->cursor_id = cursor_id;
-	}
-
+	if (tds->client_cursor_id) {
+		tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
+		mycursor = tds->cursor; 
+		while (mycursor->client_cursor_id != tds->client_cursor_id) {
+			mycursor = mycursor->next;
+			tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
+		}
+	
+		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+			tdsdump_log(TDS_DBG_FUNC, "tds_process_cursor_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
+			return TDS_FAIL;
+		}
+		mycursor->cursor_id = cursor_id;
+		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
+			tds_free_cursor(tds, tds->client_cursor_id);
+	} 
 	return TDS_SUCCEED;
 }
-
 
 int
 tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * ptds_argument,

@@ -11,7 +11,7 @@
 #include <bkpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: blk_out.c,v 1.3 2004-09-08 12:51:24 freddy77 Exp $";
+static char software_version[] = "$Id: blk_out.c,v 1.4 2004-10-13 11:06:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
@@ -27,7 +27,7 @@ main(int argc, char *argv[])
 	CS_RETCODE ret;
 
 	CS_DATAFMT datafmt;
-	CS_INT count;
+	CS_INT count = 0;
 
 	CS_INT  col1[2];
 	CS_CHAR col2[2][5];

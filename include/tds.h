@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.188 2004-09-20 08:21:17 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.189 2004-10-13 11:06:07 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -286,6 +286,15 @@ enum tds_end
 #define TDS_CURINFO_TOKEN         131  /* 0x83    TDS 5.0 only              */
 #define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */
 #define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
+
+#define TDS_CUR_ISTAT_UNUSED    0x00 
+#define TDS_CUR_ISTAT_DECLARED  0x01 
+#define TDS_CUR_ISTAT_OPEN      0x02 
+#define TDS_CUR_ISTAT_CLOSED    0x04 
+#define TDS_CUR_ISTAT_RDONLY    0x08 
+#define TDS_CUR_ISTAT_UPDATABLE 0x10 
+#define TDS_CUR_ISTAT_ROWCNT    0x20 
+#define TDS_CUR_ISTAT_DEALLOC   0x40 
 
 /* 
  * Cursor Declare, SetRows, Open and Close all return 0x83 token. 
@@ -966,6 +975,7 @@ typedef struct _tds_cursor
 	TDS_TINYINT cursor_name_len;	/* length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/* name of the cursor */
 	TDS_INT cursor_id;		/* cursor id returned by the server after cursor declare */
+	TDS_INT client_cursor_id;       /* cursor id used internally by client side */
 	TDS_TINYINT options;		/* read only|updatable */
 	TDS_TINYINT hasargs;		/* cursor parameters exists ? */
 	TDS_USMALLINT query_len;	/* SQL query length */
@@ -977,6 +987,8 @@ typedef struct _tds_cursor
 	/*TDS_PARAM *param_list;	 cursor parameter */
 	TDSUPDCOL *cur_col_list;	/* updatable column list */
 	TDS_CURSOR_STATUS status;
+	TDSRESULTINFO *res_info;
+	struct _tds_cursor *next;
 } TDS_CURSOR;
 
 /*
@@ -1052,7 +1064,7 @@ struct tds_socket
 	 * Contain information in process, even normal results and compute.
 	 * This pointer shouldn't be freed.
 	 */
-	TDSRESULTINFO *curr_resinfo;
+	TDSRESULTINFO *current_results;
 	TDSRESULTINFO *res_info;
 	TDS_INT num_comp_info;
 	TDSCOMPUTEINFO **comp_info;
@@ -1087,6 +1099,7 @@ struct tds_socket
 	int (*chkintr) (TDSSOCKET * tds);
 	int (*hndlintr) (TDSSOCKET * tds);
 	int internal_sp_called;
+	int client_cursor_id;       /* cursor id used internally by client side */
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *param), void *longquery_param);
@@ -1098,7 +1111,7 @@ void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
-void tds_free_cursor(TDS_CURSOR *cursor);
+void tds_free_cursor(TDSSOCKET * tds, TDS_INT cursor_id);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
@@ -1174,7 +1187,7 @@ void tds_free_login(TDSLOGIN * login);
 TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCALE * locale);
-TDS_CURSOR * tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen);
+TDS_CURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge);
@@ -1209,12 +1222,12 @@ int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
-int tds_cursor_declare(TDSSOCKET * tds, int *send);
-int tds_cursor_setrows(TDSSOCKET * tds, int *send);
-int tds_cursor_open(TDSSOCKET * tds, int *send);
-int tds_cursor_fetch(TDSSOCKET * tds);
-int tds_cursor_close(TDSSOCKET * tds);
-int tds_cursor_dealloc(TDSSOCKET * tds);
+int tds_cursor_declare(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
+int tds_cursor_setrows(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
+int tds_cursor_open(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
+int tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id);
+int tds_cursor_close(TDSSOCKET * tds, TDS_INT cursor_id);
+int tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT cursor_id);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.117 2004-09-20 08:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.118 2004-10-13 11:06:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -635,13 +635,35 @@ tds_alloc_connection(TDSLOCALE * locale)
 }
 
 TDS_CURSOR *
-tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen)
+tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen)
 {
-
 	TDS_CURSOR *cursor;
+	TDS_CURSOR *pcursor;
+
+	int new_cursor_id = 0;
 
 	TEST_MALLOC(cursor, TDS_CURSOR);
 	memset(cursor, '\0', sizeof(TDS_CURSOR));
+
+	if ( tds->cursor == (TDS_CURSOR *) NULL ) {
+		++new_cursor_id;
+		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d to head\n", new_cursor_id);
+		tds->cursor = cursor;
+	} else {
+		pcursor = tds->cursor;
+		for (;;) {
+			tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : stepping thru existing cursors\n");
+			if (pcursor->client_cursor_id > new_cursor_id)
+				new_cursor_id = pcursor->client_cursor_id;
+			if (pcursor->next == NULL)
+				break;
+			pcursor = pcursor->next;
+		}
+		++new_cursor_id;
+		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d\n", new_cursor_id);
+		pcursor->next = cursor;
+	}
+	cursor->client_cursor_id = new_cursor_id;
 
 	TEST_CALLOC(cursor->cursor_name, char, namelen + 1);
 
@@ -652,23 +674,72 @@ tds_alloc_cursor(char *name, TDS_INT namelen, char *query, TDS_INT querylen)
 
 	strcpy(cursor->query, query);
 	cursor->query_len = querylen;
+
 	return cursor;
 
       Cleanup:
-	tds_free_cursor(cursor);
+	if (new_cursor_id)
+		tds_free_cursor(tds, new_cursor_id);
 	return NULL;
 }
 
 void
-tds_free_cursor(TDS_CURSOR * cursor)
+tds_free_cursor(TDSSOCKET *tds, TDS_INT client_cursor_id)
 {
-	if (cursor) {
-		if (cursor->cursor_name)
-			free(cursor->cursor_name);
-		if (cursor->query)
-			free(cursor->query);
-		free(cursor);
+	TDS_CURSOR *victim = NULL;
+	TDS_CURSOR *prev = NULL;
+	TDS_CURSOR *next = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", client_cursor_id);
+	victim = tds->cursor;
+
+	if (tds->client_cursor_id == client_cursor_id)
+		tds->client_cursor_id = 0;
+
+	if (victim == NULL) {
+		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", client_cursor_id);
+		return;
 	}
+
+	for (;;) {
+		if (victim->client_cursor_id == client_cursor_id)
+			break;
+		prev = victim;
+		victim = victim->next;
+		if (victim == NULL) {
+			tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cannot find cursor_id %d\n", client_cursor_id);
+			return;
+		}
+	}
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d found\n", client_cursor_id);
+
+	next = victim->next;
+
+	if (victim->cursor_name) {
+		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor name\n");
+		free(victim->cursor_name);
+	}
+
+	if (victim->query) {
+		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor query\n");
+		free(victim->query);
+	}
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor results\n");
+	tds_free_results(victim->res_info);
+
+	free(victim);
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinking list\n");
+
+	if (prev)
+		prev->next = next;
+	else
+		tds->cursor = next;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinked list\n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", client_cursor_id);
 }
 
 TDSLOGIN *

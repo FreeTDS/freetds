@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.10 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: flags.c,v 1.11 2004-10-13 11:06:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -86,8 +86,8 @@ test_begin(const char *cmd)
 		fatal_error("expected row fmt() failed");
 
 	/* test columns results */
-	if (tds->curr_resinfo != tds->res_info)
-		fatal_error("wrong curr_resinfo");
+	if (tds->current_results != tds->res_info)
+		fatal_error("wrong current_results");
 }
 
 static void
@@ -129,7 +129,7 @@ main(int argc, char **argv)
 	if (!IS_TDS42(tds)) {
 		/* check select of all fields */
 		test_begin("select * from #tmp1");
-		info = tds->curr_resinfo;
+		info = tds->current_results;
 
 		if (info->num_cols != 3) {
             sprintf(mymsg,"wrong number of columns returned expected 3 got %d", info->num_cols);
@@ -146,7 +146,7 @@ main(int argc, char **argv)
 
 	/* check select of 2 field */
 	test_begin("select c, b from #tmp1 for browse");
-	info = tds->curr_resinfo;
+	info = tds->current_results;
 
 	if (info->num_cols != 3)
 		fatal_error("wrong number of columns returned");

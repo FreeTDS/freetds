@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.51 2004-09-20 08:21:17 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.52 2004-10-13 11:06:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -323,8 +323,9 @@ CS_RETCODE ret;
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype = %d (%d) desttype = %d (%d)\n",
 		    src_type, src_len, desttype, destlen);
 
-	if (!is_fixed_type(desttype) && (destlen <= 0))
-		return CS_SUCCEED;
+	if (!is_fixed_type(desttype) && (destlen <= 0)) {
+		return CS_FAIL;
+	}
 
 	dest = (unsigned char *) destdata;
 

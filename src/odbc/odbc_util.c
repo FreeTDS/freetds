@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.68 2004-09-23 11:10:20 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.69 2004-10-13 11:06:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -141,7 +141,7 @@ void
 odbc_set_return_params(struct _hstmt *stmt)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
-	TDSPARAMINFO *info = tds->curr_resinfo;
+	TDSPARAMINFO *info = tds->current_results;
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	int i_begin = stmt->prepared_query_is_func ? 1 : 0;

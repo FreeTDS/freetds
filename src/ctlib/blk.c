@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.19 2004-09-20 08:21:17 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.20 2004-10-13 11:06:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -665,7 +665,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		switch (ret) {
 			case TDS_SUCCEED: 
 				if (rowtype == TDS_REG_ROW) {
-					if (_ct_bind_data( blkdesc->con->ctx, tds->curr_resinfo, blkdesc->bindinfo, temp_count))
+					if (_ct_bind_data( blkdesc->con->ctx, tds->current_results, blkdesc->bindinfo, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_xferred)
 						*rows_xferred = *rows_xferred + 1;

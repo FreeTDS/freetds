@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.7 2004-04-07 07:47:21 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.8 2004-10-13 11:06:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -97,7 +97,7 @@ test(int n, int type)
 
 	/* force tds to convert from utf8 to iso8859-1 (even on Sybase) */
 	tds_srv_charset_changed(tds, "UTF-8");
-	tds->curr_resinfo->columns[0]->char_conv = tds->char_convs[client2server_chardata];
+	tds->current_results->columns[0]->char_conv = tds->char_convs[client2server_chardata];
 
 	rc = tds_process_row_tokens(tds, &row_type, NULL);
 	if (rc != TDS_SUCCEED) {
@@ -105,8 +105,8 @@ test(int n, int type)
 		exit(1);
 	}
 
-	curcol = tds->curr_resinfo->columns[0];
-	src = tds->curr_resinfo->current_row + curcol->column_offset;
+	curcol = tds->current_results->columns[0];
+	src = tds->current_results->current_row + curcol->column_offset;
 
 	if (is_blob_type(curcol->column_type)) {
 		TDSBLOB *blob = (TDSBLOB *) src;
