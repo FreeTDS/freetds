@@ -1,3 +1,7 @@
+Mon Jul 21 10:49:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: add a TODO from ML
+	* src/tds/query.c: comments
+
 Sat Jul 19 21:37:28 EDT 2003
 	* src/tds/login.c src/tds/read.c src/tds/write.c
 	- include sys/select.h, patch from Pablo Gutierrez

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.95 2003-07-03 19:28:33 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.96 2003-07-21 08:50:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -896,6 +896,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
 		tds_put_smallint(tds, 10);
+		/* sp_execute */
 		tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e", 20);
 		tds_put_smallint(tds, 0);	/* flags */
 
@@ -1037,6 +1038,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			tds_put_smallint(tds, 15);
 		} else {
 			tds_put_smallint(tds, 12);
+			/* sp_unprepare */
 			tds_put_n(tds, "s\0p\0_\0u\0n\0p\0r\0e\0p\0a\0r\0e", 24);
 		}
 		tds_put_smallint(tds, 0);	/* flags */

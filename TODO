@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.59 2003-06-12 15:07:26 freddy77 Exp $
+To Do List	$Id: TODO,v 1.60 2003-07-21 08:50:05 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -76,6 +76,7 @@ For future versions (in priority order within library):
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
+. add DBTEXTLIMIT (dbsetopt), PHP require it to support textlimit ini value
 
   ct-lib
 . cs_calc and cs_cmp, for sybperl
