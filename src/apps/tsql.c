@@ -113,7 +113,7 @@ TDS_INT len;
 
 void print_usage(char *progname)
 {
-			fprintf(stderr,"Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ]\n",progname);
+			fprintf(stderr,"Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n",progname);
 }
 int populate_login(TDSLOGIN *login, int argc, char **argv)
 {
