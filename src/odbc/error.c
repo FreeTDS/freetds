@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.5 2003-01-07 14:42:50 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.6 2003-01-07 20:35:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
@@ -194,6 +194,7 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	return result;
 }
 
+#if (ODBCVER >= 0x0300)
 SQLRETURN SQL_API
 SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
 	      SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
@@ -354,3 +355,4 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	}
 	return result;
 }
+#endif

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.118 2003-01-07 19:54:05 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.119 2003-01-07 20:35:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -381,6 +381,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 }
 #endif
 
+#if (ODBCVER >= 0x0300)
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
@@ -400,8 +401,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 	odbc_errs_add(&env->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetEnvAttr: function not implemented");
 	return SQL_ERROR;
 }
-
-
+#endif
 
 SQLRETURN SQL_API
 SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
@@ -1357,6 +1357,7 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	return _SQLFreeStmt(hstmt, fOption);
 }
 
+#if (ODBCVER >= 0x0300)
 SQLRETURN SQL_API
 SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
@@ -1369,6 +1370,7 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 		return SQL_ERROR;
 	}
 }
+#endif
 
 #if 0
 SQLRETURN SQL_API
@@ -2318,9 +2320,8 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	  SQLSMALLINT cbTableType)
 {
 	char *query, *p;
-	static const char sptables[] = "exec sp_tables ";
+	static const char sptables[] = "sp_tables";
 	int querylen, clen, slen, tlen, ttlen;
-	int first = 1;
 	SQLRETURN result;
 
 	INIT_HSTMT;
@@ -2330,7 +2331,8 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	tlen = odbc_get_string_size(cbTableName, szTableName);
 	ttlen = odbc_get_string_size(cbTableType, szTableType);
 
-	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 40;	/* a little padding for quotes and commas */
+	/* a little padding for quotes, commas and parameters names */
+	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 80;	
 	query = (char *) malloc(querylen);
 	if (!query) {
 		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
@@ -2341,40 +2343,36 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	strcpy(p, sptables);
 	p += sizeof(sptables) - 1;
 
+	/* TODO quote as needed */
 	if (tlen) {
-		*p++ = '"';
+		strcpy(p, ",@table_name=\'");
+		p += 14;
 		strncpy(p, (const char *) szTableName, tlen);
 		*p += tlen;
-		*p++ = '"';
-		first = 0;
+		*p++ = '\'';
 	}
 	if (slen) {
-		if (!first)
-			*p++ = ',';
-		*p++ = '"';
+		strcpy(p, ",@table_owner=\'");
+		p += 15;
 		strncpy(p, (const char *) szSchemaName, slen);
 		*p += slen;
-		*p++ = '"';
-		first = 0;
+		*p++ = '\'';
 	}
 	if (clen) {
-		if (!first)
-			*p++ = ',';
-		*p++ = '"';
+		strcpy(p, ",@table_qualifier=\'");
+		p += 19;
 		strncpy(p, (const char *) szCatalogName, clen);
 		*p += clen;
-		*p++ = '"';
-		first = 0;
+		*p++ = '\'';
 	}
 	if (ttlen) {
-		if (!first)
-			*p++ = ',';
-		*p++ = '"';
+		strcpy(p, ",@table_type=\'");
+		p += 14;
 		strncpy(p, (const char *) szTableType, ttlen);
 		*p += ttlen;
-		*p++ = '"';
-		first = 0;
+		*p++ = '\'';
 	}
+	query[sizeof(sptables) - 1] = ' ';
 	*p = '\0';
 	/* fprintf(stderr,"\nquery = %s\n",query); */
 
@@ -2390,6 +2388,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	 * transform to uppercase 
 	 * specification of ODBC and Perl test require these name be uppercase */
 	odbc_upper_column_names(stmt->hdbc->tds_socket);
+	/* TODO change also ODBC2 names to ODBC3 if required */
 
 	return result;
 }
