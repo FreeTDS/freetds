@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.24 2003-04-30 18:51:38 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.25 2003-05-17 12:47:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -249,8 +249,8 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 	struct _sql_param_info *param;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
-	char quote_char;
-	int quoted;
+	char quote_char = 0;
+	int quoted = 0;
 	int len;
 	int need_comma;
 
@@ -261,24 +261,25 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 		s = stmt->prepared_query;
 		d = stmt->query;
 		param_num = stmt->prepared_query_is_func ? 1 : 0;
-		quoted = 0;
-		quote_char = 0;
 	} else {
 		/* load prepared_query parameters from stmt */
 		s = stmt->prepared_query_s;
 		d = stmt->prepared_query_d;
 		param_num = stmt->prepared_query_param_num;
-		quoted = stmt->prepared_query_quoted;
-		quote_char = stmt->prepared_query_quote_char;
 	}
 
 	while (*s) {
-		if (!quoted && (*s == '"' || *s == '\'')) {
+		/* TODO: use tds_skip_quoted in query.c */
+		if (!quoted && (*s == '"' || *s == '\'' || *s == '[')) {
 			quoted = 1;
-			quote_char = *s;
+			quote_char = (*s == '[') ? ']' : *s;
 		} else if (quoted && *s == quote_char) {
-			quoted = 0;
+			if (s[1] == quote_char)
+				*d++ = *s++;
+			else
+				quoted = 0;
 		}
+
 		if (*s == '?' && !quoted) {
 			param_num++;
 
@@ -297,8 +298,6 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				stmt->prepared_query_s = s;
 				stmt->prepared_query_d = d;
 				stmt->prepared_query_param_num = param_num;
-				stmt->prepared_query_quoted = quoted;
-				stmt->prepared_query_quote_char = quote_char;
 				stmt->prepared_query_need_bytes = _get_len_data_at_exec(param);
 
 				/* stop parsing and ask for a data */

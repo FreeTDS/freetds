@@ -1,3 +1,7 @@
+Sat May 17 14:48:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/prepare_query.c:
+	- cleanup and docs
+
 Thu May 16 17:25:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/getmac.c: get MAC address on Linux
 
