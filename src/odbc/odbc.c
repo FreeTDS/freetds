@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.22 2002-04-11 00:20:07 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.23 2002-05-20 01:22:02 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -421,19 +421,6 @@ SQLRETURN SQL_API SQLTablePrivileges(
 	return SQL_ERROR;
 }
 
-SQLRETURN SQL_API SQLDrivers(
-    SQLHENV            henv,
-    SQLUSMALLINT       fDirection,
-    SQLCHAR FAR       *szDriverDesc,
-    SQLSMALLINT        cbDriverDescMax,
-    SQLSMALLINT FAR   *pcbDriverDesc,
-    SQLCHAR FAR       *szDriverAttributes,
-    SQLSMALLINT        cbDrvrAttrMax,
-    SQLSMALLINT FAR   *pcbDrvrAttr)
-{
-	CHECK_HENV;
-	return SQL_ERROR;
-}
 SQLRETURN SQL_API SQLSetEnvAttr (
     SQLHENV henv,
     SQLINTEGER Attribute,
@@ -1027,6 +1014,7 @@ int ret;
 
 	CHECK_HSTMT;
 
+	stmt->param_count = 0;
 	strcpy(stmt->query, szSqlStr);
 
 	return _SQLExecute(hstmt);
@@ -1712,6 +1700,7 @@ struct _hstmt *stmt;
 	CHECK_HSTMT;
 
 	stmt = (struct _hstmt *) hstmt;
+	/* TODO for MSSQL6.5 + use sp_datatype_info fSqlType */
 	if (!fSqlType) {
    		strcpy(stmt->query, "SELECT * FROM tds_typeinfo");
 	} else {
@@ -1857,19 +1846,6 @@ struct _hstmt *stmt;
 }
 
 
-SQLRETURN SQL_API SQLDataSources(
-    SQLHENV            henv,
-    SQLUSMALLINT       fDirection,
-    SQLCHAR FAR       *szDSN,
-    SQLSMALLINT        cbDSNMax,
-    SQLSMALLINT FAR   *pcbDSN,
-    SQLCHAR FAR       *szDescription,
-    SQLSMALLINT        cbDescriptionMax,
-    SQLSMALLINT FAR   *pcbDescription)
-{
-	CHECK_HENV;
-	return SQL_ERROR;
-}
 static struct _sql_param_info * 
 _odbc_find_param(struct _hstmt *stmt, int param_num)
 {
