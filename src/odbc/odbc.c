@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.215 2003-08-23 10:58:13 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.216 2003-08-24 09:46:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1462,6 +1462,199 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	ODBC_RETURN(desc, rc);
 }
 
+SQLRETURN SQL_API
+SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength,
+		SQLINTEGER * StringLength)
+{
+	IRD *ird;
+	struct _drecord *drec;
+	SQLRETURN result = SQL_SUCCESS;
+
+	INIT_HDESC;
+
+	ird = desc;
+
+#define COUT(src) result = odbc_set_string_i(Value, BufferLength, StringLength, src, -1);
+
+#if ENABLE_EXTRA_CHECKS
+#define IOUT(type, src) do { \
+	/* trick warning if type wrong */ \
+	type *p_test = &src; p_test = p_test; \
+	*((type *)Value) = src; } while(0)
+#else
+#define IOUT(type, src) *((type *)Value) = src
+#endif
+
+	/* dont check column index for these */
+	switch (fDescType) {
+	case SQL_DESC_ALLOC_TYPE:
+		IOUT(SQLSMALLINT, ird->header.sql_desc_alloc_type);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_ARRAY_SIZE:
+		IOUT(SQLUINTEGER, ird->header.sql_desc_array_size);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_ARRAY_STATUS_PTR:
+		IOUT(SQLUSMALLINT *, ird->header.sql_desc_array_status_ptr);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_BIND_OFFSET_PTR:
+		IOUT(SQLINTEGER *, ird->header.sql_desc_bind_offset_ptr);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_BIND_TYPE:
+		IOUT(SQLINTEGER, ird->header.sql_desc_bind_type);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_COUNT:
+		IOUT(SQLSMALLINT, ird->header.sql_desc_count);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	case SQL_DESC_ROWS_PROCESSED_PTR:
+		IOUT(SQLUINTEGER *, ird->header.sql_desc_rows_processed_ptr);
+		ODBC_RETURN(desc, SQL_SUCCESS);
+		break;
+	}
+
+	if (!ird->header.sql_desc_count) {
+		odbc_errs_add(&desc->errs, "07005", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	if (icol < 1 || icol > ird->header.sql_desc_count) {
+		odbc_errs_add(&desc->errs, "07009", "Column out of range", NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+	drec = &ird->records[icol - 1];
+
+	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetDescField: fDescType is %d\n", fDescType);
+
+	switch (fDescType) {
+	case SQL_DESC_AUTO_UNIQUE_VALUE:
+		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
+		break;
+	case SQL_DESC_BASE_COLUMN_NAME:
+		COUT(drec->sql_desc_base_column_name);
+		break;
+	case SQL_DESC_BASE_TABLE_NAME:
+		COUT(drec->sql_desc_base_table_name);
+		break;
+	case SQL_DESC_CASE_SENSITIVE:
+		IOUT(SQLINTEGER, drec->sql_desc_case_sensitive);
+		break;
+	case SQL_DESC_CATALOG_NAME:
+		COUT(drec->sql_desc_catalog_name);
+		break;
+	case SQL_DESC_CONCISE_TYPE:
+		IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
+		break;
+	case SQL_DESC_DATA_PTR:
+		IOUT(SQLPOINTER, drec->sql_desc_data_ptr);
+		break;
+	case SQL_DESC_DATETIME_INTERVAL_CODE:
+		IOUT(SQLSMALLINT, drec->sql_desc_datetime_interval_code);
+		break;
+	case SQL_DESC_DATETIME_INTERVAL_PRECISION:
+		IOUT(SQLINTEGER, drec->sql_desc_datetime_interval_precision);
+		break;
+	case SQL_DESC_DISPLAY_SIZE:
+		IOUT(SQLINTEGER, drec->sql_desc_display_size);
+		break;
+	case SQL_DESC_FIXED_PREC_SCALE:
+		IOUT(SQLSMALLINT, drec->sql_desc_fixed_prec_scale);
+		break;
+	case SQL_DESC_INDICATOR_PTR:
+		IOUT(SQLINTEGER *, drec->sql_desc_indicator_ptr);
+		break;
+	case SQL_DESC_LABEL:
+		COUT(drec->sql_desc_label);
+		break;
+	case SQL_DESC_LENGTH:
+		IOUT(SQLINTEGER, drec->sql_desc_length);
+		break;
+	case SQL_DESC_LITERAL_PREFIX:
+		COUT(drec->sql_desc_literal_prefix);
+		break;
+	case SQL_DESC_LITERAL_SUFFIX:
+		COUT(drec->sql_desc_literal_suffix);
+		break;
+	case SQL_DESC_LOCAL_TYPE_NAME:
+		COUT(drec->sql_desc_literal_suffix);
+		break;
+	case SQL_DESC_NAME:
+		COUT(drec->sql_desc_name);
+		break;
+	case SQL_DESC_NULLABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_nullable);
+		break;
+	case SQL_DESC_NUM_PREC_RADIX:
+		IOUT(SQLINTEGER, drec->sql_desc_num_prec_radix);
+		break;
+	case SQL_DESC_OCTET_LENGTH:
+		IOUT(SQLINTEGER, drec->sql_desc_octet_length);
+		break;
+	case SQL_DESC_OCTET_LENGTH_PTR:
+		IOUT(SQLINTEGER *, drec->sql_desc_octet_length_ptr);
+		break;
+	case SQL_DESC_PARAMETER_TYPE:
+		IOUT(SQLSMALLINT, drec->sql_desc_parameter_type);
+		break;
+	case SQL_DESC_PRECISION:
+		if (drec->sql_desc_concise_type == SQL_NUMERIC)
+			IOUT(SQLSMALLINT, drec->sql_desc_precision);
+		else
+			/* TODO support date/time */
+			*((SQLSMALLINT *) Value) = 0;
+		break;
+	case SQL_DESC_ROWVER:
+		IOUT(SQLSMALLINT, drec->sql_desc_rowver);
+		break;
+	case SQL_DESC_SCALE:
+		if (drec->sql_desc_concise_type == SQL_NUMERIC)
+			IOUT(SQLSMALLINT, drec->sql_desc_scale);
+		else
+			*((SQLSMALLINT *) Value) = 0;
+		break;
+	case SQL_DESC_SCHEMA_NAME:
+		COUT(drec->sql_desc_schema_name);
+		break;
+	case SQL_DESC_SEARCHABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_searchable);
+		break;
+	case SQL_DESC_TABLE_NAME:
+		COUT(drec->sql_desc_table_name);
+		break;
+	case SQL_DESC_TYPE:
+		IOUT(SQLSMALLINT, drec->sql_desc_type);
+		break;
+	case SQL_DESC_TYPE_NAME:
+		COUT(drec->sql_desc_type_name);
+		break;
+	case SQL_DESC_UNNAMED:
+		IOUT(SQLSMALLINT, drec->sql_desc_unnamed);
+		break;
+	case SQL_DESC_UNSIGNED:
+		IOUT(SQLSMALLINT, drec->sql_desc_unsigned);
+		break;
+	case SQL_DESC_UPDATABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_updatable);
+		break;
+	default:
+		odbc_errs_add(&desc->errs, "HY091", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+		break;
+	}
+
+	if (result == SQL_SUCCESS_WITH_INFO)
+		odbc_errs_add(&desc->errs, "01004", NULL, NULL);
+
+	ODBC_RETURN(desc, result);
+
+#undef COUT
+#undef IOUT
+}
+
 static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2577,7 +2770,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
-		API3_(SQL_API_SQLGETDESCFIELD);
+		API3X(SQL_API_SQLGETDESCFIELD);
 		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
@@ -2669,7 +2862,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
-		API3_(SQL_API_SQLGETDESCFIELD);
+		API3X(SQL_API_SQLGETDESCFIELD);
 		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
@@ -2758,7 +2951,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
-		API3_(SQL_API_SQLGETDESCFIELD);
+		API3X(SQL_API_SQLGETDESCFIELD);
 		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
@@ -3072,7 +3265,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "N";
 		break;
 #endif /* ODBCVER >= 0x0300 */
-#if TDS_NO_DM
+#ifdef TDS_NO_DM
 	case SQL_DRIVER_HDBC:
 		UIVAL = (SQLUINTEGER) dbc;
 		break;
@@ -3299,7 +3492,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_ODBC_SQL_CONFORMANCE:
 		SIVAL = SQL_OSC_CORE;
 		break;
-#if TDS_NO_DM
+#ifdef TDS_NO_DM
 	case SQL_ODBC_VER:
 		/* TODO check format ##.##.0000 */
 		p = VERSION;

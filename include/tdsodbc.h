@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.41 2003-08-14 21:03:39 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.42 2003-08-24 09:46:15 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -97,7 +97,7 @@ struct _drecord
 	SQLINTEGER sql_desc_case_sensitive;
 	SQLCHAR *sql_desc_catalog_name;
 	SQLSMALLINT sql_desc_concise_type;
-	SQLPOINTER *sql_desc_data_ptr;
+	SQLPOINTER sql_desc_data_ptr;
 	SQLSMALLINT sql_desc_datetime_interval_code;
 	SQLINTEGER sql_desc_datetime_interval_precision;
 	SQLINTEGER sql_desc_display_size;

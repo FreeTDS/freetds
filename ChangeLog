@@ -1,3 +1,8 @@
+Sun Aug 24 11:45:29 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - SQLGetDescField (fixed)
+
 Sat Aug 23 12:55:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- continue merging Steve Murphree patch
