@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.57 2003-05-12 15:21:00 freddy77 Exp $
+To Do List	$Id: TODO,v 1.58 2003-05-25 18:03:34 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -104,7 +104,6 @@ For future versions (in priority order within library):
   with different odbc versions)
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
-. configure should detect iODBC or unixODBC automatically
 . autoinstall for RPM
 
   pool
@@ -145,4 +144,5 @@ Done in 0.62
   - SQLMoreResults 
 . Someone broke early binding in ODBC 
   (fixed, add check for early bind, and multiple recordset)
+. ODBC: configure should detect iODBC or unixODBC automatically
 
