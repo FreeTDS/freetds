@@ -4,12 +4,12 @@ Name=FreeTDS
 Ver=1
 IsCpp=1
 Type=3
-Compiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS_@@_
-CppCompiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS_@@_
+Compiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING_@@_
+CppCompiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING_@@_
 Includes=..;../../include
 Linker=-lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32_@@_-s --def ../FreeTds.def_@@_-Wl,--enable-stdcall-fixup_@@_
 Libs=
-UnitCount=54
+UnitCount=56
 Folders="Header Files",LibTDS,Replacements,"Resource Files","Source Files"
 ObjFiles=
 PrivateResource=
@@ -559,6 +559,26 @@ BuildCmd=
 
 [Unit54]
 FileName=..\..\src\tds\write.c
+Folder=LibTDS
+Compile=1
+CompileCpp=0
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit55]
+FileName=..\..\src\replacements\iconv_r.c
+Folder=Replacements
+Compile=1
+CompileCpp=0
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit56]
+FileName=..\..\src\tds\data.c
 Folder=LibTDS
 Compile=1
 CompileCpp=0
