@@ -183,12 +183,13 @@ char *p,*end,*dest;
 		/* copy to destination */
 		if (dest) {
 			int cplen = end - p;
-			if (cplen > FILENAME_MAX)
-				cplen = FILENAME_MAX;
-			strncpy(dest,p,cplen);
-			dest[FILENAME_MAX-1] = 0;
+			if (cplen > (FILENAME_MAX-1))
+				cplen = (FILENAME_MAX-1);
+			memcpy(dest,p,cplen);
+			dest[cplen] = 0;
 		}
 
+		p = end;
 		/* handle "" ";.." "};.." cases */
 		if (!*p) break;
 		if (*p == '}') ++p;
