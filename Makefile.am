@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.30 2003-09-24 20:28:21 freddy77 Exp $
+# version $Id: Makefile.am,v 1.31 2003-12-11 11:25:44 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -45,15 +45,11 @@ snapshot:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
 if HAVE_DOXYGEN
-doxyfile: $(top_srcdir)/tds.dox
-	cp $(top_srcdir)/tds.dox doxyfile
-	
 ## The doxygen configuration file understands environment variables.  
 
-doxy: doxyfile  $(SUBDIRS)
+doxy: $(SUBDIRS)
 	SRCDIR=$(top_srcdir); \
 	export SRCDIR; \
-	$(DOXYGEN) doxyfile
+	$(DOXYGEN) $(top_srcdir)/tds.dox
 
-DISTCLEANFILES	= doxyfile
 endif

@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.1 2003-11-15 16:12:04 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.2 2003-12-11 11:25:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -33,6 +33,8 @@ static int einval_count = 0;
 static int eilseq_count = 0;
 static int e2big_count = 0;
 static char test_name[128];
+
+static int invalid_char = -1;
 
 static void
 test(int n, int type)
@@ -123,6 +125,11 @@ test(int n, int type)
 		/* try two invalid in different part */
 		strcpy(prefix, "?\x90");
 		strcpy(suffix, "?\x90");
+		/* some platforms replace invalid sequence with a fixed char */
+		if (invalid_char < 0)
+			invalid_char = (unsigned char) src[0];
+		prefix[0] = (char) invalid_char;
+		suffix[0] = (char) invalid_char;
 		break;
 	}
 
@@ -231,7 +238,7 @@ main(int argc, char **argv)
 			g_result = 1;
 			break;
 		}
-		if (eilseq_count < 1) {
+		if (eilseq_count < 1 && (char) invalid_char == '?') {
 			fprintf(stderr, "No warning returned in %s\n", test_name);
 			g_result = 1;
 		}

@@ -1,3 +1,9 @@
+Thu Dec 11 12:24:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am: do not create an unneeded file
+	* src/ctlib/ct.c: column name from ct_describe must be null-terminated
+	* src/tds/unittests/utf8_2.c:
+	- fix problem for some iconv implementations
+
 Wed Dec 10 15:35:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/connect_fail.c:
 	* src/ctlib/unittests/t0001.c src/ctlib/unittests/t0005.c:

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.110 2003-12-10 11:21:45 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.111 2003-12-11 11:25:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1710,9 +1710,11 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 		return CS_FAIL;
 	curcol = resinfo->columns[item - 1];
 	len = curcol->column_namelen;
-	if (len > CS_MAX_NAME)
-		len = CS_MAX_NAME;
+	if (len >= CS_MAX_NAME)
+		len = CS_MAX_NAME - 1;
 	strncpy(datafmt->name, curcol->column_name, len);
+	/* name is always null terminated */
+	datafmt->name[len] = 0;
 	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
