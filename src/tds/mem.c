@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.111 2004-05-02 07:30:24 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.112 2004-05-17 15:17:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1125,6 +1125,35 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 		return q;
 	}
 	return NULL;
+}
+
+BCPCOLDATA *
+tds_alloc_bcp_column_data(int column_size)
+{
+BCPCOLDATA *coldata;
+
+	TEST_MALLOC(coldata, BCPCOLDATA);
+	memset(coldata, '\0', sizeof(BCPCOLDATA));
+
+	TEST_CALLOC(coldata->data, unsigned char, column_size);
+	memset(coldata->data, '\0', column_size);
+
+	return coldata;
+Cleanup:
+	tds_free_bcp_column_data(coldata);
+	return NULL;
+}
+
+void
+tds_free_bcp_column_data(BCPCOLDATA * coldata)
+{
+	if (!coldata)
+		return;
+
+	if (coldata->data) {
+		free(coldata->data);
+	}
+	free(coldata);
 }
 
 /** \@} */

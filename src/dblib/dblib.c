@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.173 2004-05-16 15:33:14 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.174 2004-05-17 15:17:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -405,9 +405,9 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 		curcol = resinfo->columns[i];
 		if (curcol->column_nullbind) {
 			if (tds_get_null(resinfo->current_row, i)) {
-				*((DBINT *) curcol->column_nullbind) = -1;
+				*(curcol->column_nullbind) = -1;
 			} else {
-				*((DBINT *) curcol->column_nullbind) = 0;
+				*(curcol->column_nullbind) = 0;
 			}
 		}
 		if (curcol->column_varaddr) {
@@ -2122,7 +2122,7 @@ dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
 	colinfo = resinfo->columns[column - 1];
-	colinfo->column_nullbind = (TDS_CHAR *) indicator;
+	colinfo->column_nullbind = indicator;
 
 	return SUCCEED;
 }
@@ -2179,7 +2179,7 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 	 *  XXX Need to check for possibly problems before assuming
 	 *  everything is okay
 	 */
-	curcol->column_nullbind = (TDS_CHAR *) indicator;
+	curcol->column_nullbind = indicator;
 
 	return SUCCEED;
 }

@@ -1,3 +1,12 @@
+Mon May 17 17:15:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/ctlib.h include/tds.h src/ctlib/blk.c:
+	* src/ctlib/ct.c src/ctlib/unittests/Makefile.am:
+	* src/dblib/dblib.c src/tds/mem.c src/tds/token.c:
+	* src/ctlib/unittests/blk_in.h(added):
+	* src/ctlib/unittests/blk_in.c(added):
+	* src/ctlib/unittests/blk_out.c(added):
+	- applied Bill Thompson patch for bulk copy in CTLib
+
 Sun May 16 17:31:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_checks.c:
 	- fix some memory leaks (SQLDisconnect didn't free statements)

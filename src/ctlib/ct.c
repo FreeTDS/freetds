@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.118 2004-04-14 00:22:04 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.119 2004-05-17 15:17:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -47,13 +47,15 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * @return 0 on success
  */
 static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
-static int _ct_bind_data(CS_COMMAND * cmd, CS_INT offset);
-static int _ct_get_client_type(int datatype, int usertype, int size);
+int _ct_get_client_type(int datatype, int usertype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
+static void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, 
+			  const char *fmt, ...);
+int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
@@ -84,6 +86,9 @@ _ct_get_layer(int layer)
 	case 1:
 		return "user api layer";
 		break;
+	case 2:
+		return "blk layer";
+		break;
 	default:
 		break;
 	}
@@ -106,6 +111,12 @@ _ct_get_origin(int origin)
 	case 5:
 		return "intl library error";
 		break;
+	case 6:
+		return "user error";
+		break;
+	case 7:
+		return "internal BLK-Library error";
+		break;
 	default:
 		break;
 	}
@@ -118,6 +129,21 @@ _ct_get_user_api_layer_error(int error)
 	switch (error) {
 	case 137:
 		return "A bind count of %1! is not consistent with the count supplied for existing binds. The current bind count is %2!.";
+		break;
+	case 138:
+		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
+		break;
+	case 139:
+		return "The parameter tblname cannot be NULL.";
+		break;
+	case 140:
+		return "Failed when processing results from server.";
+		break;
+	case 141:
+		return "Parameter %1! has an illegal value of %2!";
+		break;
+	case 142:
+		return "No value or default value available and NULL not allowed. col = %1! row = %2! .";
 		break;
 	default:
 		break;
@@ -191,10 +217,19 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 CS_RETCODE
 ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 {
+	TDSLOGIN *login;
+
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_con_alloc()\n");
+	login = tds_alloc_login();
+	if (!login)
+		return CS_FAIL;
 	*con = (CS_CONNECTION *) malloc(sizeof(CS_CONNECTION));
+	if (!*con) {
+		tds_free_login(login);
+		return CS_FAIL;
+	}
 	memset(*con, '\0', sizeof(CS_CONNECTION));
-	(*con)->tds_login = tds_alloc_login();
+	(*con)->tds_login = login;
 
 	/* so we know who we belong to */
 	(*con)->ctx = ctx;
@@ -530,6 +565,8 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_cmd_alloc()\n");
 
 	*cmd = (CS_COMMAND *) malloc(sizeof(CS_COMMAND));
+	if (!*cmd)
+		return CS_FAIL;
 	memset(*cmd, '\0', sizeof(CS_COMMAND));
 
 	/* so we know who we belong to */
@@ -1174,10 +1211,10 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 	colinfo->column_bindfmt = datafmt->format;
 	colinfo->column_bindlen = datafmt->maxlength;
 	if (indicator) {
-		colinfo->column_nullbind = (TDS_CHAR *) indicator;
+		colinfo->column_nullbind = indicator;
 	}
 	if (copied) {
-		colinfo->column_lenbind = (TDS_CHAR *) copied;
+		colinfo->column_lenbind = copied;
 	}
 	return CS_SUCCEED;
 }
@@ -1190,8 +1227,11 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 	TDS_INT ret;
 	TDS_INT marker;
 	TDS_INT temp_count;
+	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_fetch()\n");
+
+	tds = cmd->con->tds_socket;
 
 	/* We'll call a special function for fetches from a cursor            */
 	/* the processing is too incompatible to patch into a single function */
@@ -1215,7 +1255,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		cmd->row_prefetched = 0;
 		cmd->get_data_item = 0;
 		cmd->get_data_bytes_returned = 0;
-		if (_ct_bind_data(cmd, 0))
+		if (_ct_bind_data(cmd->con->ctx, tds->curr_resinfo, tds->curr_resinfo, 0))
 			return CS_ROW_FAIL;
 		if (rows_read)
 			*rows_read = 1;
@@ -1230,7 +1270,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		return CS_CMD_FAIL;
 
 
-	marker = tds_peek(cmd->con->tds_socket);
+	marker = tds_peek(tds);
 	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) ||
 		(cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
 		return CS_END_DATA;
@@ -1239,7 +1279,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		ret = tds_process_row_tokens_ct(cmd->con->tds_socket, &rowtype, &computeid);
+		ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
 
 		tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()process_row_tokens returned %d\n", ret);
 
@@ -1248,7 +1288,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 				cmd->get_data_item = 0;
 				cmd->get_data_bytes_returned = 0;
 				if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
-					if (_ct_bind_data(cmd, temp_count))
+					if (_ct_bind_data(cmd->con->ctx, tds->curr_resinfo, tds->curr_resinfo, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_read)
 						*rows_read = *rows_read + 1;
@@ -1266,7 +1306,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 
 		/* have we reached the end of the rows ? */
 
-		marker = tds_peek(cmd->con->tds_socket);
+		marker = tds_peek(tds);
 
 		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
 			break;
@@ -1335,7 +1375,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 						cmd->get_data_item = 0;
 						cmd->get_data_bytes_returned = 0;
 						if (rowtype == TDS_REG_ROW) {
-							if (_ct_bind_data(cmd, temp_count))
+							if (_ct_bind_data(cmd->con->ctx, tds->curr_resinfo, tds->curr_resinfo, temp_count))
 								return CS_ROW_FAIL;
 							if (rows_read)
 								*rows_read = *rows_read + 1;
@@ -1365,24 +1405,26 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 }
 
 
-static int
-_ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
+int
+_ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset)
 {
 	int i;
 	TDSCOLUMN *curcol;
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	TDSCOLUMN *bindcol;
 	unsigned char *src;
 	unsigned char *dest, *temp_add;
 	int result = 0;
 	TDS_INT srctype, srclen, desttype, len;
-	CS_CONTEXT *ctx = cmd->con->ctx;
 	CS_DATAFMT srcfmt, destfmt;
+	TDS_INT *datalen = NULL;
+	TDS_SMALLINT *nullind = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L _ct_bind_data()\n");
 
 	for (i = 0; i < resinfo->num_cols; i++) {
+
 		curcol = resinfo->columns[i];
+		bindcol = bindinfo->columns[i];
 
 		tdsdump_log(TDS_DBG_FUNC, "%L _ct_bind_data(): column_type: %d column_len: %d\n",
 			curcol->column_type,
@@ -1392,62 +1434,65 @@ _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 		if (curcol->column_hidden) 
 			continue;
 
-		if (curcol->column_nullbind) {
-			if (tds_get_null(resinfo->current_row, i)) {
-				*((CS_SMALLINT *) curcol->column_nullbind) = -1;
-			} else {
-				*((CS_SMALLINT *) curcol->column_nullbind) = 0;
-			}
-		}
-		/* printf("%d %s\n",i,resinfo->columns[i]->column_value); */
 
 		srctype = curcol->column_type;
-		desttype = _ct_get_server_type(curcol->column_bindtype);
+		desttype = _ct_get_server_type(bindcol->column_bindtype);
 
-		/* Array Binding Code changes start here */
 		/* retrieve the initial bound column_varaddress */
-		temp_add = (unsigned char *) curcol->column_varaddr;
+		/* and increment it if offset specified         */
 
-		/* check for array binding cmd->bind_count >0 and skip for the */
-		/* first row ie for resinfo->row_count == 1, for which the address is temp_add itself. */
+		temp_add = (unsigned char *) bindcol->column_varaddr;
+		dest = temp_add + (offset * bindcol->column_bindlen);
 
-		dest = temp_add + (offset * curcol->column_bindlen);
+		if (bindcol->column_nullbind) {
+			nullind = bindcol->column_nullbind;
+			nullind += offset;
+		}
+		if (bindcol->column_lenbind) {
+			datalen = bindcol->column_lenbind;
+			datalen += offset;
+		}
 
-		/* Array Binding Code changes end here */
+		if (dest) {
 
-		if (dest && !tds_get_null(resinfo->current_row, i)) {
+			if (tds_get_null(resinfo->current_row, i)) {
+				if (nullind)
+					*nullind = -1;
+				if (datalen)
+					*datalen = 0;
+			} else {
 
-			srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
-
-			src = &(resinfo->current_row[curcol->column_offset]);
-			if (is_blob_type(curcol->column_type))
-				src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
-
-			srclen = curcol->column_cur_size;
-			srcfmt.datatype = srctype;
-			srcfmt.maxlength = srclen;
-			srcfmt.locale = cmd->con->locale;
-
-			destfmt.datatype = curcol->column_bindtype;
-			destfmt.maxlength = curcol->column_bindlen;
-			destfmt.locale = cmd->con->locale;
-			destfmt.format = curcol->column_bindfmt;
-			/* if convert return FAIL mark error but process other columns */
-			if ((result= cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED)) {
-				tdsdump_log(TDS_DBG_FUNC, "%L cs_convert-result = %d\n", result);
-				result = 1;
-				len = 0;
-				tdsdump_log(TDS_DBG_INFO1, "%L \n  convert failed for %d \n", srcfmt.datatype);
+				srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
+	
+				src = &(resinfo->current_row[curcol->column_offset]);
+				if (is_blob_type(curcol->column_type))
+					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
+	
+				srclen = curcol->column_cur_size;
+				srcfmt.datatype = srctype;
+				srcfmt.maxlength = srclen;
+	
+				destfmt.datatype = bindcol->column_bindtype;
+				destfmt.maxlength = bindcol->column_bindlen;
+				destfmt.format = bindcol->column_bindfmt;
+	
+				/* if convert return FAIL mark error but process other columns */
+				if ((result= cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED)) {
+					tdsdump_log(TDS_DBG_FUNC, "%L cs_convert-result = %d\n", result);
+					result = 1;
+					len = 0;
+					tdsdump_log(TDS_DBG_INFO1, "%L \n  convert failed for %d \n", srcfmt.datatype);
+				}
+	
+				if (nullind) 
+					*nullind = 0;
+				if (datalen) {
+					*datalen = len;
+				}
 			}
-
-			if (curcol->column_lenbind) {
-
-				*((CS_INT *) curcol->column_lenbind) = len;
-			}
-
 		} else {
-			if (curcol->column_lenbind)
-				*((CS_INT *) curcol->column_lenbind) = 0;
+			if (datalen)
+				*datalen = 0;
 		}
 	}
 	return result;
@@ -1498,7 +1543,7 @@ ct_con_drop(CS_CONNECTION * con)
 }
 
 
-static int
+int
 _ct_get_client_type(int datatype, int usertype, int size)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L _ct_get_client_type(type %d, user %d, size %d)\n", datatype, usertype, size);

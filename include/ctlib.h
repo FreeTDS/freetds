@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.12 2004-03-23 12:05:30 freddy77 Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.13 2004-05-17 15:17:01 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -96,11 +96,6 @@ struct _cs_context
 	/* code changes end here - CS_CONFIG - 01*/
 	TDSCONTEXT *tds_ctx;
 	CS_CONFIG config;
-};
-
-struct _cs_blkdesc
-{
-	int dummy;
 };
 
 /*
@@ -191,7 +186,19 @@ struct _cs_command
 	CS_PARAM *input_params;
 };
 
-/* RPC Code changes ends here */
+struct _cs_blkdesc
+{
+	CS_CONNECTION *con;
+	CS_CHAR *tablename;
+	CS_CHAR *insert_stmt;
+	CS_INT direction;
+	CS_INT identity_insert_on;
+	CS_INT bind_count;
+	CS_INT xfer_init;
+	CS_INT var_cols;
+	TDSRESULTINFO *bindinfo;
+};
+
 
 #define _CS_ERRHAND_INLINE 1
 #define _CS_ERRHAND_CB     2

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.177 2004-04-26 23:48:08 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.178 2004-05-17 15:17:01 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -225,6 +225,7 @@ enum tds_end
 		, TDS_DONE_COUNT = 0x10	/* count field in packet is valid */
 		, TDS_DONE_CANCELLED = 0x20	/* acknowledging an attention command (usually a cancel) */
 		, TDS_DONE_EVENT = 0x40	/* part of an event notification. */
+		, TDS_DONE_SRVERROR = 0x100	/* SQL server server error */
 		/* after the above flags, a TDS_DONE packet has a field describing the state of the transaction */
 		, TDS_DONE_NO_TRAN = 0	/* No transaction in effect */
 		, TDS_DONE_TRAN_SUCCEED = 1	/* Transaction completed successfully */
@@ -761,6 +762,9 @@ typedef struct
 #define TDS_SF_ACCENT_SENSITIVE      (TDS_USMALLINT) 0x020
 #define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
 
+/* UT stands for user type */
+#define TDS_UT_TIMESTAMP             80
+
 
 /**
  * Information relevant to libiconv.  The name is an iconv name, not 
@@ -772,6 +776,13 @@ typedef struct _tds_encoding
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
 } TDS_ENCODING;
+
+typedef struct _tds_bcpcoldata
+{
+	TDS_UCHAR *data;
+	TDS_INT    datalen;
+	TDS_INT    null_column;
+} BCPCOLDATA;
 
 
 enum
@@ -817,6 +828,7 @@ typedef struct tds_column
 	unsigned int column_key:1;
 	unsigned int column_hidden:1;
 	unsigned int column_output:1;
+	unsigned int column_timestamp:1;
 	TDS_UCHAR column_collation[5];
 
 	/* additional fields flags for compute results */
@@ -832,11 +844,12 @@ typedef struct tds_column
 	TDS_SMALLINT column_bindtype;
 	TDS_SMALLINT column_bindfmt;
 	TDS_UINT column_bindlen;
-	TDS_CHAR *column_nullbind;
+	TDS_SMALLINT *column_nullbind;
 	TDS_CHAR *column_varaddr;
-	TDS_CHAR *column_lenbind;
+	TDS_INT *column_lenbind;
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
+	BCPCOLDATA *bcp_column_data;
 } TDSCOLUMN;
 
 typedef struct
@@ -1106,6 +1119,8 @@ void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
 void tds_free_cursor(TDS_CURSOR *cursor);
+void tds_free_bcp_column_data(BCPCOLDATA * coldata);
+
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
 int tds_put_string(TDSSOCKET * tds, const char *buf, int len);
 int tds_put_int(TDSSOCKET * tds, TDS_INT i);
@@ -1134,6 +1149,7 @@ int tds_set_interfaces_file_loc(const char *interfloc);
 TDSLOCALE *tds_get_locale(void);
 unsigned char *tds_alloc_row(TDSRESULTINFO * res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
+BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);

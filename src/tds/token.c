@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.258 2004-04-07 07:47:20 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.259 2004-05-17 15:17:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1393,6 +1393,8 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
 	tds_set_column_type(curcol, tds_get_byte(tds));	/* sets "cardinal" type */
+
+	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
 	switch (curcol->column_varint_size) {
 	case 4:

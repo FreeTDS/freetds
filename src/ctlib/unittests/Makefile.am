@@ -1,8 +1,9 @@
-# $Id: Makefile.am,v 1.18 2004-03-13 19:41:03 jklowden Exp $
+# $Id: Makefile.am,v 1.19 2004-05-17 15:17:02 freddy77 Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
-			ct_diagserver ct_diagall cs_config cancel
+			ct_diagserver ct_diagall cs_config cancel \
+			blk_in blk_out
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -27,6 +28,8 @@ ct_diagserver_SOURCES = ct_diagserver.c common.c common.h
 ct_diagall_SOURCES = ct_diagall.c common.c common.h
 cs_config_SOURCES = cs_config.c common.c common.h
 cancel_SOURCES	= cancel.c common.c common.h
+blk_in_SOURCES	= blk_in.h blk_in.c common.c common.h
+blk_out_SOURCES	= blk_out.c common.c common.h
 
 LIBS		=	../libct.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
