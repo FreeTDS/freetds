@@ -8,6 +8,7 @@ INPUT =			$(SRCDIR)/src  \
 			$(SRCDIR)/include \
 			$(SRCDIR)/win32 \
 			$(SRCDIR)/vms 
+EXCLUDE_PATTERNS =	*/unittests/*
 RECURSIVE =		YES
 QUIET =			YES
 JAVADOC_AUTOBRIEF = 	YES

@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.99 2003-12-16 11:05:27 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.100 2003-12-22 20:08:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -476,10 +476,10 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 		tds_iconv_info_close(iconv_info);
 
 		/* TODO reuse some conversion, client charset is usually constant in all connection (or ISO8859-1) */
-		iconv_info->to_wire = iconv_open(ucs2name, iconv_names[client_canonical]);
-		iconv_info->to_wire2 = iconv_open(iconv_names[server_canonical], ucs2name);
-		iconv_info->from_wire = iconv_open(ucs2name, iconv_names[server_canonical]);
-		iconv_info->from_wire2 = iconv_open(iconv_names[client_canonical], ucs2name);
+		iconv_info->to_wire = iconv_open(iconv_names[POS_UTF8], iconv_names[client_canonical]);
+		iconv_info->to_wire2 = iconv_open(iconv_names[server_canonical], iconv_names[POS_UTF8]);
+		iconv_info->from_wire = iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
+		iconv_info->from_wire2 = iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
 
 		if (iconv_info->to_wire == (iconv_t) - 1 || iconv_info->to_wire2 == (iconv_t) - 1
 		    || iconv_info->from_wire == (iconv_t) - 1 || iconv_info->from_wire2 == (iconv_t) - 1) {
@@ -646,31 +646,50 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	p = *outbuf;
 	for (;;) {
 		if (iconv_info->flags & TDS_ENCODING_INDIRECT) {
-			/* TODO swap bytes if necessary */
 #if ENABLE_EXTRA_CHECKS
 			char tmp[8];
 #else
 			char tmp[128];
 #endif
-			char *pob = tmp;
-			size_t ol = sizeof(tmp);
+			char *pb = tmp;
+			size_t l = sizeof(tmp);
+			int temp_errno;
+			size_t temp_irreversible;
 
-			irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pob, &ol);
-			if (irreversible != (size_t) - 1 || errno == E2BIG) {
-				char *pib = tmp;
-				size_t il = sizeof(tmp) - ol;
+			temp_irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pb, &l);
+			temp_errno = errno;
 
+			/* convert partial */
+			pb = tmp;
+			l = sizeof(tmp) - l;
+			for (;;) {
 				errno = 0;
-				irreversible = iconv(cd2, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
+				irreversible = iconv(cd2, (ICONV_CONST char **) &pb, &l, outbuf, outbytesleft);
 				if (irreversible != (size_t) - 1) {
 					if (*inbytesleft)
-						continue;
-					break;
+						break;
+					goto end_loop;
 				}
-				/* TODO handle error in second conversion !!! */
-				if (errno == E2BIG)
-					break;
+				/* EINVAL should be impossible, all characters came from previous iconv... */
+				if (errno == E2BIG || errno == EINVAL)
+					goto end_loop;
+
+				/*
+				 * error should be EILSEQ, not convertible sequence 
+				 * skip UTF-8 sequence 
+				 */
+				/* avoid infinite recursion */
+				if (*pb == '?')
+					goto end_loop;
+				*pb = 0x80;
+				while(l && (*pb & 0xC0) == 0x80)
+					++pb, --l;
+				--pb;
+				++l;
+				*pb = '?';
 			}
+			errno = temp_errno;
+			irreversible = temp_irreversible;
 			break;
 		} else if (io == to_client && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
 			/* swap bytes if necessary */
@@ -738,7 +757,8 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 		if (!*inbytesleft)
 			break;
 	}
-
+end_loop:
+	
 	/* swap bytes if necessary */
 	if (io == to_server && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
 		assert((*outbuf - p) % 2 == 0);
