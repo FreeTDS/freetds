@@ -1,3 +1,7 @@
+Mon Dec  2 16:52:09 EST 2002    JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c src/apps/freebcp.h
+	- add -h (hints) switch; could not test
+
 Mon Dec 02 21:53:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: column_flags have now 32 bits
 

@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.14 2002-11-20 13:30:15 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.15 2002-12-02 21:56:42 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -261,6 +261,14 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				} else
 					state = GET_SERVER;
 				break;
+			case 'h': /* hints */
+                                if (strlen(arg) > 2) {
+                                        pdata->hint = malloc(strlen(arg));
+                                        strcpy(pdata->hint, &arg[2]);
+                                } else
+                                        state = GET_HINT;
+
+				break;
 			default:
 				fprintf(stderr, "Unknown option '%c'.\n", arg[1]);
 				return (FALSE);
@@ -359,9 +367,9 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 }
 
 int
-login_to_database(PARAMDATA * pdata, DBPROCESS ** dbproc)
+login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
 {
-LOGINREC *login;
+	LOGINREC *login;
 
 	/* Initialize DB-Library. */
 
@@ -393,9 +401,16 @@ LOGINREC *login;
 	 * ** Get a connection to the database.
 	 */
 
-	if ((*dbproc = dbopen(login, pdata->server)) == (DBPROCESS *) NULL) {
-		fprintf(stderr, "Can't connect to server.\n");
+	if ((*pdbproc = dbopen(login, pdata->server)) == (DBPROCESS *) NULL) {
+		fprintf(stderr, "Can't connect to server \"%s\".\n", pdata->server);
 		return (FALSE);
+	}
+	
+	/* set hint if any */
+	if (pdata->hint) {
+		int erc = bcp_options(*pdbproc, BCPHINTS,  pdata->hint, strlen(pdata->hint));
+		if (erc != SUCCEED) fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
+		return FALSE;
 	}
 
 	return (TRUE);
