@@ -1,3 +1,14 @@
+Wed Apr 02 14:57:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c win32/FreeTDS.def:
+	- applied Peter Daecon patch
+	 - SQLColumnPrivileges
+	 - SQLForeignKeys
+	 - SQLPrimaryKeys
+	 - SQLProcedureColumns
+	 - SQLProcedures
+	 - SQLStatistics
+	 - SQLTablePrivileges
+	
 Wed Apr 02 11:27:20 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c: removed wrong assert
 

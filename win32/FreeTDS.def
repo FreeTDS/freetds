@@ -8,7 +8,7 @@ EXPORTS
 ;	SQLBrowseConnect
 	SQLCancel
 	SQLColAttributes
-;	SQLColumnPrivileges
+	SQLColumnPrivileges
 	SQLColumns
 	SQLConnect
 	SQLDescribeCol
@@ -21,7 +21,7 @@ EXPORTS
 	SQLExecute
 ;	SQLExtendedFetch
 	SQLFetch
-;	SQLForeignKeys
+	SQLForeignKeys
 	SQLFreeConnect
 	SQLFreeEnv
 	SQLFreeHandle
@@ -43,9 +43,9 @@ EXPORTS
 	SQLParamData
 ;	SQLParamOptions
 	SQLPrepare
-;	SQLPrimaryKeys
-;	SQLProcedureColumns
-;	SQLProcedures
+	SQLPrimaryKeys
+	SQLProcedureColumns
+	SQLProcedures
 	SQLPutData
 	SQLRowCount
 	SQLSetConnectAttr
@@ -56,7 +56,7 @@ EXPORTS
 ;	SQLSetPos
 	SQLSetStmtOption
 ;	SQLSpecialColumns
-;	SQLStatistics
-;	SQLTablePrivileges
+	SQLStatistics
+	SQLTablePrivileges
 	SQLTables
 	SQLTransact

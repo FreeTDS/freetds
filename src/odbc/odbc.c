@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.145 2003-04-02 08:21:45 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.146 2003-04-02 13:00:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -77,6 +77,10 @@ static char *strncpy_null(char *dst, const char *src, int len);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void log_unimplemented_type(const char function_name[], int fType);
+static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
+static void odbc_upper_column_names(TDS_STMT * stmt);
+static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
+
 
 /**
  * \defgroup odbc_api ODBC API
@@ -104,6 +108,24 @@ static void log_unimplemented_type(const char function_name[], int fType);
 	CHECK_HENV; \
 	odbc_errs_reset(&env->errs); \
 
+/* Utils for queries */
+/* FIXME: sql escape string if quoted */
+#define PARM_ADD(p,parm,string,size,quoted) \
+if (size > 0) \
+	{\
+	strcpy(p,parm);\
+	p+=strlen(parm);\
+	if (quoted)\
+		*p++ = '\'';\
+	strncpy(p,string,size);\
+	p+=size;\
+	if (quoted)\
+		*p++ = '\'';\
+	*p++ = ',';\
+	}\
+
+#define PARM_END(p) *--p = '\0';
+
 /*
 **
 ** Note: I *HATE* hungarian notation, it has to be the most idiotic thing
@@ -112,6 +134,22 @@ static void log_unimplemented_type(const char function_name[], int fType);
 ** beg for GUI tools"
 ** Bah!
 */
+
+static int
+odbc_col_setname(TDS_STMT * stmt, int colpos, char *name)
+{
+	TDSRESULTINFO *resinfo;
+	int retcode = -1;
+
+	if (colpos > 0 && stmt->hdbc->tds_socket != NULL && (resinfo = stmt->hdbc->tds_socket->res_info) != NULL) {
+		if (colpos <= resinfo->num_cols) {
+			/* TODO set column_namelen, see overflow */
+			strcpy(resinfo->columns[colpos - 1]->column_name, name);
+			retcode = 0;
+		}
+	}
+	return retcode;
+}
 
 /* spinellia@acm.org : copied shamelessly from change_database */
 static SQLRETURN
@@ -226,17 +264,53 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 	odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "SQLBrowseConnect: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLColumnPrivileges: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+	cbColumnName = odbc_get_string_size(cbColumnName, szColumnName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + cbColumnName + 110)) != NULL) {
+		strcpy(proc, "sp_column_privileges ");	/* 21 */
+		p = proc + 21;
+
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_ADD(p, "@column_name=", szColumnName, cbColumnName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType, SQLUINTEGER FAR * pcbParamDef,
 		 SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
@@ -253,6 +327,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUI
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLExtendedFetch: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCatalogName, SQLCHAR FAR * szPkSchemaName,
@@ -260,11 +335,52 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	       SQLSMALLINT cbFkCatalogName, SQLCHAR FAR * szFkSchemaName, SQLSMALLINT cbFkSchemaName, SQLCHAR FAR * szFkTableName,
 	       SQLSMALLINT cbFkTableName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLForeignKeys: function not implemented");
-	return SQL_ERROR;
+
+	cbPkCatalogName = odbc_get_string_size(cbPkCatalogName, szPkCatalogName);
+	cbPkSchemaName = odbc_get_string_size(cbPkSchemaName, szPkSchemaName);
+	cbPkTableName = odbc_get_string_size(cbPkTableName, szPkTableName);
+	cbFkCatalogName = odbc_get_string_size(cbFkCatalogName, szFkCatalogName);
+	cbFkSchemaName = odbc_get_string_size(cbFkSchemaName, szFkSchemaName);
+	cbFkTableName = odbc_get_string_size(cbFkTableName, szFkTableName);
+
+	if ((proc =
+	     (char *) malloc(cbPkCatalogName + cbPkSchemaName + cbPkTableName + cbFkCatalogName + cbFkSchemaName + cbFkTableName +
+			     150)) != NULL) {
+		strcpy(proc, "sp_fkeys ");	/* 9 */
+		p = proc + 9;
+
+		PARM_ADD(p, "@pktable_qualifier=", szPkCatalogName, cbPkCatalogName, 1);
+		PARM_ADD(p, "@pktable_owner=", szPkSchemaName, cbPkSchemaName, 1);
+		PARM_ADD(p, "@pktable_name=", szPkTableName, cbPkTableName, 1);
+		PARM_ADD(p, "@fktable_qualifier=", szFkCatalogName, cbFkCatalogName, 1);
+		PARM_ADD(p, "@fktable_owner=", szFkSchemaName, cbFkSchemaName, 1);
+		PARM_ADD(p, "@fktable_name=", szFkTableName, cbFkTableName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "PKTABLE_CAT");
+					odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
+					odbc_col_setname(stmt, 5, "FKTABLE_CAT");
+					odbc_col_setname(stmt, 6, "FKTABLE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
-#endif
 
 SQLRETURN SQL_API
 SQLMoreResults(SQLHSTMT hstmt)
@@ -347,14 +463,47 @@ SQLParamOptions(SQLHSTMT hstmt, SQLUINTEGER crow, SQLUINTEGER FAR * pirow)
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLParamOptions: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	       SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLPrimaryKeys: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + 80)) != NULL) {
+		strcpy(proc, "sp_pkeys ");	/* 9 */
+		p = proc + 9;
+
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
 
 SQLRETURN SQL_API
@@ -362,21 +511,90 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLProcedureColumns: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbProcName = odbc_get_string_size(cbProcName, szProcName);
+	cbColumnName = odbc_get_string_size(cbColumnName, szColumnName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbProcName + cbColumnName + 110)) != NULL) {
+		strcpy(proc, "sp_sproc_columns ");	/* 17 */
+		p = proc + 17;
+
+		PARM_ADD(p, "@procedure_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@procedure_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@procedure_name=", szProcName, cbProcName, 1);
+		PARM_ADD(p, "@column_name=", szColumnName, cbColumnName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
+					odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
+					odbc_col_setname(stmt, 8, "COLUMN_SIZE");
+					odbc_col_setname(stmt, 9, "BUFFER_LENGTH");
+					odbc_col_setname(stmt, 10, "DECIMAL_DIGITS");
+					odbc_col_setname(stmt, 11, "NUM_PREC_RADIX");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+
+	return retcode;
 }
 
 SQLRETURN SQL_API
 SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	/* TODO use sp_stored_procedures for getting store procedures */
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLProcedures: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbProcName = odbc_get_string_size(cbProcName, szProcName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbProcName + 80)) != NULL) {
+		strcpy(proc, "sp_stored_procedures ");	/* 21 */
+		p = proc + 21;
+
+		PARM_ADD(p, "@sp_name=", szProcName, cbProcName, 1);
+		PARM_ADD(p, "@sp_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@sp_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
+					odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
 
+#if 0
 SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
@@ -384,16 +602,48 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetPos: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLTablePrivileges: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + 90)) != NULL) {
+		strcpy(proc, "sp_table_privileges ");	/* 20 */
+		p = proc + 20;
+
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
-#endif
 
 #if (ODBCVER >= 0x0300)
 #ifndef SQLULEN
@@ -1872,7 +2122,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLCLOSECURSOR);
 		API3_(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
-		API__(SQL_API_SQLCOLUMNPRIVILEGES);
+		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
 		API3_(SQL_API_SQLCOPYDESC);
@@ -1913,9 +2163,9 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLPARAMDATA);
 		API__(SQL_API_SQLPARAMOPTIONS);
 		API_X(SQL_API_SQLPREPARE);
-		API__(SQL_API_SQLPRIMARYKEYS);
-		API__(SQL_API_SQLPROCEDURECOLUMNS);
-		API__(SQL_API_SQLPROCEDURES);
+		API_X(SQL_API_SQLPRIMARYKEYS);
+		API_X(SQL_API_SQLPROCEDURECOLUMNS);
+		API_X(SQL_API_SQLPROCEDURES);
 		API_X(SQL_API_SQLPUTDATA);
 		API_X(SQL_API_SQLROWCOUNT);
 		API3X(SQL_API_SQLSETCONNECTATTR);
@@ -1930,8 +2180,8 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLSETSTMTATTR);
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API__(SQL_API_SQLSPECIALCOLUMNS);
-		API__(SQL_API_SQLSTATISTICS);
-		API__(SQL_API_SQLTABLEPRIVILEGES);
+		API_X(SQL_API_SQLSTATISTICS);
+		API_X(SQL_API_SQLTABLEPRIVILEGES);
 		API_X(SQL_API_SQLTABLES);
 		API_X(SQL_API_SQLTRANSACT);
 #undef API_X
@@ -1963,7 +2213,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLCLOSECURSOR);
 		API3_(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
-		API__(SQL_API_SQLCOLUMNPRIVILEGES);
+		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
 		API3_(SQL_API_SQLCOPYDESC);
@@ -2004,9 +2254,9 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLPARAMDATA);
 		API__(SQL_API_SQLPARAMOPTIONS);
 		API_X(SQL_API_SQLPREPARE);
-		API__(SQL_API_SQLPRIMARYKEYS);
-		API__(SQL_API_SQLPROCEDURECOLUMNS);
-		API__(SQL_API_SQLPROCEDURES);
+		API_X(SQL_API_SQLPRIMARYKEYS);
+		API_X(SQL_API_SQLPROCEDURECOLUMNS);
+		API_X(SQL_API_SQLPROCEDURES);
 		API_X(SQL_API_SQLPUTDATA);
 		API_X(SQL_API_SQLROWCOUNT);
 		API3X(SQL_API_SQLSETCONNECTATTR);
@@ -2021,8 +2271,8 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLSETSTMTATTR);
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API__(SQL_API_SQLSPECIALCOLUMNS);
-		API__(SQL_API_SQLSTATISTICS);
-		API__(SQL_API_SQLTABLEPRIVILEGES);
+		API_X(SQL_API_SQLSTATISTICS);
+		API_X(SQL_API_SQLTABLEPRIVILEGES);
 		API_X(SQL_API_SQLTABLES);
 		API_X(SQL_API_SQLTRANSACT);
 #undef API_X
@@ -2051,7 +2301,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLCLOSECURSOR);
 		API3_(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
-		API__(SQL_API_SQLCOLUMNPRIVILEGES);
+		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
 		API3_(SQL_API_SQLCOPYDESC);
@@ -2092,9 +2342,9 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLPARAMDATA);
 		API__(SQL_API_SQLPARAMOPTIONS);
 		API_X(SQL_API_SQLPREPARE);
-		API__(SQL_API_SQLPRIMARYKEYS);
-		API__(SQL_API_SQLPROCEDURECOLUMNS);
-		API__(SQL_API_SQLPROCEDURES);
+		API_X(SQL_API_SQLPRIMARYKEYS);
+		API_X(SQL_API_SQLPROCEDURECOLUMNS);
+		API_X(SQL_API_SQLPROCEDURES);
 		API_X(SQL_API_SQLPUTDATA);
 		API_X(SQL_API_SQLROWCOUNT);
 		API3X(SQL_API_SQLSETCONNECTATTR);
@@ -2109,8 +2359,8 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API3_(SQL_API_SQLSETSTMTATTR);
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API__(SQL_API_SQLSPECIALCOLUMNS);
-		API__(SQL_API_SQLSTATISTICS);
-		API__(SQL_API_SQLTABLEPRIVILEGES);
+		API_X(SQL_API_SQLSTATISTICS);
+		API_X(SQL_API_SQLTABLEPRIVILEGES);
 		API_X(SQL_API_SQLTABLES);
 		API_X(SQL_API_SQLTRANSACT);
 #undef API_X
@@ -2277,14 +2527,16 @@ SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 }
 
 static void
-odbc_upper_column_names(TDSSOCKET * tds)
+odbc_upper_column_names(TDS_STMT * stmt)
 {
 	TDSRESULTINFO *resinfo;
 	TDSCOLINFO *colinfo;
+	TDSSOCKET *tds;
 	int icol;
 	char *p;
 
-	if (!tds->res_info)
+	tds = stmt->hdbc->tds_socket;
+	if (!tds || !tds->res_info)
 		return;
 
 	resinfo = tds->res_info;
@@ -2325,7 +2577,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
       redo:
 	res = _SQLExecute(stmt);
 
-	odbc_upper_column_names(stmt->hdbc->tds_socket);
+	odbc_upper_column_names(stmt);
 
 	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
 		return res;
@@ -2473,97 +2725,96 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSpecialColumns: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 SQLRETURN SQL_API
 SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLUSMALLINT fUnique,
 	      SQLUSMALLINT fAccuracy)
 {
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
+
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLStatistics: function not implemented");
-	return SQL_ERROR;
+
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + 90)) != NULL) {
+		strcpy(proc, "sp_sp_statistics ");	/* 17 */
+		p = proc + 17;
+
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+					odbc_col_setname(stmt, 8, "ORDINAL_POSITION");
+					odbc_col_setname(stmt, 10, "ASC_OR_DESC");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+	}
+	return retcode;
 }
-#endif
+
 
 SQLRETURN SQL_API
 SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	  SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szTableType,
 	  SQLSMALLINT cbTableType)
 {
-	char *query, *p;
-	static const char sptables[] = "sp_tables";
-	int querylen, clen, slen, tlen, ttlen;
-	SQLRETURN result;
+	int retcode = SQL_ERROR;
+	char *proc;
+	char *p;
 
 	INIT_HSTMT;
 
-	clen = odbc_get_string_size(cbCatalogName, szCatalogName);
-	slen = odbc_get_string_size(cbSchemaName, szSchemaName);
-	tlen = odbc_get_string_size(cbTableName, szTableName);
-	ttlen = odbc_get_string_size(cbTableType, szTableType);
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+	cbSchemaName = odbc_get_string_size(cbSchemaName, szSchemaName);
+	cbTableName = odbc_get_string_size(cbTableName, szTableName);
+	cbTableType = odbc_get_string_size(cbTableType, szTableType);
 
-	/* a little padding for quotes, commas and parameters names */
-	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 80;
-	query = (char *) malloc(querylen);
-	if (!query) {
+	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + cbTableType + 100)) != NULL) {
+		strcpy(proc, "sp_tables ");	/* 10 */
+		p = proc + 10;
+
+		PARM_ADD(p, "@table_name=", szTableName, cbTableName, 1);
+		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);
+		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
+		PARM_ADD(p, "@table_type=", szTableType, cbTableType, 1);
+		PARM_END(p);
+
+		if (odbc_set_stmt_query(stmt, proc, p - proc) == SQL_SUCCESS) {
+			if (SQL_SUCCEEDED(_SQLExecute(stmt))) {
+				if (stmt->hdbc->henv->odbc_ver >= 3) {
+					odbc_col_setname(stmt, 1, "TABLE_CAT");
+					odbc_col_setname(stmt, 2, "TABLE_SCHEM");
+				}
+				odbc_upper_column_names(stmt);
+				retcode = SQL_SUCCESS;
+			}
+		}
+
+		free(proc);
+	} else {
 		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
 	}
-	p = query;
-
-	strcpy(p, sptables);
-	p += sizeof(sptables) - 1;
-
-	/* TODO quote as needed */
-	if (tlen) {
-		strcpy(p, ",@table_name=\'");
-		p += 14;
-		strncpy(p, (const char *) szTableName, tlen);
-		p += tlen;
-		*p++ = '\'';
-	}
-	if (slen) {
-		strcpy(p, ",@table_owner=\'");
-		p += 15;
-		strncpy(p, (const char *) szSchemaName, slen);
-		p += slen;
-		*p++ = '\'';
-	}
-	if (clen) {
-		strcpy(p, ",@table_qualifier=\'");
-		p += 19;
-		strncpy(p, (const char *) szCatalogName, clen);
-		p += clen;
-		*p++ = '\'';
-	}
-	if (ttlen) {
-		strcpy(p, ",@table_type=\'");
-		p += 14;
-		strncpy(p, (const char *) szTableType, ttlen);
-		p += ttlen;
-		*p++ = '\'';
-	}
-	query[sizeof(sptables) - 1] = ' ';
-	*p = '\0';
-	/* fprintf(stderr,"\nquery = %s\n",query); */
-
-	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, query, p - query)) {
-		free(query);
-		return SQL_ERROR;
-	}
-	free(query);
-
-	result = _SQLExecute(stmt);
-
-	/* Sybase seem to return column name in lower case, 
-	 * transform to uppercase 
-	 * specification of ODBC and Perl test require these name be uppercase */
-	odbc_upper_column_names(stmt->hdbc->tds_socket);
-	/* TODO change also ODBC2 names to ODBC3 if required */
-
-	return result;
+	return retcode;
 }
-
 
 /** 
  * Log a useful message about unimplemented options
