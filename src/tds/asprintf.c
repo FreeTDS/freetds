@@ -13,15 +13,19 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
+#ifndef _REENTRANT
 #include <sys/mman.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <assert.h>
-#include <string.h>
+#endif
 
-static char  software_version[]   = "$Id: asprintf.c,v 1.2 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: asprintf.c,v 1.3 2002-08-29 15:43:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+#ifndef _REENTRANT
 static jmp_buf env;
 
 static void
@@ -29,10 +33,30 @@ sigsegv(int sig)
 {
   longjmp(env, 1);
 }
+#endif
 
 int
 vasprintf(char **ret, const char *fmt, va_list ap)
 {
+#ifdef _REENTRANT
+  FILE *fp;
+  int len;
+  char *buf;
+
+  *ret = NULL;
+  if ((fp = fopen("/dev/null", "w")) == NULL)
+    return -1;
+  len = vfprintf(fp, fmt, ap);
+  if (fclose(fp) != 0)
+    return -1;
+  if (len < 0)
+    return len;
+  if ((buf = malloc(len + 1)) == NULL)
+    return -1;
+  vsprintf(buf, fmt, ap);
+  *ret = buf;
+  return len;
+#else
   volatile char *buf = NULL;
   volatile unsigned int pgs;
   struct sigaction sa, osa;
@@ -81,6 +105,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   }
   *ret = (char *) buf;
   return len;
+#endif
 }
 
 int

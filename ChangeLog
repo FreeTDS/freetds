@@ -1,3 +1,7 @@
+Thu Aug 29 17:42:14 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/asprintf.c:
+	- applied patch from Castellano for fix thread problems 
+
 Thu Aug 29 11:53:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c:
 	* src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c:
