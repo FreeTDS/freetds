@@ -20,12 +20,16 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.13 2003-05-02 05:56:55 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.14 2003-05-03 19:57:03 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
 
 #ifdef __cplusplus
 extern "C"
@@ -34,30 +38,6 @@ extern "C"
 
 
 typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
-
-/**
- * Information relevant to libiconv.  The name is an iconv name, not 
- * the same as found in master..syslanguages.  
- * \todo Write (preferably public domain) functions to convert:
- *  	- nl_langinfo output to iconv charset name
- * 	- iconv charset name to Sybase charset name
- */
-typedef struct _tds_encoding 
-{
-	char name[64];
-	unsigned char min_bytes_per_char;
-	unsigned char max_bytes_per_char;
-} TDS_ENCODING;
-
-struct tdsiconvinfo
-{
-	TDS_ENCODING client_charset;
-	TDS_ENCODING server_charset;
-#if HAVE_ICONV
-	iconv_t to_wire;   /* conversion from client charset to server's format */
-	iconv_t from_wire; /* conversion from server's format to client charset */
-#endif
-};
 
 typedef struct _character_set_alias
 {
@@ -70,8 +50,10 @@ typedef struct _character_set_alias
 # define ICONV_CONST const
 #endif
 
+size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t *outbytesleft);
 size_t tds_iconv (TDS_ICONV_DIRECTION io, const TDSICONVINFO *info, const char *input, size_t * input_size, char *out_string, size_t maxlen);
-const char * tds_cannonical_charset_name(const char *charset_name);
+const char * tds_canonical_charset_name(const char *charset_name);
+const char * tds_sybase_charset_name(const char *charset_name);
 
 #ifdef __cplusplus
 }
