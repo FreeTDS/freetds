@@ -1,3 +1,10 @@
+* May 2003
+- Version 0.61.1
+- Fixed segfault on opening log file in append mode
+- locale initialization?
+- fix segfault when used with iODBC
+- better configure script for HP/UX 11
+
 * Jan 2003
 - Version 0.61
 - Dynamic SQL
