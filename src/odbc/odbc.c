@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.257 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.258 2003-10-29 15:30:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2395,7 +2395,6 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 SQLRETURN SQL_API
 SQLExecute(SQLHSTMT hstmt)
 {
-#ifdef ENABLE_DEVELOPING
 	TDSSOCKET *tds;
 	TDSDYNAMIC *dyn;
 	TDS_INT result_type;
@@ -2404,11 +2403,9 @@ SQLExecute(SQLHSTMT hstmt)
 	int i, nparam;
 	TDSPARAMINFO *params = NULL, *temp_params;
 	int in_row = 0;
-#endif
 
 	INIT_HSTMT;
 
-#ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
 
 	/* FIXME SQLExecute return SQL_ERROR if binding is dynamic (data incomplete) */
@@ -2548,8 +2545,8 @@ SQLExecute(SQLHSTMT hstmt)
 	if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 		ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 	ODBC_RETURN(stmt, result);
-#else /* ENABLE_DEVELOPING */
 
+/*
 	if (stmt->prepared_query) {
 		SQLRETURN res = start_parse_prepared_query(stmt);
 
@@ -2558,7 +2555,7 @@ SQLExecute(SQLHSTMT hstmt)
 	}
 
 	return _SQLExecute(stmt);
-#endif
+*/
 }
 
 SQLRETURN SQL_API
