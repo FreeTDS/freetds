@@ -1,3 +1,8 @@
+Wed Feb  5 23:39:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	* src/odbc/odbc.c: replace SQLINTEGER with SQLLEN when casting
+	  from a pointer, eliminating incompatible-size warnings on
+	  64-bit platforms
+
 Wed Feb  5 21:51:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: check if compiler support const
 

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131 2003-01-27 10:31:29 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.1 2003-02-06 05:46:15 vorlon Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -394,7 +394,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 	INIT_HENV;
 	switch (Attribute) {
 	case SQL_ATTR_ODBC_VERSION:
-		switch ((SQLINTEGER) Value) {
+		switch ((SQLULEN) Value) {
 		case SQL_OV_ODBC3:
 			env->odbc_ver = 3;
 			return SQL_SUCCESS;
@@ -2369,7 +2369,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 SQLRETURN SQL_API
 SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	SQLUINTEGER u_value = (SQLUINTEGER) ValuePtr;
+	SQLULEN u_value = (SQLULEN) ValuePtr;
 
 	INIT_HDBC;
 
