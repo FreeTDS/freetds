@@ -1,3 +1,7 @@
+Mon Oct  7 14:54:36 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* missing:
+	- Update missing script from autoconf-2.54.
+
 Mon Oct  7 14:33:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* acinclude.m4 configure.in
 	  acconfig.h (removed):
