@@ -1,3 +1,10 @@
+Sat May 31 18:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h:
+	* src/odbc/prepare_query.c src/odbc/unittests/putdata.c(added):
+	* src/odbc/unittests/Makefile.am:
+	- added test for SQLPutData and fixed some problems
+	  (test do not still work with --enable-developing)
+
 Fri May 30 12:07:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_param.c:
 	- do not use NULL parameters

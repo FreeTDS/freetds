@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.26 2003-05-17 18:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.27 2003-05-31 16:12:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -289,6 +289,11 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 			if (need_comma)
 				*d++ = comma;
 
+			if (param->param_bindtype == SQL_C_BINARY) {
+				memcpy(d, "0x", 2);
+				d += 2;
+			}
+
 			if (_get_len_data_at_exec(param) > 0) {
 				/* save prepared_query parameters to stmt */
 				stmt->prepared_query_s = s;
@@ -300,7 +305,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(context, param->param_bindtype, param->varaddr, -1, d, -1, *param->param_lenbind);
+			len = convert_sql2string(context, param->param_bindtype, param->varaddr, *param->param_lenbind, d, -1);
 			if (TDS_FAIL == len)
 				return SQL_ERROR;
 
@@ -388,7 +393,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		StrLen_or_Ind = need_bytes;
 
 	/* put parameter into query */
-	len = convert_sql2string(context, param->param_bindtype, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1, StrLen_or_Ind);
+	len = convert_sql2string(context, param->param_bindtype, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
 	if (TDS_FAIL == len)
 		return SQL_ERROR;
 

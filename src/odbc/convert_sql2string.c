@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.33 2003-05-20 15:30:59 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.34 2003-05-31 16:12:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -208,10 +208,10 @@ static TDS_INT
 convert_binary2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS_INT destlen)
 {
 	int i;
-	static const char *hexdigit = "0123456789abcdef";
+	static const char hexdigit[16] = "0123456789abcdef";
 
 	/* 2 chars per byte + prefix + terminator */
-	const int deststrlen = 2 * srclen + 2 + 1;
+	const int deststrlen = 2 * srclen + 1;
 
 	if (srclen < 0)
 		return TDS_FAIL;
@@ -220,9 +220,6 @@ convert_binary2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS
 	if (destlen >= 0 && destlen < deststrlen)
 		return TDS_FAIL;
 
-	/* prefix with "0x" */
-	*dest++ = '0';
-	*dest++ = 'x';
 	/* hex-encode (base16) binary buffer */
 	for (i = 0; i < srclen; i++) {
 		*dest++ = hexdigit[(src[i] >> 4) & 0x0f];
@@ -234,12 +231,22 @@ convert_binary2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS
 	return deststrlen - 1;
 }
 
+/**
+ * Convert sql data to char
+ * NOTE: do not prefix binary with "0x"
+ * \param context       tds context for some conversions
+ * \param srctype       source C type
+ * \param src           source data
+ * \param param_lenbind param length indicator
+ * \param dest          destination buffer
+ * \param destlen       destination buffer length
+ */
 TDS_INT
-convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_INT srclen,
-		   TDS_CHAR * dest, TDS_INT destlen, int param_lenbind)
+convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, int param_lenbind, TDS_CHAR * dest, TDS_INT destlen)
 {
 	int res;
 	CONV_RESULT ores;
+	TDS_INT srclen;
 
 	static const char *str_null = "null";
 
