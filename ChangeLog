@@ -1,3 +1,9 @@
+Sun Sep 22 23:28:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/replacements/Makefile.am src/tds/convert.c
+	  include/replacements.h.in (added) src/replacements/atoll.c (added)
+	  include/replacements.h (removed)
+	- Migrate replacement atoll() to replacements convenience library.
+
 Sun Sep 22 22:50:14 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/Makefile.am:
 	- Include replacement function source files in distribution.
