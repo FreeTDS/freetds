@@ -1,3 +1,7 @@
+Thu Oct 24 23:37:54 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- Add support for some server-side dboptions.
+
 Thu Oct 24 16:34:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/ct.c src/ctlib/unittests/t0009.c
 	  src/dblib/unittests/t0023.c src/tds/iconv.c src/tds/tdsstring.c

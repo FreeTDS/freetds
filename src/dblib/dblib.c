@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.83 2002-10-24 19:50:11 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.84 2002-10-25 03:40:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -612,7 +612,7 @@ dbstring_length(DBSTRING *dbstr)
 DBINT len = 0;
 DBSTRING *next;
 
-	for (next = dbstr; next != NULL; next = dbstr->strnext) {
+	for (next = dbstr; next != NULL; next = next->strnext) {
 		len += next->strtotlen;
 	}
 	return len;
@@ -632,6 +632,31 @@ dbstring_getchar(DBSTRING *dbstr, int i)
 		return dbstr->strtext[i];
 	}
 	return dbstring_getchar(dbstr->strnext, i - dbstr->strtotlen);
+}
+
+static char *
+dbstring_get(DBSTRING *dbstr)
+{
+DBSTRING *next;
+int len;
+char *ret;
+char *cp;
+
+  if (dbstr == NULL) {
+    return NULL;
+  }
+  len = dbstring_length(dbstr);
+  if ((ret = malloc(len + 1)) == NULL) {
+    _dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+    return NULL;
+  }
+  cp = ret;
+  for (next = dbstr; next != NULL; next = next->strnext) {
+    memcpy(cp, next->strtext, next->strtotlen);
+    cp += next->strtotlen;
+  }
+  *cp = '\0';
+  return ret;
 }
 
 static char *opttext[DBNUMOPTIONS] = {
@@ -2736,49 +2761,38 @@ int             matched_compute_id = 0;
 RETCODE
 dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 {
+char *cmd;
+
 	switch (option) {
 	case DBARITHABORT:
-		/* server option */
-		break;
 	case DBARITHIGNORE:
-		/* server option */
-		break;
-	case DBAUTH:
-		/* server option */
-		break;
-	case DBBUFFER:
-		/* dblib option */
-		/* requires param "0" to "2147483647" */
-		/* XXX should be more robust than just a atoi() */
-		buffer_set_buffering(&(dbproc->row_buf), atoi(char_param));
-		break;
 	case DBCHAINXACTS:
-		/* server option */
-		break;
-	case DBDATEFIRST:
-		/* server option */
-		break;
-	case DBDATEFORMAT:
-		/* server option */
-		break;
 	case DBFIPSFLAG:
-		/* server option */
-		break;
 	case DBISOLATION:
-		/* server option */
-		break;
-	case DBNATLANG:
-		/* server option */
-		break;
-	case DBNOAUTOFREE:
-		/* dblib option */
-		break;
 	case DBNOCOUNT:
-		/* server option */
-		break;
 	case DBNOEXEC:
-		/* server option */
-		break;
+	case DBPARSEONLY:
+	case DBSHOWPLAN:
+	case DBSTORPROCID:
+	  /* server options (on/off) */
+	  if (asprintf(&cmd, "set %s on\n",
+		       dbproc->dbopts[option].opttext) < 0) {
+	    return FAIL;
+	  }
+	  dbstring_concat(&(dbproc->dboptcmd), cmd);
+	  free(cmd);
+	  break;
+	case DBNATLANG:
+	case DBDATEFIRST:
+	case DBDATEFORMAT:
+	  /* server options (char_param) */
+	  if (asprintf(&cmd, "set %s %s\n",
+		       dbproc->dbopts[option].opttext, char_param) < 0) {
+	    return FAIL;
+	  }
+	  dbstring_concat(&(dbproc->dboptcmd), cmd);
+	  free(cmd);
+	  break;
 	case DBOFFSET:
 		/* server option */
 		/* requires param
@@ -2786,8 +2800,33 @@ dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 		 * "statement", "procedure", "execute", or "param"
 		 */
 		break;
-	case DBPARSEONLY:
+	case DBROWCOUNT:
 		/* server option */
+		/* requires param "0" to "2147483647" */
+		break;
+	case DBSTAT:
+		/* server option */
+		/* requires param "io" or "time" */
+		break;
+	case DBTEXTLIMIT:
+		/* dblib option */
+		/* requires param "0" to "2147483647" */
+		break;
+	case DBTEXTSIZE:
+		/* server option */
+		/* requires param "0" to "2147483647" */
+		break;
+	case DBAUTH:
+		/* ??? */
+		break;
+	case DBNOAUTOFREE:
+		/* dblib option */
+		break;
+	case DBBUFFER:
+		/* dblib option */
+		/* requires param "0" to "2147483647" */
+		/* XXX should be more robust than just a atoi() */
+		buffer_set_buffering(&(dbproc->row_buf), atoi(char_param));
 		break;
 	case DBPRCOLSEP:
 	case DBPRLINELEN:
@@ -2797,28 +2836,6 @@ dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 		dbstring_assign(&(dbproc->dbopts[option].optparam), " ");
 		/* XXX DBPADON/DBPADOFF */
 		return SUCCEED;
-		break;
-	case DBROWCOUNT:
-		/* server option */
-		/* requires param "0" to "2147483647" */
-		break;
-	case DBSHOWPLAN:
-		/* server option */
-		break;
-	case DBSTAT:
-		/* server option */
-		/* requires param "io" or "time" */
-		break;
-	case DBSTORPROCID:
-		/* server option */
-		break;
-	case DBTEXTLIMIT:
-		/* dblib option */
-		/* requires param "0" to "2147483647" */
-		break;
-	case DBTEXTSIZE:
-		/* server option */
-		/* requires param "0" to "2147483647" */
 		break;
 	default:
 		break;
@@ -3290,11 +3307,37 @@ void dbfreebuf(DBPROCESS *dbproc)
 		dbproc->dbbufsz = 0;
 } /* dbfreebuf()  */
 
-RETCODE dbclropt(DBPROCESS *dbproc,int option, char *param)
+RETCODE
+dbclropt(DBPROCESS *dbproc, int option, char *param)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbcltopt()\n");
-	return SUCCEED;
+char *cmd;
+
+	switch (option) {
+	case DBARITHABORT:
+	case DBARITHIGNORE:
+	case DBCHAINXACTS:
+	case DBFIPSFLAG:
+	case DBISOLATION:
+	case DBNOCOUNT:
+	case DBNOEXEC:
+	case DBPARSEONLY:
+	case DBSHOWPLAN:
+	case DBSTORPROCID:
+	  /* server options (on/off) */
+	  if (asprintf(&cmd, "set %s off\n",
+		       dbproc->dbopts[option].opttext) < 0) {
+	    return FAIL;
+	  }
+	  dbstring_concat(&(dbproc->dboptcmd), cmd);
+	  free(cmd);
+	  break;
+	default:
+		break;
+	}
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbclropt(option = %d)\n", option);
+	return FAIL;
 }
+
 DBBOOL dbisopt(DBPROCESS *dbproc,int option, char *param)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbisopt()\n");
@@ -3620,10 +3663,15 @@ char      *dbname(DBPROCESS *dbproc)
 {
 	return NULL;
 }
-RETCODE dbsqlsend(DBPROCESS *dbproc)
+
+RETCODE 
+dbsqlsend(DBPROCESS *dbproc)
 {
-int   result = FAIL;
+int result = FAIL;
 TDSSOCKET *tds;
+char *cmdstr;
+int rc;
+TDS_INT result_type;
 
 	dbproc->avail_flag = FALSE;
 
@@ -3648,6 +3696,23 @@ TDSSOCKET *tds;
    }
    else
    {
+     if (dbproc->dboptcmd) {
+       if ((cmdstr = dbstring_get(dbproc->dboptcmd)) == NULL) {
+	 return FAIL;
+       }
+       rc = tds_submit_query(dbproc->tds_socket, cmdstr);
+       free(cmdstr);
+       dbstring_free(&(dbproc->dboptcmd));
+       if (rc != TDS_SUCCEED) {
+	 return FAIL;
+       }
+       while ((rc = tds_process_result_tokens(tds, &result_type))
+	      == TDS_SUCCEED)
+	 ;
+       if (rc != TDS_NO_MORE_RESULTS) {
+	 return FAIL;
+       }
+     }
       dbproc->more_results = TRUE;
       if (tds_submit_query(dbproc->tds_socket, (char *)dbproc->dbbuf)!=TDS_SUCCEED) {
 	return FAIL;
@@ -3660,6 +3725,7 @@ TDSSOCKET *tds;
    }
    return result;
 }
+
 DBINT dbaltutype(DBPROCESS *dbproc, int computeid, int column)
 {
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
