@@ -17,18 +17,22 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
-#include "tdsutil.h"
-#include "tds.h"
-#include "tdsconvert.h"
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <time.h>
 #include <assert.h>
 #include <errno.h>
+#include "tds.h"
+#include "tdsconvert.h"
+#include "tdsutil.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.79 2002-09-23 03:30:16 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.80 2002-09-23 04:07:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
