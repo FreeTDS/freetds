@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.26 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.27 2004-06-13 23:43:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -155,11 +155,11 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 		return FAIL;
 
 	/* Correctness:
-	 * Parameter 			maxlen 		datalen 
+	 * Parameter 			maxlen 			datalen 
 	 * -----------------------	-------------------	----------------------------------
 	 * Fixed-length 		-1 			-1 
-	 * Fixed-length, NULL 	-1 			 0 
-	 * Variable-length 		Max output size	input size without null terminator 
+	 * Fixed-length, NULL 		-1 			 0 
+	 * Variable-length 		Max output size		input size without null terminator 
 	 * Variable-length, NULL 	 0 			 0 
 	 */
 	if (is_char_type(type)) {
