@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.195 2005-01-06 03:09:08 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.196 2005-01-07 16:59:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1306,7 +1306,6 @@ dbresults(DBPROCESS * dbproc)
 		return FAIL;
 		break;
 	case _DB_RES_NO_MORE_RESULTS:
-		dbproc->dbresults_state = _DB_RES_INIT;
 		return NO_MORE_RESULTS;
 		break;
 	case _DB_RES_NEXT_RESULT:
@@ -1415,7 +1414,7 @@ dbresults(DBPROCESS * dbproc)
 				return SUCCEED;
 				break;
 			default:
-				dbproc->dbresults_state = _DB_RES_INIT;
+				dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
 				return NO_MORE_RESULTS;
 				break;
 			}
@@ -1761,6 +1760,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		switch (desttype) {
 
 		case SYBBINARY:
+		case SYBVARBINARY:
 		case SYBIMAGE:
 			if (srclen > destlen && destlen >= 0) {
 				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
@@ -1899,6 +1899,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	switch (desttype) {
 	case SYBBINARY:
+	case SYBVARBINARY:
 	case SYBIMAGE:
 		if (len > destlen && destlen >= 0) {
 			_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");

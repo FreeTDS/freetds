@@ -1,3 +1,7 @@
+Fri Jan  7 11:56:52 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c src/dblib/unittests/t0002.c
+	- SYBVARBINARY  and patch #1083180
+
 Fri Dec  7 13:49:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/sql2tds.c: update logging
 
