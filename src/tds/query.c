@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.98 2003-08-11 11:59:39 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.99 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -65,6 +65,27 @@ static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params,
  */
 
 /**
+ * Change state to TDS_QUERING
+ * \return TDS_FAIL or TDS_SUCCESS
+ */
+static int
+tds_to_quering(TDSSOCKET * tds)
+{
+	if (tds->state == TDS_DEAD) {
+		tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
+		return TDS_FAIL;
+	} else if (tds->state != TDS_IDLE) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
+		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
+			       "Attempt to initiate a new SQL Server operation with results pending.");
+		return TDS_FAIL;
+	}
+
+	tds->state = TDS_QUERYING;
+	return TDS_SUCCEED;
+}
+
+/**
  * tds_submit_query() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
@@ -82,20 +103,15 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	if (!query)
 		return TDS_FAIL;
 
+	if (tds_to_quering(tds) == TDS_FAIL)
+		return TDS_FAIL;
+
 	/* Jeff's hack to handle long query timeouts */
 	tds->queryStarttime = time(NULL);
-
-	if (tds->state != TDS_IDLE) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
-		return TDS_FAIL;
-	}
 
 	tds_free_all_results(tds);
 
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
 
 	query_len = strlen(query);
 	if (IS_TDS50(tds)) {
@@ -514,12 +530,6 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tdsdump_log(TDS_DBG_ERROR, "Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
 		return TDS_FAIL;
 	}
-	if (tds->state != TDS_IDLE) {
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
-		return TDS_FAIL;
-	}
-	tds_free_all_results(tds);
 
 	/* allocate a structure for this thing */
 	if (!id) {
@@ -542,8 +552,12 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	if (dyn_out)
 		*dyn_out = dyn;
 
+	if (tds_to_quering(tds) == TDS_FAIL)
+		return TDS_FAIL;
+
+	tds_free_all_results(tds);
+
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -896,16 +910,12 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_execute()\n");
 
-	if (tds->state != TDS_IDLE) {
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
 	/* TODO check this code, copied from tds_submit_prepare */
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
 
 	tds->cur_dyn = dyn;
 
@@ -1032,16 +1042,12 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_unprepare() %s\n", dyn->id);
 
-	if (tds->state != TDS_IDLE) {
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
 	/* TODO check this code, copied from tds_submit_prepare */
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
 
 	tds->cur_dyn = dyn;
 
@@ -1101,15 +1107,11 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	assert(tds);
 	assert(rpc_name);
 
-	if (tds->state != TDS_IDLE) {
-		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-			       "Attempt to initiate a new SQL Server operation with results pending.");
+	if (tds_to_quering(tds) == TDS_FAIL)
 		return TDS_FAIL;
-	}
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
-	tds->state = TDS_QUERYING;
 
 	/* distinguish from dynamic query  */
 	tds->cur_dyn = NULL;

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.212 2003-08-12 07:44:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.213 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -782,7 +782,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		stmt->param_head = cur;
 	}
 
-	cur->param_type = fParamType;
+	cur->sql_desc_parameter_type = fParamType;
 	cur->param_bindtype = fCType;
 	if (fCType == SQL_C_DEFAULT) {
 		cur->param_bindtype = odbc_sql_to_c_type_default(fSqlType);
@@ -1064,9 +1064,11 @@ SQLCancel(SQLHSTMT hstmt)
 	INIT_HSTMT;
 	tds = stmt->hdbc->tds_socket;
 
-	/* TODO this can fail... */
-	tds_send_cancel(tds);
-	tds_process_cancel(tds);
+	if (tds_send_cancel(tds) == TDS_FAIL)
+		ODBC_RETURN(stmt, SQL_ERROR);
+
+	if (tds_process_cancel(tds) == TDS_FAIL)
+		ODBC_RETURN(stmt, SQL_ERROR);
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -1758,7 +1760,6 @@ SQLExecute(SQLHSTMT hstmt)
 SQLRETURN SQL_API
 SQLFetch(SQLHSTMT hstmt)
 {
-	int ret;
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLINFO *colinfo;
@@ -1798,11 +1799,16 @@ SQLFetch(SQLHSTMT hstmt)
 	}
 	stmt->row++;
 
-	ret = tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid);
-	if (ret == TDS_NO_MORE_ROWS) {
+	switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid)) {
+	case TDS_NO_MORE_ROWS:
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+		break;
+	case TDS_FAIL:
+		ODBC_RETURN(stmt, SQL_ERROR);
+		break;
 	}
+
 	resinfo = tds->res_info;
 	if (!resinfo) {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
@@ -1830,12 +1836,7 @@ SQLFetch(SQLHSTMT hstmt)
 				*((SQLINTEGER *) colinfo->column_lenbind) = len;
 		}
 	}
-	if (ret == TDS_SUCCEED) {
-		ODBC_RETURN(stmt, SQL_SUCCESS);
-	} else {
-		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !TDS_SUCCEED (%d)\n", ret);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
+	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
 
@@ -1969,8 +1970,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		 */
 		/* do not close other running query ! */
 		if (tds->state != TDS_IDLE && stmt->hdbc->current_statement == stmt) {
-			tds_send_cancel(tds);
-			tds_process_cancel(tds);
+			if (tds_send_cancel(tds) == TDS_SUCCEED)
+				tds_process_cancel(tds);
 		}
 
 		/* close prepared statement or add to connection */

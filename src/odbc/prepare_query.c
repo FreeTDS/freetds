@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.29 2003-08-01 06:40:48 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.30 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -157,7 +157,7 @@ _calculate_params_size(TDS_STMT * stmt)
 static int
 _need_comma(struct _sql_param_info *param)
 {
-	if (SQL_NULL_DATA == param->param_type)
+	if (SQL_NULL_DATA == param->sql_desc_parameter_type)
 		return 0;
 
 	switch (param->param_sqltype) {
@@ -284,7 +284,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_ERROR;
 
 			need_comma = _need_comma(param);
-			/* printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype); */
+			/* printf("ctype is %d %d %d\n",param->sql_desc_parameter_type, param->param_bindtype, param->param_sqltype); */
 
 			if (need_comma)
 				*d++ = comma;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.205 2003-08-06 15:50:40 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.206 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -66,7 +66,7 @@ static int tds_process_params_result_token(TDSSOCKET * tds);
 static int tds_process_dyn_result(TDSSOCKET * tds);
 static int tds5_get_varint_size(int datatype);
 static int tds5_process_result(TDSSOCKET * tds);
-static void tds5_process_dyn_result2(TDSSOCKET * tds);
+static int tds5_process_dyn_result2(TDSSOCKET * tds);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int determine_adjusted_size(const TDSICONVINFO * iconv_info, int size);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
@@ -105,15 +105,15 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 
 	switch (marker) {
 	case TDS_AUTH_TOKEN:
-		tds_process_auth(tds);
+		return tds_process_auth(tds);
 		break;
 	case TDS_ENVCHANGE_TOKEN:
-		tds_process_env_chg(tds);
+		return tds_process_env_chg(tds);
 		break;
 	case TDS_DONE_TOKEN:
 	case TDS_DONEPROC_TOKEN:
 	case TDS_DONEINPROC_TOKEN:
-		tds_process_end(tds, marker, &done_flags);
+		return tds_process_end(tds, marker, &done_flags);
 		break;
 	case TDS_PROCID_TOKEN:
 		tds_get_n(tds, NULL, 8);
@@ -125,7 +125,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ERROR_TOKEN:
 	case TDS_INFO_TOKEN:
 	case TDS_EED_TOKEN:
-		tds_process_msg(tds, marker);
+		return tds_process_msg(tds, marker);
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		/* TODO split two part of capability and use it */
@@ -149,50 +149,53 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 				*p++ = size;
 				if ((p + size) > pend)
 					break;
-				tds_get_n(tds, p, size);
+				if (tds_get_n(tds, p, size) == NULL)
+					return TDS_FAIL;
 			} while (type != 2);
 		} else {
-			tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
+			if (tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size) ==
+			    NULL)
+				return TDS_FAIL;
 		}
 		break;
 		/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp */
 	case TDS_PARAM_TOKEN:
 		tds_unget_byte(tds);
-		tds_process_param_result_tokens(tds);
+		return tds_process_param_result_tokens(tds);
 		break;
 	case TDS7_RESULT_TOKEN:
-		tds7_process_result(tds);
+		return tds7_process_result(tds);
 		break;
 	case TDS_OPTIONCMD_TOKEN:
 		tdsdump_log(TDS_DBG_FUNC, "%L option command token encountered\n");
 		break;
 	case TDS_RESULT_TOKEN:
-		tds_process_result(tds);
+		return tds_process_result(tds);
 		break;
 	case TDS_ROWFMT2_TOKEN:
-		tds5_process_result(tds);
+		return tds5_process_result(tds);
 		break;
 	case TDS_COLNAME_TOKEN:
-		tds_process_col_name(tds);
+		return tds_process_col_name(tds);
 		break;
 	case TDS_COLFMT_TOKEN:
-		tds_process_col_fmt(tds);
+		return tds_process_col_fmt(tds);
 		break;
 	case TDS_ROW_TOKEN:
-		tds_process_row(tds);
+		return tds_process_row(tds);
 		break;
 	case TDS5_PARAMFMT_TOKEN:
 		/* store discarded parameters in param_info, not in old dynamic */
 		tds->cur_dyn = NULL;
-		tds_process_dyn_result(tds);
+		return tds_process_dyn_result(tds);
 		break;
 	case TDS5_PARAMFMT2_TOKEN:
 		tds->cur_dyn = NULL;
-		tds5_process_dyn_result2(tds);
+		return tds5_process_dyn_result2(tds);
 		break;
 	case TDS5_PARAMS_TOKEN:
 		/* save params */
-		tds_process_params_result_token(tds);
+		return tds_process_params_result_token(tds);
 		break;
 	case TDS5_DYNAMIC_TOKEN:
 	case TDS_LOGINACK_TOKEN:
@@ -203,7 +206,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_COLINFO_TOKEN:
-		tds_process_colinfo(tds);
+		return tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
@@ -490,14 +493,12 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			return TDS_SUCCEED;
 			break;
 		case TDS_RESULT_TOKEN:
-			tds_process_result(tds);
 			*result_type = TDS_ROWFMT_RESULT;
-			return TDS_SUCCEED;
+			return tds_process_result(tds);
 			break;
 		case TDS_ROWFMT2_TOKEN:
-			tds5_process_result(tds);
 			*result_type = TDS_ROWFMT_RESULT;
-			return TDS_SUCCEED;
+			return tds5_process_result(tds);
 			break;
 		case TDS_COLNAME_TOKEN:
 			tds_process_col_name(tds);
@@ -631,6 +632,8 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
 	int marker;
 
+	if (IS_TDSDEAD(tds))
+		return TDS_FAIL;
 	if (tds->state == TDS_IDLE) {
 		*rowtype = TDS_NO_MORE_ROWS;
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_row_tokens() state is COMPLETED\n");
@@ -652,8 +655,9 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 			return TDS_NO_MORE_ROWS;
 
 		case TDS_ROW_TOKEN:
+			if (tds_process_row(tds) == TDS_FAIL)
+				return TDS_FAIL;
 
-			tds_process_row(tds);
 			*rowtype = TDS_REG_ROW;
 			tds->curr_resinfo = tds->res_info;
 
@@ -667,9 +671,9 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
 		case TDS_DONEINPROC_TOKEN:
-			tds_process_end(tds, marker, NULL);
 			*rowtype = TDS_NO_MORE_ROWS;
-
+			if (tds_process_end(tds, marker, NULL) == TDS_FAIL)
+				return TDS_FAIL;
 /*			tds_unget_byte(tds);
 			*rowtype = TDS_END_ROW; */
 			return TDS_NO_MORE_ROWS;
@@ -1702,6 +1706,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		colsize = 0;
 		break;
 	}
+	if (IS_TDSDEAD(tds))
+		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column size is %d \n", colsize);
 	/* set NULL flag in the row buffer */
@@ -1760,7 +1766,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		if (is_char_type(curcol->column_type)) {
 			curcol->column_cur_size = colsize;
 			/* FIXME: test error */
-			tds_get_char_data(tds, (char *) blob_info, colsize, curcol);
+			if (tds_get_char_data(tds, (char *) blob_info, colsize, curcol) == TDS_FAIL)
+				return TDS_FAIL;
 			/* just to make happy code below ... */
 			colsize = curcol->column_cur_size;
 		} else
@@ -1769,13 +1776,15 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		dest = &(current_row[curcol->column_offset]);
 		if (is_char_type(curcol->column_type)) {
 			/* this shouldn't fail here */
-			tds_get_char_data(tds, (char *) dest, colsize, curcol);
+			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
+				return TDS_FAIL;
 			/* just to make happy code below ... */
 			colsize = curcol->column_cur_size;
 		} else {
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
-			tds_get_n(tds, dest, colsize);
+			if (tds_get_n(tds, dest, colsize) == NULL)
+				return TDS_FAIL;
 		}
 
 		/* pad CHAR and BINARY types */
@@ -1882,10 +1891,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end: more_results = %d\n"
-	                          "%L                  was_cancelled = %d\n"
-	                          "%L                  error = %d\n"
-	                          "%L                  done_count_valid = %d\n"
-	            , more_results, was_cancelled, error, done_count_valid);
+		    "%L                  was_cancelled = %d\n"
+		    "%L                  error = %d\n"
+		    "%L                  done_count_valid = %d\n", more_results, was_cancelled, error, done_count_valid);
 
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
@@ -1903,6 +1911,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 	tds_get_smallint(tds);
 
+	if (IS_TDSDEAD(tds))
+		return TDS_FAIL;
+
 	/* rows affected is in the tds struct because a query may affect rows but
 	 * have no result set. */
 
@@ -1913,6 +1924,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		tmp = tds_get_int(tds);	/* throw it away */
 		tds->rows_affected = TDS_NO_COUNT;
 	}
+
+	if (IS_TDSDEAD(tds))
+		return TDS_FAIL;
 
 	return TDS_SUCCEED;
 }
@@ -2344,7 +2358,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 /**
  *  New TDS 5.0 token for describing output parameters
  */
-static void
+static int
 tds5_process_dyn_result2(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -2440,6 +2454,8 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	}
 
 	info->current_row = tds_alloc_row(info);
+
+	return TDS_SUCCEED;
 }
 
 /**

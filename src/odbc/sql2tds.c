@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.15 2003-08-08 15:38:47 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.16 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -124,7 +124,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
 	len = curcol->column_size;
-	if (param->param_type != SQL_PARAM_INPUT)
+	if (param->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;
 	if (curcol->column_varint_size != 0) {
 		switch (*param->param_lenbind) {
@@ -148,7 +148,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 
 		}
 		curcol->column_cur_size = curcol->column_size = len;
-		if (param->param_type != SQL_PARAM_INPUT)
+		if (param->sql_desc_parameter_type != SQL_PARAM_INPUT)
 			curcol->column_size = param->param_bindlen;
 	} else {
 		/* TODO only a trick... */
@@ -184,7 +184,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 		return TDS_CONVERT_FAIL;
 
 	/* set null */
-	if (*param->param_lenbind == SQL_NULL_DATA || param->param_type == SQL_PARAM_OUTPUT) {
+	if (*param->param_lenbind == SQL_NULL_DATA || param->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
 		curcol->column_cur_size = 0;
 		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;

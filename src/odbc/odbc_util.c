@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.37 2003-08-12 07:54:31 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.38 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -165,7 +165,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 		/* find next output parameter */
 		for (;;) {
 			param = odbc_find_param(stmt, nparam++);
-			if (param && param->param_type != SQL_PARAM_INPUT)
+			if (param && param->sql_desc_parameter_type != SQL_PARAM_INPUT)
 				break;
 			/* TODO best way to stop */
 			if (!param)

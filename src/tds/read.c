@@ -66,10 +66,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.60 2003-08-10 20:19:01 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.61 2003-08-14 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-static int read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
-			    size_t *wire_size, char **outbuf, size_t *outbytesleft);
+static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
+			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
 
 /**
  * \ingroup libtds
@@ -102,6 +102,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
 		assert(tds);
 		assert(tds->s >= 0);
+
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = 1;
 		selecttimeout.tv_usec = 0;
@@ -245,7 +246,7 @@ int
 tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
 {
 	size_t wire_bytes;
-	
+
 	/*
 	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
 	 * Bug to malloc(0) on some platforms.
@@ -315,7 +316,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 	/* TODO: reallocate if blob and no space */
 	if (blob_info) {
 		dest = blob_info->textvalue;
-	} 
+	}
 
 	/*
 	 * The next test is crude.  The question we're trying to answer is, 
@@ -339,14 +340,15 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 		 * TDS5/UTF-8 -> use server
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
-		in_left = (blob_info)?  curcol->column_cur_size : curcol->column_size;
+		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, tds->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			return TDS_FAIL;
 		}
 	} else {
-		tds_get_n(tds, dest, wire_size);
 		curcol->column_cur_size = wire_size;
+		if (tds_get_n(tds, dest, wire_size) == NULL)
+			return TDS_FAIL;
 	}
 	return TDS_SUCCEED;
 }
@@ -372,7 +374,8 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 			dest = (char *) dest + have;
 		}
 		need -= have;
-		tds_read_packet(tds);
+		if (tds_read_packet(tds) < 0)
+			return NULL;
 		have = tds->in_len;
 	}
 	if (need > 0) {
@@ -451,6 +454,10 @@ tds_read_packet(TDSSOCKET * tds)
 	int len;
 	int x = 0, have, need;
 
+	if (IS_TDSDEAD(tds)) {
+		tdsdump_log(TDS_DBG_NETWORK, "Read attempt when state is TDS_DEAD");
+		return -1;
+	}
 
 	/* Read in the packet header.  We use this to figure out our packet 
 	 * length */
@@ -572,7 +579,8 @@ tds_read_packet(TDSSOCKET * tds)
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, size_t *wire_size, char **outbuf, size_t *outbytesleft)
+read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
+		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);
 	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
@@ -587,8 +595,8 @@ read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIREC
 	for (ptemp = temp; *wire_size > 0 && *outbytesleft > 0; ptemp = temp + templeft) {
 		assert(ptemp >= temp);
 		/* read a chunk of data */
-		templeft = (*wire_size > TEMP_SIZE - templeft)? TEMP_SIZE : *wire_size;
-		tds_get_n(tds, (char*) ptemp, templeft - (ptemp - temp));
+		templeft = (*wire_size > TEMP_SIZE - templeft) ? TEMP_SIZE : *wire_size;
+		tds_get_n(tds, (char *) ptemp, templeft - (ptemp - temp));
 
 		/* convert chunk, write to dest */
 		ptemp = temp;
@@ -613,4 +621,5 @@ read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIREC
 	TEMP_FREE;
 	return max_output - *outbytesleft;
 }
+
 /** \@} */

@@ -1,3 +1,10 @@
+Thu Aug 14 23:00:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/tds/query.c:
+	* src/tds/read.c src/tds/token.c win32/initnet.c:
+	- applied Peter Deacon patch (connection drop fix)
+	- renamed ODBC field to reflect future IRD field
+
 Tue Aug 12 09:53:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: merge Peter Deacon fix
 
