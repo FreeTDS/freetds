@@ -35,112 +35,118 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.11 2002-11-01 20:55:50 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: odbc_util.c,v 1.12 2002-11-08 16:13:55 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 #define _MAX_ERROR_LEN 255
-static char lastError[_MAX_ERROR_LEN+1];
+static char lastError[_MAX_ERROR_LEN + 1];
 
-void odbc_LogError (const char* error)
+void
+odbc_LogError(const char *error)
 {
-   /*
-    * Someday, I might make this store more than one error.
-    */
-        if (error) {
-                   strncpy (lastError, error, _MAX_ERROR_LEN);
-                   lastError[_MAX_ERROR_LEN] = '\0'; /* in case we had a long message */
-        }
+	/*
+	 * Someday, I might make this store more than one error.
+	 */
+	if (error) {
+		strncpy(lastError, error, _MAX_ERROR_LEN);
+		lastError[_MAX_ERROR_LEN] = '\0';	/* in case we had a long message */
+	}
 }
 
 
 const char *
 odbc_GetLastError(void)
 {
-    return lastError;
+	return lastError;
 }
 
 
-int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
+int
+odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
 {
-	if (sql_len==SQL_NTS)
+	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
-	else if (sql_len<=0)
+	else if (sql_len <= 0)
 		return SQL_ERROR;
 
 	if (stmt->query)
-	        free(stmt->query);
+		free(stmt->query);
 
-	stmt->query = malloc(sql_len+1);
+	stmt->query = malloc(sql_len + 1);
 	if (!stmt->query)
 		return SQL_ERROR;
 
-	if (sql){
+	if (sql) {
 		memcpy(stmt->query, sql, sql_len);
 		stmt->query[sql_len] = 0;
-	}else{
+	} else {
 		stmt->query[0] = 0;
 	}
-	
+
 	return SQL_SUCCESS;
 }
 
 
-int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len)
+int
+odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len)
 {
-	if (sql_len==SQL_NTS)
+	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
-	else if (sql_len<=0)
+	else if (sql_len <= 0)
 		return SQL_ERROR;
 
 	if (stmt->prepared_query)
-	        free(stmt->prepared_query);
+		free(stmt->prepared_query);
 
-	stmt->prepared_query = malloc(sql_len+1);
+	stmt->prepared_query = malloc(sql_len + 1);
 	if (!stmt->prepared_query)
 		return SQL_ERROR;
 
-	if (sql){
+	if (sql) {
 		memcpy(stmt->prepared_query, sql, sql_len);
 		stmt->prepared_query[sql_len] = 0;
-	}else{
+	} else {
 		stmt->prepared_query[0] = 0;
 	}
-	
+
 	return SQL_SUCCESS;
 }
 
 
-void odbc_set_return_status(struct _hstmt *stmt)
+void
+odbc_set_return_status(struct _hstmt *stmt)
 {
-    TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+	TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
 	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+
 #if 0
 	TDSLOCINFO *locale = context->locale;
 #endif
 
-        if (stmt->prepared_query_is_func && tds->has_status){
-                struct _sql_param_info *param;
-                param = odbc_find_param(stmt, 1);
-                if (param){
-                        int len = convert_tds2sql(context,
-                        SYBINT4,
-                        (TDS_CHAR*)&tds->ret_status,
-                        sizeof(TDS_INT),
-                        param->param_sqltype,
-                        param->varaddr,
-                        param->param_bindlen);
-                        if (TDS_FAIL==len)
-                                return/* SQL_ERROR*/;
-                        *param->param_lenbind = len;
-                }
-        }
-    
+	if (stmt->prepared_query_is_func && tds->has_status) {
+	struct _sql_param_info *param;
+
+		param = odbc_find_param(stmt, 1);
+		if (param) {
+	int len = convert_tds2sql(context,
+				  SYBINT4,
+				  (TDS_CHAR *) & tds->ret_status,
+				  sizeof(TDS_INT),
+				  param->param_sqltype,
+				  param->varaddr,
+				  param->param_bindlen);
+
+			if (TDS_FAIL == len)
+				return /* SQL_ERROR */ ;
+			*param->param_lenbind = len;
+		}
+	}
+
 }
 
 
-struct _sql_param_info * 
+struct _sql_param_info *
 odbc_find_param(struct _hstmt *stmt, int param_num)
 {
 	struct _sql_param_info *cur;
@@ -148,7 +154,7 @@ odbc_find_param(struct _hstmt *stmt, int param_num)
 	/* find parameter number n */
 	cur = stmt->param_head;
 	while (cur) {
-		if (cur->param_number==param_num) 
+		if (cur->param_number == param_num)
 			return cur;
 		cur = cur->next;
 	}
@@ -156,12 +162,13 @@ odbc_find_param(struct _hstmt *stmt, int param_num)
 }
 
 
-int odbc_get_string_size(int size, SQLCHAR *str)
+int
+odbc_get_string_size(int size, SQLCHAR * str)
 {
 	if (!str) {
 		return 0;
 	}
-	if (size==SQL_NTS) {
+	if (size == SQL_NTS) {
 		return strlen(str);
 	} else {
 		return size;
@@ -169,9 +176,10 @@ int odbc_get_string_size(int size, SQLCHAR *str)
 }
 
 
-SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
+SQLSMALLINT
+odbc_get_client_type(int col_type, int col_size)
 {
-	/* FIXME finish*/
+	/* FIXME finish */
 	switch (col_type) {
 	case SYBCHAR:
 		return SQL_CHAR;
@@ -191,11 +199,15 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	case SYBINT1:
 		return SQL_TINYINT;
 	case SYBINTN:
-		switch(col_size) {
-			case 1: return SQL_TINYINT;
-			case 2: return SQL_SMALLINT;
-			case 4: return SQL_INTEGER;
-			case 8: return SQL_BIGINT;
+		switch (col_size) {
+		case 1:
+			return SQL_TINYINT;
+		case 2:
+			return SQL_SMALLINT;
+		case 4:
+			return SQL_INTEGER;
+		case 8:
+			return SQL_BIGINT;
 		}
 		break;
 	case SYBREAL:
@@ -203,9 +215,11 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	case SYBFLT8:
 		return SQL_DOUBLE;
 	case SYBFLTN:
-		switch(col_size) {
-			case 4: return SQL_FLOAT;
-			case 8: return SQL_DOUBLE;
+		switch (col_size) {
+		case 4:
+			return SQL_FLOAT;
+		case 8:
+			return SQL_DOUBLE;
 		}
 		break;
 	case SYBMONEY:
@@ -243,5 +257,3 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	}
 	return SQL_UNKNOWN_TYPE;
 }
-
-
