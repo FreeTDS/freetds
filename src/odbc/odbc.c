@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.330 2004-07-09 05:22:08 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.331 2004-07-19 13:32:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1612,10 +1612,11 @@ SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)
 {
 	int i;
+
 	INIT_HDBC;
 
 	/* free all associated statements */
-	while(dbc->stmt_list)
+	while (dbc->stmt_list)
 		_SQLFreeStmt(dbc->stmt_list, SQL_DROP, 1);
 
 	/* free all associated descriptors */
@@ -2565,6 +2566,7 @@ _SQLFetch(TDS_STMT * stmt)
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *colinfo;
 	int i;
+	unsigned int curr_row, num_rows;
 	SQLINTEGER len = 0;
 	TDS_CHAR *src;
 	int srclen;
@@ -2575,6 +2577,10 @@ _SQLFetch(TDS_STMT * stmt)
 	TDS_INT rowtype;
 	TDS_INT computeid;
 	SQLUINTEGER dummy, *fetched_ptr;
+	SQLUSMALLINT *status_ptr, row_status;
+
+#define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
+	size_t row_offset = 0;
 
 	ard = stmt->ard;
 
@@ -2596,73 +2602,115 @@ _SQLFetch(TDS_STMT * stmt)
 		fetched_ptr = stmt->ird->header.sql_desc_rows_processed_ptr;
 	*fetched_ptr = 0;
 
-	if (stmt->ird->header.sql_desc_array_status_ptr)
-		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
-
-	/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
-	switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
-	case TDS_NO_MORE_ROWS:
-		stmt->row_count = tds->rows_affected;
-		odbc_populate_ird(stmt);
-		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
-		if (stmt->errs.lastrc == SQL_SUCCESS)
-			ODBC_RETURN(stmt, SQL_NO_DATA);
-		ODBC_RETURN_(stmt);
-		break;
-	case TDS_FAIL:
-		if (stmt->ird->header.sql_desc_array_status_ptr)
-			stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
-		return SQL_ERROR;
-		break;
+	num_rows = stmt->ard->header.sql_desc_array_size;
+#ifndef ENABLE_DEVELOPING
+	num_rows = 1;
+#endif
+	status_ptr = stmt->ird->header.sql_desc_array_status_ptr;
+	if (status_ptr) {
+		for (i = 0; i < num_rows; ++i)
+			*status_ptr++ = SQL_ROW_NOROW;
+		status_ptr = stmt->ird->header.sql_desc_array_status_ptr;
 	}
 
-	resinfo = tds->res_info;
-	if (!resinfo) {
-		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
-		if (stmt->errs.lastrc == SQL_SUCCESS)
-			ODBC_RETURN(stmt, SQL_NO_DATA);
-		ODBC_RETURN_(stmt);
-	}
-	/* we got a row, return a row readed even if error (for ODBC specifications) */
-	++(*fetched_ptr);
-	for (i = 0; i < resinfo->num_cols; i++) {
-		colinfo = resinfo->columns[i];
-		colinfo->column_text_sqlgetdatapos = 0;
-		drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
-		/* TODO how to fill indicator if not NULL */
-		if (!drec_ard)
-			continue;
-		if (tds_get_null(resinfo->current_row, i)) {
-			if (drec_ard->sql_desc_indicator_ptr)
-				*drec_ard->sql_desc_indicator_ptr = SQL_NULL_DATA;
-			continue;
+	curr_row = 0;
+	do {
+		row_status = SQL_ROW_SUCCESS;
+
+		/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
+		switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
+		case TDS_NO_MORE_ROWS:
+			stmt->row_count = tds->rows_affected;
+			odbc_populate_ird(stmt);
+			tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
+			goto all_done;
+			break;
+		case TDS_FAIL:
+			ODBC_RETURN(stmt, SQL_ERROR);
+			break;
 		}
-		/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
-		len = 0;
-		if (drec_ard->sql_desc_data_ptr) {
-			int c_type;
 
-			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
-			if (is_blob_type(colinfo->column_type))
-				src = ((TDSBLOB *) src)->textvalue;
-			srclen = colinfo->column_cur_size;
-			c_type = drec_ard->sql_desc_concise_type;
-			if (c_type == SQL_C_DEFAULT)
-				c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
-			len = convert_tds2sql(context,
-					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
-					      src, srclen, c_type, drec_ard->sql_desc_data_ptr, drec_ard->sql_desc_octet_length);
-			if (len < 0) {
-				if (stmt->ird->header.sql_desc_array_status_ptr)
-					stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
-				return SQL_ERROR;
+		resinfo = tds->res_info;
+		if (!resinfo) {
+			tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
+			break;
+		}
+
+		/* we got a row, return a row readed even if error (for ODBC specifications) */
+		++(*fetched_ptr);
+		for (i = 0; i < resinfo->num_cols; i++) {
+			colinfo = resinfo->columns[i];
+			colinfo->column_text_sqlgetdatapos = 0;
+			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
+			/* TODO how to fill indicator if not NULL */
+			if (!drec_ard)
+				continue;
+			if (tds_get_null(resinfo->current_row, i)) {
+				if (drec_ard->sql_desc_indicator_ptr)
+					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = SQL_NULL_DATA;
+				continue;
 			}
+			/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
+			len = 0;
+			if (drec_ard->sql_desc_data_ptr) {
+				int c_type;
+				TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
+
+				src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
+				if (is_blob_type(colinfo->column_type))
+					src = ((TDSBLOB *) src)->textvalue;
+				srclen = colinfo->column_cur_size;
+				c_type = drec_ard->sql_desc_concise_type;
+				if (c_type == SQL_C_DEFAULT)
+					c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
+				if (row_offset || curr_row == 0) {
+					data_ptr += row_offset;
+				} else {
+					int len;
+
+					if (c_type == SQL_C_CHAR || c_type == SQL_C_BINARY)
+						len = drec_ard->sql_desc_octet_length;
+					else
+						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
+					if (len <= 0) {
+						row_status = SQL_ROW_ERROR;
+						break;
+					}
+					data_ptr += len * curr_row;
+				}
+				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length);
+				if (len < 0) {
+					row_status = SQL_ROW_ERROR;
+					break;
+				}
+			} else {
+				/* TODO change when we code cursors support... */
+				/* stop looping, forward cursor support only one row */
+				num_rows = 1;
+			}
+			if (drec_ard->sql_desc_octet_length_ptr)
+				*AT_ROW(drec_ard->sql_desc_octet_length_ptr, SQLINTEGER) = len;
 		}
-		if (drec_ard->sql_desc_octet_length_ptr)
-			*drec_ard->sql_desc_octet_length_ptr = len;
-	}
-	if (stmt->ird->header.sql_desc_array_status_ptr)
-		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_SUCCESS;
+
+		if (status_ptr)
+			*status_ptr++ = row_status;
+		if (row_status == SQL_ROW_ERROR) {
+			stmt->errs.lastrc = SQL_ERROR;
+			break;
+		}
+
+#if SQL_BIND_BY_COLUMN != 0
+		if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN)
+#endif
+			row_offset += stmt->ard->header.sql_desc_bind_type;
+	} while (++curr_row < num_rows);
+
+all_done:
+	if (*fetched_ptr == 0 && stmt->errs.lastrc == SQL_SUCCESS)
+		ODBC_RETURN(stmt, SQL_NO_DATA);
+	if (stmt->errs.lastrc == SQL_ERROR && (*fetched_ptr > 1 || (*fetched_ptr == 1 && row_status != SQL_ROW_ERROR)))
+		ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 	ODBC_RETURN_(stmt);
 }
 
@@ -2879,9 +2927,9 @@ _SQLFreeDesc(SQLHDESC hdesc)
 		TDS_DBC *dbc = (TDS_DBC *) desc->parent;
 		TDS_STMT *stmt;
 		int i;
-		
+
 		/* freeing descriptors associated to statements revert state of statements */
-		for (stmt = dbc->stmt_list; stmt != NULL ; stmt = stmt->next) {
+		for (stmt = dbc->stmt_list; stmt != NULL; stmt = stmt->next) {
 			if (stmt->ard == desc)
 				stmt->ard = stmt->orig_ard;
 			if (stmt->apd == desc)
@@ -4695,7 +4743,7 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 			ODBC_RETURN(stmt, SQL_NEED_DATA);
 		}
 		++stmt->param_num;
-		switch(res=parse_prepared_query(stmt, 0, 1)) {
+		switch (res = parse_prepared_query(stmt, 0, 1)) {
 		case SQL_NEED_DATA:
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
 			ODBC_RETURN(stmt, SQL_NEED_DATA);
@@ -4951,6 +4999,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ipd->header.sql_desc_rows_processed_ptr = uip;
 		break;
 		/* allow to exec procedure multiple time */
+		/* TODO support it */
 	case SQL_ATTR_PARAMSET_SIZE:
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
@@ -4966,11 +5015,13 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.retrieve_data = ui;
 		break;
 	case SQL_ATTR_ROW_ARRAY_SIZE:
+#ifndef ENABLE_DEVELOPING
 		assert(stmt->ard->header.sql_desc_array_size == 1);
 		if (stmt->ard->header.sql_desc_array_size != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
+#endif
 		stmt->ard->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
