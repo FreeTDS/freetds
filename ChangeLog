@@ -1,3 +1,6 @@
+Mon Mar 24 17:58:35 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c: fix SQLError
+
 Mon Mar 24 15:51:43 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c: small improve
 

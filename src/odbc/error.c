@@ -44,10 +44,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.12 2003-03-24 14:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.13 2003-03-24 16:58:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
+static void odbc_errs_pop(struct _sql_errors *errs);
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
 static const struct _sql_error_struct odbc_errs[] = {
@@ -79,6 +80,25 @@ odbc_errs_reset(struct _sql_errors *errs)
 		errs->errs = NULL;
 	}
 	errs->num_errors = 0;
+}
+
+/** Remove first element */
+static void
+odbc_errs_pop(struct _sql_errors *errs)
+{
+	if (!errs || !errs->errs || errs->num_errors <= 0)
+		return;
+	
+	if (errs->num_errors == 1) {
+		odbc_errs_reset(errs);
+		return;
+	}
+
+	if (errs->errs[0].msg)
+		free(errs->errs[0].msg);
+
+	--errs->num_errors;
+	memmove(&(errs->errs[0]), &(errs->errs[1]), errs->num_errors * sizeof(errs->errs[0]));
 }
 
 void
@@ -291,8 +311,8 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 
 	if (result == SQL_SUCCESS) {
-		/* FIXME remove only one error, not all */
-		odbc_errs_reset(errs);
+		/* remove first error */
+		odbc_errs_pop(errs);
 	}
 
 	return result;
