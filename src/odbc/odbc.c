@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.89 2002-11-21 07:05:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.90 2002-11-21 12:50:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2046,6 +2046,7 @@ SQLRETURN SQL_API SQLGetFunctions(
         _set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTES);
 	_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
         _set_func_exists(pfExists,SQL_API_SQLCONNECT);
+        _set_func_exists(pfExists,SQL_API_SQLDRIVERCONNECT);
         _set_func_exists(pfExists,SQL_API_SQLDATASOURCES);
         _set_func_exists(pfExists,SQL_API_SQLDESCRIBECOL);
         _set_func_exists(pfExists,SQL_API_SQLDISCONNECT);
@@ -2093,6 +2094,7 @@ SQLRETURN SQL_API SQLGetFunctions(
     case SQL_API_SQLCOLATTRIBUTES :
     case SQL_API_SQLCOLUMNS :
     case SQL_API_SQLCONNECT :
+    case SQL_API_SQLDRIVERCONNECT :
     case SQL_API_SQLDESCRIBECOL :
     case SQL_API_SQLDISCONNECT :
     case SQL_API_SQLENDTRAN :

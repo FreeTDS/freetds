@@ -1,3 +1,6 @@
+Thu Nov 21 13:49:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: tell we support SQLDriverConnect
+
 Thu Nov 21 11:47:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/connect.c src/odbc/unittests/Makefile.am:
 	- added test to test connections
