@@ -329,7 +329,7 @@ ctlib	(all)	cs_setnull	stub	Define a null substitution value to be used when bin
 ctlib	(all)	cs_strbuild	OK	Construct native language message strings.
 ctlib	(all)	cs_strcmp	stub	Compare two strings using a specified sort order.
 ctlib	(all)	cs_time	stub	Retrieve the current date and time.
-ctlib	(all)	cs_will_convert	stub	Indicate whether a specific datatype conversion is available in the Client/Server libraries.
+ctlib	(all)	cs_will_convert	OK	Indicate whether a specific datatype conversion is available in the Client/Server libraries.
 ctlib	(all)	blk_alloc	stub	Allocate a CS_BLKDESC structure.
 ctlib	(all)	blk_bind	stub	Bind a program variable and a database column.
 ctlib	(all)	blk_colval	stub	Server-side routine to obtain the column value from a formatted bulk copy row.

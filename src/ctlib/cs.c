@@ -48,7 +48,7 @@
 #include "tdsutil.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.26 2002-10-28 17:34:41 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.27 2002-10-28 17:53:31 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -726,7 +726,7 @@ CS_RETCODE
 cs_will_convert(CS_CONTEXT *ctx, CS_INT srctype, CS_INT desttype, CS_BOOL *result)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_will_convert()\n");
-	return CS_FAIL;
+	*result = (tds_willconvert(srctype, desttype) ? CS_TRUE : CS_FALSE);
+	return CS_SUCCEED;
 }
 

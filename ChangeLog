@@ -1,3 +1,7 @@
+Mon Oct 28 12:52:30 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt src/ctlib/cs.c:
+	- Implement cs_will_convert().
+
 Mon Oct 28 12:33:39 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h src/ctlib/cs.c:
 	- Provide stubs for all remaining CS-Library routines.
