@@ -1,3 +1,7 @@
+Mon Oct 29 18:40:03 EST 2001 Brian Bruns <camber@ais.org>
+	* src/tds/token.c(tds_process_env_chg): Add special handling for 
+     environment change type 7.
+
 Fri Oct 26 07:11:05 2001  Brian Bruns <camber@ais.org>
 	* src/tds/token.c(tds_process_msg): called message handler will be passed 
      tdssocket instead of the parent structure.

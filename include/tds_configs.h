@@ -21,7 +21,7 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h,v 1.6 2001-10-26 11:16:26 brianb Exp $";
+	 "$Id: tds_configs.h,v 1.7 2001-10-29 23:48:19 brianb Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus

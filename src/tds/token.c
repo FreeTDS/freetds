@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.4 2001-10-29 23:48:19 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1026,6 +1026,13 @@ TDSENVINFO *env = tds->env;
 	/* tds_get_n(tds,NULL,size); */
 
 	type = tds_get_byte(tds);
+
+	if (type==0x07) {
+		size = tds_get_byte(tds);
+		if (size) tds_get_n(tds, NULL, size);
+		size = tds_get_byte(tds);
+		if (size) tds_get_n(tds, NULL, size);
+	}
 
 	/* fetch the new value */
 	size = tds_get_byte(tds);
