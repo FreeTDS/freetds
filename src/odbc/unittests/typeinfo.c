@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.5 2005-02-09 19:18:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -62,16 +62,19 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type)
 	case SQL_SUCCESS:
 		if (expected == SQL_UNKNOWN_TYPE) {
 			fprintf(stderr, "Data not expected (type %d - %s)\n", type, string_type);
+			Disconnect();
 			exit(1);
 		}
 		if (expected != out_type) {
 			fprintf(stderr, "Got type %d expected %d. Input type %d - %s\n", out_type, expected, type, string_type);
+			Disconnect();
 			exit(1);
 		}
 		break;
 	case SQL_NO_DATA:
 		if (expected != SQL_UNKNOWN_TYPE) {
 			fprintf(stderr, "Data expected. Inpute type %d - %s\n", type, string_type);
+			Disconnect();
 			exit(1);
 		}
 		break;

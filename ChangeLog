@@ -1,3 +1,9 @@
+Wed Feb  9 20:17:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c src/odbc/unittests/convert_error.c:
+	* src/odbc/unittests/raiserror.c src/odbc/unittests/timeout.c:
+	* src/odbc/unittests/typeinfo.c src/tds/unittests/dynamic1.c:
+	- fix leaks in tests
+
 Wed Feb 9 11:08:02 EST 2005   JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h include/tds.h include/tdsodbc.h src/apps/bsqldb.c
 	* src/apps/freebcp.c src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c

@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.3 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.4 2005-02-09 19:18:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -103,6 +103,7 @@ Test2(int nocount)
 	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "");
 	if (CommandWithResult(Statement, sql) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to create temporary store, probably not mssql (required for this test)\n");
+		Disconnect();
 		exit(0);
 	}
 

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.12 2004-12-02 12:37:54 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.13 2005-02-09 19:18:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -135,6 +135,8 @@ main(int argc, char **argv)
 
 	if (run_query(tds, "DROP TABLE #dynamic1") != TDS_SUCCEED)
 		fatal_error("dropping table error");
+
+	tds_free_dynamic(tds, dyn);
 
 	try_tds_logout(login, tds, verbose);
 	return 0;

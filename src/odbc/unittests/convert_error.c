@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.6 2005-02-09 19:18:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -27,6 +27,7 @@ success(int ident, SQLRETURN r)
 		SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, state, &nativeerrorcode, buf, 4096, &tmp);
 		printf("%s\n", buf);
 	}
+	Disconnect();
 	exit(1);
 }
 

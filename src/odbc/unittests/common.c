@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.35 2005-01-14 15:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.36 2005-02-09 19:18:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -147,6 +147,7 @@ ReportError(const char *errmsg, int line, const char *file)
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
+	Disconnect();
 	exit(1);
 }
 
@@ -299,11 +300,13 @@ CheckCols(int n, int line, const char * file)
 			return;
 		fprintf(stderr, "%s:%d: Unable to get column numbers\n", file, line);
 		CheckReturn();
+		Disconnect();
 		exit(1);
 	}
 
 	if (cols != n) {
 		fprintf(stderr, "%s:%d: Expected %d columns returned %d\n", file, line, n, (int) cols);
+		Disconnect();
 		exit(1);
 	}
 }
@@ -320,11 +323,13 @@ CheckRows(int n, int line, const char * file)
 			return;
 		fprintf(stderr, "%s:%d: Unable to get row\n", file, line);
 		CheckReturn();
+		Disconnect();
 		exit(1);
 	}
 
 	if (rows != n) {
 		fprintf(stderr, "%s:%d: Expected %d rows returned %d\n", file, line, n, (int) rows);
+		Disconnect();
 		exit(1);
 	}
 }
