@@ -17,6 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <assert.h>
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -55,12 +57,13 @@
 #endif /* HAVE_UNISTD_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include <signal.h>		/* GW ADDED */
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.33 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.34 2003-04-06 20:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -93,29 +96,47 @@ tds_put_n(TDSSOCKET * tds, const void *buf, int n)
  * Output a string to wire
  * automatic translate string to unicode if needed
  * @param s   string to write
- * @param len lenth of string or -1 for null terminated
+ * @param len length of string in characters, or -1 for null terminated
  */
 int
 tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
-	int res;
-	char temp[256];
-	const char *p;
-	unsigned int bytes_left;
+	TDS_ENCODING *client;
+	char buffer[256];
+	unsigned int output_size, bytes_out = 0;
+	unsigned int bpc = tds->iconv_info.server_charset.max_bytes_per_char; /* bytes per char */ ;
 
-	if (len < 0)
-		len = strlen(s);
-	if (IS_TDS7_PLUS(tds)) {
-		p = s;
-		res = 0;
-		while (len > 0) {
-			bytes_left = len > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : len;
-			tds7_ascii2unicode(tds, p, temp, bytes_left * 2);
-			res = tds_put_n(tds, temp, bytes_left * 2);
-			p += bytes_left;
-			len -= bytes_left;
+	client = &tds->iconv_info.client_charset;
+
+	if (len < 0) {
+		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
+			len = strlen(s);
+		} else {
+			if (client->min_bytes_per_char == 2 && client->max_bytes_per_char == 2) {	/* UCS-2 or variant */
+
+				TDS_SMALLINT *p = (TDS_SMALLINT *) s;
+
+				for (len = 0; p && p[len]; len++);
+
+			} else {
+				assert(client->min_bytes_per_char < 3);	/* FIXME */
+			}
 		}
-		return res;
+	}
+	assert(bpc);
+
+	/* convert len to bytes and use it to measure iconv's output */
+	len *= bpc;
+
+	if (IS_TDS7_PLUS(tds)) {
+		while (len > 0) {
+			output_size = len > (sizeof(buffer)) ? sizeof(buffer) : len;
+			bytes_out = tds_iconv(to_server, &tds->iconv_info, s, &len, buffer, output_size);
+			s += bytes_out;
+			len -= bytes_out;
+			bytes_out = tds_put_n(tds, buffer, bytes_out);
+		}
+		return bytes_out;
 
 	}
 	return tds_put_n(tds, s, len);

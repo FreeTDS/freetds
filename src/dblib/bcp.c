@@ -62,7 +62,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.63 2003-03-27 19:43:47 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.64 2003-04-06 20:34:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -192,7 +192,6 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 				memcpy(bcpcol->db_collate, resinfo->columns[i]->column_collation, 5);
 				strcpy(bcpcol->db_name, resinfo->columns[i]->column_name);
 				bcpcol->db_varint_size = resinfo->columns[i]->column_varint_size;
-				bcpcol->db_unicodedata = resinfo->columns[i]->column_unicodedata;
 			}
 		}
 
@@ -472,32 +471,32 @@ static RETCODE
 _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
 
-FILE *hostfile;
-int i;
+	FILE *hostfile;
+	int i;
 
-TDSSOCKET *tds;
-TDSRESULTINFO *resinfo;
-BCP_COLINFO *bcpcol;
-TDSCOLINFO *curcol;
-BCP_HOSTCOLINFO *hostcol;
-BYTE *src;
-int srctype;
-int buflen;
-int destlen;
-BYTE *outbuf;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+	BCP_COLINFO *bcpcol = NULL;
+	TDSCOLINFO *curcol = NULL;
+	BCP_HOSTCOLINFO *hostcol;
+	BYTE *src;
+	int srctype;
+	int buflen;
+	int destlen;
+	BYTE *outbuf;
 
-TDS_INT rowtype;
-TDS_INT computeid;
-TDS_INT result_type;
+	TDS_INT rowtype;
+	TDS_INT computeid;
+	TDS_INT result_type;
 
-TDS_TINYINT ti;
-TDS_SMALLINT si;
-TDS_INT li;
+	TDS_TINYINT ti;
+	TDS_SMALLINT si;
+	TDS_INT li;
 
-TDSDATEREC when;
+	TDSDATEREC when;
 
-int row_of_query;
-int rows_written;
+	int row_of_query;
+	int rows_written;
 
 	tds = dbproc->tds_socket;
 	assert(tds);
@@ -787,7 +786,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 {
 	static unsigned char *coldata_buffers[nbuffers_term_data] = {0};
 
-	BCP_COLINFO *bcpcol;
+	BCP_COLINFO *bcpcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 
 	int i;
@@ -1027,7 +1026,7 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 
 	pdata = data[0];
 
-	for (sample_size = 1; bytes_read = fread(sample, sample_size, 1, hostfile); ) {
+	for (sample_size = 1; (bytes_read = fread(sample, sample_size, 1, hostfile)) != 0; ) {
 
 		bytes_read *= sample_size;
 
@@ -1443,7 +1442,7 @@ unsigned char row_token = 0xd1;
 static RETCODE
 _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-FILE *hostfile, *errfile;
+FILE *hostfile, *errfile = NULL;
 TDSSOCKET *tds = dbproc->tds_socket;
 BCP_COLINFO *bcpcol;
 BCP_HOSTCOLINFO *hostcol;
@@ -1738,14 +1737,12 @@ char *row_in_error;
 RETCODE
 bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-
-RETCODE ret;
-
 	if (dbproc->bcp_direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;
 	}
 	if (dbproc->bcp_hostfile) {
+		RETCODE ret = 0;
 		if (dbproc->bcp_direction == DB_OUT) {
 			ret = _bcp_exec_out(dbproc, rows_copied);
 		} else if (dbproc->bcp_direction == DB_IN) {
@@ -2068,9 +2065,6 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 TDSSOCKET *tds = dbproc->tds_socket;
 unsigned char colmetadata_token = 0x81;
 BCP_COLINFO *bcpcol;
-char unicode_string[256];
-
-
 int i;
 
 
@@ -2119,8 +2113,11 @@ int i;
 				tds_put_string(tds, dbproc->bcp_tablename, strlen(dbproc->bcp_tablename));
 			}
 			tds_put_byte(tds, strlen(bcpcol->db_name));
+# if 0
 			tds7_ascii2unicode(tds, bcpcol->db_name, unicode_string, 255);
 			tds_put_n(tds, unicode_string, strlen(bcpcol->db_name) * 2);
+# endif 
+			tds_put_string(tds, bcpcol->db_name, strlen(bcpcol->db_name));
 
 		}
 	}
@@ -2394,9 +2391,9 @@ bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 DBINT
 bcp_batch(DBPROCESS * dbproc)
 {
-TDSSOCKET *tds = dbproc->tds_socket;
-int marker;
-int rows_copied;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	int marker;
+	int rows_copied = 0;
 
 	if (dbproc->bcp_direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
@@ -2523,26 +2520,27 @@ BCP_HOSTCOLINFO *hostcol;
 	return SUCCEED;
 }
 
-/* for a bcp in from program variables, collate all the data */
-/* into the column arrays held in dbproc...                  */
-
+/* 
+ * For a bcp in from program variables, collate all the data
+ * into the column arrays held in dbproc.
+ */
 RETCODE
 _bcp_get_prog_data(DBPROCESS * dbproc)
 {
-BCP_COLINFO *bcpcol;
-BCP_HOSTCOLINFO *hostcol;
+	BCP_COLINFO *bcpcol = NULL;
+	BCP_HOSTCOLINFO *hostcol;
 
-int i;
-TDS_TINYINT ti;
-TDS_SMALLINT si;
-TDS_INT li;
-TDS_INT desttype;
-int collen;
-int data_is_null;
-int bytes_read;
-int converted_data_size;
+	int i;
+	TDS_TINYINT ti;
+	TDS_SMALLINT si;
+	TDS_INT li;
+	TDS_INT desttype;
+	int collen;
+	int data_is_null;
+	int bytes_read;
+	int converted_data_size;
 
-BYTE *dataptr;
+	BYTE *dataptr;
 
 	/* for each host file column defined by calls to bcp_colfmt */
 

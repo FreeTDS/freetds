@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.168 2003-04-06 10:00:00 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.169 2003-04-06 20:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -68,6 +68,8 @@ static int tds_process_dyn_result(TDSSOCKET * tds);
 static int tds5_get_varint_size(int datatype);
 static int tds5_process_result(TDSSOCKET * tds);
 static void tds5_process_dyn_result2(TDSSOCKET * tds);
+static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol);
+static int determine_adjusted_size(const TDSICONVINFO * iconv_info, int size);
 
 
 /**
@@ -1159,6 +1161,9 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 		break;
 	}
 
+	/* Adjust column size according to client's encoding */
+	adjust_character_column_size(tds, curcol);
+
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = tds_get_byte(tds);	/* precision */
@@ -1249,10 +1254,6 @@ tds_set_column_type(TDSCOLINFO * curcol, int type)
 	if (curcol->column_varint_size == 0)
 		curcol->column_cur_size = curcol->column_size = tds_get_size_by_type(type);
 
-	/* check for unicode */
-	curcol->column_unicodedata = 0;
-	if (is_unicode_type(type))
-		curcol->column_unicodedata = 1;
 }
 
 /**
@@ -1305,6 +1306,9 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 	}
+
+	/* Adjust column size according to client's encoding */
+	adjust_character_column_size(tds, curcol);
 
 	return TDS_SUCCEED;
 }
@@ -1447,11 +1451,6 @@ tds5_process_result(TDSSOCKET * tds)
 		curcol->column_type = tds_get_byte(tds);
 
 		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
-		/* are we dealing with Unicode data */
-		if (is_unicode_type(curcol->column_type))
-			curcol->column_unicodedata = 1;
-		else
-			curcol->column_unicodedata = 0;
 
 		switch (curcol->column_varint_size) {
 		case 4:
@@ -1502,9 +1501,8 @@ tds5_process_result(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "%L\tcatalog=[%s] schema=[%s] table=[%s]\n",
 			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
 */
-		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d unicode=%d\n",
-			    curcol->column_flags,
-			    curcol->column_usertype, curcol->column_type, curcol->column_varint_size, curcol->column_unicodedata);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d\n",
+			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
 
 		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
@@ -1625,57 +1623,45 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) num);
 		}
 
-	} else if (is_blob_type(curcol->column_type)) {
-		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
-
-		if (curcol->column_unicodedata)
-			colsize /= 2;
-		if (blob_info->textvalue == NULL) {
-			blob_info->textvalue = (TDS_CHAR *) malloc(colsize);
-		} else {
-			/* FIXME memory leak if realloc return NULL */
-			blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, colsize);
-		}
-		if (blob_info->textvalue == NULL) {
-			return TDS_FAIL;
-		}
-		/* TODO convert even if TEXT, not only NTEXT */
-		if (curcol->column_unicodedata) {
-			colsize = tds_get_string(tds, colsize, blob_info->textvalue, colsize);
-		} else {
-			tds_get_n(tds, blob_info->textvalue, colsize);
-		}
 	} else {
-		dest = &(current_row[curcol->column_offset]);
-		if (curcol->column_unicodedata) {
-			colsize /= 2;
-			/* server is going to crash freetds ?? */
+		colsize = determine_adjusted_size(&tds->iconv_info, colsize);
+
+		if (is_blob_type(curcol->column_type)) {
+			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+
+			if (blob_info->textvalue == NULL) {
+				blob_info->textvalue = (TDS_CHAR *) malloc(colsize);
+			} else {
+				/* FIXME memory leak if realloc return NULL */
+				blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, colsize);
+			}
+			if (blob_info->textvalue == NULL) {
+				return TDS_FAIL;
+			}
+			colsize = tds_get_string(tds, colsize, blob_info->textvalue, colsize);
+		} else {	/* non-numeric and non-blob */
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
+			dest = &(current_row[curcol->column_offset]);
 			colsize = tds_get_string(tds, colsize, (char *) dest, curcol->column_size);
-		} else {
-			/* server is going to crash freetds ?? */
-			if (colsize > curcol->column_size)
-				return TDS_FAIL;
-			tds_get_n(tds, dest, colsize);
-		}
 
-		/* pad CHAR and BINARY types */
-		fillchar = 0;
-		switch (curcol->column_type) {
-		case SYBCHAR:
-		case XSYBCHAR:
-			fillchar = ' ';
-		case SYBBINARY:
-		case XSYBBINARY:
-			if (colsize < curcol->column_size)
-				memset(dest + colsize, fillchar, curcol->column_size - colsize);
-			colsize = curcol->column_size;
-			break;
-		}
+			/* pad CHAR and BINARY types */
+			fillchar = 0;
+			switch (curcol->column_type) {
+			case SYBCHAR:
+			case XSYBCHAR:
+				fillchar = ' ';
+			case SYBBINARY:
+			case XSYBBINARY:
+				if (colsize < curcol->column_size)
+					memset(dest + colsize, fillchar, curcol->column_size - colsize);
+				colsize = curcol->column_size;
+				break;
+			}
 
-		if (curcol->column_type == SYBDATETIME4) {
-			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
+			if (curcol->column_type == SYBDATETIME4) {
+				tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
+			}
 		}
 	}
 
@@ -2296,9 +2282,8 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 
 		tdsdump_log(TDS_DBG_INFO1, "%L elem %d:\n", col);
 		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_name=[%s]\n", curcol->column_name);
-		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d, unicode=%d\n",
-			    curcol->column_flags,
-			    curcol->column_usertype, curcol->column_type, curcol->column_varint_size, curcol->column_unicodedata);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d\n",
+			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
 		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
@@ -2660,8 +2645,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		    TDS_INT * ptds_argsize)
 {
 	static const TDS_TINYINT token = TDS_OPTIONCMD_TOKEN;
-	TDS_TINYINT expected_acknowledgement;
-
+	TDS_TINYINT expected_acknowledgement = 0;
 	int ret, marker, status;
 
 	TDS_TINYINT command = tds_command;
@@ -2731,16 +2715,16 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		argsize = was;
 	}
 
-	switch (argsize) {
-	case 0:
+        switch (argsize) {
+        case 0:
 		break;
-	case 1:
-		ptds_argument->ti = tds_get_byte(tds);
-		break;
-	case 4:
-		ptds_argument->i = tds_get_int(tds);
-		break;
-	default:
+        case 1:
+                ptds_argument->ti = tds_get_byte(tds);
+                break;
+        case 4:
+                ptds_argument->i = tds_get_int(tds);
+                break;
+        default:
 		/* FIXME not null terminated and size not saved */
 		/* FIXME do not take into account conversion */
 		tds_get_string(tds, argsize, ptds_argument->c, argsize);
@@ -2893,4 +2877,32 @@ _tds_token_name(unsigned char marker)
 	}
 
 	return "";
+}
+
+/** 
+ * Adjust column size according to client's encoding 
+ */
+static void
+adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
+{
+	curcol->column_size = determine_adjusted_size(&tds->iconv_info, curcol->column_size);
+}
+
+/** 
+ * Allow for maximum possible size of converted data, 
+ * while being careful about integer division truncation. 
+ * All character data pass through iconv.  It doesn't matter if the server side 
+ * is Unicode or not; even Latin1 text need conversion if,
+ * for example, the client is UTF-8.  
+ */
+static int
+determine_adjusted_size(const TDSICONVINFO * iconv_info, int size)
+{
+	assert(iconv_info);
+	size *= iconv_info->client_charset.max_bytes_per_char;
+	if (size % iconv_info->server_charset.min_bytes_per_char)
+		size += iconv_info->server_charset.min_bytes_per_char;
+	size /= iconv_info->server_charset.min_bytes_per_char;
+
+	return size;
 }

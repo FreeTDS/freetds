@@ -21,7 +21,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.6 2003-04-03 09:04:28 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.7 2003-04-06 20:34:56 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -36,19 +36,32 @@ extern "C"
 #endif
 #endif
 
+/**
+ * Information relevant to libiconv.  The name is an iconv name, not 
+ * the same as found in master..syslanguages.  
+ * \todo Write (preferably public domain) functions to convert:
+ *  	- nl_langinfo output to iconv charset name
+ * 	- iconv charset name to Sybase charset name
+ */
+
+typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
+
+typedef struct _tds_encoding 
+{
+	char name[64];
+	unsigned char min_bytes_per_char;
+	unsigned char max_bytes_per_char;
+} TDS_ENCODING;
+
 typedef struct tdsiconvinfo
 {
-	int use_iconv;
-#if HAVE_ICONV
-	int bytes_per_char;
-	char client_charset[64];
-	iconv_t cdto_ucs2;	/* conversion from client charset to UCS2LE MSSQLServer */
-	iconv_t cdfrom_ucs2;	/* conversion from UCS2LE MSSQLServer to client charset */
-	iconv_t cdto_srv;	/* conversion from client charset to SQL Server ASCII charset */
-	iconv_t cdfrom_srv;	/* conversion from SQL Server ASCII charset  to client charset */
-#endif
-}
-TDSICONVINFO;
+	TDS_ENCODING client_charset;
+	TDS_ENCODING server_charset;
+	iconv_t to_wire;   /* conversion from client charset to server's format */
+	iconv_t from_wire; /* conversion from server's format to client charset */
+} TDSICONVINFO;
+
+size_t tds_iconv (TDS_ICONV_DIRECTION, const TDSICONVINFO *, ICONV_CONST char *input, size_t * input_size, char *out_string, size_t maxlen);
 
 #ifdef __cplusplus
 #if 0
@@ -58,3 +71,5 @@ TDSICONVINFO;
 #endif
 
 #endif /* _tds_iconv_h_ */
+
+

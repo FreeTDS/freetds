@@ -40,11 +40,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.68 2003-04-06 09:16:55 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.69 2003-04-06 20:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
-
 
 TDSENVINFO *tds_alloc_env(TDSSOCKET * tds);
 void tds_free_env(TDSSOCKET * tds);
@@ -644,27 +643,20 @@ TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
 	TDSSOCKET *tds_socket;
-	TDSICONVINFO *iconv_info;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
-	tds_socket->in_buf_max = 0;
-	TEST_MALLOCN(tds_socket->out_buf, unsigned char, bufsize);
-
-	tds_socket->parent = (char *) NULL;
+	tds_socket->in_buf_max=0;
+	TEST_MALLOCN(tds_socket->out_buf,unsigned char,bufsize);
+	tds_socket->parent = (char*)NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
 		goto Cleanup;
-	TEST_MALLOC(iconv_info, TDSICONVINFO);
-	tds_socket->iconv_info = (void *) iconv_info;
-	memset(tds_socket->iconv_info, '\0', sizeof(TDSICONVINFO));
-#if HAVE_ICONV
-	iconv_info->cdfrom_ucs2 = (iconv_t) - 1;
-	iconv_info->cdto_ucs2 = (iconv_t) - 1;
-	iconv_info->cdfrom_srv = (iconv_t) - 1;
-	iconv_info->cdto_srv = (iconv_t) - 1;
-	iconv_info->bytes_per_char = 1;
-#endif
+		
+	/* an iconv conversion descriptor of -1 means we don't use iconv.*/
+	tds_socket->iconv_info.to_wire = (iconv_t) -1;
+	tds_socket->iconv_info.from_wire = (iconv_t) -1;
+
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;
 	tds_init_write_buf(tds_socket);
@@ -685,8 +677,6 @@ tds_realloc_socket(int bufsize)
 void
 tds_free_socket(TDSSOCKET * tds)
 {
-	TDSICONVINFO *iconv_info;
-
 	if (tds) {
 		tds_free_all_results(tds);
 		tds_free_env(tds);
@@ -698,14 +688,7 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_close_socket(tds);
 		if (tds->date_fmt)
 			free(tds->date_fmt);
-		if (tds->iconv_info) {
-			iconv_info = (TDSICONVINFO *) tds->iconv_info;
-			if (iconv_info->use_iconv)
-				tds_iconv_close(tds);
-			free(tds->iconv_info);
-		}
-		if (tds->date_fmt)
-			free(tds->date_fmt);
+		tds_iconv_close(tds);
 		TDS_ZERO_FREE(tds);
 	}
 }

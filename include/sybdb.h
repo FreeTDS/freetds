@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.47 2003-04-04 20:30:19 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.48 2003-04-06 20:34:56 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -216,7 +216,6 @@ typedef struct
 	TDS_TINYINT db_scale;
 	TDS_SMALLINT db_flags;
 	TDS_INT db_size;
-	TDS_TINYINT db_unicodedata;
 	char db_collate[5];
 	long data_size;
 	BYTE *data;

@@ -1,3 +1,15 @@
+Sun Apr  6 14:41:05 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h include/tdsiconv.h
+	* src/dblib/bcp.c
+	* src/server/login.c
+	* src/tds/iconv.c src/tds/login.c src/tds/mem.c src/tds/read.c
+	* src/tds/token.c src/tds/write.c
+	- removed all hard-coded references to server-side unicode.  
+	- data structures and logic now attempt to allow for any pair
+	- of client/server character encodings.  
+	- This code is UNTESTED due to time constraints and almost certainly
+	- BROKEN, but does compile.  
+
 Thu Apr 03 22:16:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: add a possible test to odbc
 	* include/tds.h src/tds/query.c: add comment

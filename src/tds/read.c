@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.42 2003-03-31 13:14:57 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.43 2003-04-06 20:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -244,7 +244,8 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	 */
 	char temp[256];
 	char *p, *pend;
-	unsigned int in_left;
+	unsigned int in_left, bpc = tds->iconv_info.client_charset.max_bytes_per_char;	/* bytes per char */
+
 
 	/*
 	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
@@ -257,15 +258,15 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
-			tds_get_n(tds, NULL, string_len * 2);
+			tds_get_n(tds, NULL, string_len * bpc);
 			return string_len;
 		}
 		p = dest;
 		pend = dest + need;
 		while (string_len > 0 && p < pend) {
-			in_left = string_len > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : string_len;
-			tds_get_n(tds, temp, in_left * 2);
-			p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p);
+			in_left = string_len > (sizeof(temp) / bpc) ? (sizeof(temp) / bpc) : string_len;
+			tds_get_n(tds, temp, in_left * bpc);
+			p += tds_iconv(to_client, &tds->iconv_info, temp, &in_left, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
 			string_len -= in_left;
 		}
 		return p - dest;

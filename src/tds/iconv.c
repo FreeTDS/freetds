@@ -22,6 +22,8 @@
  * all over the other code
  */
 
+#include <assert.h>
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -42,11 +44,14 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.46 2003-04-06 09:15:58 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.47 2003-04-06 20:34:57 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
+
+static int bytes_per_char(TDS_ENCODING * charset);
+static char *lcid2charset(int lcid);
 
 /**
  * \ingroup libtds
@@ -62,74 +67,237 @@ static void *no_unused_var_warn[] = {
 void
 tds_iconv_open(TDSSOCKET * tds, char *charset)
 {
-	TDSICONVINFO *iconv_info;
+	TDS_ENCODING *client = &tds->iconv_info.client_charset;
+	TDS_ENCODING *server = &tds->iconv_info.server_charset;
+	int ratio_c, ratio_s;
 
-	iconv_info = (TDSICONVINFO *) tds->iconv_info;
-
+	if (tds->iconv_info.to_wire == (iconv_t) - 1 || tds->iconv_info.from_wire == (iconv_t) - 1) {
+		tdsdump_log(TDS_DBG_FUNC, "%L iconv library not employed, relying on ISO-8859-1 compatibility\n");
+		return;
+	}
 #if HAVE_ICONV
-	iconv_info->bytes_per_char = 1;
-	strncpy(iconv_info->client_charset, strdup(charset), sizeof(iconv_info->client_charset));
-	iconv_info->client_charset[sizeof(iconv_info->client_charset) - 1] = '\0';
+	strncpy(client->name, charset, sizeof(client->name));
+	client->name[sizeof(client->name) - 1] = '\0';
+
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
-	iconv_info->cdto_ucs2 = iconv_open("UCS-2LE", charset);
-	if (iconv_info->cdto_ucs2 == (iconv_t) - 1) {
-		iconv_info->use_iconv = 0;
+
+	/* TODO init singlebyte server */
+	strncpy(server->name, "UCS-2LE", sizeof(server->name));
+	server->name[sizeof(server->name) - 1] = '\0';
+
+	ratio_c = bytes_per_char(client);
+	if (ratio_c == 0)
+		return;		/* client set unknown */
+
+	ratio_s = bytes_per_char(server);
+	if (ratio_s == 0)
+		return;		/* server set unknown */
+
+	/* 
+	 * How many UTF-8 bytes we need is a function of what the input character set is.
+	 * TODO This could definitely be more sophisticated, but it deals with the common case.
+	 */
+	if (client->min_bytes_per_char == 1 && client->max_bytes_per_char == 4 && server->max_bytes_per_char == 1) {
+		/* ie client is UTF-8 and server is ISO-8859-1 or variant. */
+		client->max_bytes_per_char = 3;
+	}
+
+	tds->iconv_info.to_wire = iconv_open(server->name, client->name);
+	if (tds->iconv_info.to_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert to \"%s\"\n", charset);
 		return;
 	}
-	iconv_info->cdfrom_ucs2 = iconv_open(charset, "UCS-2LE");
-	if (iconv_info->cdfrom_ucs2 == (iconv_t) - 1) {
-		iconv_info->use_iconv = 0;
+	tds->iconv_info.from_wire = iconv_open(client->name, server->name);
+	if (tds->iconv_info.from_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
 		return;
 	}
-	/* TODO init singlebyte server */
-	if (strcasecmp(charset, "utf8") == 0 || strcasecmp(charset, "utf-8") == 0)
-		/* 3 bytes per characters should be sufficient */
-		iconv_info->bytes_per_char = 3;
-	iconv_info->use_iconv = 1;
-#else
-	iconv_info->use_iconv = 0;
-	tdsdump_log(TDS_DBG_FUNC, "%L iconv library not employed, relying on ISO-8859-1 compatibility\n");
 #endif
 }
 
 void
 tds_iconv_close(TDSSOCKET * tds)
 {
-	TDSICONVINFO *iconv_info;
-
-	iconv_info = (TDSICONVINFO *) tds->iconv_info;
-
 #if HAVE_ICONV
-	if (iconv_info->cdto_ucs2 != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdto_ucs2);
+	if (tds->iconv_info.to_wire != (iconv_t) - 1) {
+		iconv_close(tds->iconv_info.to_wire);
 	}
-	if (iconv_info->cdfrom_ucs2 != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdfrom_ucs2);
-	}
-	if (iconv_info->cdto_srv != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdto_srv);
-	}
-	if (iconv_info->cdfrom_srv != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdfrom_srv);
+
+	if (tds->iconv_info.from_wire != (iconv_t) - 1) {
+		iconv_close(tds->iconv_info.from_wire);
 	}
 #endif
+}
+
+/**
+ * \retval number of bytes placed in \a output
+ * \todo Check for variable multibyte non-UTF-8 input character set.  
+ */
+size_t
+tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST char *input, size_t * input_size,
+	  char *output, size_t output_size)
+{
+	const TDS_ENCODING *input_charset = NULL;
+	const char *output_charset_name = NULL;
+
+	int erc;
+
+	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
+
+	char quest_mark[] = "?";	/* best to leave non-const; implementations vary */
+	ICONV_CONST char *pquest_mark = quest_mark;
+	int lquest_mark;
+
+	switch (io) {
+	case to_server:
+		cd = iconv_info->to_wire;
+		input_charset = &iconv_info->client_charset;
+		output_charset_name = iconv_info->server_charset.name;
+		break;
+	case to_client:
+		cd = iconv_info->from_wire;
+		input_charset = &iconv_info->server_charset;
+		output_charset_name = iconv_info->client_charset.name;
+		break;
+	default:
+		cd = (iconv_t) - 1;
+		break;
+	}
+
+	if (cd == (iconv_t) - 1)
+		return 0;
+
+	/*
+	 * Call iconv() as many times as necessary, until we reach the end of input 
+	 * or exhaust output.  
+	 */
+	while (iconv(cd, &input, input_size, &output, &output_size) == (size_t) - 1) {
+		/* iconv call can reset errno */
+		erc = errno;
+		/* reset iconv state */
+		iconv(cd, NULL, NULL, NULL, NULL);
+		if (erc != EILSEQ)
+			break;
+
+		/* skip one input sequence */
+		if (input_charset->min_bytes_per_char == input_charset->min_bytes_per_char) {
+			input += input_charset->min_bytes_per_char;
+			input_size -= input_charset->min_bytes_per_char;
+		} else {
+			/* deal with UTF-8.  Others will just break :-( 
+			 * bytes | bits | representation
+			 *     1 |    7 | 0vvvvvvv
+			 *     2 |   11 | 110vvvvv 10vvvvvv
+			 *     3 |   16 | 1110vvvv 10vvvvvv 10vvvvvv
+			 *     4 |   21 | 11110vvv 10vvvvvv 10vvvvvv 10vvvvvv
+			 */
+			while (*input | 0x80) {
+				input++;
+				input_size--;
+			}
+
+		}
+
+		/* 
+		 * To replace invalid intput with '?', we have to convert an ASCII '?' 
+		 * into the output character set.  In unimaginably weird circumstances, this might  be
+		 * impossible.  
+		 */
+		if (error_cd == (iconv_t) - 1) {
+			error_cd = iconv_open(output_charset_name, "ISO-8859-1");
+			if (error_cd == (iconv_t) - 1)
+				break;	/* what to do? */
+		}
+		lquest_mark = sizeof(quest_mark) - 1;
+		pquest_mark = quest_mark;
+
+		iconv(error_cd, &pquest_mark, &lquest_mark, &output, &output_size);
+
+		if (output_size == 0)
+			break;
+	}
+
+	if (error_cd != (iconv_t) - 1)
+		iconv_close(error_cd);
+
+	return output_size;
 }
 
 void
 tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
 #if HAVE_ICONV
-	char *cp;
-	TDSICONVINFO *iconv_info;
-	iconv_t tmp_cd;
+	int ret;
 
-	iconv_info = (TDSICONVINFO *) tds->iconv_info;
+	const char *charset = lcid2charset(lcid);
 
+	strcpy(tds->iconv_info.server_charset.name, charset);
+
+	/* 
+	 * Close any previously opened iconv descriptors. 
+	 */
+	if (tds->iconv_info.to_wire != (iconv_t) - 1)
+		iconv_close(tds->iconv_info.to_wire);
+
+	if (tds->iconv_info.from_wire != (iconv_t) - 1)
+		iconv_close(tds->iconv_info.from_wire);
+
+	/* look up the size of the server's new character set */
+	ret = bytes_per_char(&tds->iconv_info.server_charset);
+	if (!ret) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds7_srv_charset_changed: cannot convert to \"%s\"\n", charset);
+		tds->iconv_info.to_wire = (iconv_t) - 1;
+		tds->iconv_info.from_wire = (iconv_t) - 1;
+		return;
+	}
+
+
+	tds->iconv_info.to_wire = iconv_open(tds->iconv_info.server_charset.name, tds->iconv_info.client_charset.name);
+
+	tds->iconv_info.from_wire = iconv_open(tds->iconv_info.client_charset.name, tds->iconv_info.server_charset.name);
+#endif
+}
+
+/**
+ * Determine byte/char for an iconv character set.  
+ * \retval 0 failed, no such charset.
+ * \retval 1 succeeded, fixed byte/char.
+ * \retval 2 succeeded, variable byte/char.
+ */
+static int
+bytes_per_char(TDS_ENCODING * charset)
+{
+	TDS_ENCODING charsets[] = {
+#include "character_sets.h"
+	};
+	int i;
+
+	assert(charset && strlen(charset->name) < sizeof(charset->name));
+
+	for (i = 0; i < sizeof(charsets) / sizeof(TDS_ENCODING); i++) {
+		if (charsets[1].min_bytes_per_char == 0)
+			break;
+
+		if (0 == strcmp(charset->name, charsets[i].name)) {
+			charset->min_bytes_per_char = charsets[i].min_bytes_per_char;
+			charset->max_bytes_per_char = charsets[i].max_bytes_per_char;
+
+			return (charset->max_bytes_per_char == charset->min_bytes_per_char) ? 1 : 2;
+		}
+	}
+
+	return 0;
+}
+
+static char *
+lcid2charset(int lcid)
+{
 	/* The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
+
+	char *cp = NULL;
+
 	switch (lcid) {
 	case 0x1040e:		/* FIXME check, in neither table but returned from mssql2k */
 	case 0x405:
@@ -140,7 +308,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
-/* case 0x81a: *//* seem wrong in XP table TODO check */
+		/* case 0x81a: *//* seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
 		cp = "CP1250";
 		break;
@@ -206,7 +374,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	case 0x42d:
 	case 0x436:
 	case 0x438:
-/*case 0x439:  *//*??? Unicode only */
+		/*case 0x439:  *//*??? Unicode only */
 	case 0x43e:
 	case 0x440a:
 	case 0x441:
@@ -296,22 +464,11 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 		cp = "CP1252";
 	}
 
-	tmp_cd = iconv_open(cp, iconv_info->client_charset);
-	if (tmp_cd != (iconv_t) - 1) {
-		if (iconv_info->cdto_srv != (iconv_t) - 1)
-			iconv_close(iconv_info->cdto_srv);
-		iconv_info->cdto_srv = tmp_cd;
-	}
-
-	tmp_cd = iconv_open(iconv_info->client_charset, cp);
-	if (tmp_cd != (iconv_t) - 1) {
-		if (iconv_info->cdfrom_srv != (iconv_t) - 1)
-			iconv_close(iconv_info->cdfrom_srv);
-		iconv_info->cdfrom_srv = tmp_cd;
-	}
-#endif
+	assert(cp);
+	return cp;
 }
 
+#if 0
 /**
  * convert from ucs2 string to ascii.
  * @return saved bytes
@@ -429,5 +586,5 @@ tds7_ascii2unicode(TDSSOCKET * tds, const char *in_string, char *out_string, int
 
 	return out_string;
 }
-
+#endif
 /** \@} */

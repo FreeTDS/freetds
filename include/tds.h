@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.105 2003-04-06 10:00:00 freddy77 Exp $";
+	"$Id: tds.h,v 1.106 2003-04-06 20:34:56 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -30,6 +30,7 @@ static void *no_unused_tds_h_warn[] = {
 #include <stdarg.h>
 #include <time.h>
 
+#include "tdsiconv.h"
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
 #ifdef _FREETDS_LIBRARY_SOURCE
@@ -457,7 +458,7 @@ enum TDS_OPT_ISOLATION_CHOICE {
 			x==SYBIMAGE)
 #define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
 /* large type means it has a two byte size field */
-#define is_large_type(x) (x>128)
+///define is_large_type(x) (x>128)
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
 #define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
@@ -625,37 +626,36 @@ typedef struct
 #define TDS_SF_ACCENT_SENSITIVE      (TDS_USMALLINT) 0x020
 #define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
 
-/** structure for storing data about regular and compute rows */ 
+
+enum {TDS_SYSNAME_SIZE= 512};
+/** 
+ * Metadata about columns in regular and compute rows 
+ */ 
 typedef struct tds_column_info {
-	/** type of data, this type can be different from wire type because 
-	 *conversion can be applied (like Unicode->Single byte characters) */
-	TDS_SMALLINT column_type;
-	/** type of data, saved from wire */
-	TDS_SMALLINT column_type_save;
+	TDS_SMALLINT column_type;	/* This type can be different from wire type because 
+	 				 * conversion (e.g. UCS-2->Ascii) can be applied.    
+					 */	
+	TDS_SMALLINT column_type_save;	/* type of data, saved from wire */
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
-	/** maximun size of data. For fixed is the size. */
-	TDS_INT column_size;
-	/** size of length when reading from wire (0, 1, 2 or 4) */
-	TDS_TINYINT column_varint_size;
-	/** precision for decimal/numeric */
-	TDS_TINYINT column_prec;
-	/** scale for decimal/numeric */
-	TDS_TINYINT column_scale;
-	/** length of column name */
-	TDS_TINYINT column_namelen;
+	
+	TDS_INT column_size;		/* maximun size of data. For fixed is the size. */
+	
+	TDS_TINYINT column_varint_size;	/* size of length when reading from wire (0, 1, 2 or 4) */
+	
+	TDS_TINYINT column_prec;	/* precision for decimal/numeric */
+	TDS_TINYINT column_scale;	/* scale for decimal/numeric */
+
+	TDS_TINYINT column_namelen;	/* length of column name */
 	TDS_TINYINT table_namelen;
-	/** table name */
-	TDS_CHAR table_name[256];
-	/* FIXME why 256. bigger limit is 128 ucs2 character ....*/
-	/** column name */
-	TDS_CHAR column_name[256];
-	/** offset into row buffer for store data */
-	TDS_INT column_offset;
+
+	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
+	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
+
+	TDS_INT column_offset;		/* offset into row buffer for store data */
 	unsigned int column_nullable:1;
 	unsigned int column_writeable:1;
 	unsigned int column_identity:1;
-	unsigned int column_unicodedata:1;
 	unsigned int column_output:1;
 	TDS_UCHAR    column_collation[5];
 
@@ -817,7 +817,7 @@ struct tds_socket {
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
-	void *iconv_info;
+	TDSICONVINFO iconv_info;
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
@@ -904,8 +904,8 @@ const char *tds_prtype(int token);
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
 void tds_iconv_close(TDSSOCKET *tds);
-char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
-int tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, int in_len, char *out_string, int out_len);
+//ar *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
+//t tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, int in_len, char *out_string, int out_len);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
  
 /* threadsafe.c */
