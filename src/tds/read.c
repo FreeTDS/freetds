@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.14 2002-09-04 11:38:19 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.15 2002-09-06 11:42:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,6 +52,7 @@ fd_set fds;
 time_t start, now;
 struct timeval selecttimeout;
 
+	FD_ZERO (&fds);
 	if (tds->timeout) {
 		start = time(NULL);
 		now = start;
@@ -61,8 +62,6 @@ struct timeval selecttimeout;
 			int timeleft = tds->timeout;
 			len = 0;
 			retcode = 0;
-
-			FD_ZERO (&fds);
 
 			do {
 				FD_SET (tds->s, &fds);
@@ -95,9 +94,12 @@ struct timeval selecttimeout;
 	} else {
 		/* got = READ(tds->s, buf, buflen); */
 		while (got < buflen) {
-			int len = READ(tds->s, buf + got, buflen - got);
+			int len;
+			FD_SET (tds->s, &fds);
+			select (tds->s + 1, &fds, NULL, NULL, NULL);
+			len = READ(tds->s, buf + got, buflen - got);
 			if (len <= 0) {
-				if (len < 0 && errno == EINTR) len = 0;
+				if (len < 0 && (errno == EINTR || errno == EINPROGRESS)) len = 0;
 				else return (-1); /* SOCKET_ERROR); */
 			}  
 			got += len;
@@ -292,7 +294,9 @@ int           x = 0, have, need;
 	/* Read in the packet header.  We use this to figure out our packet 
 	** length */
 
-	if ((len = goodread(tds, header, sizeof(header))) < sizeof(header) ) {
+	/* Cast to int are needed because some compiler seem to convert
+	 * len to unsigned (as FreeBSD 4.5 one)*/
+	if ((len = goodread(tds, header, sizeof(header))) < (int)sizeof(header) ) {
 		/* GW ADDED */
 		if (len<0) {
 			/* FIX ME -- get the exact err num and text */
@@ -316,6 +320,7 @@ int           x = 0, have, need;
 		}
 		return -1;
 	}
+	tdsdump_log(TDS_DBG_NETWORK, "Received header @ %L\n%D\n", header, sizeof(header));
 
 /* Note:
 ** this was done by Gregg, I don't think its the real solution (it breaks
@@ -335,18 +340,20 @@ int           x = 0, have, need;
 	}
  
         /* Convert our packet length from network to host byte order */
-        /* Only safe as long as local short length is 2 bytes */
-        len = ntohs(*(short*)&header[2])-8;
+        len = ((((unsigned int)header[2])<<8)|header[3])-8;
         need=len;
 
         /* If this packet size is the largest we have gotten allocate 
 	** space for it */
 	if (len > tds->in_buf_max) {
+		unsigned char *p;
 		if (! tds->in_buf) {
-			tds->in_buf = (unsigned char*)malloc(len);
+			p = (unsigned char*)malloc(len);
 		} else {
-			tds->in_buf = (unsigned char*)realloc(tds->in_buf, len);
+			p = (unsigned char*)realloc(tds->in_buf, len);
 		}
+		if (!p) return -1; /* FIXME should close socket too */
+		tds->in_buf = p;
 		/* Set the new maximum packet size */
 		tds->in_buf_max = len;
 	}

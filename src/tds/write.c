@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.12 2002-08-30 20:33:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.13 2002-09-06 11:42:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -120,6 +120,7 @@ int tds_init_write_buf(TDSSOCKET *tds)
 	return 0;
 }
 
+/* TODO this code should be similar to read one... */
 static int 
 tds_check_socket_write(TDSSOCKET *tds)
 {
@@ -129,8 +130,21 @@ time_t start, now;
 fd_set fds;
  
 	/* Jeffs hack *** START OF NEW CODE */
-	start = time(NULL);
 	FD_ZERO (&fds);
+
+	if (!tds->timeout) {
+		for(;;) {
+			FD_SET (tds->s, &fds);
+			retcode = select (tds->s + 1, NULL, &fds, NULL, NULL);
+			/* write available */
+			if (retcode >= 0) return 0;
+			/* interrupted */
+			if (errno == EINTR) continue;
+			/* error, leave caller handle problems*/
+			return -1;
+		}
+	}
+	start = time(NULL);
 	now = start;
  
 	while ((retcode == 0) && ((now-start) < tds->timeout)) {
@@ -164,10 +178,8 @@ int retval;
 	while (left > 0) {
 		/* If there's a timeout, we need to sit and wait for socket */
 		/* writability */
-		if (tds->timeout) {
-			/* moved socket writability check to own function -- bsb */
-			tds_check_socket_write(tds);
-		}
+		/* moved socket writability check to own function -- bsb */
+		tds_check_socket_write(tds);
 
 		retval = WRITE(tds->s,p,left);
 

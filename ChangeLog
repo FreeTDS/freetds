@@ -1,3 +1,8 @@
+Fri Sep  6 13:16:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c src/tds/write.c:
+	- work if not blocking socket (call always select)
+	- workaround for bug in FreeBSD compiler that result in code dump
+
 Fri Sep  6 09:22:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/t0001.c:
 	- fix text values retrieve and SQLGetData
