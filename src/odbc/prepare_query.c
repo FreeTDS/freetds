@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.20 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.20.2.1 2003-08-18 16:08:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -97,7 +97,7 @@ _get_sql_textsize(struct _sql_param_info *param)
 
 
 static int
-_get_param_textsize(TDS_STMT *stmt, struct _sql_param_info *param)
+_get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
 {
 	int len = 0;
 
@@ -126,7 +126,7 @@ _get_param_textsize(TDS_STMT *stmt, struct _sql_param_info *param)
 }
 
 static int
-_calculate_params_size(TDS_STMT *stmt)
+_calculate_params_size(TDS_STMT * stmt)
 {
 	int i;
 	int len = 0;
@@ -214,7 +214,7 @@ _fix_commas(char *s, int s_len)
 	buf_beg = s;
 	buf_end = s + s_len - 1;
 	len = s_len;
-	while ((pcomma = (char*) memchr(buf_beg, comma, len))) {
+	while ((pcomma = (char *) memchr(buf_beg, comma, len))) {
 		++commas_cnt;
 		buf_beg = pcomma + 1;
 		len = buf_end - pcomma;
@@ -297,7 +297,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(context, param->param_bindtype, param->varaddr, -1, d, -1, *param->param_lenbind);
+			len = convert_sql2string(context, param->param_bindtype, param->varaddr, *param->param_lenbind, d, -1);
 			if (TDS_FAIL == len)
 				return SQL_ERROR;
 
@@ -382,7 +382,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		StrLen_or_Ind = need_bytes;
 
 	/* put parameter into query */
-	len = convert_sql2string(context, param->param_bindtype, (const TDS_CHAR*) DataPtr, StrLen_or_Ind, d, -1, StrLen_or_Ind);
+	len = convert_sql2string(context, param->param_bindtype, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
 	if (TDS_FAIL == len)
 		return SQL_ERROR;
 

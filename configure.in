@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.82.2.5 2003-08-02 15:29:28 jklowden Exp $
+dnl $Id: configure.in,v 1.82.2.6 2003-08-18 16:08:19 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -227,8 +227,8 @@ if test "$with_iodbc"; then
 	if echo "$with_iodbc" | grep -v '^/'; then
 		with_iodbc="$PWD/$with_iodbc"
 	fi
-	CPPFLAGS="$CPPFLAGS -DIODBC";
-	ODBC_INC=$with_iodbc/include;
+	CPPFLAGS="$CPPFLAGS -DIODBC"
+	ODBC_INC=$with_iodbc/include
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
 	odbc=true
 fi
