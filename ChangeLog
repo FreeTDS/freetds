@@ -1,11 +1,16 @@
-Wed May 29 21:15:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Fri May 30 10:43:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/token.c:
+	- reset rows_affected on results
+	- fix ODBC moreandcount test
+
+Thu May 29 21:15:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c: fix typo in dump
 
-Wed May 29 21:07:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Thu May 29 21:07:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- fix core if execute prepared statement with no parameters
 
-Wed May 29 14:10:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Thu May 29 14:10:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/tds/query.c src/tds/token.c:
 	- some fix for prepare and RPC
 

@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.175 2003-05-29 12:11:44 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.176 2003-05-30 08:45:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1174,9 +1174,7 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 		case TDS_CMD_DONE:
-			/* FIXME should just return ?? what happen on INSERT query ? */
-			if (tds->res_info)
-				done = 1;
+			done = 1;
 			break;
 			/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
@@ -1345,14 +1343,8 @@ SQLExecute(SQLHSTMT hstmt)
 			break;
 
 		case TDS_CMD_DONE:
-			/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (unwanted), 
-			 * do a better job under mssql (it return operation type in DONE), 
-			 * see Sybase and MS ODBC exact behaviour, 
-			 * update moreandcount test  */
-			if (tds->res_info) {
-				result = SQL_SUCCESS;
-				done = 1;
-			}
+			result = SQL_SUCCESS;
+			done = 1;
 			break;
 
 		case TDS_STATUS_RESULT:

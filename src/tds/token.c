@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.195 2003-05-29 12:11:44 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.196 2003-05-30 08:45:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -864,6 +864,7 @@ tds_process_col_name(TDSSOCKET * tds)
 
 	/* free results/computes/params etc... */
 	tds_free_all_results(tds);
+	tds->rows_affected = TDS_NO_COUNT;
 
 	info = tds_alloc_results(num_cols);
 	tds->curr_resinfo = tds->res_info = info;
@@ -1296,6 +1297,7 @@ tds7_process_result(TDSSOCKET * tds)
 	TDSRESULTINFO *info;
 
 	tds_free_all_results(tds);
+	tds->rows_affected = TDS_NO_COUNT;
 
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
@@ -1398,6 +1400,7 @@ tds_process_result(TDSSOCKET * tds)
 	TDSRESULTINFO *info;
 
 	tds_free_all_results(tds);
+	tds->rows_affected = TDS_NO_COUNT;
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -1449,6 +1452,7 @@ tds5_process_result(TDSSOCKET * tds)
 	 * free previous resultset
 	 */
 	tds_free_all_results(tds);
+	tds->rows_affected = TDS_NO_COUNT;
 
 	/*
 	 * read length of packet (4 bytes)
