@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.2 2003-08-30 13:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.3 2003-08-30 17:10:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -62,7 +62,6 @@ static void
 odbc_check_drecord(struct _drecord *drec)
 {
 	const int invalid_desc_type = 0;
-	const int invalid_concise_type = 0;
 	const int invalid_datetime_interval_code = 0;
 	int concise_type = 0;
 

@@ -1,3 +1,10 @@
+Sat Aug 30 19:10:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_checks.c:
+	- continue merging Steve Murphree patch
+	 - SQLGetCursorName/SQLSetCursorName
+	 - SQLSetStmtAttr (with --enable-developing swicth)
+	- fix compilation warning if TDS_NO_DM is defined
+
 Sat Aug 30 15:31:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt: updated
 	* include/tdsodbc.h src/odbc/descriptor.c src/odbc/odbc.c:
