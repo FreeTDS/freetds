@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.125 2002-12-10 17:01:45 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.126 2002-12-14 14:13:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1809,6 +1809,8 @@ TDSDYNAMIC *dyn;
 
 		/* skip locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
+
+		tds_add_row_column_size(info, curcol);
 	}
 
 	info->current_row = tds_alloc_row(info);

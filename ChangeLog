@@ -1,3 +1,8 @@
+Sat Dec 14 15:12:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0009.c src/tds/mem.c src/tds/token.c:
+	- fix error in ctlib test t0009 (we didn't reserve space for
+	  nullable data in compute results)
+
 Fri Dec 13 15:59:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0009.c: avoid print garbage data
 

@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.7 2002-12-13 15:00:56 freddy77 Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.8 2002-12-14 14:13:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve compute results */
@@ -196,6 +196,11 @@ main(int argc, char *argv[])
 				return 1;
 			}
 
+			if (compute_id != 1 && compute_id != 2) {
+				fprintf(stderr, "invalid compute_id value");
+				return 1;
+			}
+
 			if (compute_id == 1) {
 				ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
 				if (ret != CS_SUCCEED) {
@@ -262,10 +267,15 @@ main(int argc, char *argv[])
 				} else {	/* ret == CS_SUCCEED */
 					if (compute_id == 1) {
 						fprintf(stdout, "compute_col1 = %d \n", compute_col1);
+						if (compute_col1 != 6 && compute_col1 != 17) {
+							printf(stderr, "(should be 6 or 17)\n");
+							return 1;
+						}
 					}
 					if (compute_id == 2) {
 						fprintf(stdout, "compute_col3 = '%s'\n", compute_col3);
-						if (strcmp("Jan  5 2002 10:00:00AM", compute_col3)) {
+						if (strcmp("Jan  5 2002 10:00:00AM", compute_col3)
+						    && strcmp("Jan  5 2002 10:00AM", compute_col3)) {
 							fprintf(stderr, "(should be \"Jan  5 2002 10:00:00AM\")\n");
 							return 1;
 						}
