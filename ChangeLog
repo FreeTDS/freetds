@@ -1,3 +1,7 @@
+Tue Sep 24 20:50:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	- removed msg_info field of TDSSOCKET
+
 Tue Sep 24 12:53:14 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dbutil.c src/tds/token.c:
 	- Generate the SYBESMSG error from the DB-Library layer, not the

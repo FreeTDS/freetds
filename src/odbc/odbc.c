@@ -60,7 +60,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.59 2002-09-23 23:05:22 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.60 2002-09-24 18:51:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1111,7 +1111,7 @@ _SQLExecute( SQLHSTMT hstmt)
 
     if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED))
     {
-        odbc_LogError (tds->msg_info->message);
+/*        odbc_LogError (tds->msg_info->message); */
         return SQL_ERROR;
     }
     stmt->hdbc->current_statement = stmt;

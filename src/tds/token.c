@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.60 2002-09-24 17:05:33 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.61 2002-09-24 18:51:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1146,6 +1146,7 @@ TDSMSGINFO msg_info;
         	msg_info.line_number=line;
         	msg_info.message=strdup(message);
         	ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
+		tds_free_msg(&msg_info);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
 		if (ret && tds) {
@@ -1268,43 +1269,44 @@ int len;
 int len_msg;
 int len_svr;
 int len_sqlstate;
+TDSMSGINFO msg_info;
 
 	/* make sure message has been freed */
-	tds_free_msg(tds->msg_info);
+	memset(&msg_info, 0, sizeof(TDSMSGINFO));
 
 	/* packet length */
 	len = tds_get_smallint(tds);
 
 	/* message number */
 	rc = tds_get_int(tds);
-	tds->msg_info->msg_number = rc;
+	msg_info.msg_number = rc;
 
 	/* msg state */
-	tds->msg_info->msg_state = tds_get_byte(tds);
+	msg_info.msg_state = tds_get_byte(tds);
 
 	/* msg level */
-	tds->msg_info->msg_level = tds_get_byte(tds);
+	msg_info.msg_level = tds_get_byte(tds);
 
 	/* determine if msg or error */
 	if (marker==TDS_EED_TOKEN) {
-		if (tds->msg_info->msg_level<=10) 
-                    tds->msg_info->priv_msg_type = 0;
+		if (msg_info.msg_level<=10) 
+                    msg_info.priv_msg_type = 0;
 		else 
-                    tds->msg_info->priv_msg_type = 1;
+                    msg_info.priv_msg_type = 1;
 		/* junk this info for now */
 		len_sqlstate = tds_get_byte(tds);
-		tds->msg_info->sql_state = (char*)malloc(len_sqlstate+1);
-		tds_get_n(tds, tds->msg_info->sql_state,len_sqlstate);
-		tds->msg_info->sql_state[len_sqlstate] = '\0';
+		msg_info.sql_state = (char*)malloc(len_sqlstate+1);
+		tds_get_n(tds, msg_info.sql_state,len_sqlstate);
+		msg_info.sql_state[len_sqlstate] = '\0';
 
 		/* unknown values */
 		tds_get_byte(tds);
 		tds_get_smallint(tds);
 	} 
 	else if (marker==TDS_MSG_TOKEN) {
-		tds->msg_info->priv_msg_type = 0;
+		msg_info.priv_msg_type = 0;
 	} else if (marker==TDS_ERR_TOKEN) {
-		tds->msg_info->priv_msg_type = 1;
+		msg_info.priv_msg_type = 1;
 	} else {
 		tdsdump_log(TDS_DBG_ERROR,"tds_process_msg() called with unknown marker!\n");
 		return TDS_FAIL;
@@ -1312,29 +1314,29 @@ int len_sqlstate;
 
 	/* the message */
 	len_msg = tds_get_smallint(tds);
-	tds->msg_info->message = (char*)malloc(len_msg+1);
-	tds_get_string(tds, tds->msg_info->message, len_msg);
-	tds->msg_info->message[len_msg] = '\0';
+	msg_info.message = (char*)malloc(len_msg+1);
+	tds_get_string(tds, msg_info.message, len_msg);
+	msg_info.message[len_msg] = '\0';
 
 	/* server name */
 	len_svr = tds_get_byte(tds);
-	tds->msg_info->server = (char*)malloc(len_svr+1);
-	tds_get_string(tds, tds->msg_info->server, len_svr);
-	tds->msg_info->server[len_svr] = '\0';
+	msg_info.server = (char*)malloc(len_svr+1);
+	tds_get_string(tds, msg_info.server, len_svr);
+	msg_info.server[len_svr] = '\0';
 
 	/* stored proc name if available */
 	rc = tds_get_byte(tds);
 	if (rc) {
 		tds_unget_byte(tds);
-		tds->msg_info->proc_name=tds_msg_get_proc_name(tds);
+		msg_info.proc_name=tds_msg_get_proc_name(tds);
 	} else {
-		tds->msg_info->proc_name=strdup("");
+		msg_info.proc_name=strdup("");
 	}
 
 	/* line number in the sql statement where the problem occured */
-	tds->msg_info->line_number = tds_get_smallint(tds);
+	msg_info.line_number = tds_get_smallint(tds);
 
-	if (tds->msg_info->priv_msg_type)  {
+	if (msg_info.priv_msg_type)  {
 		rc = TDS_ERROR;
 	} else {
 		rc = TDS_SUCCEED;
@@ -1346,19 +1348,19 @@ int len_sqlstate;
 
 	if (tds->tds_ctx->msg_handler) {
 	  /* First, invoke the message handler. */
-	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, tds->msg_info);
+	  tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg_info);
 	} else {
-		if (tds->msg_info->msg_number)
+		if (msg_info.msg_number)
 			tdsdump_log(TDS_DBG_WARN,
 			"%L Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-			tds->msg_info->msg_number,
-			tds->msg_info->msg_level,
-			tds->msg_info->msg_state,
-			tds->msg_info->server,
-			tds->msg_info->line_number,
-			tds->msg_info->message);
+			msg_info.msg_number,
+			msg_info.msg_level,
+			msg_info.msg_state,
+			msg_info.server,
+			msg_info.line_number,
+			msg_info.message);
 	}
-	tds_free_msg(tds->msg_info);
+	tds_free_msg(&msg_info);
 	return rc;
 }
 

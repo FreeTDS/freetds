@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.25 2002-09-23 23:05:22 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.26 2002-09-24 18:51:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -469,8 +469,6 @@ TDSICONVINFO *iconv;
 	tds_socket->tds_ctx = context;
 	tds_socket->in_buf_max=0;
 	TEST_MALLOCN(tds_socket->out_buf,unsigned char,bufsize);
-	TEST_MALLOC(tds_socket->msg_info,TDSMSGINFO);
-	memset(tds_socket->msg_info,'\0',sizeof(TDSMSGINFO));
 	tds_socket->parent = (char*)NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
 		goto Cleanup;
@@ -502,10 +500,6 @@ TDSICONVINFO *iconv_info;
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		tds_free_dynamic(tds);
-		if (tds->msg_info) {
-			tds_free_msg(tds->msg_info); /* dnr */
-			TDS_ZERO_FREE(tds->msg_info);
-		}
 		if (tds->in_buf) TDS_ZERO_FREE(tds->in_buf);
 		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
 		tds_close_socket(tds);
