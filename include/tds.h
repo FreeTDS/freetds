@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.70 2002-12-22 14:08:44 freddy77 Exp $";
+	"$Id: tds.h,v 1.71 2002-12-25 11:19:32 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -160,45 +160,45 @@ enum tds_end {
 
 
 /*
-** TDS_ERROR indicates a successful processing, but an TDS_ERR_TOKEN or 
+** TDS_ERROR indicates a successful processing, but an TDS_ERROR_TOKEN or 
 ** TDS_EED_TOKEN error was encountered, whereas TDS_FAIL indicates an
 ** unrecoverable failure.
 */
 #define TDS_ERROR            3  
 #define TDS_DONT_RETURN      42
 
-#define TDS5_DYN_TOKEN      231  /* 0xE7    TDS 5.0 only              */
-#define TDS5_PARAMFMT_TOKEN 236  /* 0xEC    TDS 5.0 only              */
-#define TDS5_PARAMS_TOKEN   215  /* 0xD7    TDS 5.0 only              */
-#define TDS_LANG_TOKEN       33  /* 0x21    TDS 5.0 only              */
-#define TDS_CLOSE_TOKEN     113  /* 0x71    TDS 5.0 only? ct_close()  */
-#define TDS_RET_STAT_TOKEN  121  /* 0x79                              */
-#define TDS_PROCID_TOKEN    124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
-#define TDS7_RESULT_TOKEN   129  /* 0x81    TDS 7.0 only              */
-#define TDS7_COMPUTE_RESULT_TOKEN   136  /* 0x88    TDS 7.0 only              */
-#define TDS_COL_NAME_TOKEN  160  /* 0xA0    TDS 4.2 only              */
-#define TDS_COLFMT_TOKEN    161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
-#define TDS_TABNAME_TOKEN   164
-#define TDS_COLINFO_TOKEN   165
+#define TDS_LANGUAGE_TOKEN         33  /* 0x21    TDS 5.0 only              */
+#define TDS_LOGOUT_TOKEN          113  /* 0x71    TDS 5.0 only? ct_close()  */
+#define TDS_RETURNSTATUS_TOKEN    121  /* 0x79                              */
+#define TDS_PROCID_TOKEN          124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
+#define TDS7_RESULT_TOKEN         129  /* 0x81    TDS 7.0 only              */
+#define TDS7_COMPUTE_RESULT_TOKEN 136  /* 0x88    TDS 7.0 only              */
+#define TDS_COLNAME_TOKEN         160  /* 0xA0    TDS 4.2 only              */
+#define TDS_COLFMT_TOKEN          161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
+#define TDS_TABNAME_TOKEN         164  /* 0xA4 */
+#define TDS_COLINFO_TOKEN         165  /* 0xA5 */
 #define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7                        */
 #define TDS_COMPUTE_RESULT_TOKEN  168  /* 0xA8                        */
-#define TDS_ORDER_BY_TOKEN  169  /* 0xA9    TDS_ORDER                 */
-#define TDS_ERR_TOKEN       170  /* 0xAA                              */
-#define TDS_MSG_TOKEN       171  /* 0xAB                              */
-#define TDS_PARAM_TOKEN     172  /* 0xAC    RETURNVALUE?              */
-#define TDS_LOGIN_ACK_TOKEN 173  /* 0xAD                              */
-#define TDS_CONTROL_TOKEN   174  /* 0xAE    TDS_CONTROL               */
-#define TDS_ROW_TOKEN       209  /* 0xD1                              */
-#define TDS_CMP_ROW_TOKEN   211  /* 0xD3                              */
-#define TDS_CAP_TOKEN       226  /* 0xE2                              */
-#define TDS_ENV_CHG_TOKEN   227  /* 0xE3                              */
-#define TDS_EED_TOKEN       229  /* 0xE5                              */
-#define TDS_DBRPC_TOKEN     230  /* 0xE6                              */
-#define TDS_AUTH_TOKEN      237  /* 0xED                              */
-#define TDS_RESULT_TOKEN    238  /* 0xEE                              */
-#define TDS_DONE_TOKEN      253  /* 0xFD    TDS_DONE                  */
-#define TDS_DONEPROC_TOKEN  254  /* 0xFE    TDS_DONEPROC              */
-#define TDS_DONEINPROC_TOKEN 255  /* 0xFF    TDS_DONEINPROC            */
+#define TDS_ORDERBY_TOKEN         169  /* 0xA9    TDS_ORDER                 */
+#define TDS_ERROR_TOKEN           170  /* 0xAA                              */
+#define TDS_INFO_TOKEN            171  /* 0xAB                              */
+#define TDS_PARAM_TOKEN           172  /* 0xAC    RETURNVALUE?              */
+#define TDS_LOGINACK_TOKEN        173  /* 0xAD                              */
+#define TDS_CONTROL_TOKEN         174  /* 0xAE    TDS_CONTROL               */
+#define TDS_ROW_TOKEN             209  /* 0xD1                              */
+#define TDS_CMP_ROW_TOKEN         211  /* 0xD3                              */
+#define TDS5_PARAMS_TOKEN         215  /* 0xD7    TDS 5.0 only              */
+#define TDS_CAPABILITY_TOKEN      226  /* 0xE2                              */
+#define TDS_ENVCHANGE_TOKEN       227  /* 0xE3                              */
+#define TDS_EED_TOKEN             229  /* 0xE5                              */
+#define TDS_DBRPC_TOKEN           230  /* 0xE6                              */
+#define TDS5_DYNAMIC_TOKEN        231  /* 0xE7    TDS 5.0 only              */
+#define TDS5_PARAMFMT_TOKEN       236  /* 0xEC    TDS 5.0 only              */
+#define TDS_AUTH_TOKEN            237  /* 0xED                              */
+#define TDS_RESULT_TOKEN          238  /* 0xEE                              */
+#define TDS_DONE_TOKEN            253  /* 0xFD    TDS_DONE                  */
+#define TDS_DONEPROC_TOKEN        254  /* 0xFE    TDS_DONEPROC              */
+#define TDS_DONEINPROC_TOKEN      255  /* 0xFF    TDS_DONEINPROC            */
 
 /* states for tds_process_messages() */
 #define PROCESS_ROWS    0
@@ -288,14 +288,14 @@ sheesh! </rant>
 #define is_hard_end_token(x) (x==TDS_DONE_TOKEN    || \
 			x==TDS_DONEPROC_TOKEN)
 
-#define is_msg_token(x) (x==TDS_MSG_TOKEN    || \
-			x==TDS_ERR_TOKEN    || \
+#define is_msg_token(x) (x==TDS_INFO_TOKEN    || \
+			x==TDS_ERROR_TOKEN    || \
 			x==TDS_EED_TOKEN)
 
 #define is_result_token(x) (x==TDS_RESULT_TOKEN    || \
 			x==TDS7_RESULT_TOKEN    || \
 			x==TDS_COLFMT_TOKEN    || \
-			x==TDS_COL_NAME_TOKEN)
+			x==TDS_COLNAME_TOKEN)
 
 /* FIX ME -- not a complete list */
 #define is_fixed_type(x) (x==SYBINT1    || \

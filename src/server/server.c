@@ -28,7 +28,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.13 2002-12-22 14:08:44 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.14 2002-12-25 11:19:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -36,7 +36,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 {
 	TDS_SMALLINT totsize;
 
-	tds_put_byte(tds, TDS_ENV_CHG_TOKEN);
+	tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 	switch (type) {
 		/* database */
 	case 1:
@@ -106,7 +106,7 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 {
 	int msgsz;
 
-	tds_put_byte(tds, TDS_MSG_TOKEN);
+	tds_put_byte(tds, TDS_INFO_TOKEN);
 	msgsz = 4		/* msg no    */
 		+ 1		/* msg state */
 		+ 1		/* severity  */
@@ -131,13 +131,13 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 void
 tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
-	tds_put_byte(tds, TDS_ERR_TOKEN);
+	tds_put_byte(tds, TDS_ERROR_TOKEN);
 }
 
 void
 tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 {
-	tds_put_byte(tds, TDS_LOGIN_ACK_TOKEN);
+	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
 	tds_put_smallint(tds, 10 + strlen(progname));	/* length of message */
 	if IS_TDS42
 		(tds) {
@@ -162,7 +162,7 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 void
 tds_send_capabilities_token(TDSSOCKET * tds)
 {
-	tds_put_byte(tds, TDS_CAP_TOKEN);
+	tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
 	tds_put_byte(tds, 18);
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 1);
@@ -213,7 +213,7 @@ tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 int col, hdrsize = 0;
 TDSCOLINFO *curcol;
 
-	tds_put_byte(tds, TDS_COL_NAME_TOKEN);
+	tds_put_byte(tds, TDS_COLNAME_TOKEN);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
 		hdrsize += strlen(curcol->column_name) + 2;

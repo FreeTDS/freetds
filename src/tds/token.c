@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.128 2002-12-22 14:08:44 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.129 2002-12-25 11:19:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -102,7 +102,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_AUTH_TOKEN:
 		tds_process_auth(tds);
 		break;
-	case TDS_ENV_CHG_TOKEN:
+	case TDS_ENVCHANGE_TOKEN:
 		tds_process_env_chg(tds);
 		break;
 	case TDS_DONE_TOKEN:
@@ -117,16 +117,16 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_PROCID_TOKEN:
 		tds_get_n(tds, NULL, 8);
 		break;
-	case TDS_RET_STAT_TOKEN:
+	case TDS_RETURNSTATUS_TOKEN:
 		tds->has_status = 1;
 		tds->ret_status = tds_get_int(tds);
 		break;
-	case TDS_ERR_TOKEN:
-	case TDS_MSG_TOKEN:
+	case TDS_ERROR_TOKEN:
+	case TDS_INFO_TOKEN:
 	case TDS_EED_TOKEN:
 		tds_process_msg(tds, marker);
 		break;
-	case TDS_CAP_TOKEN:
+	case TDS_CAPABILITY_TOKEN:
 		/* TODO split two part of capability and use it */
 		tok_size = tds_get_smallint(tds);
 		tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
@@ -142,7 +142,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_RESULT_TOKEN:
 		tds_process_result(tds);
 		break;
-	case TDS_COL_NAME_TOKEN:
+	case TDS_COLNAME_TOKEN:
 		tds_process_col_name(tds);
 		break;
 	case TDS_ROW_TOKEN:
@@ -157,9 +157,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		/* save params */
 		tds_process_params_result_token(tds);
 		break;
-	case TDS5_DYN_TOKEN:
-	case TDS_LOGIN_ACK_TOKEN:
-	case TDS_ORDER_BY_TOKEN:
+	case TDS5_DYNAMIC_TOKEN:
+	case TDS_LOGINACK_TOKEN:
+	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN: /* used for FOR BROWSE query */
 	case TDS_COLINFO_TOKEN:
@@ -232,7 +232,7 @@ TDS_UINT product_version;
 		case TDS_AUTH_TOKEN:
 			tds_process_auth(tds);
 			break;
-		case TDS_LOGIN_ACK_TOKEN:
+		case TDS_LOGINACK_TOKEN:
 			/* TODO function */
 			len = tds_get_smallint(tds);
 			ack = tds_get_byte(tds);
@@ -414,8 +414,8 @@ int done_flags;
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
 
 		switch (marker) {
-		case TDS_ERR_TOKEN:
-		case TDS_MSG_TOKEN:
+		case TDS_ERROR_TOKEN:
+		case TDS_INFO_TOKEN:
 		case TDS_EED_TOKEN:
 			tds_process_msg(tds, marker);
 			break;
@@ -429,7 +429,7 @@ int done_flags;
 			*result_type = TDS_ROWFMT_RESULT;
 			return TDS_SUCCEED;
 			break;
-		case TDS_COL_NAME_TOKEN:
+		case TDS_COLNAME_TOKEN:
 			tds_process_col_name(tds);
 			break;
 		case TDS_COLFMT_TOKEN:
@@ -470,13 +470,13 @@ int done_flags;
 			tds_unget_byte(tds);
 			return TDS_SUCCEED;
 			break;
-		case TDS_RET_STAT_TOKEN:
+		case TDS_RETURNSTATUS_TOKEN:
 			tds->has_status = 1;
 			tds->ret_status = tds_get_int(tds);
 			*result_type = TDS_STATUS_RESULT;
 			return TDS_SUCCEED;
 			break;
-		case TDS5_DYN_TOKEN:
+		case TDS5_DYNAMIC_TOKEN:
 			/* TODO correct? */
 			tds->cur_dyn = tds_process_dynamic(tds);
 			break;
@@ -1606,9 +1606,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
 		tds->cur_dyn = NULL;
-	} else if (marker == TDS_MSG_TOKEN) {
+	} else if (marker == TDS_INFO_TOKEN) {
 		msg_info.priv_msg_type = 0;
-	} else if (marker == TDS_ERR_TOKEN) {
+	} else if (marker == TDS_ERROR_TOKEN) {
 		msg_info.priv_msg_type = 1;
 	} else {
 		tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() called with unknown marker!\n");
@@ -1833,7 +1833,7 @@ tds_get_token_size(int marker)
 	case TDS_DONEPROC_TOKEN:
 	case TDS_DONEINPROC_TOKEN:
 		return 8;
-	case TDS_RET_STAT_TOKEN:
+	case TDS_RETURNSTATUS_TOKEN:
 		return 4;
 	case TDS_PROCID_TOKEN:
 		return 8;

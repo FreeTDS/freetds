@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.65 2002-12-20 21:44:20 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.66 2002-12-25 11:19:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -63,7 +63,7 @@ extern const int tds_numeric_bytes_per_prec[];
  * tds_submit_query() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
- * TDS_LANG_TOKEN to encapsulate the query and a packet type of 0x0f.
+ * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
  * @param query language query to submit
  * @return TDS_FAIL or TDS_SUCCEED
  */
@@ -92,7 +92,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 	query_len = strlen(query);
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
-		tds_put_byte(tds, TDS_LANG_TOKEN);
+		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
 		tds_put_int(tds, query_len + 1);
 		tds_put_byte(tds, 0);
 		tds_put_n(tds, query, query_len);
@@ -316,7 +316,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	tds->out_flag = 0x0F;
 
 	id_len = strlen(dyn->id);
-	tds_put_byte(tds, TDS5_DYN_TOKEN);
+	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	tds_put_smallint(tds, query_len + id_len * 2 + 21);
 	tds_put_byte(tds, 0x01);
 	tds_put_byte(tds, 0x00);
@@ -552,7 +552,7 @@ int i;
 	/* dynamic id */
 	id_len = strlen(dyn->id);
 
-	tds_put_byte(tds, TDS5_DYN_TOKEN);
+	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	tds_put_smallint(tds, id_len + 5);
 	tds_put_byte(tds, 0x02);
 	tds_put_byte(tds, 0x01);
@@ -677,7 +677,7 @@ int id_len;
 	/* dynamic id */
 	id_len = strlen(dyn->id);
 
-	tds_put_byte(tds, TDS5_DYN_TOKEN);
+	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	tds_put_smallint(tds, id_len + 5);
 	tds_put_byte(tds, 0x04);
 	tds_put_byte(tds, 0x00);
