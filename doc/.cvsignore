@@ -4,4 +4,5 @@ freebcp.1
 html
 tsql.1
 userguide.tgz
+libtds
 
