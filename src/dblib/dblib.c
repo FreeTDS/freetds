@@ -56,12 +56,12 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.124 2003-03-07 15:58:05 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.125 2003-03-11 20:31:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO * colinfo);
-static char *_dbprdate(char *timestr);
+static char *_dbprdate(void);
 
 static void _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen);
 
@@ -833,11 +833,10 @@ char temp_filename[256];
 	buffer_init(&(dbproc->row_buf));
 
 	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
-		/* FIXME buffer overflow wait us... */
 		sprintf(temp_filename, "%s.%d", g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
 		dbproc->ftos = fopen(temp_filename, "w");
 		if (dbproc->ftos != (FILE *) NULL) {
-			fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
+			fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate());
 			fflush(dbproc->ftos);
 			g_dblib_ctx.recftos_filenum++;
 		}
@@ -964,7 +963,6 @@ dbclose(DBPROCESS * dbproc)
 {
 TDSSOCKET *tds;
 int i;
-char timestr[256];
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (tds) {
@@ -973,7 +971,7 @@ char timestr[256];
 	}
 
 	if (dbproc->ftos != (FILE *) NULL) {
-		fprintf(dbproc->ftos, "/* dbclose() at %s */\n", _dbprdate(timestr));
+		fprintf(dbproc->ftos, "/* dbclose() at %s */\n", _dbprdate());
 		fclose(dbproc->ftos);
 	}
 
@@ -1972,7 +1970,7 @@ TDSSOCKET *tds;
 RETCODE
 dbcancel(DBPROCESS * dbproc)
 {
-TDSSOCKET *tds;
+	TDSSOCKET *tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
@@ -4039,11 +4037,10 @@ dbservcharset(DBPROCESS * dbproc)
 RETCODE
 dbsqlsend(DBPROCESS * dbproc)
 {
-TDSSOCKET *tds;
-char *cmdstr;
-int rc;
-TDS_INT result_type;
-char timestr[256];
+	TDSSOCKET *tds;
+	char *cmdstr;
+	int rc;
+	TDS_INT result_type;
 
 	dbproc->avail_flag = FALSE;
 	dbproc->envchange_rcv = 0;
@@ -4081,7 +4078,7 @@ char timestr[256];
 
 	if (dbproc->ftos != (FILE *) NULL) {
 		fprintf(dbproc->ftos, "%s\n", dbproc->dbbuf);
-		fprintf(dbproc->ftos, "go /* %s */\n", _dbprdate(timestr));
+		fprintf(dbproc->ftos, "go /* %s */\n", _dbprdate());
 		fflush(dbproc->ftos);
 	}
 
@@ -4269,12 +4266,12 @@ _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberr
 		tds = dbproc->tds_socket;
 	return tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
 }
-
 static char *
-_dbprdate(char *timestr)
+_dbprdate(void)
 {
 
 time_t currtime;
+char timestr[256];
 
 	currtime = time((time_t *) NULL);
 
