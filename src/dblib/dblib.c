@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.39 2002-08-27 05:15:24 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.40 2002-08-29 05:50:43 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1699,7 +1699,7 @@ int i,col, len, collen, namlen;
 }
 
 RETCODE
-DBROWS(DBPROCESS *dbproc)
+dbrows(DBPROCESS *dbproc)
 {
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
