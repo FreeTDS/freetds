@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.46 2002-11-22 13:18:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.47 2002-11-22 22:11:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -270,13 +270,13 @@ TDSDYNAMIC *dyn;
 		tds_put_int(tds,len*2);
 		tds_put_int(tds,len*2);
 		s = query;
-		for(i=1;i<=n;++i) {
+		for(i=1;;++i) {
 			char buf[24];
 			e = tds_next_placeholders(s);
 			tds_put_string(tds,s,e?e-s:strlen(s));
+			if (!e) break;
 			sprintf(buf,"@P%d",i);
 			tds_put_string(tds,buf,-1);
-			if (!e) break;
 			s = e+1;
 		}
 

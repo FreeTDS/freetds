@@ -34,7 +34,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.3 2002-11-22 21:31:33 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.4 2002-11-22 22:11:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -167,6 +167,8 @@ discard_result(TDSSOCKET * tds)
 		case TDS_CMD_SUCCEED:
 		case TDS_CMD_FAIL:
 		case TDS_DESCRIBE_RESULT:
+		case TDS_STATUS_RESULT:
+		case TDS_PARAM_RESULT:
 			break;
 		default:
 			fprintf(stderr, "Error:  query should not return results\n");
