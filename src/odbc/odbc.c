@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.241 2003-08-31 14:38:26 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.242 2003-09-01 10:00:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -197,9 +197,14 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 		/* implicit transactions are on if autocommit is off :-| */
 		if (TDS_IS_MSSQL(tds))
-			sprintf(query, "set implicit_transactions %s", (state == SQL_AUTOCOMMIT_ON) ? "off" : "on");
-		else
-			sprintf(query, "set chained %s", (state == SQL_AUTOCOMMIT_ON) ? "off" : "on");
+			sprintf(query, "SET IMPLICIT_TRANSACTIONS %s", (state == SQL_AUTOCOMMIT_ON) ? "OFF" : "ON");
+		else {
+			/* Sybase, do not use SET CHAINED but emulate for compatility */
+			if (state == SQL_AUTOCOMMIT_ON)
+				strcpy(query, "WHILE @@TRANCOUNT > 1 COMMIT COMMIT");
+			else
+				strcpy(query, "BEGIN TRANSACTION");
+		}
 
 		tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
@@ -3069,11 +3074,17 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
+	const char *query;
 	TDSSOCKET *tds = dbc->tds_socket;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%x,%d)\n", dbc, state);
 
-	if (tds_submit_query(tds, state ? "IF @@TRANCOUNT > 0 commit" : "IF @@TRANCOUNT > 0 rollback", NULL) != TDS_SUCCEED) {
+	if (dbc->attr.attr_autocommit == SQL_AUTOCOMMIT_ON || TDS_IS_MSSQL(tds))
+		query = state ? "IF @@TRANCOUNT > 0 COMMIT" : "IF @@TRANCOUNT > 0 ROLLBACK";
+	else
+		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
+
+	if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK", NULL);
 		return SQL_ERROR;
 	}

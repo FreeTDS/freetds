@@ -1,3 +1,7 @@
+Mon Sep 01 11:59:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- applied Peter Deacon patch on transaction
+
 Sun Aug 31 16:37:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: cleanup and small updates
 
