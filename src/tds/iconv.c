@@ -29,6 +29,9 @@
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif
 
 #include "tds.h"
 #include "tdsutil.h"

@@ -1,3 +1,6 @@
+Mon Oct 14 11:18:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c: fix compile under rh7.3
+
 Mon Oct 14 10:28:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- use always odbc date format (iso)
