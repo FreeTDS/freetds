@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.34 2002-12-10 17:01:36 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.35 2002-12-11 10:55:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -258,10 +258,10 @@ tds_get_string(TDSSOCKET * tds, char *dest, int need)
 			p += bytes_left;
 			need -= bytes_left;
 		}
-		return (dest);
+		return dest;
 
 	} else {
-		return tds_get_n(tds, dest, need);
+		return (char *) tds_get_n(tds, dest, need);
 	}
 }
 

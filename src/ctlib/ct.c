@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.53 2002-11-23 13:47:34 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.54 2002-12-11 10:55:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -66,7 +66,7 @@ CS_RETCODE ct_con_alloc(CS_CONTEXT *ctx, CS_CONNECTION **con)
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_con_alloc()\n");
 	*con = (CS_CONNECTION *) malloc(sizeof(CS_CONNECTION));
 	memset(*con,'\0',sizeof(CS_CONNECTION));
-	(*con)->tds_login = (void *) tds_alloc_login();
+	(*con)->tds_login = tds_alloc_login();
 
 	/* so we know who we belong to */
 	(*con)->ctx = ctx;
@@ -137,14 +137,14 @@ char *set_buffer = NULL;
 		if (property == CS_USERNAME || property == CS_PASSWORD
 		 || property == CS_APPNAME  || property == CS_HOSTNAME) {
 			if (buflen == CS_NULLTERM) {
-				maxcp = strlen(buffer);
-				set_buffer = (char *)malloc(maxcp + 1);
-				strcpy(set_buffer, buffer);
+				maxcp = strlen((char*) buffer);
+				set_buffer = (char *) malloc(maxcp + 1);
+				strcpy(set_buffer, (char*) buffer);
 			} else if (buflen == CS_UNUSED) {
 				return CS_SUCCEED;
 			} else {
 				set_buffer = (char *)malloc(buflen + 1);
-				strncpy(set_buffer, buffer, buflen);
+				strncpy(set_buffer, (char*) buffer, buflen);
 				set_buffer[buflen] = '\0';
 			}
 		}
@@ -226,28 +226,28 @@ char *set_buffer = NULL;
 				maxcp = strlen(tds_login->user_name);
 				if (out_len) *out_len=maxcp;
 				if (maxcp>=buflen) maxcp = buflen-1;
-				strncpy(buffer,tds_login->user_name,maxcp);
+				strncpy((char*) buffer,tds_login->user_name,maxcp);
 				((char *)buffer)[maxcp]='\0';
 				break;
 			case CS_PASSWORD:
 				maxcp = strlen(tds_login->password);
 				if (out_len) *out_len=maxcp;
 				if (maxcp>=buflen) maxcp = buflen-1;
-				strncpy(buffer,tds_login->password,maxcp);
+				strncpy((char*) buffer,tds_login->password,maxcp);
 				((char *)buffer)[maxcp]='\0';
 				break;
 			case CS_APPNAME:
 				maxcp = strlen(tds_login->app_name);
 				if (out_len) *out_len=maxcp;
 				if (maxcp>=buflen) maxcp = buflen-1;
-				strncpy(buffer,tds_login->app_name,maxcp);
+				strncpy((char*) buffer,tds_login->app_name,maxcp);
 				((char *)buffer)[maxcp]='\0';
 				break;
 			case CS_HOSTNAME:
 				maxcp = strlen(tds_login->host_name);
 				if (out_len) *out_len=maxcp;
 				if (maxcp>=buflen) maxcp = buflen-1;
-				strncpy(buffer,tds_login->host_name,maxcp);
+				strncpy((char*) buffer,tds_login->host_name,maxcp);
 				((char *)buffer)[maxcp]='\0';
 				break;
 			case CS_LOC_PROP:
@@ -355,7 +355,7 @@ int query_len;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
 	/* FIX ME -- will only work for type CS_LANG_CMD */
 	if (buflen==CS_NULLTERM) {
-		query_len = strlen(buffer);
+		query_len = strlen((const char*) buffer);
 	} else {
 		query_len = buflen;
 	}

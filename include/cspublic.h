@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.20 2002-11-06 12:40:08 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.21 2002-12-11 10:55:25 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -87,7 +87,7 @@ typedef struct cs_locale {
 struct cs_connection
 {
 	CS_CONTEXT *ctx;
-	void *tds_login;
+	TDSLOGIN *tds_login;
 	TDSSOCKET *tds_socket;
 	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);

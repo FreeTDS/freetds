@@ -1,3 +1,7 @@
+Wed Dec 11 11:54:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h src/ctlib/ct.c src/tds/read.c:
+	- cleanup removing errors compiling with a C++ compiler
+	
 Tue Dec 10 17:04:41 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/dblib.c added dbsetmaxprocs
 	* doc/dblib_errors.txt new file
