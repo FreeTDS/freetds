@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.8 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.9 2004-12-08 20:30:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -79,9 +79,7 @@ main(int argc, char *argv[])
 	memset(version, 0, sizeof(version));
 	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
 
-#ifdef ENABLE_DEVELOPING
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, "38 0 1 7B");
-#endif
 
 	/* all binary results */
 	Test("CHAR(7)", "pippo", SQL_C_BINARY, "706970706F2020");

@@ -1,3 +1,14 @@
+Wed Dec 08 21:29:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: update
+	* misc/test-dist.sh: bit improve
+	* src/odbc/convert_tds2sql.c src/odbc/convert_tds2sql.h:
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/unittests/data.c:
+	* src/tds/convert.c:
+	- fix bug converting numeric with different precision/scale
+	- add some TODO for cursors support in ODBC
+	* src/odbc/sql2tds.h: add copyright line for 2004
+	* src/odbc/unittests/genparams.c: improve
+
 Tue Dec  7 17:34:21 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h
 	* src/tds/net.c src/tds/query.c src/tds/token.c src/tds/util.c

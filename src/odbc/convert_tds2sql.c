@@ -42,11 +42,12 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: convert_tds2sql.c,v 1.40 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: convert_tds2sql.c,v 1.41 2004-12-08 20:30:05 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
-convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
+convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+		const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;
 	TDS_INT nRetVal = TDS_FAIL;
@@ -69,15 +70,22 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	assert(desttype != SQL_C_DEFAULT);
 
+	nDestSybType = odbc_c_to_server_type(desttype);
+	if (nDestSybType == TDS_FAIL)
+		return TDS_CONVERT_NOAVAIL;
+
 	/* special case for binary type */
 	if (desttype == SQL_C_BINARY) {
 		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %lu \n", (unsigned long) destlen);
 
 		if (is_numeric_type(srctype)) {
 			desttype = SQL_C_NUMERIC;
+			nDestSybType = SYBNUMERIC;
 			/* prevent buffer overflow */
 			if (destlen < sizeof(SQL_NUMERIC_STRUCT))
 				return TDS_CONVERT_FAIL;
+			ores.n.precision = ((TDS_NUMERIC *) src)->precision;
+			ores.n.scale = ((TDS_NUMERIC *) src)->scale;
 		} else {
 			ret = srclen;
 			if (destlen > 0) {
@@ -92,15 +100,12 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 			}
 			return ret;
 		}
-	}
-
-	nDestSybType = odbc_c_to_server_type(desttype);
-	if (nDestSybType == TDS_FAIL)
-		return TDS_CONVERT_NOAVAIL;
-
-	if (is_numeric_type(nDestSybType)) {
+	} else if (is_numeric_type(nDestSybType)) {
 		/* TODO use descriptor information (APD) ?? However APD can contain SQL_C_DEFAULT... */
-		ores.n.precision = 38;
+		if (drec_ixd)
+			ores.n.precision = drec_ixd->sql_desc_precision;
+		else
+			ores.n.precision = 38;
 		ores.n.scale = 0;
 	}
 

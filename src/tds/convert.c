@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.145 2004-12-06 13:29:40 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.146 2004-12-08 20:30:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1008,8 +1008,14 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		memcpy(&(cr->n), src, sizeof(TDS_NUMERIC));
-		return sizeof(TDS_NUMERIC);
+		if (src->scale == cr->n.scale && src->precision == cr->n.precision) {
+			memcpy(&(cr->n), src, sizeof(TDS_NUMERIC));
+			return sizeof(TDS_NUMERIC);
+		}
+		/* optimizable but works ... */
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+                       return TDS_CONVERT_FAIL;
+		return stringz_to_numeric(tmpstr, cr);
 		break;
 	case SYBFLT8:
 		if (tds_numeric_to_string(src, tmpstr) < 0)

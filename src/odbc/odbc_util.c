@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.70 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.71 2004-12-08 20:30:05 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -127,7 +127,7 @@ odbc_set_return_status(struct _hstmt *stmt)
 		drec = &stmt->apd->records[0];
 
 		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-				      drec->sql_desc_concise_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
+				      drec->sql_desc_concise_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length, NULL);
 		if (TDS_FAIL == len)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
@@ -188,8 +188,12 @@ odbc_set_return_params(struct _hstmt *stmt)
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)
 			c_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+		/* 
+		 * TODO why IPD ?? perhaps SQLBindParameter it's not correct ??
+		 * Or tests are wrong ??
+		 */
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
-				      c_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length);
+				      c_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;

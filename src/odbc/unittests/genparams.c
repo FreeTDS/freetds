@@ -3,8 +3,10 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.10 2004-12-08 20:30:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static int precision = 18;
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
@@ -24,7 +26,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	memset(out_buf, 0, sizeof(out_buf));
 
 	/* bind parameter */
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, 18, 0, out_buf, sizeof(out_buf), &out_len) !=
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf, sizeof(out_buf), &out_len) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
@@ -131,6 +133,8 @@ main(int argc, char *argv[])
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
+	precision = 38;
+	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
 	/* MS driver behavior for output parameters is different */
 	if (driver_is_freetds())

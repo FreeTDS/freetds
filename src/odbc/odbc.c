@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.347 2004-12-01 13:11:33 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.348 2004-12-08 20:30:05 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -151,6 +151,8 @@ static void odbc_ird_check(TDS_STMT * stmt);
  * beg for GUI tools"
  * Bah!
  */
+
+/* TODO cursors res_info or current_result ?? check compute */
 
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
@@ -706,6 +708,7 @@ SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
 	INIT_HSTMT;
+	/* TODO cursors */
 	odbc_errs_add(&stmt->errs, "HYC00", "SQLSetPos: function not implemented", NULL);
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
@@ -1133,6 +1136,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
 	stmt->attr.cursor_sensitivity = SQL_UNSPECIFIED;
 	stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
+	/* TODO ?? why two attributes */
 	stmt->attr.enable_auto_ipd = dbc->attr.auto_ipd = SQL_FALSE;
 	stmt->attr.fetch_bookmark_ptr = NULL;
 /*	stmt->attr.imp_param_desc = stmt->ipd; */
@@ -1186,8 +1190,7 @@ SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 }
 
 SQLRETURN SQL_API
-SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax,
-	   SQLLEN FAR * pcbValue)
+SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
 	SQLRETURN rc = SQL_SUCCESS;
 	TDS_DESC *ard;
@@ -1608,13 +1611,13 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 #if (ODBCVER >= 0x0300)
 SQLRETURN SQL_API
 SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
-		SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, 
+		SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc,
 #ifdef TDS_SQLCOLATTRIBUTE_SQLLEN
 		SQLLEN FAR * pfDesc
 #else
 		SQLPOINTER pfDesc
 #endif
-		)
+	)
 {
 	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
 }
@@ -2585,6 +2588,7 @@ SQLExecute(SQLHSTMT hstmt)
 static SQLRETURN SQL_API
 _SQLFetch(TDS_STMT * stmt)
 {
+	/* TODO cursors send cursor fetch it needed */
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *colinfo;
@@ -2736,7 +2740,7 @@ _SQLFetch(TDS_STMT * stmt)
 					data_ptr += len * curr_row;
 				}
 				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
-						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length);
+						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len < 0) {
 					row_status = SQL_ROW_ERROR;
 					break;
@@ -2785,6 +2789,7 @@ SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	INIT_HSTMT;
 
 	/* still we do not support cursors and scrolling */
+	/* TODO cursors */
 	if (FetchOrientation != SQL_FETCH_NEXT) {
 		odbc_errs_add(&stmt->errs, "HY106", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -2911,6 +2916,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 				tds_process_cancel(tds);
 		}
 
+		/* TODO cursors free cursor too */
+
 		/* close prepared statement or add to connection */
 		retcode = odbc_free_dynamic(stmt);
 		if (!force && retcode != SQL_SUCCESS)
@@ -2957,6 +2964,7 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 SQLRETURN SQL_API
 SQLCloseCursor(SQLHSTMT hstmt)
 {
+	/* TODO cursors */
 	/*
 	 * Basic implementation for when no driver manager is present.
 	 *  - according to ODBC documentation SQLCloseCursor is more or less
@@ -3351,6 +3359,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
 	INIT_HSTMT;
 
+	/* TODO cursors use it */
 	if (!tds_dstr_copyn(&stmt->cursor_name, (const char *) szCursor, odbc_get_string_size(cbCursor, szCursor))) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -3365,6 +3374,7 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 
 	INIT_HSTMT;
 
+	/* TODO cursors how to read real cursor ?? */
 	if ((rc = odbc_set_string(szCursor, cbCursorMax, pcbCursor, tds_dstr_cstr(&stmt->cursor_name), -1)))
 		odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
 
@@ -3581,9 +3591,9 @@ SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 }
 
 SQLRETURN SQL_API
-SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax,
-	   SQLLEN FAR * pcbValue)
+SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
+	/* TODO cursors fetch row if needed ?? */
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
@@ -3640,7 +3650,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
 		assert(fCType);
-		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
+		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
 		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
@@ -4181,6 +4191,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_CURSOR_COMMIT_BEHAVIOR:
 		/* currently cursors are not supported however sql server close automaticly cursors on commit */
+		/* TODO cursors test what happen if rollback, cursors get properly deleted ?? */
 		USIVAL = SQL_CB_CLOSE;
 		break;
 	case SQL_CURSOR_ROLLBACK_BEHAVIOR:
@@ -4268,6 +4279,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
+		/* TODO cursors */
 		/* Cursors not supported yet */
 		UIVAL = 0;
 		break;
@@ -4279,6 +4291,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		USIVAL = SQL_FILE_NOT_SUPPORTED;
 		break;
 	case SQL_FETCH_DIRECTION:
+		/* TODO cursors */
 		/*
 		 * TODO not supported
 		 * UIVAL = SQL_FD_FETCH_ABSOLUTE | SQL_FD_FETCH_BOOKMARK | SQL_FD_FETCH_FIRST | SQL_FD_FETCH_LAST | SQL_FD_FETCH_NEXT
@@ -4289,6 +4302,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 #if (ODBCVER >= 0x0300)
 	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
 	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
+		/* TODO cursors */
 		/* Cursors not supported yet */
 		/* TODO NEXT supported ?? */
 		UIVAL = 0;
@@ -4329,6 +4343,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_KEYSET_CURSOR_ATTRIBUTES1:
 	case SQL_KEYSET_CURSOR_ATTRIBUTES2:
+		/* TODO cursors */
 		/* Cursors not supported yet */
 		UIVAL = 0;
 		break;
@@ -4350,6 +4365,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "Y";
 		break;
 	case SQL_LOCK_TYPES:
+		/* TODO cursors */
 		/*
 		 * TODO we do not support SQLSetPos
 		 * IVAL = SQL_LCK_NO_CHANGE;
@@ -4499,6 +4515,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_POS_OPERATIONS:
+		/* TODO cursors */
 		/*
 		 * TODO SQLSetPos not supported
 		 * UIVAL = SQL_POS_ADD | SQL_POS_DELETE | SQL_POS_POSITION | SQL_POS_REFRESH | SQL_POS_UPDATE;
@@ -4506,6 +4523,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		IVAL = 0;
 		break;
 	case SQL_POSITIONED_STATEMENTS:
+		/* TODO cursors */
 		/* TODO ok or should be 0 ?? */
 		IVAL = SQL_PS_POSITIONED_DELETE | SQL_PS_POSITIONED_UPDATE | SQL_PS_SELECT_FOR_UPDATE;
 		break;
@@ -4532,9 +4550,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_SCROLL_CONCURRENCY:
+		/* TODO cursors */
 		IVAL = SQL_SCCO_READ_ONLY;
 		break;
 	case SQL_SCROLL_OPTIONS:
+		/* TODO cursors */
 		UIVAL = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
 		break;
 	case SQL_SEARCH_PATTERN_ESCAPE:
@@ -4592,6 +4612,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_STATIC_CURSOR_ATTRIBUTES1:
 	case SQL_STATIC_CURSOR_ATTRIBUTES2:
+		/* TODO cursors */
 		/* Cursors not supported yet */
 		UIVAL = 0;
 		break;
@@ -4763,7 +4784,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		odbc_col_setname(stmt, 12, "AUTO_UNIQUE_VALUE");
 	}
 
-	/* workaround for a mispelled column name in Sybase*/
+	/* workaround for a mispelled column name in Sybase */
 	if (TDS_IS_SYBASE(stmt->dbc->tds_socket) && stmt->dbc->env->attr.odbc_version != SQL_OV_ODBC3)
 		odbc_col_setname(stmt, 3, "PRECISION");
 
@@ -4897,6 +4918,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN_(dbc);
 		break;
 	case SQL_ATTR_ODBC_CURSORS:
+		/* TODO cursors */
 		dbc->attr.odbc_cursors = u_value;
 		ODBC_RETURN_(dbc);
 		break;
@@ -5004,6 +5026,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.async_enable = ui;
 		break;
 	case SQL_ATTR_CONCURRENCY:
+		/* TODO cursors */
 		if (stmt->attr.concurrency != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
@@ -5011,6 +5034,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.concurrency = ui;
 		break;
 	case SQL_ATTR_CURSOR_SCROLLABLE:
+		/* TODO cursors */
 		if (stmt->attr.cursor_scrollable != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
@@ -5018,6 +5042,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.cursor_scrollable = ui;
 		break;
 	case SQL_ATTR_CURSOR_SENSITIVITY:
+		/* TODO cursors */
 		if (stmt->attr.cursor_sensitivity != ui) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
@@ -5025,6 +5050,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.cursor_sensitivity = ui;
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
+		/* TODO cursors */
 		if (stmt->attr.cursor_type != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
@@ -5106,6 +5132,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		break;
 		/* retrieve data after positioning the cursor */
 	case SQL_ATTR_RETRIEVE_DATA:
+		/* TODO cursors */
 		if (stmt->attr.retrieve_data != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
@@ -5146,6 +5173,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ird->header.sql_desc_rows_processed_ptr = ulp;
 		break;
 	case SQL_ATTR_SIMULATE_CURSOR:
+		/* TODO cursors */
 		if (stmt->attr.simulate_cursor != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);

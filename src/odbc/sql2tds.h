@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-2002  Brian Bruns
+ * Copyright (C) 2004 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef SQL2TDS_H
 #define SQL2TDS_H
 
-/* $Id: sql2tds.h,v 1.9 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: sql2tds.h,v 1.10 2004-12-08 20:30:06 freddy77 Exp $ */
 
 SQLRETURN sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
 		  int compute_row);

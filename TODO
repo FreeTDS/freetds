@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.118 2004-11-28 20:44:11 freddy77 Exp $
+To Do List	$Id: TODO,v 1.119 2004-12-08 20:30:03 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -44,9 +44,6 @@ Started in 0.63
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
-- ODBC data test fails for numeric, convert.c do not convert 
-  NUMERIC ->NUMERIC changing precision/scale
-  * this part never worked, commented
 - limit data sended via input parameters/bulk copy
   (ie SYBCHAR to 255, XSYBCHAR to 8000)
   test behavior of proprietary library (warning or not)
@@ -111,7 +108,8 @@ For future versions (in priority order within library):
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
 . autoinstall for RPM (register driver in odbcinst.ini)
-. constants parameters in call syntax (ie {?=func(10,?)} )
+. constants parameters in call syntax (ie {?=func(10,?)} ) 
+  (work in progress)
 . SQLDescribeParam (Sybase seems to require it)
 . change ODBC_RETURN to return errs.lastrc (not to set) and use errs.lastrc
   to store error, cache some errors (truncated output)
