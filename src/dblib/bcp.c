@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.27 2002-10-23 02:21:23 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.28 2002-10-23 05:42:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2126,7 +2126,7 @@ RETCODE bcp_moretext(DBPROCESS *dbproc, DBINT size, BYTE *text)
     return SUCCEED;
 }
 
-RETCODE bcp_batch(DBPROCESS *dbproc)
+DBINT bcp_batch(DBPROCESS *dbproc)
 {
 TDSSOCKET *tds = dbproc->tds_socket;
 int        marker;
@@ -2135,7 +2135,7 @@ int        rows_copied;
     if (dbproc->bcp_direction == 0)
     {
       _bcp_err_handler(dbproc, SYBEBCPI);
-      return FAIL;
+      return -1;
     }
 
     tds_flush_packet(tds);
@@ -2161,7 +2161,7 @@ int        rows_copied;
 
 /* end the transafer of data from program variables */
 
-RETCODE bcp_done(DBPROCESS *dbproc)
+DBINT bcp_done(DBPROCESS *dbproc)
 {
 
 TDSSOCKET *tds = dbproc->tds_socket;
@@ -2171,7 +2171,7 @@ int        rows_copied = -1;
     if (dbproc->bcp_direction == 0)
     {
       _bcp_err_handler(dbproc, SYBEBCPI);
-      return FAIL;
+      return -1;
     }
     tds_flush_packet(tds);
     

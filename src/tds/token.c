@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.76 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.77 2002-10-23 05:42:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -368,7 +368,7 @@ int i;
     while (!complete_result ) {
 
 		marker=tds_get_byte(tds);
-tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
+		tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
 
 		switch(marker) {
 			case TDS_ERR_TOKEN:

@@ -1,3 +1,7 @@
+Wed Oct 23 07:41:51 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.hsrc/dblib/bcp.c src/tds/mem.c src/tds/token.c:
+	- some post Bill patches
+
 Wed Oct 23 00:05:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt src/dblib/dblib.c:
 	- Implement dbgetmaxprocs().

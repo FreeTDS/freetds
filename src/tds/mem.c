@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.38 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.39 2002-10-23 05:42:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -240,50 +240,54 @@ Cleanup:
 	return NULL;
 }
 
+/**
+ * Allocate memory for storing compute info
+ * return NULL on out of memory
+ */
+/* FIXME check all memory allocation, do not crash on out of memory 
+   why seem add a compute for every call and reallocate all array... strange */
 TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols)
 {
-
 int col;
 TDSCOMPUTEINFO **comp_info;
 TDSCOMPUTEINFO *cur_comp_info;
 
-    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
-    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
-    if (*num_comp_results == 0) {
-       *num_comp_results = *num_comp_results + 1;
-	   comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
-	   *comp_info = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
-	   memset(*comp_info,'\0',sizeof(TDSCOMPUTEINFO));
-       cur_comp_info = *comp_info;
-    }
-    else {
-       *num_comp_results = *num_comp_results + 1;
-	   comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
-	   comp_info[*num_comp_results - 1] = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
-	   memset(comp_info[*num_comp_results - 1],'\0',sizeof(TDSCOMPUTEINFO));
-       cur_comp_info = comp_info[*num_comp_results - 1];
+	if (*num_comp_results == 0) {
+		*num_comp_results = *num_comp_results + 1;
+		comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
+		*comp_info = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
+		memset(*comp_info,'\0',sizeof(TDSCOMPUTEINFO));
+		cur_comp_info = *comp_info;
+	}
+	else {
+		*num_comp_results = *num_comp_results + 1;
+		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
+		comp_info[*num_comp_results - 1] = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
+		memset(comp_info[*num_comp_results - 1],'\0',sizeof(TDSCOMPUTEINFO));
+		cur_comp_info = comp_info[*num_comp_results - 1];
+	}
 
-    }
-
-    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
 	cur_comp_info->columns = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *) * num_cols);
-    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
-	for (col=0;col<num_cols;col++)  {
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
+	for (col = 0; col < num_cols; col++)  {
 		cur_comp_info->columns[col] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
 		memset(cur_comp_info->columns[col],'\0',sizeof(TDSCOLINFO));
 	}
 	cur_comp_info->num_cols = num_cols;
 
-    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
 
-    if (by_cols) {
+	if (by_cols) {
 		cur_comp_info->bycolumns = (TDS_TINYINT *) malloc(by_cols);
 		memset(cur_comp_info->bycolumns,'\0', by_cols);
-	    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
+		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
 		cur_comp_info->by_cols = by_cols;
-    }
+	}
 
 	return comp_info;
 }
@@ -365,7 +369,7 @@ int i;
 	if(comp_info)
 	{
 		if (comp_info->current_row) 
-           TDS_ZERO_FREE(comp_info->current_row);
+			TDS_ZERO_FREE(comp_info->current_row);
 
 		for (i=0;i<comp_info->num_cols;i++)
 		{

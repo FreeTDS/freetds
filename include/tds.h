@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.25 2002-10-23 02:21:21 castellano Exp $";
+	"$Id: tds.h,v 1.26 2002-10-23 05:42:32 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -130,7 +130,6 @@ typedef struct tdsdaterec
 	TDS_INT   tzone;
 } TDSDATEREC;
 
-#define TDS_NO_MORE_ROWS     -2
 #define TDS_SUCCEED          1
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
