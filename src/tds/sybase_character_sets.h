@@ -1,6 +1,6 @@
 /*
  * This file produced from sybase_character_sets.h.pl
- * $Id: sybase_character_sets.h,v 1.2 2003-06-07 18:24:55 freddy77 Exp $
+ * $Id: sybase_character_sets.h,v 1.3 2003-12-03 07:13:00 freddy77 Exp $
  */
 	  {        "ISO-8859-1", "ascii_8"       }
 	, {             "BIG-5", "big5"          }

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.31 2003-11-30 12:42:12 freddy77 Exp $
+# $Id: Makefile.am,v 1.32 2003-12-03 07:12:59 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -32,11 +32,7 @@ doxy: doxyfile  $(libtds_objects_la_SOURCES)
 	$(DOXYGEN) doxyfile
 endif
 
-charset: encodings.h
-
-encodings.h: encodings.pl character_sets.h alternative_character_sets.h sybase_character_sets.h
-	perl encodings.pl > encodings.h
-
-sybase_character_sets.h: sybase_character_sets.h.pl
+charset:
 	perl sybase_character_sets.h.pl > sybase_character_sets.h
+	perl encodings.pl > encodings.h
 

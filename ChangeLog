@@ -1,3 +1,9 @@
+Wed Dec 03 08:12:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/Makefile.am src/tds/encodings.h:
+	* src/tds/sybase_character_sets.h:
+	* src/tds/sybase_character_sets.h.pl:
+	- fix make on snapshot
+
 Tue Dec 02 18:40:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/character_sets.h src/tds/encodings.h:
 	- updated tables for ISO-2022-* charsets

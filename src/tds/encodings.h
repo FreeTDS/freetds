@@ -1,6 +1,6 @@
 /*
- * This file produced from encodings.pl on Tue Dec  2 18:38:15 2003
- * $Id: encodings.h,v 1.10 2003-12-02 17:40:32 freddy77 Exp $
+ * This file produced from encodings.pl on Wed Dec  3 08:11:01 2003
+ * $Id: encodings.h,v 1.11 2003-12-03 07:13:00 freddy77 Exp $
  */
 static const TDS_ENCODING canonic_charsets[] = {
 	{        "ISO-8859-1",	1, 1},	/*   0 */

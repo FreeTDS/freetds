@@ -21,7 +21,7 @@ $alternates{'MACTURK'}  = 'MACTURKISH';
 $alternates{'KOI8'}  = 'KOI8-R';
 
 # get list we produced last time (capture manual edits to file).
-open SYB, "sybase_charsets.h" or warn qq/"sybase_charsets.h" not found\n/;
+open SYB, "sybase_character_sets.h" or warn qq/"sybase_character_sets.h" not found\n/;
 while(<SYB>){
 	next unless /^\t[, ] {\s+"(.+?)", "(.+?)"/;
 	$alternates{$2} = $1;
@@ -29,7 +29,7 @@ while(<SYB>){
 
 print "/*\n";
 print " * This file produced from $0\n";
-print ' * $Id: sybase_character_sets.h.pl,v 1.3 2003-06-07 18:24:55 freddy77 Exp $', "\n";
+print ' * $Id: sybase_character_sets.h.pl,v 1.4 2003-12-03 07:13:00 freddy77 Exp $', "\n";
 print " */\n";
 
 # look up the canonical name
@@ -63,14 +63,14 @@ while(<DATA>){
 
 		# grep for similar names, as an aid to the to programmer.  
 		$name =~ s/[\-\_]+//g;
-		print STDERR "$Name:  $name alternative_character_sets.h";
+		print STDERR "$Name:  $name alternative_character_sets.h\n";
 	}
 	$comma = ',';
 }
 print  "\t/* stopper row */\n";
 printf "\t$comma { %20s %-15s }\n", 'NULL,' , 'NULL';
 
-return 0;
+exit 0;
 __DATA__
 #http://www.sybase.com/detail/1,6904,1016214,00.html
 						
