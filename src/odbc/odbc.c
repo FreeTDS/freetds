@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.115 2003-01-05 15:50:27 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.116 2003-01-06 21:42:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1010,6 +1010,8 @@ _SQLExecute(TDS_STMT * stmt)
 	if (ret == TDS_NO_MORE_RESULTS) {
 		return result;
 	} else if (ret == TDS_SUCCEED) {
+		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
+			return SQL_SUCCESS_WITH_INFO;
 		return result;
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n");
@@ -1751,7 +1753,6 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	case SQL_API_SQLDRIVERCONNECT:
 	case SQL_API_SQLDESCRIBECOL:
 	case SQL_API_SQLDISCONNECT:
-	case SQL_API_SQLENDTRAN:
 	case SQL_API_SQLERROR:
 	case SQL_API_SQLEXECDIRECT:
 	case SQL_API_SQLEXECUTE:
@@ -1791,16 +1792,16 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	case SQL_API_SQLGETCONNECTATTR: */
 	case SQL_API_SQLFREEHANDLE:
 /*	case SQL_API_SQLGETDESCFIELD:
-	case SQL_API_SQLGETDESCREC:
+	case SQL_API_SQLGETDESCREC: */
 	case SQL_API_SQLGETDIAGFIELD:
 	case SQL_API_SQLGETDIAGREC:
-	case SQL_API_SQLGETENVATTR:
+/*	case SQL_API_SQLGETENVATTR:
 	case SQL_API_SQLGETSTMTATTR: */
 	case SQL_API_SQLSETCONNECTATTR:
 /*	case SQL_API_SQLSETDESCFIELD:
-	case SQL_API_SQLSETDESCREC:
+	case SQL_API_SQLSETDESCREC: */
 	case SQL_API_SQLSETENVATTR:
-	case SQL_API_SQLSETSTMTATTR: */
+/*	case SQL_API_SQLSETSTMTATTR: */
 #endif
 		*pfExists = 1;	/* SQL_TRUE */
 		return SQL_SUCCESS;

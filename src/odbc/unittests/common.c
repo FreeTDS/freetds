@@ -14,7 +14,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.11 2002-12-14 14:52:21 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.12 2003-01-06 21:42:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -61,6 +61,7 @@ CheckReturn(void)
 {
 	SQLSMALLINT handletype;
 	SQLHANDLE handle;
+	SQLRETURN ret;
 	unsigned char sqlstate[6];
 	unsigned char msg[256];
 
@@ -75,8 +76,9 @@ CheckReturn(void)
 		handletype = SQL_HANDLE_ENV;
 		handle = Environment;
 	}
-	SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
-	printf("SQL error %s -- %s\n", sqlstate, msg);
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
+	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
+		printf("SQL error %s -- %s\n", sqlstate, msg);
 	exit(1);
 }
 

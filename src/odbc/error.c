@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.3 2003-01-05 10:28:32 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.4 2003-01-06 21:42:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
@@ -128,17 +128,18 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	if (numRecord > errs->num_errors)
 		return SQL_NO_DATA_FOUND;
+	--numRecord;
 
 	if (szSqlState) {
 		if (odbc_ver == 3)
-			strcpy((char *) szSqlState, errs->errs[0].err->state3);
+			strcpy((char *) szSqlState, errs->errs[numRecord].err->state3);
 		else
-			strcpy((char *) szSqlState, errs->errs[0].err->state2);
+			strcpy((char *) szSqlState, errs->errs[numRecord].err->state2);
 	}
 
-	msg = errs->errs[0].msg;
+	msg = errs->errs[numRecord].msg;
 	if (!msg)
-		msg = errs->errs[0].err->msg;
+		msg = errs->errs[numRecord].err->msg;
 	cplen = strlen(msg);
 	if (pcbErrorMsg)
 		*pcbErrorMsg = cplen;
@@ -161,7 +162,7 @@ SQLRETURN SQL_API
 SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, SQLINTEGER FAR * pfNativeError,
 	 SQLCHAR FAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
-	SQLRETURN result = SQL_INVALID_HANDLE;
+	SQLRETURN result;
 	struct _sql_errors *errs = NULL;
 	SQLSMALLINT type;
 	SQLHANDLE handle;
@@ -178,13 +179,15 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 		errs = &((TDS_ENV *) henv)->errs;
 		handle = henv;
 		type = SQL_HANDLE_ENV;
-	}
+	} else
+		return SQL_INVALID_HANDLE;
 
-	if (errs) {
-		result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 
-		if (result == SQL_SUCCESS)
-			odbc_errs_reset(errs);
+	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
+
+	if (result == SQL_SUCCESS) {
+		/* FIXME remove only one error, not all */
+		odbc_errs_reset(errs);
 	}
 
 	return result;
@@ -195,4 +198,159 @@ SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, S
 	      SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
 	return _SQLGetDiagRec(handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
+}
+
+SQLRETURN SQL_API
+SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLSMALLINT diagIdentifier, SQLPOINTER buffer,
+		SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer)
+{
+	SQLRETURN result = SQL_SUCCESS;
+	SQLPOINTER szDiagInfo = NULL;
+	SQLSMALLINT tmp_size;
+	struct _sql_errors *errs = NULL;
+	const char *msg;
+	unsigned char odbc_ver = 2;
+	int cplen;
+
+	if (numRecord <= 0 || cbBuffer < 0 || !handle)
+		return SQL_ERROR;
+
+	switch (handleType) {
+	case SQL_HANDLE_STMT:
+		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->odbc_ver;
+		errs = &((TDS_STMT *) handle)->errs;
+		break;
+
+	case SQL_HANDLE_DBC:
+		odbc_ver = ((TDS_DBC *) handle)->henv->odbc_ver;
+		errs = &((TDS_DBC *) handle)->errs;
+		break;
+
+	case SQL_HANDLE_ENV:
+		odbc_ver = ((TDS_ENV *) handle)->odbc_ver;
+		errs = &((TDS_ENV *) handle)->errs;
+		break;
+
+	default:
+		return SQL_INVALID_HANDLE;
+	}
+
+	if (numRecord > errs->num_errors)
+		return SQL_NO_DATA_FOUND;
+
+	if (numRecord == 0 && diagIdentifier > 0)
+		return SQL_ERROR;
+
+	switch (diagIdentifier) {
+	case SQL_DIAG_DYNAMIC_FUNCTION:
+		if (handleType != SQL_HANDLE_STMT)
+			return SQL_ERROR;
+
+		/* TODO */
+		if (buffer)
+			*(char *) buffer = 0;
+		if (pcbBuffer)
+			*pcbBuffer = 0;
+		break;
+
+	case SQL_DIAG_DYNAMIC_FUNCTION_CODE:
+		*(SQLINTEGER *) buffer = 0;
+		break;
+
+	case SQL_DIAG_ROW_NUMBER:
+		*(SQLINTEGER *) buffer = SQL_ROW_NUMBER_UNKNOWN;
+		break;
+
+	case SQL_DIAG_NUMBER:
+		*(SQLINTEGER *) buffer = 1;
+		break;
+
+	case SQL_DIAG_RETURNCODE:
+		/* TODO */
+		if (errs->num_errors > 0)
+			*(SQLRETURN *) buffer = SQL_ERROR;
+		else
+			*(SQLRETURN *) buffer = SQL_SUCCESS;
+		break;
+
+	case SQL_DIAG_CURSOR_ROW_COUNT:
+		if (handleType != SQL_HANDLE_STMT)
+			return SQL_ERROR;
+
+		/* TODO */
+		*(SQLINTEGER *) buffer = 0;
+		break;
+
+	case SQL_DIAG_ROW_COUNT:
+		if (handleType != SQL_HANDLE_STMT)
+			return SQL_ERROR;
+
+		/* TODO */
+		*(SQLINTEGER *) buffer = 0;
+		break;
+
+	case SQL_DIAG_CLASS_ORIGIN:
+	case SQL_DIAG_SUBCLASS_ORIGIN:
+		/* TODO */
+		return SQL_ERROR;
+		break;
+
+	case SQL_DIAG_COLUMN_NUMBER:
+		*(SQLINTEGER *) buffer = SQL_COLUMN_NUMBER_UNKNOWN;
+		break;
+
+	case SQL_DIAG_CONNECTION_NAME:
+		/* TODO */
+		return SQL_ERROR;
+		break;
+
+	case SQL_DIAG_MESSAGE_TEXT:
+		msg = errs->errs[numRecord].msg;
+		if (!msg)
+			msg = errs->errs[numRecord].err->msg;
+		cplen = strlen(msg);
+		if (pcbBuffer)
+			*pcbBuffer = cplen;
+		if (cplen >= cbBuffer) {
+			cplen = cbBuffer - 1;
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		if (buffer && cplen >= 0) {
+			strncpy((char *) buffer, msg, cplen);
+			((char *) buffer)[cplen] = 0;
+		}
+		break;
+
+	case SQL_DIAG_NATIVE:
+		/* TODO */
+		*(SQLINTEGER *) buffer = 0;
+		break;
+
+	case SQL_DIAG_SERVER_NAME:
+		/* TODO */
+		return SQL_ERROR;
+		break;
+
+	case SQL_DIAG_SQLSTATE:
+		if (odbc_ver == 3)
+			msg = errs->errs[numRecord].err->state3;
+		else
+			msg = errs->errs[numRecord].err->state2;
+		cplen = 5;
+		if (pcbBuffer)
+			*pcbBuffer = cplen;
+		if (cplen >= cbBuffer) {
+			cplen = cbBuffer - 1;
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		if (buffer && cplen >= 0) {
+			strncpy((char *) buffer, msg, cplen);
+			((char *) buffer)[cplen] = 0;
+		}
+		break;
+
+	default:
+		return SQL_ERROR;
+	}
+	return result;
 }
