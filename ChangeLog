@@ -1,3 +1,6 @@
+Mon Oct 14 21:26:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/Makefile.am: fix make dist problem
+
 Mon Oct 14 21:08:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix error on PHP
 

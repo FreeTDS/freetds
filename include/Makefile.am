@@ -8,7 +8,8 @@ include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctlib.h ctpublic.h \
 			tds_sysdep_public.h
 
 EXTRA_DIST	=	tds_configs.h \
-			tdsiconv.h md4.h des.h
+			tdsiconv.h md4.h des.h \
+			replacements.h
 
 all-local: tds_sysdep_private.h tds_sysdep_public.h
 
