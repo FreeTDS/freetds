@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.92 2003-08-15 07:10:41 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.93 2003-08-15 08:15:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -252,7 +252,7 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 unsigned char *
 tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 {
-	int null_size, remainder, i;
+	int null_size, i;
 	TDS_INT row_size;
 	unsigned char *row;
 
@@ -263,11 +263,16 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 		null_size = 0;
 
 	curparam->column_offset = info->row_size;
-	/* the +1 are needed for terminater... still required (freddy77) */
-	row_size = info->row_size + curparam->column_size + 1 + null_size;
-	remainder = row_size % TDS_ALIGN_SIZE;
-	if (remainder)
-		row_size += (TDS_ALIGN_SIZE - remainder);
+	if (is_numeric_type(curparam->column_type)) {
+		row_size = sizeof(TDS_NUMERIC);
+	} else if (is_blob_type(curparam->column_type)) {
+		row_size = sizeof(TDSBLOBINFO);
+	} else {
+		row_size = curparam->column_size;
+	}
+	row_size += info->row_size + null_size + (TDS_ALIGN_SIZE - 1);
+	row_size -= info->row_size % TDS_ALIGN_SIZE;
+
 
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
@@ -277,6 +282,9 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 	}
 	if (!row)
 		return NULL;
+	/* if is a blob reset buffer */
+	if (is_blob_type(curparam->column_type))
+		memset(row + info->row_size, 0, sizeof(TDSBLOBINFO));
 	info->current_row = row;
 	info->row_size = row_size;
 

@@ -1,4 +1,7 @@
-Fri Aug 15 09:09:i12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Fri Aug 15 10:14:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c: fix severe BUG using NUMERIC/BLOB parameters
+
+Fri Aug 15 09:09:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/tds/mem.c:
 	- applyed Peter Deacon patch (transaction fix)
 	* src/odbc/unittests/print.c:
