@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.69 2003-03-25 14:04:43 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.70 2003-03-26 16:20:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -906,7 +906,6 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 	ip_port[0] = '\0';
 	tds_ver[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Looking for server....\n");
 	if (!server || strlen(server) == 0) {
 		server = getenv("TDSQUERY");
 		if (!server || strlen(server) == 0) {
@@ -915,12 +914,13 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 		tdsdump_log(TDS_DBG_INFO1, "%L Setting server to %s from $TDSQUERY.\n", server);
 
 	}
+	tdsdump_log(TDS_DBG_INFO1, "%L Looking for server %s....\n", server);
 
 	/*
 	 * * Look for the server in the interf_file iff interf_file has been set.
 	 */
 	if (ip_addr[0] == '\0' && interf_file) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in interf_file %s.\n", interf_file);
+		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in file %s.\n", interf_file);
 		search_interface_file("", interf_file, server, ip_addr, ip_port, tds_ver);
 	}
 

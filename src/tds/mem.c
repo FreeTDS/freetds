@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.65 2003-03-25 04:31:25 jklowden Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.66 2003-03-26 16:20:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -71,7 +71,7 @@ void tds_free_env(TDSSOCKET *tds);
  *  \@{ 
  */
 
-/** \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id)
+/** \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
  *  \brief Allocate a dynamic statement.
  *  \param tds the connection within which to allocate the statement.
  *  \param id a character label identifying the statement.
@@ -624,8 +624,10 @@ TDSICONVINFO *iconv_info;
 	tds_socket->iconv_info = (void *) iconv_info;
 	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
 #if HAVE_ICONV
-	iconv_info->cdfrom = (iconv_t)-1;
-	iconv_info->cdto = (iconv_t)-1;
+	iconv_info->cdfrom_ucs2 = (iconv_t)-1;
+	iconv_info->cdto_ucs2 = (iconv_t)-1;
+	iconv_info->cdfrom_srv = (iconv_t)-1;
+	iconv_info->cdto_srv = (iconv_t)-1;
 #endif
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.39 2003-03-26 10:21:47 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.40 2003-03-26 16:20:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -68,18 +68,19 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 
 #if HAVE_ICONV
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
-	iconv_info->cdto = iconv_open("UCS-2LE", charset);
-	if (iconv_info->cdto == (iconv_t) - 1) {
+	iconv_info->cdto_ucs2 = iconv_open("UCS-2LE", charset);
+	if (iconv_info->cdto_ucs2 == (iconv_t) - 1) {
 		iconv_info->use_iconv = 0;
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert to \"%s\"\n", charset);
 		return;
 	}
-	iconv_info->cdfrom = iconv_open(charset, "UCS-2LE");
-	if (iconv_info->cdfrom == (iconv_t) - 1) {
+	iconv_info->cdfrom_ucs2 = iconv_open(charset, "UCS-2LE");
+	if (iconv_info->cdfrom_ucs2 == (iconv_t) - 1) {
 		iconv_info->use_iconv = 0;
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
 		return;
 	}
+	/* TODO init singlebyte server */
 	iconv_info->use_iconv = 1;
 	/* temporarily disable */
 	/* iconv_info->use_iconv = 0; */
@@ -97,11 +98,17 @@ TDSICONVINFO *iconv_info;
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
 #if HAVE_ICONV
-	if (iconv_info->cdto != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdto);
+	if (iconv_info->cdto_ucs2 != (iconv_t) - 1) {
+		iconv_close(iconv_info->cdto_ucs2);
 	}
-	if (iconv_info->cdfrom != (iconv_t) - 1) {
-		iconv_close(iconv_info->cdfrom);
+	if (iconv_info->cdfrom_ucs2 != (iconv_t) - 1) {
+		iconv_close(iconv_info->cdfrom_ucs2);
+	}
+	if (iconv_info->cdto_srv != (iconv_t) - 1) {
+		iconv_close(iconv_info->cdto_srv);
+	}
+	if (iconv_info->cdfrom_srv != (iconv_t) - 1) {
+		iconv_close(iconv_info->cdfrom_srv);
 	}
 #endif
 }
@@ -112,7 +119,7 @@ TDSICONVINFO *iconv_info;
  * @param in_string ucs2 string (not terminated) to convert to ascii
  * @param in_len length of input string in characters (2 byte)
  * @param out_string buffer to store translated string. It should be large enough 
- *        to handle len bytes. string won't be zero terminated.
+ *        to handle out_len bytes. string won't be zero terminated.
  * @param out_len length of input string in characters
  */
 int
@@ -140,11 +147,11 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, int in_len, char *out
 		in_bytes = in_len * 2;
 		in_ptr = (ICONV_CONST char *) in_string;
 		out_ptr = out_string;
-		while (iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t) - 1) {
+		while (iconv(iconv_info->cdfrom_ucs2, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t) - 1) {
 			/* iconv call can reset errno */
 			i = errno;
 			/* reset iconv state */
-			iconv(iconv_info->cdfrom, NULL, NULL, NULL, NULL);
+			iconv(iconv_info->cdfrom_ucs2, NULL, NULL, NULL, NULL);
 			if (i != EILSEQ)
 				break;
 
@@ -155,7 +162,7 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, int in_len, char *out
 			/* replace invalid with '?' */
 			pquest_mark = quest_mark;
 			lquest_mark = 2;
-			iconv(iconv_info->cdfrom, &pquest_mark, &lquest_mark, &out_ptr, &out_bytes);
+			iconv(iconv_info->cdfrom_ucs2, &pquest_mark, &lquest_mark, &out_ptr, &out_bytes);
 			if (out_bytes == 0)
 				break;
 		}
@@ -206,7 +213,7 @@ tds7_ascii2unicode(TDSSOCKET * tds, const char *in_string, char *out_string, int
 		in_bytes = string_length;
 		in_ptr = (ICONV_CONST char *) in_string;
 		out_ptr = out_string;
-		iconv(iconv_info->cdto, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+		iconv(iconv_info->cdto_ucs2, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 
 		return out_string;
 	}

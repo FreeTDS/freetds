@@ -1,3 +1,11 @@
+Wed Mar 26 17:18:58 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: small update
+	* include/tdsiconv.h src/tds/iconv.c src/tds/mem.c:
+	- remove some iconv handle
+	- start adding conversion for single-byte characters
+	* src/tds/config.c: small log change
+	* src/tds/read.c: doc update
+
 Wed Mar 26 11:33:36 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c:
 	- remove bug (used uninitialized pointer)

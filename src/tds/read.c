@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.38 2003-03-26 10:21:48 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.39 2003-03-26 16:20:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -223,13 +223,13 @@ unsigned char bytes[4];
 }
 
 /**
- * Fetch a string from the wire
- * Output string is NOT null terminated
- * If TDS version is 7 or 8 read unicode string and convert it
+ * Fetch a string from the wire.
+ * Output string is NOT null terminated.
+ * If TDS version is 7 or 8 read unicode string and convert it.
+ * @return bytes written
  * @param tds  connection information
  * @param dest destination buffer, if NULL string is readed and discarded
  * @param need length to read (in characters)
- * @return bytes written
  */
 /* FIXME handle output buffer len > character to read */
 int
