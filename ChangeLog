@@ -1,3 +1,8 @@
+Sun Sep 22 17:52:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/config.c:
+	- Print correct location of found configuration file in
+	  tds_try_conf_file().
+
 Sun Sep 22 17:41:32 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/tds/asprintf.c:
 	- Pull in asprintf() only if needed (don't overload HAVE_VASPRINTF)

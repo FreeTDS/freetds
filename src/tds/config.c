@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.27 2002-09-22 21:45:59 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.28 2002-09-22 21:54:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -149,7 +149,8 @@ FILE *in;
 
 	if ((in = fopen (path, "r")) != NULL) {
 		tdsdump_log(TDS_DBG_INFO1, 
-			"%L Found conf file in %s %s. Reading section %s.\n",interf_file,how, server);
+			"%L Found conf file in %s %s. Reading section %s.\n",
+			path, how, server);
 		found = tds_read_conf_sections (in, server, config);
         	              if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
 		fclose (in);
