@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.15 2002-10-09 10:20:55 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.16 2002-10-10 15:38:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -103,7 +103,6 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
     TIMESTAMP_STRUCT *tssp;
     SQL_NUMERIC_STRUCT   *num;
 
-    TDS_UINT8        *uip8;
     TDS_UINT         *uip;
     TDS_USMALLINT    *usip;
 

@@ -1,3 +1,11 @@
+Thu Oct 10 11:37:53 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/odbc/convert_tds2sql.c:
+	- Remove unused variable.
+
+Thu Oct 10 11:35:28 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/config.c:
+	- Bug fix, printf was used where fprintf was intended.
+
 Thu Oct 10 10:47:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/pool/Makefile.am:
 	- Distribute and install pool.conf.
