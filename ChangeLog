@@ -1,3 +1,9 @@
+Fri Sep 27 11:39:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- split reading data information in separate function to 
+	  reuse for params
+	- check sizes returned by server and do not overflow
+
 Fri Sep 27 00:56:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c
 	  src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbopen.c
