@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.77 2003-01-05 13:42:00 freddy77 Exp $";
+	"$Id: tds.h,v 1.79 2003-01-23 14:49:19 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
