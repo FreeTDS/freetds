@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.10 2003-10-24 10:11:11 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.11 2003-12-29 16:08:03 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -43,10 +43,8 @@ extern "C"
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
-#ifndef EINTR
-#define EINTR WSAEINTR
-#endif
-#define EINPROGRESS WSAEINPROGRESS
+#define TDSSOCK_EINTR WSAEINTR
+#define TDSSOCK_EINPROGRESS WSAEINPROGRESS
 #define getpid() GetCurrentThreadId()
 #define sock_errno WSAGetLastError()
 #ifndef __MINGW32__
@@ -65,6 +63,14 @@ typedef DWORD pid_t;
 
 #ifndef sock_errno
 #define sock_errno errno
+#endif
+
+#ifndef TDSSOCK_EINTR
+#define TDSSOCK_EINTR EINTR
+#endif
+
+#ifndef TDSSOCK_EINPROGRESS 
+#define TDSSOCK_EINPROGRESS EINPROGRESS
 #endif
 
 #ifndef READSOCKET

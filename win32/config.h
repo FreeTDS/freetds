@@ -155,7 +155,7 @@
 #define HAVE_VSNPRINTF 1
 
 /* Define as const if the declaration of iconv() needs const. */
-#define ICONV_CONST
+#define ICONV_CONST const
 
 /* Define to value of INADDR_NONE if not provided by your system header files.
    */

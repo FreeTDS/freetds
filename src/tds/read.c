@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.77 2003-12-16 08:03:57 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.78 2003-12-29 16:08:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -115,7 +115,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 		if( retcode != 0 ) {
 			if( retcode < 0 ) {
-				if (sock_errno != EINTR) {
+				if (sock_errno != TDSSOCK_EINTR) {
 					char *msg = strerror(sock_errno);
 					tdsdump_log(TDS_DBG_NETWORK, "%L goodread select: errno=%d, \"%s\", returning -1\n", errno, (msg)? msg : "(unknown)");
 					return -1;
@@ -135,12 +135,12 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				char *msg = strerror(sock_errno);
 				tdsdump_log(TDS_DBG_NETWORK, "%L goodread: errno=%d, \"%s\"\n", errno, (msg)? msg : "(unknown)");
 				
-				switch (errno) {
+				switch (sock_errno) {
 				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
-				case EINTR:		/* If interrupted by a signal before it reads any data. */
-				case EINPROGRESS:	/* A lengthy operation on a non-blocking object is in progress. */
+				case TDSSOCK_EINTR:		/* If interrupted by a signal before it reads any data. */
+				case TDSSOCK_EINPROGRESS:	/* A lengthy operation on a non-blocking object is in progress. */
 					/* EINPROGRESS is not a documented errno for read(2), afaict.  Remove following assert if it trips.  --jkl */
-					assert(errno != EINPROGRESS);
+					assert(sock_errno != TDSSOCK_EINPROGRESS);
 					break;	/* try again */
 
 				case EBADF:

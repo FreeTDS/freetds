@@ -96,10 +96,6 @@ SOURCE=..\..\src\odbc\connectparams.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\odbc\convert_sql2string.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\odbc\convert_tds2sql.c
 # End Source File
 # Begin Source File
@@ -157,10 +153,6 @@ SOURCE=..\config.h
 # Begin Source File
 
 SOURCE=..\..\src\odbc\connectparams.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\odbc\convert_sql2string.h
 # End Source File
 # Begin Source File
 

@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.55 2003-12-22 21:54:53 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.56 2003-12-29 16:08:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -371,7 +371,7 @@ tds_check_socket_write(TDSSOCKET * tds)
 			if (retcode >= 0)
 				return 0;
 			/* interrupted */
-			if (sock_errno == EINTR)
+			if (sock_errno == TDSSOCK_EINTR)
 				continue;
 			/* error, leave caller handle problems */
 			return -1;
@@ -385,7 +385,7 @@ tds_check_socket_write(TDSSOCKET * tds)
 		selecttimeout.tv_sec = tds->timeout - (now - start);
 		selecttimeout.tv_usec = 0;
 		retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-		if (retcode < 0 && sock_errno == EINTR) {
+		if (retcode < 0 && sock_errno == TDSSOCK_EINTR) {
 			retcode = 0;
 		}
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.284 2003-12-20 12:38:37 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.285 2003-12-29 16:08:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1536,7 +1536,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLUSMALLINT, drec->sql_desc_precision);
 		else
-			*((SQLUSMALLINT *) pfDesc) = drec->sql_desc_length;
+			*((SQLINTEGER *) pfDesc) = drec->sql_desc_length;
 		break;
 		/* FIXME special cases for SQL_COLUMN_SCALE */
 	case SQL_COLUMN_SCALE:
@@ -1544,7 +1544,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IOUT(SQLUSMALLINT, drec->sql_desc_scale);
 		else
-			*((SQLUSMALLINT *) pfDesc) = 0;
+			*((SQLINTEGER *) pfDesc) = 0;
 		break;
 	case SQL_DESC_SCHEMA_NAME:
 		COUT(drec->sql_desc_schema_name);
