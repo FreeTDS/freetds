@@ -1,11 +1,14 @@
+Thu Jul 08 11:20:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: ignore spurious TDS_RETURNSTATUS_TOKEN packets
+
 Sun Jun 13 19:55:20 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in reset to 0.62.5.dev
-	
+
 Sun Jun 13 18:44:42 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* README document 0.62.4 changes
 	* ChangeLog add 2-digit-year fix (applied by Frediano).  
 	* configure.in Release 0.62.4
-	
+
 Sat Jun 05 18:49:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/prepare_query.c: backported memory corruption fix
 
