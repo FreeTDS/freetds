@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.100 2005-01-09 19:41:24 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.101 2005-01-12 14:34:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -483,9 +483,10 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
 		tds_dstr_copy(&connection->host_name, tds_dstr_cstr(&login->host_name));
-		/* DBSETLHOST and it's equivilants are commentary fields
-		 * ** they don't affect connection->ip_addr (the server) but they show
-		 * ** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
+		/*
+		 * DBSETLHOST and it's equivilants are commentary fields
+		 * they don't affect connection->ip_addr (the server) but they show
+		 * up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
 		 */
 		/* should work with IP (mlilback, 11/7/01) */
 		/*
@@ -789,7 +790,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 		return 0;
 
 	/*
-	 * * create the full pathname to the interface file
+	 * create the full pathname to the interface file
 	 */
 	if (file[0] == '\0') {
 		pathname[0] = '\0';
@@ -805,7 +806,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 
 
 	/*
-	 * *  parse the interfaces file and find the server and port
+	 * parse the interfaces file and find the server and port
 	 */
 	if ((in = fopen(pathname, "r")) == NULL) {
 		tdsdump_log(TDS_DBG_INFO1, "Couldn't open %s.\n", pathname);

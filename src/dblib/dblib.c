@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.198 2005-01-12 08:46:51 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.199 2005-01-12 14:34:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -5495,16 +5495,20 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	resinfo = tds->res_info;
 	curcol = resinfo->columns[0];
 
-	/* if the current position is beyond the end of the text
-	 * ** set pos to 0 and return 0 to denote the end of the 
-	 * ** text */
+	/*
+	 * if the current position is beyond the end of the text
+	 * set pos to 0 and return 0 to denote the end of the 
+	 * text 
+	 */
 	if (curcol->column_textpos && curcol->column_textpos >= curcol->column_cur_size) {
 		curcol->column_textpos = 0;
 		return 0;
 	}
 
-	/* if pos is 0 (first time through or last call exhausted the text)
-	 * ** then read another row */
+	/*
+	 * if pos is 0 (first time through or last call exhausted the text)
+	 * then read another row
+	 */
 
 	if (curcol->column_textpos == 0) {
 		rc = tds_process_row_tokens(dbproc->tds_socket, &rowtype, &computeid);
@@ -5964,8 +5968,10 @@ dblastrow(DBPROCESS * dbproc)
 	if (dbproc->row_buf.rows_in_buf == 0) {
 		result = 0;
 	} else {
-		/* rows returned from the row buffer start with 1 instead of 0
-		 * ** newest is 0 based. */
+		/*
+		 * rows returned from the row buffer start with 1 instead of 0
+		 * newest is 0 based.
+		 */
 		result = dbproc->row_buf.newest + 1;
 	}
 	return result;

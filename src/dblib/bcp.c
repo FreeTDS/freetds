@@ -74,7 +74,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.109 2005-01-10 08:50:55 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.110 2005-01-12 14:34:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -2676,8 +2676,10 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 					tds_put_smallint(tds, 0);
 					tds_put_byte(tds, bindcol->column_type);
 					tds_put_byte(tds, 0xff - blob_cols);
-					/* offset of txptr we stashed during variable
-					 * ** column processing */
+					/*
+					 * offset of txptr we stashed during variable
+					 * column processing 
+					 */
 					tds_put_smallint(tds, bindcol->column_textpos);
 					tds_put_int(tds, bindcol->bcp_column_data->datalen);
 					tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
