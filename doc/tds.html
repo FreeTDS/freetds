@@ -680,15 +680,18 @@ line#		Line number of input which generated the message
 <p>
 Output parameters of a stored procedure.
 <pre>
- INT16    INT8       CHAR[n]   5 bytes   INT8
-+--------+----------+---------+---------+----------+------+
-| length | c length | colname | unknown | datatype | .... | 
-+--------+----------+---------+---------+----------+------+
+ INT16    INT8       CHAR[n]   INT8    INT32      INT8
++--------+----------+---------+-------+----------+----------+------+
+| length | c length | colname | flags | usertype | datatype | .... | 
++--------+----------+---------+-------+----------+----------+------+
 
 length		Length of packet
 c length	Length of colname
 colname		Name of column
+flags		0x1 Nullable
+usertype	cf. systypes table in database
 datatype	Type of data returned
+
 The trailing information depends on whether the datatype is
 a fixed size datatype.
 				 N bytes

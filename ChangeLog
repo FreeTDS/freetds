@@ -1,3 +1,6 @@
+Thu Jan  6 15:13:56 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/tds.html src/dblib/unittests/README updated docs
+
 Wed Jan  5 22:07:07 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
 	- Patch 1095806 by Bill Thompson
