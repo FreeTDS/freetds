@@ -1,3 +1,6 @@
+Mon Mar 29 13:09:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: backported small patch for DBD::ODBC
+
 Sun Mar 28 16:29:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: backported small patch for DBD::ODBC
 	* src/odbc/unittests/Makefile.am: clean odbc.ini

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.288.2.4 2004-03-28 14:19:48 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.288.2.5 2004-03-29 10:59:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4388,6 +4388,14 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 }
 
 static void
+tds_ascii_strupr(char *s)
+{
+	for (; *s; ++s)
+		if ('a' <= *s && *s <= 'z')
+			*s = *s & (~0x20);
+}
+
+static void
 odbc_upper_column_names(TDS_STMT * stmt)
 {
 #if ENABLE_EXTRA_CHECKS
@@ -4396,7 +4404,6 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	TDSSOCKET *tds;
 #endif
 	int icol;
-	char *p;
 	TDS_DESC *ird;
 
 	IRD_CHECK;
@@ -4422,10 +4429,8 @@ odbc_upper_column_names(TDS_STMT * stmt)
 		struct _drecord *drec = &ird->records[icol];
 
 		/* upper case */
-		/* TODO procedure */
-		for (p = drec->sql_desc_label; *p; ++p)
-			if ('a' <= *p && *p <= 'z')
-				*p = *p & (~0x20);
+		tds_ascii_strupr(drec->sql_desc_label);
+		tds_ascii_strupr(drec->sql_desc_name);
 	}
 }
 
