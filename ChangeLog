@@ -1,3 +1,11 @@
+Mon Mar 22 20:22:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* include/md4.h src/tds/md4.c:
+	- make more similar to source
+	* include/Makefile.am src/tds/Makefile.am include/md5.h(added):
+	* src/tds/md5.c(added):
+	- added md5 algorithm (for NTLMv2 and link tests)
+
 Sun Mar 21 09:33:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/common.c:

@@ -28,6 +28,9 @@
  * This code implements the MD4 message-digest algorithm.
  */
 
+/*
+ * File from mhash library (mhash.sourceforge.net)
+ */
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -39,11 +42,11 @@
 #include "tds.h"
 #include "md4.h"
 
-static char software_version[] = "$Id: md4.c,v 1.5 2003-03-30 08:12:03 freddy77 Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: md4.c,v 1.6 2004-03-22 19:13:13 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+#undef word32
+#define word32 TDS_UINT
 
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */
@@ -57,17 +60,17 @@ static void byteReverse(unsigned char *buf, unsigned longs);
 static void
 byteReverse(unsigned char *buf, unsigned longs)
 {
-	TDS_UINT t;
+	word32 t;
 
 	do {
-		t = (TDS_UINT) ((unsigned) buf[3] << 8 | buf[2]) << 16 | ((unsigned) buf[1] << 8 | buf[0]);
-		*(TDS_UINT *) buf = t;
+		t = (word32) ((unsigned) buf[3] << 8 | buf[2]) << 16 | ((unsigned) buf[1] << 8 | buf[0]);
+		*(word32 *) buf = t;
 		buf += 4;
 	} while (--longs);
 }
 #endif
 
-#define rotl32(x,n)   (((x) << ((TDS_UINT)(n))) | ((x) >> (32 - (TDS_UINT)(n))))
+#define rotl32(x,n)   (((x) << ((word32)(n))) | ((x) >> (32 - (word32)(n))))
 
 /*
  * Start MD4 accumulation.  Set bit count to 0 and buffer to mysterious
@@ -92,12 +95,12 @@ MD4Init(struct MD4Context *ctx)
 void
 MD4Update(struct MD4Context *ctx, unsigned char const *buf, unsigned len)
 {
-	register TDS_UINT t;
+	register word32 t;
 
 	/* Update bitcount */
 
 	t = ctx->bits[0];
-	if ((ctx->bits[0] = t + ((TDS_UINT) len << 3)) < t)
+	if ((ctx->bits[0] = t + ((word32) len << 3)) < t)
 		ctx->bits[1]++;	/* Carry from low to high */
 	ctx->bits[1] += len >> 29;
 
@@ -115,7 +118,7 @@ MD4Update(struct MD4Context *ctx, unsigned char const *buf, unsigned len)
 		}
 		memcpy(p, buf, t);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (TDS_UINT *) ctx->in);
+		MD4Transform(ctx->buf, (word32 *) ctx->in);
 		buf += t;
 		len -= t;
 	}
@@ -124,7 +127,7 @@ MD4Update(struct MD4Context *ctx, unsigned char const *buf, unsigned len)
 	while (len >= 64) {
 		memcpy(ctx->in, buf, 64);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (TDS_UINT *) ctx->in);
+		MD4Transform(ctx->buf, (word32 *) ctx->in);
 		buf += 64;
 		len -= 64;
 	}
@@ -160,7 +163,7 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
 		/* Two lots of padding:  Pad the first block to 64 bytes */
 		memset(p, 0, count);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (TDS_UINT *) ctx->in);
+		MD4Transform(ctx->buf, (word32 *) ctx->in);
 
 		/* Now fill the next block with 56 bytes */
 		memset(ctx->in, 0, 56);
@@ -171,10 +174,10 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
 	byteReverse(ctx->in, 14);
 
 	/* Append length in bits and transform */
-	((TDS_UINT *) ctx->in)[14] = ctx->bits[0];
-	((TDS_UINT *) ctx->in)[15] = ctx->bits[1];
+	((word32 *) ctx->in)[14] = ctx->bits[0];
+	((word32 *) ctx->in)[15] = ctx->bits[1];
 
-	MD4Transform(ctx->buf, (TDS_UINT *) ctx->in);
+	MD4Transform(ctx->buf, (word32 *) ctx->in);
 	byteReverse((unsigned char *) ctx->buf, 4);
 
 	if (digest != NULL)
@@ -193,11 +196,11 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
     (a) = rotl32 ((a), (s)); \
   }
 #define GG(a, b, c, d, x, s) { \
-    (a) += G ((b), (c), (d)) + (x) + (TDS_UINT)0x5a827999; \
+    (a) += G ((b), (c), (d)) + (x) + (word32)0x5a827999; \
     (a) = rotl32 ((a), (s)); \
   }
 #define HH(a, b, c, d, x, s) { \
-    (a) += H ((b), (c), (d)) + (x) + (TDS_UINT)0x6ed9eba1; \
+    (a) += H ((b), (c), (d)) + (x) + (word32)0x6ed9eba1; \
     (a) = rotl32 ((a), (s)); \
   }
 
@@ -206,9 +209,9 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
  * The core of the MD4 algorithm
  */
 void
-MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16])
+MD4Transform(word32 buf[4], word32 const in[16])
 {
-	register TDS_UINT a, b, c, d;
+	register word32 a, b, c, d;
 
 	a = buf[0];
 	b = buf[1];

@@ -1,11 +1,8 @@
 #ifndef MD4_H
 #define MD4_H
 
-static char rcsid_md4_h[] = "$Id: md4.h,v 1.3 2003-04-03 08:59:15 freddy77 Exp $";
-static void *no_unused_md4_h_warn[] = {
-	rcsid_md4_h,
-	no_unused_md4_h_warn
-};
+static char rcsid_md4_h[] = "$Id: md4.h,v 1.4 2004-03-22 19:13:13 freddy77 Exp $";
+static void *no_unused_md4_h_warn[] = { rcsid_md4_h, no_unused_md4_h_warn };
 
 struct MD4Context
 {
