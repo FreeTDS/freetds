@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.37 2003-03-27 07:39:05 jklowden Exp $";
+         "$Id: cspublic.h,v 1.38 2003-04-03 10:37:09 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -84,7 +84,6 @@ typedef CS_RETCODE (*CS_CSLIBMSG_FUNC)(CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_CLIENTMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
-
 /* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
 	places, too. */
 
@@ -119,19 +118,47 @@ typedef struct _CSREMOTE_PROC
 #define _CS_ERRHAND_INLINE 1
 #define _CS_ERRHAND_CB     2
 
+/* Code changed for error handling */
+/* Code changes starts here - CT_DIAG - 01 */
+
+/* This structure is used in CT_DIAG */
+
+struct cs_diag_msg_client {
+	CS_CLIENTMSG *clientmsg;
+	struct cs_diag_msg_client *next;
+};
+
+struct cs_diag_msg_svr {
+	CS_SERVERMSG *servermsg;
+	struct cs_diag_msg_svr *next;
+};
+
+/* Code changes ends here - CT_DIAG - 01 */
+
 struct cs_diag_msg {
 CS_CLIENTMSG *msg;
 struct cs_diag_msg *next;
 };
-
 
 struct cs_context
 {
 	CS_INT date_convert_fmt;
 	CS_INT cs_errhandletype;
 	CS_INT cs_diag_msglimit;
+
+	/* added for storing the maximum messages limit CT_DIAG */
+	/* code changes starts here - CT_DIAG - 02*/
+
+        CS_INT cs_diag_msglimit_client;
+        CS_INT cs_diag_msglimit_server;
+        CS_INT cs_diag_msglimit_total;
+        struct cs_diag_msg_client *clientstore;
+        struct cs_diag_msg_svr *svrstore;
+
+	/* code changes ends here - CT_DIAG - 02*/
+
 	struct cs_diag_msg *msgstore;
-	CS_CSLIBMSG_FUNC _cslibmsg_cb;
+   	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
 	TDSCONTEXT *tds_ctx;

@@ -1,6 +1,7 @@
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
-			get_send_data rpc_ct_param rpc_ct_setparam
+			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
+			ct_diagserver ct_diagall
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -20,6 +21,9 @@ cs_diag_SOURCES =	cs_diag.c common.c common.h
 get_send_data_SOURCES =	get_send_data.c common.c common.h
 rpc_ct_param_SOURCES =	rpc_ct_param.c common.c common.h
 rpc_ct_setparam_SOURCES =	rpc_ct_setparam.c common.c common.h
+ct_diagclient_SOURCES = ct_diagclient.c common.c common.h
+ct_diagserver_SOURCES = ct_diagserver.c common.c common.h
+ct_diagall_SOURCES = ct_diagall.c common.c common.h
 
 LIBS		=	../libct.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include

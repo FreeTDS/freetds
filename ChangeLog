@@ -1,3 +1,12 @@
+Thu Apr 03 12:35:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/ct_diagclient.c:
+	* src/ctlib/unittests/ct_diagserver.c:
+	* include/cspublic.h include/ctpublic.h src/ctlib/ct.c:
+	* src/ctlib/unittests/Makefile.am:
+	- applied Suhasini Sriramulu ct-lib patch 
+	 - ct_diag support
+
 Thu Apr 03 10:58:31 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/dblib.h include/des.h include/md4.h include/sybdb.h:
 	* include/tds_sysdep_private.h include/tdsodbc.h:

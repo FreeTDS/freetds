@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.88 2003-04-01 19:16:45 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.89 2003-04-03 10:37:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -53,6 +53,18 @@ static int _ct_process_return_status(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data, 
 	CS_INT *datalen, CS_SMALLINT *indicator, CS_BYTE byvalue);
+
+/* Added for CT_DIAG */
+/* Code changes starts here - CT_DIAG - 01 */
+
+static CS_INT ct_diag_storeclientmsg(CS_CONTEXT *context, CS_CONNECTION *conn, CS_CLIENTMSG *message);
+static CS_INT ct_diag_storeservermsg(CS_CONTEXT *context, CS_CONNECTION *conn, CS_SERVERMSG *message);
+static CS_INT ct_diag_countmsg(CS_CONTEXT *context,CS_INT type,  CS_INT *count);
+static CS_INT ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
+static CS_INT ct_diag_getclientmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message);
+static CS_INT ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message);
+
+/* Code changes ends here - CT_DIAG - 01 */
 
 /* Added code for RPC functionality -SUHA */
 /* RPC Code changes starts here */
@@ -3023,3 +3035,325 @@ int  param_is_null = 0;
 	}
 	return CS_SUCCEED;
 }
+
+/* Code added for ct_diag implementation */
+/* Code changes start here - CT_DIAG - 02*/
+
+CS_RETCODE 
+ct_diag(CS_CONNECTION *conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer)
+{
+	int msg_no;
+
+	switch (operation) {
+	case CS_INIT:
+		if ( conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
+			/* contrary to the manual page you don't seem to */
+			/* be able to turn on inline message handling    */
+			/* using cs_diag, once a callback is installed!  */
+			return CS_FAIL;
+		}
+
+		conn->ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
+
+		if (conn->ctx->cs_diag_msglimit_client == NULL)
+			conn->ctx->cs_diag_msglimit_client = CS_NO_LIMIT;
+
+		if (conn->ctx->cs_diag_msglimit_server == NULL)
+			conn->ctx->cs_diag_msglimit_server = CS_NO_LIMIT;
+
+		if (conn->ctx->cs_diag_msglimit_total == NULL)
+			conn->ctx->cs_diag_msglimit_total = CS_NO_LIMIT;
+
+		conn->ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
+		conn->ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) ct_diag_storeservermsg;
+
+		break;
+
+	case CS_MSGLIMIT:
+		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+			return CS_FAIL;
+		
+		if (type == CS_CLIENTMSG_TYPE)
+			conn->ctx->cs_diag_msglimit_client = *(CS_INT *)buffer;
+
+		if (type == CS_SERVERMSG_TYPE)
+			conn->ctx->cs_diag_msglimit_server = *(CS_INT *)buffer;
+
+		if (type == CS_ALLMSG_TYPE)
+			conn->ctx->cs_diag_msglimit_total = *(CS_INT *)buffer;
+			
+		break;
+
+	case CS_CLEAR:
+		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+			return CS_FAIL;
+		return (ct_diag_clearmsg(conn->ctx, type));
+		break;
+
+	case CS_GET:
+		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+			return CS_FAIL;
+
+		if (buffer == NULL)
+			return CS_FAIL;
+
+		if (type == CS_CLIENTMSG_TYPE) {
+			if (idx == 0 || (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_client) )
+				return CS_FAIL;
+
+			return (ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *)buffer)); 
+		}
+
+		if (type == CS_SERVERMSG_TYPE){
+			if (idx == 0 || (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_server) )
+				return CS_FAIL;
+			return (ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *)buffer)); 
+		}
+
+		break;
+
+	case CS_STATUS:
+		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+			return CS_FAIL;
+		if (buffer == NULL) 
+			return CS_FAIL;
+
+		return (ct_diag_countmsg(conn->ctx, type, (CS_INT *)buffer));
+		break;
+	}
+	return CS_SUCCEED;
+}
+
+static CS_INT 
+ct_diag_storeclientmsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_CLIENTMSG *message)
+{
+	struct cs_diag_msg_client **curptr;
+	struct cs_diag_msg_svr **scurptr;
+
+	CS_INT msg_count = 0;
+
+	curptr = &(conn->ctx->clientstore);
+
+	scurptr = &(conn->ctx->svrstore);
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (*curptr != (struct cs_diag_msg_client *) NULL) {
+		msg_count++;
+		curptr = &((*curptr)->next);
+	}
+
+	/* messages over and above the agreed limit */
+	/* are simply discarded...                  */
+
+	if (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT &&
+		msg_count >= conn->ctx->cs_diag_msglimit_client) {
+		return CS_FAIL;
+	}
+
+	/* messages over and above the agreed TOTAL limit */
+	/* are simply discarded */
+
+	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT ) {
+		while (*scurptr != (struct cs_diag_msg_svr *)NULL) {
+			msg_count++;
+			scurptr = &((*scurptr)->next);
+		}
+		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
+			return CS_FAIL;
+		}
+	}
+
+	*curptr = (struct cs_diag_msg_client *) malloc(sizeof(struct cs_diag_msg_client));
+	if (*curptr == (struct cs_diag_msg_client *)NULL) { 
+		return CS_FAIL;
+	} else {
+		(*curptr)->next = (struct cs_diag_msg_client *) NULL;
+		(*curptr)->clientmsg  = malloc(sizeof(CS_CLIENTMSG));
+		if ((*curptr)->clientmsg == (CS_CLIENTMSG *) NULL) {
+			return CS_FAIL;
+		} else {
+			memcpy((*curptr)->clientmsg, message, sizeof(CS_CLIENTMSG));
+		}
+	}
+
+	return CS_SUCCEED;
+}
+
+static CS_INT 
+ct_diag_storeservermsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_SERVERMSG *message)
+{
+	struct cs_diag_msg_svr **curptr;
+	struct cs_diag_msg_client  **ccurptr;
+
+	CS_INT msg_count = 0;
+
+	curptr = &(conn->ctx->svrstore);
+	ccurptr = &(conn->ctx->clientstore);
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (*curptr != (struct cs_diag_msg_svr *) NULL) {
+		msg_count++;
+		curptr = &((*curptr)->next);
+	}
+
+	/* messages over and above the agreed limit */
+	/* are simply discarded...                  */
+
+	if (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT &&
+		msg_count >= conn->ctx->cs_diag_msglimit_server) {
+		return CS_FAIL;
+	}
+
+	/* messages over and above the agreed TOTAL limit */
+	/* are simply discarded...                  */
+
+	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT){
+		while (*ccurptr != (struct cs_diag_msg_client *) NULL) {
+			msg_count++;
+			ccurptr = &((*ccurptr)->next);
+		}
+		if (msg_count >= conn->ctx->cs_diag_msglimit_total){
+		  return CS_FAIL;
+		}
+	}
+
+	*curptr = (struct cs_diag_msg_svr *) malloc(sizeof(struct cs_diag_msg_svr));
+	if (*curptr == (struct cs_diag_msg_svr *) NULL) { 
+		return CS_FAIL;
+	} else {
+		(*curptr)->next = (struct cs_diag_msg_svr *)NULL;
+		(*curptr)->servermsg  = malloc(sizeof(CS_SERVERMSG));
+		if ((*curptr)->servermsg == (CS_SERVERMSG *) NULL) {
+			return CS_FAIL;
+		} else {
+			memcpy((*curptr)->servermsg, message, sizeof(CS_SERVERMSG));
+		}
+	}
+
+	return CS_SUCCEED;
+}
+
+static CS_INT 
+ct_diag_getclientmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
+{
+	struct cs_diag_msg_client *curptr;
+	CS_INT msg_count = 0, msg_found = 0;
+
+	curptr = context->clientstore;
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (curptr != (struct cs_diag_msg_client *) NULL) {
+		msg_count++;
+		if (msg_count == index) {
+			msg_found++;
+			break;
+		}
+		curptr = curptr->next;
+	}
+
+	if (msg_found) {
+		memcpy(message, curptr->clientmsg, sizeof(CS_CLIENTMSG));
+		return CS_SUCCEED;
+	}
+	return CS_NOMSG;
+}
+
+static CS_INT 
+ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message)
+{
+	struct cs_diag_msg_svr *curptr;
+	CS_INT msg_count = 0, msg_found = 0;
+
+	curptr = context->svrstore;
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (curptr != (struct cs_diag_msg_svr *)NULL) {
+		msg_count++;
+		if (msg_count == index) {
+			msg_found++;
+			break;
+		}
+		curptr = curptr->next;
+	}
+
+	if (msg_found) {
+		memcpy(message, curptr->servermsg, sizeof(CS_SERVERMSG));
+		return CS_SUCCEED;
+	} else {
+		return CS_NOMSG;
+	}
+}
+
+static CS_INT 
+ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
+{
+	struct cs_diag_msg_client *curptr, *freeptr;
+	struct cs_diag_msg_svr *scurptr, *sfreeptr;
+
+	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		curptr = context->clientstore;
+		context->clientstore = NULL;
+
+		while (curptr != (struct cs_diag_msg_client *) NULL ) {
+			freeptr = curptr;
+			curptr = freeptr->next;
+			if (freeptr->clientmsg)
+				free(freeptr->clientmsg);
+			free(freeptr);
+		}
+	}
+
+	if (type == CS_SERVERMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		scurptr = context->svrstore;
+		context->svrstore = NULL;
+
+		while (scurptr != (struct cs_diag_msg_svr *) NULL ) {
+			sfreeptr = scurptr;
+			scurptr = sfreeptr->next;
+			if (sfreeptr->servermsg)
+				free(sfreeptr->servermsg);
+			free(sfreeptr);
+		}
+	}
+	return CS_SUCCEED;
+}
+
+static CS_INT 
+ct_diag_countmsg(CS_CONTEXT *context,CS_INT type,  CS_INT *count)
+{
+	struct cs_diag_msg_client *curptr;
+	struct cs_diag_msg_svr *scurptr;
+
+	CS_INT msg_count = 0;
+
+	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		curptr = context->clientstore;
+
+		while (curptr != (struct cs_diag_msg_client *) NULL) {
+			msg_count++;
+			curptr = curptr->next;
+		}
+	}
+
+	if (type == CS_SERVERMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		scurptr = context->svrstore;
+
+		while (scurptr != (struct cs_diag_msg_svr *) NULL) {
+			msg_count++;
+			scurptr = scurptr->next;
+		}
+	}
+	*count = msg_count;
+
+	return CS_SUCCEED;
+}
+
+/* Code changes ends here - CT_DIAG - 02*/
