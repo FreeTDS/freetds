@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.146 2003-04-02 13:00:39 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.147 2003-04-02 19:48:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2743,8 +2743,8 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	cbTableName = odbc_get_string_size(cbTableName, szTableName);
 
 	if ((proc = (char *) malloc(cbCatalogName + cbSchemaName + cbTableName + 90)) != NULL) {
-		strcpy(proc, "sp_sp_statistics ");	/* 17 */
-		p = proc + 17;
+		strcpy(proc, "sp_statistics ");	/* 14 */
+		p = proc + 14;
 
 		PARM_ADD(p, "@table_qualifier=", szCatalogName, cbCatalogName, 1);
 		PARM_ADD(p, "@table_owner=", szSchemaName, cbSchemaName, 1);

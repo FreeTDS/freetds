@@ -1,3 +1,6 @@
+Wed Apr 02 21:48:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: small SQLStatistics fix
+
 Wed Apr 02 15:07:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* doc/api_status.txt: updated
 
