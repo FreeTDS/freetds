@@ -3,7 +3,7 @@
  
 Name: %{name} 
 Version: %{version} 
-Release: 2 
+Release: 3 
 Vendor: www.freetds.org 
 Copyright: LGPL 
 Group: System Environment/Libraries 
