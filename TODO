@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.83 2003-12-04 22:21:22 freddy77 Exp $
+To Do List	$Id: TODO,v 1.84 2003-12-05 10:05:18 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -32,16 +32,11 @@ For 0.62 version:
   - multiple statemets question
   - PHP workaround with multiple connections (see ML)
 . userguide
-  - --with-unixodbc, --with-iodbc now not needed 
-    (only for particular configurations)
   - iconv strategi
-  - iconv disable parameter
-  - UTF-8 support, update western, etc.
   - link to reference manual, add to web
   - update table of working configurations
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
-  - obsolete configuration (nt domain, locale.conf, etc.)
 . UTF-8 unit tests (libTDS)
   - very large column name (128 on mssql), no-english to UTF-8 client
 
