@@ -24,16 +24,16 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#ifdef UNIXODBC
+#if defined(UNIXODBC) || defined(TDS_NO_DM)
 #include <sql.h>
 #include <sqlext.h>
-#else
+#else /* iODBC */
 #include "isql.h"
 #include "isqlext.h"
 #endif
 
 
-static char rcsid_prepare_query_h[] = "$Id: prepare_query.h,v 1.5 2003-07-29 09:00:08 freddy77 Exp $";
+static char rcsid_prepare_query_h[] = "$Id: prepare_query.h,v 1.6 2003-11-02 09:59:33 freddy77 Exp $";
 static void *no_unused_prepare_query_h_warn[] = { rcsid_prepare_query_h, no_unused_prepare_query_h_warn };
 
 

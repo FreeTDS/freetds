@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.109 2003-10-25 09:13:51 jklowden Exp $
+dnl $Id: configure.in,v 1.110 2003-11-02 09:59:33 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -242,6 +242,7 @@ if test "$with_iodbc"; then
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
 	ODBCLIB="-liodbc"
 	odbc=true
+	iodbc=true
 fi
 
 AC_ARG_WITH(unixodbc,
@@ -258,6 +259,22 @@ if test "$with_unixodbc"; then
 	unixodbc=true
 fi
 
+AC_ARG_WITH(odbc_nodm,
+[  --with-odbc-nodm=DIR     build odbc without driver manager (headers in DIR])
+if test "$with_odbc_nodm"; then
+	if echo "$with_odbc_nodm" | grep -v '^/'; then
+		with_odbc_nodm="$PWD/$with_odbc_nodm"
+	fi
+	CPPFLAGS="$CPPFLAGS -DTDS_NO_DM"
+	ODBC_INC="-I$with_odbc_nodm/include"
+	# The next line is for linking the unittests. Here the ODBC driver
+	#  itself is treated as the driver manager to be linked.
+	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
+	#  other directories.
+	ODBCNODMLIB="-L.. -ltdsodbc"
+	odbc=true
+fi
+
 # odbc not specified, try to detect it
 if test x$odbc != xtrue; then
 	AC_CHECK_LIB(iodbc, SQLConnect, [odbc=true
@@ -272,7 +289,7 @@ if test x$odbc = xtrue; then
 	if test x$unixodbc = xtrue; then
 		AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -lodbcinst"
 AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
-	else
+	elif test x$iodbc = xtrue; then
 		AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -liodbcinst"
 AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
 	fi
@@ -283,6 +300,7 @@ AM_CONDITIONAL(UNIXODBC, test x$unixodbc = xtrue)
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
 AC_SUBST(ODBCLIB)
+AC_SUBST(ODBCNODMLIB)
 
 AC_ARG_ENABLE(apps,
 	AC_HELP_STRING([--disable-apps], [skip build of src/apps (including tsql)]))

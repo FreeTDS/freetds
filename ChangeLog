@@ -1,3 +1,9 @@
+Sun Nov  2 11:58:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/tdsodbc.h src/odbc/odbc.c:
+	* src/odbc/odbc_util.h src/odbc/prepare_query.h:
+	* src/odbc/unittests/Makefile.am:
+	- applied patch for NO-DM from David Fraser
+
 Sun Nov  2 11:51:17 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c: fix reverse lookup problems
 

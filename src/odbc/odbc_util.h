@@ -24,15 +24,15 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#ifdef UNIXODBC
+#if defined(UNIXODBC) || defined(TDS_NO_DM)
 #include <sql.h>
 #include <sqlext.h>
-#else
+#else /* iODBC */
 #include "isql.h"
 #include "isqlext.h"
 #endif
 
-static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.18 2003-10-05 16:46:42 freddy77 Exp $";
+static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.19 2003-11-02 09:59:33 freddy77 Exp $";
 static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.258 2003-10-29 15:30:22 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.259 2003-11-02 09:59:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2808,6 +2808,21 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	return _SQLFreeStmt(hstmt, fOption);
 }
 
+#ifdef TDS_NO_DM
+SQLRETURN SQL_API
+SQLCloseCursor(SQLHSTMT hstmt)
+{
+	/*
+	 * Basic implementation for when no driver manager is present.
+	 *  - according to ODBC documentation SQLCloseCursor is more or less
+	 *    equivalent to SQLFreeStmt(..., SQL_CLOSE).
+	 *  - indeed that is what the DM does if it can't find the function
+	 *    in the driver, so this is pretty close.
+	 */
+	return _SQLFreeStmt(hstmt, SQL_CLOSE);
+}
+#endif
+
 static SQLRETURN SQL_API
 _SQLFreeDesc(SQLHDESC hdesc)
 {
@@ -3422,7 +3437,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
+#ifdef TDS_NO_DM
+		API3X(SQL_API_SQLCLOSECURSOR);
+#else
 		API3_(SQL_API_SQLCLOSECURSOR);
+#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
@@ -3514,7 +3533,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
+#ifdef TDS_NO_DM
+		API3X(SQL_API_SQLCLOSECURSOR);
+#else
 		API3_(SQL_API_SQLCLOSECURSOR);
+#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
@@ -3603,7 +3626,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLBROWSECONNECT);
 		API3_(SQL_API_SQLBULKOPERATIONS);
 		API_X(SQL_API_SQLCANCEL);
+#ifdef TDS_NO_DM
+		API3X(SQL_API_SQLCLOSECURSOR);
+#else
 		API3_(SQL_API_SQLCLOSECURSOR);
+#endif
 		API3X(SQL_API_SQLCOLATTRIBUTE);
 		/* TODO strange... */
 #if SQL_API_SQLCOLATTRIBUTE != SQL_API_SQLCOLATTRIBUTES

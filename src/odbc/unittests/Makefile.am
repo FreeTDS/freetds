@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.23 2003-10-19 17:05:37 jklowden Exp $
+# $Id: Makefile.am,v 1.24 2003-11-02 09:59:33 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -30,5 +30,5 @@ getdata_SOURCES	= getdata.c common.c common.h
 type_SOURCES	= type.c common.c common.h
 transaction_SOURCES = transaction.c common.c common.h
 
-LIBS		=	-lodbc @NETWORK_LIBS@
+LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
