@@ -1,3 +1,6 @@
+Sun Dec 08 10:07:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html: slightly updated
+
 Sat Dec 07 14:48:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: fix input parameters for TDS8
 

@@ -32,7 +32,7 @@ Variable types used in this document:
     CHAR[n]     variable length string
   INT8      8-bit int
   INT16    16-bit int
-  UTF16    Unicode in UTF16 format
+  UCS2LE   Unicode in UCS2LE format
 </pre>
 Note:  FreeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.
 
@@ -91,8 +91,10 @@ Fields:
 packet type 
      0x01 TDS 4.2 or 7.0 query
      0x02 TDS 4.2 or 5.0 login packet
+     0x03 RPC
      0x04 responses from server
      0x06 cancels
+     0x07 Used in Bulk
      0x0F TDS 5.0 query
      0x10 TDS 7.0 login packet
 last packet indicator 
@@ -185,12 +187,15 @@ byte  var type  description
 ---------------------------
   0   INT16	total packet size
   2   INT8[5]?	00000
-  7   INT8	TDS Version?	0x70
+  7   INT8	TDS Version?	0x70 for TDS7, 0x80 for TDS8
   8   INT8[7]?	0000000
- 15   INT8[21]	magic   0x0682f2f8ff00000000e003000088ffffff36040000
- 36   INT16	current_pos ?   86
- 38   INT16	0
- 40   INT16	current_pos     86
+ 15   INT8[4]	magic   0x0682f2f8
+ 19   INT8[4]	PID of client
+ 23   INT8[13]  magic   0x00e003000088ffffff36040000 
+                third byte is 0x83 for NT authentication
+ 36   INT16	current_pos   86
+ 38   INT16	hostname lenght
+ 40   INT16	current_pos
  42   INT16	username length
  44   INT16	current_pos
  46   INT16	password length
@@ -203,42 +208,44 @@ byte  var type  description
  60   INT16	current_pos
  62   INT16	library name length
  64   INT16	current_pos
- 66   INT16	0
+ 66   INT16	language name
  68   INT16	current_pos
- 70   INT16	0
- 72   INT8[6]	magic    0x0040339a6b50
- 78   INT16	partial packet size
- 80   INT16	48 (0x30)
- 82   INT16	total packet size
+ 70   INT16	database name length
+ 72   INT8[6]	MAC address of client
+ 78   INT16	current_pos
+ 80   INT16	NT authentication length
+ 82   INT16	current_pos
  84   INT16	0
- 86   UTF16[n]	username
-      UTF16[n]	encrypted password
-      UTF16[n]	app name
-      UTF16[n]	server name
-      UTF16[n]	library name
-      CHAR[7]	"NTLMSSP"
-      INT8	0	/* version/patch level? */
-      INT8	1	/* version/patch level?  NTLMSSP v01 ? */
-      INT8[3]?	000
-      INT8	6
-      INT8	130 (0x82)
-      INT8[22]?	0000000000000000000000
-      INT8	48 (0x30)
-      INT8[7]?	0000000
-      INT8	48 (0x30)
-      INT8[3]?	000
+ 86   UCS2LE[n] hostname
+      UCS2LE[n]	username
+      UCS2LE[n]	encrypted password
+      UCS2LE[n]	app name
+      UCS2LE[n]	server name
+      UCS2LE[n]	library name
+      UCS2LE[n]	language name
+      UCS2LE[n]	database name
+      NT Authentication packet
+
+NT Authentication packet
+  0   CHAR[8]	authentication id "NTLMSSP\0"
+  8   INT32     1  message type
+ 12   INT32	0xb201 flags
+ 16   INT16	domain length
+ 18   INT16     domain length
+ 20   INT32     domain offset
+ 24   INT16     hostname length
+ 26   INT16     hostname length
+ 28   INT32     hostname offset
+ 32   CHAR[n]   hostname
+      CHAR[n]   domain
+See documentation on Samba for detail
 </pre>
-"partial packet size" is 86 (for the initial fixed portion) plus the
-length of the Unicode strings.
-<br><br>
-"total packet size" is 86 plus the length of the Unicode strings plus
-48 (for the ending fixed portion).
-<br><br>
 "current pos" is the starting byte address for a Unicode string within
 the packet.  The length of that Unicode string immediately follows.  
-That implies there are at least 3 more strings that could be defined.
-(hostname? language? character set??)
-
+That implies there are at least 2 more strings that could be defined.
+(character set??)
+<br><br>
+Password and user is not used is NT authentication is used (setted as empty).
 <hr>
 <p>
 <a name="responses"></a>
@@ -321,7 +328,7 @@ Presumably the process ID number for an executing stored procedure.
 (I'm not sure how this would ever be used by a client.  *mjs*)
 
 <a name="129">&nbsp;</a> <hr>
-<b class="subsection">Result - TDS 7.0 (0x81 129)</b>
+<b class="subsection">Result - TDS 7.0+ (0x81 129)</b>
 <p>
 <pre>
  INT16  
@@ -333,11 +340,11 @@ Presumably the process ID number for an executing stored procedure.
 The TDS 7.0 column_info is formatted as follows for each column:
 
 <pre>
- INT16  INT16  INT8   varies  varies     INT8          UTF16[n]
-+------+------+------+-------+----------+-------------+---------+
-| 0?   | 1?   | type | size  | optional | name length | name    | 
-|      |      |      | (opt) | (opt)    |             |         |
-+------+------+------+-------+----------+-------------+---------+
+ INT16  INT16  INT8   varies  varies     INT8[5]      INT8          UCS2LE[n]
++------+------+------+-------+----------+------------+-------------+---------+
+| 0?   | 1?   | type | size  | optional | collate    | name length | name    | 
+|      |      |      | (opt) | (opt)    | info(TDS8) |             |         |
++------+------+------+-------+----------+------------+-------------+---------+
 
 type		data type, values >128 indicate a large type
 size		none for fixed size types
@@ -350,10 +357,13 @@ optional
   numeric/decimal types:      | precision | scale |
                               +-----------+-------+
 
-                               INT16               UTF16[n]
+                               INT16               UCS2LE[n]
                               +-------------------+------------+
   blob/text types:            | table name length | table name |
                               +-------------------+------------+
+
+  collate info are available only using TDS8 and for characters types (but not
+  for old type like short VARCHAR, only 2byte length versions)
 </pre>
 
 
