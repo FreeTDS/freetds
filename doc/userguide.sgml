@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-03-12 04:03:58 $</date>
-		<releaseinfo>$Revision: 1.80 $</releaseinfo>
+		<date>$Date: 2004-04-26 23:49:17 $</date>
+		<releaseinfo>$Revision: 1.81 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.80 $</>
-<member>$Date: 2004-03-12 04:03:58 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.80 2004-03-12 04:03:58 jklowden Exp $.</>
+<member>$Revision: 1.81 $</>
+<member>$Date: 2004-04-26 23:49:17 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.81 2004-04-26 23:49:17 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -216,6 +216,10 @@ Basic <acronym>API</> coverage information is available at <ulink url="http://ww
 			<title>Languages besides C and Java</title>
 			<para>
 You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>, for which <productname>FreeTDS</productname> is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using <productname>FreeTDS</productname> to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
+			</para>
+			<para>
+Not to be outdone, the folks at the <firstterm>O'Caml</> project have a binding for that language.  You can read more about it on <ulink url="http://kenn.frap.net/ocaml-freetds/">
+Kenn Knowles's</ulink> site; see also his <ulink url="http://www.merjis.com/developers/">ocamldbi</ulink> driver.  
 			</para>
 			<para>
 <productname>FreeTDS</productname> is a source code library, though, not a binary one.  It has to be linked to a program.  For it to be useful to you in any way, you have to be prepared to break out your build tools.  
@@ -532,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-03-12 04:03:58 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-04-26 23:49:17 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
