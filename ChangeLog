@@ -1,3 +1,8 @@
+Tue Dec 31 12:11:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- rename tds_process_col_info to tds_process_col_fmt
+	- parse COLFMT token into default processing
+
 Mon Dec 30 16:27:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in: applied patch from David Hollis
 

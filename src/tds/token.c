@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.131 2002-12-28 20:22:51 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.132 2002-12-31 11:12:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -46,7 +46,7 @@ static int tds_process_compute_names(TDSSOCKET * tds);
 static int tds7_process_compute_result(TDSSOCKET * tds);
 static int tds_process_result(TDSSOCKET * tds);
 static int tds_process_col_name(TDSSOCKET * tds);
-static int tds_process_col_info(TDSSOCKET * tds);
+static int tds_process_col_fmt(TDSSOCKET * tds);
 static int tds_process_compute(TDSSOCKET * tds);
 static int tds_process_row(TDSSOCKET * tds);
 static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
@@ -144,6 +144,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_COLNAME_TOKEN:
 		tds_process_col_name(tds);
+		break;
+	case TDS_COLFMT_TOKEN:
+		tds_process_col_fmt(tds);
 		break;
 	case TDS_ROW_TOKEN:
 		tds_process_row(tds);
@@ -439,7 +442,7 @@ int done_flags;
 			tds_process_col_name(tds);
 			break;
 		case TDS_COLFMT_TOKEN:
-			tds_process_col_info(tds);
+			tds_process_col_fmt(tds);
 			*result_type = TDS_ROWFMT_RESULT;
 			return TDS_SUCCEED;
 			break;
@@ -613,7 +616,7 @@ int i;
 
 /**
  * tds_process_col_name() is one half of the result set under TDS 4.2
- * it contains all the column names, a TDS_COLINFO_TOKEN should 
+ * it contains all the column names, a TDS_COLFMT_TOKEN should 
  * immediately follow this token with the datatype/size information
  * This is a 4.2 only function
  */
@@ -703,13 +706,13 @@ tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol)
 }
 
 /**
- * tds_process_col_info() is the other half of result set processing
+ * tds_process_col_fmt() is the other half of result set processing
  * under TDS 4.2. It follows tds_process_col_name(). It contains all the 
  * column type and size information.
  * This is a 4.2 only function
  */
 static int
-tds_process_col_info(TDSSOCKET * tds)
+tds_process_col_fmt(TDSSOCKET * tds)
 {
 int col, hdrsize;
 TDSCOLINFO *curcol;
@@ -759,7 +762,7 @@ char ci_flags[4];
 	/* get the rest of the bytes */
 	rest = hdrsize - bytes_read;
 	if (rest > 0) {
-		tdsdump_log(TDS_DBG_INFO1, "NOTE:tds_process_col_info: draining %d bytes\n", rest);
+		tdsdump_log(TDS_DBG_INFO1, "NOTE:tds_process_col_fmt: draining %d bytes\n", rest);
 		tds_get_n(tds, NULL, rest);
 	}
 
@@ -928,7 +931,8 @@ int i;
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
 
 		/* skip locale */
-		tds_get_n(tds, NULL, tds_get_byte(tds));
+		if (!IS_TDS42(tds))
+			tds_get_n(tds, NULL, tds_get_byte(tds));
 
 		tds_add_row_column_size(info, curcol);
 	}
