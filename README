@@ -1,8 +1,23 @@
-README for FreeTDS 0.62.3
-Friday, 9 April 2004
+README for FreeTDS 0.62.4
+Sunday, 13 June 2004
 
 Notable repairs are logged here; the regular README follows below.  
 For further details, see ChangeLog or the mailing list archives.  
+
+ODBC
+----
+Some memory corruption and leaks corrected.  New raiserror.c unit test. 
+
+All Libraries
+-------------
+
+String->datetime conversion (dbconvert, et. al.) of 2-digit year "00"
+incorrectly yielded 1900.   It now yields 2000.  
+
+                   =======================================
+
+README for FreeTDS 0.62.3
+Friday, 9 April 2004
 
 db-lib
 ------
@@ -32,7 +47,7 @@ standard output, using db-lib.  It takes options similar to sqsh/tsql.  It is
 intended as a batch processing tool, and as an example of using db-lib.  Sorry,
 no man page yet.  
 
-
+                   =======================================
 
 README for FreeTDS 0.62.2
 Monday, 22 March 2004
@@ -311,5 +326,5 @@ from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
 
-$Id: README,v 1.8.4.6 2004-04-09 22:44:56 jklowden Exp $
+$Id: README,v 1.8.4.7 2004-06-13 22:52:01 jklowden Exp $
 

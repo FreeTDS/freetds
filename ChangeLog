@@ -1,8 +1,16 @@
+Sun Jun 13 18:44:42 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* README document 0.62.4 changes
+	* ChangeLog add 2-digit-year fix (applied by Frediano).  
+	* configure.in Release 0.62.4
+	
 Sat Jun 05 18:49:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/prepare_query.c: backported memory corruption fix
 
 Tue Jun 01 10:57:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: backported memory leak fix
+
+Thu May 13 05:21:54 2004 UTC	JK Lowden <jklowden@schemamania.org>
+	* src/tds/convert.c 2-digit year "00" now means 2000, not 1900.  
 
 Tue May 04 09:06:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: backported memory leak fix
