@@ -1,3 +1,7 @@
+Thu Feb 17 22:27:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/timeout.c:
+	- fix timeout in ODBC
+
 Wed Feb 16 20:22:37 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/util.c:
 	- fix reentrancy problem using logs and append mode

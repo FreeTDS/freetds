@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.358 2005-02-15 09:08:47 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.359 2005-02-17 21:27:36 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2391,6 +2391,7 @@ query_timeout_cancel(void *param)
 
 	if (!stmt->dbc->tds_socket->in_cancel)
 		odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired", NULL);
+	stmt->errs.lastrc = SQL_ERROR;
 
 	/* attent indefinitely cancel */
 	stmt->dbc->tds_socket->query_timeout = 0;

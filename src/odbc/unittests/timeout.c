@@ -3,15 +3,15 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.3 2005-02-09 19:18:36 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.4 2005-02-17 21:27:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
-AutoCommit(void)
+AutoCommit(int onoff)
 {
 	SQLRETURN ret;
 
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0);
+	ret = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) onoff, 0);
 	if (ret != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Enabling AutoCommit");
 }
@@ -40,7 +40,7 @@ main(int argc, char *argv[])
 	/* here we can't use temporary table cause we use two connection */
 	CommandWithResult(Statement, "drop table test_timeout");
 	Command(Statement, "create table test_timeout(n numeric(18,0) primary key, t varchar(30))");
-	AutoCommit();
+	AutoCommit(SQL_AUTOCOMMIT_OFF);
 
 	Command(Statement, "insert into test_timeout(n, t) values(1, 'initial')");
 	EndTransaction(SQL_COMMIT);
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	AutoCommit();
+	AutoCommit(SQL_AUTOCOMMIT_OFF);
 	ret = SQLSetStmtAttr(Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0);
 	if (ret != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Error setting timeout");
@@ -92,8 +92,10 @@ main(int argc, char *argv[])
 	Statement = stmt;
 
 	EndTransaction(SQL_COMMIT);
+
+	/* Sybase do not accept DROP TABLE during a transaction */
+	AutoCommit(SQL_AUTOCOMMIT_ON);
 	Command(Statement, "drop table test_timeout");
-	EndTransaction(SQL_COMMIT);
 
 	Disconnect();
 
