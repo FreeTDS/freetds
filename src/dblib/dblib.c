@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.133 2003-03-19 17:05:16 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.134 2003-03-19 17:14:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4090,12 +4090,12 @@ dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
  * \brief Set a DBMONEY value to zero.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param amount address of a DBMONEY structure.  
+ * \param dest address of a DBMONEY structure.  
  * \retval SUCCEED unless \a amount is NULL.  
  * \sa dbmnyadd(), dbmnysub(), dbmnymul(), dbmnydivide(), dbmnyminus(), dbmny4add(), dbmny4sub(), dbmny4mul(), dbmny4divide(), dbmny4minus().
  */
 RETCODE
-dbmnyzero(DBPROCESS * dbproc, DBMONEY * amount)
+dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
 {
 
 	if (dest == NULL) {
