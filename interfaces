@@ -44,6 +44,19 @@ JDBC
 	query tcp 5.0 192.138.151.39 4444
 	master tcp 5.0 192.138.151.39 4444
 
+# The same server, using TDS 4.2.  Used in configuration examples for the
+# pool server, since the pool server supports only TDS 4.2.
+JDBC_42
+	query tcp 4.2 192.138.151.39 4444
+	master tcp 4.2 192.138.151.39 4444
+
+# The client connecting to the pool server will use this to find its
+# listening socket.  This entry assumes that the client is on the same
+# system as the pool server.
+mypool
+	query tcp 4.2 127.0.0.1 5000
+	master tcp 4.2 127.0.0.1 5000
+
 #myserver
 #	query tcp ether 127.0.0.1 4000
 #	master tcp ether 127.0.0.1 4000

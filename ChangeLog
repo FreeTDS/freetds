@@ -1,3 +1,8 @@
+Wed Oct  9 16:56:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* freetds.conf interfaces
+	  src/pool/pool.conf (added):
+	- Add sample pool configuration.
+
 Wed Oct  9 16:36:26 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* samples/.cvsignore:
 	- Ignore generated files.
