@@ -1,3 +1,7 @@
+Mon Feb 10 21:31:28 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c
+	- patch from Bill Thompson to support DBNOAUTOFREE.
+	
 Mon Feb 10 17:34:48 EST 2003	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/ct.c:
 	- Fix alignment problem, use CS_BOOL param type where

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.116 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.117 2003-02-11 02:46:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -790,6 +790,8 @@ TDSCONNECTINFO *connect_info;
 
 	dbproc->avail_flag = TRUE;
 
+	dbproc->command_state = DBCMDNONE;
+
 	tds_set_server(login->tds_login, server);
 
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
@@ -859,7 +861,14 @@ void *p;
 	if (dbproc == NULL) {
 		return FAIL;
 	}
+
 	dbproc->avail_flag = FALSE;
+
+	if (dbproc->command_state == DBCMDSENT ) {
+		if (!dbproc->noautofree) {
+			dbfreebuf(dbproc);
+		}
+	}
 
 	if (dbproc->dbbufsz == 0) {
 		dbproc->dbbuf = (unsigned char *) malloc(strlen(cmdstring) + 1);
@@ -877,6 +886,8 @@ void *p;
 		strcat((char *) dbproc->dbbuf, cmdstring);
 		dbproc->dbbufsz = newsz;
 	}
+
+	dbproc->command_state = DBCMDPEND;
 
 	return SUCCEED;
 }
@@ -3510,6 +3521,7 @@ TDS_INT computeid;
 void
 dbfreebuf(DBPROCESS * dbproc)
 {
+	tdsdump_log(TDS_DBG_FUNC, "%L in dbfreebuf()\n");
 	if (dbproc->dbbuf) {
 		free(dbproc->dbbuf);
 		dbproc->dbbuf = NULL;
@@ -3614,6 +3626,8 @@ dbstrlen(DBPROCESS * dbproc)
 char *
 dbgetchar(DBPROCESS * dbproc, int pos)
 {
+	tdsdump_log(TDS_DBG_FUNC, "%L in dbgetchar() bufsz = %d, pos = %d\n",
+				dbproc->dbbufsz, pos);
 	if (dbproc->dbbufsz > 0) {
 		if (pos >= 0 && pos < dbproc->dbbufsz)
 			return (char *) &dbproc->dbbuf[pos];
@@ -4019,9 +4033,7 @@ TDS_INT result_type;
 		if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCEED) {
 			return FAIL;
 		}
-		if (!dbproc->noautofree) {
-			dbfreebuf(dbproc);
-		}
+		dbproc->command_state = DBCMDSENT;
 		result = SUCCEED;
 	}
 	return result;

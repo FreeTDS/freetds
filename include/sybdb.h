@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.40 2003-02-04 13:28:28 freddy77 Exp $";
+"$Id: sybdb.h,v 1.41 2003-02-11 02:46:50 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -92,6 +92,10 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #define BCPLABELED 5
 #define	BCPHINTS 6
+
+#define DBCMDNONE 0
+#define DBCMDPEND 1
+#define DBCMDSENT 2
 
 typedef int	 RETCODE;
 
@@ -340,6 +344,7 @@ typedef struct {
    BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
    unsigned char  *dbbuf; /* is dynamic!                   */
    int             dbbufsz;
+   int             command_state;
    TDS_INT         text_size;   
    TDS_INT         text_sent;
    TDS_CHAR        *bcp_hostfile;
