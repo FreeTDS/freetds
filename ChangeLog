@@ -1,3 +1,7 @@
+Tue Feb  4 22:32:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	- adjust the dblib version string, since we're
+	  backwards-compatible with 0.60.1
+
 Tue Feb 04 10:27:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	great patch from Bill Thompson
 	* include/cspublic.h:
