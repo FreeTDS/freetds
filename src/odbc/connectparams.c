@@ -28,17 +28,7 @@
 #include <sys/stat.h>
 
 #include "tds.h"
-
-#ifdef UNIXODBC
-#include <sql.h>
-#include <sqlext.h>
-#include <odbcinst.h>
-#else
-#include "isql.h"
-#include "isqlext.h"
-#endif
-#include <sqltypes.h>
-
+#include "tdsodbc.h"
 #include "tdsstring.h"
 #include "connectparams.h"
 #include "replacements.h"
@@ -47,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.31 2002-12-18 15:39:01 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.32 2003-01-02 20:12:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
