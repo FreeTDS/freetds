@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.232 2003-12-04 11:06:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.233 2003-12-04 22:03:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -59,7 +59,7 @@ static int tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
 static int tds_process_auth(TDSSOCKET * tds);
 static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
-static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
+static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int is_param);
 static int tds_process_env_chg(TDSSOCKET * tds);
 static const char *_tds_token_name(unsigned char marker);
 static int tds_process_param_result_tokens(TDSSOCKET * tds);
@@ -1200,7 +1200,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 
 	/* FIXME check support for tds7+ (seem to use same format of tds5 for data...)
 	 * perhaps varint_size can be 2 or collation can be specified ?? */
-	tds_get_data_info(tds, curparam);
+	tds_get_data_info(tds, curparam, 1);
 
 	curparam->column_cur_size = curparam->column_size;	/* needed ?? */
 
@@ -1509,20 +1509,22 @@ tds7_process_result(TDSSOCKET * tds)
  * @param curcol column where to store information
  */
 static int
-tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
+tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int is_param)
 {
 
 	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 	curcol->column_name[curcol->column_namelen] = '\0';
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
-	/* TODO check if all flags are the same for all TDS versions */
-	if (IS_TDS50(tds))
-		curcol->column_hidden = curcol->column_flags & 0x1;
-	curcol->column_key = (curcol->column_flags & 0x2) > 1;
-	curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
-	curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
-	curcol->column_identity = (curcol->column_flags & 0x40) > 1;
+	if (!is_param) {
+		/* TODO check if all flags are the same for all TDS versions */
+		if (IS_TDS50(tds))
+			curcol->column_hidden = curcol->column_flags & 0x1;
+		curcol->column_key = (curcol->column_flags & 0x2) > 1;
+		curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
+		curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
+		curcol->column_identity = (curcol->column_flags & 0x40) > 1;
+	}
 
 	curcol->column_usertype = tds_get_int(tds);
 	tds_set_column_type(curcol, tds_get_byte(tds));
@@ -1603,7 +1605,7 @@ tds_process_result(TDSSOCKET * tds)
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
-		tds_get_data_info(tds, curcol);
+		tds_get_data_info(tds, curcol, 0);
 
 		/* skip locale information */
 		/* NOTE do not put into tds_get_data_info, param do not have locale information */
@@ -2591,7 +2593,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
-		tds_get_data_info(tds, curcol);
+		tds_get_data_info(tds, curcol, 1);
 
 		/* skip locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
