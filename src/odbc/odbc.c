@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.300 2004-02-11 16:45:01 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.301 2004-02-13 20:40:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -524,7 +524,10 @@ SQLMoreResults(SQLHSTMT hstmt)
 				ODBC_RETURN(stmt, SQL_SUCCESS);
 				break;
 
-				/* TODO test flags ? check error and change result ? */
+				/*
+				 * TODO test flags ? check error and change result ? 
+				 * see also other DONEINPROC handle (below)
+				 */
 			case TDS_DONEINPROC_RESULT:
 				if (in_row) {
 					odbc_populate_ird(stmt);
@@ -577,7 +580,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	/* TODO support not null terminated */
+	/* TODO support not null terminated in native_sql */
 	native_sql(tds_dstr_cstr(&query));
 
 	ret = odbc_set_string_i(szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
@@ -2293,7 +2296,7 @@ _SQLExecute(TDS_STMT * stmt)
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			/* TODO use tds_submit_prepexec */
+			/* TODO use tds_submit_prepexec (mssql2k, tds8)*/
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
@@ -2450,6 +2453,15 @@ SQLExecute(SQLHSTMT hstmt)
 	return _SQLExecute(stmt);
 }
 
+/*
+ * TODO support multi-row fetch
+ * - handle bind_type (row array instead of field array)
+ * - fill correctly SQL_DESC_ROWS_PROCESSED_PTR and SQL_DESC_ARRAY_STATUS_PTR
+ * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
+ *   for other types application must use SQLSetPos)
+ * - handle correctly results (SQL_SUCCESS_WITH_INFO if error on some rows,
+ *   SQL_ERROR for all rows, see doc)
+ */
 static SQLRETURN SQL_API
 _SQLFetch(TDS_STMT * stmt)
 {
@@ -2979,7 +2991,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 
 #ifdef ENABLE_DEVELOPING
 	/* try to prepare query */
-	/* TODO try to prepare only getting informations (faster and optimizable) */
+	/* TODO try to prepare only getting informations (faster and optimizable) for mssql2k */
 	/* TODO support getting info for RPC */
 	if (!stmt->prepared_query_is_rpc) {
 		TDSDYNAMIC *dyn;
@@ -4445,6 +4457,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
 	/* TODO what about early Sybase products ? */
+	/* TODO Does Sybase return all ODBC3 columns? Add them if not */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	sprintf(sql, sql_templ, fSqlType);
 	if (TDS_IS_MSSQL(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
