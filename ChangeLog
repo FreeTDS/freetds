@@ -1,3 +1,6 @@
+Tue Oct 15 20:37:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: fix compile on big endian machine
+
 Tue Oct 15 11:35:59 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/server/Makefile.am:
 	- Bump libtdssrv major version.

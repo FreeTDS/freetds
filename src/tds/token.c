@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.72 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.73 2002-10-15 18:38:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1137,7 +1137,7 @@ int len,colsize;
 		tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
 		tds_get_conversion_type(curcol->column_type,colsize));
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize),
-		  &(info->current_row[curcol->column_offset])
+		  &(current_row[curcol->column_offset])
 		);
 	}
 #endif
