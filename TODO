@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.98 2004-03-22 19:13:12 freddy77 Exp $
+To Do List	$Id: TODO,v 1.99 2004-03-22 20:48:52 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -51,8 +51,8 @@ Started in 0.63
   BCPCOLINFO rename ? I think this structure should be removed
   (in a future version ?)
 - header privatizations (removing tds.h dependency)  this is quite 
-  important for future binary compatibility. 
-  Export limitation are committed and works.
+  important for future binary compatibility.
+  Add consistency test for dblib
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
