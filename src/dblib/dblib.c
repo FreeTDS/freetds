@@ -30,10 +30,13 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.35 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.36 2002-08-22 03:41:57 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+#if	!HAVE_VASPRINTF
+extern int asprintf(char **ret, const char *fmt, va_list ap);
+#endif
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);
@@ -497,34 +500,18 @@ int version_value;
 RETCODE dbfcmd(DBPROCESS *dbproc, char *fmt, ...)
 {
 va_list ap;
-char *tmpstr;
-int n, size = 1024;
-int done = 0;
+char *s;
+int len;
 RETCODE ret;
 
-        tmpstr = (char *)malloc (size);
-	if (!tmpstr) return FAIL;
+	va_start(ap, fmt);
+	len = vasprintf(&s, fmt, ap);
+	va_end(ap);
 
-	dbproc->avail_flag = FALSE;
-
-	while (1) {
-		va_start(ap, fmt);
-		n = vsnprintf (tmpstr, size, fmt, ap);
-		va_end(ap);
-		if (n > size) { 
-			size = n+1; 
-		} else if (n<0) {
-			size *= 2;  
-		} else {
-		      /* we had enough space */
-                       break;
-		}
-		tmpstr = realloc (tmpstr, size);
-		if (!tmpstr) return FAIL;
-	} 
-
-        ret = dbcmd(dbproc, tmpstr);
-	free(tmpstr);
+	if (len < 0) return FAIL;
+	
+	ret = dbcmd(dbproc, s);
+	free(s);
 
 	return ret;
 }

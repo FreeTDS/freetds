@@ -1,4 +1,8 @@
-Fri Aug 21 21:42:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+Wed Aug 21 23:28:58 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c	better diagnostics and -v support
+	* src/tds/asprintf.c	PD version of function for systems that lack it.
+	
+Wed Aug 21 21:42:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- convert from text using char conversions
 	- return just fail converting from ntext avoiding crashes
@@ -10,17 +14,17 @@ Fri Aug 21 21:42:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	  (commented but not surely)
 	- added conversion from money to money4
 
-Fri Aug 21 20:31:57 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+Wed Aug 21 20:31:57 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in:
 	- option to enable thread safety
 
-Fri Aug 21 14:38:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+Wed Aug 21 14:38:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/tds/convert.c src/tds/login.c:
 	* src/tds/numeric.c src/tds/token.c src/tds/unittests/t0008.c:
 	- make g__numeric_bytes_per_prec const solving problem
 	- connecting to both Sybase and mssql at the same time
 
-Fri Aug 21 14:00:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+Wed Aug 21 14:00:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0007.c src/ctlib/unittests/Makefile.am:
 	* src/ctlib/unittests/t0003.c:
 	- test for string length
@@ -29,7 +33,7 @@ Fri Aug 21 14:00:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- fixed set of cur_row_size for TDS_NUMERIC data
 
-Fri Aug 21 13:38:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+Wed Aug 21 13:38:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c include/tds.h.in:
 	- temporary fix for password limit length
 
