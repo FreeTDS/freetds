@@ -1,3 +1,6 @@
+Tue May 11 16:50:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/Makefile.am: fix compile under Sun OS
+
 Mon May 10 21:40:52 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/.cvsignore win32/resource.h win32/setup.rc:
 	* win32/winsetup.c:
