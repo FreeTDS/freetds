@@ -40,7 +40,11 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: convert.c,v 1.1 2003-02-09 01:22:12 jklowden Exp $";
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+static char software_version[] = "$Id: convert.c,v 1.2 2003-02-10 17:03:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;

@@ -1,3 +1,7 @@
+Mon Feb 10 18:02:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/.cvsignore: ignore convert file
+	* src/tds/unittests/convert.c: add an include for compiler problem
+
 Sat Feb  8 20:09:45 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/token.c removed unused local variables.
 	* src/tds/unittests/Makefile.am src/tds/unittests/convert.c
