@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.12 2002-11-25 10:45:18 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.13 2002-11-26 04:18:27 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -64,46 +64,49 @@ static TDSPARAMINFO* param_info_alloc(DBREMOTE_PROC * rpc);
 RETCODE
 dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 {
-	DBREMOTE_PROC* rpc;
+	DBREMOTE_PROC **rpc;
+	int dbrpcrecompile = 0;
 	
 	/* sanity */
 	if (dbproc == NULL || rpcname == NULL) return FAIL;
 	
-	/* FIXME this is a bit field */
-	switch (options) {
-	case DBRPCRECOMPILE:
-		break;
-	case DBRPCRESET:
+	if (options & DBRPCRESET) {
 		rpc_clear(dbproc->rpc);
 		dbproc->rpc = NULL;
 		return SUCCEED;
-		break; /* OK */
-	case 0:
-		break;
-	default:
-		return FAIL;  
+	}
+	
+	/* any bits we want from the options argument */
+	dbrpcrecompile = options & DBRPCRECOMPILE;
+	options &= ~DBRPCRECOMPILE; /* turn that one off, now that we've extracted it */
+	
+	/* all other options except DBRPCRECOMPILE are invalid */
+	if (options)	{
+		/* should show client error message */
+		return FAIL;
 	}
 	
 	/* to allocate, first find a free node */
-	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
+	for (rpc = &dbproc->rpc; *rpc != NULL; rpc = &(*rpc)->next) {
 		/* check existing nodes for name match (there shouldn't be one) */
-		if (!rpc->name)	return FAIL;
-		if (strcmp(rpc->name, rpcname) == 0)
+		if (!(*rpc)->name)	return FAIL;
+		if (strcmp((*rpc)->name, rpcname) == 0)
 			return FAIL 	/* dbrpcsend should free pointer */;	
 	}
 		
-	/* allocate */
-	rpc = (DBREMOTE_PROC*) malloc(sizeof(DBREMOTE_PROC));
-	if (rpc == NULL) return FAIL;
-	memset(rpc, 0, sizeof(DBREMOTE_PROC));
+	/* rpc now contains the address of the dbproc's first empty (null) DBREMOTE_PROC* */
 	
-	rpc->name = strdup(rpcname);
-	if (rpc->name == NULL) return FAIL; 	
+	/* allocate */
+	*rpc = (DBREMOTE_PROC*) malloc(sizeof(DBREMOTE_PROC));
+	if (*rpc == NULL) return FAIL;
+	memset(*rpc, 0, sizeof(DBREMOTE_PROC));
+	
+	(*rpc)->name = strdup(rpcname);
+	if ((*rpc)->name == NULL) return FAIL; 	
 	
 	/* store */
-	rpc->options = options & DBRPCRECOMPILE;
-	rpc->param_list = (DBREMOTE_PROC_PARAM*) NULL;
-	dbproc->rpc = rpc;
+	(*rpc)->options = options & DBRPCRECOMPILE;
+	(*rpc)->param_list = (DBREMOTE_PROC_PARAM*) NULL;
 
 	/* completed */
 	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcinit() added rpcname \"%s\"\n",rpcname);
@@ -119,16 +122,16 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 {
 	char *name = NULL;
 	DBREMOTE_PROC *rpc;
-	DBREMOTE_PROC_PARAM *p;
-	DBREMOTE_PROC_PARAM *pparam;
+	DBREMOTE_PROC_PARAM **pparam;
+	DBREMOTE_PROC_PARAM *param;
 
 	/* sanity */
 	if (dbproc == NULL || value == NULL) return FAIL;
 	if (dbproc->rpc == NULL ) return FAIL;
 
 	/* allocate */
-	pparam = (DBREMOTE_PROC_PARAM*) malloc(sizeof(DBREMOTE_PROC_PARAM));
-	if (pparam == NULL) return FAIL;
+	param = (DBREMOTE_PROC_PARAM*) malloc(sizeof(DBREMOTE_PROC_PARAM));
+	if (param == NULL) return FAIL;
 
 	if(paramname) {
 		name = strdup(paramname);
@@ -136,24 +139,29 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	}
 	
 	/* initialize */
-	pparam->next = (DBREMOTE_PROC_PARAM*) NULL; /* NULL signifies end of linked list */
-	pparam->name = name;
-	pparam->status = status;
-	pparam->type = type;
-	pparam->maxlen = maxlen;
-	pparam->datalen = datalen;
-	pparam->value = value;
+	param->next = (DBREMOTE_PROC_PARAM*) NULL; /* NULL signifies end of linked list */
+	param->name = name;
+	param->status = status;
+	param->type = type;
+	param->maxlen = maxlen;
+	param->datalen = datalen;
+	param->value = value;
 	
 	/*
-	 * traverse the parameter linked list until the end (using the "next" member)
+	 * Add a parameter to the current rpc.  
+	 * 
+	 * Traverse the dbproc's procedure list to find the current rpc, 
+	 * then traverse the parameter linked list until its end,
+	 * then tack on our parameter's address.  
 	 */
 	for (rpc = dbproc->rpc; rpc->next != NULL; rpc = rpc->next) /* find "current" procedure */
 		;
-	for (p = rpc->param_list; p != NULL; p = p->next)
+	for (pparam = &rpc->param_list; *pparam != NULL; pparam = &(*pparam)->next)
 		;
 		
-	/* add to the end of the list */
-	p = pparam;
+	/* pparam now contains the address of the end of the rpc's parameter list */
+	
+	*pparam = param;	/* add to the end of the list */
 	
 	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcparam() added parameter \"%s\"\n",(paramname)? paramname : "");
 	

@@ -1,3 +1,7 @@
+Mon Nov 25 23:09:52 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/rpc.c fixed stupid pointer problems in dbrpcinit and dbrpcparam
+	- dbsqlok now fails w/error, no segfault.  
+
 Mon Nov 25 11:44:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: small improve
 
