@@ -1,8 +1,41 @@
-README for FreeTDS 0.62.2
-Monday, 22 March 2004
+README for FreeTDS 0.62.3
+Friday, 9 April 2004
 
 Notable repairs are logged here; the regular README follows below.  
 For further details, see ChangeLog or the mailing list archives.  
+
+db-lib
+------
+
+Stored procedures would sometimes appear to return extra results sets. 
+This stemmed from improper interpretation of the DONE tokens returned by
+the server.  The "extra" results appeared first, but lacked the expected
+metadata, causing dbbind() to fail or causing the application to believe the
+stored procedure had returned no results.  Fixed on 4 April 2004. 
+
+ODBC
+----
+
+SQLExecute was not always returning an error, even when one existed.  If a
+query batch (or stored procedure) consisted of a SELECT statement followed by
+another query or more, SQLExecute would return SQL_SUCCESS if the first
+statement succeeded, even if one the successive statements failed.  The ODBC
+standard says that SQLExecute() should return either a failed or
+success-with-info status.  This has been at least partially remediated; more
+testing is needed.  
+
+New application: bsqldb
+-----------------------
+
+This application reads queries from standard input and writes results to
+standard output, using db-lib.  It takes options similar to sqsh/tsql.  It is
+intended as a batch processing tool, and as an example of using db-lib.  Sorry,
+no man page yet.  
+
+
+
+README for FreeTDS 0.62.2
+Monday, 22 March 2004
 
 ODBC
 ----
@@ -278,5 +311,5 @@ from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
 
-$Id: README,v 1.8.4.5 2004-03-22 22:02:27 jklowden Exp $
+$Id: README,v 1.8.4.6 2004-04-09 22:44:56 jklowden Exp $
 
