@@ -1,4 +1,7 @@
 Fri Sep 13  8:24:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: fix dbcoltype return for nullable bit
+
+Fri Sep 13  8:24:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am freetds.spec.in include/Makefile.am:
 	* src/apps/Makefile.am src/ctlib/unittests/Makefile.am:
 	* src/dblib/unittests/Makefile.am src/odbc/Makefile.am:

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.54 2002-09-12 23:31:45 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.55 2002-09-13 12:03:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1405,7 +1405,9 @@ TDSSOCKET * tds;
 			else if (colinfo->column_size==2)
 				return SYBINT2; 
 			else if (colinfo->column_size==1)
-				return SYBINT1; 
+				return SYBINT1;
+		case SYBBITN:
+			return SYBBIT;
 		default:
 			return colinfo->column_type;
 	}
