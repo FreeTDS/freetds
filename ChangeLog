@@ -1,4 +1,8 @@
 Wed Mar 23 17:50:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/Makefile.am: fix distribution
+	* src/tds/numeric.c: fix compile, remove ugly goto
+
+Wed Mar 23 17:50:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/Makefile.am src/tds/numeric.c:
 	* src/tds/unittests/Makefile.am:
 	* src/tds/unittests/numeric.c(added):

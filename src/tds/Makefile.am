@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.42 2005-03-23 16:51:43 freddy77 Exp $
+# $Id: Makefile.am,v 1.43 2005-03-23 19:00:49 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -20,7 +20,7 @@ libtds_la_LDFLAGS	= -version-info 5:0:0 -export-symbols-regex '^(tds_|tdsdump_|t
 libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 noinst_HEADERS		= tds_willconvert.h character_sets.h \
 			  alternative_character_sets.h sybase_character_sets.h \
-			  encodings.h
+			  encodings.h num_limits.h
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox

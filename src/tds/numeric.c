@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.29 2005-03-23 16:51:43 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.30 2005-03-23 19:00:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -400,20 +400,23 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 		} else {
 			/* check limit */
 			int l, stop;
-			TDS_WORD *limit = &limits[limit_indexes[n] + LIMIT_INDEXES_ADJUST * n];
+			const TDS_WORD *limit = &limits[limit_indexes[n] + LIMIT_INDEXES_ADJUST * n];
 			l = limit_indexes[n+1] - limit_indexes[n] + LIMIT_INDEXES_ADJUST;
 			stop = n / (sizeof(TDS_WORD) * 8);
 			for (i = packet_len; --i >= l + stop; )
 				if (packet[i] > 0)
 					return TDS_CONVERT_OVERFLOW;
-			for (i = l + stop; --i > stop; ++limit)
+			for (i = l + stop; ; ++limit) {
+				if (--i <= stop) {
+					if (packet[i] >= *limit)
+						return TDS_CONVERT_OVERFLOW;
+					break;
+				}
 				if (packet[i] > *limit)
 					return TDS_CONVERT_OVERFLOW;
-				else if (packet[i] < *limit)
-					goto ok;
-			if (packet[i] >= *limit)
-				return TDS_CONVERT_OVERFLOW;
-ok:
+				if (packet[i] < *limit)
+					break;
+			}
 		}
 		
 		
