@@ -1,3 +1,6 @@
+Fri Mar 19 08:52:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: remove invalid error
+
 Thu Mar 18 11:38:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c src/tds/read.c src/tds/write.c:
 	- remove some warnings under VMS

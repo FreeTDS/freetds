@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.288.2.2 2004-03-06 13:51:28 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.288.2.3 2004-03-19 07:44:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3016,15 +3016,6 @@ SQLRETURN SQL_API
 SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
 	INIT_HSTMT;
-
-#if !UNIXODBC
-	if (stmt->dbc->current_statement != stmt) {
-		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	IRD_CHECK;
-#endif
 
 	/*
 	 * 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
