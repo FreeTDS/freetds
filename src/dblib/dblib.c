@@ -19,7 +19,11 @@
 
 /* Needed for the vasprintf prototype in glibc */
 #define _GNU_SOURCE
+
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.67 2002-09-26 21:10:18 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.68 2002-09-27 03:09:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

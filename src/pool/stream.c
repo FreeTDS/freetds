@@ -22,7 +22,10 @@
 ** Description: Controls the result stream processing.
 */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "pool.h"
 #include "tds.h"
 

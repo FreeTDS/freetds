@@ -17,13 +17,16 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <unistd.h>
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.9 2002-09-24 00:21:56 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.10 2002-09-27 03:09:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

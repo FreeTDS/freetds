@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tdsutil.h"
 #include "tds.h"
 #include "tdsconvert.h"
@@ -45,7 +48,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.19 2002-09-22 05:34:00 vorlon Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.20 2002-09-27 03:09:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

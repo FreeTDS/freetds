@@ -17,14 +17,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "ctlib.h"
 #include "cspublic.h"
 #include "tds.h"
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.12 2002-09-23 23:45:29 castellano Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.13 2002-09-27 03:09:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

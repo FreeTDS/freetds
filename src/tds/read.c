@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tds.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -32,7 +35,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.21 2002-09-26 11:26:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.22 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

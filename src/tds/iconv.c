@@ -22,7 +22,10 @@
 ** all over the other code
 */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdsiconv.h"

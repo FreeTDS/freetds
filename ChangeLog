@@ -1,3 +1,22 @@
+	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c
+	  src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbopen.c
+	  src/dblib/dbutil.c src/dblib/rpc.c src/dblib/xact.c
+	  src/odbc/connectparams.c src/odbc/convert_sql2string.c
+	  src/odbc/convert_tds2sql.c src/odbc/odbc.c src/odbc/odbc_util.c
+	  src/odbc/prepare_query.c src/pool/config.c src/pool/main.c
+	  src/pool/member.c src/pool/stream.c src/pool/user.c src/pool/util.c
+	  src/replacements/asprintf.c src/replacements/atoll.c
+	  src/replacements/vasprintf.c src/server/login.c src/server/query.c
+	  src/server/server.c src/server/unittest.c src/tds/challenge.c
+	  src/tds/config.c src/tds/convert.c src/tds/iconv.c src/tds/locale.c
+	  src/tds/login.c src/tds/mem.c src/tds/numeric.c src/tds/query.c
+	  src/tds/read.c src/tds/threadsafe.c src/tds/token.c src/tds/util.c
+	  src/tds/vstrbuild.c src/tds/write.c:
+	- Be pedantic and consistent about config.h.  Always enclose in
+	  #if HAVE_CONFIG_H, and use <config.h> instead of "config.h" per
+	  current autoconf docs.  Also include config.h in a few source
+	  files where it was missing.
+
 Thu Sep 26 17:47:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/tds/login.c:
 	- Change names of parameters to tds_set_timeouts() so we

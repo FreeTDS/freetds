@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tds.h"
 #include "tdsutil.h"
 #include <signal.h> /* GW ADDED */
@@ -31,7 +34,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.17 2002-09-26 14:45:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.18 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

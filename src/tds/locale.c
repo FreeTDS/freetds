@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -48,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.4 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.5 2002-09-27 03:09:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

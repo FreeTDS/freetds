@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tds.h"
 #include "tdsutil.h"
 #ifdef DMALLOC
@@ -37,7 +40,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.46 2002-09-26 21:49:07 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.47 2002-09-27 03:09:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

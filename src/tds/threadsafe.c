@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #ifndef WIN32
 #include <netdb.h>
 #include <sys/types.h>
@@ -30,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.7 2002-09-13 05:58:24 freddy77 Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.8 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

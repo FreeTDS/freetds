@@ -17,7 +17,10 @@
  *
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "pool.h"
 
 void dump_buf(const void *buf,int length)  

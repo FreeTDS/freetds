@@ -17,11 +17,15 @@
  *
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "pool.h"
 #include <tds_configs.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.3 2002-09-20 20:50:58 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.4 2002-09-27 03:09:53 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

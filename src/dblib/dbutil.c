@@ -17,14 +17,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "sybdb.h"
 #include "syberror.h"
 #include "dblib.h"
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.13 2002-09-24 17:04:34 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.14 2002-09-27 03:09:52 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdsconvert.h"
@@ -25,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.65 2002-09-26 21:40:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.66 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

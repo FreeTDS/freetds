@@ -18,13 +18,13 @@
  */
 
 #if HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <stdarg.h>
 #include "tds.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.1 2002-09-26 21:10:18 castellano Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.2 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

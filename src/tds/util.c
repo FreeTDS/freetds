@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -49,7 +52,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.16 2002-09-23 22:57:36 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.17 2002-09-27 03:09:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -17,7 +17,10 @@
  *
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include "pool.h"
 #include "tdssrv.h"
 

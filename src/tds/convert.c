@@ -18,7 +18,7 @@
  */
 
 #if HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <time.h>
@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.82 2002-09-26 21:40:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.83 2002-09-27 03:09:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

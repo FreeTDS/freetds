@@ -17,7 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <tdsutil.h>
 #include <tds.h>
 #include <tdsconvert.h>
@@ -26,7 +29,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.9 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.10 2002-09-27 03:09:52 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
