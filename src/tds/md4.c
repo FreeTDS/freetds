@@ -22,7 +22,7 @@
  * The algorithm is due to Ron Rivest.  This code is based on code
  * written by Colin Plumb in 1993.
  */
- 
+
 
 /*
  * This code implements the MD4 message-digest algorithm.
@@ -39,8 +39,7 @@
 #include "tds.h"
 #include "md4.h"
 
-static char software_version[] =
-	"$Id: md4.c,v 1.4 2002-10-14 13:36:54 castellano Exp $";
+static char software_version[] = "$Id: md4.c,v 1.5 2003-03-30 08:12:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -55,12 +54,13 @@ static void byteReverse(unsigned char *buf, unsigned longs);
 /*
  * Note: this code is harmless on little-endian machines.
  */
-static void byteReverse(unsigned char *buf, unsigned longs)
+static void
+byteReverse(unsigned char *buf, unsigned longs)
 {
 	TDS_UINT t;
+
 	do {
-		t = (TDS_UINT) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
-		    ((unsigned) buf[1] << 8 | buf[0]);
+		t = (TDS_UINT) ((unsigned) buf[3] << 8 | buf[2]) << 16 | ((unsigned) buf[1] << 8 | buf[0]);
 		*(TDS_UINT *) buf = t;
 		buf += 4;
 	} while (--longs);
@@ -73,7 +73,8 @@ static void byteReverse(unsigned char *buf, unsigned longs)
  * Start MD4 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
  */
-void MD4Init(struct MD4Context *ctx)
+void
+MD4Init(struct MD4Context *ctx)
 {
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
@@ -88,8 +89,8 @@ void MD4Init(struct MD4Context *ctx)
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void MD4Update(struct MD4Context *ctx, unsigned char const *buf,
-	       unsigned len)
+void
+MD4Update(struct MD4Context *ctx, unsigned char const *buf, unsigned len)
 {
 	register TDS_UINT t;
 
@@ -137,7 +138,8 @@ void MD4Update(struct MD4Context *ctx, unsigned char const *buf,
  * Final wrapup - pad to 64-byte boundary with the bit pattern 
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void MD4Final(struct MD4Context *ctx, unsigned char* digest)
+void
+MD4Final(struct MD4Context *ctx, unsigned char *digest)
 {
 	unsigned int count;
 	unsigned char *p;
@@ -146,7 +148,7 @@ void MD4Final(struct MD4Context *ctx, unsigned char* digest)
 	count = (ctx->bits[0] >> 3) & 0x3F;
 
 	/* Set the first char of padding to 0x80.  This is safe since there is
-	   always at least one byte free */
+	 * always at least one byte free */
 	p = ctx->in + count;
 	*p++ = 0x80;
 
@@ -174,8 +176,8 @@ void MD4Final(struct MD4Context *ctx, unsigned char* digest)
 
 	MD4Transform(ctx->buf, (TDS_UINT *) ctx->in);
 	byteReverse((unsigned char *) ctx->buf, 4);
-	
-	if (digest!=NULL)
+
+	if (digest != NULL)
 		memcpy(digest, ctx->buf, 16);
 	memset(ctx, 0, sizeof(ctx));	/* In case it's sensitive */
 }
@@ -203,7 +205,8 @@ void MD4Final(struct MD4Context *ctx, unsigned char* digest)
 /*
  * The core of the MD4 algorithm
  */
-void MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16])
+void
+MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16])
 {
 	register TDS_UINT a, b, c, d;
 
@@ -269,4 +272,3 @@ void MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16])
 	buf[2] += c;
 	buf[3] += d;
 }
-
