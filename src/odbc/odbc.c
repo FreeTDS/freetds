@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.307 2004-03-10 13:00:03 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.308 2004-03-11 12:21:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2267,6 +2267,7 @@ _SQLExecute(TDS_STMT * stmt)
 	SQLRETURN result = SQL_SUCCESS;
 	int in_row = 0;
 	int done_flags;
+	int got_rows = 0;
 
 	stmt->row = 0;
 
@@ -2359,7 +2360,10 @@ _SQLExecute(TDS_STMT * stmt)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
-			stmt->row_count = tds->rows_affected;
+			if (done_flags & TDS_DONE_COUNT) {
+				got_rows = 1;
+				stmt->row_count = tds->rows_affected;
+			}
 			if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 				break;
 			if (done_flags & TDS_DONE_ERROR)
@@ -2368,7 +2372,10 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 		case TDS_DONEINPROC_RESULT:
-			stmt->row_count = tds->rows_affected;
+			if (done_flags & TDS_DONE_COUNT) {
+				got_rows = 1;
+				stmt->row_count = tds->rows_affected;
+			}
 			if (done_flags & TDS_DONE_ERROR)
 				result = SQL_ERROR;
 			if (in_row)
@@ -2406,7 +2413,7 @@ _SQLExecute(TDS_STMT * stmt)
 			stmt->dbc->current_statement = NULL;
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 			result = SQL_SUCCESS_WITH_INFO;
-		if (result == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
+		if (result == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && !got_rows)
 			result = SQL_NO_DATA;
 		ODBC_RETURN(stmt, result);
 	case TDS_SUCCEED:

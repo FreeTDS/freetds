@@ -1,3 +1,9 @@
+Thu Mar 11 13:28:04 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- fix return from SQLExecDirect/SQLExecute if insert/update/delete
+	* src/odbc/unittests/testodbc.c:
+	- fix test
+
 Thu Mar 11 11:35:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/Makefile.am: commented cancel test
 	* src/odbc/unittests/data.c: commented numeric test

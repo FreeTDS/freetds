@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.4 2004-02-22 11:46:16 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.5 2004-03-11 12:21:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -135,7 +135,7 @@ TestRawODBCPreparedQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(74,'Longlife Tofu',4,7,'5 kg pkg.',10.00,4,20,5,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(11,'Queso Cabrales',5,4,'1 kg pkg.',21.00,22,30,30,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0)");
-	SQLCloseCursor(Statement);
+	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
 	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
 
@@ -226,14 +226,14 @@ TestRawODBCDirectQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(3,'Aniseed Syrup',1,2,'12 - 550 ml bottles',10.00,13,70,25,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(4,'Chef Anton''s Cajun Seasoning',2,2,'48 - 6 oz jars',22.00,53,0,0,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
-	SQLCloseCursor(Statement);
+	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
 	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierId = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs(Environment, Environment, Statement);
+		DispODBCErrs(Environment, Connection, Statement);
 		DispODBCDiags(Statement);
 		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
 		return FALSE;
@@ -242,7 +242,7 @@ TestRawODBCDirectQuery(void)
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Execute failed"));
-		DispODBCErrs(Environment, Environment, Statement);
+		DispODBCErrs(Environment, Connection, Statement);
 		DispODBCDiags(Statement);
 		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
 		return FALSE;
@@ -284,7 +284,7 @@ TestRawODBCGuid(void)
 
 	SQLCHAR queryString[300];
 	SQLINTEGER lenOrInd;
-	SQLINTEGER age;
+	SQLSMALLINT age;
 	SQLCHAR guid[40];
 	SQLCHAR name[20];
 
@@ -300,7 +300,7 @@ TestRawODBCGuid(void)
 	strcpy((char *) (queryString), "CREATE TABLE #pet (name VARCHAR(20), owner VARCHAR(20), "
 	       "species VARCHAR(20), sex CHAR(1), age INTEGER, " "guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
+	if (status != SQL_SUCCESS && status != SQL_NO_DATA) {
 		AB_ERROR(("Create table failed"));
 		goto odbcfail;
 	}
@@ -312,7 +312,7 @@ TestRawODBCGuid(void)
 	strcpy((char *) (queryString), "CREATE PROCEDURE GetGUIDRows (@guidpar uniqueidentifier) AS \
                 SELECT name, guid FROM #pet WHERE guid = @guidpar");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
+	if (status != SQL_SUCCESS && status != SQL_NO_DATA) {
 		AB_ERROR(("Create procedure failed"));
 		goto odbcfail;
 	}
