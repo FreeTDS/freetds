@@ -30,9 +30,9 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-#define DOMAIN 1
+#define DOMAIN 0
 
-static char  software_version[]   = "$Id: login.c,v 1.26 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.27 2002-08-02 03:13:34 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
