@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.39 2003-05-05 00:12:52 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.40 2003-05-05 00:27:12 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -290,7 +290,7 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol)
 		break;
 	}
 
-#ifdef WORDS_BIGENDIAN
+#if WORDS_BIGENDIAN
 	tds_swap_datatype
 		(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
 #else
