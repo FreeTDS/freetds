@@ -1,3 +1,7 @@
+Thu Apr 10 13:43:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/ct_diagclient.c:
+	- fixed test
+
 Thu Apr 10 12:14:04 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c src/tds/unittests/common.c:
 	- set ISO-8859-1 as default client charset, this make work many 

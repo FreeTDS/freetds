@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.1 2003-04-03 10:37:10 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.2 2003-04-10 11:44:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -39,6 +39,7 @@ main(int argc, char *argv[])
 	CS_CHAR col2[2][5];
 	CS_INT num_msgs, totmsgs;
 	CS_CLIENTMSG client_message;
+	int result = 1;
 
 	fprintf(stdout, "%s: Retrieve data using array binding \n", __FILE__);
 	if (verbose) {
@@ -177,8 +178,9 @@ main(int argc, char *argv[])
 						num_msgs);
 					return 1;
 				}
-
-				return 1;
+				
+				/* we catch error, good */
+				result = 0;
 			}
 			count = 0;
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
@@ -235,5 +237,5 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	return 0;
+	return result;
 }
