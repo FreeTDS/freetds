@@ -1,3 +1,8 @@
+Fri Jan 02 11:16:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* win32/config.h:
+	- removed developing define
+	- updates some define
+
 Fri Jan 02 10:49:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/pool/Makefile.am:
 	- fixed double inclusion of symbols (Mac OS X should now compile

@@ -5,10 +5,10 @@
 /* #undef BSD_COMP */
 
 /* Define to enable work in progress code */
-#define ENABLE_DEVELOPING 1
+/* #undef ENABLE_DEVELOPING 1 */
 
 /* Define to enable extra checks on code */
-#define ENABLE_EXTRA_CHECKS 1
+/* #undef ENABLE_EXTRA_CHECKS 1 */
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 /* #undef HAVE_ARPA_INET_H */
@@ -112,6 +112,9 @@
 /* Define to 1 if you have the `sethostent_r' function. */
 /* #undef HAVE_SETHOSTENT_R */
 
+/* Define to 1 if you have the SQLGetPrivateProfileString function. */
+#define HAVE_SQLGETPRIVATEPROFILESTRING 1
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
 
@@ -162,7 +165,7 @@
 /* #undef INADDR_NONE */
 
 /* Define to 1 if the BSD-style netdb interface is reentrant. */
-/* #undef NETDB_REENTRANT */
+#define NETDB_REENTRANT 1
 
 /* Name of package */
 #define PACKAGE "freetds"
@@ -198,13 +201,13 @@
 #define SIZEOF_LONG 4
 
 /* The size of a `long long', as computed by sizeof. */
-#define SIZEOF_LONG_LONG 8
+#define SIZEOF_LONG_LONG 0
 
 /* The size of a `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
 
 /* The size of a `__int64', as computed by sizeof. */
-#define SIZEOF___INT64 0
+#define SIZEOF___INT64 8
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -213,7 +216,7 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION "0.60"
+#define VERSION "0.62"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
