@@ -1,3 +1,9 @@
+Sun Dec 28 10:56:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/threadsafe.c:
+	- use getipnode* functions if available
+	- use getaddrinfo instead of getservbyname_r if not available
+	  (to fix thread-safe problems under Mac OS X)
+
 Sat Dec 27 10:57:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: add dependency
 	* doc/userguide.sgml: fix link for local files
