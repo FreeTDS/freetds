@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.145 2003-02-12 21:01:34 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.146 2003-02-13 06:17:54 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2246,7 +2246,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 	
 	if (marker == TDS_DONE_TOKEN) {
 		ret = tds_process_end(tds, marker, &status);
-		return (TDS_DONE_FINAL == status | TDS_DONE_FINAL)? TDS_SUCCEED : TDS_FAIL;
+		return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL))? TDS_SUCCEED : TDS_FAIL;
 	}
 
         length = tds_get_smallint(tds);
@@ -2281,7 +2281,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
         }
 
         ret = tds_process_end(tds, marker, &status);
-        return (TDS_DONE_FINAL == status | TDS_DONE_FINAL)? TDS_SUCCEED : TDS_FAIL;
+        return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL))? TDS_SUCCEED : TDS_FAIL;
 
 }
 
