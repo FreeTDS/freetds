@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.175 2004-05-28 03:19:15 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.176 2004-05-30 21:12:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -727,7 +727,30 @@ dbsetlbool(LOGINREC * login, int value, int which)
 		break;
 
 	}
+}
 
+/**
+ * \ingroup dblib_api
+ * \brief Set TDS version for future connections
+ */
+RETCODE 
+dbsetlversion (LOGINREC * login, BYTE version)
+{
+	if (login == NULL || login->tds_login == NULL)
+		return FAIL;
+		
+	switch (version) {
+	case DBVER42:
+		login->tds_login->major_version = 4;
+		login->tds_login->minor_version = 2;
+		return SUCCEED;
+	case DBVER60:
+		login->tds_login->major_version = 6;
+		login->tds_login->minor_version = 0;
+		return SUCCEED;
+	}
+	
+	return FAIL;
 }
 
 static void
@@ -1496,6 +1519,7 @@ dbnextrow(DBPROCESS * dbproc)
 
 	if (dbproc == NULL)
 		return FAIL;
+		
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", FAIL);
@@ -1505,42 +1529,42 @@ dbnextrow(DBPROCESS * dbproc)
 	resinfo = tds->res_info;
 	if (!resinfo) {
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", NO_MORE_ROWS);
-		return NO_MORE_ROWS;
+		return dbproc->row_type = NO_MORE_ROWS;
 	}
 
 	if (dbproc->row_buf.buffering_on && buffer_is_full(&(dbproc->row_buf))
 	    && (-1 == buffer_index_of_resultset_row(&(dbproc->row_buf), dbproc->row_buf.next_row))) {
 		result = BUF_FULL;
 	} else {
+		/* If no rows are read, DBROWTYPE() will report NO_MORE_ROWS. */
+		dbproc->row_type = NO_MORE_ROWS; 
+
 		/*
-		 * Now try to get the dbproc->row_buf.next_row item into the row
-		 * buffer
+		 * Try to get the dbproc->row_buf.next_row item into the row buffer.
 		 */
 		if (-1 != buffer_index_of_resultset_row(&(dbproc->row_buf), dbproc->row_buf.next_row)) {
 			/*
 			 * Cool, the item we want is already there
 			 */
-			result = REG_ROW;
+			result = dbproc->row_type = REG_ROW;
 			rowtype = TDS_REG_ROW;
 		} else {
 
 			/* Get the row from the TDS stream.  */
 
 			if ((ret = tds_process_row_tokens(dbproc->tds_socket, &rowtype, &computeid)) == TDS_SUCCEED) {
-				if (rowtype == TDS_REG_ROW) {
+				switch (rowtype) {
+				case TDS_REG_ROW:
+				case TDS_COMP_ROW:
 					/* Add the row to the row buffer */
-
 					resinfo = tds->curr_resinfo;
 					buffer_add_row(&(dbproc->row_buf), resinfo->current_row, resinfo->row_size);
-					result = REG_ROW;
-				} else if (rowtype == TDS_COMP_ROW) {
-					/* Add the row to the row buffer */
-
-					resinfo = tds->curr_resinfo;
-					buffer_add_row(&(dbproc->row_buf), resinfo->current_row, resinfo->row_size);
-					result = computeid;
-				} else
+					result = dbproc->row_type = (rowtype == TDS_COMP_ROW)? REG_ROW : computeid;
+					break;
+				default:
 					result = FAIL;
+					break;
+				}
 			} else if (ret == TDS_NO_MORE_ROWS) {
 				result = NO_MORE_ROWS;
 			} else
@@ -1549,16 +1573,16 @@ dbnextrow(DBPROCESS * dbproc)
 
 		if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
 			/*
-			 * The data is in the row buffer, now transfer it to the 
-			 * bound variables
+			 * Transfer the data from the row buffer to the bound variables.  
 			 */
 			buffer_transfer_bound_data(rowtype, computeid, &(dbproc->row_buf), dbproc, dbproc->row_buf.next_row);
 			dbproc->row_buf.next_row++;
 		}
 	}
+	
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving dbnextrow() returning %d\n", result);
 	return result;
-}				/* dbnextrow()  */
+} /* dbnextrow()  */
 
 static int
 _db_get_server_type(int bindtype)
@@ -4994,13 +5018,11 @@ dbcurrow(DBPROCESS * dbproc)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \sa DBROWTYPE().  
- * \todo Unimplemented.
  */
 STATUS
 dbrowtype(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrowtype()\n");
-	return NO_MORE_ROWS;
+	return (dbproc)? dbproc->row_type : NO_MORE_ROWS;
 }
 
 /** \internal

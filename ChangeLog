@@ -1,3 +1,8 @@
+Sun May 30 17:07:29 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h  include/sybdb.h src/dblib/dblib.c
+	- added dbsetlversion and dbrowtype
+	* doc/api_status.txt updated db-lib status
+	
 Sun May 30 15:29:14 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* TODO marked some documentation items as "done".  
 	* src/dblib/bcp.c trim trailing blanks on char and varchar data

@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.59 2004-05-28 03:19:15 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.60 2004-05-30 21:12:04 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -657,8 +657,6 @@ RETCODE dbsettime(int seconds);
 void dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr);
 RETCODE dbsetversion(DBINT version);
 
-	/* we don't define a version per login; we set the global default instead */
-#define DBSETLVERSION(login, version) dbsetversion((version))
 int dbspid(DBPROCESS * dbproc);
 RETCODE dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len);
 DBINT dbspr1rowlen(DBPROCESS * dbproc);
@@ -1007,6 +1005,7 @@ RETCODE dbsetlname(LOGINREC * login, const char *value, int which);
 RETCODE dbsetlbool(LOGINREC * login, int value, int which);
 RETCODE dbsetlshort(LOGINREC * login, int value, int which);
 RETCODE dbsetllong(LOGINREC * login, long value, int which);
+RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 
 #define DBSETHOST		1
 #define DBSETLHOST(x,y)		dbsetlname((x), (y), DBSETHOST)
@@ -1035,6 +1034,7 @@ RETCODE dbsetllong(LOGINREC * login, long value, int which);
 #define DBSETLABELED		13
 #define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
+#define DBSETLVERSION(login, version) dbsetlversion((login), (version))
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
 RETCODE bcp_done(DBPROCESS * dbproc);

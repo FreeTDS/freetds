@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.17 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.18 2004-05-30 21:12:04 jklowden Exp $";
 static void *no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 struct tds_dblib_loginrec
@@ -107,6 +107,7 @@ struct tds_dblib_dbprocess
 {
 	TDSSOCKET *tds_socket;
 
+	TDS_INT row_type;
 	DBPROC_ROWBUF row_buf;
 
 	int noautofree;
