@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.31 2002-08-09 02:55:48 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.32 2002-08-16 05:10:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2265,7 +2265,7 @@ int squote = FALSE, dquote = FALSE;
 
 		/* dbsafestr returns fail if the deststr is not big enough */
 		/* need one char + one for terminator */
-		if (destlen >= 0 && j>destlen)
+		if (destlen >= 0 && j>=destlen)
 			return FAIL;
 
 		if (squote && src[i]=='\'')

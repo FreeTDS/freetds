@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.1 2001-10-12 23:29:07 brianb Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.2 2002-08-16 05:10:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -27,6 +27,8 @@ int main()
    char large_sql[1024];
    char len600[601];
    char temp[11];
+   len600[0] = 0;
+   name[0] = 0;
    for (i = 0; i<60; i++) {
      sprintf(temp, "_abcde_%03d", (i+1)*10);
      strcat(len600, temp);

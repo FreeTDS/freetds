@@ -1,3 +1,8 @@
+Fri Aug 16 07:05:32 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	+ src/dblib/dblib.c: fix small buffer overflow
+	+ src/ctlib/unittests/t0003.c:
+	- initialize string value (needed by following strcat)
+
 Sun Aug 11 12:36:40 EDT 2002	Brian Bruns <camber@ais.org>
 	+ include/tds.h.in: add include config.h
 
