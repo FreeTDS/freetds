@@ -1,8 +1,8 @@
 Sat Dec  6 13:08:36 PST 2003	Peter Deacon <peterd@iea-software.com>
-	* include/tds.h src/tds/query.c src/odbc/odbc.c
+	* include/tds.h src/tds/query.c src/odbc/odbc.c:
 	- fixed don't look for placeholders in comments
 	- bad assert numresults between prepare and exec
-	* src/tds/mem.c src/token.c
+	* src/tds/mem.c src/tds/token.c:
 	- disconnect on unknown marker
 
 Sat Dec  6 17:35:31CET 2003	Frediano Ziglio <freddy77@angelfire.com>
