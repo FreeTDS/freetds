@@ -52,7 +52,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.28 2002-06-09 17:07:44 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.29 2002-06-14 12:25:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1541,13 +1541,18 @@ int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: fFunction is %d\n", fFunction);
 	switch (fFunction) {
-#if ODBCVER >= 0x0300
+#if (ODBCVER >= 0x0300)
 		case SQL_API_ODBC3_ALL_FUNCTIONS:
+			/* This 1.0-2.0 ODBC driver, so driver managet will
+			   map ODBC 3 functions to ODBC 2 functions */
+			return SQL_ERROR;
+#endif
  
 /*			for (i=0;i<SQL_API_ODBC3_ALL_FUNCTIONS_SIZE;i++) {
 				pfExists[i] = 0xFFFF;
 			}
 */
+#if 0
 			_set_func_exists(pfExists,SQL_API_SQLALLOCCONNECT);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCENV);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCHANDLE);
@@ -1587,7 +1592,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTATTR);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
-                        _set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
+			_set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
@@ -1612,13 +1617,16 @@ int i;
 			break;
 #endif
 		case SQL_API_ALL_FUNCTIONS:
+			tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetFunctions: "
+				"fFunction is SQL_API_ALL_FUNCTIONS\n");
+
 			_set_func_exists(pfExists,SQL_API_SQLALLOCCONNECT);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCENV);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCSTMT);
 			_set_func_exists(pfExists,SQL_API_SQLBINDCOL);
 			_set_func_exists(pfExists,SQL_API_SQLCANCEL);
 			_set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTES);
-			_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
+/*			_set_func_exists(pfExists,SQL_API_SQLCOLUMNS); */
 			_set_func_exists(pfExists,SQL_API_SQLCONNECT);
 			_set_func_exists(pfExists,SQL_API_SQLDATASOURCES);
 			_set_func_exists(pfExists,SQL_API_SQLDESCRIBECOL);
@@ -1631,13 +1639,13 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLFREEENV);
 			_set_func_exists(pfExists,SQL_API_SQLFREESTMT);
 			_set_func_exists(pfExists,SQL_API_SQLGETCONNECTOPTION);
-			_set_func_exists(pfExists,SQL_API_SQLGETCURSORNAME);
+/*			_set_func_exists(pfExists,SQL_API_SQLGETCURSORNAME); */
 			_set_func_exists(pfExists,SQL_API_SQLGETDATA);
 			_set_func_exists(pfExists,SQL_API_SQLGETFUNCTIONS);
 			_set_func_exists(pfExists,SQL_API_SQLGETINFO);
 			_set_func_exists(pfExists,SQL_API_SQLGETSTMTOPTION);
 			_set_func_exists(pfExists,SQL_API_SQLGETTYPEINFO);
-                        _set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
+			_set_func_exists(pfExists,SQL_API_SQLMORERESULTS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMPARAMS);
 			_set_func_exists(pfExists,SQL_API_SQLNUMRESULTCOLS);
 			_set_func_exists(pfExists,SQL_API_SQLPARAMDATA);
@@ -1645,80 +1653,96 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLPUTDATA);
 			_set_func_exists(pfExists,SQL_API_SQLROWCOUNT);
 			_set_func_exists(pfExists,SQL_API_SQLSETCONNECTOPTION);
+/*
 			_set_func_exists(pfExists,SQL_API_SQLSETCURSORNAME);
 			_set_func_exists(pfExists,SQL_API_SQLSETPARAM);
+*/
 			_set_func_exists(pfExists,SQL_API_SQLSETSTMTOPTION);
+/*
 			_set_func_exists(pfExists,SQL_API_SQLSPECIALCOLUMNS);
 			_set_func_exists(pfExists,SQL_API_SQLSTATISTICS);
+*/
 			_set_func_exists(pfExists,SQL_API_SQLTABLES);
-			_set_func_exists(pfExists,SQL_API_SQLTRANSACT);
+/*			_set_func_exists(pfExists,SQL_API_SQLTRANSACT); */
 			return SQL_SUCCESS;
 			break;
-                case SQL_API_SQLALLOCCONNECT :
-                case SQL_API_SQLALLOCENV :
-                case SQL_API_SQLALLOCHANDLE :
-                case SQL_API_SQLALLOCSTMT :
-                case SQL_API_SQLBINDCOL :
-                case SQL_API_SQLBINDPARAMETER :
-                case SQL_API_SQLCANCEL :
-                case SQL_API_SQLCLOSECURSOR :
-                case SQL_API_SQLCOLATTRIBUTE :
-                case SQL_API_SQLCOLUMNS :
-                case SQL_API_SQLCONNECT :
-                case SQL_API_SQLCOPYDESC :
-                case SQL_API_SQLDATASOURCES :
-                case SQL_API_SQLDESCRIBECOL :
-                case SQL_API_SQLDISCONNECT :
-                case SQL_API_SQLENDTRAN :
-                case SQL_API_SQLERROR :
-                case SQL_API_SQLEXECDIRECT :
-                case SQL_API_SQLEXECUTE :
-                case SQL_API_SQLFETCH :
-                case SQL_API_SQLFETCHSCROLL :
-                case SQL_API_SQLFREECONNECT :
-                case SQL_API_SQLFREEENV :
-                case SQL_API_SQLFREEHANDLE :
-                case SQL_API_SQLFREESTMT :
-                case SQL_API_SQLGETCONNECTATTR :
-                case SQL_API_SQLGETCONNECTOPTION :
-                case SQL_API_SQLGETCURSORNAME :
-                case SQL_API_SQLGETDATA :
-                case SQL_API_SQLGETDESCFIELD :
-                case SQL_API_SQLGETDESCREC :
-                case SQL_API_SQLGETDIAGFIELD :
-                case SQL_API_SQLGETDIAGREC :
-                case SQL_API_SQLGETENVATTR :
-                case SQL_API_SQLGETFUNCTIONS :
-                case SQL_API_SQLGETINFO :
-                case SQL_API_SQLGETSTMTATTR :
-                case SQL_API_SQLGETSTMTOPTION :
-                case SQL_API_SQLGETTYPEINFO :
-                case SQL_API_SQLMORERESULTS :
-                case SQL_API_SQLNUMPARAMS :
-                case SQL_API_SQLNUMRESULTCOLS :
-                case SQL_API_SQLPARAMDATA :
-                case SQL_API_SQLPREPARE :
-                case SQL_API_SQLPUTDATA :
-                case SQL_API_SQLROWCOUNT :
-                case SQL_API_SQLSETCONNECTATTR :
-                case SQL_API_SQLSETCONNECTOPTION :
-                case SQL_API_SQLSETCURSORNAME :
-                case SQL_API_SQLSETDESCFIELD :
-                case SQL_API_SQLSETDESCREC :
-                case SQL_API_SQLSETENVATTR :
-                case SQL_API_SQLSETPARAM :
-                case SQL_API_SQLSETSTMTATTR :
-                case SQL_API_SQLSETSTMTOPTION :
-                case SQL_API_SQLSPECIALCOLUMNS :
-                case SQL_API_SQLSTATISTICS :
-                case SQL_API_SQLTABLES :
-                case SQL_API_SQLTRANSACT :
+		case SQL_API_SQLALLOCCONNECT :
+		case SQL_API_SQLALLOCENV :
+		case SQL_API_SQLALLOCSTMT :
+		case SQL_API_SQLBINDCOL :
+		case SQL_API_SQLBINDPARAMETER :
+		case SQL_API_SQLCANCEL :
+		case SQL_API_SQLCOLATTRIBUTES :
+		case SQL_API_SQLCOLUMNS :
+		case SQL_API_SQLCONNECT :
+		case SQL_API_SQLDESCRIBECOL :
+		case SQL_API_SQLDISCONNECT :
+		case SQL_API_SQLENDTRAN :
+		case SQL_API_SQLERROR :
+		case SQL_API_SQLEXECDIRECT :
+		case SQL_API_SQLEXECUTE :
+		case SQL_API_SQLFETCH :
+		case SQL_API_SQLFREECONNECT :
+		case SQL_API_SQLFREEENV :
+		case SQL_API_SQLFREESTMT :
+		case SQL_API_SQLGETCONNECTOPTION :
+/*		case SQL_API_SQLGETCURSORNAME : */
+		case SQL_API_SQLGETDATA :
+		case SQL_API_SQLGETFUNCTIONS :
+		case SQL_API_SQLGETINFO :
+		case SQL_API_SQLGETSTMTATTR :
+		case SQL_API_SQLGETSTMTOPTION :
+		case SQL_API_SQLGETTYPEINFO :
+		case SQL_API_SQLMORERESULTS :
+		case SQL_API_SQLNUMPARAMS :
+		case SQL_API_SQLNUMRESULTCOLS :
+		case SQL_API_SQLPARAMDATA :
+		case SQL_API_SQLPREPARE :
+		case SQL_API_SQLPUTDATA :
+		case SQL_API_SQLROWCOUNT :
+		case SQL_API_SQLSETCONNECTOPTION :
+/*
+		case SQL_API_SQLSETCURSORNAME :
+		case SQL_API_SQLSETPARAM :
+*/
+		case SQL_API_SQLSETSTMTOPTION :
+/*
+		case SQL_API_SQLSPECIALCOLUMNS :
+		case SQL_API_SQLSTATISTICS :
+*/
+		case SQL_API_SQLTABLES :
+/*		case SQL_API_SQLTRANSACT : */
+#if (ODBCVER >= 0x300)
+		case SQL_API_SQLALLOCHANDLE :
+/*
+		case SQL_API_SQLCLOSECURSOR :
+		case SQL_API_SQLCOPYDESC :
+		case SQL_API_SQLENDTRAN :
+		case SQL_API_SQLFETCHSCROLL :
+		case SQL_API_SQLGETCONNECTATTR :
+*/
+		case SQL_API_SQLFREEHANDLE :
+/*
+		case SQL_API_SQLGETDESCFIELD :
+		case SQL_API_SQLGETDESCREC :
+		case SQL_API_SQLGETDIAGFIELD :
+		case SQL_API_SQLGETDIAGREC :
+		case SQL_API_SQLGETENVATTR :
+		case SQL_API_SQLGETSTMTATTR :
+		case SQL_API_SQLSETCONNECTATTR :
+		case SQL_API_SQLSETDESCFIELD :
+		case SQL_API_SQLSETDESCREC :
+		case SQL_API_SQLSETENVATTR :
+		case SQL_API_SQLSETSTMTATTR :
+*/
+
+#endif
 			*pfExists = 1; /* SQL_TRUE */
 			return SQL_SUCCESS;
-                default:
-                        *pfExists = 0;
-                        return SQL_SUCCESS;
-			break;
+		default:
+			*pfExists = 0;
+			return SQL_SUCCESS;
+		break;
 	}
 	return SQL_SUCCESS;
 }
@@ -1763,7 +1787,7 @@ SQLRETURN SQL_API SQLGetInfo(
 {
 char *p = NULL;
 SQLSMALLINT *siInfoValue = (SQLSMALLINT *)rgbInfoValue;
-SQLUSMALLINT *uiInfoValue = (SQLUSMALLINT *)rgbInfoValue;
+SQLUINTEGER *uiInfoValue = (SQLUINTEGER *)rgbInfoValue;
 
 	CHECK_HDBC;
 
@@ -1775,7 +1799,7 @@ SQLUSMALLINT *uiInfoValue = (SQLUSMALLINT *)rgbInfoValue;
 			p = "02.00";
 			break;
 		case SQL_ACTIVE_STATEMENTS:
-			siInfoValue = 1;
+			*siInfoValue = 1;
 			break;
 		case SQL_SCROLL_OPTIONS:
 			*uiInfoValue  = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
@@ -1800,8 +1824,6 @@ SQLUSMALLINT *uiInfoValue = (SQLUSMALLINT *)rgbInfoValue;
 				return( SQL_SUCCESS_WITH_INFO);
 			}
 		}
-        } else {
-                memset((char *)rgbInfoValue, 0, (size_t)cbInfoValueMax);
 	}
 		
 	return SQL_SUCCESS;
