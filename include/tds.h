@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.63 2002-12-02 13:39:12 freddy77 Exp $";
+	"$Id: tds.h,v 1.64 2002-12-02 20:53:49 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -478,8 +478,8 @@ typedef struct tds_column_info {
 	TDS_SMALLINT column_type;
 	/** type of data, saved from wire */
 	TDS_SMALLINT column_type_save;
-	TDS_SMALLINT column_flags;
 	TDS_INT column_usertype;
+	TDS_INT column_flags;
 	/** maximun size of data. For fixed is the size. */
 	TDS_INT column_size;
 	/** size of length when reading from wire (0, 1, 2 or 4) */

@@ -1,3 +1,6 @@
+Mon Dec 02 21:53:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: column_flags have now 32 bits
+
 Mon Dec 02 14:37:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/server/server.c src/tds/login.c:
 	* src/tds/mem.c src/tds/token.c:
