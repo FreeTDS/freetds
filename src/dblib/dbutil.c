@@ -27,13 +27,9 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.14 2002-09-27 03:09:52 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.15 2002-09-30 16:36:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
-
-
-extern MHANDLEFUNC g_dblib_msg_handler;
-extern EHANDLEFUNC g_dblib_err_handler;
 
 /* The next 2 functions will be the reciever for the info and error messages
  * that come from the TDS layer.  The address of this function is passed to
@@ -53,8 +49,8 @@ DBPROCESS *dbproc = NULL;
 		/* now check to see if the user supplied a function,
 		 * if not, ignore the problem
 		 */
-		if (g_dblib_msg_handler) {
-			g_dblib_msg_handler(dbproc,
+		if (_dblib_msg_handler) {
+			_dblib_msg_handler(dbproc,
 					msg->msg_number,
 					msg->msg_state,
 					msg->msg_level, 
@@ -91,8 +87,8 @@ int rc = INT_CANCEL;
 		/* now check to see if the user supplied a function,
 		 * if not, ignore the problem
 		 */
-		if (g_dblib_err_handler) {
-			rc  = g_dblib_err_handler(dbproc,
+		if (_dblib_err_handler) {
+			rc  = _dblib_err_handler(dbproc,
 					msg->msg_level,
 					msg->msg_number,
 					msg->msg_state, 

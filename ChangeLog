@@ -1,3 +1,8 @@
+Mon Sep 30 12:34:22 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbutil.c:
+	- Namespace cleanup, rename g_dblib_msg_handler to _dblib_msg_handler,
+	  and rename g_dblib_err_handler to _dblib_err_handler.
+
 Mon Sep 30 12:01:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tdsutil.h src/tds/config.c:
 	- Namespace cleanup, make get_server_info() static since it

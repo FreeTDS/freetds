@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.6 2002-09-20 14:48:35 castellano Exp $";
+         "$Id: dblib.h,v 1.7 2002-09-30 16:36:12 castellano Exp $";
 static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 
 
@@ -47,6 +47,9 @@ RETCODE _bcp_get_term_data(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, BYTE *colda
 RETCODE _bcp_get_term_var(BYTE *dataptr, BYTE *term, int term_len, BYTE *coldata);
 RETCODE _bcp_get_prog_data(DBPROCESS *dbproc);
 int _bcp_readfmt_colinfo(DBPROCESS *dbproc, char *buf, BCP_HOSTCOLINFO *ci);
+
+extern MHANDLEFUNC _dblib_msg_handler;
+extern EHANDLEFUNC _dblib_err_handler;
 
 #ifdef __cplusplus
 }

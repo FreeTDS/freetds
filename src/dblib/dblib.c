@@ -40,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.70 2002-09-30 15:48:44 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.71 2002-09-30 16:36:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -50,8 +50,8 @@ static int _get_printable_size(TDSCOLINFO *colinfo);
 static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen);
 
 /* info/err message handler functions (or rather pointers to them) */
-int (*g_dblib_msg_handler)() = NULL;
-int (*g_dblib_err_handler)() = NULL;
+MHANDLEFUNC _dblib_msg_handler = NULL;
+EHANDLEFUNC _dblib_err_handler = NULL;
 
 typedef struct dblib_context {
 	TDSCONTEXT *tds_ctx;
@@ -2083,18 +2083,18 @@ dbdead(DBPROCESS *dbproc)
 EHANDLEFUNC
 dberrhandle(EHANDLEFUNC handler)
 {
-   EHANDLEFUNC retFun = g_dblib_err_handler;
+   EHANDLEFUNC retFun = _dblib_err_handler;
 
-   g_dblib_err_handler = handler;
+   _dblib_err_handler = handler;
    return retFun;
 }
 
 MHANDLEFUNC
 dbmsghandle(MHANDLEFUNC handler)
 {
-   MHANDLEFUNC retFun = g_dblib_msg_handler;
+   MHANDLEFUNC retFun = _dblib_msg_handler;
 
-   g_dblib_msg_handler = handler;
+   _dblib_msg_handler = handler;
    return retFun;
 }
 

@@ -43,12 +43,9 @@
 #define ROWBUF_SIZE 32768
 #endif
 
-extern int (*g_dblib_msg_handler)();
-extern int (*g_dblib_err_handler)();
-
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.22 2002-09-30 15:48:44 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.23 2002-09-30 16:36:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
