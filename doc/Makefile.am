@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.36 2003-12-27 03:18:37 jklowden Exp $
+# version: $Id: Makefile.am,v 1.37 2003-12-27 09:41:07 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -96,20 +96,20 @@ $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml  $(srcdir)/userguide.dsl
 	cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
 		if test ! -r userguide.sgml; then ln -s ../../../$(srcdir)/userguide.sgml userguide.sgml; fi; \
-	        openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
+		openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
 		if test -L userguide.sgml; then rm userguide.sgml; fi; \
 	fi
 # if still no joy, create a stub
 	if test ! -e $@ ; then \
 		echo '<html><P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a></html>' 	\
-		> .index.htm; \
-		mv .index.html $@; \
+		> .index.htm && \
+		mv .index.htm $@; \
 	fi
 	test -f $(DOCDIR)/userguide/index.htm
 	cd $(DOCDIR)/userguide && if test ! -L index.html ; then ln -s index.htm index.html; fi
 # for convenience, create a link in the build directory
 	if test -L userguide; then rm userguide; fi
-	ln -s $(DOCDIR)/userguide userguide
+	ln -sf $(DOCDIR)/userguide userguide
 
 userguide: $(DOCDIR)/userguide/index.htm
 reference: $(DOCDIR)/reference/index.html
@@ -117,8 +117,7 @@ reference: $(DOCDIR)/reference/index.html
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
-	cd .. && nohup make doxy
-	mv ../nohup.out doxy.log
+	cd .. && make doxy 2> doc/doxy.log
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -e $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
@@ -132,7 +131,7 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	fi
 # for convenience, create a link in the build directory
 	if test -L reference; then rm reference; fi
-	ln -s $(DOCDIR)/reference reference
+	ln -sf $(DOCDIR)/reference reference
 
 #
 # The following sections generate API implementation reference tables as SGML "entities".

@@ -68,6 +68,10 @@ rm -rf build
 echo "make dist ok" >> "$LOG"
 
 # finally big test. I hope you have a fast machine :)
+cd ..
+rm -rf "$DIR"
+tar zxf freetds-*.tar.gz
+cd "$DIR"
 ./configure
 if test ! -e PWD -a -e "$ORIGDIR/../PWD"; then
 	cp "$ORIGDIR/../PWD" .
