@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0012.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
+static char  software_version[]   = "$Id: t0012.c,v 1.3 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -26,11 +26,13 @@ int main(int argc, char *argv[])
    LOGINREC   *login;
    DBPROCESS   *dbproc;
    int         i;
+   char        cmd[512];
    char        teststr[1024];
    DBINT       testint;
    char				sqlCmd[256];
    char				datestring[256];
    DBDATEREC	dateinfo;
+   DBDATETIME	mydatetime;
 
 #ifdef __FreeBSD__
    /*
@@ -68,21 +70,60 @@ int main(int argc, char *argv[])
    }
    fprintf(stdout, "After logon\n");
 
-   sprintf(sqlCmd, "SELECT name, crdate FROM master..sysdatabases where name='%s'", DATABASE);
+   fprintf(stdout, "Dropping table\n");
+   add_bread_crumb();
+   dbcmd(dbproc, "drop table dblib0012");
+   add_bread_crumb();
+   dbsqlexec(dbproc);
+   add_bread_crumb();
+   while (dbresults(dbproc)==SUCCEED)
+   {
+      /* nop */
+   }
+   add_bread_crumb();
+
+   fprintf(stdout, "creating table\n");
+   dbcmd(dbproc,
+         "create table dblib0012 (dt datetime not null)");
+   dbsqlexec(dbproc);
+   while (dbresults(dbproc)==SUCCEED)
+   {
+      /* nop */
+   }
+
+   sprintf(cmd, "insert into dblib0012 values ('Feb 27 2001 10:24:35:056AM')");
+   fprintf(stdout, "%s\n",cmd);
+   dbcmd(dbproc, cmd);
+   dbsqlexec(dbproc);
+   while (dbresults(dbproc)==SUCCEED)
+   {
+      /* nop */
+   }
+
+   sprintf(cmd, "insert into dblib0012 values ('Dec 25 1898 07:30:00:567PM')");
+   fprintf(stdout, "%s\n",cmd);
+   dbcmd(dbproc, cmd);
+   dbsqlexec(dbproc);
+   while (dbresults(dbproc)==SUCCEED)
+   {
+      /* nop */
+   }
+   sprintf(sqlCmd, "SELECT dt FROM dblib0012");
    dbcmd(dbproc, sqlCmd);
    dbsqlexec(dbproc);
    dbresults(dbproc);
 
    while (dbnextrow(dbproc) != NO_MORE_ROWS)
    {
-	/* Print the database name and its date info  */
-	dbconvert(dbproc, dbcoltype(dbproc, 2), 
-		dbdata(dbproc, 2),
-		dbdatlen(dbproc, 2), SYBCHAR, datestring, -1);
-	printf("%s: %s\n", (char *) (dbdata(dbproc, 1)), datestring);
+	/* Print the date info  */
+	dbconvert(dbproc, dbcoltype(dbproc, 1), dbdata(dbproc, 1),
+		dbdatlen(dbproc, 1), SYBCHAR, datestring, -1);
+
+	printf("%s\n",  datestring);
 
 	/* Break up the creation date into its constituent parts */
-	dbdatecrack(dbproc, &dateinfo, (DBDATETIME *) (dbdata(dbproc, 2)));
+    memcpy(&mydatetime, (DBDATETIME *) (dbdata(dbproc, 1)), sizeof(DBDATETIME));
+	dbdatecrack(dbproc, &dateinfo, &mydatetime);
 
 	/* Print the parts of the creation date */
 #if MSDBLIB

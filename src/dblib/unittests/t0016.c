@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0016.c,v 1.2 2002-01-25 03:44:15 brianb Exp $";
+static char  software_version[]   = "$Id: t0016.c,v 1.3 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
    int         i;
    char        teststr[1024];
    DBINT       testint;
-   char				sqlCmd[256];
-   char				datestring[256];
+   char			sqlCmd[256];
+   char			datestring[256];
    DBDATEREC	dateinfo;
    RETCODE      ret;
    char         *out_file = "t0016.out";
@@ -65,9 +65,6 @@ int main(int argc, char *argv[])
    DBSETLUSER(login,USER);
    DBSETLAPP(login,"t0016");
    
-   fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n",
-   	"","",""); /* PASSWORD, USER, SERVER); */
-
    dbproc = dbopen(login, SERVER);
    if (strlen(DATABASE)) {
 		 dbuse(dbproc,DATABASE);
@@ -83,7 +80,9 @@ int main(int argc, char *argv[])
    }
 
    fprintf(stdout, "Creating table\n");
-   dbcmd(dbproc, "create table dblib0016 (f1 int not null, s1 int null, f2 real null, f3 varchar(255) not null)");
+   strcpy(sqlCmd, "create table dblib0016 (f1 int not null, s1 int null, f2 numeric(10,2) null, ");
+   strcat(sqlCmd, "f3 varchar(255) not null, f4 datetime null) ");
+   dbcmd(dbproc, sqlCmd);
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -92,56 +91,71 @@ int main(int argc, char *argv[])
 
    /* BCP in */
 
-   ret = bcp_init(dbproc, "tempdb..dblib0016", in_file, err_file, DB_IN);
+   ret = bcp_init(dbproc, "dblib0016", in_file, err_file, DB_IN);
     
-   fprintf(stderr, "select\n");
-   dbcmd(dbproc, "select * from dblib0016 where 0=1"); 
-   dbsqlexec(dbproc);			 
+   fprintf(stdout, "return from bcp_init = %d\n", ret);
+
+   ret = dbcmd(dbproc, "select * from dblib0016 where 0=1"); 
+   fprintf(stdout, "return from dbcmd = %d\n", ret);
+
+   ret = dbsqlexec(dbproc);			 
+   fprintf(stdout, "return from dbsqlexec = %d\n", ret);
+
    if (dbresults(dbproc) != FAIL) {
       num_cols = dbnumcols(dbproc);
-      for (i=0;i<num_cols;i++) 
-         col_type[i] = dbcoltype(dbproc,i+1); 
+      fprintf(stdout, "Number of columns = %d\n", num_cols);
+
       while (dbnextrow(dbproc) != NO_MORE_ROWS) {}
    }
 
    ret = bcp_columns(dbproc, num_cols);
-   for (i=0;i<num_cols;i++) {
-        prefix_len = 0;
-	if (col_type[i]==SYBIMAGE) {
-		prefix_len=4;
-	} else if (!is_fixed_type(col_type[i])) {
-		prefix_len=1;
-	}
-        bcp_colfmt(dbproc, i+1, col_type[i], prefix_len, -1, NULL, 0, i+1);
+   fprintf(stdout, "return from bcp_columns = %d\n", ret);
+
+   for (i = 1; i < num_cols ; i++ )
+   {
+      if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
+      {
+          fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+      }
    }
+
+   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
+   {
+      fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+   }
+
 
    ret = bcp_exec(dbproc, &rows_copied);
 
    fprintf(stdout, "%d rows copied in\n",rows_copied);
 
    /* BCP out */
+
    rows_copied = 0;
    ret = bcp_init(dbproc, "dblib0016", out_file, err_file, DB_OUT);
 
    fprintf(stderr, "select\n");
    dbcmd(dbproc, "select * from dblib0016 where 0=1"); 
    dbsqlexec(dbproc);			 
+
    if (dbresults(dbproc) != FAIL) {
       num_cols = dbnumcols(dbproc);
-      for (i=0;i<num_cols;i++) 
-         col_type[i] = dbcoltype(dbproc,i+1); 
       while (dbnextrow(dbproc) != NO_MORE_ROWS) {}
    }
 
    ret = bcp_columns(dbproc, num_cols);
-   for (i=0;i<num_cols;i++) {
-        prefix_len = 0;
-	if (col_type[i]==SYBIMAGE) {
-		prefix_len=4;
-	} else if (!is_fixed_type(col_type[i])) {
-		prefix_len=1;
-	}
-        bcp_colfmt(dbproc, i+1, col_type[i], prefix_len, -1, NULL, 0, i);
+
+   for (i = 1; i < num_cols ; i++ )
+   {
+      if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
+      {
+          fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+      }
+   }
+
+   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
+   {
+      fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
    }
 
    ret = bcp_exec(dbproc, &rows_copied);

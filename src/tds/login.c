@@ -27,9 +27,12 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.20 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.21 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+extern int g__numeric_bytes_per_prec[39];
+
 
 void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver)
 {
@@ -289,6 +292,89 @@ FD_ZERO (&fds);
    			while (tds_process_result_tokens(tds)==TDS_SUCCEED);
    		}
 	}
+    if (IS_TDS70(tds) || IS_TDS80(tds)) {
+       g__numeric_bytes_per_prec[ 0] = -1;
+       g__numeric_bytes_per_prec[ 1] = 5;
+       g__numeric_bytes_per_prec[ 2] = 5;
+       g__numeric_bytes_per_prec[ 3] = 5;
+       g__numeric_bytes_per_prec[ 4] = 5;
+       g__numeric_bytes_per_prec[ 5] = 5;
+       g__numeric_bytes_per_prec[ 6] = 5;
+       g__numeric_bytes_per_prec[ 7] = 5;
+       g__numeric_bytes_per_prec[ 8] = 5;
+       g__numeric_bytes_per_prec[ 9] = 5;
+       g__numeric_bytes_per_prec[10] = 9;
+       g__numeric_bytes_per_prec[11] = 9;
+       g__numeric_bytes_per_prec[12] = 9;
+       g__numeric_bytes_per_prec[13] = 9;
+       g__numeric_bytes_per_prec[14] = 9;
+       g__numeric_bytes_per_prec[15] = 9;
+       g__numeric_bytes_per_prec[16] = 9;
+       g__numeric_bytes_per_prec[17] = 9;
+       g__numeric_bytes_per_prec[18] = 9;
+       g__numeric_bytes_per_prec[19] = 9;
+       g__numeric_bytes_per_prec[20] = 13;
+       g__numeric_bytes_per_prec[21] = 13;
+       g__numeric_bytes_per_prec[22] = 13;
+       g__numeric_bytes_per_prec[23] = 13;
+       g__numeric_bytes_per_prec[24] = 13;
+       g__numeric_bytes_per_prec[25] = 13;
+       g__numeric_bytes_per_prec[26] = 13;
+       g__numeric_bytes_per_prec[27] = 13;
+       g__numeric_bytes_per_prec[28] = 13;
+       g__numeric_bytes_per_prec[29] = 17;
+       g__numeric_bytes_per_prec[30] = 17;
+       g__numeric_bytes_per_prec[31] = 17;
+       g__numeric_bytes_per_prec[32] = 17;
+       g__numeric_bytes_per_prec[33] = 17;
+       g__numeric_bytes_per_prec[34] = 17;
+       g__numeric_bytes_per_prec[35] = 17;
+       g__numeric_bytes_per_prec[36] = 17;
+       g__numeric_bytes_per_prec[37] = 17;
+       g__numeric_bytes_per_prec[38] = 17;
+    }
+    else {
+       g__numeric_bytes_per_prec[ 0] = -1;
+       g__numeric_bytes_per_prec[ 1] = 2;
+       g__numeric_bytes_per_prec[ 2] = 2;
+       g__numeric_bytes_per_prec[ 3] = 3;
+       g__numeric_bytes_per_prec[ 4] = 3;
+       g__numeric_bytes_per_prec[ 5] = 4;
+       g__numeric_bytes_per_prec[ 6] = 4;
+       g__numeric_bytes_per_prec[ 7] = 4;
+       g__numeric_bytes_per_prec[ 8] = 5;
+       g__numeric_bytes_per_prec[ 9] = 5;
+       g__numeric_bytes_per_prec[10] = 6;
+       g__numeric_bytes_per_prec[11] = 6;
+       g__numeric_bytes_per_prec[12] = 6;
+       g__numeric_bytes_per_prec[13] = 7;
+       g__numeric_bytes_per_prec[14] = 7;
+       g__numeric_bytes_per_prec[15] = 8;
+       g__numeric_bytes_per_prec[16] = 8;
+       g__numeric_bytes_per_prec[17] = 9;
+       g__numeric_bytes_per_prec[18] = 9;
+       g__numeric_bytes_per_prec[19] = 9;
+       g__numeric_bytes_per_prec[20] = 10;
+       g__numeric_bytes_per_prec[21] = 10;
+       g__numeric_bytes_per_prec[22] = 11;
+       g__numeric_bytes_per_prec[23] = 11;
+       g__numeric_bytes_per_prec[24] = 11;
+       g__numeric_bytes_per_prec[25] = 12;
+       g__numeric_bytes_per_prec[26] = 12;
+       g__numeric_bytes_per_prec[27] = 13;
+       g__numeric_bytes_per_prec[28] = 13;
+       g__numeric_bytes_per_prec[29] = 14;
+       g__numeric_bytes_per_prec[30] = 14;
+       g__numeric_bytes_per_prec[31] = 14;
+       g__numeric_bytes_per_prec[32] = 15;
+       g__numeric_bytes_per_prec[33] = 15;
+       g__numeric_bytes_per_prec[34] = 16;
+       g__numeric_bytes_per_prec[35] = 16;
+       g__numeric_bytes_per_prec[36] = 16;
+       g__numeric_bytes_per_prec[37] = 17;
+       g__numeric_bytes_per_prec[38] = 17;
+    }
+
 	tds_free_config(config);
 	return tds;
 }

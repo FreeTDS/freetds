@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.5 2002-02-17 20:23:37 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.6 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -32,6 +32,10 @@ CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 	memset(*ctx,'\0',sizeof(CS_CONTEXT));
 	/* find our default locale and read it */
 	(*ctx)->locale = tds_get_locale();
+	if( (*ctx)->locale && !(*ctx)->locale->date_fmt ) {
+		/* set default in case there's no locale file */
+		(*ctx)->locale->date_fmt = "%b %e %Y %l:%M%p"; 
+	}
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)
@@ -46,22 +50,62 @@ CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *b
 {
 	return CS_SUCCEED;
 }
+
+
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen)
 {
-int src_type, dest_type, len = 0;
+int src_type, desttype, destlen, len = 0;
+
+unsigned char *dest;
 
 	src_type = _ct_get_server_type(srcfmt->datatype);
-	dest_type = _ct_get_server_type(destfmt->datatype);
+	desttype = _ct_get_server_type(destfmt->datatype);
+    destlen  =  destfmt ? destfmt->maxlength : 0;
+
+    dest = (unsigned char *)destdata;
 
 	len = tds_convert(ctx->locale, src_type, srcdata, 
-		srcfmt ? srcfmt->maxlength : 0, dest_type, destdata, 
-		destfmt ? destfmt->maxlength : 0);
+		srcfmt ? srcfmt->maxlength : 0, desttype, dest, 
+		destlen);
+
+     switch (destfmt->format) {
+            case CS_FMT_NULLTERM:
+               if (desttype==SYBCHAR || desttype==SYBVARCHAR
+                || desttype==SYBTEXT) {
+                  if (destlen > len)  dest[len] = '\0';
+                  else                dest[len-1] = '\0';
+                  len++; /* CS_FMT_NULLTERM includes the null in the size */
+               }
+               break;
+            case CS_FMT_UNUSED:
+               break;
+            case CS_FMT_PADBLANK:
+               if (desttype==SYBCHAR || desttype==SYBVARCHAR
+                || desttype==SYBTEXT) {
+                  if (destlen > len) {
+                      memset(dest+len, (int)' ', destlen - len);
+                  }
+               }
+               break;
+            case CS_FMT_PADNULL:
+               if (desttype==SYBCHAR   || desttype==SYBVARCHAR
+                || desttype==SYBBINARY || desttype==SYBVARBINARY
+                || desttype==SYBTEXT   || desttype==SYBIMAGE) {
+                  if (destlen > len) {
+                      memset(dest+len, 0, destlen - len);
+                  }
+               }
+               break;
+            default:
+               break;
+    }
 
 	if (resultlen)
 		*resultlen = len;
 
 	return CS_SUCCEED;
 }
+
 CS_RETCODE cs_dt_crack(CS_CONTEXT *ctx, CS_INT datetype, CS_VOID *dateval, CS_DATEREC *daterec)
 {
 CS_DATETIME *dt;

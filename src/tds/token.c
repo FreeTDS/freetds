@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.19 2002-06-04 03:33:33 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.20 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -46,7 +46,6 @@ static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static void tds_process_dyn_result(TDSSOCKET *tds);
 static int tds_process_dynamic(TDSSOCKET *tds);
-
 void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
@@ -280,21 +279,15 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
 				break;
 			case TDS_ROW_TOKEN:
 				if (!result) {
-                                        tdsdump_log(TDS_DBG_INFO1, 
-                                            "%L processing result tokens. "
-                                            "Skipping row to access next "
-                                            "resultset or proc's retval\n");
-                                        if (TDS_FAIL==tds_process_row(tds))
-                                            return TDS_FAIL;
 				} else {
 					tds->res_info->rows_exist=1;
 					tds_unget_byte(tds);
 					return TDS_SUCCEED;
 				}
-                                break;
       			case TDS_RET_STAT_TOKEN:
 				tds->has_status=1;
 				tds->ret_status=tds_get_int(tds);
+				/* return TDS_SUCCEED; */
 				break;
 			case TDS5_DYN_TOKEN:
 				tds->cur_dyn_elem = tds_process_dynamic(tds);
@@ -338,7 +331,7 @@ int   cancelled;
 
 	while (1) {
 		marker=tds_get_byte(tds);
-tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x\n", marker);
+        tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x\n", marker);
 		switch(marker) {
 			case TDS_RESULT_TOKEN:
 			case TDS7_RESULT_TOKEN:
@@ -461,18 +454,29 @@ char ci_flags[4];
 		curcol->column_identity = (ci_flags[3] & 0x10) > 0;
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
 		curcol->column_type = tds_get_byte(tds);
-		if (is_blob_type(curcol->column_type)) {
-			curcol->column_size = tds_get_int(tds);
-			tabnamesize = tds_get_smallint(tds);
-			tds_get_n(tds,NULL,tabnamesize);
-			bytes_read += 5+4+2+tabnamesize;
-		} else if (!is_fixed_type(curcol->column_type)) {
-			curcol->column_size = tds_get_byte(tds);
-			bytes_read += 5+1;
-		} else { 
-			curcol->column_size = get_size_by_type(curcol->column_type);
-			bytes_read += 5+0;
+
+		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
+        tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d, varint_size %d\n", 
+                    curcol->column_type, curcol->column_varint_size);
+
+		switch(curcol->column_varint_size) {
+			case 4: 
+				curcol->column_size = tds_get_int(tds);
+				/* junk the table name -- for now */
+			    tabnamesize = tds_get_smallint(tds);
+			    tds_get_n(tds,NULL,tabnamesize);
+			    bytes_read += 5+4+2+tabnamesize;
+				break;
+			case 1: 
+				curcol->column_size = tds_get_byte(tds);
+			    bytes_read += 5+1;
+				break;
+			case 0: 
+				curcol->column_size = get_size_by_type(curcol->column_type);
+			    bytes_read += 5+0;
+				break;
 		}
+
 		if (is_blob_type(curcol->column_type)) {
 			curcol->column_offset = info->row_size;
 		} else {
@@ -596,7 +600,6 @@ int colnamelen;
 TDS_SMALLINT tabnamelen;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
-char ci_flags[4];
 TDS_SMALLINT collate_type;
 
 	tds_free_all_results(tds);
@@ -618,14 +621,12 @@ TDS_SMALLINT collate_type;
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_smallint(tds);  
 
-		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
-			the data in them. (mlilback, 3/28/02) */
-		tds_get_n(tds, ci_flags, 2);
-		curcol->column_nullable = ci_flags[0] & 0x01;
-		curcol->column_writeable = (ci_flags[0] & 0x08) > 0;
-		curcol->column_identity = (ci_flags[0] & 0x10) > 0;
+        curcol->column_flags = tds_get_smallint(tds);     /*  Flags */
 
-		/* on with our regularly scheduled code (mlilback, 3/28/02) */
+        curcol->column_nullable  =  curcol->column_flags & 0x01;
+        curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
+		curcol->column_identity  = (curcol->column_flags & 0x10) > 0;
+
 		curcol->column_type = tds_get_byte(tds); 
 		
           curcol->column_type_save = curcol->column_type;
@@ -726,7 +727,6 @@ int col, num_cols;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 int remainder;
-unsigned char flags;
 
 	tds_free_all_results(tds);
 
@@ -750,8 +750,8 @@ unsigned char flags;
 		tds_get_n(tds,curcol->column_name, colnamelen);
 		curcol->column_name[colnamelen]='\0';
 
-		flags = tds_get_byte(tds); /* flags */
-		curcol->column_nullable = (flags & 0x20) > 1;
+        curcol->column_flags = tds_get_byte(tds);     /*  Flags */
+        curcol->column_nullable  = (curcol->column_flags & 0x20) > 1;
 
 		curcol->column_usertype = tds_get_smallint(tds);
 		tds_get_smallint(tds);  /* another unknown */
@@ -759,6 +759,7 @@ unsigned char flags;
 
 		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 
+        tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d, varint_size %d\n", curcol->column_type, curcol->column_varint_size);
 		switch(curcol->column_varint_size) {
 			case 4: 
 				curcol->column_size = tds_get_int(tds);
@@ -772,6 +773,7 @@ unsigned char flags;
 				curcol->column_size = get_size_by_type(curcol->column_type);
 				break;
 		}
+        tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
 
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
@@ -851,6 +853,7 @@ int len;
 	info->row_count++;
 	for (i=0;i<info->num_cols;i++) {
 		curcol = info->columns[i];
+        tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 		switch (curcol->column_varint_size) {
 			case 4: /* Its a BLOB... */
 				len = tds_get_byte(tds);
@@ -875,6 +878,7 @@ int len;
 				break;
 		}
 
+        tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column size is %d \n", colsize);
 		/* set NULL flag in the row buffer */
 		if (colsize==0) {
 			tds_set_null(info->current_row, i);
@@ -882,6 +886,7 @@ int len;
 			tds_clr_null(info->current_row, i);
 
 			if (is_numeric_type(curcol->column_type)) {
+
 				/* 
 				** handling NUMERIC datatypes: 
 				** since these can be passed around independent
@@ -894,51 +899,7 @@ int len;
 				num->precision = curcol->column_prec;
 				num->scale = curcol->column_scale;
 
-	/*
 				tds_get_n(tds,num->array,colsize);
-				info->current_row[curcol->column_offset + sizeof(TDS_NUMERIC)]='\0';
-	*/
-				/*
-				** FIX: 02-Jan-2000 by Scott C. Gray (SCG)
-				** BUG: TDS70 Numeric Support
-				**
-				** I can think of _no_ reason why M$ decided to do this, but
-				** a TDS70 numeric seems to have the following properties over
-				** Sybase's.
-				**
-				**    1.  The sign bit is flipped.  1 = Positive, 0 = Negative
-				**    2.  The byte order is exactly opposite.  That is, in a
-				**        NUMERIC(10,0), the value '256' looks like:
-				**
-				**                    sign
-				**        sybase    = 000   000  000  000  001  000
-				**        microsoft = 001   000  001  000  000
-				**
-				** Also note that TDS 7.0 has two behaviors depending on which
-				** patch level you are running.  On SP1, the size of the numeric
-				** is always reports as 17 (the maximum number of bytes).  It
-				** seems that on SP2, M$ wised up and started packing the packet
-				** with only the required length to store the precision. Thus
-				** a NUMERIC(10,0) would look like:
-				**
-				**       SP1 = 17 bytes
-				**       SP2 = 5 bytes
-				*/
-				if (IS_TDS70(tds) || IS_TDS80(tds)) {
-					sign = tds_get_byte(tds);
-					num->array[0] = (sign == 0) ? 1 : 0;
-			
-					num_pos = g__numeric_bytes_per_prec[curcol->column_prec]-1;
-					for (j = 0; j < colsize - 1; j++)
-					{
-						b_val = tds_get_byte(tds);
-
-						if ((num_pos - j) > 0)
-							num->array[num_pos - j] = b_val;
-					}
-				} else {
-					tds_get_n(tds, num->array, colsize);
-				}
 
 			} else if (curcol->column_type == SYBVARBINARY) {
 				varbin = (TDS_VARBINARY *) &(info->current_row[curcol->column_offset]);
@@ -997,24 +958,19 @@ int len;
 				memcpy(dest,&dest[colsize/2],colsize/2);
 				memcpy(&dest[colsize/2],temp_buf,colsize/2);
 			}
-			if (tds->emul_little_endian) {
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", 
-				tds_get_conversion_type(curcol->column_type,colsize));
-				if (is_numeric_type(curcol->column_type)) {
-					tds_swap_datatype(curcol->column_type, (unsigned char *)&num);
-				} else {
-					/* FIXME: dest is unitialized for
-					   SYBVARBINARY and blob types! */
-					tds_swap_datatype(
-					tds_get_conversion_type(curcol->column_type,colsize),
-					dest);
-				}
-			}
+            if (tds->emul_little_endian) {
+                tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+                            tds_get_conversion_type(curcol->column_type,colsize));
+                tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize),
+                                  &(info->current_row[curcol->column_offset])
+                                 );
+            }
 #endif
 		}
 	}
 	return TDS_SUCCEED;
 }
+
 
 /*
 ** tds_process_end() processes any of the DONE, DONEPROC, or DONEINPROC
@@ -1615,7 +1571,12 @@ TDS_NUMERIC *num;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
 			num = (TDS_NUMERIC *) buf;
-			tds_swap_bytes(num->array,num->precision); break;
+            /* swap the sign */
+            num->array[0] = (num->array[0] == 0) ? 1 : 0;
+            /* swap the data */
+            tds_swap_bytes(&(num->array[1]),
+                           g__numeric_bytes_per_prec[num->precision] - 1); break;
+
 	}
 }
 /*

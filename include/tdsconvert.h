@@ -21,10 +21,13 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.4 2002-05-25 00:33:49 brianb Exp $";
+         "$Id: tdsconvert.h,v 1.5 2002-06-10 02:23:22 jklowden Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
+struct tds_tm;
+static size_t tds_strftime(char *buf, size_t maxsize, const char *format, 
+				const struct tds_tm *timeptr);
 
 
 extern TDS_INT _convert_money(int srctype,unsigned char *src,
@@ -40,6 +43,7 @@ extern TDS_INT _convert_int4(int srctype,unsigned char *src,
 extern TDS_INT _convert_flt8(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
 extern TDS_INT _convert_datetime(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
 extern int _get_conversion_type(int srctype, int colsize);
+
 TDS_INT tds_convert(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_CHAR *dest, TDS_UINT destlen);
 
@@ -53,4 +57,8 @@ int tm_sec;
 int tm_ms;
 };
 
+struct tds_tm {
+	struct tm tm;
+	int milliseconds;
+};
 #endif

@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.14 2002-05-29 12:42:13 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.15 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -55,7 +55,7 @@ extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 TDS_INT tds_convert_any(unsigned char *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any);
 static int string_to_datetime(char *datestr, int desttype, DBANY *);
-static int string_to_numeric(char *instr, DBANY *any);
+static void string_to_numeric(char *instr, DBANY *any);
 static int store_hour(char *, char *, struct tds_time *);
 static int store_time(char *, struct tds_time * );
 static int store_yymmdd_date(char *, struct tds_time *);
@@ -110,6 +110,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 	}
 	return srctype;
 }
+
 static TDS_INT 
 tds_convert_text(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_UINT destlen)
@@ -182,7 +183,7 @@ tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
                       dest[cplen-1] = 0;
                       return strlen(dest);
       }
-	return 0;
+      return 0;
 }
 
 
@@ -239,11 +240,6 @@ tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 DBANY any;
-time_t secs_from_epoch;
-int    days_since_1970;
-int    secs_in_a_day = 60 * 60 * 24;
-int    ms;
-float  conv_ms;
 int    ret;
 
    
@@ -304,7 +300,9 @@ int    ret;
 		default:
 			return TDS_FAIL;
 	}
+
 	ret = tds_convert_any(dest, desttype, destlen, &any);
+
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
@@ -313,6 +311,7 @@ int    ret;
 	}
 	return(ret);
 }
+
 static TDS_INT 
 tds_convert_bit(int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
@@ -525,7 +524,6 @@ TDS_INT high;
 TDS_UINT low;
 double dmoney;
 char *s;
-TDS_FLOAT tmpf;
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -540,8 +538,8 @@ TDS_FLOAT tmpf;
 			memcpy(&low, src+4, 4);
 			dmoney = (TDS_FLOAT)high * 65536.0 * 65536.0 + (TDS_FLOAT)low;
 			dmoney = dmoney / 10000;
-			memcpy(dest, &dmoney, sizeof(tmpf));
-			*(TDS_FLOAT *)dest = dmoney;
+			memcpy(dest, &dmoney, sizeof(TDS_FLOAT));
+			*(TDS_FLOAT *)dest = dmoney; /* in case memcpy didn't work? */
 			return sizeof(TDS_FLOAT); /* was returning FAIL below (mlilback, 11/7/01) */
 			break;
 		case SYBMONEY:
@@ -562,14 +560,11 @@ DBANY any;
 
 unsigned int dt_days, dt_time;
 int  dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-int dty, years, months, days, hours, mins, secs, ms;
-
-char ampm[3];
+int dty;
 
 char whole_date_string[30];
+struct tds_tm when;
 
 TDS_INT ret;
 
@@ -582,83 +577,66 @@ TDS_INT ret;
 				any.c = malloc(1);
 				*(any.c) = '\0';
 			} else {
+				/*
+				 * Set up an extended struct tm, and call tds_strftime()
+				 * to format the datetime as a string.
+				 */
+				memset( &when, 0, sizeof(when) );
+
 				memcpy(&dt_days, src, 4);
 				memcpy(&dt_time, src + 4, 4);
 
 				/* its a date before 1900 */
-				if (dt_days > 2958463) {
-					dt_days = (unsigned int)0xffffffff - dt_days;
-					years = -1;
-					dty = days_this_year(years);
+				if (dt_days > 2958463) { 	/* what's 2958463? */
+					dt_days = 0xffffffff  - dt_days; 
+					/* year */
+					when.tm.tm_year = -1;
+					dty = days_this_year(when.tm.tm_year);
 					while ( dt_days >= dty ) {
-						years--;
+						when.tm.tm_year--;
 						dt_days -= dty;
-						dty = days_this_year(years);
+						dty = days_this_year(when.tm.tm_year);
 					}
-					if (dty == 366 )
-						dim[1] = 29;
-					else
-						dim[1] = 28;
+					dim[1] = (dty == 366)? 29 : 28;
 
-					months = 11;
-					while (dt_days > dim[months] ) {
-						dt_days -= dim[months];
-						months--;
+					/* month, day */
+					when.tm.tm_mon = 11;
+					while (dt_days > dim[when.tm.tm_mon] ) {
+						dt_days -= dim[when.tm.tm_mon];
+						when.tm.tm_mon--;
 					}
 
-					days = dim[months] - dt_days;
+					when.tm.tm_mday = dim[when.tm.tm_mon] - dt_days;
 				} else {
 					dt_days++;
-					years = 0;
-					dty = days_this_year(years);
+					/* year */
+					when.tm.tm_year = 0;
+					dty = days_this_year(when.tm.tm_year);
 					while ( dt_days > dty ) {
-						years++;
+						when.tm.tm_year++;
 						dt_days -= dty;
-						dty = days_this_year(years);
+						dty = days_this_year(when.tm.tm_year);
 					}
 
-					if (dty == 366 )
-						dim[1] = 29;
-					else
-						dim[1] = 28;
+					dim[1] = (dty == 366)? 29 : 28;
 
-					months = 0;
-					while (dt_days > dim[months] ) {
-						dt_days -= dim[months];
-						months++;
+					/* month, day */
+					when.tm.tm_mon = 0;
+					while (dt_days > dim[when.tm.tm_mon] ) {
+						dt_days -= dim[when.tm.tm_mon];
+						when.tm.tm_mon++;
 					}
-					days = dt_days;
+					when.tm.tm_mday = dt_days;
 				}
-				secs = dt_time / 300;
-				ms = ((dt_time - (secs * 300)) * 1000) / 300 ;
+				when.tm.tm_sec = dt_time / 300;
+				when.milliseconds = ((dt_time - (when.tm.tm_sec * 300)) * 1000) / 300 ;
 
-				hours = 0;
-				while ( secs >= 3600 ) {
-					hours++;
-					secs -= 3600;
-				}
+				/* hours, minutes, seconds */
+				when.tm.tm_hour = when.tm.tm_sec / 3600; 
+				when.tm.tm_min = (when.tm.tm_sec % 3600) / 60; 
+				when.tm.tm_sec =  when.tm.tm_sec %   60; 
 
-				if ( hours < 12 )
-					strcpy(ampm, "AM");
-				else
-					strcpy(ampm, "PM");
-
-				if ( hours == 0 )
-					hours = 12;
-	               if ( hours > 12 )
-					hours -= 12;
-
-				mins = 0;
-
-				while ( secs >= 60 ) {
-					mins++;
-					secs -= 60;
-				}
-
-				sprintf(whole_date_string,"%s %2d %d %02d:%02d:%02d:%03d%s",
-					mn[months], days, 1900 + years,
-					hours, mins, secs, ms, ampm );
-
+				tds_strftime( whole_date_string, sizeof(whole_date_string), locale->date_fmt, &when );
 				any.c = malloc (strlen(whole_date_string) + 1);
 				strcpy(any.c , whole_date_string);
 			}
@@ -688,8 +666,8 @@ TDS_INT ret;
 		case SYBNVARCHAR:
 		case SYBTEXT:
 			free(any.c);
-		}
-		return(ret);
+	}
+	return(ret);
 }
 
 int days_this_year (int years)
@@ -707,45 +685,95 @@ static TDS_INT
 tds_convert_datetime4(TDSLOCINFO *locale, int srctype, TDS_CHAR *src,
 	int desttype, TDS_CHAR *dest,TDS_INT destlen)
 {
-   TDS_USMALLINT days, minutes;
-   time_t tmp_secs_from_epoch;
-  
-   switch(desttype) {
-      case SYBCHAR:
-      case SYBVARCHAR:
-     if (destlen<0) {
-          memset(dest,' ',30);
-     } else {
-          memset(dest,' ',destlen);
-     }
-     if (!src) {
-          *dest='\0';
-          return 0;
-     }
-     memcpy(&days, src, 2);
-     memcpy(&minutes, src+2, 2);
-     tdsdump_log(TDS_DBG_INFO1, "%L inside tds_convert_datetime4() days = %d minutes = %d\n", days, minutes);
-        tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
-        if (strlen(src)>destlen) {
-           strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
-                    (struct tm*)gmtime(&tmp_secs_from_epoch));
-           return destlen;
-        } else {
-           strftime(dest, 20, "%b %d %Y %I:%M%p",
-                    (struct tm*)gmtime(&tmp_secs_from_epoch));
-           return (strlen(dest));
-     }
-     break;
-      case SYBDATETIME:
-     break;
-      case SYBDATETIME4:
-     memcpy(dest,src,sizeof(TDS_DATETIME4));
-     return(sizeof(TDS_DATETIME4));
-      default:
-         return TDS_FAIL;
-     break;
-   }
-     return TDS_FAIL;
+
+TDS_USMALLINT dt_days, dt_mins;
+int  dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+int dty = 365;
+
+char whole_date_string[30];
+struct tds_tm when;
+
+TDS_INT ret;
+
+DBANY any;
+
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBNVARCHAR:
+		case SYBTEXT:
+			if (!src) {
+				any.c = malloc(1);
+				*(any.c) = '\0';
+			} else {
+				/*
+				 * Set up an extended struct tm, and call tds_strftime()
+				 * to format the datetime as a string.
+				 */
+				memset( &when, 0, sizeof(when) );
+
+				memcpy(&dt_days, src, 2);
+				memcpy(&dt_mins, src + 2, 2);
+
+				dt_days++;
+				
+				/* year */
+				while ( dt_days > dty ) {
+					when.tm.tm_year++;
+					dt_days -= dty;
+					dty = days_this_year(when.tm.tm_year);
+				}
+
+				dim[1] = (dty == 366)? 29 : 28;		/* February */
+
+				/* month, day */
+				while (dt_days > dim[when.tm.tm_mon] ) {
+					dt_days -= dim[when.tm.tm_mon];
+					when.tm.tm_mon++;
+				}
+				when.tm.tm_mday = dt_days;
+
+				/* hours, minutes */
+				when.tm.tm_hour = dt_mins / 60; 
+				when.tm.tm_min =  dt_mins % 60; 
+
+				/* no seconds, milliseconds for smalldatetime */
+
+				tds_strftime( whole_date_string, sizeof(whole_date_string), locale->date_fmt, &when );
+
+				any.c = malloc (strlen(whole_date_string) + 1);
+				strcpy(any.c , whole_date_string);
+			}
+			break;
+		case SYBDATETIME:
+			memcpy(&dt_days, src, 2);
+			memcpy(&dt_mins, src + 2, 2);
+			any.dt.dtdays = dt_days;
+			any.dt.dttime = (dt_mins * 60) * 300;
+			break;
+		case SYBDATETIME4:
+			memcpy(&dt_days, src, 2);
+			memcpy(&dt_mins, src + 2, 2);
+			any.dt4.days    = dt_days;
+			any.dt4.minutes = dt_mins;
+			break;
+		default:
+			return TDS_FAIL;
+			break;
+	}
+
+	ret = tds_convert_any(dest, desttype, destlen, &any);
+
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBNVARCHAR:
+		case SYBTEXT:
+			free(any.c);
+		}
+
+    return ret;
 
 }
 
@@ -819,13 +847,14 @@ int ret = TDS_FAIL;
             if (dlen > 0) {
                if (strlen(any->c) > dlen ) {
                   strncpy(dest, any->c , dlen);
+                  ret = dlen;
                }
                else {
-                  strcpy(dest, any->c);
-                  for ( i = strlen(dest); i < dlen; i++)
+                  ret = strlen(any->c);
+                  strncpy(dest, any->c, ret);
+                  for ( i = ret; i < dlen; i++)
                      dest[i] = ' ';
                }
-               ret = dlen;
             }
             if (dlen == -1 ) {
                strcpy(dest, any->c);
@@ -1209,7 +1238,8 @@ int current_state;
        dt_days += (t->tm_mday - 1);
 
     } else {
-       dt_days = 0xffffffff;
+ 	   dt_days = 0xffffffff;
+       /* dt_days = 4294967295U;  0xffffffff */
        for (i = -1; i > t->tm_year ; i--) {
            dty = days_this_year(i);
            dt_days -= dty;
@@ -1265,11 +1295,12 @@ int current_state;
     return (1);
 }
 
-static int string_to_numeric(char *instr, DBANY *any)
+static void 
+string_to_numeric(char *instr, DBANY *any)
 {
 
 char  mynumber[39];
-unsigned char  mynumeric[16]; 
+/* unsigned char  mynumeric[16]; */ 
 
 char *ptr;
 char c = '\0';
@@ -1393,7 +1424,7 @@ struct diglist *freeptr = (struct diglist *)NULL;
   bits  = 0;
   bytes = 1;
 
-  any->n.array[0] = sign;
+  any->n.array[0] =  sign;
 
   x = g__numeric_bytes_per_prec[any->n.precision] - 1;
 
@@ -1422,9 +1453,6 @@ struct diglist *freeptr = (struct diglist *)NULL;
       free(freeptr);
   }
 }
-
-
-
 
 static int _tds_pad_string(char *dest, int destlen)
 {
@@ -1723,7 +1751,6 @@ enum {TDS_HOURS,
       TDS_FRACTIONS};
 
 int  state = TDS_HOURS;
-char last_char = 0; 
 char last_sep;
 char *s;
 int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
@@ -1750,7 +1777,6 @@ int ret = 1;
                 millisecs = (millisecs * 10) + (*s - '0');
                 break;
         }
-        last_char = *s;
     }
     if (*s)
     {
@@ -1810,6 +1836,7 @@ int ret = 1;
 
     return (ret);
 }
+
 static int store_hour(char *hour , char *ampm , struct tds_time *t)
 {
 int ret = 1;
@@ -1866,3 +1893,50 @@ TDS_INT tds_get_null_type(int srctype)
 	return srctype;
 }
  
+/*
+ * format a date string according to an "extended" strftime formatting definition.
+ */     
+static size_t 
+tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm *timeptr)
+{
+	int length=0;
+	char *s, *our_format;
+	char millibuf[8];
+	
+	char *pz = NULL;
+	
+	our_format = malloc( strlen(format) + 1 );
+	if( !our_format ) return 0;
+	strcpy( our_format, format );
+		
+	pz = strstr( our_format, "%z" );
+	
+	/* 
+	 * Look for "%z" in the format string.  If found, replace it with timeptr->milliseconds.
+	 * For example, if milliseconds is 124, the format string 
+	 * "%b %d %Y %H:%M:%S.%z" would become 
+	 * "%b %d %Y %H:%M:%S.124".  
+	 */
+	 
+	/* Skip any escaped cases (%%z) */
+	while( pz && *(pz-1) == '%' )
+		pz = strstr( ++pz, "%z" );
+	
+	if( pz && length < maxsize - 1 ) {
+		
+		sprintf( millibuf, "%03d", timeptr->milliseconds );
+		
+		/* move everything back one, then overwrite "?%z" with millibuf */
+		for( s = our_format + strlen(our_format); s > pz; s-- ) {
+			*(s+1) = *s;
+		}
+		
+		strncpy( pz, millibuf, 3 );	/* don't copy the null */
+	}
+	
+	length = strftime( buf, maxsize, our_format, &timeptr->tm );	
+	
+	free(our_format);
+	
+	return length;
+}

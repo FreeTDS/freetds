@@ -30,14 +30,15 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.16 2002-05-29 12:42:09 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.17 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-static int days_this_year(int years);
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);
+static int days_this_year (int years);
+
 static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen);
 
 /* info/err message handler functions (or rather pointers to them) */
@@ -301,7 +302,7 @@ TDSSOCKET     *tds;
 int            srctype;
 BYTE          *src;
 int            desttype;
-int			destlen;
+int            destlen;
 /* this should probably go somewhere else */
 TDS_NUMERIC	numeric;
    
@@ -341,20 +342,21 @@ TDS_NUMERIC	numeric;
 				_set_null_value(dbproc, curcol->varaddr, desttype, 
 					curcol->column_bindlen);
 	  		} else {
-				if (curcol->column_bindtype == STRINGBIND)
-					destlen = -2;
-				else if (curcol->column_bindtype == NTBSTRINGBIND)
-					destlen = -1;
-				else
-					destlen = curcol->column_bindlen;
 
-           		dbconvert(dbproc,
-					srctype,			/* srctype  */
-					src,			/* src      */
-					srclen,			/* srclen   */
-					desttype,			/* desttype */
-					(BYTE *)curcol->varaddr,	/* dest     */
-					destlen);	/* destlen  */
+            	if (curcol->column_bindtype == STRINGBIND)
+	               destlen = -2;
+	            else if (curcol->column_bindtype == NTBSTRINGBIND)
+	                    destlen = -1;
+	                 else
+	                    destlen = curcol->column_bindlen;
+
+        		dbconvert(dbproc,
+					      srctype,			/* srctype  */
+					      src,			/* src      */
+					      srclen,			/* srclen   */
+					      desttype,			/* desttype */
+					      (BYTE *)curcol->varaddr,	/* dest     */
+					      destlen);       	/* destlen  */
 			} /* else not null */
 			}
 		}
@@ -374,6 +376,10 @@ RETCODE dbinit()
 	memset(g_tds_context,'\0',sizeof(TDSCONTEXT));
 
 	g_tds_context->locale = tds_get_locale(g_tds_context->locale);
+	if( g_tds_context->locale && !g_tds_context->locale->date_fmt ) {
+		/* set default in case there's no locale file */
+		g_tds_context->locale->date_fmt = "%b %d %Y %I:%M%p"; 
+	}
 
 	return SUCCEED;
 }
@@ -1818,35 +1824,30 @@ RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2)
 }
 RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt)
 {
-TDS_INT dt_days;
-TDS_INT dt_time;
+unsigned int dt_days;
+unsigned int dt_time;
 
-DBDATETIME *mydt;
 
 int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 char mn[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
-char *c;
 int i;
 
-
-	mydt = dt;
-	c = (char *)mydt;
-	for (i = 0; i < 8; i++) {
-		printf(">%x<\n", *c);
-		c++;
-	}
 	dt_days = dt->dtdays;
 	dt_time = dt->dttime;
 
 	if (dt_days > 2958463) /* its a date before 1900 */ {
-		dt_days = (unsigned int)0xffffffff - dt_days;
+	  	dt_days = 0xffffffff - dt_days; 
+/*
+	 	dt_days = (unsigned int)4294967295U - dt_days;
+*/
 		wday = 7 - ( dt_days % 7); 
 		years = -1;
 		dty = days_this_year(years);
 
+        
 		while ( dt_days >= dty ) {
 			years--; 
 			dt_days -= dty;

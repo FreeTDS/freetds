@@ -43,16 +43,16 @@ extern int (*g_dblib_err_handler)();
 
 extern int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.6 2002-06-04 03:33:33 jklowden Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.7 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-/* declare local static functions because implicit use is extern */
-static RETCODE _bcp_build_bulk_insert_stmt(char *clause, BCP_COLINFO *bcpcol, int first);
-static RETCODE _bcp_start_new_batch(DBPROCESS *dbproc);
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
-static RETCODE _bcp_send_colmetadata(DBPROCESS *dbproc);
-static int _bcp_rtrim_varchar(char *istr, int ilen);
+static RETCODE _bcp_build_bulk_insert_stmt(char *, BCP_COLINFO *, int );
+static RETCODE _bcp_start_new_batch(DBPROCESS *);
+static RETCODE _bcp_send_colmetadata(DBPROCESS *);
+static int     _bcp_rtrim_varchar(char *, int );
+
 
 RETCODE BCP_SETL(LOGINREC *login, DBBOOL enable)
 {
@@ -164,7 +164,7 @@ char query[256];
               bcpcol->data      = (BYTE *)malloc(bcpcol->db_length);
               if (bcpcol->data == (BYTE *)NULL)
               {
-                 printf("BILL could not allocate %d bytes of storage\n", bcpcol->db_length);
+                 printf("could not allocate %d bytes of memory\n", bcpcol->db_length);
               }
            }
           
@@ -403,6 +403,8 @@ FILE *hostfile;
 int  ret;
 int  i;
 int  j;
+int  k;
+char *xx;
 
 TDSSOCKET     *tds = dbproc->tds_socket;
 TDSRESULTINFO *resinfo;
@@ -421,6 +423,7 @@ char          query[256];
 TDS_TINYINT   ti;
 TDS_SMALLINT  si;
 TDS_INT       li;
+TDS_NUMERIC *num;
 
 int           row_of_query;
 
@@ -457,7 +460,10 @@ int           rows_written;
        dbproc->bcp_columns[i]->tab_colnum = i + 1;  /* turn offset into ordinal */
        dbproc->bcp_columns[i]->db_type    = resinfo->columns[i]->column_type;
        dbproc->bcp_columns[i]->db_length  = resinfo->columns[i]->column_size;
-       dbproc->bcp_columns[i]->data       = (BYTE *)malloc(dbproc->bcp_columns[i]->db_length);
+       if (is_numeric_type(resinfo->columns[i]->column_type))
+          dbproc->bcp_columns[i]->data       = (BYTE *)malloc(sizeof(TDS_NUMERIC));
+       else
+          dbproc->bcp_columns[i]->data       = (BYTE *)malloc(dbproc->bcp_columns[i]->db_length);
        dbproc->bcp_columns[i]->data_size  = 0;
     }
 
@@ -496,7 +502,11 @@ int           rows_written;
                       bcpcol->db_type = srctype;
                    }
 
-                   memcpy(bcpcol->data, src, curcol->column_size);
+                   if (is_numeric_type(curcol->column_type)) 
+                      memcpy(bcpcol->data, src, sizeof(TDS_NUMERIC));
+                   else
+                      memcpy(bcpcol->data, src, curcol->column_size);
+
                    bcpcol->data_size = curcol->column_size;
                }
            }
@@ -668,7 +678,9 @@ int bytes_read;
 int converted_data_size;
 TDS_INT desttype;
 
+
 BYTE *coldata;
+
 
     /* for each host file column defined by calls to bcp_colfmt */
 
@@ -786,6 +798,7 @@ BYTE *coldata;
                   {
                       return (FAIL);
                   }
+                      
                   if (desttype == SYBVARCHAR )
                   {
                      bcpcol->data_size = _bcp_rtrim_varchar(bcpcol->data, converted_data_size);
@@ -916,6 +929,7 @@ int   found  = 0;
 
 static int _bcp_add_fixed_columns(DBPROCESS *dbproc, BYTE *rowbuffer, int start)
 {
+TDS_NUMERIC *num;
 int row_pos = start;
 BCP_COLINFO *bcpcol;
 int cpbytes;
@@ -936,11 +950,16 @@ int i;
                return FAIL;
             }
 
-            /* compute the length to copy to the row buffer */
-          
-            cpbytes = bcpcol->data_size > bcpcol->db_length 
-                ? bcpcol->db_length : bcpcol->data_size;
-            memcpy(&rowbuffer[row_pos],bcpcol->data,cpbytes);
+            if (is_numeric_type(bcpcol->db_type)) {
+                num = (TDS_NUMERIC *)bcpcol->data;
+                cpbytes = g__numeric_bytes_per_prec[num->precision];
+                memcpy(&rowbuffer[row_pos], num->array, cpbytes); 
+            }
+            else {
+                cpbytes = bcpcol->data_size > bcpcol->db_length 
+                          ? bcpcol->db_length : bcpcol->data_size;
+                memcpy(&rowbuffer[row_pos],bcpcol->data,cpbytes);
+            }
 
             /* Bill T commenting this out. It always seems to print 
                This error message regardless...
@@ -963,6 +982,7 @@ static int _bcp_add_variable_columns(DBPROCESS *dbproc, BYTE *rowbuffer, int sta
 {
 TDSSOCKET   *tds = dbproc->tds_socket;
 BCP_COLINFO *bcpcol;
+TDS_NUMERIC *num;
 int  row_pos = start;
 int  cpbytes;
 int  eod_ptr; 
@@ -986,6 +1006,7 @@ int i;
                _bcp_err_handler(dbproc, BCPEBCNN);
                return FAIL;
             }
+
             if (is_blob_type(bcpcol->db_type)) {
 
                /* no need to copy they are all zero bytes */
@@ -994,14 +1015,19 @@ int i;
                 /* save for data write */
                bcpcol->txptr_offset = row_pos;
             } 
-            else {
+            else if (is_numeric_type(bcpcol->db_type)) {
+                     num = (TDS_NUMERIC *)bcpcol->data;
+                     cpbytes = g__numeric_bytes_per_prec[num->precision];
+                     memcpy(&rowbuffer[row_pos], num->array, cpbytes); 
+                 }
+                 else {
                     /* compute the length to copy to the row ** buffer */
 
-               cpbytes = bcpcol->data_size > bcpcol->db_length 
-                         ? bcpcol->db_length : bcpcol->data_size;
-               memcpy(&rowbuffer[row_pos],bcpcol->data,cpbytes);
-                
-           }
+                    cpbytes = bcpcol->data_size > bcpcol->db_length 
+                              ? bcpcol->db_length : bcpcol->data_size;
+                    memcpy(&rowbuffer[row_pos],bcpcol->data,cpbytes);
+                     
+                }
  
            /* update offset and adjust tables (if necessary) */
            offset_table[offset_pos++] = row_pos % 256;
@@ -1397,7 +1423,6 @@ unsigned char row_token         = 0xd1;
                  return(FAIL);
    
               row_sz_pos = row_pos;
-      
       
               if (dbproc->var_cols) {
 

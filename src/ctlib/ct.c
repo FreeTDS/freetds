@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.15 2002-02-17 20:23:37 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.16 2002-06-10 02:23:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -554,7 +554,7 @@ CS_CONTEXT *ctx = cmd->con->ctx;
             src = &(resinfo->current_row[curcol->column_offset]);
             srclen = curcol->column_size;
          }
-         tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d\n", i, srclen);
+         tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, destlen);
          len = tds_convert(ctx->locale, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
          tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
    
