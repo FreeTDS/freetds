@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.13 2002-09-25 15:51:01 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.14 2002-09-25 15:57:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,7 +107,7 @@ int id_len, query_len;
 
 	if (!query || !id) return TDS_FAIL;
 
-	if (!IS_TDS50(tds) /* && !IS_TDS7_PLUS(tds) */ ) ) {
+	if (!IS_TDS50(tds) /* && !IS_TDS7_PLUS(tds) */ ) {
 		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Dynamic placeholders only supported under TDS 5.0");
 		return TDS_FAIL;
