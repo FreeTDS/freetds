@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.43 2002-09-17 17:37:41 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.44 2002-09-25 17:59:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -129,7 +129,6 @@ time_t start, now;
 TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
 char query[30];
-char *tmpstr;
 int connect_timeout = 0;
 TDSLOCINFO *locale = NULL;
 
@@ -187,14 +186,10 @@ TDSLOCINFO *locale = NULL;
 	if (!config->ip_addr) {
 		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
 		if (config->server_name) {
-			tmpstr = malloc(strlen(config->server_name)+100);
-			if (tmpstr) {
-				sprintf(tmpstr,"Server %s not found!",config->server_name);
-				tds_client_msg(tds->tds_ctx, tds, 10019, 9, 0, 0, tmpstr);
-				free(tmpstr);
-			}
+			tdsdump_log(TDS_DBG_ERROR, "%L Server %s not found!\n",
+				config->server_name);
 		} else {
-			tds_client_msg(tds->tds_ctx, tds, 10020, 9, 0, 0, "No server specified!");
+			tdsdump_log(TDS_DBG_ERROR, "%L No server specified!\n");
 		}
 		tds_free_config(config);
 		tds_free_socket(tds);

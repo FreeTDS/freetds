@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.14 2002-09-25 15:57:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.15 2002-09-25 17:59:14 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -49,12 +49,7 @@ TDS_INT bufsize2;
 	tds->queryStarttime = time(NULL); 
 
 	if (tds->state==TDS_PENDING) {
-		/* FIX ME -- get real message number et al. 
-		** if memory serves the servername is 
-		** OpenClient for locally generated messages,
-		** but this needs to be verified too.
-		*/
-		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
+		tds_client_msg(tds->tds_ctx, tds, 20019,7,0,1,
         "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
@@ -108,12 +103,12 @@ int id_len, query_len;
 	if (!query || !id) return TDS_FAIL;
 
 	if (!IS_TDS50(tds) /* && !IS_TDS7_PLUS(tds) */ ) {
-		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
-        "Dynamic placeholders only supported under TDS 5.0");
+		tdsdump_log(TDS_DBG_ERROR,
+			"Dynamic placeholders only supported under TDS 5.0\n");
 		return TDS_FAIL;
 	}
 	if (tds->state==TDS_PENDING) {
-		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
+		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,
         "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}

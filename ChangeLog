@@ -1,3 +1,9 @@
+Wed Sep 25 13:57:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/login.c src/tds/query.c src/tds/read.c src/tds/write.c:
+	- Replace bogus dblib error numbers with real ones.  Where a
+	  suitable replacement is not available, use tdsdump_log()
+	  instead.
+
 Wed Sep 25 13:56:20 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/unittests/t0008.c:
 	- Remove unused variable.

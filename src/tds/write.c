@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.14 2002-09-13 18:03:24 castellano Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.15 2002-09-25 17:59:14 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -185,7 +185,7 @@ int retval;
 
 		if (retval <= 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
-			tds_client_msg(tds->tds_ctx, tds, 10018, 9, 0, 0, "The connection was closed");
+			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
 			tds->in_pos=0;
 			tds->in_len=0;
 			tds_close_socket(tds);

@@ -32,7 +32,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.19 2002-09-22 08:01:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.20 2002-09-25 17:59:14 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -300,8 +300,7 @@ int           x = 0, have, need;
 	if ((len = goodread(tds, header, sizeof(header))) < (int)sizeof(header) ) {
 		/* GW ADDED */
 		if (len<0) {
-			/* FIX ME -- get the exact err num and text */
-			tds_client_msg(tds->tds_ctx, tds,10018, 9, 0, 0, "The connection was closed");
+			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
 			tds_close_socket(tds);
                 	tds->in_len=0;
 			tds->in_pos=0;
