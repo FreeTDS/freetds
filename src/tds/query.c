@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.93 2003-05-29 12:11:44 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.94 2003-05-29 19:06:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -926,12 +926,13 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	tds_put_smallint(tds, id_len + 5);
 	tds_put_byte(tds, 0x02);
-	tds_put_byte(tds, 0x01);
+	tds_put_byte(tds, dyn->params ? 0x01 : 0);
 	tds_put_byte(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);
 	tds_put_smallint(tds, 0);
 
-	tds_put_params(tds, dyn->params, 0);
+	if (dyn->params)
+		tds_put_params(tds, dyn->params, 0);
 
 	/* send it */
 	return tds_flush_packet(tds);
