@@ -1,3 +1,7 @@
+Thu Oct 25 10:58:38 2001  James Cameron  <quozl@us.netrek.org>
+
+	* configure.in: add include/tds_configs.h to AC_OUTPUT
+	
 Tue Oct 24 19:07:15 Brian Bruns <camber@ais.org>
     * configure.in: Added AM_CONFIG_HEADER
     * acconfig.h: needed for config header because of BSD_COMP
