@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.45 2003-07-23 18:34:40 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.46 2003-07-24 09:38:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -129,42 +129,38 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
 			len = strlen(s);
+		} else if (client->min_bytes_per_char == 2 && client->max_bytes_per_char == 2) {	/* UCS-2 or variant */
+			const char *p = s;
+
+			while (p[0] || p[1])
+				p += 2;
+			len = p - s;
+
 		} else {
-			if (client->min_bytes_per_char == 2 && client->max_bytes_per_char == 2) {	/* UCS-2 or variant */
-
-				TDS_SMALLINT temp;	/* "s" may not be short-aligned */
-
-				memcpy(&temp, s, sizeof(TDS_SMALLINT));
-				for (len = 0; temp; ) {
-					memcpy(&temp, s + ++len * sizeof(TDS_SMALLINT), sizeof(TDS_SMALLINT));
-				}
-				len *= sizeof(TDS_SMALLINT);
-
-			} else {
-				assert(client->min_bytes_per_char < 3);	/* FIXME */
-			}
+			assert(client->min_bytes_per_char < 3);	/* FIXME */
 		}
 	}
 
 	assert(len >= 0);
 
-	if (!IS_TDS7_PLUS(tds))	/* valid test only if client and server share a character set.  */ 
+	if (!IS_TDS7_PLUS(tds))	/* valid test only if client and server share a character set.  */
 		return tds_put_n(tds, s, len);
 
-	max_iconv_input = sizeof(outbuf) * client->min_bytes_per_char  / server->max_bytes_per_char;
+	max_iconv_input = sizeof(outbuf) * client->min_bytes_per_char / server->max_bytes_per_char;
 
 	/* FIXME chunking logic doesn't address character alignment.  Partial sequences may be presented to tds_iconv. */
 	/* Write a function: int tds_chunklen(TDS_ENCODING *, char* buf, int max)
-	 * 	returns length of subset of buf that fits in max without splitting a character
+	 *      returns length of subset of buf that fits in max without splitting a character
 	 */
 	while (len > 0) {
-		inbytesleft = (len > max_iconv_input)? max_iconv_input : len; 
+		inbytesleft = (len > max_iconv_input) ? max_iconv_input : len;
 		len -= inbytesleft;
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		if (-1 == tds_iconv(tds, tds->iconv_info, to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))
 			break;
+		len += inbytesleft;
 		bytes_out += poutbuf - outbuf;
 		tds_put_n(tds, outbuf, poutbuf - outbuf);
 	}
