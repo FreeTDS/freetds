@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.90 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.91 2004-02-04 18:20:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -420,7 +420,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_TIMEOUT)) {
 		if (atoi(value))
 			connection->timeout = atoi(value);
-	} else if (!strcmp(option, TDS_STR_CONNTMOUT)) {
+	} else if (!strcmp(option, TDS_STR_CONNTIMEOUT)) {
 		if (atoi(value))
 			connection->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {

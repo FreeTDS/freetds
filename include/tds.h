@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.173 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.174 2004-02-04 18:20:42 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -634,7 +634,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define TDS_STR_DUMPFILE "dump file"
 #define TDS_STR_DEBUGLVL "debug level"
 #define TDS_STR_TIMEOUT  "timeout"
-#define TDS_STR_CONNTMOUT "connect timeout"
+#define TDS_STR_CONNTIMEOUT "connect timeout"
 #define TDS_STR_HOSTNAME "hostname"
 #define TDS_STR_HOST     "host"
 #define TDS_STR_PORT     "port"

@@ -1,3 +1,9 @@
+Wed Feb 04 19:21:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/config.c:
+	- rename constant
+	* src/dblib/dblib.c:
+	- rewrote dbstring_free
+
 Tue Feb  3 14:06:57 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* include/cspublic.h include/ctlib.h include/dblib.h
 	* include/sybdb.h include/tds.h include/tds_sysdep_private.h
