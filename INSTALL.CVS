@@ -1,0 +1,32 @@
+Building FreeTDS from CVS
+20th November 2001
+James Cameron <james.cameron@compaq.com>
+
+1) satisfy build dependencies, ensure that the following packages are
+   installed:
+
+	automake	(GNU Automake, generates Makefile.in from Makefile.am)
+	autoconf	(GNU Autoconf, generates configure from configure.in)
+	libtool		(GNU Libtool, library creation support scripts)
+	make		(GNU Make, appears on some systems as gmake)
+	gcc		(GNU Compiler Collection, for C code compilation)
+
+2) execute autogen.sh to run automake, autoconf and configure,
+
+	./autogen.sh
+
+3) compile the source using make, (or gmake if your system's make is
+   not GNU make),
+
+	make
+
+5) switch to a user that can write to the target installation
+   directory, usually root,
+
+	su root
+
+4) install the package,
+
+	make install
+
+--

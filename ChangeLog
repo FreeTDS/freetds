@@ -1,3 +1,7 @@
+Tue Nov 20 12:31:25 2001  James Cameron  <quozl@us.netrek.org>
+
+	* INSTALL.CVS: new file to explain process of building from CVS.
+
 Tue Nov 20 11:48:26 2001  James Cameron  <quozl@us.netrek.org>
 
 	* doc/userguide.sgml: adjust build instructions; gmake does not
