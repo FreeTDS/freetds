@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.130 2004-05-01 19:18:10 jklowden Exp $
+dnl $Id: configure.in,v 1.131 2004-05-10 18:44:55 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -17,6 +17,18 @@ AM_INIT_AUTOMAKE(freetds, 0.63.dev.TDSDATE)
 AM_CONFIG_HEADER(include/config.h)
 	dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
+MAJOR=$(echo $VERSION | sed 's,\..*,,g')
+MINOR=[$(echo $VERSION | sed 's,^[0-9]*\.\([0-9]*\).*,\1,g')]
+SUBVERSION=[$(echo $VERSION | sed 's,^[0-9]*\.[0-9]*\.\([^.]*\).*,\1,g')]
+BUILD_NUMBER=$(date +"%y%j" | sed 's,^0*,,g')
+if test "X$SUBVERSION" = "Xdev"; then
+	MINOR=$(expr $MINOR - 1)
+	SUBVERSION=9999
+fi
+AC_SUBST(MAJOR)
+AC_SUBST(MINOR)
+AC_SUBST(SUBVERSION)
+AC_SUBST(BUILD_NUMBER)
 
 dnl ------------------------------------------------------------
 dnl Host-specific configuration
@@ -452,5 +464,6 @@ AC_OUTPUT(include/tdsver.h \
 	src/odbc/unittests/Makefile \
 	src/apps/Makefile \
 	freetds.spec \
-	win32/Makefile win32/msvc6/Makefile win32/dev-cpp/Makefile
+	win32/Makefile win32/msvc6/Makefile win32/dev-cpp/Makefile \
+	win32/version.rc
 )
