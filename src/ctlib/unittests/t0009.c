@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.9 2002-12-28 11:33:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve compute results */
@@ -268,7 +268,7 @@ main(int argc, char *argv[])
 					if (compute_id == 1) {
 						fprintf(stdout, "compute_col1 = %d \n", compute_col1);
 						if (compute_col1 != 6 && compute_col1 != 17) {
-							printf(stderr, "(should be 6 or 17)\n");
+							fprintf(stderr, "(should be 6 or 17)\n");
 							return 1;
 						}
 					}

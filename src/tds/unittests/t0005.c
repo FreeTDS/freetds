@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.10 2002-11-22 12:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.11 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -125,7 +125,7 @@ value_as_string(TDSSOCKET * tds, int col_idx)
 {
 	static char result[256];
 	const int type = tds->res_info->columns[col_idx]->column_type;
-	const char *row = tds->res_info->current_row;
+	const unsigned char *row = tds->res_info->current_row;
 	const int offset = tds->res_info->columns[col_idx]->column_offset;
 	const void *value = (row + offset);
 

@@ -7,7 +7,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.8 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.9 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -50,7 +50,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_init() failed\n");
 	}
 
-	if (ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, clientmsg_cb)
+	if (ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*) clientmsg_cb)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;
@@ -68,7 +68,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		fprintf(stdout, "Trying cslibmsg_cb\n");
 	}
-	if (cs_config(ctx, CS_SET, CS_MESSAGE_CB, cslibmsg_cb, CS_UNUSED, NULL)
+	if (cs_config(ctx, CS_SET, CS_MESSAGE_CB, (CS_VOID*) cslibmsg_cb, CS_UNUSED, NULL)
 	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() failed\n");
 		return 1;

@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.17 2002-11-23 17:10:59 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.18 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -143,7 +143,7 @@ main(int argc, const char *argv[])
 			 * Use #ifndef for big buffer version (32-bit) */
 #if 1
 /* DBWRITE_OK_FOR_OVER_4K */
-			if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, blob) != SUCCEED)
+			if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, (BYTE*) blob) != SUCCEED)
 				return 5;
 #else
 			if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, NULL) != SUCCEED)
@@ -228,7 +228,7 @@ main(int argc, const char *argv[])
 			if (result == 0) {	/* this indicates end of row */
 				readFirstImage = TRUE;
 			} else {
-				rblob = realloc(rblob, result + numread);
+				rblob = (char*) realloc(rblob, result + numread);
 				memcpy((void *) (rblob + numread), (void *) rbuf, result);
 				numread += result;
 			}

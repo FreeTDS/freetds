@@ -6,7 +6,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: connect_fail.c,v 1.1 2003-01-12 10:05:04 freddy77 Exp $";
+static char software_version[] = "$Id: connect_fail.c,v 1.2 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -30,11 +30,11 @@ main(int argc, char **argv)
 		fprintf(stderr, "Connect Alloc failed!\n");
 		return ret;
 	}
-	if (ct_con_props(conn, CS_SET, CS_USERNAME, "sa", CS_NULLTERM, NULL) != CS_SUCCEED) {
+	if (ct_con_props(conn, CS_SET, CS_USERNAME, (CS_VOID*) "sa", CS_NULLTERM, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_con_props() SET USERNAME failed!\n");
 		return ret;
 	}
-	if (ct_con_props(conn, CS_SET, CS_PASSWORD, "invalid", CS_NULLTERM, NULL) != CS_SUCCEED) {
+	if (ct_con_props(conn, CS_SET, CS_PASSWORD, (CS_VOID*) "invalid", CS_NULLTERM, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_con_props() SET PASSWORD failed!\n");
 		return ret;
 	}

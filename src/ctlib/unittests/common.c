@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.9 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -22,8 +22,6 @@ char DATABASE[512];
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
-
-CS_RETCODE read_login_info(void);
 
 CS_RETCODE
 read_login_info(void)

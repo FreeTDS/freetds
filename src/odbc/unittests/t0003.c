@@ -12,20 +12,19 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.10 2003-01-11 18:13:50 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.11 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-/* int res; */
-	SQLCHAR command[512];
+	char command[512];
 
 	Connect();
 
 	sprintf(command, "drop table #odbctestdata");
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 	}

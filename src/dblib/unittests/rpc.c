@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.9 2002-12-31 15:12:18 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -161,7 +161,7 @@ main(int argc, char **argv)
 		printf("ret type %d is %d\n", i, rettype);
 		retlen = dbretlen(dbproc, i);
 		printf("ret len %d is %d\n", i, retlen);
-		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, teststr, -1);
+		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
 		printf("ret data %d is %s\n", i, teststr);
 		add_bread_crumb();
 	}

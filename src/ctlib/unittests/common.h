@@ -2,13 +2,16 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.6 2002-11-20 13:57:15 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.7 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern char PASSWORD[512];
 extern char USER[512];
 extern char SERVER[512];
 extern char DATABASE[512];
+
+CS_RETCODE read_login_info(void);
+
 extern int cslibmsg_cb_invoked;
 extern int clientmsg_cb_invoked;
 extern int servermsg_cb_invoked;

@@ -1,3 +1,18 @@
+Sun Jan 26 19:43:18 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/common.c src/ctlib/unittests/common.h:
+	* src/ctlib/unittests/connect_fail.c src/ctlib/unittests/t0002.c:
+	* src/ctlib/unittests/t0008.c src/ctlib/unittests/t0009.c:
+	* src/dblib/unittests/rpc.c src/dblib/unittests/t0012.c:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0019.c src/dblib/unittests/t0022.c:
+	* src/odbc/unittests/common.c src/odbc/unittests/connect.c:
+	* src/odbc/unittests/date.c src/odbc/unittests/print.c:
+	* src/odbc/unittests/t0001.c src/odbc/unittests/t0002.c:
+	* src/odbc/unittests/t0003.c src/odbc/unittests/t0004.c:
+	* src/tds/unittests/t0002.c src/tds/unittests/t0004.c:
+	* src/tds/unittests/t0005.csrc/tds/unittests/t0006.c:
+	- cleanup for compiling with C++ compiler (unittests)
+
 Sun Jan 26 11:27:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/apps/freebcp.c src/apps/tsql.c:
 	* src/dblib/bcp.c src/pool/config.c src/pool/stream.c:

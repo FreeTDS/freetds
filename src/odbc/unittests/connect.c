@@ -11,7 +11,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.3 2002-11-23 17:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.4 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 {
 	int res;
 	char tmp[2048];
-	SQLUSMALLINT len;
+	SQLSMALLINT len;
 
 	printf("SQLConnect connect..\n");
 	Connect();
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 	printf("connect string DSN connect..\n");
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
-	res = SQLDriverConnect(Connection, NULL, tmp, SQL_NTS, tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
+	res = SQLDriverConnect(Connection, NULL, (SQLCHAR*) tmp, SQL_NTS, (SQLCHAR*) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
 	if (res != SQL_SUCCESS) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	printf("odbcinst.ini must be configured with FreeTDS driver..\n");
 	init_connect();
 	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
-	res = SQLDriverConnect(Connection, NULL, tmp, SQL_NTS, tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
+	res = SQLDriverConnect(Connection, NULL, (SQLCHAR*) tmp, SQL_NTS, (SQLCHAR*) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
 	if (res != SQL_SUCCESS) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();

@@ -3,10 +3,11 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+#include <string.h>
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.7 2003-01-05 14:29:38 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.8 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int sp_who(CS_COMMAND *cmd);

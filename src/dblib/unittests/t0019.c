@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0019.c,v 1.9 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0019.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failure = 0;
@@ -42,7 +42,7 @@ test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 	char out[256];
 
 	memset(buf, '*', sizeof(buf));
-	len = dbconvert(NULL, srctype, srcdata, srclen, dsttype, buf, dstlen);
+	len = dbconvert(NULL, srctype, (const BYTE*) srcdata, srclen, dsttype, (BYTE*) buf, dstlen);
 
 	/* build result string */
 	sprintf(out, "len=%d", len);

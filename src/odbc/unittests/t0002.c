@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.7 2003-01-05 15:50:27 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.8 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -19,13 +19,13 @@ main(int argc, char *argv[])
 
 	int res;
 	HSTMT stmt;
-	SQLCHAR command[512];
+	char command[512];
 
 	Connect();
 
 	sprintf(command, "drop table #odbctestdata");
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
+	if (SQLExecDirect(Statement, (SQLCHAR*) command, SQL_NTS)
 	    != SQL_SUCCESS) {
 		printf("Unable to execute statement\n");
 	}

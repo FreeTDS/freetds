@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.13 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.14 2003-01-26 18:42:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
 	while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		/* Print the date info  */
-		dbconvert(dbproc, dbcoltype(dbproc, 1), dbdata(dbproc, 1), dbdatlen(dbproc, 1), SYBCHAR, datestring, -1);
+		dbconvert(dbproc, dbcoltype(dbproc, 1), dbdata(dbproc, 1), dbdatlen(dbproc, 1), SYBCHAR, (BYTE*) datestring, -1);
 
 		printf("%s\n", datestring);
 
