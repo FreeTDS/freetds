@@ -1,3 +1,6 @@
+Sat Mar 08 13:44:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/cs.c: remove a warning
+
 Fri Mar 07 17:44:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/token.c:
 	- put some functions static

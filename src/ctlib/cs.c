@@ -47,13 +47,15 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.35 2003-03-07 04:13:35 mlilback Exp $";
+static char software_version[] = "$Id: cs.c,v 1.36 2003-03-08 12:44:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static int _cs_datatype_length(int dtype);
 
 /* 	returns the fixed length of the specified data type, or 0 if not a 
 	fixed length data type */
-int _cs_datatype_length(int dtype)
+static int 
+_cs_datatype_length(int dtype)
 {
 	switch (dtype) {
 		case SYBINT1:
