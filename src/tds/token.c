@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.202 2003-07-13 16:06:02 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.203 2003-08-01 13:46:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1656,7 +1656,20 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
-	case 4:		/* Its a BLOB... */
+	case 4:
+		/* TODO finish 
+		 * This strange type has following structure 
+		 * 0 len (int32) -- NULL 
+		 * len (int32), type (int8), data -- ints, date, etc
+		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbianry 
+		 * BLOBS (text/image) not supported */
+		if (curcol->column_type == SYBVARIANT) {
+			colsize = tds_get_int(tds);
+			tds_get_n(tds, NULL, colsize);
+			tds_set_null(current_row, i);
+			return TDS_SUCCEED;
+		}
+		/* Its a BLOB... */
 		len = tds_get_byte(tds);
 		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 		if (len == 16) {	/*  Jeff's hack */

@@ -1,3 +1,7 @@
+Fri Aug 01 15:45:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- do not cause invalid data with variant, replace with NULL
+
 Fri Aug 01 08:38:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/prepare_query.c src/tds/mem.c:
