@@ -28,16 +28,50 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.5 2002-08-28 08:07:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.6 2002-09-15 16:08:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-
+/*
+ * Function transformation (from ODBC to Sybase)
+ * String functions
+ * ASCII(string) -> ASCII(string)
+ * BIT_LENGTH(string) -> 8*OCTET_LENGTH(string)
+ * CHAR_LENGTH(string_exp) -> CHAR_LENGTH(string_exp)
+ * CHARACTER_LENGTH(string_exp) -> CHAR_LENGTH(string_exp)
+ * CONCAT(string_exp1, string_exp2) -> string_exp1 + string_exp2
+ * DIFFERENCE(string_exp1, string_exp2) -> DIFFERENCE(string_exp1, string_exp2)
+ * INSERT(string_exp1, start, length, string_exp2) -> STUFF(sameparams)
+ * LCASE(string_exp) -> LOWER(string)
+ * LEFT(string_exp, count) -> SUBSTRING(string, 1, count)
+ * LENGTH(string_exp) -> CHAR_LENGTH(RTRIM(string_exp))
+ * LOCATE(string, string [,start]) -> CHARINDEX(string, string)
+ * (SQLGetInfo ritorna non possibile il terzo argomento)
+ * LTRIM(String) -> LTRIM(String)
+ * OCTET_LENGTH(string_exp) -> OCTET_LENGTH(string_exp)
+ * POSITION(character_exp IN character_exp) ???
+ * REPEAT(string_exp, count) -> REPLICATE(same)
+ * REPLACE(string_exp1, string_exp2, string_exp3) -> ??
+ * RIGHT(string_exp, count) -> RIGHT(string_exp, count)
+ * RTRIM(string_exp) -> RTRIM(string_exp)
+ * SOUNDEX(string_exp) -> SOUNDEX(string_exp)
+ * SPACE(count) (ODBC 2.0) -> SPACE(count) (ODBC 2.0)
+ * SUBSTRING(string_exp, start, length) -> SUBSTRING(string_exp, start, length)
+ * UCASE(string_exp) -> UPPER(string)
+ *
+ * Numeric
+ * Quasi tutte le stesso
+ * ATAN2 -> ATN2
+ * TRUNCATE -> ??
+ */
 int prepare_call(struct _hstmt *stmt)
 {
         char *s, *d, *p;
-        int i, quoted = 0, find_end = 0;
-        char quote_char;
+        int i, quoted = 0;
+        char	quote_char;
+	int	nest_syntax = 0;
+	/* list of bit, used as stack, is call ? FIXME limites size... */
+	unsigned long	is_calls = 0;
 
         if (stmt->prepared_query)
                 s=stmt->prepared_query;
@@ -59,29 +93,39 @@ int prepare_call(struct _hstmt *stmt)
 
                 if (quoted){
                         *d++=*s++;
-                }else if (find_end){
-                        if (*s=='}'){
-                                break;
-                        }else if (*s=='(' || *s==')'){
-                                *d++ = ' ';
-                                s++;
-                        }else{
-                                *d++=*s++;
-                        }
-                }else if (*s=='{'){
+		}else if (*s=='{'){
                         char *pcall = strstr(s, "call ");
-                        if (!pcall){
-                                *d++=*s++;
+			++nest_syntax;
+			is_calls <<= 1;
+                        if (!pcall || ((pcall-s) != 1 && (pcall-s) != 3) ){
+				/* syntax is always in the form {type ...} */
+				p = strchr(s,' ');
+				if (!p) break;
+				s = p+1;
                         }else{
                                 int len;
                                 s++;
                                 len = pcall - s;
-                                if (memchr(s, '?', len))
+                                if (*s == '?')
                                         stmt->prepared_query_is_func = 1;
                                 memcpy(d, "exec ", 5);
                                 d += 5;
-                                s += len + 5;
-                                find_end = 1;
+                                s = pcall + 5;
+				is_calls |= 1;
+                        }
+               }else if (nest_syntax>0){
+			/* do not copy close syntax */
+                        if (*s=='}'){
+				--nest_syntax;
+				is_calls >>= 1;
+				++s;
+                                continue;
+			/* convert parenthesis in call to spaces */
+                        }else if ( (is_calls&1) && (*s=='(' || *s==')')){
+                                *d++ = ' ';
+                                s++;
+                        }else{
+                                *d++=*s++;
                         }
                 }else{
                         *d++=*s++;

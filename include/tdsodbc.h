@@ -27,16 +27,19 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.9 2002-08-28 08:07:36 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.10 2002-09-15 16:08:24 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
 	TDSCONTEXT *tds_ctx;
 };
+struct _hstmt;
 struct _hdbc {
 	struct _henv *henv;
-	void *tds_login;
-	void *tds_socket;
+	TDSLOGIN *tds_login;
+	TDSSOCKET *tds_socket;
+	/** statement executing */
+	struct _hstmt *current_statement;
 };
 struct _hstmt {
 	struct _hdbc *hdbc;

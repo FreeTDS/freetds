@@ -3,21 +3,25 @@ Things that are broken and need mending are at the top,
 followed by things that should work before the next release, 
 followed by features that should be added/fixed/reworked.  
 
-Everyone is encouraged to add to the list.  Developers can do it directly; anyone
-else can post a patch to Source Forge.  In this way we can communicate with each
+Everyone is encouraged to add to the list.  Developers can do it directly; 
+anyone else can post a patch to Source Forge.  
+In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.7 2002-09-05 12:07:19 freddy77 Exp $
+To Do List	$Id: TODO,v 1.8 2002-09-15 16:08:22 freddy77 Exp $
 ------------
 Broken:
-For version 0.60:
+For 0.61 version:
+. Domain support for MS SQL (verify)
+For future versions:
 . test conversion from char. Does libraries append blank to reach column_size ?
   same problem for binary (padded with zeroes) ?
 . numeric conversions.
 . move error message macro/prototype to tds.h.in; use in dblib.c. 
-For future versions:
 . conversion from ucs2 to utf8, provide for 2+ bytes/character.
-. Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords.  
+  (multibyte support)
+. Remove old char(30) limitations to various sysnames e.g., tables, columns, 
+  passwords.  
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . Array binding for ctlib not working
 . RPC stuff not implemented
@@ -27,7 +31,6 @@ For future versions:
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (partly done)
 . Server API needs more work, especially for TDS 5.0/7.0
 . Add support for TDS 8.0 (login works)
-. Domain support for MS SQL (verify)
 . TDS 7 support on big endian clients (done)
 . add textsize option for TDS 7 to freetds.conf (done)
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
@@ -37,3 +40,22 @@ For future versions:
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . Someone broke early binding in ODBC
+
+(f77) Those was collected from ML...
+. ODBC: get a solid corpus of unittests for ODBC, and have it become a 
+  top tier API.
+. DBLIB: output params
+. placeholder support for TDS 5.0.  This is partially done but crashes
+. get connection pooling working with all protocol versions
+. Finish off the TDS dissector for ethereal
+. ODBC: dynamic query (need rewrite SQLPrepare and related)
+. ODBC: improve, best error report (even multiple)
+. ODBC: be able to ignore freetds.conf using SQLDriverConnect, more
+  compatiblity with windows one
+. dynamic query (even for mssql)
+. cursor support
+. more solid. handle out of memory conditions
+. limit copy of data (now wire -> tds -> temp -> client)
+. thorough rototilling of the code for cleanliness, I would like it to 
+  build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
+

@@ -26,9 +26,12 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.9 2002-09-14 13:49:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.10 2002-09-15 16:08:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+
+extern const int g__numeric_bytes_per_prec[];
 
 /*
  * Pass this an SQL_* type and get a SYB* type which most closely corresponds
@@ -91,6 +94,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
     DATE_STRUCT      *dsp;
     TIME_STRUCT      *tsp;
     TIMESTAMP_STRUCT *tssp;
+    SQL_NUMERIC_STRUCT   *num;
 
     TDS_UINT         *uip;
     TDS_USMALLINT    *usip;
@@ -235,9 +239,17 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              break;
 
            case SQL_C_NUMERIC:
-	     /* FIXME data should swapped, sign have same meaning ??? */
-             memcpy(dest, &(ores.n), sizeof(TDS_NUMERIC));
-             ret = sizeof(TDS_NUMERIC);
+	     /* ODBC numeric is quite different from TDS one ... */
+	     num = (SQL_NUMERIC_STRUCT*)dest;
+	     num->precision = ores.n.precision;
+	     num->scale = ores.n.scale;
+	     num->sign  = ores.n.array[0] ^ 1;
+	     i =  g__numeric_bytes_per_prec[ores.n.precision];
+             memcpy(num->val, ores.n.array+1, i);
+	     tds_swap_bytes(num->val, i);
+	     if (i < SQL_MAX_NUMERIC_LEN)
+		     memset(num->val+i, 0, SQL_MAX_NUMERIC_LEN-i);
+             ret = sizeof(SQL_NUMERIC_STRUCT);
              break;
 	    /* TODO GUID*/
 

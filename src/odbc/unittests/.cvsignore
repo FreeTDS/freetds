@@ -2,5 +2,6 @@
 Makefile
 Makefile.in
 t0001
+t0002
 tdsdump.out
 .deps

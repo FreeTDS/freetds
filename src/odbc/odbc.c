@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.50 2002-09-14 13:49:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.51 2002-09-15 16:08:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -889,6 +889,10 @@ SQLRETURN SQL_API SQLColAttributes(
         case SYBDATETIMN:
             *pfDesc = 30;
             break;
+	/* FIXME what to do with other types ?? */
+	default:
+	    *pfDesc = 0;
+	    break;
         }
         break;
     case SQL_COLUMN_LENGTH:
@@ -906,7 +910,7 @@ SQLRETURN SQL_API SQLColAttributes(
 	    *pfDesc = 20;
 	    break;
         case SQL_INTEGER:
-            *pfDesc = 10; /* -1000000000 */
+            *pfDesc = 11; /* -1000000000 */
             break;
         case SQL_SMALLINT:
             *pfDesc = 6; /* -10000 */
@@ -914,16 +918,33 @@ SQLRETURN SQL_API SQLColAttributes(
         case SQL_TINYINT:
             *pfDesc = 3; /* 255 */
             break;
+	case SQL_DECIMAL:
+	case SQL_NUMERIC:
+	    *pfDesc = colinfo->column_prec + 2;
+	    break;
         case SQL_DATE:
+	    /* FIXME check always yyyy-mm-dd ?? */
             *pfDesc = 19;
             break;
+	case SQL_TIME:
+	    /* FIXME check always hh:mm:ss[.fff] */
+	    *pfDesc = 19;
+	    break;
+	case SQL_TYPE_TIMESTAMP:
+	    *pfDesc = 24; /* FIXME check, always format 
+			     yyyy-mm-dd hh:mm:ss[.fff] ?? */
+	    break;
         case SQL_FLOAT:
         case SQL_REAL:
         case SQL_DOUBLE:
-            *pfDesc = 16; /* FIXME -- what should the correct size be? */
+            *pfDesc = 24; /* FIXME -- what should the correct size be? */
             break;
 	case SQL_GUID:
-	    *pfDesc = 35;
+	    *pfDesc = 36;
+	    break;
+	default:
+	    /* FIXME TODO finish, should support ALL types (interval) */
+	    *pfDesc = 40;
 	    break;
         }
         break;
@@ -994,6 +1015,7 @@ _SQLExecute( SQLHSTMT hstmt)
         odbc_LogError (tds->msg_info->message);
         return SQL_ERROR;
     }
+    stmt->hdbc->current_statement = stmt;
 
     ret = tds_process_result_tokens(tds);
     if (ret==TDS_NO_MORE_RESULTS)
@@ -1257,9 +1279,9 @@ _SQLFreeStmt(
         /* 
         ** FIX ME -- otherwise make sure the current statement is complete
         */
-        if (tds->state==TDS_PENDING)
+	/* do not close other running query ! */
+        if (tds->state==TDS_PENDING && stmt->hdbc->current_statement == stmt)
         {
-	    /* FIXME do not close other query !!! is this current query ?? */
             tds_send_cancel(tds);
             tds_process_cancel(tds);
         }
@@ -2137,6 +2159,8 @@ SQLRETURN SQL_API SQLTables(
     int querylen, clen, slen, tlen, ttlen;
     int first = 1;
     struct _hstmt *stmt;
+    SQLRETURN result;
+    TDSSOCKET *tds;
 
     CHECK_HSTMT;
 
@@ -2196,8 +2220,30 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
         return SQL_ERROR;
     }
     free(query);
-    /* FIXME Sybase seem to return column in lower case, should be uppercase */
-    return _SQLExecute(hstmt);
+
+    result  = _SQLExecute(hstmt);
+    
+    /* Sybase seem to return column in lower case, transform to uppercase */
+    tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+    if (tds->res_info) {
+	TDSRESULTINFO * resinfo;
+	TDSCOLINFO *colinfo;
+
+        int i, icol;
+	char *p;
+
+	resinfo = tds->res_info;
+	for(icol=0; icol < resinfo->num_cols; ++icol) {
+		colinfo = resinfo->columns[icol];
+		/* upper case */
+		/* TODO procedure */
+		for(p = colinfo->column_name; *p; ++p)
+			if ('a' <= *p && *p <= 'z')
+				*p = *p & (~0x20);
+	}
+    }
+
+    return result;
 }
 static int sql_to_c_type_default ( int sql_type )
 {

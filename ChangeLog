@@ -1,3 +1,14 @@
+Sun Sep 15 18:03:56 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/convert_sql2string.c:
+	* src/odbc/convert_tds2sql.c src/odbc/odbc.c:
+	- fix error dropping statement (do not cancel other results)
+	- more compatibility converting to sql strings
+	- fix numeric binding on output
+	- added other type support to SQLColAttributes
+	- workaround for SQLTables results from Sybase
+	* src/odbc/prepare_query.c:
+	- remove escaped sequences, do not stop on first call
+
 Sat Sep 14 15:55:26 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am  use $DOCBOOK_DSL to find jade files, manpages depend on inputs (!)
 	* doc/api_status.txt 	added dbversion, DBTDS
