@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.65 2004-11-28 09:27:13 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64.2.1 2004-11-28 10:48:00 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**

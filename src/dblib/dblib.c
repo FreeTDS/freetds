@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.188 2004-11-28 09:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.1 2004-11-28 10:48:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);

@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-static char software_version[] = "$Id: dbopen.c,v 1.7 2004-11-28 09:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: dbopen.c,v 1.6.2.1 2004-11-28 10:48:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_CONFIG_H

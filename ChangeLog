@@ -5,9 +5,6 @@ Sun Nov 28 10:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	- fix compile for PHP and others, added a new SYBDBLIB define
 	* misc/test-dist.sh: improved
 
-Sat Nov 27 17:58:08 EST 2004	JK Lowden <jklowden@schemamania.org>
-	* doc/htdoc/news.html announce 0.63RC1
-
 Sat Nov 27 17:20:02 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/README.releasing branching instructions
 
