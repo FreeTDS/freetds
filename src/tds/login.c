@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.5 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.6 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -105,7 +105,7 @@ extern void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilitie
 		size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
 }
 
-TDSSOCKET *tds_connect(TDSLOGIN *login) 
+TDSSOCKET *tds_connect(TDSLOGIN *login, void *parent) 
 {
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
@@ -140,6 +140,7 @@ FD_ZERO (&fds);
 	** by the server with TDS_ENV_CHG_TOKEN
 	*/
 	tds = tds_alloc_socket(512);
+	tds_set_parent(tds, parent);
 
 	tds->major_version=config->major_version;
 	tds->minor_version=config->minor_version;

@@ -1,7 +1,7 @@
 SUBDIRS		=	unittests
 
 TDSDIR		=	../tds
-TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c
+TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c
 lib_LTLIBRARIES	=	libsybdb.la
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c
 libsybdb_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, \

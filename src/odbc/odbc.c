@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.4 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -120,7 +120,7 @@ static SQLRETURN do_connect (
    tds_set_server (dbc->tds_login, server);
    tds_set_user   (dbc->tds_login, user);
    tds_set_passwd (dbc->tds_login, passwd);
-   dbc->tds_socket = (void *) tds_connect(dbc->tds_login);
+   dbc->tds_socket = (void *) tds_connect(dbc->tds_login, (void *)dbc);
 
    if (dbc->tds_socket == NULL)
    {

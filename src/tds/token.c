@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1183,9 +1183,9 @@ int len_sqlstate;
 
 	if(tds->parent) {
 		if (tds->msg_info->priv_msg_type) 
-			g_tds_err_handler(tds->parent);
+			g_tds_err_handler(tds);
 		else
-			g_tds_msg_handler(tds->parent);
+			g_tds_msg_handler(tds);
 	} else {
 		if(tds->msg_info->msg_number)
 			tdsdump_log(TDS_DBG_WARN,

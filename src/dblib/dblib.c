@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -442,12 +442,12 @@ DBPROCESS *dbopen(LOGINREC *login,char *server)
    memset(dbproc,'\0',sizeof(DBPROCESS));
    tds_set_server(login->tds_login,server);
    
-   dbproc->tds_socket = (void *) tds_connect(login->tds_login);
+   dbproc->tds_socket = (void *) tds_connect(login->tds_login, (void *)dbproc);
    dbproc->dbbuf = NULL;
    dbproc->dbbufsz = 0;
 
    if(dbproc->tds_socket) {
-      tds_set_parent( dbproc->tds_socket, dbproc);
+      /* tds_set_parent( dbproc->tds_socket, dbproc); */
       tds_add_connection(g_tds_context, dbproc->tds_socket);
    } else {
       fprintf(stderr,"DB-Library: Login incorrect.\n");

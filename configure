@@ -2529,7 +2529,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "include/tdsver.h include/tds.h \
+trap 'rm -fr `echo "include/tdsver.h include/tds.h include/tds_configs.h \
 	Makefile \
 	include/Makefile \
 	src/Makefile \
@@ -2647,7 +2647,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"include/tdsver.h include/tds.h \
+CONFIG_FILES=\${CONFIG_FILES-"include/tdsver.h include/tds.h include/tds_configs.h \
 	Makefile \
 	include/Makefile \
 	src/Makefile \

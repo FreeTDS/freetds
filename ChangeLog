@@ -1,20 +1,33 @@
+Fri Oct 26 07:11:05 2001  Brian Bruns <camber@ais.org>
+	* src/tds/token.c(tds_process_msg): called message handler will be passed 
+     tdssocket instead of the parent structure.
+	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup dbproc as above
+	* src/dblib/dbutil.c: cast from TDSSOCKET, then lookup connection as above
+	* src/tds/login.c(tds_connect): Take in second param 'parent' so callbacks
+	can be called before having an established connection.
+	* src/ctlib/ct.c: remove call to tds_set_parent and pass into tds_connect
+	* src/dblib/dblib.c: remove call to tds_set_parent and pass into 
+	tds_connect
+	* src/odbc/odbc.c: remove call to tds_set_parent and pass NULL to 
+	tds_connect
+
 Thu Oct 25 10:58:38 2001  James Cameron  <quozl@us.netrek.org>
 
 	* configure.in: add include/tds_configs.h to AC_OUTPUT
 	
-Tue Oct 24 19:07:15 Brian Bruns <camber@ais.org>
+Tue Oct 24 19:07:15 2001 Brian Bruns <camber@ais.org>
     * configure.in: Added AM_CONFIG_HEADER
     * acconfig.h: needed for config header because of BSD_COMP
     * doc/faq/html: made XHTML 1.0 valid
     * src/*/*.c: added config.h include
     * acinclude.m4: iconv autoconf macro
 
-Tue Oct 23 23:42:03 Brian Bruns <camber@ais.org>
+Tue Oct 23 23:42:03 2001 Brian Bruns <camber@ais.org>
     * src/tds/iconv.c: new iconv functions for handling TDS7 unicode
     * src/tds/login.c: tds7_ascii2unicode() and tds7_unicode2ascii() moved to iconv.c
     * aclocal.m4: iconv detection
 
-Sat Oct 20 15:54:28 Brian Bruns <camber@ais.org>
+Sat Oct 20 15:54:28 2001 Brian Bruns <camber@ais.org>
 
     * src/tds/login.c: error handling for return of inet_addr()
     * doc/userguide.sgml: added freetds.conf and unixODBC sections, minor 

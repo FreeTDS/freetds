@@ -24,16 +24,16 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* all this was copied directly from the dblib functions */
 int ctlib_handle_info_message(void *aStruct)
 {
-CS_CONNECTION *con = (CS_CONNECTION *)aStruct;
-TDSSOCKET* tds = con->tds_socket;
-CS_CLIENTMSG errmsg;
+/* CS_CONNECTION *con = (CS_CONNECTION *)aStruct;
+TDSSOCKET* tds = (TDSSOCKET *tds) con->tds_socket; */
+CS_CLIENTMSG errmsg; 
 
 	return ctlib_handle_err_message(aStruct);
 /*
@@ -53,10 +53,14 @@ CS_CLIENTMSG errmsg;
 
 int ctlib_handle_err_message(void *aStruct)
 {
-CS_CONNECTION *con = (CS_CONNECTION *)aStruct;
-TDSSOCKET* tds = con->tds_socket;
+TDSSOCKET* tds = (TDSSOCKET *) aStruct;
 CS_SERVERMSG errmsg;
 TDSMSGINFO *msg = tds->msg_info;
+CS_CONNECTION *con = NULL;
+
+	if (tds && tds->parent) {
+		con = (CS_CONNECTION *)tds->parent;
+	}
 
 	memset(&errmsg,'\0',sizeof(errmsg));
 	errmsg.msgnumber=msg->msg_number;
@@ -72,6 +76,8 @@ TDSMSGINFO *msg = tds->msg_info;
 		errmsg.proclen = strlen(msg->proc_name);
 		strncpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
 	}
+	if (!con) return;
+
 	if (con->_servermsg_cb)
 		con->_servermsg_cb(con->ctx,con,&errmsg);
 	else if (con->ctx->_servermsg_cb)

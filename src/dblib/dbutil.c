@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.3 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -39,8 +39,12 @@ extern int (*g_dblib_err_handler)();
  * TDS layer didn't what it really was */
 int dblib_handle_info_message(void *aStruct)
 {
-	DBPROCESS* dbproc = (DBPROCESS*)aStruct;
-	TDSSOCKET* tds = dbproc->tds_socket;
+	TDSSOCKET* tds = (TDSSOCKET *) aStruct;
+	DBPROCESS* dbproc = NULL;
+
+	if (tds && tds->parent) {
+		dbproc = (DBPROCESS*)tds->parent;
+	}
 	if( tds->msg_info->msg_number > 0 )
 	{
 		/* now check to see if the user supplied a function, if not ignore the
@@ -76,8 +80,12 @@ int dblib_handle_info_message(void *aStruct)
 
 int dblib_handle_err_message(void *aStruct)
 {
-	DBPROCESS* dbproc = (DBPROCESS*)aStruct;
-	TDSSOCKET* tds = dbproc->tds_socket;
+	TDSSOCKET* tds = (TDSSOCKET *) aStruct;
+	DBPROCESS* dbproc = NULL;
+
+	if (tds && tds->parent) {
+		dbproc = (DBPROCESS*)tds->parent;
+	}
 	if( tds->msg_info->msg_number > 0 )
 	{
 		/* now check to see if the user supplied a function, if not ignore the

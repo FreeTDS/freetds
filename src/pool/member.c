@@ -44,7 +44,7 @@ char *query;
 	tds_set_language(login,"us_english");
 	tds_set_packet(login,512);
   
-  	if (!(tds = tds_connect(login))) {
+  	if (!(tds = tds_connect(login, NULL))) {
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n",pool->server);
 		return NULL;

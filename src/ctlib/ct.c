@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.4 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -296,13 +296,13 @@ int needfree=0;
 		server[snamelen]='\0';
 	}
         tds_set_server(con->tds_login,server);
-        if (!(con->tds_socket = (void *) tds_connect(con->tds_login))) {
+        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, (void *) con))) {
 		if (needfree) free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
 	}
 
-        tds_set_parent( con->tds_socket, con);
+        /* tds_set_parent( con->tds_socket, con); */
 
 	if (needfree) free(server);
 

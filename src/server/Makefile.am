@@ -1,5 +1,5 @@
 TDSDIR		=	../tds
-TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c 
+TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c
 lib_LTLIBRARIES	=	libtdssrv.la
 ##EXTRA_LTLIBRARIES	=	libtdssrv.la
 libtdssrv_la_SOURCES=	query.c server.c login.c

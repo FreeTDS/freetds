@@ -1,4 +1,3 @@
-/* Generated from tds_configs.h.in on Wed Oct 24 19:05:58 EDT 2001 */
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
  *
@@ -22,15 +21,15 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h,v 1.5 2001-10-24 23:19:44 brianb Exp $";
+	 "$Id: tds_configs.h,v 1.6 2001-10-26 11:16:26 brianb Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FREETDS_SYSCONFDIR "/usr/local/freetds/etc"
-#define FREETDS_SYSCONFFILE "/usr/local/freetds/etc/freetds.conf"
+#define FREETDS_SYSCONFDIR "%SYSCONFDIR%"
+#define FREETDS_SYSCONFFILE "%SYSCONFDIR%/freetds.conf"
 
 #ifdef __cplusplus
 }
