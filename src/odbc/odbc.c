@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.327 2004-05-31 09:38:14 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.328 2004-06-05 16:45:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2538,6 +2538,7 @@ SQLExecute(SQLHSTMT hstmt)
 	/* TODO rebuild should be done for every bingings change, not every time */
 	/* TODO free previous parameters */
 	/* build parameters list */
+	stmt->param_data_called = 0;
 	res = start_parse_prepared_query(stmt, 1);
 	if (SQL_SUCCESS != res)
 		ODBC_RETURN(stmt, res);
@@ -4676,11 +4677,25 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 	INIT_HSTMT;
 
 	if (stmt->params && stmt->param_num <= stmt->param_count) {
+		SQLRETURN res;
+
 		if (stmt->param_num <= 0 || stmt->param_num > stmt->apd->header.sql_desc_count)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
-		*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
-		ODBC_RETURN(stmt, SQL_NEED_DATA);
+		if (!stmt->param_data_called) {
+			stmt->param_data_called = 1;
+			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
+			ODBC_RETURN(stmt, SQL_NEED_DATA);
+		}
+		++stmt->param_num;
+		switch(res=parse_prepared_query(stmt, 0, 1)) {
+		case SQL_NEED_DATA:
+			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
+			ODBC_RETURN(stmt, SQL_NEED_DATA);
+		case SQL_SUCCESS:
+			return _SQLExecute(stmt);
+		}
+		ODBC_RETURN(stmt, res);
 	}
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
@@ -4692,15 +4707,12 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 	INIT_HSTMT;
 
 	if (stmt->prepared_query) {
-		SQLRETURN res = continue_parse_prepared_query(stmt, rgbValue, cbValue);
-
-		if (SQL_NEED_DATA == res)
-			ODBC_RETURN(stmt, SQL_SUCCESS);
-		if (SQL_SUCCESS != res)
-			ODBC_RETURN(stmt, res);
+		stmt->param_data_called = 1;
+		ODBC_RETURN(stmt, continue_parse_prepared_query(stmt, rgbValue, cbValue));
 	}
 
-	return _SQLExecute(stmt);
+	/* TODO return correct error */
+	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
 

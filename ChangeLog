@@ -1,3 +1,8 @@
+Sat Jun  5 18:44:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO include/tdsodbc.h src/odbc/odbc.c src/odbc/prepare_query.c:
+	* src/odbc/prepare_query.h src/odbc/unittests/putdata.c:
+	- fix SQLPutData/SQLParamData
+
 Tue Jun  1 09:33:52 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbopen.c:
 	* src/dblib/dbutil.c src/dblib/rpc.c src/dblib/xact.c:
