@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.171 2003-05-20 15:30:59 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.172 2003-05-25 17:13:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1260,7 +1260,6 @@ SQLExecute(SQLHSTMT hstmt)
 		/* TODO rebuild should be done for every bingings change, not every time */
 		int i, nparam;
 		TDSPARAMINFO *params = NULL, *temp_params;
-		TDSCOLINFO *curcol;
 
 		/* build parameters list */
 		tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");

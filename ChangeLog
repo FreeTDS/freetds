@@ -1,3 +1,8 @@
+Sun May 25 19:14:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: remove unused variable
+	* src/odbc/sql2tds.c:
+	- fixed fixed types param binding 
+
 Thu May 22 16:36:36 EDT 2003	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h src/tds/config.c src/tds/iconv.c src/tds/mem.c
 	  src/tds/write.c:
