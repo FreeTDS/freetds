@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.209 2005-01-29 08:11:51 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.210 2005-01-30 10:20:38 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -894,6 +894,7 @@ typedef struct tds_result_info
 	unsigned char *current_row;
 
 	TDS_SMALLINT rows_exist;
+	/* TODO remove ?? used only in dblib */
 	TDS_INT row_count;
 	TDS_SMALLINT computeid;
 	TDS_TINYINT more_results;
