@@ -1,3 +1,8 @@
+Sun Oct 13 23:45:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Current configure.in doesn't actually work with Autoconf 2.53.
+	  Set AC_PREREQ(2.54) so users will get a sensible error message.
+
 Sun Oct 13 23:13:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/server/query.c:
 	- Dynamically size server query buffer.
