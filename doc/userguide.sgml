@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-27 09:57:50 $</date>
-		<releaseinfo>$Revision: 1.78 $</releaseinfo>
+		<date>$Date: 2003-12-29 15:53:21 $</date>
+		<releaseinfo>$Revision: 1.79 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -51,9 +51,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.78 $</>
-<member>$Date: 2003-12-27 09:57:50 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.78 2003-12-27 09:57:50 freddy77 Exp $.</>
+<member>$Revision: 1.79 $</>
+<member>$Date: 2003-12-29 15:53:21 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.79 2003-12-29 15:53:21 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -526,7 +526,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2003-12-27 09:57:50 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2003-12-29 15:53:21 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -544,6 +544,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 </programlisting>  
 </figure>
 			<para>This patch was contributed by <email><ulink url="mailto:fdsubs@axelero.hu">Daniel Fazekas</ulink></email>, and has been used successfully by three people that we know of.  As you can see, the only effect is to remove \$deplibs from  line 202.  </para>
+			<para>OS X includes ODBC header files, which <command>configure</> will detect, causing the <productname>FreeTDS</> ODBC driver to be built.  You may with to use the <option>--disable-odbc</> option if you don't plan to use ODBC.  </para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -3043,28 +3044,34 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			</para>
 			<simplelist columns=2>
 				<member>
-<ulink url="mailto:camber@ais.org">Brian Bruns (camber@ais.org)</ulink></>
+<ulink url="mailto:camber@ais.org">Brian Bruns</ulink> (camber@ais.org)</member>
 <member>Started this crazy thing</>
 				<member>
-<ulink url="mailto:misa@dntis.ro">Mihai Ibanescu (misa@dntis.ro)</ulink></>
+<ulink url="mailto:misa@dntis.ro">Mihai Ibanescu</ulink> (misa@dntis.ro)</member>
 <member><acronym>GNU</>ified the packet</>
 				<member>
-<ulink url="mailto:greggj@savvis.com">Gregg Jensen (greggj@savvis.com)</ulink></>
+<ulink url="mailto:greggj@savvis.com">Gregg Jensen</ulink> (greggj@savvis.com)</member>
 <member>Message handlers and extra datatype support and some sybperl stuff</>
+			       <member>
+<ulink url="mailto:jklowden@schemamania.org">James K. Lowden</ulink> (jklowden@schemamania.org)</member>
+<member>Wrote most of the documentation.  Helped out here and there.  </>
+			       <member>
+<ulink url="mailto:smurph@smcomp.com">Steve Murphree</ulink> (smurph@smcomp.com)</member>
+<member>Added more ODBC functionality.  </>
 				<member>
-<ulink url="mailto:psaar@fenar.ee">Arno Pedusaar (psaar@fenar.ee)</ulink></>
+<ulink url="mailto:psaar@fenar.ee">Arno Pedusaar</ulink> (psaar@fenar.ee)</member>
 <member>Donated his <acronym>TDS</>4.2 code to the cause</>
 				<member>
-<ulink url="mailto:mark@champ.tstonramp.com">Mark Schaal (mark@champ.tstonramp.com)</ulink></>
+<ulink url="mailto:mark@champ.tstonramp.com">Mark Schaal</ulink> (mark@champ.tstonramp.com)</member>
 <member>Cleaned up message handling, more datatype support, bug fixes</>
 				<member>
-<ulink url="mailto:cts@internetcds.com">Craig Spannring (cts@internetcds.com)</ulink></>
+<ulink url="mailto:cts@internetcds.com">Craig Spannring</ulink> (cts@internetcds.com)</member>
 <member>Wrote the  <acronym>JDBC</> and DBI drivers</>
 				<member>
-<ulink url="mailto:thompbil@exchange.uk.ml.com">Bill Thompson (thompbil@exchange.uk.ml.com)</ulink></>
+<ulink url="mailto:thompbil@exchange.uk.ml.com">Bill Thompson</ulink> (thompbil@exchange.uk.ml.com)</member>
 <member>Completer of the <systemitem class="library">db-lib</systemitem> bcp API and author of <application>freebcp</application>.</>
 				<member>
-<ulink url="mailto:freddy77@angelfire.com">Frediano Ziglio (freddy77@angelfire.com)</ulink></>
+<ulink url="mailto:freddy77@angelfire.com">Frediano Ziglio</ulink> (freddy77@angelfire.com)</member>
 <member>Extended the ODBC library, and added many, many fixes and enhancements to libtds.  </>
 			</simplelist>
 			<para>
@@ -3291,7 +3298,7 @@ While UTF-8 solves many technical problems, it doesn't magically transform every
 		</section>
 		<section id="UnicodeFreeTDS"><title>Unicode and FreeTDS</title>
 			<para>
-Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most application linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  <productname>FreeTDS</productname> determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 8.0, per result set column).  It discovers the client's encoding in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.  
+Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  <productname>FreeTDS</productname> determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 8.0, per result set column).  It discovers the client's encoding in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.  
 			</para>
 			<para>
 At some future time, <productname>FreeTDS</productname> aims to support Unicode and other multi-byte character sets.  It does not do so at the current time.  
