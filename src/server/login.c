@@ -22,11 +22,23 @@
 #include "tdsutil.h"
 #include <unistd.h>
 
-static char  software_version[]   = "$Id: login.c,v 1.3 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.4 2002-06-24 23:29:07 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-
+unsigned char *
+tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsigned char *clear_pass) 
+{
+int i;
+const unsigned char xormask=0x5A;
+unsigned char hi_nibble,lo_nibble ;
+	for(i=0;i<len;i++) {
+		lo_nibble=(crypt_pass[i] << 4) ^ (xormask & 0xF0);
+		hi_nibble=(crypt_pass[i] >> 4) ^ (xormask & 0x0F);
+		clear_pass[i]=hi_nibble | lo_nibble;
+	}
+	return clear_pass;
+}
 
 TDSSOCKET *tds_listen(int ip_port) 
 {
