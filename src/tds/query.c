@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.155 2005-01-13 15:18:31 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.156 2005-01-14 08:06:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1597,19 +1597,17 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 		idlen = strlen(id);
 
 	/* need quote ?? */
-	for (i = 0; i < idlen; ++i)
-		switch(id[i]) {
-		case '\"':
-		case '\'':
-		case ' ':
-		case '(':
-		case ')':
-		case '[':
-		case ']':
-		case '{':
-		case '}':
-			return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, idlen);
-		}
+	for (i = 0; i < idlen; ++i) {
+		char c = id[i];
+
+		if (c >= 'a' && c <= 'z')
+			continue;
+		if (c >= 'A' && c <= 'Z')
+			continue;
+		if (c == '_')
+			continue;
+		return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, idlen);
+	}
 
 	if (buffer) {
 		memcpy(buffer, id, idlen);

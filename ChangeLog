@@ -1,3 +1,10 @@
+Fri Jan 14  9:05:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- quote database name in dbuse
+	- removed useless casts
+	* src/tds/query.c:
+	- fixed id quoting
+
 Thu Jan 13 16:17:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* include/tds.h:
