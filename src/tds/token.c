@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.62 2002-09-24 19:40:29 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.63 2002-09-25 05:54:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -603,6 +603,7 @@ int name_len;
 	tds_get_n(tds, NULL, 5); /* unknown */
 	curparam->column_type = tds_get_byte(tds); /* datatype */
 	if (!is_fixed_type(curparam->column_type)) {
+		/* FIXME support for longer types, see code getting row  */
 		/* column size */
 		curparam->column_size = tds_get_byte(tds);
 		/* actual data size */
@@ -613,6 +614,7 @@ int name_len;
 	}
 
 	curparam->column_offset = tds->param_info->row_size;
+	/* FIXME fix alignment problems */
 	tds->param_info->row_size += curparam->column_size;
 	
 	/* make sure the row buffer is big enough */

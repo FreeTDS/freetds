@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.11 2002-09-22 08:01:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.12 2002-09-25 05:54:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,7 +107,7 @@ int id_len, query_len;
 
 	if (!query || !id) return TDS_FAIL;
 
-	if (!IS_TDS50(tds)) {
+	if (!IS_TDS50(tds) /* || !IS_TDS7_PLUS(tds) */) {
 		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Dynamic placeholders only supported under TDS 5.0");
 		return TDS_FAIL;
@@ -119,6 +119,17 @@ int id_len, query_len;
 	}
 	tds_free_all_results(tds);
 
+	/* FIXME add support for mssql, use RPC and sp_prepare */
+	/*
+	tds->out_flag = 3; RPC
+	tds_put_byte(10);
+	tds_put_n(tds,"s\0p\0_\0p\0r\0e\0p\0a\0r\0e",20);
+	tds_put_smallint(0);
+
+	return param handle
+	string with parameters types
+	string with sql statement
+	 */
 	/* allocate a structure for this thing */
 	tds_alloc_dynamic(tds, id);
 
