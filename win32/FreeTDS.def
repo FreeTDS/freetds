@@ -8,6 +8,7 @@ EXPORTS
 	SQLBindParameter
 ;	SQLBrowseConnect
 	SQLCancel
+	SQLCloseCursor
 	SQLColAttribute
 	SQLColAttributes
 	SQLColumnPrivileges
@@ -49,7 +50,7 @@ EXPORTS
 	SQLNumParams
 	SQLNumResultCols
 	SQLParamData
-;	SQLParamOptions
+	SQLParamOptions
 	SQLPrepare
 	SQLPrimaryKeys
 	SQLProcedureColumns
