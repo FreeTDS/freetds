@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: faq.html,v 1.6 2004-05-29 09:12:31 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.7 2004-07-15 02:38:09 jklowden Exp $ -->
 <head>
 <title>FreeTDS Frequently Asked Questions</title>
 </head>
@@ -38,7 +38,7 @@ This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
 since the last release, and to answer perennial questions (there are some).  </p>
 
-<div align=right><i>$Id: faq.html,v 1.6 2004-05-29 09:12:31 jklowden Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.7 2004-07-15 02:38:09 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -141,6 +141,9 @@ Problems Building<ul>
 
 <li>
 Problems Running<ul>
+
+<li>
+<a href="#syb_result_type">With <tt>DBD::Sybase</tt>, why do I sometimes get an unexpected 1-column result set? </a></li>
 
 <li>
 <a href="#unknownmarker">What does this <tt>unknown marker</tt> message mean? </a></li>
@@ -680,10 +683,22 @@ steps.</p>
 
 <h2>Problems Running</h2>
 
+<a name="syb_result_type"></a>
+<h3>With <tt>DBD::Sybase</tt>, why do I sometimes get an unexpected 1-column result set?</h3>
+
+<p>Beginning with SQL Server 7.0, Microsoft servers send <tt>DONE</tt> packets when completing various processes
+e.g., triggers, replication processes, internal stored procedures to support cursors.  At one time, FreeTDS ignored some
+of these <tt>DONE</tt> packets, but as more types of result sets where handled -- particularly <em>compute rows</em> --
+they became exposed through the <tt>ct-lib</tt> interface, which is what <tt>DBD::Sybase</tt> uses.  </p>
+
+<p>The workaround in FreeTDS 0.62.x is to have your result-processing loop test <var>syb_result_type</var> for <code>CS_STATUS_RESULT</code>.  Consult <kbd><strong>perldoc DBD::Sybase</strong></kbd> for more information.  
+
+<p>It is expected that this will be fixed when version 0.63 is released.  Fixes have already been applied to CVS.  You are encouraged to try the nightly snapshot and provide feedback and/or patches.  </p>
+
 <a name="unknownmarker"></a>
 <h3>What does this <tt>unknown marker</tt> message mean?</h3>
 
-<p>Most of the time, it means you're not using the right protocol version.  That <i>can</i> happen even if your <tt>./configure</tt> was done correctly.  Try setting the <tt>TDSVER</tt> to 70.  If that works, double check your work.  If your interfaces file and ./configure were right, but you needed the environment variable anyway, please post a message to the list and help us track it down.  </p>
+<p>Most of the time, it means you're not using the right protocol version.  That <i>can</i> happen even if your <tt>./configure</tt> was done correctly.  Try setting the <tt>TDSVER</tt> variable to a value appropriate for your server: normally <code>5.0</code> for Sybase and <code>7.0</code> for Microsoft.  If that works, double check your work.  If your <kbd>freetds.conf</kbd> file and <kbd><strong>configure</strong></kbd> options were right, but you needed the environment variable anyway, please post a message to the list and help us track it down.  </p>
 
 <a name="connectionrefused"></a>
 <h3>What if I get a <tt><font size="+1">connection refused</font></tt>
