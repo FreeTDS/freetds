@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.119 2004-12-08 20:30:03 freddy77 Exp $
+To Do List	$Id: TODO,v 1.120 2004-12-14 10:09:02 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -116,7 +116,6 @@ For future versions (in priority order within library):
   optimize ODBC_RETURN (remove useless)
 . handle no termination on odbc_set_string*
 
-. test and fix: select with compute
 . test and fix: hidden fields (FOR BROWSE select)
 . test: all binding types (input and output)
 . test: new descriptors work
