@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.127 2003-03-12 17:43:41 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.128 2003-03-14 20:01:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1578,31 +1578,46 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
+		tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting %d bytes character data destlen = %d \n", 
+			    len, destlen);
 
-		tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting %d bytes character data destlen = %d \n", len,
-			    destlen);
-		if (destlen == 0 || destlen < -2) {
+		if (destlen < -2)
+			destlen = 0;	/* failure condition */
+
+		switch(destlen) {
+		case 0:
 			ret = FAIL;
-		} else if (destlen == -1) {	/* rtrim and null terminate */
+			break;
+		case -1:	/* rtrim and null terminate */
 			for (i = len - 1; i >= 0 && dres.c[i] == ' '; --i) {
 				len = i;
 			}
+			assert(dres.c[len] == ' ');	/* if last position is not a blank, no room to null terminate */
 			memcpy(dest, dres.c, len);
 			dest[len] = '\0';
 			ret = len;
-		} else if (destlen == -2) {	/* just null terminate */
+			break;
+		case -2:	/* just null terminate */
 			memcpy(dest, dres.c, len);
 			dest[len] = 0;
 			ret = len;
-		} else {	/* destlen is > 0 */
+			break;
+		default:
+			assert(destlen > 0);
 			if (len > destlen) {
 				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
 				ret = -1;
-			} else
-				memcpy(dest, dres.c, len);
+				tdsdump_log(TDS_DBG_INFO1, "dblib.c:%d: %d bytes type %d -> %d, destlen %d < %d required\n",
+			    		    __LINE__, srclen, srctype, desttype, destlen, len);
+				break;
+			}
+			/* else pad with blanks */
+			memcpy(dest, dres.c, len);
 			for (i = len; i < destlen; i++)
 				dest[i] = ' ';
 			ret = len;
+
+			break;
 		}
 
 		free(dres.c);

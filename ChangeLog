@@ -1,3 +1,7 @@
+Fri Mar 14 14:54:40 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c allow infinitely large "insert bulk" statements
+	* src/dblib/dblib.c bugfix to return FAIL if error
+
 Thu Mar 13 22:14:33 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/getting_started.txt Updated with Brian's TDS version table
 	* src/tds/util.c Fixed segfault on opening log file in append mode.
