@@ -1,3 +1,7 @@
+Thu Feb 05 14:19:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am doc/tds_layer.txt(removed):
+	- removed tds_layer.txt
+
 Wed Feb 04 19:21:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/config.c:
 	- rename constant

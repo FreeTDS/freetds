@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.43 2004-01-02 08:22:22 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.44 2004-02-05 13:17:33 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -8,7 +8,7 @@ PRODUCT = FreeTDS
 TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
-		policy.txt tds_layer.txt CodingStyle tds.html  \
+		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
