@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.48 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.49 2004-02-09 14:26:06 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -273,7 +273,7 @@ typedef struct _cs_daterec
 	CS_INT datetzone;
 } CS_DATEREC;
 
-typedef TDS_INT CS_MSGNUM;
+typedef CS_INT CS_MSGNUM;
 
 /* XX defined */
 struct cs_clientmsg

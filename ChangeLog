@@ -1,3 +1,6 @@
+Mon Feb 09 15:28:07 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h: small type change
+
 Mon Feb 09 14:05:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/prepare_results.c:
