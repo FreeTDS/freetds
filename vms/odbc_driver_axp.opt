@@ -20,8 +20,10 @@ LIBODBCINST/SHAREABLE
 CASE_SENSITIVE=YES
 SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLAllocEnv=PROCEDURE,-
+		SQLAllocHandle=PROCEDURE,-
 		SQLAllocStmt=PROCEDURE,-
 		SQLBindCol=PROCEDURE,-
+		SQLBindParam=PROCEDURE,-
 		SQLBindParameter=PROCEDURE,-
 		SQLCancel=PROCEDURE,-
 		SQLColAttributes=PROCEDURE,-
@@ -31,6 +33,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLDescribeCol=PROCEDURE,-
 		SQLDisconnect=PROCEDURE,-
 		SQLDriverConnect=PROCEDURE,-
+		SQLEndTran=PROCEDURE,-
 		SQLError=PROCEDURE,-
 		SQLExecDirect=PROCEDURE,-
 		SQLExecute=PROCEDURE,-
@@ -38,11 +41,15 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLForeignKeys=PROCEDURE,-
 		SQLFreeConnect=PROCEDURE,-
 		SQLFreeEnv=PROCEDURE,-
+		SQLFreeHandle=PROCEDURE,-
 		SQLFreeStmt=PROCEDURE,-
 		SQLGetConnectOption=PROCEDURE,-
 		SQLGetData=PROCEDURE,-
+		SQLGetDiagField=PROCEDURE,-
+		SQLGetDiagRec=PROCEDURE,-
 		SQLGetFunctions=PROCEDURE,-
 		SQLGetInfo=PROCEDURE,-
+		SQLGetStmtAttr=PROCEDURE,-
 		SQLGetStmtOption=PROCEDURE,-
 		SQLGetTypeInfo=PROCEDURE,-
 		SQLMoreResults=PROCEDURE,-
@@ -50,18 +57,22 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLNumResultCols=PROCEDURE,-
 		SQLParamData=PROCEDURE,-
 		SQLPrepare=PROCEDURE,-
+		SQLPrimaryKeys=PROCEDURE,-
 		SQLProcedureColumns=PROCEDURE,-
 		SQLProcedures=PROCEDURE,-
 		SQLPutData=PROCEDURE,-
 		SQLRowCount=PROCEDURE,-
+		SQLSetConnectAttr=PROCEDURE,-
 		SQLSetConnectOption=PROCEDURE,-
+		SQLSetEnvAttr=PROCEDURE,-
+		SQLSetParam=PROCEDURE,-
 		SQLSetStmtOption=PROCEDURE,-
+		SQLSpecialColumns=PROCEDURE,-
 		SQLStatistics=PROCEDURE,-
 		SQLTablePrivileges=PROCEDURE,-
 		SQLTables=PROCEDURE,-
 		SQLTransact=PROCEDURE)
 !
-!		SQLPrimaryKeysd=PROCEDURE,-
 !		SQLBrowseConnect=PROCEDURE,-
 !		SQLDescribeParam=PROCEDURE,-
 !		SQLExtendedFetch=PROCEDURE,-
@@ -71,4 +82,3 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 !		SQLSetCursorName=PROCEDURE,-
 !		SQLSetPos=PROCEDURE,-
 !		SQLSetScrollOptions=PROCEDURE,-
-!		SQLSpecialColumns=PROCEDURE,-

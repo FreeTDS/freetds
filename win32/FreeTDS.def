@@ -4,6 +4,7 @@ EXPORTS
 	SQLAllocHandle
 	SQLAllocStmt
 	SQLBindCol
+	SQLBindParam
 	SQLBindParameter
 ;	SQLBrowseConnect
 	SQLCancel
@@ -52,10 +53,10 @@ EXPORTS
 	SQLSetConnectOption
 ;	SQLSetCursorName
 	SQLSetEnvAttr
-;	SQLSetParam
+	SQLSetParam
 ;	SQLSetPos
 	SQLSetStmtOption
-;	SQLSpecialColumns
+	SQLSpecialColumns
 	SQLStatistics
 	SQLTablePrivileges
 	SQLTables
