@@ -1,3 +1,7 @@
+Fri Aug 30 00:48:22 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c	more helpful stderr messages; should be tds_client_msg
+	* src/tds/convert.c	bit->money
+	
 Thu Aug 29 20:22:46 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/tds/token.c: cleaned up tds7_process_result() 
 
@@ -5,7 +9,7 @@ Thu Aug 29 17:55:31 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/ctutil.c: 	patch #602045
 	- ctlib_handle_err_message wasn't propagating the return code from the callback
 	* include/sybdb.h:
-	* src/dblib/dblib.c:	Patch #602086: Improves compatibility with Sybase's DB- Lib ABI.
+	* src/dblib/dblib.c:	Patch #602086: Improves compatibility with Sybase's DB-Lib ABI.
 
 Thu Aug 29 22:09:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/sybdb.h include/tdsconvert.h include/tdsutil.h:
