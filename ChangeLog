@@ -1,3 +1,6 @@
+Wed Mar 30 11:53:58 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/tds/Makefile.am reformatted
+
 Wed Mar 30 11:20:38 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/tds/Makefile.am build num_limits.h with Perl (for CVS)
 

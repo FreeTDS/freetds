@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.44 2005-03-30 16:31:28 jklowden Exp $
+# $Id: Makefile.am,v 1.45 2005-03-30 16:57:09 jklowden Exp $
 
 SUBDIRS			=	unittests
 
@@ -17,8 +17,11 @@ libtds_la_SOURCES	=	num_limits.h
 
 # changed for 0.64
 #                      bump server version whenever bumping libtds version
-libtds_la_LDFLAGS	= -version-info 5:0:0 -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
-libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+libtds_la_LDFLAGS	= -version-info 5:0:0 \
+			  -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
+libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la \
+			  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+
 noinst_HEADERS		= tds_willconvert.h character_sets.h \
 			  alternative_character_sets.h sybase_character_sets.h \
 			  encodings.h num_limits.h
@@ -46,10 +49,11 @@ charset:
 	perl sybase_character_sets.h.pl > sybase_character_sets.h
 	perl encodings.pl > encodings.h
 
-## See automake manual for purpose of BUILT_SOURCES.  
-## We have to build num_limits.h because automake can't infer the dependency (on numeric.pl).
-## By adding num_limits.h to libtds_la_SOURCES and/or libtds_objects_la_SOURCES, we cause 
-## "make dist" to include it in the distribution tarball.
+## See automake manual for purpose of BUILT_SOURCES.   We have to build
+## num_limits.h because automake can't infer the dependency (on
+## numeric.pl).  By adding num_limits.h to libtds_la_SOURCES and/or
+## libtds_objects_la_SOURCES, we cause  "make dist" to include it in the
+## distribution tarball.
 
 BUILT_SOURCES = num_limits.h
 EXTRA_DIST =    num_limits.h
