@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.97 2003-12-10 11:21:45 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.98 2003-12-10 14:36:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -659,6 +659,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 				char *pib = tmp;
 				size_t il = sizeof(tmp) - ol;
 
+				errno = 0;
 				irreversible = iconv(cd2, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
 				if (irreversible != (size_t) - 1) {
 					if (*inbytesleft)

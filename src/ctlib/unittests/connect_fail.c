@@ -6,7 +6,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: connect_fail.c,v 1.3 2003-03-27 09:38:42 freddy77 Exp $";
+static char software_version[] = "$Id: connect_fail.c,v 1.4 2003-12-10 14:36:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -64,6 +64,6 @@ main(int argc, char **argv)
 		return ret;
 	}
 
-	fprintf(stdout, "Test suceeded\n");
+	fprintf(stdout, "Test succeeded\n");
 	return 0;
 }

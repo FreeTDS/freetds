@@ -1,3 +1,9 @@
+Wed Dec 10 15:35:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/connect_fail.c:
+	* src/ctlib/unittests/t0001.c src/ctlib/unittests/t0005.c:
+	- typo
+	* src/tds/iconv.c: removed wrong warning
+
 Wed Dec 10 12:20:24 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/dblib/bcp.c src/odbc/error.c:
 	* src/server/login.c src/tds/iconv.c src/tds/write.c:
