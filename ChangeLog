@@ -1,3 +1,7 @@
+Thu Apr 01 20:29:01 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- applied Bill Thompson patch on DONE handling
+
 Wed Mar 31 20:51:38 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/convert.c src/tds/numeric.c:
 	* src/tds/token.c:
