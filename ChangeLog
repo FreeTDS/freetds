@@ -1,3 +1,9 @@
+Wed Nov 21 17:15:23 2001  James Cameron  <quozl@us.netrek.org>
+
+	* .cvsignore: remove all generated files from CVS.
+	* doc/faq.html: add pointer to instructions for building from CVS
+	after a checkout.
+
 Tue Nov 20 12:44:13 2001  James Cameron  <quozl@us.netrek.org>
 
 	* autogen.sh: new file to perform package configuration from 'make
