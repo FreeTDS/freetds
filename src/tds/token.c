@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.86 2002-10-27 19:59:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.87 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -164,8 +164,8 @@ int   cancelled;
          tds_process_row(tds); 
          break;
       case TDS5_DYN_TOKEN:
-      case TDS5_DYNRES_TOKEN:
-      case TDS5_DYN3_TOKEN:
+      case TDS5_PARAMFMT_TOKEN:
+      case TDS5_PARAMS_TOKEN:
 	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;
@@ -475,7 +475,7 @@ int cancelled;
 			case TDS5_DYN_TOKEN:
 				tds->cur_dyn_elem = tds_process_dynamic(tds);
 				break;
-			case TDS5_DYNRES_TOKEN:
+			case TDS5_PARAMFMT_TOKEN:
 				tds_process_dyn_result(tds);
 				*result_type = TDS_DESCRIBE_RESULT;
 				return TDS_SUCCEED;

@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.91 2002-10-30 20:57:43 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.92 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2843,7 +2843,7 @@ TDSSOCKET *tds;
         if (retnum<1 || retnum>param_info->num_cols) return NULL;
 
         colinfo = param_info->columns[retnum-1];
-
+	/* FIXME blob are stored is different way */
         return &param_info->current_row[colinfo->column_offset];
 }
 int dbretlen(DBPROCESS *dbproc, int retnum)

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.30 2002-10-21 19:40:51 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.31 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -311,17 +311,133 @@ int id_len, query_len;
 
 	return TDS_SUCCEED;
 }
-/* 
-** tds_submit_execute() sends a previously prepared dynamic statement to the 
-** server.
-** Currently works only with TDS 5.0 
-*/
+
+/**
+ * Put data information to wire
+ * @param curcol column where to store information
+ * @return TDS_SUCCEED or TDS_FAIL
+ */
+static int 
+tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
+{
+	tds_put_byte(tds,0x00); /* param name len*/
+	tds_put_byte(tds,0x00); /* status (input) */
+	if (!IS_TDS7_PLUS(tds)) tds_put_int(tds,curcol->column_usertype); /* usertype */
+	/* TODO use type directly and varint should be updated */
+	tds_put_byte(tds, tds_get_null_type(curcol->column_type)); 
+	if (is_numeric_type(curcol->column_type)) {
+		tds_put_byte(tds, curcol->column_prec);
+		tds_put_byte(tds, curcol->column_scale);
+	}
+	/* FIXME handle larger types */
+	switch(curcol->column_varint_size) {
+	case 0:
+		break;
+	case 1:
+		tds_put_byte(tds, curcol->column_cur_size);
+		break;
+	case 2:
+		tds_put_smallint(tds, curcol->column_cur_size);
+		break;
+	case 4:
+		tds_put_int(tds, curcol->column_cur_size);
+		break;
+	}
+	if (!IS_TDS7_PLUS(tds)) tds_put_byte(tds,0x00); /* locale info length */
+}
+
+/**
+ * Calc information length in bytes (useful for calculating full packet length)
+ * @param curcol column where to store information
+ * @return TDS_SUCCEED or TDS_FAIL
+ */
+static int 
+tds_put_data_info_length(TDSSOCKET *tds, TDSCOLINFO *curcol)
+{
+int len = 8;
+
+	if (is_numeric_type(curcol->column_type))
+		++len;
+	return len + curcol->column_varint_size;
+}
+
+/**
+ * Write data to wire
+ * @param curcol column where store column information
+ * @param pointer to row data to store information
+ * @param i column position in current_row
+ * @return TDS_FAIL on error or TDS_SUCCEED
+ */
+static int 
+tds_put_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i)
+{
+unsigned char *dest;
+TDS_NUMERIC *num;
+TDS_VARBINARY *varbin;
+int len,colsize;
+int is_null;
+
+	is_null = tds_get_null(current_row,i);
+	colsize = curcol->column_cur_size;
+
+	/* put size of data*/
+	switch (curcol->column_varint_size) {
+	case 4: /* Its a BLOB... */
+		if (!is_null) {
+			tds_put_byte(tds, 16);
+			tds_put_n(tds, curcol->column_textptr,16);
+			tds_put_n(tds, curcol->column_timestamp,8);
+			tds_put_int(tds, colsize);
+		} else {
+			tds_put_byte(tds, 0);
+		}
+		break;
+	case 2:
+		if (!is_null) tds_put_smallint(tds, colsize);
+		else tds_put_smallint(tds, -1);
+		break;
+	case 1: 
+		if (!is_null) tds_put_byte(tds, colsize);
+		else tds_put_byte(tds, 0);
+		break;
+	case 0: 
+		colsize = tds_get_size_by_type(curcol->column_type);
+		break;
+	}
+	
+	if (is_null)
+		return TDS_SUCCEED;
+
+	/* put real data */
+	if (is_numeric_type(curcol->column_type)) {
+		/* TODO use TDS7 and swap for big endian */
+		num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
+		tds_put_n(tds,num->array,colsize);
+	} else if (curcol->column_type == SYBVARBINARY) {
+		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
+		tds_put_n(tds,varbin->array,colsize);
+	} else if (is_blob_type(curcol->column_type)) {
+		tds_put_n(tds,curcol->column_textvalue,colsize);
+	} else {
+		/* FIXME problem with big endia, swap data */
+		dest = &(current_row[curcol->column_offset]);
+		tds_put_n(tds,dest,colsize);
+	}
+	return TDS_SUCCEED;
+}
+
+/**
+ * tds_submit_execute() sends a previously prepared dynamic statement to the 
+ * server.
+ * Currently works only with TDS 5.0 
+ */
 int tds_submit_execute(TDSSOCKET *tds, char *id)
 {
 TDSDYNAMIC *dyn;
-TDSINPUTPARAM *param;
+TDSCOLINFO *param;
+TDSPARAMINFO *info;
 int elem, id_len;
-int i;
+int i, len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
 
@@ -357,23 +473,11 @@ int i;
 		tds_put_byte(tds,SYBINT4);
 		tds_put_int(tds,dyn->num_id);
 
-		for (i=0;i<dyn->num_params;i++) {
-			param = dyn->params[i];
-			tds_put_byte(tds,0x00); /* no param name */
-			tds_put_byte(tds,0x00); /* input */
-			tds_put_byte(tds,tds_get_null_type(param->column_type));
-			/* TODO out length correctly based on type use a "tds_put_data" */
-			/* this work on small string... */
-			if (param->column_bindlen) { 
-				tds_put_byte(tds,param->column_bindlen);
-				tds_put_byte(tds,param->column_bindlen); 
-				tds_put_n(tds, param->varaddr,param->column_bindlen); 
-			} else {
-				tds_put_byte(tds,0xff);
-				/* FIXME database strings are not null terminated !!! */
-				tds_put_byte(tds,strlen(param->varaddr)); 
-				tds_put_n(tds, param->varaddr,strlen(param->varaddr)); 
-			}
+		info = dyn->new_params;
+		for (i=0;i<info->num_cols;i++) {
+			param = info->columns[i];
+			tds_put_data_info(tds, param);
+			tds_put_data(tds, param, info->current_row, i);
 		}
 		
 		tds_flush_packet(tds);
@@ -384,7 +488,7 @@ int i;
 
 	tds->out_flag=0x0F;
 /* dynamic id */
-	tds_put_byte(tds,0xe7); 
+	tds_put_byte(tds,TDS5_DYN_TOKEN); 
 	tds_put_smallint(tds,id_len + 5); 
 	tds_put_byte(tds,0x02); 
 	tds_put_byte(tds,0x01); 
@@ -393,39 +497,26 @@ int i;
 	tds_put_byte(tds,0x00); 
 	tds_put_byte(tds,0x00); 
 
-/* column descriptions */
-	tds_put_byte(tds,0xec); 
+	/* column descriptions */
+	tds_put_byte(tds,TDS5_PARAMFMT_TOKEN); 
 	/* size */
-	tds_put_smallint(tds, 9 * dyn->num_params + 2); 
+	len = 2;
+	info = dyn->new_params;
+	for (i=0, len=0;i<info->num_cols;i++)
+		len += tds_put_data_info_length(tds, info->columns[i]);
+	tds_put_smallint(tds, len);
 	/* number of parameters */
-	tds_put_smallint(tds,dyn->num_params); 
+	tds_put_smallint(tds,info->num_cols); 
 	/* column detail for each parameter */
-	for (i=0;i<dyn->num_params;i++) {
-		param = dyn->params[i];
-		tds_put_byte(tds,0x00); /* param name len*/
-		tds_put_byte(tds,0x00); /* status (input) */
-		tds_put_int(tds,0); /* usertype */
-		tds_put_byte(tds,tds_get_null_type(param->column_type)); 
-		/* FIXME handle larger types */
-		if (param->column_bindlen) { 
-			tds_put_byte(tds,param->column_bindlen);
-		} else {
-			tds_put_byte(tds,0xff);
-		}
-		tds_put_byte(tds,0x00); /* locale info length */
+	for (i=0;i<info->num_cols;i++) {
+		/* FIXME add error handling */
+		tds_put_data_info(tds, info->columns[i]);
 	}
 
-/* row data */
-	tds_put_byte(tds,0xd7); 
-	for (i=0;i<dyn->num_params;i++) {
-		param = dyn->params[i];
-		if (param->column_bindlen) {
-			tds_put_byte(tds,param->column_bindlen);
-			tds_put_n(tds, param->varaddr,param->column_bindlen); 
-		} else {
-			tds_put_byte(tds,strlen(param->varaddr)); 
-			tds_put_n(tds, param->varaddr,strlen(param->varaddr)); 
-		}
+	/* row data */
+	tds_put_byte(tds,TDS5_PARAMS_TOKEN); 
+	for (i=0;i<info->num_cols;i++) {
+		tds_put_data(tds, info->columns[i], info->current_row, i);
 	}
 
 /* send it */

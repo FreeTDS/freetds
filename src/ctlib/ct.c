@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.44 2002-10-30 19:37:27 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.45 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1526,7 +1526,7 @@ CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT 
 {
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
-TDSINPUTPARAM *param;
+/* TDSINPUTPARAM *param; */
 int elem;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
@@ -1535,6 +1535,10 @@ int elem;
 	tds = cmd->con->tds_socket;
 
 	elem = tds_lookup_dynamic(tds, cmd->dyn_id);
+	
+	/* TODO */
+	return CS_FAIL;
+/*
 	dyn = tds->dyns[elem];
 	param = tds_add_input_param(dyn);
 	param->column_type = _ct_get_server_type(datafmt->datatype);
@@ -1547,6 +1551,7 @@ int elem;
 	param->is_null = indicator;
 
 	return CS_SUCCEED;
+*/
 }
 CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen)
 {

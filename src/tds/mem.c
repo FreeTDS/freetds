@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.40 2002-10-27 07:51:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.41 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -125,7 +125,7 @@ TDSDYNAMIC **dyns;
  *
  *  tds_add_input_param adds a parameter to a dynamic statement.
  */
-TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
+/* TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
 {
 TDSINPUTPARAM *param;
 TDSINPUTPARAM **params;
@@ -151,6 +151,7 @@ TDSINPUTPARAM **params;
 	dyn->num_params++;
 	return param;
 }
+*/
 
 /** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
  *  \brief Frees all allocated input parameters of a dynamic statement.
@@ -162,6 +163,7 @@ void tds_free_input_params(TDSDYNAMIC *dyn)
 {
 int i;
 
+/* !!! TODO
 	if (dyn->num_params) {
 		for (i=0;i<dyn->num_params;i++) {
 			free(dyn->params[i]);
@@ -169,6 +171,7 @@ int i;
 		free(dyn->params);
 		dyn->num_params = 0;
 	}
+*/
 }
 /** \fn void tds_free_dynamic(TDSSOCKET *tds)
  *  \brief Frees all dynamic statements for a given connection.
@@ -213,7 +216,7 @@ TDSCOLINFO **cols;
 	colinfo = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
 	if (!colinfo) return NULL;
 	memset(colinfo,0,sizeof(TDSCOLINFO));
-	
+
 	if (!old_param || !old_param->num_cols) {
 		cols = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *));
 	} else {

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.31 2002-10-30 20:29:55 castellano Exp $";
+	"$Id: tds.h,v 1.32 2002-11-01 19:41:48 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -158,8 +158,8 @@ typedef struct tdsdaterec
 #define TDS_DONT_RETURN      42
 
 #define TDS5_DYN_TOKEN      231  /* 0xE7    TDS 5.0 only              */
-#define TDS5_DYNRES_TOKEN   236  /* 0xEC    TDS 5.0 only              */
-#define TDS5_DYN3_TOKEN     215  /* 0xD7    TDS 5.0 only              */
+#define TDS5_PARAMFMT_TOKEN 236  /* 0xEC    TDS 5.0 only              */
+#define TDS5_PARAMS_TOKEN   215  /* 0xD7    TDS 5.0 only              */
 #define TDS_LANG_TOKEN       33  /* 0x21    TDS 5.0 only              */
 #define TDS_CLOSE_TOKEN     113  /* 0x71    TDS 5.0 only? ct_close()  */
 #define TDS_RET_STAT_TOKEN  121  /* 0x79                              */
@@ -501,17 +501,19 @@ typedef struct tds_column_info {
 } TDSCOLINFO;
 
 typedef struct tds_result_info {
-	TDS_SMALLINT  rows_exist;
-	TDS_INT       row_count;
-	TDS_INT       row_size;
-    TDS_SMALLINT  computeid;
+	/* TODO those fields can became a struct */
 	TDS_SMALLINT  num_cols;
-	TDS_SMALLINT  by_cols;
-	TDS_TINYINT   more_results;
 	TDSCOLINFO    **columns;
-    TDS_TINYINT   *bycolumns;
+	TDS_INT       row_size;
 	int           null_info_size;
 	unsigned char *current_row;
+
+	TDS_SMALLINT  rows_exist;
+	TDS_INT       row_count;
+	TDS_SMALLINT  computeid;
+	TDS_TINYINT   more_results;
+	TDS_TINYINT   *bycolumns;
+	TDS_SMALLINT  by_cols;
 } TDSRESULTINFO;
 
 /* values for tds->state */
@@ -534,19 +536,21 @@ enum {
 typedef struct tds_result_info TDSCOMPUTEINFO;
 
 typedef struct tds_param_info {
-        TDS_SMALLINT num_cols;
-	TDS_INT row_size;
-        TDSCOLINFO **columns;
+	TDS_SMALLINT  num_cols;
+	TDSCOLINFO    **columns;
+	TDS_INT       row_size;
 	int           null_info_size;
 	unsigned char *current_row;
 } TDSPARAMINFO;
 
+/*
 typedef struct tds_input_param {
 	TDS_SMALLINT column_type;
 	TDS_CHAR *varaddr;
 	TDS_UINT column_bindlen;
 	TDS_CHAR is_null;
 } TDSINPUTPARAM;
+*/
 
 typedef struct tds_msg_info {
       TDS_SMALLINT priv_msg_type;
@@ -576,8 +580,9 @@ typedef struct tds_dynamic {
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
 	TDSRESULTINFO *res_info;
-	int num_params;
-	TDSINPUTPARAM **params;
+/*	int num_params;
+	TDSINPUTPARAM **params; */
+	TDSPARAMINFO *new_params;
 } TDSDYNAMIC;
 
 /* forward declaration */
@@ -694,7 +699,7 @@ TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale);
 TDSLOCINFO *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCINFO *locale);
 int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
-TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
+/* TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn); */
 void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);
 void tds_set_passwd(TDSLOGIN *tds_login, char *password);
