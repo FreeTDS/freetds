@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.95 2002-11-24 10:22:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.96 2002-11-27 15:51:06 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2253,6 +2253,9 @@ SQLRETURN SQL_API SQLGetInfo(
 		break;
 	case SQL_DEFAULT_TXN_ISOLATION:
 		*uiInfoValue  = SQL_TXN_READ_COMMITTED;
+		break;
+	case SQL_FILE_USAGE:
+		*uiInfoValue  = SQL_FILE_NOT_SUPPORTED;
 		break;
 	/* TODO support for other options */
 	default:
