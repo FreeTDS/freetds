@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.71 2003-01-12 10:05:05 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.72 2003-01-24 15:31:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1041,6 +1041,7 @@ TDSCOLINFO *curcol;
 	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_size);
 	tdsdump_log(TDS_DBG_INFO1, "%L inside ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
+	/* FIXME is ok this value for numeric/decimal? */
 	datafmt->maxlength = curcol->column_size;
 	datafmt->usertype = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
