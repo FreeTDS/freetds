@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.11 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.12 2003-03-06 23:58:45 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 	/*
 	 * The heart of the test
 	 */
-	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
+	rc = tds_submit_query(tds, "SELECT * FROM #test_table", NULL);
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:

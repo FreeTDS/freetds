@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.34 2003-03-06 17:24:41 mlilback Exp $";
+         "$Id: cspublic.h,v 1.35 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -185,6 +185,7 @@ typedef struct cs_command
 	CS_IODESC *iodesc;
 	CS_INT send_data_started;
 	CSREMOTE_PROC *rpc;
+	CS_PARAM	*input_params;
 } CS_COMMAND;
 
 #define CS_MAX_MSG 1024

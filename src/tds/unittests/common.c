@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.12 2003-01-27 10:31:29 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.13 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -127,7 +127,7 @@ run_query(TDSSOCKET * tds, const char *query)
 	int rc;
 	int result_type;
 
-	rc = tds_submit_query(tds, query);
+	rc = tds_submit_query(tds, query, NULL);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed for query '%s'\n", query);
 		return TDS_FAIL;

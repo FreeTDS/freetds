@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.82 2003-03-06 17:24:53 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.83 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -60,7 +60,7 @@ static int _ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data,
 static void rpc_clear(CSREMOTE_PROC * rpc);
 static void param_clear(CSREMOTE_PROC_PARAM * pparam);
 
-static TDSPARAMINFO* paraminfoalloc(CSREMOTE_PROC * rpc);
+static TDSPARAMINFO* paraminfoalloc(CS_PARAM * first_param);
 
 /* RPC Code changes ends here */
 
@@ -429,6 +429,12 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
+	/* starting a command invalidates the previous command. This means any
+		input params go away. */
+	if (cmd->input_params && !((CS_LANG_CMD == type) && (CS_MORE == option))) {
+		param_clear(cmd->input_params);
+		cmd->input_params = NULL;
+	}
 	/* TODO some type require different handling, save type and use it */
 	switch (type) {
 	case CS_LANG_CMD:
@@ -587,7 +593,7 @@ TDSPARAMINFO* pparam_info;
 		}
 
 		rpc = &(cmd->rpc);
-		pparam_info = paraminfoalloc(cmd->rpc);
+		pparam_info = paraminfoalloc(cmd->rpc->param_list);
 		ret = tds_submit_rpc(tds, cmd->rpc->name, pparam_info);
 
 		tds_free_param_results(pparam_info);
@@ -602,7 +608,15 @@ TDSPARAMINFO* pparam_info;
 	/* RPC Code changes ends here */
 
 	if (cmd->command_type == CS_LANG_CMD) {
-		if (tds_submit_query(tds, cmd->query) == TDS_FAIL) {
+		ret = CS_FAIL;
+		if (cmd->input_params) {
+			pparam_info = paraminfoalloc(cmd->input_params);
+			ret = tds_submit_query(tds, cmd->query, pparam_info);
+			tds_free_param_results(pparam_info);
+		} else {
+			ret = tds_submit_query(tds, cmd->query, NULL);
+		}
+		if (ret == TDS_FAIL) {
 			tdsdump_log(TDS_DBG_WARN, "%L ct_send() failed\n");
 			return CS_FAIL;
 		} else {
@@ -999,6 +1013,8 @@ ct_cmd_drop(CS_COMMAND * cmd)
 	if (cmd) {
 		if (cmd->query)
 			free(cmd->query);
+		if (cmd->input_params)
+			param_clear(cmd->input_params);
 		free(cmd);
 	}
 	return CS_SUCCEED;
@@ -1642,7 +1658,7 @@ char hex2[3];
 			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? "with log" : "")
 			);
 
-		if (tds_submit_query(tds, writetext_cmd) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, writetext_cmd, NULL) != TDS_SUCCEED) {
 			return CS_FAIL;
 		}
 
@@ -2096,6 +2112,11 @@ int query_len, id_len;
 TDSDYNAMIC *dyn;
 TDSSOCKET *tds;
 
+	/* this call resets the command, clearing any params */
+	if (cmd->input_params) {
+		param_clear(cmd->input_params);
+		cmd->input_params = NULL;
+	}
 	cmd->command_type = CS_DYNAMIC_CMD;
 	cmd->dynamic_cmd = type;
 	switch (type) {
@@ -2156,25 +2177,18 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 {
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
-
-/* Code changed for RPC functionality - SUHA*/
-/* RPC code changes starts here */
 CSREMOTE_PROC *rpc;
 CS_PARAM **pparam;
 CS_PARAM *param;
- /* RPC code changes ends here */
 
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
 
-	/* Code changed for RPC functionality - SUHA*/
-	/* RPC code changes starts here */
-
 	if (cmd == NULL) return CS_FAIL;
 
-	if (cmd->command_type == CS_RPC_CMD) {
-
+	switch (cmd->command_type) {
+	case CS_RPC_CMD:
 		if (cmd->rpc == NULL) {
 			fprintf (stdout, "RPC is NULL ct_param\n");
 			return CS_FAIL;
@@ -2183,8 +2197,10 @@ CS_PARAM *param;
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
-		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, &datalen, &indicator, 1))
+		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, &datalen, &indicator, 1)) {
+			free(param);
 			return CS_FAIL;
+		}
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
@@ -2201,19 +2217,46 @@ CS_PARAM *param;
 		}
 		*pparam = param;
 		(*pparam)->next = NULL;
-		tdsdump_log(TDS_DBG_INFO1, " ct_param() added parameter %s \n",(*param).name );
+		tdsdump_log(TDS_DBG_INFO1, " ct_param() added rpc parameter %s \n",(*param).name );
 		return CS_SUCCEED;
-	}
+		break;
 
-	/* RPC code changes ends here */
+	case CS_LANG_CMD:
+		/* only accept CS_INPUTVALUE as the status */
+		if (CS_INPUTVALUE != datafmt->status) {
+			tdsdump_log(TDS_DBG_ERROR, "illegal datafmt->status(%d) passed to ct_param()\n",
+				datafmt->status);
+			return CS_FAIL;
+		}
+		
+		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
-	if (cmd->command_type == CS_DYNAMIC_CMD) {
+		if (CS_SUCCEED != _ct_fill_param(param, datafmt, data, &datalen, &indicator, 1)) {
+			free(param);
+			return CS_FAIL;
+		}
+		
+		if (NULL == cmd->input_params)
+			cmd->input_params = param;
+		else {
+			pparam = &cmd->input_params;
+			while ((*pparam)->next)
+				pparam = &(*pparam)->next;
+			(*pparam)->next = param;
+		}
+		tdsdump_log(TDS_DBG_INFO1, "ct_param() added input value\n");
+		return CS_SUCCEED;
+		break;
+
+	case CS_DYNAMIC_CMD:
 		tds = cmd->con->tds_socket;
 
 		dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
 	
 		/* TODO */
 		return CS_FAIL;
+		break;
 	}
 	/* TODO */
 	return CS_FAIL;
@@ -2517,6 +2560,11 @@ ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CO
 CS_RETCODE
 ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option)
 {
+	/* this call resets the command, clearing any params */
+	if (cmd->input_params) {
+		param_clear(cmd->input_params);
+		cmd->input_params = NULL;
+	}
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED ct_cursor()\n");
 	return CS_FAIL;
 }
@@ -2593,10 +2641,10 @@ paramrowalloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
  * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
  */
 static TDSPARAMINFO*
-paraminfoalloc(CSREMOTE_PROC * rpc)
+paraminfoalloc(CS_PARAM * first_param)
 {
 	int i;
-	CSREMOTE_PROC_PARAM *p;
+	CS_PARAM *p;
 	TDSCOLINFO *pcol;
 	TDSPARAMINFO *params=NULL;
 
@@ -2607,9 +2655,9 @@ paraminfoalloc(CSREMOTE_PROC * rpc)
 	
 
 	/* sanity */
-	if (rpc == NULL) return NULL;
+	if (first_param == NULL) return NULL;
 
-	for (i=0, p = rpc->param_list; p != NULL; p = p->next, i++) {
+	for (i=0, p = first_param; p != NULL; p = p->next, i++) {
   		const unsigned char * prow;
 		if (!(params = tds_alloc_param_result(params))) {
 			fprintf(stderr, "out of rpc memory!");
@@ -2741,12 +2789,13 @@ rpc_clear(CSREMOTE_PROC * rpc)
  * recursively erase the parameter list
  */
 static void
-param_clear(CSREMOTE_PROC_PARAM * pparam)
+param_clear(CS_PARAM * pparam)
 {
 	if (pparam == NULL) return;
 	
 	if (pparam->next) {
 		param_clear(pparam->next);
+		pparam->next = NULL;
 	}
 	
 	/* free self after clearing children */

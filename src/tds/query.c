@@ -40,10 +40,12 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.72 2003-03-05 13:14:32 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.73 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
+
+#define TDS_PUT_DATA_USE_NAME 1
 
 /* All manner of client to server submittal functions */
 
@@ -66,7 +68,7 @@ static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
  * @return TDS_FAIL or TDS_SUCCEED
  */
 int
-tds_submit_query(TDSSOCKET * tds, const char *query)
+tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO *params)
 {
 	int query_len;
 
@@ -94,8 +96,13 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
 		tds_put_int(tds, query_len + 1);
-		tds_put_byte(tds, 0);
+		tds_put_byte(tds, params ? 1 : 0); /* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
+		if (params) {
+			/* add on parameters */
+			tds_put_params(tds, params, 
+				params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
+		}
 	} else {
 		tds->out_flag = 0x01;
 		tds_put_string(tds, query, query_len);
@@ -112,7 +119,7 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 
 	va_start(ap, queryf);
 	if (vasprintf(&query, queryf, ap) >= 0) {
-		rc = tds_submit_query(tds, query);
+		rc = tds_submit_query(tds, query, NULL);
 		free(query);
 	}
 	va_end(ap);
@@ -332,7 +339,6 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 }
 
 
-#define TDS_PUT_DATA_USE_NAME 1
 /**
  * Put data information to wire
  * @param curcol column where to store information

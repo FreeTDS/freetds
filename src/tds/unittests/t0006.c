@@ -30,7 +30,7 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0006.c,v 1.14 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.15 2003-03-06 23:58:45 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -112,7 +112,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
+	rc = tds_submit_query(tds, "SELECT * FROM #test_table", NULL);
 
 	row_count = 0;
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
@@ -191,7 +191,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
+	rc = tds_submit_query(tds, "SELECT * FROM #test_table", NULL);
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:

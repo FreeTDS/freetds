@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.121 2003-03-05 09:46:31 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.122 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4076,7 +4076,7 @@ int pending_error = 0;
 			if ((cmdstr = dbstring_get(dbproc->dboptcmd)) == NULL) {
 				return FAIL;
 			}
-			rc = tds_submit_query(dbproc->tds_socket, cmdstr);
+			rc = tds_submit_query(dbproc->tds_socket, cmdstr, NULL);
 			free(cmdstr);
 			dbstring_free(&(dbproc->dboptcmd));
 			if (rc != TDS_SUCCEED) {
@@ -4089,7 +4089,7 @@ int pending_error = 0;
 			}
 		}
 		dbproc->more_results = TRUE;
-		if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCEED) {
+		if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf, NULL) != TDS_SUCCEED) {
 			return FAIL;
 		}
 		dbproc->command_state = DBCMDSENT;

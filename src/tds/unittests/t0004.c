@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.12 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.13 2003-03-06 23:58:45 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -97,7 +97,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		fprintf(stdout, "block size %d\n", tds->env->block_size);
 	}
-	rc = tds_submit_query(tds, long_query);
+	rc = tds_submit_query(tds, long_query, NULL);
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:

@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.6 2002-11-22 15:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.7 2003-03-06 23:58:45 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -50,7 +50,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	rc = tds_submit_query(tds, "use tempdb");
+	rc = tds_submit_query(tds, "use tempdb", NULL);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.150 2003-03-04 16:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.151 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -188,7 +188,7 @@ TDS_INT row_type;
 TDS_INT compute_id;
 TDSCOLINFO *curcol;
 
-	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
+	if (tds_submit_query(tds, "select @@spid", NULL) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
 	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED) {
@@ -417,6 +417,7 @@ int done_flags;
 		return TDS_NO_MORE_RESULTS;
 	}
 
+	tds->curr_resinfo = NULL;
 	for (;;) {
 
 		marker = tds_get_byte(tds);

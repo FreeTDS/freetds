@@ -62,7 +62,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.52 2003-02-20 15:37:57 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.53 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -128,7 +128,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	int print_rows = 1;
 	char message[128];
 
-	rc = tds_submit_query(tds, buf);
+	rc = tds_submit_query(tds, buf, NULL);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;

@@ -1,3 +1,28 @@
+Thu Mar 06 18:44:11 EST 2003  Mark Lilback <mark@lilback.com>
+	* include/cspublic.h:
+	* include/tds.h:
+	* src/apps/tsql.c:
+	* src/ctlib/ct.c:
+	* src/ctlib/unittests/Makefile.am:
+	* src/ctlib/unittests/lang_ct_param.c (added):
+	* src/dblib/bcp.c:
+	* src/dblib/dblib.c:
+	* src/odbc/odbc.c:
+	* src/pool/member.c:
+	* src/tds/login.c:
+	* src/tds/query.c:
+	* src/tds/token.c:
+	* src/tds/unittests/common.c:
+	* src/tds/unittests/t0002.c:
+	* src/tds/unittests/t0003.c:
+	* src/tds/unittests/t0004.c:
+	* src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c:
+	- added support for language commands with variables/parameters
+	  required changes to tds_submit_query signature. only works
+	  with TDS 5.0 right now. queries with variables will fail on
+	  other TDS versions.
+
 Thu Mar 06 12:26:01 EST 2003  Mark Lilback <mark@lilback.com>
 	* include/cspublic.h src/ctlib/ct.c: refactored rpc code for other uses
 

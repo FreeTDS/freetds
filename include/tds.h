@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.88 2003-03-05 10:13:05 freddy77 Exp $";
+	"$Id: tds.h,v 1.89 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -869,7 +869,7 @@ void tds_set_charset(TDSLOGIN *tds_login, const char *charset);
 void tds_set_language(TDSLOGIN *tds_login, const char *language);
 void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
 void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);
-int tds_submit_query(TDSSOCKET *tds, const char *query);
+int tds_submit_query(TDSSOCKET *tds, const char *query, TDSPARAMINFO *params);
 int tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...);
 int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);

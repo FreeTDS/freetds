@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.54 2003-03-03 18:36:59 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.55 2003-03-06 23:58:44 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1686,7 +1686,7 @@ char *hint;
 		}
 	}
 
-	tds_submit_query(tds, query);
+	tds_submit_query(tds, query, NULL);
 
 	/* save the statement for later... */
 
@@ -1883,7 +1883,7 @@ int marker;
 
 	if (IS_TDS50(tds)) {
 
-		tds_submit_query(tds, dbproc->bcp_insert_stmt);
+		tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
 
 		if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
 			return FAIL;
@@ -1894,7 +1894,7 @@ int marker;
 
 		while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED);
 	} else {
-		tds_submit_query(tds, dbproc->bcp_insert_stmt);
+		tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
 
 		marker = tds_get_byte(tds);
 		tds_process_default_tokens(tds, marker);
