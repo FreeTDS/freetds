@@ -31,7 +31,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.15 2002-12-14 15:15:03 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.16 2003-03-02 15:17:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -239,5 +239,74 @@ array_to_string(unsigned char *array, int scale, char *s)
 		s[j++] = array[i] + '0';
 	}
 	s[j] = '\0';
+	return s;
+}
+
+char *
+tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s)
+{
+	const unsigned char *number;
+
+	unsigned int packet[sizeof(numeric->array) / 2];
+	unsigned int *pnum, *packet_start;
+	const unsigned int *packet_end = packet + TDS_VECTOR_SIZE(packet);
+
+	unsigned int packet10k[(MAXPRECISION + 3) / 4];
+	unsigned int *p;
+
+	int num_bytes;
+	unsigned int remainder, n;
+
+	/* a bit of debug */
+#if ENABLE_EXTRA_CHECKS
+	memset(packet, 0x55, sizeof(packet));
+	memset(packet10k, 0x55, sizeof(packet10k));
+#endif
+
+	/* set sign */
+	if (numeric->array[0] == 1)
+		*s++ = '-';
+
+	/* put number in a 16bit array */
+	number = numeric->array;
+	num_bytes = tds_numeric_bytes_per_prec[numeric->precision];
+
+	n = num_bytes - 1;
+	pnum = packet_end;
+	for (; n > 1; n -= 2)
+		*--pnum = number[n - 1] * 256 + number[n];
+	if (n == 1)
+		*--pnum = number[n];
+	while (!*pnum) {
+		++pnum;
+		if (pnum == packet_end) {
+			strcpy(s, "0");
+			return s;
+		}
+	}
+	packet_start = pnum;
+
+	/* transform 2^16 base number in 10^4 base number */
+	for (p = packet10k + TDS_VECTOR_SIZE(packet10k); packet_start != packet_end;) {
+		pnum = packet_start;
+		n = *pnum;
+		remainder = n % 10000u;
+		if (!(*pnum++ = (n / 10000u)))
+			packet_start = pnum;
+		for (; pnum != packet_end; ++pnum) {
+			n = remainder * (256u * 256u) + *pnum;
+			remainder = n % 10000u;
+			*pnum = n / 10000u;
+		}
+		*--p = remainder;
+	}
+
+	/* transform to 10 base number and output */
+	/* TODO finish */
+	for (; p != packet10k + TDS_VECTOR_SIZE(packet10k); ++p) {
+		sprintf(s, "%04d", *p);
+		s += 4;
+	}
+
 	return s;
 }

@@ -30,13 +30,16 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0008.c,v 1.10 2002-11-20 13:34:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.11 2003-03-02 15:17:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
 static TDSCONTEXT ctx;
 
 void test(const char *src, const char *result, int prec, int scale);
+
+char *
+tds_numeric_to_string2(const TDS_NUMERIC * numeric, char *s);
 
 void
 test(const char *src, const char *result, int prec, int scale)
@@ -60,6 +63,11 @@ test(const char *src, const char *result, int prec, int scale)
 		fprintf(stderr, "Failed! Should be\n%s\n", result);
 		g_result = 1;
 	}
+
+	if (strcmp(buf,"error")==0)
+		return;
+	tds_numeric_to_string2(&cr.n, buf);
+	printf("%s\n%s\n", src, buf);
 }
 
 int
