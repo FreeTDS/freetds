@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.64 2002-12-20 21:31:31 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.65 2002-12-20 21:44:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -431,6 +431,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	colsize = curcol->column_cur_size;
 
 	/* put size of data */
+	src = &(current_row[curcol->column_offset]);
 	switch (curcol->column_varint_size) {
 	case 4:		/* Its a BLOB... */
 		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
@@ -452,7 +453,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	case 1:
 		if (!is_null) {
 			if (is_numeric_type(curcol->column_type))
-				colsize = tds_numeric_bytes_per_prec[num->precision];
+				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
 			tds_put_byte(tds, colsize);
 		} else
 			tds_put_byte(tds, 0);
@@ -466,7 +467,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		return TDS_SUCCEED;
 
 	/* put real data */
-	src = &(current_row[curcol->column_offset]);
 	if (is_numeric_type(curcol->column_type)) {
 		TDS_NUMERIC buf;
 		num = (TDS_NUMERIC *) src;
@@ -476,7 +476,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
 			num = &buf;
 		}
-		/* TODO colsize is correct here ?? */
 		tds_put_n(tds, num->array, colsize);
 	} else if (is_blob_type(curcol->column_type)) {
 		blob_info = (TDSBLOBINFO *) src;

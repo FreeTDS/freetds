@@ -1,3 +1,8 @@
+Fri Dec 20 22:43:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: 
+	- do not use uninitialized variables
+	- tested input params with a PA-RISC (big endian)
+
 Fri Dec 20 22:30:57 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: fix big endian and numeric on TDS7
 
