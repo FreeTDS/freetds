@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.178 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.179 2004-06-06 19:21:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1570,7 +1570,7 @@ dbnextrow(DBPROCESS * dbproc)
 					/* Add the row to the row buffer */
 					resinfo = tds->curr_resinfo;
 					buffer_add_row(&(dbproc->row_buf), resinfo->current_row, resinfo->row_size);
-					result = dbproc->row_type = (rowtype == TDS_COMP_ROW)? REG_ROW : computeid;
+					result = dbproc->row_type = (rowtype == TDS_REG_ROW)? REG_ROW : computeid;
 					break;
 				default:
 					result = FAIL;

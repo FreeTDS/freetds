@@ -1,3 +1,6 @@
+Sun Jun  6 21:21:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: remove silly bug
+
 Sat Jun  5 18:44:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO include/tdsodbc.h src/odbc/odbc.c src/odbc/prepare_query.c:
 	* src/odbc/prepare_query.h src/odbc/unittests/putdata.c:
