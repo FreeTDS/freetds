@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.119 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.120 2003-12-06 20:20:20 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -285,6 +285,34 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 	return rc;
 }
 
+const char *
+tds_skip_comment(const char *s)
+{
+char end = '\0';
+const char *p = s;
+if (*p == '-' && p[1] == '-')
+	end = '\n';
+else if (*p == '/' && p[1] == '*')
+	end = '*';
+else
+	++p;
+
+if (end == '\n') { /* Line Comment */
+	for (;*++p != '\0';) {
+		if (*p == '\n')
+			return p;
+		}
+	}
+else if (end == '*') { /* Comment */
+	p+=2;
+	for(;*++p != '\0';)	{
+		if (*p == '*' && p[1] == '/')
+			return ++p;
+		}
+	}
+
+return p;
+}
 
 /**
  * Skip quoting string (like 'sfsf', "dflkdj" or [dfkjd])
@@ -328,6 +356,12 @@ tds_next_placeholders(const char *start)
 		case '[':
 			p = tds_skip_quoted(p);
 			break;
+
+		case '-':
+		case '/':
+			p = tds_skip_comment(p);
+			break;
+
 		case '?':
 			return p;
 		default:
