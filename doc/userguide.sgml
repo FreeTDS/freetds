@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-06-15 00:39:10 $</date>
-		<releaseinfo>$Revision: 1.83 $</releaseinfo>
+		<date>$Date: 2004-06-28 05:25:27 $</date>
+		<releaseinfo>$Revision: 1.84 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.83 $</>
-<member>$Date: 2004-06-15 00:39:10 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.83 2004-06-15 00:39:10 jklowden Exp $.</>
+<member>$Revision: 1.84 $</>
+<member>$Date: 2004-06-28 05:25:27 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.84 2004-06-28 05:25:27 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -113,9 +113,6 @@ At about the same time, Sybase introduced a more powerful <quote>successor</quot
 The <acronym>TDS</> protocol comes in several flavors, most of which have never
 been openly documented.  If anything, it's probably considered to be something like a trade secret, or at least proprietary technology.  The exception is TDS 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.
 			</para>
-			<para>
-<productname>FreeTDS</productname> was and is developed by observation and experimentation, which is to say, by trial and error.  
-			</para>
 		</sect1>
 		
 		<sect1 id="tdshistory">
@@ -163,6 +160,9 @@ Introduced for <productname>SQL Server 2000</productname>.  Includes support for
 		  </sect1>
 
 		  <sect1 id="FreeTDShistory"> <title>History of <productname>FreeTDS</productname></title>
+			<para>
+<productname>FreeTDS</productname> was and is developed by observation and experimentation, which is to say, by trial and error.  
+			</para>
 			<para>
 In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was a.out based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
 			</para>
@@ -221,9 +221,6 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 Not to be outdone, the folks at the <firstterm>O'Caml</> project have a binding for that language.  You can read more about it on <ulink url="http://kenn.frap.net/ocaml-freetds/">
 Kenn Knowles's</ulink> site; see also his <ulink url="http://www.merjis.com/developers/">ocamldbi</ulink> driver.  
 			</para>
-			<para>
-<productname>FreeTDS</productname> is a source code library, though, not a binary one.  It has to be linked to a program.  For it to be useful to you in any way, you have to be prepared to break out your build tools.  
-			</para>
 		</sect2>
 		<sect2 id="alternatives">
 			<title>Alternatives</title>
@@ -281,7 +278,7 @@ If the following nevertheless reads like gibberish, you might very well want to 
 		<sect1 id="packages">
     			<title>What to build: Packages, Tarballs, and the <productname>CVS</productname></title>
 			<para>
-The latest <productname>FreeTDS</productname> package is version 0.61.  It is available from 
+The latest <productname>FreeTDS</productname> package is always available from 
 	<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-release.tgz">
 		<citetitle>iBiblio</citetitle></ulink> 
 and its mirrors.
@@ -422,7 +419,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<variablelist id="tab.turnon"><title>Things you can turn on</title>
 			<varlistentry>
 				<term><Option>--enable-msdblib</Option></term>
-				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
+				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically needed only for porting Win32 applications to Unix.</para>
 					</listitem>
 				</varlistentry>
 
@@ -479,7 +476,7 @@ With any luck, you've built and installed the <productname>FreeTDS</productname>
 		<sect1 id="osissues">
     			<title>OS-specific Issues</title>
 			<sidebar>
-			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
+			<para>If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
 			
 			<para>One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  </para>
 			</sidebar>
@@ -536,7 +533,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-06-15 00:39:10 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-06-28 05:25:27 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -609,7 +606,7 @@ If you install it they will stay?
 <Note><title>Confusing terminology</title>
 			<para>
 <quote>Configuring</quote> and <quote>installing</quote> 
-don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.  In the <acronym>GNU</> world, we <command>configure</command> the package (generate the Makefile), then we <command>make install</command> the package.  To  <emphasis>install the package</emphasis> is to copy the binaries to their appropriate run-time directories, copy the documentation to the <filename>doc</filename> directory, and maybe let the package manager know what's happened.  That's generally considered part of the <phrase>build process</phrase>, covered in the last chapter.  
+don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.  In the <acronym>GNU</> world, we <command>configure</command> the package (generate the <filename>Makefile</>s), then we <command>make install</command> the package.  To  <emphasis>install the package</emphasis> is to copy the binaries to their appropriate run-time directories, copy the documentation to the <filename>doc</filename> directory, and maybe let the package manager know what's happened.  That's generally considered part of the <phrase>build process</phrase>, covered in the last chapter.  
 			</para>
 			<para>
 For lack of a better term, this chapter describes installing the <emphasis>product</emphasis>.  Put more specifically, once we're done with the package manager, we still have to tell <productname>FreeTDS</productname> about your database servers, and we still have to tell your client programs about <productname>FreeTDS</productname>.  
@@ -658,7 +655,7 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	<row>
 	<entry>Microsoft SQL Server 2000</entry>
 	<entry>8.0</entry>
-	<entry>Include support for bigint (64 bit integers), variant and collation on all fields. <productname>FreeTDS</productname> support for 8.0 is new. Variant are not supported, collation is not widely used. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
+	<entry>Include support for bigint (64 bit integers), variant and collation on all fields. <productname>FreeTDS</productname> support for 8.0 is new. Variant is not supported; collation is not widely used. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
 	</row>
 </tbody>	
 </tgroup>
@@ -728,7 +725,7 @@ In addition, <productname>FreeTDS</productname> will look for a file <filename>.
 The actual name and location of <filename>freetds.conf</filename> may be specified by the environment variable <envar>FREETDS</envar> (or <envar>FREETDSCONF</envar>, same effect).  See <link linkend="envvar">Environment Variables</link>, below.  
 			</para>
 			<para>
-<productname>FreeTDS</productname> reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir</replaceable>/<filename>freetds.conf</filename>.  The first properly configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
+<productname>FreeTDS</productname> reads the user's <replaceable>${HOME}/</replaceable><filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir/</replaceable><filename>freetds.conf</filename>.  The first properly configured (i.e., a readable file with a section for the server) <filename>freetds.conf</filename> file will be the one used.
            		</para>
 		</sect2>
 		<sect2 id="freetdsconfformat">
@@ -1940,7 +1937,7 @@ Changed language setting to middle_english.
 			<para>
 When <productname>FreeTDS</productname> sees the <quote><literal>\</></quote> character, it automatically chooses a domain login.
   			</para>
-<Note><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for address resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).  
+<Note><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).  
   			</para><para>
 The SQL Server machine may belong to an NT domain.  <productname>FreeTDS</productname> provides an encrypted password -- a domain password, known to the domain controller -- that the server will ask the domain controller to verify.  </para></Note>
 
@@ -2119,7 +2116,7 @@ Now, let's put this into practice.
 	port = 5000
 </programlisting>
 </example>
-First, the <literal>[global]</literal> section defines that we will open 5 connections against the server initially, and will increase up to 10 as demand requires.  These connections will be closed after being idle for 2 minutes (120 seconds), but only until there are 5 remaining open.
+The <literal>[global]</literal> section defines that we will open 5 connections against the server initially, and will increase up to 10 as demand requires.  These connections will be closed after being idle for 2 minutes (120 seconds), but only until there are 5 remaining open.
 		</para>
 		<para>
 The <literal>[mypool]</literal> section defines a pool named <literal>mypool</literal> that will listen on port 5000.  It will login to a <productname>SQL Server</productname> named <literal>fooserv</literal> using the user <literal>webuser</literal> and the ever so clever password of <literal>secret</literal>.  Once logged in, the connections will use the database <literal>ebiz</literal> instead of webuser's default database.  Also, since this <productname>SQL Server</productname> has a limited number of <acronym>CAL</>s (Client Access Licenses), we are restricting the maximum number of connections to 7, which overrides the <literal>global</literal> setting of 10.
@@ -2131,7 +2128,7 @@ Now you can run <Command>tdspool</Command> with the name of the pool you are ser
 </screen>
 		</para>
 		<para>
-Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host/port of the pooling server, and point your clients at it!
+Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host and port of the pooling server, and point your clients at it!
 		</para>
 		</sect1>
 		
@@ -2175,7 +2172,7 @@ To set up freetds over stunnel between a Linux webserver and a W2k SQL server:
 				</para></listitem>
 			<listitem>
 				<para>Set up freetds to use the tunnel.  If this is your unencrypted entry in
-   freetds.conf:
+   <filename>freetds.conf</filename>:
 				</para>
 <example id="e.g.Unencrypted">
 <title>Unencrypted entry in <filename>freetds.conf</filename></title>
@@ -2616,8 +2613,13 @@ modes.
 		</sect1>
 		<sect1 id="serverthere">
 			<title>Is the server there?</title>
+			<sect2 id="serverthere.ping">
+				<title>Start with <command>ping</></title>
 			<para>
-First ping the host to make sure you can talk to the machine the server resides on.  
+First <command>ping</> the host to make sure you can talk to the machine the server resides on.
+  
+<example id="e.g.troubleshooting.ping">
+	<title>Finding the server's host</title>
 <screen>
 <prompt>$ </prompt><userinput>ping -c1 myhost</userinput>
 <computeroutput>
@@ -2625,9 +2627,16 @@ PING myhost (127.0.0.1) from 127.0.0.1 : 56(84) bytes of data.
 64 bytes from myhost (127.0.0.1): icmp_seq=0 ttl=255 time=250 usec
 </computeroutput>
 </screen>
+</example>
+A successful ping shows that your network isn't preventing you from reaching the machine hosting the server.  
 			</para>
+			</sect2>
+			<sect2 id="serverthere.telnet">
+				<title>Test with <command>telnet</></title>
 			<para>
-If the machine pinged successfully, attempt to telnet to the host and port to verify that the dataserver is listening.
+Attempt to <command>telnet</> to the port, to verify that the dataserver is listening.
+<example id="e.g.troubleshooting.telnet">
+	<title>Finding the server</title>
 <screen>
 <prompt>$ </prompt><userinput>telnet <replaceable>myhost 1433</></userinput>
 <computeroutput>
@@ -2636,14 +2645,24 @@ Connected to myhost.
 Escape character is '^]'.
 </computeroutput>
 </screen>
-If you get output like this the dataserver is listening.  If you get a 'Connection Refused' message then either the dataserver is down, you have the port wrong, or you're talking to the wrong host.
+</example>
+If you get output as above, the dataserver is listening.  If you get a 'Connection Refused' message, you're talking to the wrong host, wrong port, or the dataserver is down.
+	<footnote><para>To exit <command>telnet</>:  When connected, telnet's command mode may be entered by
+     typing the telnet <firstterm>escape character</firstterm> (initially <keysym>Ctrl</keysym>-<keysym>]</keysym>, as above).  Once in command mode, <command>telnet</> may be exited with the command <command>quit</>.
+	</para></footnote>
 			</para>
+			</sect2>
+			<sect2 id="serverthere.tsql">
+				<title>Test with <command>tsql</></title>
 			<para>
-If telnet works, the next step is to run <command>tsql</>.  <command>tsql</> can be run in two ways, one which uses <filename>freetds.conf</> and one which connects directly using the host and port.  First attempt a connection using host and port.
+<command>tsql</> can be run in two ways, one which uses <filename>freetds.conf</> and one which connects directly using the host and port.  First attempt a connection using host and port.
+<example id="e.g.troubleshooting.tsql.noconf">
+	<title>Connecting to the server, bypassing <filename>freetds.conf</></title>
 <screen>
 <prompt>$ </prompt><userinput>cd src/apps</userinput>
 <prompt>$ </prompt><userinput>./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput>
 </screen>
+</example>
 If you receive a message of 'Login Failed.' then your connectivity is OK, but you have a authentication issue.
 </para>
 <para>
@@ -2658,11 +2677,15 @@ If you receive a message like
 			</para>
 			<para>
 Finally, if you received a prompt, then try <command>tsql</> using the dataserver name.
+<example id="e.g.troubleshooting.tsql">
+	<title>Connecting to the server using <filename>freetds.conf</></title>
 <screen>
 <prompt>$ </prompt><userinput>./tsql -S <replaceable>myserver</> -U <replaceable>user</></userinput>
 </screen>
+</example>
 If this fails, FreeTDS is either not finding your <filename>freetds.conf</filename> file, finding the wrong one, or there is an error in the file.
 			</para>
+			</sect2>
 		</sect1>
 		<sect1 id="Logging">
 			<title>Logging</title>
@@ -2890,7 +2913,7 @@ Many of the original authors and anyone maintaining or extending the code reads 
 		
 		<sect2 id="Happened"><title>What Happened?</title>
 		
-			<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</> and attach the log to your message.  Messages are currently limited to 75 KB attachments, and the logs are quite detailed, so make your query as short as possible.  If necessary, trim the log; <command>gzip</> is also your friend here.  It's always a good idea to post it on a website were people can fetch it if they're so inclined.  
+			<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</> and attach the log to your message.  Messages are currently limited to 75 KB attachments, and the logs are quite detailed, so make your query as short as possible.  If necessary, trim the log; <command>gzip</> is also your friend here.  It's always a good idea to post it on a website where people can fetch it if they're so inclined.  
 			</para>
 			<para>Think about it this way: If you attach a log no one reads, you wasted some bandwidth.  If you don't attach one and someone asks you for it, you wasted a day.  Like that.  			</para>
 		</sect2>
@@ -3271,7 +3294,7 @@ UNIX&reg; and unix-like systems bought into <acronym>ASCII</> big time.  Program
 <acronym>ASCII</> won, it would seem, but the race goes not to the swift.  <acronym>ASCII</> has many limitations, the most egregious of which is, it's not much good for anything besides English.  It encodes all the letters and punctuation (almost) of the English alphabet, but is useless for German, Russian, and Greek, to say nothing of Chinese.  
 			</para>
 			<para>
-<acronym>ASCII</> assigns one byte to every character, but deals only with 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English &mdash; even English with em dashes and cent (&cent;) signs &mdash; arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of alphabets.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  
+<acronym>ASCII</> assigns one byte to every character, but deals with only 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English &mdash; even English with em dashes and cent (&cent;) signs &mdash; arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</></quote> encoding standards for a wide variety of alphabets.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.  
 	
 			</para>
 			<para>
