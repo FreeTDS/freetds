@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.114 2003-01-22 20:29:34 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.115 2003-01-26 09:33:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -394,13 +394,13 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 			src = ((BYTE *) buffer_row_address(buf, idx)) + curcol->column_offset;
 			srclen = curcol->column_cur_size;
 			if (is_blob_type(curcol->column_type)) {
-				src = ((TDSBLOBINFO *) src)->textvalue;
+				src = (BYTE*) ((TDSBLOBINFO *) src)->textvalue;
 			}
 			desttype = _db_get_server_type(curcol->column_bindtype);
 			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 			if (tds_get_null(resinfo->current_row, i)) {
-				_set_null_value(dbproc, curcol->column_varaddr, desttype, curcol->column_bindlen);
+				_set_null_value(dbproc, (BYTE*)curcol->column_varaddr, desttype, curcol->column_bindlen);
 			} else {
 
 				/* FIXME use also curcol->column_bindlen, 
@@ -799,6 +799,7 @@ TDSCONNECTINFO *connect_info;
         }
 
 	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
+		dbproc->tds_socket = NULL;
 		tds_free_connect(connect_info);
 		return NULL;
 	}

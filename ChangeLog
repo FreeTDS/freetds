@@ -1,3 +1,8 @@
+Sun Jan 26 10:33:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- fix pointer to garbage after tds_connect
+	- remove error compiling with C++ compiler
+
 Fri Jan 24 21:33:25 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/config.c applied 1-line patch from Craig A. Berry
 
