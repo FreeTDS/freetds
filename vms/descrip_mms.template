@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.4 2004-01-03 19:32:05 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.5 2004-01-09 05:25:24 jklowden Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -294,7 +294,6 @@ libtdscheck :
 	@ run/nodebug []t0008$(E)
 	@ run/nodebug []convert$(E)
 	@ run/nodebug []dataread$(E)
-	@ run/nodebug []flags$(E)
 	@ run/nodebug []utf8_1$(E)
 	@ run/nodebug []utf8_2$(E)
 	@ set default [---]
@@ -378,7 +377,7 @@ buildchecks : libtdstests ctlibtests dblibtests $(ODBCTESTS)
 libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]t0001$(E) [.src.tds.unittests]t0002$(E) \
 	[.src.tds.unittests]t0003$(E) [.src.tds.unittests]t0004$(E) [.src.tds.unittests]t0005$(E) \
 	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E) \
-	[.src.tds.unittests]convert$(E) [.src.tds.unittests]dataread$(E) [.src.tds.unittests]flags$(E) \
+	[.src.tds.unittests]convert$(E) [.src.tds.unittests]dataread$(E) \
 	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E)
 	@ continue
 
@@ -477,12 +476,6 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
 
 [.src.tds.unittests]dataread$(OBJ) : [.src.tds.unittests]dataread.c
-	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
-
-[.src.tds.unittests]flags$(E) : [.src.tds.unittests]flags$(OBJ) [.src.tds.unittests]common$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
-
-[.src.tds.unittests]flags$(OBJ) : [.src.tds.unittests]flags.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.tds.unittests]utf8_1$(E) : [.src.tds.unittests]utf8_1$(OBJ) [.src.tds.unittests]common$(OBJ)

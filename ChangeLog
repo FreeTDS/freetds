@@ -1,3 +1,6 @@
+Fri Jan  9 00:22:32 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* vms/descrip_mms.template remove flags test from 'make check'
+	
 Thu Jan  8 23:51:01 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in new candidate 0.62rc5
 	* src/tds/iconv.c ignore 'unknown' charset from server
