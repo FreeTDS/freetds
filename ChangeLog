@@ -1,3 +1,12 @@
+Fri Sep 27 13:20:53 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- Use %ld for long argument to sprintf()
+	- Use integer for array subscript instead of char
+	- Use explicit test for NULL instead of using assignment value
+	  as boolean.
+	* src/tds/token.c:
+	- Remove unused variable
+
 Fri Sep 27 12:44:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/bcp.c:
 	- When bulk copying out, skip any column numbers that are out of

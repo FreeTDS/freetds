@@ -141,7 +141,7 @@ char message[128];
 		 }
 		 if (opt_flags & OPT_TIMER) {
 			gettimeofday(&stop,NULL);
-			sprintf(message,"Total time for processing %d rows: %d msecs\n", 
+			sprintf(message,"Total time for processing %d rows: %ld msecs\n", 
 				rows, 
 				((stop.tv_sec - start.tv_sec) * 1000) + 
 				((stop.tv_usec -  start.tv_usec) / 1000));
@@ -159,8 +159,7 @@ void print_usage(char *progname)
 int get_opt_flags(char *s, int *opt_flags) 
 {
 char **argv;
-char argc=0;
-char *t;
+int argc=0;
 int opt;
 
 	/* make sure we have enough elements */
@@ -170,7 +169,7 @@ int opt;
 	/* parse the command line and assign to argv */
 	argv[argc++] = strtok(s," ");
 	if (argv[0])
-		while (argv[argc++] = strtok(NULL, " "));
+		while ((argv[argc++] = strtok(NULL, " ")) != NULL);
 
 	argv[argc]=NULL;
 
