@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.137 2005-02-08 12:11:02 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.138 2005-02-09 14:56:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -842,7 +842,20 @@ tds_tls_log( int level, const char* s)
 {
 	tdsdump_log(TDS_DBG_INFO1, "GNUTLS: level %d:\n  %s", level, s);
 }
+
+static int tls_initialized = 0;
+
+#ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_tls_deinit(void)
+{
+	if (tls_initialized)
+		gnutls_global_deinit();
+}
 #endif
+
+#endif
+
 
 static int
 tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
@@ -869,6 +882,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		GNUTLS_MAC_SHA, GNUTLS_MAC_MD5, 0
 	};
 	int ret;
+	const char *tls_msg;
 #endif
 
 	int i, len;
@@ -949,50 +963,71 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #else
 	/* here we have to do encryption ... */
 
+	xcred = NULL;
+	session = NULL;	
+	tls_msg = "initializing tls";
+
 	/* FIXME place somewhere else, deinit at end */
-	gnutls_global_init ();
-	gnutls_global_set_log_level(11);
-	gnutls_global_set_log_function(tds_tls_log);
+	ret = gnutls_global_init();
+	if (ret == 0) {
+		tls_initialized = 1;
 
-	/* TODO: perhaps some functions can fail, check it... */
+		gnutls_global_set_log_level(11);
+		gnutls_global_set_log_function(tds_tls_log);
+		tls_msg = "allocating credentials";
+		ret = gnutls_certificate_allocate_credentials(&xcred);
+	}
 
-	gnutls_certificate_allocate_credentials (&xcred);
+	if (ret == 0) {
+		/* Initialize TLS session */
+		tls_msg = "initializing session";
+		ret = gnutls_init(&session, GNUTLS_CLIENT);
+	}
+	
+	if (ret == 0) {
+		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_pull_function(session, tds_pull_func);
+		gnutls_transport_set_push_function(session, tds_push_func);
 
-	/* Initialize TLS session */
-	gnutls_init (&session, GNUTLS_CLIENT);
-	gnutls_transport_set_ptr (session, tds);
-	gnutls_transport_set_pull_function (session, tds_pull_func);
-	gnutls_transport_set_push_function (session, tds_push_func);
+		/* NOTE: there functions return int however they cannot fail */
 
-	/* use default priorities... */
-	gnutls_set_default_priority (session);
+		/* use default priorities... */
+		gnutls_set_default_priority(session);
 
-	/* ... but overwrite some */
-	gnutls_cipher_set_priority(session, cipher_priority);
-	gnutls_compression_set_priority(session, comp_priority);
-	gnutls_kx_set_priority(session, kx_priority);
-	gnutls_mac_set_priority(session, mac_priority);
+		/* ... but overwrite some */
+		gnutls_cipher_set_priority(session, cipher_priority);
+		gnutls_compression_set_priority(session, comp_priority);
+		gnutls_kx_set_priority(session, kx_priority);
+		gnutls_mac_set_priority(session, mac_priority);
+		
+		/* put the anonymous credentials to the current session */
+		tls_msg = "setting credential";
+		ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, xcred);
+	}
+	
+	if (ret == 0) {
+		/* Perform the TLS handshake */
+		tls_msg = "handshake";
+		ret = gnutls_handshake (session);
+	}
 
-	/* put the anonymous credentials to the current session */
-	gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, xcred);
-
-
-	/* Perform the TLS handshake */
-	ret = gnutls_handshake (session);
-	if (ret < 0) {
-		gnutls_certificate_free_credentials(xcred);
-		gnutls_deinit (session);
-		tdsdump_log(TDS_DBG_INFO1, "*** Handshake failed: %s\n", gnutls_strerror (ret));
+	if (ret != 0) {
+		if (session)
+			gnutls_deinit(session);
+		if (xcred)
+			gnutls_certificate_free_credentials(xcred);
+		tdsdump_log(TDS_DBG_ERROR, "%s failed: %s\n", tls_msg, gnutls_strerror (ret));
 		return TDS_FAIL;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "- Handshake succeeded!!\n");
+
+	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 	tds->tls_session = session;
 	tds->tls_credentials = xcred;
 
 	ret = tds7_send_login(tds, connection);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
-	if (crypt_flag == 0) {
+	if (crypt_flag == 0 || ret != TDS_SUCCEED) {
 		gnutls_deinit(tds->tls_session);
 		tds->tls_session = NULL;
 		gnutls_certificate_free_credentials(tds->tls_credentials);

@@ -1,3 +1,11 @@
+Wed Feb  9 15:55:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* configure.in src/tds/login.c:
+	- check error during SSL initialization
+	- fix some possible memory leaks
+	* src/tds/mem.c: remove memory leak
+	* src/dblib/dblib.c: srclen == 0 means NULL for dbconvert
+
 Tue Feb  8 16:42:14 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml add to OS-specific, and use mdash element
 
