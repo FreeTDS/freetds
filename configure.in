@@ -109,6 +109,9 @@ dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
 
+AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
+AC_raf_FUNC_WHICH_GETSERVBYNAME_R
+AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
 
 dnl ------------------------------------------------------------
 dnl Compile time options

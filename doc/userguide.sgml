@@ -80,7 +80,7 @@ The version in use at the time of the Sybase/Microsoft split.
 			  Sybase</term>
 			<listitem>
 			<para>
-Introduced for Sybase.  Sybase has little need for a new <acronym>TDS</> version.
+Introduced for Sybase.  Because TDS 5.0 includes negotiated capabilities through which protocol features can be expanded, we are unlikely to see a new <acronym>TDS</> version from Sybase.
 			</para>
 			</listitem></varlistentry>
 
@@ -137,7 +137,7 @@ As of version 0.60, the <systemitem class="library">db-lib</systemitem> and <sys
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <application>freebcp</application>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
-The <systemitem class="library">ODBC</systemitem> driver is a bit weaker but may be usable depending on your applications needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your applications needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 			</para>
 			<para>
 Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			</para>
@@ -164,7 +164,7 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, python, or oth
 				</varlistentry>
 				<varlistentry>
 					<term><systemitem class="library">ODBC</systemitem> bridge products</term>
-					<listitem><para>They use the <systemitem class="library">ODBC</systemitem> driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and 
+					<listitem><para>They use the <systemitem class="library">ODBC</systemitem> driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft<ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and 
 <Application><systemitem class="library">ODBC</systemitem> Router</Application> from <ulink url="http://www.augsoft.com/">August Software</ulink> Corporation.  
 </para>
 					</listitem>
@@ -176,7 +176,7 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, python, or oth
 				</varlistentry>
 				<varlistentry>
 					<term>DBD::Proxy</term>
-					<listitem><para>We have no direct experience with this Perl-only option.  It has the same caveats as an <systemitem class="library">ODBC</systemitem> bridge.</para>
+					<listitem><para>We have no direct experience with this Perl-only option.  It has the same caveats as an <systemitem class="library">ODBC</systemitem> bridge except it's free.</para>
 					</listitem>
 				</varlistentry>
 			</variablelist>
@@ -219,7 +219,7 @@ Code changes by the developers are immediately available in the <productname>CVS
 			</para>
 			<para>
 For those behind firewalls or otherwise unable to access <productname>CVS</productname>, nightly snapshots of <productname>CVS</productname> are rolled up into tarballs for your convenience.  They can be downloaded from  
-	<ulink url="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/freetds-current.tgz">ibiblio.org</ulink> 
+	<ulink url="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/freetds-current.tgz">ibiblio.org</ulink>.  Tarballs are generated around 3am EST (GMT-5).
 			</para>
 			<para>
 In general, the <productname>CVS</productname> version works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>CVS</productname>.
@@ -689,6 +689,22 @@ The <envar>FREETDSCONF</envar> environment variable may be
 used to specify the name and location of the <filename>freetds.conf</filename> file.
 			</para>
 		        </sect3>
+        		 <sect3><title><envar>TDSPORT</envar></title>
+        		 <para>
+The <envar>TDSPORT</envar> environment variable specifies a TCP port number to be
+used to connect to the dataserver with.  It overrides the version default port (1433 for TDS 4.2/7.0/8.0, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.
+			</para>
+		        </sect3>
+        		 <sect3><title><envar>TDSQUERY</envar> and <envar>DSQUERY</envar></title>
+        		 <para>
+The <envar>TDSQUERY</envar> environment variable provides a server name to connect to if none is specified by the application.  DSQUERY is the historical Sybase name for this variable.
+			</para>
+		        </sect3>
+        		 <sect3><title><envar>TDSHOST</envar></title>
+        		 <para>
+The <envar>TDSHOST</envar> environment variable overrides the host specified in the <filename>freetds.conf</file>.
+			</para>
+		        </sect3>
 			</sect2>
 			
 			<sect2>
@@ -1042,7 +1058,7 @@ This chapter details some advanced configurations that need expanded explanation
 		<sect1 id="emulle">
 			<title>Big Endian Clients with Buggy <productname>SQL Server</productname>s</title>
 			<para>
-Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian.
+Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.
 			</para>
 <Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gullivers Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 
@@ -1715,21 +1731,9 @@ Assuming both <application>ping</application> and <application>telnet</applicati
 		</listitem>
 	</varlistentry>	
 	<varlistentry>
-		<term><envar>TDSPORT</envar></term>
+		<term><envar>TDSDUMPCONFIG</envar></term>
 		<listitem>
-			<para>the port to connect to</para>
-		</listitem>
-	</varlistentry>	
-	<varlistentry>
-		<term><envar>TDSQUERY</envar></term>
-		<listitem>
-			<para>the server name</para>
-		</listitem>
-	</varlistentry>	
-	<varlistentry>
-		<term><envar>TDSHOST</envar></term>
-		<listitem>
-			<para>the host to connect to</para>
+			<para>the file to which to dump configuration lookup information</para>
 		</listitem>
 	</varlistentry>	
 	<varlistentry>

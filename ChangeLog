@@ -1,3 +1,9 @@
+Mon Jul  8 21:25:47 EDT 2002	Brian Bruns <camber@ais.org>
+	*acinclude.m4: add macros to detect _r function signature
+	*configure.in: add macros
+	*src/tds/threadsafe.c: ifdef _r functions
+	*doc/userguide.sgml: minor expansion on some finer points
+
 Sat Jul  6 15:20:06 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	Several patches from Frediano Ziglio:
 	* src/odbc/odbc.c, patch 577931, correct memory leak

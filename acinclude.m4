@@ -24,7 +24,11 @@ unsigned long foo = INADDR_NONE;
    AC_DEFINE(INADDR_NONE, 0xffffffff)
  fi])
 
+
+
+
 dnl From Bruno Haible.
+
 AC_DEFUN([AM_ICONV],
 [
   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
@@ -91,6 +95,10 @@ size_t iconv();
   AC_SUBST(LIBICONV)
 ])
 
+
+
+dnl SSL check
+
 AC_DEFUN([CHECK_SSL],
 [AC_MSG_CHECKING(if ssl is wanted)
 AC_ARG_WITH(ssl,
@@ -127,4 +135,216 @@ AC_ARG_WITH(ssl,
 ])
 ])
 
+
+
+dnl Found on autoconf archive
+dnl Based on Caolan McNamara's gethostbyname_r macro. 
+dnl Based on David Arnold's autoconf suggestion in the threads faq.
+
+AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
+[AC_CACHE_CHECK(for getservbyname_r, ac_cv_func_which_getservbyname_r, [
+AC_CHECK_FUNC(getservbyname_r, [
+        AC_TRY_COMPILE([
+#               include <netdb.h>
+        ],      [
+
+        char *name;
+        char *proto;
+        struct servent *se;
+        struct servent_data data;
+        (void) getservbyname_r(name, proto, se, &data);
+
+                ],ac_cv_func_which_getservbyname_r=four,
+                        [
+  AC_TRY_COMPILE([
+#   include <netdb.h>
+  ], [
+        char *name;
+        char *proto;
+        struct servent *se, *res;
+        char buffer[2048];
+        int buflen = 2048;
+        (void) getservbyname_r(name, proto, se, buffer, buflen, &res)
+  ],ac_cv_func_which_getservbyname_r=six,
+
+  [
+  AC_TRY_COMPILE([
+#   include <netdb.h>
+  ], [
+        char *name;
+        char *proto;
+        struct servent *se;
+        char buffer[2048];
+        int buflen = 2048;
+        (void) getservbyname_r(name, proto, se, buffer, buflen)
+  ],ac_cv_func_which_getservbyname_r=five,ac_cv_func_which_getservbyname_r=no)
+
+  ]
+
+  )
+                        ]
+                )]
+        ,ac_cv_func_which_getservbyname_r=no)])
+
+if test $ac_cv_func_which_getservbyname_r = six; then
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_6)
+elif test $ac_cv_func_which_getservbyname_r = five; then
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_5)
+elif test $ac_cv_func_which_getservbyname_r = four; then
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_4)
+
+fi
+
+])
+
+
+dnl @synopsis AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
+dnl
+dnl Provides a test to determine the correct 
+dnl way to call gethostbyname_r
+dnl
+dnl defines HAVE_FUNC_GETHOSTBYNAME_R_6 if it needs 6 arguments (e.g linux)
+dnl defines HAVE_FUNC_GETHOSTBYNAME_R_5 if it needs 5 arguments (e.g. solaris)
+dnl defines HAVE_FUNC_GETHOSTBYNAME_R_3 if it needs 3 arguments (e.g. osf/1)
+dnl
+dnl if used in conjunction in gethostname.c the api demonstrated
+dnl in test.c can be used regardless of which gethostbyname_r 
+dnl exists. These example files found at
+dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
+dnl
+dnl @version $Id: acinclude.m4,v 1.5 2002-07-09 01:55:04 brianb Exp $
+dnl @author Caolan McNamara <caolan@skynet.ie>
+dnl
+dnl based on David Arnold's autoconf suggestion in the threads faq
+dnl
+AC_DEFUN(AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R,
+[AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
+AC_CHECK_FUNC(gethostbyname_r, [
+	AC_TRY_COMPILE([
+#		include <netdb.h> 
+  	], 	[
+
+        char *name;
+        struct hostent *he;
+        struct hostent_data data;
+        (void) gethostbyname_r(name, he, &data);
+
+		],ac_cv_func_which_gethostname_r=three, 
+			[
+dnl			ac_cv_func_which_gethostname_r=no
+  AC_TRY_COMPILE([
+#   include <netdb.h>
+  ], [
+	char *name;
+	struct hostent *he, *res;
+	char buffer[2048];
+	int buflen = 2048;
+	int h_errnop;
+	(void) gethostbyname_r(name, he, buffer, buflen, &res, &h_errnop)
+  ],ac_cv_func_which_gethostname_r=six,
+  
+  [
+dnl  ac_cv_func_which_gethostname_r=no
+  AC_TRY_COMPILE([
+#   include <netdb.h>
+  ], [
+			char *name;
+			struct hostent *he;
+			char buffer[2048];
+			int buflen = 2048;
+			int h_errnop;
+			(void) gethostbyname_r(name, he, buffer, buflen, &h_errnop)
+  ],ac_cv_func_which_gethostname_r=five,ac_cv_func_which_gethostname_r=no)
+
+  ]
+  
+  )
+			]
+		)]
+	,ac_cv_func_which_gethostname_r=no)])
+
+if test $ac_cv_func_which_gethostname_r = six; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6)
+elif test $ac_cv_func_which_gethostname_r = five; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_5)
+elif test $ac_cv_func_which_gethostname_r = three; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3)
+
+fi
+
+])
+
+
+dnl based on gethostbyname_r check and snippits from curl's check
+
+AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
+[AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostaddr_r, [
+AC_CHECK_FUNC(gethostbyaddr_r, [
+	AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <netdb.h>
+  	], 	[
+char * address;
+int length;
+int type;
+struct hostent h;
+struct hostent_data hdata;
+int rc;
+rc = gethostbyaddr_r(address, length, type, &h, &hdata);
+
+],ac_cv_func_which_gethostaddr_r=five, 
+  [
+dnl			ac_cv_func_which_gethostaddr_r=no
+  AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <netdb.h>
+  ], [
+char * address;
+int length;
+int type;
+struct hostent h;
+char buffer[8192];
+int h_errnop;
+struct hostent * hp;
+
+hp = gethostbyaddr_r(address, length, type, &h,
+                     buffer, 8192, &h_errnop);
+
+],ac_cv_func_which_gethostbyaddr_r=seven,
+  
+ [
+dnl  ac_cv_func_which_gethostbyaddr_r=no
+  AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <netdb.h>
+  ], [
+char * address;
+int length;
+int type;
+struct hostent h;
+char buffer[8192];
+int h_errnop;
+struct hostent * hp;
+int rc;
+
+rc = gethostbyaddr_r(address, length, type, &h,
+                     buffer, 8192, &hp, &h_errnop);
+
+],ac_cv_func_which_gethostaddr_r=eight,ac_cv_func_which_gethostaddr_r=no)
+
+]
+  )
+			]
+		)]
+	,ac_cv_func_which_gethostaddr_r=no)])
+
+if test $ac_cv_func_which_gethostaddr_r = eight; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_8)
+elif test $ac_cv_func_which_gethostaddr_r = seven; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_7)
+elif test $ac_cv_func_which_gethostaddr_r = five; then
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_5)
+
+fi
+])
 
