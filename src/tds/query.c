@@ -40,11 +40,11 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.74 2003-03-07 14:10:10 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.75 2003-03-07 14:19:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
-static void tds7_put_query_params(TDSSOCKET* tds, const char* query);
+static void tds7_put_query_params(TDSSOCKET * tds, const char *query);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 
@@ -71,10 +71,10 @@ static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *cur
  * @return TDS_FAIL or TDS_SUCCEED
  */
 int
-tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO *params)
+tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
-TDSCOLINFO *param;
-int query_len, i;
+	TDSCOLINFO *param;
+	int query_len, i;
 
 	if (!query)
 		return TDS_FAIL;
@@ -99,34 +99,31 @@ int query_len, i;
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
 		tds_put_int(tds, query_len + 1);
-		tds_put_byte(tds, params ? 1 : 0); /* 1 if there are params, 0 otherwise */
+		tds_put_byte(tds, params ? 1 : 0);	/* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
 		if (params) {
 			/* add on parameters */
-			tds_put_params(tds, params, 
-				params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
+			tds_put_params(tds, params, params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
 		}
-	} else {
+	} else if (!IS_TDS7_PLUS(tds) || !params || !params->num_cols) {
 		tds->out_flag = 0x01;
-		if (!params || !params->num_cols) {
-			tds_put_string(tds, query, query_len);
-		} else {
-			tds->out_flag = 3;	/* RPC */
-			/* procedure name */
-			tds_put_smallint(tds, 13);
-			tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
-			tds_put_smallint(tds, 0);
+		tds_put_string(tds, query, query_len);
+	} else {
+		tds->out_flag = 3;	/* RPC */
+		/* procedure name */
+		tds_put_smallint(tds, 13);
+		tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
+		tds_put_smallint(tds, 0);
 
-			tds7_put_query_params(tds, query);
+		tds7_put_query_params(tds, query);
 
-			for (i = 0; i < params->num_cols; i++) {
-				param = params->columns[i];
-				tds_put_data_info(tds, param, 0);
-				tds_put_data(tds, param, params->current_row, i);
-			}
-
-			return tds_flush_packet(tds);
+		for (i = 0; i < params->num_cols; i++) {
+			param = params->columns[i];
+			tds_put_data_info(tds, param, 0);
+			tds_put_data(tds, param, params->current_row, i);
 		}
+
+		return tds_flush_packet(tds);
 	}
 	return tds_flush_packet(tds);
 }
@@ -218,7 +215,7 @@ tds_count_placeholders(const char *query)
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
  */
 static void
-tds7_put_query_params(TDSSOCKET* tds, const char* query)
+tds7_put_query_params(TDSSOCKET * tds, const char *query)
 {
 	int len, i, n;
 	const char *s, *e;
@@ -335,7 +332,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, SYBINTN);
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
-		
+
 		tds7_put_query_params(tds, query);
 
 		/* 1 param ?? why ? flags ?? */
@@ -488,26 +485,27 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		if (is_null) {
 
 			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
-			switch(curcol->column_type) {
-                case XSYBCHAR:
-                case XSYBVARCHAR:
-                case XSYBBINARY:
-                case XSYBVARBINARY:
-                case XSYBNCHAR:
-                case XSYBNVARCHAR:
-				 	 tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting CHARBIN_NULL\n");
-                     tds_put_n(tds, CHARBIN_NULL, 2);
-                     break;
-                default:
-				 	 tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
-                     tds_put_byte(tds, GEN_NULL);
-                     break;
+			switch (curcol->column_type) {
+			case XSYBCHAR:
+			case XSYBVARCHAR:
+			case XSYBBINARY:
+			case XSYBVARBINARY:
+			case XSYBNCHAR:
+			case XSYBNVARCHAR:
+				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting CHARBIN_NULL\n");
+				tds_put_n(tds, CHARBIN_NULL, 2);
+				break;
+			default:
+				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
+				tds_put_byte(tds, GEN_NULL);
+				break;
 
-            }
+			}
 		} else {
-			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n", curcol->column_varint_size);
+			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n",
+				    curcol->column_varint_size);
 			switch (curcol->column_varint_size) {
-			case 4:		/* Its a BLOB... */
+			case 4:	/* Its a BLOB... */
 				blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 				tds_put_byte(tds, 16);
 				tds_put_n(tds, blob_info->textptr, 16);
@@ -526,10 +524,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				colsize = tds_get_size_by_type(curcol->column_type);
 				break;
 			}
-		
+
 			/* put real data */
 			if (is_numeric_type(curcol->column_type)) {
-				TDS_NUMERIC buf;
+	TDS_NUMERIC buf;
+
 				num = (TDS_NUMERIC *) src;
 				memcpy(&buf, num, sizeof(buf));
 				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
@@ -541,9 +540,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_n(tds, blob_info->textvalue, colsize);
 			} else {
 #ifdef WORDS_BIGENDIAN
-				unsigned char buf[64];
+	unsigned char buf[64];
+
 				if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
-					tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+					tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+						    tds_get_conversion_type(curcol->column_type, colsize));
 					memcpy(buf, src, colsize);
 					tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
 					src = buf;
@@ -556,7 +557,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		/* put size of data */
 		src = &(current_row[curcol->column_offset]);
 		switch (curcol->column_varint_size) {
-		case 4:		/* Its a BLOB... */
+		case 4:	/* Its a BLOB... */
 			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 			if (!is_null) {
 				tds_put_byte(tds, 16);
@@ -585,13 +586,14 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			colsize = tds_get_size_by_type(curcol->column_type);
 			break;
 		}
-	
+
 		if (is_null)
 			return TDS_SUCCEED;
-	
+
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
-			TDS_NUMERIC buf;
+	TDS_NUMERIC buf;
+
 			num = (TDS_NUMERIC *) src;
 			if (IS_TDS7_PLUS(tds)) {
 				memcpy(&buf, num, sizeof(buf));
@@ -605,9 +607,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_n(tds, blob_info->textvalue, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
-			unsigned char buf[64];
+	unsigned char buf[64];
+
 			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, src, colsize);
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
 				src = buf;
