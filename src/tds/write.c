@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.9 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.10 2002-08-16 16:45:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -41,10 +41,10 @@ static void *no_unused_var_warn[] = {software_version,
  *		much like read() and memcpy()
  */
 int
-tds_put_n(TDSSOCKET *tds, unsigned char *buf, int n)
+tds_put_n(TDSSOCKET *tds, const unsigned char *buf, int n)
 {
 int i;
-unsigned char *bufp = buf;
+const unsigned char *bufp = buf;
 	if (bufp)  {
 		for (i=0;i<n;i++)	
 			tds_put_byte(tds, bufp[i]);
@@ -54,23 +54,20 @@ unsigned char *bufp = buf;
 	}
 	return 0;
 }
-int tds_put_string(TDSSOCKET *tds, char *buf, int n)
+int tds_put_string(TDSSOCKET *tds, const char *buf, int n)
 {
 int buf_len = ( buf ? strlen(buf) : 0);
 
-	return tds_put_buf(tds,(unsigned char *)buf,n,buf_len);
+	return tds_put_buf(tds,(const unsigned char *)buf,n,buf_len);
 }
-int tds_put_buf(TDSSOCKET *tds, unsigned char *buf, int dsize, int ssize)
+int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize)
 {
-char *tempbuf;
 int  cpsize;
 
-	tempbuf = (char *) malloc(dsize+1);
-	memset(tempbuf,'\0',dsize);
 	cpsize = ssize > dsize ? dsize : ssize;
-	if (buf) memcpy(tempbuf,buf, cpsize);
-	tds_put_n(tds,tempbuf,dsize);
-	free(tempbuf);
+	tds_put_n(tds,buf,cpsize);
+	dsize -= cpsize;
+	tds_put_n(tds,NULL,dsize);
 	return tds_put_byte(tds,cpsize);
 }
 int tds_put_int(TDSSOCKET *tds, TDS_INT i)
@@ -84,7 +81,7 @@ int tds_put_int(TDSSOCKET *tds, TDS_INT i)
 		return 0;
 	}
 #endif
-	return tds_put_n(tds,(unsigned char *)&i,sizeof(TDS_INT));
+	return tds_put_n(tds,(const unsigned char *)&i,sizeof(TDS_INT));
 }
 int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si)
 {
@@ -95,11 +92,11 @@ int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si)
 		return 0;
 	}
 #endif
-	return tds_put_n(tds,(unsigned char *)&si,sizeof(TDS_SMALLINT));
+	return tds_put_n(tds,(const unsigned char *)&si,sizeof(TDS_SMALLINT));
 }
 int tds_put_tinyint(TDSSOCKET *tds, TDS_TINYINT ti)
 {
-	return tds_put_n(tds,(unsigned char *)&ti,sizeof(TDS_TINYINT));
+	return tds_put_byte(tds,(unsigned char)ti);
 }
 int tds_put_byte(TDSSOCKET *tds, unsigned char c)
 {
@@ -110,7 +107,7 @@ int tds_put_byte(TDSSOCKET *tds, unsigned char c)
 	tds->out_buf[tds->out_pos++]=c;
 	return 0;
 }
-int tds_put_bulk_data(TDSSOCKET *tds, unsigned char * buf, TDS_INT bufsize)
+int tds_put_bulk_data(TDSSOCKET *tds, const unsigned char * buf, TDS_INT bufsize)
 {
 
 	tds->out_flag = 0x07;
@@ -167,7 +164,7 @@ int retval;
 	p = tds->out_buf;
   
 	while (left > 0) {
-		/* If there's a timeout, we need to sit and wait for socket 
+		/* If there's a timeout, we need to sit and wait for socket */
 		/* writability */
 		if (tds->timeout) {
 			/* moved socket writability check to own function -- bsb */
@@ -198,8 +195,8 @@ void (*oldsig)(int);
 
 	tds->out_buf[0]=tds->out_flag;
 	tds->out_buf[1]=final;
-	tds->out_buf[2]=(tds->out_pos)/256;
-	tds->out_buf[3]=(tds->out_pos)%256;
+	tds->out_buf[2]=(tds->out_pos)/256u;
+	tds->out_buf[3]=(tds->out_pos)%256u;
 	if (IS_TDS70(tds) || IS_TDS80(tds)) {
 		tds->out_buf[6]=0x01;
 	}

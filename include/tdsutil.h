@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.2 2001-11-08 17:45:09 mlilback Exp $";
+"$Id: tdsutil.h,v 1.3 2002-08-16 16:45:20 freddy77 Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -55,7 +55,7 @@ extern int get_size_by_type(int servertype);
 extern int tds_flush_packet(TDSSOCKET *tds);
 extern int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
 extern int tds_process_login_tokens(TDSSOCKET *tds);
-extern int tds_put_buf(TDSSOCKET *tds, unsigned char *buf, int dsize, int ssize);
+extern int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
 
 extern void tds_free_compute_results(TDSCOMPUTEINFO *comp_info);
 

@@ -1,3 +1,17 @@
+Fri Aug 16 18:21:32 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	+ include/Makefile.am:
+	- add tdsiconv.h to distribution
+	+ include/tds.h.in include/tdsutil.h src/tds/write.c:
+	- changed buffer param for tds_put_XXX to const
+	+ src/tds/write.c:
+	- applied small optimization to tds_put_buf
+	- removed nested comment
+	+ src/ctlib/Makefile.am src/odbc/Makefile.am:
+	- add challenge.lo to link
+	+ src/tds/Makefile.am:
+	- add tds_willconvert.h to distribution
+	- moved link to iconv to LDLIBRARIES directive
+
 Fri Aug 16 14:22:19 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	+ src/tds/login.c:
 	- send username/password if not domain
