@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.157 2003-03-26 10:21:48 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.158 2003-03-27 20:53:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -64,7 +64,8 @@ static const char *_tds_token_name(unsigned char marker);
 static int tds_process_param_result_tokens(TDSSOCKET * tds);
 static int tds_process_params_result_token(TDSSOCKET * tds);
 static int tds_process_dyn_result(TDSSOCKET * tds);
-
+static int tds5_get_varint_size(int datatype);
+static int tds5_process_result(TDSSOCKET * tds);
 
 /**
  * \ingroup libtds
@@ -126,6 +127,11 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		/* TODO split two part of capability and use it */
+		/* vicm */
+		/* Sybase 11.0 servers return the wrong length in the capability packet, causing use to read
+		 * past the done packet. Return fail, so that we quit reading the tds buffer. 
+		 * TODO fix it parsing internal capability
+		 */
 		tok_size = tds_get_smallint(tds);
 		tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
 		break;
@@ -142,6 +148,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_RESULT_TOKEN:
 		tds_process_result(tds);
+		break;
+	case TDS_ROWFMT2_TOKEN:
+		tds5_process_result(tds);
 		break;
 	case TDS_COLNAME_TOKEN:
 		tds_process_col_name(tds);
@@ -438,6 +447,11 @@ int done_flags;
 			*result_type = TDS_ROWFMT_RESULT;
 			return TDS_SUCCEED;
 			break;
+		case TDS_ROWFMT2_TOKEN:
+			tds5_process_result(tds);
+			*result_type = TDS_ROWFMT_RESULT;
+			return TDS_SUCCEED;
+			break;
 		case TDS_COLNAME_TOKEN:
 			tds_process_col_name(tds);
 			break;
@@ -564,6 +578,7 @@ int i;
 
 		switch (marker) {
 		case TDS_RESULT_TOKEN:
+		case TDS_ROWFMT2_TOKEN:
 		case TDS7_RESULT_TOKEN:
 
 			tds_unget_byte(tds);
@@ -1305,6 +1320,165 @@ TDSRESULTINFO *info;
 }
 
 /**
+ * tds5_process_result() is the new TDS 5.0 result set processing routine.  
+ * It is responsible for populating the tds->res_info structure.
+ * This is a TDS 5.0 only function
+ */
+static int
+tds5_process_result(TDSSOCKET * tds)
+{
+	int hdrsize;
+	/* int colnamelen; */
+	int col, num_cols;
+	TDSCOLINFO *curcol;
+	TDSRESULTINFO *info;
+
+	tdsdump_log(TDS_DBG_INFO1, "%L tds5_process_result\n");
+
+	/*
+	 * free previous resultset
+	 */
+	tds_free_all_results(tds);
+
+	/*
+	 * read length of packet (4 bytes)
+	 */
+	hdrsize = tds_get_int(tds);
+
+	/* read number of columns and allocate the columns structure */
+	num_cols = tds_get_smallint(tds);
+	tds->res_info = tds_alloc_results(num_cols);
+	info = tds->res_info;
+
+	tdsdump_log(TDS_DBG_INFO1, "%L num_cols=%d\n", num_cols);
+
+	/* tell the upper layers we are processing results */
+	tds->state = TDS_PENDING;
+
+	/* TODO reuse some code... */
+	/* loop through the columns populating COLINFO struct from
+	 * server response */
+	for (col = 0; col < info->num_cols; col++) {
+		curcol = info->columns[col];
+
+		/* label */
+		curcol->column_namelen = tds_get_string(tds, curcol->column_name, tds_get_byte(tds));
+		curcol->column_name[curcol->column_namelen] = '\0';
+
+		/* TODO add these field again */
+		/* database */
+		/*
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, curcol->catalog_name, colnamelen);
+		curcol->catalog_name[colnamelen] = '\0';
+		*/
+
+		/* owner */
+		/*
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, curcol->schema_name, colnamelen);
+		curcol->schema_name[colnamelen] = '\0';
+		*/
+
+		/* table */
+		/*
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, curcol->table_name, colnamelen);
+		curcol->table_name[colnamelen] = '\0';
+		*/
+
+		/* column name */
+		/*
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, curcol->column_colname, colnamelen);
+		curcol->column_colname[colnamelen] = '\0';
+		*/
+
+		/* if label is empty, use the column name */
+		/*
+		if (colnamelen > 0 && curcol->column_name[0] == '\0')
+			strcpy(curcol->column_name, curcol->column_colname);
+		*/
+
+		/* flags (4 bytes) */
+		curcol->column_flags = tds_get_int(tds);
+		curcol->column_writeable = (curcol->column_flags & 0x10) > 0;
+		curcol->column_nullable = (curcol->column_flags & 0x20) > 0;
+		curcol->column_identity = (curcol->column_flags & 0x40) > 0;
+
+		curcol->column_usertype = tds_get_int(tds);
+
+		curcol->column_type = tds_get_byte(tds);
+
+		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
+		/* are we dealing with Unicode data */
+		if (is_unicode(curcol->column_type))
+			curcol->column_unicodedata = 1;
+		else
+			curcol->column_unicodedata = 0;
+
+		switch (curcol->column_varint_size) {
+		case 4:
+			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
+				int namelen;
+
+				curcol->column_size = tds_get_int(tds);
+
+				/* skip name */
+				namelen = tds_get_smallint(tds);
+				if (namelen)
+					tds_get_n(tds, NULL, namelen);
+
+			} else
+				tdsdump_log(TDS_DBG_INFO1, "%L UNHANDLED TYPE %x\n", curcol->column_type);
+			break;
+		case 5:
+			curcol->column_size = tds_get_int(tds);
+			break;
+		case 2:
+			curcol->column_size = tds_get_smallint(tds);
+			break;
+		case 1:
+			curcol->column_size = tds_get_byte(tds);
+			break;
+		case 0:
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
+			break;
+		}
+
+		/* numeric and decimal have extra info */
+		if (is_numeric_type(curcol->column_type)) {
+			curcol->column_prec = tds_get_byte(tds);	/* precision */
+			curcol->column_scale = tds_get_byte(tds);	/* scale */
+		}
+
+		/* discard Locale */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+
+		tds_add_row_column_size(info, curcol);
+
+		/* 
+		 *  Dump all information on this column
+		 */
+		tdsdump_log(TDS_DBG_INFO1, "%L col %d:\n", col);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_label=[%s]\n", curcol->column_name);
+/*		tdsdump_log(TDS_DBG_INFO1, "%L\tcolumn_name=[%s]\n", curcol->column_colname);
+		tdsdump_log(TDS_DBG_INFO1, "%L\tcatalog=[%s] schema=[%s] table=[%s]\n",
+			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
+*/
+		tdsdump_log(TDS_DBG_INFO1, "%L\tflags=%x utype=%d type=%d varint=%d unicode=%d\n",
+			    curcol->column_flags,
+			    curcol->column_usertype, curcol->column_type, curcol->column_varint_size, curcol->column_unicodedata);
+
+		tdsdump_log(TDS_DBG_INFO1, "%L\tcolsize=%d prec=%d scale=%d\n",
+			    curcol->column_size, curcol->column_prec, curcol->column_scale);
+	}
+	info->current_row = tds_alloc_row(info);
+
+	return TDS_SUCCEED;
+}
+
+/**
  * tds_process_compute() processes compute rows and places them in the row
  * buffer.  
  */
@@ -1633,11 +1807,12 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 static int
 tds_process_env_chg(TDSSOCKET * tds)
 {
-int size, type;
-char *oldval, *newval;
-int new_block_size;
-TDSENVINFO *env = tds->env;
-unsigned char *new_out_buf;
+	int size, type;
+	char *oldval = NULL;
+	char *newval = NULL;
+	int new_block_size;
+	TDSENVINFO *env = tds->env;
+	unsigned char *new_out_buf;
 
 	size = tds_get_smallint(tds);
 	/* this came in a patch, apparently someone saw an env message
@@ -1692,8 +1867,11 @@ unsigned char *new_out_buf;
 	if (tds->env_chg_func) {
 		(*(tds->env_chg_func)) (tds, type, oldval, newval);
 	}
-	free(oldval);
-	free(newval);
+
+	if (oldval)
+		free(oldval);
+	if (newval)
+		free(newval);
 
 	return TDS_SUCCEED;
 }
@@ -2075,6 +2253,54 @@ tds_get_varint_size(int datatype)
 	case XSYBBINARY:
 	case XSYBVARBINARY:
 		return 2;
+	default:
+		return 1;
+	}
+}
+
+/**
+ * tds5_get_varint_size5() returns the size of a variable length integer
+ * returned in a TDS 5.1 result string
+ */
+/* TODO can we use tds_get_varint_size ?? */
+static int
+tds5_get_varint_size(int datatype)
+{
+	switch (datatype) {
+	case SYBTEXT:
+	case SYBNTEXT:
+	case SYBIMAGE:
+	case SYBVARIANT:
+		return 4;
+
+	case SYBLONGBINARY:
+	case XSYBCHAR:
+		return 5;	/* Special case */
+
+	case SYBVOID:
+	case SYBINT1:
+	case SYBBIT:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBINT8:
+	case SYBDATETIME4:
+	case SYBREAL:
+	case SYBMONEY:
+	case SYBDATETIME:
+	case SYBFLT8:
+	case SYBMONEY4:
+	case SYBSINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+		return 0;
+
+	case XSYBNVARCHAR:
+	case XSYBVARCHAR:
+	case XSYBBINARY:
+	case XSYBVARBINARY:
+		return 2;
+
 	default:
 		return 1;
 	}
@@ -2506,3 +2732,4 @@ _tds_token_name(unsigned char marker)
 
 	return "";
 }
+

@@ -1,3 +1,6 @@
+Thu Mar 27 21:52:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: add support for ROWFMT2 token
+
 Thu Mar 27 21:05:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_param.c:
 	* src/ctlib/unittests/rpc_ct_setparam.c:
