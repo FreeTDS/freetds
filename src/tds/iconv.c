@@ -97,6 +97,7 @@ size_t out_bytes, in_bytes;
      	in_bytes = len * 2;
      	in_ptr = (char *)in_string;
      	out_ptr = out_string;
+	/* FIXME if invalid add another character */
      	iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 	out_string[len] = '\0';
 
