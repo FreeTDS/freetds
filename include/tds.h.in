@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.33 2002-08-16 21:01:25 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.34 2002-08-21 11:38:58 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -375,7 +375,8 @@ sheesh! </rant>
 typedef struct tds_login {
 	TDS_CHAR  host_name[TDS_MAX_LOGIN_STR_SZ+1];
 	TDS_CHAR  user_name[TDS_MAX_LOGIN_STR_SZ+1];
-	TDS_CHAR  password[TDS_MAX_LOGIN_STR_SZ+1];
+	/* FIXME temporary fix, 40 pwd max len */
+	TDS_CHAR  password[40+1];
 	TDS_TINYINT bulk_copy; 
 	TDS_CHAR  app_name[TDS_MAX_LOGIN_STR_SZ+1];
 	TDS_CHAR  server_name[TDS_MAX_LOGIN_STR_SZ+1];

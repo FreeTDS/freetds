@@ -1,3 +1,7 @@
+Fri Aug 21 13:38:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c include/tds.h.in:
+	- temporary fix for password limit length
+
 Fri Aug 18 21:32:06 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0006.c:
 	- add some tests for converting from char to money
