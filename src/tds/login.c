@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.84 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: login.c,v 1.85 2003-03-13 10:08:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -413,6 +413,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	 */
 	static const unsigned char magic5[] = { 0x00, 0x00 };
 	static const unsigned char magic6[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	/* this is a flag, mean that server should use character set provided by client */
 	static const unsigned char magic7 = 0x01;
 
 	static const unsigned char magic42[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
