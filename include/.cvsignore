@@ -1,1 +1,5 @@
 Makefile
+tdsver.h
+config.h
+tds_configs.h
+tds.h
