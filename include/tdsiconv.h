@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2002  Brian Bruns
+ * Copyright (C) 2002, 2003  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,12 +20,24 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.15 2003-06-08 09:11:56 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.16 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
 #include <iconv.h>
+#else
+/* Define iconv_t for src/replacements/iconv.c. */
+#undef iconv_t
+typedef void* iconv_t;
+
+/* The following EILSEQ advice is borrowed verbatim from GNU iconv.  */
+/* Some systems, like SunOS 4, don't have EILSEQ. Some systems, like BSD/OS,
+   have EILSEQ in a different header.  On these systems, define EILSEQ
+   ourselves. */
+#ifndef EILSEQ
+# define EILSEQ 
 #endif
+#endif /* HAVE_ICONV */
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -35,6 +47,33 @@ static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_i
 extern "C"
 {
 #endif
+
+#if ! HAVE_ICONV
+	typedef struct tdsiconvinfo TDSICONVINFO;
+
+	/* FYI, the first 4 entries look like this:
+	 * 	{"ISO-8859-1",	1, 1}, -> 0
+	 * 	{"UTF-8",	1, 4}, <- user needs real iconv
+	 * 	{"UCS-2LE",	2, 2}, -> 2
+	 * 	{"UCS-2BE",	2, 2}, -> 3
+	 *
+	 * These conversions are supplied by src/replacements/iconv.c for the sake of those who don't 
+	 * have or otherwise need an iconv.
+	 */
+	enum ICONV_CD_VALUE {
+		  Like_to_Like  = 0x00
+		, Latin1_UCS2LE = 0x02
+		, UCS2LE_Latin1 = 0x20
+		/* these aren't needed 
+			, Latin1_UCS2BE = 0x03
+			, UCS2BE_Latin1 = 0x30
+		*/
+	};
+
+	iconv_t iconv_open (const char* tocode, const char* fromcode);
+	size_t iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
+	int iconv_close (iconv_t cd);
+#endif /* !HAVE_ICONV */
 
 
 typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;

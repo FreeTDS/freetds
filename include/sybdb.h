@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.51 2003-06-24 21:07:14 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.52 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -683,6 +683,8 @@ char *dbtabname(DBPROCESS * dbprocess, int tabnum);
 char *dbtabsoruce(DBPROCESS * dbprocess, int colnum, int *tabnum);
 DBINT dbvarylen(DBPROCESS * dbproc, int column);
 
+#define SYBEICONVI       2403	/* Unconverted characters were changed to question marks while reading from SQL Server. */
+#define SYBEICONVO       2402	/* Unable to write to SQL Server: error converting to server's character set. */
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */
 #define SYBETIME        20003	/* SQL Server connection timed out. */

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.77 2003-06-10 07:22:24 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.78 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -551,8 +551,6 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 		return 0;
 	}
 
-	assert(HAVE_ICONV);
-#if HAVE_ICONV
 	isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 
 	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
@@ -588,7 +586,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
 		}
 	}
-#endif
+
 	return field_len + isize;
 }
 
@@ -597,7 +595,6 @@ void
 tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
 #if HAVE_ICONV
-	int ret;
 	TDSICONVINFO *iconv_info = tds->iconv_info;
 
 	const char *charset = lcid2charset(lcid);

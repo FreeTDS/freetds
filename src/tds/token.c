@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.199 2003-06-11 20:10:58 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.200 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -814,7 +814,7 @@ tds_process_simple_query(TDSSOCKET * tds)
 int
 tds_do_until_done(TDSSOCKET * tds)
 {
-	int marker, rows_affected;
+	int marker, rows_affected = 0;
 
 	do {
 		marker = tds_get_byte(tds);

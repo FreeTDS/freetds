@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.132 2003-06-24 21:07:14 jklowden Exp $";
+	"$Id: tds.h,v 1.133 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -32,6 +32,10 @@ static void *no_unused_tds_h_warn[] = {
 
 #if HAVE_ICONV
 #include <iconv.h>
+/* forward declaration */
+typedef struct tdsiconvinfo TDSICONVINFO;
+#else
+#include <tdsiconv.h>
 #endif
 
 #include "tdsver.h"
@@ -685,8 +689,6 @@ typedef struct
 #define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
 
 
-/* forward declaration */
-typedef struct tdsiconvinfo TDSICONVINFO;
 /**
  * Information relevant to libiconv.  The name is an iconv name, not 
  * the same as found in master..syslanguages. 
@@ -702,12 +704,11 @@ struct tdsiconvinfo
 {
 	TDS_ENCODING client_charset;
 	TDS_ENCODING server_charset;
-#if HAVE_ICONV
 	iconv_t to_wire;   /* conversion from client charset to server's format */
 	iconv_t from_wire; /* conversion from server's format to client charset */
 #define TDS_ENCODING_INDIRECT 1
+	/* ^^^ As of June 2003, no reference to this macro */
 	unsigned int flags;
-#endif
 };
 
 
@@ -884,7 +885,7 @@ struct tds_context {
 	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 };
 
-enum { client2ucs2, client2server_singlebyte, ascii2server_metadata } TDS_ICONV_INFO_ENTRY;
+enum TDS_ICONV_INFO_ENTRY { client2ucs2, client2server_singlebyte, ascii2server_metadata };
 
 struct tds_socket {
 	/* fixed and connect time */
@@ -1066,7 +1067,7 @@ int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_fl
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET *tds);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
-
+int tds_do_until_done(TDSSOCKET * tds);
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSCOLINFO *curcol, int type);

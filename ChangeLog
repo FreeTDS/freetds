@@ -1,4 +1,15 @@
+Mon Jun 30 00:53:14 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h include/tdsiconv.h include/sybdb.h
+	* src/dblib/dbutil.c src/dblib/error_table.h
+	* src/replacements/Makefile.am
+	* src/tds/iconv.c src/tds/token.c
+	- reenable compilation without iconv.
+	* src/replacements/iconv.c
+	- Trivial ASCII<->USC2 iconv.
+	* doc/userguide.sgml added comments
+	
 Wed Jun 25 17:05:02 EDT 2003	JK Lowden <jklowden@schemamania.org>
+
 	* doc/userguide.sgml
 	- Added paragraph from ML regarding effect of TDS version.
 

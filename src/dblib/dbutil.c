@@ -33,15 +33,15 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.19 2003-04-03 09:12:15 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.20 2003-06-30 04:59:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-/* The next 2 functions will be the reciever for the info and error messages
- * that come from the TDS layer.  The address of this function is passed to
- * the TDS layer in the dbinit function.  This way, when the TDS layer
- * recieves an informational message from the server that it can be dealt with
- * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
- * TDS layer didn't what it really was */
+/* 
+ * The next 2 functions receive the info and error messages that come from the TDS layer.  
+ * The address of this function is passed to the TDS layer in dbinit().  
+ * It takes a pointer to a DBPROCESS, it's just that the TDS layer didn't 
+ * know what it really was.  
+ */
 int
 dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {

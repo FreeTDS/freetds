@@ -1,3 +1,5 @@
+{        SYBEICONVI,        EXINFO,	"WARNING! Some character(s) could not be converted into client's character set. Unconverted bytes were changed to question marks ('?')."},
+{        SYBEICONVO,        EXUSER,	"Error converting client characters into server's character set. Some character(s) could not be converted."},
 {        SYBEAAMT,       EXPROGRAM,	"User attempted a dbaltbind() with mismatched column and variable types."},
 {        SYBEABMT,       EXPROGRAM,	"User attempted a dbbind() with mismatched column and variable types."},
 {        SYBEABNC,       EXPROGRAM,	"Attempt to bind to a non-existent column."},
@@ -160,7 +162,7 @@
 {        SYBEEQVA,               1,	"Error in queueing VMS AST routine."},
 {    SYBEERRLABEL,               1,	"An illegal value was returned from the security label handler."},
 {        SYBEESSL,               1,	"Login security level entered does not agree with operating system level."},
-{         SYBEETD,       EXPROGRAM,	""Failure to send the expected amount of  TEXT or IMAGE data via dbmoretext()."},
+{         SYBEETD,       EXPROGRAM,	"Failure to send the expected amount of  TEXT or IMAGE data via dbmoretext()."},
 {        SYBEEUNR,          EXCOMM,	"Unsolicited event notification received."},
 {        SYBEEVOP,          EXINFO,	"Called dbregwatch() with a bad options parameter."},
 {        SYBEEVST,          EXINFO,	"Must initiate a transaction before calling dbregparam()."},
@@ -232,7 +234,7 @@
 {        SYBERDNR,       EXPROGRAM,	"Attempt to retrieve data from a non-existent row."},
 {        SYBEREAD,          EXCOMM,	"Read from SQL Server failed."},
 {        SYBERESP,       EXPROGRAM,	"Response function address passed to dbresponse() must be non-NULL."},
-{       SYBERFILE,               1,	""Can not open resource file."."},
+{       SYBERFILE,               1,	"Can not open resource file."},
 {        SYBERPCS,          EXINFO,	"Must call dbrpcinit() before dbrpcparam()."},
 {        SYBERPIL,       EXPROGRAM,	"It is illegal to pass -1 to dbrpcparam() for the datalen of parameters which are of type SYBCHAR, SYBVARCHAR, SYBBINARY, or SYBVARBINARY."},
 {        SYBERPNA,      EXNONFATAL,	"The RPC facility is available only when using a SQL Server whose version number is 4.0 or greater."},
@@ -269,7 +271,7 @@
 {        SYBEUACS,               1,	"VMS: Unable to assign channel to sys$command."},
 {        SYBEUAVE,               1,	"Unable to allocate VMS event flag."},
 {        SYBEUCPT,          EXUSER,	"Unrecognized custom-format parameter-type encountered in dbstrbuild()."},
-{        SYBEUCRR,   EXCONSISTENCY,	"Internal software error: Unknown connection result reported by                                                  dbpasswd()."},
+{        SYBEUCRR,   EXCONSISTENCY,	"Internal software error: Unknown connection result reported by dbpasswd()."},
 {        SYBEUDTY,   EXCONSISTENCY,	"Unknown datatype encountered."},
 {        SYBEUFDS,          EXUSER,	"Unrecognized format encountered in dbstrbuild()."},
 {        SYBEUFDT,   EXCONSISTENCY,	"Unknown fixed-length datatype encountered."},
@@ -297,4 +299,4 @@
 {         SYBEXTN,       EXPROGRAM,	"The xlt_todisp and xlt_tosrv parameters to dbfree_xlate() were NULL."},
 {        SYBEXTSN,       EXPROGRAM,	"Warning:  the xlt_tosrv parameter to dbfree_xlate() was NULL.  The space associated with the xlt_todisp parameter has been freed."},
 {        SYBEZTXT,          EXINFO,	"Attempt to send zero length TEXT or  IMAGE to dataserver via dbwritetext()."},
-{               0,               0,	""}
+{               0,               0,	"Please add a description for this error to src/tds/error_table.h ($Id: error_table.h,v 1.2 2003-06-30 04:59:06 jklowden Exp $)"}
