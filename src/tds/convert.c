@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.34 2002-08-08 04:35:05 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.35 2002-08-14 10:14:43 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -109,7 +109,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 }
 
 /* reverted function to 1.12 logic; 1.13 patch was mistaken. July 2002 jkl */
-static TDS_INT tds_convert_text(int srctype,TDS_CHAR *src,TDS_UINT srclen,
+static TDS_INT tds_convert_text(TDSCONTEXT *tds_ctx, int srctype,TDS_CHAR *src,TDS_UINT srclen,
 	int desttype,TDS_UINT destlen, CONV_RESULT *cr)
 {
 int cplen;
@@ -1131,6 +1131,7 @@ tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
 {
 TDS_VARBINARY *varbin;
+char errmsg[255];
 
 	switch(srctype) {
 		case SYBCHAR:
@@ -1196,7 +1197,7 @@ TDS_VARBINARY *varbin;
 				desttype, destlen, cr);
 			break;
 		case SYBTEXT:
-			return tds_convert_text(srctype,src,srclen,
+			return tds_convert_text(tds_ctx, srctype,src,srclen,
 				desttype,destlen, cr);
 			break;
 		case SYBNTEXT:
@@ -1208,9 +1209,10 @@ TDS_VARBINARY *varbin;
 				desttype,destlen, cr);
 			break;
 		default:
-			fprintf(stderr,"error_handler: Attempting to convert unknown source type %d\n",srctype);
-	        return TDS_FAIL;
-            break;
+			sprintf(errmsg,"Attempting to convert unknown source type %d\n",srctype);
+			tds_client_msg(tds_ctx, NULL, 10001, 1, 4, 1, errmsg); 
+			return TDS_FAIL;
+		break;
 
 	}
 }

@@ -25,6 +25,7 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#include "tdsiconv.h"
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -34,32 +35,40 @@
 
 void tds_iconv_open(TDSSOCKET *tds, char *charset)
 {
+TDSICONVINFO *iconv_info;
+
+	iconv_info = (TDSICONVINFO *) tds->iconv_info;
+
 #if HAVE_ICONV
-	tds->cdto = iconv_open("UCS-2",charset);
-	if (tds->cdto == (iconv_t)-1) {
-		tds->use_iconv = 0;
+	iconv_info->cdto = iconv_open("UCS-2",charset);
+	if (iconv_info->cdto == (iconv_t)-1) {
+		iconv_info->use_iconv = 0;
 		return;
 	}
-	tds->cdfrom = iconv_open(charset, "UCS-2");
-	if (tds->cdfrom == (iconv_t)-1) {
-		tds->use_iconv = 0;
+	iconv_info->cdfrom = iconv_open(charset, "UCS-2");
+	if (iconv_info->cdfrom == (iconv_t)-1) {
+		iconv_info->use_iconv = 0;
 		return;
 	}
-	tds->use_iconv = 1; 
+	iconv_info->use_iconv = 1; 
 	/* temporarily disable */
-	/* tds->use_iconv = 0; */
+	/* iconv_info->use_iconv = 0; */
 #else 
-	tds->use_iconv = 0;
+	iconv_info->use_iconv = 0;
 #endif
 }
 void tds_iconv_close(TDSSOCKET *tds)
 {
+TDSICONVINFO *iconv_info;
+
+	iconv_info = (TDSICONVINFO *) tds->iconv_info;
+
 #if HAVE_ICONV
-	if (tds->cdto != (iconv_t)-1) {
-		iconv_close(tds->cdto);
+	if (iconv_info->cdto != (iconv_t)-1) {
+		iconv_close(iconv_info->cdto);
 	}
-	if (tds->cdfrom != (iconv_t)-1) {
-		iconv_close(tds->cdfrom);
+	if (iconv_info->cdfrom != (iconv_t)-1) {
+		iconv_close(iconv_info->cdfrom);
 	}
 #endif 
 }
@@ -71,6 +80,7 @@ void tds_iconv_close(TDSSOCKET *tds)
  */
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
 {
+TDSICONVINFO *iconv_info;
 int i;
 #if HAVE_ICONV
 const char *in_ptr;
@@ -81,12 +91,13 @@ size_t out_bytes, in_bytes;
 	if (!in_string) return NULL;
 
 #if HAVE_ICONV
-	if (tds->use_iconv) {
+	iconv_info = tds->iconv_info;
+	if (iconv_info->use_iconv) {
      	out_bytes = len;
      	in_bytes = len * 2;
      	in_ptr = (char *)in_string;
      	out_ptr = out_string;
-     	iconv(tds->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+     	iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 	out_string[len] = '\0';
 
      	return out_string;
@@ -112,6 +123,7 @@ tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int 
 register int out_pos = 0;
 register int i; 
 size_t string_length;
+TDSICONVINFO *iconv_info;
 #if HAVE_ICONV
 const char *in_ptr;
 char *out_ptr;
@@ -122,12 +134,13 @@ size_t out_bytes, in_bytes;
 	string_length = strlen(in_string);
 
 #if HAVE_ICONV
-	if (tds->use_iconv) {
+	iconv_info = tds->iconv_info;
+	if (iconv_info->use_iconv) {
      	out_bytes = maxlen;
      	in_bytes = string_length;
      	in_ptr = (char *)in_string;
      	out_ptr = out_string;
-     	iconv(tds->cdto, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+     	iconv(iconv_info->cdto, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 
      	return out_string;
 	}

@@ -20,11 +20,12 @@
 #include <config.h>
 #include "tds.h"
 #include "tdsutil.h"
+#include "tdsiconv.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.14 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.15 2002-08-14 10:14:43 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -370,6 +371,8 @@ TDSSOCKET *tds_socket;
 	memset(tds_socket->msg_info,'\0',sizeof(TDSMSGINFO));
 	tds_socket->parent = (char*)NULL;
 	tds_socket->env = tds_alloc_env(tds_socket);
+	tds_socket->iconv_info = (void *) malloc(sizeof(TDSICONVINFO));
+	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                
 	tds_init_write_buf(tds_socket);
@@ -381,6 +384,8 @@ TDSSOCKET *tds_realloc_socket(int bufsize)
 }
 void tds_free_socket(TDSSOCKET *tds)
 {
+TDSICONVINFO *iconv_info;
+
 	if (tds) {
 		tds_free_all_results(tds);
 		tds_free_env(tds);
@@ -392,7 +397,12 @@ void tds_free_socket(TDSSOCKET *tds)
 		if (tds->in_buf) TDS_ZERO_FREE(tds->in_buf);
 		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
 		if (tds->s) close(tds->s);
-		if (tds->use_iconv) tds_iconv_close(tds);
+		if (tds->date_fmt) free(tds->date_fmt);
+		if (tds->iconv_info) {
+			iconv_info = (TDSICONVINFO *) tds->iconv_info;
+			if (iconv_info->use_iconv) tds_iconv_close(tds);
+			free(tds->iconv_info);
+		}
 		if (tds->date_fmt) free(tds->date_fmt);
 		TDS_ZERO_FREE(tds);
 	}

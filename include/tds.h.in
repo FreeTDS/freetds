@@ -21,15 +21,11 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.29 2002-08-11 16:36:26 brianb Exp $";
+	 "$Id: tds.h.in,v 1.30 2002-08-14 10:14:42 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
-#include "config.h"
 
-#if HAVE_ICONV
-#include <iconv.h>
-#endif
 #ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -601,13 +597,9 @@ typedef struct tds_socket {
 	int cur_dyn_elem;
 	TDSDYNAMIC **dyns;
 	int emul_little_endian;
-	int use_iconv;
-#if HAVE_ICONV
-	iconv_t cdto;
-	iconv_t cdfrom;
-#endif
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
+	void *iconv_info;
 } TDSSOCKET;
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
