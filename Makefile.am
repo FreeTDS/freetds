@@ -1,6 +1,6 @@
 SUBDIRS		=	include src doc
 
-EXTRA_DIST	=	interfaces samples/debug.c PWD BUGS \
+EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
 		samples/README samples/dyntest.c samples/odbc.ini \
 		samples/odbctest.php samples/odbctest.pl samples/test.php \
 		samples/test.pl \
@@ -27,7 +27,7 @@ test:
 	@echo "The 'make test' option has been replaced with 'make check'";
 
 all-redirect:
-	if test ! -f PWD; then cp $(srcdir)/PWD PWD; fi
+	if test ! -f PWD; then cp $(srcdir)/PWD.in PWD; fi
 
 snapshot:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`

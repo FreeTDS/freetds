@@ -1,3 +1,5 @@
+# $Id: PWD.in,v 1.1 2002-09-12 15:24:20 castellano Exp $
+#
 # This file was taken from DBD::Sybase :-) It is used by 'make check' to test
 # the installation
 #

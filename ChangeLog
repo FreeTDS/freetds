@@ -1,3 +1,12 @@
+Thu Sep 12 11:19:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* Makefile.am
+	* PWD (removed)
+	* PWD.in (added)
+	- Create PWD from PWD.in.  Only PWD.in will be maintained in CVS.
+	  This makes it easier to avoid accidentally committing passwords
+	  to the repository when doing a "cvs commit" from the root of
+	  the tree.
+
 Thu Sep 12 10:42:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/bcp.c:
 	- Rework BCP error handling.  Add two missing severity levels,
