@@ -1,3 +1,6 @@
+Mon Jan 27 18:07:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0007.c: check for NULL and empty strings
+
 Mon Jan 27 11:30:34 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/tds/unittests/common.c:
 	- workaround for tds_connect and garbage pointer

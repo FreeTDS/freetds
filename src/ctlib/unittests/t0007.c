@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.6 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.7 2003-01-27 17:07:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -27,14 +27,16 @@ main(int argc, char **argv)
 	CS_INT result_type;
 	CS_INT num_cols;
 
-	CS_DATAFMT datafmt;
-	CS_INT datalength;
-	CS_SMALLINT ind;
+	CS_DATAFMT datafmt[3];
+	CS_INT datalength[3];
+	CS_SMALLINT ind[3];
 	CS_INT count, row_count = 0;
 
-	CS_CHAR name[1024];
+	CS_CHAR name[3][1024];
 
-	name[0] = 0;
+	name[0][0] = 0;
+	name[1][0] = 0;
+	name[2][0] = 0;
 
 	fprintf(stdout, "%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);
 	if (verbose) {
@@ -46,7 +48,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT CONVERT(VARCHAR(7),'1234') AS test", CS_NULLTERM, CS_UNUSED);
+	ret = ct_command(cmd, CS_LANG_CMD, "SELECT CONVERT(VARCHAR(7),'1234') AS test, CONVERT(VARCHAR(7),'') AS test2, CONVERT(VARCHAR(7),NULL) AS test3", CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed\n");
 		return 1;
@@ -71,22 +73,49 @@ main(int argc, char **argv)
 				fprintf(stderr, "ct_res_info() failed");
 				return 1;
 			}
-			if (num_cols != 1) {
+			if (num_cols != 3) {
 				fprintf(stderr, "num_cols %d != 1", num_cols);
 				return 1;
 			}
-			ret = ct_describe(cmd, 1, &datafmt);
-			if (ret != CS_SUCCEED) {
+			if (ct_describe(cmd, 1, &datafmt[0]) != CS_SUCCEED) {
 				fprintf(stderr, "ct_describe() failed");
 				return 1;
 			}
-			datafmt.format = CS_FMT_NULLTERM;
-			++datafmt.maxlength;
-			if (datafmt.maxlength > 1024) {
-				datafmt.maxlength = 1024;
+			datafmt[0].format = CS_FMT_NULLTERM;
+			++datafmt[0].maxlength;
+			if (datafmt[0].maxlength > 1024) {
+				datafmt[0].maxlength = 1024;
 			}
-			ret = ct_bind(cmd, 1, &datafmt, name, &datalength, &ind);
-			if (ret != CS_SUCCEED) {
+
+			if (ct_describe(cmd, 2, &datafmt[1]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_describe() failed");
+				return 1;
+			}
+			datafmt[1].format = CS_FMT_NULLTERM;
+			++datafmt[1].maxlength;
+			if (datafmt[1].maxlength > 1024) {
+				datafmt[1].maxlength = 1024;
+			}
+
+			if (ct_describe(cmd, 3, &datafmt[2]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_describe() failed");
+				return 1;
+			}
+			datafmt[2].format = CS_FMT_NULLTERM;
+			++datafmt[2].maxlength;
+			if (datafmt[2].maxlength > 1024) {
+				datafmt[2].maxlength = 1024;
+			}
+
+			if (ct_bind(cmd, 1, &datafmt[0], name[0], &datalength[0], &ind[0]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_bind() failed\n");
+				return 1;
+			}
+			if (ct_bind(cmd, 2, &datafmt[1], name[1], &datalength[1], &ind[1]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_bind() failed\n");
+				return 1;
+			}
+			if (ct_bind(cmd, 3, &datafmt[2], name[2], &datalength[2], &ind[2]) != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
 			}
@@ -99,14 +128,42 @@ main(int argc, char **argv)
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					if (verbose) {
-						fprintf(stdout, "name = '%s'\n", name);
+						fprintf(stdout, "name = '%s'\n", name[0]);
 					}
-					if (strcmp(name, "1234")) {
-						fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name, "1234");
+					if (ind[0] != 0) {
+						fprintf(stderr, "Returned NULL\n");
 						return 1;
 					}
-					if (datalength != strlen(name) + 1) {
-						fprintf(stderr, "Bad count:\n'%ld'\n! =\n'%d'\n", (long) strlen(name) + 1, count);
+					if (strcmp(name[0], "1234")) {
+						fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name[0], "1234");
+						return 1;
+					}
+					if (datalength[0] != strlen(name[0]) + 1) {
+						fprintf(stderr, "Bad length:\n'%ld'\n! =\n'%d'\n", (long) strlen(name[0]) + 1, datalength[0]);
+						return 1;
+					}
+					if (ind[1] != 0) {
+						fprintf(stderr, "Returned NULL\n");
+						return 1;
+					}
+					if (strcmp(name[1], "")) {
+						fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name[1], "");
+						return 1;
+					}
+					if (datalength[1] != strlen(name[1]) + 1) {
+						fprintf(stderr, "Col 2 bad length:\n'%ld'\n! =\n'%d'\n", (long) strlen(name[1]) + 1, datalength[1]);
+						return 1;
+					}
+					if (ind[2] == 0) {
+						fprintf(stderr, "Col 2 returned not NULL\n");
+						return 1;
+					}
+					if (strcmp(name[2], "")) {
+						fprintf(stderr, "Col 3 bad return:\n'%s'\n! =\n'%s'\n", name[2], "");
+						return 1;
+					}
+					if (datalength[2] != 0) {
+						fprintf(stderr, "Col 3 bad length:\n'%ld'\n! =\n'%d'\n", (long) 0, datalength[2]);
 						return 1;
 					}
 				}
