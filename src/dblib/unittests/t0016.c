@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0016.c,v 1.17 2003-11-01 23:02:17 jklowden Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.18 2003-12-04 11:06:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -31,7 +31,7 @@ main(int argc, char *argv[])
 	char sqlCmd[256];
 	RETCODE ret;
 	const char *out_file = "t0016.out";
-	const char *in_file = "t0016.in";
+	const char *in_file = FREETDS_SRCDIR "/t0016.in";
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
 	int num_cols = 0;
