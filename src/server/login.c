@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.22 2003-03-26 09:54:42 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.23 2003-03-26 10:21:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -146,7 +146,7 @@ tds7_read_string(TDSSOCKET * tds, int len)
 	char *s;
 
 	s = (char *) malloc(len + 1);
-	tds_get_string(tds, s, len);
+	len = tds_get_string(tds, s, len);
 	s[len] = 0;
 	return s;
 

@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.37 2003-03-26 09:54:43 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.38 2003-03-26 10:21:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -224,14 +224,15 @@ unsigned char bytes[4];
 
 /**
  * Fetch a string from the wire
+ * Output string is NOT null terminated
  * If TDS version is 7 or 8 read unicode string and convert it
  * @param tds  connection information
  * @param dest destination buffer, if NULL string is readed and discarded
  * @param need length to read (in characters)
- * @return buffer of character
+ * @return bytes written
  */
 /* FIXME handle output buffer len > character to read */
-char *
+int
 tds_get_string(TDSSOCKET * tds, char *dest, int need)
 {
 	char temp[256];
@@ -244,26 +245,26 @@ tds_get_string(TDSSOCKET * tds, char *dest, int need)
 	 * Bug to malloc(0) on some platforms.
 	 */
 	if (need == 0) {
-		return dest;
+		return 0;
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, need * 2);
-			return (NULL);
+			return need;
 		}
 		p = dest;
 		pend = dest + need;
-		while (need > 0 && p <= pend) {
+		while (need > 0 && p < pend) {
 			in_left = need > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : need;
 			tds_get_n(tds, temp, in_left * 2);
 			p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p);
 			need -= in_left;
 		}
-		return dest;
-
+		return p - dest;
 	} else {
-		return (char *) tds_get_n(tds, dest, need);
+		tds_get_n(tds, dest, need);
+		return need;
 	}
 }
 

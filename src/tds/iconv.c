@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.38 2003-03-26 09:54:42 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.39 2003-03-26 10:21:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -159,15 +159,6 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, int in_len, char *out
 			if (out_bytes == 0)
 				break;
 		}
-		/* FIXME best method ?? there is no way to return 
-		 * less or more than len characters */
-		/* something went wrong fill remaining with zeroes 
-		 * avoiding returning garbage data */
-		if (out_bytes) {
-			memset(out_ptr, 0, out_bytes);
-			out_bytes = 0;
-		}
-
 		return out_len - out_bytes;
 	}
 #endif

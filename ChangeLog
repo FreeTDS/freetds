@@ -1,3 +1,8 @@
+Wed Mar 26 11:21:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/server/login.c src/tds/iconv.c:
+	* src/tds/read.c src/tds/token.c:
+	- handle output len != input len during charset conversions
+
 Wed Mar 26 10:52:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* tds.dox: add examples
 	* include/tds.h src/server/login.c src/tds/iconv.c:
