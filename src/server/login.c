@@ -22,7 +22,7 @@
 #include "tdsutil.h"
 #include <unistd.h>
 
-static char  software_version[]   = "$Id: login.c,v 1.4 2002-06-24 23:29:07 jklowden Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.5 2002-07-05 03:43:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -105,6 +105,120 @@ char blockstr[7];
 	printf("block size %s\n",blockstr);
 	login->block_size=atoi(blockstr);
 	tds_get_n(tds, NULL, tds->in_len - tds->in_pos); /* read junk at end */
+}
+int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login)
+{
+int a; 
+int host_name_len,user_name_len,password_len,app_name_len,server_name_len;
+int library_name_len,language_name_len;
+unsigned char *unicode_string;
+char *buf;
+
+	a=tds_get_smallint(tds); /*total packet size*/
+	tds_get_n(tds,NULL,5);
+	a=tds_get_byte(tds);     /*TDS version*/
+	login->major_version=a>>4;
+	login->minor_version=a<<4;
+	tds_get_n(tds,NULL,3);   /*rest of TDS Version which is a 4 byte field*/
+	tds_get_n(tds,NULL,4);   /*desired packet size being requested by client*/
+	tds_get_n(tds,NULL,21);  /*magic1*/
+	a=tds_get_smallint(tds); /*current position*/
+	host_name_len=tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	user_name_len=tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	password_len=tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	app_name_len=tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	server_name_len=tds_get_smallint(tds);
+	tds_get_smallint(tds);
+	tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	library_name_len=tds_get_smallint(tds);
+	a=tds_get_smallint(tds); /*current position*/
+	language_name_len=tds_get_smallint(tds);
+	tds_get_smallint(tds);
+	tds_get_smallint(tds);
+	tds_get_n(tds,NULL,6);  /*magic2*/
+	a=tds_get_smallint(tds); /*partial packet size*/
+	a=tds_get_smallint(tds); /*0x30*/
+	a=tds_get_smallint(tds); /*total packet size*/
+	tds_get_smallint(tds);
+
+	unicode_string = (unsigned char *) malloc(host_name_len*2);
+	buf = (unsigned char *) malloc(host_name_len*2);
+	tds_get_n(tds,unicode_string,host_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,host_name_len);
+	strncpy(login->host_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(user_name_len*2);
+	buf = (unsigned char *) malloc(user_name_len*2);
+	tds_get_n(tds,unicode_string,user_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,user_name_len);
+	strncpy(login->user_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(password_len*2);
+	buf = (unsigned char *) malloc(password_len*2);
+	tds_get_n(tds,unicode_string,password_len*2);
+	tds7_decrypt_pass(unicode_string,password_len*2,unicode_string);
+	tds7_unicode2ascii(tds,unicode_string,buf,password_len);
+	strncpy(login->password,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(app_name_len*2);
+	buf = (unsigned char *) malloc(app_name_len*2);
+	tds_get_n(tds,unicode_string,app_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,app_name_len);
+	strncpy(login->app_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(server_name_len*2);
+	buf = (unsigned char *) malloc(server_name_len*2);
+	tds_get_n(tds,unicode_string,server_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,server_name_len);
+	strncpy(login->server_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(library_name_len*2);
+	buf = (unsigned char *) malloc(library_name_len*2);
+	tds_get_n(tds,unicode_string,library_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,library_name_len);
+	strncpy(login->library,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	unicode_string = (unsigned char *) malloc(language_name_len*2);
+	buf = (unsigned char *) malloc(language_name_len*2);
+	tds_get_n(tds,unicode_string,language_name_len*2);
+	tds7_unicode2ascii(tds,unicode_string,buf,language_name_len);
+	strncpy(login->language,buf,TDS_MAX_LOGIN_STR_SZ);
+	free(unicode_string);
+	free(buf);
+
+	tds_get_n(tds,NULL,7);  /*magic3*/
+	tds_get_byte(tds);
+	tds_get_byte(tds);
+	tds_get_n(tds,NULL,3);
+	tds_get_byte(tds);
+	a=tds_get_byte(tds);    /*0x82*/
+	tds_get_n(tds,NULL,22);
+	tds_get_byte(tds);      /*0x30*/
+	tds_get_n(tds,NULL,7);
+	a=tds_get_byte(tds);    /*0x30*/
+	tds_get_n(tds,NULL,3);
+	strcpy(login->char_set,""); /*empty char_set for TDS 7.0*/
+	login->block_size=0;        /*0 block size for TDS 7.0*/
+	login->encrypted=1;
+	return(0);
+
 }
 int tds_read_string(TDSSOCKET *tds, char *dest, int size)
 {

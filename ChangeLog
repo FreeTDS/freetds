@@ -1,9 +1,10 @@
 Thu Jul  4 08:29:22 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/tds/*.c: add ifdef DMALLOC
 	*src/tds/mem.c: remove possible free of NULL pointer
-	* src/tds/write.c: (freddy77) write all packet to socket (fix for very 
+	* src/tds/write.c: (from freddy77) write all packet to socket (fix for very 
 		long query) 
-	* src/tds/config.c: (freddy77) fix buffer overflow
+	* src/tds/config.c: (from freddy77) fix buffer overflow
+	* src/server/login.c: (from chend) tds7 login reader with mods by me
 
 Mon Jul  1 18:06:23 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/tds/mem.c: add fields to tds_free_config and call tds_free_msg in
