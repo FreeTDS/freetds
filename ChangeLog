@@ -1,3 +1,7 @@
+Wed Jan 28 12:27:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/pool/stream.c src/pool/user.c:
+	- applied Brians patch on pool server
+
 Wed Jan 28 12:06:58 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsiconv.h src/dblib/bcp.c:
 	* src/server/login.c src/tds/iconv.c src/tds/login.c:

@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.16 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.17 2004-01-28 11:27:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct
@@ -283,6 +283,76 @@ read_col_info(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 
 	return 1;
 }
+/*
+ * ** TDS 5 style result sets
+ * */
+static int
+read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
+{
+	TDS_SMALLINT hdrsize;
+	int pos = 0;
+	int namelen;
+	int col;
+	TDSSOCKET *tds = pmbr->tds;
+	int num_cols;
+	TDSCOLUMN *curcol;
+	TDSRESULTINFO *info;
+
+	if (bytes_left(pmbr, buf, pos, maxlen, 3)) {
+		*bytes_read = maxlen;
+		return 0;
+	}
+	/* FIX ME -- endian */
+	hdrsize = buf[1] + buf[2] * 256;
+	pos += 3;
+
+	/* read number of columns and allocate the columns structure */
+	num_cols = buf[pos] + buf[pos+1] * 256;
+	pos += 2;
+
+	tds_free_all_results(tds);
+
+	tds->res_info = tds_alloc_results(num_cols);
+	info = pmbr->tds->res_info;
+
+	/* loop through the columns populating COLINFO struct from
+ 	 * server response */
+
+	for (col = 0; col < info->num_cols; col++) {
+		curcol = info->columns[col];
+
+		namelen = buf[pos++];
+
+		strncpy(curcol->column_name, (char *) &buf[pos], namelen);
+		curcol->column_name[namelen] = '\0';
+		pos += namelen;
+
+		curcol->column_namelen = namelen;
+
+		pos++;     /* flags */
+		pos += 4;  /* user type */
+
+		tds_set_column_type(curcol, (int)buf[pos]);
+		switch(curcol->column_varint_size) {
+			/* FIX ME - endian */
+			case 2: curcol->column_size = buf[pos] + buf[pos+1]*256; break;
+			case 1: curcol->column_size = buf[pos]; break;
+			case 0: break;
+		}
+		pos+=curcol->column_varint_size;
+		if (is_numeric_type(curcol->column_type))
+			pos+=2;
+
+	      /* skip locale information */
+	      pos += buf[pos];
+
+	      tds_add_row_column_size(info, curcol);
+	}
+	if ((info->current_row = tds_alloc_row(info)) != NULL)
+		return TDS_SUCCEED;
+	else
+		return TDS_FAIL;
+}
 
 /* 
 ** is_end_token processes one token and returns 0 for an incomplete token
@@ -310,6 +380,8 @@ pool_is_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, 
 		ret = read_col_name(pmbr, buf, maxlen, bytes_read);
 	} else if (marker == TDS_COLFMT_TOKEN) {
 		ret = read_col_info(pmbr, buf, maxlen, bytes_read);
+	} else if (marker == TDS_RESULT_TOKEN) {
+		ret = read_result(pmbr, buf, maxlen, bytes_read);
 	} else {
 		ret = read_variable_token(pmbr, buf, maxlen, bytes_read);
 	}

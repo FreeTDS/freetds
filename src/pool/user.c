@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.17 2003-12-29 22:37:31 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.18 2004-01-28 11:27:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -159,20 +159,20 @@ int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
-	TDSLOGIN login;
+	TDSLOGIN *login = tds_alloc_login();
 
 /* FIX ME */
 	char msg[256];
 
 	tds = puser->tds;
-	tds_read_login(tds, &login);
-	dump_login(&login);
-	if (!strcmp(tds_dstr_cstr(&login.user_name), pool->user) && !strcmp(tds_dstr_cstr(&login.password), pool->password)) {
+	tds_read_login(tds, login);
+	dump_login(login);
+	if (!strcmp(tds_dstr_cstr(&login->user_name), pool->user) && !strcmp(tds_dstr_cstr(&login->password), pool->password)) {
 		tds->out_flag = 4;
 		tds_env_change(tds, 1, "master", pool->database);
 		sprintf(msg, "Changed database context to '%s'.", pool->database);
 		tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);
-		if (!login.suppress_language) {
+		if (!login->suppress_language) {
 			tds_env_change(tds, 2, NULL, "us_english");
 			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
@@ -184,9 +184,11 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 		/* send it! */
 		tds_flush_packet(tds);
+		tds_free_login(login);
 
 		return 0;
 	} else {
+		tds_free_login(login);
 		/* send nack before exiting */
 		return 1;
 	}
@@ -212,7 +214,8 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		perror("read");
 	} else {
 		dump_buf(tds->in_buf, tds->in_len);
-		if (tds->in_buf[0] == 0x01) {
+		/* language packet or TDS5 language packet */
+		if (tds->in_buf[0] == 0x01 || tds->in_buf[0] == 0x0F) {
 			pool_user_query(pool, puser);
 		} else if (tds->in_buf[0] == 0x06) {
 			/* cancel */
