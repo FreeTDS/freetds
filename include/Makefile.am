@@ -16,4 +16,5 @@ tds_configs.h: tds_configs.h.in Makefile
 		tds_configs.h.in >> $@; \
 	chmod 444 $@
 
-
+maintainer-clean-local:
+	$(RM) tds_configs.h
