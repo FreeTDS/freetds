@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.18 2003-02-04 13:28:28 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.19 2003-02-13 06:17:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -379,11 +379,11 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 	if (pdata->cflag) {
 		/* Fill in some default values */
 
-		if (!pdata->tflag) {	/* field terminator not specified */
+		if (!pdata->tflag || !pdata->fieldterm) {       /* field terminator not specified */
 			pdata->fieldterm = (char *) malloc(2);
 			strcpy(pdata->fieldterm, "\t");
 		}
-		if (!pdata->rflag) {	/* row terminator not specified */
+		if (!pdata->rflag || !pdata->rowterm) {	 /* row terminator not specified */
 			pdata->rowterm = (char *) malloc(2);
 			strcpy(pdata->rowterm, "\n");
 		}
@@ -480,13 +480,15 @@ int li_numcols = 0;
 		}
 
 		for (i = 1; i <= li_numcols - 1; i++) {
-			if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i) == FAIL) {
+			if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm, 
+					strlen(pdata->fieldterm), i) == FAIL) {
 				printf("Error in bcp_colfmt col %d\n", i);
 				return FALSE;
 			}
 		}
 
-		if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), li_numcols) == FAIL) {
+		if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm, 
+	                        strlen(pdata->rowterm), li_numcols) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", li_numcols);
 			return FALSE;
 		}

@@ -1,8 +1,11 @@
+Thu Feb 13 01:01:47 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c field and row-terminator fix from Craig A. Berry
+	* src/tds/token.c small repair to ct_options
+	
 Thu Feb 13 00:44:32 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsodbc.h  applied Frediano's SQLULEN patch
 
 Wed Feb 12 22:46:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
-
 	* src/ctlib/unittests/ct_options.c:
 	- use small hack to check bus error on some machines
 
