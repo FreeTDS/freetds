@@ -1,3 +1,6 @@
+Fri Oct 25 10:04:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/.indent.pro: use -npcs removing space after function names
+
 Fri Oct 25 00:44:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/sybdb.h src/dblib/dblib.c:
 	- Implement dbisopt().

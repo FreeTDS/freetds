@@ -19,7 +19,7 @@
 -l75  
 -lp
 
--pcs
+-npcs
 -psl
 -sc
 -nsob
