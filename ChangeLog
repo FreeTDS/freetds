@@ -1,3 +1,7 @@
+Thu May 15 21:14:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/pool/Makefile.am:
+	- fix compile problem with HP/UX 11
+
 Thu May 15 16:35:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c src/odbc/odbc.c src/odbc/odbc_util.c:
 	- some small changes
