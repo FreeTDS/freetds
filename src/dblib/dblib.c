@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.145 2003-05-28 13:59:59 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.146 2003-05-28 14:51:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3895,9 +3895,7 @@ dbsqlok(DBPROCESS * dbproc)
 		if (is_result_token(marker)) {
 			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found result token\n");
 			tds_unget_byte(tds);
-			done = 1;
-			rc = SUCCEED;
-			break;
+			return SUCCEED;
 		}
 
 		/* if we hit an end token, for example if the command */
@@ -3905,7 +3903,7 @@ dbsqlok(DBPROCESS * dbproc)
 		/* we have to process the end token to extract the    */
 		/* status code therein....but....                     */
 
-		else if (is_end_token(marker)) {
+		if (is_end_token(marker)) {
 
 			tdsdump_log(TDS_DBG_FUNC, "%L dbsqlok() found end token\n");
 			if (tds_process_end(tds, marker, NULL) != TDS_SUCCEED) {
@@ -5230,7 +5228,6 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 {
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
-	int marker;
 	TDS_INT result_type;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))

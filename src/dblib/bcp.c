@@ -61,7 +61,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.67 2003-05-22 19:27:47 castellano Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.68 2003-05-28 14:51:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1384,17 +1384,18 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	int row_sz_pos;
 	TDS_SMALLINT row_size;
 
-	int i, ret, marker;
+	int i, ret;
 	int blob_cols = 0;
 	int row_of_hostfile;
 	int rows_written_so_far;
-	int rows_copied_this_batch = 0;
 	int rows_copied_so_far = 0;
 
 	int row_error, row_error_count;
 	long row_start, row_end;
 	int error_row_size;
 	char *row_in_error;
+
+	TDS_INT result_type;
 
 	if (!(hostfile = fopen(dbproc->bcp_hostfile, "r"))) {
 		_bcp_err_handler(dbproc, SYBEBCUO);
@@ -1546,16 +1547,9 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 					tds_flush_packet(tds);
 
-					do {
-						marker = tds_get_byte(tds);
-						if (marker == TDS_DONE_TOKEN) {
-							tds_process_end(tds, marker, NULL);
-							rows_copied_this_batch = tds->rows_affected;
-							rows_copied_so_far += rows_copied_this_batch;
-						} else {
-							tds_process_default_tokens(tds, marker);
-						}
-					} while (marker != TDS_DONE_TOKEN);
+					if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+						return FAIL;
+					rows_copied_so_far += tds->rows_affected;
 
 					_bcp_start_new_batch(dbproc);
 
@@ -1576,17 +1570,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	tds_flush_packet(tds);
 
-	do {
-		marker = tds_get_byte(tds);
-		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL);
-			rows_copied_this_batch = tds->rows_affected;
-			rows_copied_so_far += rows_copied_this_batch;
-			*rows_copied = rows_copied_so_far;
-		} else {
-			tds_process_default_tokens(tds, marker);
-		}
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return FAIL;
+	rows_copied_so_far += tds->rows_affected;
+	*rows_copied = rows_copied_so_far;
 
 	return SUCCEED;
 }
@@ -2249,7 +2236,7 @@ DBINT
 bcp_batch(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
-	int marker;
+	TDS_INT result_type;
 	int rows_copied = 0;
 
 	if (dbproc->bcp_direction == 0) {
@@ -2259,17 +2246,9 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tds_flush_packet(tds);
 
-	do {
-
-		marker = tds_get_byte(tds);
-		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL);
-			rows_copied = tds->rows_affected;
-		} else
-			tds_process_default_tokens(tds, marker);
-
-	} while (marker != TDS_DONE_TOKEN);
-
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return FAIL;
+	rows_copied = tds->rows_affected;
 
 	_bcp_start_new_batch(dbproc);
 
@@ -2282,10 +2261,9 @@ bcp_batch(DBPROCESS * dbproc)
 DBINT
 bcp_done(DBPROCESS * dbproc)
 {
-
-TDSSOCKET *tds = dbproc->tds_socket;
-int marker;
-int rows_copied = -1;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	TDS_INT result_type;
+	int rows_copied = -1;
 
 	if (dbproc->bcp_direction == 0) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
@@ -2293,16 +2271,9 @@ int rows_copied = -1;
 	}
 	tds_flush_packet(tds);
 
-	do {
-
-		marker = tds_get_byte(tds);
-		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL);
-			rows_copied = tds->rows_affected;
-		} else
-			tds_process_default_tokens(tds, marker);
-
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL)
+		return FAIL;
+	rows_copied = tds->rows_affected;
 
 	_bcp_clear_storage(dbproc);
 

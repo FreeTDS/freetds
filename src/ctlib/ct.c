@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.96 2003-05-28 13:59:58 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.97 2003-05-28 14:51:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1712,7 +1712,6 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
 	TDSSOCKET *tds = cmd->con->tds_socket;
 	char writetext_cmd[512];
-	unsigned char marker;
 	TDS_INT result_type;
 
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
