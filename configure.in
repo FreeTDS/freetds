@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.77 2002-12-06 21:56:56 freddy77 Exp $
+dnl $Id: configure.in,v 1.78 2002-12-10 03:22:33 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -96,6 +96,8 @@ AC_CHECK_HEADERS(netinet/in.h)
 AC_CHECK_HEADERS(paths.h)
 AC_CHECK_HEADERS(sys/param.h)
 AC_CHECK_HEADERS(sys/ioctl.h)
+AC_CHECK_HEADERS(libgen.h)
+AC_CHECK_HEADERS(sys/param.h)
 AC_HAVE_INADDR_NONE
 
 dnl ------------------------------------------------------------
