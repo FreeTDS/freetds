@@ -1,3 +1,6 @@
+Tue Jan 20 10:55:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c: small fixes and comments
+
 Tue Jan 20 02:14:52 PST 2004	Peter Deacon <peterd@iea-software.com>
 	* src/odbc/odbc.c:
 	- fix SQLDescribe fails with some result sets having no rows

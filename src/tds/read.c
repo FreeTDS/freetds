@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.81 2004-01-20 08:30:28 ppeterd Exp $";
+static char software_version[] = "$Id: read.c,v 1.82 2004-01-20 09:56:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -97,27 +97,33 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	fd_set fds;
 	time_t start, now;
 	struct timeval selecttimeout;
+	struct timeval *timeout;
+
+	assert(tds);
 
 	FD_ZERO(&fds);
 	start = time(NULL);
 	now = start;
-	/* nsc 20030326 The tds->timeout stuff is flawed and should probably just be removed. */
 	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
-		assert(tds);
 		if (IS_TDSDEAD(tds))
 			return -1;
 
+		/* set right timeout */
 		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = 1;
-		selecttimeout.tv_usec = 0;
+		timeout = NULL;
+		if (tds->chkintr || tds->timeout) {
+			selecttimeout.tv_sec = tds->chkintr ? 1 : tds->timeout - (now - start);
+			selecttimeout.tv_usec = 0;
+			timeout = &selecttimeout;
+		}
 
-		retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);	/* retcode == 0 indicates a timeout, OK */
+		retcode = select(tds->s + 1, &fds, NULL, NULL, timeout);	/* retcode == 0 indicates a timeout, OK */
 
 		if( retcode != 0 ) {
 			if( retcode < 0 ) {
 				if (sock_errno != TDSSOCK_EINTR) {
 					char *msg = strerror(sock_errno);
-					tdsdump_log(TDS_DBG_NETWORK, "%L goodread select: errno=%d, \"%s\", returning -1\n", errno, (msg)? msg : "(unknown)");
+					tdsdump_log(TDS_DBG_NETWORK, "%L goodread select: errno=%d, \"%s\", returning -1\n", sock_errno, (msg)? msg : "(unknown)");
 					return -1;
 				}
 				goto OK_TIMEOUT;
@@ -133,7 +139,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 			if (len < 0) {
 				char *msg = strerror(sock_errno);
-				tdsdump_log(TDS_DBG_NETWORK, "%L goodread: errno=%d, \"%s\"\n", errno, (msg)? msg : "(unknown)");
+				tdsdump_log(TDS_DBG_NETWORK, "%L goodread: errno=%d, \"%s\"\n", sock_errno, (msg)? msg : "(unknown)");
 				
 				switch (sock_errno) {
 				case EAGAIN:		/* If O_NONBLOCK is set, read(2) returns -1 and sets errno to [EAGAIN]. */
@@ -141,7 +147,8 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				case TDSSOCK_EINPROGRESS:	/* A lengthy operation on a non-blocking object is in progress. */
 					/* EINPROGRESS is not a documented errno for read(2), afaict.  Remove following assert if it trips.  --jkl */
 					assert(sock_errno != TDSSOCK_EINPROGRESS);
-					break;	/* try again */
+					goto OK_TIMEOUT; /* try again */
+					break;
 
 				case EBADF:
 				/*   EBADMSG: not always defined */
@@ -158,6 +165,8 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				}
 			}
 
+			/* this means a disconnection from server, exit */
+			/* TODO close sockets too ?? */
 			if (len == 0) 
 				return -1;
 
@@ -166,7 +175,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		} 
 
 
-		OK_TIMEOUT:
+	OK_TIMEOUT:
 		now = time(NULL);
 		if (tds->longquery_func && tds->queryStarttime && tds->longquery_timeout) {
 			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
@@ -180,6 +189,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				exit(EXIT_FAILURE);
 				break;
 			case TDS_INT_CANCEL:
+				/* TODO should we process cancellation ?? */
 				tds_send_cancel(tds);
 				break;
 			case TDS_INT_CONTINUE:
@@ -190,9 +200,13 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 	}			/* while buflen... */
 
+	/* here buflen <= 0 || (tds->timeout != 0 && (now - start) >= tds->timeout) */
+		
+	/* TODO always false ?? */
 	if (tds->timeout > 0 && now - start < tds->timeout && buflen > 0)
 		return -1;
 
+	/* FIXME on timeout this assert got true... */
 	assert(buflen == 0);
 	return (got);
 }
