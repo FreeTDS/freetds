@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.61 2003-07-30 16:08:14 jklowden Exp $
+To Do List	$Id: TODO,v 1.62 2003-08-01 15:22:30 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -54,7 +54,7 @@ For future versions (in priority order within library):
 . dynamic query: port code for string building from ODBC to libtds
   (required for some test working using tds4.2)
 . Autodetect TDS protocol when connecting (and cache somewhere?)
-. support for VARIANT type (never requested, only for completeness)
+. support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested many time ago for mssql6.5 server, only
   for completeness)
 
