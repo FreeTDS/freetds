@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.339 2004-08-05 23:38:34 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.340 2004-08-06 08:13:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4732,6 +4732,10 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		odbc_col_setname(stmt, 12, "AUTO_UNIQUE_VALUE");
 	}
 
+	/* workaround for a mispelled column name in Sybase*/
+	if (TDS_IS_SYBASE(stmt->dbc->tds_socket) && stmt->dbc->env->attr.odbc_version != SQL_OV_ODBC3)
+		odbc_col_setname(stmt, 3, "PRECISION");
+
 	if (TDS_IS_MSSQL(stmt->dbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
 		ODBC_RETURN(stmt, res);
 
@@ -5141,7 +5145,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
 {
 	int retcode;
-	char nullable[2], scope[2], col_type[2];
+	char nullable, scope, col_type;
 
 	INIT_HSTMT;
 
@@ -5180,28 +5184,25 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 	}
 #endif
 
-	nullable[1] = 0;
 	if (fNullable == SQL_NO_NULLS)
-		nullable[0] = 'O';
+		nullable = 'O';
 	else
-		nullable[0] = 'U';
+		nullable = 'U';
 
-	scope[1] = 0;
 	if (fScope == SQL_SCOPE_CURROW)
-		scope[0] = 'C';
+		scope = 'C';
 	else
-		scope[0] = 'T';
+		scope = 'T';
 
-	col_type[1] = 0;
 	if (fScope == SQL_BEST_ROWID)
-		col_type[0] = 'R';
+		col_type = 'R';
 	else
-		col_type[0] = 'V';
+		col_type = 'V';
 
 	retcode =
 		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 6 : 4, "O", szTableName,
 				  cbTableName, "O", szSchemaName, cbSchemaName, "O@qualifier", szCatalogName, cbCatalogName,
-				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
+				  "@col_type", &col_type, 1, "@scope", &scope, 1, "@nullable", &nullable, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
@@ -5216,7 +5217,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	      SQLUSMALLINT fAccuracy)
 {
 	int retcode;
-	char unique[2], accuracy[2];
+	char unique, accuracy;
 
 	INIT_HSTMT;
 
@@ -5245,22 +5246,20 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	}
 #endif
 
-	accuracy[1] = 0;
 	if (fAccuracy == SQL_ENSURE)
-		accuracy[0] = 'E';
+		accuracy = 'E';
 	else
-		accuracy[0] = 'Q';
+		accuracy = 'Q';
 
-	unique[1] = 0;
 	if (fUnique == SQL_INDEX_UNIQUE)
-		unique[0] = 'Y';
+		unique = 'Y';
 	else
-		unique[0] = 'N';
+		unique = 'N';
 
 	retcode =
 		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4, "O@table_qualifier",
 				  szCatalogName, cbCatalogName, "O@table_owner", szSchemaName, cbSchemaName, "O@table_name",
-				  szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
+				  szTableName, cbTableName, "@is_unique", &unique, 1, "@accuracy", &accuracy, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");

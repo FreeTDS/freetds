@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.185 2004-07-29 10:22:39 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.186 2004-08-06 08:13:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1042,7 +1042,8 @@ struct tds_socket
 	unsigned char out_flag;
 	unsigned char last_packet;
 	void *parent;
-	/* info about current query. 
+	/*
+	 * info about current query. 
 	 * Contain information in process, even normal results and compute.
 	 * This pointer shouldn't be freed.
 	 */
@@ -1080,7 +1081,7 @@ struct tds_socket
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int (*chkintr) (TDSSOCKET * tds);
 	int (*hndlintr) (TDSSOCKET * tds);
-    int internal_sp_called;
+	int internal_sp_called;
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *param), void *longquery_param);

@@ -1,3 +1,8 @@
+Fri Aug  6 10:11:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- workaround for misspelled column name in Sybase store procedure
+	- small optimization for some statistics functions
+
 Fri Aug  6 01:36:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix a buffer overflow
 
