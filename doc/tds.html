@@ -429,13 +429,32 @@ Miscellaneous note (from *bdw* ?) found with 0xAE: <br>
 <b class="section">Order By (0xA9 169)</b>
 <p>
 <pre>
- INT16    variable
+ INT16    variable (1 byte per col)
 +--------+---------+
-| length | magic   |
+| length | orders  |
 +--------+---------+
 
-length		Length of packet
-magic		?
+length		Length of packet(and number of cols)
+orders          one byte per order by indicating the
+                column # in the output matching the
+                order from Column Info and Column Names
+                and data in following Row Data items.
+                A 0 indicates the column is not in the
+                resulting rows.
+
+an example:
+select first_name, last_name, number from employee
+order by salary, number
+assuming the columns are returned in the order
+queried:
+first_name then last_name, then number. we would have:
+----------------
+|  2   | 0 | 3 |
+----------------
+where length = 2 then the orders evaluate:
+0 for salary, meaning there is no salary data returned
+3 for number, meaning the 3rd data item corresponding
+to a column is the number
 </pre>
 
 <a name="170">&nbsp;</a>
