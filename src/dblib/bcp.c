@@ -45,7 +45,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.18 2002-09-20 14:53:37 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.19 2002-09-22 05:34:00 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2282,12 +2282,12 @@ BYTE *dataptr;
                     collen = ti;
                     break;
                 case 2:
-                    memcpy(&ti, dataptr, 2);
+                    memcpy(&si, dataptr, 2);
                     dataptr += 2;
                     collen = si;
                     break;
                 case 4:
-                    memcpy(&ti, dataptr, 4);
+                    memcpy(&li, dataptr, 4);
                     dataptr += 4;
                     collen = li;
                     break;
