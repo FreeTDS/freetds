@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.146 2003-09-28 23:28:18 ppeterd Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.147 2003-09-30 19:06:45 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1179,8 +1179,6 @@ void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TD
 #define IS_TDS80(x) (x->major_version==8 && x->minor_version==0)
 
 #define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
-
-#define TDS_IS_SOCKET_INVALID(x) ((x) == INVALID_SOCKET)
 
 #define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
 

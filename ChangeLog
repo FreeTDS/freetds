@@ -1,3 +1,11 @@
+Tue Sep 30 21:04:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/tds.h src/odbc/Makefile.am:
+	* src/odbc/unittests/Makefile.am:
+	- fix problem with odbc autodetect
+	* src/tds/config.c src/tds/mem.c src/tds/token.c:
+	* src/tds/unittests/convert.c:
+	- indent(1)
+
 Tue Sep 30 17:01:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/tds/config.c:
 	- use inet_ntoa_r if available

@@ -26,4 +26,4 @@ getdata_SOURCES	= getdata.c common.c common.h
 type_SOURCES	= type.c common.c common.h
 
 LIBS		=	-lodbc @NETWORK_LIBS@
-INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
+INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)

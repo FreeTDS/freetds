@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.215 2003-09-30 16:47:17 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.216 2003-09-30 19:06:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -907,17 +907,15 @@ tds_process_col_name(TDSSOCKET * tds)
 	tds->state = TDS_PENDING;
 	cur = head;
 
-	if (memrc != 0)	{
-		while(cur != NULL) {
+	if (memrc != 0) {
+		while (cur != NULL) {
 			prev = cur;
 			cur = cur->next;
 			free(prev->column_name);
 			free(prev);
-			}
-		return TDS_FAIL;
 		}
-	else
-		{
+		return TDS_FAIL;
+	} else {
 		for (col = 0; col < info->num_cols; col++) {
 			curcol = info->columns[col];
 			strncpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
@@ -1252,7 +1250,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	if (by_cols) {
 		if ((info->bycolumns = (TDS_TINYINT *) malloc(by_cols)) == NULL)
 			return TDS_FAIL;
-		
+
 		memset(info->bycolumns, '\0', by_cols);
 	}
 	info->by_cols = by_cols;
@@ -2252,20 +2250,18 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 	char *s;
 	int out_len;
 
-	if (len < 0)
-		{
+	if (len < 0) {
 		*string = NULL;
 		return 0;
-		}
+	}
 
 	/* assure sufficient space for evry conversion */
 	s = (char *) malloc(len * 4 + 1);
 	out_len = tds_get_string(tds, len, s, len * 4);
-	if (!s)
-		{
+	if (!s) {
 		*string = NULL;
 		return -1;
-		}
+	}
 	s = realloc(s, out_len + 1);
 	s[out_len] = '\0';
 	*string = s;
@@ -2282,15 +2278,15 @@ tds_process_cancel(TDSSOCKET * tds)
 {
 	int marker, done_flags = 0;
 	int retcode = TDS_SUCCEED;
-	
+
 	tds->queryStarttime = 0;
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
 			{
-			if (tds_process_end(tds, marker, &done_flags) == TDS_FAIL)
-				retcode = TDS_FAIL;
+				if (tds_process_end(tds, marker, &done_flags) == TDS_FAIL)
+					retcode = TDS_FAIL;
 			}
 		} else if (marker == 0) {
 			done_flags = TDS_DONE_CANCELLED;
@@ -2709,7 +2705,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 		namelen = tds_get_byte(tds);
 		remainder--;
 		if (topptr == (struct namelist *) NULL) {
-			if ((topptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL)	{
+			if ((topptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
 				memrc = -1;
 				break;
 			}
@@ -2761,16 +2757,14 @@ tds_process_compute_names(TDSSOCKET * tds)
 			curptr = curptr->nextptr;
 			free(freeptr);
 		}
-	return TDS_SUCCEED;
-	}
-	else {
-		while(curptr != NULL)
-			{
+		return TDS_SUCCEED;
+	} else {
+		while (curptr != NULL) {
 			freeptr = curptr;
 			curptr = curptr->nextptr;
 			free(freeptr);
-			}
-	return TDS_FAIL;
+		}
+		return TDS_FAIL;
 	}
 }
 

@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.9 2003-09-30 16:47:22 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.10 2003-09-30 19:06:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -86,7 +86,7 @@ main(int argc, char **argv)
 	}
 
 	ctx = tds_alloc_context();
-	assert(ctx); 
+	assert(ctx);
 	if (ctx->locale && !ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.100 2003-09-30 16:46:58 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.101 2003-09-30 19:06:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -281,7 +281,7 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 #if ENABLE_EXTRA_CHECKS
 	assert((row_size % TDS_ALIGN_SIZE) == 0 && (null_size % TDS_ALIGN_SIZE) == 0);
 #endif
-	
+
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
 		row = (unsigned char *) realloc(info->current_row, row_size);
