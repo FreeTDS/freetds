@@ -1,3 +1,6 @@
+Mon Oct 27 03:54:57 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c s/__FUNCTION__/__func__/
+	
 Sat Oct 25 05:06:58 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* configure.in
 	- added --disable-libiconv, 
