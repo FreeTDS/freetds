@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.32 2002-12-31 22:41:22 jklowden Exp $";
+static char software_version[] = "$Id: util.c,v 1.33 2003-02-21 22:22:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -198,7 +198,7 @@ tdsdump_open(const char *filename)
 		result = 1;
 	}
 	if (result == 1) {
-		fprintf(dumpfile, "Starting log file with debug level %d.\n", tds_g_debug_lvl);
+		fprintf(dumpfile, "Starting log file for FreeTDS %s with debug level %d.\n", VERSION, tds_g_debug_lvl);
 		tdsdump_on();
 	}
 	return result;
