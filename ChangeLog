@@ -1,3 +1,9 @@
+Fri Jan 02 09:21:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: optimize a bit
+	* doc/Makefile.am: use $(MAKE) to call make
+	* src/tds/unittests/Makefile.am src/tds/unittests/convert.c:
+	- patch from Craig A. Berry for VMS
+
 Wed Dec 31 14:38:41 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: some shell do not like '^' in arguments
 	* doc/txt2man: fix gawk problems if utf8 is enabled

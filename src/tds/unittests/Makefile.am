@@ -21,5 +21,5 @@ utf8_1_SOURCES	=	utf8_1.c common.c common.h
 utf8_2_SOURCES	=	utf8_2.c common.c common.h
 
 LIBS		=	../libtds.la @NETWORK_LIBS@
-INCLUDES	=	-I$(top_srcdir)/include
+INCLUDES	=	-I$(top_srcdir)/include -I$(srcdir)/..
 CLEANFILES	=	tdsdump.out

@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.42 2003-12-31 13:38:59 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.43 2004-01-02 08:22:22 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -95,9 +95,9 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	$(mkinstalldirs) $(DOCDIR)/userguide
 	touch $(DOCDIR)/userguide/t.htm
 	rm -f $(DOCDIR)/userguide/*
-	make dblib.api.sgml
-	make ctlib.api.sgml
-	make odbc.api.sgml
+	$(MAKE) dblib.api.sgml
+	$(MAKE) ctlib.api.sgml
+	$(MAKE) odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
 		if test -r $(DISTRIBUTED_UG_DIR) -a ! -r $(DOCDIR)/userguide ; then \
@@ -130,7 +130,7 @@ DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	$(mkinstalldirs) $(DOCDIR)
-	cd .. && make doxy 2> doc/doxy.log
+	cd .. && $(MAKE) doxy 2> doc/doxy.log
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \

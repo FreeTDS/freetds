@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.11 2003-12-06 13:43:53 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.12 2004-01-02 08:22:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -49,7 +49,7 @@ main(int argc, char **argv)
 	}
 	ANSWER;
 	const static ANSWER answers[] = {
-#	include "../tds_willconvert.h"
+#	include "tds_willconvert.h"
 	};
 
 	/* some default inputs */
@@ -57,7 +57,6 @@ main(int argc, char **argv)
 
 	/* timing variables to compute performance */
 	struct timeval start, end;
-	struct timezone tzp;
 	double starttime, endtime;
 
 	int i, j, iterations = 0, result;
@@ -280,7 +279,7 @@ main(int argc, char **argv)
 		 * If an iteration count was passed on the command line (not by "make check")
 		 * run the conversion N times and print the conversions per second.
 		 */
-		result = gettimeofday(&start, &tzp);
+		result = gettimeofday(&start, NULL);
 		starttime = (double) start.tv_sec + (double) start.tv_usec * 0.000001;
 
 		for (j = 0; result >= 0 && j < iterations; j++) {
@@ -288,7 +287,7 @@ main(int argc, char **argv)
 
 		}
 
-		result = gettimeofday(&end, &tzp);
+		result = gettimeofday(&end, NULL);
 		endtime = (double) end.tv_sec + (double) end.tv_usec * 0.000001;
 
 		printf("%8.0f iterations/second converting %13s => %s.\n",
