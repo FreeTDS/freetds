@@ -1,3 +1,11 @@
+Fri Nov 22 13:54:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/Makefile.am src/tds/unittests/common.c:
+	* src/tds/unittests/common.h src/tds/unittests/t0004.c:
+	* src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	* src/tds/unittests/dynamic1.c:
+	- added test for dynamic query
+	- moved run_query to common.c
+
 Fri Nov 22 11:08:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/Makefile.am src/tds/login.c:
 	* src/tds/getmac.c (added):
