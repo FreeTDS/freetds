@@ -1,6 +1,7 @@
 Thu Apr  4 18:08:42 EST 2002	Brian Bruns	<camber@ais.org>
 
 	*src/odbc/odbc.c(SQLFetch): missed last column when transfering binds
+	*src/dblib/dblic.c: set default values for null columns when binding
 
 Thu Mar 28 00:10:46 EST 2002	Mark Lilback <mark@lilback.com>
 

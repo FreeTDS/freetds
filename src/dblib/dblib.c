@@ -30,13 +30,14 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.11 2002-02-17 20:23:37 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.12 2002-04-05 01:48:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);
+static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen);
 
 /* info/err message handler functions (or rather pointers to them) */
 int (*g_dblib_msg_handler)() = NULL;
@@ -292,76 +293,74 @@ static void buffer_transfer_bound_data(
    DBPROCESS     *dbproc,   /* (I)                                         */
    int            row_num)  /* (I) resultset row number                    */
 {
-   int            i, j;
-   TDSCOLINFO    *curcol;
-   TDSRESULTINFO *resinfo;
-   TDSSOCKET     *tds;
-   int            srctype;
-   BYTE          *src;
-   int            desttype;
-   /* this should probably go somewhere else */
-   TDS_NUMERIC	numeric;
+int            i, j;
+TDSCOLINFO    *curcol;
+TDSRESULTINFO *resinfo;
+TDSSOCKET     *tds;
+int            srctype;
+BYTE          *src;
+int            desttype;
+/* this should probably go somewhere else */
+TDS_NUMERIC	numeric;
    
-   tds     = (TDSSOCKET *) dbproc->tds_socket;
-   resinfo = tds->res_info;
+	tds     = (TDSSOCKET *) dbproc->tds_socket;
+	resinfo = tds->res_info;
    
-   for (i=0;i<resinfo->num_cols;i++)
-   {
-      curcol = resinfo->columns[i];
-      if (curcol->column_nullbind) 
-      {
-         if (tds_get_null(resinfo->current_row,i)) {
-            *((DBINT *)curcol->column_nullbind)=-1;
-         } else {
-            *((DBINT *)curcol->column_nullbind)=0;
-         }
-      }
-      if (curcol->varaddr && !tds_get_null(resinfo->current_row,i))
-      {
-         int   index = buffer_index_of_resultset_row(buf, row_num);
+	for (i=0;i<resinfo->num_cols;i++) {
+		curcol = resinfo->columns[i];
+		if (curcol->column_nullbind) {
+			if (tds_get_null(resinfo->current_row,i)) {
+				*((DBINT *)curcol->column_nullbind)=-1;
+			} else {
+				*((DBINT *)curcol->column_nullbind)=0;
+			}
+		}
+		if (curcol->varaddr && !tds_get_null(resinfo->current_row,i)) {
+			int   index = buffer_index_of_resultset_row(buf, row_num);
          
-         if (index<0)
-         {
-            assert(1==0);
-            /* XXX now what? */
-         }
-         else
-         {
-           DBINT srclen = -1;
+			if (index<0) {
+				assert(1==0);
+				/* XXX now what? */
+			} else {
+ 			DBINT srclen = -1;
 	
-            if (is_blob_type(curcol->column_type)) {
-		srclen =  curcol->column_textsize;
-		src = (BYTE *)curcol->column_textvalue;
-            } else {
-               src = ((BYTE *)buffer_row_address(buf, index)) 
-               + curcol->column_offset;
-            }
-            desttype = _db_get_server_type(curcol->column_bindtype);
-            srctype = tds_get_conversion_type(curcol->column_type,
-                                           curcol->column_size);
+			if (is_blob_type(curcol->column_type)) {
+				srclen =  curcol->column_textsize;
+				src = (BYTE *)curcol->column_textvalue;
+			} else {
+				src = ((BYTE *)buffer_row_address(buf, index)) 
+					+ curcol->column_offset;
+			}
+			desttype = _db_get_server_type(curcol->column_bindtype);
+			srctype = tds_get_conversion_type(curcol->column_type,
+				curcol->column_size);
 
-            dbconvert(dbproc,
-                      srctype,			/* srctype  */
-                      src,			/* src      */
-                      srclen,			/* srclen   */
-                      desttype,			/* desttype */
-                      (BYTE *)curcol->varaddr,	/* dest     */
-                      curcol->column_bindlen);	/* destlen  */
-            /* dbconvert will null terminate the string 
-            ** if bindtype is STRINGBIND it should be 
-            ** space padded to column_size
-            */
-            if (curcol->column_type==SYBCHAR && 
-                curcol->column_bindtype==STRINGBIND) {
-               for (j=strlen(curcol->varaddr);j<curcol->column_size;j++) {
-                  curcol->varaddr[j]=' ';
-               }
-               curcol->varaddr[j]='\0';
-            }
-         }
-         
-      }
-   }
+			if (tds_get_null(resinfo->current_row,i)) {
+				_set_null_value(dbproc, curcol->varaddr, desttype, 
+					curcol->column_bindlen);
+	  		} else {
+           			dbconvert(dbproc,
+					srctype,			/* srctype  */
+					src,			/* src      */
+					srclen,			/* srclen   */
+					desttype,			/* desttype */
+					(BYTE *)curcol->varaddr,	/* dest     */
+					curcol->column_bindlen);	/* destlen  */
+				/* dbconvert will null terminate the string 
+				** if bindtype is STRINGBIND it should be 
+				** space padded to column_size
+				*/
+				if (curcol->column_type==SYBCHAR && 
+					curcol->column_bindtype==STRINGBIND) {
+					for (j=strlen(curcol->varaddr);j<curcol->column_size;j++) {
+						curcol->varaddr[j]=' ';
+					}
+					curcol->varaddr[j]='\0';
+				}
+			} /* else not null */
+			}
+		}
+	}
 } /* buffer_transfer_bound_data()  */
 
 RETCODE dbinit()
@@ -2236,3 +2235,21 @@ int DBIOWDESC(DBPROCESS *dbproc)
    return dbproc->tds_socket->s;
 }
  
+static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen)
+{
+	switch (datatype) {
+		case SYBINT4:
+			memset(varaddr,'\0',4);
+		case SYBINT2:
+			memset(varaddr,'\0',2);
+		case SYBINT1:
+			memset(varaddr,'\0',1);
+		case SYBFLT8:
+			memset(varaddr,'\0',8);
+		case SYBREAL:
+			memset(varaddr,'\0',4);
+		case SYBCHAR:
+		case SYBVARCHAR:
+			varaddr[0]='\0';
+	}
+}
