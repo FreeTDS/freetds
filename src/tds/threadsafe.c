@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.14 2002-10-17 13:58:54 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.15 2002-10-18 15:34:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -117,7 +117,14 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 	gethostbyname_r(servername, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
 	struct hostent_data data;
+	memset(&data, 0, sizeof(data));
+#ifdef HAVE_SETHOSTENT_R
+	sethostent_r(0, &data);
+#endif
 	gethostbyname_r(servername, result, &data);
+#ifdef HAVE_ENDHOSTENT_R
+	endhostent_r(&data);
+#endif
 #elif defined(_REENTRANT)
 #error gethostbyname_r style unknown
 #endif
@@ -142,7 +149,14 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 	gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_5)
 	struct hostent_data data;
+	memset(&data, 0, sizeof(data));
+#ifdef HAVE_SETHOSTENT_R
+	sethostent_r(0, &data);
+#endif
 	gethostbyaddr_r(addr, len, type, result, &data);
+#ifdef HAVE_ENDHOSTENT_R
+	endhostent_r(&data);
+#endif
 #else
 #error gethostbyaddr_r style unknown
 #endif
