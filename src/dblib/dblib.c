@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.103 2002-11-12 22:09:00 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.104 2002-11-12 22:55:50 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -602,7 +602,7 @@ dbstring_free(DBSTRING **dbstrp)
   }
 }
 
-static void
+static RETCODE
 dbstring_concat(DBSTRING **dbstrp, const char *p)
 {
 DBSTRING **strp = dbstrp;
@@ -612,25 +612,25 @@ DBSTRING **strp = dbstrp;
 	}
 	if ((*strp = (DBSTRING *) malloc(sizeof(DBSTRING))) == NULL) {
 		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
-		return;
+		return FAIL;
 	}
 	(*strp)->strtotlen = strlen(p);
 	if (((*strp)->strtext = (BYTE *) malloc((*strp)->strtotlen)) == NULL) {
 		free(*strp);
 		*strp = NULL;
 		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
-		return;
+		return FAIL;
 	}
 	memcpy((*strp)->strtext, p, (*strp)->strtotlen);
 	(*strp)->strnext = NULL;
-	return;
+	return SUCCEED;
 }
 
-static void
+static RETCODE
 dbstring_assign(DBSTRING **dbstrp, const char *p)
 {
   dbstring_free(dbstrp);
-  dbstring_concat(dbstrp, p);
+  return dbstring_concat(dbstrp, p);
 }
 
 static DBINT
@@ -2760,6 +2760,7 @@ RETCODE
 dbsetopt(DBPROCESS *dbproc, int option, const char *char_param, int int_param)
 {
 char *cmd;
+RETCODE rc;
 
 	if ((option < 0) || (option >= DBNUMOPTIONS)) {
 		_dblib_client_msg(dbproc, SYBEUNOP, EXNONFATAL, "Unknown option passed to dbsetopt().");
@@ -2782,8 +2783,9 @@ char *cmd;
 		       dbproc->dbopts[option].opttext) < 0) {
 	    return FAIL;
 	  }
-	  dbstring_concat(&(dbproc->dboptcmd), cmd);
+	  rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
 	  free(cmd);
+	  return rc;
 	  break;
 	case DBNATLANG:
 	case DBDATEFIRST:
@@ -2793,8 +2795,9 @@ char *cmd;
 		       dbproc->dbopts[option].opttext, char_param) < 0) {
 	    return FAIL;
 	  }
-	  dbstring_concat(&(dbproc->dboptcmd), cmd);
+	  rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
 	  free(cmd);
+	  return rc;
 	  break;
 	case DBOFFSET:
 		/* server option */
@@ -2837,9 +2840,9 @@ char *cmd;
 	case DBPRLINESEP:
 	case DBPRPAD:
 		/* dblib options */
-		dbstring_assign(&(dbproc->dbopts[option].optparam), " ");
+		rc = dbstring_assign(&(dbproc->dbopts[option].optparam), char_param);
 		/* XXX DBPADON/DBPADOFF */
-		return SUCCEED;
+		return rc;
 		break;
 	default:
 		break;
