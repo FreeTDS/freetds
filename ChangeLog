@@ -1,6 +1,9 @@
+Wed Feb  9 20:47:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c: backported small fix for leak
+
 Mon Feb  7 05:38:21 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in INSTALL README 0.63RC10
-	
+
 Thu Feb  3 10:38:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/freebcp.c vms/descrip_mms.template vms/getpass.c:
 	- applied patch from Craig A. Berry for bcp and VMS
