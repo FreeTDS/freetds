@@ -66,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.65 2003-07-28 15:12:57 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.66 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -131,7 +131,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	int print_rows = 1;
 	char message[128];
 
-	rc = tds_submit_query(tds, buf, NULL);
+	rc = tds_submit_query(tds, buf);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;
@@ -274,12 +274,13 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	setlocale(LC_ALL, "");
 	locale = setlocale(LC_ALL, NULL);
-#if HAVE_NL_LANGINFO && CODESET
-# if HAVE_LOCALE_CHARSET
+
+#if HAVE_LOCALE_CHARSET
 	charset = locale_charset();
-# else
-	charset = nl_langinfo(CODESET);
-# endif
+#endif
+#if HAVE_NL_LANGINFO && defined(CODESET)
+	if (!charset)
+		charset = nl_langinfo(CODESET);
 #endif
 
 	if (locale)

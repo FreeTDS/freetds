@@ -55,15 +55,17 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.6 2003-09-18 07:26:35 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.7 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
+
 /**
+ * \ingroup libtds
  * \defgroup conv Charset conversion
- * Convert between ASCII and Unicode
+ * Convert between different charsets.
  */
 
 /**

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.18 2003-06-11 20:10:59 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.19 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -127,7 +127,7 @@ run_query(TDSSOCKET * tds, const char *query)
 	int rc;
 	int result_type;
 
-	rc = tds_submit_query(tds, query, NULL);
+	rc = tds_submit_query(tds, query);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed for query '%s'\n", query);
 		return TDS_FAIL;

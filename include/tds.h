@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.144 2003-09-24 17:38:36 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.145 2003-09-25 21:14:23 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1032,7 +1032,7 @@ const char *tds_prtype(int token);
 
 
 /* iconv.c */
-void tds_iconv_open(TDSSOCKET * tds, char *charset);
+void tds_iconv_open(TDSSOCKET * tds, const char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
@@ -1081,7 +1081,8 @@ void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int
 int tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
 
 /* query.c */
-int tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+int tds_submit_query(TDSSOCKET * tds, const char *query);
+int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);

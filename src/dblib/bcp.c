@@ -62,7 +62,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.73 2003-09-21 18:37:42 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.74 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1672,7 +1672,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		}
 	}
 
-	tds_submit_query(tds, query, NULL);
+	tds_submit_query(tds, query);
 
 	/* save the statement for later... */
 
@@ -1859,7 +1859,7 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 
 	_bcp_err_handler(dbproc, SYBEBBCI);
 
-	tds_submit_query(tds, dbproc->bcp_insert_stmt, NULL);
+	tds_submit_query(tds, dbproc->bcp_insert_stmt);
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;

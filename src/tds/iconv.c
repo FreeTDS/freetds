@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.85 2003-09-19 06:15:36 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.86 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -71,7 +71,7 @@ static void tds_iconv_info_close(TDSICONVINFO * iconv_info);
 /**
  * \ingroup libtds
  * \defgroup conv Charset conversion
- * Convert between different charsets
+ * Convert between different charsets.
  */
 
 
@@ -259,15 +259,25 @@ tds_get_iconv_name(int charset)
  * Set up the initial iconv conversion descriptors.
  * When the socket is allocated, three TDSICONVINFO structures are attached to iconv_info.  
  * They have fixed meanings:
- * 	0. Client <-> UCS-2 (client2ucs2)
- * 	1. Client <-> server single-byte charset (client2server_singlebyte)
- *	2. Ascii  <-> server meta data	(ascii2server_metadata)
+ * 	\li 0. Client <-> UCS-2 (client2ucs2)
+ * 	\li 1. Client <-> server single-byte charset (client2server_chardata)
+ *	\li 2. ISO8859-1  <-> server meta data	(iso2server_metadata)
+ *
  * Other designs that use less data are possible, but these three conversion needs are 
- * very often needed.  By reserving them, we avoid searching the array for our most common purposes.  
- * \todo make \a charset  const
+ * very often needed.  By reserving them, we avoid searching the array for our most common purposes.
+ *
+ * To solve different iconv names and portability problem FreeTDS use a complex
+ * method. It maintain a list of all alias of a given charset.
+ * First it discover some needed charset (UTF-8, ISO8859-1 and UCS2) and then
+ * try to discover others from those characters (this discover happen only when
+ * required).
+ *
+ * There are a list of canonic names (GNU iconv names) and a set of aliases
+ * (one for others iconv implementations and another for Sybase). For every
+ * canonic charset name we cache iconv name found during discovery.
  */
 void
-tds_iconv_open(TDSSOCKET * tds, char *charset)
+tds_iconv_open(TDSSOCKET * tds, const char *charset)
 {
 	static const char *UCS_2LE = "UCS-2LE";
 	const char *name;

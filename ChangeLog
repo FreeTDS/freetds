@@ -1,3 +1,16 @@
+Fri Sep 25 23:10:36 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: update from ML and other
+	* src/apps/tsql.c: fix problem reading system charset
+	* include/tds.h src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/pool/member.c src/replacements/iconv.c:
+	* src/tds/iconv.c src/tds/login.c src/tds/query.c src/tds/token.c:
+	* src/tds/unittests/common.c src/tds/unittests/dataread.c:
+	* src/tds/unittests/flags.c src/tds/unittests/t0002.c:
+	* src/tds/unittests/t0003.c src/tds/unittests/t0004.c:
+	* src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	- remove params from tds_submit_query
+	- added tds_submit_query_params
+
 Wed Sep 24 22:26:32 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am doc/Makefile.am:	
 	- fix some issue related to make distcheck

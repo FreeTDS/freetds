@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.14 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.15 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 	/*
 	 * The heart of the test
 	 */
-	rc = tds_submit_query(tds, "SELECT * FROM #test_table", NULL);
+	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:

@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.104 2003-09-23 08:27:18 ppeterd Exp $";
+static char software_version[] = "$Id: query.c,v 1.105 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -151,7 +151,23 @@ tds_convert_string_free(const char *original, const char *converted)
  * \return TDS_FAIL or TDS_SUCCEED
  */
 int
-tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
+tds_submit_query(TDSSOCKET * tds, const char *query)
+{
+	return tds_submit_query_params(tds, query, NULL);
+}
+
+/**
+ * tds_submit_query_params() sends a language string to the database server for
+ * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
+ * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
+ * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
+ * \param tds state information for the socket and the TDS protocol
+ * \param query  language query to submit
+ * \param params parameters of query
+ * \return TDS_FAIL or TDS_SUCCEED
+ */
+int
+tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	TDSCOLINFO *param;
 	int query_len, i;
@@ -255,7 +271,7 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 
 	va_start(ap, queryf);
 	if (vasprintf(&query, queryf, ap) >= 0) {
-		rc = tds_submit_query(tds, query, NULL);
+		rc = tds_submit_query(tds, query);
 		free(query);
 	}
 	va_end(ap);

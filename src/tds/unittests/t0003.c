@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.13 2003-09-04 08:57:12 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.14 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	rc = tds_submit_query(tds, "use tempdb", NULL);
+	rc = tds_submit_query(tds, "use tempdb");
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;

@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.5 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.6 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -48,7 +48,7 @@ test(const char *type, const char *value, const char *result)
 	sprintf(buf, "SELECT CONVERT(%s,'%s')", type, value);
 
 	/* execute it */
-	rc = tds_submit_query(tds, buf, NULL);
+	rc = tds_submit_query(tds, buf);
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		exit(1);

@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.25 2003-06-06 09:19:19 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.26 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -108,7 +108,7 @@ pool_mbr_login(TDS_POOL * pool)
 	if (pool->database && strlen(pool->database)) {
 		query = (char *) malloc(strlen(pool->database) + 5);
 		sprintf(query, "use %s", pool->database);
-		rc = tds_submit_query(tds, query, NULL);
+		rc = tds_submit_query(tds, query);
 		free(query);
 		if (rc != TDS_SUCCEED) {
 			fprintf(stderr, "changing database failed\n");

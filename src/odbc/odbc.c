@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.252 2003-09-24 19:15:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.253 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -208,7 +208,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 		tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
-		if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
@@ -244,7 +244,7 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 
 		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
 
-		if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 			free(query);
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change database", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
@@ -2263,7 +2263,7 @@ _SQLExecute(TDS_STMT * stmt)
 		*end = tmp;
 		if (ret != TDS_SUCCEED)
 			ODBC_RETURN(stmt, SQL_ERROR);
-	} else if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED))
+	} else if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
 		ODBC_RETURN(stmt, SQL_ERROR);
 	stmt->hdbc->current_statement = stmt;
 
@@ -3121,7 +3121,7 @@ change_transaction(TDS_DBC * dbc, int state)
 	else
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
 
-	if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+	if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK", NULL);
 		return SQL_ERROR;
 	}

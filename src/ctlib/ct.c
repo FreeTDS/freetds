@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.103 2003-09-21 18:37:42 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.104 2003-09-25 21:14:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -715,10 +715,10 @@ ct_send(CS_COMMAND * cmd)
 		ret = CS_FAIL;
 		if (cmd->input_params) {
 			pparam_info = paraminfoalloc(tds, cmd->input_params);
-			ret = tds_submit_query(tds, cmd->query, pparam_info);
+			ret = tds_submit_query_params(tds, cmd->query, pparam_info);
 			tds_free_param_results(pparam_info);
 		} else {
-			ret = tds_submit_query(tds, cmd->query, NULL);
+			ret = tds_submit_query(tds, cmd->query);
 		}
 		if (ret == TDS_FAIL) {
 			tdsdump_log(TDS_DBG_WARN, "%L ct_send() failed\n");
@@ -1768,7 +1768,7 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? "with log" : "")
 			);
 
-		if (tds_submit_query(tds, writetext_cmd, NULL) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, writetext_cmd) != TDS_SUCCEED) {
 			return CS_FAIL;
 		}
 

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.11 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.12 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -68,7 +68,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	rc = tds_submit_query(tds, "select db_name() dbname, user_name() username", NULL);
+	rc = tds_submit_query(tds, "select db_name() dbname, user_name() username");
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;

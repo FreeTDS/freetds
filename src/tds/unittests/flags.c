@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.5 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.6 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -76,7 +76,7 @@ test_begin(const char *cmd)
 	TDS_INT result_type;
 
 	fprintf(stdout, "%s: Testing query\n", cmd);
-	if (tds_submit_query(tds, cmd, NULL) != TDS_SUCCEED)
+	if (tds_submit_query(tds, cmd) != TDS_SUCCEED)
 		fatal_error("tds_submit_query() failed");
 
 	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED)

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.211 2003-09-23 08:33:02 ppeterd Exp $";
+static char software_version[] = "$Id: token.c,v 1.212 2003-09-25 21:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -233,7 +233,7 @@ tds_set_spid(TDSSOCKET * tds)
 	/* TODO add test if TDS4.2 and SQL7 for bad date 
 	 * select @@pid, convert(datetime,'....') */
 
-	if (tds_submit_query(tds, "select @@spid", NULL) != TDS_SUCCEED) {
+	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
 	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {

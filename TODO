@@ -8,33 +8,62 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.72 2003-09-24 19:15:56 freddy77 Exp $
+To Do List	$Id: TODO,v 1.73 2003-09-25 21:14:22 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
-. Write functions to append to and search the TDSSOCKET::iconv_info array.  
-  (for mssql2k, every columns can have a different charset)
 
 For 0.62 version:
-. borrow GNU's libiconv m4 macro to test/provide EILSEQ.  
-. add test for locale_charset() to configure.in.  Use it if available instead
-  of nl_langinfo, because it implies we're using GNU iconv.  
-. Walk through charset name initialization.  Make sure it works in the absence
-  of an entry in freetds.conf
-. Pass any internal hard-coded charset names through tds_canonical_charset_name().  
-  The supporting .h file will need adjustment for non-GNU iconv.
-  Input name "ASCII" must always have a canonical form.  
-. add doc/htdoc/Makefile with "publish" target to commit cvs and update freetds.org
-. drop txt2man from cvs, skip building man pages without it. 
-. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
-. Rationalize libtds structure and *_alloc functions (ML 5 December, sb:"names")
+. iconv
+  - support different column charset under mssql2k
+    (write functions to append to and search the TDSSOCKET::iconv_info array)
+  - convert string using input parameters
+  - finish support for no-GNU iconv (indirect conversion see src/tds/iconv.c)
+    (it affect UTF-8 client)
+  - borrow GNU's libiconv m4 macro to test/provide EILSEQ
+    (some iconv implementation do not return EILSEQ, some platforms do not
+    define EILSEQ)
+  - add test for locale_charset() to configure.in.  Use it if available
+    instead of nl_langinfo, because it implies we're using GNU iconv
+  - --without-libiconv to switch off iconv library
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . freebcp should understand \n as newline. Also \r and \0 (null byte).
+. fix PHP problem handling empty recordsets. See messages on ML:
+  Damian Kramer, September 23, "Possible bug in freeTDS"
+  Steve Hanselman, September 16 "Issue with freetds 0.61.2 ..."
+. FAQ
+  - multiple statemets question
+  - PHP workaround with multiple connections (see ML)
+. userguide
+  - --with-unixodbc, --with-iodbc now not needed 
+    (only for particular configurations)
+  - iconv strategi
+  - iconv disable parameter
+  - UTF-8 support, update western, ecc.
+  - link to reference manual, add to web
+  - update table of working configurations
+    server (vendor, version, platform) - client (freetds version, platform) 
+    - protocol - charsets - date
+  - obsolete configuration (nt domain, locale.conf, etc.)
+. UTF-8 unit tests (libTDS)
+  - very large column name (128 on mssql), no-english to UTF-8 client
+
+Posted to 0.63 version
+. iconv
+  - support string conversions for Sybase
+  - input name "ASCII" must always have a canonical form (needed ??)
+. add doc/htdoc/Makefile with "publish" target to commit cvs and update 
+  freetds.org
+. drop txt2man from cvs, skip building man pages without it. 
+. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
+. Rationalize libtds structure and *_alloc functions (ML 5 December 2002, sb:"names")
+. be able to disable iconv for BCP (see Sybase documentation)
 
 For future versions (in priority order within library):
   All:
 . move error message macro/prototype to tds.h.in; use in dblib.c.
-. Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords (checks).  Is this done?  
+. Remove old char(30) limitations to various sysnames e.g., tables, columns, 
+  passwords (checks).  Is this done?  
 . Add missing constants needed for python and verify working
   (work in progress)
 . Add missing constants needed for Gnome-DB and verify working 
@@ -42,7 +71,9 @@ For future versions (in priority order within library):
   (work in progress)
 . tdsping program for testing purposes
 . Finish off the TDS dissector for ethereal
-. more solid. handle out of memory conditions (started, we must test all allocation and all function that return allocated data and be able to rollback to a safe state)
+. more solid. handle out of memory conditions (started, we must test all 
+  allocation and all function that return allocated data and be able to 
+  rollback to a safe state)
 . optimize numeric conversions (partial)
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
@@ -61,6 +92,8 @@ For future versions (in priority order within library):
 . NTLMv2 domain login support.  Cf. ML 5 Aug 2003 12:20:21 -0700 (PDT) 
   from bradleyb@u.washington.edu re: "Domain Login Support, connecting to MSSQL issue"
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
+. support encrypted connections
+. read on partial packet, do not wait entire one
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
