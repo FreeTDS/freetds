@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.193 2004-12-17 06:38:17 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.194 2004-12-17 10:00:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1986,8 +1986,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			if (len > destlen) {
 				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
 				ret = -1;
-				tdsdump_log(TDS_DBG_INFO1, "dblib.c:%d: %d bytes type %d -> %d, destlen %d < %d required\n",
-					    __LINE__, srclen, srctype, desttype, destlen, len);
+				tdsdump_log(TDS_DBG_INFO1, "%d bytes type %d -> %d, destlen %d < %d required\n",
+					    srclen, srctype, desttype, destlen, len);
 				break;
 			}
 			/* else pad with blanks */

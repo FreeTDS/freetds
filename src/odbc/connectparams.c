@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.56 2004-11-07 09:35:53 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.57 2004-12-17 10:00:08 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -358,21 +358,18 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 
 	if (!pszSection) {
 		/* spec says return list of all section names - but we will just return nothing */
-		fprintf(stderr, "[FreeTDS][ODBC][%s][%d] WARNING: Functionality for NULL pszSection not implemented.\n", __FILE__,
-			__LINE__);
+		tdsdump_log(TDS_DBG_WARN, "WARNING: Functionality for NULL pszSection not implemented.\n");
 		return 0;
 	}
 
 	if (!pszEntry) {
 		/* spec says return list of all key names in section - but we will just return nothing */
-		fprintf(stderr, "[FreeTDS][ODBC][%s][%d] WARNING: Functionality for NULL pszEntry not implemented.\n", __FILE__,
-			__LINE__);
+		tdsdump_log(TDS_DBG_WARN, "WARNING: Functionality for NULL pszEntry not implemented.\n");
 		return 0;
 	}
 
 	if (nRetBuffer < 1)
-		fprintf(stderr, "[FreeTDS][ODBC][%s][%d] WARNING: No space to return a value because nRetBuffer < 1.\n", __FILE__,
-			__LINE__);
+		tdsdump_log(TDS_DBG_WARN, "WARNING: No space to return a value because nRetBuffer < 1.\n");
 
 	if (pszFileName && *pszFileName == '/')
 		hFile = fopen(pszFileName, "r");
@@ -380,7 +377,7 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 		hFile = tdoGetIniFileName();
 
 	if (hFile == NULL) {
-		fprintf(stderr, "[FreeTDS][ODBC][%s][%d] ERROR: Could not open configuration file\n", __FILE__, __LINE__);
+		tdsdump_log(TDS_DBG_ERROR, "ERROR: Could not open configuration file\n");
 		return 0;
 	}
 

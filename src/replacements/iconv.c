@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.11 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.12 2004-12-17 10:00:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 
@@ -83,7 +83,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 
 	if (first_time) {
 		first_time = 0;
-		tdsdump_log(TDS_DBG_INFO1, "Using trivial iconv from \n\t%s\n", __FILE__);
+		tdsdump_log(TDS_DBG_INFO1, "Using trivial iconv\n");
 	}
 	
 	/* match both inputs to our canonical names */

@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.105 2004-12-07 22:39:21 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.106 2004-12-17 10:00:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -952,8 +952,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
 
 			if (file_bytes_left != 0) {
-				tdsdump_log(TDS_DBG_FUNC, "Error in %s, col %d: %d of %d bytes unread\nfile_bytes_left != 0!\n", 
-							__FILE__, (i+1), file_bytes_left, collen);
+				tdsdump_log(TDS_DBG_FUNC, "col %d: %d of %d bytes unread\nfile_bytes_left != 0!\n", 
+							(i+1), file_bytes_left, collen);
 				*row_error = TRUE;
 				free(coldata);
 				return FAIL;
@@ -1085,8 +1085,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
 					tdsdump_log(TDS_DBG_FUNC, 
-						    "_bcp_read_hostfile (bcp.c:%d) failed to convert %d bytes at offset 0x%lx in the data file.\n", 
-						    __LINE__, collen, (unsigned long int) ftell(hostfile) - collen);
+						    "_bcp_read_hostfile failed to convert %d bytes at offset 0x%lx in the data file.\n", 
+						    collen, (unsigned long int) ftell(hostfile) - collen);
 				}
 
 				/* trim trailing blanks from character data */

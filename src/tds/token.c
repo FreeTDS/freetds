@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.275 2004-12-17 06:38:17 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.276 2004-12-17 10:00:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1567,13 +1567,12 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info:%d: \n"
+	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info: \n"
 		    "\tcolname = %s (%d bytes)\n"
 		    "\ttype = %d (%s)\n"
 		    "\tserver's type = %d (%s)\n"
 		    "\tcolumn_varint_size = %d\n"
 		    "\tcolumn_size = %d (%d on server)\n",
-		    __LINE__, 
 		    curcol->column_name, curcol->column_namelen, 
 		    curcol->column_type, tds_prtype(curcol->column_type), 
 		    curcol->on_server.column_type, tds_prtype(curcol->on_server.column_type), 
@@ -3359,7 +3358,7 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "entering %s::tds_send_optioncmd() \n", __FILE__);
+	tdsdump_log(TDS_DBG_INFO1, "entering tds_send_optioncmd()\n");
 
 	assert(IS_TDS50(tds));
 	assert(ptds_argument);
