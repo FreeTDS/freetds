@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.158 2003-12-18 17:03:50 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.159 2003-12-21 08:06:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3689,10 +3689,13 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	case DBTEXTLIMIT:
 		/* dblib option */
 		/* requires param "0" to "2147483647" */
+		/* dblib do not return more than this length from text/image */
+		/* TODO required for PHP */
 		break;
 	case DBTEXTSIZE:
 		/* server option */
 		/* requires param "0" to "2147483647" */
+		/* limit text/image from network */
 		break;
 	case DBAUTH:
 		/* ??? */

@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.27 2003-12-20 10:25:52 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.28 2003-12-21 08:06:34 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = $(VERSION)
@@ -60,7 +60,7 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	-mkdir $(DOCDIR)
 	-mkdir $(DOCDIR)/reference
 	-rm -rf $(DOCDIR)/reference
-	cd .. && make doxy
+	cd .. && $(MAKE) doxy
 	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi
 
 install-data-local: $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm

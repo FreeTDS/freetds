@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.32 2003-12-20 10:25:52 freddy77 Exp $
+# version $Id: Makefile.am,v 1.33 2003-12-21 08:06:34 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -50,5 +50,9 @@ if HAVE_DOXYGEN
 
 doxy: $(SUBDIRS)
 	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
-
+else
+doxy:
+	-mkdir doc/doc/freetds-$(VERSION)/reference
+	touch doc/doc/freetds-$(VERSION)/reference/index.html
 endif
+

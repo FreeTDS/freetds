@@ -1,3 +1,12 @@
+Sun Dec 21 09:02:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am doc/Makefile.am:
+	- do not build reference if doxygen is not installed
+	* src/dblib/dblib.c: comments
+	* src/dblib/unittests/bcp.c src/dblib/unittests/bcp.h:
+	- do not use multi-line literals
+	- remove nullable bits from test
+	* src/odbc/unittests/common.c: search .so first
+
 Sat Dec 20 14:18:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/common.c:
 	* src/odbc/unittests/common.h src/odbc/unittests/connect.c:

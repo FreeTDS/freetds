@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.21 2003-12-20 13:23:38 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.22 2003-12-21 08:06:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -68,7 +68,7 @@ read_login_info(void)
 		return 0;
 	path[len - 9] = 0;
 	/* TODO this must be extended with all system possibles... */
-	if (!check_lib(path, ".libs/libtdsodbc.sl") && !check_lib(path, ".libs/libtdsodbc.so")
+	if (!check_lib(path, ".libs/libtdsodbc.so") && !check_lib(path, ".libs/libtdsodbc.sl")
 	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib"))
 		return 0;
 	strcpy(DRIVER, path);

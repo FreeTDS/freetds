@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.2 2003-12-18 20:05:43 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.3 2003-12-21 08:06:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -140,9 +140,6 @@ bind(DBPROCESS * dbproc)
 	assert(fOK == SUCCEED); 
 
 	/* nulls */
-	fOK = NULL_BIND(not_null_bit, SYBINT4);
-	assert(fOK == SUCCEED); 
-
 	fOK = NULL_BIND(not_null_char, SYBVARCHAR);
 	assert(fOK == SUCCEED); 
 	fOK = NULL_BIND(not_null_varchar, SYBVARCHAR);
