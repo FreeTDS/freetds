@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.34 2002-11-07 21:41:35 castellano Exp $";
+"$Id: sybdb.h,v 1.35 2002-11-15 19:02:41 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -137,7 +137,7 @@ typedef TDS_DATETIME4 DBDATETIME4 ;
 #endif
 
 typedef struct {
-void	*tds_login ;
+	TDSLOGIN *tds_login;
 } LOGINREC;
 
 typedef unsigned char BYTE;

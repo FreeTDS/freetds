@@ -1,3 +1,9 @@
+Fri Nov 15 13:59:30 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/dblib.c src/tds/config.c src/tds/token.c:
+	- Expose real type of LOGINREC->tds_login instead of hiding it
+	  in a void *.
+	- Check some dynamic allocations for failure.
+
 Thu Nov 15 17:52:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: use defined constant
 

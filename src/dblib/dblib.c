@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.104 2002-11-12 22:55:50 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.105 2002-11-15 19:02:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -465,12 +465,15 @@ db_env_chg(TDSSOCKET *tds, int type, char *oldval, char *newval)
 	return;
 }
 
-RETCODE dbinit()
+RETCODE
+dbinit(void)
 {
 	/* DBLIBCONTEXT stores a list of current connections so they may be closed
 	** with dbexit() */
-	g_dblib_ctx = (DBLIBCONTEXT *) malloc(sizeof(DBLIBCONTEXT));
-	memset(g_dblib_ctx,'\0',sizeof(DBLIBCONTEXT));
+	if ((g_dblib_ctx = (DBLIBCONTEXT *) malloc(sizeof(DBLIBCONTEXT))) == NULL) {
+		return FAIL;
+	}
+	memset(g_dblib_ctx, '\0', sizeof(DBLIBCONTEXT));
 
 	g_dblib_ctx->tds_ctx = tds_alloc_context();
 	tds_ctx_set_parent(g_dblib_ctx->tds_ctx, g_dblib_ctx);
@@ -488,20 +491,28 @@ RETCODE dbinit()
 
 	return SUCCEED;
 }
-LOGINREC *dblogin()
-{
-LOGINREC * loginrec;
 
-	loginrec = (LOGINREC *) malloc(sizeof(LOGINREC));
-	loginrec->tds_login = (void *) tds_alloc_login();
+LOGINREC *
+dblogin(void)
+{
+	LOGINREC *loginrec;
+
+	if ((loginrec = (LOGINREC *) malloc(sizeof(LOGINREC))) == NULL) {
+		return NULL;
+	}
+	if ((loginrec->tds_login = tds_alloc_login()) == NULL) {
+		free(loginrec);
+		return NULL;
+	}
 
 	/* set default values for loginrec */
-	tds_set_library(loginrec->tds_login,"DB-Library");
-	/* tds_set_charset(loginrec->tds_login,"iso_1"); */
-	/* tds_set_packet(loginrec->tds_login,TDS_DEF_BLKSZ); */
+	tds_set_library(loginrec->tds_login, "DB-Library");
+	/* tds_set_charset(loginrec->tds_login, "iso_1"); */
+	/* tds_set_packet(loginrec->tds_login, TDS_DEF_BLKSZ); */
 
 	return loginrec;
 }
+
 void dbloginfree(LOGINREC *login)
 {
 	if (login) {

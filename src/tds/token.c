@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.106 2002-11-15 16:53:23 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.107 2002-11-15 19:02:45 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1438,12 +1438,14 @@ TDSMSGINFO msg_info;
 ** There is no action taken currently, but certain functions at the CLI level
 ** that return the name of the current database will need to use this.
 */
-int tds_process_env_chg(TDSSOCKET *tds)
+int
+tds_process_env_chg(TDSSOCKET *tds)
 {
-int size, type;
-char *oldval, *newval;
-int  new_block_size;
-TDSENVINFO *env = tds->env;
+	int size, type;
+	char *oldval, *newval;
+	int new_block_size;
+	TDSENVINFO *env = tds->env;
+	unsigned char *new_out_buf;
 
 	size = tds_get_smallint(tds);
 	/* this came in a patch, apparently someone saw an env message
@@ -1484,7 +1486,10 @@ TDSENVINFO *env = tds->env;
 				** block size but if it is possible, we don't 
 				** handle it.
 				*/
-				tds->out_buf = (unsigned char*) realloc(tds->out_buf, new_block_size);
+				if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, new_block_size)) == NULL) {
+					return TDS_FAIL;
+				}
+				tds->out_buf = new_out_buf;
 				env->block_size = new_block_size;
 			}
 			break;

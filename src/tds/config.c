@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.59 2002-11-10 17:34:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.60 2002-11-15 19:02:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -260,14 +260,17 @@ int found = 0;
 	return found;
 }
 
-static int tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info)
+static int
+tds_read_conf_sections(FILE *in, const char *server, TDSCONNECTINFO *connect_info)
 {
 unsigned char *section;
 int i, found = 0;
 
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connect_info);
 	rewind(in);
-	section = strdup(server);
+	if ((section = strdup(server)) == NULL) {
+		return 0;
+	}
 	for (i = 0; i < strlen(section); i++)
 		section[i] = tolower(section[i]);
 	found = tds_read_conf_section(in, section, tds_parse_conf_section, connect_info);
@@ -275,6 +278,7 @@ int i, found = 0;
 
 	return found;
 }
+
 static int tds_config_boolean(const char *value) 
 {
 	if (!strcmp(value, "yes") ||
