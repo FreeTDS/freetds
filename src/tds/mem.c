@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.96 2003-09-17 22:40:11 ppeterd Exp $";
+static char software_version[] = "$Id: mem.c,v 1.97 2003-09-18 07:26:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };

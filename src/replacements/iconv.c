@@ -55,7 +55,7 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.5 2003-09-18 03:22:32 ppeterd Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.6 2003-09-18 07:26:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
