@@ -1,3 +1,6 @@
+Mon May 12 17:29:00 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: remove unused function
+
 Mon May 12 17:17:14 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/moreandcount.c: improved
 

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.162 2003-05-11 07:26:59 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.163 2003-05-12 15:30:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2260,36 +2260,6 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 }
 
 
-/* pwillia6@csc.com.au 01/25/02 */
-/* strncpy copies up to len characters, and doesn't terminate */
-/* the destination string if src has len characters or more. */
-/* instead, I want it to copy up to len-1 characters and always */
-/* terminate the destination string. */
-static char *
-strncpy_null(char *dst, const char *src, int len)
-{
-	int i;
-
-
-	if (NULL != dst) {
-		/*  Just in case, check for special lengths */
-		if (len == SQL_NULL_DATA) {
-			dst[0] = '\0';
-			return NULL;
-		} else if (len == SQL_NTS)
-			len = strlen(src) + 1;
-
-		for (i = 0; src[i] && i < len - 1; i++) {
-			dst[i] = src[i];
-		}
-
-		if (len > 0) {
-			dst[i] = '\0';
-		}
-	}
-	return dst;
-}
-
 SQLRETURN SQL_API
 SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
 	   SQLSMALLINT FAR * pcbInfoValue)
@@ -2426,8 +2396,6 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 
 	return SQL_SUCCESS;
 }
-
-/* end pwillia6@csc.com.au 01/25/02 */
 
 SQLRETURN SQL_API
 SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
