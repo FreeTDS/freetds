@@ -25,7 +25,7 @@
 
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.3 2002-08-22 03:25:18 jklowden Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.4 2002-08-22 05:45:25 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -112,7 +112,7 @@ int i ;
 
 char arg[FILENAME_MAX + 1];
 
-     if (argc == 0) {
+     if (argc == 1) {
        pusage();
        return(FALSE);
      }
