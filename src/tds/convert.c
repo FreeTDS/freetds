@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.59 2002-08-27 09:52:04 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.60 2002-08-29 19:56:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2452,7 +2452,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm 
 	
 	char *pz = NULL;
 	
-	our_format = malloc( strlen(format) + 1 );
+	our_format = malloc( strlen(format) + (1+1) ); /* 1 for terminator and 1 for added millisecond character */
 	if( !our_format ) return 0;
 	strcpy( our_format, format );
 		

@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.42 2002-08-28 08:07:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.43 2002-08-29 19:56:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -708,6 +708,10 @@ int remainder;
 				curcol->column_type=SYBVARCHAR;
 				curcol->column_unicodedata = 1;
 				break;
+			case SYBNTEXT:
+				curcol->column_type=SYBTEXT;
+				curcol->column_unicodedata = 1;
+				break;
 			case XSYBVARCHAR: 
 				curcol->column_type=SYBVARCHAR;
 				break;
@@ -975,13 +979,19 @@ int len;
 
 				tds_get_n(tds,varbin->array,colsize);
 			} else if (is_blob_type(curcol->column_type)) {
-				curcol->column_textvalue = realloc(curcol->column_textvalue,colsize);
+				if (curcol->column_unicodedata) colsize /= 2;
+				curcol->column_textvalue = realloc(curcol->column_textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
 				curcol->column_textsize = colsize;
-				tds_get_n(tds,curcol->column_textvalue,colsize);
+				if (curcol->column_unicodedata) {
+					tds_get_string(tds,curcol->column_textvalue,colsize);
+				} else {
+					tds_get_n(tds,curcol->column_textvalue,colsize);
+				}
 			} else {
 				dest = &(info->current_row[curcol->column_offset]);
 				if (curcol->column_unicodedata) {
 					tds_get_string(tds,dest,colsize/2);
+					colsize /= 2;
 				} else {
 					tds_get_n(tds,dest,colsize);
 				}
@@ -993,12 +1003,7 @@ int len;
 			}
 
 			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
-            /* was: curcol->cur_row_size = colsize; */
-            if (curcol->column_unicodedata) {
-                            curcol->cur_row_size = strlen(dest);
-            } else {
-                            curcol->cur_row_size = colsize;
-            }
+			curcol->cur_row_size = colsize;
 
 #ifdef WORDS_BIGENDIAN
 			/* MS SQL Server 7.0 has broken date types from big endian 

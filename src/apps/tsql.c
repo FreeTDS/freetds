@@ -55,6 +55,9 @@ int rc, i;
 TDSCOLINFO *col;
 int ctype;
 CONV_RESULT dres;
+unsigned char *src;
+TDS_INT srclen;
+TDS_INT len;
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -78,10 +81,19 @@ CONV_RESULT dres;
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
+				if (is_blob_type(col->column_type)) {
+					src = (unsigned char *)col->column_textvalue;
+					srclen = col->column_textsize;
+				} else {
+					src = &(tds->res_info->current_row[col->column_offset]);
+					srclen = col->cur_row_size;
+				}
+
+	 
                     if(tds_convert(tds->tds_ctx,
  					ctype,
- 					&tds->res_info->current_row[col->column_offset],
- 					col->column_size,
+					src,
+ 					srclen,
 					SYBVARCHAR,
 					255,
 					&dres) == TDS_FAIL)

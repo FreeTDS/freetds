@@ -1,3 +1,12 @@
+Thu Aug 29 21:52:57 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c:
+	- fixed handling blob data
+	* src/tds/convert.c:
+	- fixed buffer overflow converting data to string (thanks to 
+	  dmalloc library)
+	* src/tds/token.c:
+	- autoconvert ntext to text
+
 Thu Aug 29 17:42:14 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/asprintf.c:
 	- applied patch from Castellano for fix thread problems 
