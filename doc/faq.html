@@ -35,11 +35,11 @@ users to start.
 
 This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
-since the last release.  And to answer perennial questions (there are some).  You will find find mention of "Release 0.60".  There is none such (yet); that number refers to the current development version.  The last release of FreeTDS was version 0.53
+since the last release.  And to answer perennial questions (there are some).  You can find mention of "Release 0.61".  There is none such (yet); that number refers to the current development version.  The last release of FreeTDS is version 0.60
 <p>
 
 
-<div align=right><i>$Id: faq.html,v 1.16 2002-09-06 02:45:43 castellano Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.17 2002-10-08 19:22:24 freddy77 Exp $</i></div>
 
 </font> </p>
 
@@ -213,7 +213,7 @@ places. </p>
 <a name="Does FreeTDS support MSSQL"></a>
 <h3>Does FreeTDS support MSSQL?</h3>
 
-<p>Yes, as long as you configure the libraries with the 4.2 or 7.0 protocol
+<p>Yes, as long as you configure the libraries with the 4.2, 5.0, 7.0 or 8.0 protocol
 version. See the <a href="http://www.freetds.org/userguide/">User Guide</a> for details. </p>
 
 
@@ -261,7 +261,7 @@ to not obtain the documentation until all license issues are resolved.</p>
 your question answered there (or, if you'd just like to learn more about what's going on with FreeTDS),
 please subscribe to the 
 <a href="http://www.freetds.org/contact.html">mailing list</a>.  Questions new and old are cheerfully
-answered there.  Traffic is not high, normally around 10 messages a day.  
+answered there.  Traffic is not high, normally around 10 messages a day.
 </p>
 <p><i>Netiquette note</i>:  It's considered poor form to mail "help me" questions directly to the
 developers of <i>any</i> free software project, this one included.  Please direct your question to the
@@ -434,9 +434,10 @@ statement:</p>
 	<dt><tt>  --with-unixodbc=DIR</tt></dt>
 	<dd> build odbc driver against unixODBC in DIR</dd>
 	<dt><tt>--with-ssl</tt></dt>
-	<dd>enable ssl. This option enable NT domain authentication for ms sql server (use with TDS7/8). This stuff have not been tested very much.</dd>
+	<dd>enable ssl. This option enable NT domain authentication for ms sql server (use with TDS7/8). Version after 0.60 do not require this setting, 
+	domain login are always enabled and use a LGPL implementation.</dd>
 	<dt><tt>--enable-threadsafe</tt></dt>
-	<dd>compile for thread safety [default=no]. Some environment have problem with theadsafe socket function. Use with care.</dd>
+	<dd>compile for thread safety [default=no]. Some environment have problem with theadsafe socket function. Use with care (work on recent Linux, *BSD and should work on Tru64 environment).</dd>
 </dl> <!-- end nested dictionary list -->
 
 <p>
@@ -723,7 +724,7 @@ For <tt>DBD::Sybase</tt> edit the Makefile after running <b><kbd>perl Makefile.P
 If you have a Solaris machine and the requisite <tt>autoconf</tt> skills to fix this, a patch would be appreciated.
 </p>
 
-<p>Status: <em>fixed in CVS version as of August 2002</em></p>
+<p>Status: <em>fixed in version 0.60</em></p>
 
 <a name="DBD_Sybase093"></a>
 <h3>I couldn't get DBD::Sybase 0.93 to compile.</h3>
@@ -876,7 +877,7 @@ run.&nbsp; The following combinations are reasonable:</li>
 
 <ol>
 <li>
-Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, and dblib in that order</li>
+Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, dblib and odbc in that order</li>
 
 <li>
 Compile <font size="+1"><tt><a href="http://www.sqsh.org">sqsh</a></tt></font>
@@ -956,7 +957,7 @@ Analyzer tool) converts <tt>datetime</tt> to an ISO format. That format has the
 advantages of being all numeric: sortable, unambiguous, and 
 locale-independent. <code>db-lib</code> and <code>ct-lib</code>, in contrast, 
 as well as the FreeTDS <code>ODBC</code> 
-driver, use the <code>MMM DD YYYY hh:mm</code> format. 
+driver, use the <code>MMM DD YYYY hh:mm</code> format (fixed in CVS, October 2002). 
 <p>If you want to be sure your queries always return dates in a particular 
 format, don't leave the formatting up to the driver! Use the <code>Convert</code> 
 function. For example:  </p>
@@ -975,7 +976,7 @@ function. For example:  </p>
 
 <p>There are two other date issues.  
 <ol>
-	<li>FreeTDS dates are restricted to the range supported by the standard C library, approximately from 1970 to 2038.  This restriction will be lifted with version 0.60.  </li>
+	<li>FreeTDS dates are restricted to the range supported by the standard C library, approximately from 1970 to 2038.  This restriction was lifted with version 0.60.</li>
 	<li>Big endian clients experience difficulty with Microsoft servers.  See <em>Known Issues</em> in the <a href="http://www.freetds.org/userguide/">User Guide</a>.  </li>
 </ol>
 
