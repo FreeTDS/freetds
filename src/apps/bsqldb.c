@@ -47,7 +47,7 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: bsqldb.c,v 1.1 2004-04-05 07:12:09 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.2 2004-04-12 20:36:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -466,11 +466,7 @@ print_results(DBPROCESS *dbproc)
 
 		/* Print the column headers to stderr to keep them separate from the data.  */
 		for (c=0; c < ncols; c++) {
-			char fmt[256] = "%-";
-			
-			/* left justify the names */
-			strcat(fmt, &metadata[c].format_string[1]);
-			fprintf(stderr, fmt, metadata[c].name);
+			fprintf(stderr, metadata[c].format_string, metadata[c].name);
 		}
 
 		/* Underline the column headers.  */
@@ -637,17 +633,22 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
  * Build the column header format string, based on the column width. 
  * This is just one solution to the question, "How wide should my columns be when I print them out?"
  */
+#define is_character_data(x)   (x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
 int
 set_format_string(struct METADATA * meta, const char separator[])
 {
 	int width, ret;
+	const char *size_and_width;
 	assert(meta);
+
+	/* right justify numbers, left justify strings */
+	size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
 	
 	width = get_printable_size(meta->type, meta->size);
 	if (width < strlen(meta->name))
 		width = strlen(meta->name);
 
-	ret = asprintf(&meta->format_string, "%%%d.%ds%s", width, width, separator);
+	ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
 		       
 	return ret;
 }
