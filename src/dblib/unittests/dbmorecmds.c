@@ -1,28 +1,7 @@
 /*
-** t0024.c: Test behaviour of dbmorecmds()
-**
-*/
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
-/*
-** t0024.c: Test behaviour of dbmorecmds()
-**
-*/
+ * dbmorecmds.c: Test behaviour of dbmorecmds()
+ *
+ */
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -42,18 +21,18 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.3 2003-05-01 15:34:57 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.4 2003-07-28 15:10:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
-
+const static char sp_help[] = "execute master..sp_help sp_help";
 int
 main(int argc, char **argv)
 {
 	const int rows_to_add = 10;
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	int i, more_count;
+	int i, nresults;
 
 	set_malloc_options();
 
@@ -133,39 +112,43 @@ main(int argc, char **argv)
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
-	more_count = 0;
+	nresults = 0;
 
-	while (dbmorecmds(dbproc)) {
-		more_count++;
-		dbresults(dbproc);
+	if (dbresults(dbproc) == SUCCEED) {
+		do {
+			while (dbnextrow(dbproc) != NO_MORE_ROWS);
+			nresults++;
+		} while (dbmorecmds(dbproc) == SUCCEED);
 	}
 
 	/* dbmorecmds should return success 0 times for select 1 */
-	if (more_count != 0) {
+	if (nresults != 1) {
 		add_bread_crumb();
 		failed = 1;
-		fprintf(stdout, "Was expecting more_count = 0.\n");
+		fprintf(stdout, "Was expecting nresults == 1.\n");
 		exit(1);
 	}
 
 	dbcancel(dbproc);
 
-	fprintf(stdout, "select 2\n");
-	dbcmd(dbproc, "if exists (select i from #dblib0024 where i=1) begin select count(*) from #dblib0024 end\n");
+	fprintf(stdout, sp_help);
+	dbcmd(dbproc, sp_help);
 	dbsqlexec(dbproc);
 
-	more_count = 0;
+	nresults = 0;
 
-	while (dbmorecmds(dbproc)) {
-		more_count++;
-		dbresults(dbproc);
+	if (dbresults(dbproc) == SUCCEED) {
+		do {
+			while (dbnextrow(dbproc) != NO_MORE_ROWS);
+			nresults++;
+		} while (dbmorecmds(dbproc) == SUCCEED);
 	}
 
 	/* dbmorecmds should return success 2 times for select 2 */
-	if (more_count != 2) {
+	if (nresults != 3) {	/* two results sets plus a return code */
 		add_bread_crumb();
 		failed = 1;
-		fprintf(stdout, "Was expecting more_count = 2.\n");
+		fprintf(stdout, "nresults was %d; was expecting nresults = 3.\n", nresults);
 		exit(1);
 	}
 
