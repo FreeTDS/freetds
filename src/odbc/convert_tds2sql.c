@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.7 2002-08-30 20:11:30 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.8 2002-09-04 20:18:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -96,7 +96,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
     TDS_USMALLINT    *usip;
 
     int ret;
-    int i;
+    int i,cplen;
         
         tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
@@ -120,24 +120,20 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
 
              if (destlen > 0) {
-		     /* FIXME odbc always terminate but do not overwrite 
+		cplen = (destlen-1) > nRetVal ? nRetVal : (destlen-1);
+		assert(cplen >= 0);
+		     /* odbc always terminate but do not overwrite 
 		      * destination buffer more than needed */
-                memset(dest, '\0', destlen);  
-                if (strlen(ores.c) >= destlen) {
-			/* FIXME ??? strange buffer overflow */
-                   memcpy(dest, ores.c, strlen(ores.c) - 1);  
-                }
-                else {
-			/* FIXME must be terminated */
-                   memcpy(dest, ores.c, strlen(ores.c));
-/*                 for (i = strlen(ores.c); i < destlen; i++ )
-                       dest[i] = ' ';
-*/
-                }
-                ret = destlen;
+                memcpy(dest, ores.c, cplen);
+		dest[cplen] = 0;
+                ret = nRetVal;
              }
              else {
-                ret = TDS_FAIL;
+		/* FIXME destlen == 0 is good... */
+		if (destlen == 0)
+			ret = nRetVal;
+		else
+			ret = TDS_FAIL;
              }
 
              free(ores.c);
@@ -239,6 +235,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
              break;
 
            case SQL_C_NUMERIC:
+	     /* FIXME data should swapped, sign have same meaning ??? */
              memcpy(dest, &(ores.n), sizeof(TDS_NUMERIC));
              ret = sizeof(TDS_NUMERIC);
              break;

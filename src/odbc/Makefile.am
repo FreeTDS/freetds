@@ -1,3 +1,5 @@
+SUBDIRS		= unittests
+
 include_HEADERS = connectparams.h odbc_util.h convert_tds2sql.h prepare_query.h convert_sql2string.h
 TDSDIR		=	../tds
 TDSOBJECTS	=	$(TDSDIR)/mem.lo $(TDSDIR)/token.lo \

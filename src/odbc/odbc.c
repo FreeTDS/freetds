@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.42 2002-08-28 08:07:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.43 2002-09-04 20:18:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -695,7 +695,7 @@ SQLRETURN SQL_API SQLConnect(
     }
 
     /* password */
-    if ( szAuthStr && (*szAuthStr) )
+    if ( szAuthStr )
         strcpy( szPassword, szAuthStr );
     else
     {
@@ -1114,7 +1114,7 @@ SQLRETURN SQL_API SQLFetch(
             else
             {
                 src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
-                srclen = colinfo->column_size;
+                srclen = colinfo->cur_row_size;
             }
             len = convert_tds2sql(context, 
                                   tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
@@ -1589,18 +1589,18 @@ SQLRETURN SQL_API SQLGetData(
             if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
                 return SQL_NO_DATA_FOUND;
             src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
-            srclen = colinfo->column_textsize + 1 - colinfo->column_text_sqlgetdatapos;
+            srclen = colinfo->column_textsize;
         }
         else
         {
             src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
-            srclen = -1;
+            srclen = colinfo->cur_row_size;
         }
         nSybType = tds_get_conversion_type( colinfo->column_type, colinfo->column_size );
         *pcbValue=convert_tds2sql(context, 
                                   nSybType,
                                   src,
-                                  colinfo->column_size /* srclen */, 
+                                  srclen, 
                                   fCType, 
                                   rgbValue,
                                   cbValueMax);

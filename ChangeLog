@@ -1,3 +1,12 @@
+Wed Sep  4 22:16:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/common.c:
+	* src/odbc/unittests/common.h src/odbc/unittests/t0001.c:
+	* configure.in src/odbc/Makefile.am src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c:
+	- fixed return length of string for odbc
+	- added first test for odbc (from Bill test)
+	- allow empty password
+
 Wed Sep  4 20:46:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c:
 	- return CS_ROW_FAIL if error converting
