@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<title>FreeTDS.org</title>
+<title>FAQ: FreeTDS.org</title>
 </head>
 <body bgcolor="#f9f9f9">
 
@@ -38,7 +38,7 @@ href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.9 2002-03-07 07:14:37 jklowden Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.10 2002-05-01 03:57:10 jklowden Exp $</i></div><p>
 
 </font> </p>
 
@@ -165,6 +165,8 @@ Problems Running<ul>
 
 <li>
 <a href="#textdata">My <tt>text</tt> data are being truncated or are causing my client to break.</a></li>
+<li>
+<a href="#dateformat">My dates aren't formatted right!.</a></li>
 </ul>
 </li>
 </OL>
@@ -919,6 +921,22 @@ The <tt>text</tt> data type is different from <tt>char</tt> and <tt>varchar</tt>
 </p>
 <p>
 The best solution is to make sure you set <tt>@@textsize</tt> to a reasonable value when establishing a connection.  
+</p>
+<a name="dateformat"></a>
+<h3>My dates aren't formatted right!</h3>
+<p>
+It's true.  Some dates turn out better than others.  
+</p>
+<p>If you think you're dates should look like <em>2001-12-13 17:58:55.000</em>, but you're seeing something like <em>Dec 13 2001 05:58PM</em> instead (or vice versa), you've bumped into driver behavior.  There's no standard governing the default character string representation of a datetime dataype.  Different drivers make different choices, and  your driver has chosen a representation for you.  
+</p>Microsoft's ODBC driver (which is used by among other things the Query Analyzer tool) converts datetimes to an ISO format.  That format has the advantage of being all numeric, making sortable, unambiguaous, and locale-independent.  Db-lib and Ct-lib, in contrast, as well as the FreeTDS ODBC driver, use the <code>MMM DD YYYY hh:mm</code> format.  
+<p>If you want to be sure your queries always return dates in a particular format, don't leave the formating up to the driver!  Use the <code>Convert</code> function, or the more modern <code>Cast</code> function if your server supports it.  
+</p>
+<p>There are two other date issues.  
+<ol>
+	<li>FreeTDS dates are restricted to the range supported by the standard C library, approximately from 1970 to 2038.  </li>
+	<li>Big endian clients experience difficulty with Microsoft servers.  See <em>Known Issues</em> in the <a href="http://www.freetds.org/userguide/">User Guide</a>.  </li>
+</ol>
+
 </p>
 
 		<!-- footer -->

@@ -1482,7 +1482,7 @@ You'll note this is the same program as for DBD::Sybase with the exception of th
 			<title>PHP</title>
 			<para>
 There are three options for building PHP with support for FreeTDS corresponding to the three APIs that FreeTDS supports: <type>dblib</type>, <type>ctlib</type>, and <type>ODBC</type>.
-<note><para>All these examples build the CGI version.  Consult PHPs documentation for building the apache module and including other extensions.</para></note>
+<note><para>All these examples build the CGI version.  Consult <ulink url="http://www.php.net/docs.php">PHPs documentation</ulink> for building the apache module and including other extensions.</para></note>
 			</para>
 		<sect2 id="phpDblib">
 			<title>Dblib</title>
