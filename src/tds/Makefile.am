@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.50 2005-04-05 11:47:24 freddy77 Exp $
+# $Id: Makefile.am,v 1.51 2005-04-05 14:56:47 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -40,15 +40,19 @@ endif
 # Perl is needed to build from a CVS checkout.  
 # Perl is *not* needed to build from a tarball.  
 
-charset:
-	perl sybase_character_sets.h.pl > sybase_character_sets.h
-	perl encodings.pl > encodings.h
-
 ## We have to build num_limits.h because automake can't infer the
 ## dependency (on num_limits.pl).  
 
-if HAVE_NUM_LIMITS_PL
+if HAVE_PERL_SOURCES
+tds_willconvert.h: tds_willconvert.pl
+	perl $(srcdir)/tds_willconvert.pl > .$@
+	mv .$@ $@
+
+encodings.h: encodings.pl alternative_character_sets.h
+	perl $(srcdir)/encodings.pl > .$@
+	mv .$@ $@
+
 num_limits.h: num_limits.pl
-	perl $(srcdir)/num_limits.pl > .$@ 
+	perl $(srcdir)/num_limits.pl > .$@
 	mv .$@ $@
 endif
