@@ -260,6 +260,7 @@ AC_OUTPUT(include/tdsver.h include/tds.h include/replacements.h \
 	Makefile \
 	include/Makefile \
 	doc/Makefile \
+	samples/Makefile \
 	src/Makefile \
 		src/tds/Makefile src/tds/unittests/Makefile \
 		src/dblib/Makefile src/dblib/unittests/Makefile \

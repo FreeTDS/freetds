@@ -1,10 +1,7 @@
-# version $Id: Makefile.am,v 1.18 2002-10-08 18:56:34 freddy77 Exp $
-SUBDIRS		=	include src doc
+# version $Id: Makefile.am,v 1.19 2002-10-09 17:05:43 castellano Exp $
+SUBDIRS		=	include src doc samples
 
-EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
-		samples/README samples/dyntest.c samples/odbc.ini \
-		samples/odbctest.php samples/odbctest.pl samples/test.php \
-		samples/test.pl \
+EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
 		autogen.sh freetds.spec.in freetds.spec
 

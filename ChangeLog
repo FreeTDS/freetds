@@ -1,3 +1,11 @@
+Wed Oct  9 13:04:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* Makefile.am configure.in
+	  samples/Makefile.am (added) 
+	  samples/unixodbc.freetds.driver.template.in (added)
+	  samples/unixodbc.install.sh (added)
+	  samples/unixodbc.jdbc.datasource.template (added)
+	- Add example unixODBC configuration data and script.
+
 Mon Oct  9 12:18:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsconvert.h include/tdsodbc.h src/odbc/convert_sql2string.c:
 	* src/odbc/convert_tds2sql.c src/odbc/odbc.c src/tds/convert.c:
