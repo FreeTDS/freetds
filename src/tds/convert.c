@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.144 2004-10-14 14:47:39 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.144.2.1 2005-01-07 16:34:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2727,6 +2727,10 @@ tds_get_null_type(int srctype)
 		break;
 	case SYBBIT:
 		return SYBBITN;
+		break;
+	case SYBMONEY:
+	case SYBMONEY4:
+		return SYBMONEYN;
 		break;
 	default:
 		break;
