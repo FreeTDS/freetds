@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.3 2004-08-10 06:46:33 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.4 2004-08-10 19:18:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -54,7 +54,8 @@ Test(int prebind)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
 	/* try to insert al empty string, should not fail */
-	TestInsert(stmt, "");
+	if (db_is_microsoft())
+		TestInsert(stmt, "");
 	TestInsert(stmt, "a");
 	TestInsert(stmt, "bb");
 	TestInsert(stmt, buf);
