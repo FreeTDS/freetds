@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.133 2004-01-07 17:01:50 castellano Exp $";
+static char software_version[] = "$Id: convert.c,v 1.133.2.1 2004-05-13 05:21:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2339,7 +2339,7 @@ static int
 store_year(int year, struct tds_time *t)
 {
 
-	if (year <= 0)
+	if (year < 0)
 		return 0;
 
 	if (year < 100) {
