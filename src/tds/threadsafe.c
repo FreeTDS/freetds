@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.12 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.13 2002-10-13 23:52:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -92,22 +92,17 @@ struct tm res;
 	return str;
 }
 
-/* test if original bsd socket api should considered reentrant */
-#undef SOCK_REENTRANT
-/* we don't care reentrancy */
+/*
+ * If reentrant code was not requested, we don't care reentrancy, so
+ * just assume the standard BSD socket interface is reentrant and use it.
+ */
 #ifndef _REENTRANT
-# define SOCK_REENTRANT 1
-#else
-/* tru64 and win32 "normal" api are reentrant */
-# if (defined (__digital__) || defined(__osf__)) && defined (__unix__)
+# ifndef SOCK_REENTRANT
 #  define SOCK_REENTRANT 1
-# endif
-# if defined(_WIN32) || defined(__WIN32__)
-#  define SOCK_REENTRANT 1
-# endif
-#endif
+# endif /* SOCK_REENTRANT */
+#endif /* _REENTRANT */
 
-struct hostent   *
+struct hostent *
 tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
 #ifdef SOCK_REENTRANT
