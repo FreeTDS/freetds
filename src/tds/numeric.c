@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.26 2004-03-31 18:41:24 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.27 2004-10-14 14:27:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -77,6 +77,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 #ifdef HAVE_INT64
 	int frac;
 	TDS_INT8 mymoney;
+	TDS_UINT8 n;
 	char *p;
 
 	/* sometimes money it's only 4-byte aligned so always compute 64-bit */
@@ -86,18 +87,21 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	p = s;
 	if (mymoney < 0) {
 		*p++ = '-';
-		mymoney = -mymoney;
+		/* we use unsigned cause this cause arithmetic problem for -2^63*/
+		n = -mymoney;
+	} else {
+		n = mymoney;
 	}
-	mymoney = (mymoney / 50 + 1 ) / 2;
-	frac = mymoney % 100;
-	mymoney /= 100;
-	/* if machine is 64 bit you do not need to split mymoney */
+	n = (n + 50) / 100;
+	frac = n % 100;
+	n /= 100;
+	/* if machine is 64 bit you do not need to split n */
 #if SIZEOF_LONG < 8
-	if (mymoney >= 1000000000) {
-		sprintf(p, "%ld%09ld.%02d", (long)(mymoney / 1000000000), (long)(mymoney % 1000000000), frac);
+	if (n >= 1000000000) {
+		sprintf(p, "%ld%09ld.%02d", (long)(n / 1000000000), (long)(n % 1000000000), frac);
 	} else
 #endif
-		sprintf(p, "%ld.%02d", (long)mymoney, frac);
+		sprintf(p, "%ld.%02d", (long)n, frac);
 	return s;
 #else
 	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];

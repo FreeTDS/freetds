@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.142 2004-09-08 15:12:04 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.143 2004-10-14 14:27:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1199,18 +1199,16 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 		return binary_to_result(src, sizeof(TDS_MONEY), cr);
 		break;
 	case SYBINT1:
-		/* TODO: round ?? */
-		dollars = mymoney / 10000;
-		if (!IS_TINYINT(dollars))
+		if (mymoney <= -10000 || mymoney >= 256 * 10000)
 			return TDS_CONVERT_OVERFLOW;
-		cr->ti = (TDS_TINYINT) dollars;
+		/* TODO: round ?? */
+		cr->ti = (TDS_TINYINT) (((TDS_INT) mymoney) / 10000);
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
-		dollars = mymoney / 10000;
-		if (!IS_SMALLINT(dollars))
+		if (mymoney <= -32769 * 10000 || mymoney >= 32768 * 10000)
 			return TDS_CONVERT_OVERFLOW;
-		cr->si = (TDS_SMALLINT) dollars;
+		cr->si = (TDS_SMALLINT) (((TDS_INT) mymoney) / 10000);
 		return sizeof(TDS_SMALLINT);
 		break;
 	case SYBINT4:

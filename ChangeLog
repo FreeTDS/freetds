@@ -1,3 +1,8 @@
+Thu Oct 14 16:26:21 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: small optimization for 32bit machine
+	* src/tds/numeric.c src/tds/unittests/dataread.c:
+	- fix arithmetic overflow
+
 Thu Oct 14 10:14:21 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: fix memory leak in TDSSOCKET
 	* configure.in:
