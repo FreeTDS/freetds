@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.8 2002-09-27 03:09:55 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.9 2002-10-02 14:22:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -164,15 +164,5 @@ tds_getservbyname_r(const char *name, char *proto, struct servent *result, char 
 
 	return result;
 
-#endif
-}
-
-char *
-tds_strtok_r(char *s, const char *delim, char **ptrptr)
-{
-#ifdef _REENTRANT
-	return strtok_r(s, delim, ptrptr);
-#else
-	return strtok(s, delim);
 #endif
 }

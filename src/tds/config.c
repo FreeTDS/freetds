@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.34 2002-09-30 20:18:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.35 2002-10-02 14:22:40 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -740,21 +740,21 @@ char *lasts;
 		if (line[0]=='#') continue; /* comment */
 
 		if (!isspace(line[0])) {
-			field = tds_strtok_r(line,"\n\t ", &lasts);
+			field = strtok_r(line, "\n\t ", &lasts);
 			if (!strcmp(field,host)) {
 				found=1;
 				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n,host");
 			}
 			else found=0;
 		} else if (found && isspace(line[0])) {
-			field = tds_strtok_r(line,"\n\t ", &lasts);
+			field = strtok_r(line, "\n\t ", &lasts);
 			if (field!=NULL && !strcmp(field,"query")) {
-				field = tds_strtok_r(NULL,"\n\t ", &lasts); /* tcp or tli */
+				field = strtok_r(NULL,"\n\t ", &lasts); /* tcp or tli */
 				if (!strcmp(field,"tli")) {
 					tdsdump_log(TDS_DBG_INFO1, "%L TLI service.\n");
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* tcp */
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* device */
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* host/port */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* tcp */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* device */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* host/port */
 					if (strlen(field)>=18) {
 						sprintf(tmp_port,"%d", hex2num(&field[6])*256 + 
 							hex2num(&field[8]));
@@ -764,12 +764,12 @@ char *lasts;
 					        tdsdump_log(TDS_DBG_INFO1, "%L tmp_port = %d.mtp_ip = %s.\n", tmp_port, tmp_ip);
 					}
 				} else {
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* ether */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* ether */
 					strcpy(tmp_ver,field);
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* host */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* host */
 					strcpy(tmp_ip,field);
 					tdsdump_log(TDS_DBG_INFO1, "%L host field %s.\n",tmp_ip);
-					field = tds_strtok_r(NULL,"\n\t ", &lasts); /* port */
+					field = strtok_r(NULL, "\n\t ", &lasts); /* port */
 					strcpy(tmp_port,field);
 				} /* else */
 			} /* if */

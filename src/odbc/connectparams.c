@@ -28,6 +28,7 @@
 #include <sqltypes.h>
 
 #include "connectparams.h"
+#include "replacements.h"
 
 #ifndef HAVEODBCINST
 
@@ -397,7 +398,7 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
     /*
      * Extract name from name = value
      */
-    if ((token = tds_strtok_r (line, equals, &ptr)) == NULL) return 0;
+    if ((token = strtok_r(line, equals, &ptr)) == NULL) return 0;
 
     len = strlen (token);
     while (len > 0 && isspace(token[len-1]))
@@ -410,7 +411,7 @@ static int tdoGetNextEntry( FILE *hFile, char **ppszKey, char **ppszValue )
     /*
      * extract value from name = value
      */
-    token = tds_strtok_r (NULL, equals, &ptr);
+    token = strtok_r(NULL, equals, &ptr);
     if (token == NULL) return 0;
     while (*token && isspace(token[0]))
         token++;

@@ -143,7 +143,7 @@ dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
 AC_CHECK_FUNCS(vsnprintf)
-AC_REPLACE_FUNCS(asprintf vasprintf atoll)
+AC_REPLACE_FUNCS(asprintf vasprintf atoll strtok_r)
 
 AC_MSG_CHECKING(if 64-bit arithmetic is available)
 AC_EGREP_CPP(yes,

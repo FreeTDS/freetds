@@ -1,3 +1,10 @@
+Wed Oct  2 10:20:25 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/replacements.h.in include/tds.h.in
+	  src/odbc/connectparams.c src/replacements/Makefile.am
+	  src/replacements/strtok_r.c (added)
+	  src/tds/config.c src/tds/convert.c src/tds/threadsafe.c:
+	- Provide and use a generic threadsafe strtok_r() replacement.
+
 Mon Oct  2 11:49:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/des.h src/tds/challenge.c src/tds/des.c:
 	- fixed warnings compiling

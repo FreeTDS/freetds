@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.86 2002-10-01 15:43:15 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.87 2002-10-02 14:22:41 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1583,7 +1583,7 @@ int current_state;
 	test_alloc(in);
 	strcpy (in , instr );
 
-	tok = tds_strtok_r (in, " ,", &lasts);
+	tok = strtok_r(in, " ,", &lasts);
 
 	current_state = GOING_IN_BLIND;
 
@@ -1763,7 +1763,7 @@ int current_state;
               return TDS_CONVERT_SYNTAX;
         }
 
-        tok = tds_strtok_r((char *)NULL, " ,", &lasts);
+        tok = strtok_r((char *)NULL, " ,", &lasts);
     }
 
     /* 1900 or after */ 
