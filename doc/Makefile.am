@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.46 2004-05-03 18:44:52 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.47 2004-05-14 14:59:54 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -118,7 +118,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 		mv .index.htm $@; \
 	fi
 	test -f $(DOCDIR)/userguide/index.htm
-	cd $(DOCDIR)/userguide && if test ! -L index.html ; then ln -s index.htm index.html; fi
+	cd $(DOCDIR)/userguide && if test ! -h index.html ; then ln -s index.htm index.html; fi
 # for convenience, create a link in the build directory
 	if test -h userguide; then rm userguide; fi
 	ln -sf $(DOCDIR)/userguide userguide

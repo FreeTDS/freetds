@@ -1,3 +1,7 @@
+Fri May 14 10:47:19 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/Makefile.am 
+	- s/-L/-h/g: use more standard -h to test for links. 
+
 Wed May 12 17:17:49 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/convert.c dd-mmm-00 yields 2000 instead of 1900
 
