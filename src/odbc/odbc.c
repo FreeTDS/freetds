@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.281 2003-12-16 11:05:25 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.282 2003-12-17 22:12:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -487,6 +487,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->dbc->current_statement == stmt)
 				stmt->dbc->current_statement = NULL;
+			tds_free_all_results(tds);
 			odbc_populate_ird(stmt);
 			ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		case TDS_SUCCEED:
@@ -2431,6 +2432,8 @@ _SQLExecute(TDS_STMT * stmt)
 	odbc_populate_ird(stmt);
 	switch (ret) {
 	case TDS_NO_MORE_RESULTS:
+		if (stmt->dbc->current_statement == stmt)
+			stmt->dbc->current_statement = NULL;
 #ifdef TDS_NO_DM
 		stmt->cursor_state = TDS_CURSOR_OPEN;
 #endif
@@ -2533,6 +2536,11 @@ _SQLFetch(TDS_STMT * stmt)
 		return SQL_ERROR;
 	}
 #endif
+
+	if (stmt->dbc->current_statement != stmt) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	tds = stmt->dbc->tds_socket;
 
@@ -3003,6 +3011,11 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
 	INIT_HSTMT;
 
+	if (stmt->dbc->current_statement != stmt) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
 	IRD_CHECK;
 
 	/*
@@ -3048,8 +3061,10 @@ _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	tds = stmt->dbc->tds_socket;
 
 	/* test is this is current statement */
-	if (stmt->dbc->current_statement != stmt)
+	if (stmt->dbc->current_statement != stmt) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 	*pcrow = -1;
 	if (tds->rows_affected != TDS_NO_COUNT)
 		*pcrow = tds->rows_affected;

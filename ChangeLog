@@ -1,3 +1,6 @@
+Wed Dec 17 23:12:19 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fixed some issues with iODBC
+
 Tue Dec 16 17:30:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/util.c: fixed core enabling append log mode
 
