@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.141 2003-09-17 07:31:14 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.142 2003-09-23 08:35:10 ppeterd Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -521,7 +521,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 			x==SYBIMAGE)
 #define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
 /* large type means it has a two byte size field */
-///define is_large_type(x) (x>128)
+/* define is_large_type(x) (x>128) */
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
 #define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
