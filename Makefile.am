@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.22 2002-10-28 12:36:24 freddy77 Exp $
+# version $Id: Makefile.am,v 1.23 2002-10-31 14:48:22 freddy77 Exp $
 SUBDIRS		=	include src doc samples
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
@@ -15,6 +15,11 @@ install-data-local:
 	if test ! -f $(ETC)/locales.conf; then \
 		$(INSTALL_DATA) $(srcdir)/locales.conf $(ETC)/locales.conf; \
 	fi
+
+if DISTCHECK_BUILD
+uninstall-local:
+	$(RM) $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
+endif
 
 test:
 	@echo "The 'make test' option has been replaced with 'make check'";

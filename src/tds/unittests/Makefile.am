@@ -12,3 +12,4 @@ t0008_SOURCES	=	t0008.c
 
 LIBS		=	../libtds.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
+CLEANFILES	=	tdsdump.out

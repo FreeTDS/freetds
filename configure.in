@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.67 2002-10-18 17:20:10 castellano Exp $
+dnl $Id: configure.in,v 1.68 2002-10-31 14:48:22 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -265,6 +265,15 @@ fi
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 AC_raf_FUNC_WHICH_GETSERVBYNAME_R
 AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
+
+AC_ARG_ENABLE(distcheck_build,
+  [  --enable-distcheck-build     used internally for testing])
+if test "$enable_distcheck_build" = "yes" ; then
+	AM_CONDITIONAL(DISTCHECK_BUILD, true)
+else
+	AM_CONDITIONAL(DISTCHECK_BUILD, false)
+fi
+
 
 dnl ------------------------------------------------------------
 dnl LTLIBOBJS hack (for autoconf-2.53)

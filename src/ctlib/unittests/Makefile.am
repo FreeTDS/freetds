@@ -13,3 +13,4 @@ t0009_SOURCES	=	t0009.c common.c common.h
 
 LIBS		=	../libct.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
+CLEANFILES	=	tdsdump.out

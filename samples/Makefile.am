@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.1 2002-10-09 17:05:44 castellano Exp $
+# version $Id: Makefile.am,v 1.2 2002-10-31 14:48:23 freddy77 Exp $
 
 noinst_SCRIPTS	=	unixodbc.freetds.driver.template
 
@@ -16,6 +16,8 @@ edit = sed \
 	-e 's,@prefix\@,$(prefix),g'
 
 unixodbc.freetds.driver.template: unixodbc.freetds.driver.template.in
+
+CLEANFILES = unixodbc.freetds.driver.template
 
 .in:
 	rm -f $@ $@.tmp
