@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.48 2003-04-07 19:02:30 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.49 2003-04-08 10:25:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -67,8 +67,8 @@ static char *lcid2charset(int lcid);
 void
 tds_iconv_open(TDSSOCKET * tds, char *charset)
 {
-	TDS_ENCODING *client = &tds->iconv_info.client_charset;
-	TDS_ENCODING *server = &tds->iconv_info.server_charset;
+	TDS_ENCODING *client = &tds->iconv_info->client_charset;
+	TDS_ENCODING *server = &tds->iconv_info->server_charset;
 	int ratio_c, ratio_s;
 
 #if HAVE_ICONV
@@ -98,13 +98,13 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 		client->max_bytes_per_char = 3;
 	}
 
-	tds->iconv_info.to_wire = iconv_open(server->name, client->name);
-	if (tds->iconv_info.to_wire == (iconv_t) - 1) {
+	tds->iconv_info->to_wire = iconv_open(server->name, client->name);
+	if (tds->iconv_info->to_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert to \"%s\"\n", charset);
 		return;
 	}
-	tds->iconv_info.from_wire = iconv_open(client->name, server->name);
-	if (tds->iconv_info.from_wire == (iconv_t) - 1) {
+	tds->iconv_info->from_wire = iconv_open(client->name, server->name);
+	if (tds->iconv_info->from_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
 		return;
 	}
@@ -115,12 +115,12 @@ void
 tds_iconv_close(TDSSOCKET * tds)
 {
 #if HAVE_ICONV
-	if (tds->iconv_info.to_wire != (iconv_t) - 1) {
-		iconv_close(tds->iconv_info.to_wire);
+	if (tds->iconv_info->to_wire != (iconv_t) - 1) {
+		iconv_close(tds->iconv_info->to_wire);
 	}
 
-	if (tds->iconv_info.from_wire != (iconv_t) - 1) {
-		iconv_close(tds->iconv_info.from_wire);
+	if (tds->iconv_info->from_wire != (iconv_t) - 1) {
+		iconv_close(tds->iconv_info->from_wire);
 	}
 #endif
 }
@@ -188,8 +188,8 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 			 *     4 |   21 | 11110vvv 10vvvvvv 10vvvvvv 10vvvvvv
 			 */
 			while (*input | 0x80) {
-				input++;
-				*input_size--;
+				++input;
+				--*input_size;
 			}
 
 		}
@@ -227,30 +227,30 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 
 	const char *charset = lcid2charset(lcid);
 
-	strcpy(tds->iconv_info.server_charset.name, charset);
+	strcpy(tds->iconv_info->server_charset.name, charset);
 
 	/* 
 	 * Close any previously opened iconv descriptors. 
 	 */
-	if (tds->iconv_info.to_wire != (iconv_t) - 1)
-		iconv_close(tds->iconv_info.to_wire);
+	if (tds->iconv_info->to_wire != (iconv_t) - 1)
+		iconv_close(tds->iconv_info->to_wire);
 
-	if (tds->iconv_info.from_wire != (iconv_t) - 1)
-		iconv_close(tds->iconv_info.from_wire);
+	if (tds->iconv_info->from_wire != (iconv_t) - 1)
+		iconv_close(tds->iconv_info->from_wire);
 
 	/* look up the size of the server's new character set */
-	ret = bytes_per_char(&tds->iconv_info.server_charset);
+	ret = bytes_per_char(&tds->iconv_info->server_charset);
 	if (!ret) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds7_srv_charset_changed: cannot convert to \"%s\"\n", charset);
-		tds->iconv_info.to_wire = (iconv_t) - 1;
-		tds->iconv_info.from_wire = (iconv_t) - 1;
+		tds->iconv_info->to_wire = (iconv_t) - 1;
+		tds->iconv_info->from_wire = (iconv_t) - 1;
 		return;
 	}
 
 
-	tds->iconv_info.to_wire = iconv_open(tds->iconv_info.server_charset.name, tds->iconv_info.client_charset.name);
+	tds->iconv_info->to_wire = iconv_open(tds->iconv_info->server_charset.name, tds->iconv_info->client_charset.name);
 
-	tds->iconv_info.from_wire = iconv_open(tds->iconv_info.client_charset.name, tds->iconv_info.server_charset.name);
+	tds->iconv_info->from_wire = iconv_open(tds->iconv_info->client_charset.name, tds->iconv_info->server_charset.name);
 #endif
 }
 

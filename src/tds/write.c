@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.36 2003-04-08 07:14:11 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.37 2003-04-08 10:25:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -105,9 +105,9 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	char buffer[256];
 	const char * eob; 
 	unsigned int output_size, bytes_out = 0;
-	unsigned int bpc = tds->iconv_info.server_charset.max_bytes_per_char; /* bytes per char */ ;
+	unsigned int bpc = tds->iconv_info->server_charset.max_bytes_per_char; /* bytes per char */ ;
 
-	client = &tds->iconv_info.client_charset;
+	client = &tds->iconv_info->client_charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
@@ -135,7 +135,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 			output_size = len * bpc;
 			if (output_size > sizeof(buffer))
 				output_size = sizeof(buffer);
-			bytes_out = tds_iconv(to_server, &tds->iconv_info, s, &len, buffer, output_size);
+			bytes_out = tds_iconv(to_server, tds->iconv_info, s, &len, buffer, output_size);
 			s = eob - len;
 			tds_put_n(tds, buffer, bytes_out);
 		}

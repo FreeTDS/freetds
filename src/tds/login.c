@@ -73,13 +73,14 @@
 #endif /* HAVE_SYS_IOCTL_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include "tdsstring.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.92 2003-04-07 19:02:34 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.93 2003-04-08 10:25:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -808,7 +809,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	if (!domain_login) {
 		tds_put_string(tds, connect_info->user_name, user_name_len);
 ///             tds7_ascii2unicode(tds, connect_info->password, unicode_string, 256);
-		password_len = tds_iconv(to_server, &tds->iconv_info, connect_info->password, (size_t *) &password_len, unicode_string, 256);
+		password_len = tds_iconv(to_server, tds->iconv_info, connect_info->password, (size_t *) &password_len, unicode_string, 256);
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
 	}

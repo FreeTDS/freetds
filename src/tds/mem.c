@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.69 2003-04-06 20:34:57 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.70 2003-04-08 10:25:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -643,6 +643,7 @@ TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
 	TDSSOCKET *tds_socket;
+	TDSICONVINFO *iconv_info;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
@@ -654,8 +655,10 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 		goto Cleanup;
 		
 	/* an iconv conversion descriptor of -1 means we don't use iconv.*/
-	tds_socket->iconv_info.to_wire = (iconv_t) -1;
-	tds_socket->iconv_info.from_wire = (iconv_t) -1;
+	TEST_MALLOC(iconv_info, TDSICONVINFO);
+	tds_socket->iconv_info = (void *) iconv_info;
+	iconv_info->to_wire = (iconv_t) -1;
+	iconv_info->from_wire = (iconv_t) -1;
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;
@@ -688,7 +691,10 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_close_socket(tds);
 		if (tds->date_fmt)
 			free(tds->date_fmt);
-		tds_iconv_close(tds);
+		if (tds->iconv_info) {
+			tds_iconv_close(tds);
+			free(tds->iconv_info);
+		}
 		TDS_ZERO_FREE(tds);
 	}
 }

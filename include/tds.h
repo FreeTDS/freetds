@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.107 2003-04-08 07:14:06 jklowden Exp $";
+	"$Id: tds.h,v 1.108 2003-04-08 10:25:41 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -30,7 +30,6 @@ static void *no_unused_tds_h_warn[] = {
 #include <stdarg.h>
 #include <time.h>
 
-#include "tdsiconv.h"
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
 #ifdef _FREETDS_LIBRARY_SOURCE
@@ -775,6 +774,9 @@ struct tds_context {
 	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 };
 
+/* forward declaration */
+typedef struct tdsiconvinfo TDSICONVINFO;
+
 struct tds_socket {
 	/* fixed and connect time */
         int s;
@@ -822,7 +824,7 @@ struct tds_socket {
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
-	TDSICONVINFO iconv_info;
+	TDSICONVINFO *iconv_info;
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.171 2003-04-08 07:14:11 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.172 2003-04-08 10:25:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1633,7 +1633,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 	} else {
 		if (curcol->column_size != curcol->on_server.column_size)
-			colsize = determine_adjusted_size(&tds->iconv_info, colsize);
+			colsize = determine_adjusted_size(tds->iconv_info, colsize);
 
 		if (is_blob_type(curcol->column_type)) {
 			/* This seems wrong.  text and image have the same wire format, 
@@ -2899,7 +2899,7 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 	if (is_unicode_type(curcol->on_server.column_type)) {
 		curcol->on_server.column_size = curcol->column_size; 
-		curcol->column_size = determine_adjusted_size(&tds->iconv_info, curcol->column_size);
+		curcol->column_size = determine_adjusted_size(tds->iconv_info, curcol->column_size);
 	}
 }
 
@@ -2923,4 +2923,3 @@ determine_adjusted_size(const TDSICONVINFO * iconv_info, int size)
 
 	return size;
 }
-

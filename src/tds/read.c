@@ -57,11 +57,12 @@
 #include <assert.h>
 
 #include "tds.h"
+#include "tdsiconv.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.45 2003-04-08 07:14:10 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.46 2003-04-08 10:25:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -245,7 +246,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	char temp[256];
 	char *p, *pend;
 	unsigned int in_left, wire_bytes; 
-	const unsigned int bpc = tds->iconv_info.server_charset.max_bytes_per_char;	/* bytes per char */
+	const unsigned int bpc = tds->iconv_info->server_charset.max_bytes_per_char;	/* bytes per char */
 
 
 	/*
@@ -272,7 +273,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 				in_left = sizeof(temp);
 			wire_bytes = in_left;
 			tds_get_n(tds, temp, wire_bytes);
-			p += tds_iconv(to_client, &tds->iconv_info, temp, &wire_bytes, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
+			p += tds_iconv(to_client, tds->iconv_info, temp, &wire_bytes, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
 			string_len -= (in_left - wire_bytes) / bpc;
 		}
 		return p - dest;
@@ -338,7 +339,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curco
 				in_left = sizeof(temp);
 			tds_get_n(tds, temp, in_left);
 			buffer_size = in_left;
-			p += tds_iconv(to_client, &tds->iconv_info, temp, &in_left, p, size);
+			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, size);
 			wire_size -= buffer_size - in_left;
 		}
 		return p - dest;
