@@ -53,7 +53,8 @@ At about the same time, Sybase introduced a more powerful <quote>successor</quot
 <systemitem class="library">ct-lib</systemitem>, <systemitem class="library">db-lib</systemitem>, and <systemitem class="library">ODBC</systemitem> are <acronym>API</>s that -- however different their programming style may be -- all use <productname>netlib</productname> to communicate to the server.  The language they use is <acronym>TDS</>.  
 			</para>
 			<para>
-The <acronym>TDS</> protocol <foreignphrase>per se</foreignphrase> has never been openly documented.  If anything, it's probably considered to be something like a trade secret, or at least proprietary technology.  Each company has its own reasons.  Sybase licenses <productname>netlib</productname>/<systemitem class="library">db-lib</systemitem> for a fee.  Microsoft supports client libraries only on its own OS's, which it licenses for a fee.  
+The <acronym>TDS</> protocol comes in serveral flavors, most of which have never
+been openly documented.  If anything, it's probably considered to be something like a trade secret, or at least proprietary technology.  The exception is TDS 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.
 			</para>
 			<para>
 <productname>FreeTDS</productname> was and is developed by observation and experimentation, which is to say, by trial and error.  
@@ -96,7 +97,7 @@ Introduced for <productname>SQL Server 7.0</productname>.  Includes support for 
 			  Microsoft</term>
 			<listitem>
 			<para>
-Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer types (64-bit <structname>int</structname>s). <productname>FreeTDS</productname> only supports 8.0 experimentally, although <productname>SQL Server 2000</productname> continues to support <acronym>TDS</> 4.2 and 7.0.
+Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer types (64-bit <structname>int</structname>s). <productname>FreeTDS</productname> support for 8.0 is new, so if you run into difficulty <productname>SQL Server 2000</productname> continues to support <acronym>TDS</> 4.2 and 7.0.
 			</para>
 			</listitem></varlistentry>
 
@@ -108,7 +109,7 @@ Introduced for <productname>SQL Server 2000</productname>.  Includes support for
 In early 1997, the only option for connecting to a Sybase dataserver from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was a.out based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
 			</para>
 			<para>
-Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
+Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
 			</para>
 		</sect1>
 		<sect1 id="projects">
@@ -290,7 +291,16 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase.  Typically only needed for porting Win32 applications to Unix.</para>
 					</listitem>
 				</varlistentry>
-
+			<varlistentry>
+				<term><Parameter>--with-ssl</Parameter></term>
+				<listitem><para>Enable support of OpenSSL library.  This dependency is required for those wishing to use domain logins.</para>
+					</listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Parameter>--enable-threadsafe</Parameter></term>
+				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().</para>
+					</listitem>
+				</varlistentry>
 			</variablelist>
 			<para>
 Now you're ready to build.  Follow these easy steps.  
@@ -405,24 +415,24 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 </thead>
 <tbody>
 	<row>
-	<entry>Sybase before System 10, Microsoft SQL Sever 6.x</entry>
+	<entry>Sybase before System 10, Microsoft SQL Server 6.x</entry>
 	<entry>4.2</entry>
 	<entry>Still works with all products, subject to its limitations.  </entry>
 	</row>
 	<row>
-	<entry>Sybase System 10</entry>
+	<entry>Sybase System 10 and above</entry>
 	<entry>5.0</entry>
 	<entry>Still the most current protocol used by Sybase. </entry>
 	</row>
 	<row>
-	<entry>Microsoft SQL Sever 7.0</entry>
+	<entry>Microsoft SQL Server 7.0</entry>
 	<entry>7.0</entry>
 	<entry>Includes support for the extended datatypes in <productname>SQL Server</productname> 7.0 (such as char/<structname>varchar</structname> fields of more than 255 characters), and support for Unicode.</entry>
 	</row>
 	<row>
-	<entry>Microsoft SQL Sever 2000</entry>
+	<entry>Microsoft SQL Server 2000</entry>
 	<entry>8.0</entry>
-	<entry> <productname>FreeTDS</productname> does not yet fully support 8.0. Use <acronym>TDS</> 7.0 (or 4.2). </entry>
+	<entry> <productname>FreeTDS</productname> support for 8.0 is new. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
 	</row>
 </tbody>	
 </tgroup>
@@ -542,7 +552,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</row>
 	<row>
 	<entry>port</entry>
-	<entry>1433 for <acronym>TDS</> 4.2/7.0, 4000 for <acronym>TDS</> 5.0</entry>
+	<entry>1433 for <acronym>TDS</> 4.2/7.0/8.0, 4000 for <acronym>TDS</> 5.0</entry>
 	<entry>The port number that the dataserver is running at.</entry>
 	<entry>any valid port.  MS <productname>SQL Server</productname> defaults to 1433</entry>
 	</row>
@@ -553,39 +563,27 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>multiple of 512</entry>
 	</row>
 	<row>
-	<entry>swap broken dates</entry>
-	<entry>no</entry>
-	<entry>Forces a byte swap of date fields on big endian platforms to work around MS bug.</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>swap broken money</entry>
-	<entry>no</entry>
-	<entry>Forces a byte swap of money fields on big endian platforms to work around MS bug.</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
 	<entry>try server login</entry>
 	<entry>yes</entry>
-	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>(Experimental) Disable use of server logins when domain logins are in use.</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry>try domain login</entry>
 	<entry>yes</entry>
-	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>(Experimental) Attempt a domain login (requires OpenSSL).</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry>nt domain</entry>
 	<entry>none</entry>
-	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>(Experimental) Specify an explicit domain</entry>
 	<entry>any</entry>
 	</row>
 	<row>
 	<entry>cross domain login</entry>
 	<entry>no</entry>
-	<entry>Not active. To be used in support of domain logins</entry>
+	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
@@ -621,13 +619,13 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>emulate little endian</entry>
 	<entry>no</entry>
-	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0 on big end hosts</entry>
+	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0/8.0 on big end hosts</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry>client charset</entry>
 	<entry>strip high-order byte</entry>
-	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0</entry>
+	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
 	<row>
@@ -1045,7 +1043,7 @@ Server</productname>, the security mechanism is the same for both
 modes.
 			</para>
 <Note><para>
-The <productname>FreeTDS</productname> developers are keenly interested in implementing integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and are capable of capturing client to server traffic with tcpdump or ethereal, <emphasis>and</emphasis> are interested in helping, contact the list.
+The <productname>FreeTDS</productname> has recently added support for integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it see domain logins in the Advanced Configurations chapter.
 </para></Note>
 			</sect2>
 		</sect1>
@@ -1061,8 +1059,6 @@ This chapter details some advanced configurations that need expanded explanation
 Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.
 			</para>
 <Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gullivers Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
-
-<Tip><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gullivers Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Tip>
 
 <para>
 In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
@@ -1132,6 +1128,35 @@ In this example a server named <literal>mssql</literal> will return data encoded
 <para>
 It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any specified character set during login, as 4.2 does.  <acronym>TDS 7.0</> transmits all data as <acronym>UCS-2</>.  Specifying a character set with the <literal>charset</literal> option in  <filename>freetds.conf</filename>, or by calling <function>DBSETLCHARSET</function> and its equivalents will be ignored under <acronym>TDS 7.0</>.
 </para>
+		</sect1>
+		<sect1 id="domains">
+			<title>Domain Logins</title>
+			<para>
+As mentioned in the installation chapter <productname>SQL Server</productname> includes the ablility to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
+			</para>
+			<para>
+To use NTLM authentication, FreeTDS needs the support of an encryption library <productname>OpenSSL</productname>, and must be configured using the --with-ssl flag.
+<screen>
+<prompt>$ </prompt><userinput>./configure --with-ssl=/usr/local</userinput>
+<prompt>$ </prompt><userinput>make</userinput> 
+<prompt>$ </prompt><userinput>su -</userinput> 
+<prompt>Password: </prompt>
+<prompt># </prompt><userinput>make install</userinput> 
+</screen>
+			</para>
+			<para>
+<example>
+<title>Turning on domain login support in <filename>freetds.conf</filename></title>
+<programlisting>
+[mssql]
+	host = ntbox.mydomain.com
+	port = 1433
+	tds version = 7.0
+	try domain login = yes
+	try server login = no
+</programlisting>
+</example>
+			</para>
 		</sect1>
 		<sect1 id="appendmode">
 			<title>Appending Dump Files</title>
@@ -1594,7 +1619,32 @@ By defining <envar>SYBASE</envar> to the parent directory of the <filename>inter
 		</sect1>
 		<sect1>
 			<title>Python</title>
+<tip><para>
+I am not a python user myself, so the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
+                        </para></tip>
 			<para>
+Grab <ulink url="http://www.python.org/sigs/distutils-sig/">distutils</ulink> if you dont have it and install it.
+<screen>
+<prompt>$ </prompt><userinput>tar xvfz distutils-latest.tgz</userinput>
+<prompt>$ </prompt><userinput>cd distutils</userinput>
+<prompt>$ </prompt><userinput>python setup.py install</userinput>
+</screen>
+			</para>
+			<para>
+You can obtain the <productname>Python</productname> Sybase module <ulink url="http://object-craft.com.au/projects/sybase/download.html">here</ulink>.  This example uses version 0.34, the most current at the time of this writing, please adjust accordingly if using a different version.
+<screen>
+<prompt>$ </prompt><userinput>tar xvfz sybase-0.34.tgz</userinput>
+<prompt>$ </prompt><userinput>cd sybase-0.34</userinput>
+<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
+<prompt>$ </prompt><userinput>export CFLAGS="-DHAVE_FREETDS"</userinput>
+<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBARY_PATH}</userinput>
+<prompt>$ </prompt><userinput>python setup.py install</userinput>
+</screen>
+Edit the example.py and fix the bottom stuff, freetds lacks the 110
+symbols for version use 100
+<screen>
+<prompt>$ </prompt><userinput>python example.py</userinput>
+</screen>
 			</para>
 		</sect1>
 		<sect1 id="iodbc">
@@ -1728,7 +1778,7 @@ If you receive a message like
  Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid Reason: Not defined as a valid user of a trusted SQL Server connection
 </computeroutput>
 </screen>
-<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed.
+<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or configure FreeTDS with domain support (experimental).
 
 			</para>
 			<para>
