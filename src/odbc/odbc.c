@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.129 2003-01-17 13:22:06 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.130 2003-01-21 13:07:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1610,6 +1610,20 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	return change_transaction(dbc, op);
 }
 
+#if ODBCVER >= 0x300
+SQLRETURN SQL_API
+SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
+{
+	switch(handleType) {
+	case SQL_HANDLE_ENV:
+		return SQLTransact(handle, NULL, completionType);
+	case SQL_HANDLE_DBC:
+		return SQLTransact(NULL, handle, completionType);
+	}
+	return SQL_ERROR;
+}
+#endif
+
 /* end of transaction support */
 
 #if 0
@@ -1832,7 +1846,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);
 		API_X(SQL_API_SQLDRIVERCONNECT);
-		API3_(SQL_API_SQLENDTRAN);
+		API3X(SQL_API_SQLENDTRAN);
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);
@@ -1923,7 +1937,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);
 		API_X(SQL_API_SQLDRIVERCONNECT);
-		API3_(SQL_API_SQLENDTRAN);
+		API3X(SQL_API_SQLENDTRAN);
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);
@@ -2011,7 +2025,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);
 		API_X(SQL_API_SQLDRIVERCONNECT);
-		API3_(SQL_API_SQLENDTRAN);
+		API3X(SQL_API_SQLENDTRAN);
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);

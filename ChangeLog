@@ -1,3 +1,6 @@
+Tue Jan 21 14:06:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: add SQLEndTran function
+
 Mon Jan 20 18:02:27 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: check for long double type
 
