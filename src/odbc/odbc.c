@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.141 2003-03-23 20:52:22 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.142 2003-03-25 16:05:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -77,6 +77,11 @@ static char *strncpy_null(char *dst, const char *src, int len);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void log_unimplemented_type(const char function_name[], int fType);
+
+/**
+ * \defgroup odbc_api ODBC API
+ * Functions callable by \c ODBC client programs
+ */
 
 
 /* utils to check handles */

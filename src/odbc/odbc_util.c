@@ -38,8 +38,19 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.23 2003-03-25 14:04:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.24 2003-03-25 16:05:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+/**
+ * \ingroup odbc_api
+ * \defgroup odbc_util ODBC utility
+ * Functions called within \c ODBC driver.
+ */
+
+/**
+ * \addtogroup odbc_util
+ *  \@{ 
+ */
 
 int
 odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
@@ -298,6 +309,14 @@ odbc_sql_to_c_type_default(int sql_type)
 	}
 }
 
+/**
+ * Copy a string to client setting size according to ODBC convenction
+ * @param buffer    client buffer
+ * @param cbBuffer  client buffer size (in bytes)
+ * @param pcbBuffer pointer to SQLSMALLINT to hold string size
+ * @param s         string to copy
+ * @param len       len of string to copy. <0 null terminated
+ */
 SQLRETURN
 odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len)
 {
@@ -318,3 +337,5 @@ odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBu
 	}
 	return result;
 }
+
+/** \@} */
