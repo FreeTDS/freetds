@@ -44,12 +44,16 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.39 2004-05-27 14:50:06 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.40 2004-06-15 13:16:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *

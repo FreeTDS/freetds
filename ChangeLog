@@ -1,3 +1,7 @@
+Tue Jun 15 15:15:06 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/server/login.c:
+	- fix compile error on HP-UX 11.00
+
 Tue Jun 15 13:45:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/ctlib/Makefile.am src/dblib/Makefile.am:
 	* src/odbc/Makefile.am src/server/Makefile.am src/tds/Makefile.am:
