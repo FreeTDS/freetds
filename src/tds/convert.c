@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.36 2002-08-16 05:42:40 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.37 2002-08-16 05:58:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -70,8 +70,6 @@ static TDS_UINT utf16len(const utf16_t* s);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern int g__numeric_bytes_per_prec[];
-
-extern int (*g_tds_err_handler)(void*);
 
 static int tds_atoi(const char *buf);
 #define atoi(x) tds_atoi((x))
@@ -217,7 +215,7 @@ int  ret;
          }
 
          *c = '\0';
-         return (srclen * 2) + 1;
+         return (srclen * 2);
          break;
       case SYBIMAGE:
       case SYBBINARY:
@@ -261,7 +259,6 @@ int point_found, places;
    switch(desttype) {
       case SYBCHAR:
       case SYBVARCHAR:
-      case SYBNVARCHAR:
       case SYBTEXT:
 		 cr->c = malloc(srclen + 1);
 		test_alloc(cr->c);
@@ -856,15 +853,13 @@ int dty;
 char whole_date_string[30];
 struct tds_tm when;
 
-TDS_INT ret;
-
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-		case SYBNVARCHAR:
 		case SYBTEXT:
 			if (!src) {
 				cr->c = malloc(1);
+				test_alloc(cr->c);
 				*(cr->c) = '\0';
                 return 0;
 			} else {
@@ -981,15 +976,13 @@ int dty = 365;
 char whole_date_string[30];
 struct tds_tm when;
 
-TDS_INT ret;
-
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-		case SYBNVARCHAR:
 		case SYBTEXT:
 			if (!src) {
 				cr->c = malloc(1);
+				test_alloc(cr->c);
 				*(cr->c) = '\0';
                 return 0;
 			} else {
@@ -1147,6 +1140,7 @@ char      tmp_str[25];
    }
 }
 
+static TDS_INT
 tds_convert_unique(int srctype,TDS_CHAR *src, TDS_INT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
@@ -1193,7 +1187,6 @@ char errmsg[255];
 	switch(srctype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-		case SYBNVARCHAR:
 			return tds_convert_char(srctype,src, srclen,
 				desttype,destlen, cr);
 			break;
@@ -1253,6 +1246,7 @@ char errmsg[255];
 			return tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
 				desttype, destlen, cr);
 			break;
+		case SYBNVARCHAR:
 		case SYBTEXT:
 			return tds_convert_text(tds_ctx, srctype,src,srclen,
 				desttype,destlen, cr);
@@ -2243,7 +2237,7 @@ utf16len(const utf16_t* s)
 	while(<DATA>) {
 		next if /^\s+To\s+$/;
 		next if /^From/;
-		if( /^\s+CHAR TEXT/ ) {
+		if( /^\s+VARCHAR CHAR/ ) {
 			@to = split;
 			next;
 		}
@@ -2269,25 +2263,26 @@ utf16len(const utf16_t* s)
 __DATA__
           To
 From
-          CHAR TEXT BINARY IMAGE INT1 INT2 INT4 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
-CHAR        T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
-TEXT        T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
-BINARY      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-IMAGE       T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT1        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT2        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-INT4        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-FLT8        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-REAL        T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-NUMERIC     T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-DECIMAL     T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-BIT         T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-MONEY       T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-MONEY4      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
-DATETIME    T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
-DATETIME4   T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
-BOUNDARY    T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         T       F
-SENSITIVITY T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         F       T
+          VARCHAR CHAR TEXT BINARY IMAGE INT1 INT2 INT4 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
+VARCHAR     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+CHAR        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+TEXT        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      T        T         T       T
+BINARY      T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+IMAGE       T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT1        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT2        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+INT4        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+FLT8        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+REAL        T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+NUMERIC     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+DECIMAL     T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+BIT         T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+MONEY       T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+MONEY4      T      T   T    T      T     T   T    T    T    T   T       T       T   T    T      F        F         F       F
+DATETIME    T      T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
+DATETIME4   T      T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
+BOUNDARY    T      T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         T       F
+SENSITIVITY T      T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         F       T
 #endif
 unsigned char
 tds_willconvert(int srctype, int desttype)

@@ -5,7 +5,25 @@
 /* **                                                                   ** */
 /* **                                                        Thank you. ** */
 
-	  { SYBCHAR, SYBCHAR            , 1 }
+	  { SYBVARCHAR, SYBVARCHAR      , 1 }
+	, { SYBVARCHAR, SYBCHAR         , 1 }
+	, { SYBVARCHAR, SYBTEXT         , 1 }
+	, { SYBVARCHAR, SYBBINARY       , 1 }
+	, { SYBVARCHAR, SYBIMAGE        , 1 }
+	, { SYBVARCHAR, SYBINT1         , 1 }
+	, { SYBVARCHAR, SYBINT2         , 1 }
+	, { SYBVARCHAR, SYBINT4         , 1 }
+	, { SYBVARCHAR, SYBFLT8         , 1 }
+	, { SYBVARCHAR, SYBREAL         , 1 }
+	, { SYBVARCHAR, SYBNUMERIC      , 1 }
+	, { SYBVARCHAR, SYBDECIMAL      , 1 }
+	, { SYBVARCHAR, SYBBIT          , 1 }
+	, { SYBVARCHAR, SYBMONEY        , 1 }
+	, { SYBVARCHAR, SYBMONEY4       , 1 }
+	, { SYBVARCHAR, SYBDATETIME     , 1 }
+	, { SYBVARCHAR, SYBDATETIME4    , 1 }
+	, { SYBCHAR, SYBVARCHAR         , 1 }
+	, { SYBCHAR, SYBCHAR            , 1 }
 	, { SYBCHAR, SYBTEXT            , 1 }
 	, { SYBCHAR, SYBBINARY          , 1 }
 	, { SYBCHAR, SYBIMAGE           , 1 }
@@ -21,6 +39,7 @@
 	, { SYBCHAR, SYBMONEY4          , 1 }
 	, { SYBCHAR, SYBDATETIME        , 1 }
 	, { SYBCHAR, SYBDATETIME4       , 1 }
+	, { SYBTEXT, SYBVARCHAR         , 1 }
 	, { SYBTEXT, SYBCHAR            , 1 }
 	, { SYBTEXT, SYBTEXT            , 1 }
 	, { SYBTEXT, SYBBINARY          , 1 }
@@ -37,6 +56,7 @@
 	, { SYBTEXT, SYBMONEY4          , 1 }
 	, { SYBTEXT, SYBDATETIME        , 1 }
 	, { SYBTEXT, SYBDATETIME4       , 1 }
+	, { SYBBINARY, SYBVARCHAR       , 1 }
 	, { SYBBINARY, SYBCHAR          , 1 }
 	, { SYBBINARY, SYBTEXT          , 1 }
 	, { SYBBINARY, SYBBINARY        , 1 }
@@ -53,6 +73,7 @@
 	, { SYBBINARY, SYBMONEY4        , 1 }
 	, { SYBBINARY, SYBDATETIME      , 0 }
 	, { SYBBINARY, SYBDATETIME4     , 0 }
+	, { SYBIMAGE, SYBVARCHAR        , 1 }
 	, { SYBIMAGE, SYBCHAR           , 1 }
 	, { SYBIMAGE, SYBTEXT           , 1 }
 	, { SYBIMAGE, SYBBINARY         , 1 }
@@ -69,6 +90,7 @@
 	, { SYBIMAGE, SYBMONEY4         , 1 }
 	, { SYBIMAGE, SYBDATETIME       , 0 }
 	, { SYBIMAGE, SYBDATETIME4      , 0 }
+	, { SYBINT1, SYBVARCHAR         , 1 }
 	, { SYBINT1, SYBCHAR            , 1 }
 	, { SYBINT1, SYBTEXT            , 1 }
 	, { SYBINT1, SYBBINARY          , 1 }
@@ -85,6 +107,7 @@
 	, { SYBINT1, SYBMONEY4          , 1 }
 	, { SYBINT1, SYBDATETIME        , 0 }
 	, { SYBINT1, SYBDATETIME4       , 0 }
+	, { SYBINT2, SYBVARCHAR         , 1 }
 	, { SYBINT2, SYBCHAR            , 1 }
 	, { SYBINT2, SYBTEXT            , 1 }
 	, { SYBINT2, SYBBINARY          , 1 }
@@ -101,6 +124,7 @@
 	, { SYBINT2, SYBMONEY4          , 1 }
 	, { SYBINT2, SYBDATETIME        , 0 }
 	, { SYBINT2, SYBDATETIME4       , 0 }
+	, { SYBINT4, SYBVARCHAR         , 1 }
 	, { SYBINT4, SYBCHAR            , 1 }
 	, { SYBINT4, SYBTEXT            , 1 }
 	, { SYBINT4, SYBBINARY          , 1 }
@@ -117,6 +141,7 @@
 	, { SYBINT4, SYBMONEY4          , 1 }
 	, { SYBINT4, SYBDATETIME        , 0 }
 	, { SYBINT4, SYBDATETIME4       , 0 }
+	, { SYBFLT8, SYBVARCHAR         , 1 }
 	, { SYBFLT8, SYBCHAR            , 1 }
 	, { SYBFLT8, SYBTEXT            , 1 }
 	, { SYBFLT8, SYBBINARY          , 1 }
@@ -133,6 +158,7 @@
 	, { SYBFLT8, SYBMONEY4          , 1 }
 	, { SYBFLT8, SYBDATETIME        , 0 }
 	, { SYBFLT8, SYBDATETIME4       , 0 }
+	, { SYBREAL, SYBVARCHAR         , 1 }
 	, { SYBREAL, SYBCHAR            , 1 }
 	, { SYBREAL, SYBTEXT            , 1 }
 	, { SYBREAL, SYBBINARY          , 1 }
@@ -149,6 +175,7 @@
 	, { SYBREAL, SYBMONEY4          , 1 }
 	, { SYBREAL, SYBDATETIME        , 0 }
 	, { SYBREAL, SYBDATETIME4       , 0 }
+	, { SYBNUMERIC, SYBVARCHAR      , 1 }
 	, { SYBNUMERIC, SYBCHAR         , 1 }
 	, { SYBNUMERIC, SYBTEXT         , 1 }
 	, { SYBNUMERIC, SYBBINARY       , 1 }
@@ -165,6 +192,7 @@
 	, { SYBNUMERIC, SYBMONEY4       , 1 }
 	, { SYBNUMERIC, SYBDATETIME     , 0 }
 	, { SYBNUMERIC, SYBDATETIME4    , 0 }
+	, { SYBDECIMAL, SYBVARCHAR      , 1 }
 	, { SYBDECIMAL, SYBCHAR         , 1 }
 	, { SYBDECIMAL, SYBTEXT         , 1 }
 	, { SYBDECIMAL, SYBBINARY       , 1 }
@@ -181,6 +209,7 @@
 	, { SYBDECIMAL, SYBMONEY4       , 1 }
 	, { SYBDECIMAL, SYBDATETIME     , 0 }
 	, { SYBDECIMAL, SYBDATETIME4    , 0 }
+	, { SYBBIT, SYBVARCHAR          , 1 }
 	, { SYBBIT, SYBCHAR             , 1 }
 	, { SYBBIT, SYBTEXT             , 1 }
 	, { SYBBIT, SYBBINARY           , 1 }
@@ -197,6 +226,7 @@
 	, { SYBBIT, SYBMONEY4           , 1 }
 	, { SYBBIT, SYBDATETIME         , 0 }
 	, { SYBBIT, SYBDATETIME4        , 0 }
+	, { SYBMONEY, SYBVARCHAR        , 1 }
 	, { SYBMONEY, SYBCHAR           , 1 }
 	, { SYBMONEY, SYBTEXT           , 1 }
 	, { SYBMONEY, SYBBINARY         , 1 }
@@ -213,6 +243,7 @@
 	, { SYBMONEY, SYBMONEY4         , 1 }
 	, { SYBMONEY, SYBDATETIME       , 0 }
 	, { SYBMONEY, SYBDATETIME4      , 0 }
+	, { SYBMONEY4, SYBVARCHAR       , 1 }
 	, { SYBMONEY4, SYBCHAR          , 1 }
 	, { SYBMONEY4, SYBTEXT          , 1 }
 	, { SYBMONEY4, SYBBINARY        , 1 }
@@ -229,6 +260,7 @@
 	, { SYBMONEY4, SYBMONEY4        , 1 }
 	, { SYBMONEY4, SYBDATETIME      , 0 }
 	, { SYBMONEY4, SYBDATETIME4     , 0 }
+	, { SYBDATETIME, SYBVARCHAR     , 1 }
 	, { SYBDATETIME, SYBCHAR        , 1 }
 	, { SYBDATETIME, SYBTEXT        , 1 }
 	, { SYBDATETIME, SYBBINARY      , 1 }
@@ -245,6 +277,7 @@
 	, { SYBDATETIME, SYBMONEY4      , 0 }
 	, { SYBDATETIME, SYBDATETIME    , 1 }
 	, { SYBDATETIME, SYBDATETIME4   , 1 }
+	, { SYBDATETIME4, SYBVARCHAR    , 1 }
 	, { SYBDATETIME4, SYBCHAR       , 1 }
 	, { SYBDATETIME4, SYBTEXT       , 1 }
 	, { SYBDATETIME4, SYBBINARY     , 1 }
