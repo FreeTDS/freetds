@@ -1,21 +1,25 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.31 2003-12-22 21:54:30 jklowden Exp $
+# version: $Id: Makefile.am,v 1.32 2003-12-23 16:29:10 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
-RELEASE = $(VERSION)
-DOCDIR = doc/freetds-$(RELEASE)
+DOCDIR = doc/freetds-$(VERSION)
 PRODUCT = FreeTDS
-TARGET_DOCDIR = $(datadir)/$(DOCDIR)
+TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds_layer.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
-		$(DOCDIR)/userguide $(DOCDIR)/reference
+		$(DOCDIR)/userguide $(DOCDIR)/reference \
+		userguide.dsl
 
 man_MANS	= freebcp.1 tsql.1
-pkgdata_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
+data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
+
+$(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
+
+$(DOCDIR)/reference: $(DOCDIR)/reference/index.html
 
 doc:  $(DOCDIR)/userguide $(DOCDIR)/reference
 
@@ -28,29 +32,30 @@ installdirs:
 				$(TARGET_DOCDIR)/reference
 
 freebcp.1: freebcp.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
+	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >freebcp.1
 
 tsql.1: tsql.txt
-	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
+	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >tsql.1
 
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
 install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
-	if [ !  -e $(DOCDIR)/userguide ]; then \
-		ln -s ../../$(srcdir)/$(DOCDIR)/userguide $(DOCDIR)/userguide; \
+	$(mkinstalldirs) $(DOCDIR)
+	if test !  -e $(DOCDIR)/userguide ; then \
+		cp -R $(srcdir)/$(DOCDIR)/userguide $(DOCDIR); \
 	fi
-	if [ !  -e $(DOCDIR)/reference ]; then \
-		ln -s ../../$(srcdir)/$(DOCDIR)/reference $(DOCDIR)/reference; \
+	if test !  -e $(DOCDIR)/reference ; then \
+		cp -R $(srcdir)/$(DOCDIR)/reference $(DOCDIR); \
 	fi
 	ls -l $(DOCDIR)
 	$(INSTALL_DATA) -c $(DOCDIR)/userguide/* $(TARGET_DOCDIR)/userguide
 	$(INSTALL_DATA) -c $(DOCDIR)/reference/* $(TARGET_DOCDIR)/reference
 
-# To cajole automake into installing the documentation, we used the "pkgdata_DATA" variable, 
+# To cajole automake into installing the documentation, we used the "data_DATA" variable, 
 # and gave two files to install.  After the real docs have been installed, we remove the
 # files automake installed for us. 
 install-data-hook:
-	rm -rf $(pkgdatadir)
+	rm -rf $(TARGET_DOCDIR)
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
@@ -71,19 +76,17 @@ uninstall-local:
 ## found.  If it is not found, we try to link the build tree's reference manual HTML to the
 ## distribution.  If that fails, we install a stub.  
 
-DISTRIBUTED_UG_DIR = ../../$(srcdir)/$(DOCDIR)/userguide
-BUILT_UG_DIR =  		     $(DOCDIR)/userguide
+DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
 $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl 
 	$(mkinstalldirs) $(DOCDIR)/userguide
 	touch $(DOCDIR)/userguide/t.htm
-	rm $(DOCDIR)/userguide/*.htm
+	$(RM) $(DOCDIR)/userguide/*.htm
 # if we're not using jade, try linking to the distribution's userguide
-	if [ -z "${DOCBOOK_DSL}" ]; then \
-		if [ -e $(DISTRIBUTED_UG_DIR) -a ! -e $(BUILT_UG_DIR) ]; then \
-			rmdir $(BUILT_UG_DIR); \
-			ln -s $(DISTRIBUTED_UG_DIR) $(BUILT_UG_DIR); \
+	if test -z "${DOCBOOK_DSL}" ; then \
+		if test -e $(DISTRIBUTED_UG_DIR) -a ! -e $(DOCDIR)/userguide ; then \
+			cp -R $(DISTRIBUTED_UG_DIR) $(DOCDIR); \
 		fi; \
 	fi
 # try jade ...
@@ -92,7 +95,7 @@ $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl
 	        openjade -d ../../../userguide.dsl -t sgml ../../../$(srcdir)/userguide.sgml; \
 	fi
 # if still no joy, create a stub
-	if [ ! -e $@ ]; then \
+	if test ! -e $@ ; then \
 		echo '<html><P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a></html>' 	\
 		> .index.htm; \
 		mv .index.html $@; \
@@ -107,27 +110,21 @@ userguide.dsl: $(srcdir)/userguide.dsl.in
 
 reference: $(DOCDIR)/reference/index.html
 
-DISTRIBUTED_REF_DIR = ../../$(srcdir)/$(DOCDIR)/reference
-BUILT_REF_DIR =  		      $(DOCDIR)/html/reference
+DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
-$(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog 
-	$(mkinstalldirs) $(DOCDIR)/reference/html
-	touch $(DOCDIR)/reference/html/index.html
-	rm -rf $(DOCDIR)/reference/html/*
+$(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	cd .. && make doxy
 # if "make doxy" doesn't create anything, try linking to the distributed manual's HTML
-	if [ -e ../../$(srcdir)/$(DOCDIR)/reference/index.html -a ! $@ ]; then \
-		ln -s ../../$(srcdir)/$(DOCDIR)/reference $(DOCDIR)/reference; \
+	if test -e $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
+		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
 # if we don't find the source, generate a stub
-	if [ ! -e $@ ]; then \
-		cd $(DOCDIR)/reference/html && \
+	if test ! -e $@ ; then \
+		cd $(DOCDIR)/reference && \
 		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
 			> .index.html &&  \
 		mv .index.html index.html; \
 	fi
-	mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference
-	rmdir $(DOCDIR)/reference/html
 
-DISTCLEANFILES = userguide.dsl $(DOCDIR)/userguide $(DOCDIR)/reference
+DISTCLEANFILES = $(DOCDIR)/userguide $(DOCDIR)/reference
 
