@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131.2.3 2003-05-20 10:46:51 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.4 2003-08-01 05:23:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -509,12 +509,6 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	memset(dbc, '\0', sizeof(TDS_DBC));
 	dbc->henv = env;
-	dbc->tds_login = tds_alloc_login();
-	if (!dbc->tds_login) {
-		free(dbc);
-		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
-	}
 	/* spinellia@acm.org
 	 * after login is enabled autocommit */
 	dbc->autocommit_state = 1;
