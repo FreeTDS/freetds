@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.53 2002-09-12 19:26:59 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.54 2002-09-12 23:31:45 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1935,23 +1935,52 @@ dbsetinterrupt(DBPROCESS *dbproc, int (*ckintr)(),int (*hndlintr)())
 }
 int dbnumrets(DBPROCESS *dbproc)
 {
-	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbnumrets()\n");
-	return 0;
+TDSSOCKET *tds;
+
+        tds = (TDSSOCKET *) dbproc->tds_socket;
+
+        if (!tds->param_info)
+                return 0;
+
+        return tds->param_info->num_cols;
 }
 char *dbretname(DBPROCESS *dbproc, int retnum)
 {
-	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretname()\n");
-	return NULL;
+TDSSOCKET *tds;
+TDSPARAMINFO *param_info;
+
+        tds = (TDSSOCKET *) dbproc->tds_socket;
+        param_info = tds->param_info;
+        if (retnum < 1 || retnum > param_info->num_cols) return NULL;
+        return param_info->columns[retnum-1]->column_name;
 }
 BYTE *dbretdata(DBPROCESS *dbproc, int retnum)
 {
-	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretdata()\n");
-	return NULL;
+TDSCOLINFO *colinfo;
+TDSPARAMINFO *param_info;
+TDSSOCKET *tds;
+
+        tds = (TDSSOCKET *) dbproc->tds_socket;
+        param_info = tds->param_info;
+        if (retnum<1 || retnum>param_info->num_cols) return NULL;
+
+        colinfo = param_info->columns[retnum-1];
+
+        return &param_info->current_row[colinfo->column_offset];
 }
 int dbretlen(DBPROCESS *dbproc, int retnum)
 {
-	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbretlen()\n");
-	return -1;
+TDSCOLINFO *colinfo;
+TDSPARAMINFO *param_info;
+TDSSOCKET *tds;
+
+        tds = (TDSSOCKET *) dbproc->tds_socket;
+        param_info = tds->param_info;
+        if (retnum<1 || retnum>param_info->num_cols) return -1;
+
+        colinfo = param_info->columns[retnum-1];
+
+        return colinfo->cur_row_size;
 }
 RETCODE dbsqlok(DBPROCESS *dbproc)
 {
@@ -2311,8 +2340,17 @@ RETCODE dbmorecmds(DBPROCESS *dbproc)
 }
 int dbrettype(DBPROCESS *dbproc,int retnum)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrettype()\n");
-	return 0;
+TDSCOLINFO *colinfo;
+TDSPARAMINFO *param_info;
+TDSSOCKET *tds;
+
+        tds = (TDSSOCKET *) dbproc->tds_socket;
+        param_info = tds->param_info;
+        if (retnum<1 || retnum>param_info->num_cols) return -1;
+
+        colinfo = param_info->columns[retnum-1];
+
+        return colinfo->column_type;
 }
 int dbstrlen(DBPROCESS *dbproc)
 {

@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.48 2002-09-12 19:27:00 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.49 2002-09-12 23:31:46 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -557,21 +557,44 @@ char ci_flags[4];
 static int tds_process_param_result(TDSSOCKET *tds)
 {
 int hdrsize;
-int column_type;
-int column_size, actual_size;
+TDSCOLINFO *curparam;
+void *tmp;
+int row_size;
+int name_len;
 
 	hdrsize = tds_get_smallint(tds);
-	tds_get_string(tds, NULL, tds_get_byte(tds)); /* column name */
+	tds->param_info = tds_alloc_param_result(tds->param_info);
+	curparam = tds->param_info->columns[tds->param_info->num_cols - 1];
+	name_len = tds_get_byte(tds);
+	tds_get_string(tds, curparam->column_name, name_len); /* column name */
 	tds_get_n(tds, NULL, 5); /* unknown */
-	column_type = tds_get_byte(tds); /* datatype */
-	if (!is_fixed_type(column_type)) {
-		column_size = tds_get_byte(tds);
-		actual_size = tds_get_byte(tds);
-		tds_get_n(tds, NULL, actual_size);
+	curparam->column_type = tds_get_byte(tds); /* datatype */
+	if (!is_fixed_type(curparam->column_type)) {
+		/* column size */
+		curparam->column_size = tds_get_byte(tds);
+		/* actual data size */
+		curparam->cur_row_size = tds_get_byte(tds);
 	} else { 
-		column_size = get_size_by_type(column_type);
-		tds_get_n(tds, NULL, column_size);
+		curparam->column_size = get_size_by_type(curparam->column_type);
+		curparam->cur_row_size = curparam->column_size;
 	}
+
+	curparam->column_offset = tds->param_info->row_size;
+	tds->param_info->row_size += curparam->column_size;
+	
+	/* make sure the row buffer is big enough */
+	if (tds->param_info->current_row) {
+		 tds->param_info->current_row = realloc(tds->param_info->current_row, tds->param_info->row_size);
+	} else {
+		row_size = tds->param_info->row_size;
+		tds->param_info->current_row = (void *)malloc(row_size);
+	}
+
+	/* copy data to row buffer */
+	tds_get_n(tds, 
+		&tds->param_info->current_row[curparam->column_offset],
+		curparam->cur_row_size);
+
 	return TDS_SUCCEED;
 }
 static int tds_process_param_result_tokens(TDSSOCKET *tds)

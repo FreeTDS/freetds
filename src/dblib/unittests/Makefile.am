@@ -1,9 +1,9 @@
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
 			t0009 t0010 t0011 t0012 t0013 t0014 t0015 t0016 \
-			t0017 t0018 t0019 t0020 t0021
+			t0017 t0018 t0019 t0020 t0021 t0022
 EXTRA_PROGRAMS	=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
 			t0009 t0010 t0011 t0012 t0013 t0014 t0015 t0016 \
-			t0017 t0018 t0019 t0020 t0021
+			t0017 t0018 t0019 t0020 t0021 t0022
 
 t0001_SOURCES	=	t0001.c common.c pwd.c
 t0002_SOURCES	=	t0002.c common.c pwd.c
@@ -26,6 +26,7 @@ t0018_SOURCES	=	t0018.c common.c pwd.c
 t0019_SOURCES	=	t0019.c common.c pwd.c
 t0020_SOURCES	=	t0020.c common.c pwd.c
 t0021_SOURCES	=	t0021.c 
+t0022_SOURCES	=	t0022.c common.c pwd.c
 
 LIBS		=	../libsybdb.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include

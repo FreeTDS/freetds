@@ -1,3 +1,9 @@
+Thu Sep 12 19:28:07 EDT 2002
+	* src/dblib/unittests/t0022.c: test output params
+	* src/dblib/unittests/Makefile.am: add t0022
+	* src/dblib/dblib.c: implement dbnumrets, and dbret*() funcs
+	* src/tds/token.c(tds_process_param_result): load paraminfo struct instead
+	  of skipping
 Thu Sep 12 15:59:01 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
 	- fix tsql so it will exit on EOF instead of hanging.
