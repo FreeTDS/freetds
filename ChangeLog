@@ -1,3 +1,8 @@
+Sat Oct 18 23:36:42 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* samples/test.pl permit command-line connection arguments
+	* src/tds/encodings.pl src/tds/encodings.h 
+	- explicitly number charset enumerations
+	
 Sat Oct 18 18:44:31 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml minor copyedits
 	* src/ctlib/ct.c fix bug sqsh trips on when no rows are returned. 
@@ -14,7 +19,7 @@ Wed Oct 08 21:23:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	- remove -ansi flag (enabling some required definitions)
 	* include/tdsiconv.h: define EILSEQ if not like GNU-iconv
 	* src/tds/read.c src/tds/token.c src/tds/write.c:
-	- explicitly threat tds->iconv_info like an array
+	- explicitly treat tds->iconv_info like an array
 
 Tue Oct 07 22:05:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: avoid wrong dependency under Linux

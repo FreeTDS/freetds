@@ -1,8 +1,14 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #
 use DBI;
 
-my $dbh = DBI->connect("dbi:Sybase:server=JDBC", 'guest', 'sybase', {PrintError => 0});
+my ($servername, $username, $password) = @ARGV;
+
+$servername = 'JDBC' unless $servername;
+$username = 'guest' unless $username;
+$password = 'sybase' unless $password;
+
+my $dbh = DBI->connect("dbi:Sybase:server=$servername", $username, $password, {PrintError => 0});
 
 die "Unable for connect to server $DBI::errstr"
     unless $dbh;
