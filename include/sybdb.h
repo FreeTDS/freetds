@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.52 2003-06-30 04:59:06 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.53 2003-08-18 09:16:44 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -651,7 +651,7 @@ RETCODE dbsetdefcharset(char *charset);
 RETCODE dbsetdeflang(char *language);
 void dbsetidle(DBPROCESS * dbprocess, DB_DBIDLE_FUNC idlefunc);
 void dbsetifile(char *filename);
-void dbsetinterrupt(DBPROCESS *dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC hndlintr);
+void dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC hndlintr);
 RETCODE dbsetloginfo(LOGINREC * loginrec, DBLOGINFO * loginfo);
 RETCODE dbsetlogintime(int seconds);
 RETCODE dbsetmaxprocs(int maxprocs);

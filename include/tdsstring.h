@@ -20,7 +20,7 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-static char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.8 2003-04-22 09:03:07 freddy77 Exp $";
+static char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.9 2003-08-18 09:16:44 freddy77 Exp $";
 static void *no_unused_tdsstring_h_warn[] = { rcsid_tdsstring_h, no_unused_tdsstring_h_warn };
 
 extern char tds_str_empty[];
@@ -32,10 +32,10 @@ extern char tds_str_empty[];
  */
 
 #if ENABLE_EXTRA_CHECKS
-void tds_dstr_init(DSTR *s);
-int tds_dstr_isempty(DSTR *s);
-char* tds_dstr_cstr(DSTR *s);
-size_t tds_dstr_len(DSTR *s);
+void tds_dstr_init(DSTR * s);
+int tds_dstr_isempty(DSTR * s);
+char *tds_dstr_cstr(DSTR * s);
+size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
@@ -50,12 +50,12 @@ size_t tds_dstr_len(DSTR *s);
 	strlen(*(char**)s)
 #endif
 
-void tds_dstr_zero(DSTR *s);
-void tds_dstr_free(DSTR *s);
+void tds_dstr_zero(DSTR * s);
+void tds_dstr_free(DSTR * s);
 
-DSTR tds_dstr_copy(DSTR *s, const char *src);
-DSTR tds_dstr_copyn(DSTR *s, const char *src, unsigned int length);
-DSTR tds_dstr_set(DSTR *s, char *src);
+DSTR tds_dstr_copy(DSTR * s, const char *src);
+DSTR tds_dstr_copyn(DSTR * s, const char *src, unsigned int length);
+DSTR tds_dstr_set(DSTR * s, char *src);
 
 /** \@} */
 
