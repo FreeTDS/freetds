@@ -301,6 +301,11 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().</para>
 					</listitem>
 				</varlistentry>
+			<varlistentry>
+				<term><Parameter>--enable-sybase-compat</Parameter></term>
+				<listitem><para>Enable close compatibility with Sybase's ABI, at the expense of other features.  Currently, this enables the generation of a dbopen() entry point in <systemitem class="library">db-lib</systemitem>, which may clash with the <systemitem class="library">DBM</systemitem> function with the same name.</para>
+					</listitem>
+				</varlistentry>
 			</variablelist>
 			<para>
 Now you're ready to build.  Follow these easy steps.  
