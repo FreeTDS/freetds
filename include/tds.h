@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.205 2005-01-20 14:38:25 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.206 2005-01-20 16:18:56 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -696,9 +696,8 @@ typedef struct tds_login
 	TDS_TINYINT encrypted;
 
 	TDS_INT query_timeout;
-	TDS_INT longquery_timeout;
-	void (*longquery_func) (void *param);
-	void *longquery_param;
+	int (*query_timeout_func) (void *param);
+	void *query_timeout_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 } TDSLOGIN;
@@ -724,9 +723,8 @@ typedef struct tds_connection
 	TDS_TINYINT encrypted;
 
 	TDS_INT query_timeout;
-	TDS_INT longquery_timeout;
-	void (*longquery_func) (void *param);
-	void *longquery_param;
+	int (*query_timeout_func) (void *param);
+	void *query_timeout_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 
@@ -1081,11 +1079,10 @@ struct tds_socket
 	volatile unsigned char in_cancel;
 	int rows_affected;
 	/* timeout stuff from Jeff */
-	TDS_INT timeout;
-	TDS_INT longquery_timeout;
-	void (*longquery_func) (void *param);
-	void *longquery_param;
-	time_t queryStarttime;
+	TDS_INT query_timeout;
+	int (*query_timeout_func) (void *param);
+	void *query_timeout_param;
+	time_t query_start_time;
 	TDSENV env;
 
 	/* dynamic placeholder stuff */
@@ -1104,12 +1101,9 @@ struct tds_socket
 	int spid;
 	TDS_UCHAR collation[5];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
-	int (*chkintr) (TDSSOCKET * tds);
-	int (*hndlintr) (TDSSOCKET * tds);
 	int internal_sp_called;
 };
 
-void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *param), void *longquery_param);
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
 void tds_free_socket(TDSSOCKET * tds);

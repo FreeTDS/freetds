@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.130 2005-01-12 08:46:53 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.131 2005-01-20 16:19:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -132,13 +132,6 @@ tds_set_language(TDSLOGIN * tds_login, const char *language)
 }
 
 void
-tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func) (void *), void *longquery_param)
-{				/* Jeff's hack */
-	tds_login->longquery_func = longquery_func;
-	tds_login->longquery_param = longquery_param;
-}
-
-void
 tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size)
 {
 	memcpy(tds_login->capabilities, capabilities, size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
@@ -193,10 +186,9 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	connect_timeout = connection->connect_timeout;
 
 	/* Jeff's hack - begin */
-	tds->timeout = (connect_timeout) ? connection->query_timeout : 0;
-	tds->longquery_timeout = (connect_timeout) ? connection->longquery_timeout : 0;
-	tds->longquery_func = connection->longquery_func;
-	tds->longquery_param = connection->longquery_param;
+	tds->query_timeout = (connect_timeout) ? connection->query_timeout : 0;
+	tds->query_timeout_func = connection->query_timeout_func;
+	tds->query_timeout_param = connection->query_timeout_param;
 	/* end */
 
 	/* verify that ip_addr is not NULL */

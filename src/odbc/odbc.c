@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.353 2005-01-20 14:38:29 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.354 2005-01-20 16:18:58 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -90,7 +90,7 @@ static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQL
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
-static void longquery_cancel(void *param);
+static int query_timeout_cancel(void *param);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -2390,8 +2390,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
-static void
-longquery_cancel(void *param)
+static int
+query_timeout_cancel(void *param)
 {
 	TDS_STMT *stmt = (TDS_STMT *) param;
 
@@ -2399,6 +2399,11 @@ longquery_cancel(void *param)
 
 	if (SQL_SUCCEEDED(SQLCancel((SQLHSTMT *) stmt)))
 		odbc_errs_add(&stmt->errs, "S1T00", "Timeout expired", NULL);
+
+	/* attent indefinitely cancel */
+	stmt->dbc->tds_socket->query_timeout = 0;
+
+	return TDS_INT_CONTINUE;
 }
 
 static SQLRETURN SQL_API
@@ -2414,9 +2419,9 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->row = 0;
 
-	tds->longquery_func = longquery_cancel;
-	tds->longquery_param = stmt;
-	tds->longquery_timeout = stmt->attr.query_timeout;
+	tds->query_timeout_func = query_timeout_cancel;
+	tds->query_timeout_param = stmt;
+	tds->query_timeout = stmt->attr.query_timeout;
 
 	/* check parameters are all OK */
 	if (stmt->params && stmt->param_num <= stmt->param_count)
@@ -2567,9 +2572,9 @@ _SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
-	tds->longquery_timeout = 0;
-	tds->longquery_param = NULL;
-	tds->longquery_func = NULL;
+	tds->query_timeout = 0;
+	tds->query_timeout_param = NULL;
+	tds->query_timeout_func = NULL;
 
 	odbc_populate_ird(stmt);
 	switch (ret) {

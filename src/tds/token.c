@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.280 2005-01-20 14:38:30 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.281 2005-01-20 16:19:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2745,8 +2745,8 @@ tds_process_cancel(TDSSOCKET * tds)
 	if (tds->state != TDS_PENDING)
 		return TDS_SUCCEED;
 
-	tds->queryStarttime = 0;
-	tds->timeout = 0;
+	tds->query_start_time = 0;
+	tds->query_timeout = 0;
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	/* TODO udate this shit, use tds_process_results_tokens/tds_process_row_tokens */
 	do {

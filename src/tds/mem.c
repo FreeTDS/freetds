@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.127 2005-01-12 19:42:06 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.128 2005-01-20 16:19:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -787,12 +787,10 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 		goto Cleanup;
 
 	/* Jeff's hack, init to no timeout */
-	tds_socket->timeout = 0;
+	tds_socket->query_timeout = 0;
 	tds_init_write_buf(tds_socket);
 	tds_socket->s = INVALID_SOCKET;
 	tds_socket->env_chg_func = NULL;
-	tds_socket->chkintr = NULL;
-	tds_socket->hndlintr = NULL;
 	return tds_socket;
       Cleanup:
 	tds_free_socket(tds_socket);

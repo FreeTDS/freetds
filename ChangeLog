@@ -1,3 +1,9 @@
+Thu Jan 20 17:17:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO include/tds.h src/dblib/dblib.c src/odbc/odbc.c:
+	* src/tds/config.c src/tds/login.c src/tds/mem.c:
+	* src/tds/net.c src/tds/query.c src/tds/token.c:
+	- timeout stuff improved, now works
+
 Thu Jan 20 15:37:37 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/blk.c src/ctlib/ct.c src/dblib/bcp.c:
 	* src/dblib/dblib.c src/tds/query.c src/tds/tds_checks.c:

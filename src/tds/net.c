@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.5 2004-12-07 22:39:21 jklowden Exp $";
+static char software_version[] = "$Id: net.c,v 1.6 2005-01-20 16:19:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -226,6 +226,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
 	int got = 0;
 	int len, retcode;
+	int timeout_action;
 	fd_set fds;
 	time_t start, now;
 	struct timeval selecttimeout;
@@ -234,22 +235,28 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	assert(tds);
 
 	FD_ZERO(&fds);
-	start = time(NULL);
-	now = start;
-	while ((buflen > 0) && ((tds->timeout == 0) || ((now - start) < tds->timeout))) {
+	now = time(NULL);
+	start = tds->query_start_time ? tds->query_start_time : now;
+	while ((buflen > 0) && (!tds->query_timeout || ((now - start) < tds->query_timeout))) {
 		if (IS_TDSDEAD(tds))
 			return -1;
 
 		/* set right timeout */
 		FD_SET(tds->s, &fds);
 		timeout = NULL;
-		if (tds->chkintr || tds->timeout) {
-			selecttimeout.tv_sec = tds->chkintr ? 1 : tds->timeout - (now - start);
+		if (tds->query_timeout_func && tds->query_timeout) {
+			long seconds = tds->query_timeout - (now - start);
+
+			tdsdump_log(TDS_DBG_INFO1, "time timeout %d now %u start %u\n", tds->query_timeout, (unsigned int) now, (unsigned int) start);
+			if (seconds < 1)
+				seconds = 1;
+			selecttimeout.tv_sec = seconds;
 			selecttimeout.tv_usec = 0;
 			timeout = &selecttimeout;
 		}
 
-		retcode = select(tds->s + 1, &fds, NULL, NULL, timeout);	/* retcode == 0 indicates a timeout, OK */
+		/* retcode == 0 indicates a timeout, OK */
+		retcode = select(tds->s + 1, &fds, NULL, NULL, timeout);
 
 		if( retcode != 0 ) {
 			if( retcode < 0 ) {
@@ -309,25 +316,24 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 	OK_TIMEOUT:
 		now = time(NULL);
-		if (tds->longquery_func && tds->queryStarttime && tds->longquery_timeout) {
-			if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
-				(*tds->longquery_func) (tds->longquery_param);
-				return got;
-			}
+		timeout_action = TDS_INT_CONTINUE;
+		if (tds->query_timeout_func && tds->query_timeout) {
+			if ((now - start) >= tds->query_timeout)
+				timeout_action = (*tds->query_timeout_func) (tds->query_timeout_param);
 		}
-		if ((tds->chkintr) && ((*tds->chkintr) (tds)) && (tds->hndlintr)) {
-			switch ((*tds->hndlintr) (tds)) {
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-				break;
-			case TDS_INT_CANCEL:
-				/* TODO should we process cancellation ?? */
-				tds_send_cancel(tds);
-				break;
-			case TDS_INT_CONTINUE:
-			default:
-				break;
-			}
+
+		switch (timeout_action) {
+		case TDS_INT_EXIT:
+			exit(EXIT_FAILURE);
+			break;
+		case TDS_INT_CANCEL:
+			/* TODO should we process cancellation ?? */
+			tds_send_cancel(tds);
+			break;
+		case TDS_INT_CONTINUE:
+			/* TODO set timeout or start ?? */
+		default:
+			break;
 		}
 
 	}			/* while buflen... */
@@ -335,7 +341,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	/* here buflen <= 0 || (tds->timeout != 0 && (now - start) >= tds->timeout) */
 		
 	/* TODO always false ?? */
-	if (tds->timeout > 0 && now - start < tds->timeout && buflen > 0)
+	if (tds->query_timeout > 0 && now - start < tds->query_timeout && buflen > 0)
 		return -1;
 
 	/* FIXME on timeout this assert got true... */
@@ -507,7 +513,7 @@ tds_check_socket_write(TDSSOCKET * tds)
 	/* Jeffs hack *** START OF NEW CODE */
 	FD_ZERO(&fds);
 
-	if (!tds->timeout) {
+	if (!tds->query_timeout) {
 		for (;;) {
 			FD_SET(tds->s, &fds);
 			retcode = select(tds->s + 1, NULL, &fds, NULL, NULL);
@@ -524,9 +530,9 @@ tds_check_socket_write(TDSSOCKET * tds)
 	start = time(NULL);
 	now = start;
 
-	while ((retcode == 0) && ((now - start) < tds->timeout)) {
+	while ((retcode == 0) && ((now - start) < tds->query_timeout)) {
 		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = tds->timeout - (now - start);
+		selecttimeout.tv_sec = tds->query_timeout - (now - start);
 		selecttimeout.tv_usec = 0;
 		retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
 		if (retcode < 0 && sock_errno == TDSSOCK_EINTR) {

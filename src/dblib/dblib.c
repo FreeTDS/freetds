@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.202 2005-01-20 14:38:29 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.203 2005-01-20 16:18:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -469,35 +469,21 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	return;
 }
 
-
 static int
-dblib_chkintr(TDSSOCKET * tds)
+dblib_query_timeout(void *param)
 {
-	DBPROCESS *dbproc = NULL;
+	TDSSOCKET * tds = (TDSSOCKET *) param;
+	DBPROCESS *dbproc;
 
-	if (tds && tds->parent) {
-		dbproc = (DBPROCESS *) tds->parent;
-	}
+	if (!tds || !tds->parent)
+		return TDS_INT_CONTINUE;
 
-	if ((dbproc == NULL) || (dbproc->dbchkintr == NULL)) {
-		return FALSE;
-	}
+	dbproc = (DBPROCESS *) tds->parent;
+	if (dbproc->dbchkintr == NULL || !((*dbproc->dbchkintr) (dbproc)) )
+		return TDS_INT_CONTINUE;
 
-	return ((*dbproc->dbchkintr) (dbproc));
-}
-
-static int
-dblib_hndlintr(TDSSOCKET * tds)
-{
-	DBPROCESS *dbproc = NULL;
-
-	if (tds && tds->parent) {
-		dbproc = (DBPROCESS *) tds->parent;
-	}
-
-	if ((dbproc == NULL) || (dbproc->dbhndlintr == NULL)) {
-		return INT_CONTINUE;
-	}
+	if (dbproc->dbhndlintr == NULL)
+		return TDS_INT_CONTINUE;
 
 	return ((*dbproc->dbhndlintr) (dbproc));
 }
@@ -969,8 +955,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	dbproc->dbchkintr = NULL;
 	dbproc->dbhndlintr = NULL;
-	dbproc->tds_socket->chkintr = dblib_chkintr;
-	dbproc->tds_socket->hndlintr = dblib_hndlintr;
+	dbproc->tds_socket->query_timeout_param = dbproc->tds_socket;
+	dbproc->tds_socket->query_timeout_func = dblib_query_timeout;
 
 	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
 		tds_free_socket(dbproc->tds_socket);

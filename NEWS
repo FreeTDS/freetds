@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.15 2005-01-15 18:28:43 freddy77 Exp $
+$Id: NEWS,v 1.16 2005-01-20 16:18:44 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -11,12 +11,7 @@ libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure
 - TDSSOCKET->env it's no more a pointer
 - tds_free_compute_result and tds_free_compute_results are now static
-- removed TDSSOCKET->out_len, not used
-- renames TDSSOCKET->cursor to TDSSOCKET->cursors
-- added TDSSOCKET->cur_cursor (instead of removed TDSSOCKET->client_cursor_id)
-- TDSSOCKET->dyns now a pointer to a pointer to first dynamic allocated
 - added TDSDYNAMIC->next for linked list
-- removed TDSSOCKET->num_dyns (now useless with linked list)
 - removed TDSCURSOR->client_cursor_id
 - use TDSCURSOR* cursor instead of TDS_INT client_cursor_it in
   tds_cursor_* functions
@@ -24,6 +19,19 @@ libTDS API changes
   add line information in level
 - changed tds_alloc_compute_results declaration, pass a TDSSOCKET*
 - removed tds_do_until_done (not used)
+- removed tds_set_longquery_handler function (not used)
+- changed some fields in TDSSOCKET
+ - removed out_len (not used)
+ - renamed cursor to cursors
+ - removed client_cursor_id
+ - added cur_cursor (instead of removed client_cursor_id)
+ - dyns now a pointer to a pointer to first dynamic allocated
+ - removed num_dyns (now useless with linked list)
+ - removed chkintr and hndlintr (use longquery_*)
+ - removed longquery_timeout (use query_timeout)
+ - renamed longquery_func to query_timeout_func
+ - renamed longquery_param to query_timeout_param
+ - queryStarttime to query_start_time
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

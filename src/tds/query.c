@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.158 2005-01-20 14:38:30 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.159 2005-01-20 16:19:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -183,7 +183,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		return TDS_FAIL;
 
 	/* Jeff's hack to handle long query timeouts */
-	tds->queryStarttime = time(NULL);
+	tds->query_start_time = time(NULL);
 
 	query_len = strlen(query);
 	if (IS_TDS50(tds)) {
@@ -1573,8 +1573,8 @@ tds_send_cancel(TDSSOCKET * tds)
 	/* tds_init_write_buf(tds); */
 
 	/* disable timeout */
-	tds->queryStarttime = 0;
-	tds->timeout = 0;
+	tds->query_start_time = 0;
+	tds->query_timeout = 0;
 
 	tds->out_flag = 0x06;
 	tds->in_cancel = 1;
@@ -1685,7 +1685,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 				return TDS_FAIL;
 
 			tds->out_flag = 0x0F;
-			tds->queryStarttime = time(NULL);
+			tds->query_start_time = time(NULL);
 		}
 		if (tds->state != TDS_QUERYING || tds->out_flag != 0x0F)
 			return TDS_FAIL;
@@ -1727,7 +1727,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
 
-		tds->queryStarttime = time(NULL);
+		tds->query_start_time = time(NULL);
 	}
 	if (tds->state != TDS_QUERYING)
 		return TDS_FAIL;
@@ -1820,7 +1820,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 				return TDS_FAIL;
 
 			tds->out_flag = 0x0F;
-			tds->queryStarttime = time(NULL);
+			tds->query_start_time = time(NULL);
 		}
 		if (tds->state != TDS_QUERYING  || tds->out_flag != 0x0F)
 			return TDS_FAIL;
@@ -1863,7 +1863,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->queryStarttime = time(NULL);
+	tds->query_start_time = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -1955,7 +1955,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->queryStarttime = time(NULL);
+	tds->query_start_time = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -2017,7 +2017,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (IS_TDS50(tds)) {
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
-		tds->queryStarttime = time(NULL);
+		tds->query_start_time = time(NULL);
 		tds->cur_cursor = cursor;
 
 		tds->out_flag = 0x0F;
