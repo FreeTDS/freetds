@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-29 15:53:21 $</date>
-		<releaseinfo>$Revision: 1.79 $</releaseinfo>
+		<date>$Date: 2004-03-12 04:03:58 $</date>
+		<releaseinfo>$Revision: 1.80 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -22,6 +22,7 @@
 		  <year>2001</year>
 		  <year>2002</year>
 		  <year>2003</year>
+		  <year>2004</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -51,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.79 $</>
-<member>$Date: 2003-12-29 15:53:21 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.79 2003-12-29 15:53:21 jklowden Exp $.</>
+<member>$Revision: 1.80 $</>
+<member>$Date: 2004-03-12 04:03:58 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.80 2004-03-12 04:03:58 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -473,6 +474,11 @@ With any luck, you've built and installed the <productname>FreeTDS</productname>
 		</sect1>
 		<sect1 id="osissues">
     			<title>OS-specific Issues</title>
+			<sidebar>
+			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
+			
+			<para>One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  </para>
+			</sidebar>
 		<sect2 id="Windows"><title></title>
 			<para>The <productname>FreeTDS</productname> ODBC driver compiles under
 			
@@ -526,7 +532,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2003-12-29 15:53:21 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-03-12 04:03:58 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -546,11 +552,41 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 			<para>This patch was contributed by <email><ulink url="mailto:fdsubs@axelero.hu">Daniel Fazekas</ulink></email>, and has been used successfully by three people that we know of.  As you can see, the only effect is to remove \$deplibs from  line 202.  </para>
 			<para>OS X includes ODBC header files, which <command>configure</> will detect, causing the <productname>FreeTDS</> ODBC driver to be built.  You may with to use the <option>--disable-odbc</> option if you don't plan to use ODBC.  </para>
 			
-			<sidebar>
-			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
-			
-			<para>One thing that can be said, if it's not too obvious:  check with your vendor or favorite download site.  <productname>FreeTDS</productname> is routinely rolled up into OS install packages.  We know of packages for <productname>Debian</productname>, <productname>Red Hat</productname>, <productname>FreeBSD</productname>, and <productname>NetBSD</productname>.  The installation through the package management systems in these environments may well reduce your work to simply <command>make install</command>.  </para>
-			</sidebar>
+		<sect3 id="OSX.Build.Update">
+			<title>Alternative build procedure</title>
+			<para>On  11 March 2004, <email><ulink url="mailto:dimo@angelhill.net">Dmitri Fedortchenko</ulink></email> offered the following approach, using an updated <command>libtool</>.  </para>
+
+<procedure id="OSX.new.libtool">
+	<title>Installing with libtool 1.5.2</title>
+	<step><para>Install the latest <command>libtool</> from GNU into <filename>/usr/local</>, so as not to interfere with the Apple-original.  </para></step>
+	<step><para>Make sure <filename>/usr/local/bin</> is in your <envar>PATH</envar> and <filename>/usr/local/lib</> is in your <envar>LIBRARY_PATH</envar>.  </para></step>
+	<step><para>Go to the <productname>FreeTDS</productname> source directory and generate the <filename>Makefile</>s
+		<screen>
+		<prompt>$ </prompt><userinput>./configure --disable-libiconv --disable-odbc</userinput>
+		</screen>
+		</para></step>
+	<step><para>Overwrite FreeTDS's <filename>libtool</> with a symbolic link to your (better) one
+		<screen>
+		<footnote><para> If you run <command>configure</> again, you'll need to perform this step
+again, because <command>libtool</> will have been regenerated in its fossilized state.	</para></footnote>
+		<prompt>$ </prompt><userinput>ln -sf /usr/local/bin/libtool</userinput>
+		</screen></para></step>
+		
+		
+	<step performance="optional"><para>To check that you've done everything correctly up to this 
+point, 
+		<screen>
+		<prompt>$ </prompt><userinput>./libtool --version</userinput>
+		</screen>
+		<command>libtool</> should report version 1.5.2 (or whatever version you downloaded, and <emphasis>not</> 1.4).  </para></step>
+	<step><para>And finally, of course
+		<screen>
+		<prompt>$ </prompt><userinput>make && make install</userinput>
+		</screen>
+		</para></step>
+
+</procedure>
+		</sect3>
 		</sect2>
 		</sect1>
 	</chapter>
