@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.212 2005-02-01 13:01:05 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.213 2005-02-02 19:09:00 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -645,10 +645,6 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define TDS_STR_BLKSZ    "initial block size"
 #define TDS_STR_SWAPDT   "swap broken dates"
 #define TDS_STR_SWAPMNY  "swap broken money"
-#define TDS_STR_TRYSVR   "try server login"
-#define TDS_STR_TRYDOM   "try domain login"
-#define TDS_STR_DOMAIN   "nt domain"
-#define TDS_STR_XDOMAUTH "cross domain login"
 #define TDS_STR_DUMPFILE "dump file"
 #define TDS_STR_DEBUGLVL "debug level"
 #define TDS_STR_TIMEOUT  "timeout"
@@ -733,15 +729,11 @@ typedef struct tds_connection
 	DSTR instance_name;
 	DSTR database;
 	DSTR dump_file;
-	DSTR default_domain;
 	int timeout;
 	int debug_level;
 	int text_size;
 	int broken_dates;
 	int broken_money;
-	int try_server_login;
-	int try_domain_login;
-	int xdomain_auth;
 	int emul_little_endian;
 } TDSCONNECTION;
 

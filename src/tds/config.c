@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.103 2005-01-24 20:07:48 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.104 2005-02-02 19:09:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -413,14 +413,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		connection->broken_dates = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_SWAPMNY)) {
 		connection->broken_money = tds_config_boolean(value);
-	} else if (!strcmp(option, TDS_STR_TRYSVR)) {
-		connection->try_server_login = tds_config_boolean(value);
-	} else if (!strcmp(option, TDS_STR_TRYDOM)) {
-		connection->try_domain_login = tds_config_boolean(value);
-	} else if (!strcmp(option, TDS_STR_DOMAIN)) {
-		tds_dstr_copy(&connection->default_domain, value);
-	} else if (!strcmp(option, TDS_STR_XDOMAUTH)) {
-		connection->xdomain_auth = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		tds_dstr_copy(&connection->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGLVL)) {

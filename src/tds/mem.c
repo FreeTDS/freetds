@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.131 2005-02-01 13:01:09 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.132 2005-02-02 19:09:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -555,7 +555,6 @@ tds_alloc_connection(TDSLOCALE * locale)
 	tds_dstr_init(&connection->ip_addr);
 	tds_dstr_init(&connection->database);
 	tds_dstr_init(&connection->dump_file);
-	tds_dstr_init(&connection->default_domain);
 	tds_dstr_init(&connection->client_charset);
 	tds_dstr_init(&connection->instance_name);
 
@@ -581,7 +580,6 @@ tds_alloc_connection(TDSLOCALE * locale)
 		if (!tds_dstr_copy(&connection->language, TDS_DEF_LANG))
 			goto Cleanup;
 	}
-	connection->try_server_login = 1;
 	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
 	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's truncated */
@@ -834,7 +832,6 @@ tds_free_connection(TDSCONNECTION * connection)
 	tds_dstr_free(&connection->ip_addr);
 	tds_dstr_free(&connection->database);
 	tds_dstr_free(&connection->dump_file);
-	tds_dstr_free(&connection->default_domain);
 	tds_dstr_free(&connection->client_charset);
 	tds_dstr_free(&connection->app_name);
 	tds_dstr_free(&connection->user_name);

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.60 2005-01-27 09:28:23 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.61 2005-02-02 19:09:01 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -175,30 +175,6 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 	if (SQLGetPrivateProfileString(DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connection->database, tmp);
 	}
-#if 0
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString(DSN, "Authentication", "Server", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		if (!strcasecmp(tmp, "Server")) {
-			connection->try_domain_login = 0;
-			connection->try_server_login = 1;
-		} else if (!strcasecmp(tmp, "Domain")) {
-			connection->try_domain_login = 1;
-			connection->try_server_login = 0;
-		} else if (!strcasecmp(tmp, "Both")) {
-			connection->try_server_login = 1;
-			connection->try_domain_login = 1;
-		} else {
-			/* default to server authentication */
-			connection->try_domain_login = 0;
-			connection->try_server_login = 1;
-		}
-	}
-#endif
-
-	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString(DSN, "Domain", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connection->default_domain, tmp);
-	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "TextSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
@@ -309,8 +285,6 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 			connection->port = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "TDS_Version") == 0) {
 			tds_config_verstr(tds_dstr_cstr(&value), connection);
-		} else if (strcasecmp(option, "Domain") == 0) {
-			dest_s = &connection->default_domain;
 		} else if (strcasecmp(option, "TextSize") == 0) {
 			connection->text_size = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "PacketSize") == 0) {

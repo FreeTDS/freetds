@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.132 2005-01-24 20:07:49 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.133 2005-02-02 19:09:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -453,21 +453,20 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 		return TDS_FAIL;
 
 	/* parse a bit of config */
-	domain = tds_dstr_cstr(&connection->default_domain);
 	user_name = tds_dstr_cstr(&connection->user_name);
 	user_name_len = user_name ? strlen(user_name) : 0;
 	host_name_len = tds_dstr_len(&connection->host_name);
 	password_len = tds_dstr_len(&connection->password);
-	domain_len = strlen(domain);
 
-	/* check override of domain */
-	if (user_name && (p = strchr(user_name, '\\')) != NULL) {
-		domain = user_name;
-		domain_len = p - user_name;
+	/* parse domain\username */
+	if ((p = strchr(user_name, '\\')) == NULL)
+		return TDS_FAIL;
 
-		user_name = p + 1;
-		user_name_len = strlen(user_name);
-	}
+	domain = user_name;
+	domain_len = p - user_name;
+
+	user_name = p + 1;
+	user_name_len = strlen(user_name);
 
 	tds->out_flag = 0x11;
 	tds_put_n(tds, "NTLMSSP", 8);
@@ -561,9 +560,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int block_size;
 	int current_pos;
 	static const unsigned char ntlm_id[] = "NTLMSSP";
-	int domain_login = connection->try_domain_login ? 1 : 0;
+	int domain_login = 0;
 
-	const char *domain = tds_dstr_cstr(&connection->default_domain);
+	const char *domain = "";
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
 	const char *p;
 	int user_name_len = strlen(user_name);
@@ -582,7 +581,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		password_len = 128;
 
 	/* check override of domain */
-	if (user_name && (p = strchr(user_name, '\\')) != NULL) {
+	if ((p = strchr(user_name, '\\')) != NULL) {
 		domain = user_name;
 		domain_len = p - user_name;
 

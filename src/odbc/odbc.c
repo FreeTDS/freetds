@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.356 2005-01-31 10:01:47 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.357 2005-02-02 19:09:01 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -299,16 +299,6 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	tds_fix_connection(connection);
 
 	connection->connect_timeout = dbc->attr.connection_timeout;
-
-	/* fix login type */
-	if (!connection->try_domain_login) {
-		if (strchr(tds_dstr_cstr(&connection->user_name), '\\')) {
-			connection->try_domain_login = 1;
-			connection->try_server_login = 0;
-		}
-	}
-	if (!connection->try_domain_login && !connection->try_server_login)
-		connection->try_server_login = 1;
 
 	if (tds_connect(dbc->tds_socket, connection) == TDS_FAIL) {
 		tds_free_socket(dbc->tds_socket);

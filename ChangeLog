@@ -1,3 +1,9 @@
+Wed Feb  2 20:08:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.conf include/tds.h src/odbc/connectparams.c:
+	* src/odbc/odbc.c src/tds/config.c src/tds/login.c:
+	* src/tds/mem.c:
+	- cleanup of old configurations parameters about NT domain
+
 Tue Feb  1 13:59:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c:
 	* src/tds/mem.c src/tds/token.c:
