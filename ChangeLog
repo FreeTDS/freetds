@@ -1,3 +1,6 @@
+Tue Nov 30 21:19:06 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/Makefile.am libtds is version 4.0.0
+
 Mon Nov 29 20:45:14 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* BUGS README updated for release
 	
