@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.156 2005-01-14 08:06:29 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.157 2005-01-15 18:28:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -56,6 +56,9 @@ static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
 #define TDS_PUT_DATA_USE_NAME 1
+
+#undef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 /* All manner of client to server submittal functions */
 
@@ -985,13 +988,13 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		case 0:
 			break;
 		case 1:
-			tds_put_byte(tds, curcol->column_size);
+			tds_put_byte(tds, MIN(curcol->column_size, 255));
 			break;
 		case 2:
-			tds_put_smallint(tds, curcol->column_size);
+			tds_put_smallint(tds, MIN(curcol->column_size, 8000));
 			break;
 		case 4:
-			tds_put_int(tds, curcol->column_size);
+			tds_put_int(tds, MIN(curcol->column_size, 0x7fffffff));
 			break;
 		}
 	}
@@ -1081,6 +1084,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		return TDS_SUCCEED;
 	}
 
+	/*
+	 * TODO here we limit data sent with MIN, should mark somewhere
+	 * and inform client ??
+	 * Test proprietary behavior
+	 */
 	if (IS_TDS7_PLUS(tds)) {
 		const char *s;
 		int converted = 0;
@@ -1119,15 +1127,18 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
 			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
+			colsize = MIN(colsize, 0x7fffffff);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
 			break;
 		case 2:
+			colsize = MIN(colsize, 8000);
 			tds_put_smallint(tds, colsize);
 			break;
 		case 1:
 			if (is_numeric_type(curcol->on_server.column_type))
 				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+			colsize = MIN(colsize, 255);
 			tds_put_byte(tds, colsize);
 			break;
 		case 0:
@@ -1173,14 +1184,17 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
+			colsize = MIN(colsize, 0x7fffffff);
 			tds_put_int(tds, colsize);
 			break;
 		case 2:
+			colsize = MIN(colsize, 8000);
 			tds_put_smallint(tds, colsize);
 			break;
 		case 1:
 			if (is_numeric_type(curcol->column_type))
 				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+			colsize = MIN(colsize, 255);
 			tds_put_byte(tds, colsize);
 			break;
 		case 0:

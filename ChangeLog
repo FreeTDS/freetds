@@ -1,3 +1,7 @@
+Sat Jan 15 19:28:32 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS: update
+	* src/tds/query.c TODO: limit max size
+
 Fri Jan 14 11:52:45 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c corrected 'go' batch separator
 
