@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-08-06 07:53:39 $</date>
-		<releaseinfo>$Revision: 1.64 $</releaseinfo>
+		<date>$Date: 2003-10-18 22:57:24 $</date>
+		<releaseinfo>$Revision: 1.65 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.64 $</>
-<member>$Date: 2003-08-06 07:53:39 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.64 2003-08-06 07:53:39 freddy77 Exp $.</>
+<member>$Revision: 1.65 $</>
+<member>$Date: 2003-10-18 22:57:24 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.65 2003-10-18 22:57:24 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -347,7 +347,7 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<term><Parameter>--with-iodbc
 					</Parameter></term>
 				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>iODBC</productname> Driver Manager. 
-				From 0.62 version ODBC DM are detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
+				As of version 0.62, the ODBC DM is detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
 				(Requires <productname>iODBC</productname> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
@@ -356,22 +356,22 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<term><Parameter>--with-unixodbc 
 					</Parameter></term>
 				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>unixODBC</productname> Driver Manager.
-				From 0.62 version ODBC DM are detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
+				From 0.62 version ODBC DM are detected by the configure script, so use this parameter only if your DM is installed in a non-standard path.
 				(Requires <productname>unixODBC</productname> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-msdblib</Parameter></term>
-				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
+				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically only needed for porting Win32 applications to Unix.</para>
 					</listitem>
 				</varlistentry>
 			<varlistentry>
 				<term><Parameter>--enable-threadsafe</Parameter></term>
-				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().
+				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using <function>gethostbyname_r()</> instead of the older and non-threadsafe <function>gethostbyname()</>.
 				Is not widely tested on all platform but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).
 				Is also a good idea to enable this switch if you configure Apache with multi-threading support.
-				From 0.61 version this option is turned on by default in RPM building. From version 0.62 this option is turned on by default.
+				With 0.61 version this option is turned on by default in RPM building. With version 0.62 this option is turned on by default.
 				</para></listitem>
 			</varlistentry>
 			<varlistentry>
@@ -382,21 +382,21 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 
 			<varlistentry>
 				<term><Parameter>--enable-debug</Parameter></term>
-				<listitem><para>This enable some check in FreeTDS code. Enabled by default.
+				<listitem><para>This enables some checks in FreeTDS code. Enabled by default.
 				</para></listitem>
 			</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-extra-checks</Parameter></term>
-				<listitem><para>This enable some extra check in FreeTDS code. Currently is not widely used and
-				it should be used for debugging purpose. 
+				<listitem><para>This enables some extra checks in FreeTDS code. Currently is not widely used and
+				intended for debugging purposes. 
 				</para></listitem>
 			</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--enable-developing</Parameter></term>
-				<listitem><para>Enable some code still in developing. Should be used only by developer or
-				brave users :)
+				<listitem><para>Enable some code still in development. Should be used only by a developer or a
+				brave user :)
 				</para></listitem>
 			</varlistentry>
 
@@ -1955,7 +1955,7 @@ symbols for version use 100
 		<sect1 id="iodbc">
 			<title><productname>iODBC</productname> Driver Manager</title>
 			<para>
-<productname>iODBC</productname> is one of three popular <systemitem class="library">ODBC</systemitem> driver managers available for Unix (the others being <productname>unixODBC</productname>, and Merant which is apparently the official licensed Microsoft <systemitem class="library">ODBC</systemitem> driver manager ported to Unix).
+<productname>iODBC</productname> is one of three popular <systemitem class="library">ODBC</systemitem> driver managers available for Unix (the others being <productname>unixODBC</productname>, and Merant, which is apparently the official licensed Microsoft <systemitem class="library">ODBC</systemitem> driver manager ported to Unix).
 			</para>
 			<para>
 First, build <productname>iODBC</productname> according to the documentation or install it via RPM, DEB or other package manager.

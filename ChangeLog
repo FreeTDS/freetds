@@ -1,3 +1,9 @@
+Sat Oct 18 18:44:31 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml minor copyedits
+	* src/ctlib/ct.c fix bug sqsh trips on when no rows are returned. 
+	- patch from Alex Kiesel <alex.kiesel@document-root.de>
+	- see ML 18 Oct 2003 14:51:24 +0200
+	
 Thu Oct 16 23:02:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/encodings.h src/tds/encodings.pl:
 	- define constant for every canonic charset
