@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.3 2002-06-29 23:41:58 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -66,7 +66,7 @@ static int _odbc_get_server_type(int clt_type)
 
 
 static TDS_INT 
-convert_datetime2sql(TDSLOCINFO *locale,int srctype,TDS_CHAR *src,
+convert_datetime2sql(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 	time_t           tmp_secs_from_epoch;
@@ -107,7 +107,7 @@ convert_datetime2sql(TDSLOCINFO *locale,int srctype,TDS_CHAR *src,
 
 
 TDS_INT 
-convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
+convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_CHAR *dest, TDS_UINT destlen)
 {
     TDS_INT nDestSybType;
@@ -121,7 +121,7 @@ convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
         nDestSybType = _odbc_get_server_type( desttype );
         if ( nDestSybType != TDS_FAIL )
         {
-            nRetVal = tds_convert(locale, 
+            nRetVal = tds_convert(context, 
 		srctype,
 		src,
 		srclen, 
@@ -158,7 +158,7 @@ convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 //			break;
 		case SYBDATETIME:
 		case SYBDATETIME4:
-			convert_datetime2sql(locale,srctype,src,desttype,dest,destlen);
+			convert_datetime2sql(context,srctype,src,desttype,dest,destlen);
 			break;
 //		case SYBVARBINARY:
 //			break;

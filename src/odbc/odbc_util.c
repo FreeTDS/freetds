@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.3 2002-06-09 13:50:38 brianb Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -104,12 +104,14 @@ int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_l
 void odbc_set_return_status(struct _hstmt *stmt)
 {
     TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+	TDSLOCINFO *locale = context->locale;
 
         if (stmt->prepared_query_is_func && tds->has_status){
                 struct _sql_param_info *param;
                 param = odbc_find_param(stmt, 1);
                 if (param){
-                        int len = convert_tds2sql(stmt->hdbc->henv->locale,
+                        int len = convert_tds2sql(context,
                         SYBINT4,
                         (TDS_CHAR*)&tds->ret_status,
                         sizeof(TDS_INT),

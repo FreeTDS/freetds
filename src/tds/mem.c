@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.13 2002-07-05 13:03:15 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.14 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -267,6 +267,21 @@ void tds_free_column(TDSCOLINFO *column)
 	if (column->column_textvalue) TDS_ZERO_FREE(column->column_textvalue);
 	TDS_ZERO_FREE(column);
 }
+TDSCONTEXT *tds_alloc_context()
+{
+TDSCONTEXT *context;
+
+	context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
+	memset(context, '\0', sizeof(TDSCONTEXT));
+	context->locale = tds_get_locale();
+
+	return context;
+}
+void tds_free_context(TDSCONTEXT *context)
+{
+	if (context->locale) tds_free_locale(context->locale);
+	TDS_ZERO_FREE(context);
+}
 TDSLOCINFO *tds_alloc_locale()
 {
 TDSLOCINFO *locale;
@@ -342,12 +357,13 @@ void tds_free_login(TDSLOGIN *login)
 {
 	if (login) free(login);
 }
-TDSSOCKET *tds_alloc_socket(int bufsize)
+TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
 {
 TDSSOCKET *tds_socket;
 
 	tds_socket = (TDSSOCKET *) malloc(sizeof(TDSSOCKET));
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
+	tds_socket->tds_ctx = context;
 	tds_socket->in_buf_max=0;
 	tds_socket->out_buf = (unsigned char *) malloc(bufsize);
 	tds_socket->msg_info = (TDSMSGINFO *) malloc(sizeof(TDSMSGINFO));
@@ -439,29 +455,4 @@ void tds_free_msg(TDSMSGINFO *msg_info)
 		if(msg_info->sql_state) TDS_ZERO_FREE(msg_info->sql_state);
 	}
 }
-int tds_add_connection(TDSCONTEXT *ctx, TDSSOCKET *tds)
-{
-int i = 0;
 
-	while (i<TDS_MAX_CONN && ctx->connection_list[i]) i++;
-	if (i==TDS_MAX_CONN) {
-		fprintf(stderr,"Max connections reached, increase value of TDS_MAX_CONN\n");
-		return 1;
-	} else {
-		ctx->connection_list[i] = tds;
-		return 0;
-	}
-	
-}
-void tds_del_connection(TDSCONTEXT *ctx, TDSSOCKET *tds)
-{
-int i=0;
-
-	while (i<TDS_MAX_CONN && ctx->connection_list[i]!=tds) i++;
-	if (i==TDS_MAX_CONN) {
-		/* connection wasn't on the free list...now what */
-	} else {
-		/* remove it */
-		ctx->connection_list[i] = NULL;
-	}
-}

@@ -24,14 +24,10 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.17 2002-06-26 01:44:26 jklowden Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.18 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-/* these function pointers are called by the tds layer to propagate message
-** back up to the CLI */
-extern int (*g_tds_msg_handler)();
-extern int (*g_tds_err_handler)();
 
 static void _ct_bind_data(CS_COMMAND *cmd);
 
@@ -46,10 +42,8 @@ CS_RETCODE ct_init(CS_CONTEXT *ctx, CS_INT version)
 	/* uncomment the next line to get pre-login trace */
 	/* tdsdump_open("/tmp/tds2.log"); */
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_init()\n");
-   /* set the functions in the TDS layer to point to the correct info/err
-    * message handler functions */
-   g_tds_msg_handler = ctlib_handle_info_message;
-   g_tds_err_handler = ctlib_handle_err_message;
+	ctx->tds_ctx->msg_handler = ctlib_handle_info_message;
+	ctx->tds_ctx->err_handler = ctlib_handle_err_message;
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_con_alloc(CS_CONTEXT *ctx, CS_CONNECTION **con)
@@ -305,7 +299,7 @@ CS_CONTEXT *ctx;
 	}
         tds_set_server(con->tds_login,server);
 	   ctx = con->ctx;
-        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, ctx->locale, (void *) con))) {
+        if (!(con->tds_socket = (void *) tds_connect(con->tds_login, ctx->tds_ctx, (void *) con))) {
 		if (needfree) free(server);
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
@@ -555,7 +549,7 @@ CS_CONTEXT *ctx = cmd->con->ctx;
             srclen = curcol->column_size;
          }
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, destlen);
-         len = tds_convert(ctx->locale, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+         len = tds_convert(ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
          tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
    
          /* XXX need utf16 support (NCHAR,NVARCHAR,NTEXT) */

@@ -21,27 +21,30 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.7 2002-06-26 01:44:26 jklowden Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.8 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 {
+TDSCONTEXT *tds_ctx;
+
 	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
 	memset(*ctx,'\0',sizeof(CS_CONTEXT));
-	/* find our default locale and read it */
-	(*ctx)->locale = tds_get_locale();
-	if( (*ctx)->locale && !(*ctx)->locale->date_fmt ) {
+	tds_ctx = tds_alloc_context();
+	(*ctx)->tds_ctx = tds_ctx;
+	if( tds_ctx->locale && !tds_ctx->locale->date_fmt ) {
 		/* set default in case there's no locale file */
-		(*ctx)->locale->date_fmt = "%b %e %Y %l:%M%p"; 
+		tds_ctx->locale->date_fmt = "%b %e %Y %l:%M%p"; 
 	}
 	return CS_SUCCEED;
 }
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)
 {
 	if (ctx) {
-		if (ctx->locale) tds_free_locale(ctx->locale);
+		if (ctx->tds_ctx) 
+			tds_free_context(ctx->tds_ctx);
 		free(ctx);
 	}
 	return CS_SUCCEED;
@@ -64,7 +67,7 @@ unsigned char *dest;
 
     dest = (unsigned char *)destdata;
 
-	len = tds_convert(ctx->locale, src_type, srcdata, 
+	len = tds_convert(ctx->tds_ctx, src_type, srcdata, 
 		srcfmt ? srcfmt->maxlength : 0, desttype, dest, 
 		destlen);
 

@@ -24,18 +24,9 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.27 2002-07-10 05:04:45 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.28 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
-
-/* 
-** All these functions process the input from the wire so it 
-** may be used by the upper level functions.
-*/
-
-int (*g_tds_msg_handler)(void*) = NULL;
-int (*g_tds_err_handler)(void*) = NULL;
-
 
 static int tds_process_msg(TDSSOCKET *tds,int marker);
 static int tds_process_compute_result(TDSSOCKET *tds);
@@ -1029,23 +1020,23 @@ int tmp = tds_get_smallint(tds);
 ** tds_client_msg() sends a message to the client application from the CLI or
 ** TDS layer. A client message is one that is generated from with the library
 ** and not from the server.  The message is sent to the CLI (the 
-** g_tds_err_handler) so that it may forward it to the client application or
+** err_handler) so that it may forward it to the client application or
 ** discard it if no msg handler has been by the application. tds->parent
 ** contains a void pointer to the parent of the tds socket. This can be cast
 ** back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
 ** proper recipient function for this message.
 */
-int tds_client_msg(TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message)
+int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message)
 {
 int ret;
-        if(g_tds_err_handler) {
+        if(tds_ctx->err_handler) {
 		tds->msg_info->msg_number=msgnum;
         	tds->msg_info->msg_level=level; /* severity? */
         	tds->msg_info->msg_state=state;
         	tds->msg_info->server=strdup("OpenClient");
         	tds->msg_info->line_number=line;
         	tds->msg_info->message=strdup(message);
-        	ret = g_tds_err_handler(tds);
+        	ret = tds_ctx->err_handler(tds_ctx, tds);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
 		if (ret) {
@@ -1245,11 +1236,11 @@ int len_sqlstate;
 	*/
 
 	if(tds->msg_info->priv_msg_type
-	                   ? g_tds_err_handler : g_tds_msg_handler) {
+	                   ? tds->tds_ctx->err_handler : tds->tds_ctx->msg_handler) {
 		if (tds->msg_info->priv_msg_type)
-			g_tds_err_handler(tds);
+			tds->tds_ctx->err_handler(tds->tds_ctx, tds);
 		else
-			g_tds_msg_handler(tds);
+			tds->tds_ctx->msg_handler(tds->tds_ctx, tds);
 	} else {
 		if(tds->msg_info->msg_number)
 			tdsdump_log(TDS_DBG_WARN,
@@ -1287,23 +1278,23 @@ char *proc_name;
 
 }
 
-int tds_reset_msg_info(TDSSOCKET *tds)
+int tds_reset_msg_info(TDSMSGINFO *msg_info)
 {
-	if (!tds) 
+	if (!msg_info) 
 		return 0;
 
-	tds->msg_info->priv_msg_type = 0;
-	tds->msg_info->msg_number = 0;
-	tds->msg_info->msg_state = 0;
-	tds->msg_info->msg_level = 0;
-	tds->msg_info->line_number = 0;
+	msg_info->priv_msg_type = 0;
+	msg_info->msg_number = 0;
+	msg_info->msg_state = 0;
+	msg_info->msg_level = 0;
+	msg_info->line_number = 0;
 
-	if( tds->msg_info->message)
-		TDS_ZERO_FREE(tds->msg_info->message);
-	if(tds->msg_info->server)
-		TDS_ZERO_FREE(tds->msg_info->server);
-	if(tds->msg_info->proc_name)
-		TDS_ZERO_FREE(tds->msg_info->proc_name);
+	if( msg_info->message)
+		TDS_ZERO_FREE(msg_info->message);
+	if(msg_info->server)
+		TDS_ZERO_FREE(msg_info->server);
+	if(msg_info->proc_name)
+		TDS_ZERO_FREE(msg_info->proc_name);
 
 	return 0;
 }

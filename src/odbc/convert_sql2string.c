@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.3 2002-06-09 17:07:44 brianb Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -89,7 +89,7 @@ static int _odbc_get_server_ctype(int c_type)
 
 
 static TDS_INT 
-convert_datetime2string(TDSLOCINFO *locale,int srctype,TDS_CHAR *src,
+convert_datetime2string(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
 	TDS_CHAR *dest,TDS_INT destlen)
 {
 	struct tm src_tm;
@@ -161,7 +161,7 @@ convert_text2string(TDS_CHAR *src, TDS_INT srclen,
 
 
 TDS_INT 
-convert_sql2string(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_INT srclen,
+convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srclen,
 		TDS_CHAR *dest, TDS_INT destlen, int param_lenbind)
 {
 	int res;
@@ -180,7 +180,7 @@ convert_sql2string(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_INT srcle
 		case SQL_C_TYPE_DATE:
 		case SQL_C_TYPE_TIME:
 		case SQL_C_TYPE_TIMESTAMP:
-			return convert_datetime2string(locale,srctype,src,dest,destlen);
+			return convert_datetime2string(context,srctype,src,dest,destlen);
 			break;
 		case SQL_C_CHAR:
 			return convert_text2string(src,srclen,dest,destlen);
@@ -202,7 +202,7 @@ convert_sql2string(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_INT srcle
 
 	}
 
-	res = tds_convert(locale, 
+	res = tds_convert(context, 
 		_odbc_get_server_ctype(srctype),
 		src,
 		srclen, 

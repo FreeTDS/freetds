@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.8 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -276,7 +276,7 @@ int           x = 0, have, need;
 		/* GW ADDED */
 		if (len<0) {
 			/* FIX ME -- get the exact err num and text */
-			tds_client_msg(tds,10018, 9, 0, 0, "The connection was closed");
+			tds_client_msg(tds->tds_ctx, tds,10018, 9, 0, 0, "The connection was closed");
 			CLOSE(tds->s);
 			tds->s=0;
                 	tds->in_len=0;

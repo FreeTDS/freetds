@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.36 2002-07-12 03:09:06 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.37 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -135,7 +135,7 @@ static SQLRETURN do_connect (
     tds_set_server (dbc->tds_login, (char*)server);
     tds_set_user   (dbc->tds_login, (char*)user);
     tds_set_passwd (dbc->tds_login, (char*)passwd);
-    dbc->tds_socket = (void *) tds_connect(dbc->tds_login, env->locale, (void *)dbc);
+    dbc->tds_socket = (void *) tds_connect(dbc->tds_login, env->tds_ctx, (void *)dbc);
 
     if (dbc->tds_socket == NULL)
     {
@@ -528,7 +528,7 @@ static SQLRETURN SQL_API _SQLAllocEnv(
     if (!env)
         return SQL_ERROR;
     memset(env,'\0',sizeof(struct _henv));
-    env->locale = tds_get_locale();
+	env->tds_ctx = tds_alloc_context();
     *phenv = (SQLHENV)env;
     return SQL_SUCCESS;
 }
@@ -1029,6 +1029,7 @@ SQLRETURN SQL_API SQLFetch(
     int srclen;
     struct _sql_bind_info *cur;
     TDSLOCINFO *locale;
+    TDSCONTEXT *context;
 
     CHECK_HSTMT;
 
@@ -1036,7 +1037,8 @@ SQLRETURN SQL_API SQLFetch(
 
     tds = stmt->hdbc->tds_socket;
 
-    locale = stmt->hdbc->henv->locale;
+    context = stmt->hdbc->henv->tds_ctx;
+    locale = context->locale;
 
     /* if we bound columns, transfer them to res_info now that we have one */
     if (stmt->row==0)
@@ -1088,7 +1090,7 @@ SQLRETURN SQL_API SQLFetch(
                 src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
                 srclen = colinfo->column_size;
             }
-            len = convert_tds2sql(locale, 
+            len = convert_tds2sql(context, 
                                   tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
                                   src,
                                   srclen, 
@@ -1533,13 +1535,15 @@ SQLRETURN SQL_API SQLGetData(
     TDS_CHAR *src;
     int srclen;
     TDSLOCINFO *locale;
+    TDSCONTEXT *context;
     int nSybType;
 
     CHECK_HSTMT;
 
     stmt = (struct _hstmt *) hstmt;
     tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
-    locale = stmt->hdbc->henv->locale;
+    context = stmt->hdbc->henv->tds_ctx;
+    locale = context->locale;
     resinfo = tds->res_info;
     if (icol == 0 || icol > tds->res_info->num_cols)
     {
@@ -1567,7 +1571,7 @@ SQLRETURN SQL_API SQLGetData(
             srclen = -1;
         }
         nSybType = tds_get_conversion_type( colinfo->column_type, colinfo->column_size );
-        *pcbValue=convert_tds2sql(locale, 
+        *pcbValue=convert_tds2sql(context, 
                                   nSybType,
                                   src,
                                   colinfo->column_size /* srclen */, 

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.20 2002-07-10 05:10:56 jklowden Exp $";
+	 "$Id: tds.h.in,v 1.21 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -527,6 +527,14 @@ typedef struct tds_dynamic {
 	TDSINPUTPARAM **params;
 } TDSDYNAMIC;
 
+typedef struct tds_context {
+	TDSLOCINFO *locale;
+	TDSMSGINFO *msg_info;
+	/* handler */
+	int (*msg_handler)(void *, void*);
+	int (*err_handler)(void *, void*);
+} TDSCONTEXT;
+
 typedef struct tds_socket {
 	/* fixed and connect time */
         int s;
@@ -572,12 +580,8 @@ typedef struct tds_socket {
 	iconv_t cdfrom;
 #endif
 	char *date_fmt;
+	TDSCONTEXT *tds_ctx;
 } TDSSOCKET;
-
-typedef struct tds_context {
-	TDSSOCKET *connection_list[TDS_MAX_CONN];
-	TDSLOCINFO *locale;
-} TDSCONTEXT;
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
 void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery);
@@ -605,7 +609,7 @@ extern char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 extern char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
 extern TDSRESULTINFO *tds_alloc_results(int num_cols);
 extern TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
-extern TDSSOCKET *tds_alloc_socket(int bufsize);
+extern TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
 extern TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
 extern TDSLOCINFO *tds_get_locale();
 extern void *tds_alloc_row(TDSRESULTINFO *res_info);
@@ -614,7 +618,7 @@ extern TDSLOGIN *tds_alloc_login();
 extern void tds_free_login(TDSLOGIN *login);
 extern TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
 extern TDSLOCINFO *tds_alloc_locale();
-extern TDSSOCKET *tds_connect(TDSLOGIN *login, TDSLOCINFO *locale, void *parent);
+extern TDSSOCKET *tds_connect(TDSLOGIN *login, TDSCONTEXT *context, void *parent);
 extern TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
 extern void tds_set_packet(TDSLOGIN *tds_login, short packet_size);
 extern void tds_set_port(TDSLOGIN *tds_login, int port);
@@ -635,8 +639,8 @@ extern int tds_process_row_tokens(TDSSOCKET *tds);
 extern int tds_process_env_chg(TDSSOCKET *tds);
 extern int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 extern TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
-extern int tds_client_msg(TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message);
-extern int tds_reset_msg_info(TDSSOCKET *tds);
+extern int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message);
+extern int tds_reset_msg_info(TDSMSGINFO *msg_info);
 extern void  tds_set_parent(TDSSOCKET* tds, void* the_parent);
 extern void* tds_get_parent(TDSSOCKET* tds);
 extern void tds_set_null(unsigned char *current_row, int column);

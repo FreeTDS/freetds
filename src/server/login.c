@@ -22,7 +22,7 @@
 #include "tdsutil.h"
 #include <unistd.h>
 
-static char  software_version[]   = "$Id: login.c,v 1.5 2002-07-05 03:43:38 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.6 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,6 +42,7 @@ unsigned char hi_nibble,lo_nibble ;
 
 TDSSOCKET *tds_listen(int ip_port) 
 {
+TDSCONTEXT	*context;
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
 unsigned char buf[BUFSIZ];
@@ -65,7 +66,8 @@ size_t	len;
         	perror("accept");
         	exit(1);
         }
-	tds = tds_alloc_socket(BUFSIZ);
+	context = tds_alloc_context();
+	tds = tds_alloc_socket(context, BUFSIZ);
 	tds->s = fd;
 	tds->out_flag=0x02;
 	/* get_incoming(tds->s); */

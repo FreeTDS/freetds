@@ -27,11 +27,11 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.7 2002-05-29 11:03:48 brianb Exp $";
+         "$Id: tdsodbc.h,v 1.8 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
-	TDSLOCINFO *locale;
+	TDSCONTEXT *tds_ctx;
 };
 struct _hdbc {
 	struct _henv *henv;

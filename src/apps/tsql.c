@@ -24,9 +24,6 @@
 #include <string.h>
 #include "tds.h"
 
-extern int (*g_tds_msg_handler)(void*);
-extern int (*g_tds_err_handler)(void*);
-
 #ifndef HAVE_READLINE
 char *readline(char *prompt)
 {
@@ -193,8 +190,9 @@ int  opt;
 	if (password) free(password);
 	if (servername) free(servername);
 }
-int tsql_handle_message(void *tdsptr)
+int tsql_handle_message(void *ctxptr, void *tdsptr)
 {
+	TDSCONTEXT *context = (TDSCONTEXT *) tdsptr;
 	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
 
      if( tds->msg_info->msg_number > 0  && tds->msg_info->msg_number != 5701) {
@@ -206,7 +204,7 @@ int tsql_handle_message(void *tdsptr)
                          tds->msg_info->line_number,
                          tds->msg_info->message);
 	}
-	tds_reset_msg_info(tds);
+	tds_reset_msg_info(tds->msg_info);
 
 	return 1;
 }
@@ -220,18 +218,20 @@ int bufsz = 4096;
 int done = 0;
 TDSSOCKET *tds;
 TDSLOGIN *login;
-
-	g_tds_msg_handler = tsql_handle_message;
-     g_tds_err_handler = tsql_handle_message;
+TDSCONTEXT *context;
 
 	/* grab a login structure */
-     login = (void *) tds_alloc_login();
+	login = (void *) tds_alloc_login();
+
+	context = tds_alloc_context();
+	context->msg_handler = tsql_handle_message;
+	context->err_handler = tsql_handle_message;
 
 	/* process all the command line args into the login structure */
 	populate_login(login, argc, argv);
 
 	/* Try to open a connection*/
-	tds = tds_connect(login, NULL, login); /* no locale */
+	tds = tds_connect(login, context, login); 
 
 	if (!tds) {
 		/* FIX ME -- need to hook up message/error handlers */
@@ -277,4 +277,5 @@ TDSLOGIN *login;
 	/* close up shop */
 	tds_free_socket(tds);
 	tds_free_login(login);
+	tds_free_context(context);
 }

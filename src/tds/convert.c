@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.23 2002-07-11 05:55:44 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.24 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -557,7 +557,7 @@ char *s;
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_datetime(TDSLOCINFO *locale, int srctype,TDS_CHAR *src,
+tds_convert_datetime(TDSCONTEXT *tds_ctx, int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 
@@ -641,7 +641,7 @@ TDS_INT ret;
 				when.tm.tm_min = (when.tm.tm_sec % 3600) / 60; 
 				when.tm.tm_sec =  when.tm.tm_sec %   60; 
 
-				tds_strftime( whole_date_string, sizeof(whole_date_string), locale->date_fmt, &when );
+				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 				any.c = malloc (strlen(whole_date_string) + 1);
 				strcpy(any.c , whole_date_string);
 			}
@@ -687,7 +687,7 @@ int year;
 }
 
 static TDS_INT 
-tds_convert_datetime4(TDSLOCINFO *locale, int srctype, TDS_CHAR *src,
+tds_convert_datetime4(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src,
 	int desttype, TDS_CHAR *dest,TDS_INT destlen)
 {
 
@@ -745,7 +745,7 @@ DBANY any;
 
 				/* no seconds, milliseconds for smalldatetime */
 
-				tds_strftime( whole_date_string, sizeof(whole_date_string), locale->date_fmt, &when );
+				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 
 				any.c = malloc (strlen(whole_date_string) + 1);
 				strcpy(any.c , whole_date_string);
@@ -963,7 +963,7 @@ int ret = TDS_FAIL;
 }
 
 TDS_INT 
-tds_convert(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
+tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_CHAR *dest, TDS_UINT destlen)
 {
 TDS_VARBINARY *varbin;
@@ -1014,11 +1014,11 @@ TDS_VARBINARY *varbin;
 				desttype,dest,destlen);
 			break;
 		case SYBDATETIME:
-			return tds_convert_datetime(locale, srctype,src,
+			return tds_convert_datetime(tds_ctx, srctype,src,
 				desttype,dest,destlen);
 			break;
 		case SYBDATETIME4:
-			return tds_convert_datetime4(locale, srctype,src,
+			return tds_convert_datetime4(tds_ctx, srctype,src,
 				desttype,dest,destlen);
 			break;
 		case SYBVARBINARY:

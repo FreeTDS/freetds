@@ -30,7 +30,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.24 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.25 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -111,7 +111,7 @@ extern void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilitie
 		size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
 }
 
-TDSSOCKET *tds_connect(TDSLOGIN *login, TDSLOCINFO *locale, void *parent) 
+TDSSOCKET *tds_connect(TDSLOGIN *login, TDSCONTEXT *context, void *parent) 
 {
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
@@ -131,7 +131,7 @@ int connect_timeout = 0;
 FD_ZERO (&fds);                                    
 /* end */
 
-	config = tds_get_config(NULL, login, locale);
+	config = tds_get_config(NULL, login, context->locale);
 
 	/*
 	** If a dump file has been specified, start logging
@@ -145,7 +145,7 @@ FD_ZERO (&fds);
 	** Once the connection is established the block size can be changed
 	** by the server with TDS_ENV_CHG_TOKEN
 	*/
-	tds = tds_alloc_socket(512);
+	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, parent);
 
 	tds->major_version=config->major_version;
@@ -188,10 +188,10 @@ FD_ZERO (&fds);
 		if (config->server_name) {
 			tmpstr = malloc(strlen(config->server_name)+100);
 			sprintf(tmpstr,"Server %s not found!",config->server_name);
-			tds_client_msg(tds, 10019, 9, 0, 0, tmpstr);
+			tds_client_msg(tds->tds_ctx, tds, 10019, 9, 0, 0, tmpstr);
 			free(tmpstr);
 		} else {
-			tds_client_msg(tds, 10020, 9, 0, 0, "No server specified!");
+			tds_client_msg(tds->tds_ctx, tds, 10020, 9, 0, 0, "No server specified!");
 		}
 		tds_free_config(config);
 		tds_free_socket(tds);

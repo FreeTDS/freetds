@@ -2,7 +2,7 @@
 #include <string.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: common.c,v 1.3 2002-02-17 20:23:38 brianb Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -41,6 +41,8 @@ int try_tds_login(
    char *appname,
    int verbose)
 {
+TDSCONTEXT *context;
+
    if (verbose)	{ fprintf(stdout, "Entered tds_try_login()\n"); }
    if (! login) {
       fprintf(stderr, "Invalid TDSLOGIN**\n");
@@ -71,7 +73,8 @@ int try_tds_login(
    tds_set_packet(*login, 512);
   
    if (verbose)	{ fprintf(stdout, "Connecting to database\n"); }
-   *tds = tds_connect(*login, NULL, NULL);
+   context = tds_alloc_context();
+   *tds = tds_connect(*login, context, NULL);
    if (! *tds) {
       fprintf(stderr, "tds_connect() failed\n");
       return TDS_FAIL;

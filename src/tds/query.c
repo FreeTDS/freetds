@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.8 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.9 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -53,7 +53,7 @@ TDS_INT bufsize2;
 		** OpenClient for locally generated messages,
 		** but this needs to be verified too.
 		*/
-		tds_client_msg(tds,10000,7,0,1,
+		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
@@ -104,12 +104,12 @@ int id_len, query_len;
 	if (!query || !id) return TDS_FAIL;
 
 	if (!IS_TDS50(tds)) {
-		tds_client_msg(tds,10000,7,0,1,
+		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Dynamic placeholders only supported under TDS 5.0");
 		return TDS_FAIL;
 	}
 	if (tds->state==TDS_PENDING) {
-		tds_client_msg(tds,10000,7,0,1,
+		tds_client_msg(tds->tds_ctx, tds,10000,7,0,1,
         "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}

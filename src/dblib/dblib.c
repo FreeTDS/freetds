@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.24 2002-07-12 03:09:06 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.25 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -43,9 +43,13 @@ static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int 
 /* info/err message handler functions (or rather pointers to them) */
 int (*g_dblib_msg_handler)() = NULL;
 int (*g_dblib_err_handler)() = NULL;
-TDSCONTEXT *g_tds_context = NULL;
-extern int (*g_tds_msg_handler)(void*);
-extern int (*g_tds_err_handler)(void*);
+
+typedef struct dblib_context {
+	TDSCONTEXT *tds_ctx;
+	TDSSOCKET *connection_list[TDS_MAX_CONN];
+} DBLIBCONTEXT;
+
+static DBLIBCONTEXT *g_dblib_ctx = NULL;
 #ifdef TDS42
 int g_dblib_version = DBVERSION_42;
 #endif
@@ -60,6 +64,33 @@ int g_dblib_version = DBVERSION_46;
 #ifdef TDS70
 int g_dblib_version = DBVERSION_70;
 #endif
+
+static int dblib_add_connection(DBLIBCONTEXT *ctx, TDSSOCKET *tds)
+{
+int i = 0;
+
+	while (i<TDS_MAX_CONN && ctx->connection_list[i]) i++;
+	if (i==TDS_MAX_CONN) {
+		fprintf(stderr,"Max connections reached, increase value of TDS_MAX_CONN\n");
+		return 1;
+	} else {
+		ctx->connection_list[i] = tds;
+		return 0;
+	}
+}
+
+static void dblib_del_connection(DBLIBCONTEXT *ctx, TDSSOCKET *tds)
+{
+int i=0;
+
+	while (i<TDS_MAX_CONN && ctx->connection_list[i]!=tds) i++;
+	if (i==TDS_MAX_CONN) {
+		/* connection wasn't on the free list...now what */
+	} else {
+		/* remove it */
+		ctx->connection_list[i] = NULL;
+	}
+}
 
 static void buffer_init(DBPROC_ROWBUF *buf)
 {
@@ -361,20 +392,22 @@ TDS_NUMERIC	numeric;
 
 RETCODE dbinit()
 {
-	/* set the functions in the TDS layer to point to the correct info/err
-	* message handler functions */
-	g_tds_msg_handler = dblib_handle_info_message;
-	g_tds_err_handler = dblib_handle_err_message;
-
 	/* TDSCONTEXT stores a list of current connections so they may be closed
 	** with dbexit() */
-	g_tds_context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
-	memset(g_tds_context,'\0',sizeof(TDSCONTEXT));
+	g_dblib_ctx = (DBLIBCONTEXT *) malloc(sizeof(DBLIBCONTEXT));
+	memset(g_dblib_ctx,'\0',sizeof(DBLIBCONTEXT));
 
-	g_tds_context->locale = tds_get_locale(g_tds_context->locale);
-	if( g_tds_context->locale && !g_tds_context->locale->date_fmt ) {
+	g_dblib_ctx->tds_ctx = tds_alloc_context();
+
+	/* set the functions in the TDS layer to point to the correct info/err
+	* message handler functions */
+	g_dblib_ctx->tds_ctx->msg_handler = dblib_handle_info_message;
+	g_dblib_ctx->tds_ctx->err_handler = dblib_handle_err_message;
+	
+
+	if( g_dblib_ctx->tds_ctx->locale && !g_dblib_ctx->tds_ctx->locale->date_fmt ) {
 		/* set default in case there's no locale file */
-		g_tds_context->locale->date_fmt = "%b %e %Y %l:%M:%S:%z%p"; 
+		g_dblib_ctx->tds_ctx->locale->date_fmt = "%b %e %Y %l:%M:%S:%z%p"; 
 	}
 
 	return SUCCEED;
@@ -442,13 +475,13 @@ int version_value;
 	
 	tds_set_server(login->tds_login,server);
    
-   dbproc->tds_socket = (void *) tds_connect(login->tds_login, g_tds_context->locale, (void *)dbproc);
+   dbproc->tds_socket = (void *) tds_connect(login->tds_login, g_dblib_ctx->tds_ctx, (void *)dbproc);
    dbproc->dbbuf = NULL;
    dbproc->dbbufsz = 0;
 
    if(dbproc->tds_socket) {
       /* tds_set_parent( dbproc->tds_socket, dbproc); */
-      tds_add_connection(g_tds_context, dbproc->tds_socket);
+      dblib_add_connection(g_dblib_ctx, dbproc->tds_socket);
    } else {
       fprintf(stderr,"DB-Library: Login incorrect.\n");
       free(dbproc); /* memory leak fix (mlilback, 11/17/01) */
@@ -603,7 +636,7 @@ int i;
 	}
 
    	dbfreebuf(dbproc);
-        tds_del_connection(g_tds_context, dbproc->tds_socket);
+        dblib_del_connection(g_dblib_ctx, dbproc->tds_socket);
 	free(dbproc);
 
         return;
@@ -618,13 +651,13 @@ int i;
 
 	/* FIX ME -- this breaks if ctlib/dblib used in same process */
 	for (i=0;i<TDS_MAX_CONN;i++) {
-		tds = g_tds_context->connection_list[i];
+		tds = g_dblib_ctx->connection_list[i];
 		if (tds) {
 			dbproc = (DBPROCESS *) tds->parent;
 			dbclose(dbproc);
 		}
 	}
-	tds_free_locale(g_tds_context->locale);
+	tds_free_context(g_dblib_ctx->tds_ctx);
 }
 
 
@@ -920,7 +953,7 @@ DBINT length;
 	 * tds_convert, and implies the output buffer should be null-teminated.
 	 */
 	len = (destlen == -1)? srclen : destlen;
-	length = tds_convert (g_tds_context->locale, 
+	length = tds_convert (g_dblib_ctx->tds_ctx,
 						srctype,  (TDS_CHAR *)src,  srclen, 
 						desttype, (TDS_CHAR *)dest, len);
 						
@@ -2190,8 +2223,8 @@ char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	tds_convert(g_tds_context->locale, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
-	tds_convert(g_tds_context->locale, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+	tds_convert(g_dblib_ctx->tds_ctx, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
+	tds_convert(g_dblib_ctx->tds_ctx, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
 	sprintf(query, "writetext bulk %s %s timestamp = %s",
 		objname, textptr_string, timestamp_string); 
 	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {

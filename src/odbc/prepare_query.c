@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.3 2002-06-09 13:50:38 brianb Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -282,13 +282,15 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 	int param_num;
 	struct _sql_param_info *param;
 	TDSLOCINFO *locale;
+	TDSCONTEXT *context;
 	char quote_char;
 	int quoted;
 	int len;
 	int res;
 	int need_comma;
 
-	locale = stmt->hdbc->henv->locale;
+	context = stmt->hdbc->henv->tds_ctx;
+	locale = context->locale;
 
 	if (start){
 		s          = stmt->prepared_query;
@@ -337,7 +339,7 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(locale,
+			len = convert_sql2string(context,
 				param->param_bindtype,
 				param->varaddr,
 				-1,
@@ -398,6 +400,7 @@ int continue_parse_prepared_query(struct _hstmt *stmt,
 	char *d;
 	struct _sql_param_info *param;
 	TDSLOCINFO *locale;
+	TDSCONTEXT *context;
 	int len;
 	int need_bytes;
 
@@ -410,7 +413,8 @@ int continue_parse_prepared_query(struct _hstmt *stmt,
 	if (stmt->prepared_query_need_bytes<=0)
 		return SQL_ERROR;
 
-	locale = stmt->hdbc->henv->locale;
+	context = stmt->hdbc->henv->tds_ctx;
+	locale = context->locale;
 	param = odbc_find_param(stmt, stmt->prepared_query_param_num);
 	if (!param)
 		return SQL_ERROR;
@@ -429,7 +433,7 @@ int continue_parse_prepared_query(struct _hstmt *stmt,
 		StrLen_or_Ind = need_bytes;
 
 	// put parameter into query
-	len = convert_sql2string(locale,
+	len = convert_sql2string(context,
 		param->param_bindtype,
 		DataPtr,
 		StrLen_or_Ind,

@@ -1,7 +1,15 @@
+Sun Jul 14 23:25:21 EDT 2002	Brian Bruns <camber@ais.org>
+	+src/tds/mem.c: added tds_alloc_context/free_context
+	*src/tds/token.c: call handlers with context param
+	*src/dblib/dbutil.c: pass context to handler
+	*src/dblib/dblib.c(dbinit): allocate context
+	*src/ctlib/ctutil.c: pass context to handler
+	*src/ctlib/ctlib.c(ct_init): allocate context
+
 Thu Jul 11 23:06:00 EDT 2002	Brian Bruns <camber@ais.org>
-	* src/odbc/odbc.c: fix null binds in SQLFetch
-	* src/dblib/dblib.c: implement dbsafestr
-	* src/dblib/unittest/t0021.c: dbsafestr test
+	*src/odbc/odbc.c: fix null binds in SQLFetch
+	*src/dblib/dblib.c: implement dbsafestr
+	*src/dblib/unittest/t0021.c: dbsafestr test
 
 Thu Jul 11 01:47:47 EDT 2002
 	+ src/tds/convert.c, implement tds_willconvert

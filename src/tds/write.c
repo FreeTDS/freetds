@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.8 2002-07-04 14:43:32 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.9 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -178,7 +178,7 @@ int retval;
 
 		if (retval <= 0) {
 			fprintf(stderr, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno, strerror(errno));
-			tds_client_msg(tds, 10018, 9, 0, 0, "The connection was closed");
+			tds_client_msg(tds->tds_ctx, tds, 10018, 9, 0, 0, "The connection was closed");
 			tds->in_pos=0;
 			tds->in_len=0;
 			close(tds->s);

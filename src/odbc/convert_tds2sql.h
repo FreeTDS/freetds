@@ -21,13 +21,13 @@
 #define CONVERT_TDS2SQL_h
 
 static char  rcsid_convert_tds2sql_h [ ] =
-         "$Id: convert_tds2sql.h,v 1.1 2002-05-27 20:12:43 brianb Exp $";
+         "$Id: convert_tds2sql.h,v 1.2 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_convert_tds2sql_h_warn[]={rcsid_convert_tds2sql_h, 
                                          no_unused_convert_tds2sql_h_warn};
 
 
 
-TDS_INT convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, 
+TDS_INT convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_CHAR *dest, TDS_UINT destlen);
 
 #endif

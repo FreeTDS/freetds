@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.5 2001-11-14 04:52:33 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.6 2002-07-15 03:29:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,10 +37,11 @@ extern int (*g_dblib_err_handler)(DBPROCESS*,TDS_SMALLINT,TDS_SMALLINT,TDS_SMALL
  * recieves an informational message from the server that it can be dealt with
  * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
  * TDS layer didn't what it really was */
-int dblib_handle_info_message(void *aStruct)
+int dblib_handle_info_message(void *aStruct, void *bStruct)
 {
-	TDSSOCKET* tds = (TDSSOCKET *) aStruct;
-	DBPROCESS* dbproc = NULL;
+	TDSCONTEXT *tds_ctx = (TDSSOCKET *) aStruct;
+	TDSSOCKET *tds = (TDSSOCKET *) bStruct;
+	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
@@ -73,15 +74,17 @@ int dblib_handle_info_message(void *aStruct)
 		}
 
 		/* and now clean up the structure for next time */
-		tds_reset_msg_info(tds);
+		if (tds)
+			tds_reset_msg_info(tds->msg_info);
 	}
         return 1;
 }
 
-int dblib_handle_err_message(void *aStruct)
+int dblib_handle_err_message(void *aStruct, void *bStruct)
 {
-	TDSSOCKET* tds = (TDSSOCKET *) aStruct;
-	DBPROCESS* dbproc = NULL;
+	TDSCONTEXT *tds_ctx = (TDSSOCKET *) aStruct;
+	TDSSOCKET *tds = (TDSSOCKET *) bStruct;
+	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
@@ -113,7 +116,8 @@ int dblib_handle_err_message(void *aStruct)
 		}
 
 		/* and now clean up the structure for next time */
-		tds_reset_msg_info(dbproc->tds_socket);
+		if (dbproc && dbproc->tds_socket)
+			tds_reset_msg_info(dbproc->tds_socket->msg_info);
 	}
         return 1;
 }
