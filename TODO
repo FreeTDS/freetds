@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.42 2003-03-26 16:20:36 freddy77 Exp $
+To Do List	$Id: TODO,v 1.43 2003-03-29 17:59:32 freddy77 Exp $
 ------------
 Broken:
 
@@ -31,7 +31,8 @@ For future versions (in priority order within library):
 . Add missing constants needed for python and verify working
   (work in progress)
 . Add missing constants needed for Gnome-DB and verify working 
-. conversion from ucs2 to utf8, provide for 2+ bytes/character.
+. conversion from ucs2 to utf8, provide for 2+ bytes/character
+  (work in progress)
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type
 . tdsping program for testing purposes
@@ -61,14 +62,12 @@ For future versions (in priority order within library):
   search "site:.sybase.com CS_VARBINARY ct_bind" on google for more info
 . support ct_command/CS_SEND_DATA_CMD, now crash
   (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
-. support ct_diag (for Python)
 . complete sqlstate and other field in message (for Python)
 
   odbc
 . Someone broke early binding in ODBC 
   (fixed, add check for early bind, and multiple recordset)
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
-. improve, best error report (finish and test, see error.c FIXME and TODO)
 . cursor support
 . how work mssql driver using SQLMoreResults/SQLRowCount and batch like 
   SELECT INSERT INSERT SELECT ?
@@ -91,6 +90,7 @@ For future versions (in priority order within library):
   different odbc versions)
 . Check (and fix if needed) call to {?=store(?)} does it bind correctly?
   seem not replace first parameters
+. SQLNativeSql and fill SQLGetInfo according
 
   pool
 . get connection pooling working with all protocol versions
@@ -112,4 +112,8 @@ Done (removed from above):
 . set database during login process
 . libtds: dynamic query
 . ctlib: null returns zero-length string(see "SELECT '' and TDS 7.0" in message list on 26 Jan 2003)
+
+Done in 0.62
+. ODBC: improve, best error report (finish and test, see error.c FIXME and TODO)
+. ct-lib: support ct_diag (for Python)
 
