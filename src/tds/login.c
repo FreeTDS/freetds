@@ -33,14 +33,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-#ifdef HAVE_SSL
-#define DOMAIN 1
-#else
-#define DOMAIN 0
-#endif
-
-
-static char  software_version[]   = "$Id: login.c,v 1.48 2002-09-29 13:28:10 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.49 2002-09-29 20:49:43 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -473,7 +466,6 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 
 int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge)
 {
-#if DOMAIN
 int rc;
 int current_pos;
 TDSANSWER answer;
@@ -572,9 +564,6 @@ TDSCONFIGINFO *config = tds->config;
 	rc=tds_flush_packet(tds);
 
 	return rc;
-#else
-	return TDS_SUCCEED;
-#endif
 }
 /*
 ** tds7_send_login() -- Send a TDS 7.0 login packet
@@ -583,7 +572,6 @@ TDSCONFIGINFO *config = tds->config;
 int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	
 int rc;
-#if DOMAIN
 static const unsigned char magic1_domain[] =
 	{6,0x7d,0x0f,0xfd,
      0xff,0x0,0x0,0x0,  /* Client PID */
@@ -596,7 +584,6 @@ static const unsigned char magic1_domain[] =
 	0x00,
 	0x00,0x09,0x04,0x00,
      0x00};
-#endif
 static const unsigned char magic1_server[] =
 	{6,0x83,0xf2,0xf8,  /* Client Program version */
      0xff,0x0,0x0,0x0,  /* Client PID */
@@ -625,10 +612,8 @@ static const unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
 unsigned char unicode_string[255];
 int packet_size;
 int current_pos;
-#if DOMAIN
 static const unsigned char magic3[] = "NTLMSSP";
 int domain_login = config->try_domain_login ? 1 : 0;
-#endif
 
 const char* domain = config->default_domain;
 const char* user_name = config->user_name;
@@ -641,9 +626,7 @@ int server_name_len = config->server_name ? strlen(config->server_name) : 0;
 int library_len = config->library ? strlen(config->library) : 0;
 int language_len = config->language ? strlen(config->language) : 0;
 int domain_len = domain ? strlen(domain) : 0;
-#if DOMAIN
 int auth_len = 0;
-#endif
 
 	/* check override of domain */
 	if (user_name && (p=strchr(user_name,'\\')) != NULL)
@@ -661,13 +644,11 @@ int auth_len = 0;
 			server_name_len +
 			library_len +
 			language_len)*2;
-#if DOMAIN
    if (domain_login) {
 	magic1 = magic1_domain;
 	auth_len = 32 + host_name_len + domain_len;
 	packet_size += auth_len;
    } else
-#endif
 	packet_size += (user_name_len + password_len)*2;
 
    tds_put_smallint(tds,packet_size);
@@ -686,14 +667,12 @@ int auth_len = 0;
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,host_name_len);
    current_pos += host_name_len * 2;
-#if DOMAIN
    if (domain_login) {
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
    } else {
-#endif
    	/* username */
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,user_name_len);
@@ -702,9 +681,7 @@ int auth_len = 0;
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,password_len);
    	current_pos += password_len * 2;
-#if DOMAIN
    }
-#endif
    /* app name */
    tds_put_smallint(tds,current_pos);
    tds_put_smallint(tds,app_name_len);
@@ -733,15 +710,11 @@ int auth_len = 0;
 
    /* authentication stuff */
    tds_put_smallint(tds, current_pos);
-#if DOMAIN
    if (domain_login) {
 	tds_put_smallint(tds, auth_len); /* this matches numbers at end of packet */
 	current_pos += auth_len;
    } else
 	tds_put_smallint(tds, 0);
-#else
-   tds_put_smallint(tds, 0);
-#endif
 
    /* unknown */
    tds_put_smallint(tds, current_pos);
@@ -749,17 +722,13 @@ int auth_len = 0;
 
    tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,host_name_len * 2);
-#if DOMAIN
    if (!domain_login) {
-#endif
    	tds7_ascii2unicode(tds,config->user_name, unicode_string, 255);
    	tds_put_n(tds,unicode_string,user_name_len * 2);
    	tds7_ascii2unicode(tds,config->password, unicode_string, 255);
    	tds7_crypt_pass(unicode_string, password_len * 2, unicode_string);
    	tds_put_n(tds,unicode_string,password_len * 2);
-#if DOMAIN
    }
-#endif
    tds7_ascii2unicode(tds,config->app_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,app_name_len * 2);
    tds7_ascii2unicode(tds,config->server_name, unicode_string, 255);
@@ -769,7 +738,6 @@ int auth_len = 0;
    tds7_ascii2unicode(tds,config->language, unicode_string, 255);
    tds_put_n(tds,unicode_string,language_len * 2);
 
-#if DOMAIN
    if (domain_login) {
    /* from here to the end of the packet is the NTLMSSP authentication */
 	tds_put_n(tds,magic3,8);
@@ -792,7 +760,6 @@ int auth_len = 0;
 	tds_put_n(tds,config->host_name,host_name_len);
 	tds_put_n(tds,domain,domain_len);
    }
-#endif
    
    tdsdump_off();
    rc=tds_flush_packet(tds);

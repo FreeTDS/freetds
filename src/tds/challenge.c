@@ -22,9 +22,9 @@
 #endif
 
 #include "tds.h"
-#ifdef HAVE_SSL
-#include <openssl/des.h>
-#include <md4.h>
+#include "md4.h"
+#include "des.h"
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -42,7 +42,7 @@
  */
 
 static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
-static void tds_convert_key(unsigned char *key_56, des_key_schedule ks);
+static void tds_convert_key(unsigned char *key_56, DES_KEY *ks);
 
 /**
  * Crypt a given password using schema required for NTLMv1 authentication
@@ -55,8 +55,8 @@ void tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER* 
 #define MAX_PW_SZ 14
 int   len;
 int i;
-static const_des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
-des_key_schedule ks;
+static des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
+DES_KEY ks;
 unsigned char hash[24];
 unsigned char passwd_up[MAX_PW_SZ];
 unsigned char nt_pw[256];
@@ -72,12 +72,12 @@ MD4_CTX context;
 		passwd_up[i] = toupper(passwd[i]);
 
 	/* hash the first 7 characters */
-	tds_convert_key(passwd_up, ks);
-	des_ecb_encrypt(&magic, (des_cblock*)(hash+0), ks, DES_ENCRYPT);
+	tds_convert_key(passwd_up, &ks);
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (des_cblock *)(hash+0));
 
 	/* hash the second 7 characters */
-	tds_convert_key(passwd_up+7, ks);
-	des_ecb_encrypt(&magic, (des_cblock*)(hash+8), ks, DES_ENCRYPT);
+	tds_convert_key(passwd_up+7, &ks);
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (des_cblock *)(hash+8));
 
 	memset(hash+16, 0, 5);
 
@@ -91,10 +91,10 @@ MD4_CTX context;
 		nt_pw[2*i] = passwd[i];
 		nt_pw[2*i+1] = 0;
 	}
-	
-	MD4_Init(&context);
-	MD4_Update(&context, nt_pw, len*2);
-	MD4_Final(hash,&context);
+
+	MD4Init(&context);
+	MD4Update(&context, nt_pw, len*2);
+	MD4Final(&context, hash);
 
 	memset(hash+16, 0, 5);
 	tds_encrypt_answer(hash, challenge, answer->nt_resp);
@@ -115,16 +115,16 @@ MD4_CTX context;
 */
 static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
 {
-des_key_schedule ks;
+DES_KEY ks;
 
-	tds_convert_key(hash, ks);
-	des_ecb_encrypt((des_cblock*) challenge, (des_cblock*) answer, ks, DES_ENCRYPT);
+	tds_convert_key(hash, &ks);
+	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) answer);
 
-	tds_convert_key(&hash[7], ks);
-	des_ecb_encrypt((des_cblock*) challenge, (des_cblock*) (&answer[8]), ks, DES_ENCRYPT);
+	tds_convert_key(&hash[7], &ks);
+	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) &answer[8]);
 
-	tds_convert_key(&hash[14], ks);
-	des_ecb_encrypt((des_cblock*) challenge, (des_cblock*) (&answer[16]), ks, DES_ENCRYPT);
+	tds_convert_key(&hash[14], &ks);
+	des_ecb_encrypt(challenge, 8, &ks, (des_cblock *) &answer[16]);
 
 	memset(&ks,0,sizeof(ks));
 }
@@ -134,7 +134,7 @@ des_key_schedule ks;
 * turns a 56 bit key into the 64 bit, odd parity key and sets the key.
 * The key schedule ks is also set.
 */
-static void tds_convert_key(unsigned char *key_56, des_key_schedule ks)
+static void tds_convert_key(unsigned char *key_56, DES_KEY *ks)
 {
 des_cblock key;
 
@@ -147,12 +147,11 @@ des_cblock key;
 	key[6] = ((key_56[5] << 2) & 0xFF) | (key_56[6] >> 6);
 	key[7] =  (key_56[6] << 1) & 0xFF;
 
-	des_set_odd_parity(&key);
-	des_set_key(&key, ks);
+	des_set_odd_parity(key);
+	des_set_key(ks, &key, sizeof(key));
 
 	memset(&key, 0, sizeof(key));
 }
 
 
 /** \@} */
-#endif /* HAVE_SSL */

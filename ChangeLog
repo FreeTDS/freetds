@@ -1,3 +1,8 @@
+Sun Sep 29 15:43:00 CDT 2002	Steve Langasek <vorlon@netexpress.net>
+	* include/des.h src/tds/des.c src/tds/challenge.c src/tds/login.c
+	  acinclude.m4:
+	- add DES support to libtds, breaking the dependency on OpenSSL
+
 Sun Sep 29 15:27:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/login.c src/tds/write.c:
 	- as suggested by jkl put old tds_put_string in login as static
