@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.8 2004-03-08 10:33:00 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.9 2004-09-09 10:58:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -151,9 +151,11 @@ DoTest(int prepare)
 	}
 
 	NextResults(SQL_NO_DATA);
+#ifndef TDS_NO_DM
 	if (!prepare)
 		CheckCols(-1);
 	CheckRows(-2);
+#endif
 }
 
 int

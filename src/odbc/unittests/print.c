@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.9 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.10 2004-09-09 10:58:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -41,12 +41,14 @@ main(int argc, char *argv[])
 	}
 	ReadError();
 
+#ifndef TDS_NO_DM
 	/* test no data returned */
 	if (SQLFetch(Statement) != SQL_ERROR) {
 		printf("Row fetched ??\n");
 		return 1;
 	}
 	ReadError();
+#endif
 
 	if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_ERROR) {
 		printf("Data ??\n");

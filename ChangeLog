@@ -1,3 +1,8 @@
+Thu Sep 09 12:56:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/moreandcount.c:
+	* src/odbc/unittests/print.c:
+	- fix some problems with no DM
+
 Thu Sep 09 10:52:51 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/unittests/bcp.c:
 	* src/dblib/unittests/common.c src/dblib/unittests/common.h:

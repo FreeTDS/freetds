@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.341 2004-09-03 14:24:27 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.342 2004-09-09 10:58:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3600,7 +3600,11 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
 	resinfo = tds->res_info;
-	if (icol <= 0 || icol > tds->res_info->num_cols) {
+	if (!resinfo) {
+		odbc_errs_add(&stmt->errs, "HY010", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+	if (icol <= 0 || icol > resinfo->num_cols) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
