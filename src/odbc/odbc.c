@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.302 2004-02-24 09:09:01 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.303 2004-03-06 10:58:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3160,8 +3160,8 @@ change_transaction(TDS_DBC * dbc, int state)
 	return SQL_SUCCESS;
 }
 
-SQLRETURN SQL_API
-SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
+static SQLRETURN SQL_API
+_SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 {
 	int op = (fType == SQL_COMMIT ? 1 : 0);
 
@@ -3174,15 +3174,25 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	ODBC_RETURN(dbc, change_transaction(dbc, op));
 }
 
+SQLRETURN SQL_API
+SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
+{
+	return _SQLTransact(henv, hdbc, fType);
+}
+
 #if ODBCVER >= 0x300
 SQLRETURN SQL_API
 SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
 {
+	/*
+	 * Do not call the exported SQLTransact(),
+	 * because we may wind up calling a function with the same name implemented by the DM.
+	 */
 	switch (handleType) {
 	case SQL_HANDLE_ENV:
-		return SQLTransact(handle, NULL, completionType);
+		return _SQLTransact(handle, NULL, completionType);
 	case SQL_HANDLE_DBC:
-		return SQLTransact(NULL, handle, completionType);
+		return _SQLTransact(NULL, handle, completionType);
 	}
 	return SQL_ERROR;
 }
