@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.37 2002-11-08 15:57:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.38 2002-11-08 16:59:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -423,6 +423,7 @@ int is_null;
 	if (is_numeric_type(curcol->column_type)) {
 		/* TODO use TDS7 and swap for big endian */
 		num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
+		/* TODO colsize is correct here ?? */
 		tds_put_n(tds,num->array,colsize);
 	} else if (curcol->column_type == SYBVARBINARY) {
 		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);

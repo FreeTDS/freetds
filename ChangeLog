@@ -1,3 +1,8 @@
+Fri Nov  8 17:56:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/convert_tds2sql.c src/tds/convert.c:
+	* src/tds/query.c src/tds/unittests/t0008.c:
+	- support for numeric if 256 bit
+
 Fri Nov  8 16:54:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/read.c src/tds/token.c:
 	- removed tds_get_ntstring, unused

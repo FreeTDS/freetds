@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.44 2002-11-08 15:57:41 freddy77 Exp $";
+	"$Id: tds.h,v 1.45 2002-11-08 16:59:38 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -67,7 +67,7 @@ typedef struct tdsnumeric
 {
         unsigned char         precision;
         unsigned char         scale;
-        unsigned char         array[17];
+        unsigned char         array[33];
 } TDS_NUMERIC;
 
 typedef struct tdsoldmoney
@@ -324,7 +324,7 @@ sheesh! </rant>
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x == XSYBNVARCHAR || x==SYBNTEXT)
 
 #define TDS_MAX_CAPABILITY	18
-#define MAXPRECISION 		50
+#define MAXPRECISION 		80
 #define TDS_MAX_CONN		4096
 #define TDS_MAX_DYNID_LEN	30
 

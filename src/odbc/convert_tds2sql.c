@@ -36,7 +36,7 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.21 2002-11-08 16:13:54 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.22 2002-11-08 16:59:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -263,6 +263,7 @@ int i, cplen;
 		num->precision = ores.n.precision;
 		num->scale = ores.n.scale;
 		num->sign = ores.n.array[0] ^ 1;
+		/* FIXME can i be greater than SQL_MAX_NUMERIC_LEN ?? */
 		i = g__numeric_bytes_per_prec[ores.n.precision];
 		memcpy(num->val, ores.n.array + 1, i);
 		tds_swap_bytes(num->val, i);

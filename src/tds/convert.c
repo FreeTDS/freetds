@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.99 2002-11-04 19:49:20 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.100 2002-11-08 16:59:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1948,9 +1948,9 @@ static int
 string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr)
 {
 
-char  mynumber[40];
+char  mynumber[80];
 /* num packaged 8 digit, see below for detail */
-TDS_UINT packed_num[5];
+TDS_UINT packed_num[10];
 
 char *ptr;
 const char *pdigits;
@@ -2030,7 +2030,7 @@ short int bytes, places, point_found, sign, digits;
   /* TODO: this can be optimized in a single step */
 
   /* scale specified, pad out number with zeroes to the scale...  */
-  ptr = mynumber+40-(cr->n.scale-places);
+  ptr = mynumber+sizeof(mynumber)-(cr->n.scale-places);
   memset(ptr,48,cr->n.scale-places);
   ptr -= places;
   /* copy number without point */
@@ -2040,7 +2040,7 @@ short int bytes, places, point_found, sign, digits;
   memset(mynumber,48,ptr-mynumber);
 
   /* transform ASCII string into a numeric array */
-  for (ptr = mynumber; ptr != mynumber+40; ++ptr)
+  for (ptr = mynumber; ptr != mynumber+sizeof(mynumber); ++ptr)
   	*ptr -= 48;
 
   /*
@@ -2052,7 +2052,7 @@ short int bytes, places, point_found, sign, digits;
    */
  
   /* transform to packaged one */
-  for(j=0;j<5;++j)
+  for(j=0;j<10;++j)
       {
   	TDS_UINT n = mynumber[j*8];
  	for(i=1;i<8;++i)
@@ -2070,7 +2070,7 @@ short int bytes, places, point_found, sign, digits;
   {
      not_zero = 0;
      carry = 0;
-     for (i = 0; i < 5; ++i)
+     for (i = 0; i < 10; ++i)
      {
      	TDS_UINT tmp;
      
@@ -2087,7 +2087,7 @@ short int bytes, places, point_found, sign, digits;
      	packed_num[i] = carry * (25u*25u*25u*25u) + packed_num[i] / 256u;
      	carry = tmp % 256u;
 
-        if ( i == 4 && not_zero)
+        if ( i == 9 && not_zero)
      {
            /* source number is limited to 38 decimal digit
             * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
