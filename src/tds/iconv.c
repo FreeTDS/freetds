@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.76 2003-06-08 09:11:56 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.77 2003-06-10 07:22:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -311,8 +311,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	 *       not sure what to do about that yet.  
 	 */
 	if (tds->env && tds->env->charset) {
-		name = tds_canonical_charset_name(tds->env->charset);
-		fOK = tds_iconv_info_init(&tds->iconv_info[client2ucs2], charset, name);
+		fOK = tds_iconv_info_init(&tds->iconv_info[client2ucs2], charset, tds->env->charset);
 		if (!fOK)
 			return;
 	}
@@ -360,6 +359,13 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 
 	*client = canonic_charsets[client_canonical];
 	*server = canonic_charsets[server_canonical];
+
+	/* special case, same charset, no conversion */
+	if (client_canonical == server_canonical) {
+		iconv_info->to_wire = (iconv_t) - 1;
+		iconv_info->from_wire = (iconv_t) - 1;
+		return 1;
+	}
 
 	/* get iconv names */
 	if (!iconv_names[client_canonical])

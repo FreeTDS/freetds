@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.99 2003-06-06 09:19:19 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.100 2003-06-10 07:22:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -530,6 +530,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_n(tds, magic5, 2);
 	tds_put_byte(tds, connect_info->encrypted);
 	tds_put_n(tds, magic6, 10);
+	/* FIXME ICONV use charset nearest to client or nothing */
 	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->server_charset), TDS_MAX_LOGIN_STR_SZ);	/* charset */
 	tds_put_byte(tds, magic7);
 

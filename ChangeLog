@@ -1,3 +1,7 @@
+Mon Jun 10 09:21:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c src/tds/login.c:
+	- small improves to iconv stuff
+
 Sun Jun 08 11:11:01 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsiconv.h src/tds/encodings.h src/tds/encodings.pl:
 	* src/tds/iconv.c:
