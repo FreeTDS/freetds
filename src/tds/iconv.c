@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.79 2003-07-01 05:33:07 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.80 2003-07-05 15:09:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -320,7 +320,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	}
 
 	/* 
-	 * Ascii  <-> server meta data
+	 * ASCII  <-> server meta data
 	 */
 	name = tds_canonical_charset_name("ASCII");
 	fOK = tds_iconv_info_init(&tds->iconv_info[ascii2server_metadata], name,
@@ -431,26 +431,52 @@ tds_iconv_close(TDSSOCKET * tds)
 #endif
 }
 
-/**
- * \retval number of bytes placed in \a output
+/** 
+ * Wrapper around iconv(3).  Same parameters, with slightly different behavior.
+ * \param io Enumerated value indicating whether the data are being sent to or received from the server. 
+ * \param iconv_info information about the encodings involved, including the iconv(3) conversion descriptors. 
+ * \param inbuf address of pointer to the input buffer of data to be converted.  
+ * \param inbytesleft address of count of bytes in \a inbuf.
+ * \param outbuf address of pointer to the output buffer.  
+ * \param outbytesleft address of count of bytes in \a outbuf.
+ * \retval number of irreversible conversions performed.  \i -1 on error, see iconv(3) documentation for 
+ * a description of the possible values of \i errno.  
+ * \remarks Unlike iconv(3), none of the arguments can be nor point to NULL.  Like iconv(3), all pointers will 
+ *  	be updated.  Succcess is signified by a nonnegative return code and \a *inbytesleft == 0.  
+ * 	If the conversion descriptor in \a iconv_info is -1 or NULL, \a inbuf is copied to \a outbuf, 
+ *	and all parameters updated accordingly. 
+ * 
+ * 	In the event that a character in \a inbuf cannot be converted because no such cbaracter exists in the
+ * 	\a outbuf character set, we emit messages similar to the ones Sybase emits when it fails such a conversion. 
+ * 	The message varies depending on the direction of the data.  
+ * 	On a read error, we emit Msg 2403, Severity 16 (EX_INFO):
+ * 		"WARNING! Some character(s) could not be converted into client's character set. 
+ *			Unconverted bytes were changed to question marks ('?')."
+ * 	On a write error we emit Msg 2402, Severity 16 (EX_USER):
+ *		"Error converting client characters into server's character set. Some character(s) could not be converted."
+ *  	  and return an error code.  Client libraries relying on this routine should reflect an error back to the appliction.  
+ * 	
  * \todo Check for variable multibyte non-UTF-8 input character set.  
+ * \todo Use more robust error message generation.  
+ * \todo For reads, cope with \outbuf encodings that don't have the equivalent of an ASCII '?'.  
+ * \todo Support alternative to '?' for the replacement character.  
  */
 size_t
-tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *input, size_t * input_size,
-	  char *output, size_t output_size)
+tds_iconv(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
+	  const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
 {
-#if HAVE_ICONV_ALWAYS
+	static const iconv_t invalid = (iconv_t) -1;
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
-	const size_t output_buffer_size = output_size;
-	int one_character;
-	ICONV_CONST char *input_p = (ICONV_CONST char *) input;
 
-	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
+	iconv_t cd = invalid;
+	iconv_t error_cd = invalid;
 
 	char quest_mark[] = "?";	/* best to leave non-const; implementations vary */
 	ICONV_CONST char *pquest_mark = quest_mark;
 	int lquest_mark;
+	size_t irreversible;
+	char one_character;
 
 	switch (io) {
 	case to_server:
@@ -464,64 +490,99 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 		output_charset_name = iconv_info->client_charset.name;
 		break;
 	default:
-		cd = (iconv_t) - 1;
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv: unable to determine if %d means in or out.  \n", io);
+		assert(io==to_server || io==to_client);
 		break;
 	}
+	
+	assert(inbuf && inbytesleft && outbuf && outbytesleft);
 
-	if (cd == (iconv_t) - 1)	/* FIXME: call memcpy, adjust input and *input_size, and return copied size */
-		return 0;
+	if (cd == invalid) {
+		/* "convert" like to like */
+		cd = iconv_open(input_charset->name, input_charset->name);
+		irreversible =  iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
+		iconv_close(cd);
+		return irreversible;
+	}
 
 	/*
-	 * Call iconv() as many times as necessary, until we reach the end of input 
-	 * or exhaust output.  
+	 * Call iconv() as many times as necessary, until we reach the end of input or exhaust output.  
 	 */
-	while (iconv(cd, &input_p, input_size, &output, &output_size) == (size_t) - 1) {
-		/* FIXME on EINVAL this cause core on upper levels */
-		if (errno != EILSEQ)
+	errno = 0;
+	while ((irreversible = iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft)) == (size_t) -1) {
+		if (errno != EILSEQ || io != to_client)
 			break;
-
-		/* skip one input sequence, adjusting input pointer */
-		one_character = skip_one_input_sequence(cd, input_charset, &input_p, input_size);
+		/* 
+		 * Invalid input sequence encountered reading from server. 
+		 * Skip one input sequence, adjusting pointers. 
+		 */
+		one_character = skip_one_input_sequence(cd, input_charset, inbuf, inbytesleft);
 
 		/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
 		if (!one_character)
 			break;
 
 		/* 
-		 * To replace invalid input with '?', we have to convert an ASCII '?' 
-		 * into the output character set.  In unimaginably weird circumstances, this might  be
-		 * impossible.  
+		 * To replace invalid input with '?', we have to convert an ASCII '?' into the output character set.  
+		 * In unimaginably weird circumstances, this might  be impossible.  
 		 */
-		if (error_cd == (iconv_t) - 1) {
-			/* TODO is ascii extension just copy (always ascii extension??) */
-			/* FIXME use iconv name for UTF-8 (some platform use different names) */
-			/* translation to every charset is handled in UTF-8 and UCS-2 */
-			error_cd = iconv_open(output_charset_name, "UTF-8");
-			if (error_cd == (iconv_t) - 1)
+		if (error_cd == invalid) {
+			error_cd = iconv_open(output_charset_name, tds_canonical_charset_name("ASCII"));
+			if (error_cd == invalid) {
 				break;	/* what to do? */
+			}
 		}
+		
 		lquest_mark = 1;
 		pquest_mark = quest_mark;
 
-		iconv(error_cd, &pquest_mark, &lquest_mark, &output, &output_size);
+		irreversible = iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
 
-		/* FIXME this can happen if output buffer is too small... */
-		if (output_size == 0)
+		if (irreversible == (size_t) -1) {
 			break;
+		}
+
+		*inbuf += one_character;
+		*inbytesleft -= one_character;
 	}
-
-	if (error_cd != (iconv_t) - 1)
+	
+	switch (errno) {
+	case EILSEQ:	/* invalid multibyte input sequence encountered */
+		if (io == to_client) {
+			if (irreversible == (size_t) -1) {
+				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0, 
+						"WARNING! Some character(s) could not be converted into client's character set. ");
+			} else {
+				tds_client_msg(tds->tds_ctx, tds, 2403, 16, 0, 0, 
+						"WARNING! Some character(s) could not be converted into client's character set. " 
+						"Unconverted bytes were changed to question marks ('?').");
+				errno = 0;
+			}
+		} else { 
+			tds_client_msg(tds->tds_ctx, tds, 2402, 16, 0, 0, 
+					"Error converting client characters into server's character set. "
+					"Some character(s) could not be converted." );
+		}
+		break;
+	case EINVAL:	/* incomplete multibyte sequence is encountered */
+		tds_client_msg(tds->tds_ctx, tds, 2401, 16, *inbytesleft, 0, 
+				"iconv EINVAL: Error converting between character sets. "
+				"Conversion abandoned at offset indicated by the \"state\" value of this message." );
+		break;
+	case E2BIG:	/* output buffer has no more room */
+		tds_client_msg(tds->tds_ctx, tds, 2400, 16, *inbytesleft, 0, 
+				"iconv E2BIG: Error converting between character sets. "
+				"Output buffer exhausted." );
+		break;
+	default:
+		break;
+	}
+	
+	if (error_cd != invalid) {
 		iconv_close(error_cd);
-
-	return output_buffer_size - output_size;
-#else
-	/* FIXME best code, please, this do not convert unicode <-> singlebyte */
-	if (output_size > *input_size)
-		output_size = *input_size;
-	memcpy(output, input, output_size);
-	*input_size -= output_size;
-	return output_size;
-#endif
+	}
+	
+	return irreversible;
 }
 
 /**

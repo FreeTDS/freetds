@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.133 2003-06-30 04:59:06 jklowden Exp $";
+	"$Id: tds.h,v 1.134 2003-07-05 15:09:15 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -34,6 +34,7 @@ static void *no_unused_tds_h_warn[] = {
 #include <iconv.h>
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONVINFO;
+typedef struct tds_socket  TDSSOCKET;
 #else
 #include <tdsiconv.h>
 #endif
@@ -875,7 +876,6 @@ typedef struct tds_dynamic {
 
 /* forward declaration */
 typedef struct tds_context TDSCONTEXT;
-typedef struct tds_socket  TDSSOCKET;
 
 struct tds_context {
 	TDSLOCALE *locale;
@@ -885,7 +885,8 @@ struct tds_context {
 	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 };
 
-enum TDS_ICONV_INFO_ENTRY { client2ucs2, client2server_singlebyte, ascii2server_metadata };
+enum TDS_ICONV_INFO_ENTRY { client2ucs2, client2server_chardata, ascii2server_metadata, 
+			    initial_iconv_info_count /* keep last */ };
 
 struct tds_socket {
 	/* fixed and connect time */

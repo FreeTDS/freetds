@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.87 2003-06-24 21:07:14 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.88 2003-07-05 15:09:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -657,7 +657,6 @@ tds_free_login(TDSLOGIN * login)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
-	enum { iconv_info_count = 3 };
 	TDSSOCKET *tds_socket;
 	TDSICONVINFO *iconv_info;
 	int i;
@@ -674,16 +673,15 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	if (!(tds_socket->env = tds_alloc_env(tds_socket, bufsize)))
 		goto Cleanup;
 
-	TEST_CALLOC(iconv_info, TDSICONVINFO, iconv_info_count);
+	TEST_CALLOC(iconv_info, TDSICONVINFO, initial_iconv_info_count);
 	tds_socket->iconv_info = iconv_info;
-	tds_socket->iconv_info_count = iconv_info_count;
-#if HAVE_ICONV
+	tds_socket->iconv_info_count = initial_iconv_info_count;
+
 	/* an iconv conversion descriptor of -1 means we don't use iconv. */
-	for (i = 0; i < iconv_info_count; ++i) {
+	for (i = 0; i < initial_iconv_info_count; ++i) {
 		iconv_info[i].to_wire = (iconv_t) - 1;
 		iconv_info[i].from_wire = (iconv_t) - 1;
 	}
-#endif
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;

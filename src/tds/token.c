@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.200 2003-06-30 04:59:06 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.201 2003-07-05 15:09:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1911,6 +1911,8 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
  * contains a void pointer to the parent of the tds socket. This can be cast
  * back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
  * proper recipient function for this message.
+ * \todo This procedure is deprecated, because the client libraries use differing messages and message numbers.
+ * 	The general approach is to emit ct-lib error information and let db-lib and ODBC map that to their number and text.  
  */
 int
 tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message)

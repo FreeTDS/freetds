@@ -43,6 +43,7 @@
 #endif /* HAVE_STDLIB_H */
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -80,7 +81,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.101 2003-06-24 21:07:14 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.102 2003-07-05 15:09:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -678,6 +679,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 	char unicode_string[256];
+	char *punicode;
+	int unicode_left;
 	int packet_size;
 	int block_size;
 	int current_pos;
@@ -819,9 +822,11 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_string(tds, tds_dstr_cstr(&connect_info->host_name), host_name_len);
 	if (!domain_login) {
 		tds_put_string(tds, tds_dstr_cstr(&connect_info->user_name), user_name_len);
-		password_len =
-			tds_iconv(to_server, tds->iconv_info, tds_dstr_cstr(&connect_info->password), (size_t *) & password_len,
-				  unicode_string, 256);
+		p = tds_dstr_cstr(&connect_info->password);
+		punicode = unicode_string;
+		unicode_left = sizeof(unicode_string);
+		assert(-1 != tds_iconv(tds, tds->iconv_info, to_server, &p, &password_len, &punicode, &unicode_left));
+		password_len = punicode - unicode_string;
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
 	}
