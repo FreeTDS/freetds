@@ -1,3 +1,8 @@
+Mon Jul 28 17:26:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c src/odbc/odbc.c:
+	- some fixes after merge
+	- merge fix for leak on connection fail
+
 Mon Jul 28 10:18:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/Makefile.am install tdsiconv.h, for now
 	* src/apps/tsql.c check for CODESET
@@ -34,7 +39,6 @@ Sun Jul 27 13:25:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	- small merge (statistics functions) from Steve patch
 	- some fixes for Sybase
 
->>>>>>> 1.1066
 Fri Jul 25 16:11:29 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0014.c nicer user feedback
 

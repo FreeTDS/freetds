@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.194 2003-07-28 13:46:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.195 2003-07-28 15:27:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -155,49 +155,63 @@ change_autocommit(TDS_DBC * dbc, int state)
 	TDSSOCKET *tds = dbc->tds_socket;
 	char query[80];
 
-	/* mssql: SET IMPLICIT_TRANSACTION ON
-	 * sybase: SET CHAINED ON */
+	/*
+	 * We may not be connected yet and dbc->tds_socket
+	 * may not initialized.
+	 */
+	if (tds) {
+		/* mssql: SET IMPLICIT_TRANSACTION ON
+		 * sybase: SET CHAINED ON */
 
-	/* implicit transactions are on if autocommit is off :-| */
-	if (TDS_IS_MSSQL(tds))
-		sprintf(query, "set implicit_transactions %s", (state == SQL_AUTOCOMMIT_ON ? "off" : "on"));
-	else
-		sprintf(query, "set chained %s", (state == SQL_AUTOCOMMIT_ON ? "off" : "on"));
+		/* implicit transactions are on if autocommit is off :-| */
+		if (TDS_IS_MSSQL(tds))
+			sprintf(query, "set implicit_transactions %s", (state == SQL_AUTOCOMMIT_ON) ? "off" : "on");
+		else
+			sprintf(query, "set chained %s", (state == SQL_AUTOCOMMIT_ON) ? "off" : "on");
 
-	tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
+		tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
-	if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
-		odbc_errs_add(&dbc->errs, 0, "HY000", "Could not change transaction status", NULL);
-		ODBC_RETURN(dbc, SQL_ERROR);
+		if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+			odbc_errs_add(&dbc->errs, 0, "HY000", "Could not change transaction status", NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+			odbc_errs_add(&dbc->errs, 0, "HY000", "Could not change transaction status", NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		dbc->attr.attr_autocommit = state;
 	}
-
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
-		ODBC_RETURN(dbc, SQL_ERROR);
-
-	dbc->attr.attr_autocommit = state;
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
 static SQLRETURN
-change_database(TDS_DBC * dbc, char *database)
+change_database(TDS_DBC * dbc, char *database, int database_len)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
-	char query[80];
 
 	/* 
 	 * We may not be connected yet and dbc->tds_socket
 	 * may not initialized.
 	 */
 	if (tds) {
-		/* FIXME: big buffer overflow */
-		sprintf(query, "use %s", database);
+		/* build query */
+		char *query = (char *) malloc(6 + tds_quote_string(tds, NULL, database, database_len));
+
+		if (!query) {
+			odbc_errs_add(&dbc->errs, 0, "HY001", NULL, NULL);
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		strcpy(query, "USE ");
+		tds_quote_string(tds, query + 4, database, database_len);
 
 		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
 
 		if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+			free(query);
 			odbc_errs_add(&dbc->errs, 0, "HY000", "Could not change database", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
+		free(query);
 		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 			odbc_errs_add(&dbc->errs, 0, "HY000", "Could not change database", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
@@ -256,6 +270,7 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 		connect_info->try_server_login = 1;
 
 	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
+		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, 0, "08001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -613,7 +628,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 		ODBC_RETURN(env, SQL_SUCCESS);
 		break;
 	}
-	odbc_errs_add(&env->errs, 0, "HYC00", "SQLSetEnvAttr: function not implemented", NULL);
+	odbc_errs_add(&env->errs, 0, "HY092", NULL, NULL);
 	ODBC_RETURN(env, SQL_ERROR);
 }
 
@@ -1253,17 +1268,20 @@ mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 	 * msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
 	 * return 0;
 	 */
-	/* latest_msg_number = msg->msg_number; */
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
 		errs = &dbc->errs;
 		if (dbc->current_statement)
 			errs = &dbc->current_statement->errs;
+		/* set server info if not setted in dbc */
+		if (msg->server && tds_dstr_isempty(&dbc->server))
+			tds_dstr_copy(&dbc->server, msg->server);
 	} else if (ctx->parent) {
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
 	if (errs)
-		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level, NULL);
+		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level,
+				    msg->server);
 	return 1;
 }
 
@@ -1284,11 +1302,15 @@ myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 		errs = &dbc->errs;
 		if (dbc->current_statement)
 			errs = &dbc->current_statement->errs;
+		/* set server info if not setted in dbc */
+		if (msg->server && tds_dstr_isempty(&dbc->server))
+			tds_dstr_copy(&dbc->server, msg->server);
 	} else if (ctx->parent) {
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
 	if (errs)
-		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level, NULL);
+		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level,
+				    msg->server);
 	return 1;
 }
 
@@ -1818,7 +1840,6 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 SQLRETURN SQL_API
 SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 {
-	INIT_HSTMT;
 	return _SQLFreeStmt(hstmt, fOption);
 }
 
@@ -1992,8 +2013,8 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
-SQLRETURN SQL_API
-SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
+SQLRETURN
+_SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 {
 	TDSSOCKET *tds;
 
@@ -2008,6 +2029,12 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 	if (tds->rows_affected != TDS_NO_COUNT)
 		*pcrow = tds->rows_affected;
 	ODBC_RETURN(stmt, SQL_SUCCESS);
+}
+
+SQLRETURN SQL_API
+SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
+{
+	return _SQLRowCount(hstmt, pcrow);
 }
 
 #if 0
@@ -2898,8 +2925,6 @@ static SQLRETURN SQL_API
 _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	SQLULEN u_value = (SQLULEN) ValuePtr;
-	char *pstr = (SQLCHAR *) ValuePtr;
-	char *dest = NULL;
 	int len = 0;
 	SQLRETURN ret = SQL_SUCCESS;
 
@@ -2925,12 +2950,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		/* FIXME handle memory errors */
-		dest = (char *) malloc(len + 1);
-		strncpy(dest, pstr, len);
-		dest[len] = '\0';
-		ret = change_database(dbc, dest);
-		free(dest);
+		ret = change_database(dbc, (char *) ValuePtr, len);
 		ODBC_RETURN(dbc, ret);
 		break;
 	case SQL_ATTR_LOGIN_TIMEOUT:
@@ -3223,10 +3243,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_ACTIVE_ENVIRONMENTS";
 		category = "Driver Information";
 		break;
-	case SQL_ACTIVE_STATEMENTS:
-		name = "SQL_MAX_CONCURRENT_ACTIVITIES/SQL_ACTIVE_STATEMENTS";
-		category = "Renamed for ODBC 3.x";
-		break;
 	case SQL_AGGREGATE_FUNCTIONS:
 		name = "SQL_AGGREGATE_FUNCTIONS";
 		category = "Supported SQL";
@@ -3241,10 +3257,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		category = "Supported SQL";
 		break;
 #endif
-	case SQL_ALTER_TABLE:
-		name = "SQL_ALTER_TABLE";
-		category = "Supported SQL";
-		break;
 #ifdef SQL_ANSI_SQL_DATETIME_LITERALS
 	case SQL_ANSI_SQL_DATETIME_LITERALS:
 		name = "SQL_ANSI_SQL_DATETIME_LITERALS";
@@ -3403,10 +3415,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_CREATE_TRANSLATION";
 		category = "Supported SQL";
 		break;
-	case SQL_CURSOR_COMMIT_BEHAVIOR:
-		name = "SQL_CURSOR_COMMIT_BEHAVIOR";
-		category = "Data Source Information";
-		break;
 	case SQL_CURSOR_ROLLBACK_BEHAVIOR:
 		name = "SQL_CURSOR_ROLLBACK_BEHAVIOR";
 		category = "Data Source Information";
@@ -3415,33 +3423,9 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_CURSOR_SENSITIVITY";
 		category = "Data Source Information";
 		break;
-	case SQL_DATABASE_NAME:
-		name = "SQL_DATABASE_NAME";
-		category = "DBMS Product Information";
-		break;
-	case SQL_DATA_SOURCE_NAME:
-		name = "SQL_DATA_SOURCE_NAME";
-		category = "Driver Information";
-		break;
-	case SQL_DATA_SOURCE_READ_ONLY:
-		name = "SQL_DATA_SOURCE_READ_ONLY";
-		category = "Data Source Information";
-		break;
-	case SQL_DBMS_NAME:
-		name = "SQL_DBMS_NAME";
-		category = "DBMS Product Information";
-		break;
-	case SQL_DBMS_VER:
-		name = "SQL_DBMS_VER";
-		category = "DBMS Product Information";
-		break;
 	case SQL_DDL_INDEX:
 		name = "SQL_DDL_INDEX";
 		category = "Supported SQL";
-		break;
-	case SQL_DEFAULT_TXN_ISOLATION:
-		name = "SQL_DEFAULT_TXN_ISOLATION";
-		category = "Data Source Information";
 		break;
 	case SQL_DESCRIBE_PARAMETER:
 		name = "SQL_DESCRIBE_PARAMETER";
@@ -3469,18 +3453,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		break;
 	case SQL_DRIVER_HSTMT:
 		name = "SQL_DRIVER_HSTMT";
-		category = "Driver Information";
-		break;
-	case SQL_DRIVER_NAME:
-		name = "SQL_DRIVER_NAME";
-		category = "Driver Information";
-		break;
-	case SQL_DRIVER_ODBC_VER:
-		name = "SQL_DRIVER_ODBC_VER";
-		category = "Driver Information";
-		break;
-	case SQL_DRIVER_VER:
-		name = "SQL_DRIVER_VER";
 		category = "Driver Information";
 		break;
 	case SQL_DROP_ASSERTION:
@@ -3515,14 +3487,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_DROP_VIEW";
 		category = "Supported SQL";
 		break;
-	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
-		name = "SQL_DYNAMIC_CURSOR_ATTRIBUTES1";
-		category = "Driver Information";
-		break;
-	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
-		name = "SQL_DYNAMIC_CURSOR_ATTRIBUTES2";
-		category = "Driver Information";
-		break;
 	case SQL_EXPRESSIONS_IN_ORDERBY:
 		name = "SQL_EXPRESSIONS_IN_ORDERBY";
 		category = "Supported SQL";
@@ -3530,18 +3494,6 @@ log_unimplemented_type(const char function_name[], int fType)
 	case SQL_FETCH_DIRECTION:
 		name = "SQL_FETCH_DIRECTION";
 		category = "Deprecated in ODBC 3.x";
-		break;
-	case SQL_FILE_USAGE:
-		name = "SQL_FILE_USAGE";
-		category = "Driver Information";
-		break;
-	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
-		name = "SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1";
-		category = "Driver Information";
-		break;
-	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
-		name = "SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2";
-		category = "Driver Information";
 		break;
 	case SQL_GETDATA_EXTENSIONS:
 		name = "SQL_GETDATA_EXTENSIONS";
@@ -3555,10 +3507,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_IDENTIFIER_CASE";
 		category = "Supported SQL";
 		break;
-	case SQL_IDENTIFIER_QUOTE_CHAR:
-		name = "SQL_IDENTIFIER_QUOTE_CHAR";
-		category = "Supported SQL";
-		break;
 	case SQL_INDEX_KEYWORDS:
 		name = "SQL_INDEX_KEYWORDS";
 		category = "Supported SQL";
@@ -3570,14 +3518,6 @@ log_unimplemented_type(const char function_name[], int fType)
 	case SQL_INSERT_STATEMENT:
 		name = "SQL_INSERT_STATEMENT";
 		category = "Supported SQL";
-		break;
-	case SQL_KEYSET_CURSOR_ATTRIBUTES1:
-		name = "SQL_KEYSET_CURSOR_ATTRIBUTES1";
-		category = "Driver Information";
-		break;
-	case SQL_KEYSET_CURSOR_ATTRIBUTES2:
-		name = "SQL_KEYSET_CURSOR_ATTRIBUTES2";
-		category = "Driver Information";
 		break;
 	case SQL_KEYWORDS:
 		name = "SQL_KEYWORDS";
@@ -3683,10 +3623,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_MULT_RESULT_SETS";
 		category = "Data Source Information";
 		break;
-	case SQL_NEED_LONG_DATA_LEN:
-		name = "SQL_NEED_LONG_DATA_LEN";
-		category = "Data Source Information";
-		break;
 	case SQL_NON_NULLABLE_COLUMNS:
 		name = "SQL_NON_NULLABLE_COLUMNS";
 		category = "Supported SQL";
@@ -3741,10 +3677,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_SCHEMA_TERM/SQL_OWNER_TERM";
 		category = "Renamed for ODBC 3.x";
 		break;
-	case SQL_OWNER_USAGE:
-		name = "SQL_SCHEMA_USAGE/SQL_OWNER_USAGE";
-		category = "Renamed for ODBC 3.x";
-		break;
 	case SQL_PARAM_ARRAY_ROW_COUNTS:
 		name = "SQL_PARAM_ARRAY_ROW_COUNTS";
 		category = "Driver Information";
@@ -3785,21 +3717,9 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_CATALOG_USAGE/SQL_QUALIFIER_USAGE";
 		category = "Renamed for ODBC 3.x";
 		break;
-	case SQL_QUOTED_IDENTIFIER_CASE:
-		name = "SQL_QUOTED_IDENTIFIER_CASE";
-		category = "Supported SQL";
-		break;
 	case SQL_ROW_UPDATES:
 		name = "SQL_ROW_UPDATES";
 		category = "Driver Information";
-		break;
-	case SQL_SCROLL_CONCURRENCY:
-		name = "SQL_SCROLL_CONCURRENCY";
-		category = "Deprecated in ODBC 3.x";
-		break;
-	case SQL_SCROLL_OPTIONS:
-		name = "SQL_SCROLL_OPTIONS";
-		category = "Data Source Information";
 		break;
 	case SQL_SEARCH_PATTERN_ESCAPE:
 		name = "SQL_SEARCH_PATTERN_ESCAPE";
@@ -3809,21 +3729,9 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_SERVER_NAME";
 		category = "Driver Information";
 		break;
-	case SQL_SPECIAL_CHARACTERS:
-		name = "SQL_SPECIAL_CHARACTERS";
-		category = "Supported SQL";
-		break;
 	case SQL_SQL_CONFORMANCE:
 		name = "SQL_SQL_CONFORMANCE";
 		category = "Supported SQL";
-		break;
-	case SQL_STATIC_CURSOR_ATTRIBUTES1:
-		name = "SQL_STATIC_CURSOR_ATTRIBUTES1";
-		category = "Driver Information";
-		break;
-	case SQL_STATIC_CURSOR_ATTRIBUTES2:
-		name = "SQL_STATIC_CURSOR_ATTRIBUTES2";
-		category = "Driver Information";
 		break;
 	case SQL_STATIC_SENSITIVITY:
 		name = "SQL_STATIC_SENSITIVITY";
@@ -3857,10 +3765,6 @@ log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_TIMEDATE_FUNCTIONS";
 		category = "Scalar Function Information";
 		break;
-	case SQL_TXN_CAPABLE:
-		name = "SQL_TXN_CAPABLE";
-		category = "Data Source Information";
-		break;
 	case SQL_TXN_ISOLATION_OPTION:
 		name = "SQL_TXN_ISOLATION_OPTION";
 		category = "Data Source Information";
@@ -3872,10 +3776,6 @@ log_unimplemented_type(const char function_name[], int fType)
 	case SQL_USER_NAME:
 		name = "SQL_USER_NAME";
 		category = "Data Source Information";
-		break;
-	case SQL_XOPEN_CLI_YEAR:
-		name = "SQL_XOPEN_CLI_YEAR";
-		category = "Added for ODBC 3.x";
 		break;
 	default:
 		name = "unknown";
