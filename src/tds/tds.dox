@@ -9,3 +9,4 @@ INPUT            = mem.c challenge.c query.c iconv.c read.c write.c token.c \
 QUIET            = YES
 JAVADOC_AUTOBRIEF = YES
 PREDEFINED 	 = HAVE_SSL
+EXAMPLE_PATH = example
