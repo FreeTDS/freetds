@@ -16,6 +16,6 @@ libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacement
 noinst_HEADERS	= tds_willconvert.h
 
 if HAVE_DOXYGEN
-doxy: tds.dox
-	$(DOXYGEN) tds.dox
+doxy: $(src_dir)tds.dox
+	$(DOXYGEN) $(src_dir)tds.dox
 endif
