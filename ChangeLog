@@ -1,3 +1,7 @@
+Fri Nov 29 12:34:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/dblib/rpc.c src/tds/query.c:
+	- added column_output for specify output parameters
+
 Fri Nov 29 11:38:26 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: small optimization and remove TODO
 

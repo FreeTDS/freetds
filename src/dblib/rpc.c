@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.13 2002-11-26 04:18:27 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.14 2002-11-29 11:35:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -249,8 +249,8 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		if (p->name) 
 			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
 		tds_set_column_type(pcol, p->type);
-		pcol->column_size		= p->maxlen;
-		pcol->column_writeable		= p->status;	/* FIXME not sure what to do here */
+		pcol->column_size	= p->maxlen;
+		pcol->column_output	= p->status;
 
 		/* actual data */
 		pcol->column_cur_size	= p->datalen;

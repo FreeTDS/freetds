@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.54 2002-11-29 10:39:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.55 2002-11-29 11:35:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -337,7 +337,7 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 		tds_put_byte(tds,0x00); /* param name len*/
 	}
 	/* TODO store and use flags (output/use defaul null)*/
-	tds_put_byte(tds,0x00); /* status (input) */
+	tds_put_byte(tds, curcol->column_output); /* status (input) */
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_int(tds,curcol->column_usertype); /* usertype */
 	tds_put_byte(tds, curcol->column_type); 

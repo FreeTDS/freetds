@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.60 2002-11-24 10:43:29 freddy77 Exp $";
+	"$Id: tds.h,v 1.61 2002-11-29 11:35:46 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -494,10 +494,11 @@ typedef struct tds_column_info {
 	TDS_CHAR column_name[256];
 	/** offset into row buffer for store data */
 	TDS_INT column_offset;
-	TDS_TINYINT column_nullable;
-	TDS_TINYINT column_writeable;
-	TDS_TINYINT column_identity;
-	TDS_TINYINT column_unicodedata;
+	unsigned int column_nullable:1;
+	unsigned int column_writeable:1;
+	unsigned int column_identity:1;
+	unsigned int column_unicodedata:1;
+	unsigned int column_output:1;
 	TDS_CHAR    column_collation[5];
 
 	/* additional fields flags for compute results */
