@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.32 2003-04-29 19:37:13 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.33 2003-05-20 15:30:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -243,10 +243,26 @@ convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_
 
 	static const char *str_null = "null";
 
-	if (SQL_NULL_DATA == param_lenbind) {
+	switch (param_lenbind) {
+	case SQL_NULL_DATA:
 		src = str_null;
 		srclen = strlen(str_null);
 		srctype = SQL_C_CHAR;
+		break;
+	case SQL_NTS:
+		srclen = strlen(src);
+		break;
+	case SQL_DEFAULT_PARAM:
+	case SQL_DATA_AT_EXEC:
+		/* TODO */
+		return TDS_CONVERT_FAIL;
+		break;
+	default:
+		if (param_lenbind < 0)
+			srclen = SQL_LEN_DATA_AT_EXEC(param_lenbind);
+		else
+			srclen = param_lenbind;
+
 	}
 
 	switch (srctype) {

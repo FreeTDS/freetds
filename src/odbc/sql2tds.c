@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.9 2003-05-08 08:15:26 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.10 2003-05-20 15:31:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -53,12 +53,14 @@ extern const int tds_numeric_bytes_per_prec[];
  * return same result of tds_convert
  */
 int
-sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCOLINFO * curcol)
+sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int nparam)
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
 	TDSBLOBINFO *blob_info;
 	unsigned char *dest;
+	TDSCOLINFO *curcol = info->columns[nparam];
+	int len;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->param_sqltype);
@@ -70,8 +72,28 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
-	if (curcol->column_varint_size != 0)
-		curcol->column_cur_size = curcol->column_size = *param->param_lenbind;
+	if (curcol->column_varint_size != 0) {
+		switch (*param->param_lenbind) {
+		case SQL_NULL_DATA:
+			len = 0;
+			break;
+		case SQL_NTS:
+			len = strlen(param->varaddr);
+			break;
+		case SQL_DEFAULT_PARAM:
+		case SQL_DATA_AT_EXEC:
+			/* TODO */
+			return TDS_CONVERT_FAIL;
+			break;
+		default:
+			if (*param->param_lenbind < 0)
+				len = SQL_LEN_DATA_AT_EXEC(*param->param_lenbind);
+			else
+				len = *param->param_lenbind;
+
+		}
+		curcol->column_cur_size = curcol->column_size = len;
+	}
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* allocate given space */
@@ -84,9 +106,15 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 	src_type = odbc_get_server_type(param->param_bindtype);
 	if (src_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
+
+	/* set null */
+	if (*param->param_lenbind == SQL_NULL_DATA) {
+		tds_set_null(info->current_row, nparam);
+		return TDS_SUCCEED;
+	}
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	res = tds_convert(dbc->henv->tds_ctx, src_type, param->varaddr, *param->param_lenbind, dest_type, &ores);
+	res = tds_convert(dbc->henv->tds_ctx, src_type, param->varaddr, len, dest_type, &ores);
 	if (res < 0)
 		return res;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);

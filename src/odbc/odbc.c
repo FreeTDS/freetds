@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.170 2003-05-20 10:48:27 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.171 2003-05-20 15:30:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1281,8 +1281,7 @@ SQLExecute(SQLHSTMT hstmt)
 			params = temp_params;
 
 			/* add another type and copy data */
-			curcol = params->columns[nparam];
-			if (sql2tds(stmt->hdbc, param, params, curcol) < 0) {
+			if (sql2tds(stmt->hdbc, param, params, nparam) < 0) {
 				tds_free_param_results(params);
 				return SQL_ERROR;
 			}
