@@ -1,3 +1,10 @@
+Fri Dec 12 11:27:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsiconv.h src/replacements/iconv.c:
+	- do not include encoding.h (remove dependency and lot of data)
+	- support for UTF-8
+	- a lot of small optimizations
+	- some conversions fixes
+
 Thu Dec 11 23:05:06 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/utf8_2.c: a bit more verbose
 

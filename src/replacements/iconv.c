@@ -53,13 +53,8 @@
 #include <dmalloc.h>
 #endif
 
-#include "../tds/encodings.h"
-
-static char software_version[] = "$Id: iconv.c,v 1.7 2003-09-25 21:14:24 freddy77 Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: iconv.c,v 1.8 2003-12-12 10:32:12 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 
 /**
@@ -79,40 +74,41 @@ static void *no_unused_var_warn[] = {
 iconv_t 
 iconv_open (const char* tocode, const char* fromcode)
 {
-	typedef struct _fromto { char *name; unsigned char pos; } FROMTO;
-	int i, ipos;
-	int size;
-	unsigned short largest;
-	unsigned short fromto;
-	static char first_time = 1; 
-	FROMTO encodings[2] = { {NULL, 0xFF}, {NULL, 0xFF} };
-	encodings[0].name = (char*)fromcode;
-	encodings[1].name = (char*)tocode;
-	
-	
+	int i;
+	unsigned int fromto;
+	const char *enc_name;
+	unsigned char encodings[2] = { 0xFF, 0xFF };
+
+	static char first_time = 1;
+
 	if (first_time) {
 		first_time = 0;
 		tdsdump_log(TDS_DBG_INFO1, "Using trivial iconv from \n\t%s\n", __FILE__);
 	}
 	
 	/* match both inputs to our canonical names */
-	for (i=0; i < sizeof(encodings)/sizeof(FROMTO); i++) {
-		largest = 0;
-		for (ipos=0; canonic_charsets[ipos].min_bytes_per_char > 0; ipos++) {
-			size = strlen(canonic_charsets[ipos].name);
-			if (largest < size && 0 == strncmp(encodings[i].name, canonic_charsets[ipos].name, size)) {
-				largest = size;
-				encodings[i].pos = ipos;
-			}
+	enc_name = fromcode;
+	for (i=0; i < 2; ++i) {
+
+		if (strcmp(enc_name, "ISO-8859-1") == 0) {
+			encodings[i] = 0;
+		} else if (strcmp(enc_name, "US-ASCII") == 0) {
+			encodings[i] = 1;
+		} else if (strcmp(enc_name, "UCS-2LE") == 0) {
+			encodings[i] = 2;
+		} else if (strcmp(enc_name, "UTF-8") == 0) {
+			encodings[i] = 3;
 		}
+
+		enc_name = tocode;
 	}
 	
+	fromto = (encodings[0] << 4) | (encodings[1] & 0x0F);
+
 	/* like to like */
-	if (encodings[0].pos == encodings[1].pos) {
+	if (encodings[0] == encodings[1]) {
 		fromto = Like_to_Like;
 	}
-	
-	fromto = (encodings[0].pos << 4) | (encodings[1].pos & 0x0F);
 	
 	switch (fromto) {
 	case Like_to_Like:
@@ -122,13 +118,18 @@ iconv_open (const char* tocode, const char* fromcode)
 	case UCS2LE_Latin1:
 	case ASCII_UCS2LE:
 	case UCS2LE_ASCII:
-		return (iconv_t)(unsigned int)fromto;
+	case Latin1_UTF8:
+	case UTF8_Latin1:
+	case ASCII_UTF8:
+	case UTF8_ASCII:
+	case UCS2LE_UTF8:
+	case UTF8_UCS2LE:
+		return (iconv_t)fromto;
 		break;
 	default:
-		errno = EINVAL;
-		return (iconv_t)(-1);
 		break;
 	}
+	errno = EINVAL;
 	return (iconv_t)(-1);
 } 
 
@@ -141,85 +142,241 @@ iconv_close (iconv_t cd)
 size_t 
 iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
 {
-	int copybytes;
-	const char *p;
-	int finvalid = 0;
-	
-	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
-	assert(inbuf && inbytesleft && outbuf && outbytesleft);
-	
-	copybytes = (*inbytesleft < *outbytesleft)? *inbytesleft : *outbytesleft;
+	size_t copybytes;
+	const unsigned char *p;
+	unsigned char ascii_mask = 0;
+	unsigned int n;
+	const unsigned char *ib;
+	unsigned char *ob;
+	size_t il, ol;
+	int local_errno;
 
-	switch ((int)cd) {
+#undef CD
+#define CD ((int)cd)
+
+	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
+	if (!inbuf || !*inbuf || !inbytesleft || !outbuf || !*outbuf || !outbytesleft)
+		return 0;
+	
+	/* 
+	 * some optimizations
+	 * - do not use errno directly only assign a time
+	 *   (some platform define errno as a complex macro)
+	 * - some processors have few registers, deference and copy input variable
+	 *   (this make also compiler optimize more due to removed aliasing)
+	 *   also we use unsigned to remove required unsigned casts
+	 */
+	local_errno = 0;
+	il = *inbytesleft;
+	ol = *outbytesleft;
+	ib = (const unsigned char*) *inbuf;
+	ob = (unsigned char*) *outbuf;
+
+	copybytes = (il < ol)? il : ol;
+
+	switch (CD) {
+	case ASCII_UTF8:
+	case UTF8_ASCII:
 	case Latin1_ASCII:
-		for (p = *inbuf; p < *inbuf + *inbytesleft; p++) {
-			if (!isascii(*p)) {
-				errno = EINVAL;
-				copybytes = p - *inbuf;
-				finvalid = 1;
+		for (p = ib; p < ib + il; ++p) {
+			if (*p & 0x80) {
+				local_errno = EILSEQ;
+				copybytes = p - ib;
 				break;
 			}
 		}
 		/* fall through */
 	case ASCII_Latin1:
 	case Like_to_Like:
-		memcpy(*outbuf, *inbuf, copybytes);
-		*inbuf += copybytes;
-		*outbuf += copybytes;
-		*inbytesleft -= copybytes;
-		*outbytesleft -= copybytes;
-		if (finvalid) {
-			return (size_t)(-1);
-		}		
+		memcpy(ob, ib, copybytes);
+		ob += copybytes;
+		ol -= copybytes;
+		ib += copybytes;
+		il -= copybytes;
 		break;
 	case ASCII_UCS2LE:
 	case Latin1_UCS2LE:
-		while (*inbytesleft > 0 && *outbytesleft > 1) {
-			if ((int)cd == ASCII_UCS2LE && !isascii(**inbuf)) {
-				errno = EINVAL;
-				return (size_t)(-1);
+		if (CD == ASCII_UCS2LE)
+			ascii_mask = 0x80;
+		while (il > 0 && ol > 1) {
+			if ((ib[0] & ascii_mask) != 0) {
+				local_errno = EILSEQ;
+				break;
 			}
-			*(*outbuf)++ = *(*inbuf)++;
-			*(*outbuf)++ = '\0';
-			(*inbytesleft)--;
-			*outbytesleft -= 2;
+			*ob++ = *ib++;
+			*ob++ = '\0';
+			ol -= 2;
+			--il;
 		}
 		break;
 	case UCS2LE_ASCII:
 	case UCS2LE_Latin1:
-		/* input should be an even number of bytes */
-		if (*inbytesleft & 1) {
-			if ((*inbuf)[*inbytesleft-1] == '\0') {
-				(*inbytesleft)--;	/* ignore trailing NULL byte */
-			} else {
-				errno = EINVAL;
-				return (size_t)(-1);
+		if (CD == UCS2LE_ASCII)
+			ascii_mask = 0x80;
+		while (il > 1 && ol > 0) {
+			if ( ib[1] || (ib[0] & ascii_mask) != 0) {
+				local_errno = EILSEQ;
+				break;
 			}
+			*ob++ = *ib;
+			--ol;
+
+			ib += 2;
+			il -= 2;
 		}
-		while (*inbytesleft > 1 && *outbytesleft > 0) {
-			if ((int)cd == UCS2LE_ASCII && !isascii(**inbuf)) {
-				errno = EINVAL;
-				return (size_t)(-1);
+		/* input should be an even number of bytes */
+		if (!local_errno && il == 1 && ol > 0)
+			local_errno = EINVAL;
+		break;
+	case UTF8_Latin1:
+		while (il > 0 && ol > 0) {
+			/* silly case, ASCII */
+			if ( (ib[0] & 0x80) == 0) {
+				*ob++ = *ib++;
+				--il;
+				--ol;
+				continue;
 			}
-			*(*outbuf)++ = *(*inbuf)++;
-			(*inbytesleft)--;
-			(*outbytesleft)--;
-			
-			if (*(*inbuf)++ != '\0') {
-				errno = EILSEQ;
-				return (size_t)(-1);
+
+			if (il == 1) {
+				local_errno = EINVAL;
+				break;
 			}
-			(*inbytesleft)--;
+
+			if ( ib[0] > 0xC3 || ib[0] < 0xC0 || (ib[1] & 0xC0) != 0x80) {
+				local_errno = EILSEQ;
+				break;
+			}
+
+			*ob++ = (*ib) << 6 | (ib[1] & 0x3F);
+			--ol;
+			ib += 2;
+			il -= 2;
+		}
+		break;
+	case Latin1_UTF8:
+		while (il > 0 && ol > 0) {
+			/* silly case, ASCII */
+			if ( (ib[0] & 0x80) == 0) {
+				*ob++ = *ib++;
+				--il;
+				--ol;
+				continue;
+			}
+
+			if (ol == 1)
+				break;
+			*ob++ = 0xC0 | (ib[0] >> 6);
+			*ob++ = 0x80 | (ib[0] & 0x3F);
+			ol -= 2;
+			++ib;
+			--il;
+		}
+		break;
+	case UTF8_UCS2LE:
+		while (il > 0 && ol > 1) {
+			/* silly case, ASCII */
+			if ( (ib[0] & 0x80) == 0) {
+				*ob++ = *ib++;
+				*ob++ = 0;
+				il -= 1;
+				ol -= 2;
+				continue;
+			}
+
+			if (il == 1) {
+				local_errno = EINVAL;
+				break;
+			}
+
+			if ( (ib[0] & 0xE0) == 0xC0) {
+				if ( (ib[1] & 0xC0) != 0x80) {
+					local_errno = EILSEQ;
+					break;
+				}
+
+				*ob++ = ((ib[0] & 0x3) << 6) | (ib[1] & 0x3F);
+				*ob++ = (ib[0] & 0x1F) >> 2;
+				ol -= 2;
+				ib += 2;
+				il -= 2;
+				continue;
+			}
+
+			if (il == 2) {
+				local_errno = EINVAL;
+				break;
+			}
+
+			if ( (ib[0] & 0xF0) == 0xE0) {
+				if ( (ib[1] & 0xC0) != 0x80 || (ib[2] & 0xC0) != 0x80) {
+					local_errno = EILSEQ;
+					break;
+				}
+
+				*ob++ = ((ib[1] & 0x3) << 6) | (ib[2] & 0x3F);
+				*ob++ = (ib[0] & 0xF) << 4 | ((ib[1] & 0x3F) >> 2);
+				ol -= 2;
+				ib += 3;
+				il -= 3;
+				continue;
+			}
+
+			local_errno = EILSEQ;
+			break;
+		}
+		break;
+	case UCS2LE_UTF8:
+		while (il > 1 && ol > 0) {
+			n = ((unsigned int)ib[1]) << 8 | ib[0];
+			/* ASCII */
+			if ( n < 0x80 ) {
+				*ob++ = n;
+				ol -= 1;
+				ib += 2;
+				il -= 2;
+				continue;
+			}
+
+			if (ol == 1)
+				break;
+
+			if ( n < 0x800 ) {
+				*ob++ = 0xC0 | (n >> 6);
+				*ob++ = 0x80 | (n & 0x3F);
+				ol -= 2;
+				ib += 2;
+				il -= 2;
+				continue;
+			}
+
+			if (ol == 2)
+				break;
+
+			*ob++ = 0xE0 | (n >> 12);
+			*ob++ = 0x80 | ((n >> 6) & 0x3F);
+			*ob++ = 0x80 | (n & 0x3F);
+			ol -= 3;
+			ib += 2;
+			il -= 2;
 		}
 		break;
 	default:
-		errno = EINVAL;
-		return (size_t)(-1);
+		local_errno = EINVAL;
 		break;
 	}
+
+	/* back to source */
+	*inbytesleft = il;
+	*outbytesleft = ol;
+	*inbuf = (const char*) ib;
+	*outbuf = (char*) ob;
+
+	if (il && !local_errno)
+		local_errno = E2BIG;
 	
-	if (*inbytesleft) {
-		errno = E2BIG;
+	if (local_errno) {
+		errno = local_errno;
 		return (size_t)(-1);
 	}
 	

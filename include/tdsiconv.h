@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.26 2003-11-22 22:54:16 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.27 2003-12-12 10:32:11 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -72,10 +72,18 @@ enum ICONV_CD_VALUE
 	  Like_to_Like = 0x100
 	, Latin1_ASCII  = 0x01
 	, ASCII_Latin1  = 0x10
+
 	, Latin1_UCS2LE = 0x02
 	, UCS2LE_Latin1 = 0x20
 	, ASCII_UCS2LE  = 0x12
 	, UCS2LE_ASCII  = 0x21
+
+	, Latin1_UTF8	= 0x03
+	, UTF8_Latin1	= 0x30
+	, ASCII_UTF8	= 0x13
+	, UTF8_ASCII	= 0x31
+	, UCS2LE_UTF8	= 0x23
+	, UTF8_UCS2LE	= 0x32
 	/* these aren't needed 
 	 * , Latin1_UCS2BE = 0x03
 	 * , UCS2BE_Latin1 = 0x30
