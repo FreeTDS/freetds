@@ -1,3 +1,11 @@
+Mon Feb  9 17:52:13 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/tds/convert.c
+	- support bcp in of uniqueidentifier datatype
+	* src/ctlib/Makefile.am src/dblib/Makefile.am
+	- revert to exporting symbols pending NetBSD linkability
+
 Mon Feb 09 17:02:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: add a TODO for a test
 	* src/odbc/odbc.c:

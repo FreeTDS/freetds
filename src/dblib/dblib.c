@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.167 2004-02-04 18:20:42 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.168 2004-02-09 22:59:33 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1898,6 +1898,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		memcpy(dest, &(dres.n), sizeof(TDS_NUMERIC));
 		ret = sizeof(TDS_NUMERIC);
 		break;
+	case SYBUNIQUE:
+		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
+		ret = sizeof(TDS_UNIQUE);
+		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
@@ -1945,6 +1949,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 		break;
 	default:
+		tdsdump_log(TDS_DBG_INFO1, "%L error: dbconvert(): unrecognized desttype %d \n", desttype);
 		ret = -1;
 		break;
 

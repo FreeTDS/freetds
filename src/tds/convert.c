@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.134 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.135 2004-02-09 22:59:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -541,21 +541,37 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			unsigned n = 0;
 			char c;
 
-			/* parse formats like XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX 
-			 * or {XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX} 
-			 * SQL seem to ignore additional character... */
+			/* 
+			 * format:	 XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX 
+			 * or 		{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX} 
+			 * or 		 XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX  
+			 * or 		{XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX} 
+			 * SQL seem to ignore the additional braces.
+			 */
 			if (srclen < (32 + 3))
 				return TDS_CONVERT_SYNTAX;
 			if (src[0] == '{') {
-				if (srclen < (32 + 5) || src[32 + 4] != '}')
+				int ndashes;
+				static const short dashes[] = {	8, 
+									8+1 + 4, 
+									8+1 + 4+1 + 4, 
+									8+1 + 4+1 + 4+1 + 4};
+
+				for (++src, ndashes=i=0; i < 32 + ndashes && src[i] != '}'; i++ ) {
+					if (src[i] == '-') {	/* see that the dashes are where they belong */
+						if (i != dashes[ndashes])
+							return TDS_CONVERT_SYNTAX;
+						ndashes++;
+					}
+				}
+				if (ndashes < 3 || src[i] != '}')
 					return TDS_CONVERT_SYNTAX;
-				++src;
+				assert(ndashes <= 4);
 			}
-			if (src[8] != '-' || src[8 + 4 + 1] != '-' || src[16 + 2] != '-')
-				return TDS_CONVERT_SYNTAX;
-			/* test all characters and get value 
-			 * first I tried using sscanf but it work if number terminate
-			 * with less digits */
+			/* 
+			 * Test each character and get value.  
+			 * sscanf works if the number terminates with less digits. 
+			 */
 			for (i = 0; i < 32 + 3; ++i) {
 				c = src[i];
 				switch (i) {
@@ -565,18 +581,24 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 					cr->u.Data1 = n;
 					n = 0;
 					break;
-				case 8 + 4 + 1:
+				case 8+1 + 4:
 					if (c != '-')
 						return TDS_CONVERT_SYNTAX;
 					cr->u.Data2 = n;
 					n = 0;
 					break;
-				case 16 + 2:
+				case 8+1 + 4+1 + 4:
 					if (c != '-')
 						return TDS_CONVERT_SYNTAX;
 					cr->u.Data3 = n;
 					n = 0;
 					break;
+				case 8+1 + 4+1 + 4+1 + 4:
+					/* skip last (optional) dash */
+					if (c == '-') {
+						c = (++src)[i];
+					}
+					/* fall through */
 				default:
 					n = n << 4;
 					if (c >= '0' && c <= '9')

@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.89 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.90 2004-02-09 22:59:33 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -1417,8 +1417,10 @@ bcp_sendrow(DBPROCESS * dbproc)
 		/* first call the start_copy function, which will */
 		/* retrieve details of the database table columns */
 
-		if (_bcp_start_copy_in(dbproc) == FAIL)
+		if (_bcp_start_copy_in(dbproc) == FAIL) {
+			_bcp_err_handler(dbproc, SYBEBULKINSERT);
 			return (FAIL);
+		}
 
 		/* set packet type to send bulk data */
 		tds->out_flag = 0x07;
@@ -1774,7 +1776,11 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 			bcpcol = dbproc->bcp.db_columns[i];
 
 			if (IS_TDS7_PLUS(tds)) {
-				_bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
+				erc = _bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
+				if (erc == FAIL) {
+					tdsdump_log(TDS_DBG_FUNC, "%L error: _bcp_build_bulk_insert_stmt returned FAIL.\n", bcpcol->on_server.column_type);
+					return erc;
+				}
 				firstcol = 0;
 			}
 		}
@@ -1961,7 +1967,11 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, BCP_COLINFO * bcpcol, int first)
 	case SYBNTEXT:
 		sprintf(column_type, "ntext");
 		break;
+	case SYBUNIQUE:
+		sprintf(column_type, "uniqueidentifier	");
+		break;
 	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L error: cannot build bulk insert statement.  unrecognized server datatype %d\n", bcpcol->on_server.column_type);
 		return FAIL;
 	}
 
@@ -2870,7 +2880,7 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		break;
 
 	case SYBEBCNN:
-		errmsg = "Attempt to bulk-copy a NULL value into Server column which " "does not accept NULL values.";
+		errmsg = "Attempt to bulk-copy a NULL value into Server column which does not accept NULL values.";
 		severity = EXUSER;
 		break;
 
@@ -2882,6 +2892,16 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 	case SYBEBEOF:
 		errmsg = "Unexpected EOF encountered in BCP data-file.";
 		severity = EXUSER;	/* ? */
+		break;
+
+	case SYBEBULKINSERT:	 
+		errmsg = "Unrecognized bcp datatype in server table.";
+		severity = EXCONSISTENCY;
+		break;
+
+	case SYBEBPROEXTRES:	 /* also used when unable to build bulk insert statement */
+		errmsg = "bcp protocol error: unexpected set of results received.";
+		severity = EXCONSISTENCY;
 		break;
 
 	default:

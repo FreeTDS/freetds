@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.56 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.57 2004-02-09 22:59:33 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -943,6 +943,7 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEBBFL 20297		/* -001- Batch failed in bulk-copy to SQL Server */
 #define SYBEDCL 20298		/* -004- DCL Error */
 #define SYBECS 20299		/* -004- cs context Error */
+#define SYBEBULKINSERT 20599	/* cannot build bulk insert statement */
 
 int dbtds(DBPROCESS * dbprocess);
 
