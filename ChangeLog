@@ -1,3 +1,7 @@
+Sat May  3 14:52:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/read.c src/tds/token.c:
+	- fixes and improve charset
+
 Fri May  2 11:17:14 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/character_sets.h: update some multibyte data
 	* src/tds/read.c: added some comments

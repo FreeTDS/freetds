@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.49 2003-05-02 09:18:37 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.50 2003-05-03 12:51:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -239,14 +239,17 @@ tds_get_int(TDSSOCKET * tds)
  * Fetch a string from the wire.
  * Output string is NOT null terminated.
  * If TDS version is 7 or 8 read unicode string and convert it.
+ * This function should be use to read server default encoding strings like 
+ * columns name, table names, etc, not for data (use tds_get_char_data instead)
  * @return bytes written to \a dest
  * @param tds  connection information
- * @param string_len length of string to read from wire (in characters)
+ * @param string_len length of string to read from wire 
+ *        (in server characters, bytes for tds4-tds5, ucs2 for tds7+)
  * @param dest destination buffer, if NULL string is read and discarded
- * @param need like \a string_len, only different?
+ * @param dest_size destination buffer size, in bytes
  */
 int
-tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
+tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
 {
 	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
@@ -255,9 +258,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	 */
 	TEMP_INIT(256);
 	char *p, *pend;
-	unsigned int in_left, wire_bytes;
-	const unsigned int bpc = tds->iconv_info->server_charset.max_bytes_per_char;	/* bytes per char */
-
+	size_t in_left, wire_bytes;
 
 	/*
 	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
@@ -269,30 +270,46 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 		return 0;
 	}
 
-	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: need %d on wire for %d to client?\n", need, string_len);
+	assert(string_len >= 0 && dest_size >= 0);
+
+	wire_bytes = IS_TDS7_PLUS(tds) ? string_len * 2 : string_len;
+
+	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: need %d on wire for %d to client?\n", dest_size, string_len);
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
-			tds_get_n(tds, NULL, string_len * bpc);
+			tds_get_n(tds, NULL, wire_bytes);
 			TEMP_FREE;
 			return string_len;
 		}
 		p = dest;
-		pend = dest + need;
-		while (string_len > 0 && p < pend) {
-			in_left = string_len * bpc;
-			if (in_left > TEMP_SIZE)
-				in_left = TEMP_SIZE;
-			wire_bytes = in_left;
-			tds_get_n(tds, temp, wire_bytes);
-			p += tds_iconv(to_client, tds->iconv_info, temp, &wire_bytes, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
-			string_len -= (in_left - wire_bytes) / bpc;
+		pend = dest + dest_size;
+		in_left = 0;
+		while (wire_bytes > 0 && p < pend) {
+			/* read a chunk of data */
+			int in_size;
+
+			in_size = wire_bytes;
+			if (in_size > TEMP_SIZE)
+				in_size = TEMP_SIZE;
+			tds_get_n(tds, &temp[in_left], in_size - in_left);
+
+			/* convert chunk */
+			in_left = in_size;
+			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, pend - p);
+
+			/* update for next chunk */
+			wire_bytes -= in_size - in_left;
+			if (in_left) {
+				assert(in_left < 4);
+				memmove(temp, &temp[in_size - in_left], in_left);
+			}
 		}
 		TEMP_FREE;
 		return p - dest;
 	} else {
 		/* FIXME convert to client charset */
-		assert(need >= string_len);
+		assert(dest_size >= string_len);
 		tds_get_n(tds, dest, string_len);
 		TEMP_FREE;
 		return string_len;
@@ -303,11 +320,14 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
  * Fetch character data the wire.
  * Output is NOT null terminated.
  * If \a iconv_info is not NULL, convert data accordingly.
- * @return bytes written to \a dest
+ * \param dest      destination buffer in current_row. Can't be NULL
+ * \param wire_size size to read from wire (in bytes)
+ * \param curcol    column information
+ * \return TDS_SUCCEED or TDS_FAIL (probably memory error on text data)
  * \todo put a TDSICONVINFO structure in every TDSCOLINFO
  */
 int
-tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curcol)
+tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curcol)
 {
 	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
@@ -315,26 +335,30 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 	 * Also this prevent memory error problem on dynamic memory
 	 */
 	TEMP_INIT(256);
-	char *p;
-	unsigned int in_left, wire_size;
+	char *p, *pend;
+	size_t in_left;
+	TDSBLOBINFO *blob_info = NULL;
 
-	/* avoid integer division truncation */
-	/* TODO size should be wire size.... */
-	wire_size = (size * curcol->on_server.column_size) / curcol->column_size;
+	if (is_blob_type(curcol->column_type))
+		blob_info = (TDSBLOBINFO *) dest;
 
-	if (size == 0) {
+	/* silly case, empty string */
+	if (wire_size == 0) {
+		curcol->column_cur_size = 0;
+		if (blob_info) {
+			free(blob_info->textvalue);
+			blob_info->textvalue = NULL;
+		}
 		TEMP_FREE;
-		return 0;
+		return TDS_SUCCEED;
 	}
 
-	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size, size);
+	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size,
+		    curcol->column_cur_size);
 
-	/* silly case: discard */
-	if (dest == NULL) {
-		tds_get_n(tds, NULL, wire_size);
-		TEMP_FREE;
-		return wire_size;
-	}
+	p = dest;
+	if (blob_info)
+		p = blob_info->textvalue;
 
 	/*
 	 * The next test is crude.  The question we're trying to answer is, 
@@ -348,9 +372,9 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 	 * conversion descriptor.  Then, with the metadata pre-established, we just pass everything to 
 	 * tds_iconv and let it do the Right Thing.  
 	 */
-
 	if (curcol->column_size != curcol->on_server.column_size) {	/* TODO: remove this test */
-		p = dest;
+		/* TODO: reallocate if blob and no space */
+		pend = p + curcol->column_cur_size;
 		in_left = 0;
 		while (wire_size > 0) {
 			int in_size;
@@ -361,8 +385,16 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 			tds_get_n(tds, &temp[in_left], in_size - in_left);
 			tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: read %d of %d.\n", in_size - in_left, wire_size);
 			in_left = in_size;
-			/* FIXME ICONV size is the size to read, not the buffer size (also never decremented... bad) */
-			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, size);
+			/*
+			 * TODO The conversion should be selected from curcol and tds version
+			 * TDS8/single -> use curcol collation
+			 * TDS7/single -> use server single byte
+			 * TDS7+/unicode -> use server (always unicode)
+			 * TDS5/4.2 -> use server 
+			 * TDS5/UTF-8 -> use server
+			 * TDS5/UTF-16 -> use UTF-16
+			 */
+			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, pend - p);
 			wire_size -= in_size - in_left;
 
 			if (in_left) {
@@ -372,12 +404,14 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curc
 				memmove(temp, &temp[in_size - in_left], in_left);
 			}
 		}
+		curcol->column_cur_size = p - dest;
 		TEMP_FREE;
-		return p - dest;
+		return TDS_SUCCEED;
 	} else {
-		tds_get_n(tds, dest, size);
+		tds_get_n(tds, p, wire_size);
+		curcol->column_cur_size = wire_size;
 		TEMP_FREE;
-		return size;
+		return TDS_SUCCEED;
 	}
 }
 

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.184 2003-04-30 18:51:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.185 2003-05-03 12:51:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1738,17 +1738,24 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			if (!p)
 				return TDS_FAIL;
 			blob_info->textvalue = p;
-			if (is_char_type(curcol->column_type))
-				colsize = tds_get_char_data(tds, blob_info->textvalue, colsize, curcol);
-			else
+			if (is_char_type(curcol->column_type)) {
+				curcol->column_cur_size = colsize;
+				/* FIXME: test error */
+				tds_get_char_data(tds, (char *) blob_info, colsize, curcol);
+				/* just to make happy code below ... */
+				colsize = curcol->column_cur_size;
+			} else
 				tds_get_n(tds, blob_info->textvalue, colsize);
 		} else {	/* non-numeric and non-blob */
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
 			dest = &(current_row[curcol->column_offset]);
-			if (is_char_type(curcol->column_type))
-				colsize = tds_get_char_data(tds, (char *) dest, colsize, curcol);
-			else
+			if (is_char_type(curcol->column_type)) {
+				/* this shouldn't fail here */
+				tds_get_char_data(tds, (char *) dest, colsize, curcol);
+				/* just to make happy code below ... */
+				colsize = curcol->column_cur_size;
+			} else
 				tds_get_n(tds, dest, colsize);
 
 			/* pad CHAR and BINARY types */
