@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.43 2003-07-29 12:36:33 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.44 2003-07-29 12:56:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -462,7 +462,9 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
 	strncpy(hLastProperty->szName, "Servername", INI_MAX_PROPERTY_NAME);
 	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
-	hLastProperty->pszHelp = (char *) strdup("Name of FreeTDS connection to connect to.");
+	hLastProperty->pszHelp = (char *) strdup("Name of FreeTDS connection to connect to.\n"
+						 "This server name refer to entry in freetds.conf file, not real server name.\n"
+						 "This property cannot be used with Server property.");
 
 	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
 	hLastProperty = hLastProperty->pNext;
@@ -470,7 +472,9 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
 	strncpy(hLastProperty->szName, "Server", INI_MAX_PROPERTY_NAME);
 	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
-	hLastProperty->pszHelp = (char *) strdup("Name of server to connect to.");
+	hLastProperty->pszHelp = (char *) strdup("Name of server to connect to.\n"
+						 "This should be the name of real server.\n"
+						 "This property cannot be used with Servername property.");
 
 	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
 	hLastProperty = hLastProperty->pNext;
@@ -504,12 +508,14 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 	memcpy(hLastProperty->aPromptData, aTDSver, sizeof(aTDSver));
 	strncpy(hLastProperty->szName, "TDS_Version", INI_MAX_PROPERTY_NAME);
 	strncpy(hLastProperty->szValue, "4.2", INI_MAX_PROPERTY_VALUE);
-	hLastProperty->pszHelp = (char *) strdup("The TDS protocol version.");
+	hLastProperty->pszHelp = (char *) strdup("The TDS protocol version.\n"
+						 " 4.2 MSSQL 6.5 or Sybase < 10.x\n"
+						 " 5.0 Sybase >= 10.x\n" " 7.0 MSSQL 7 or MSSQL 2000\n" " 8.0 MSSQL 2000");
 
 	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
 	hLastProperty = hLastProperty->pNext;
 	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
-	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_COMBOBOX;
 	hLastProperty->aPromptData = malloc(sizeof(aLanguage));
 	memcpy(hLastProperty->aPromptData, aLanguage, sizeof(aLanguage));
 	strncpy(hLastProperty->szName, "Language", INI_MAX_PROPERTY_NAME);
