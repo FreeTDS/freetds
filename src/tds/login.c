@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.100 2003-06-10 07:22:24 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.101 2003-06-24 21:07:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -667,7 +667,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
 	unsigned char option_flag1 = 0x00;
-	unsigned char option_flag2 = 0x00;
+	unsigned char option_flag2 = tds->option_flag2;
 	static const unsigned char sql_type_flag = 0x00;
 	static const unsigned char reserved_flag = 0x00;
 
@@ -747,9 +747,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	if (domain_login)
 		option_flag2 |= 0x80;	/* enable domain login security                     */
-
-	option_flag2 |= 0x02;	/* client is an ODBC driver                         */
-	option_flag2 |= 0x01;	/* change to initial language must succeed          */
 
 	tds_put_byte(tds, option_flag2);
 

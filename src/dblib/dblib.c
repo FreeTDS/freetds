@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.150 2003-06-11 20:10:41 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.151 2003-06-24 21:07:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -858,7 +858,10 @@ static const char *opttext[DBNUMOPTIONS] = {
 	"auth",
 	"identity_insert",
 	"no_identity_column",
-	"cnv_date2char_short"
+	"cnv_date2char_short",
+	"client cursors", 
+	"set time", 
+	"quoted_identifier"
 };
 
 static DBOPTION *
@@ -884,6 +887,8 @@ init_dboptions(void)
 	dbstring_assign(&(dbopts[DBPRCOLSEP].optparam), " ");
 	dbstring_assign(&(dbopts[DBPRLINELEN].optparam), "80");
 	dbstring_assign(&(dbopts[DBPRLINESEP].optparam), "\n");
+	dbstring_assign(&(dbopts[DBCLIENTCURSORS].optparam), " ");
+	dbstring_assign(&(dbopts[DBSETTIME].optparam), " ");
 	return dbopts;
 }
 
@@ -930,6 +935,7 @@ tdsdbopen(LOGINREC * login, char *server)
 
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
 	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
+	dbproc->tds_socket->option_flag2 &= ~0x02; /* we're not an ODBC driver */
 	dbproc->tds_socket->env_chg_func = db_env_chg;
 	dbproc->envchange_rcv = 0;
 	dbproc->dbcurdb[0] = '\0';
@@ -3632,6 +3638,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	case DBPARSEONLY:
 	case DBSHOWPLAN:
 	case DBSTORPROCID:
+	case DBQUOTEDIDENT:
 		/* server options (on/off) */
 		if (asprintf(&cmd, "set %s on\n", dbproc->dbopts[option].opttext) < 0) {
 			return FAIL;
@@ -4817,6 +4824,7 @@ dbfreebuf(DBPROCESS * dbproc)
 	- DBPARSEONLY
 	- DBSHOWPLAN
 	- DBSTORPROCID
+	- DBQUOTEDIDENT
  * \sa dbisopt(), dbsetopt().
  */
 RETCODE
@@ -4839,6 +4847,7 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
 	case DBPARSEONLY:
 	case DBSHOWPLAN:
 	case DBSTORPROCID:
+	case DBQUOTEDIDENT:
 		/* server options (on/off) */
 		if (asprintf(&cmd, "set %s off\n", dbproc->dbopts[option].opttext) < 0) {
 			return FAIL;

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.131 2003-06-11 20:10:37 freddy77 Exp $";
+	"$Id: tds.h,v 1.132 2003-06-24 21:07:14 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -895,6 +895,7 @@ struct tds_socket {
 	TDS_UINT product_version;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	unsigned char broken_dates;
+	unsigned char option_flag2;
 	/* in/out buffers */
 	unsigned char *in_buf;
 	unsigned char *out_buf;

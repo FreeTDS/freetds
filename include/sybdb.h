@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.50 2003-05-19 17:49:05 castellano Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.51 2003-06-24 21:07:14 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -205,41 +205,44 @@ struct dbstring
 typedef struct dbstring DBSTRING;
 
 /* a large list of options, DBTEXTSIZE is needed by sybtcl */
-#define DBPARSEONLY    0
-#define DBESTIMATE     1
-#define DBSHOWPLAN     2
-#define DBNOEXEC       3
-#define DBARITHIGNORE  4
-#define DBNOCOUNT      5
-#define DBARITHABORT   6
-#define DBTEXTLIMIT    7
-#define DBBROWSE       8
-#define DBOFFSET       9
-#define DBSTAT        10
-#define DBERRLVL      11
-#define DBCONFIRM     12
-#define DBSTORPROCID  13
-#define DBBUFFER      14
-#define DBNOAUTOFREE  15
-#define DBROWCOUNT    16
-#define DBTEXTSIZE    17
-#define DBNATLANG     18
-#define DBDATEFORMAT  19
-#define DBPRPAD       20
-#define DBPRCOLSEP    21
-#define DBPRLINELEN   22
-#define DBPRLINESEP   23
-#define DBLFCONVERT   24
-#define DBDATEFIRST   25
-#define DBCHAINXACTS  26
-#define DBFIPSFLAG    27
-#define DBISOLATION   28
-#define DBAUTH        29
-#define DBIDENTITY    30
-#define DBNOIDCOL     31
-#define DBDATESHORT   32
+#define DBPARSEONLY      0
+#define DBESTIMATE       1
+#define DBSHOWPLAN       2
+#define DBNOEXEC         3
+#define DBARITHIGNORE    4
+#define DBNOCOUNT        5
+#define DBARITHABORT     6
+#define DBTEXTLIMIT      7
+#define DBBROWSE         8
+#define DBOFFSET         9
+#define DBSTAT          10
+#define DBERRLVL        11
+#define DBCONFIRM       12
+#define DBSTORPROCID    13
+#define DBBUFFER        14
+#define DBNOAUTOFREE    15
+#define DBROWCOUNT      16
+#define DBTEXTSIZE      17
+#define DBNATLANG       18
+#define DBDATEFORMAT    19
+#define DBPRPAD         20
+#define DBPRCOLSEP      21
+#define DBPRLINELEN     22
+#define DBPRLINESEP     23
+#define DBLFCONVERT     24
+#define DBDATEFIRST	25
+#define DBCHAINXACTS	26
+#define DBFIPSFLAG	27
+#define DBISOLATION	28
+#define DBAUTH		29
+#define DBIDENTITY	30
+#define DBNOIDCOL       31
+#define DBDATESHORT	32
+#define DBCLIENTCURSORS	33
+#define DBSETTIME 	34
+#define DBQUOTEDIDENT 	35
 
-#define DBNUMOPTIONS  33
+#define DBNUMOPTIONS  36
 
 #define DBPADOFF       0
 #define DBPADON        1

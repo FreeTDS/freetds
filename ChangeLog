@@ -1,3 +1,10 @@
+Tue Jun 24 16:58:35 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h include/sybdb.h
+	* src/dblib/dblib.c src/dblib/unittests/t0001.c
+	* src/tds/login.c src/tds/mem.c
+	- Initialize option_flag2 in TDS7+ login packet from a field
+	- in TDSSOCKET.  Turn off ODBC bit in dblib.c::tdsdbopen().
+
 Thu Jun 12 16:00:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c: applyed patch #753288
 
