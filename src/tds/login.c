@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.21 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.22 2002-06-18 03:35:30 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -284,6 +284,7 @@ FD_ZERO (&fds);
 	if (!tds_process_login_tokens(tds)) {
 		tds_free_socket(tds);
 		tds = NULL;
+		return NULL;
 	}
 	if (tds && config->text_size) {
 		sprintf(query,"set textsize %d", config->text_size);
