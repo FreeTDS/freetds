@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.120 2003-04-27 11:16:54 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.121 2003-04-30 08:47:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -223,7 +223,10 @@ binary_to_result(const void *data, size_t len, CONV_RESULT * cr)
 }
 
 
-
+#define CASE_ALL_CHAR \
+	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
+#define CASE_ALL_BINARY \
+	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY
 
 /* TODO implement me */
 /*
@@ -244,9 +247,7 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	char hex2[3];
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 
 		/* NOTE: Do not prepend 0x to string.  
 		 * The libraries all expect a bare string, without a 0x prefix. 
@@ -268,9 +269,7 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 		*c = '\0';
 		return (srclen * 2);
 		break;
-	case SYBIMAGE:
-	case SYBBINARY:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, srclen, cr);
 		break;
 	case SYBINT1:
@@ -326,9 +325,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 	TDS_INT rc;
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		cr->c = (TDS_CHAR *) malloc(srclen + 1);
 		test_alloc(cr->c);
 		memcpy(cr->c, src, srclen);
@@ -336,9 +333,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		return srclen;
 		break;
 
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 
 		/* skip leading "0x" or "0X" */
 
@@ -610,18 +605,14 @@ tds_convert_bit(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * c
 	int canonic = src[0] ? 1 : 0;
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		cr->c = (TDS_CHAR *) malloc(2);
 		test_alloc(cr->c);
 		cr->c[0] = '0' + canonic;
 		cr->c[1] = 0;
 		return 1;
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, 1, cr);
 		break;
 	case SYBINT1:
@@ -682,15 +673,11 @@ tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, 1, cr);
 		break;
 	case SYBINT1:
@@ -755,15 +742,11 @@ tds_convert_int2(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, 2, cr);
 		break;
 	case SYBINT1:
@@ -830,15 +813,11 @@ tds_convert_int4(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, 4, cr);
 		break;
 	case SYBINT1:
@@ -910,9 +889,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		/* TODO: fix for all platform. Search for lltoa/_i64toa */
 #ifndef WIN32
 		sprintf(tmp_str, "%lld", buf);
@@ -921,9 +898,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 #endif
 		return string_to_result(tmp_str, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_INT8), cr);
 		break;
 	case SYBINT1:
@@ -1001,15 +976,11 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 	long i;
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		tds_numeric_to_string(src, tmpstr);
 		return string_to_result(tmpstr, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_NUMERIC), cr);
 		break;
 	case SYBINT1:
@@ -1090,9 +1061,7 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 
 	memcpy(&mny, src, sizeof(mny));
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		/* FIXME should be rounded ??
 		 * see also all conversion to int and from money 
 		 * rounding with dollars = (mny.mny4 + 5000) /10000
@@ -1107,9 +1076,7 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 		sprintf(tmp_str, "%ld.%02lu", dollars, fraction / 100);
 		return string_to_result(tmp_str, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_MONEY4), cr);
 		break;
 	case SYBINT1:
@@ -1199,16 +1166,12 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 	tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
 #	endif
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
 		return string_to_result(s, cr);
 		break;
 
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_MONEY), cr);
 		break;
 	case SYBINT1:
@@ -1287,9 +1250,7 @@ tds_convert_datetime(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, in
 	TDSDATEREC when;
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		if (!src) {
 			cr->c = (TDS_CHAR *) malloc(1);
 			test_alloc(cr->c);
@@ -1305,9 +1266,7 @@ tds_convert_datetime(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, in
 			return string_to_result(whole_date_string, cr);
 		}
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_DATETIME), cr);
 		break;
 	case SYBDATETIME:
@@ -1367,9 +1326,7 @@ tds_convert_datetime4(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, i
 	TDSDATEREC when;
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		if (!src) {
 			cr->c = (TDS_CHAR *) malloc(1);
 			test_alloc(cr->c);
@@ -1385,9 +1342,7 @@ tds_convert_datetime4(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, i
 			return string_to_result(whole_date_string, cr);
 		}
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_DATETIME4), cr);
 		break;
 	case SYBDATETIME:
@@ -1436,16 +1391,12 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	memcpy(&the_value, src, 4);
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.7g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
 
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_REAL), cr);
 		break;
 	case SYBINT1:
@@ -1525,16 +1476,12 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&the_value, src, 8);
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.15g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
 
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_FLOAT), cr);
 		break;
 	case SYBINT1:
@@ -1613,17 +1560,13 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
 	char buf[37];
 
 	switch (desttype) {
-	case SYBCHAR:
-	case SYBTEXT:
-	case SYBVARCHAR:
+	case CASE_ALL_CHAR:
 		sprintf(buf, "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			(int) u->Data1, (int) u->Data2, (int) u->Data3,
 			u->Data4[0], u->Data4[1], u->Data4[2], u->Data4[3], u->Data4[4], u->Data4[5], u->Data4[6], u->Data4[7]);
 		return string_to_result(buf, cr);
 		break;
-	case SYBBINARY:
-	case SYBIMAGE:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_UNIQUE), cr);
 		break;
 	case SYBUNIQUE:
@@ -1677,9 +1620,7 @@ tds_convert(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT sr
 	TDS_INT length = 0;
 
 	switch (srctype) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
+	case CASE_ALL_CHAR:
 		length = tds_convert_char(srctype, src, srclen, desttype, cr);
 		break;
 	case SYBMONEY4:
@@ -1720,9 +1661,7 @@ tds_convert(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT sr
 	case SYBDATETIME4:
 		length = tds_convert_datetime4(tds_ctx, srctype, src, desttype, cr);
 		break;
-	case SYBIMAGE:
-	case SYBBINARY:
-	case SYBVARBINARY:
+	case CASE_ALL_BINARY:
 		length = tds_convert_binary(srctype, (const TDS_UCHAR *) src, srclen, desttype, cr);
 		break;
 	case SYBUNIQUE:

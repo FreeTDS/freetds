@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.7 2003-04-29 20:01:18 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.8 2003-04-30 08:47:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -100,6 +100,8 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 	switch (dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
+	case XSYBCHAR:
+	case XSYBVARCHAR:
 		memcpy(&info->current_row[curcol->column_offset], ores.c, res);
 		free(ores.c);
 		break;
@@ -111,6 +113,8 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, TDSCO
 		break;
 	case SYBBINARY:
 	case SYBVARBINARY:
+	case XSYBBINARY:
+	case XSYBVARBINARY:
 		memcpy(&info->current_row[curcol->column_offset], ores.ib, res);
 		free(ores.ib);
 		break;
