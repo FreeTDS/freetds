@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.29 2002-07-16 04:01:22 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.30 2002-07-16 17:34:02 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1032,7 +1032,8 @@ int ret;
 TDSMSGINFO msg_info;
 
         if(tds_ctx->err_handler) {
-		msg_info.msg_number=msgnum;
+			memset(&msg_info, 0, sizeof(TDSMSGINFO));
+			msg_info.msg_number=msgnum;
         	msg_info.msg_level=level; /* severity? */
         	msg_info.msg_state=state;
         	msg_info.server=strdup("OpenClient");
