@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.50 2003-04-08 11:10:55 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.51 2003-04-10 13:09:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -69,9 +69,10 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 {
 	TDS_ENCODING *client = &tds->iconv_info->client_charset;
 	TDS_ENCODING *server = &tds->iconv_info->server_charset;
-	int ratio_c, ratio_s;
 
 #if HAVE_ICONV
+	int ratio_c, ratio_s;
+
 	strncpy(client->name, charset, sizeof(client->name));
 	client->name[sizeof(client->name) - 1] = '\0';
 
@@ -108,6 +109,12 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
 		return;
 	}
+#else
+	strcpy(client->name, "ISO-8859-1");
+	strcpy(server->name, "UCS-2LE");
+
+	bytes_per_char(client);
+	bytes_per_char(server);
 #endif
 }
 
@@ -133,6 +140,7 @@ size_t
 tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST char *input, size_t * input_size,
 	  char *output, size_t output_size)
 {
+#if HAVE_ICONV
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 	const size_t output_buffer_size = output_size;
@@ -218,6 +226,14 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		iconv_close(error_cd);
 
 	return  output_buffer_size - output_size;
+#else
+    /* FIXME best code, please, this do not convert unicode <-> singlebyte */
+    if (output_size > *input_size)
+        output_size = *input_size;
+    memcpy(output, input, output_size);
+    *input_size += output_size;
+    return output_size;
+#endif
 }
 
 void

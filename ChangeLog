@@ -1,3 +1,7 @@
+Thu Apr 10 15:09:24 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsiconv.h src/tds/iconv.c src/tds/mem.c:
+	- fix compile under win32
+
 Thu Apr 10 14:08:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: disable debug by default
 

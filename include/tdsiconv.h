@@ -21,7 +21,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.8 2003-04-08 10:25:42 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.9 2003-04-10 13:09:57 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -57,8 +57,10 @@ struct tdsiconvinfo
 {
 	TDS_ENCODING client_charset;
 	TDS_ENCODING server_charset;
+#if HAVE_ICONV
 	iconv_t to_wire;   /* conversion from client charset to server's format */
 	iconv_t from_wire; /* conversion from server's format to client charset */
+#endif
 };
 
 size_t tds_iconv (TDS_ICONV_DIRECTION, const TDSICONVINFO *, ICONV_CONST char *input, size_t * input_size, char *out_string, size_t maxlen);
