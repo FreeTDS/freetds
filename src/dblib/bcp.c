@@ -62,7 +62,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.62 2003-03-27 07:34:04 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.63 2003-03-27 19:43:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -893,8 +893,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 			bytes_read = _bcp_get_term_data(hostfile, hostcol, coldata_buffers);
 
-			if (bytes_read == -1)
+			if (bytes_read == -1) {
+				*row_error = TRUE;
 				return FAIL;
+			}
 
 			if (collen)
 				collen = (bytes_read < collen) ? bytes_read : collen;
@@ -929,6 +931,14 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				}
 			}
 		}
+
+		/*
+		 * If we read no bytes and we're at end of file AND this is the first column, 
+		 * then we've stumbled across the finish line.  Tell the caller we failed to read 
+		 * anything but encountered no error.
+		 */
+		if ( i == 0 && collen == 0 && feof(hostfile)) 
+			return (FAIL);
 
 		/* 
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
@@ -993,18 +1003,22 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 /*
  * Read a terminated variable from a hostfile 
+ * \return 
+ * 	- >0 count of bytes read into \a data
+ * 	-  0 OK, nothing more to read
+ * 	- -1 Error encountered (handler called)
  */
 static int
 _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data)
 {
-	int i = 0, ibuffer=0;
-	char x, *sample = &x;
-	int bufpos = 0;
-	int found = 0;
+	int i = 0, ibuffer=0, bufpos = 0;
+	char *sample;
+	int sample_size, bytes_read;
 	unsigned char *pdata;
 
-	if (hostcol->term_len > 1)
-		sample = (char *) malloc(hostcol->term_len);
+	assert(hostcol && hostcol->term_len > 0);
+
+	sample = (char *) malloc(hostcol->term_len);
 
 	/* data[0] must be allocated by the caller; we never free it */
 	assert (data);
@@ -1013,38 +1027,40 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 
 	pdata = data[0];
 
-	while (data[ibuffer] && !found && (*sample = getc(hostfile)) != EOF) {
-		
-		int bytes_read = 1;
+	for (sample_size = 1; bytes_read = fread(sample, sample_size, 1, hostfile); ) {
 
-		/* Did we find the start of a terminator? */
+		bytes_read *= sample_size;
+
+		/*
+		 * Check for terminator.
+		 */
 		if (*sample == *hostcol->terminator) {
+			int found = 0;
+			if (sample_size == hostcol->term_len) {	/* Did we read the  end  of a terminator? */
+				/*
+				 * If we read a whole terminator, compare the whole sequence and, if found, go home. 
+				 */
+				found = 0 == memcmp(sample, hostcol->terminator, hostcol->term_len);
 
-			/* 
-			 * Hit the first character of a column terminator.  Is it a whole terminator, or is it data?  
-			 * Back up, read a whole terminator, and compare.
-			 */
-			ungetc(*sample, hostfile);
-			bytes_read = fread(sample, hostcol->term_len, 1, hostfile);
-			bytes_read *= hostcol->term_len;
-
-			if (bytes_read < hostcol->term_len) {
-				if (feof(hostfile)) {
-					/* a cheat: we don't have dbproc, so pass zero */
-					_bcp_err_handler(0, SYBEBEOF);
-				} else {
-					_bcp_err_handler(0, SYBEBCRE);
-				}
-				break;
+				if (found) {	/* stick on a NULL (why?) and return */
+					*pdata = '\0';
+					free(sample);  
+					return bufpos;
+				} 
+			} else {
+				/* 
+				 * Found start of terminator, but haven't read a full terminator's length yet.  
+				 * Back up, read a whole terminator, and try again.
+				 */
+				assert(bytes_read == 1);
+				ungetc(*sample, hostfile);
+				sample_size = hostcol->term_len;
+				continue;
 			}
-
-			found = 0 == memcmp(sample, hostcol->terminator, hostcol->term_len);
-			
-			if (found) {	/* stick on a NULL (why?) and return */
-				*pdata = '\0';
-				break;
-			} 
+			assert(sample_size == hostcol->term_len && !found);
 		}
+
+		sample_size = 1;
 
 		/* It's data.  Move it into the column buffer.  */
 		for (i=0; i < bytes_read; i++) {
@@ -1066,8 +1082,30 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 		}
 	}
 
-	if (found) 
-		return (bufpos);
+	free(sample);  
+
+	if (bufpos == 0)
+		return 0;	/* OK, did not read part of a field. */
+
+	/*
+	 * To get here, we ran out of memory, or encountered an error (or EOF) with the file.  
+	 * EOF is a surprise, because if we read a complete field with its terminator, 
+	 * we would have returned without attempting to read past end of file.  
+	 */
+
+	assert(bytes_read == 0 || data[ibuffer] == NULL);
+
+	if (feof(hostfile)) {
+		/* a cheat: we don't have dbproc, so pass zero */
+		_bcp_err_handler(0, SYBEBEOF);
+
+	} else if (ferror(hostfile)) {
+		_bcp_err_handler(0, SYBEBCRE);
+
+	} else if (data[ibuffer] == NULL) {
+		_bcp_err_handler(0, SYBEMEM);
+
+	} 
 
 	/* free the memory, because we're not going to return a size the caller can use to free it. */
 	for (i=1; i <= ibuffer; i++) {
@@ -1075,7 +1113,7 @@ _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **d
 		data[i] = NULL;
 	}
 
-	return (-1);
+	return -1;
 }
 
 /**

@@ -1,3 +1,6 @@
+Thu Mar 27 14:40:42 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c Yet another re-write of _bcp_get_term_data
+
 Thu Mar 27 17:19:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_setparam.c:
 	- remove some warnings
