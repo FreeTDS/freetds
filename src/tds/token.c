@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.108 2002-11-16 15:21:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.109 2002-11-17 08:38:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -58,6 +58,7 @@ static int tds_get_varint_size(int datatype);
 static int tds_get_cardinal_type(int datatype);
 static int tds_get_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i);
 static int tds_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol);
+static int tds_process_env_chg(TDSSOCKET *tds);
 
 /*
 ** The following little table is indexed by precision and will
@@ -256,6 +257,8 @@ char *tmpbuf;
 					if (l < len)
 						tds_get_n(tds, NULL, len - l);
 				}
+				/* FIXME MSSQL 6.5 and 7.0 seem to return strange values for this 
+				   using TDS 4.2, something like 5F 06 32 FF for 65*/
 				product_version |= 
 					((TDS_UINT)tds_get_byte(tds)) << 24;
 				product_version |= 
@@ -265,18 +268,14 @@ char *tmpbuf;
 				product_version |= tds_get_byte(tds);
 				tds->product_version = product_version;
 #ifdef WORDS_BIGENDIAN
+				/* do a best check */
 /*
+				
 				if (major_ver==7) {
 					tds->broken_dates=1;
 				}
 */
 #endif
-/*
-				tmpbuf = (char *) malloc(len);
-				tds_get_n(tds, tmpbuf, len);
-				tdsdump_log(TDS_DBG_INFO1, "%L login ack marker = %d\n%D\n", marker, tmpbuf, len);
-				free(tmpbuf);
-*/
 				/* TDS 5.0 reports 5 on success 6 on failure
 				** TDS 4.2 reports 1 on success and is not
 				** present on failure */
@@ -292,18 +291,25 @@ char *tmpbuf;
 	if (tds->spid == 0) {
 		if (tds_set_spid(tds) != TDS_SUCCEED) {
 			tdsdump_log(TDS_DBG_ERROR, "%L tds_set_spid() failed\n");
+			succeed = TDS_FAIL;
 		}
 	}
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_login_tokens() returning %d\n",succeed);
 	return succeed;
 }
 
-static int tds_process_auth(TDSSOCKET *tds)
+static int 
+tds_process_auth(TDSSOCKET *tds)
 {
-int pdu_size, ntlm_size;
-char nonce[10];
+int pdu_size;
+char nonce[8];
 /* char domain[30]; */
 int where = 0;
+
+#ifdef ENABLE_EXTRA_CHECKS
+	if (!IS_TDS7_PLUS(tds))
+		tdsdump_log(TDS_DBG_ERROR, "Called auth on TDS version < 7\n");
+#endif
 
 	pdu_size = tds_get_smallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
@@ -314,16 +320,15 @@ int where = 0;
 	where += 4;
 	tds_get_n(tds, NULL, 4); /* domain len (2 time) */
 	where += 4;
-	ntlm_size = tds_get_int(tds); /* size of remainder of ntlmssp packet */
+	tds_get_int(tds); /* domain offset */
 	where += 4;
-	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN NTLMSSP size %d\n", ntlm_size);
 	tds_get_n(tds, NULL, 4); /* flags */
 	where += 4;
 	tds_get_n(tds, nonce, 8); 
 	where += 8;
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce\n");
 	tdsdump_dump_buf(nonce, 8);
-	tds_get_n(tds, NULL, 8); 
+	tds_get_n(tds, NULL, 8); /* ?? */
 	where += 8;
 	
 	/*
@@ -332,6 +337,8 @@ int where = 0;
 	where += strlen(domain);
 	*/
 
+	if (pdu_size < where)
+		return TDS_FAIL;
 	tds_get_n(tds, NULL, pdu_size - where); 
 	tdsdump_log(TDS_DBG_INFO1,"%L Draining %d bytes\n", pdu_size - where);
 
@@ -476,9 +483,11 @@ int done_flags;
 				*result_type = TDS_DESCRIBE_RESULT;
 				return TDS_SUCCEED;
 				break;
+			/* TODO handle TDS5_PARAMS_TOKEN, very similar to tds_process_row but write in parameters */
 			case TDS_DONE_TOKEN:
 			case TDS_DONEPROC_TOKEN:
 			case TDS_DONEINPROC_TOKEN:
+				/* FIXME should we free results ?? */
 				if (tds_process_end(tds, marker, &done_flags) == TDS_SUCCEED)
 					*result_type = (done_flags & TDS_DONE_COUNT) ? TDS_CMD_DONE : TDS_CMD_SUCCEED;
 				else
@@ -757,6 +766,7 @@ TDSCOLINFO *curparam;
 TDSPARAMINFO *info;
 int i;
 
+	/* TODO limited to 64K, try to return bigger data (like TEXT) from mssql */
 	hdrsize = tds_get_smallint(tds);
 	info = tds_alloc_param_result(tds->param_info);
 	tds->param_info = info;
@@ -1161,6 +1171,7 @@ TDSBLOBINFO *blob_info;
 			break;
 		case 2: 
 			colsize = tds_get_smallint(tds);
+			/* TODO check what happen in convert routine... */
 			/* handle empty no-NULL string*/
 			if (colsize == 0) {
 				tds_clr_null(current_row, i);
@@ -1221,7 +1232,8 @@ TDSBLOBINFO *blob_info;
 
 	} else if (curcol->column_type == SYBVARBINARY) {
 		TDS_VARBINARY *varbin;
-
+		
+		/* FIXME what happen if BINARY is bigger (mssql7*)? */
 		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
 		varbin->len = colsize;
 		/*  It is important to re-zero out the whole
@@ -1326,11 +1338,11 @@ TDSBLOBINFO *blob_info;
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_row() processes rows and places them in the row buffer.  There
-** is also some special handling for some of the more obscure datatypes here.
-*/
-static int tds_process_row(TDSSOCKET *tds)
+/**
+ * tds_process_row() processes rows and places them in the row buffer.
+ */
+static int 
+tds_process_row(TDSSOCKET *tds)
 {
 int i;
 TDSCOLINFO *curcol;
@@ -1351,11 +1363,15 @@ TDSRESULTINFO *info;
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_end() processes any of the DONE, DONEPROC, or DONEINPROC
-** tokens.
-*/
-TDS_INT tds_process_end(
+/**
+ * tds_process_end() processes any of the DONE, DONEPROC, or DONEINPROC
+ * tokens.
+ * @param marker     TDS token number
+ * @param flags_parm filled with bit flags (see TDS_DONE_ constants). 
+ *        Is NULL nothing is returned
+ */
+TDS_INT 
+tds_process_end(
    TDSSOCKET     *tds,
    int            marker,
    int           *flags_parm)
@@ -1398,30 +1414,32 @@ int tmp;
 
 
 
-/*
-** tds_client_msg() sends a message to the client application from the CLI or
-** TDS layer. A client message is one that is generated from with the library
-** and not from the server.  The message is sent to the CLI (the 
-** err_handler) so that it may forward it to the client application or
-** discard it if no msg handler has been by the application. tds->parent
-** contains a void pointer to the parent of the tds socket. This can be cast
-** back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
-** proper recipient function for this message.
-*/
-int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message)
+/**
+ * tds_client_msg() sends a message to the client application from the CLI or
+ * TDS layer. A client message is one that is generated from with the library
+ * and not from the server.  The message is sent to the CLI (the 
+ * err_handler) so that it may forward it to the client application or
+ * discard it if no msg handler has been by the application. tds->parent
+ * contains a void pointer to the parent of the tds socket. This can be cast
+ * back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
+ * proper recipient function for this message.
+ */
+int 
+tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message)
 {
 int ret;
 TDSMSGINFO msg_info;
 
-        if(tds_ctx->err_handler) {
-			memset(&msg_info, 0, sizeof(TDSMSGINFO));
-			msg_info.msg_number=msgnum;
-        	msg_info.msg_level=level; /* severity? */
-        	msg_info.msg_state=state;
-        	msg_info.server=strdup("OpenClient");
-        	msg_info.line_number=line;
-        	msg_info.message=strdup(message);
-        	ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
+	if(tds_ctx->err_handler) {
+		memset(&msg_info, 0, sizeof(TDSMSGINFO));
+		msg_info.msg_number=msgnum;
+		msg_info.msg_level=level; /* severity? */
+		msg_info.msg_state=state;
+		/* TODO is possible to avoid copy of strings ? */
+		msg_info.server=strdup("OpenClient");
+		msg_info.line_number=line;
+		msg_info.message=strdup(message);
+		ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		tds_free_msg(&msg_info);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
@@ -1432,14 +1450,14 @@ TDSMSGINFO msg_info;
 	return 0;
 }
 
-/*
-** tds_process_env_chg() 
-** when ever certain things change on the server, such as database, character
-** set, language, or block size.  A environment change message is generated
-** There is no action taken currently, but certain functions at the CLI level
-** that return the name of the current database will need to use this.
-*/
-int
+/**
+ * tds_process_env_chg() 
+ * when ever certain things change on the server, such as database, character
+ * set, language, or block size.  A environment change message is generated
+ * There is no action taken currently, but certain functions at the CLI level
+ * that return the name of the current database will need to use this.
+ */
+static int
 tds_process_env_chg(TDSSOCKET *tds)
 {
 	int size, type;
@@ -1457,6 +1475,7 @@ tds_process_env_chg(TDSSOCKET *tds)
 
 	type = tds_get_byte(tds);
 
+	/* TODO I don't understand why... What's env 7? */
 	if (type==0x07) {
 		size = tds_get_byte(tds);
 		if (size) tds_get_n(tds, NULL, size);
@@ -1487,11 +1506,11 @@ tds_process_env_chg(TDSSOCKET *tds)
 				** block size but if it is possible, we don't 
 				** handle it.
 				*/
-				if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, new_block_size)) == NULL) {
-					return TDS_FAIL;
+				/* Reallocate buffer if impossible (strange values from server or out of memory) use older buffer */
+				if ((new_out_buf = (unsigned char *) realloc(tds->out_buf, new_block_size)) != NULL) {
+					tds->out_buf = new_out_buf;
+					env->block_size = new_block_size;
 				}
-				tds->out_buf = new_out_buf;
-				env->block_size = new_block_size;
 			}
 			break;
 	}
@@ -1504,17 +1523,16 @@ tds_process_env_chg(TDSSOCKET *tds)
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
-** for calling the CLI's message handling routine
-** returns TDS_SUCCEED if informational, TDS_ERROR if error.
-*/
-static int tds_process_msg(TDSSOCKET *tds,int marker)
+/**
+ * tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
+ * for calling the CLI's message handling routine
+ * returns TDS_SUCCEED if informational, TDS_ERROR if error.
+ */
+static int 
+tds_process_msg(TDSSOCKET *tds,int marker)
 {
 int rc;
 int len;
-int len_msg;
-int len_svr;
 int len_sqlstate;
 TDSMSGINFO msg_info;
 
@@ -1539,14 +1557,15 @@ TDSMSGINFO msg_info;
 		if (msg_info.msg_level<=10) 
                     msg_info.priv_msg_type = 0;
 		else 
-                    msg_info.priv_msg_type = 1;
-		/* junk this info for now */
+			msg_info.priv_msg_type = 1;
+
+		/* read SQL state */
 		len_sqlstate = tds_get_byte(tds);
 		msg_info.sql_state = (char*)malloc(len_sqlstate+1);
 		tds_get_n(tds, msg_info.sql_state,len_sqlstate);
 		msg_info.sql_state[len_sqlstate] = '\0';
 
-		/* unknown values */
+		/* junk status and transaction state */
 		tds_get_byte(tds);
 		tds_get_smallint(tds);
 	} 
@@ -1560,24 +1579,13 @@ TDSMSGINFO msg_info;
 	}
 
 	/* the message */
-	len_msg = tds_get_smallint(tds);
-	msg_info.message = (char*)malloc(len_msg+1);
-	tds_get_string(tds, msg_info.message, len_msg);
-	msg_info.message[len_msg] = '\0';
+	msg_info.message = tds_alloc_get_string(tds, tds_get_smallint(tds));
 
 	/* server name */
-	len_svr = tds_get_byte(tds);
-	msg_info.server = (char*)malloc(len_svr+1);
-	tds_get_string(tds, msg_info.server, len_svr);
-	msg_info.server[len_svr] = '\0';
+	msg_info.server = tds_alloc_get_string(tds, tds_get_byte(tds));
 
 	/* stored proc name if available */
-	rc = tds_get_byte(tds);
-	if (rc > 0) {
-		msg_info.proc_name=tds_msg_get_proc_name(tds, rc);
-	} else {
-		msg_info.proc_name=strdup("");
-	}
+	msg_info.proc_name = tds_alloc_get_string(tds, tds_get_byte(tds));
 
 	/* line number in the sql statement where the problem occured */
 	msg_info.line_number = tds_get_smallint(tds);
@@ -1604,16 +1612,25 @@ TDSMSGINFO msg_info;
 	return TDS_SUCCEED;
 }
 
-char *tds_msg_get_proc_name(TDSSOCKET *tds, int procnamelen)
+/**
+ * Read a string from wire in a new allocated buffer
+ * @param len length of string to read
+ */
+char *
+tds_alloc_get_string(TDSSOCKET *tds, int len)
 {
-char *proc_name;
+char *s;
 
-    proc_name = (char*)malloc(procnamelen + 1);
-    tds_get_string(tds, proc_name, procnamelen);
-    proc_name[procnamelen] = '\0';
+	if (len < 0)
+		return NULL;
 
-	return proc_name;
+	s = (char*)malloc(len + 1);
+	if (!s) 
+		return NULL;
+	tds_get_string(tds, s, len);
+	s[len] = '\0';
 
+	return s;
 }
 
 /*
@@ -1640,24 +1657,13 @@ int marker, done_flags=0;
 
 	return 0;
 }
-/* =========================== tds_is_result_row() ===========================
- * 
- * Def:  does the next token in stream signify a result row?
- * 
- * Ret:  true if stream is positioned at a row, false otherwise
- * 
- * ===========================================================================
+/**
+ * Does the next token in stream signify a result row?
+ * @return trueif stream is positioned at a row, false otherwise
  */
 int tds_is_result_row(TDSSOCKET *tds)
 {
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   if (marker==TDS_ROW_TOKEN)
-   {
-      result = 1;
-   }
-   return result;
+	return (tds_peek(tds) == TDS_ROW_TOKEN);
 } /* tds_is_result_row()  */
 
 
@@ -1724,31 +1730,32 @@ int tds_is_control(TDSSOCKET *tds)
  */
 void tds_set_null(unsigned char *current_row, int column)
 {
-int bytenum = column  / 8;
-int bit = column % 8;
+int bytenum = ((unsigned int) column) / 8u;
+int bit = ((unsigned int) column) % 8u;
 unsigned char mask = 1 << bit;
 
 	tdsdump_log(TDS_DBG_INFO1,"%L setting column %d NULL bit\n", column);
 	current_row[bytenum] |= mask;
 }
-/*
-** clear the null bit for the given column in the row buffer
-*/
+
+/**
+ * clear the null bit for the given column in the row buffer
+ */
 void tds_clr_null(unsigned char *current_row, int column)
 {
-int bytenum = column  / 8;
-int bit = column % 8;
+int bytenum = ((unsigned int) column) / 8u;
+int bit = ((unsigned int) column) % 8u;
 unsigned char mask = ~(1 << bit);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L clearing column %d NULL bit\n", column);
 	current_row[bytenum] &= mask;
 }
-/*
-** return the null bit for the given column in the row buffer
-*/
+/**
+ * Return the null bit for the given column in the row buffer
+ */
 int tds_get_null(unsigned char *current_row, int column)
 {
-int bytenum = column  / 8;
+int bytenum = ((unsigned int) column) / 8u;
 int bit = ((unsigned int) column) % 8u;
 
 	return (current_row[bytenum] >> bit) & 1;
@@ -1774,17 +1781,17 @@ static TDSDYNAMIC*
 tds_process_dynamic(TDSSOCKET *tds)
 {
 int token_sz;
-char subtoken[2];
+unsigned char type, status;
 int id_len;
 char id[TDS_MAX_DYNID_LEN+1];
 int drain = 0;
 
 	token_sz = tds_get_smallint(tds);
-	subtoken[0] = tds_get_byte(tds);
-	subtoken[1] = tds_get_byte(tds);
-	if (subtoken[0]!=0x20 || subtoken[1]!=0x00) {
-		tdsdump_log(TDS_DBG_ERROR,"Unrecognized TDS5_DYN subtoken %x,%x\n",
-		        subtoken[0], subtoken[1]);
+	type = tds_get_byte(tds);
+	status = tds_get_byte(tds);
+	/* handle only acknowledge */
+	if (type != 0x20) {
+		tdsdump_log(TDS_DBG_ERROR,"Unrecognized TDS5_DYN type %x\n", type);
 		tds_get_n(tds, NULL, token_sz-2);
 		return NULL;
 	}
@@ -1835,12 +1842,13 @@ TDSDYNAMIC *dyn;
 	}
 }
 
-/* 
-** tds_is_fixed_token()
-** some tokens are fixed length while others are variable.  This function is 
-** used by tds_process_cancel() to determine how to read past a token
-*/
-int tds_is_fixed_token(int marker)
+/**
+ * tds_is_fixed_token()
+ * some tokens are fixed length while others are variable.  This function is 
+ * used by tds_process_cancel() to determine how to read past a token
+ */
+int 
+tds_is_fixed_token(int marker)
 {
 	switch (marker) {
 		case TDS_DONE_TOKEN:
@@ -1853,11 +1861,12 @@ int tds_is_fixed_token(int marker)
 	}
 }
 
-/* 
-** tds_get_token_size() returns the size of a fixed length token
-** used by tds_process_cancel() to determine how to read past a token
-*/
-int tds_get_token_size(int marker)
+/**
+ * tds_get_token_size() returns the size of a fixed length token
+ * used by tds_process_cancel() to determine how to read past a token
+ */
+int 
+tds_get_token_size(int marker)
 {
 	switch(marker) {
 		case TDS_DONE_TOKEN:
@@ -1951,9 +1960,12 @@ static int tds_get_varint_size(int datatype)
 	}
 }
 
-static int tds_get_cardinal_type(int datatype)
+static int 
+tds_get_cardinal_type(int datatype)
 {
 	switch(datatype) {
+		/* FIXME in case of binary > 255 (mssql7+) reading data fail 
+		   (binary are saved to limited structure)... */
 		case XSYBVARBINARY: 
 			return SYBVARBINARY;
 		case XSYBBINARY: 
@@ -2142,130 +2154,52 @@ TDSCOMPUTEINFO *info;
 const char *
 tds_prtype(int token) {
 
+#define TYPE(con, s) case con: return s; break
 	switch (token) {
-	case SYBAOPAVG:
-		return "avg";
-		break;
-	case SYBAOPCNT:
-		return "count";
-		break;
-	case SYBAOPMAX:
-		return "max";
-		break;
-	case SYBAOPMIN:
-		return "min";
-		break;
-	case SYBAOPSUM:
-		return "sum";
-		break;
-	case SYBBINARY:
-		return "binary";
-		break;
-	case SYBBIT:
-		return "bit";
-		break;
-	case SYBBITN:
-		return "bit-null";
-		break;
-	case SYBCHAR:
-		return "char";
-		break;
-	case SYBDATETIME4:
-		return "smalldatetime";
-		break;
-	case SYBDATETIME:
-		return "datetime";
-		break;
-	case SYBDATETIMN:
-		return "datetime-null";
-		break;
-	case SYBDECIMAL:
-		return "decimal";
-		break;
-	case SYBFLT8:
-		return "float";
-		break;
-	case SYBFLTN:
-		return "float-null";
-		break;
-	case SYBIMAGE:
-		return "image";
-		break;
-	case SYBINT1:
-		return "tinyint";
-		break;
-	case SYBINT2:
-		return "smallint";
-		break;
-	case SYBINT4:
-		return "int";
-		break;
-	case SYBINT8:
-		return "long long";
-		break;
-	case SYBINTN:
-		return "integer-null";
-		break;
-	case SYBMONEY4:
-		return "smallmoney";
-		break;
-	case SYBMONEY:
-		return "money";
-		break;
-	case SYBMONEYN:
-		return "money-null";
-		break;
-	case SYBNTEXT:
-		return "UCS-2 text";
-		break;
-	case SYBNVARCHAR:
-		return "UCS-2 varchar";
-		break;
-	case SYBNUMERIC:
-		return "numeric";
-		break;
-	case SYBREAL:
-		return "real";
-		break;
-	case SYBTEXT:
-		return "text";
-		break;
-	case SYBUNIQUE:
-		return "uniqueidentifier";
-		break;
-	case SYBVARBINARY:
-		return "varbinary";
-		break;
-	case SYBVARCHAR:
-		return "varchar";
-		break;
-	case SYBVARIANT:
-		return "variant";
-		break;
-	case SYBVOID:
-		return "void";
-		break;
-	case XSYBBINARY:
-		return "xbinary";
-		break;
-	case XSYBCHAR:
-		return "xchar";
-		break;
-	case XSYBNCHAR:
-		return "x UCS-2 char";
-		break;
-	case XSYBNVARCHAR:
-		return "x UCS-2 varchar";
-		break;
-	case XSYBVARBINARY:
-		return "xvarbinary";
-		break;
-	case XSYBVARCHAR:
-		return "xvarchar";
-		break;
+	TYPE(SYBAOPAVG, "avg");
+	TYPE(SYBAOPCNT, "count");
+	TYPE(SYBAOPMAX, "max");
+	TYPE(SYBAOPMIN, "min");
+	TYPE(SYBAOPSUM, "sum");
+	TYPE(SYBBINARY, "binary");
+	TYPE(SYBBIT, "bit");
+	TYPE(SYBBITN, "bit-null");
+	TYPE(SYBCHAR, "char");
+	TYPE(SYBDATETIME4, "smalldatetime");
+	TYPE(SYBDATETIME, "datetime");
+	TYPE(SYBDATETIMN, "datetime-null");
+	TYPE(SYBDECIMAL, "decimal");
+	TYPE(SYBFLT8, "float");
+	TYPE(SYBFLTN, "float-null");
+	TYPE(SYBIMAGE, "image");
+	TYPE(SYBINT1, "tinyint");
+	TYPE(SYBINT2, "smallint");
+	TYPE(SYBINT4, "int");
+	TYPE(SYBINT8, "long long");
+	TYPE(SYBINTN, "integer-null");
+	TYPE(SYBMONEY4, "smallmoney");
+	TYPE(SYBMONEY, "money");
+	TYPE(SYBMONEYN, "money-null");
+	TYPE(SYBNTEXT, "UCS-2 text");
+	TYPE(SYBNVARCHAR, "UCS-2 varchar");
+	TYPE(SYBNUMERIC, "numeric");
+	TYPE(SYBREAL, "real");
+	TYPE(SYBTEXT, "text");
+	TYPE(SYBUNIQUE, "uniqueidentifier");
+	TYPE(SYBVARBINARY, "varbinary");
+	TYPE(SYBVARCHAR, "varchar");
+	TYPE(SYBVARIANT, "variant");
+	TYPE(SYBVOID, "void");
+	TYPE(XSYBBINARY, "xbinary");
+	TYPE(XSYBCHAR, "xchar");
+	TYPE(XSYBNCHAR, "x UCS-2 char");
+	TYPE(XSYBNVARCHAR, "x UCS-2 varchar");
+	TYPE(XSYBVARBINARY, "xvarbinary");
+	TYPE(XSYBVARCHAR, "xvarchar");
 	default:
 		break;
 	}
 	return "";
+#undef TYPE
 }
 /** \@} */

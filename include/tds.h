@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.50 2002-11-16 15:21:14 freddy77 Exp $";
+	"$Id: tds.h,v 1.51 2002-11-17 08:38:30 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -693,7 +693,7 @@ int tds_set_interfaces_file_loc(char *interfloc);
 TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
 void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
-char *tds_msg_get_proc_name(TDSSOCKET *tds, int namelen);
+char *tds_alloc_get_string(TDSSOCKET *tds, int len);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
 void tds_free_login(TDSLOGIN *login);
@@ -718,7 +718,6 @@ int tds_submit_query(TDSSOCKET *tds, const char *query);
 int tds_submit_queryf(TDSSOCKET *tds, const char *queryf, ...);
 int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
-int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
