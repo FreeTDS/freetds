@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.18 2002-05-29 11:03:48 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.19 2002-06-04 03:33:33 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -46,7 +46,8 @@ static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static void tds_process_dyn_result(TDSSOCKET *tds);
 static int tds_process_dynamic(TDSSOCKET *tds);
-static void tds_swap_datatype(int coltype, unsigned char *buf);
+
+void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
 ** The following little table is indexed by precision and will
@@ -1585,7 +1586,7 @@ int tds_get_token_size(int marker)
 			return 0;
 	}
 }
-static void tds_swap_datatype(int coltype, unsigned char *buf)
+void tds_swap_datatype(int coltype, unsigned char *buf)
 {
 TDS_NUMERIC *num;
 

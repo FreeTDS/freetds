@@ -43,11 +43,16 @@ extern int (*g_dblib_err_handler)();
 
 extern int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.5 2002-05-25 00:33:50 brianb Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.6 2002-06-04 03:33:33 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+/* declare local static functions because implicit use is extern */
+static RETCODE _bcp_build_bulk_insert_stmt(char *clause, BCP_COLINFO *bcpcol, int first);
+static RETCODE _bcp_start_new_batch(DBPROCESS *dbproc);
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
+static RETCODE _bcp_send_colmetadata(DBPROCESS *dbproc);
+static int _bcp_rtrim_varchar(char *istr, int ilen);
 
 RETCODE BCP_SETL(LOGINREC *login, DBBOOL enable)
 {
