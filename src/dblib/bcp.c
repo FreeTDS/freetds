@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.79 2003-12-10 11:21:45 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.80 2003-12-18 16:38:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -2307,6 +2307,8 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tds_flush_packet(tds);
 
+	tds->state = TDS_QUERYING;
+
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 	rows_copied = tds->rows_affected;
@@ -2330,6 +2332,8 @@ bcp_done(DBPROCESS * dbproc)
 		return -1;
 	}
 	tds_flush_packet(tds);
+
+	tds->state = TDS_QUERYING;
 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
@@ -2489,12 +2493,14 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 		}
 
 
-		/* if this host file column contains table data,   */
-		/* find the right element in the table/column list */
-
+		/* 
+		 * If this host file column contains table data,
+		 * find the right element in the table/column list 
+		 */
 		if (hostcol->tab_colnum) {
 			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
 			if (bcpcol->tab_colnum != hostcol->tab_colnum) {
+				_bcp_err_handler(dbproc, SYBEBIHC); /* probably bogus */
 				return FAIL;
 			}
 		}
@@ -2503,10 +2509,6 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 
 		if (hostcol->term_len > 0) {
 			bytes_read = _bcp_get_term_var(dataptr, hostcol->terminator, hostcol->term_len);
-
-			if (bytes_read == -1)
-				return FAIL;
-
 
 			if (collen)
 				collen = (bytes_read < collen) ? bytes_read : collen;
@@ -2558,40 +2560,25 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
-/* for bcp in from program variables, where the program data */
-/* has been identified as character terminated, get the data */
-
+/**
+ * Get the data for bcp-in from program variables, where the program data
+ * have been identified as character terminated,  
+ * This is a low-level, internal function.  Call it correctly.  
+ */
 RETCODE
-_bcp_get_term_var(BYTE * dataptr, BYTE * term, int term_len)
+_bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
+	int bufpos;
 
-	int bufpos = 0;
-	int found = 0;
-	BYTE *tptr;
+	assert(term_len > 0);
 
-
-	if (term_len == 1) {
-		for (tptr = dataptr; !found; tptr++) {
-			if (*tptr != *term) {
-				bufpos++;
-			} else
-				found = 1;
-		}
-	} else {
-		for (tptr = dataptr; !found; tptr++) {
-			if (memcmp(tptr, term, term_len) != 0) {
-				bufpos++;
-			} else
-				found = 1;
-		}
+	/* if bufpos becomes negative, we probably failed to find the terminator */
+	for (bufpos = 0; bufpos >= 0 && memcmp(pdata, term, term_len) != 0; pdata++) {
+		bufpos++;
 	}
-
-	if (found) {
-		return (bufpos);
-	} else {
-		return (-1);
-	}
-
+	
+	assert(bufpos > 0);
+	return bufpos;
 }
 
 static int
