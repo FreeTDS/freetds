@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.6 2004-02-14 08:53:27 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.7 2004-02-14 19:39:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -75,13 +75,15 @@ static void
 DoTest(int prepare)
 {
 	int n = 0;
+	static const char query[] = "DECLARE @b INT SELECT @b = 25 "
+		"SELECT * FROM #tmp1 WHERE i <= 3 "
+		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
+		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 3 "
+		"SELECT * FROM #tmp1 WHERE i = 1 "
+		"UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
 
 	if (prepare) {
-		if (SQLPrepare(Statement, (SQLCHAR *) "DECLARE @b INT SELECT @b = 25 "
-			       "SELECT * FROM #tmp1 WHERE i <= 2 "
-			       "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
-			       "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
-			       "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
+		if (SQLPrepare(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
 			printf("Unable to prepare statement\n");
 			exit(1);
 		}
@@ -92,11 +94,7 @@ DoTest(int prepare)
 	} else {
 
 		/* execute a batch command select insert insert select and check rows */
-		if (SQLExecDirect(Statement, (SQLCHAR *) "DECLARE @b INT SELECT @b = 25 "
-				  "SELECT * FROM #tmp1 WHERE i <= 2 "
-				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
-				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
-				  "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
+		if (SQLExecDirect(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
 			printf("Unable to execute direct statement\n");
 			exit(1);
 		}
@@ -136,7 +134,15 @@ DoTest(int prepare)
 	CheckRows(-1);
 	Fetch(SQL_NO_DATA);
 	CheckCols(1);
-	CheckRows(1);
+	if (prepare) {
+		CheckRows(2);
+	} else {
+		CheckRows(1);
+		NextResults(SQL_SUCCESS);
+		CheckCols(0);
+		CheckRows(2);
+	}
+
 	NextResults(SQL_NO_DATA);
 	if (!prepare)
 		CheckCols(-1);
@@ -152,7 +158,7 @@ main(int argc, char *argv[])
 	Command(Statement, "create table #tmp2 (i int)");
 	Command(Statement, "insert into #tmp1 values(1)");
 	Command(Statement, "insert into #tmp1 values(2)");
-	Command(Statement, "insert into #tmp1 values(3)");
+	Command(Statement, "insert into #tmp1 values(5)");
 
 	printf("Use direct statement\n");
 	DoTest(0);

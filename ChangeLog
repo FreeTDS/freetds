@@ -1,3 +1,7 @@
+Sat Feb 14 20:42:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/moreandcount.c:
+	- check UPDATE in last statement (do not work) 
+
 Sat Feb 14 19:55:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
 	- fix for win32
