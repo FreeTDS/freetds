@@ -43,7 +43,7 @@
 #include "tds.h"
 #include "des.h"
 
-static char software_version[] = "$Id: des.c,v 1.12 2003-11-01 23:02:19 jklowden Exp $";
+static char software_version[] = "$Id: des.c,v 1.13 2004-07-15 07:28:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -353,6 +353,7 @@ tds_des_encrypt(DES_KEY * key, des_cblock block)
  * image of encryption; exactly the same steps are taken, but in
  * reverse order
  */
+#if 0
 void
 _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 {
@@ -417,6 +418,7 @@ _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 #endif
 	permute_fp((unsigned char *) work, key, block);	/* Inverse initial permutation */
 }
+#endif
 
 /* Permute inblock with perm */
 static void

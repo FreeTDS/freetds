@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.30 2004-07-12 09:07:07 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.31 2004-07-15 07:28:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -239,10 +239,17 @@ dbrpcsend(DBPROCESS * dbproc)
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;
-		TDSPARAMINFO *pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
+		TDSPARAMINFO *pparam_info = NULL;
 
-		if (!pparam_info)
-			return FAIL;
+		/*
+		 * liam@inodes.org: allow stored procedures to have no
+		 * paramaters 
+		 */
+		if (rpc->param_list != NULL) {
+			pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
+			if (!pparam_info)
+				return FAIL;
+		}
 		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
 		tds_free_param_results(pparam_info);
 		if (erc == TDS_FAIL)

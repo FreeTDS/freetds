@@ -1,6 +1,11 @@
+Thu Jul 15 09:27:16 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c:
+	- fix from liam@inodes.org for RPC with no parameters
+	* src/tds/des.c: commented unused code
+
 Wed Jul 14 22:36:27 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/faq.html added CS_STATUS_RESULT question
-	
+
 Mon Jul 12 11:05:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: fix problem with tests and dblib
 	* src/dblib/rpc.c: avoid recursion
