@@ -38,7 +38,9 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.50 2002-11-24 10:22:36 freddy77 Exp $";
+#include <assert.h>
+
+static char  software_version[]   = "$Id: query.c,v 1.51 2002-11-25 21:59:54 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -566,6 +568,10 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 {
 	TDSCOLINFO *param;
 	int rpc_name_len, i;
+
+	assert(tds);
+	assert(rpc_name);
+	assert(params);
 
 	if (tds->state==TDS_PENDING) {
 		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,

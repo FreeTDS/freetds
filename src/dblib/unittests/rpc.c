@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.5 2002-11-24 21:53:17 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.6 2002-11-25 21:59:49 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -58,7 +58,7 @@ main(int argc, char **argv)
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "#t0022");
 
-	fprintf(stdout, "About to open\n");
+	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
 
 	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
