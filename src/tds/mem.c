@@ -25,13 +25,25 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.22 2002-09-13 18:03:24 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.23 2002-09-14 06:41:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds);
 void tds_free_env(TDSSOCKET *tds);
+
+#undef TEST_MALLOC
+#define TEST_MALLOC(dest,type) \
+	{if (!(dest = (type*)malloc(sizeof(type)))) goto Cleanup;}
+
+#undef TEST_MALLOCN
+#define TEST_MALLOCN(dest,type,n) \
+	{if (!(dest = (type*)malloc(sizeof(type)*n))) goto Cleanup;}
+
+#undef TEST_STRDUP
+#define TEST_STRDUP(dest,str) \
+	{if (!(dest = strdup(str))) goto Cleanup;}
 
 /**
  * \defgroup mem Allocation Routines
@@ -45,25 +57,17 @@ void tds_free_env(TDSSOCKET *tds);
  *  \brief Allocate a dynamic statement.
  *  \param tds the connection within which to allocate the statement.
  *  \param id a character label identifying the statement.
- *  \return a pointer to the allocated structure.
+ *  \return a pointer to the allocated structure (NULL on failure).
  *
  *  tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id)
 {
 int i;
+TDSDYNAMIC *dyn;
+TDSDYNAMIC **dyns;
 
-	/* if this is the first dynamic stmt */
-	if (!tds->num_dyns) {
-		tds->dyns = (TDSDYNAMIC **) malloc(sizeof(TDSDYNAMIC *));
-		tds->dyns[0] = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
-		memset(tds->dyns[0], 0, sizeof(TDSDYNAMIC));
-		strncpy(tds->dyns[0]->id, id, TDS_MAX_DYNID_LEN);
-		tds->dyns[0]->id[TDS_MAX_DYNID_LEN-1]='\0';
-		tds->num_dyns++;
-		return tds->dyns[0];
-	}
-	/* otherwise check to see if id already exists (shouldn't) */
+	/* check to see if id already exists (shouldn't) */
 	for (i=0;i<tds->num_dyns;i++) {
 		if (!strcmp(tds->dyns[i]->id, id)) {
 			/* id already exists! just return it */
@@ -71,47 +75,65 @@ int i;
 		}
 	}
 
-	/* ok, we have a list and need to add another */
-	tds->dyns = (TDSDYNAMIC **) 
-		realloc(tds->dyns, sizeof(TDSDYNAMIC *) * tds->num_dyns);
-	tds->dyns[tds->num_dyns] = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
-	memset(tds->dyns[tds->num_dyns], 0, sizeof(TDSDYNAMIC));
-	strncpy(tds->dyns[tds->num_dyns]->id, id, TDS_MAX_DYNID_LEN);
-	tds->dyns[tds->num_dyns]->id[TDS_MAX_DYNID_LEN-1]='\0';
-	tds->num_dyns++;
+	dyn = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
+	if (!dyn) return NULL;
+	memset(dyn, 0, sizeof(TDSDYNAMIC));
 
-	return tds->dyns[tds->num_dyns-1];
+	if (!tds->num_dyns) {
+		/* if this is the first dynamic stmt */
+		dyns = (TDSDYNAMIC **) malloc(sizeof(TDSDYNAMIC *));
+	} else {
+		/* ok, we have a list and need to add another */
+		dyns = (TDSDYNAMIC **) realloc(tds->dyns, 
+				sizeof(TDSDYNAMIC *) * (tds->num_dyns+1));
+	}
+
+	if (!dyns) {
+		free(dyn);
+		return NULL;
+	}
+	tds->dyns = dyns;
+	tds->dyns[tds->num_dyns] = dyn;
+	strncpy(dyn->id, id, TDS_MAX_DYNID_LEN);
+	dyn->id[TDS_MAX_DYNID_LEN-1]='\0';
+
+	return tds->dyns[tds->num_dyns++];
 }
 
 /** \fn TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
  *  \brief Allocate a dynamic statement.
  *  \param dyn the dynamic statement to bind this parameter to.
- *  \return a pointer to the allocated structure.
+ *  \return a pointer to the allocated structure (NULL on failure).
  *
  *  tds_add_input_param adds a parameter to a dynamic statement.
  */
 TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn)
 {
 TDSINPUTPARAM *param;
+TDSINPUTPARAM **params;
+
+	param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
+	if (!param) return NULL;
+	memset(param,'\0',sizeof(TDSINPUTPARAM));
 
 	if (!dyn->num_params) {
-		param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
-		memset(param,'\0',sizeof(TDSINPUTPARAM));
-		dyn->num_params=1;
-		dyn->params = (TDSINPUTPARAM **) 
+		params = (TDSINPUTPARAM **) 
 			malloc(sizeof(TDSINPUTPARAM *));
-		dyn->params[0] = param;
 	} else {
-		param = (TDSINPUTPARAM *) malloc(sizeof(TDSINPUTPARAM));
-		memset(param,'\0',sizeof(TDSINPUTPARAM));
-		dyn->num_params++;
-		dyn->params = (TDSINPUTPARAM **) 
+		params = (TDSINPUTPARAM **) 
 			realloc(dyn->params, 
-			sizeof(TDSINPUTPARAM *) * dyn->num_params);
-		dyn->params[dyn->num_params-1] = param;
+			sizeof(TDSINPUTPARAM *) * (dyn->num_params+1));
 	}
+	if (!params) {
+		free(param);
+		return NULL;
+	}
+	dyn->params = params;
+	dyn->params[dyn->num_params] = param;
+	dyn->num_params++;
 	return param;
 }
+
 /** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
  *  \brief Frees all allocated input parameters of a dynamic statement.
  *  \param dyn the dynamic statement whose input parameter are to be freed
@@ -167,28 +189,43 @@ TDSDYNAMIC *dyn;
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
 {
 TDSPARAMINFO *param_info;
+TDSCOLINFO *colinfo;
+TDSCOLINFO **cols;
+
+	colinfo = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
+	if (!colinfo) return NULL;
+	memset(colinfo,0,sizeof(TDSCOLINFO));
+	
+	if (!old_param || !old_param->num_cols) {
+		cols = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *));
+	} else {
+		cols = (TDSCOLINFO **) realloc(old_param->columns, 
+				sizeof(TDSCOLINFO *) * (old_param->num_cols+1));
+	}
+	if (!cols) goto Cleanup;
 
 	if (!old_param) {
 		param_info = (TDSPARAMINFO *) malloc(sizeof(TDSPARAMINFO));
+		if (!param_info) {
+			free(cols);
+			goto Cleanup;
+		}
 		memset(param_info,'\0',sizeof(TDSPARAMINFO));
-		param_info->num_cols=1;
-		param_info->columns = (TDSCOLINFO **) 
-			malloc(sizeof(TDSCOLINFO *));
-		param_info->columns[0] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
-		memset(param_info->columns[0],'\0',sizeof(TDSCOLINFO));
 	} else {
 		param_info = old_param;
-		param_info->num_cols++;
-		param_info->columns = (TDSCOLINFO **) 
-			realloc(param_info->columns, 
-			sizeof(TDSCOLINFO *) * param_info->num_cols);
-		param_info->columns[param_info->num_cols-1] =
-		        (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
-		memset(param_info->columns[param_info->num_cols-1],'\0',
-			sizeof(TDSCOLINFO));
 	}
+	param_info->columns = cols;
+	param_info->columns[param_info->num_cols++] = colinfo;
 	return param_info;
+Cleanup:
+	free(colinfo);
+	return NULL;
 }
+
+/**
+ * Allocate memory for storing compute info
+ * return NULL on out of memory
+ */
 TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols)
 {
 /*TDSCOLINFO *curcol;
@@ -196,16 +233,18 @@ TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols)
 TDSCOMPUTEINFO *comp_info;
 int col;
 
-	comp_info = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
+	TEST_MALLOC(comp_info,TDSCOMPUTEINFO);
 	memset(comp_info,'\0',sizeof(TDSCOMPUTEINFO));
-	comp_info->columns = (TDSCOLINFO **) 
-		malloc(sizeof(TDSCOLINFO *) * num_cols);
+	TEST_MALLOCN(comp_info->columns, TDSCOLINFO*, num_cols);
 	for (col=0;col<num_cols;col++)  {
-		comp_info->columns[col] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
+		TEST_MALLOC(comp_info->columns[col], TDSCOLINFO);
 		memset(comp_info->columns[col],'\0',sizeof(TDSCOLINFO));
 	}
 	comp_info->num_cols = num_cols;
 	return comp_info;
+Cleanup:
+	tds_free_compute_results(comp_info);
+	return NULL;
 }
 
 TDSRESULTINFO *tds_alloc_results(int num_cols)
@@ -216,12 +255,11 @@ TDSRESULTINFO *res_info;
 int col;
 int null_sz;
 
-	res_info = (TDSRESULTINFO *) malloc(sizeof(TDSRESULTINFO));
+	TEST_MALLOC(res_info, TDSRESULTINFO);
 	memset(res_info,'\0',sizeof(TDSRESULTINFO));
-	res_info->columns = (TDSCOLINFO **) 
-		malloc(sizeof(TDSCOLINFO *) * num_cols);
+	TEST_MALLOCN(res_info->columns, TDSCOLINFO *,num_cols);
 	for (col=0;col<num_cols;col++)  {
-		res_info->columns[col] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
+		TEST_MALLOC(res_info->columns[col], TDSCOLINFO);
 		memset(res_info->columns[col],'\0',sizeof(TDSCOLINFO));
 	}
 	res_info->num_cols = num_cols;
@@ -233,13 +271,21 @@ int null_sz;
 	/* set the initial row size to the size of the null info */
 	res_info->row_size = res_info->null_info_size;
 	return res_info;
+Cleanup:
+	tds_free_results(res_info);
+	return NULL;
 }
 
+/**
+ * Allocate space for row store
+ * return NULL on out of memory
+ */
 void *tds_alloc_row(TDSRESULTINFO *res_info)
 {
 void *ptr;
 
 	ptr = (void *) malloc(res_info->row_size);
+	if (!ptr) return NULL;
 	memset(ptr,'\0',res_info->row_size); 
 	return ptr;
 }
@@ -314,6 +360,7 @@ TDSCONTEXT *tds_alloc_context()
 TDSCONTEXT *context;
 
 	context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
+	if (!context) return NULL;
 	memset(context, '\0', sizeof(TDSCONTEXT));
 	context->locale = tds_get_locale();
 
@@ -329,6 +376,7 @@ TDSLOCINFO *tds_alloc_locale()
 TDSLOCINFO *locale;
 
 	locale = (TDSLOCINFO *) malloc(sizeof(TDSLOCINFO));
+	if (!locale) return NULL;
 	memset(locale, '\0', sizeof(TDSLOCINFO));
 
 	return locale;
@@ -338,11 +386,11 @@ TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale)
 TDSCONFIGINFO *config;
 char hostname[30];
 	
-	config = (TDSCONFIGINFO *) malloc(sizeof(TDSCONFIGINFO));
+	TEST_MALLOC(config,TDSCONFIGINFO);
 	memset(config, '\0', sizeof(TDSCONFIGINFO));
 
 	/* fill in all hardcoded defaults */
-	config->server_name = strdup(TDS_DEF_SERVER);
+	TEST_STRDUP(config->server_name,TDS_DEF_SERVER);
 	config->major_version = TDS_DEF_MAJOR;
 	config->minor_version = TDS_DEF_MINOR;
 	config->port = TDS_DEF_PORT;
@@ -351,23 +399,26 @@ char hostname[30];
 	config->char_set = NULL;
 	if (locale) {
 		if (locale->language) 
-        		config->language = strdup(locale->language);
+        		TEST_STRDUP(config->language,locale->language);
 		if (locale->char_set) 
-        		config->char_set = strdup(locale->char_set);
+        		TEST_STRDUP(config->char_set,locale->char_set);
 	}
 	if (config->language == NULL) {
-		config->language = strdup(TDS_DEF_LANG);
+		TEST_STRDUP(config->language,TDS_DEF_LANG);
 	}
 	if (config->char_set == NULL) {
-		config->char_set = strdup(TDS_DEF_CHARSET);
+		TEST_STRDUP(config->char_set,TDS_DEF_CHARSET);
 	}
 	config->try_server_login = 1;
-	memset(hostname,'\0', 30);
-	gethostname(hostname,30);
-	hostname[29]='\0'; /* make sure it's truncated */
-	config->host_name = strdup(hostname);
+	memset(hostname,'\0', sizeof(hostname));
+	gethostname(hostname, sizeof(hostname));
+	hostname[sizeof(hostname)-1]='\0'; /* make sure it's truncated */
+	TEST_STRDUP(config->host_name,hostname);
 	
 	return config;
+Cleanup:
+	tds_free_config(config);
+	return NULL;
 }
 TDSLOGIN *tds_alloc_login()
 {
@@ -376,6 +427,7 @@ static const unsigned char defaultcaps[] = {0x01,0x07,0x03,109,127,0xFF,0xFF,0xF
 char *tdsver;
 
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
+	if (!tds_login) return NULL;
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
 	if ((tdsver=getenv("TDSVER"))) {
 		if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
@@ -412,16 +464,17 @@ TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
 TDSSOCKET *tds_socket;
 TDSICONVINFO *iconv;
 
-	tds_socket = (TDSSOCKET *) malloc(sizeof(TDSSOCKET));
+	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
 	tds_socket->in_buf_max=0;
-	tds_socket->out_buf = (unsigned char *) malloc(bufsize);
-	tds_socket->msg_info = (TDSMSGINFO *) malloc(sizeof(TDSMSGINFO));
+	TEST_MALLOCN(tds_socket->out_buf,unsigned char,bufsize);
+	TEST_MALLOC(tds_socket->msg_info,TDSMSGINFO);
 	memset(tds_socket->msg_info,'\0',sizeof(TDSMSGINFO));
 	tds_socket->parent = (char*)NULL;
-	tds_socket->env = tds_alloc_env(tds_socket);
-	iconv = (TDSICONVINFO *) malloc(sizeof(TDSICONVINFO));
+	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
+		goto Cleanup;
+	TEST_MALLOC(iconv,TDSICONVINFO);
 	tds_socket->iconv_info = (void *) iconv;
 	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
 #if HAVE_ICONV
@@ -433,6 +486,9 @@ TDSICONVINFO *iconv;
 	tds_init_write_buf(tds_socket);
 	tds_socket->s = -1;
 	return tds_socket;
+Cleanup:
+	tds_free_socket(tds_socket);
+	return NULL;
 }
 TDSSOCKET *tds_realloc_socket(int bufsize)
 {
@@ -499,6 +555,7 @@ TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)
 TDSENVINFO *env;
 
 	env = (TDSENVINFO *) malloc(sizeof(TDSENVINFO));
+	if (!env) return NULL;
 	memset(env,'\0',sizeof(TDSENVINFO));
 	env->block_size = 512;
 
