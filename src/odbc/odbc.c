@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.338 2004-08-02 08:50:37 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.339 2004-08-05 23:38:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -5216,7 +5216,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	      SQLUSMALLINT fAccuracy)
 {
 	int retcode;
-	char unique[2], accuracy[1];
+	char unique[2], accuracy[2];
 
 	INIT_HSTMT;
 
@@ -5591,6 +5591,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		*p++ = ',';
 	}
 	*--p = '\0';
+	assert(p - proc + 1 <= len);
 
 	/* set it */
 	retcode = odbc_set_stmt_query(stmt, proc, p - proc);

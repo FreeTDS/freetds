@@ -1,3 +1,6 @@
+Fri Aug  6 01:36:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix a buffer overflow
+
 Mon Aug  2 10:47:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix SQLGetTypeInfo columns names for ODBC 3
 	* src/odbc/unittests/Makefile.am:
