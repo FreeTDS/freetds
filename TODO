@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.115 2004-08-02 08:50:35 freddy77 Exp $
+To Do List	$Id: TODO,v 1.116 2004-08-17 17:53:00 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -68,6 +68,11 @@ For future versions (in priority order within library):
 . optimize numeric conversions (partial)
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
+  In token.c getting row should write data even to client
+  (callback, new user types, see ctlib conversion functions)
+  In query.c writing data do the same (use additional column fields?)
+. review the way parameters are packed 
+  (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
 . cursor support (limited support on ctlib)
 . tds_connect free tds structure on failure. This cause in some condition
   a pointer to garbage in some library (workaround written, best to change)
@@ -85,6 +90,8 @@ For future versions (in priority order within library):
 . detect if realloc/free accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
 . optimization: add -Wl,-Bsymbolic or similar to libraries
+. under Sybase using prepared statements and BLOBs we shouldn't try to
+  prepare every time (cache failure preparing, see odbc unittests logs)
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
