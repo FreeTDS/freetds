@@ -1,3 +1,19 @@
+Sun Oct 05 18:41:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in:
+	- test for other socket functions
+	- add "-ansi -Wno-long-long" if gcc for more warnings
+	* include/tds.h: small fix for C98 compiler
+	* src/apps/Makefile.am: try to fix Mac OS X problem
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- merged patch from ML for GUID parameters
+	- start supporting SQL_C_DEFAULT
+	* src/tds/login.c: fix possible 64 bit problem
+	* src/tds/token.c: fix "undefined strdup" under RH9
+	* src/tds/unittests/.cvsignore src/tds/unittests/Makefile.am:
+	* src/tds/unittests/utf8_1.c(added):
+	- added first utf8 test (not finished)
+
 Tue Sep 30 21:21:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: trick for "make distcheck"
 

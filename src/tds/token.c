@@ -17,8 +17,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -31,6 +29,8 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #include "tdsconvert.h"
 #include "tdsiconv.h"
@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.216 2003-09-30 19:06:45 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.217 2003-10-05 16:47:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };

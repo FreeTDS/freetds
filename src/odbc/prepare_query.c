@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.34 2003-08-30 13:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.35 2003-10-05 16:46:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -95,6 +95,9 @@ _get_sql_textsize(struct _drecord *drec_ipd, SQLINTEGER sql_len)
 	case SQL_TINYINT:
 		len = 4;
 		break;
+	case SQL_GUID:
+		len = 36;
+		break;
 	default:
 		len = -1;
 		break;
@@ -108,7 +111,7 @@ static int
 _get_param_textsize(TDS_STMT * stmt, struct _drecord *drec_ipd, struct _drecord *drec_apd)
 {
 	int len = 0;
-	SQLINTEGER sql_len = odbc_get_param_len(drec_apd);
+	SQLINTEGER sql_len = odbc_get_param_len(stmt->hdbc->tds_socket, drec_apd, drec_ipd);
 
 	switch (sql_len) {
 	case SQL_NTS:
@@ -165,6 +168,7 @@ _need_comma(struct _drecord *drec_ipd)
 	case SQL_DATE:
 	case SQL_TIME:
 	case SQL_TIMESTAMP:
+	case SQL_GUID:
 		return 1;
 	}
 
@@ -295,7 +299,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				d += 2;
 			}
 
-			sql_len = odbc_get_param_len(drec_apd);
+			sql_len = odbc_get_param_len(stmt->hdbc->tds_socket, drec_apd, drec_ipd);
 			if (_get_len_data_at_exec(sql_len) > 0) {
 				/* save prepared_query parameters to stmt */
 				stmt->prepared_query_s = s;

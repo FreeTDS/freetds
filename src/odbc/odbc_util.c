@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.46 2003-09-22 20:12:50 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.47 2003-10-05 16:46:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -630,24 +630,31 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 
 /** Return length of parameter from parameter information */
 SQLINTEGER
-odbc_get_param_len(struct _drecord *drec)
+odbc_get_param_len(TDSSOCKET * tds, struct _drecord *drec_apd, struct _drecord *drec_ipd)
 {
 	SQLINTEGER len;
 	int size;
 
-	if (drec->sql_desc_indicator_ptr && *drec->sql_desc_indicator_ptr == SQL_NULL_DATA)
+	if (drec_apd->sql_desc_indicator_ptr && *drec_apd->sql_desc_indicator_ptr == SQL_NULL_DATA)
 		len = SQL_NULL_DATA;
-	else if (drec->sql_desc_octet_length_ptr)
-		len = *drec->sql_desc_octet_length_ptr;
+	else if (drec_apd->sql_desc_octet_length_ptr)
+		len = *drec_apd->sql_desc_octet_length_ptr;
 	else {
 		len = 0;
 		/* TODO add XML if defined */
 		/* FIXME, other types available */
-		if (drec->sql_desc_concise_type == SQL_C_CHAR || drec->sql_desc_concise_type == SQL_C_BINARY) {
+		if (drec_apd->sql_desc_concise_type == SQL_C_CHAR || drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
+			int type =
+				(drec_apd->sql_desc_concise_type ==
+				 SQL_C_DEFAULT) ? odbc_c_to_server_type(drec_apd->
+									sql_desc_concise_type) : odbc_sql_to_server_type(tds,
+															 drec_ipd->
+															 sql_desc_concise_type);
+
 			/* FIXME check what happen to DATE/TIME types */
-			size = tds_get_size_by_type(odbc_c_to_server_type(drec->sql_desc_concise_type));
+			size = tds_get_size_by_type(type);
 			if (size > 0)
 				len = size;
 		}
