@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.65 2003-08-06 03:45:41 jklowden Exp $
+To Do List	$Id: TODO,v 1.66 2003-08-06 19:27:12 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -66,10 +66,11 @@ For future versions (in priority order within library):
 . add DBTEXTLIMIT (dbsetopt), PHP require it to support textlimit ini value
 
   ct-lib
-. cs_calc and cs_cmp, for sybperl
+. dynamic placeholders (DBD::Sybase)
 . DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
-. ct_get/send_data()
 . ct_option() calls (CS_OPT_ROWCOUNT, CS_OPT_TEXTSIZE, among others)
+. cs_calc and cs_cmp, for sybperl
+. ct_get/send_data()
 . Array binding for ctlib not working
 . async function, async calls (dbpoll() and friends)
 . bcp support to ctlib
