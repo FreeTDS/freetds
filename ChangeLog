@@ -1,3 +1,8 @@
+Mon Apr 12 19:21:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix return of SQLGetDescField
+	* src/odbc/odbc_checks.c: test too restrictive
+	* src/odbc/unittests/funccall.c: small improve
+
 Sun Apr 11 15:20:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	* src/odbc/sql2tds.c src/odbc/sql2tds.h:

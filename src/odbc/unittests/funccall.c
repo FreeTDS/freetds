@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.9 2004-01-09 23:18:21 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.10 2004-04-12 17:07:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -19,15 +19,11 @@ main(int argc, char *argv[])
 
 	Command(Statement, "create proc simpleresult @i int as begin return @i end");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind) != SQL_SUCCESS) {
-		printf("Unable to bind output parameter\n");
-		exit(1);
-	}
+	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind2) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
-	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind2) != SQL_SUCCESS) {
-		printf("Unable to bind input parameter\n");
-		exit(1);
-	}
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	if (SQLPrepare(Statement, (SQLCHAR *) "{ \n?\t\r= call simpleresult(?)}", SQL_NTS) != SQL_SUCCESS) {
 		printf("Unable to prepare statement\n");

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.9 2003-11-22 17:22:25 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.10 2004-04-12 17:07:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -78,12 +78,12 @@ odbc_check_drecord(TDS_DESC * desc, struct _drecord *drec)
 {
 	assert(drec->sql_desc_concise_type != SQL_INTERVAL && drec->sql_desc_concise_type != SQL_DATETIME);
 
+	/* unbinded columns have type == 0 */
+	/* TODO test errors on code if type == 0 */
 	if (desc->type == DESC_IPD || desc->type == DESC_IRD) {
-		assert(odbc_get_concise_sql_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) ==
-		       drec->sql_desc_concise_type && drec->sql_desc_concise_type != 0);
+		assert((drec->sql_desc_concise_type == 0 && drec->sql_desc_concise_type == 0) || odbc_get_concise_sql_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) == drec->sql_desc_concise_type);
 	} else {
-		assert(odbc_get_concise_c_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) ==
-		       drec->sql_desc_concise_type && drec->sql_desc_concise_type != 0);
+		assert((drec->sql_desc_concise_type == 0 && drec->sql_desc_concise_type == 0) || odbc_get_concise_c_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) == drec->sql_desc_concise_type);
 	}
 }
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.314 2004-04-09 14:09:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.315 2004-04-12 17:07:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1814,10 +1814,12 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	if (icol < 1 || icol > desc->header.sql_desc_count) {
+	if (icol < 1) {
 		odbc_errs_add(&desc->errs, "07009", "Column out of range", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
+	if (icol > desc->header.sql_desc_count)
+		ODBC_RETURN(desc, SQL_NO_DATA);
 	drec = &desc->records[icol - 1];
 
 	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetDescField: fDescType is %d\n", fDescType);
