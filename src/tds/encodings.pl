@@ -3,7 +3,7 @@
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.7 2003-10-16 21:02:48 freddy77 Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.8 2003-10-18 23:58:13 jklowden Exp $', "\n";
 print " */\n";
 
 %charsets = ();
@@ -68,14 +68,15 @@ foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 print "\t{\"\",\t0, 0}\n";
 print "};\n\n";
 
-# output all charset indexes
+# output enumerated charset indexes
 print "enum {\n";
+$i=0;
 foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 {
 	$n =~ tr/-a-z/_A-Z/;
-	print "\tTDS_CHARSET_$n,\n";
+	printf "\t%30s =%4d,\n", "TDS_CHARSET_$n", $i++;
 }
-print "\tTDS_NUM_CHARSETS\n};\n\n";
+printf "\t%30s =%4d\n};\n\n", "TDS_NUM_CHARSETS", $i++;
 
 # output all alias
 print "static const CHARACTER_SET_ALIAS iconv_aliases[] = {\n";
@@ -95,7 +96,6 @@ foreach $n (sort keys %sybase)
 	$a = $index{$sybase{$n}};
 	next if ("$a" eq "");
 	printf "\t{%20s, %3d },\n", qq/"$n"/, $a;
-	#rint qq|\t{"$n",\t$a},\n|;
 }
 print "\t{NULL,\t0}\n";
 print "};\n\n";
