@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.187 2003-07-24 12:28:12 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.188 2003-07-25 15:31:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -350,6 +350,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDS_INT result_type;
 	int tdsret;
 	TDS_INT rowtype;
+	int in_row = 0;
 	int done_flags;
 
 	INIT_HSTMT;
@@ -367,6 +368,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
+				if (in_row)
+					ODBC_RETURN(stmt, SQL_SUCCESS);
 				/* Skipping current result set's rows to access next resultset or proc's retval */
 				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
 				if (tdsret == TDS_FAIL)
@@ -386,15 +389,26 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
 				/* FIXME here ??? */
-				tds_free_all_results(tds);
+				if (!in_row)
+					tds_free_all_results(tds);
 				ODBC_RETURN(stmt, SQL_SUCCESS);
 				break;
 
+				/* TODO test flags ? check error and change result ? */
+			case TDS_DONEINPROC_RESULT:
+				if (in_row)
+					ODBC_RETURN(stmt, SQL_SUCCESS);
+				break;
+
+				/* do not stop at metadata, an error can follow... */
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
+				if (in_row)
+					ODBC_RETURN(stmt, SQL_SUCCESS);
 				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
-				ODBC_RETURN(stmt, SQL_SUCCESS);
+				in_row = 1;
+				break;
 			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
 				break;
@@ -1151,6 +1165,7 @@ _SQLExecute(TDS_STMT * stmt)
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	SQLRETURN result = SQL_SUCCESS;
+	int in_row = 0;
 	int done_flags;
 
 	stmt->row = 0;
@@ -1182,6 +1197,7 @@ _SQLExecute(TDS_STMT * stmt)
 		case TDS_ROW_RESULT:
 			done = 1;
 			break;
+
 		case TDS_STATUS_RESULT:
 			odbc_set_return_status(stmt);
 			break;
@@ -1198,14 +1214,28 @@ _SQLExecute(TDS_STMT * stmt)
 			done = 1;
 			break;
 
+			/* TODO test flags ? check error and change result ? */
+		case TDS_DONEINPROC_RESULT:
+			if (in_row)
+				done = 1;
+			break;
+
 			/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_ROWFMT_RESULT:
+			if (in_row) {
+				done = 1;
+				break;
+			}
+			tds->rows_affected = TDS_NO_COUNT;
+			stmt->row = 0;
+			result = SQL_SUCCESS;
+			in_row = 1;
 			break;
+
 		case TDS_MSG_RESULT:
 		case TDS_DESCRIBE_RESULT:
 			break;
-
 		}
 		if (done)
 			break;
@@ -1269,6 +1299,7 @@ SQLExecute(SQLHSTMT hstmt)
 	SQLRETURN result = SQL_NO_DATA;
 	int i, nparam;
 	TDSPARAMINFO *params = NULL, *temp_params;
+	int in_row = 0;
 #endif
 
 	INIT_HSTMT;
@@ -1358,6 +1389,14 @@ SQLExecute(SQLHSTMT hstmt)
 			done = 1;
 			break;
 
+		case TDS_STATUS_RESULT:
+			result = SQL_SUCCESS;
+			odbc_set_return_status(stmt);
+			break;
+		case TDS_PARAM_RESULT:
+			odbc_set_return_params(stmt);
+			break;
+
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
 			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
@@ -1369,21 +1408,29 @@ SQLExecute(SQLHSTMT hstmt)
 			done = 1;
 			break;
 
-		case TDS_STATUS_RESULT:
-			result = SQL_SUCCESS;
-			odbc_set_return_status(stmt);
-			break;
-		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt);
+			/* TODO test flags ? check error and change result ? */
+		case TDS_DONEINPROC_RESULT:
+			if (in_row)
+				done = 1;
 			break;
 
+			/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
-		case TDS_MSG_RESULT:
 		case TDS_ROWFMT_RESULT:
+			if (in_row) {
+				done = 1;
+				break;
+			}
+			tds->rows_affected = TDS_NO_COUNT;
+			stmt->row = 0;
+			result = SQL_SUCCESS;
+			in_row = 1;
+			break;
+
+		case TDS_MSG_RESULT:
 		case TDS_DESCRIBE_RESULT:
 			result = SQL_SUCCESS;
 			break;
-
 		}
 		if (done)
 			break;

@@ -1,3 +1,6 @@
+Fri Jul 25 17:30:29 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix t0003 test (without broking other tests)
+
 Thu Jul 24 23:04:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/params.c:
 	- fixed portability in sql code
