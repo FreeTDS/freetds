@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.34 2003-12-22 10:03:16 freddy77 Exp $
+# version $Id: Makefile.am,v 1.35 2003-12-22 21:54:29 jklowden Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -7,11 +7,9 @@ SUBDIRS		=	include src doc samples win32
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
-		autogen.sh freetds.spec.in freetds.spec vms \
-		tds.dox
+		autogen.sh freetds.spec.in freetds.spec vms tds.dox
 
-ETC		=	$(DESTDIR)$(sysconfdir)
-DOCDIR		=	doc/doc/freetds-$(VERSION)
+ETC            =       $(DESTDIR)$(sysconfdir)
 
 install-data-local:
 	$(mkinstalldirs) $(ETC)
@@ -46,21 +44,10 @@ endif
 snapshot:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
-if HAVE_DOXYGEN
 ## The doxygen configuration file understands environment variables.  
-
 doxy: $(SUBDIRS)
-	test -e doc/doc || mkdir doc/doc
-	test -e $(DOCDIR) || mkdir $(DOCDIR)
-	test -e $(DOCDIR)/reference || mkdir $(DOCDIR)/reference
-	rm -rf $(DOCDIR)/reference
+if HAVE_DOXYGEN
 	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
-	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi
 else
-doxy:
-	test -e doc/doc || mkdir doc/doc
-	test -e $(DOCDIR) || mkdir $(DOCDIR)
-	test -e $(DOCDIR)/reference || mkdir $(DOCDIR)/reference
-	touch $(DOCDIR)/reference/index.html
+	echo 'Doxygen not installed; reference manual not built.'
 endif
-

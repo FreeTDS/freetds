@@ -1,3 +1,9 @@
+Mon Dec 22 15:36:53 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* Makefile.am doc/Makefile.am 
+	- new arrangement to install user guide and reference manual
+	* src/dblib/bcp.c src/tds/write.c 
+	- no SYBEBBCI for bcp_batch(), changed null-testing
+	
 Mon Dec 22 21:06:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* tds.dox: do not document unit tests
 	* src/tds/iconv.c TODO:
