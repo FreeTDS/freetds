@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.19 2002-07-05 20:23:49 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.20 2002-07-06 18:47:36 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -44,7 +44,7 @@ typedef union dbany {
 	TDS_DATETIME	dt;
 	TDS_DATETIME4	dt4;
 	TDS_NUMERIC	n;
-    TDS_UNIQUE  u;
+	TDS_UNIQUE  u;
 } DBANY; 
 
 struct diglist {
@@ -835,28 +835,30 @@ TDS_FLOAT the_value;
    }
    return TDS_FAIL;
 }
+
 tds_convert_unique(int srctype,TDS_CHAR *src, TDS_INT srclen,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
-
-TDS_UCHAR buf[16];
 DBANY any;
-
-    memcpy(buf, src, 16);
+/* Raw data is equivalent to structure and always aligned, so this cast 
+   is portable */
+TDS_UNIQUE *u = (TDS_UNIQUE*)src;
+TDS_UCHAR buf[37];
 
 	switch(desttype) {
-		case SYBCHAR:
-		case SYBVARCHAR:
-            any.c = malloc(37);
-			sprintf(any.c,"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-                    buf[0], buf[1], buf[2], buf[3],
-                    buf[4], buf[5],
-                    buf[6], buf[7],
-                    buf[8], buf[9],
-                    buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
+	case SYBCHAR:
+	case SYBVARCHAR:
+		sprintf(buf,"%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+			(int)u->Data1,(int)u->Data2,(int)u->Data3,
+			u->Data4[0], u->Data4[1],
+			u->Data5[0], u->Data5[1], u->Data5[2],
+			u->Data5[3], u->Data5[4], u->Data5[5]);
+			any.c = buf;
 			break;
 		case SYBUNIQUE:
-            memcpy (&(any.u), src, sizeof(TDS_UNIQUE));
+			/* Here we can copy raw to structure because we adjust
+			   byte order in tds_swap_datatype */
+			memcpy (&(any.u), src, sizeof(TDS_UNIQUE));
 			break;
 		default:
 			return TDS_FAIL;
