@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.84 2003-11-01 23:02:18 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.85 2003-11-02 09:55:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -677,36 +677,20 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	 * This call take a while and is useless for an ip address.
 	 * mlilback 3/2/02 */
 	ip_addr = inet_addr(servername);
-	if (ip_addr == INADDR_NONE)
-		host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
-
-/* TODO this should go in configure */
-#ifndef NOREVERSELOOKUPS
-/* froy@singleentry.com 12/21/2000 */
-	if (host == NULL) {
-		char addr[4];
-		int a0, a1, a2, a3;
-
-		/* FIXME check results, this code should be executed only if it's an address */
-		sscanf(servername, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
-		addr[0] = a0;
-		addr[1] = a1;
-		addr[2] = a2;
-		addr[3] = a3;
-		host = tds_gethostbyaddr_r(addr, 4, AF_INET, &result, buffer, sizeof(buffer), &h_errnop);
+	if (ip_addr != INADDR_NONE) {
+		strncpy(ip, servername, 17);
+		return;
 	}
-/* end froy */
-#endif
-	if (!host) {
-		/* if servername is ip, copy to ip. */
-		if (INADDR_NONE != ip_addr)
-			strncpy(ip, servername, 17);
-		else
-			ip[0] = '\0';
-	} else {
+
+	host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
+
+	ip[0] = '\0';
+	if (host) {
 		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
-#ifdef HAVE_INET_NTOA_R
+#if defined(AF_INET) && HAVE_INET_NTOP
+		inet_ntop(AF_INET, ptr, ip, 17);
+#elif HAVE_INET_NTOA_R
 		inet_ntoa_r(*ptr, ip, 17);
 #else
 		strncpy(ip, inet_ntoa(*ptr), 17);

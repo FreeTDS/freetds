@@ -1,3 +1,6 @@
+Sun Nov  2 11:51:17 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c: fix reverse lookup problems
+
 Sat Nov  1 17:45:03 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/cspublic.h include/des.h
 	* include/sybdb.h include/tds.h
