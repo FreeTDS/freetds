@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <stdio.h>
+#include <assert.h>
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -47,7 +47,7 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: bsqldb.c,v 1.2 2004-04-12 20:36:53 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.3 2004-04-13 09:07:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -57,8 +57,9 @@ int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 static int next_query(DBPROCESS *dbproc);
 static void print_results(DBPROCESS *dbproc);
 static int get_printable_size(int type, int size);
+static void usage(const char invoked_as[]);
 
-struct METADATA { char *name, *source, *format_string; int type, size; };
+struct METADATA { char *name, *format_string; const char *source; int type, size; };
 int set_format_string(struct METADATA * meta, const char separator[]);
 
 typedef struct _options 
@@ -267,7 +268,7 @@ print_results(DBPROCESS *dbproc)
 		
 		fprintf(options.verbose, "Result set %d\n", iresultset);
 		/* Free prior allocations, if any. */
-		fprintf(options.verbose, "Freeing prior allocations\n", iresultset);
+		fprintf(options.verbose, "Freeing prior allocations\n");
 		for (c=0; c < ncols; c++) {
 			free(metadata[c].format_string);
 			free(data[c].buffer);
@@ -294,7 +295,7 @@ print_results(DBPROCESS *dbproc)
 		/* 
 		 * Allocate memory for metadata and bound columns 
 		 */
-		fprintf(options.verbose, "Allocating buffers\n", iresultset);
+		fprintf(options.verbose, "Allocating buffers\n");
 		ncols = dbnumcols(dbproc);	
 
 		metadata = (struct METADATA*) calloc(ncols, sizeof(struct METADATA));
@@ -304,7 +305,7 @@ print_results(DBPROCESS *dbproc)
 		assert(data);
 		
 		/* metadata is more complicated only because there may be several compute ids for each result set */
-		fprintf(options.verbose, "Allocating compute buffers\n", iresultset);
+		fprintf(options.verbose, "Allocating compute buffers\n");
 		ncomputeids = dbnumcompute(dbproc);
 		if (ncomputeids > 0) {
 			metacompute = (struct METACOMP**) calloc(ncomputeids, sizeof(struct METACOMP*));
@@ -332,14 +333,14 @@ print_results(DBPROCESS *dbproc)
 		 * TODO: Implement dbcoltypeinfo() for numeric/decimal datatypes.  
 		 */
 
-		fprintf(options.verbose, "Metadata\n", iresultset);
+		fprintf(options.verbose, "Metadata\n");
 		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varys");
 		fprintf(options.verbose, "%.6s  %.30s  %.30s  %.15s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
 			int width;
 			/* Get and print the metadata.  Optional: get only what you need. */
 			char *name = dbcolname(dbproc, c+1);
-			metadata[c].name = (name)? name : empty_string;
+			metadata[c].name = strdup(name ? (const char *) name : empty_string);
 
 			name = dbcolsource(dbproc, c+1);
 			metadata[c].source = (name)? name : empty_string;
@@ -462,7 +463,7 @@ print_results(DBPROCESS *dbproc)
 		}
 		
 		fprintf(options.verbose, "\n");
-		fprintf(options.verbose, "Data\n", iresultset);
+		fprintf(options.verbose, "Data\n");
 
 		/* Print the column headers to stderr to keep them separate from the data.  */
 		for (c=0; c < ncols; c++) {
@@ -653,7 +654,7 @@ set_format_string(struct METADATA * meta, const char separator[])
 	return ret;
 }
 
-void
+static void
 usage(const char invoked_as[])
 {
 	fprintf(stderr, "usage:  %s \n"

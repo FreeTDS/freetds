@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <stdio.h>
+#include <assert.h>
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -47,7 +47,7 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: defncopy.c,v 1.2 2004-04-12 22:30:05 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.3 2004-04-13 09:07:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -249,7 +249,7 @@ print_results(DBPROCESS *dbproc)
 		
 		fprintf(options.verbose, "Result set %d\n", iresultset);
 		/* Free prior allocations, if any. */
-		fprintf(options.verbose, "Freeing prior allocations\n", iresultset);
+		fprintf(options.verbose, "Freeing prior allocations\n");
 		for (c=0; c < ncols; c++) {
 			free(metadata[c].format_string);
 			free(data[c].buffer);
@@ -276,7 +276,7 @@ print_results(DBPROCESS *dbproc)
 		/* 
 		 * Allocate memory for metadata and bound columns 
 		 */
-		fprintf(options.verbose, "Allocating buffers\n", iresultset);
+		fprintf(options.verbose, "Allocating buffers\n");
 		ncols = dbnumcols(dbproc);	
 
 		metadata = (struct METADATA*) calloc(ncols, sizeof(struct METADATA));
@@ -286,7 +286,7 @@ print_results(DBPROCESS *dbproc)
 		assert(data);
 		
 		/* metadata is more complicated only because there may be several compute ids for each result set */
-		fprintf(options.verbose, "Allocating compute buffers\n", iresultset);
+		fprintf(options.verbose, "Allocating compute buffers\n");
 		ncomputeids = dbnumcompute(dbproc);
 		if (ncomputeids > 0) {
 			metacompute = (struct METACOMP**) calloc(ncomputeids, sizeof(struct METACOMP*));
@@ -314,7 +314,7 @@ print_results(DBPROCESS *dbproc)
 		 * TODO: Implement dbcoltypeinfo() for numeric/decimal datatypes.  
 		 */
 
-		fprintf(options.verbose, "Metadata\n", iresultset);
+		fprintf(options.verbose, "Metadata\n");
 		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varys");
 		fprintf(options.verbose, "%.6s  %.30s  %.30s  %.15s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
@@ -444,7 +444,7 @@ print_results(DBPROCESS *dbproc)
 		}
 		
 		fprintf(options.verbose, "\n");
-		fprintf(options.verbose, "Data\n", iresultset);
+		fprintf(options.verbose, "Data\n");
 
 		/* 
 		 * Print the data to stdout.  
