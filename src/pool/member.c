@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.30 2004-12-11 13:32:42 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.31 2004-12-12 15:27:11 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -211,7 +211,15 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 				if (pmbr->current_user) {
 					puser = pmbr->current_user;
 					buf = tds->in_buf;
-					if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) {
+					/* 
+					 * check the netlib final packet flag
+					 * instead of looking for done tokens.
+					 * It's more efficient and generic to 
+					 * all protocol versions. -- bsb 
+					 * 2004-12-12 
+					 */
+					if (buf[1]) {
+					/* if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) { */
 						/* we are done...deallocate member */
 						pmbr->current_user = NULL;
 						pmbr->state = TDS_IDLE;

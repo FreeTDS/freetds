@@ -1,3 +1,7 @@
+Sun Dec 12 10:07:06 EST 2004	Brian Bruns <brian@bruns.com>
+	* src/pool/main.c: setsockopt to SO_REUSEADDR
+	* src/pool/member.c: use netlib final packet flag instead of done token.
+
 Sat Dec 11 14:32:31 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/pool/main.c src/pool/member.c src/pool/pool.h:
 	* src/pool/user.c:

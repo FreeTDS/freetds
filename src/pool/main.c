@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.17 2004-12-11 13:32:41 freddy77 Exp $";
+static char software_version[] = "$Id: main.c,v 1.18 2004-12-12 15:27:11 brianb Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this will go away...starting with just 1 global pool */
@@ -153,6 +153,7 @@ pool_main_loop(TDS_POOL * pool)
 	int s, maxfd, i;
 	int retval;
 	fd_set rfds;
+	int socktrue = 1;
 
 /* fix me -- read the interfaces file and bind accordingly */
 	sin.sin_addr.s_addr = INADDR_ANY;
@@ -163,6 +164,8 @@ pool_main_loop(TDS_POOL * pool)
 		perror("socket");
 		exit(1);
 	}
+	/* don't keep addr in use from s.craig@andronics.com */
+	setsockopt(s,SOL_SOCKET,SO_REUSEADDR,&socktrue,sizeof socktrue);
 
 	fprintf(stderr, "Listening on port %d\n", pool->port);
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
