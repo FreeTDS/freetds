@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-04-05 15:46:18 $</date>
-		<releaseinfo>$Revision: 1.92 $</releaseinfo>
+		<date>$Date: 2005-04-06 06:44:53 $</date>
+		<releaseinfo>$Revision: 1.93 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.92 $</>
-<member>$Date: 2005-04-05 15:46:18 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.92 2005-04-05 15:46:18 jklowden Exp $.</>
+<member>$Revision: 1.93 $</>
+<member>$Date: 2005-04-06 06:44:53 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.93 2005-04-06 06:44:53 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -551,7 +551,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-04-05 15:46:18 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-04-06 06:44:53 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -913,8 +913,8 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<row>
 	<entry>instance</entry>
 	<entry>none</entry>
-	<entry>instance name of Microsoft SQL Server to connect to. Port will be detected automatically.
-		NOTE: this require an extra round-trip with server and can slow down connection.</entry>
+	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.
+		<note><para>This requires an extra round-trip with server and may thus slightly delay making the connection.</para></note></para></entry>
 	<entry>instance name</entry>
 	</row>
 	<row>
@@ -928,8 +928,12 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 </tgroup>
 </table>
 
-<table>
-<title>Explanations of bit in debug flags entry</title>
+	<para>The logging capability has help solve inumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas at other times someone may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
+
+<para>The log's granularity can be controlled with the <literal>debug flags</> entry. The default value (<literal>4FFF</> hex) gives a level of detail that is useful for resolving problems via the mailing list.  </para>
+
+<table id="tab.freetds.conf.debugflags">
+<title>Valid bitmask values for <literal>debug flags</> entry in <filename>freetds.conf</filename></title>
 	<tgroup cols="2">
 	<thead>
 	  <row>
@@ -986,6 +990,9 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	</tbody>
 	</tgroup>
 </table>
+
+	<para>For more about the wonder world of <productname>FreeTDS</productname>logs, see <link linkend="logging">Logging</link>.</para>
+	
 	<para>As of version 0.62 the following options are deprecated and supported only for backward compatibility.</para>
 <table id="tab.freetds.conf.deprecated">
 <title>Deprecated <filename>freetds.conf</filename> settings</title>
@@ -1568,15 +1575,13 @@ The unit tests rely on the <filename>PWD</> file in root of the FreeTDS source t
 <filename>PWD</> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</>.  			</para>
 			<para>
 To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available dataserver in <filename>PWD</>.
-Some tests require some special access in order to create store procedure on server.
+Some tests require permission to create stored procedures on server.
 			</para>
 			<para>
-ODBC tests can require additional setup in order to execute correctly tests.
-This cause SRV entry in PWD file specify DSN entry in your <filename>odbc.ini</>.
-All ODBC tests build their own <filename>odbc.ini</> and try to redirect DM to this file however this it's very DM dependent so it can fail if you don't have either iODBC or unixODBC.
+To complete successfully, the ODBC tests require some additional setup.  In your <filename>PWD</> file, add a <literal>SRV</> entry specifying the DSN entry for your <filename>odbc.ini</>.  The ODBC tests all build their own <filename>odbc.ini</> and try to redirect the Driver Manager to it, however this functionality is very DM dependent and may well fail unless you have either iODBC or unixODBC.
 			</para>
 			<para>
-As of 0.63 you can have some problems running tests under Mac OS X (executable cannot find some library). Setting DYLD_LIBRARY_PATH environment to paths to source compiler libraries fix the problem.
+As of version 0.63 you may experience problems running tests under Mac OS X because the executable cannot find some library.  Setting <envar>DYLD_LIBRARY_PATH</> environment variable to point to your compiler libraries usually seems to fix the problem.
 			</para>
 			<para>
 <tip><para>
@@ -1704,10 +1709,12 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<row>
 	<entry><literal>Server</></entry>
 	<entry>Hostname of a server. Used in an ODBC-only configuration.
-		As of version 0.64 you can use syntax server\instance to specify
-		a Microsoft SQL Server instance. Note that using this type of
-		specification instead of specific port require an extra round trip
-		during connection. Ask to your administrator to get port number.
+		As of version 0.64 you can specify
+		a Microsoft SQL Server instance in the form of <literal>server\instance</literal>.  
+		This isn't <emphasis>required</> to connect to an instance, and is in fact slightly 
+		slower to set up the conncection, because it entails an extra round trip to the 
+		server.  To avoid that, ask to your administrator for the port number of each
+		instance, and create separate server entries for each one.  
 	</entry>
 	<entry>A server name or (ip) address</entry>
 	<entry>none</entry>
@@ -1771,8 +1778,10 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<row>
 	<entry><literal>Address</></entry>
 	<entry>IP address of the dataserver. 
-		Useful if you want to specify a server by address, rather than by name.
-		Syntax should be ip,port or just ip.
+		Useful if you want to specify a server by address, 
+		rather than by name.  The format is <replaceable>ip,port</> 
+		or simply <replaceable>ip</> in standard dotted-decimal
+		notation.  
 	</entry>
 	<entry>Any</entry>
 	<entry>none</entry>
@@ -2887,15 +2896,25 @@ them to mailing lists.
 Once in a while, someone writes to the mailing list, asking why <productname>FreeTDS</productname> is so <emphasis>slow</>.  It sometimes turns out that logging was left turned on.  Don't you be the next victim!  <productname>FreeTDS</productname> logs are meant for development and debugging, not as a system monitoring tool.  
 			</para>
 		        </sect2>
-			<sect2><title>ODBC world</title>
+        		
+			<sect2 id="Logging.freetds.conf">
+			<title><filename>freetds.conf</filename> variables that Control Logging</title>
 			<para>
-Many ODBC DM have their own support for logging. How to set logging it's however very implementation dependent. ODBC log it's very helpful cause it provide a log of all calls made directly by applications.
+			See <link linkend="tab.freetds.conf.debugflags">Valid bitmask values for <literal>debug flags</> entry in <filename>freetds.conf</filename></link>
+			</para>
+		        
+			</sect2>
+			<sect2 id="Logging.odbc">
+				<title>Logging in ODBC land</title>
+				<subtitle>(Tree-huggers need not worry)</subtitle>
+			<para>
+Many ODBC Driver Managers have their own support for logging. How logging is controlled, however, varies widely by implementation. The ODBC log is often very helpful because it provides a log of all calls made directly by the application.
 			</para>
 	<variablelist>
 	<varlistentry>
 		<term>unixODBC</term>
 		<listitem>
-			<para>unixODBC support logging setting some entries in <filename>odbcinst.ini</filename>. As example
+			<para>unixODBC supports logging via some entries in <filename>odbcinst.ini</filename>. For example:
 <screen>
 [ODBC]
 Trace        = Yes
