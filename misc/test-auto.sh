@@ -19,13 +19,15 @@ output_html () {
 @a = <>;
 $_ = join("", @a);
 s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g;
-s,\n\+2:([^\n]*),<span class="error">\1</span>,sg;
-s,\n\+3:([^\n]*),<span class="info">\1</span>,sg;
-s,^2:(.*)$,<span class="error">\1</span>,mg;
-s,^3:(.*)$,<span class="info">\1</span>,mg;
-s,^1:,,mg;
+$* = 0;
+s,\n\+2:([^\n]*),<span class="error">\1</span>,g;
+s,\n\+3:([^\n]*),<span class="info">\1</span>,g;
+$* = 1;
+s,^2:(.*)$,<span class="error">\1</span>,g;
+s,^3:(.*)$,<span class="info">\1</span>,g;
+s,^1:,,g;
 $html = "<pre>$_</pre>";
-open(TMP, "<$fn") or die("open");
+open(TMP, "<$fn") || die("open");
 @a = <TMP>;
 $a = join("", @a);
 close(TMP);
@@ -39,11 +41,11 @@ output_save () {
 	shift
 	OUT=$1
 	shift
-	~/bin/classifier "$@" > "$DIR/$OUT.txt"
+	classifier "$@" > "$DIR/$OUT.txt"
 	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
 	RES=$?
 	WARN=":-)"
-	if test `cat "$DIR/$OUT.txt" | grep '^+\?2:' | wc -l` != 0; then
+	if test `cat "$DIR/$OUT.txt" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
 		WARN=":-("
 	fi
 	ERR=":-)"
@@ -63,11 +65,11 @@ out_init () {
 }
 
 out_header () {
-	echo "$1" | sed 's,  \+,</th><th>,g; s,^,<table border=\"1\"><tr><th>,; s,$,</th></tr>\n,' >> "$DIR/out.html"
+	echo "$1" | sed 's,   *,</th><th>,g; s,^,<table border="1"><tr><th>,; s,$,</th></tr>,' >> "$DIR/out.html"
 }
 
 out_row () {
-	echo "$1" | sed 's,  \+,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>\n,; s,<td>:-)</td>,<td><font color="green">yes</font></td>,g; s,<td>:-(</td>,<td bgcolor="red">no</td>,g; s,<td>:(</td>,<td bgcolor="yellow">no</td>,g' >> "$DIR/out.html"
+	echo "$1" | sed 's,   *,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>,; s,<td>:-)</td>,<td><font color="green">yes</font></td>,g; s,<td>:-(</td>,<td bgcolor="red">no</td>,g; s,<td>:(</td>,<td bgcolor="yellow">no</td>,g' >> "$DIR/out.html"
 }
 
 out_footer () {
@@ -96,8 +98,12 @@ out_init
 out_header "Operation  Success  No warning  Log"
 
 echo Making ...
-make clean > /dev/null 2> /dev/null
-output_save "make" make make
+MAKE=make
+if gmake --help 2> /dev/null > /dev/null; then
+	MAKE=gmake
+fi
+$MAKE clean > /dev/null 2> /dev/null
+output_save "make" make $MAKE
 if test $RES != 0; then
 	out_footer
 	out_end
@@ -108,7 +114,7 @@ fi
 echo Making tests ...
 TESTS_ENVIRONMENT=true
 export TESTS_ENVIRONMENT
-output_save "make tests" maketest make check 
+output_save "make tests" maketest $MAKE check 
 if  test $RES != 0; then
 	out_footer
 	out_end
@@ -120,7 +126,7 @@ out_footer
 echo Testing ...
 TESTS_ENVIRONMENT="$DIR/full-test.sh"
 export TESTS_ENVIRONMENT ORIGDIR
-make check 2> /dev/null > /dev/null
+$MAKE check 2> /dev/null > "$DIR/check.txt"
 if  test $RES != 0; then
 	out_footer
 	out_end
@@ -173,7 +179,7 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 		ERR1=":-)"
 		WARN1=":-)"
 		LOG1="<a href=\"test$NUM.html\">log</a>"
-		if test `cat "$CUR.test_output" | grep '^+\?2:' | wc -l` != 0; then
+		if test `cat "$CUR.test_output" | sed 's,^+2:,2:,g' | grep '^+\?2:' | wc -l` != 0; then
 			WARN1=":("
 		fi
 		if test $RES1 != 0; then
@@ -193,7 +199,7 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 		LEAK=":-)"
 		VGERR=":-)"
 		LOG2="<a href=\"vgtest$NUM.html\">log</a>"
-		if test `cat "$CUR.vg.test_output" | grep '^+\?2:' | wc -l` != 0; then
+		if test `cat "$CUR.vg.test_output" | sed 's,^+2:,2:,g' | grep '^+\?2:' | wc -l` != 0; then
 			WARN2=":("
 		fi
 		if test `cat "$CUR.vg.test_output" | grep ':==.*no leaks are possible' | wc -l` == 0; then
