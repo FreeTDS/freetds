@@ -1,3 +1,6 @@
+Tue Dec 16 17:30:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/util.c: fixed core enabling append log mode
+
 Tue Dec 16 17:00:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: do not write time more and more
 
