@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.7 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.8 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -526,11 +526,12 @@ TDS_FLOAT tmpf;
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_datetime(int srctype,TDS_CHAR *src,
+tds_convert_datetime(TDSSOCKET *tds, int srctype,TDS_CHAR *src,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 TDS_INT dtdays, dttime;
 time_t tmp_secs_from_epoch;
+char *dfmt;
    
 	switch(desttype) {
 		case SYBCHAR:
@@ -553,13 +554,18 @@ time_t tmp_secs_from_epoch;
 				return 0;
 			}
 			/* end lkrauss */
+			if (tds && tds->date_fmt) {
+				dfmt = tds->date_fmt;
+			} else {
+				dfmt = "%b %d %Y %I:%M%p";
+			}
 			tmp_secs_from_epoch = ((dtdays - 25567)*24*60*60) + (dttime/300);
-			if (destlen<20) {
-				strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
+			if (destlen<30) {
+				strftime(dest, destlen-1, dfmt,
 				(struct tm*)gmtime(&tmp_secs_from_epoch));
 				return destlen;
 			} else {
-				strftime(dest, 20, "%b %d %Y %I:%M%p",
+				strftime(dest, 30, dfmt,
 				(struct tm*)gmtime(&tmp_secs_from_epoch));
 				return (strlen(dest));
 			}
@@ -577,11 +583,12 @@ time_t tmp_secs_from_epoch;
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_datetime4(int srctype, TDS_CHAR *src,
+tds_convert_datetime4(TDSSOCKET *tds, int srctype, TDS_CHAR *src,
 	int desttype, TDS_CHAR *dest,TDS_INT destlen)
 {
-   TDS_USMALLINT days, minutes;
-   time_t tmp_secs_from_epoch;
+TDS_USMALLINT days, minutes;
+time_t tmp_secs_from_epoch;
+char *dfmt;
    
    switch(desttype) {
       case SYBCHAR:
@@ -602,15 +609,21 @@ tds_convert_datetime4(int srctype, TDS_CHAR *src,
 		return 0;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "%L inside tds_convert_datetime4() days = %d minutes = %d\n", days, minutes);
-        tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
-	   if (destlen<20) {
-           strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
-                    (struct tm*)gmtime(&tmp_secs_from_epoch));
-           return destlen;
-        } else {
-           strftime(dest, 20, "%b %d %Y %I:%M%p",
-                    (struct tm*)gmtime(&tmp_secs_from_epoch));
-           return (strlen(dest));
+
+	if (tds && tds->date_fmt) {
+		dfmt = tds->date_fmt;
+	} else {
+		dfmt = "%b %d %Y %I:%M%p";
+	}
+	tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
+	if (destlen<30) {
+    		strftime(dest, destlen-1, dfmt,
+			(struct tm*)gmtime(&tmp_secs_from_epoch));
+		return destlen;
+	} else {
+		strftime(dest, 20, dfmt,
+			(struct tm*)gmtime(&tmp_secs_from_epoch));
+		return (strlen(dest));
 	}
 	break;
       case SYBDATETIME:
@@ -757,7 +770,7 @@ int i;
 }
 
 TDS_INT 
-tds_convert(int srctype, TDS_CHAR *src, TDS_UINT srclen,
+tds_convert(TDSSOCKET *tds, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_CHAR *dest, TDS_UINT destlen)
 {
 TDS_VARBINARY *varbin;
@@ -808,11 +821,11 @@ TDS_VARBINARY *varbin;
 				desttype,dest,destlen);
 			break;
 		case SYBDATETIME:
-			return tds_convert_datetime(srctype,src,
+			return tds_convert_datetime(tds, srctype,src,
 				desttype,dest,destlen);
 			break;
 		case SYBDATETIME4:
-			return tds_convert_datetime4(srctype,src,
+			return tds_convert_datetime4(tds, srctype,src,
 				desttype,dest,destlen);
 			break;
 		case SYBVARBINARY:

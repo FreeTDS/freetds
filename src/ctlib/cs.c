@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.3 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.4 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,7 +48,7 @@ int src_type, dest_type;
 	src_type = _ct_get_server_type(srcfmt->datatype);
 	dest_type = _ct_get_server_type(destfmt->datatype);
 
-	tds_convert(src_type, srcdata, srcfmt ? srcfmt->maxlength : 0, 
+	tds_convert(NULL, src_type, srcdata, srcfmt ? srcfmt->maxlength : 0, 
 		dest_type, destdata, destfmt ? destfmt->maxlength : 0);
 	return CS_SUCCEED;
 }

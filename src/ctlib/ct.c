@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.13 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.14 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -515,7 +515,8 @@ static void _ct_bind_data(CS_COMMAND *cmd)
 {
 int i;
 TDSCOLINFO *curcol;
-TDSRESULTINFO *resinfo = cmd->con->tds_socket->res_info;
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->res_info;
 unsigned char *src;
 unsigned char *dest;
 TDS_INT srctype, srclen, desttype, destlen, len;
@@ -551,7 +552,7 @@ TDS_INT srctype, srclen, desttype, destlen, len;
             srclen = curcol->column_size;
          }
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d\n", i, srclen);
-         len = tds_convert(srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+         len = tds_convert(tds, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
          tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
    
          /* XXX need utf16 support (NCHAR,NVARCHAR,NTEXT) */

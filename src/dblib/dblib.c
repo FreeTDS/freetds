@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.9 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.10 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -862,8 +862,14 @@ DBINT dbconvert(DBPROCESS *dbproc,
 		BYTE *dest,
 		DBINT destlen)
 {
+TDSSOCKET *tds = NULL;
+
+	if (dbproc) {
+		tds = (TDSSOCKET *) dbproc->tds_socket;
+	}
+
 	if (srclen==-1) srclen = strlen((char *)src);
-	return tds_convert(srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+	return tds_convert(tds, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
 }
 RETCODE dbbind(
    DBPROCESS *dbproc,
@@ -1980,9 +1986,10 @@ char query[1024];
 char textptr_string[35]; /* 16 * 2 + 2 (0x) + 1 */
 char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
+TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	tds_convert(SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
-	tds_convert(SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+	tds_convert(tds, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
+	tds_convert(tds, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
 	sprintf(query, "writetext bulk %s %s timestamp = %s",
 		objname, textptr_string, timestamp_string); 
 	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {

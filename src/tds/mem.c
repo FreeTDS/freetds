@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.7 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.8 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -352,6 +352,7 @@ void tds_free_socket(TDSSOCKET *tds)
 		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
 		if (tds->s) close(tds->s);
 		if (tds->use_iconv) tds_iconv_close(tds);
+		if (tds->date_fmt) free(tds->date_fmt);
 		TDS_ZERO_FREE(tds);
 	}
 }
@@ -366,6 +367,7 @@ void tds_free_config(TDSCONFIGINFO *config)
         if (config->dump_file) free(config->dump_file);
         if (config->default_domain) free(config->default_domain);
         if (config->client_charset) free(config->client_charset);
+        if (config->date_fmt) free(config->date_fmt);
 	TDS_ZERO_FREE(config);
 }
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)

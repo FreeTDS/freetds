@@ -1,3 +1,16 @@
+Thu Feb 14 22:08:17 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* include/tds.h.in: add date format config option
+	* include/tdsconvert.h: pass tds to tds_convert
+	* src/tds/mem.c: free date_fmt in socket and config
+	* src/tds/login.c: copy date_fmt from config to socket struct
+	* src/tds/convert.c: pass around TDSSOCKET where needed
+	* src/tds/config.c: add date format option, don't lowercase values
+	* src/dblib/dblib.c(dbconvert): pass to TDSSOCKET to tds_convert
+	* src/ctlib/ct.c: pass TDSSOCKET to tds_convert
+	* src/ctlib/cs.c: pass TDSSOCKET to tds_convert
+	* src/odbc/odbc.c: pass TDSSOCKET to tds_convert
+
 Sun Feb 10 21:30:05 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* configure.in: error if gmake not found

@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.9 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.10 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -225,7 +225,7 @@ int found = 0;
 			if (!isspace(*s) && isspace(p)) 
 				value[i++]=' ';
 			if (!isspace(*s)) 
-				value[i++]=tolower(*s);
+				value[i++]=*s;
 			p = *s;
 			s++;
 		}
@@ -304,6 +304,9 @@ int found = 0;
 				config->language = strdup(value);
 			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
 				g_append_mode = tds_config_boolean(value);
+			} else if (!strcmp(option,TDS_STR_DATEFMT)) {
+				if (config->date_fmt) free(config->date_fmt);
+				config->date_fmt = strdup(value);
 			}
 		}
 

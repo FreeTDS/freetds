@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.14 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.15 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -154,6 +154,11 @@ FD_ZERO (&fds);
 	/* set up iconv */
 	if (config->client_charset) {
 		tds_iconv_open(tds, config->client_charset);
+	}
+
+	/* specified a date format? */
+	if (config->date_fmt) {
+		tds->date_fmt=strdup(config->date_fmt);
 	}
 
 	/* Jeff's hack - begin */

@@ -20,7 +20,7 @@
 /***************************************************************
  * PROGRAMMER   NAME            CONTACT
  *==============================================================
- *              Brian Bruns
+ * BSB          Brian Bruns     camber@ais.org
  * PAH          Peter Harvey    pharvey@codebydesign.com
  *
  ***************************************************************
@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.16 2002-02-11 03:01:39 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.17 2002-02-15 03:18:14 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1024,7 +1024,7 @@ int srclen;
 				src = &resinfo->current_row[colinfo->column_offset];
 				srclen = -1;
 			}
-			len = tds_convert(
+			len = tds_convert(tds, 
          		tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 			src,
 			srclen, 
@@ -1330,7 +1330,7 @@ int srclen;
 			src = &resinfo->current_row[colinfo->column_offset];
 			srclen = -1;
 		}
-		*pcbValue=tds_convert(
+		*pcbValue=tds_convert(tds, 
       tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 		src,
 		srclen, 
