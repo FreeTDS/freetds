@@ -1,3 +1,8 @@
+Thu Mar 21 22:21:29 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* include/tdsodbc.h: added row field to stmt struct
+	* src/odbc/odbc.c: move bind transfer to SQLFetch from _SQLExecute
+
 Thu Mar 14 20:53:46 EST 2002	Brian Bruns <camber@ais.org>
 
 	* acinclude.m4: added macro for openssl

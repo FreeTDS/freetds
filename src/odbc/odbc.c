@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.19 2002-02-20 21:14:38 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.20 2002-03-22 03:52:58 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -930,13 +930,14 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 int ret;
 TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
 TDSCOLINFO *colinfo;
-struct _sql_bind_info *cur;
    
 	_odbc_fix_literals(stmt);
 	if (stmt->param_head) {
 		_odbc_fixup_sql(stmt);
 	}
-	fprintf(stderr,"query = %s\n",stmt->query);
+	// fprintf(stderr,"query = %s\n",stmt->query);
+
+	stmt->row = 0;
 
 	if (!(tds_submit_query(tds, stmt->query)==TDS_SUCCEED)) {
 		LogError (tds->msg_info->message);
@@ -945,24 +946,6 @@ struct _sql_bind_info *cur;
 	/* does anyone know how ODBC deals with multiple result sets? */
 	ret = tds_process_result_tokens(tds);
 	
-	/* if we bound columns, transfer them to res_info now that we have one */
-	if (ret==TDS_SUCCEED && tds->res_info) {
-		cur = stmt->bind_head;
-		while (cur) {
-			if (cur->column_number>0 && 
-			cur->column_number < tds->res_info->num_cols) {
-				colinfo = tds->res_info->columns[cur->column_number-1];
-				colinfo->varaddr = cur->varaddr;
-				colinfo->column_bindtype = cur->column_bindtype;
-				colinfo->column_bindlen = cur->column_bindlen;
-				colinfo->column_lenbind = cur->column_lenbind;
-			} else {
-				/* log error ? */
-			}
-			cur = cur->next;
-		}
-	}
-
 	if (ret==TDS_NO_MORE_RESULTS) {
 		/* DBD::ODBC expect SQL_SUCCESS on non-result returning queries */
 		return SQL_SUCCESS;
@@ -1004,11 +987,31 @@ struct _hstmt *stmt;
 SQLINTEGER len=0;
 unsigned char *src;
 int srclen;
+struct _sql_bind_info *cur;
 
 	stmt=(struct _hstmt *)hstmt;
 
 	tds = stmt->hdbc->tds_socket;
 	
+	/* if we bound columns, transfer them to res_info now that we have one */
+	if (stmt->row==0) {
+		cur = stmt->bind_head;
+		while (cur) {
+			if (cur->column_number>0 && 
+			cur->column_number < tds->res_info->num_cols) {
+				colinfo = tds->res_info->columns[cur->column_number-1];
+				colinfo->varaddr = cur->varaddr;
+				colinfo->column_bindtype = cur->column_bindtype;
+				colinfo->column_bindlen = cur->column_bindlen;
+				colinfo->column_lenbind = cur->column_lenbind;
+			} else {
+				/* log error ? */
+			}
+			cur = cur->next;
+		}
+	}
+	stmt->row++;
+
  	ret = tds_process_row_tokens(stmt->hdbc->tds_socket);
 	if (ret==TDS_NO_MORE_ROWS) {
 		return SQL_NO_DATA_FOUND;
@@ -1113,16 +1116,18 @@ struct _sql_bind_info *cur, *tmp;
 			free(cur);
 			cur = tmp;
 		}
+		stmt->bind_head = NULL;
 	}
 
 	/* do the same for bound parameters */
-	if (stmt->bind_head) {
-		cur = stmt->bind_head;
+	if (stmt->param_head) {
+		cur = stmt->param_head;
 		while (cur) {
 			tmp = cur->next;
 			free(cur);
 			cur = tmp;
 		}
+		stmt->param_head = NULL;
 	}
 
 	if (fOption==SQL_DROP) {
