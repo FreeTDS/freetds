@@ -72,7 +72,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.104 2002-12-18 20:21:44 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.105 2002-12-19 07:05:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -428,7 +428,6 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 	odbc_LogError("SQLTablePrivileges: function not implemented");
 	return SQL_ERROR;
 }
-#endif
 
 
 SQLRETURN SQL_API
@@ -442,6 +441,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 	odbc_LogError("SQLSetEnvAttr: function not implemented");
 	return SQL_ERROR;
 }
+#endif
 
 
 SQLRETURN SQL_API
