@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.54 2003-12-10 11:21:45 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.55 2003-12-22 21:54:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -271,12 +271,10 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 	TDS_TINYINT numeric_size;
 
 	if (bcpcol->data_size == 0) {
-		if (!bcpcol->db_nullable) {
-			/* too bad if the column is not nullable */
-			return TDS_FAIL;
-		}
-
-		/* Insert a NULL */
+		/* 
+		 * Insert a NULL.  If the column is not nullable, it should be dealt with 
+		 * in _bcp_read_hostfile() or _bcp_get_prog_data().  
+		 */
 		switch (bcpcol->on_server.column_type) {
 		case XSYBCHAR:
 		case XSYBVARCHAR:
@@ -290,8 +288,9 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 			tds_put_byte(tds, GEN_NULL);
 			break;
 		}
-		return TDS_SUCCEED;	/* go home */
+		return TDS_SUCCEED;
 	}
+	assert(bcpcol->data_size > 0);
 
 	switch (bcpcol->db_varint_size) {
 	case 4:
@@ -340,7 +339,6 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 int
 tds_put_bulk_data(TDSSOCKET * tds, const unsigned char *buf, TDS_INT bufsize)
 {
-
 	tds->out_flag = 0x07;
 	return tds_put_n(tds, buf, bufsize);
 }
