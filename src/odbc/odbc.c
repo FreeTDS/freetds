@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.191 2003-07-27 16:21:47 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.192 2003-07-27 21:11:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -781,22 +781,22 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	/* spinellia@acm.org
 	 * after login is enabled autocommit */
 	dbc->attr.attr_autocommit = SQL_AUTOCOMMIT_ON;
-	dbc->attr.attr_connection_dead = SQL_CD_TRUE;   /* No connection yet */
-	dbc->attr.attr_connection_timeout = 0;  /* TODO */
+	dbc->attr.attr_connection_dead = SQL_CD_TRUE;	/* No connection yet */
+	dbc->attr.attr_connection_timeout = 0;	/* TODO */
 	/* This is set in the environment change function */
 	tds_dstr_init(&dbc->attr.attr_current_catalog);
-	dbc->attr.attr_login_timeout = 0;       /* TODO */
+	dbc->attr.attr_login_timeout = 0;	/* TODO */
 	dbc->attr.attr_metadata_id = SQL_FALSE;
 	dbc->attr.attr_odbc_cursors = SQL_CUR_USE_IF_NEEDED;
 	dbc->attr.attr_packet_size = 0;
-	dbc->attr.attr_quite_mode = NULL;       /* We don't support GUI dialogs yet */
+	dbc->attr.attr_quite_mode = NULL;	/* We don't support GUI dialogs yet */
 	/* DM only
 	 * dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
 	 * dbc->attr.attr_tracefile = NULL; */
 	tds_dstr_init(&dbc->attr.attr_translate_lib);
 	dbc->attr.attr_translate_option = 0;
 	dbc->attr.attr_txn_isolation = SQL_TXN_READ_COMMITTED;
-	
+
 	*phdbc = (SQLHDBC) dbc;
 
 	ODBC_RETURN(env, SQL_SUCCESS);
@@ -2148,16 +2148,16 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 		*((SQLHWND *) Value) = dbc->attr.attr_quite_mode;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
-	/* DM only */
-	/*
-	case SQL_ATTR_TRACE:
-		*((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
-		ODBC_RETURN(dbc, SQL_SUCCESS);
-		break;
-	case SQL_ATTR_TRACEFILE:
-		p = dbc->attr.attr_tracefile;
-		break;
-	*/
+		/* DM only */
+		/*
+		 * case SQL_ATTR_TRACE:
+		 * *((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
+		 * ODBC_RETURN(dbc, SQL_SUCCESS);
+		 * break;
+		 * case SQL_ATTR_TRACEFILE:
+		 * p = dbc->attr.attr_tracefile;
+		 * break;
+		 */
 	case SQL_ATTR_TXN_ISOLATION:
 		*((SQLUINTEGER *) Value) = dbc->attr.attr_txn_isolation;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -2599,20 +2599,24 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	   SQLSMALLINT FAR * pcbInfoValue)
 {
 	const char *p = NULL;
+	TDSSOCKET *tds;
+
 	SQLSMALLINT *siInfoValue = (SQLSMALLINT *) rgbInfoValue;
 	SQLUSMALLINT *usiInfoValue = (SQLUSMALLINT *) rgbInfoValue;
 	SQLUINTEGER *uiInfoValue = (SQLUINTEGER *) rgbInfoValue;
 
 	INIT_HDBC;
 
+	tds = dbc->tds_socket;
+
 	switch (fInfoType) {
 	case SQL_ACTIVE_STATEMENTS:
 		*siInfoValue = 1;
 		break;
 	case SQL_ALTER_TABLE:
-		*uiInfoValue = SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT
-			| SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT
-			| SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
+		*uiInfoValue =
+			SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT | SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT |
+			SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
 		break;
 	case SQL_CATALOG_USAGE:
 		*uiInfoValue = SQL_CU_DML_STATEMENTS | SQL_CU_PROCEDURE_INVOCATION | SQL_CU_TABLE_DEFINITION;
@@ -2630,11 +2634,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		*uiInfoValue = 0;	/* false, writable */
 		break;
 	case SQL_DBMS_NAME:
-		/* TODO dbms name and version can be safed from login... */
-		if (dbc->tds_socket && TDS_IS_MSSQL(dbc->tds_socket))
-			p = "Microsoft SQL Server";
-		else
-			p = "SQL Server";
+		p = tds->product_name;
 		break;
 	case SQL_DBMS_VER:
 		if (rgbInfoValue && cbInfoValueMax > 5)
@@ -2645,14 +2645,14 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_DEFAULT_TXN_ISOLATION:
 		*uiInfoValue = SQL_TXN_READ_COMMITTED;
 		break;
-	case SQL_DRIVER_VER:
-		p = VERSION;
-		break;
 	case SQL_DRIVER_NAME:	/* ODBC 2.0 */
 		p = "libtdsodbc.so";
 		break;
 	case SQL_DRIVER_ODBC_VER:
 		p = "03.00";
+		break;
+	case SQL_DRIVER_VER:
+		p = VERSION;
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
@@ -2692,11 +2692,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 			SQL_OU_DML_STATEMENTS | SQL_OU_INDEX_DEFINITION | SQL_OU_PRIVILEGE_DEFINITION | SQL_OU_PROCEDURE_INVOCATION
 			| SQL_OU_TABLE_DEFINITION;
 		break;
-	case SQL_SCROLL_OPTIONS:
-		*uiInfoValue = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
-		break;
 	case SQL_SCROLL_CONCURRENCY:
 		*uiInfoValue = SQL_SCCO_READ_ONLY;
+		break;
+	case SQL_SCROLL_OPTIONS:
+		*uiInfoValue = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
 		break;
 	case SQL_SPECIAL_CHARACTERS:
 		/* TODO others ?? */
@@ -2935,7 +2935,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		dbc->attr.attr_quite_mode = (SQLHWND) u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
-#if 0 /* DM only */
+#if 0				/* DM only */
 	case SQL_ATTR_TRACE:
 		dbc->attr.attr_trace = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -2947,7 +2947,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char*) ValuePtr, len);
+		tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char *) ValuePtr, len);
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
 #endif
