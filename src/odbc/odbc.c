@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.306 2004-03-08 10:33:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.307 2004-03-10 13:00:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3163,7 +3163,8 @@ change_transaction(TDS_DBC * dbc, int state)
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
 
 	if (tds->state == TDS_PENDING && dbc->current_statement != NULL) {
-		if (!SQL_SUCCEEDED(_SQLFreeStmt(dbc->current_statement, SQL_CLOSE)))
+		/* TODO what happen on multiple errors ?? discard all ?? */
+		if (tds_process_simple_query(tds) == TDS_FAIL)
 			return SQL_ERROR;
 	}
 

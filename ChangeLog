@@ -1,3 +1,6 @@
+Wed Mar 10 14:07:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix for SQLEndTran/SQLTransact if errors
+
 Mon Mar 08 20:20:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_tds2sql.c: fix buffer overflow
 
