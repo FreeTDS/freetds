@@ -1,3 +1,6 @@
+Sun Dec  2 11:10:24 EST 2001	Brian Bruns <camber@ais.org>
+	* src/odbc/odbc.c: Implemented SQLGetFunctions
+
 Fri Nov 30 18:41:10 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/odbc/odbc.c: Change missing "Database" parameter to Servername.
