@@ -1,3 +1,6 @@
+Thu Oct 24 10:27:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: updated due to domain support on odbc
+
 Wed Oct 23 22:44:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml include/tds.h src/odbc/odbc.c:
 	- update dnsless work, domain should now work
