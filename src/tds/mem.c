@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.39 2002-10-23 05:42:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.40 2002-10-27 07:51:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -244,50 +244,67 @@ Cleanup:
  * Allocate memory for storing compute info
  * return NULL on out of memory
  */
-/* FIXME check all memory allocation, do not crash on out of memory 
-   why seem add a compute for every call and reallocate all array... strange */
-TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols)
+
+static TDSCOMPUTEINFO *
+tds_alloc_compute_result(int num_cols, int by_cols)
 {
 int col;
+TDSCOMPUTEINFO *info;
+
+	TEST_MALLOC(info, TDSCOMPUTEINFO);
+	memset(info,'\0',sizeof(TDSCOMPUTEINFO));
+
+	TEST_MALLOCN(info->columns, TDSCOLINFO*, num_cols);
+	memset(info,'\0',sizeof(TDSCOLINFO*) * num_cols);
+
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
+	info->num_cols = num_cols;
+	for (col = 0; col < num_cols; col++)  {
+		TEST_MALLOC(info->columns[col], TDSCOLINFO);
+		memset(info->columns[col],'\0',sizeof(TDSCOLINFO));
+	}
+
+	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
+
+	if (by_cols) {
+		TEST_MALLOCN(info->bycolumns, TDS_TINYINT, by_cols);
+		memset(info->bycolumns,'\0', by_cols);
+		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
+		info->by_cols = by_cols;
+	}
+	return info;
+Cleanup:
+	tds_free_compute_result(info);
+	return NULL;
+}
+
+TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols)
+{
+int n;
 TDSCOMPUTEINFO **comp_info;
 TDSCOMPUTEINFO *cur_comp_info;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
-	if (*num_comp_results == 0) {
-		*num_comp_results = *num_comp_results + 1;
-		comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
-		*comp_info = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
-		memset(*comp_info,'\0',sizeof(TDSCOMPUTEINFO));
-		cur_comp_info = *comp_info;
+	cur_comp_info = tds_alloc_compute_result(num_cols, by_cols);
+	if (!cur_comp_info) return NULL;
+
+	n = *num_comp_results;
+	if (n == 0)
+		comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
+	else
+		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * (n+1));
+
+	if (!comp_info) {
+		tds_free_compute_result(cur_comp_info);
+		return NULL;
 	}
-	else {
-		*num_comp_results = *num_comp_results + 1;
-		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
-		comp_info[*num_comp_results - 1] = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
-		memset(comp_info[*num_comp_results - 1],'\0',sizeof(TDSCOMPUTEINFO));
-		cur_comp_info = comp_info[*num_comp_results - 1];
-	}
+
+	comp_info[n] = cur_comp_info;
+	*num_comp_results = n + 1;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
-
-	cur_comp_info->columns = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *) * num_cols);
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
-	for (col = 0; col < num_cols; col++)  {
-		cur_comp_info->columns[col] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
-		memset(cur_comp_info->columns[col],'\0',sizeof(TDSCOLINFO));
-	}
-	cur_comp_info->num_cols = num_cols;
-
-	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
-
-	if (by_cols) {
-		cur_comp_info->bycolumns = (TDS_TINYINT *) malloc(by_cols);
-		memset(cur_comp_info->bycolumns,'\0', by_cols);
-		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
-		cur_comp_info->by_cols = by_cols;
-	}
 
 	return comp_info;
 }
@@ -309,7 +326,7 @@ int null_sz;
 	}
 	res_info->num_cols = num_cols;
 	null_sz = (num_cols/8) + 1;
-	/* 4 byte alignment fix -- should be ifdef'ed to only platforms that 
+	/* 4 byte alignment fix -- FIXME should be ifdef'ed to only platforms that 
 	** need it */
 	if (null_sz % 4) null_sz = ((null_sz/4)+1)*4;
 	res_info->null_info_size = null_sz;
@@ -371,12 +388,13 @@ int i;
 		if (comp_info->current_row) 
 			TDS_ZERO_FREE(comp_info->current_row);
 
-		for (i=0;i<comp_info->num_cols;i++)
+		if (comp_info->num_cols && comp_info->columns)
 		{
-			if(comp_info->columns && comp_info->columns[i])
-				tds_free_column(comp_info->columns[i]);
+			for (i=0;i<comp_info->num_cols;i++)
+				if(comp_info->columns[i])
+					tds_free_column(comp_info->columns[i]);
+			TDS_ZERO_FREE(comp_info->columns);
 		}
-		if (comp_info->num_cols) TDS_ZERO_FREE(comp_info->columns);
 
 		if (comp_info->by_cols) TDS_ZERO_FREE(comp_info->bycolumns);
 
