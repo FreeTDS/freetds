@@ -43,7 +43,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.9 2002-08-21 12:42:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.10 2002-08-22 15:36:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2554,12 +2554,12 @@ int i;
 
 }
 
-RETCODE _bcp_err_handler(DBPROCESS *dbproc, int errno)
+RETCODE _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno)
 {
 
 char errmsg[512];
 
-  switch(errno) {
+  switch(bcp_errno) {
 
      case BCPETTS         : strcpy(errmsg, "The table which bulk-copy is attempting to copy to a host-file "
                                            "is shorter than the number of rows which bulk-copy was "
