@@ -40,13 +40,14 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.67 2003-03-29 18:58:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: mem.c,v 1.68 2003-04-06 09:16:55 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version,
+	no_unused_var_warn
+};
 
 
-TDSENVINFO *tds_alloc_env(TDSSOCKET *tds);
-void tds_free_env(TDSSOCKET *tds);
+TDSENVINFO *tds_alloc_env(TDSSOCKET * tds);
+void tds_free_env(TDSSOCKET * tds);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
@@ -79,22 +80,24 @@ void tds_free_env(TDSSOCKET *tds);
  *
  *  tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
-TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
+TDSDYNAMIC *
+tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 {
-int i;
-TDSDYNAMIC *dyn;
-TDSDYNAMIC **dyns;
+	int i;
+	TDSDYNAMIC *dyn;
+	TDSDYNAMIC **dyns;
 
 	/* check to see if id already exists (shouldn't) */
-	for (i=0;i<tds->num_dyns;i++) {
+	for (i = 0; i < tds->num_dyns; i++) {
 		if (!strcmp(tds->dyns[i]->id, id)) {
 			/* id already exists! just return it */
-			return(tds->dyns[i]);
+			return (tds->dyns[i]);
 		}
 	}
 
 	dyn = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
-	if (!dyn) return NULL;
+	if (!dyn)
+		return NULL;
 	memset(dyn, 0, sizeof(TDSDYNAMIC));
 
 	if (!tds->num_dyns) {
@@ -102,8 +105,7 @@ TDSDYNAMIC **dyns;
 		dyns = (TDSDYNAMIC **) malloc(sizeof(TDSDYNAMIC *));
 	} else {
 		/* ok, we have a list and need to add another */
-		dyns = (TDSDYNAMIC **) realloc(tds->dyns, 
-				sizeof(TDSDYNAMIC *) * (tds->num_dyns+1));
+		dyns = (TDSDYNAMIC **) realloc(tds->dyns, sizeof(TDSDYNAMIC *) * (tds->num_dyns + 1));
 	}
 
 	if (!dyns) {
@@ -114,7 +116,7 @@ TDSDYNAMIC **dyns;
 	tds->dyns[tds->num_dyns] = dyn;
 	++tds->num_dyns;
 	strncpy(dyn->id, id, TDS_MAX_DYNID_LEN);
-	dyn->id[TDS_MAX_DYNID_LEN-1]='\0';
+	dyn->id[TDS_MAX_DYNID_LEN - 1] = '\0';
 
 	return dyn;
 }
@@ -125,9 +127,10 @@ TDSDYNAMIC **dyns;
  *
  *  tds_free_input_params frees all parameters for the give dynamic statement
  */
-void tds_free_input_params(TDSDYNAMIC *dyn)
+void
+tds_free_input_params(TDSDYNAMIC * dyn)
 {
-TDSPARAMINFO *info;
+	TDSPARAMINFO *info;
 
 	info = dyn->params;
 	if (info) {
@@ -143,22 +146,25 @@ TDSPARAMINFO *info;
  *  tds_free_dynamic frees all dynamic statements for the given TDS socket and
  *  then zeros tds->dyns.
  */
-void tds_free_dynamic(TDSSOCKET *tds)
+void
+tds_free_dynamic(TDSSOCKET * tds)
 {
-int i;
-TDSDYNAMIC *dyn;
+	int i;
+	TDSDYNAMIC *dyn;
 
-	for (i=0;i<tds->num_dyns;i++) {
+	for (i = 0; i < tds->num_dyns; i++) {
 		dyn = tds->dyns[i];
 		tds_free_input_params(dyn);
 		free(dyn);
 	}
-	if (tds->dyns) TDS_ZERO_FREE(tds->dyns);
+	if (tds->dyns)
+		TDS_ZERO_FREE(tds->dyns);
 	tds->num_dyns = 0;
 	tds->cur_dyn = NULL;
-	
+
 	return;
 }
+
 /** \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
  *  \brief Adds a output parameter to TDSPARAMINFO.
  *  \param old_param a pointer to the TDSPARAMINFO structure containing the 
@@ -171,23 +177,25 @@ TDSDYNAMIC *dyn;
  *  TDS_PARAM_TOKEN and let it realloc the columns struct one bigger. 
  *  tds_free_all_results() usually cleans up after us.
  */
-TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
+TDSPARAMINFO *
+tds_alloc_param_result(TDSPARAMINFO * old_param)
 {
-TDSPARAMINFO *param_info;
-TDSCOLINFO *colinfo;
-TDSCOLINFO **cols;
+	TDSPARAMINFO *param_info;
+	TDSCOLINFO *colinfo;
+	TDSCOLINFO **cols;
 
 	colinfo = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
-	if (!colinfo) return NULL;
-	memset(colinfo,0,sizeof(TDSCOLINFO));
+	if (!colinfo)
+		return NULL;
+	memset(colinfo, 0, sizeof(TDSCOLINFO));
 
 	if (!old_param || !old_param->num_cols) {
 		cols = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *));
 	} else {
-		cols = (TDSCOLINFO **) realloc(old_param->columns, 
-				sizeof(TDSCOLINFO *) * (old_param->num_cols+1));
+		cols = (TDSCOLINFO **) realloc(old_param->columns, sizeof(TDSCOLINFO *) * (old_param->num_cols + 1));
 	}
-	if (!cols) goto Cleanup;
+	if (!cols)
+		goto Cleanup;
 
 	if (!old_param) {
 		param_info = (TDSPARAMINFO *) malloc(sizeof(TDSPARAMINFO));
@@ -195,14 +203,14 @@ TDSCOLINFO **cols;
 			free(cols);
 			goto Cleanup;
 		}
-		memset(param_info,'\0',sizeof(TDSPARAMINFO));
+		memset(param_info, '\0', sizeof(TDSPARAMINFO));
 	} else {
 		param_info = old_param;
 	}
 	param_info->columns = cols;
 	param_info->columns[param_info->num_cols++] = colinfo;
 	return param_info;
-Cleanup:
+      Cleanup:
 	free(colinfo);
 	return NULL;
 }
@@ -215,41 +223,43 @@ Cleanup:
  * @return NULL on failure or new row
  */
 unsigned char *
-tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam)
+tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 {
-int null_size, remainder, i;
-TDS_INT row_size;
-unsigned char *row;
+	int null_size, remainder, i;
+	TDS_INT row_size;
+	unsigned char *row;
 
-	null_size = (unsigned)(info->num_cols+(8*TDS_ALIGN_SIZE-1)) / 8u;
+	null_size = (unsigned) (info->num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
 	null_size = null_size - null_size % TDS_ALIGN_SIZE;
 	null_size -= info->null_info_size;
-	if (null_size < 0) null_size = 0;
+	if (null_size < 0)
+		null_size = 0;
 
 	curparam->column_offset = info->row_size;
 	/* the +1 are needed for terminater... still required (freddy77) */
 	row_size = info->row_size + curparam->column_size + 1 + null_size;
-	remainder = row_size % TDS_ALIGN_SIZE; 
-	if (remainder) row_size += (TDS_ALIGN_SIZE - remainder);
+	remainder = row_size % TDS_ALIGN_SIZE;
+	if (remainder)
+		row_size += (TDS_ALIGN_SIZE - remainder);
 
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
-		row = (unsigned char*) realloc(info->current_row, row_size);
+		row = (unsigned char *) realloc(info->current_row, row_size);
 	} else {
-		row = (unsigned char*) malloc(row_size);
+		row = (unsigned char *) malloc(row_size);
 	}
-	if (!row) return NULL;
+	if (!row)
+		return NULL;
 	info->current_row = row;
 	info->row_size = row_size;
 
 	/* expand null buffer */
 	if (null_size) {
-		memmove(row+info->null_info_size+null_size,
-			row+info->null_info_size,
-			row_size-null_size-info->null_info_size);
-		memset(row+info->null_info_size,0,null_size);
+		memmove(row + info->null_info_size + null_size,
+			row + info->null_info_size, row_size - null_size - info->null_info_size);
+		memset(row + info->null_info_size, 0, null_size);
 		info->null_info_size += null_size;
-		for(i=0;i<info->num_cols;++i) {
+		for (i = 0; i < info->num_cols; ++i) {
 			info->columns[i]->column_offset += null_size;
 		}
 	}
@@ -265,60 +275,63 @@ unsigned char *row;
 static TDSCOMPUTEINFO *
 tds_alloc_compute_result(int num_cols, int by_cols)
 {
-int col;
-TDSCOMPUTEINFO *info;
-int null_sz;
+	int col;
+	TDSCOMPUTEINFO *info;
+	int null_sz;
 
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
-	memset(info,'\0',sizeof(TDSCOMPUTEINFO));
+	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
 
-	TEST_MALLOCN(info->columns, TDSCOLINFO*, num_cols);
-	memset(info->columns,'\0',sizeof(TDSCOLINFO*) * num_cols);
+	TEST_MALLOCN(info->columns, TDSCOLINFO *, num_cols);
+	memset(info->columns, '\0', sizeof(TDSCOLINFO *) * num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
-	for (col = 0; col < num_cols; col++)  {
+	for (col = 0; col < num_cols; col++) {
 		TEST_MALLOC(info->columns[col], TDSCOLINFO);
-		memset(info->columns[col],'\0',sizeof(TDSCOLINFO));
+		memset(info->columns[col], '\0', sizeof(TDSCOLINFO));
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
 
 	if (by_cols) {
 		TEST_MALLOCN(info->bycolumns, TDS_TINYINT, by_cols);
-		memset(info->bycolumns,'\0', by_cols);
+		memset(info->bycolumns, '\0', by_cols);
 		tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}
 
-	null_sz = (num_cols/8) + 1;
-	if (null_sz % TDS_ALIGN_SIZE) null_sz = ((null_sz/TDS_ALIGN_SIZE)+1)*TDS_ALIGN_SIZE;
+	null_sz = (num_cols / 8) + 1;
+	if (null_sz % TDS_ALIGN_SIZE)
+		null_sz = ((null_sz / TDS_ALIGN_SIZE) + 1) * TDS_ALIGN_SIZE;
 	/* set the initial row size to the size of the null info */
 	info->row_size = info->null_info_size = null_sz;
 
 	return info;
-Cleanup:
+      Cleanup:
 	tds_free_compute_result(info);
 	return NULL;
 }
 
-TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols)
+TDSCOMPUTEINFO **
+tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int num_cols, int by_cols)
 {
-int n;
-TDSCOMPUTEINFO **comp_info;
-TDSCOMPUTEINFO *cur_comp_info;
+	int n;
+	TDSCOMPUTEINFO **comp_info;
+	TDSCOMPUTEINFO *cur_comp_info;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
 	tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
 
 	cur_comp_info = tds_alloc_compute_result(num_cols, by_cols);
-	if (!cur_comp_info) return NULL;
+	if (!cur_comp_info)
+		return NULL;
 
 	n = *num_comp_results;
 	if (n == 0)
-		comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
+		comp_info = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
 	else
-		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * (n+1));
+		comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * (n + 1));
 
 	if (!comp_info) {
 		tds_free_compute_result(cur_comp_info);
@@ -333,29 +346,31 @@ TDSCOMPUTEINFO *cur_comp_info;
 	return comp_info;
 }
 
-TDSRESULTINFO *tds_alloc_results(int num_cols)
+TDSRESULTINFO *
+tds_alloc_results(int num_cols)
 {
 /*TDSCOLINFO *curcol;
  */
-TDSRESULTINFO *res_info;
-int col;
-int null_sz;
+	TDSRESULTINFO *res_info;
+	int col;
+	int null_sz;
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
-	memset(res_info,'\0',sizeof(TDSRESULTINFO));
-	TEST_MALLOCN(res_info->columns, TDSCOLINFO *,num_cols);
-	for (col=0;col<num_cols;col++)  {
+	memset(res_info, '\0', sizeof(TDSRESULTINFO));
+	TEST_MALLOCN(res_info->columns, TDSCOLINFO *, num_cols);
+	for (col = 0; col < num_cols; col++) {
 		TEST_MALLOC(res_info->columns[col], TDSCOLINFO);
-		memset(res_info->columns[col],'\0',sizeof(TDSCOLINFO));
+		memset(res_info->columns[col], '\0', sizeof(TDSCOLINFO));
 	}
 	res_info->num_cols = num_cols;
-	null_sz = (num_cols/8) + 1;
-	if (null_sz % TDS_ALIGN_SIZE) null_sz = ((null_sz/TDS_ALIGN_SIZE)+1)*TDS_ALIGN_SIZE;
+	null_sz = (num_cols / 8) + 1;
+	if (null_sz % TDS_ALIGN_SIZE)
+		null_sz = ((null_sz / TDS_ALIGN_SIZE) + 1) * TDS_ALIGN_SIZE;
 	res_info->null_info_size = null_sz;
 	/* set the initial row size to the size of the null info */
 	res_info->row_size = res_info->null_info_size;
 	return res_info;
-Cleanup:
+      Cleanup:
 	tds_free_results(res_info);
 	return NULL;
 }
@@ -364,74 +379,78 @@ Cleanup:
  * Allocate space for row store
  * return NULL on out of memory
  */
-unsigned char *tds_alloc_row(TDSRESULTINFO *res_info)
+unsigned char *
+tds_alloc_row(TDSRESULTINFO * res_info)
 {
-unsigned char *ptr;
+	unsigned char *ptr;
 
 	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (!ptr) return NULL;
-	memset(ptr,'\0',res_info->row_size); 
+	if (!ptr)
+		return NULL;
+	memset(ptr, '\0', res_info->row_size);
 	return ptr;
 }
 
-unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info)
+unsigned char *
+tds_alloc_compute_row(TDSCOMPUTEINFO * res_info)
 {
-unsigned char *ptr;
+	unsigned char *ptr;
 
 	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (!ptr) return NULL;
-	memset(ptr,'\0',res_info->row_size); 
+	if (!ptr)
+		return NULL;
+	memset(ptr, '\0', res_info->row_size);
 	return ptr;
 }
 
-void 
-tds_free_param_results(TDSPARAMINFO *param_info)
+void
+tds_free_param_results(TDSPARAMINFO * param_info)
 {
 	tds_free_results(param_info);
 }
 
-void 
-tds_free_compute_result(TDSCOMPUTEINFO *comp_info)
+void
+tds_free_compute_result(TDSCOMPUTEINFO * comp_info)
 {
 	tds_free_results(comp_info);
 }
 
-void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp)
+void
+tds_free_compute_results(TDSCOMPUTEINFO ** comp_info, TDS_INT num_comp)
 {
 
-int i;
+	int i;
 
-    for ( i = 0 ; i < num_comp; i++ ) {
-      if (comp_info && comp_info[i] )
-         tds_free_compute_result(comp_info[i]);
-    }
-    if (num_comp)
-       TDS_ZERO_FREE(comp_info);
+	for (i = 0; i < num_comp; i++) {
+		if (comp_info && comp_info[i])
+			tds_free_compute_result(comp_info[i]);
+	}
+	if (num_comp)
+		TDS_ZERO_FREE(comp_info);
 
 }
 
-void 
-tds_free_results(TDSRESULTINFO *res_info)
+void
+tds_free_results(TDSRESULTINFO * res_info)
 {
-int i;
-TDSCOLINFO *curcol;
+	int i;
+	TDSCOLINFO *curcol;
 
-	if(!res_info)
+	if (!res_info)
 		return;
 
-	if (res_info->num_cols && res_info->columns)
-	{
-		for (i=0;i<res_info->num_cols;i++)
-			if((curcol=res_info->columns[i]) != NULL) {
+	if (res_info->num_cols && res_info->columns) {
+		for (i = 0; i < res_info->num_cols; i++)
+			if ((curcol = res_info->columns[i]) != NULL) {
 				if (res_info->current_row && is_blob_type(curcol->column_type)) {
-					free(((TDSBLOBINFO*) (res_info->current_row+curcol->column_offset))->textvalue);
+					free(((TDSBLOBINFO *) (res_info->current_row + curcol->column_offset))->textvalue);
 				}
 				free(curcol);
 			}
 		free(res_info->columns);
 	}
 
-	if (res_info->current_row) 
+	if (res_info->current_row)
 		free(res_info->current_row);
 
 	if (res_info->bycolumns)
@@ -440,8 +459,8 @@ TDSCOLINFO *curcol;
 	free(res_info);
 }
 
-void 
-tds_free_all_results(TDSSOCKET *tds)
+void
+tds_free_all_results(TDSSOCKET * tds)
 {
 	tds_free_results(tds->res_info);
 	tds->res_info = NULL;
@@ -452,13 +471,15 @@ tds_free_all_results(TDSSOCKET *tds)
 	tds->num_comp_info = 0;
 }
 
-TDSCONTEXT *tds_alloc_context(void)
+TDSCONTEXT *
+tds_alloc_context(void)
 {
-TDSCONTEXT *context;
-TDSLOCALE *locale;
+	TDSCONTEXT *context;
+	TDSLOCALE *locale;
 
 	locale = tds_get_locale();
-	if (!locale) return NULL;
+	if (!locale)
+		return NULL;
 
 	context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
 	if (!context) {
@@ -470,36 +491,43 @@ TDSLOCALE *locale;
 
 	return context;
 }
-void tds_free_context(TDSCONTEXT *context)
+
+void
+tds_free_context(TDSCONTEXT * context)
 {
-	if (context && context->locale) 
+	if (context && context->locale)
 		tds_free_locale(context->locale);
 	TDS_ZERO_FREE(context);
 }
-TDSLOCALE *tds_alloc_locale(void)
+
+TDSLOCALE *
+tds_alloc_locale(void)
 {
-TDSLOCALE *locale;
+	TDSLOCALE *locale;
 
 	locale = (TDSLOCALE *) malloc(sizeof(TDSLOCALE));
-	if (!locale) return NULL;
+	if (!locale)
+		return NULL;
 	memset(locale, '\0', sizeof(TDSLOCALE));
 
 	return locale;
 }
-static const unsigned char defaultcaps[] = 
-{0x01,0x09,0x00,0x00,0x06,0x6D,0x7F,0xFF,0xFF,0xFF,0xFE,
- 0x02,0x09,0x00,0x00,0x00,0x00,0x0A,0x68,0x00,0x00,0x00};
+static const unsigned char defaultcaps[] = { 0x01, 0x09, 0x00, 0x00, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
+	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x68, 0x00, 0x00, 0x00
+};
+
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)
  * @result allocated structure or NULL if out of memory
  */
-TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE *locale)
+TDSCONNECTINFO *
+tds_alloc_connect(TDSLOCALE * locale)
 {
-TDSCONNECTINFO *connect_info;
-char hostname[30];
-	
-	TEST_MALLOC(connect_info,TDSCONNECTINFO);
+	TDSCONNECTINFO *connect_info;
+	char hostname[30];
+
+	TEST_MALLOC(connect_info, TDSCONNECTINFO);
 	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
 	tds_dstr_init(&connect_info->server_name);
 	tds_dstr_init(&connect_info->language);
@@ -516,48 +544,51 @@ char hostname[30];
 	tds_dstr_init(&connect_info->client_charset);
 
 	/* fill in all hardcoded defaults */
-	if (!tds_dstr_copy(&connect_info->server_name,TDS_DEF_SERVER))
+	if (!tds_dstr_copy(&connect_info->server_name, TDS_DEF_SERVER))
 		goto Cleanup;
 	connect_info->major_version = TDS_DEF_MAJOR;
 	connect_info->minor_version = TDS_DEF_MINOR;
 	connect_info->port = TDS_DEF_PORT;
 	connect_info->block_size = TDS_DEF_BLKSZ;
 	if (locale) {
-		if (locale->language) 
-			if (!tds_dstr_copy(&connect_info->language,locale->language))
+		if (locale->language)
+			if (!tds_dstr_copy(&connect_info->language, locale->language))
 				goto Cleanup;
-		if (locale->char_set) 
-			if (!tds_dstr_copy(&connect_info->server_charset,locale->char_set))
+		if (locale->char_set)
+			if (!tds_dstr_copy(&connect_info->server_charset, locale->char_set))
 				goto Cleanup;
 	}
 	if (tds_dstr_isempty(&connect_info->language)) {
-		if (!tds_dstr_copy(&connect_info->language,TDS_DEF_LANG))
+		if (!tds_dstr_copy(&connect_info->language, TDS_DEF_LANG))
 			goto Cleanup;
 	}
 	if (tds_dstr_isempty(&connect_info->server_charset)) {
-		if (!tds_dstr_copy(&connect_info->server_charset,TDS_DEF_CHARSET))
+		if (!tds_dstr_copy(&connect_info->server_charset, TDS_DEF_CHARSET))
 			goto Cleanup;
 	}
 	connect_info->try_server_login = 1;
-	memset(hostname,'\0', sizeof(hostname));
+	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
-	hostname[sizeof(hostname)-1]='\0'; /* make sure it's truncated */
-	if (!tds_dstr_copy(&connect_info->host_name,hostname))
+	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's truncated */
+	if (!tds_dstr_copy(&connect_info->host_name, hostname))
 		goto Cleanup;
-	
-	memcpy(connect_info->capabilities,defaultcaps,TDS_MAX_CAPABILITY);
+
+	memcpy(connect_info->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return connect_info;
-Cleanup:
+      Cleanup:
 	tds_free_connect(connect_info);
 	return NULL;
 }
-TDSLOGIN *tds_alloc_login(void)
+
+TDSLOGIN *
+tds_alloc_login(void)
 {
-TDSLOGIN *tds_login;
-char *tdsver;
+	TDSLOGIN *tds_login;
+	char *tdsver;
 
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
-	if (!tds_login) return NULL;
+	if (!tds_login)
+		return NULL;
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
 	tds_dstr_init(&tds_login->server_name);
 	tds_dstr_init(&tds_login->language);
@@ -568,29 +599,31 @@ char *tdsver;
 	tds_dstr_init(&tds_login->password);
 	tds_dstr_init(&tds_login->library);
 	tds_dstr_init(&tds_login->client_charset);
-	if ((tdsver=getenv("TDSVER"))) {
-		if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
-			tds_login->major_version=4;
-			tds_login->minor_version=2;
-		} else if (!strcmp(tdsver,"46") || !strcmp(tdsver,"4.6")) {
-			tds_login->major_version=4;
-			tds_login->minor_version=6;
-		} else if (!strcmp(tdsver,"50") || !strcmp(tdsver,"5.0")) {
-			tds_login->major_version=5;
-			tds_login->minor_version=0;
-		} else if (!strcmp(tdsver,"70") || !strcmp(tdsver,"7.0")) {
-			tds_login->major_version=7;
-			tds_login->minor_version=0;
-		} else if (!strcmp(tdsver,"80") || !strcmp(tdsver,"8.0")) {
-			tds_login->major_version=8;
-			tds_login->minor_version=0;
+	if ((tdsver = getenv("TDSVER"))) {
+		if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2")) {
+			tds_login->major_version = 4;
+			tds_login->minor_version = 2;
+		} else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6")) {
+			tds_login->major_version = 4;
+			tds_login->minor_version = 6;
+		} else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0")) {
+			tds_login->major_version = 5;
+			tds_login->minor_version = 0;
+		} else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0")) {
+			tds_login->major_version = 7;
+			tds_login->minor_version = 0;
+		} else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0")) {
+			tds_login->major_version = 8;
+			tds_login->minor_version = 0;
 		}
 		/* else unrecognized...use compile time default above */
 	}
-	memcpy(tds_login->capabilities,defaultcaps,TDS_MAX_CAPABILITY);
+	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return tds_login;
 }
-void tds_free_login(TDSLOGIN *login)
+
+void
+tds_free_login(TDSLOGIN * login)
 {
 	if (login) {
 		/* for security reason clear memory */
@@ -607,72 +640,89 @@ void tds_free_login(TDSLOGIN *login)
 		free(login);
 	}
 }
-TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
+TDSSOCKET *
+tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
-TDSSOCKET *tds_socket;
-TDSICONVINFO *iconv_info;
+	TDSSOCKET *tds_socket;
+	TDSICONVINFO *iconv_info;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
-	tds_socket->in_buf_max=0;
-	TEST_MALLOCN(tds_socket->out_buf,unsigned char,bufsize);
-	tds_socket->parent = (char*)NULL;
+	tds_socket->in_buf_max = 0;
+	TEST_MALLOCN(tds_socket->out_buf, unsigned char, bufsize);
+
+	tds_socket->parent = (char *) NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
 		goto Cleanup;
-	TEST_MALLOC(iconv_info,TDSICONVINFO);
+	TEST_MALLOC(iconv_info, TDSICONVINFO);
 	tds_socket->iconv_info = (void *) iconv_info;
-	memset(tds_socket->iconv_info,'\0',sizeof(TDSICONVINFO));
+	memset(tds_socket->iconv_info, '\0', sizeof(TDSICONVINFO));
 #if HAVE_ICONV
-	iconv_info->cdfrom_ucs2 = (iconv_t)-1;
-	iconv_info->cdto_ucs2 = (iconv_t)-1;
-	iconv_info->cdfrom_srv = (iconv_t)-1;
-	iconv_info->cdto_srv = (iconv_t)-1;
+	iconv_info->cdfrom_ucs2 = (iconv_t) - 1;
+	iconv_info->cdto_ucs2 = (iconv_t) - 1;
+	iconv_info->cdfrom_srv = (iconv_t) - 1;
+	iconv_info->cdto_srv = (iconv_t) - 1;
 	iconv_info->bytes_per_char = 1;
 #endif
 	/* Jeff's hack, init to no timeout */
-	tds_socket->timeout = 0;                
+	tds_socket->timeout = 0;
 	tds_init_write_buf(tds_socket);
 	tds_socket->s = -1;
 	tds_socket->env_chg_func = NULL;
 	return tds_socket;
-Cleanup:
+      Cleanup:
 	tds_free_socket(tds_socket);
 	return NULL;
 }
-TDSSOCKET *tds_realloc_socket(int bufsize)
+
+TDSSOCKET *
+tds_realloc_socket(int bufsize)
 {
-   return NULL; /* XXX */
+	return NULL;		/* XXX */
 }
-void tds_free_socket(TDSSOCKET *tds)
+
+void
+tds_free_socket(TDSSOCKET * tds)
 {
-TDSICONVINFO *iconv_info;
+	TDSICONVINFO *iconv_info;
 
 	if (tds) {
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		tds_free_dynamic(tds);
-		if (tds->in_buf) TDS_ZERO_FREE(tds->in_buf);
-		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
+		if (tds->in_buf)
+			TDS_ZERO_FREE(tds->in_buf);
+		if (tds->out_buf)
+			TDS_ZERO_FREE(tds->out_buf);
 		tds_close_socket(tds);
-		if (tds->date_fmt) free(tds->date_fmt);
+		if (tds->date_fmt)
+			free(tds->date_fmt);
 		if (tds->iconv_info) {
 			iconv_info = (TDSICONVINFO *) tds->iconv_info;
-			if (iconv_info->use_iconv) tds_iconv_close(tds);
+			if (iconv_info->use_iconv)
+				tds_iconv_close(tds);
 			free(tds->iconv_info);
 		}
-		if (tds->date_fmt) free(tds->date_fmt);
+		if (tds->date_fmt)
+			free(tds->date_fmt);
 		TDS_ZERO_FREE(tds);
 	}
 }
-void tds_free_locale(TDSLOCALE *locale)
+void
+tds_free_locale(TDSLOCALE * locale)
 {
-	if (locale->language) free(locale->language);
-	if (locale->char_set) free(locale->char_set);
-	if (locale->date_fmt) free(locale->date_fmt);
+	if (locale->language)
+		free(locale->language);
+	if (locale->char_set)
+		free(locale->char_set);
+	if (locale->date_fmt)
+		free(locale->date_fmt);
 	TDS_ZERO_FREE(locale);
 }
-void tds_free_connect(TDSCONNECTINFO *connect_info)
+
+void
+tds_free_connect(TDSCONNECTINFO * connect_info)
 {
 	tds_dstr_free(&connect_info->server_name);
 	tds_dstr_free(&connect_info->host_name);
@@ -692,18 +742,22 @@ void tds_free_connect(TDSCONNECTINFO *connect_info)
 	TDS_ZERO_FREE(connect_info);
 }
 
-TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)
+TDSENVINFO *
+tds_alloc_env(TDSSOCKET * tds)
 {
-TDSENVINFO *env;
+	TDSENVINFO *env;
 
 	env = (TDSENVINFO *) malloc(sizeof(TDSENVINFO));
-	if (!env) return NULL;
-	memset(env,'\0',sizeof(TDSENVINFO));
+	if (!env)
+		return NULL;
+	memset(env, '\0', sizeof(TDSENVINFO));
 	env->block_size = TDS_DEF_BLKSZ;
 
 	return env;
 }
-void tds_free_env(TDSSOCKET *tds)
+
+void
+tds_free_env(TDSSOCKET * tds)
 {
 	if (tds->env) {
 		if (tds->env->language)
@@ -717,180 +771,185 @@ void tds_free_env(TDSSOCKET *tds)
 }
 
 void
-tds_free_msg(TDSMSGINFO *msg_info)
+tds_free_msg(TDSMSGINFO * msg_info)
 {
 	if (msg_info) {
 		msg_info->priv_msg_type = 0;
 		msg_info->msg_number = 0;
 		msg_info->msg_state = 0;
-		msg_info->msg_level = 0; 
-		msg_info->line_number = 0;  
-		if (msg_info->message) TDS_ZERO_FREE(msg_info->message);
-		if (msg_info->server) TDS_ZERO_FREE(msg_info->server);
-		if (msg_info->proc_name) TDS_ZERO_FREE(msg_info->proc_name);
-		if (msg_info->sql_state) TDS_ZERO_FREE(msg_info->sql_state);
+		msg_info->msg_level = 0;
+		msg_info->line_number = 0;
+		if (msg_info->message)
+			TDS_ZERO_FREE(msg_info->message);
+		if (msg_info->server)
+			TDS_ZERO_FREE(msg_info->server);
+		if (msg_info->proc_name)
+			TDS_ZERO_FREE(msg_info->proc_name);
+		if (msg_info->sql_state)
+			TDS_ZERO_FREE(msg_info->sql_state);
 	}
 }
 
 #define SQLS_ENTRY(number,state) case number: p = state; break
-char *tds_alloc_lookup_sqlstate(TDSSOCKET *tds, int msgnum)
+char *
+tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 {
-char *p = NULL;
+	char *p = NULL;
 
 	if (TDS_IS_MSSQL(tds)) {
-		switch(msgnum) { /* MSSQL Server */
-		SQLS_ENTRY(8153,"01003");	/* Null in aggregate */
-		SQLS_ENTRY(512,"21000");	/* Subquery returns more than one value */
-		SQLS_ENTRY(213,"21S01");	/* Insert column list mismatch */
-		SQLS_ENTRY(1774,"21S02");	/* Ref column mismatch */
-		SQLS_ENTRY(8152,"22001");	/* String data would be truncated */
-		SQLS_ENTRY(5146,"22003");	/* Numeric value out of range */
-		SQLS_ENTRY(220,"22003");	/* Arithmetic overflow */
-		SQLS_ENTRY(232,"22003");
-		SQLS_ENTRY(3606,"22003");
-		SQLS_ENTRY(8115,"22003");
-		SQLS_ENTRY(210,"22007");	/* Invalid datetime format */
-		SQLS_ENTRY(241,"22007");
-		SQLS_ENTRY(295,"22007");
-		SQLS_ENTRY(242,"22008");	/* Datetime out of range */
-		SQLS_ENTRY(296,"22008");
-		SQLS_ENTRY(298,"22008");
-		SQLS_ENTRY(535,"22008");
-		SQLS_ENTRY(542,"22008");
-		SQLS_ENTRY(3607,"22012");	/* Div by zero */
-		SQLS_ENTRY(8134,"22012");
-		SQLS_ENTRY(2627,"23000");	/* Constraint violation */
-		SQLS_ENTRY(547,"23000");
-		SQLS_ENTRY(550,"23000");
-		SQLS_ENTRY(4415,"23000");
-		SQLS_ENTRY(1505,"23000");
-		SQLS_ENTRY(1508,"23000");
-		SQLS_ENTRY(3725,"23000");
-		SQLS_ENTRY(3726,"23000");
-		SQLS_ENTRY(4712,"23000");
-		SQLS_ENTRY(10055,"23000");
-		SQLS_ENTRY(10065,"23000");
-		SQLS_ENTRY(11011,"23000");
-		SQLS_ENTRY(11040,"23000");
-		SQLS_ENTRY(16999,"24000");	/* Invalid cursor state */
-		SQLS_ENTRY(16905,"24000");
-		SQLS_ENTRY(16917,"24000");
-		SQLS_ENTRY(16946,"24000");
-		SQLS_ENTRY(16950,"24000");
-		SQLS_ENTRY(17308,"42000");	/* Syntax/Access violation */
-		SQLS_ENTRY(17571,"42000");
-		SQLS_ENTRY(18002,"42000");
-		SQLS_ENTRY(229,"42000");
-		SQLS_ENTRY(230,"42000");
-		SQLS_ENTRY(262,"42000");
-		SQLS_ENTRY(2557,"42000");
-		SQLS_ENTRY(2571,"42000");
-		SQLS_ENTRY(2760,"42000");
-		SQLS_ENTRY(3110,"42000");
-		SQLS_ENTRY(3704,"42000");
-		SQLS_ENTRY(4613,"42000");
-		SQLS_ENTRY(4618,"42000");
-		SQLS_ENTRY(4834,"42000");
-		SQLS_ENTRY(5011,"42000");
-		SQLS_ENTRY(5116,"42000");
-		SQLS_ENTRY(5812,"42000");
-		SQLS_ENTRY(6004,"42000");
-		SQLS_ENTRY(6102,"42000");
-		SQLS_ENTRY(7956,"42000");
-		SQLS_ENTRY(11010,"42000");
-		SQLS_ENTRY(11045,"42000");
-		SQLS_ENTRY(14126,"42000");
-		SQLS_ENTRY(15247,"42000");
-		SQLS_ENTRY(15622,"42000");
-		SQLS_ENTRY(20604,"42000");
-		SQLS_ENTRY(21049,"42000");
-		SQLS_ENTRY(113,"42000");
-		SQLS_ENTRY(2714,"42S01");	/* Table or view already exists */
-		SQLS_ENTRY(208,"42S02");	/* Table or view not found */
-		SQLS_ENTRY(1913,"42S11");	/* Index already exists */
-		SQLS_ENTRY(15605,"42S11");
-		SQLS_ENTRY(307,"42S12");	/* Index not found */
-		SQLS_ENTRY(308,"42S12");
-		SQLS_ENTRY(10033,"42S12");
-		SQLS_ENTRY(15323,"42S12");
-		SQLS_ENTRY(18833,"42S12");
-		SQLS_ENTRY(4925,"42S21");	/* Column already exists */
-		SQLS_ENTRY(21255,"42S21");
-		SQLS_ENTRY(1911,"42S22");	/* Column not found */
-		SQLS_ENTRY(4924,"42S22");
-		SQLS_ENTRY(4926,"42S22");
-		SQLS_ENTRY(15645,"42S22");
-		SQLS_ENTRY(21166,"42S22");
+		switch (msgnum) {	/* MSSQL Server */
+			SQLS_ENTRY(8153, "01003");	/* Null in aggregate */
+			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
+			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
+			SQLS_ENTRY(1774, "21S02");	/* Ref column mismatch */
+			SQLS_ENTRY(8152, "22001");	/* String data would be truncated */
+			SQLS_ENTRY(5146, "22003");	/* Numeric value out of range */
+			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
+			SQLS_ENTRY(232, "22003");
+			SQLS_ENTRY(3606, "22003");
+			SQLS_ENTRY(8115, "22003");
+			SQLS_ENTRY(210, "22007");	/* Invalid datetime format */
+			SQLS_ENTRY(241, "22007");
+			SQLS_ENTRY(295, "22007");
+			SQLS_ENTRY(242, "22008");	/* Datetime out of range */
+			SQLS_ENTRY(296, "22008");
+			SQLS_ENTRY(298, "22008");
+			SQLS_ENTRY(535, "22008");
+			SQLS_ENTRY(542, "22008");
+			SQLS_ENTRY(3607, "22012");	/* Div by zero */
+			SQLS_ENTRY(8134, "22012");
+			SQLS_ENTRY(2627, "23000");	/* Constraint violation */
+			SQLS_ENTRY(547, "23000");
+			SQLS_ENTRY(550, "23000");
+			SQLS_ENTRY(4415, "23000");
+			SQLS_ENTRY(1505, "23000");
+			SQLS_ENTRY(1508, "23000");
+			SQLS_ENTRY(3725, "23000");
+			SQLS_ENTRY(3726, "23000");
+			SQLS_ENTRY(4712, "23000");
+			SQLS_ENTRY(10055, "23000");
+			SQLS_ENTRY(10065, "23000");
+			SQLS_ENTRY(11011, "23000");
+			SQLS_ENTRY(11040, "23000");
+			SQLS_ENTRY(16999, "24000");	/* Invalid cursor state */
+			SQLS_ENTRY(16905, "24000");
+			SQLS_ENTRY(16917, "24000");
+			SQLS_ENTRY(16946, "24000");
+			SQLS_ENTRY(16950, "24000");
+			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
+			SQLS_ENTRY(17571, "42000");
+			SQLS_ENTRY(18002, "42000");
+			SQLS_ENTRY(229, "42000");
+			SQLS_ENTRY(230, "42000");
+			SQLS_ENTRY(262, "42000");
+			SQLS_ENTRY(2557, "42000");
+			SQLS_ENTRY(2571, "42000");
+			SQLS_ENTRY(2760, "42000");
+			SQLS_ENTRY(3110, "42000");
+			SQLS_ENTRY(3704, "42000");
+			SQLS_ENTRY(4613, "42000");
+			SQLS_ENTRY(4618, "42000");
+			SQLS_ENTRY(4834, "42000");
+			SQLS_ENTRY(5011, "42000");
+			SQLS_ENTRY(5116, "42000");
+			SQLS_ENTRY(5812, "42000");
+			SQLS_ENTRY(6004, "42000");
+			SQLS_ENTRY(6102, "42000");
+			SQLS_ENTRY(7956, "42000");
+			SQLS_ENTRY(11010, "42000");
+			SQLS_ENTRY(11045, "42000");
+			SQLS_ENTRY(14126, "42000");
+			SQLS_ENTRY(15247, "42000");
+			SQLS_ENTRY(15622, "42000");
+			SQLS_ENTRY(20604, "42000");
+			SQLS_ENTRY(21049, "42000");
+			SQLS_ENTRY(113, "42000");
+			SQLS_ENTRY(2714, "42S01");	/* Table or view already exists */
+			SQLS_ENTRY(208, "42S02");	/* Table or view not found */
+			SQLS_ENTRY(1913, "42S11");	/* Index already exists */
+			SQLS_ENTRY(15605, "42S11");
+			SQLS_ENTRY(307, "42S12");	/* Index not found */
+			SQLS_ENTRY(308, "42S12");
+			SQLS_ENTRY(10033, "42S12");
+			SQLS_ENTRY(15323, "42S12");
+			SQLS_ENTRY(18833, "42S12");
+			SQLS_ENTRY(4925, "42S21");	/* Column already exists */
+			SQLS_ENTRY(21255, "42S21");
+			SQLS_ENTRY(1911, "42S22");	/* Column not found */
+			SQLS_ENTRY(4924, "42S22");
+			SQLS_ENTRY(4926, "42S22");
+			SQLS_ENTRY(15645, "42S22");
+			SQLS_ENTRY(21166, "42S22");
 		}
 	} else {
-		switch(msgnum) { /* Sybase */
-		SQLS_ENTRY(9501,"01003");	/* Null in aggregate */
-		SQLS_ENTRY(512,"21000");	/* Subquery returns more than one value */
-		SQLS_ENTRY(213,"21S01");	/* Insert column list mismatch */
-		SQLS_ENTRY(1715,"21S02");	/* Ref column mismatch */
-		SQLS_ENTRY(9502,"22001");	/* String data would be truncated */
-		SQLS_ENTRY(220,"22003");	/* Arithmetic overflow */
-		SQLS_ENTRY(227,"22003");
-		SQLS_ENTRY(232,"22003");
-		SQLS_ENTRY(247,"22003");
-		SQLS_ENTRY(3606,"22003");
-		SQLS_ENTRY(535,"22008");	/* Datetime out of range */
-		SQLS_ENTRY(542,"22008");
-		SQLS_ENTRY(3607,"22012");	/* Div by zero */
-		SQLS_ENTRY(544,"23000");	/* Constraint violation */
-		SQLS_ENTRY(545,"23000");
-		SQLS_ENTRY(546,"23000");
-		SQLS_ENTRY(547,"23000");
-		SQLS_ENTRY(548,"23000");
-		SQLS_ENTRY(549,"23000");
-		SQLS_ENTRY(550,"23000");
-		SQLS_ENTRY(1505,"23000");
-		SQLS_ENTRY(1508,"23000");
-		SQLS_ENTRY(565,"24000");	/* Invalid cursor state */
-		SQLS_ENTRY(558,"24000");
-		SQLS_ENTRY(559,"24000");
-		SQLS_ENTRY(6235,"24000");
-		SQLS_ENTRY(583,"24000");
-		SQLS_ENTRY(6259,"24000");
-		SQLS_ENTRY(6260,"24000");
-		SQLS_ENTRY(562,"24000");
-		SQLS_ENTRY(229,"42000");	/* Syntax/Access violation */
-		SQLS_ENTRY(230,"42000");
-		SQLS_ENTRY(262,"42000");
-		SQLS_ENTRY(4602,"42000");
-		SQLS_ENTRY(4603,"42000");
-		SQLS_ENTRY(4608,"42000");
-		SQLS_ENTRY(10306,"42000");
-		SQLS_ENTRY(10323,"42000");
-		SQLS_ENTRY(10330,"42000");
-		SQLS_ENTRY(10331,"42000");
-		SQLS_ENTRY(10332,"42000");
-		SQLS_ENTRY(11110,"42000");
-		SQLS_ENTRY(11113,"42000");
-		SQLS_ENTRY(11118,"42000");
-		SQLS_ENTRY(11121,"42000");
-		SQLS_ENTRY(17222,"42000");
-		SQLS_ENTRY(17223,"42000");
-		SQLS_ENTRY(18350,"42000");
-		SQLS_ENTRY(18351,"42000");
-		SQLS_ENTRY(113,"42000");
-		SQLS_ENTRY(2714,"42S01");	/* Table or view already exists */
-		SQLS_ENTRY(208,"42S02");	/* Table or view not found */
-		SQLS_ENTRY(1913,"42S11");	/* Index already exists */
-		SQLS_ENTRY(307,"42S12");	/* Index not found */
-		SQLS_ENTRY(7010,"42S12");
-		SQLS_ENTRY(18091,"42S12");
-		SQLS_ENTRY(1921,"42S21");	/* Column already exists */
-		SQLS_ENTRY(1720,"42S22");	/* Column not found */
-		SQLS_ENTRY(4934,"42S22");
-		SQLS_ENTRY(18117,"42S22");
+		switch (msgnum) {	/* Sybase */
+			SQLS_ENTRY(9501, "01003");	/* Null in aggregate */
+			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
+			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
+			SQLS_ENTRY(1715, "21S02");	/* Ref column mismatch */
+			SQLS_ENTRY(9502, "22001");	/* String data would be truncated */
+			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
+			SQLS_ENTRY(227, "22003");
+			SQLS_ENTRY(232, "22003");
+			SQLS_ENTRY(247, "22003");
+			SQLS_ENTRY(3606, "22003");
+			SQLS_ENTRY(535, "22008");	/* Datetime out of range */
+			SQLS_ENTRY(542, "22008");
+			SQLS_ENTRY(3607, "22012");	/* Div by zero */
+			SQLS_ENTRY(544, "23000");	/* Constraint violation */
+			SQLS_ENTRY(545, "23000");
+			SQLS_ENTRY(546, "23000");
+			SQLS_ENTRY(547, "23000");
+			SQLS_ENTRY(548, "23000");
+			SQLS_ENTRY(549, "23000");
+			SQLS_ENTRY(550, "23000");
+			SQLS_ENTRY(1505, "23000");
+			SQLS_ENTRY(1508, "23000");
+			SQLS_ENTRY(565, "24000");	/* Invalid cursor state */
+			SQLS_ENTRY(558, "24000");
+			SQLS_ENTRY(559, "24000");
+			SQLS_ENTRY(6235, "24000");
+			SQLS_ENTRY(583, "24000");
+			SQLS_ENTRY(6259, "24000");
+			SQLS_ENTRY(6260, "24000");
+			SQLS_ENTRY(562, "24000");
+			SQLS_ENTRY(229, "42000");	/* Syntax/Access violation */
+			SQLS_ENTRY(230, "42000");
+			SQLS_ENTRY(262, "42000");
+			SQLS_ENTRY(4602, "42000");
+			SQLS_ENTRY(4603, "42000");
+			SQLS_ENTRY(4608, "42000");
+			SQLS_ENTRY(10306, "42000");
+			SQLS_ENTRY(10323, "42000");
+			SQLS_ENTRY(10330, "42000");
+			SQLS_ENTRY(10331, "42000");
+			SQLS_ENTRY(10332, "42000");
+			SQLS_ENTRY(11110, "42000");
+			SQLS_ENTRY(11113, "42000");
+			SQLS_ENTRY(11118, "42000");
+			SQLS_ENTRY(11121, "42000");
+			SQLS_ENTRY(17222, "42000");
+			SQLS_ENTRY(17223, "42000");
+			SQLS_ENTRY(18350, "42000");
+			SQLS_ENTRY(18351, "42000");
+			SQLS_ENTRY(113, "42000");
+			SQLS_ENTRY(2714, "42S01");	/* Table or view already exists */
+			SQLS_ENTRY(208, "42S02");	/* Table or view not found */
+			SQLS_ENTRY(1913, "42S11");	/* Index already exists */
+			SQLS_ENTRY(307, "42S12");	/* Index not found */
+			SQLS_ENTRY(7010, "42S12");
+			SQLS_ENTRY(18091, "42S12");
+			SQLS_ENTRY(1921, "42S21");	/* Column already exists */
+			SQLS_ENTRY(1720, "42S22");	/* Column not found */
+			SQLS_ENTRY(4934, "42S22");
+			SQLS_ENTRY(18117, "42S22");
 		}
 	}
 
 	if (p != NULL && (p = strdup(p)) != NULL) {
 		/* FIXME correct here ?? */
 		/* Convert known ODBC 3.x states listed above to 2.x */
-		if (memcmp(p, "42S" , 3) == 0)
+		if (memcmp(p, "42S", 3) == 0)
 			memcpy(p, "S00", 3);
 
 		return p;

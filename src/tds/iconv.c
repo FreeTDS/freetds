@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.45 2003-03-30 08:50:15 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.46 2003-04-06 09:15:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -131,7 +131,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
 	switch (lcid) {
-	case 0x1040e: /* FIXME check, in neither table but returned from mssql2k */
+	case 0x1040e:		/* FIXME check, in neither table but returned from mssql2k */
 	case 0x405:
 	case 0x40e:
 	case 0x415:
@@ -282,7 +282,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	case 0x804:
 		cp = "CP936";
 		break;
-	case 0x10412: /* FIXME check, in neither table but returned from mssql2k */
+	case 0x10412:		/* FIXME check, in neither table but returned from mssql2k */
 	case 0x412:
 		cp = "CP949";
 		break;
