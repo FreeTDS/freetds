@@ -1,3 +1,10 @@
+Fri Aug 29 00:07:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - use IRD (SQLDescribeCol, SQLNumResultCols)
+	 - minor issues and update
+	- fixed possible buffer overflow
+	
 Thu Aug 28 21:42:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c src/odbc/odbc.c:
 	- continue merging Steve Murphree patch

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.227 2003-08-28 19:42:52 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.228 2003-08-28 22:08:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1098,12 +1098,54 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	   SQLINTEGER FAR * pcbValue)
 {
 	struct _sql_bind_info *cur, *prev = NULL, *newitem;
+	SQLRETURN rc = SQL_SUCCESS;
 
 	INIT_HSTMT;
-	if (icol <= 0) {
-		odbc_errs_add(&stmt->errs, "07009", NULL, NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
+
+	/* TODO - More error checking XXX smurph */
+
+#ifdef TDS_NO_DM
+	/* check conversion type */
+	switch (fCType) {
+	case SQL_C_CHAR:
+	case SQL_C_BINARY:
+	case SQL_C_DEFAULT:
+		/* check max buffer length */
+		if (!IS_VALID_LEN(cbValueMax)) {
+			odbc_errs_add(&stmt->errs, "HY090", NULL, NULL);
+			rc = SQL_ERROR;
+		}
+		break;
+	case SQL_C_BIT:
+	case SQL_C_DOUBLE:
+	case SQL_C_FLOAT:
+	case SQL_C_LONG:
+	case SQL_C_NUMERIC:
+	case SQL_C_SBIGINT:
+	case SQL_C_SHORT:
+	case SQL_C_TYPE_DATE:
+	case SQL_C_TYPE_TIME:
+	case SQL_C_TYPE_TIMESTAMP:
+	case SQL_C_TINYINT:
+	case SQL_C_UBIGINT:
+		break;
+	default:
+		odbc_errs_add(&stmt->errs, "HY003", NULL, NULL);
+		rc = SQL_ERROR;
+		break;
 	}
+#endif
+
+	if (icol <= 0 || icol > 4000) {
+		odbc_errs_add(&stmt->errs, "07009", NULL, NULL);
+		rc = SQL_ERROR;
+	}
+
+	if (rc != SQL_SUCCESS) {
+		ODBC_RETURN(stmt, rc);
+	}
+
+	/* TODO rewrite, use ARD */
 
 	/* find available item in list */
 	cur = stmt->bind_head;
@@ -1231,16 +1273,18 @@ SQLRETURN SQL_API
 SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSMALLINT cbColNameMax, SQLSMALLINT FAR * pcbColName,
 	       SQLSMALLINT FAR * pfSqlType, SQLUINTEGER FAR * pcbColDef, SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
 {
-	TDSSOCKET *tds;
-	TDSCOLINFO *colinfo;
+	TDS_DESC *ird;
+	struct _drecord *drec;
 	int cplen;
 	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HSTMT;
 
 	IRD_CHECK;
-	tds = stmt->hdbc->tds_socket;
-	if (icol <= 0 || tds->res_info == NULL || icol > tds->res_info->num_cols) {
+
+	ird = stmt->ird;
+
+	if (icol <= 0 || icol > ird->header.sql_desc_count) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -1249,46 +1293,47 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 		odbc_errs_add(&stmt->errs, "HY090", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	colinfo = tds->res_info->columns[icol - 1];
+	drec = &ird->records[icol - 1];
 
 	/* cbColNameMax can be 0 (to retrieve name length) */
 	if (szColName && cbColNameMax) {
 		/* straight copy column name up to cbColNameMax */
-		cplen = strlen(colinfo->column_name);
+		/* TODO use odbc_set_string */
+		cplen = strlen(drec->sql_desc_name);
 		if (cplen >= cbColNameMax) {
 			cplen = cbColNameMax - 1;
 			odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
 			result = SQL_SUCCESS_WITH_INFO;
 		}
-		strncpy((char *) szColName, colinfo->column_name, cplen);
+		strncpy((char *) szColName, drec->sql_desc_name, cplen);
 		szColName[cplen] = '\0';
 	}
 	if (pcbColName) {
 		/* return column name length (without terminator) 
 		 * as specification return full length, not copied length */
-		*pcbColName = strlen(colinfo->column_name);
+		*pcbColName = strlen(drec->sql_desc_name);
 	}
 	if (pfSqlType) {
-		*pfSqlType =
-			odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		/* TODO sure ? check documentation for date and intervals */
+		*pfSqlType = drec->sql_desc_type;
 	}
 
 	if (pcbColDef) {
-		if (is_numeric_type(colinfo->column_type)) {
-			*pcbColDef = colinfo->column_prec;
+		if (drec->sql_desc_type == SQL_NUMERIC || drec->sql_desc_type == SQL_DECIMAL) {
+			*pcbColDef = drec->sql_desc_precision;
 		} else {
-			*pcbColDef = colinfo->column_size;
+			*pcbColDef = drec->sql_desc_length;
 		}
 	}
 	if (pibScale) {
-		if (is_numeric_type(colinfo->column_type)) {
-			*pibScale = colinfo->column_scale;
+		if (drec->sql_desc_type == SQL_NUMERIC || drec->sql_desc_type == SQL_DECIMAL) {
+			*pibScale = drec->sql_desc_scale;
 		} else {
 			*pibScale = 0;
 		}
 	}
 	if (pfNullable) {
-		*pfNullable = is_nullable_type(colinfo->column_type) ? 1 : 0;
+		*pfNullable = drec->sql_desc_nullable;
 	}
 	ODBC_RETURN(stmt, result);
 }
@@ -2359,8 +2404,10 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
 	INIT_HSTMT;
 
-	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr))
+	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr)) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
@@ -3024,22 +3071,13 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 SQLRETURN SQL_API
 SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
-
 	INIT_HSTMT;
 
 	IRD_CHECK;
-	tds = stmt->hdbc->tds_socket;
-	resinfo = tds->res_info;
-	if (resinfo == NULL) {
-		/* 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
-		 * generating queries such as 'drop table' */
-		*pccol = 0;
-		ODBC_RETURN(stmt, SQL_SUCCESS);
-	}
 
-	*pccol = resinfo->num_cols;
+	/* 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
+	 * generating queries such as 'drop table' */
+	*pccol = stmt->ird->header.sql_desc_count;
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
@@ -3353,11 +3391,9 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 				ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 
 			/* FIXME why this became < 0 ??? */
-			if (colinfo->column_text_sqlgetdatapos > 0)
-				src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
-			else
-				src = ((TDSBLOBINFO *) src)->textvalue;
-
+			if (colinfo->column_text_sqlgetdatapos <= 0)
+				colinfo->column_text_sqlgetdatapos = 0;
+			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
 			srclen = colinfo->column_cur_size;
