@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.81 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.82 2002-09-26 21:40:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2475,7 +2475,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *dr
     tm.tm_yday  = dr->dayofyear;
     tm.tm_isdst = 0;
 
-    our_format = malloc( strlen(format) + 1 );
+    /* NOTE 2 in intentional. one more character is required because we replace %z with 3 digits */
+    our_format = malloc( strlen(format) + 2 );
     if( !our_format ) return 0;
     strcpy( our_format, format );
 

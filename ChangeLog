@@ -1,3 +1,11 @@
+Thu Sep 26 23:39:17 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: fixed buffer overflow
+	* src/tds/query.c: do not exit abnormally
+	* src/tds/token.c:
+	- added tds_get_data to read data from wire
+	- handle nulls reading parameters
+	- start to support different types of parameters size
+
 Thu Sep 26 17:02:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h include/sybdb.h include/tds.h.in
 	  src/ctlib/cs.c src/ctlib/ct.c src/ctlib/unittests/common.c

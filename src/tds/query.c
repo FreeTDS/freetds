@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.17 2002-09-26 14:45:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.18 2002-09-26 21:40:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -240,7 +240,7 @@ int id_len, query_len;
 			tds_put_string(tds,s,e?e-s:strlen(s));
 			sprintf(buf,"@P%d",i);
 			tds_put_string(tds,buf,-1);
-			if (!e) return;
+			if (!e) break;
 			s = e+1;
 		}
 
