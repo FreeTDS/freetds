@@ -1,3 +1,7 @@
+Thu Mar 18 11:54:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c src/tds/read.c src/tds/write.c:
+	- remove warnings under VMS
+
 Wed Mar 17 17:46:16 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix a problem with DBD::ODBC
 
