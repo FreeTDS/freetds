@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0001.c,v 1.10 2002-11-06 17:25:10 castellano Exp $";
+static char  software_version[]   = "$Id: t0001.c,v 1.11 2002-11-10 12:55:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -147,7 +147,9 @@ fprintf(stdout, "About to open\n");
       sprintf(expected, "row %03d", i);
 
       add_bread_crumb();
+      memset(teststr,'x',sizeof(teststr));
       teststr[0] = 0;
+      teststr[sizeof(teststr)-1] = 0;
       if (REG_ROW != dbnextrow(dbproc))
       {
          failed = 1;
@@ -169,7 +171,7 @@ fprintf(stdout, "About to open\n");
                  expected, teststr);
          abort();
       }
-      printf("Read a row of data -> %d %s\n", (int)testint, teststr);
+      printf("Read a row of data -> %d |%s|\n", (int)testint, teststr);
    }
 
 

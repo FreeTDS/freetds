@@ -1,3 +1,7 @@
+Sun Nov 10 13:46:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/t0001.c:
+	- fill buffer for see other possible errors
+
 Sun Nov 10 13:38:58 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c src/tds/query.c  src/tds/token.c:
 	- fix some FIXME in code
