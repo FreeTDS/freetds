@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.123 2004-12-03 16:47:47 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.124 2004-12-03 20:15:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -139,6 +139,9 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	/* avoid pointer to garbage */
 	if (tds->cur_dyn == dyn)
 		tds->cur_dyn = NULL;
+
+	if (tds->current_results == dyn->res_info)
+		tds->current_results = NULL;
 
 	/* free from tds */
 	for (pcurr = &tds->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
@@ -632,12 +635,12 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TEST_MALLOC(cursor, TDSCURSOR);
 	memset(cursor, '\0', sizeof(TDSCURSOR));
 
-	if ( tds->cursor == NULL ) {
+	if ( tds->cursors == NULL ) {
 		++new_cursor_id;
 		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d to head\n", new_cursor_id);
-		tds->cursor = cursor;
+		tds->cursors = cursor;
 	} else {
-		pcursor = tds->cursor;
+		pcursor = tds->cursors;
 		for (;;) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : stepping thru existing cursors\n");
 			if (pcursor->client_cursor_id > new_cursor_id)
@@ -678,10 +681,13 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 	TDSCURSOR *next = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", cursor->client_cursor_id);
-	victim = tds->cursor;
+	victim = tds->cursors;
 
 	if (tds->cur_cursor == cursor)
 		tds->cur_cursor = NULL;
+
+	if (tds->current_results == cursor->res_info)
+		tds->current_results = NULL;
 
 	if (victim == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", cursor->client_cursor_id);
@@ -725,7 +731,7 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 	if (prev)
 		prev->next = next;
 	else
-		tds->cursor = next;
+		tds->cursors = next;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinked list\n");
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", cursor->client_cursor_id);
@@ -828,8 +834,8 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		tds_free_all_dynamic(tds);
-		while (tds->cursor)
-			tds_free_cursor(tds, tds->cursor);
+		while (tds->cursors)
+			tds_free_cursor(tds, tds->cursors);
 		if (tds->in_buf)
 			free(tds->in_buf);
 		if (tds->out_buf)

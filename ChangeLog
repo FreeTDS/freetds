@@ -1,3 +1,10 @@
+Fri Dec 03 21:14:48 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/tds/mem.c src/tds/query.c:
+	* src/tds/tds_checks.c:
+	- cleanup
+	- renamed TDSSOCKET->cursor in TDSSOCKET->cursors
+	- avoid pointer to garbage
+
 Fri Dec 03 17:46:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS: update
 	* include/tds.h src/ctlib/ct.c src/tds/mem.c src/tds/query.c:

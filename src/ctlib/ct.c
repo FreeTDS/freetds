@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.133 2004-12-03 16:47:46 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.134 2004-12-03 20:15:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -791,7 +791,7 @@ ct_send(CS_COMMAND * cmd)
 		int something_to_send = 0;
 		int cursor_open_sent  = 0;
 
-		cursor = tds->cursor; 
+		cursor = tds->cursors;
 		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
 
@@ -1355,7 +1355,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	if ( cmd->bind_count == CS_UNUSED ) 
 		cmd->bind_count = 1;
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 		cursor = cursor->next;
 
@@ -3178,7 +3178,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		
  	case CS_CURSOR_ROWS:
 
-		cursor = tds->cursor; 
+		cursor = tds->cursors;
 		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
 
@@ -3204,7 +3204,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_OPEN:
 
-		cursor = tds->cursor; 
+		cursor = tds->cursors;
 		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
 
@@ -3230,7 +3230,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_CLOSE:
 
-		cursor = tds->cursor; 
+		cursor = tds->cursors;
 		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
 
@@ -3250,7 +3250,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_DEALLOC:
 
-		cursor = tds->cursor; 
+		cursor = tds->cursors;
 		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
 			cursor = cursor->next;
 

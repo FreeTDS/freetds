@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.4 2004-12-03 16:47:47 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.5 2004-12-03 20:15:41 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -110,7 +110,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 	/* test cursors */
 	found = 0;
-	for (cur_cursor = tds->cursor; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
+	for (cur_cursor = tds->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
 		tds_check_cursor_extra(cur_cursor);
 		if (tds->current_results == cur_cursor->res_info)
 			result_found = 1;
@@ -271,4 +271,3 @@ tds_check_dynamic_extra(const TDSDYNAMIC * dyn)
 }
 
 #endif /* ENABLE_EXTRA_CHECKS */
-

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.197 2004-12-03 16:47:45 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.198 2004-12-03 20:15:37 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1075,8 +1075,7 @@ struct tds_socket
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
 	TDSCURSOR *cur_cursor;	/**< cursor in use */
-	TDSCURSOR *cursor;	/**< linked list of cursors allocated for this connection */
-/*	int client_cursor_id; */      /* cursor id used internally by client side */
+	TDSCURSOR *cursors;	/**< linked list of cursors allocated for this connection */
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
 	TDS_TINYINT state;

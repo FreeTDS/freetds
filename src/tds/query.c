@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.146 2004-12-03 16:47:47 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.147 2004-12-03 20:15:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1664,7 +1664,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 
 	tds->queryStarttime = time(NULL);
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
@@ -1720,7 +1720,7 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 
 	tds->queryStarttime = time(NULL);
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
@@ -1820,7 +1820,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() client cursor id = %d\n", client_cursor_id);
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
@@ -1832,8 +1832,6 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() internal cursor id = %d\n", cursor->cursor_id);
 	tds->queryStarttime = time(NULL);
 
-	if (!tds->cursor)
-		return TDS_FAIL;
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows (): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
@@ -1882,7 +1880,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() client cursor id = %d\n", client_cursor_id);
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
@@ -1990,7 +1988,7 @@ tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() client cursor id = %d\n", client_cursor_id);
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
@@ -2069,7 +2067,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 
 	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_dealloc ():\n");
 
-	cursor = tds->cursor; 
+	cursor = tds->cursors;
 	while (cursor && cursor->client_cursor_id != client_cursor_id)
 		cursor = cursor->next;
 
