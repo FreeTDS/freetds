@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.78 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.78.2.1 2004-03-18 10:30:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -653,7 +653,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		/* Convert chunk and write to dest. */
 		bufp = temp; /* always convert from start of buffer */
 		suppress->einval = *wire_size > 0; /* EINVAL matters only on the last chunk. */
-		if (-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
+		if ((size_t)-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
 			if (errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "

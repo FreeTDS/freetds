@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.57.2.1 2004-01-26 15:41:08 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.57.2.2 2004-03-18 10:30:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -161,7 +161,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		poutbuf = outbuf;
 		tds->iconv_info[client2ucs2]->suppress.einval = len > 0; /* EINVAL matters only on the last chunk. */
 		
-		if (-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
+		if ((size_t)-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
 		
 			if (errno == EINVAL  && tds->iconv_info[client2ucs2]->suppress.einval ) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string: tds_iconv() encountered partial sequence "

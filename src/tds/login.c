@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.118 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.118.2.1 2004-03-18 10:30:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -279,7 +279,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		return TDS_FAIL;
 	}
 	sin.sin_addr.s_addr = inet_addr(tds_dstr_cstr(&connect_info->ip_addr));
-	if (sin.sin_addr.s_addr == -1) {
+	if (sin.sin_addr.s_addr == INADDR_NONE) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", connect_info->ip_addr);
 		tds_free_socket(tds);
 		return TDS_FAIL;
