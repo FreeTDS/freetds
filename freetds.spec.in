@@ -46,7 +46,7 @@ even if FreeTDS main package is not installed
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --enable-threadsafe
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
