@@ -1,3 +1,8 @@
+Sun Nov  4 00:21:46 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/tds/token.c(tds_client_msg): Client messages were not updated to pass
+     TDSSOCKET instead of parent to CLI message handler.
+
 Fri Nov  2 12:03:44 2001  James Cameron  <quozl@us.netrek.org>
 
 	* include/tds.h.in, src/tds/token.c (tds_process_col_name):

@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.6 2001-10-31 01:38:24 quozl Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.7 2001-11-04 05:45:27 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -356,10 +356,13 @@ CS_RETCODE ct_send(CS_COMMAND *cmd)
 	if (cmd->dynamic_cmd) 
 		return ct_send_dyn(cmd);
 
-	if (tds_submit_query(cmd->con->tds_socket, cmd->query)==TDS_FAIL)
+	if (tds_submit_query(cmd->con->tds_socket, cmd->query)==TDS_FAIL) {
+		tdsdump_log(TDS_DBG_WARN, "%L ct_send() failed\n");
 		return CS_FAIL;
-	else 
+	} else {
+		tdsdump_log(TDS_DBG_INFO2, "%L ct_send() succeeded\n");
 		return CS_SUCCEED;
+	}
 }
 CS_RETCODE ct_results_dyn(CS_COMMAND *cmd, CS_INT *result_type)
 {

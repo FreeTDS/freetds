@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.6 2001-11-02 01:22:55 quozl Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.7 2001-11-04 05:45:27 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -994,7 +994,7 @@ int ret;
         	tds->msg_info->server=strdup("OpenClient");
         	tds->msg_info->line_number=line;
         	tds->msg_info->message=strdup(message);
-        	ret = g_tds_err_handler(tds->parent);
+        	ret = g_tds_err_handler(tds);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
 		if (ret) {
