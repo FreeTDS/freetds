@@ -1,3 +1,7 @@
+Wed Dec 15 10:59:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/sybdb.h: workaround for PHP
+	* src/tds/unittests/convert.c: avoid false statistics
+
 Wed Dec 15 09:23:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/tds_checks.c: improved
 

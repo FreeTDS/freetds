@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.17 2004-09-08 15:12:05 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.18 2004-12-15 09:59:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -296,12 +296,14 @@ main(int argc, char **argv)
 			result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
 			free_convert(answers[i].desttype, &cr);
 		}
+		if (result < 0)
+			continue;
 
 		result = gettimeofday(&end, NULL);
 		endtime = (double) end.tv_sec + (double) end.tv_usec * 0.000001;
 
 		if (endtime != starttime) {
-			printf("%8.0f iterations/second converting %13s => %s.\n",
+			printf("%9.0f iterations/second converting %13s => %s.\n",
 				j / (endtime - starttime), tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
 		}
 
