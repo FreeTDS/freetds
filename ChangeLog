@@ -1,3 +1,6 @@
+Tue May 13 14:42:16 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: update doc
+
 Tue May 13 12:05:44 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.conf src/apps/tsql.c src/tds/login.c:
 	* src/tds/mem.c:

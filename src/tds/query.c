@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.90 2003-05-12 08:53:08 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.91 2003-05-13 12:42:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -69,8 +69,9 @@ static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params,
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
  * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
- * @param query language query to submit
- * @return TDS_FAIL or TDS_SUCCEED
+ * \param tds state information for the socket and the TDS protocol
+ * \param query language query to submit
+ * \return TDS_FAIL or TDS_SUCCEED
  */
 int
 tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
@@ -243,6 +244,7 @@ tds_count_placeholders(const char *query)
 
 /**
  * Return declaration for column (like "varchar(20)")
+ * \param tds    state information for the socket and the TDS protocol
  * \param curcol column
  * \param out    buffer to hold declaration
  */
@@ -348,7 +350,8 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLINFO * curcol, char *out)
 
 /**
  * Return string with parameters definition
- * \param paramss parameters to build declaration
+ * \param tds     state information for the socket and the TDS protocol
+ * \param params  parameters to build declaration
  * \param out_len length in buffer
  * \return allocated and filled string or NULL on failure
  */
@@ -474,10 +477,11 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 /**
  * tds_submit_prepare() creates a temporary stored procedure in the server.
  * Currently works with TDS 5.0 and TDS7+
- * @param query language query with given placeholders (?)
- * @param id string to identify the dynamic query. Pass NULL for automatic generation.
- * @param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
- * @return TDS_FAIL or TDS_SUCCEED
+ * \param tds     state information for the socket and the TDS protocol
+ * \param query   language query with given placeholders (?)
+ * \param id      string to identify the dynamic query. Pass NULL for automatic generation.
+ * \param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
+ * \return TDS_FAIL or TDS_SUCCEED
  */
 /* TODO parse all results ?? */
 int
@@ -587,9 +591,10 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 /**
  * Put data information to wire
- * @param curcol column where to store information
- * @param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
- * @return TDS_SUCCEED or TDS_FAIL
+ * \param tds    state information for the socket and the TDS protocol
+ * \param curcol column where to store information
+ * \param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
+ * \return TDS_SUCCEED or TDS_FAIL
  */
 static int
 tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
@@ -649,9 +654,10 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 
 /**
  * Calc information length in bytes (useful for calculating full packet length)
- * @param curcol column where to store information
- * @param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
- * @return TDS_SUCCEED or TDS_FAIL
+ * \param tds    state information for the socket and the TDS protocol
+ * \param curcol column where to store information
+ * \param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
+ * \return TDS_SUCCEED or TDS_FAIL
  */
 static int
 tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
@@ -674,10 +680,11 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 
 /**
  * Write data to wire
- * @param curcol column where store column information
- * @param pointer to row data to store information
- * @param i column position in current_row
- * @return TDS_FAIL on error or TDS_SUCCEED
+ * \param tds     state information for the socket and the TDS protocol
+ * \param curcol  column where store column information
+ * \param pointer to row data to store information
+ * \param i       column position in current_row
+ * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
 tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i)
@@ -852,7 +859,8 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
  * tds_submit_execute() sends a previously prepared dynamic statement to the 
  * server.
  * Currently works with TDS 5.0 or TDS7+
- * @param dyn dynamic proc to execute. Must build from same tds.
+ * \param tds state information for the socket and the TDS protocol
+ * \param dyn dynamic proc to execute. Must build from same tds.
  */
 int
 tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
@@ -950,7 +958,8 @@ static volatile int inc_num = 1;
 
 /**
  * Get an id for dynamic query based on TDS information
- * @return TDS_FAIL or TDS_SUCCEED
+ * \param tds state information for the socket and the TDS protocol
+ * \return TDS_FAIL or TDS_SUCCEED
  */
 int
 tds_get_dynid(TDSSOCKET * tds, char **id)
@@ -982,9 +991,9 @@ tds_get_dynid(TDSSOCKET * tds, char **id)
 
 /**
  * Send a unprepare request for a prepared query
- * @param tds db connection
- * @param dyn dynamic query
- * @result TDS_SUCCEED or TDS_FAIL
+ * \param tds state information for the socket and the TDS protocol
+ * \param dyn dynamic query
+ * \result TDS_SUCCEED or TDS_FAIL
  */
 int
 tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
@@ -1051,8 +1060,9 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 /**
  * tds_submit_rpc() call a RPC from server. Output parameters will be stored in tds->param_info
- * @param rpc_name name of RPC
- * @param params   parameters informations. NULL for no parameters
+ * \param tds      state information for the socket and the TDS protocol
+ * \param rpc_name name of RPC
+ * \param params   parameters informations. NULL for no parameters
  */
 int
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
@@ -1125,6 +1135,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 /**
  * tds_send_cancel() sends an empty packet (8 byte header only)
  * tds_process_cancel should be called directly after this.
+ * \param tds state information for the socket and the TDS protocol
  */
 int
 tds_send_cancel(TDSSOCKET * tds)
@@ -1169,10 +1180,11 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
 
 /**
  * Quote an id
- * @param buffer buffer to store quoted id. If NULL do not write anything 
+ * \param tds    state information for the socket and the TDS protocol
+ * \param buffer buffer to store quoted id. If NULL do not write anything 
  *        (useful to compute quote length)
- * @param id     id to quote
- * @result written chars (not including needed terminator)
+ * \param id     id to quote
+ * \result written chars (not including needed terminator)
  */
 int
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id)
@@ -1194,11 +1206,12 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id)
 
 /**
  * Quote a string
- * @param buffer buffer to store quoted id. If NULL do not write anything 
+ * \param tds    state information for the socket and the TDS protocol
+ * \param buffer buffer to store quoted id. If NULL do not write anything 
  *        (useful to compute quote length)
- * @param str    string to quote (not necessary null-terminated)
- * @param len    length of string (-1 for null terminated)
- * @result written chars (not including needed terminator)
+ * \param str    string to quote (not necessary null-terminated)
+ * \param len    length of string (-1 for null terminated)
+ * \result written chars (not including needed terminator)
  */
 int
 tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
