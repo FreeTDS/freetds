@@ -1,3 +1,9 @@
+Sun Nov  7  9:58:22 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c src/apps/defncopy.c src/tds/config.c:
+	* vms/README.vms vms/config_h.vms vms/descrip_mms.template:
+	- applied Craig A. Berry patch for VMS, fixes some problems with
+	  bsqldb and defncopy
+
 Fri Nov  5 10:05:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c src/apps/defncopy.c src/dblib/dblib.c:
 	- remove use of snprintf

@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.4 2004-01-03 19:32:05 freddy77 Exp $ */
+/* $Id: config_h.vms,v 1.5 2004-11-07 08:59:34 freddy77 Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -26,6 +26,16 @@
 #undef HAVE_ATOLL 
 #else
 #define HAVE_ATOLL 1
+#endif
+
+/* Define to 1 if you have the `basename' function. */
+#ifndef __CRTL_VER
+#define __CRTL_VER __VMS_VER
+#endif
+#if __CRTL_VER >= 70000000
+#define HAVE_BASENAME 1
+#else
+#define HAVE_BASENAME 0
 #endif
 
 /* Define to 1 if you have the <errno.h> header file. */

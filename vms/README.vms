@@ -48,6 +48,16 @@ Example:
     $ MMK/MACRO="TDSVER"="TDS80"
 
 
+MSDBLIB
+
+Enables Microsoft behavior in the db-lib API where it diverges from
+Sybase's.  See additional documentation in the [.doc] directory.
+
+Example:
+
+    $ MMK/MACRO="MSDBLIB"=1
+
+
 ODBC
 
 This macro instructs the build to include ODBC support.  At
@@ -92,12 +102,13 @@ As more ODBC functions are implemented, the file [.vms]odbc_driver_axp.opt
 needs to be updated to point to the real functions instead of the aliases to
 the stub for unimplemented functions.
 
-The build currently compiles with the /NAMES=AS_IS switch, which results in
-mixed-case symbol names.  This was necessary to get the code working with
-unixODBC but may cause problems when calling the FreeTDS libraries from
-other languages.  There are a variety of approaches that could be taken to
-work around this but for now you'll have to roll your own.
+The build currently compiles with the /NAMES=AS_IS switch when the ODBC
+macro is enabled; this results in mixed-case symbol names.  Mixed-case
+symbols were necessary to get the code working with unixODBC but may cause
+problems when calling the FreeTDS libraries from other languages.  There
+are a variety of approaches that could be taken to work around this but for
+now you'll have to roll your own.
 
 
-Last updated: 	2-Feb-2003	Craig A. Berry	<craigberry@mac.com>
-$Id: README.vms,v 1.2 2003-05-20 11:34:41 freddy77 Exp $
+Last updated: 	6-NOV-2004	Craig A. Berry	<craigberry@mac.com>
+$Id: README.vms,v 1.3 2004-11-07 08:59:34 freddy77 Exp $

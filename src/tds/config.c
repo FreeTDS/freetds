@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.96 2004-11-02 15:18:47 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.97 2004-11-07 08:59:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -924,7 +924,12 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 	 */
 	if (!founded) {
 		const char *sybase = getenv("SYBASE");
-
+#ifdef __VMS
+		/* We've got to be in unix syntax for later slash-joined concatenation. */
+		#include <unixlib.h>
+		const char *unixspec = decc$translate_vms(sybase);
+		if ( (int)unixspec != 0 && (int)unixspec != -1 ) sybase = unixspec;
+#endif
 		if (!sybase || !sybase[0])
 #ifndef WIN32
 			sybase = "/etc/freetds";

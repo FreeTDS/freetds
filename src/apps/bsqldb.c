@@ -56,7 +56,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.10 2004-11-05 09:06:46 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.11 2004-11-07 08:59:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -132,21 +132,21 @@ main(int argc, char *argv[])
 	 * Override stdin, stdout, and stderr, as required 
 	 */
 	if (options.input_filename) {
-		if (freopen(options.input_filename, "r", stdin) < 0) {
+		if (freopen(options.input_filename, "r", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.input_filename, strerror(errno));
 			exit(1);
 		}
 	}
 
 	if (options.output_filename) {
-		if (freopen(options.output_filename, "w", stdout) < 0) {
+		if (freopen(options.output_filename, "w", stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.output_filename, strerror(errno));
 			exit(1);
 		}
 	}
 	
 	if (options.error_filename) {
-		if (freopen(options.error_filename, "w", stderr) < 0) {
+		if (freopen(options.error_filename, "w", stderr) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.error_filename, strerror(errno));
 			exit(1);
 		}
@@ -157,7 +157,7 @@ main(int argc, char *argv[])
 	} else {
 		static const char null_device[] = "/dev/null";
 		options.verbose = fopen(null_device, "w");
-		if (options.verbose < 0) {
+		if (options.verbose == NULL) {
 			fprintf(stderr, "%s:%d unable to open %s for verbose operation: %s\n", 
 					options.appname, __LINE__, null_device, strerror(errno));
 			exit(1);
