@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.5 2001-10-30 19:07:35 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.6 2001-10-31 01:38:24 quozl Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -417,7 +417,7 @@ int ret;
 				if (cmd->empty_res_hack) {
 					cmd->empty_res_hack=0;
 					*result_type = CS_CMD_DONE;
-					return CS_SUCCEED;
+					return CS_END_RESULTS;
 				} else {
 					cmd->empty_res_hack=1;
 					*result_type = CS_CMD_SUCCEED;

@@ -1,7 +1,15 @@
+Wed Oct 31 12:21:57 2001  James Cameron  <quozl@us.netrek.org>
+
+	* src/ctlib/ct.c (ct_results): return CS_END_RESULTS instead of
+	CS_SUCCEED on subsequent call after we had returned CS_SUCCEED.
+	Related to special handling of queries with no result sets.  PHP
+	was looping trying to flush the connection of result sets after
+	the first one.
+
 Tue Oct 30 14:04:57 EST 2001	Brian Bruns <camber@ais.org>
 
-	* src/ctlib/ct.c(ct_results): Add special handling of querys with no 
-	result sets (set rowcount/set textsize).
+	* src/ctlib/ct.c (ct_results): add special handling of queries
+	with no result sets (set rowcount/set textsize).
 
 Tue Oct 30 13:23:27 2001  James Cameron  <quozl@us.netrek.org>
 
