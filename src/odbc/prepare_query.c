@@ -34,7 +34,7 @@
 #include "odbc_util.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.12 2002-11-01 20:55:50 castellano Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.13 2002-11-06 15:34:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,7 +52,7 @@ static void *no_unused_var_warn[] = {software_version,
  * LEFT(string_exp, count) -> SUBSTRING(string, 1, count)
  * LENGTH(string_exp) -> CHAR_LENGTH(RTRIM(string_exp))
  * LOCATE(string, string [,start]) -> CHARINDEX(string, string)
- * (SQLGetInfo ritorna non possibile il terzo argomento)
+ * (SQLGetInfo should return third parameter not possible)
  * LTRIM(String) -> LTRIM(String)
  * OCTET_LENGTH(string_exp) -> OCTET_LENGTH(string_exp)
  * POSITION(character_exp IN character_exp) ???
@@ -66,7 +66,7 @@ static void *no_unused_var_warn[] = {software_version,
  * UCASE(string_exp) -> UPPER(string)
  *
  * Numeric
- * Quasi tutte le stesso
+ * Nearly all function use same parameters, except:
  * ATAN2 -> ATN2
  * TRUNCATE -> ??
  */
