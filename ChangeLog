@@ -1,3 +1,7 @@
+Sun May 25 19:59:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/odbc/connectparams.c:
+	- autodetect odbc
+
 Sun May 25 19:14:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: remove unused variable
 	* src/odbc/sql2tds.c:

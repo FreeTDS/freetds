@@ -37,10 +37,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.41 2003-04-27 18:34:37 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.42 2003-05-25 17:58:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#ifndef HAVEODBCINST
+#if !HAVE_SQLGETPRIVATEPROFILESTRING
 
 /*
  * Last resort place to check for INI file. This is usually set at compile time
@@ -219,8 +219,7 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 	return p != NULL;
 }
 
-/* TODO: now even iODBC support SQLGetPrivateProfileString, best check */
-#ifndef UNIXODBC
+#if !HAVE_SQLGETPRIVATEPROFILESTRING
 
 typedef struct
 {
