@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.219 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.220 2003-10-28 17:29:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -366,7 +366,7 @@ tds_process_auth(TDSSOCKET * tds)
 /* char domain[30]; */
 	int where = 0;
 
-#ifdef ENABLE_EXTRA_CHECKS
+#if ENABLE_EXTRA_CHECKS
 	if (!IS_TDS7_PLUS(tds))
 		tdsdump_log(TDS_DBG_ERROR, "Called auth on TDS version < 7\n");
 #endif

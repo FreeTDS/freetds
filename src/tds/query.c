@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.106 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.107 2003-10-28 17:29:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -129,7 +129,7 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char 
 	return buf;
 }
 
-#ifdef ENABLE_EXTRA_CHECKS
+#if ENABLE_EXTRA_CHECKS
 static void
 tds_convert_string_free(const char *original, const char *converted)
 {
@@ -883,7 +883,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 {
 	int len = 8;
 
-#ifdef ENABLE_EXTRA_CHECKS
+#if ENABLE_EXTRA_CHECKS
 	if (IS_TDS7_PLUS(tds))
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
 #endif
