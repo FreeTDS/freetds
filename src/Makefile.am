@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.8 2004-03-13 19:41:02 jklowden Exp $
 if INCAPPS
 APPS = apps
 endif

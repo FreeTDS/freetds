@@ -1,3 +1,10 @@
+Sat Mar 13 14:47:00 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/Makefile.am
+	* src/ctlib/unittests/Makefile.am
+	* src/dblib/unittests/Makefile.am
+	* src/tds/unittests/Makefile.am
+	- added ident strings to track CVS revisions as comments
+	
 Fri Mar 12 19:18:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/cancel.c:
 	- use define to comment test

@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.18 2004-03-13 19:41:03 jklowden Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \

@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.14 2004-03-13 19:41:03 jklowden Exp $
 TESTS		=	t0001 t0002 t0003 t0004 \
 			t0005 t0006 t0007 t0008 \
 			dynamic1 convert dataread \
