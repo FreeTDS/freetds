@@ -49,7 +49,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.32 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.33 2003-11-22 22:56:03 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -205,9 +205,14 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_get_n(tds, unicode_string, unicode_len);
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = buf;
-	assert(-1 !=
-	       tds_iconv(tds, tds->iconv_info[client2ucs2], to_client, (const char **) &unicode_string, &unicode_len, &pbuf,
-			 &password_len));
+	
+	memset(&tds->iconv_info[client2ucs2]->suppress, 0, sizeof(tds->iconv_info[client2ucs2]->suppress));
+	a = tds_iconv(tds, tds->iconv_info[client2ucs2], to_client, (const char **) &unicode_string, &unicode_len, &pbuf,
+			 &password_len);
+	if (a < 0 ) {
+		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
+		assert(-1 != a);
+	}
 	*pbuf = '\0';
 	tds_dstr_set(&login->password, buf);
 	free(unicode_string);
