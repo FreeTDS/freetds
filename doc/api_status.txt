@@ -166,8 +166,8 @@ dblib	core	dbmny4mul	stub
 dblib	core	dbmny4sub	OK
 dblib	core	dbmny4zero	OK
 dblib	core	dbmnyadd	stub
-dblib	core	dbmnycmp	stub
-dblib	core	dbmnycopy	stub
+dblib	core	dbmnycmp	OK
+dblib	core	dbmnycopy	OK
 dblib	core	dbmnydec	stub
 dblib	core	dbmnydivide	stub
 dblib	core	dbmnydown	stub
@@ -180,7 +180,7 @@ dblib	core	dbmnymul	stub
 dblib	core	dbmnyndigit	stub
 dblib	core	dbmnyscale	stub
 dblib	core	dbmnysub	stub
-dblib	core	dbmnyzero	stub
+dblib	core	dbmnyzero	OK
 dblib	core	dbname	stub
 dblib	core	dbnextrow	OK
 dblib	core	dbnullbind	OK

@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.90 2002-10-29 21:24:11 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.91 2002-10-30 20:57:43 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -3041,21 +3041,44 @@ RETCODE dbmnydivide(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *quotie
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
-int dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2)
+
+int
+dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnycmp()\n");
-	return SUCCEED;
+
+	if (m1->tdsoldmoney.mnyhigh < m2->tdsoldmoney.mnyhigh) {
+		return -1;
+	}
+	if (m1->tdsoldmoney.mnyhigh > m2->tdsoldmoney.mnyhigh) {
+		return 1;
+	}
+	if (m1->tdsoldmoney.mnylow < m2->tdsoldmoney.mnylow) {
+		return -1;
+	}
+	if (m1->tdsoldmoney.mnylow > m2->tdsoldmoney.mnylow) {
+		return 1;
+	}
+	return 0;
 }
+
 RETCODE dbmnyscale(DBPROCESS *dbproc, DBMONEY *dest, int multiplier, int addend)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
-RETCODE dbmnyzero(DBPROCESS *dbproc, DBMONEY *dest)
+
+RETCODE
+dbmnyzero(DBPROCESS *dbproc, DBMONEY *dest)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyzero()\n");
+
+	if (dest == NULL) {
+		return FAIL;
+	}
+	dest->tdsoldmoney.mnylow = 0;
+	dest->tdsoldmoney.mnyhigh = 0;
 	return SUCCEED;
 }
+
 RETCODE dbmnymaxpos(DBPROCESS *dbproc, DBMONEY *dest)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnymaxpos()\n");
@@ -3293,11 +3316,18 @@ RETCODE dbsetversion(DBINT version)
 	g_dblib_version  = version;
 	return SUCCEED;
 }
-RETCODE dbmnycopy(DBPROCESS *dbproc, DBMONEY *src, DBMONEY *dest)
+
+RETCODE
+dbmnycopy(DBPROCESS *dbproc, DBMONEY *src, DBMONEY *dest)
 {
-	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnycopy()\n");
+	if ((src == NULL) || (dest == NULL)) {
+		return FAIL;
+	}
+	dest->tdsoldmoney.mnylow = src->tdsoldmoney.mnylow;
+	dest->tdsoldmoney.mnyhigh = src->tdsoldmoney.mnyhigh;
 	return SUCCEED;
 }
+
 RETCODE dbcanquery(DBPROCESS *dbproc)
 {
 	TDSSOCKET *tds;

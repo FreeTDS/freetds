@@ -1,3 +1,7 @@
+Wed Oct 30 15:56:20 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt src/dblib/dblib.c:
+	- Implement dbmnycmp(), dbmnycopy(), dbmnyzero(). (untested)
+
 Wed Oct 30 15:27:41 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h src/ctlib/unittests/t0006.c:
 	- mnylow is unsigned.
