@@ -1,3 +1,7 @@
+Fri Aug 30 16:15:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/tds/convert.c:
+	- fixed money problem
+
 Fri Aug 30 15:03:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/asprintf.c: fixed compile in FreeBSD
 	* src/tds/convert.c: added conversions from float/real to ints

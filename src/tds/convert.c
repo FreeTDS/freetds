@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.63 2002-08-30 13:04:30 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.64 2002-08-30 14:16:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -956,7 +956,13 @@ char tmpstr [64];
 int i;
 
     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_convert_money()\n");
+#if defined(WORDS_BIGENDIAN) || !defined(HAVE_INT64)
     memcpy(&mymoney, src, sizeof(TDS_INT8)); 
+#else
+    memcpy(((char*)&mymoney)+4, src, 4);
+    memcpy(&mymoney, src+4, 4);
+#endif
+
 #	if HAVE_ATOLL
     tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
 #	else
@@ -1041,7 +1047,7 @@ int i;
 			cr->m4.mny4 = mymoney;
 			break;
 		case SYBMONEY:
-			memcpy(&(cr->m), src, sizeof(TDS_MONEY));
+			cr->m.mny = mymoney;
 			return sizeof(TDS_MONEY);
 			break;
 		/* conversions not allowed */
@@ -1568,7 +1574,15 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 		break;
 
 	}
-	
+
+/* fix MONEY case */
+#if !defined(WORDS_BIGENDIAN) && defined(HAVE_INT64)
+	if (length != TDS_FAIL && desttype == SYBMONEY) {
+		cr->m.mny = 
+			((TDS_UINT8)cr->m.mny) >> 32 | (cr->m.mny << 32);
+	}
+#endif
+
 	if( length == TDS_FAIL ) {
 		char varchar[2056];
 		CONV_RESULT result;
