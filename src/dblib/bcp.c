@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.90 2004-02-09 22:59:33 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.91 2004-03-12 04:04:30 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -491,6 +491,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	int srctype;
 	int buflen;
 	int destlen;
+	int plen;
 	BYTE *outbuf;
 
 	TDS_INT rowtype;
@@ -765,12 +766,16 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				/* FIX ME -- does not handle prefix_len == -1 */
 				/* The prefix */
 
-				switch (hostcol->prefix_len) {
-				case -1:
-					if (!(is_fixed_type(hostcol->datatype))) {
-						si = buflen;
-						fwrite(&si, sizeof(si), 1, hostfile);
-					}
+				if ((plen = hostcol->prefix_len) == -1) {
+					if (!(is_fixed_type(hostcol->datatype)))
+						plen = 2;
+					else if (curcol->column_nullable)
+						plen = 1;
+					else
+						plen = 0;
+				}
+				switch (plen) {
+				case 0:
 					break;
 				case 1:
 					ti = buflen;
@@ -984,16 +989,26 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			 */
 		} else {	/* unterminated field */
 			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
-			if (collen == 0 && (is_nullable_type(bcpcol->db_type)
-					    || bcpcol->db_nullable)) {
-				TDS_SMALLINT len;
+			if (collen == 0 || bcpcol->db_nullable) {
+				if (collen != 0) {
+					/* A fixed length type */
+					TDS_TINYINT len;
+					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
+						if (i != 0)
+							_bcp_err_handler(dbproc, SYBEBCRE);
+						return (FAIL);
+					}
+					collen = len == 255 ? -1 : len;
+				} else {
+					TDS_SMALLINT len;
 
-				if (fread(&len, sizeof(len), 1, hostfile) != 1) {
-					if (i != 0)
-						_bcp_err_handler(dbproc, SYBEBCRE);
-					return (FAIL);
+					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
+						if (i != 0)
+							_bcp_err_handler(dbproc, SYBEBCRE);
+						return (FAIL);
+					}
+					collen = len;
 				}
-				collen = len;
 				if (collen == -1) {
 					collen = 0;
 					data_is_null = 1;
@@ -1017,8 +1032,11 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				 *	 call and test it. 
 				 */
 				if (fread(coldata, collen, 1, hostfile) != 1) {
-					_bcp_err_handler(dbproc, SYBEBCRE);
 					free(coldata);
+					if (i == 0 && feof(hostfile))
+						tdsdump_log(TDS_DBG_FUNC, "%L Normal end-of-file reached while loading bcp data file.\n");
+					else
+						_bcp_err_handler(dbproc, SYBEBCRE);
 					return (FAIL);
 				}
 			}
