@@ -1,3 +1,9 @@
+Thu Dec 09 10:05:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c:
+	- fix a possible leak and memory very low
+	- avoid memcpy(x,x,-1)
+	- better null parameters handling
+
 Wed Dec 08 21:29:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: update
 	* misc/test-dist.sh: bit improve

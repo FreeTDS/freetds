@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.33 2004-12-01 03:55:13 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.34 2004-12-09 09:07:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -185,8 +185,10 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 
 	if (paramname) {
 		name = strdup(paramname);
-		if (name == NULL)
+		if (name == NULL) {
+			free(param);
 			return FAIL;
+		}
 	}
 
 	/* initialize */
@@ -267,13 +269,18 @@ dbrpcsend(DBPROCESS * dbproc)
  * Tell the TDSPARAMINFO structure where the data go.  This is a kind of "bind" operation.
  */
 static const unsigned char *
-param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, void *value, int size)
+param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int i_col, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
 
 	if (!row)
 		return NULL;
-	memcpy(&params->current_row[curcol->column_offset], value, size);
+
+	if (size <= 0) {
+		tds_set_null(params->current_row, i_col);
+	} else {
+		memcpy(&params->current_row[curcol->column_offset], value, size);
+	}
 
 	return row;
 }
@@ -300,7 +307,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 
 		if (!(new_params = tds_alloc_param_result(params))) {
 			tds_free_param_results(params);
-			fprintf(stderr, "out of rpc memory!");
+			tdsdump_log(TDS_DBG_ERROR, "out of rpc memory!");
 			return NULL;
 		}
 		params = new_params;
@@ -329,11 +336,11 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 		pcol->column_output = p->status;
 
-		prow = param_row_alloc(params, pcol, p->value, pcol->column_cur_size);
+		prow = param_row_alloc(params, pcol, i, p->value, pcol->column_cur_size);
 
 		if (!prow) {
 			tds_free_param_results(params);
-			fprintf(stderr, "out of memory for rpc row!");
+			tdsdump_log(TDS_DBG_ERROR, "out of memory for rpc row!");
 			return NULL;
 		}
 
