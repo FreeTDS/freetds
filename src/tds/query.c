@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.5 2001-12-13 15:15:06 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.6 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -198,7 +198,7 @@ int one = 1;
 		param = dyn->params[i];
 		if (param->column_bindlen) {
 			tds_put_byte(tds,param->column_bindlen); 
-			param->varaddr = &one;
+			param->varaddr = (char *)&one;
 			tds_put_n(tds, param->varaddr,param->column_bindlen); 
 		} else {
 			tds_put_byte(tds,strlen(param->varaddr)); 

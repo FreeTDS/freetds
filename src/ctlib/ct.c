@@ -22,8 +22,9 @@
 #include <unistd.h>
 #include <ctpublic.h>
 #include <ctlib.h>
+#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.12 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.13 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -69,6 +70,8 @@ CS_RETCODE ct_con_alloc(CS_CONTEXT *ctx, CS_CONNECTION **con)
 }
 CS_RETCODE ct_callback(CS_CONTEXT *ctx, CS_CONNECTION *con, CS_INT action, CS_INT type, CS_VOID *func)
 {
+	int	(*funcptr)(void*,void*,void*)=(int (*)(void*,void*,void*))func;
+
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_callback() action = %s\n",
 		CS_GET ? "CS_GET" : "CS_SET");
 	/* one of these has to be defined */
@@ -78,14 +81,14 @@ CS_RETCODE ct_callback(CS_CONTEXT *ctx, CS_CONNECTION *con, CS_INT action, CS_IN
 	if (action==CS_GET) {
 		switch(type) {
 			case CS_CLIENTMSG_CB:
-				func = (CS_VOID *) con ? con->_clientmsg_cb : ctx->_clientmsg_cb;
+				*(void **)func = (CS_VOID *) (con ? con->_clientmsg_cb : ctx->_clientmsg_cb);
 				return CS_SUCCEED;
 			case CS_SERVERMSG_CB:
-				func = (CS_VOID *) con ? con->_servermsg_cb : ctx->_servermsg_cb;
+				*(void **)func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
 				return CS_SUCCEED;
 			default:
 				fprintf(stderr,"Unknown callback %d\n",type);
-				func = (CS_VOID *) NULL;
+				*(void **)func = (CS_VOID *) NULL;
 				return CS_SUCCEED;
 		}
 	}
@@ -93,15 +96,15 @@ CS_RETCODE ct_callback(CS_CONTEXT *ctx, CS_CONNECTION *con, CS_INT action, CS_IN
 	switch(type) {
 		case CS_CLIENTMSG_CB:
 			if (con) 
-				con->_clientmsg_cb = func;
+				con->_clientmsg_cb = funcptr;
 			else 
-				ctx->_clientmsg_cb = func;
+				ctx->_clientmsg_cb = funcptr;
 			break;
 		case CS_SERVERMSG_CB:
 			if (con) 
-				con->_servermsg_cb = func;
+				con->_servermsg_cb = funcptr;
 			else 
-				ctx->_servermsg_cb = func;
+				ctx->_servermsg_cb = funcptr;
 			break;
 	}
 	return CS_SUCCEED;
@@ -533,7 +536,7 @@ TDS_INT srctype, srclen, desttype, destlen, len;
    
       srctype = curcol->column_type;
       desttype = _ct_get_server_type(curcol->column_bindtype);
-      dest = curcol->varaddr;
+      dest = (unsigned char *)curcol->varaddr;
       tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() converting column %d from type %d to type %d\n", 
          i, srctype, desttype);
    
@@ -541,14 +544,14 @@ TDS_INT srctype, srclen, desttype, destlen, len;
          srctype = tds_get_conversion_type(srctype, curcol->column_size);
          destlen = curcol->column_bindlen;
          if (is_blob_type(srctype)) {
-            src = curcol->column_textvalue;
+            src = (unsigned char *)curcol->column_textvalue;
             srclen = curcol->column_textsize;
          } else {
             src = &(resinfo->current_row[curcol->column_offset]);
             srclen = curcol->column_size;
          }
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d\n", i, srclen);
-         len = tds_convert(srctype, src, srclen, desttype, dest, destlen);
+         len = tds_convert(srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
          tdsdump_log(TDS_DBG_INFO2, "%L inside _ct_bind_data() conversion done len = %d bindfmt = %d\n", len, curcol->column_bindfmt);
    
          /* XXX need utf16 support (NCHAR,NVARCHAR,NTEXT) */

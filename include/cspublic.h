@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.3 2001-11-08 17:39:52 mlilback Exp $";
+         "$Id: cspublic.h,v 1.4 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -315,7 +315,7 @@ enum {
 	CS_TDS_46,
 	CS_TDS_495,
 	CS_TDS_50,
-	CS_TDS_70,
+	CS_TDS_70
 };
 
 /* fields used by CS_DATAFMT.status */

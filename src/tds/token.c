@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.13 2002-01-25 03:44:16 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.14 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -946,7 +946,7 @@ int len;
 				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", 
 				tds_get_conversion_type(curcol->column_type,colsize));
 				if (is_numeric_type(curcol->column_type)) {
-					tds_swap_datatype(curcol->column_type, &num);
+					tds_swap_datatype(curcol->column_type, (unsigned char *)&num);
 				} else {
 					/* FIXME: dest is unitialized for
 					   SYBVARBINARY and blob types! */
@@ -1141,7 +1141,6 @@ int len_sqlstate;
 	len = tds_get_smallint(tds);
 
 	/* message number */
-		/* swap bytes on bigendian systems (mlilback, 11/7/01) */
 	rc = tds_get_int(tds);
 	tds->msg_info->msg_number = rc;
 

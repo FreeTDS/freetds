@@ -20,7 +20,7 @@
 #include <config.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: server.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: server.c,v 1.3 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -276,7 +276,7 @@ int colsize, i;
 		curcol = resinfo->columns[i];
 		if (!is_fixed_type(curcol->column_type)) {
 			/* FIX ME -- I have no way of knowing the actual length of non character variable data (eg nullable int) */
-			colsize = strlen(&(resinfo->current_row[curcol->column_offset]));
+			colsize = strlen((char *)&(resinfo->current_row[curcol->column_offset]));
 			tds_put_byte(tds, colsize);
 			tds_put_n(tds,&(resinfo->current_row[curcol->column_offset]), colsize);
 		} else {

@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.13 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.14 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -94,7 +94,7 @@ void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery
 	tds_login->query_timeout = query;
 	tds_login->longquery_timeout = longquery;
 }
-void tds_set_longquery_handler(TDSLOGIN * tds_login, void * longquery_func, long longquery_param) /* Jeff's hack */
+void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func)(long), long longquery_param) /* Jeff's hack */
 {
 	tds_login->longquery_func = longquery_func;
 	tds_login->longquery_param = longquery_param;
@@ -574,7 +574,8 @@ int language_len = config->language ? strlen(config->language) : 0;
 ** the calling function is responsible for ensuring crypt_pass is at least 
 ** 'len' characters
 */
-char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass)
+unsigned char *
+tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass)
 {
 int i;
 unsigned char xormask = 0x5A;

@@ -38,7 +38,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: bcp.c,v 1.3 2001-11-08 17:48:07 mlilback Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.4 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -160,15 +160,15 @@ TDS_INT li;
 			curcol=resinfo->columns[bcpcol->column - 1];
 			if (is_blob_type(curcol->column_type)) {
 				/* FIX ME -- no converts supported */
-				src = curcol->column_textvalue;
+				src = (BYTE *)curcol->column_textvalue;
 				len = curcol->column_textsize;
 			} else {
 				src = &resinfo->current_row[curcol->column_offset];
 
 				srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 				len = tds_convert(srctype, 
-					src, curcol->column_size, 
-					bcpcol->datatype, dest, 255);
+					(TDS_CHAR *)src, curcol->column_size, 
+					bcpcol->datatype, (TDS_CHAR *)dest, 255);
 			}
 
 			/* FIX ME -- does not handle prefix_len == -1 */

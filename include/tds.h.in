@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.9 2001-12-03 00:06:14 brianb Exp $";
+	 "$Id: tds.h.in,v 1.10 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -476,7 +476,7 @@ typedef struct tds_input_param {
 typedef struct tds_msg_info {
       TDS_SMALLINT priv_msg_type;
       TDS_SMALLINT line_number;
-      TDS_SMALLINT msg_number;
+      TDS_UINT msg_number;
       TDS_SMALLINT msg_state;
       TDS_SMALLINT msg_level;
       TDS_CHAR *server;
@@ -553,7 +553,7 @@ typedef struct tds_context {
 	TDSSOCKET *connection_list[TDS_MAX_CONN];
 } TDSCONTEXT;
 
-void tds_set_longquery_handler(TDSLOGIN * tds_login, void * longquery_func, long longquery_param);
+void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
 void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery);
 extern int tds_write_packet(TDSSOCKET *tds,unsigned char final);
 extern int tds_init_write_buf(TDSSOCKET *tds);
@@ -614,13 +614,13 @@ extern void tds_set_null(unsigned char *current_row, int column);
 extern void tds_clr_null(unsigned char *current_row, int column);
 extern int tds_get_null(unsigned char *current_row, int column);
 extern int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
-extern char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
+extern unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
 void tds_iconv_close(TDSSOCKET *tds);
-extern char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
+extern unsigned char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
 extern char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len);
  
 

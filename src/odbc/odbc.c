@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.11 2002-01-25 13:13:54 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.12 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,7 +48,7 @@ static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR *phstmt);
 static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
-static char *strncpy_null(char *dst, const char *src, int len)
+static char *strncpy_null(char *dst, const char *src, int len);
 
 #define _MAX_ERROR_LEN 255
 static char lastError[_MAX_ERROR_LEN+1];

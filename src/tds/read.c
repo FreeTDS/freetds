@@ -31,13 +31,14 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.4 2002-01-18 03:33:47 vorlon Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.5 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 /* Loops until we have received buflen characters */
-int goodread (TDSSOCKET *tds, char * buf, int buflen)
+static int
+goodread (TDSSOCKET *tds, unsigned char *buf, int buflen)
 {
 int got = 0;
 int len, retcode;
@@ -263,7 +264,7 @@ int           x = 0, have, need;
 	/* Read in the packet header.  We use this to figure out our packet 
 	** length */
 
-	if ((len = goodread(tds, header, 8)) < 8 ) {
+	if ((len = goodread(tds, header, sizeof(header))) < sizeof(header) ) {
 		/* GW ADDED */
 		if (len<0) {
 			/* FIX ME -- get the exact err num and text */

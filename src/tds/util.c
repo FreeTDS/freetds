@@ -45,7 +45,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: util.c,v 1.5 2001-11-10 02:39:01 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.6 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -390,7 +390,7 @@ int tds_msleep(long usec)         /* returns 0 if ok, else -1 */
 
     return(select(0, (fd_set *)NULL, (fd_set *)NULL, (fd_set *)NULL, &delay));
 #endif
-    };
+    }
 /* Jeff's hack ***NEW CODE END**** */
 
 

@@ -22,7 +22,7 @@
 #include "tdsutil.h"
 #include <unistd.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.3 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,5 +37,5 @@ int len;
 	len = tds_get_smallint(tds); /* query size +1 */
 	tds_get_n(tds,NULL,3);
 	tds_get_n(tds, query, len - 1);
-	return query;
+	return (char *)query;
 }

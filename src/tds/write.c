@@ -28,20 +28,26 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.3 2001-11-08 17:53:06 mlilback Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.4 2002-01-31 02:21:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-int tds_put_n(TDSSOCKET *tds, unsigned char *buf, int n)
+/*
+ * CRE 01262002 making buf a void * means we can put any type without casting
+ *		much like read() and memcpy()
+ */
+int
+tds_put_n(TDSSOCKET *tds, unsigned char *buf, int n)
 {
 int i;
-	if (buf)  {
+unsigned char *bufp = buf;
+	if (bufp)  {
 		for (i=0;i<n;i++)	
-			tds_put_byte(tds,buf[i]);
+			tds_put_byte(tds, bufp[i]);
 	} else {
 		for (i=0;i<n;i++)	
-			tds_put_byte(tds,'\0');
+			tds_put_byte(tds, '\0');
 	}
 	return 0;
 }

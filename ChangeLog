@@ -1,3 +1,6 @@
+Wed Jan 30 21:19:34 EST 2002	Brian Bruns	<camber@ais.org>
+	* : Patches from Chris Eleveld <ihermit2@yahoo.com> for ANSI C compliance
+
 Fri Jan 25 08:11:09 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* src/odbc/odbc.c (SQLGetInfo): Initial implementation by Paul Williamson 
