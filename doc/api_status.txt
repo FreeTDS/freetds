@@ -244,7 +244,7 @@ dblib	browse	dbtabsource
 dblib	browse	dbtsnewlen	
 dblib	browse	dbtsnewval	
 dblib	browse	dbtsput	
-dblib	bcp	bcp_batch	stub
+dblib	bcp	bcp_batch	OK
 dblib	bcp	bcp_bind	OK
 dblib	bcp	bcp_colfmt	OK
 dblib	bcp	bcp_collen	stub
