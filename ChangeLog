@@ -1,3 +1,8 @@
+Wed Dec  3 03:33:01 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/tsql.txt updated and clarified (I hope)
+	* doc/userguide.sgml applied Freddy's modified patch and more
+	* src/tds/config.c bad entries written to stderr
+	
 Wed Dec 03 08:12:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am src/tds/encodings.h:
 	* src/tds/sybase_character_sets.h:
