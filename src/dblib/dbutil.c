@@ -34,8 +34,39 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: dbutil.c,v 1.24 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.25 2004-04-04 15:43:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+/*
+ * test include consistency 
+ * I don't think all compiler are able to compile this code... if not comment it
+ */
+#if ENABLE_EXTRA_CHECKS
+
+#if defined(__GNUC__) && __GNUC__ >= 2
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1] __attribute__ ((unused))
+#else
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1]
+#endif
+
+/* TODO test SYBxxx consistency */
+
+#define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
+	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && (int)(&((sa*)0)->fa) == (int)(&((sb*)0)->fb))
+
+TEST_ATTRIBUTE(t21,TDS_MONEY4,mny4,DBMONEY4,mny4);
+TEST_ATTRIBUTE(t22,TDS_OLD_MONEY,mnyhigh,DBMONEY,mnyhigh);
+TEST_ATTRIBUTE(t23,TDS_OLD_MONEY,mnylow,DBMONEY,mnylow);
+TEST_ATTRIBUTE(t24,TDS_DATETIME,dtdays,DBDATETIME,dtdays);
+TEST_ATTRIBUTE(t25,TDS_DATETIME,dttime,DBDATETIME,dttime);
+TEST_ATTRIBUTE(t26,TDS_DATETIME4,days,DBDATETIME4,days);
+TEST_ATTRIBUTE(t27,TDS_DATETIME4,minutes,DBDATETIME4,minutes);
+TEST_ATTRIBUTE(t28,TDS_NUMERIC,precision,DBNUMERIC,precision);
+TEST_ATTRIBUTE(t29,TDS_NUMERIC,scale,DBNUMERIC,scale);
+TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,DBNUMERIC,array);
+#endif
 
 /* 
  * The next 2 functions receive the info and error messages that come from the TDS layer.  

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.103 2004-04-02 11:06:53 freddy77 Exp $
+To Do List	$Id: TODO,v 1.104 2004-04-04 15:43:21 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -50,14 +50,12 @@ Started in 0.63
   (remove INFO and others)
   BCPCOLINFO rename ? I think this structure should be removed
   (in a future version ?)
-- header privatizations (removing tds.h dependency)  this is quite 
-  important for future binary compatibility.
-  - Add consistency test for dblib
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
-- prepared statement. There are some code (needed for Oracle bindings)
-  to fetch data types after prepare. There are a lot of TODO in SQLPrepare
+- prepared statement. There are some code (needed for Oracle bindings 
+  and OTL library) to fetch data types after prepare. There are a lot 
+  of TODO in SQLPrepare
   (for optimizations and others problems). binary_test fails if
   compiled with --enable-developing. 
 - ODBC data test fails for numeric, convert.c do not convert 
@@ -65,6 +63,7 @@ Started in 0.63
   * this part never worked, commented
 - SQLFetch do not return error if error on rows
 - see problems raised by sqlserver tests in DBD::ODBC (SQLPrepare)
+  (change parameter binding after execute)
 - fix putdata test
 
 For future versions (in priority order within library):
@@ -163,6 +162,8 @@ Tests
 
 Done in 0.63
 . ODBC: use tds_dstr* functions to store descriptor infos
+. header privatizations (removing tds.h dependency)  this is quite 
+  important for future binary compatibility.
 
 Done in 0.62
 . cursor support in ct-lib
