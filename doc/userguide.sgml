@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-02-23 21:10:47 $</date>
-		<releaseinfo>$Revision: 1.53 $</releaseinfo>
+		<date>$Date: 2003-02-25 13:22:02 $</date>
+		<releaseinfo>$Revision: 1.54 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -47,9 +47,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.53 $</>
-<member>$Date: 2003-02-23 21:10:47 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.53 2003-02-23 21:10:47 jklowden Exp $.</>
+<member>$Revision: 1.54 $</>
+<member>$Date: 2003-02-25 13:22:02 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.54 2003-02-25 13:22:02 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -1914,13 +1914,16 @@ The <literal>-g</literal> is important to keep the symbol tables for debugging p
 <para>New configuration method (dnsless and freetds.conf'less)</para>
 
 <para>
-Current CVS version support DSNless connection and freetds.conf'less connection. This mean that all connection informations
-can be stored in odbc.ini. To support this method some options has been added. 
+From version 0.61 FreeTDS support DSNless connection and freetds.conf'less connection. 
+DSNless connection mean that you can specify a connection without any entry on odbc.ini.
+freetds.conf'less means that all connection informations
+can be stored in <filename>odbc.ini</filename>, without the need for freetds.conf'less. 
+To support this method some options was added. 
 </para>
 
 <para>
 <table>
-<title>odbc.ini entries</title>
+<title>Connection attributes</title>
 <tgroup cols="4">
 <thead>
 	<row>
@@ -1928,6 +1931,7 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<entry>Default</entry>
 	<entry>Meaning</entry>
 	<entry>Possible Values</entry>
+	<entry>In <filename>odbc.ini</filename></entry>
 	</row>
 </thead>
 <tbody>
@@ -1940,6 +1944,7 @@ can be stored in odbc.ini. To support this method some options has been added.
 	  Can be specified only on connection string, not in odbc.ini file.
 	</entry>
 	<entry>A valid DSN entry</entry>
+	<entry>no</entry>
 	</row>
 	<row>
 	<entry>Servername</entry>
@@ -1947,18 +1952,21 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<entry>This is old server specification. This refer to freetds.conf server name, not real server. If you want
 	       to use freetds.conf'less configuration use Server instead.</entry>
 	<entry>A valid freetds.conf server section</entry>
+	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>Server</entry>
 	<entry>none</entry>
 	<entry>This specify the name of the real server. Used in freetds.conf'less configuration.</entry>
 	<entry>A server name or an address (ip)</entry>
+	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>Port</entry>
 	<entry>depend from TDS version specified with configure</entry>
 	<entry>The tcp/ip port of SQL Server.</entry>
 	<entry>Any TCP port</entry>
+	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>UID</entry>
@@ -1966,6 +1974,7 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
 	      To use domain authentication and specify domain use the format "domain\password".</entry>
 	<entry>Any valid user</entry>
+	<entry>no</entry>
 	</row>
 	<row>
 	<entry>PWD</entry>
@@ -1973,30 +1982,35 @@ can be stored in odbc.ini. To support this method some options has been added.
 	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
 	      Clear text password (use domain password for domain authentication).</entry>
 	<entry>Any</entry>
+	<entry>no</entry>
 	</row>
 	<row>
 	<entry>TDS_Version</entry>
 	<entry>depend from TDS version specified with configure</entry>
 	<entry>TDS protocol version to use (ie 5.0, 7.0).</entry>
 	<entry>Any valid protocol version</entry>
+	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>APP</entry>
 	<entry>none</entry>
 	<entry>Application name.</entry>
 	<entry>Any</entry>
+	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>WSID</entry>
 	<entry>Computer name</entry>
 	<entry>Can be specified only in dsnless connection. Name of the computer sended to server.</entry>
 	<entry>Any</entry>
+	<entry>no</entry>
 	</row>
 	<row>
 	<entry>LANGUAGE</entry>
 	<entry>us_english</entry>
 	<entry>Language used by server.</entry>
 	<entry>Any</entry>
+	<entry>yes</entry>
 	</row>
 </tbody>
 </tgroup>
@@ -2004,7 +2018,7 @@ can be stored in odbc.ini. To support this method some options has been added.
 </para>
 
 <example>
-<title>Sample DSNless <filename>odbc.ini</filename> File (adapted from previous example)</title>
+<title>Sample freetds.conf'less <filename>odbc.ini</filename> file (adapted from previous example)</title>
 <programlisting>
 ;
 ;  odbc.ini
