@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.5 2002-08-29 20:12:24 freddy77 Exp $";
+"$Id: tdsutil.h,v 1.6 2002-09-13 21:00:21 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -78,6 +78,9 @@ int  tds_is_control(TDSSOCKET *tds);
 int  tds_msleep(long usecs);
 /* added 'cause used but not declared (mlilback, 11/7/01) */
 TDS_INT tds_get_int(TDSSOCKET *tds);
+
+int tds_close_socket(TDSSOCKET *tds);
+int tds_swap_bytes(unsigned char *buf, int bytes);
 
 #ifdef __cplusplus
 #if 0

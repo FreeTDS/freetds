@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.41 2002-09-13 18:03:23 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.42 2002-09-13 21:00:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -612,11 +612,11 @@ unsigned const char *magic1 = magic1_server;
 #endif
 static const unsigned char magic2[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
 /* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
-static const unsigned char magic3[] = "NTLMSSP";
 unsigned char unicode_string[255];
 int packet_size;
 int current_pos;
 #if DOMAIN
+static const unsigned char magic3[] = "NTLMSSP";
 int domain_login = config->try_domain_login ? 1 : 0;
 #endif
 
@@ -631,7 +631,9 @@ int server_name_len = config->server_name ? strlen(config->server_name) : 0;
 int library_len = config->library ? strlen(config->library) : 0;
 int language_len = config->language ? strlen(config->language) : 0;
 int domain_len = domain ? strlen(domain) : 0;
+#if DOMAIN
 int auth_len = 0;
+#endif
 
 	/* check override of domain */
 	if (user_name && (p=strchr(user_name,'\\')) != NULL)

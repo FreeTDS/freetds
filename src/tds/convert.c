@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.70 2002-09-13 20:13:16 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.71 2002-09-13 21:00:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -89,7 +89,9 @@ static int  is_alphabetic(char *);
 static int  is_ampm(char *);
 static int  is_monthname(char *);
 static int  is_numeric_dateformat(char *);
+#if 0
 static TDS_UINT utf16len(const utf16_t* s);
+#endif
 static const char *tds_prtype(int token);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
@@ -145,7 +147,7 @@ int tds_get_conversion_type(int srctype, int colsize)
 		case 8:	return SYBFLT8;
 		case 4:	return SYBREAL;
 		}
-		return;
+		break;
 	case SYBDATETIMN:
 		switch(colsize) {
 		case 8:	return SYBDATETIME;
@@ -463,7 +465,7 @@ TDS_INT tds_i;
 
          for(; ptr != pend; ptr++)                      /* deal with the rest */
          {
-            if (isdigit(*ptr) )                   /* it's a number */
+            if (isdigit((int) *ptr) )                   /* it's a number */
             {  
                mynumber[i++] = *ptr;
 	       /* assure not buffer overflow */
@@ -1024,11 +1026,12 @@ tds_convert_money(int srctype, const TDS_CHAR *src,
 char *s;
 
 TDS_INT8 mymoney,dollars;
-
+char tmpstr [64];
+#ifdef UseBillsMoney
 char rawlong[64];
 int  rawlen;
-char tmpstr [64];
 int i;
+#endif
 
     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_convert_money()\n");
 #if defined(WORDS_BIGENDIAN) || !defined(HAVE_INT64)
@@ -2112,7 +2115,7 @@ short int bytes, places, point_found, sign, digits;
   pdigits = pstr;
   for(; pstr != pend; ++pstr)             /* deal with the rest */
   {
-     if (isdigit(*pstr))                  /* its a number */
+     if (isdigit((int) *pstr))            /* its a number */
      {  
         if (point_found)                  /* if we passed a decimal point */
            ++places;                      /* count digits after that point  */
@@ -2242,7 +2245,7 @@ int   digits   = 0;
 
     for (instr = t; *instr; instr++ )
     {
-        if (!isdigit(*instr) && *instr != '/' && *instr != '-' && *instr != '.' )
+        if (!isdigit((int) *instr) && *instr != '/' && *instr != '-' && *instr != '.' )
         {
             ret = 0;
             break;
@@ -2323,7 +2326,7 @@ static int is_alphabetic(char *datestr)
 char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) {
-        if (!isalpha(*s))
+        if (!isalpha((int) *s))
            ret = 0; 
     }
     return(ret);
@@ -2334,7 +2337,7 @@ static int is_numeric(char *datestr)
 char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) {
-        if (!isdigit(*s))
+        if (!isdigit((int) *s))
            ret = 0; 
     }
     return(ret);
@@ -2346,7 +2349,7 @@ char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) 
     {
-        if (!isdigit(*s) && *s != ':' && *s != '.' )
+        if (!isdigit((int) *s) && *s != ':' && *s != '.' )
           break;
     }
     if ( *s )
@@ -2413,7 +2416,7 @@ char *s;
 int  month = 0, year = 0, mday = 0;
 
     for (s = datestr; *s; s++) {
-        if (! isdigit(*s) && isdigit(last_char)) {
+        if (! isdigit((int) *s) && isdigit((int) last_char)) {
             state++;
         } else switch(state) {
             case TDS_MONTH:
@@ -2706,6 +2709,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm 
 	
 	return length;
 }
+
+#if 0
 static TDS_UINT 
 utf16len(const utf16_t* s)
 {
@@ -2714,6 +2719,7 @@ utf16len(const utf16_t* s)
               ;
       return p - s;
 }
+#endif
 
 #ifdef DONT_TRY_TO_COMPILE_THIS
 	Try this: "perl -x convert.c > tds_willconvert.h"
@@ -2813,7 +2819,6 @@ unsigned int dt_time;
 int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
-int i;
 
     if ( datetype == SYBDATETIME ) {
        dt = (TDS_DATETIME *)di;
@@ -2980,7 +2985,7 @@ unsigned int num; /* we use unsigned here for best overflow check */
 		}
 	
 		/* must be a digit */
-		if (!isdigit(*p))
+		if (!isdigit((int) *p))
 			return TDS_FAIL;
 	
 		/* add a digit to number and check for overflow */

@@ -1,3 +1,8 @@
+Fri Sep 13 16:50:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in include/tdsutil.h src/tds/convert.c
+	  src/tds/login.c src/tds/token.c:
+	- a few "gcc -Wall" cleanups
+
 Fri Sep 13 16:08:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in include/tdsconvert.h src/dblib/dbopen.c
 	  src/dblib/unittests/t0021.c src/tds/convert.c src/tds/iconv.c:
