@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.7 2001-11-04 05:45:27 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.8 2001-11-08 03:34:39 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,6 +42,8 @@ CS_RETCODE ct_exit(CS_CONTEXT *ctx, CS_INT unused)
 }
 CS_RETCODE ct_init(CS_CONTEXT *ctx, CS_INT version)
 {
+	/* uncomment the next line to get pre-login trace */
+	/* tdsdump_open("/tmp/tds2.log"); */
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_init()\n");
    /* set the functions in the TDS layer to point to the correct info/err
     * message handler functions */
@@ -113,8 +115,8 @@ TDSSOCKET *tds;
 TDSLOGIN *tds_login;
 char *set_buffer = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_con_props() action = %d property = %d\n",
-		action, property);
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_con_props() action = %s property = %d\n",
+		CS_GET ? "CS_GET" : "CS_SET", property);
 
 	tds = con->tds_socket;
 	tds_login = con->tds_login;
@@ -160,6 +162,7 @@ char *set_buffer = NULL;
 					free(con->userdata);
 				}
 				con->userdata = (void *)malloc(buflen+1);
+				tdsdump_log(TDS_DBG_INFO2, "%L setting userdata orig %d new %d\n",buffer,con->userdata);
 				con->userdata_len = buflen;
 				memcpy(con->userdata, buffer, buflen);
 				break;
@@ -239,6 +242,7 @@ char *set_buffer = NULL;
 				buffer = (CS_VOID *)con->locale;
 				break;
 			case CS_USERDATA:
+				tdsdump_log(TDS_DBG_INFO2, "%L fetching userdata %d\n",con->userdata);
 				maxcp = con->userdata_len;
 				if (out_len) *out_len=maxcp;
 				if (maxcp>buflen) maxcp = buflen;
@@ -885,12 +889,14 @@ CS_INT int_val;
 }
 CS_RETCODE ct_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_config()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_config() action = %s property = %d\n",
+		CS_GET ? "CS_GET" : "CS_SET", property);
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_cmd_props(CS_COMMAND *cmd, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cmd_props()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cmd_props() action = %s property = %d\n",
+		CS_GET ? "CS_GET" : "CS_SET", property);
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_compute_info(CS_COMMAND *cmd, CS_INT type, CS_INT colnum, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
@@ -1293,6 +1299,7 @@ CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT 
 }
 CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_options()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_options() action = %s option = %d\n",
+		CS_GET ? "CS_GET" : "CS_SET", option);
 	return CS_SUCCEED;
 }

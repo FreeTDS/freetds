@@ -2,6 +2,11 @@ Thu Nov  8 13:55:20 2001  James Cameron  <quozl@us.netrek.org>
 
 	* .cvsignore: populate list of files to ignore during cvs update.
 
+Wed Nov  7 22:21:06 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/tds/ct.c: adding more tdsdump stuff
+	* include/cspublic.h: added timestamp fields to iodesc for DBD::Sybase 0.93
+
 Tue Nov  6 20:00:14 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/tds/iconv.c: Check for null input on tds7_ascii2unicode and 

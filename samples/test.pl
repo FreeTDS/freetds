@@ -10,7 +10,7 @@ die "Unable for connect to server $DBI::errstr"
 my $rc;
 my $sth;
 
-$sth = $dbh->prepare("select \@\@servername");
+$sth = $dbh->prepare("select \@\@version");
 if($sth->execute) {
     while(@dat = $sth->fetchrow) {
 		print "@dat\n";

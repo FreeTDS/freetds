@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.1 2001-10-12 23:28:55 brianb Exp $";
+         "$Id: cspublic.h,v 1.2 2001-11-08 03:34:39 brianb Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -100,6 +100,7 @@ typedef struct cs_command
 #define CS_MAX_PREC 77  /* used by php */
 #define CS_OBJ_NAME 132 /* ? */
 #define CS_TP_SIZE  16  /* ? */
+#define CS_TS_SIZE  16  /* ? */
 
 typedef struct cs_datafmt {
 	int datatype;
@@ -183,6 +184,8 @@ typedef struct cs_iodesc {
 	CS_INT	namelen;
 	CS_BYTE textptr[CS_TP_SIZE];
 	CS_INT	textptrlen;
+	CS_BYTE timestamp[CS_TS_SIZE];
+	CS_INT	timestamplen;
 } CS_IODESC;
 
 /* CS_CAP_REQUEST values */
