@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.2 2003-04-10 11:55:39 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.3 2003-06-03 06:26:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER cnamesize;
@@ -28,7 +28,7 @@ DoTest(const char *type, int row_returned)
 	}
 
 	printf("Test type '%s' %s row\n", type, row_returned ? "with" : "without");
-	if (!SQL_SUCCEEDED(SQLTables(Statement, NULL, 0, NULL, 0, "syscommentsgarbage", 11, p, len))) {
+	if (!SQL_SUCCEEDED(SQLTables(Statement, NULL, 0, NULL, 0, "syscommentsgarbage", 11, (char *) p, len))) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);

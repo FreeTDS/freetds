@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.2 2003-05-31 19:00:02 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.3 2003-06-03 06:26:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -13,7 +13,7 @@ static const char test_text[] =
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER input, ind, ind2, output;
+	SQLINTEGER ind;
 	int len = strlen(test_text), n, i;
 	const char *p;
 	SQLPOINTER ptr;
@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 			printf("Wrong pointer from SQLParamData\n");
 			exit(1);
 		}
-		SQLPutData(Statement, p, n);
+		SQLPutData(Statement, (char *) p, n);
 		p += n;
 		n *= 2;
 	}
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 		printf("Wrong result from SQLParamData\n");
 		exit(1);
 	}
-	
+
 	/* TODO check inserts ... */
 
 	Disconnect();
