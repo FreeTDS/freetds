@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.1 2005-01-13 15:01:44 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.2 2005-01-31 10:16:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -74,21 +74,11 @@ to_utf8(const char *src, char *dest)
 }
 
 static void
-query(const char *sql)
-{
-	if (run_query(tds, sql) != TDS_SUCCEED) {
-		fprintf(stderr, "error executing query: %s\n", sql);
-		exit(1);
-	}
-}
-
-static void
 test(const char *buf)
 {
 	char query[1024];
 	char tmp[129 * 3];
 	int i;
-	const char **s;
 	int rc;
 	TDS_INT result_type;
 	TDS_INT row_type;
@@ -185,7 +175,6 @@ main(int argc, char **argv)
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
-		char type[32];
 		char buf[129 * 8];
 		int i;
 
