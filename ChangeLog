@@ -1,3 +1,6 @@
+Mon Mar 14 13:48:36 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: avoid infinite loop on cancel
+
 Sun Mar 13 09:16:17 PST 2005	Peter Deacon <peterd@iea-software.com>
 	* src/odbc/error.c: rank did not clear trans status
 

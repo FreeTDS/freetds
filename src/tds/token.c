@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.288 2005-02-20 09:19:27 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.289 2005-03-14 12:49:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -828,6 +828,13 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			/* TODO free all results ?? */
 			tds_set_state(tds, TDS_PENDING);
 			return TDS_FAIL;
+		}
+
+		/* here we need to purge rows to process cancel and clean state */
+		if (*result_type == TDS_ROW_RESULT || *result_type == TDS_COMPUTE_RESULT) {
+			TDS_INT computeid, rowtype;
+
+			_tds_process_row_tokens(tds, &rowtype, &computeid, 0);
 		}
 	}
 }
