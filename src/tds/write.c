@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.56 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.57 2004-01-05 05:53:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -270,7 +270,7 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 
 	TDS_TINYINT numeric_size;
 
-	if (bcpcol->data_size == 0) {
+	if (bcpcol->data_size == -1) {
 		/* 
 		 * Insert a NULL.  If the column is not nullable, it should be dealt with 
 		 * in _bcp_read_hostfile() or _bcp_get_prog_data().  
@@ -290,7 +290,7 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 		}
 		return TDS_SUCCEED;
 	}
-	assert(bcpcol->data_size > 0);
+	assert(bcpcol->data_size >= 0);
 
 	switch (bcpcol->db_varint_size) {
 	case 4:

@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.84 2003-12-29 15:53:41 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.85 2004-01-05 05:53:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -587,7 +587,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				/* null columns have zero output */
 				if (tds_get_null(resinfo->current_row, bcpcol->tab_colnum - 1))
-					bcpcol->data_size = 0;
+					bcpcol->data_size = -1;
 				else
 					bcpcol->data_size = curcol->column_cur_size;
 
@@ -739,7 +739,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					 * For null columns, the above work to determine the output buffer size is moot, 
 					 * because bcpcol->data_size is zero, so dbconvert() won't write anything, and returns zero. 
 					 */
-					buflen = dbconvert(dbproc,
+					if (bcpcol->data_size == -1)
+						buflen = -1;
+					else
+						buflen = dbconvert(dbproc,
 							   bcpcol->db_type,
 							   bcpcol->data, bcpcol->data_size, hostcol->datatype, outbuf, destlen);
 
@@ -789,7 +792,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					buflen = buflen > hostcol->column_len ? hostcol->column_len : buflen;
 				}
 
-				fwrite(outbuf, buflen, 1, hostfile);
+				if (buflen > 0)
+					fwrite(outbuf, buflen, 1, hostfile);
 
 				free(outbuf);
 
@@ -875,9 +879,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				break;
 			}
 
-			if (collen == 0)
+			if (collen == -1) {
 				data_is_null = 1;
-
+				collen = 0;
+			}
 		}
 
 		/* if (Max) column length specified take that into consideration. */
@@ -930,7 +935,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned -1!\n");
 				/* FIXME emit message? _bcp_err_handler(dbproc, SYBEMEM); */
 				return (FAIL);
-			}
+			} else if (collen == 0)
+				data_is_null = 1;
+
 
 			tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned %d\n", collen);
 			/* 
@@ -1020,7 +1027,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		 */
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
-				bcpcol->data_size = 0;
+				bcpcol->data_size = -1;
 			} else {
 				desttype = tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length);
 
@@ -1065,7 +1072,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					bcpcol->data_size = converted_data_size;
 				}
 			}
-			if (bcpcol->data_size == 0) {	/* Are we trying to insert a NULL ? */
+			if (bcpcol->data_size == -1) {	/* Are we trying to insert a NULL ? */
 				if (!bcpcol->db_nullable) {
 					/* too bad if the column is not nullable */
 					hostcol->column_error = HOST_COL_NULL_ERROR;
@@ -1184,7 +1191,7 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 
 		if (!is_nullable_type(bcpcol->db_type) && !(bcpcol->db_nullable)) {
 
-			if (!(bcpcol->db_nullable) && bcpcol->data_size == 0) {
+			if (!(bcpcol->db_nullable) && bcpcol->data_size == -1) {
 				_bcp_err_handler(dbproc, SYBEBCNN);
 				return FAIL;
 			}
@@ -1254,7 +1261,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start, int *
 			/* but if its a NOT NULL column, and we have no data */
 			/* throw an error                                    */
 
-			if (!(bcpcol->db_nullable) && bcpcol->data_size == 0) {
+			if (!(bcpcol->db_nullable) && bcpcol->data_size == -1) {
 				_bcp_err_handler(dbproc, SYBEBCNN);
 				return FAIL;
 			}
@@ -2529,7 +2536,7 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 
 			if (hostcol->tab_colnum) {
 				if (data_is_null) {
-					bcpcol->data_size = 0;
+					bcpcol->data_size = -1;
 				} else {
 					desttype = tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length);
 
@@ -2547,7 +2554,7 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 
 			if (hostcol->tab_colnum) {
 				if (data_is_null) {
-					bcpcol->data_size = 0;
+					bcpcol->data_size = -1;
 				} else {
 					desttype = tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length);
 
@@ -2563,7 +2570,7 @@ _bcp_get_prog_data(DBPROCESS * dbproc)
 			}
 		}
 
-		if (bcpcol->data_size == 0) {	/* Are we trying to insert a NULL? */
+		if (bcpcol->data_size == -1) {	/* Are we trying to insert a NULL? */
 			if (!bcpcol->db_nullable) {
 				/* too bad if the column is not nullable */
 				_bcp_err_handler(dbproc, SYBEBCNN);
