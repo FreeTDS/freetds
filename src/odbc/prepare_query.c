@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.18 2003-01-02 20:04:20 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.19 2003-01-03 12:00:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -97,7 +97,7 @@ _get_sql_textsize(struct _sql_param_info *param)
 
 
 static int
-_get_param_textsize(struct _sql_param_info *param)
+_get_param_textsize(TDS_STMT *stmt, struct _sql_param_info *param)
 {
 	int len = 0;
 
@@ -111,7 +111,7 @@ _get_param_textsize(struct _sql_param_info *param)
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
 		/* I don't know what to do */
-		odbc_LogError("SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported");
+		odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported");
 		len = -1;
 		break;
 	default:
@@ -126,7 +126,7 @@ _get_param_textsize(struct _sql_param_info *param)
 }
 
 static int
-_calculate_params_size(struct _hstmt *stmt)
+_calculate_params_size(TDS_STMT *stmt)
 {
 	int i;
 	int len = 0;
@@ -137,7 +137,7 @@ _calculate_params_size(struct _hstmt *stmt)
 		param = odbc_find_param(stmt, i);
 		if (!param)
 			return -1;
-		l = _get_param_textsize(param);
+		l = _get_param_textsize(stmt, param);
 		if (l < 0)
 			return -1;
 		len += l;

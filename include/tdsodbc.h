@@ -36,12 +36,46 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.15 2003-01-02 20:04:19 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.16 2003-01-03 12:00:36 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
+
+/* this is usually a const struct that store all errors */
+struct _sql_error_struct
+{
+	char state2[6];  /**< state for ODBC2 */
+	char state3[6];  /**< state for ODBC3 */
+	const char *msg; /**< default message */
+};
+
+struct _sql_error
+{
+	const struct _sql_error_struct *err;
+	/* override error if specified */
+	char *msg;
+};
+
+struct _sql_errors
+{
+	int num_errors;
+	struct _sql_error *errs;
+};
+
+/** reset errors */
+void odbc_errs_reset(struct _sql_errors *errs);
+/** add an error to list */
+void odbc_errs_add(struct _sql_errors *errs, const struct _sql_error_struct *err, const char *msg);
+
+extern const struct _sql_error_struct odbc_err_noimpl;
+#define ODBCERR_NOTIMPLEMENTED &odbc_err_noimpl
+extern const struct _sql_error_struct odbc_err_generic;
+#define ODBCERR_GENERIC &odbc_err_generic
+
 
 struct _henv {
 	TDSCONTEXT *tds_ctx;
+	struct _sql_errors errs;
 };
+
 struct _hstmt;
 struct _hdbc {
 	struct _henv *henv;
@@ -52,7 +86,9 @@ struct _hdbc {
 	/* spinellia@acm.org */
 	/** 0 = OFF, 1 = ON, -1 = UNKNOWN */
 	int	autocommit_state;
+	struct _sql_errors errs;
 };
+
 struct _hstmt {
 	struct _hdbc *hdbc;
 	char *query;
@@ -71,6 +107,7 @@ struct _hstmt {
 	unsigned int param_count;
 	int row;
 	TDSDYNAMIC *dyn; /* FIXME check if freed */
+	struct _sql_errors errs;
 };
 
 struct _sql_param_info {
@@ -83,6 +120,7 @@ struct _sql_param_info {
 	SQLINTEGER *param_lenbind;
 	struct _sql_param_info *next;
 };
+
 struct _sql_bind_info {
 	int column_number;
 	int column_bindtype;
@@ -91,6 +129,10 @@ struct _sql_bind_info {
 	char *column_lenbind;
 	struct _sql_bind_info *next;
 };
+
+typedef struct _henv  TDS_ENV;
+typedef struct _hdbc  TDS_DBC;
+typedef struct _hstmt TDS_STMT;
 
 #ifdef __cplusplus
 }

@@ -38,31 +38,45 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.15 2003-01-02 20:04:20 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.16 2003-01-03 12:00:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-
-#define _MAX_ERROR_LEN 255
-static char lastError[_MAX_ERROR_LEN + 1];
-
-void
-odbc_LogError(const char *error)
+void odbc_errs_reset(struct _sql_errors *errs)
 {
-	/*
-	 * Someday, I might make this store more than one error.
-	 */
-	if (error) {
-		strncpy(lastError, error, _MAX_ERROR_LEN);
-		lastError[_MAX_ERROR_LEN] = '\0';	/* in case we had a long message */
+	int i;
+	
+	for( i = 0; i < errs->num_errors; ++i) {
+		if (errs->errs[i].msg)
+			free(errs->errs[i].msg);
 	}
+	free(errs->errs);
+
+	errs->errs = NULL;
+	errs->num_errors = 0;
 }
 
-
-const char *
-odbc_GetLastError(void)
+void odbc_errs_add(struct _sql_errors *errs, const struct _sql_error_struct *err, const char *msg)
 {
-	return lastError;
+	struct _sql_error *p;
+	int n = errs->num_errors;
+
+	if (errs->errs)
+		p = (struct _sql_error*) realloc(errs->errs, sizeof(struct _sql_error) * (n+1) );
+	else
+		p = (struct _sql_error*) malloc(sizeof(struct _sql_error));
+	if (!p) return;
+
+	errs->errs = p;
+	errs->errs[n].err = err;
+	errs->errs[n].msg = msg ? strdup(msg) : NULL;
+	++errs->num_errors;
 }
+
+const struct _sql_error_struct odbc_err_noimpl = 
+{ "S1C00","HYC00","Optional feature not implemented" };
+
+const struct _sql_error_struct odbc_err_generic =
+{ "S1000","HY000","General driver error" };
 
 
 int
