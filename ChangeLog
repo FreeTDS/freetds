@@ -1,3 +1,6 @@
+Thu Apr 03 21:42:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: remove warnings
+
 Thu Apr 03 21:36:58 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- add tds_quote_string function

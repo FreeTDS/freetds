@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.89 2003-04-03 10:37:09 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.90 2003-04-03 19:43:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3042,8 +3042,6 @@ int  param_is_null = 0;
 CS_RETCODE 
 ct_diag(CS_CONNECTION *conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer)
 {
-	int msg_no;
-
 	switch (operation) {
 	case CS_INIT:
 		if ( conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
@@ -3055,13 +3053,13 @@ ct_diag(CS_CONNECTION *conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID 
 
 		conn->ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
 
-		if (conn->ctx->cs_diag_msglimit_client == NULL)
+		if (conn->ctx->cs_diag_msglimit_client == 0)
 			conn->ctx->cs_diag_msglimit_client = CS_NO_LIMIT;
 
-		if (conn->ctx->cs_diag_msglimit_server == NULL)
+		if (conn->ctx->cs_diag_msglimit_server == 0)
 			conn->ctx->cs_diag_msglimit_server = CS_NO_LIMIT;
 
-		if (conn->ctx->cs_diag_msglimit_total == NULL)
+		if (conn->ctx->cs_diag_msglimit_total == 0)
 			conn->ctx->cs_diag_msglimit_total = CS_NO_LIMIT;
 
 		conn->ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
