@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.119 2003-05-03 12:51:50 freddy77 Exp $";
+	"$Id: tds.h,v 1.120 2003-05-05 00:10:51 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -29,6 +29,10 @@ static void *no_unused_tds_h_warn[] = {
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
+
+#if HAVE_ICONV
+#include <iconv.h>
+#endif
 
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
@@ -508,6 +512,8 @@ enum TDS_OPT_ISOLATION_CHOICE {
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
 #define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
+#define is_similar_type(x, y) ((is_char_type(x) && is_char_type(y)) || ((is_unicode_type(x) && is_unicode_type(y))))
+
 
 #define TDS_MAX_CAPABILITY	22
 #define MAXPRECISION 		80
@@ -671,6 +677,30 @@ typedef struct
 #define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
 
 
+/* forward declaration */
+typedef struct tdsiconvinfo TDSICONVINFO;
+/**
+ * Information relevant to libiconv.  The name is an iconv name, not 
+ * the same as found in master..syslanguages. 
+ */ 
+typedef struct _tds_encoding 
+{
+	char name[64];
+	unsigned char min_bytes_per_char;
+	unsigned char max_bytes_per_char;
+} TDS_ENCODING;
+
+struct tdsiconvinfo
+{
+	TDS_ENCODING client_charset;
+	TDS_ENCODING server_charset;
+#if HAVE_ICONV
+	iconv_t to_wire;   /* conversion from client charset to server's format */
+	iconv_t from_wire; /* conversion from server's format to client charset */
+#endif
+};
+
+
 enum {TDS_SYSNAME_SIZE= 512};
 /** 
  * Metadata about columns in regular and compute rows 
@@ -697,6 +727,8 @@ typedef struct tds_column_info {
 		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
+	
+	const TDSICONVINFO *iconv_info;	/**< refers to previously allocated iconv information */
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
@@ -729,6 +761,37 @@ typedef struct tds_column_info {
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
 } TDSCOLINFO;
+
+typedef struct
+{
+	int tab_colnum;
+	char db_name[256];	/* column name */
+	TDS_SMALLINT db_minlen;
+	TDS_SMALLINT db_maxlen;
+	TDS_SMALLINT db_colcnt;	/* I dont know what this does */
+	TDS_TINYINT db_type;
+	struct {
+		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
+		TDS_INT column_size;
+	} on_server;
+	const TDSICONVINFO *iconv_info;	/**< refers to previously allocated iconv information */
+	TDS_SMALLINT db_usertype;
+	TDS_TINYINT db_varint_size;
+	TDS_INT db_length;	/* size of field according to database */
+	TDS_TINYINT db_nullable;
+	TDS_TINYINT db_status;
+	TDS_SMALLINT db_offset;
+	TDS_TINYINT db_default;
+	TDS_TINYINT db_prec;
+	TDS_TINYINT db_scale;
+	TDS_SMALLINT db_flags;
+	TDS_INT db_size;
+	char db_collate[5];
+	long data_size;
+	TDS_TINYINT *data;
+	int txptr_offset;
+} BCP_COLINFO;
+
 
 /** Hold information for any results */
 typedef struct tds_result_info {
@@ -820,9 +883,6 @@ struct tds_context {
 	int (*msg_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 	int (*err_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
 };
-
-/* forward declaration */
-typedef struct tdsiconvinfo TDSICONVINFO;
 
 struct tds_socket {
 	/* fixed and connect time */
@@ -1006,11 +1066,13 @@ int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION 
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);
+int tds_get_conversion_type(int srctype, int colsize);
 
 /* write.c */
 int tds_put_bulk_data(TDSSOCKET *tds, const unsigned char *buf, TDS_INT bufsize);
 int tds_flush_packet(TDSSOCKET *tds);
 int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
+int tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol);
 
 /* read.c */
 unsigned char tds_get_byte(TDSSOCKET *tds);

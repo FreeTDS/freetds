@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.48 2003-04-06 20:34:56 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.49 2003-05-05 00:10:51 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -195,32 +195,6 @@ typedef struct
 	int tab_colnum;
 	int column_error;
 } BCP_HOSTCOLINFO;
-
-typedef struct
-{
-	int tab_colnum;
-	char db_name[256];	/* column name */
-	TDS_SMALLINT db_minlen;
-	TDS_SMALLINT db_maxlen;
-	TDS_SMALLINT db_colcnt;	/* I dont know what this does */
-	TDS_TINYINT db_type;
-	TDS_TINYINT db_type_save;
-	TDS_SMALLINT db_usertype;
-	TDS_TINYINT db_varint_size;
-	TDS_INT db_length;	/* size of field according to database */
-	TDS_TINYINT db_nullable;
-	TDS_TINYINT db_status;
-	TDS_SMALLINT db_offset;
-	TDS_TINYINT db_default;
-	TDS_TINYINT db_prec;
-	TDS_TINYINT db_scale;
-	TDS_SMALLINT db_flags;
-	TDS_INT db_size;
-	char db_collate[5];
-	long data_size;
-	BYTE *data;
-	int txptr_offset;
-} BCP_COLINFO;
 
 struct dbstring
 {

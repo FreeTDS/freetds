@@ -1,3 +1,13 @@
+Sun May  4 19:51:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h include/tds.h support per-column iconv conversion
+	* TODO Itemize broken nonfeatures.  
+	* src/apps/tsql.c don't segfault on blank input line. 
+	* src/dblib/bcp.c src/dblib/dblib.c src/tds/iconv.c
+	* src/tds/token.c src/tds/write.c 
+	- convert delimited bcp data files with iconv while reading.
+	- do not allocate two copies of data: "measure" and read instead.  
+	- consolidate column writing in libtds::tds7_put_bcpcol()
+
 Sat May  3 15:53:23 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsiconv.h add tds_iconv_fread()
 
