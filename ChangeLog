@@ -1,3 +1,6 @@
+Mon Aug 11 11:50:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html: small update
+
 Sun Aug 10 22:28:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c:
 	- remove warnings

@@ -353,8 +353,21 @@ name length   length of RPC name in characters.
               mssql2k+ support some core RPC using numbers
               If a number is used instead of name name length is marked as -1
               (null) and a INT16 is used for the name.
-                0xB  11  sp_prepexec ??? sp_prepare ???
-                0xF  15  sp_unprepare
+                0x1  1  sp_cursor
+                0x2  2  sp_cursoropen
+                0x3  3  sp_cursorprepare
+                0x4  4  sp_cursorexecute
+                0x5  5  sp_cursorprepexec
+                0x6  6  sp_cursorunprepare
+                0x7  7  sp_cursorfetch
+                0x8  8  sp_cursoroption
+                0x9  9  sp_cursorclose
+                0xA  10 sp_executesql
+                0xB  11 sp_prepare
+                0xC  12 sp_execute ???
+                0xD  13 sp_prepexec
+                0xE  14 sp_prepexecrpc
+                0xF  15 sp_unprepare
 rpc name      name of RPC. 
 flags         bit flags. 
                0x1 1 recompile procedure (TDS7+/TDS5)
