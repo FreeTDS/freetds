@@ -68,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.61 2003-05-22 19:45:43 castellano Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.62 2003-05-26 18:42:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -80,7 +80,7 @@ enum
 };
 
 int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
-void print_usage(char *progname);
+static void tsql_print_usage(const char *progname);
 int get_opt_flags(char *s, int *opt_flags);
 void populate_login(TDSLOGIN * login, int argc, char **argv);
 int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMSGINFO * msg);
@@ -214,8 +214,8 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	return 0;
 }
 
-void
-print_usage(char *progname)
+static void
+tsql_print_usage(const char *progname)
 {
 	fprintf(stderr,
 		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n\t%s -C\n",
@@ -334,7 +334,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			exit(0);
 			break;
 		default:
-			print_usage(argv[0]);
+			tsql_print_usage(argv[0]);
 			exit(1);
 			break;
 		}
@@ -343,21 +343,21 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	/* validate parameters */
 	if (!servername && !hostname) {
 		fprintf(stderr, "Missing argument -S or -H\n");
-		print_usage(argv[0]);
+		tsql_print_usage(argv[0]);
 		exit(1);
 	}
 	if (hostname && !port) {
 		fprintf(stderr, "Missing argument -p \n");
-		print_usage(argv[0]);
+		tsql_print_usage(argv[0]);
 		exit(1);
 	}
 	if (!username) {
 		fprintf(stderr, "Missing argument -U \n");
-		print_usage(argv[0]);
+		tsql_print_usage(argv[0]);
 		exit(1);
 	}
 	if (!servername && !hostname) {
-		print_usage(argv[0]);
+		tsql_print_usage(argv[0]);
 		exit(1);
 	}
 	if (!password) {
