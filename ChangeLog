@@ -1,3 +1,7 @@
+Mon Apr 14 09:41:58 EDT 2003 	JK Lowden <jklowden@schemamania.org>
+	* include/tdsiconv.h src/tds/Makefile.am
+	- more support for tds_cannonical_charset_name()
+
 Mon Apr 14 09:25:46 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/mem.c don't dereference NULL pointer in tds_free_locale().
 
