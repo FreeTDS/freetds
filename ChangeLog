@@ -1,3 +1,6 @@
+Wed Mar 30 11:20:38 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/tds/Makefile.am build num_limits.h with Perl (for CVS)
+
 Wed Mar 30 10:10:43 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c remove broken casts
 

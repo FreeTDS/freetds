@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.43 2005-03-23 19:00:49 freddy77 Exp $
+# $Id: Makefile.am,v 1.44 2005-03-30 16:31:28 jklowden Exp $
 
 SUBDIRS			=	unittests
 
@@ -8,12 +8,13 @@ libtds_objects_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
 	locale.c challenge.c threadsafe.c vstrbuild.c md4.c md5.c \
 	des.c tdsstring.c getmac.c data.c net.c \
-	tds_checks.c tds_checks.h
+	tds_checks.c tds_checks.h num_limits.h
 libtds_objects_la_LDFLAGS=
 libtds_objects_la_LIBADD=
 
 lib_LTLIBRARIES		=	libtds.la
-libtds_la_SOURCES	=
+libtds_la_SOURCES	=	num_limits.h
+
 # changed for 0.64
 #                      bump server version whenever bumping libtds version
 libtds_la_LDFLAGS	= -version-info 5:0:0 -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
@@ -35,9 +36,25 @@ doxy: doxyfile  $(libtds_objects_la_SOURCES)
 	$(DOXYGEN) doxyfile
 endif
 
-# numeric.pl is not charset but build with charset
+# Perl is needed to build from a CVS checkout.  
+# Perl is *not* needed to build from a tarball.  
+# If num_limits.h was not included in your distribution, 
+# please report it as a bug.  
+
+# numeric.pl is not charset but is built with charset
 charset:
 	perl sybase_character_sets.h.pl > sybase_character_sets.h
 	perl encodings.pl > encodings.h
-	perl numeric.pl > num_limits.h
+
+## See automake manual for purpose of BUILT_SOURCES.  
+## We have to build num_limits.h because automake can't infer the dependency (on numeric.pl).
+## By adding num_limits.h to libtds_la_SOURCES and/or libtds_objects_la_SOURCES, we cause 
+## "make dist" to include it in the distribution tarball.
+
+BUILT_SOURCES = num_limits.h
+EXTRA_DIST =    num_limits.h
+
+num_limits.h: numeric.pl Makefile
+	perl $(srcdir)/numeric.pl > .$@ 
+	mv .$@ $@
 
