@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.33 2002-08-06 07:09:37 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.34 2002-08-08 04:35:05 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -726,6 +726,8 @@ int i;
 		case SYBCHAR:
 		case SYBVARCHAR:
 
+#ifdef UseBillsMoney
+
 #		if HAVE_ATOLL
             sprintf(rawlong,"%lld", mymoney);
 #		else
@@ -738,9 +740,20 @@ int i;
             strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
             
             cr->c = malloc(strlen(tmpstr) + 1);
-		test_alloc(cr->c);
+		  test_alloc(cr->c);
             strcpy(cr->c, tmpstr);
             return strlen(tmpstr);
+#else
+			/* use brian's money */
+			/* begin lkrauss 2001-10-13 - fix return to be strlen() */
+          	s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
+			cr->c = malloc(strlen(s) + 1);
+			test_alloc(cr->c);
+			strcpy(cr->c, s);
+			return strlen(s);
+          	break;
+		
+#endif	/* UseBillsMoney */
             break;
 
 		case SYBINT1:
