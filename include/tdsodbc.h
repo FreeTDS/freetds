@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.32 2003-07-27 12:08:57 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.33 2003-07-27 16:21:47 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
@@ -126,6 +126,28 @@ struct _henv
 	SQLRETURN lastrc;
 };
 
+struct _hcattr
+{
+	SQLUINTEGER attr_access_mode;
+	SQLUINTEGER attr_async_enable;
+	SQLUINTEGER attr_auto_ipd;
+	SQLUINTEGER attr_autocommit;
+	SQLUINTEGER attr_connection_dead;
+	SQLUINTEGER attr_connection_timeout;
+	DSTR attr_current_catalog;
+	SQLUINTEGER attr_login_timeout;
+	SQLUINTEGER attr_metadata_id;
+	SQLUINTEGER attr_odbc_cursors;
+	SQLUINTEGER attr_packet_size;
+	SQLHWND attr_quite_mode;
+	/* DM only */
+	/* SQLUINTEGER attr_trace;
+	 * SQLCHAR *attr_tracefile; */
+	DSTR attr_translate_lib;
+	SQLUINTEGER attr_translate_option;
+	SQLUINTEGER attr_txn_isolation;
+};
+
 struct _hstmt;
 struct _hdbc
 {
@@ -134,12 +156,8 @@ struct _hdbc
 	TDSSOCKET *tds_socket;
 	/** statement executing */
 	struct _hstmt *current_statement;
-	/* spinellia@acm.org */
-	/** 0 = OFF, 1 = ON, -1 = UNKNOWN */
-	int autocommit_state;
 	struct _sql_errors errs;
-	
-	DSTR current_database;
+	struct _hcattr attr;
 	SQLRETURN lastrc;
 };
 

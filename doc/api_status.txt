@@ -111,7 +111,7 @@ odbc	(all)	SQLFreeConnect	OK
 odbc	(all)	SQLFreeEnv	OK
 odbc	(all)	SQLFreeHandle	OK
 odbc	(all)	SQLFreeStmt	OK
-odbc	(all)	SQLGetConnectAttr	
+odbc	(all)	SQLGetConnectAttr	OK
 odbc	(all)	SQLGetConnectOption	OK
 odbc	(all)	SQLGetCursorName	
 odbc	(all)	SQLGetData	OK

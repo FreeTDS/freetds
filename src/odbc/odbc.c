@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.190 2003-07-27 12:08:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.191 2003-07-27 16:21:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -80,6 +80,9 @@ static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void log_unimplemented_type(const char function_name[], int fType);
 static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
+static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
+					    SQLINTEGER * StringLength);
+static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
@@ -157,9 +160,9 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 	/* implicit transactions are on if autocommit is off :-| */
 	if (TDS_IS_MSSQL(tds))
-		sprintf(query, "set implicit_transactions %s", (state ? "off" : "on"));
+		sprintf(query, "set implicit_transactions %s", (state == SQL_AUTOCOMMIT_ON ? "off" : "on"));
 	else
-		sprintf(query, "set chained %s", (state ? "off" : "on"));
+		sprintf(query, "set chained %s", (state == SQL_AUTOCOMMIT_ON ? "off" : "on"));
 
 	tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
@@ -171,7 +174,37 @@ change_autocommit(TDS_DBC * dbc, int state)
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		ODBC_RETURN(dbc, SQL_ERROR);
 
-	dbc->autocommit_state = state;
+	dbc->attr.attr_autocommit = state;
+	ODBC_RETURN(dbc, SQL_SUCCESS);
+}
+
+static SQLRETURN
+change_database(TDS_DBC * dbc, char *database)
+{
+	TDSSOCKET *tds = dbc->tds_socket;
+	char query[80];
+
+	/* 
+	 * We may not be connected yet and dbc->tds_socket
+	 * may not initialized.
+	 */
+	if (tds) {
+		/* FIXME: big buffer overflow */
+		sprintf(query, "use %s", database);
+
+		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
+
+		if (tds_submit_query(tds, query, NULL) != TDS_SUCCEED) {
+			/* TODO */
+			/* odbc_errs_ms_add(&dbc->errs, 0, "HY000", "Could not change database", NULL); */
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+			/* TODO */
+			/* odbc_errs_ms_add(&dbc->errs, 0, "HY000", "Could not change database", NULL); */
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+	}
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
@@ -189,9 +222,10 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 
 	switch (type) {
 	case TDS_ENV_DATABASE:
-		tds_dstr_copy(&dbc->current_database, newval);
+		tds_dstr_copy(&dbc->attr.attr_current_catalog, newval);
 		break;
-	case TDS_ENV_CHARSET:
+	case TDS_ENV_PACKSIZE:
+		dbc->attr.attr_packet_size = atoi(newval);
 		break;
 	}
 }
@@ -555,6 +589,7 @@ SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
 	INIT_HENV;
+
 	switch (Attribute) {
 	case SQL_ATTR_CONNECTION_POOLING:
 	case SQL_ATTR_CP_MATCH:
@@ -735,15 +770,33 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 		ODBC_RETURN(env, SQL_ERROR);
 	}
 
-	/* initialize DBC structure */
 	memset(dbc, '\0', sizeof(TDS_DBC));
+
 	dbc->htype = SQL_HANDLE_DBC;
-	tds_dstr_init(&dbc->current_database);
 	dbc->henv = env;
 
+	dbc->attr.attr_access_mode = SQL_MODE_READ_WRITE;
+	dbc->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
+	dbc->attr.attr_auto_ipd = SQL_FALSE;
 	/* spinellia@acm.org
 	 * after login is enabled autocommit */
-	dbc->autocommit_state = 1;
+	dbc->attr.attr_autocommit = SQL_AUTOCOMMIT_ON;
+	dbc->attr.attr_connection_dead = SQL_CD_TRUE;   /* No connection yet */
+	dbc->attr.attr_connection_timeout = 0;  /* TODO */
+	/* This is set in the environment change function */
+	tds_dstr_init(&dbc->attr.attr_current_catalog);
+	dbc->attr.attr_login_timeout = 0;       /* TODO */
+	dbc->attr.attr_metadata_id = SQL_FALSE;
+	dbc->attr.attr_odbc_cursors = SQL_CUR_USE_IF_NEEDED;
+	dbc->attr.attr_packet_size = 0;
+	dbc->attr.attr_quite_mode = NULL;       /* We don't support GUI dialogs yet */
+	/* DM only
+	 * dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
+	 * dbc->attr.attr_tracefile = NULL; */
+	tds_dstr_init(&dbc->attr.attr_translate_lib);
+	dbc->attr.attr_translate_option = 0;
+	dbc->attr.attr_txn_isolation = SQL_TXN_READ_COMMITTED;
+	
 	*phdbc = (SQLHDBC) dbc;
 
 	ODBC_RETURN(env, SQL_SUCCESS);
@@ -1629,8 +1682,13 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	INIT_HDBC;
 
 	tds_free_socket(dbc->tds_socket);
+
+	/* free attributes */
+	tds_dstr_free(&dbc->attr.attr_current_catalog);
+	tds_dstr_free(&dbc->attr.attr_translate_lib);
+
 	odbc_errs_reset(&dbc->errs);
-	tds_dstr_free(&dbc->current_database);
+
 	free(dbc);
 
 	return SQL_SUCCESS;
@@ -2049,6 +2107,99 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	ODBC_RETURN(stmt, retcode);
 }
 
+static SQLRETURN SQL_API
+_SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+{
+	char *p = NULL;
+	SQLSMALLINT len;
+	SQLRETURN rc;
+
+	INIT_HDBC;
+
+	switch (Attribute) {
+	case SQL_ATTR_AUTOCOMMIT:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_autocommit;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_CONNECTION_TIMEOUT:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_connection_timeout;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_ACCESS_MODE:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_access_mode;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_CURRENT_CATALOG:
+		p = tds_dstr_cstr(&dbc->attr.attr_current_catalog);
+		break;
+	case SQL_ATTR_LOGIN_TIMEOUT:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_login_timeout;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_ODBC_CURSORS:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_odbc_cursors;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_PACKET_SIZE:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_packet_size;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_QUIET_MODE:
+		*((SQLHWND *) Value) = dbc->attr.attr_quite_mode;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	/* DM only */
+	/*
+	case SQL_ATTR_TRACE:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_TRACEFILE:
+		p = dbc->attr.attr_tracefile;
+		break;
+	*/
+	case SQL_ATTR_TXN_ISOLATION:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_txn_isolation;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_TRANSLATE_LIB:
+	case SQL_ATTR_TRANSLATE_OPTION:
+		/* TODO */
+		/* odbc_errs_ms_add(&dbc->errs, 0, "HYC00", NULL, NULL); */
+		ODBC_RETURN(dbc, SQL_ERROR);
+		break;
+	default:
+		/* TODO */
+		/* odbc_errs_ms_add(&dbc->errs, 0, "HY092", NULL, NULL); */
+		ODBC_RETURN(dbc, SQL_ERROR);
+		break;
+	}
+
+	assert(p);
+
+	/* TODO possible integer overflow ?? (I don't think database name have more than 65k characters -- freddy77) */
+	rc = odbc_set_string(Value, BufferLength, &len, p, -1);
+	if (StringLength)
+		*StringLength = len;
+	ODBC_RETURN(dbc, rc);
+}
+
+#if ODBCVER >= 0x300
+SQLRETURN SQL_API
+SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+{
+	return (_SQLGetConnectAttr(hdbc, Attribute, Value, BufferLength, StringLength));
+}
+#endif
+
+/* TODO is this OK ??? see function below */
+SQLRETURN SQL_API
+SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
+{
+	return (_SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_IS_POINTER, NULL));
+}
+
+#if 0
 SQLRETURN SQL_API
 SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 {
@@ -2071,6 +2222,7 @@ SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 	}
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
+#endif
 
 SQLRETURN SQL_API
 SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLINTEGER cbValueMax,
@@ -2204,7 +2356,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLFREEENV);
 		API3X(SQL_API_SQLFREEHANDLE);
 		API_X(SQL_API_SQLFREESTMT);
-		API3_(SQL_API_SQLGETCONNECTATTR);
+		API3X(SQL_API_SQLGETCONNECTATTR);
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
@@ -2296,7 +2448,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLFREEENV);
 		API3X(SQL_API_SQLFREEHANDLE);
 		API_X(SQL_API_SQLFREESTMT);
-		API3_(SQL_API_SQLGETCONNECTATTR);
+		API3X(SQL_API_SQLGETCONNECTATTR);
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
@@ -2385,7 +2537,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLFREEENV);
 		API3X(SQL_API_SQLFREEHANDLE);
 		API_X(SQL_API_SQLFREESTMT);
-		API3_(SQL_API_SQLGETCONNECTATTR);
+		API3X(SQL_API_SQLGETCONNECTATTR);
 		API_X(SQL_API_SQLGETCONNECTOPTION);
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
@@ -2470,7 +2622,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		*usiInfoValue = SQL_CB_CLOSE;
 		break;
 	case SQL_DATABASE_NAME:
-		p = tds_dstr_cstr(&dbc->current_database);
+		p = tds_dstr_cstr(&dbc->attr.attr_current_catalog);
 		break;
 	case SQL_DATA_SOURCE_READ_ONLY:
 		/* TODO: determine the right answer from connection 
@@ -2727,28 +2879,107 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 }
 
 
-SQLRETURN SQL_API
-SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
+static SQLRETURN SQL_API
+_SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	SQLULEN u_value = (SQLULEN) ValuePtr;
+	char *pstr = (SQLCHAR *) ValuePtr;
+	char *dest = NULL;
+	int len = 0;
+	SQLRETURN ret = SQL_SUCCESS;
 
 	INIT_HDBC;
 
 	switch (Attribute) {
 	case SQL_ATTR_AUTOCOMMIT:
 		/* spinellia@acm.org */
-		if (u_value == SQL_AUTOCOMMIT_ON)
-			ODBC_RETURN(dbc, change_autocommit(dbc, 1));
-		ODBC_RETURN(dbc, change_autocommit(dbc, 0));
+		ODBC_RETURN(dbc, change_autocommit(dbc, u_value));
 		break;
-/*	case SQL_ATTR_CONNECTION_TIMEOUT:
-		dbc->tds_socket->connect_timeout = u_value;
-		break; */
+	case SQL_ATTR_CONNECTION_TIMEOUT:
+		/* TODO set socket options ??? */
+		dbc->attr.attr_connection_timeout = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_ACCESS_MODE:
+		dbc->attr.attr_access_mode = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_CURRENT_CATALOG:
+		if (!IS_VALID_LEN(StringLength)) {
+			/* TODO */
+			/* odbc_errs_ms_add(&dbc->errs, 0, "HY090", NULL, NULL); */
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
+		/* FIXME handle memory errors */
+		dest = (char *) malloc(len + 1);
+		strncpy(dest, pstr, len);
+		dest[len] = '\0';
+		ret = change_database(dbc, dest);
+		free(dest);
+		ODBC_RETURN(dbc, ret);
+		break;
+	case SQL_ATTR_LOGIN_TIMEOUT:
+		dbc->attr.attr_login_timeout = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_ODBC_CURSORS:
+		dbc->attr.attr_odbc_cursors = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_PACKET_SIZE:
+		dbc->attr.attr_packet_size = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_QUIET_MODE:
+		dbc->attr.attr_quite_mode = (SQLHWND) u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+#if 0 /* DM only */
+	case SQL_ATTR_TRACE:
+		dbc->attr.attr_trace = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_TRACEFILE:
+		if (!IS_VALID_LEN(StringLength)) {
+			/* TODO */
+			/* odbc_errs_ms_add(&dbc->errs, 0, "HY090", NULL, NULL); */
+			ODBC_RETURN(dbc, SQL_ERROR);
+		}
+		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
+		tds_dstr_copyn(&dbc->attr.attr_tracefile, (const char*) ValuePtr, len);
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+#endif
+	case SQL_ATTR_TXN_ISOLATION:
+		dbc->attr.attr_txn_isolation = u_value;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_TRANSLATE_LIB:
+	case SQL_ATTR_TRANSLATE_OPTION:
+		/* TODO */
+		/* odbc_errs_ms_add(&dbc->errs, 0, "HYC00", NULL, NULL); */
+		ODBC_RETURN(dbc, SQL_ERROR);
+		break;
 	}
 	odbc_errs_add(&dbc->errs, ODBCERR_INVALIDOPTION, NULL);
 	ODBC_RETURN(dbc, SQL_ERROR);
 }
 
+SQLRETURN SQL_API
+SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
+{
+	return (_SQLSetConnectAttr(hdbc, Attribute, ValuePtr, StringLength));
+}
+
+SQLRETURN SQL_API
+SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
+{
+	return (_SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, 0));
+}
+
+/* TODO correct code above ??? */
+#if 0
 SQLRETURN SQL_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 {
@@ -2765,6 +2996,7 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 	}
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
+#endif
 
 SQLRETURN SQL_API
 SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
