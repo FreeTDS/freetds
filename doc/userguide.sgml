@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-02-25 13:22:02 $</date>
-		<releaseinfo>$Revision: 1.54 $</releaseinfo>
+		<date>$Date: 2003-02-26 04:24:52 $</date>
+		<releaseinfo>$Revision: 1.55 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -47,9 +47,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.54 $</>
-<member>$Date: 2003-02-25 13:22:02 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.54 2003-02-25 13:22:02 freddy77 Exp $.</>
+<member>$Revision: 1.55 $</>
+<member>$Date: 2003-02-26 04:24:52 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.55 2003-02-26 04:24:52 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -1909,16 +1909,30 @@ The <literal>-g</literal> is important to keep the symbol tables for debugging p
 <note><para>When compiling directly to <productname>FreeTDS</productname> you still must use the driver manager's header files.</para></note>
 			</para>
 
-<!-- //////////////////// new work on ODBC (dsnless and freetds.conf'less) ////////////// -->
+<!-- //////////////////// new work on ODBC (dsnless and freetds.conf-less) ////////////// -->
 
-<para>New configuration method (dnsless and freetds.conf'less)</para>
-
+		<sect2>	<title>New configuration methods</title>
+			<subtitle>DSN-less and <filename>freetds.conf</>-less</subtitle>
 <para>
-From version 0.61 FreeTDS support DSNless connection and freetds.conf'less connection. 
-DSNless connection mean that you can specify a connection without any entry on odbc.ini.
-freetds.conf'less means that all connection informations
-can be stored in <filename>odbc.ini</filename>, without the need for freetds.conf'less. 
-To support this method some options was added. 
+As of version 0.61, <productname>FreeTDS</productname> supports <firstterm>DSN-less</> connections and <firstterm>freetds.conf-less</> connections. 
+<variablelist>
+	<varlistentry>
+		<term>DSN-less</term>
+		<listitem>
+			<para><emphasis>No</> connection information is specified in <filename>odbc.ini</>.</para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>
+		<term><filename>freetds.conf</>-less</term>
+		<listitem>
+			<para><emphasis>All</> connection information
+is specified in <filename>odbc.ini</>, without the need for <filename>freetds.conf</>.</para>
+		</listitem>
+	</varlistentry>	
+</variablelist>
+
+ 
+To support these methods, some options were added. 
 </para>
 
 <para>
@@ -1939,9 +1953,9 @@ To support this method some options was added.
 	<entry>DSN</entry>
 	<entry>none</entry>
 	<entry>Use DSN. This will search in odbc.ini for entry. 
-	  It let you specify connection like SQLConnect but using SQLDriverConnect. 
+	  It lets you specify a connection like <function>SQLConnect</>, but using <function>SSQLDriverConnect</>. 
 	  Do not use Servername and DSN together.
-	  Can be specified only on connection string, not in odbc.ini file.
+	  Can be specified only in a connection string, not in <filename>odbc.ini</>.
 	</entry>
 	<entry>A valid DSN entry</entry>
 	<entry>no</entry>
@@ -1949,21 +1963,21 @@ To support this method some options was added.
 	<row>
 	<entry>Servername</entry>
 	<entry>none</entry>
-	<entry>This is old server specification. This refer to freetds.conf server name, not real server. If you want
-	       to use freetds.conf'less configuration use Server instead.</entry>
-	<entry>A valid freetds.conf server section</entry>
+	<entry>This is the old <quote>server</> specification. This refers to a <filename>freetds.conf</> servername, not a hostname as known to DNS. If you want
+	       to use <filename>freetds.conf</>-less configuration, use Server instead.</entry>
+	<entry>A valid <filename>freetds.conf</> server section</entry>
 	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>Server</entry>
 	<entry>none</entry>
-	<entry>This specify the name of the real server. Used in freetds.conf'less configuration.</entry>
-	<entry>A server name or an address (ip)</entry>
+	<entry>This specifies the hostname of a server. Used in <filename>freetds.conf</>-less configuration.</entry>
+	<entry>A server name or (ip) address</entry>
 	<entry>yes</entry>
 	</row>
 	<row>
 	<entry>Port</entry>
-	<entry>depend from TDS version specified with configure</entry>
+	<entry>Depends on the TDS version specified with <command>configure</></entry>
 	<entry>The tcp/ip port of SQL Server.</entry>
 	<entry>Any TCP port</entry>
 	<entry>yes</entry>
@@ -1971,22 +1985,22 @@ To support this method some options was added.
 	<row>
 	<entry>UID</entry>
 	<entry>none</entry>
-	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
-	      To use domain authentication and specify domain use the format "domain\password".</entry>
-	<entry>Any valid user</entry>
+	<entry>Can be specified only for a DSN-less connection (for security reasons, do not store username/password in a configuration file).
+	      To use domain authentication, specify the domain using the format <replaceable>domain\password</replaceable>.</entry>
+	<entry>Any valid username</entry>
 	<entry>no</entry>
 	</row>
 	<row>
 	<entry>PWD</entry>
 	<entry>empty</entry>
-	<entry>This can be specified only in dsnless connection (for security reason do not store user/password on configuration file).
+	<entry>Can be specified only for a DSN-less connection (for security reasons, do not store username/password in a configuration file).
 	      Clear text password (use domain password for domain authentication).</entry>
 	<entry>Any</entry>
 	<entry>no</entry>
 	</row>
 	<row>
 	<entry>TDS_Version</entry>
-	<entry>depend from TDS version specified with configure</entry>
+	<entry>Depends on the TDS version specified with <command>configure</></entry>
 	<entry>TDS protocol version to use (ie 5.0, 7.0).</entry>
 	<entry>Any valid protocol version</entry>
 	<entry>yes</entry>
@@ -2001,7 +2015,7 @@ To support this method some options was added.
 	<row>
 	<entry>WSID</entry>
 	<entry>Computer name</entry>
-	<entry>Can be specified only in dsnless connection. Name of the computer sended to server.</entry>
+	<entry>Can be specified only for a DSN-less connection.  Name of the local computer, sent to server.</entry>
 	<entry>Any</entry>
 	<entry>no</entry>
 	</row>
@@ -2041,6 +2055,7 @@ Driver          = /usr/local/freetds/lib/libtdsodbc.so
 </example>
 
 
+		</sect2>
 		</sect1>
 		<sect1 id="unixodbc">
 			<title>The <productname>unixODBC</productname> Driver Manager</title>
