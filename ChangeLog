@@ -1,3 +1,6 @@
+Wed Aug 28 10:06:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	- removed all C++-style comments
+
 Wed Aug 28 09:50:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- check column name max in SQLDescribeCol

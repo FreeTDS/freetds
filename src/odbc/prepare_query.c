@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.4 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.5 2002-08-28 08:07:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -46,8 +46,8 @@ int prepare_call(struct _hstmt *stmt)
         else
                 return SQL_ERROR;
 
-        // we can do it because result string will be
-        // not bigger than source string
+        /* we can do it because result string will be
+	 * not bigger than source string */
         d=s;
         while (*s) {
                 if (!quoted && (*s=='"' || *s=='\'')) {
@@ -298,7 +298,7 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
                 param_num  = stmt->prepared_query_is_func?1:0;
 		quoted     = 0;
 	}else{
-		// load prepared_query parameters from stmt
+		/* load prepared_query parameters from stmt */
 		s          = stmt->prepared_query_s;
 		d          = stmt->prepared_query_d;
 		param_num  = stmt->prepared_query_param_num;
@@ -321,13 +321,13 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_ERROR;
 
 			need_comma = _need_comma(param);
-			// printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype);
+			/* printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype); */
 
 			if (need_comma)
 				*d++ = comma;
 
 			if (_get_len_data_at_exec(param)>0){
-				// save prepared_query parameters to stmt
+				/* save prepared_query parameters to stmt */
 				stmt->prepared_query_s          = s;
 				stmt->prepared_query_d          = d;
 				stmt->prepared_query_param_num  = param_num;
@@ -335,7 +335,7 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 				stmt->prepared_query_quote_char = quote_char;
 				stmt->prepared_query_need_bytes = _get_len_data_at_exec(param);
 
-				// stop parsing and ask for a data
+				/* stop parsing and ask for a data */
 				return SQL_NEED_DATA;
 			}
 
@@ -361,8 +361,8 @@ static int parse_prepared_query(struct _hstmt *stmt, int start)
 		}
 	}
 	*d='\0';
-	// reset prepared_query parameters in stmt
-	// to prevent wrong calls to this function
+	/* reset prepared_query parameters in stmt
+	 * to prevent wrong calls to this function */
 	stmt->prepared_query_s          = 0;
 		
 	return SQL_SUCCESS;
@@ -381,14 +381,13 @@ int start_parse_prepared_query(struct _hstmt *stmt)
 
 	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, 0, 
 		    strlen(stmt->prepared_query)+1
-		    +stmt->param_count*2 // reserve space for "" */
-		    +len                 // reserve space for parameters
-		    +len/2               // reserve space for " inside strings
+		    +stmt->param_count*2 /* reserve space for "" */
+		    +len                 /* reserve space for parameters */
+		    +len/2               /* reserve space for " inside strings */
 		    ))
 		return SQL_ERROR;
 
-	// set prepared_query parameters in stmt
-	// .....
+	/* set prepared_query parameters in stmt */
 
 	return parse_prepared_query(stmt, 1);
 }
@@ -419,20 +418,20 @@ int continue_parse_prepared_query(struct _hstmt *stmt,
 	if (!param)
 		return SQL_ERROR;
 
-	// load prepared_query parameters from stmt
+	/* load prepared_query parameters from stmt */
 	d          = stmt->prepared_query_d;
 	need_bytes = stmt->prepared_query_need_bytes;
 
 	if (SQL_NTS==StrLen_or_Ind)
 		StrLen_or_Ind = strlen((char*)DataPtr);
 	else if (SQL_DEFAULT_PARAM==StrLen_or_Ind)
-		// FIXME: I don't know what to do
+		/* FIXME: I don't know what to do */
 		return SQL_ERROR;
 
 	if (StrLen_or_Ind>need_bytes && SQL_NULL_DATA!=StrLen_or_Ind)
 		StrLen_or_Ind = need_bytes;
 
-	// put parameter into query
+	/* put parameter into query */
 	len = convert_sql2string(context,
 		param->param_bindtype,
 		DataPtr,
@@ -450,24 +449,24 @@ int continue_parse_prepared_query(struct _hstmt *stmt,
 
 	need_bytes -= StrLen_or_Ind;
 	if (StrLen_or_Ind>0 && need_bytes>0){
-		// set prepared_query parameters in stmt
+		/* set prepared_query parameters in stmt */
 		stmt->prepared_query_d          = d;
 		stmt->prepared_query_need_bytes = need_bytes;
 
-		// stop parsing and ask more data
+		/* stop parsing and ask more data */
 		return SQL_NEED_DATA;
 	}
 
-	// continue parse prepared query
+	/* continue parse prepared query */
 	if (_need_comma(param))
 		*d++ = comma;
 
-	// set prepared_query parameters in stmt
+	/* set prepared_query parameters in stmt */
 	stmt->prepared_query_s++;
 	stmt->prepared_query_d          = d;
 	stmt->prepared_query_need_bytes = 0;
 
-	// continue parsing
+	/* continue parsing */
 	return parse_prepared_query(stmt, 0);
 }
 

@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.41 2002-08-28 07:53:56 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.42 2002-08-28 08:07:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -879,7 +879,7 @@ SQLRETURN SQL_API SQLColAttributes(
                     " *pfDesc = %d\n"
                     , colinfo->column_type, colinfo->column_size, *pfDesc);
         break;
-    case SQL_COLUMN_PRECISION: // this section may be wrong
+    case SQL_COLUMN_PRECISION: /* this section may be wrong */
         switch (colinfo->column_type)
         {
         case SYBNUMERIC:
@@ -1842,10 +1842,10 @@ SQLRETURN SQL_API SQLGetFunctions(
 
 
 /* pwillia6@csc.com.au 01/25/02 */
-/*// strncpy copies up to len characters, and doesn't terminate */
-/*// the destination string if src has len characters or more. */
-/*// instead, I want it to copy up to len-1 characters and always */
-/*// terminate the destination string. */
+/* strncpy copies up to len characters, and doesn't terminate */
+/* the destination string if src has len characters or more. */
+/* instead, I want it to copy up to len-1 characters and always */
+/* terminate the destination string. */
 static char *strncpy_null(char *dst, const char *src, int len)
 {
     int i;

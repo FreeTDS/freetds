@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.6 2002-08-18 12:50:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.7 2002-08-28 08:07:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -187,21 +187,21 @@ convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srcl
 		case SQL_C_CHAR:
 			return convert_text2string(src,srclen,dest,destlen);
 			break;
-//		case SQL_C_INTERVAL_YEAR:
-//		case SQL_C_INTERVAL_MONTH:
-//		case SQL_C_INTERVAL_DAY:
-//		case SQL_C_INTERVAL_HOUR:
-//		case SQL_C_INTERVAL_MINUTE:
-//		case SQL_C_INTERVAL_SECOND:
-//		case SQL_C_INTERVAL_YEAR_TO_MONTH:
-//		case SQL_C_INTERVAL_DAY_TO_HOUR:
-//		case SQL_C_INTERVAL_DAY_TO_MINUTE:
-//		case SQL_C_INTERVAL_DAY_TO_SECOND:
-//		case SQL_C_INTERVAL_HOUR_TO_MINUTE:
-//		case SQL_C_INTERVAL_HOUR_TO_SECOND:
-//		case SQL_C_INTERVAL_MINUTE_TO_SECOND:
-//		default:
-
+/*		case SQL_C_INTERVAL_YEAR:
+		case SQL_C_INTERVAL_MONTH:
+		case SQL_C_INTERVAL_DAY:
+		case SQL_C_INTERVAL_HOUR:
+		case SQL_C_INTERVAL_MINUTE:
+		case SQL_C_INTERVAL_SECOND:
+		case SQL_C_INTERVAL_YEAR_TO_MONTH:
+		case SQL_C_INTERVAL_DAY_TO_HOUR:
+		case SQL_C_INTERVAL_DAY_TO_MINUTE:
+		case SQL_C_INTERVAL_DAY_TO_SECOND:
+		case SQL_C_INTERVAL_HOUR_TO_MINUTE:
+		case SQL_C_INTERVAL_HOUR_TO_SECOND:
+		case SQL_C_INTERVAL_MINUTE_TO_SECOND:
+		default:
+*/
 	}
 
 	res = tds_convert(context, 

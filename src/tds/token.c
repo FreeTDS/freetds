@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.41 2002-08-27 11:16:19 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.42 2002-08-28 08:07:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -247,10 +247,11 @@ int where = 0;
 	tds_get_n(tds, NULL, 8); 
 	where += 8;
 	
-	//tds_get_ntstring(tds, domain, 30); 
-	//tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
-	//where += strlen(domain);
-	
+	/*
+	tds_get_ntstring(tds, domain, 30); 
+	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
+	where += strlen(domain);
+	*/
 
 	tds_get_n(tds, NULL, pdu_size - where); 
 	tdsdump_log(TDS_DBG_INFO1,"%L Draining %d bytes\n", pdu_size - where);
