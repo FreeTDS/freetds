@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.40 2002-08-27 05:18:26 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.41 2002-08-27 11:16:19 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -271,6 +271,7 @@ int marker;
 int more_results = 0;
 int cancelled;
 int retcode=TDS_NO_MORE_RESULTS;
+int rc;
 
 	if (tds->state==TDS_COMPLETED) {
 		/* tds_process_row() now eats the end marker and sets
@@ -288,10 +289,9 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
       			case TDS_ERR_TOKEN:
       			case TDS_MSG_TOKEN:
       			case TDS_EED_TOKEN:
-				tds_process_msg(tds,marker);
-				if (tds->msg_info &&
-				    tds->msg_info->priv_msg_type==1)
-					/* don't fail until we get a DONE */
+				rc = tds_process_msg(tds,marker);
+				/* don't fail until we get a DONE */
+				if (rc == TDS_ERROR) 
 					retcode=TDS_FAIL;
 				break;
 			case TDS7_RESULT_TOKEN:
