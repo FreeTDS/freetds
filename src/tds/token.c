@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.182 2003-04-30 06:07:29 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.183 2003-04-30 09:00:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -921,7 +921,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	TDS_SMALLINT tabnamesize;
 	int bytes_read = 0;
 	int rest;
-	char ci_flags[4];
+	TDS_SMALLINT flags;
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -929,14 +929,16 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	info = tds->res_info;
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
-		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
-		 * the data in them. (mlilback, 11/7/01) */
-		tds_get_n(tds, ci_flags, 4);
-		/* TODO my experience seem different... why ?? freddy77 2003-4-28 
-		 * in TDS4.2 and Sybase first 2 bytes are usertype, other 2 zero */
-		curcol->column_nullable = ci_flags[3] & 0x01;
-		curcol->column_writeable = (ci_flags[3] & 0x08) > 0;
-		curcol->column_identity = (ci_flags[3] & 0x10) > 0;
+		/* In Sybase all 4 byte are used for usertype, while mssql place 2 byte as usertype and 2 byte as flags */
+		if (TDS_IS_MSSQL(tds)) {
+			curcol->column_usertype = tds_get_smallint(tds);
+			flags = tds_get_smallint(tds);
+			curcol->column_nullable = flags & 0x01;
+			curcol->column_writeable = (flags & 0x08) > 0;
+			curcol->column_identity = (flags & 0x10) > 0;
+		} else {
+			curcol->column_usertype = tds_get_int(tds);
+		}
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
 		tds_set_column_type(curcol, tds_get_byte(tds));
 
