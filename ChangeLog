@@ -1,3 +1,8 @@
+Wed Mar 12 16:16:39 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h new error numbers 
+	* src/dblib/bcp.c _bcp_get_term_data.c rewrite
+	* src/dblib/error_table.h for use in error message function
+
 Wed Mar 12 18:42:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c src/replacements/vasprintf.c:
 	- some fixes and change from Sybase patch
