@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.53 2002-08-26 14:18:43 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.54 2002-08-26 20:10:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -478,8 +478,60 @@ TDS_INT tds_i;
 		 
 		 return sizeof(TDS_NUMERIC);
 		 break;
-	/* TODO */
-      case SYBUNIQUE:
+      case SYBUNIQUE: 
+		{
+		int i;
+		unsigned n;
+		char c;
+		 /* parse formats like XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX 
+		  * or {XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXXX} 
+		  * SQL seem to ignore additional character... */
+		if (srclen < (32+3)) return TDS_FAIL;
+		if (src[0] == '{') {
+			if (srclen < (32+5) || src[32+4] != '}')
+				return TDS_FAIL;
+			++src;
+		}
+		if (src[8] != '-' || src[8+4+1] != '-' || src[16+2] != '-')
+			return TDS_FAIL;
+		/* test all characters and get value 
+		 * first I tried using sscanf but it work if number terminate
+		 * with less digits */
+		for(i = 0; i < 32+3; ++i) {
+			c = src[i];
+			switch(i) {
+				case 8:
+					if (c!='-') return TDS_FAIL;
+					cr->u.Data1 = n;
+					n = 0;
+					break;
+				case 8+4+1:
+					if (c!='-') return TDS_FAIL;
+					cr->u.Data2 = n;
+					n = 0;
+					break;
+				case 16+2:
+					if (c!='-') return TDS_FAIL;
+					cr->u.Data3 = n;
+					n = 0;
+					break;
+				default:
+					n = n << 4;
+					if (c >= '0' && c <= '9') n += c-'0';
+					else {
+						c &= 0x20 ^ 0xff;
+						if (c >= 'A' && c <= 'F')
+							n += c-('A'-10);
+						else return TDS_FAIL;
+					}
+					if (i>(16+2) && !(i&1)) {
+						cr->u.Data4[(i>>1)-10] = n;
+						n = 0;
+					}
+			}
+		}
+		}
+		return sizeof(TDS_UNIQUE);
 	  default:
 		LOG_CONVERT();
 	     return TDS_FAIL;

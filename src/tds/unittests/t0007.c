@@ -21,7 +21,7 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char  software_version[]   = "$Id: t0007.c,v 1.1 2002-08-16 08:30:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.2 2002-08-26 20:10:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 void test0(const char* test, int len, int dsttype, const char* result)
@@ -43,6 +43,16 @@ void test0(const char* test, int len, int dsttype, const char* result)
 				break;
 			case SYBINT4:
 				sprintf(buf,"%d",cr.i);
+				break;
+			case SYBUNIQUE:
+				sprintf(buf,"%08X-%04X-%04X-%02X%02X%02X%02X"
+						"%02X%02X%02X%02X",
+						cr.u.Data1,
+						cr.u.Data2,cr.u.Data3,
+						cr.u.Data4[0],cr.u.Data4[1],
+						cr.u.Data4[2],cr.u.Data4[3],
+						cr.u.Data4[4],cr.u.Data4[5],
+						cr.u.Data4[6],cr.u.Data4[7]);
 				break;
 		}
 	}
@@ -92,6 +102,24 @@ int main()
 	
 	/* test not terminated string */
 	test0("1234",2,SYBINT4,"12");
+
+	/* some test for unique */
+	test("12345678-1234-1234-9876543298765432",SYBUNIQUE,
+			"12345678-1234-1234-9876543298765432");
+	test("{12345678-1234-1E34-9876ab3298765432}",SYBUNIQUE,
+			"12345678-1234-1E34-9876AB3298765432");
+	test(" 12345678-1234-1234-9876543298765432",SYBUNIQUE,
+			"error");
+	test(" {12345678-1234-1234-9876543298765432}",SYBUNIQUE,
+			"error");
+	test("12345678-1234-G234-9876543298765432",SYBUNIQUE,
+			"error");
+	test("12345678-1234-a234-9876543298765432",SYBUNIQUE,
+			"12345678-1234-A234-9876543298765432");
+	test("123a5678-1234-a234-98765-43298765432",SYBUNIQUE,
+			"error");
+	test("123-5678-1234-a234-9876543298765432",SYBUNIQUE,
+			"error");
 
 	return 0;
 }

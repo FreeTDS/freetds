@@ -1,3 +1,9 @@
+Mon Aug 26 22:04:23 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c src/tds/unittests/t0007.c:
+	- add conversion from char to unique
+	* src/tds/token.c:
+	- print also hexadecimal value for unknown marker
+
 Mon Aug 26 17:40:28 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c:
 	- compile if iconv not present

@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.38 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.39 2002-08-26 20:10:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -153,7 +153,7 @@ int   cancelled;
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;
       default:
-	 tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d!!\n",marker); 
+	 tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n",marker,(unsigned char)marker); 
          return TDS_FAIL;
    }	
    return TDS_SUCCEED;
