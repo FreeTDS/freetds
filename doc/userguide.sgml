@@ -83,7 +83,7 @@ The version in use at the time of the Sybase/Microsoft split.
 			  <CorpAuthor>Sybase</CorpAuthor></term>
 			<listitem>
 			<para>
-Introduced for SQL Server System 10.  Still the most current protocol used by Sybase.
+Introduced for SQL Server System 10.  Still the most current protocol used by Sybase.  TDS 5's capabilities negotiation means new capabilities can be added in a backward compatible manner, and we are unlikely to see a new TDS version from Sybase in the immediate future.
 			</para>
 			</listitem></varlistentry>
 
@@ -219,7 +219,7 @@ For those behind firewalls or otherwise unable to access CVS, nightly snapshots 
 		<sect1 id="config">
     			<title>How to build: Configure and make</title>
 			<para>
-If you've built other GNU projects, building FreeTDS is a fairly straightforward process. We have a terse and verbose description.  
+If you've built other GNU projects, building FreeTDS is a fairly straightforward process. We have a terse and verbose description.
 			</para>
 			<sect2><title>For Experts</title>
 <screen>
@@ -235,7 +235,7 @@ FreeTDS requires GNU make.  If your system's default make is not GNU make, type 
 			</sect2>
 			<sect2><title>For Everyone Else </title><TITLEABBREV>(FreeTDS for Dummies?)</TITLEABBREV>
 			<para>
-The GNU system has its own <Command>make</Command>, <filename>gmake</filename> that uses a Makefile.  It furthermore has a means called <Command>configure</Command> to configure (and generate) the Makefile.  <Command>configure</Command> relies on some files of its own, and accepts some command-line arguments.  In the case of FreeTDS, <Command>configure</Command>'s input files are provided as part of the package.  You may need to provide some command-line arguments, depending on what your environment looks like.  Once you've "configured" the project, gmake will manage the rest of the build.  
+The GNU system has its own <Command>make</Command>, <filename>gmake</filename> that uses a Makefile.  It furthermore has a means called <Command>configure</Command> to configure (and generate) the Makefile.  <Command>configure</Command> relies on some files of its own, and accepts some command-line arguments.  In the case of FreeTDS, <Command>configure</Command>'s input files are provided as part of the package.  You may need to provide some command-line arguments, depending on what your environment looks like.  Once you've "configured" the project, gmake will manage the rest of the build.
 			</para>
 			<para>
 There are a few optional arguments to <Command>configure</Command> that may be important to you.
@@ -430,6 +430,7 @@ or with the newer SQL92 <command>CAST</command> syntax e.g.,
 The environment variable <parameter>SYBASE</parameter> points to the FreeTDS run-time directory.  
 In the previous section, the FreeTDS libraries where installed <emphasis>somewhere</emphasis>.  You might know where (or your package manager might have decided for you), but FreeTDS doesn't know.  
 			</para>
+<Note><para>If you are using the newer freetds.conf file instead of the interfaces file, the SYBASE variable is not strictly necessary since FreeTDS will use the sysconfdir (/usr/local/freetds/etc by default) to find its configuration information. </para></Note>
 			<para>
 The primary use of <envar>SYBASE</envar> is to locate the <filename>interfaces</filename> file (if used), which FreeTDS uses to find your database servers.  A secondary use is to point to the libraries.  Immediately below the directory pointed to by <envar>SYBASE</envar> is its <filename>lib</filename> subdirectory, where you'll find the libraries you made.  It's handy to point to these libraries e.g. with <envar>LDLIBRARY</envar> through <envar>SYBASE</envar>.  
 			</para>
@@ -589,6 +590,12 @@ In this example the default tds version for all dataservers is set to 4.2.  It i
 	<entry>any valid file name</entry>
 	</row>
 	<row>
+	<entry>dump file append</entry>
+	<entry>no</entry>
+	<entry>Appends dump file instead of overwriting it.  Useful for debugging when many processes are active.</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
 	<entry>debug level</entry>
 	<entry>99</entry>
 	<entry>Sets granularity of logging. Higher number catches more.</entry>
@@ -614,8 +621,8 @@ In this example the default tds version for all dataservers is set to 4.2.  It i
 	</row>
 	<row>
 	<entry>client charset</entry>
-	<entry>strip upper byte</entry>
-	<entry>A TDS 7.0 only option. Client charset forces FreeTDS to convert to and from UCS-2 (SQL Servers' on the wire character set) from the specified character set.  Use to convert TDS 7.0 results to non-western languages.</entry>
+	<entry>strip high-order byte</entry>
+	<entry>Makes FreeTDS use iconv to convert to and from the specified character set from UCS-2 in TDS 7.0</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
 </tbody>
@@ -975,6 +982,113 @@ successful connection to SQL Server, the security mechanism is the same
 for both modes.
 			</para>
 			</sect2>
+		</sect1>
+	</chapter>
+	<chapter id="configs">
+		<title>Advanced Configurations</title>
+		<para>
+This chapter details some advanced configurations that need expanded explaination.
+		</para>
+		<sect1 id="emulle">
+			<title>Big Endian Clients with Buggy SQL Servers</title>
+			<para>
+Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, TDS Protocol version 7.0 is natively little endian.
+			</para>
+<Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gullivers Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most siginificant byte in the first memory location of a multibyte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
+<para>
+In this example we want to force connections to a server named 'mssql' to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the freetds.conf setting.
+</para>
+<example>
+<title>Emulate Little Endian <filename>freetds.conf</filename> setting</title>
+<programlisting>
+[mssql]
+	host = ntbox.mydomain.com
+	port = 1433
+	tds version = 4.2
+	emulate little endian = yes
+</programlisting>
+</example>
+		</sect1>
+		<sect1 id="unicode">
+			<title>TDS 7.0 for Nonwestern Languages</title>
+			<para>
+TDS 7.0 uses 2 byte unicode (UCS-2) to transfer all textual data to and fro between servers and clients.  By default, FreeTDS converts this data to 8bit ASCII representation by stripping the high order byte.  This is generally sufficient for western languages such as English, but produces garbage for other languages.
+			</para>
+			<para>
+Since, most unix tools and languages do not support UCS-2, FreeTDS allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
+			</para>
+			<para>
+To list all supported iconv character sets under Linux use the iconv command.
+			</para>
+<screen>
+<userinput>iconv --list</userinput>
+</screen>
+			<para>
+For other systems, consult your documentation (most likely <emphasis>man iconv</emphasis> will give you some hints).
+			</para>
+			<para>
+In this example a server named 'mssql' will return data encoded in the GREEK character set.
+			</para>
+<example>
+<title>Configuring for GREEK <filename>freetds.conf</filename> setting</title>
+<programlisting>
+[mssql]
+	host = ntbox.mydomain.com
+	port = 1433
+	tds version = 7.0
+	client charset = GREEK
+</programlisting>
+</example>
+<para>
+If iconv runs into a character it can not convert, it will replace that character with a NULL character.  Thus the data may appear truncated to languages which use null-terminated string (C and most others).  Always ensure that the data contained in the database is representable in the chosen character set.
+</para>
+<para>
+If you have a mix of character data that can not be contained in a single byte character set, you may wish to use UTF-8.  UTF-8 is a variable length unicode encoding that is compatible with ASCII in the range 0 to 127.  With UTF-8 you are garanteed to never have an uncovertable character.
+</para>
+<Note><para>FreeTDS is not fully compatible with multibyte character sets such as UTF-8 and UCS-2.  Extreme care should be taken with testing applications using these encodings. Specifically, many applications fail to expect a number of characters returning that will exceed the column size.
+</para></Note>
+			<para>
+In this example a server named 'mssql' will return data encoded in the UTF-8 character set.
+			</para>
+<example>
+<title>Configuring for UTF-8 <filename>freetds.conf</filename> setting</title>
+<programlisting>
+[mssql]
+	host = ntbox.mydomain.com
+	port = 1433
+	tds version = 7.0
+	client charset = UTF-8
+</programlisting>
+</example>
+<para>
+It is also worth clarifying that TDS 7.0 and above do not accept any specified character set during login, as 4.2 does.  All data is transferred as UCS-2 and specifying a character set with the 'charset' freetds.conf option or by calling DBSETLCHARSET and its equivalents will be ignored under 7.0.
+</para>
+		</sect1>
+		<sect1 id="appendmode">
+			<title>Appending Dump Files</title>
+			<para>
+When running FreeTDS with applications such as Apache/PHP it is often difficult to get a usable log file.  Since each of the many httpd children opens the file at the beginning of its connection and closes it on connection close, they tend to stomp all over each other.  In append mode, the log file is opened for append each time it is written to and then immediately closed.  If you are experiencing problems when running under Apache (or similiar application) use append mode to generate useful logs.
+			</para>
+<example>
+<title>Turning on Dump File Append mode in  <filename>freetds.conf</filename></title>
+<programlisting>
+[mssql]
+	host = ntbox.mydomain.com
+	port = 1433
+	tds version = 7.0
+	dump file = /tmp/freetds.log
+	dump file append = yes
+</programlisting>
+</example>
+<para>
+Under this example, the <filename>/tmp/freetds.log</filename> file will contain log entries for all processes using the mssql server, identified by pid.
+</para>
+<Note><para>
+Because there will be one log file being opened and closed more or less continuously, there is going to be a negative impact on performance. Also, be advised that the log file will grow quite large.
+</para></Note>
+<para>
+As an alternative to FreeTDS logging, you might also consider using tcpdump or ethereal to log network packets.  While not as useful as a TDS log, it can also help to identify problems.
+</para>
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
