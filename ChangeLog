@@ -1,3 +1,6 @@
+Fri Nov 22 17:41:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: update for ODBC
+
 Fri Nov 22 16:39:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c src/odbc/unittests/connect.c:
 	* src/odbc/unittests/t0001.c src/odbc/unittests/t0004.c:

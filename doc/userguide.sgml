@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-24 12:20:16 $</date>
-		<releaseinfo>$Revision: 1.43 $</releaseinfo>
+		<date>$Date: 2002-11-22 16:43:27 $</date>
+		<releaseinfo>$Revision: 1.45 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.43 $
+$Revision: 1.45 $
 , dated 
-$Date: 2002-10-24 12:20:16 $ (CVS control number $Id: userguide.sgml,v 1.43 2002-10-24 12:20:16 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2002-11-22 16:43:27 $ (CVS control number $Id: userguide.sgml,v 1.45 2002-11-22 16:43:27 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -1858,6 +1858,16 @@ can be stored in odbc.ini. To support this method some options has been added.
 	</row>
 </thead>
 <tbody>
+	<row>
+	<entry>DSN</entry>
+	<entry>none</entry>
+	<entry>Use DSN. This will search in odbc.ini for entry. 
+	  It let you specify connection like SQLConnect but using SQLDriverConnect. 
+	  Do not use Servername and DSN together.
+	  Can be specified only on connection string, not in odbc.ini file.
+	</entry>
+	<entry>A valid DSN entry</entry>
+	</row>
 	<row>
 	<entry>Servername</entry>
 	<entry>none</entry>
