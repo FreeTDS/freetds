@@ -1,5 +1,13 @@
 Thu Aug 22 21:06:01 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
-	* src/tds/config.c src/tds/login.c src/tds/read.c src/tds/token.c src/tds/write.c:
+	(patches from castellano)
+	* configure.in:
+	- small problem testing for gethostbyaddr function
+	* src/tds/config.c:
+	- make compatible with no-gcc compiler
+
+Thu Aug 22 21:06:01 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c src/tds/login.c src/tds/read.c:
+	*  src/tds/token.c src/tds/write.c:
 	- changed all print to stderr to log
 
 Thu Aug 22 18:10:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>

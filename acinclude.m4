@@ -212,7 +212,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.5 2002-07-09 01:55:04 brianb Exp $
+dnl @version $Id: acinclude.m4,v 1.6 2002-08-23 08:15:04 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -278,7 +278,7 @@ fi
 dnl based on gethostbyname_r check and snippits from curl's check
 
 AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
-[AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostaddr_r, [
+[AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
 AC_CHECK_FUNC(gethostbyaddr_r, [
 	AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -292,9 +292,9 @@ struct hostent_data hdata;
 int rc;
 rc = gethostbyaddr_r(address, length, type, &h, &hdata);
 
-],ac_cv_func_which_gethostaddr_r=five, 
+],ac_cv_func_which_gethostbyaddr_r=five, 
   [
-dnl			ac_cv_func_which_gethostaddr_r=no
+dnl			ac_cv_func_which_gethostbyaddr_r=no
   AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <netdb.h>
@@ -330,19 +330,19 @@ int rc;
 rc = gethostbyaddr_r(address, length, type, &h,
                      buffer, 8192, &hp, &h_errnop);
 
-],ac_cv_func_which_gethostaddr_r=eight,ac_cv_func_which_gethostaddr_r=no)
+],ac_cv_func_which_gethostbyaddr_r=eight,ac_cv_func_which_gethostbyaddr_r=no)
 
 ]
   )
 			]
 		)]
-	,ac_cv_func_which_gethostaddr_r=no)])
+	,ac_cv_func_which_gethostbyaddr_r=no)])
 
-if test $ac_cv_func_which_gethostaddr_r = eight; then
+if test $ac_cv_func_which_gethostbyaddr_r = eight; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_8)
-elif test $ac_cv_func_which_gethostaddr_r = seven; then
+elif test $ac_cv_func_which_gethostbyaddr_r = seven; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_7)
-elif test $ac_cv_func_which_gethostaddr_r = five; then
+elif test $ac_cv_func_which_gethostbyaddr_r = five; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_5)
 
 fi

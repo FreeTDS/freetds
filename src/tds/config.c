@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.22 2002-08-22 19:12:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.23 2002-08-23 08:15:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -570,8 +570,7 @@ static void lookup_host(
 
    /* Storage for reentrant getaddrby* calls */
    struct hostent result;
-   int buflen = 4096;
-   char buffer[buflen];
+   char buffer[4096];
    int h_errnop;
 
    /* Storage for reentrant getservbyname */
@@ -582,7 +581,7 @@ static void lookup_host(
       mlilback 3/2/02 */
    ip_addr = inet_addr(servername);
    if (ip_addr == INADDR_NONE)
-      host = tds_gethostbyname_r(servername, &result, buffer, buflen, &h_errnop);
+      host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
 	
 #ifndef NOREVERSELOOKUPS
 /* froy@singleentry.com 12/21/2000 */
@@ -594,7 +593,7 @@ static void lookup_host(
 		addr [1] = a1;
 		addr [2] = a2;
 		addr [3] = a3;
-		host    = tds_gethostbyaddr_r (addr, 4, AF_INET, &result, buffer, buflen, &h_errnop);
+		host    = tds_gethostbyaddr_r (addr, 4, AF_INET, &result, buffer, sizeof(buffer), &h_errnop);
 	}
 /* end froy */ 
 #endif
@@ -609,7 +608,7 @@ static void lookup_host(
       strncpy(ip, inet_ntoa(*ptr), 17);
    }
    if (portname) {
-   	 service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, buflen);
+   	 service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
       if (service==NULL) {
          num = atoi(portname);
       } else {
