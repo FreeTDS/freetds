@@ -38,6 +38,8 @@
 #include <dmalloc.h>
 #endif
 
+static void desc_free_record(struct _drecord *drec);
+
 TDS_DESC *
 desc_alloc(SQLHDESC parent, int desc_type, int alloc_type)
 {
@@ -75,16 +77,27 @@ desc_alloc(SQLHDESC parent, int desc_type, int alloc_type)
 SQLRETURN
 desc_alloc_records(TDS_DESC * desc, unsigned count)
 {
-	struct _drecord *drec;
+	struct _drecord *drec, *drecs;
 	int i;
 
-	desc->records = (struct _drecord *) malloc(sizeof(struct _drecord) * (count + 0));
-	if (!desc->records)
-		return SQL_ERROR;
-	memset(desc->records, 0, sizeof(struct _drecord) * (count + 0));
+	/* shrink records */
+	if (desc->header.sql_desc_count >= count) {
+		for (i = count; i < desc->header.sql_desc_count; ++i)
+			desc_free_record(&desc->records[i]);
+		desc->header.sql_desc_count = count;
+		return SQL_SUCCESS;
+	}
 
-	desc->header.sql_desc_count = count;
-	for (i = 0; i < count; i++) {
+	if (desc->records)
+		drecs = (struct _drecord *) realloc(desc->records, sizeof(struct _drecord) * (count + 0));
+	else
+		drecs = (struct _drecord *) malloc(sizeof(struct _drecord) * (count + 0));
+	if (!drecs)
+		return SQL_ERROR;
+	desc->records = drecs;
+	memset(desc->records + desc->header.sql_desc_count, 0, sizeof(struct _drecord) * (desc->header.sql_desc_count - count));
+
+	for (i = desc->header.sql_desc_count; i < count; ++i) {
 		drec = &desc->records[i];
 		switch (desc->type) {
 		case DESC_IRD:
@@ -98,33 +111,36 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 			break;
 		}
 	}
+	desc->header.sql_desc_count = count;
 	return SQL_SUCCESS;
 }
 
 #define IF_FREE(x) if (x) free(x)
 
+static void
+desc_free_record(struct _drecord *drec)
+{
+	IF_FREE(drec->sql_desc_base_column_name);
+	IF_FREE(drec->sql_desc_base_table_name);
+	IF_FREE(drec->sql_desc_catalog_name);
+	IF_FREE(drec->sql_desc_label);
+	IF_FREE(drec->sql_desc_literal_prefix);
+	IF_FREE(drec->sql_desc_literal_suffix);
+	IF_FREE(drec->sql_desc_local_type_name);
+	IF_FREE(drec->sql_desc_name);
+	IF_FREE(drec->sql_desc_schema_name);
+	IF_FREE(drec->sql_desc_table_name);
+	IF_FREE(drec->sql_desc_type_name);
+}
+
 SQLRETURN
 desc_free_records(TDS_DESC * desc)
 {
-	struct _drecord *drec;
 	int i;
 
-	for (i = 0; i < desc->header.sql_desc_count; i++) {
-		drec = &desc->records[i];
-		IF_FREE(drec->sql_desc_base_column_name);
-		IF_FREE(drec->sql_desc_base_table_name);
-		IF_FREE(drec->sql_desc_catalog_name);
-		IF_FREE(drec->sql_desc_label);
-		IF_FREE(drec->sql_desc_literal_prefix);
-		IF_FREE(drec->sql_desc_literal_suffix);
-		IF_FREE(drec->sql_desc_local_type_name);
-		IF_FREE(drec->sql_desc_name);
-		IF_FREE(drec->sql_desc_schema_name);
-		IF_FREE(drec->sql_desc_table_name);
-		IF_FREE(drec->sql_desc_type_name);
-	}
-
 	if (desc->records) {
+		for (i = 0; i < desc->header.sql_desc_count; i++)
+			desc_free_record(&desc->records[i]);
 		free(desc->records);
 		desc->records = NULL;
 	}

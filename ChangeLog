@@ -1,3 +1,7 @@
+Mon Aug 18 11:51:47 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/descriptor.c:
+	- code for resize descriptor
+
 Mon Aug 18 11:34:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/ctpublic.h  include/tds.h:
 	* include/tdsiconv.h:
