@@ -1,6 +1,13 @@
+Thu Dec 09 09:42:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: rc4
+	* misc/test-dist.sh: add check for --disable-libiconv
+	* src/apps/Makefile.am src/ctlib/Makefile.am src/dblib/Makefile.am:
+	* src/odbc/Makefile.am src/server/Makefile.am src/tds/Makefile.am:
+	- libreplacements MUST be included after libtds_objects
+
 Thu Dec  9 00:03:28 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* autogen.sh add ident tag
-	
+
 Wed Dec 08 12:00:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4:
 	- do not put library dir in LDFLAGS
@@ -28,7 +35,7 @@ Tue Nov 30 21:19:06 EST 2004	JK Lowden <jklowden@schemamania.org>
 
 Mon Nov 29 20:45:14 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* BUGS README updated for release
-	
+
 Mon Nov 29 20:18:16 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml document MSDBLIB and SYBDBLIB defines.  
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.36.2.2 2004-12-08 11:03:10 freddy77 Exp $
+# $Id: Makefile.am,v 1.36.2.3 2004-12-09 08:43:22 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -15,7 +15,7 @@ lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
 # Release 0.63 is version 4, cf. ML 30 Nov 2004 11:08:28 -0600
 libtds_la_LDFLAGS	= -version-info 4:0:0 -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
-libtds_la_LIBADD 	= ../replacements/libreplacements.la libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 noinst_HEADERS		= tds_willconvert.h character_sets.h \
 			  alternative_character_sets.h sybase_character_sets.h \
 			  encodings.h
