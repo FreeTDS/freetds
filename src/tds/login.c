@@ -77,7 +77,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.66 2002-12-02 13:39:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.67 2002-12-03 08:59:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
@@ -616,18 +616,6 @@ static const unsigned char magic1_server[] =
      0xff,0x36,0x04,0x00,
      0x00};
 unsigned const char *magic1 = magic1_server;
-#if 0
-/* also seen */
-	{6,0x7d,0x0f,0xfd,
-	0xff,0x0,0x0,0x0,
-	0x0,0xe0,0x83,0x0,
-	0x0,
-	0x68,
-	0x01,
-	0x00,
-	0x00,0x09,0x04,0x00,
-	0x00};
-#endif
 unsigned char hwaddr[6];
 /* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 unsigned char unicode_string[256];

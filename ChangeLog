@@ -1,3 +1,7 @@
+Tue Dec 03 09:59:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c: remove a FIXME
+	* src/tds/login.c: cleanup
+
 Mon Dec  2 16:52:09 EST 2002    JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c src/apps/freebcp.h
 	- add -h (hints) switch; could not test
