@@ -107,6 +107,10 @@ SOURCE=.\FreeTDS.def
 # End Source File
 # Begin Source File
 
+SOURCE=.\initnet.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\odbc\native.c
 # End Source File
 # Begin Source File

@@ -1,3 +1,9 @@
+Thu Dec 12 15:59:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c:
+	- fix error reading SERVER info
+	* win32/msvc6/initnet.c win32/msvc6/FreeTDS.dsp:
+	- initialize socket library
+
 Thu Dec 12 12:04:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/FreeTDS.dsp win32/msvc6/config.h:
 	- update win32 project

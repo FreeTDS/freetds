@@ -43,7 +43,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.27 2002-12-06 16:54:28 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.28 2002-12-12 15:00:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -160,7 +160,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		*end = 0;
 		if (strcasecmp(option, "SERVER") == 0) {
 			/* ignore if servername specified */
-			if (reparse) {
+			if (!reparse) {
 				dest_s = &connect_info->server_name;
 				tds_lookup_host(p, NULL, tmp, NULL);
 				*end = temp_c;
