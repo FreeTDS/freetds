@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.273 2004-12-07 22:39:21 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.274 2004-12-15 15:03:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1794,13 +1794,13 @@ tds5_process_result(TDSSOCKET * tds)
 {
 	int hdrsize;
 
-	CHECK_TDS_EXTRA(tds);
-
 	/* int colnamelen; */
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result\n");
 

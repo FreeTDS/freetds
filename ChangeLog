@@ -1,3 +1,8 @@
+Wed Dec 15 16:02:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/replacements/Makefile.am: include new files in distro
+	* src/tds/query.c src/tds/token.c:
+	- fixes for some compiler
+
 Wed Dec 15 10:59:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/sybdb.h: workaround for PHP
 	* src/tds/unittests/convert.c: avoid false statistics

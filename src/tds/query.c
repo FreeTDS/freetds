@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.153 2004-12-09 10:18:37 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.154 2004-12-15 15:03:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -88,10 +88,10 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONV * char_conv, const char *s, i
 	char *ob;
 	size_t il, ol;
 
-	CHECK_TDS_EXTRA(tds);
-
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress;
+
+	CHECK_TDS_EXTRA(tds);
 
 	if (len < 0)
 		len = strlen(s);
