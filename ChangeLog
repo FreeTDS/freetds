@@ -1,3 +1,7 @@
+Fri Nov 22 14:18:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- implement RPC on TDS7+
+
 Fri Nov 22 13:54:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/Makefile.am src/tds/unittests/common.c:
 	* src/tds/unittests/common.h src/tds/unittests/t0004.c:

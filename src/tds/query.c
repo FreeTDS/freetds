@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.45 2002-11-21 21:31:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.46 2002-11-22 13:18:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -549,17 +549,51 @@ int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 	return TDS_FAIL;
 }
 
-#if 0
+/**
+ * tds_submit_rpc() call a RPC from server. Output parameters will be stored in tds->param_info
+ * @param rpc_name name of RPC
+ * @param params   parameters informations
+ */
 int 
-tds_submit_rpc(TDSSOCKET *tds, TDSPARAMINFO *params)
+tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 {
+	TDSCOLINFO *param;
+	int rpc_name_len, i;
+
+	if (tds->state==TDS_PENDING) {
+		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,
+			"Attempt to initiate a new SQL Server operation with results pending.");
+		return TDS_FAIL;
+	}
+
+	tds_free_all_results(tds);
+	tds->rows_affected = 0;
+	tds->state = TDS_QUERYING;
+
 	/* distinguish from dynamic query  */
 	tds->cur_dyn = NULL;
+
+	rpc_name_len = strlen(rpc_name);
+	if (IS_TDS7_PLUS(tds)) {
+		tds->out_flag = 3; /* RPC */
+		/* procedure name */
+		tds_put_smallint(tds, rpc_name_len);
+		tds_put_string(tds, rpc_name, rpc_name_len);
+		tds_put_smallint(tds,0); 
+		
+		for (i=0;i<params->num_cols;i++) {
+			param = params->columns[i];
+			tds_put_data_info(tds, param);
+			tds_put_data(tds, param, params->current_row, i);
+		}
+
+		tds_flush_packet(tds);
+		return TDS_SUCCEED;
+	}
 	
-	/* TODO continue */
+	/* TODO continue, support for TDS5 */
 	return TDS_FAIL;
 }
-#endif
 
 /**
  * tds_send_cancel() sends an empty packet (8 byte header only)
