@@ -63,10 +63,12 @@ void tds_iconv_close(TDSSOCKET *tds)
 	}
 #endif 
 }
-/*
-** tds7_unicode2ascii()
-** Note: The dest buf must be large enough to handle 'len' + 1 bytes.
-*/
+
+/**
+ * tds7_unicode2ascii()
+ * Note: The dest buf must be large enough to handle 'len' + 1 bytes.
+ * in_string have not to be terminated and len characters (2 byte) long
+ */
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
 {
 int i;
@@ -80,26 +82,30 @@ size_t out_bytes, in_bytes;
 
 #if HAVE_ICONV
 	if (tds->use_iconv) {
-     	out_bytes = len + 1;
-     	in_bytes = (len + 1) * 2;
+     	out_bytes = len;
+     	in_bytes = len * 2;
      	in_ptr = (char *)in_string;
-     	out_ptr = (char *)out_string;
+     	out_ptr = out_string;
      	iconv(tds->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+	out_string[len] = '\0';
 
      	return out_string;
 	}
 #endif
 
 	/* no iconv, strip high order byte to produce 7bit ascii */
-	for (i=0;i<len;i++) {
+	for (i=0;i<len;++i) {
 		out_string[i]=in_string[i*2];
 	}
 	out_string[i]='\0';
 	return out_string;
 }
-/*
-** tds7_ascii2unicode()
-*/
+
+/**
+ * tds7_ascii2unicode()
+ * Convert a string to Unicode
+ * Note: output string is not terminated
+ */
 unsigned char *
 tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen)
 {
@@ -118,9 +124,9 @@ size_t out_bytes, in_bytes;
 #if HAVE_ICONV
 	if (tds->use_iconv) {
      	out_bytes = maxlen;
-     	in_bytes = strlen(in_string) + 1;
+     	in_bytes = string_length;
      	in_ptr = (char *)in_string;
-     	out_ptr = (char *)out_string;
+     	out_ptr = out_string;
      	iconv(tds->cdto, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 
      	return out_string;
@@ -128,7 +134,8 @@ size_t out_bytes, in_bytes;
 #endif
 
 	/* no iconv, add null high order byte to convert 7bit ascii to unicode */
-	memset(out_string, 0, string_length*2);
+	if (string_length*2 > maxlen)
+		string_length = maxlen >> 1;
 
 	for (i=0;i<string_length;i++) {
 		out_string[out_pos++]=in_string[i];	
