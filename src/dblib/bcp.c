@@ -63,6 +63,10 @@
 #define BCP_REC_FETCH_DATA   1
 #define BCP_REC_NOFETCH_DATA 0
 
+#ifndef MAX
+#define MAX(a,b) ( (a) > (b) ? (a) : (b) )
+#endif
+
 typedef struct _pbcb
 {
 	unsigned char *pb;
@@ -70,7 +74,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.107 2004-12-22 20:10:26 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.108 2004-12-31 19:17:49 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -676,11 +680,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_of_query++;
 
 		/* skip rows outside of the firstrow/lastrow range , if specified */
-
-		if ((dbproc->hostfileinfo->firstrow == 0 && dbproc->hostfileinfo->lastrow == 0) ||
-		    ((dbproc->hostfileinfo->firstrow > 0 && row_of_query >= dbproc->hostfileinfo->firstrow)
-		     && (dbproc->hostfileinfo->lastrow > 0 && row_of_query <= dbproc->hostfileinfo->lastrow))
-			) {
+		if (dbproc->hostfileinfo->firstrow <= row_of_query && 
+						      row_of_query <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 
 			/* Go through the hostfile columns, finding those that relate to database columns. */
 			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
@@ -1558,12 +1559,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (row_error_count > dbproc->hostfileinfo->maxerrs)
 				break;
 		} else {
-
-			if ((dbproc->hostfileinfo->firstrow == 0 && dbproc->hostfileinfo->lastrow == 0) ||
-			    ((dbproc->hostfileinfo->firstrow > 0 && row_of_hostfile >= dbproc->hostfileinfo->firstrow) &&
-			     (dbproc->hostfileinfo->lastrow > 0 && row_of_hostfile <= dbproc->hostfileinfo->lastrow)
-			    )
-				) {
+			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
+							      row_of_hostfile <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 
 				if (_bcp_build_bcp_record(dbproc, &record_len, BCP_REC_NOFETCH_DATA) == SUCCEED) {
 			
