@@ -1,3 +1,7 @@
+Thu Oct 31 15:49:01 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/Makefile.am:
+	- Don't remove distributed files during "make clean".
+
 Thu Oct 31 14:10:03 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Drop libd4r for hpux altogether.  These are DCE-compatible
