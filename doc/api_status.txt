@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.42 2004-01-05 22:26:44 jklowden Exp $s
+# $Id: api_status.txt,v 1.43 2004-01-11 21:45:21 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -37,8 +37,8 @@
 #	, name	char(15)	NOT NULL
 #	, section char(15) 	    NULL
 #	, function varchar(30)	NOT NULL
-#	, status char(10)	    NULL
-#	, comment varchar(80)       NULL
+#	, status char(20)	    NULL
+#	, comment varchar(160)      NULL
 #	)
 while( <DATA> ) {
 	chomp;
@@ -428,10 +428,10 @@ ctlib	(all)	ct_con_props	OK	Set or retrieve connection structure properties.
 ctlib	(all)	ct_config	OK	Set or retrieve context properties.
 ctlib	(all)	ct_connect	OK	Connect to a server.
 ctlib	(all)	ct_cursor	stub	Initiate a Client-Library cursor command.
-ctlib	(all)	ct_data_info		Define or retrieve a data I/O descriptor structure.
+ctlib	(all)	ct_data_info	OK	Define or retrieve a data I/O descriptor structure.
 ctlib	(all)	ct_debug		Manage debug library operations.
 ctlib	(all)	ct_describe	OK	Return a description of result data.
-ctlib	(all)	ct_diag		Manage inline error handling.
+ctlib	(all)	ct_diag	OK	Manage inline error handling.
 ctlib	(all)	ct_ds_dropobj		Release the memory associated with a directory object.
 ctlib	(all)	ct_ds_lookup		Initiate or cancel a directory lookup operation.
 ctlib	(all)	ct_ds_objinfo		Retrieve information associated with a directory object.
@@ -447,14 +447,14 @@ ctlib	(all)	ct_init	OK	Initialize Client-Library for an application context.
 ctlib	(all)	ct_keydata		Specify or extract the contents of a key column.
 ctlib	(all)	ct_labels		Define a security label or clear security labels for a connection.
 ctlib	(all)	ct_options	OK	Set, retrieve, or clear the values of server query-processing options.
-ctlib	(all)	ct_param		Supply values for a server command's input parameters.
+ctlib	(all)	ct_param	OK	Supply values for a server command's input parameters.
 ctlib	(all)	ct_poll	stub	Poll connections for asynchronous operation completions and registered procedure notifications.
 ctlib	(all)	ct_recvpassthru		Receive a TDS (Tabular Data Stream) packet from a server.
 ctlib	(all)	ct_remote_pwd		Define or clear passwords to be used for server-to-server connections.
 ctlib	(all)	ct_res_info	OK	Retrieve current result set or command information.
 ctlib	(all)	ct_results	OK	Set up result data to be processed.
 ctlib	(all)	ct_send	OK	Send a command to the server.
-ctlib	(all)	ct_send_data		Send a chunk of text or image data to the server.
+ctlib	(all)	ct_send_data	OK	Send a chunk of text or image data to the server.
 ctlib	(all)	ct_sendpassthru		Send a Tabular Data Stream (TDS) packet to a server.
 ctlib	(all)	ct_setloginfo		Transfer TDS login response information from a CS_LOGINFO structure to a CS_CONNECTION structure.
 ctlib	(all)	ct_setparam		Specify source variables from which ct_send reads input parameter values for a server command.
