@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.62 2003-05-06 09:53:14 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.63 2003-05-07 05:57:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -231,7 +231,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 	 * or exhaust output.  
 	 */
 	while (iconv(cd, &input_p, input_size, &output, &output_size) == (size_t) - 1) {
-
+		/* FIXME on EINVAL this cause core on upper levels */
 		if (errno != EILSEQ)
 			break;
 
