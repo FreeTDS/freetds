@@ -123,10 +123,7 @@ out_footer () {
 }
 
 out_end () {
-	echo "</body>
-</html>
-" >> "$DIR/out.html"
-
+	echo "</body></html>" >> "$DIR/out.html"
 }
 
 # delete all tests output
@@ -174,7 +171,6 @@ TESTS_ENVIRONMENT="$DIR/full-test.sh"
 export TESTS_ENVIRONMENT ORIGDIR
 $MAKE check 2> /dev/null > "$DIR/check.txt"
 if  test $RES != 0; then
-	out_footer
 	out_end
 	echo "error during make check"
 	exit 1;
