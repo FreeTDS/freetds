@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.153 2003-04-23 17:24:35 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.154 2003-04-27 14:47:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1236,14 +1236,14 @@ SQLExecute(SQLHSTMT hstmt)
 		dyn = stmt->dyn;
 		/* TODO rebuild should be done for every bingings change */
 		/*if (dyn->num_params != stmt->param_count) */  {
-			int i;
+			int i, nparam;
 			TDSPARAMINFO *params;
 			TDSCOLINFO *curcol;
 
 			tds_free_input_params(dyn);
 			tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
-			for (i = 0; i < (int) stmt->param_count; ++i) {
-				param = odbc_find_param(stmt, i + 1);
+			for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
+				param = odbc_find_param(stmt, i);
 				if (!param)
 					return SQL_ERROR;
 				if (!(params = tds_alloc_param_result(dyn->params))) {
@@ -1252,7 +1252,7 @@ SQLExecute(SQLHSTMT hstmt)
 				}
 				dyn->params = params;
 				/* add another type and copy data */
-				curcol = params->columns[i];
+				curcol = params->columns[nparam];
 				if (sql2tds(stmt->hdbc->henv->tds_ctx, param, params, curcol) < 0)
 					return SQL_ERROR;
 			}
@@ -2286,9 +2286,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 			p = "SQL Server";
 		break;
 	case SQL_DBMS_VER:
-		if (rgbInfoValue && cbInfoValueMax > 5) 
+		if (rgbInfoValue && cbInfoValueMax > 5)
 			tds_version(dbc->tds_socket, (char *) rgbInfoValue);
-		else 
+		else
 			p = "unknown version";
 		break;
 	case SQL_DEFAULT_TXN_ISOLATION:

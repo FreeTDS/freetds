@@ -1,3 +1,6 @@
+Fri Apr 27 16:47:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix problem with RPC returning result
+
 Fri Apr 27 13:16:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4: fix for HP/UX 11 getpwuid_r detect
 	* src/tds/convert.c: portability and a comment
