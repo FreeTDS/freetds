@@ -28,12 +28,21 @@
 #include <sys/stat.h>
 #include <sqltypes.h>
 
+#ifdef UNIXODBC
+    #include <sql.h>
+    #include <sqlext.h>
+    #include <odbcinst.h>
+#else
+    #include "isql.h"
+    #include "isqlext.h"
+#endif
+
 #include "tds.h"
 #include "tdsstring.h"
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.23 2002-11-21 07:05:38 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.24 2002-11-21 10:19:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -98,6 +107,11 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	if (SQLGetPrivateProfileString( DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->language,tmp);
 	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->database, tmp);
+	}
 	return 1;
 }
 
@@ -142,6 +156,7 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 			end = strchr(p, 0);
 
 		temp_c = *end;
+		*end = 0;
 		if (strcasecmp(option, "SERVER") == 0) {
 			/* ignore if servername specified */
 			if (reparse) {

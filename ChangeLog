@@ -1,12 +1,16 @@
-Mon Nov 20 23:07:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Thu Nov 21 11:18:03 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c src/odbc/odbc.c:
+	- handle DSN option in connectstring 
+
+Wed Nov 20 23:07:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- rewrite tds_query_submit using new functions
 	- added some comment
 
-Mon Nov 20 17:36:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Wed Nov 20 17:36:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: continue parameters code
 
-Mon Nov 20 14:29:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Wed Nov 20 14:29:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/freebcp.c src/apps/freebcp.h src/ctlib/blk.c:
 	* src/ctlib/cs.c src/ctlib/ctutil.c src/tds/vstrbuild.c:
 	- indent(1) and a conversion to Unix file style
