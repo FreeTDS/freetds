@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.81 2003-05-09 09:54:40 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.82 2003-05-09 13:06:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -618,7 +618,6 @@ TDSLOGIN *
 tds_alloc_login(void)
 {
 	TDSLOGIN *tds_login;
-	char *tdsver;
 
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
 	if (!tds_login)

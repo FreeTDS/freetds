@@ -65,12 +65,12 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.76 2003-05-09 09:54:40 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.77 2003-05-09 13:06:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 static void tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login);
-static void tds_config_env_dsquery(TDSCONNECTINFO * connect_info);
+static void tds_config_env_tdsquery(TDSCONNECTINFO * connect_info);
 static void tds_config_env_tdsdump(TDSCONNECTINFO * connect_info);
 static void tds_config_env_tdsver(TDSCONNECTINFO * connect_info);
 static void tds_config_env_tdsport(TDSCONNECTINFO * connect_info);
@@ -174,7 +174,7 @@ tds_fix_connect(TDSCONNECTINFO * connect_info)
 	tds_config_env_tdsver(connect_info);
 	tds_config_env_tdsdump(connect_info);
 	tds_config_env_tdsport(connect_info);
-	tds_config_env_dsquery(connect_info);
+	tds_config_env_tdsquery(connect_info);
 	tds_config_env_tdshost(connect_info);
 }
 
@@ -265,20 +265,9 @@ tds_read_conf_file(TDSCONNECTINFO * connect_info, const char *server)
 static int
 tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTINFO * connect_info)
 {
-	char *section;
-	int i, found = 0;
-
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connect_info);
 	rewind(in);
-	if ((section = strdup(server)) == NULL) {
-		return 0;
-	}
-	for (i = 0; i < strlen(section); i++)
-		section[i] = tolower(section[i]);
-	found = tds_read_conf_section(in, section, tds_parse_conf_section, connect_info);
-	free(section);
-
-	return found;
+	return tds_read_conf_section(in, server, tds_parse_conf_section, connect_info);
 }
 
 static int
@@ -523,22 +512,18 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 }
 
 static void
-tds_config_env_dsquery(TDSCONNECTINFO * connect_info)
+tds_config_env_tdsquery(TDSCONNECTINFO * connect_info)
 {
 	char *s;
 
-	if ((s = getenv("TDSQUERY"))) {
-		if (s && strlen(s)) {
-			tds_dstr_copy(&connect_info->server_name, s);
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n", s);
-		}
+	if ((s = getenv("TDSQUERY")) != NULL && s[0]) {
+		tds_dstr_copy(&connect_info->server_name, s);
+		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n", s);
 		return;
 	}
-	if ((s = getenv("DSQUERY"))) {
-		if (s && strlen(s)) {
-			tds_dstr_copy(&connect_info->server_name, s);
-			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n", s);
-		}
+	if ((s = getenv("DSQUERY")) != NULL && s[0]) {
+		tds_dstr_copy(&connect_info->server_name, s);
+		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n", s);
 	}
 }
 static void
@@ -635,7 +620,7 @@ tds_config_verstr(const char *tdsver, TDSCONNECTINFO * connect_info)
  * @param interf file name
  */
 int
-tds_set_interfaces_file_loc(char *interf)
+tds_set_interfaces_file_loc(const char *interf)
 {
 	/* Free it if already set */
 	if (interf_file != NULL) {
@@ -662,6 +647,7 @@ tds_set_interfaces_file_loc(char *interf)
  * If we can't determine both the IP address and port number then
  * 'ip' and 'port' will be set to empty strings.
  */
+/* TODO callers seem to set always connection info... change it */
 void
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		char *ip	/* (O) dotted-decimal ip address of server */
@@ -682,12 +668,14 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	if (ip_addr == INADDR_NONE)
 		host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
 
+/* TODO this should go in configure */
 #ifndef NOREVERSELOOKUPS
 /* froy@singleentry.com 12/21/2000 */
 	if (host == NULL) {
 		char addr[4];
 		int a0, a1, a2, a3;
 
+		/* FIXME check results, this code should be executed only if it's an address */
 		sscanf(servername, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
 		addr[0] = a0;
 		addr[1] = a1;
@@ -716,19 +704,20 @@ tds_lookup_port(const char *portname)
 	int num = 0;
 
 	if (portname) {
-		char buffer[4096];
-		struct servent serv_result;
-		struct servent *service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
+		num = atoi(portname);
+		if (!num) {
+			char buffer[4096];
+			struct servent serv_result;
+			struct servent *service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
 
-		if (service == NULL) {
-			num = atoi(portname);
-		} else {
-			num = ntohs(service->s_port);
+			if (service)
+				num = ntohs(service->s_port);
 		}
 	}
 	return num;
 }
 
+/* TODO same code in convert.c ?? */
 static int
 hexdigit(char c)
 {
