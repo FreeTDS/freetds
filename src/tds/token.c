@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.152 2003-03-07 15:04:42 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.153 2003-03-07 16:46:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -61,6 +61,9 @@ static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *cur
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int tds_process_env_chg(TDSSOCKET * tds);
 static const char *_tds_token_name(unsigned char marker);
+static int tds_process_param_result_tokens(TDSSOCKET * tds);
+static int tds_process_params_result_token(TDSSOCKET * tds);
+static int tds_process_dyn_result(TDSSOCKET * tds);
 
 
 /**
@@ -930,7 +933,7 @@ int i;
 	return i;
 }
 
-int
+static int
 tds_process_param_result_tokens(TDSSOCKET * tds)
 {
 int marker;
@@ -952,7 +955,7 @@ TDSPARAMINFO **pinfo;
 /**
  * tds_process_params_result_token() processes params on TDS5.
  */
-int
+static int
 tds_process_params_result_token(TDSSOCKET * tds)
 {
 int i;
@@ -1915,7 +1918,7 @@ int drain = 0;
 	return tds_lookup_dynamic(tds, id);
 }
 
-int
+static int
 tds_process_dyn_result(TDSSOCKET * tds)
 {
 int hdrsize;

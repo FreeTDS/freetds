@@ -1,3 +1,7 @@
+Fri Mar 07 17:44:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- put some functions static
+
 Fri Mar 07 16:57:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/dblib/dblib.c:
 	- remove some warnings
