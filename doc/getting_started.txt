@@ -11,6 +11,21 @@ of MS SQL uses 5.0 and Sybase does not use 7.0, but both still support 4.2.
 TDS allows for negotiation of quite a few parameters at connection time, many of
 these are documented in the cap.txt file in this directory.
 
++---------------------------------------------------------------+
+|     | MS SQL       |     Sybase ASE         |    Sybase ASA   |
++---------------------------------------------------------------+
+|ver  |6.5 |7.0 |2000| <10.x     | >11.0      |<5.5.03|5.5*|>6.0|
++-----+----+----+----+-----------+------------+-------+----+----+
+| 4.2 | X  | X  |  X |    X      |      X     |       |    |    |
+| 5.0 |    |    |    |           |      X     |       | X  | X  |
+| 7.0 |    | X  |  X |           |            |       |    |    |
+| 8.0 |    |    |  X |           |            |       |    |    |
++-----+----+----+----+-----------+------------+-------+----+----+
+
+* Sybase ASA 5.5 requires 5.5.03 or better with the OpenServer Gateway 
+(OSG).
+
+
 Layers
 ------
 
