@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.35 2002-08-14 10:14:43 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.36 2002-08-16 05:42:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -519,6 +519,11 @@ TDS_CHAR tmp_str[5];
 			cr->i = buf;
             return 4;
 			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = buf ? 1 : 0;
+			return 1;
+			break;
 		case SYBFLT8:
 			cr->f = buf;
             return 8;
@@ -526,6 +531,14 @@ TDS_CHAR tmp_str[5];
 		case SYBREAL:
 			cr->r = buf;
             return 4;
+			break;
+		case SYBMONEY4:
+			cr->m4.mny4 = buf * 10000;
+			return 4;
+			break;
+		case SYBMONEY:
+			cr->m.mny = buf * 10000;
+			return 8;
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -562,6 +575,11 @@ TDS_CHAR tmp_str[16];
 			cr->i = buf;
             return 4;
 			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = buf ? 1 : 0;
+			return 1;
+			break;
 		case SYBFLT8:
 			cr->f = buf;
             return 8;
@@ -569,6 +587,14 @@ TDS_CHAR tmp_str[16];
 		case SYBREAL:
 			cr->r = buf;
             return 4;
+			break;
+		case SYBMONEY4:
+			cr->m4.mny4 = buf * 10000;
+			return 4;
+			break;
+		case SYBMONEY:
+			cr->m.mny = buf * 10000;
+			return 8;
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -605,6 +631,11 @@ TDS_CHAR tmp_str[16];
 			cr->i = buf;
             return 4;
 			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = buf ? 1 : 0;
+			return 1;
+			break;
 		case SYBFLT8:
 			cr->f = buf;
             return 8;
@@ -612,6 +643,16 @@ TDS_CHAR tmp_str[16];
 		case SYBREAL:
 			cr->r = buf;
             return 4;
+			break;
+		case SYBMONEY4:
+			if (buf > 214748 || buf < -214748)
+				return TDS_FAIL;
+			cr->m4.mny4 = buf * 10000;
+			return 4;
+			break;
+		case SYBMONEY:
+			cr->m.mny = (TDS_INT8)buf * 10000;
+			return 8;
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -678,7 +719,15 @@ TDS_INT8 mymoney;
 			strcpy(cr->c, tmp_str);
 			return strlen(tmp_str);
 			break;
+		/* FIXME add int types */
+		case SYBBIT:
+		case SYBBITN:
+			memcpy(&mny, src, sizeof(mny));
+			cr->ti = mny.mny4 ? 1 : 0;
+			return 1;
+			break;
 		case SYBFLT8:
+			/* FIXME dollars can be 64 bit while src 32 */
 			memcpy(&dollars, src, sizeof(dollars));
 			cr->f = ((TDS_FLOAT)dollars) / 10000;
             return 8;
@@ -757,16 +806,24 @@ int i;
             break;
 
 		case SYBINT1:
+			/* FIXME check overflow */
 			cr->ti = mymoney / 10000;
             return 1;
 			break;
 		case SYBINT2:
+			/* FIXME check overflow */
 			cr->si = mymoney / 10000;
             return 2;
 			break;
 		case SYBINT4:
+			/* FIXME check overflow */
 			cr->i = mymoney / 10000;
             return 4;
+			break;
+		case SYBBIT:
+		case SYBBITN:
+			cr->ti = mymoney ? 1 : 0;
+			return 1;
 			break;
 		case SYBFLT8:
             cr->f  = (float) (mymoney / 10000.0);
