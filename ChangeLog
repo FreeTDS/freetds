@@ -1,3 +1,6 @@
+Sun May 19 21:41:21 2002  James K. Lowden <jklowden@speakeasy.org>
+	Applied patch from Harry Felder for more flexible logging.
+
 Mon May 13 21:39:40 2002  Frediano Ziglio <freddy77@angelfire.com>
 
 	* doc/tds7.txt:
