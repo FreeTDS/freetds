@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.3 2003-04-30 13:49:07 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.4 2003-05-02 19:05:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -111,6 +111,9 @@ test_insert(void *buf, SQLINTEGER buflen)
 		stmt_handle = 0;
 		return -1;
 	}
+
+	/* this command shouldn't fail */
+	Command(stmt_handle, "DECLARE @i INT");
 
 	SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
 	stmt_handle = 0;
