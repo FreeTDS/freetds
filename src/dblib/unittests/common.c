@@ -12,7 +12,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.4 2002-09-20 14:52:13 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -217,17 +217,25 @@ int syb_err_handler(
       env_set( g_env, "batch_failcount", "1" ) ;
 #endif
 
-      fprintf( stderr, "DB-LIBRARY error (severity %d):\n", severity ) ;
-      fprintf( stderr, "   %s\n", dberrstr ) ;
+      fprintf(stderr,
+	"DB-LIBRARY error (severity %d, dberr %d, oserr %d, dberrstr %s, oserrstr %s):\n",
+	severity, dberr, oserr,	
+	dberrstr ? dberrstr : "(null)",
+	oserrstr ? oserrstr : "(null)");
       fflush( stderr ) ;
 
       /*
        * If the dbprocess is dead or the dbproc is a NULL pointer and
        * we are not in the middle of logging in, then we need to exit.
        * We can't do anything from here on out anyway.
+       * It's OK to end up here in response to a dbconvert() that
+       * resulted in overflow, so don't exit in that case.
        */
-      if( (dbproc == NULL || DBDEAD(dbproc)) )
+      if ((dbproc == NULL) || DBDEAD(dbproc)) {
+	if (dberr != SYBECOFL) {
               exit(255) ;
+	}
+      }
 
       return INT_CANCEL ;
 }
