@@ -116,7 +116,7 @@ AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
 AC_CHECK_FUNCS(atoll)
 AC_MSG_CHECKING(if 64-bit arithmetic is available)
 AC_EGREP_CPP(yes,
-[#ifdef HAVE_ATOLL || $ac_cv_sizeof_long == 8
+[#if HAVE_ATOLL || SIZEOF_LONG == 8
  yes
  #else
  no
