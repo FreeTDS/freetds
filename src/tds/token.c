@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.164 2003-03-30 14:51:05 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.165 2003-03-31 08:57:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1942,6 +1942,10 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		msg_info.sql_state = (char *) malloc(len_sqlstate + 1);
 		tds_get_n(tds, msg_info.sql_state, len_sqlstate);
 		msg_info.sql_state[len_sqlstate] = '\0';
+
+		/* do a better mapping using native errors */		
+		if (strcmp(msg_info.sql_state,"ZZZZZ") == 0)
+			TDS_ZERO_FREE(msg_info.sql_state);
 
 		/* junk status and transaction state */
 		tds_get_byte(tds);
