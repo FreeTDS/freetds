@@ -1,19 +1,22 @@
+Mon Jan 12 18:05:54 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: fix problem of last patch
+
 Sun Jan 11 16:26:39 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* README updated for the release
-	
+
 Sun Jan 11 16:15:30 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in release 0.62
 	* INSTALL NEWS updated for the release
-	
+
 Sat Jan 10 14:02:39 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/token.c Alex Kiesel patch: segfault on foreign key violation
 	
 Sat Jan 10 13:58:03 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* AUTHORS Added contibutors to 0.62, at Frediano's suggestion
-	
+
 Fri Jan  9 18:31:41 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in new candidate 0.62rc6
-	
+
 Sat Jan 10 00:17:18 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/sql2tds.c src/odbc/unittests/funccall.c:
 	- fix complex problem in sql2tds
