@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.208 2005-02-09 16:15:14 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.209 2005-03-30 15:12:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3642,7 +3642,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 
 	for (i = 0;; ++i) {
 		if (i >= tds->num_comp_info)
-			return (BYTE *) NULL;
+			return NULL;
 		info = tds->comp_info[i];
 		if (info->computeid == compute_id)
 			break;
@@ -6533,7 +6533,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
 	}
 	if (indicator)
-		*(DBINT *)(indicator) = indicator_value;
+		*indicator = indicator_value;
 
 	return;
 }

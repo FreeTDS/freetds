@@ -1,3 +1,6 @@
+Wed Mar 30 10:10:43 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c remove broken casts
+
 Wed Mar 30 12:57:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c:
 	- remove warning
