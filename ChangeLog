@@ -1,3 +1,6 @@
+Wed Jan 07 11:35:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c: fix results of SQL_DESC_TYPE_NAME
+
 Tue Jan  6 20:28:21 EST 2004	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/unittests/convert.c:
 	- Ensure that SIGFPE is ignored so that the convert unit test

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.55 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.56 2004-01-07 10:38:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -402,74 +402,71 @@ odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
 	switch (col_type) {
 	case XSYBCHAR:
 	case SYBCHAR:
-		return (strdup("CHAR"));
+		return (strdup("char"));
 	case XSYBVARCHAR:
 	case SYBVARCHAR:
-		return (strdup("VARCHAR"));
+		return (strdup("varchar"));
 	case SYBTEXT:
-		/* FIXME TEXT ??? */
-		return (strdup("LONGVARCHAR"));
+		return (strdup("text"));
 	case SYBBIT:
 	case SYBBITN:
-		return (strdup("BIT"));
+		return (strdup("bit"));
 #if (ODBCVER >= 0x0300)
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
-		return (strdup("BIGINT"));
+		return (strdup("bigint"));
 #endif
 	case SYBINT4:
-		return (strdup("INTEGER"));
+		return (strdup("int"));
 	case SYBINT2:
-		return (strdup("SMALLINT"));
+		return (strdup("smallint"));
 	case SYBINT1:
-		return (strdup("TINYINT"));
+		return (strdup("tinyint"));
 	case SYBINTN:
 		switch (col_size) {
 		case 1:
-			return (strdup("TINYINT"));
+			return (strdup("tinyint"));
 		case 2:
-			return (strdup("SMALLINT"));
+			return (strdup("smallint"));
 		case 4:
-			return (strdup("INTEGER"));
+			return (strdup("int"));
 #if (ODBCVER >= 0x0300)
 		case 8:
-			return (strdup("BIGINT"));
+			return (strdup("bigint"));
 #endif
 		}
 		break;
 	case SYBREAL:
-		return (strdup("REAL"));
+		return (strdup("real"));
 	case SYBFLT8:
-		return (strdup("DOUBLE"));
+		return (strdup("float"));
 	case SYBFLTN:
 		switch (col_size) {
 		case 4:
-			return (strdup("REAL"));
+			return (strdup("real"));
 		case 8:
-			return (strdup("DOUBLE"));
+			return (strdup("float"));
 		}
 		break;
 	case SYBMONEY:
-		return (strdup("DOUBLE"));
 	case SYBMONEY4:
-		return (strdup("DOUBLE"));
 	case SYBMONEYN:
+		return (strdup("money"));
 		break;
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
-		/* FIXME correct ??? */
-		return (strdup("TIMESTAMP"));
+		return (strdup("datetime"));
 	case SYBBINARY:
-		return (strdup("BINARY"));
+		return (strdup("binary"));
 	case SYBIMAGE:
-		/* FIXME correct ??? IMAGE ? */
-		return (strdup("LONGVARBINARY"));
+		return (strdup("image"));
 	case SYBVARBINARY:
-		return (strdup("VARBINARY"));
+		return (strdup("varbinary"));
 	case SYBNUMERIC:
+		return (strdup("numeric"));
 	case SYBDECIMAL:
-		return (strdup("NUMERIC"));
+		return (strdup("decimal"));
 	case SYBNTEXT:
 	case SYBVOID:
 	case SYBNVARCHAR:
@@ -478,9 +475,10 @@ odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
 		break;
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
-		/* FIXME correct ?? and for Sybase */
-		return (strdup("GUID"));
+		/* FIXME for Sybase ?? */
+		return (strdup("uniqueidentifier"));
 	case SYBVARIANT:
+		/* return (strdup("sql_variant")); */
 		break;
 #endif
 	}
