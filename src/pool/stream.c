@@ -1,5 +1,5 @@
 /* TDSPool - Connection pooling for TDS based databases
- * Copyright (C) 2001 Brian Bruns
+ * Copyright (C) 2001, 2002, 2003, 2004  Brian Bruns
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.17 2004-01-28 11:27:31 freddy77 Exp $";
+static char software_version[] = "$Id: stream.c,v 1.18 2004-02-03 19:28:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct tmp_col_struct

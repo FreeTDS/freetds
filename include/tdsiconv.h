@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2002, 2003  Brian Bruns
+ * Copyright (C) 2002, 2003, 2004  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.30 2004-01-31 10:56:49 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.31 2004-02-03 19:28:10 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV

@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003 Frediano Ziglio
+ * Copyright (C) 2003, 2004  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.5 2004-01-28 11:06:24 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.6 2004-02-03 19:28:12 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;

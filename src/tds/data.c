@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003  Frediano Ziglio
+ * Copyright (C) 2003, 2004 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.3 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.4 2004-02-03 19:28:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_get_cardinal_type(int datatype);

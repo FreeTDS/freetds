@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003 James K. Lowden, based on original work by Brian Bruns
+ * Copyright (C) 2003, 2004  James K. Lowden, based on original work by Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.10 2004-01-31 10:56:49 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.11 2004-02-03 19:28:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 

@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.165 2004-01-31 16:07:14 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.166 2004-02-03 19:28:10 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);

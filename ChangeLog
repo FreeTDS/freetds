@@ -1,3 +1,37 @@
+Tue Feb  3 14:06:57 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* include/cspublic.h include/ctlib.h include/dblib.h
+	* include/sybdb.h include/tds.h include/tds_sysdep_private.h
+	* include/tdsiconv.h include/tdsodbc.h include/tdsstring.h
+	* src/apps/freebcp.c src/apps/tsql.c
+	* src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c
+	* src/ctlib/unittests/array_bind.c src/ctlib/unittests/cancel.c
+	* src/ctlib/unittests/common.c src/ctlib/unittests/cs_config.c
+	* src/ctlib/unittests/ct_diagall.c src/ctlib/unittests/ct_diagclient.c
+	* src/ctlib/unittests/t0009.c
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/dblib/dbutil.c src/dblib/rpc.c
+	* src/dblib/unittests/t0017.c
+	* src/odbc/connectparams.c src/odbc/connectparams.h
+	* src/odbc/odbc.c src/odbc/odbc_util.c
+	* src/odbc/odbc_util.h src/odbc/prepare_query.c
+	* src/odbc/sql2tds.c src/odbc/unittests/common.c
+	* src/odbc/unittests/funccall.c src/odbc/unittests/transaction.c
+	* src/pool/member.c src/pool/stream.c src/pool/user.c
+	* src/replacements/iconv.c
+	* src/server/login.c src/server/server.c
+	* src/tds/config.c src/tds/convert.c
+	* src/tds/data.c src/tds/iconv.c
+	* src/tds/login.c src/tds/mem.c src/tds/net.c src/tds/query.c
+	* src/tds/read.c src/tds/tdsstring.c src/tds/threadsafe.c
+	* src/tds/token.c src/tds/util.c src/tds/write.c
+	* src/tds/unittests/common.c src/tds/unittests/convert.c
+	* src/tds/unittests/dataread.c src/tds/unittests/dynamic1.c
+	* src/tds/unittests/flags.c src/tds/unittests/t0003.c
+	* src/tds/unittests/t0006.c src/tds/unittests/utf8_1.c
+	* src/tds/unittests/utf8_2.c
+	* win32/tds_sysdep_public.h
+	- updated copyright notices
+
 Tue Feb  3 12:41:13 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/apps/Makefile.am
 	* src/ctlib/Makefile.am

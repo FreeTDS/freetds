@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.55 2004-01-28 20:37:42 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.56 2004-02-03 19:28:10 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**

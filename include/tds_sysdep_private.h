@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.11 2003-12-29 16:08:03 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.12 2004-02-03 19:28:10 jklowden Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus

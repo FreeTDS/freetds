@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -32,7 +32,7 @@
 #include "isqlext.h"
 #endif
 
-static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.24 2004-01-27 21:56:45 freddy77 Exp $";
+static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.25 2004-02-03 19:28:11 jklowden Exp $";
 static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
