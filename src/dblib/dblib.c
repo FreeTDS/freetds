@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.163 2004-01-30 15:16:00 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.164 2004-01-31 15:19:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -736,6 +736,9 @@ dbstring_free(DBSTRING ** dbstrp)
 	if ((dbstrp != NULL) && (*dbstrp != NULL)) {
 		if ((*dbstrp)->strnext != NULL) {
 			dbstring_free(&((*dbstrp)->strnext));
+		}
+		if ((*dbstrp)->strtext != NULL) {
+			free((*dbstrp)->strtext);
 		}
 		free(*dbstrp);
 		*dbstrp = NULL;

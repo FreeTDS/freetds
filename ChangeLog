@@ -1,3 +1,7 @@
+Sat Jan 31 16:20:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- memory leak patch from Edward Quackenbush
+
 Sat Jan 31 11:58:02 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO include/tdsiconv.h src/replacements/iconv.c:
 	* src/tds/iconv.c:
