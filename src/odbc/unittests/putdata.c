@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.6 2004-06-05 16:45:29 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.7 2004-08-11 12:04:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	/* create table to hold data */
 	Command(Statement, "CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER) 123, 0, &ind) !=
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARCHAR, 0, 0, (SQLPOINTER) 123, 0, &ind) !=
 	    SQL_SUCCESS) {
 		printf("Unable to bind output parameter\n");
 		exit(1);
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	 * test for binary 
 	 */
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_VARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind) !=
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind) !=
 	    SQL_SUCCESS) {
 		printf("Unable to bind output parameter\n");
 		exit(1);

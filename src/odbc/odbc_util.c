@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.64 2004-07-21 14:51:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.65 2004-08-11 12:04:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -662,7 +662,8 @@ odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBu
 		result = SQL_SUCCESS_WITH_INFO;
 	}
 	if (buffer && len >= 0) {
-		strncpy((char *) buffer, s, len);
+		/* buffer can overlap, use memmove, thanks to Valgrind */
+		memmove((char *) buffer, s, len);
 		((char *) buffer)[len] = 0;
 	}
 	return result;
@@ -683,7 +684,8 @@ odbc_set_string_i(SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBu
 		result = SQL_SUCCESS_WITH_INFO;
 	}
 	if (buffer && len >= 0) {
-		strncpy((char *) buffer, s, len);
+		/* buffer can overlap, use memmove, thanks to Valgrind */
+		memmove((char *) buffer, s, len);
 		((char *) buffer)[len] = 0;
 	}
 	return result;

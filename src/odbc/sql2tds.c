@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.35 2004-05-12 19:12:55 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.36 2004-08-11 12:04:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -103,7 +103,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 SQLRETURN
 sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam, int compute_row)
 {
-	int dest_type, src_type, res;
+	int dest_type, src_type, sql_src_type, res;
 	CONV_RESULT ores;
 	TDSBLOB *blob;
 	char *src;
@@ -153,14 +153,23 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 		}
 	} else {
 		/* TODO only a trick... */
-		if (curcol->column_varint_size == 0)
-			tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
+		tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
 	}
 
 	/* get C type */
-	src_type = drec_apd->sql_desc_concise_type;
-	if (src_type == SQL_C_DEFAULT)
-		src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+	sql_src_type = drec_apd->sql_desc_concise_type;
+	if (sql_src_type == SQL_C_DEFAULT)
+		sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+
+	/* test source type */
+	/* TODO test intervals */
+	src_type = odbc_c_to_server_type(sql_src_type);
+	if (src_type == TDS_FAIL)
+		return SQL_ERROR;
+
+	/* we have no data to convert, just return */
+	if (!compute_row)
+		return TDS_SUCCEED;
 
 	/* if only output assume input is NULL */
 	if (drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT)
@@ -185,7 +194,7 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 		len = sql_len;
 		if (sql_len < 0) {
 			/* test for SQL_C_CHAR/SQL_C_BINARY */
-			switch (src_type) {
+			switch (sql_src_type) {
 			case SQL_C_CHAR:
 			case SQL_C_BINARY:
 				break;
@@ -195,27 +204,20 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
 			need_data = 1;
 
-			/* other trick, set length of destination */
-			switch (odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type)) {
-			case SQL_C_CHAR:
-			case SQL_C_BINARY:
-				curcol->column_size = len;
+			/* dynamic length allowed only for BLOB fields */
+			switch (drec_ipd->sql_desc_concise_type) {
+			case SQL_LONGVARCHAR:
+			case SQL_LONGVARBINARY:
 				break;
+			default:
+				return SQL_ERROR;
 			}
 		}
 	}
 
-	/* test source type */
-	/* TODO test intervals */
-	src_type = odbc_c_to_server_type(src_type);
-	if (src_type == TDS_FAIL)
-		return SQL_ERROR;
-
 	/* allocate given space */
-	if (compute_row) {
-		if (!tds_alloc_param_row(info, curcol))
-			return SQL_ERROR;
-	}
+	if (!tds_alloc_param_row(info, curcol))
+		return SQL_ERROR;
 
 	if (need_data) {
 		curcol->column_cur_size = 0;
@@ -226,14 +228,9 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 	assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
 	if (sql_len == SQL_NULL_DATA) {
 		curcol->column_cur_size = 0;
-		if (compute_row)
-			tds_set_null(info->current_row, nparam);
+		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;
 	}
-
-	/* we have no data to convert, just return */
-	if (!compute_row)
-		return TDS_SUCCEED;
 
 	/* convert special parameters (not libTDS compatible) */
 	src = drec_apd->sql_desc_data_ptr;
