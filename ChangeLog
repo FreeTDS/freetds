@@ -1,3 +1,6 @@
+Fri Aug 01 07:26:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: merge memory leak fix from 0.62
+
 Fri Aug 01 07:22:29 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- fix memory leak (report from Manoranjan)

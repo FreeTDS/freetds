@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131.2.4 2003-08-01 05:23:23 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.5 2003-08-01 05:27:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1298,7 +1298,11 @@ static SQLRETURN SQL_API
 _SQLFreeEnv(SQLHENV henv)
 {
 	INIT_HENV;
-	/* TODO why don't free anything ??? */
+
+	tds_free_context(env->tds_ctx);
+	odbc_errs_reset(&env->errs);
+	free(env);
+
 	return SQL_SUCCESS;
 }
 
