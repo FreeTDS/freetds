@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.23 2004-02-03 17:49:22 jklowden Exp $
 SUBDIRS		=	unittests
 
 lib_LTLIBRARIES	=	libsybdb.la

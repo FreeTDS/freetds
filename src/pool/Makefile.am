@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.12 2004-02-03 17:50:10 jklowden Exp $
 bin_PROGRAMS	=	tdspool
 tdspool_SOURCES	=	config.c main.c member.c stream.c user.c util.c pool.h
 SERVERDIR	=	../server

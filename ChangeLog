@@ -1,3 +1,13 @@
+Tue Feb  3 12:41:13 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/Makefile.am
+	* src/ctlib/Makefile.am
+	* src/dblib/Makefile.am
+	* src/odbc/Makefile.am
+	* src/pool/Makefile.am
+	* src/replacements/Makefile.am
+	* src/server/Makefile.am
+	- added ident strings
+
 Sat Jan 31 17:05:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/dblib.h src/ctlib/Makefile.am:
 	* src/ctlib/ct.c src/ctlib/ctutil.c:

@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.6 2004-02-03 17:50:10 jklowden Exp $
 noinst_LTLIBRARIES=		libreplacements.la
 libreplacements_la_SOURCES=	iconv.c
 libreplacements_la_LDFLAGS=

@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.32 2004-02-03 17:50:10 jklowden Exp $
 SUBDIRS		= unittests
 
 lib_LTLIBRARIES	=	libtdsodbc.la
