@@ -25,7 +25,7 @@
 
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.5 2002-08-31 20:29:59 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.6 2002-09-05 22:19:12 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,8 +42,6 @@ main (int argc, char **argv)
 
 PARAMDATA        params;
 DBPROCESS       *dbproc;
-
-    tdsdump_open(NULL);
 
     memset(&params, '\0', sizeof(PARAMDATA));
 
@@ -136,7 +134,7 @@ char arg[FILENAME_MAX + 1];
 
     /* argument 1 - the database object */
 
-    pdata->dbobject = malloc(strlen(argv[1] + 1));
+    pdata->dbobject = malloc(strlen(argv[1]) + 1);
     if (pdata->dbobject != (char *) NULL)
        strcpy(pdata->dbobject, argv[1]);
 
@@ -221,6 +219,9 @@ char arg[FILENAME_MAX + 1];
                         break;
                    case 'c':
                         pdata->cflag++;
+                        break;
+                   case 'd':
+                        tdsdump_open(NULL);
                         break;
                    case 't': 
                         pdata->tflag++;
@@ -590,7 +591,7 @@ void pusage()
    fprintf(stderr,"        [-F firstrow] [-L lastrow] [-b batchsize]\n");
    fprintf(stderr,"        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
    fprintf(stderr,"        [-U username] [-P password] [-I interfaces_file] [-S server]\n");
-   fprintf(stderr,"        [-a display_charset] [-q datafile_charset] [-z language] [-v]\n");
+   fprintf(stderr,"        [-a display_charset] [-q datafile_charset] [-z language] [-v] [-d]\n");
    fprintf(stderr,"        [-A packet size] [-J client character set]\n");
    fprintf(stderr,"        [-T text or image size] [-E] [-N] [-X]  [-y sybase_dir]\n");
    fprintf(stderr,"        [-Mlabelname labelvalue] [-labeled]\n");
