@@ -4,3 +4,5 @@ tdsver.h
 config.h
 tds_configs.h
 tds.h
+stamp-h.in
+config.h.in
