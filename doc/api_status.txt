@@ -147,7 +147,7 @@ dblib	core	dbgetoff
 dblib	core	dbgetpacket	OK
 dblib	core	dbgetrow	OK
 dblib	core	dbgettime	
-dblib	core	dbgetuserdata	stub
+dblib	core	dbgetuserdata	OK
 dblib	core	dbinit	OK
 dblib	core	dbisavail	OK
 dblib	core	dbiscount	

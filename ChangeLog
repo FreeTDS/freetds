@@ -1,3 +1,7 @@
+Mon Sep 30 13:10:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt:
+	- Correct status of dbgetuserdata.
+
 Mon Sep 30 12:37:41 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c:
 	- Namespace cleanup, make g_dblib_version static since it is only
