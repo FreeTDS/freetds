@@ -1,3 +1,6 @@
+Tue Feb  8 10:26:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: fix return from dbretlen
+
 Tue Feb  8 10:22:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c: improved, fix leak
 	* include/tds.h src/tds/login.c src/tds/mem.c:
