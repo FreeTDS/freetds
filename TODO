@@ -8,10 +8,9 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.124 2005-01-13 15:18:23 freddy77 Exp $
+To Do List	$Id: TODO,v 1.125 2005-01-14 16:49:32 jklowden Exp $
 ------------
 Broken:
-. Undelimited data files should be read w/ tds_iconv_fread().
 . Passing invalid character set names to server with tsql?
   tsql (and so libTDS) can pass invalid charset names to Sybase
   libTDS assume Sybase can handle this charset but it's false
@@ -83,6 +82,8 @@ For future versions (in priority order within library):
 . support for password longer than 30 characters under Sybase
 . under Sybase using prepared statements and BLOBs we shouldn't try to
   prepare every time (cache failure preparing, see odbc unittests logs)
+. Native bcp has no iconv support; character bcp files are assumed be encoded
+  with the client's charset.  More flexibility one both sides would be good.  
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
@@ -136,14 +137,3 @@ For future versions (in priority order within library):
 . Server API needs more work, especially for TDS 5.0/7.0
 
 Done
-. FAQ
-  - multiple statements question
-  - PHP workaround with multiple connections (see ML)
-. DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
-. cs_calc and cs_cmp, for sybperl
-. ct_get/send_data()
-. Array binding for ctlib not working
-. bcp support to ctlib
-. support ct_command/CS_SEND_DATA_CMD, now crash
-  (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
-
