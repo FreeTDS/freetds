@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.66 2002-12-07 13:32:28 freddy77 Exp $";
+	"$Id: tds.h,v 1.67 2002-12-07 17:30:34 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -501,7 +501,7 @@ typedef struct tds_column_info {
 	unsigned int column_identity:1;
 	unsigned int column_unicodedata:1;
 	unsigned int column_output:1;
-	TDS_CHAR    column_collation[5];
+	TDS_UCHAR    column_collation[5];
 
 	/* additional fields flags for compute results */
 	TDS_TINYINT  column_operator;
@@ -662,7 +662,7 @@ struct tds_socket {
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
 	int spid;
-	TDS_CHAR collation[5];
+	TDS_UCHAR collation[5];
 	void (*env_chg_func)(TDSSOCKET *tds, int type, char *oldval, char *newval);
 };
 
