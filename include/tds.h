@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.166 2003-12-30 10:27:42 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.167 2003-12-31 11:33:10 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -64,8 +64,11 @@ typedef struct _tds_compiletime_settings
 
 } TDS_COMPILETIME_SETTINGS;
 
-struct DSTR_CHAR;
-typedef struct DSTR_CHAR *DSTR;
+struct DSTR_STRUCT {
+	/* keep always at last */
+	char dstr_s[1];
+};
+typedef struct DSTR_STRUCT *DSTR;
 
 /**
  * @file tds.h

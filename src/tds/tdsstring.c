@@ -37,7 +37,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.8 2003-04-21 09:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.9 2003-12-31 11:33:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -55,25 +55,20 @@ char tds_str_empty[] = "";
  *  \@{ 
  */
 
-struct DSTR
-{
-	char c;
-};
-
 /** clear all string filling with zeroes (mainly for security reason) */
 void
 tds_dstr_zero(DSTR * s)
 {
-	if (*(char **) s)
-		memset(*(char **) s, 0, strlen(*(char **) s));
+	if (*s)
+		memset((*s)->dstr_s, 0, strlen((*s)->dstr_s));
 }
 
 /** free string */
 void
 tds_dstr_free(DSTR * s)
 {
-	if (*(char **) s != tds_str_empty)
-		free(*(char **) s);
+	if (*s != (DSTR) tds_str_empty)
+		free(*s);
 }
 
 /**
@@ -86,13 +81,13 @@ tds_dstr_free(DSTR * s)
 DSTR
 tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 {
-	if (*(char **) s != tds_str_empty)
-		free(*(char **) s);
-	*(char **) s = (char *) malloc(length + 1);
-	if (!*(char **) s)
+	if (*s != (DSTR) tds_str_empty)
+		free(*s);
+	*s = (struct DSTR_STRUCT *) malloc(length + 1);
+	if (!*s)
 		return NULL;
-	memcpy(*(char **) s, src, length);
-	(*(char **) s)[length] = 0;
+	memcpy(*s, src, length);
+	(*s)->dstr_s[length] = 0;
 	return *s;
 }
 
@@ -107,9 +102,9 @@ tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 DSTR
 tds_dstr_set(DSTR * s, char *src)
 {
-	if (*(char **) s != tds_str_empty)
-		free(*(char **) s);
-	*(char **) s = src;
+	if (*s != (DSTR) tds_str_empty)
+		free(*s);
+	*s = (DSTR) src;
 	return *s;
 }
 
@@ -122,9 +117,9 @@ tds_dstr_set(DSTR * s, char *src)
 DSTR
 tds_dstr_copy(DSTR * s, const char *src)
 {
-	if (*(char **) s != tds_str_empty)
-		free(*(char **) s);
-	*(char **) s = strdup(src);
+	if (*s != (DSTR) tds_str_empty)
+		free(*s);
+	*s = (DSTR) strdup(src);
 	return *s;
 }
 
@@ -132,25 +127,25 @@ tds_dstr_copy(DSTR * s, const char *src)
 void
 tds_dstr_init(DSTR * s)
 {
-	*(char **) s = tds_str_empty;
+	*s = (DSTR) tds_str_empty;
 }
 
 int
 tds_dstr_isempty(DSTR * s)
 {
-	return **(char **) s == 0;
+	return (*s)->dstr_s[0] == 0;
 }
 
 char *
 tds_dstr_cstr(DSTR * s)
 {
-	return *(char **) s;
+	return (*s)->dstr_s;
 }
 
 size_t
 tds_dstr_len(DSTR * s)
 {
-	return strlen(*(char **) s);
+	return strlen((*s)->dstr_s);
 }
 #endif
 

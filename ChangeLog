@@ -1,3 +1,7 @@
+Wed Dec 31 12:32:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdsstring.h src/tds/tdsstring.c:
+	- make DSTR more compiler-alike
+
 Wed Dec 31 09:04:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: fix problem with sh and old Solaris
 
