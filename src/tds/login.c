@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.88 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.89 2003-04-01 10:17:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -644,8 +644,8 @@ static int
 tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 {
 	int rc;
-	static const unsigned char magic1_domain[] = { 6, 0x7d, 0x0f, 0xfd,
-		0xff, 0x0, 0x0, 0x0,	/* Client PID */
+	static const unsigned char magic1_domain[] = { 
+		0x0, 0x0, 0x0,	/* ?? */
 		/* the 0x80 in the third byte controls whether this is a domain login 
 		 * or not  0x80 = yes, 0x00 = no */
 		0x0, 0xe0, 0x83, 0x0,	/* Connection ID of the Primary Server (?) */
@@ -656,8 +656,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		0x00, 0x09, 0x04, 0x00,
 		0x00
 	};
-	static const unsigned char magic1_server[] = { 6, 0x83, 0xf2, 0xf8,	/* Client Program version */
-		0xff, 0x0, 0x0, 0x0,	/* Client PID */
+	static const unsigned char magic1_server[] = {
+		0x0, 0x0, 0x0,	/* ?? */
 		0x0, 0xe0, 0x03, 0x0,	/* Connection ID of the Primary Server (?) */
 		0x0,		/* Option Flags 1 */
 		0x88,		/* Option Flags 2 */
@@ -722,7 +722,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	}
 	tds_put_n(tds, NULL, 3);	/* rest of TDSVersion which is a 4 byte field    */
 	tds_put_n(tds, NULL, 4);	/* desired packet size being requested by client */
-	tds_put_n(tds, magic1, 21);
+	tds_put_byte(tds, 6); /* ? */
+	tds_put_int(tds, getpid());
+	tds_put_n(tds, magic1, 16);
 
 	current_pos = 86;	/* ? */
 	/* host name */

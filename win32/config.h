@@ -223,3 +223,9 @@
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1
 #endif
+
+#undef HAVE_ODBCSS_H
+#ifdef _MSC_VER
+#define HAVE_ODBCSS_H 1
+#endif
+

@@ -1,3 +1,12 @@
+Tue Apr 01 12:14:20 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html: updated with PID info
+	* src/tds/login.c:
+	- send correct pid information to mssql (Peter Deacon patch)
+	* src/odbc/error.c win32/config.h:
+	- best method for include odbcss.h
+	* win32/initnet.c:
+	- add code to print leak if debug and msvc (Peter Deacon patch)
+
 Mon Mar 31 17:54:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_param.c:
 	* src/ctlib/unittests/rpc_ct_setparam.c:

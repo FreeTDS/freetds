@@ -190,11 +190,12 @@ byte  var type  description
   2   INT8[5]?	00000
   7   INT8	TDS Version?	0x70 for TDS7, 0x80 for TDS8
   8   INT8[7]?	0000000
- 15   INT8[4]	magic   0x0682f2f8
- 19   INT8[4]	PID of client
- 23   INT8[13]  magic  0x00e003000088ffffff36040000 
-                (seen  0x00e0030000c4ffffff10040000)
-                third byte is 0x83 for NT authentication
+ 15   INT8	magic   0x06
+ 16   INT32	PID of client
+ 20   INT8[4]   0x00000000
+ 24   INT8[12]  magic  0xe003000088ffffff36040000 
+                (seen  0xe0030000c4ffffff10040000)
+                second byte is 0x83 for NT authentication
  36   INT16	position of client hostname (86)
  38   INT16	hostname lenght
  40   INT16	position of username
@@ -736,6 +737,8 @@ Brian Bruns (first draft, protocol discovery)
 Brian Wheeler (protocol discovery)
 <br>
 Mark Schaal (second draft)
+<br>
+Frediano Ziglio
 <p>
 (short list)
 </body>

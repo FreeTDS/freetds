@@ -36,15 +36,15 @@
 #include "tdsodbc.h"
 #include "odbc_util.h"
 
-#ifdef WIN32
-#include <Odbcss.h>
+#if HAVE_ODBCSS_H
+#include <odbcss.h>
 #endif
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.16 2003-03-27 10:00:57 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.17 2003-04-01 10:17:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
