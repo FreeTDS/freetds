@@ -1,3 +1,8 @@
+Sun Jan 12 12:27:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	* src/ctlib/Makefile.am:
+	- bump sover due to structure and constants changed in
+	  cspublic.h 1.11.
+
 Sun Jan 12 11:03:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/connect_fail.c(added):
 	* src/ctlib/ct.c src/ctlib/unittests/.cvsignore:
