@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.25 2003-01-04 13:06:57 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.26 2003-01-24 16:44:35 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -46,6 +46,15 @@ typedef double CS_FLOAT;
 typedef char CS_BOOL;
 typedef void CS_VOID;
 typedef TDS_VARBINARY CS_VARBINARY;
+typedef TDS_NUMERIC CS_DECIMAL;
+typedef TDS_UCHAR CS_IMAGE;
+typedef TDS_UCHAR CS_TEXT;
+typedef TDS_UCHAR CS_LONGBINARY;
+typedef TDS_UCHAR CS_LONGCHAR;
+typedef TDS_INT CS_LONG;
+typedef TDS_UCHAR CS_BINARY;
+typedef TDS_USMALLINT CS_USHORT;
+typedef TDS_UCHAR CS_BIT;
 
 #define CS_FAIL	   TDS_FAIL
 #define CS_SUCCEED TDS_SUCCEED
@@ -114,6 +123,7 @@ typedef struct cs_command
 
 #define CS_MAX_MSG 1024
 #define CS_MAX_NAME 132
+#define CS_MAX_SCALE 77
 #define CS_MAX_PREC 77  /* used by php */
 #define CS_OBJ_NAME 132 /* ? */
 #define CS_TP_SIZE  16  /* text pointer */
