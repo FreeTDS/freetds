@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.86 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.87 2003-09-30 16:46:48 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -584,7 +584,30 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	errno = 0;
 	p = *outbuf;
 	for (;;) {
-		irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
+		/* swap bytes if necessary */
+		if (io == to_client && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
+#if ENABLE_EXTRA_CHECKS
+			char tmp[8];
+#else
+			char tmp[128];
+#endif
+			char *pib = tmp;
+			size_t il = *inbytesleft > sizeof(tmp) ? sizeof(tmp) : *inbytesleft;
+			size_t n;
+
+			for (n = 0; n < il; n += 2) {
+				tmp[n] = (*inbuf)[n + 1];
+				tmp[n + 1] = (*inbuf)[n];
+			}
+			irreversible = iconv(cd, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
+			il = pib - tmp;
+			*inbuf += il;
+			*inbytesleft -= il;
+			if (irreversible != (size_t) - 1 && *inbytesleft)
+				continue;
+		} else {
+			irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
+		}
 		if (irreversible != (size_t) - 1)
 			break;
 
@@ -626,7 +649,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	}
 
 	/* swap bytes if necessary */
-	if (iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
+	if (io == to_server && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
 		assert((*outbuf - p) % 2 == 0);
 		for (; p < *outbuf; p += 2) {
 			char tmp = p[0];
