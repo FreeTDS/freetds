@@ -1,3 +1,9 @@
+Wed Mar 26 10:52:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* tds.dox: add examples
+	* include/tds.h src/server/login.c src/tds/iconv.c:
+	* src/tds/read.c:
+	- start supporting multibyte character
+
 Tue Mar 25 17:04:35 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c:
 	- document some utils

@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.36 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.37 2003-03-26 09:54:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -230,12 +230,13 @@ unsigned char bytes[4];
  * @param need length to read (in characters)
  * @return buffer of character
  */
+/* FIXME handle output buffer len > character to read */
 char *
 tds_get_string(TDSSOCKET * tds, char *dest, int need)
 {
 	char temp[256];
-	char *p;
-	unsigned int bytes_left;
+	char *p, *pend;
+	unsigned int in_left;
 
 	/*
 	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
@@ -251,13 +252,13 @@ tds_get_string(TDSSOCKET * tds, char *dest, int need)
 			tds_get_n(tds, NULL, need * 2);
 			return (NULL);
 		}
-		p = (char *) dest;
-		while (need > 0) {
-			bytes_left = need > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : need;
-			tds_get_n(tds, temp, bytes_left * 2);
-			tds7_unicode2ascii(tds, temp, p, bytes_left);
-			p += bytes_left;
-			need -= bytes_left;
+		p = dest;
+		pend = dest + need;
+		while (need > 0 && p <= pend) {
+			in_left = need > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : need;
+			tds_get_n(tds, temp, in_left * 2);
+			p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p);
+			need -= in_left;
 		}
 		return dest;
 

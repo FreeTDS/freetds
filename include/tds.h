@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.98 2003-03-25 04:31:24 jklowden Exp $";
+	"$Id: tds.h,v 1.99 2003-03-26 09:54:41 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -901,7 +901,7 @@ const char *tds_prtype(int token);
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
 void tds_iconv_close(TDSSOCKET *tds);
 char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
-char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len);
+int tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, int in_len, char *out_string, int out_len);
  
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.37 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.38 2003-03-26 09:54:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -108,13 +108,15 @@ TDSICONVINFO *iconv_info;
 
 /**
  * convert from ucs2 string to ascii.
+ * @return saved bytes
  * @param in_string ucs2 string (not terminated) to convert to ascii
+ * @param in_len length of input string in characters (2 byte)
  * @param out_string buffer to store translated string. It should be large enough 
  *        to handle len bytes. string won't be zero terminated.
- * @param len length of input string in characters (2 byte)
+ * @param out_len length of input string in characters
  */
-char *
-tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int len)
+int
+tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, int in_len, char *out_string, int out_len)
 {
 	int i;
 
@@ -129,13 +131,13 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int
 #endif
 
 	if (!in_string)
-		return NULL;
+		return 0;
 
 #if HAVE_ICONV
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 	if (iconv_info->use_iconv) {
-		out_bytes = len;
-		in_bytes = len * 2;
+		out_bytes = out_len;
+		in_bytes = in_len * 2;
 		in_ptr = (ICONV_CONST char *) in_string;
 		out_ptr = out_string;
 		while (iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t) - 1) {
@@ -146,7 +148,7 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int
 			if (i != EILSEQ)
 				break;
 
-			/* skip one UCS-2 sequnce */
+			/* skip one UCS-2 sequence */
 			in_ptr += 2;
 			in_bytes -= 2;
 
@@ -161,20 +163,24 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int
 		 * less or more than len characters */
 		/* something went wrong fill remaining with zeroes 
 		 * avoiding returning garbage data */
-		if (out_bytes)
+		if (out_bytes) {
 			memset(out_ptr, 0, out_bytes);
+			out_bytes = 0;
+		}
 
-		return out_string;
+		return out_len - out_bytes;
 	}
 #endif
 
 	/* no iconv, strip high order byte if zero or replace with '?' 
 	 * this is the same of converting to ISO8859-1 charset using iconv */
 	/* TODO update docs */
-	for (i = 0; i < len; ++i) {
+	if (out_len < in_len)
+		in_len = out_len;
+	for (i = 0; i < in_len; ++i) {
 		out_string[i] = in_string[i * 2 + 1] ? '?' : in_string[i * 2];
 	}
-	return out_string;
+	return in_len;
 }
 
 /**
