@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.40 2002-11-10 12:40:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.41 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -201,14 +201,15 @@ tds_count_placeholders(const char *query)
  * tds_submit_prepare() creates a temporary stored procedure in the server.
  * Currently works only with TDS 5.0 (work in progress for TDS7+)
  * @param query language query with given placeholders (?)
- * @param id string to identify the dynamic query
+ * @param id string to identify the dynamic query. Pass NULL for automatic generation.
  * @return TDS_FAIL or TDS_SUCCEED
  */
-int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id)
+int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id)
 {
 int id_len, query_len;
+TDSDYNAMIC *dyn;
 
-	if (!query || !id) return TDS_FAIL;
+	if (!query) return TDS_FAIL;
 
 	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
 		tdsdump_log(TDS_DBG_ERROR,
@@ -223,15 +224,24 @@ int id_len, query_len;
 	tds_free_all_results(tds);
 
 	/* allocate a structure for this thing */
-	if (!tds_alloc_dynamic(tds, id))
+	if (!id) {
+		char *tmp_id = NULL;
+		if (tds_get_dynid(tds,&tmp_id) == TDS_FAIL)
+			return TDS_FAIL;
+		dyn = tds_alloc_dynamic(tds, tmp_id);
+		TDS_ZERO_FREE(tmp_id);
+		if (!dyn)
+			return TDS_FAIL;
+	} else {
+		dyn = tds_alloc_dynamic(tds, id);
+	}
+	if (!dyn)
 		return TDS_FAIL;
 
-	/* FIXME is a bit ugly allocate, give a position and then search again ...*/
-	tds->cur_dyn_elem = tds_lookup_dynamic(tds, id);
+	tds->cur_dyn = dyn;
 
 	tds->rows_affected = 0;
 	tds->state = TDS_QUERYING;
-	id_len = strlen(id);
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -304,15 +314,16 @@ int id_len, query_len;
 
 	tds->out_flag=0x0F;
 
+	id_len = strlen(dyn->id);
 	tds_put_byte(tds,0xe7); 
 	tds_put_smallint(tds,query_len + id_len*2 + 21); 
 	tds_put_byte(tds,0x01); 
 	tds_put_byte(tds,0x00); 
 	tds_put_byte(tds,id_len); 
-	tds_put_n(tds, id, id_len);
+	tds_put_n(tds, dyn->id, id_len);
 	tds_put_smallint(tds,query_len + id_len + 16); 
 	tds_put_n(tds, "create proc ", 12);
-	tds_put_n(tds, id, id_len);
+	tds_put_n(tds, dyn->id, id_len);
 	tds_put_n(tds, " as ", 4);
 	tds_put_n(tds, query, query_len);
 
@@ -329,6 +340,7 @@ int id_len, query_len;
 static int 
 tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 {
+	/* TODO output parameter name */
 	tds_put_byte(tds,0x00); /* param name len*/
 	tds_put_byte(tds,0x00); /* status (input) */
 	if (!IS_TDS7_PLUS(tds)) tds_put_int(tds,curcol->column_usertype); /* usertype */
@@ -442,17 +454,17 @@ int is_null;
 /**
  * tds_submit_execute() sends a previously prepared dynamic statement to the 
  * server.
- * Currently works only with TDS 5.0 
+ * Currently works with TDS 5.0 or TDS7+
+ * @param dyn dynamic proc to execute. Must build from same tds.
  */
-int tds_submit_execute(TDSSOCKET *tds, char *id)
+int tds_submit_execute(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 {
-TDSDYNAMIC *dyn;
 TDSCOLINFO *param;
 TDSPARAMINFO *info;
-int elem, id_len;
+int id_len;
 int i, len;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute()\n");
 
 	if (tds->state==TDS_PENDING) {
 		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,
@@ -465,11 +477,7 @@ int i, len;
 	tds->rows_affected = 0;
 	tds->state = TDS_QUERYING;
 
-	id_len = strlen(id);
-
-	elem = tds_lookup_dynamic(tds, id);
-	if (elem < 0) return TDS_FAIL;
-	dyn = tds->dyns[elem];
+	tds->cur_dyn = dyn;
 
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
@@ -500,12 +508,14 @@ int i, len;
 
 	tds->out_flag=0x0F;
 /* dynamic id */
+	id_len = strlen(dyn->id);
+
 	tds_put_byte(tds,TDS5_DYN_TOKEN); 
 	tds_put_smallint(tds,id_len + 5); 
 	tds_put_byte(tds,0x02); 
 	tds_put_byte(tds,0x01); 
 	tds_put_byte(tds,id_len); 
-	tds_put_n(tds, id, id_len);
+	tds_put_n(tds, dyn->id, id_len);
 	tds_put_byte(tds,0x00); 
 	tds_put_byte(tds,0x00); 
 
@@ -553,19 +563,12 @@ tds_get_dynid(TDSSOCKET *tds,char **id)
 /**
  * Free given prepared query
  */
-int tds_submit_unprepare(TDSSOCKET *tds, char *id)
+int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 {
-TDSDYNAMIC *dyn;
-int elem, id_len;
+	if (!dyn) return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n",id);
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n", dyn->id);
 
-	id_len = strlen(id);
-
-	elem = tds_lookup_dynamic(tds, id);
-	if (elem < 0) return TDS_FAIL;
-	dyn = tds->dyns[elem];
-	
 	/* TODO continue ...*/
 	return TDS_FAIL;
 }

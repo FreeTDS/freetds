@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.51 2002-11-08 19:07:39 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.52 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -78,7 +78,7 @@ void tds_free_env(TDSSOCKET *tds);
  *
  *  tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
-TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id)
+TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
 {
 int i;
 TDSDYNAMIC *dyn;
@@ -111,10 +111,11 @@ TDSDYNAMIC **dyns;
 	}
 	tds->dyns = dyns;
 	tds->dyns[tds->num_dyns] = dyn;
+	++tds->num_dyns;
 	strncpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 	dyn->id[TDS_MAX_DYNID_LEN-1]='\0';
 
-	return tds->dyns[tds->num_dyns++];
+	return dyn;
 }
 
 /** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
@@ -155,6 +156,7 @@ TDSDYNAMIC *dyn;
 	}
 	if (tds->dyns) TDS_ZERO_FREE(tds->dyns);
 	tds->num_dyns = 0;
+	tds->cur_dyn = NULL;
 	
 	return;
 }
@@ -446,7 +448,7 @@ void tds_free_all_results(TDSSOCKET *tds)
 	tds->param_info = NULL;
 	tds_free_compute_results(tds->comp_info, tds->num_comp_info);
 	tds->comp_info = NULL;
-    tds->num_comp_info = 0;
+	tds->num_comp_info = 0;
 }
 
 TDSCONTEXT *tds_alloc_context(void)

@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.86 2002-11-08 19:07:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.87 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1235,7 +1235,7 @@ SQLRETURN SQL_API SQLExecDirect(
 SQLRETURN SQL_API SQLExecute(
                             SQLHSTMT           hstmt)
 {
-#if 0 /* developing... */
+#ifdef ENABLE_DEVELOPING
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
 int marker;
@@ -1251,21 +1251,16 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 	if (SQL_SUCCESS!=prepare_call(stmt))
 		return SQL_ERROR;
 
-#if 0 /* developing... */
+#ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
 
 	fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 	if (stmt->param_count > 0) {
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if( !stmt->dynid  ){
-			char *id = NULL;
+		if (!stmt->dyn) {
 			tdsdump_log(TDS_DBG_INFO1,"Creating prepared statement\n");
-			if (tds_get_dynid(tds,&id) == TDS_FAIL)
+			if (tds_submit_prepare(tds,stmt->prepared_query,NULL) == TDS_FAIL)
 				return SQL_ERROR;
-			if (tds_submit_prepare(tds,stmt->prepared_query,id) == TDS_FAIL) {
-				free(id);
-				return SQL_ERROR;
-			}
 			/* TODO get results and other things */
 			do
 			{
@@ -1273,10 +1268,10 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				tds_process_default_tokens(tds,marker);
 			} while (marker!=TDS_DONE_TOKEN);
 
-			stmt->dynid = id; /* FIXME perhaps we should store numeric position ?? */
+			stmt->dyn = tds->cur_dyn;
 		}
 		/* build parameters list */
-		dyn = tds->dyns[tds_lookup_dynamic(tds,stmt->dynid)];
+		dyn = stmt->dyn;
 		/* TODO rebuild should be done for every bingings change */
 		/*if (dyn->num_params != stmt->param_count) */ {
 			int i;
@@ -1305,7 +1300,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		}
 		tdsdump_log(TDS_DBG_INFO1,"End prepare, execute\n");
 		/* TODO check errors */
-		if (tds_submit_execute(tds,stmt->dynid) == TDS_FAIL)
+		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
 			return SQL_ERROR;
 		
 		/* TODO copied from _SQLExecute, use a function... */

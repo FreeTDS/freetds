@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.50 2002-11-08 19:07:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.51 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -369,6 +369,8 @@ int query_len;
 
 CS_RETCODE ct_send_dyn(CS_COMMAND *cmd)
 {
+TDSDYNAMIC *dyn;
+
 	if (cmd->dynamic_cmd==CS_PREPARE) {
 		cmd->dynamic_cmd=0;
 		if (tds_submit_prepare(cmd->con->tds_socket, cmd->query, cmd->dyn_id)==TDS_FAIL)
@@ -377,7 +379,8 @@ CS_RETCODE ct_send_dyn(CS_COMMAND *cmd)
 			return CS_SUCCEED;
 	} else if (cmd->dynamic_cmd==CS_EXECUTE) {
 		cmd->dynamic_cmd=0;
-		if (tds_submit_execute(cmd->con->tds_socket, cmd->dyn_id)==TDS_FAIL)
+		dyn = tds_lookup_dynamic(cmd->con->tds_socket, cmd->dyn_id);
+		if (!dyn || tds_submit_execute(cmd->con->tds_socket, dyn)==TDS_FAIL)
 			return CS_FAIL;
 		else 
 			return CS_SUCCEED;
@@ -406,7 +409,7 @@ TDSDYNAMIC *dyn;
 	tds = cmd->con->tds_socket;
 
 	if (cmd->dynamic_cmd==CS_DESCRIBE_INPUT) {
-		dyn = tds->dyns[tds->cur_dyn_elem];
+		dyn = tds->cur_dyn;
 		if (dyn->dyn_state) {
 			dyn->dyn_state = 0;
 			return CS_END_RESULTS;
@@ -907,7 +910,7 @@ TDSCOLINFO *curcol;
 	tds = cmd->con->tds_socket;
 
 	if (cmd->dynamic_cmd) {
-		resinfo = tds->dyns[tds->cur_dyn_elem]->res_info;
+		resinfo = tds->cur_dyn->res_info;
 	} else {
  		resinfo = cmd->con->tds_socket->curr_resinfo;;
 	}
@@ -940,7 +943,7 @@ CS_INT int_val;
 
 	switch(type) {
 		case CS_NUMDATA:
-			dyn = tds->dyns[tds->cur_dyn_elem];
+			dyn = tds->cur_dyn;
 			int_val = dyn->res_info->num_cols;
 			memcpy(buffer, &int_val, sizeof(CS_INT));
 			break;
@@ -1470,7 +1473,6 @@ CS_RETCODE ct_dynamic(CS_COMMAND *cmd, CS_INT type, CS_CHAR *id, CS_INT idlen, C
 int query_len, id_len;
 TDSDYNAMIC *dyn;
 TDSSOCKET *tds;
-int elem;
 
 	cmd->dynamic_cmd=type;
 	switch(type) {
@@ -1516,8 +1518,7 @@ int elem;
 
 			/* free any input parameters */
 			tds = cmd->con->tds_socket;
-			elem = tds_lookup_dynamic(tds, cmd->dyn_id);
-			dyn = tds->dyns[elem];
+			dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
 			break;
 	}
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_dynamic()\n");
@@ -1526,16 +1527,15 @@ int elem;
 CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT datalen, CS_SMALLINT indicator)
 {
 TDSSOCKET *tds;
-/* TDSDYNAMIC *dyn; */
+TDSDYNAMIC *dyn;
 /* TDSINPUTPARAM *param; */
-int elem;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
 
 	tds = cmd->con->tds_socket;
 
-	elem = tds_lookup_dynamic(tds, cmd->dyn_id);
+	dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
 	
 	/* TODO */
 	return CS_FAIL;

@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.25 2002-11-01 15:02:54 freddy77 Exp $
+# version $Id: Makefile.am,v 1.26 2002-11-16 15:21:12 freddy77 Exp $
 SUBDIRS		=	include src doc samples
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
@@ -17,7 +17,8 @@ install-data-local:
 	fi
 
 # enable some cheat so make distcheck work (see below)
-DISTCHECK_CONFIGURE_FLAGS	=	--enable-distcheck-build
+DISTCHECK_CONFIGURE_FLAGS	=	\
+	--enable-distcheck-build --enable-extra-checks
 
 # for default we do not uninstall configuration (they can be changed)
 if DISTCHECK_BUILD

@@ -1,3 +1,14 @@
+Sat Nov 16 16:15:33 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am  configure.in:
+	- add option for enable extra internal checks
+	- add option to enable work in progress compile
+	* include/tds.h include/tdsodbc.h src/ctlib/ct.c:
+	* src/odbc/odbc.c src/tds/mem.c src/tds/query.c src/tds/token.c:
+	- cur_dyn_elem is now a TDSDYNAMIC* (cur_dyn)
+	- more constification
+	- some dynamic functions accept now TDSDYNAMIC* instead of id
+	- accept NULL id in tds_submit_prepare (handle anonymous in TDS7+)
+
 Fri Nov 15 13:59:30 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/dblib.c src/tds/config.c src/tds/token.c:
 	- Expose real type of LOGINREC->tds_login instead of hiding it

@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.107 2002-11-15 19:02:45 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.108 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -52,7 +52,7 @@ static int tds_process_param_result(TDSSOCKET *tds);
 static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static void tds_process_dyn_result(TDSSOCKET *tds);
-static int tds_process_dynamic(TDSSOCKET *tds);
+static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET *tds);
 static int tds_process_auth(TDSSOCKET *tds);
 static int tds_get_varint_size(int datatype);
 static int tds_get_cardinal_type(int datatype);
@@ -468,7 +468,8 @@ int done_flags;
 				return TDS_SUCCEED;
 				break;
 			case TDS5_DYN_TOKEN:
-				tds->cur_dyn_elem = tds_process_dynamic(tds);
+				/* TODO correct? */
+				tds->cur_dyn = tds_process_dynamic(tds);
 				break;
 			case TDS5_PARAMFMT_TOKEN:
 				tds_process_dyn_result(tds);
@@ -771,8 +772,8 @@ int i;
 
 	i =  tds_get_data(tds,curparam,info->current_row,info->num_cols - 1);
 	/* is this the id of our prepared statement ?? */
-	if (IS_TDS7_PLUS(tds) && tds->cur_dyn_elem && tds->dyns[tds->cur_dyn_elem]->num_id == 0 && info->num_cols == 1) {
-		tds->dyns[tds->cur_dyn_elem]->num_id = *(TDS_INT*)(info->current_row+curparam->column_offset);
+	if (IS_TDS7_PLUS(tds) && tds->cur_dyn && tds->cur_dyn->num_id == 0 && info->num_cols == 1) {
+		tds->cur_dyn->num_id = *(TDS_INT*)(info->current_row+curparam->column_offset);
 	}
 	return i;
 }
@@ -1753,22 +1754,24 @@ int bit = ((unsigned int) column) % 8u;
 	return (current_row[bytenum] >> bit) & 1;
 }
 
-int tds_lookup_dynamic(TDSSOCKET *tds, char *id)
+TDSDYNAMIC *
+tds_lookup_dynamic(TDSSOCKET *tds, char *id)
 {
 int i;
 
 	for (i=0;i<tds->num_dyns;i++) {
 		if (!strcmp(tds->dyns[i]->id, id)) {
-			return i;
+			return tds->dyns[i];
 		}
 	}
-	return -1;
+	return NULL;
 }
 /*
 ** tds_process_dynamic()
 ** finds the element of the dyns array for the id
 */
-static int tds_process_dynamic(TDSSOCKET *tds)
+static TDSDYNAMIC*
+tds_process_dynamic(TDSSOCKET *tds)
 {
 int token_sz;
 char subtoken[2];
@@ -1783,7 +1786,7 @@ int drain = 0;
 		tdsdump_log(TDS_DBG_ERROR,"Unrecognized TDS5_DYN subtoken %x,%x\n",
 		        subtoken[0], subtoken[1]);
 		tds_get_n(tds, NULL, token_sz-2);
-		return -1;
+		return NULL;
 	}
 	id_len = tds_get_byte(tds);
 	if (id_len > TDS_MAX_DYNID_LEN) {
@@ -1810,8 +1813,8 @@ TDSDYNAMIC *dyn;
 	hdrsize = tds_get_smallint(tds);
 	num_cols = tds_get_smallint(tds);
 
-	if (tds->cur_dyn_elem) {
-		dyn = tds->dyns[tds->cur_dyn_elem];
+	if (tds->cur_dyn) {
+		dyn = tds->cur_dyn;
 		tds_free_results(dyn->res_info);
 		/* read number of columns and allocate the columns structure */
 		dyn->res_info = tds_alloc_results(num_cols);

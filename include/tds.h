@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.49 2002-11-13 21:14:39 freddy77 Exp $";
+	"$Id: tds.h,v 1.50 2002-11-16 15:21:14 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -644,7 +644,7 @@ struct tds_socket {
 	TDSENVINFO *env;
 	/* dynamic placeholder stuff */
 	int num_dyns;
-	int cur_dyn_elem;
+	TDSDYNAMIC *cur_dyn;
 	TDSDYNAMIC **dyns;
 	int emul_little_endian;
 	char *date_fmt;
@@ -695,7 +695,7 @@ void *tds_alloc_row(TDSRESULTINFO *res_info);
 void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
 char *tds_msg_get_proc_name(TDSSOCKET *tds, int namelen);
 TDSLOGIN *tds_alloc_login(void);
-TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id);
+TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
 void tds_free_login(TDSLOGIN *login);
 TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale);
 TDSLOCINFO *tds_alloc_locale(void);
@@ -727,7 +727,7 @@ void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
 int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
-int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
+TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 const char *tds_prtype(int token);
 
 /* iconv.c */
@@ -757,13 +757,13 @@ int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge);
 int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 
 /* query.c */
-int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id);
-int tds_submit_execute(TDSSOCKET *tds, char *id);
+int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id);
+int tds_submit_execute(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_send_cancel(TDSSOCKET *tds);
 const char *tds_next_placeholders(const char *start);
 int tds_count_placeholders(const char *query);
 int tds_get_dynid(TDSSOCKET *tds, char **id);
-int tds_submit_unprepare(TDSSOCKET *tds, char *id);
+int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET *tds);
