@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.68 2002-09-27 17:23:11 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.69 2002-09-28 12:53:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -637,7 +637,12 @@ int null_size = 0,i;
 		}
 	}
 
-	return tds_get_data(tds,curparam,info->current_row,info->num_cols - 1);
+	i =  tds_get_data(tds,curparam,info->current_row,info->num_cols - 1);
+	/* is this the id of our prepared statement ?? */
+	if (IS_TDS7_PLUS(tds) && tds->cur_dyn_elem && tds->dyns[tds->cur_dyn_elem]->num_id == 0 && info->num_cols == 1) {
+		tds->dyns[tds->cur_dyn_elem]->num_id = *(TDS_INT*)(info->current_row+curparam->column_offset);
+	}
+	return i;
 }
 static int tds_process_param_result_tokens(TDSSOCKET *tds)
 {

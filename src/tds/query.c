@@ -28,17 +28,15 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.19 2002-09-27 03:09:55 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.20 2002-09-28 12:53:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* All manner of client to server submittal functions */
 
 /**
- * \defgroup query Submit query functions
- */
-
-/** \addtogroup query
+ * \defgroup query Query
+ * \addtogroup query
  *  \@{ 
  */
 
@@ -159,7 +157,7 @@ tds_count_placeholders(const char *query)
 
 /**
  * tds_submit_prepare() creates a temporary stored procedure in the server.
- * Currently works only with TDS 5.0 
+ * Currently works only with TDS 5.0 (work in progress for TDS7+)
  * @param query language query with given placeholders (?)
  * @param id string to identify the dynamic query
  * @return TDS_FAIL or TDS_SUCCEED
@@ -177,13 +175,17 @@ int id_len, query_len;
 	}
 	if (tds->state==TDS_PENDING) {
 		tds_client_msg(tds->tds_ctx, tds,20019,7,0,1,
-        "Attempt to initiate a new SQL Server operation with results pending.");
+			"Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;
 	}
 	tds_free_all_results(tds);
 
 	/* allocate a structure for this thing */
-	tds_alloc_dynamic(tds, id);
+	if (!tds_alloc_dynamic(tds, id))
+		return TDS_FAIL;
+
+	/* FIXME is a bit ugly allocate, give a position and then search again ...*/
+	tds->cur_dyn_elem = tds_lookup_dynamic(tds, id);
 
 	tds->rows_affected = 0;
 	tds->state = TDS_QUERYING;
@@ -259,6 +261,8 @@ int id_len, query_len;
 		return TDS_SUCCEED;
 	}
 
+	tds->out_flag=0x0F;
+
 	tds_put_byte(tds,0xe7); 
 	tds_put_smallint(tds,query_len + id_len*2 + 21); 
 	tds_put_byte(tds,0x01); 
@@ -271,7 +275,6 @@ int id_len, query_len;
 	tds_put_n(tds, " as ", 4);
 	tds_put_n(tds, query, query_len);
 
-	tds->out_flag=0x0F;
 	tds_flush_packet(tds);
 
 	return TDS_SUCCEED;
@@ -289,16 +292,16 @@ int elem, id_len;
 int i;
 int one = 1;
 
-     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
 
 	id_len = strlen(id);
 
-     /* FIXME if id is not found ?? */
-     elem = tds_lookup_dynamic(tds, id);
-     dyn = tds->dyns[elem];
+	elem = tds_lookup_dynamic(tds, id);
+	if (elem < 0) return TDS_FAIL;
+	dyn = tds->dyns[elem];
 
 	/* FIXME add support for mssql, use RPC and sp_prepare */
-	if (0 && IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
 		tds->out_flag = 3; /* RPC */
 		/* procedure name */
@@ -314,16 +317,18 @@ int one = 1;
 
 		for (i=0;i<dyn->num_params;i++) {
 			param = dyn->params[i];
-			tds_put_byte(tds,0x00); 
-			tds_put_byte(tds,0x00); 
-			tds_put_byte(tds,param->column_type); 
-			/* TODO out length correctly based on type */
+			tds_put_byte(tds,0x00); /* no param name */
+			tds_put_byte(tds,0x00); /* input */
+			tds_put_byte(tds,tds_get_null_type(param->column_type));
+			/* TODO out length correctly based on type use a "tds_put_data" */
+			/* this work on small string... */
 			if (param->column_bindlen) { 
 				tds_put_byte(tds,param->column_bindlen);
 				tds_put_byte(tds,param->column_bindlen); 
 				tds_put_n(tds, param->varaddr,param->column_bindlen); 
 			} else {
 				tds_put_byte(tds,0xff);
+				/* FIXME database strings are not null terminated !!! */
 				tds_put_byte(tds,strlen(param->varaddr)); 
 				tds_put_n(tds, param->varaddr,strlen(param->varaddr)); 
 			}
@@ -335,6 +340,7 @@ int one = 1;
 		return TDS_SUCCEED;
 	}
 
+	tds->out_flag=0x0F;
 /* dynamic id */
 	tds_put_byte(tds,0xe7); 
 	tds_put_smallint(tds,id_len + 5); 
@@ -350,33 +356,29 @@ int one = 1;
 	/* size */
 	tds_put_smallint(tds, 9 * dyn->num_params + 2); 
 	/* number of parameters */
-	tds_put_byte(tds,dyn->num_params); 
+	tds_put_smallint(tds,dyn->num_params); 
 	/* column detail for each parameter */
 	for (i=0;i<dyn->num_params;i++) {
 		param = dyn->params[i];
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
-		tds_put_byte(tds,0x00); 
+		tds_put_byte(tds,0x00); /* param name len*/
+		tds_put_byte(tds,0x00); /* status (input) */
+		tds_put_int(tds,0); /* usertype */
 		tds_put_byte(tds,tds_get_null_type(param->column_type)); 
+		/* FIXME handle larger types */
 		if (param->column_bindlen) { 
 			tds_put_byte(tds,param->column_bindlen);
 		} else {
 			tds_put_byte(tds,0xff);
 		}
+		tds_put_byte(tds,0x00); /* locale info length */
 	}
-	tds_put_byte(tds,0x00); 
 
 /* row data */
 	tds_put_byte(tds,0xd7); 
 	for (i=0;i<dyn->num_params;i++) {
 		param = dyn->params[i];
 		if (param->column_bindlen) {
-			tds_put_byte(tds,param->column_bindlen); 
-			param->varaddr = (char *)&one;
+			tds_put_byte(tds,param->column_bindlen);
 			tds_put_n(tds, param->varaddr,param->column_bindlen); 
 		} else {
 			tds_put_byte(tds,strlen(param->varaddr)); 
@@ -384,13 +386,46 @@ int one = 1;
 		}
 	}
 
-
 /* send it */
-	tds->out_flag=0x0F;
 	tds_flush_packet(tds);
 
 	return TDS_SUCCEED;
 }
+
+static volatile int inc_num = 1;
+/**
+ * Get an id for dynamic query based on TDS information
+ * @return TDS_FAIL or TDS_SUCCEED
+ */
+int
+tds_get_dynid(TDSSOCKET *tds,char **id)
+{
+	inc_num = (inc_num+1) & 0xffff;
+	if (asprintf(id,"dyn%x_%d",(int)tds,inc_num)<0) return TDS_FAIL;
+	return TDS_SUCCEED;
+}
+
+/**
+ * Free given prepared query
+ */
+int tds_submit_unprepare(TDSSOCKET *tds, char *id)
+{
+TDSDYNAMIC *dyn;
+int elem, id_len;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n",id);
+
+	id_len = strlen(id);
+
+	elem = tds_lookup_dynamic(tds, id);
+	if (elem < 0) return TDS_FAIL;
+	dyn = tds->dyns[elem];
+	
+	/* TODO continue ...*/
+	return TDS_FAIL;
+}
+
+
 /*
 ** tds_send_cancel() sends an empty packet (8 byte header only)
 ** tds_process_cancel should be called directly after this.
