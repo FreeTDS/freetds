@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.3 2002-09-25 01:12:02 castellano Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.4 2002-09-25 17:57:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -23,7 +23,6 @@ CS_DATAFMT srcfmt;
 CS_INT src = 32768;
 CS_DATAFMT dstfmt;
 CS_SMALLINT dst;
-CS_INT result_type;
 
 	fprintf(stdout, "%s: Testing context callbacks\n", __FILE__);
 	srcfmt.datatype = CS_INT_TYPE;

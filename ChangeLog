@@ -1,3 +1,7 @@
+Wed Sep 25 13:56:20 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/unittests/t0008.c:
+	- Remove unused variable.
+
 Wed Sep 25 17:50:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/query.c:
 	- start writing support for mssql dynamic query
