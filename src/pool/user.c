@@ -43,7 +43,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.14 2003-04-21 09:05:56 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.15 2003-09-23 18:56:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -64,10 +64,10 @@ pool_user_init(TDS_POOL * pool)
 ** accepts a client connection and adds it to the users list and returns it
 */
 TDS_POOL_USER *
-pool_user_create(TDS_POOL * pool, int s, struct sockaddr_in *sin)
+pool_user_create(TDS_POOL * pool, SOCKET s, struct sockaddr_in *sin)
 {
 	TDS_POOL_USER *puser;
-	int fd;
+	SOCKET fd;
 	size_t len;
 
 	/* FIX ME -- the accepted connections just grow until we run out */

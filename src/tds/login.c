@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.107 2003-09-22 20:12:51 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.108 2003-09-23 18:56:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -292,7 +292,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		version[0] = '\0';
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), version);
-	if ((tds->s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
 		perror("socket");
 		tds_free_socket(tds);
 		return TDS_FAIL;

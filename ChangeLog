@@ -1,3 +1,10 @@
+Tue Sep 23 20:54:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tds_sysdep_public.h.in:
+	* src/pool/user.c src/server/login.c:
+	* src/tds/login.c src/tds/mem.c:
+	* src/tds/read.c src/tds/util.c:
+	- fix some issues related to SOCKET declaration on windows
+
 Tue Sep 23 13:37:28 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/odbc.c fix-ups to previous patch for SQLSetStmtAttr.
 

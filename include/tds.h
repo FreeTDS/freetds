@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.142 2003-09-23 08:35:10 ppeterd Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.143 2003-09-23 18:56:22 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -925,7 +925,7 @@ enum TDS_ICONV_INFO_ENTRY
 struct tds_socket
 {
 	/* fixed and connect time */
-	int s;
+	SOCKET s;
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
 	/** version of product (Sybase/MS and full version) */
@@ -1179,7 +1179,7 @@ void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TD
 
 #define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
 
-#define IS_TDSDEAD(x) (((x) == NULL) || ((x)->s < 0))
+#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDS_SOCKET*. */
 #define TDS_IS_SYBASE(x) (!(x->product_version & 0x80000000u))

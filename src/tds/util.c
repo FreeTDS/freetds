@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.38 2003-08-06 19:32:46 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.39 2003-09-23 18:56:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -420,7 +420,7 @@ tds_close_socket(TDSSOCKET * tds)
 
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
-		tds->s = -1;
+		tds->s = INVALID_SOCKET;
 	}
 	return rc;
 }

@@ -49,7 +49,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.29 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.30 2003-09-23 18:56:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -73,7 +73,7 @@ tds_listen(int ip_port)
 	TDSCONTEXT *context;
 	TDSSOCKET *tds;
 	struct sockaddr_in sin;
-	int fd, s;
+	SOCKET fd, s;
 	size_t len;
 
 	sin.sin_addr.s_addr = INADDR_ANY;
@@ -205,7 +205,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_get_n(tds, unicode_string, unicode_len);
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = buf;
-	assert(-1 != tds_iconv(tds, tds->iconv_info, to_client, (const char**)&unicode_string, &unicode_len, &pbuf, &password_len));
+	assert(-1 !=
+	       tds_iconv(tds, tds->iconv_info, to_client, (const char **) &unicode_string, &unicode_len, &pbuf, &password_len));
 	*pbuf = '\0';
 	tds_dstr_set(&login->password, buf);
 	free(unicode_string);
