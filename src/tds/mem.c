@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.90 2003-08-01 06:40:48 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.91 2003-08-06 19:32:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -831,7 +831,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 	if (TDS_IS_MSSQL(tds)) {
 		switch (msgnum) {	/* MSSQL Server */
 
-			SQLS_ENTRY(3621,"01000");
+			SQLS_ENTRY(3621, "01000");
 			SQLS_ENTRY(8153, "01003");	/* Null in aggregate */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
@@ -873,7 +873,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(16917, "24000");
 			SQLS_ENTRY(16946, "24000");
 			SQLS_ENTRY(16950, "24000");
-			SQLS_ENTRY(18456, "28000"); /* Login failed? */
+			SQLS_ENTRY(18456, "28000");	/* Login failed? */
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
 			SQLS_ENTRY(17571, "42000");
 			SQLS_ENTRY(18002, "42000");
@@ -922,12 +922,12 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 		}
 	} else {
 		switch (msgnum) {	/* Sybase */
-			SQLS_ENTRY(3621,"01000");
+			SQLS_ENTRY(3621, "01000");
 			SQLS_ENTRY(9501, "01003");	/* Null in aggregate */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
 			SQLS_ENTRY(109, "21S01");
-			SQLS_ENTRY(110, "21S01");			
+			SQLS_ENTRY(110, "21S01");
 			SQLS_ENTRY(1715, "21S02");	/* Ref column mismatch */
 			SQLS_ENTRY(9502, "22001");	/* String data would be truncated */
 			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */

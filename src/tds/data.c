@@ -28,8 +28,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.1 2003-05-08 08:15:26 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
+static char software_version[] = "$Id: data.c,v 1.2 2003-08-06 19:32:46 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_get_cardinal_type(int datatype);
 static int tds_get_varint_size(int datatype);
@@ -62,7 +62,7 @@ void
 tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type)
 {
 	if (IS_TDS7_PLUS(tds)) {
-		switch(type) {
+		switch (type) {
 		case SYBVARCHAR:
 			type = XSYBVARCHAR;
 			break;
@@ -75,7 +75,7 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLINFO * curcol, TDS_SERVER_TYPE type)
 		case SYBBINARY:
 			type = XSYBBINARY;
 			break;
-		/* avoid warning on other types */
+			/* avoid warning on other types */
 		default:
 			break;
 		}

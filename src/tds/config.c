@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.78 2003-05-22 20:37:43 castellano Exp $";
+static char software_version[] = "$Id: config.c,v 1.79 2003-08-06 19:32:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -999,8 +999,7 @@ const TDS_COMPILETIME_SETTINGS *
 tds_get_compiletime_settings(void)
 {
 	static TDS_COMPILETIME_SETTINGS settings = {
-		TDS_VERSION_NO
-		, "unknown"	/* need fancy script in makefile */
+		TDS_VERSION_NO, "unknown"	/* need fancy script in makefile */
 #		ifdef MSDBLIB
 			, 1
 #		else
