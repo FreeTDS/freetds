@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.57 2002-11-30 08:22:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.58 2002-12-03 16:51:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags);
@@ -573,10 +573,10 @@ tds_get_dynid(TDSSOCKET *tds,char **id)
 	if (!(p = (char*)malloc(16)))
 		return TDS_FAIL;
 	*id = p;
-	*p++ = 'a' + (n%26u);
+	*p++ = (char) ('a' + (n%26u));
 	n /= 26u;
 	for(i = 0; i < 9; ++i) {
-		c = '0' + (n%36u);
+		c = (char) ('0' + (n%36u));
 		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
 		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
 		n /= 36u;

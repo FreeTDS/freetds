@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.3 2002-11-21 16:53:43 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.4 2002-12-03 16:51:46 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -39,7 +39,24 @@ extern "C"
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
+
+#define EINTR WSAEINTR
+#define EINPROGRESS WSAEINPROGRESS
+#define getpid() GetCurrentThreadId()
+#define sock_errno WSAGetLastError()
+typedef DWORD pid_t;
+#define strcasecmp stricmp
+#define atoll _atoi64
+
+#ifndef WIN32
+#define WIN32 1
+#endif
+
 #endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
+
+#ifndef sock_errno
+#define sock_errno errno
+#endif
 
 #ifndef READSOCKET
 #define READSOCKET(a,b,c)	read((a), (b), (c))

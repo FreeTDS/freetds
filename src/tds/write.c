@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.28 2002-12-02 21:05:12 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.29 2002-12-03 16:51:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -212,7 +212,7 @@ fd_set fds;
 			if (retcode >= 0)
 				return 0;
 			/* interrupted */
-			if (errno == EINTR)
+			if (sock_errno == EINTR)
 				continue;
 			/* error, leave caller handle problems */
 			return -1;
@@ -226,7 +226,7 @@ fd_set fds;
 		selecttimeout.tv_sec = tds->timeout - (now - start);
 		selecttimeout.tv_usec = 0;
 		retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-		if (retcode < 0 && errno == EINTR) {
+		if (retcode < 0 && sock_errno == EINTR) {
 			retcode = 0;
 		}
 
@@ -258,8 +258,8 @@ int retval;
 		retval = WRITESOCKET(tds->s, p, left);
 
 		if (retval <= 0) {
-			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", errno,
-				    strerror(errno));
+			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", sock_errno,
+				    strerror(sock_errno));
 			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
 			tds->in_pos = 0;
 			tds->in_len = 0;
@@ -277,7 +277,9 @@ static int
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int retcode;
+#ifndef WIN32
 	void (*oldsig) (int);
+#endif
 
 	tds->out_buf[0] = tds->out_flag;
 	tds->out_buf[1] = final;
@@ -289,16 +291,20 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_log(TDS_DBG_NETWORK, "Sending packet @ %L\n%D\n", tds->out_buf, tds->out_pos);
 
+#ifndef WIN32
 	oldsig = signal(SIGPIPE, SIG_IGN);
 	if (oldsig == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
 	}
+#endif
 
 	retcode = goodwrite(tds);
 
+#ifndef WIN32
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
+#endif
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return retcode;
