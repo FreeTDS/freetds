@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.41 2002-11-13 21:14:41 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.42 2002-11-21 22:34:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -691,7 +691,7 @@ int rows_written;
 
 
 RETCODE
-_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile)
+_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile)
 {
 BCP_COLINFO *bcpcol;
 BCP_HOSTCOLINFO *hostcol;
@@ -744,7 +744,11 @@ TDS_INT desttype;
 				}
 				collen = li;
 				break;
+			default:
+				assert(hostcol->prefix_len <= 4);
+				break;
 			}
+	
 			if (collen == 0)
 				data_is_null = 1;
 
@@ -1205,7 +1209,7 @@ unsigned char row_token = 0xd1;
 static RETCODE
 _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	FILE *hostfile;
+	FILE *hostfile, *errfile;
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_COLINFO *bcpcol;
 
@@ -1238,6 +1242,13 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		return FAIL;
 	}
 
+	if (dbproc->bcp_errorfile) {
+		if (!(errfile = fopen(dbproc->bcp_errorfile, "w"))) {
+			_bcp_err_handler(dbproc, SYBEBUOE);
+			return FAIL;
+		}
+	}
+
 	if (_bcp_start_copy_in(dbproc) == FAIL)
 		return (FAIL);
 
@@ -1251,7 +1262,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	rows_written_so_far = 0;
 
-	while (_bcp_read_hostfile(dbproc, hostfile) == SUCCEED) {
+	while (_bcp_read_hostfile(dbproc, hostfile, errfile) == SUCCEED) {
 
 		row_of_hostfile++;
 
@@ -1269,6 +1280,9 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					if (bcpcol->data_size == 0) {	/* Are we trying to insert a NULL ? */
 						if (!bcpcol->db_nullable){	
 							/* too bad if the column is not nullable */
+							fprintf(errfile, "Column is not nullable. Row %d, Column %d\n", 
+								row_of_hostfile, i);
+							fwrite(bcpcol->data, bcpcol->data_size, 1, errfile);
 							_bcp_err_handler(dbproc, SYBEBCNN);
 							return FAIL;
 						}
@@ -1304,7 +1318,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 						case 0:
 							break;
 						default:
-							assert(0 <= bcpcol->db_varint_size && bcpcol->db_varint_size <= 4);
+							assert(bcpcol->db_varint_size <= 4);
+							break;
 						}
 
 #ifdef WORDS_BIGENDIAN
@@ -1759,7 +1774,7 @@ int i;
 			case 0:
 				break;
 			default:
-				assert(0 <= bcpcol->db_varint_size && bcpcol->db_varint_size <= 4);
+				assert(bcpcol->db_varint_size <= 4);
 			}
 
 			if (is_numeric_type(bcpcol->db_type)) {
@@ -2449,6 +2464,7 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 {
 	const char *errmsg;
 	int severity;
+	int erc;
 
 	switch (bcp_errno) {
 
@@ -2551,6 +2567,18 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		severity = EXRESOURCE;
 		break;
 
+	case SYBEBUOE:
+		erc = asprintf( &errmsg, "Unable to open bcp error file \"%s\".", dbproc->bcp_errorfile );
+		if (errmsg && erc != -1) {
+			erc = _dblib_client_msg(dbproc, bcp_errno, EXRESOURCE, errmsg);
+			free (errmsg);
+			return;
+		}
+		/* try to print silly message if unable to allocate memory */
+		errmsg = "Unable to open error file.";
+		severity = EXRESOURCE;
+		break;
+
 	case SYBEBUOF:
 		errmsg = "Unable to open format-file.";
 		severity = EXPROGRAM;
@@ -2569,6 +2597,11 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 	case SYBEBCUC:
 		errmsg = "Unable to close host data-file.";
 		severity = EXRESOURCE;
+		break;
+
+	case SYBEBUCE:
+		errmsg = "Unable to close error file.";
+		severity = EXPROGRAM;
 		break;
 
 	case SYBEBUCF:
