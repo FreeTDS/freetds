@@ -44,7 +44,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.25 2002-10-18 18:26:12 freddy77 Exp $";
+	"$Id: iconv.c,v 1.26 2002-10-24 20:35:49 castellano Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -116,7 +116,7 @@ ICONV_CONST char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 char quest_mark[] = "?\0"; /* best to live no-const */
-char *pquest_mark; 
+const char *pquest_mark; 
 size_t lquest_mark;
 #endif
 

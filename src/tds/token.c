@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.78 2002-10-24 19:38:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.79 2002-10-24 20:35:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -174,8 +174,6 @@ int   cancelled;
 static int
 tds_set_spid(TDSSOCKET *tds)
 {
-
-TDS_INT ret;
 TDS_INT result_type;
 TDS_INT row_type;
 TDS_INT compute_id;
@@ -354,8 +352,6 @@ int cancelled;
 int retcode = TDS_SUCCEED;
 int res_type;
 int complete_result;
-TDSRESULTINFO *info;
-int i;
 
 
 	if (tds->state==TDS_COMPLETED) {
@@ -765,9 +761,6 @@ TDS_SMALLINT localelen = 0;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
 int remainder;
-TDS_SMALLINT collate_type;
-TDS_SMALLINT tabnamelen;
-int colnamelen;
 int             i;
 int             matched_compute_id = 0;
 
@@ -1119,14 +1112,9 @@ int remainder;
 */
 static int tds_process_compute(TDSSOCKET *tds)
 {
-int colsize, i;
+int i;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
-TDS_SMALLINT    num_cols;
-unsigned char *dest;
-TDS_NUMERIC    *num;
-TDS_VARBINARY  *varbin;
-int             len;
 
     info = tds->curr_resinfo;
 	
@@ -2086,7 +2074,6 @@ struct namelist *freeptr = NULL;
 */
 static int tds7_process_compute_result(TDSSOCKET *tds)
 {
-int hdrsize;
 int col, num_cols; 
 TDS_TINYINT by_cols;
 TDS_TINYINT *cur_by_col;

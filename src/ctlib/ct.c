@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.38 2002-10-23 02:21:22 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.39 2002-10-24 20:35:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -419,7 +419,6 @@ TDSDYNAMIC *dyn;
 
 CS_RETCODE ct_results(CS_COMMAND *cmd, CS_INT *result_type)
 {
-TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
 CS_CONTEXT    *context;
 
@@ -1049,7 +1048,6 @@ TDSSOCKET     *tds = cmd->con->tds_socket;
 TDSRESULTINFO *resinfo = tds->curr_resinfo;
 TDSCOLINFO    *curcol; 
 CS_INT         int_val;
-CS_SMALLINT   by_col;
 CS_SMALLINT  *dest_by_col_ptr;
 CS_TINYINT   *src_by_col_ptr;
 int           i;

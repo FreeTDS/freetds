@@ -1,4 +1,10 @@
-Thu Oct 24 15:42:18 EDT 2002
+Thu Oct 24 16:34:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/ct.c src/ctlib/unittests/t0009.c
+	  src/dblib/unittests/t0023.c src/tds/iconv.c src/tds/tdsstring.c
+	  src/tds/token.c:
+	- Clean up some warnings.
+
+Thu Oct 24 15:42:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/dblib.c:
 	- Add DBSTRING and DBOPTION structures, and some utility functions
 	  to manipulate them,

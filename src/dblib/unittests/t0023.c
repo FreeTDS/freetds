@@ -8,13 +8,18 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <assert.h>
 #include <sqlfront.h>
 #include <sqldb.h>
 
+#include "tdsutil.h"
 #include "common.h"
 
-static char software_version[] = "$Id: t0023.c,v 1.1 2002-10-23 02:21:23 castellano Exp $";
+static char software_version[] = "$Id: t0023.c,v 1.2 2002-10-24 20:35:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -2,11 +2,16 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <stdio.h>
 #include <ctpublic.h>
+#include "tdsutil.h"
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.1 2002-10-23 02:21:23 castellano Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.2 2002-10-24 20:35:49 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve compute results */
@@ -16,12 +21,12 @@ main(int argc, char *argv[])
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 
    CS_COMMAND *cmd; 
-   int i, verbose = 0;
+   int verbose = 0;
 
    CS_RETCODE ret;
    CS_RETCODE results_ret;
    CS_INT result_type;
-   CS_INT col, num_cols, compute_id;
+   CS_INT num_cols, compute_id;
 
    CS_DATAFMT datafmt;
    CS_INT datalength;
@@ -29,7 +34,6 @@ main(int argc, char *argv[])
    CS_INT count, row_count = 0;
  
    CS_CHAR select[1024];
-   char temp[11];
 
    CS_INT  col1;
    CS_CHAR col2[2];
