@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.2 2003-05-20 11:34:41 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.3 2003-12-05 22:00:59 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -68,7 +68,7 @@ CDEFINE = "$(TDSVER)","HAVE_CONFIG_H"=1,"UNIXODBC"
 CDEFINE = $(TDSVER),HAVE_CONFIG_H=1
 .ENDIF
 CPREFIX = ALL
-CINCLUDE = [],[.include]$(ODBC_INC)
+CINCLUDE = [],[.include],[.src.tds]$(ODBC_INC)
 
 .IFDEF __DEBUG__
 CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST/SHOW=ALL
@@ -78,7 +78,7 @@ CDBGFLAGS =
 LDBGFLAGS = /NOTRACE
 .ENDIF
 
-CFLAGS = /DEFINE=($(CDEFINE))/PREFIX=($(CPREFIX))/FLOAT=IEEE/NAMES=AS_IS/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CDBGFLAGS)
+CFLAGS = /DEFINE=($(CDEFINE))/PREFIX=($(CPREFIX))/FLOAT=IEEE/IEEE=DENORM/NAMES=AS_IS/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CDBGFLAGS)
 LINKFLAGS = $(LDBGFLAGS)
 
 .c$(OBJ) :
@@ -95,7 +95,7 @@ VASPRINTFOBJ = @VASPRINTFOBJ@
 STRTOK_ROBJ = @STRTOK_ROBJ@
 
 TDSOBJS = [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), [.src.tds]convert$(OBJ), \
-	[.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
+	[.src.tds]data$(OBJ), [.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
 	[.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), [.src.tds]login$(OBJ), \
 	[.src.tds]md4$(OBJ), [.src.tds]mem$(OBJ), [.src.tds]numeric$(OBJ), \
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
@@ -116,9 +116,9 @@ TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$
 	[.src.pool]stream$(OBJ), [.src.pool]user$(OBJ), [.src.pool]util$(OBJ)
 
 TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), [.src.odbc]convert_sql2string$(OBJ), \
-	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]error$(OBJ), [.src.odbc]native$(OBJ), \
-	[.src.odbc]odbc$(OBJ), [.src.odbc]odbc_util$(OBJ) [.src.odbc]prepare_query$(OBJ), \
-	[.src.odbc]sql2tds$(OBJ)
+	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]descriptor$(OBJ), [.src.odbc]error$(OBJ), \
+	[.src.odbc]native$(OBJ), [.src.odbc]odbc$(OBJ), [.src.odbc]odbc_checks$(OBJ), \
+	[.src.odbc]odbc_util$(OBJ) [.src.odbc]prepare_query$(OBJ), [.src.odbc]sql2tds$(OBJ)
 
 # This is the top-level target
 
@@ -272,6 +272,10 @@ libtdscheck :
 	@ run/nodebug []t0006$(E)
 	@ run/nodebug []t0007$(E)
 	@ run/nodebug []t0008$(E)
+	@ run/nodebug []convert$(E)
+	@ run/nodebug []dataread$(E)
+	@ run/nodebug []flags$(E)
+	@ run/nodebug []utf8_1$(E)
 	@ set default [---]
 
 
@@ -316,6 +320,7 @@ dblibcheck :
 	@ run/nodebug []t0022$(E)
 	@ run/nodebug []t0023$(E)
 	@ run/nodebug []rpc$(E)
+	@ run/nodebug []dbmorecmds$(E)
 	@ set default [---]
 
 tdsodbccheck : 
@@ -329,13 +334,28 @@ tdsodbccheck :
 	@ run/nodebug []connect$(E)
 	@ run/nodebug []print$(E)
 	@ run/nodebug []date$(E)
+	@ run/nodebug []norowset$(E)
+	@ run/nodebug []funccall$(E)
+	@ run/nodebug []lang_error$(E)
+	@ run/nodebug []tables$(E)
+	@ run/nodebug []binary_test$(E)
+	@ run/nodebug []moreandcount$(E)
+	@ run/nodebug []earlybind$(E)
+	@ run/nodebug []putdata$(E)
+	@ run/nodebug []params$(E)
+	@ run/nodebug []raiseerror$(E)
+	@ run/nodebug []getdata$(E)
+	@ run/nodebug []type$(E)
+	@ run/nodebug []transaction$(E)
 	@ set default [---]
 
 buildchecks : libtdstests ctlibtests dblibtests $(ODBCTESTS)
 
 libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]t0001$(E) [.src.tds.unittests]t0002$(E) \
 	[.src.tds.unittests]t0003$(E) [.src.tds.unittests]t0004$(E) [.src.tds.unittests]t0005$(E) \
-	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E)
+	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E) \
+	[.src.tds.unittests]convert$(E) [.src.tds.unittests]dataread$(E) [.src.tds.unittests]flags$(E) \
+	[.src.tds.unittests]utf8_1$(E)
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
 	[.src.ctlib.unittests]t0004$(E) [.src.ctlib.unittests]t0005$(E) [.src.ctlib.unittests]t0006$(E) \
@@ -348,12 +368,17 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]t0012$(E) [.src.dblib.unittests]t0013$(E) [.src.dblib.unittests]t0014$(E) \
 	[.src.dblib.unittests]t0015$(E) [.src.dblib.unittests]t0016$(E) [.src.dblib.unittests]t0017$(E) \
 	[.src.dblib.unittests]t0018$(E) [.src.dblib.unittests]t0019$(E) [.src.dblib.unittests]t0020$(E) \
-	[.src.dblib.unittests]t0021$(E) [.src.dblib.unittests]t0022$(E) [.src.dblib.unittests]t0023$(E)
+	[.src.dblib.unittests]t0021$(E) [.src.dblib.unittests]t0022$(E) [.src.dblib.unittests]t0023$(E) \
+	[.src.dblib.unittests]dbmorecmds$(E)
 
 odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
 	[.src.odbc.unittests]t0004$(E) [.src.odbc.unittests]connect$(E) [.src.odbc.unittests]print$(E) \
-	[.src.odbc.unittests]date$(E)
-
+	[.src.odbc.unittests]date$(E) [.src.odbc.unittests]norowset$(E) [.src.odbc.unittests]funccall$(E) \
+	[.src.odbc.unittests]lang_error$(E) [.src.odbc.unittests]tables$(E) \
+	[.src.odbc.unittests]binary_test$(E) [.src.odbc.unittests]moreandcount$(E) \
+	[.src.odbc.unittests]earlybind$(E) [.src.odbc.unittests]putdata$(E) [.src.odbc.unittests]params$(E) \
+	[.src.odbc.unittests]raiseerror$(E) [.src.odbc.unittests]getdata$(E) [.src.odbc.unittests]type$(E) \
+	[.src.odbc.unittests]transaction$(E) 
 
 # libtds test detailed dependencies
 
@@ -412,6 +437,30 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.tds.unittests]common$(OBJ) : [.src.tds.unittests]common.c [.src.tds.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]convert$(E) : [.src.tds.unittests]convert$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]convert$(OBJ) : [.src.tds.unittests]convert.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]dataread$(E) : [.src.tds.unittests]dataread$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]dataread$(OBJ) : [.src.tds.unittests]dataread.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]flags$(E) : [.src.tds.unittests]flags$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]flags$(OBJ) : [.src.tds.unittests]flags.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]utf8_1$(E) : [.src.tds.unittests]utf8_1$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]utf8_1$(OBJ) : [.src.tds.unittests]utf8_1.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # ctlib test detailed dependencies
@@ -619,6 +668,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.dblib.unittests]rpc$(OBJ) : [.src.dblib.unittests]rpc.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
+[.src.dblib.unittests]dbmorecmds$(E) : [.src.dblib.unittests]dbmorecmds$(OBJ) [.src.dblib.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library
+
+[.src.dblib.unittests]dbmorecmds$(OBJ) : [.src.dblib.unittests]dbmorecmds.c [.src.dblib.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
 [.src.dblib.unittests]common$(OBJ) : [.src.dblib.unittests]common.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
@@ -664,6 +719,84 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
 
 [.src.odbc.unittests]date$(OBJ) : [.src.odbc.unittests]date.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]norowset$(E) : [.src.odbc.unittests]norowset$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]norowset$(OBJ) : [.src.odbc.unittests]norowset.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]funccall$(E) : [.src.odbc.unittests]funccall$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]funccall$(OBJ) : [.src.odbc.unittests]funccall.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]lang_error$(E) : [.src.odbc.unittests]lang_error$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]lang_error$(OBJ) : [.src.odbc.unittests]lang_error.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]tables$(E) : [.src.odbc.unittests]tables$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]tables$(OBJ) : [.src.odbc.unittests]tables.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]binary_test$(E) : [.src.odbc.unittests]binary_test$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]binary_test$(OBJ) : [.src.odbc.unittests]binary_test.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]moreandcount$(E) : [.src.odbc.unittests]moreandcount$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]moreandcount$(OBJ) : [.src.odbc.unittests]moreandcount.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]earlybind$(E) : [.src.odbc.unittests]earlybind$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]earlybind$(OBJ) : [.src.odbc.unittests]earlybind.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]putdata$(E) : [.src.odbc.unittests]putdata$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]putdata$(OBJ) : [.src.odbc.unittests]putdata.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]params$(E) : [.src.odbc.unittests]params$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]params$(OBJ) : [.src.odbc.unittests]params.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]raiseerror$(E) : [.src.odbc.unittests]raiseerror$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]raiseerror$(OBJ) : [.src.odbc.unittests]raiseerror.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]getdata$(E) : [.src.odbc.unittests]getdata$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]getdata$(OBJ) : [.src.odbc.unittests]getdata.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]type$(E) : [.src.odbc.unittests]type$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]type$(OBJ) : [.src.odbc.unittests]type.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]transaction$(E) : [.src.odbc.unittests]transaction$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options
+
+[.src.odbc.unittests]transaction$(OBJ) : [.src.odbc.unittests]transaction.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.odbc.unittests]common$(OBJ) : [.src.odbc.unittests]common.c [.src.odbc.unittests]common.h

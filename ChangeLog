@@ -1,3 +1,7 @@
+Fri Dec  5 23:00:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* vms/config_h.vms vms/descrip_mms.template:
+	- applied Craig A. Berry patch (VMS update)
+
 Fri Dec  5 15:23:48 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/numeric.c convert(money,char) to 2 decimal places
 
