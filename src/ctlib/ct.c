@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.60 2002-12-14 14:44:25 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.61 2002-12-17 18:11:27 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -48,6 +48,7 @@ static void *no_unused_var_warn[] = { software_version,
  */
 static int _ct_bind_data(CS_COMMAND * cmd);
 static int _ct_get_client_type(int datatype, int size);
+static int _ct_fetchable_results(CS_COMMAND *cmd);
 
 
 CS_RETCODE
@@ -658,6 +659,8 @@ TDS_INT marker;
 
 	if (cmd->curr_result_type == CS_COMPUTE_RESULT)
 		return CS_END_DATA;
+	if (cmd->curr_result_type == CS_CMD_FAIL)
+		return CS_CMD_FAIL;
 
 	marker = tds_peek(cmd->con->tds_socket);
 
@@ -964,6 +967,9 @@ CS_RETCODE ret;
 	if (type == CS_CANCEL_CURRENT) {
 		if (conn || !cmd)
 			return CS_FAIL;
+		if (!_ct_fetchable_results(cmd)) {
+			return CS_SUCCEED;
+		}
 		do {
 			ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL);
 		} while ((ret == CS_SUCCEED) || (ret == CS_ROW_FAIL));
@@ -1943,4 +1949,18 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED ct_cursor()\n");
 	return CS_FAIL;
+}
+
+static int 
+_ct_fetchable_results(CS_COMMAND *cmd)
+{
+	switch (cmd->curr_result_type) {
+		case CS_COMPUTE_RESULT:
+		case CS_CURSOR_RESULT:
+		case CS_PARAM_RESULT:
+		case CS_ROW_RESULT:
+		case CS_STATUS_RESULT:
+			return 1;
+	}
+	return 0;
 }
