@@ -1,3 +1,9 @@
+Sun Nov 25 18:02:24 CST 2001    Steve Langasek <vorlon@netexpress.net>
+
+	* added an explicit pointer check in tds/token.c when handling
+	  messages sent by the server; fixes a segfault when using the
+	  ODBC driver.
+
 Sun Nov 25 13:45:45 EST 2001	Brian Bruns <camber@ais.org>
 
 	* include/tds.h.in: add TDS_STR_CLCHARSET define and all client_charset to
