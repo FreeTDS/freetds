@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.67 2003-10-24 10:11:11 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.68 2003-11-13 19:15:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -295,11 +295,6 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 int
 tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * curcol)
 {
-	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
-	 * are parked before converting them to ASCII.  It has to have a size, 
-	 * and there's no advantage to allocating dynamically 
-	 * Also this prevent memory error problem on dynamic memory
-	 */
 	size_t in_left;
 	TDSBLOBINFO *blob_info = NULL;
 
@@ -315,9 +310,6 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * cu
 		}
 		return TDS_SUCCEED;
 	}
-
-	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size,
-		    curcol->column_cur_size);
 
 	/* TODO: reallocate if blob and no space */
 	if (blob_info) {
@@ -349,12 +341,16 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * cu
 		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
+			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: left %d on wire while reading %d into client. \n", 
+							 wire_size, curcol->column_cur_size);
 			return TDS_FAIL;
 		}
 	} else {
 		curcol->column_cur_size = wire_size;
-		if (tds_get_n(tds, dest, wire_size) == NULL)
+		if (tds_get_n(tds, dest, wire_size) == NULL) {
+			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %d from wire. \n", wire_size);
 			return TDS_FAIL;
+		}
 	}
 	return TDS_SUCCEED;
 }
