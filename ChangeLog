@@ -1,3 +1,6 @@
+Mon Dec 15 13:54:57 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h removed spurious trailing comma
+
 Sun Dec 14 14:02:42 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml
 	- Added ODBC background and troubleshooting help.  

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.163 2003-12-14 15:07:45 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.164 2003-12-15 19:04:48 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -413,7 +413,7 @@ typedef enum
 
 	SYBUNIQUE = 36,		/* 0x24 */
 #define SYBUNIQUE	SYBUNIQUE
-	SYBVARIANT = 98, 	/* 0x62 */
+	SYBVARIANT = 98 	/* 0x62 */
 #define SYBVARIANT	SYBVARIANT
 } TDS_SERVER_TYPE;
 
