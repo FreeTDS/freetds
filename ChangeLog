@@ -1,3 +1,6 @@
+Thu Feb 13 16:07:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: merge fix for bus error
+
 Thu Feb 13 00:44:32 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tdsodbc.h  applied Frediano's SQLULEN patch
 
