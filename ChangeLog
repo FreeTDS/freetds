@@ -1,3 +1,7 @@
+Tue May 27 22:16:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- update SQLExecute to fix funccall test
+
 Mon May 26 20:44:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: other QNX4 fix
 

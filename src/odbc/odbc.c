@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.172 2003-05-25 17:13:01 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.173 2003-05-27 20:15:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1246,7 +1246,7 @@ SQLExecute(SQLHSTMT hstmt)
 	struct _sql_param_info *param;
 	TDS_INT result_type;
 	int ret, done;
-	SQLRETURN result = SQL_SUCCESS;
+	SQLRETURN result = SQL_NO_DATA;
 #endif
 
 	INIT_HSTMT;
@@ -1337,6 +1337,7 @@ SQLExecute(SQLHSTMT hstmt)
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
+				result = SQL_SUCCESS;
 				done = 1;
 				break;
 			case TDS_CMD_FAIL:
@@ -1345,27 +1346,32 @@ SQLExecute(SQLHSTMT hstmt)
 				break;
 
 			case TDS_CMD_DONE:
-				done = 1;
+				/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (wanted), 
+				 * do a better job under mssql (it return operation type in DONE), 
+				 * see Sybase and MS ODBC exact behaviour, 
+				 * update moreandcount test  */
+				if (tds->res_info) {
+					result = SQL_SUCCESS;
+					done = 1;
+				}
+				break;
+
+			case TDS_STATUS_RESULT:
+				result = SQL_SUCCESS;
+				odbc_set_return_status(stmt);
 				break;
 
 			case TDS_PARAM_RESULT:
-			case TDS_STATUS_RESULT:
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_MSG_RESULT:
 			case TDS_ROWFMT_RESULT:
 			case TDS_DESCRIBE_RESULT:
+				result = SQL_SUCCESS;
 				break;
 
 			}
 			if (done)
 				break;
-		}
-		if (ret == TDS_NO_MORE_RESULTS) {
-			odbc_set_return_status(stmt);
-			if (result == SQL_ERROR) {
-				return SQL_ERROR;
-			}
-			return SQL_NO_DATA_FOUND;
 		}
 		return result;
 	}
