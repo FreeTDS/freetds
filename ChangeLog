@@ -1,3 +1,7 @@
+Wed Mar 05 20:36:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- revert data compute and add fix for '' -> Jan 01 1900
+
 Wed Mar 05 09:18:02 EST 2003  Mark Lilback <mark@lilback.com>
 	* src/ctlib/ct.c: ct_param returns CS_FAIL for non-rpc cases
 	* src/Makefile.am configure.in: added options to disable apps, server, pool

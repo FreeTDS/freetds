@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.114 2003-03-05 13:14:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.115 2003-03-05 19:36:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1756,6 +1756,7 @@ int          i;
 int current_state;
 
 	memset(&mytime, '\0', sizeof(struct tds_time));
+	t->tm_mday == 1;
 	t = &mytime;
 
 	in = (char *)malloc(strlen(instr)+1);
@@ -1952,15 +1953,11 @@ int current_state;
         tok = strtok_r((char *)NULL, " ,", &lasts);
     }
 
-	if (t->tm_year == 0 && t->tm_mon == 0 && t->tm_mday == 0) {
-		dt_days = 0;
-	} else {
-		i = (t->tm_mon - 13) / 12;
-		dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
-			(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
-			(3 * ( ( t->tm_year + 400 + i ) / 100 ) ) / 4 +
-			t->tm_mday - 109544;
-	}
+	i = (t->tm_mon - 13) / 12;
+	dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
+		(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
+		(3 * ( ( t->tm_year + 400 + i ) / 100 ) ) / 4 +
+		t->tm_mday - 109544;
 
 	free(in);
 
