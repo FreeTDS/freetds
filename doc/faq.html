@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<title>FAQ: FreeTDS.org</title>
+<title>FreeTDS Frequently Asked Questions</title>
 </head>
 <body bgcolor="#f9f9f9">
 
@@ -38,7 +38,7 @@ href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.12 2002-05-02 00:03:49 jklowden Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.13 2002-07-03 06:17:09 jklowden Exp $</i></div><p>
 
 </font> </p>
 
@@ -200,7 +200,7 @@ libraries.</p>
 "Quick Links" on the <a href="http://www.freetds.org/">FreeTDS</a> home page.  You may also 
 use CVS (on sourceforge.net); see the User Guide for details.  </p>
 
-<p>If your firewall prevents FTP access, you can download the jdbc 
+<p>If your firewall prevents FTP access, you can download the JDBC 
 <a href="http://www.rksystems.com/freetds_jdbc.jar">jar file</a> via http.  </p>
 
 <p>Your favorite operating system may have a package of some kind
@@ -415,7 +415,7 @@ statement:</p>
 	<dd>specify the fallback TDS version 
 	<br />(4.2, 4.6, 5.0, or 7.0) [default is 5.0].</dd>
 	<dt><tt>--enable-msdblib</tt></dt>
-	<dd>enable Microsoft APIs and behaviour for DBLib (useful only for porting Win32 dblib apps)</dd>
+	<dd>enable Microsoft APIs and behavior for DBLib (useful only for porting Win32 dblib apps)</dd>
 	<dt><tt>--enable-dbmfix</tt></dt>
 	<dd>rename dbopen() to tdsdbopen() as a work around for dbm name
 	conflict</dd>
@@ -537,7 +537,7 @@ developed.
 <br />Sybperl is a thin wrapper around the Sybase C APIs. It's a lot more
 mature than DBI/DBD::Sybase (I've been working on it for 9 years :-) and
 it's maybe more natural to use for someone who already knows the Sybase
-APIs (or MS's DBlibrary). It's a little more powerfull/flexible than DBI,
+APIs (or MS's DBlibrary). It's a little more powerful/flexible than DBI,
 though obviously less portable. It's still actively maintained and developed
 (by yours truly)
 </p>
@@ -564,7 +564,7 @@ Unicode&lt;-&gt;Ascii conversion is broken, except for languages whose alphabet 
 
 <p>
 TDS is designed to be thread safe in the following manner. Different threads
-may all use seperate connections without interferring with each other.
+may all use separate connections without interfering with each other.
 Threads may not share a DBPROCESS or CS_CONNECTION without controlling
 access via a mutex however.</p>
 
@@ -914,27 +914,57 @@ for both modes.
 We are very close to getting domain authentication working.  If you have access to a SQL Server in domain authentication mode and can do a network trace, let us know!
 </p>
 
-<a name="textdata"></a>
-<h3>My <tt>text</tt> data are being truncated or are causing my client to break.</h3>
+<A name=textdata></a>
+<h3>My <tt>text</tt> data are being truncated or are causing my client to 
+break.</h3>
+<p>The <tt>text</tt> data type is different from <tt>char</tt> and 
+<tt>varchar</tt> types. The maximum data length of a <tt>text</tt> column is 
+governed by the <tt>textsize</tt> variable on the server. Microsoft 
+<I>claims</I> in their documentation to use a default <tt>textsize</tt> of 4000 
+characters, but in fact their implementation is inconsistent. Sometimes 
+<tt>text</tt> columns are returned with a size of 4 GB! </p>
+<p>The best solution is to make sure you set <tt>textsize</tt> to a reasonable 
+value when establishing a connection.  For example: </p>
 
-<p>
-The <tt>text</tt> data type is different from <tt>char</tt> and <tt>varchar</tt> types.  The maximum data length of a  <tt>text></tt> column is governed by the <tt>@@textsize</tt> variable on the server.  Microsoft <i>claims</i> in their documentation to use a default <tt>textsize</tt> of 4000 characters, but in fact their implementation is inconsistent.  Sometimes <tt>text</tt> columns are returned with a size of 2 GB!  
-</p>
-<p>
-The best solution is to make sure you set <tt>@@textsize</tt> to a reasonable value when establishing a connection.  
-</p>
-<a name="dateformat"></a>
+<!-- example set textsize 1000 (see UG) -->
+<pre class="screen">
+<tt class="userinput">
+<b>set <tt class="envar">textsize</tt> = 10000</b></tt>
+</pre>
+
+<A name=dateformat></a>
 <h3>My dates aren't formatted right!</h3>
-<p>
-It's true.  Some dates turn out better than others.  
-</p>
-<p>If you think you're dates should look like <em>2001-12-13 17:58:55.000</em>, but you're seeing something like <em>Dec 13 2001 05:58PM</em> instead (or vice versa), you've bumped into driver behavior.  There's no standard governing the default character string representation of a datetime dataype.  Different drivers make different choices, and  your driver has chosen a representation for you.  
-</p>Microsoft's ODBC driver (which is used by among other things the Query Analyzer tool) converts datetimes to an ISO format.  That format has the advantage of being all numeric, making sortable, unambiguaous, and locale-independent.  Db-lib and Ct-lib, in contrast, as well as the FreeTDS ODBC driver, use the <code>MMM DD YYYY hh:mm</code> format.  
-<p>If you want to be sure your queries always return dates in a particular format, don't leave the formating up to the driver!  Use the <code>Convert</code> function, or the more modern <code>Cast</code> function if your server supports it.  
-</p>
+<p>Some dates turn out better than others. </p>
+<p>If you think your dates should look like <em>2001-12-13 17:58:55.000</em>, 
+but you're seeing something like <em>Dec 13 2001 05:58PM</em> instead (or vice 
+versa), you've bumped into driver behavior. There's no standard governing the 
+default character string representation of a <code>datetime</code> datatype. Different drivers 
+make different choices, and your driver has chosen a representation for you. 
+</p>Microsoft's ODBC driver (which is used by among other things the Query 
+Analyzer tool) converts <tt>datetime</tt> to an ISO format. That format has the 
+advantages of being all numeric: sortable, unambiguous, and 
+locale-independent. <code>db-lib</code> and <code>ct-lib</code>, in contrast, 
+as well as the FreeTDS <code>ODBC</code> 
+driver, use the <code>MMM DD YYYY hh:mm</code> format. 
+<p>If you want to be sure your queries always return dates in a particular 
+format, don't leave the formatting up to the driver! Use the <code>Convert</code> 
+function. For example:  </p>
+
+<!-- example convert  -->
+<pre class="screen"><tt class="userinput">
+
+1> select convert( varchar(30), getdate(), 120 ) as Now
+2> go
+ Now
+ ------------------------------
+ 2002-07-02 12:36:31
+</tt></pre>
+
+<p>As of version 0.60, the default datetime->string conversion is controlled by the <code>locale.conf</code> file.  See the User Guide for details.  
+
 <p>There are two other date issues.  
 <ol>
-	<li>FreeTDS dates are restricted to the range supported by the standard C library, approximately from 1970 to 2038.  </li>
+	<li>FreeTDS dates are restricted to the range supported by the standard C library, approximately from 1970 to 2038.  This restriction will be lifted with version 0.60.  </li>
 	<li>Big endian clients experience difficulty with Microsoft servers.  See <em>Known Issues</em> in the <a href="http://www.freetds.org/userguide/">User Guide</a>.  </li>
 </ol>
 
