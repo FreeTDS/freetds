@@ -14,13 +14,14 @@
 
 
 
-static char  software_version[]   = "$Id: t0014.c,v 1.4 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.5 2002-08-31 06:32:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
 
+char *testargs[] = { "", "data.bin", "t0014.out" };
 
 int main(int argc, char *argv[])
 {
@@ -80,7 +81,11 @@ int main(int argc, char *argv[])
    fprintf(stdout, "After logon\n");
 
   fprintf(stdout, "About to read binary input file\n");
-  
+ 
+  if (argc == 1) {
+	  argv = testargs;
+	  argc = 3;
+  } 
   if (argc < 3) {
 	 fprintf(stderr, "Usage: %s infile outfile\n", argv[0]);
 	 return 1;
@@ -98,8 +103,9 @@ int main(int argc, char *argv[])
   fread((void *)blob, isiz, 1, fp);
   fclose (fp);
 
+  /* FIXME this test seem to not work using temporary tables (sybase?)... */
   fprintf(stdout, "Dropping table\n");
-  dbcmd(dbproc, "drop table #dblib0013");
+  dbcmd(dbproc, "drop table dblib0014");
   dbsqlexec(dbproc);
   while (dbresults(dbproc)!=NO_MORE_RESULTS)
   {
@@ -108,7 +114,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "creating table\n");
    dbcmd(dbproc,
-         "create table #dblib0013 (i int not null, PigTure image not null)");
+         "create table dblib0014 (i int not null, PigTure image not null)");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
@@ -121,7 +127,7 @@ int main(int argc, char *argv[])
    {
       char   cmd[1024];
 
-      sprintf(cmd, "insert into #dblib0013 values (%d, '')", i);
+      sprintf(cmd, "insert into dblib0014 values (%d, '')", i);
       fprintf(stdout, "%s\n",cmd);
       dbcmd(dbproc, cmd);
       dbsqlexec(dbproc);
@@ -133,7 +139,7 @@ int main(int argc, char *argv[])
 
    for(i=0; i<rows_to_add; i++)
    {
-	sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = %d", i);
+	sprintf(sqlCmd, "SELECT PigTure FROM dblib0014 WHERE i = %d", i);
 	dbcmd(dbproc, sqlCmd); 
 	dbsqlexec(dbproc);			 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -144,7 +150,7 @@ int main(int argc, char *argv[])
 	while ((result = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 		result = REG_ROW ;
 		result = DBTXPLEN;
-		strcpy(objname, "#dblib0013.PigTure");
+		strcpy(objname, "dblib0014.PigTure");
 		textPtr = dbtxptr(dbproc, 1);
 		timeStamp = dbtxtimestamp(dbproc, 1);
 
@@ -177,7 +183,7 @@ int main(int argc, char *argv[])
 
    fprintf(stdout, "select\n");
 
-   dbcmd(dbproc,"select * from #dblib0013 order by i");
+   dbcmd(dbproc,"select * from dblib0014 order by i");
    dbsqlexec(dbproc);
 
    if (dbresults(dbproc)!=SUCCEED)
@@ -228,7 +234,7 @@ int main(int argc, char *argv[])
 				return 16;
 			}
 
-			sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = %d", i);
+			sprintf(sqlCmd, "SELECT PigTure FROM dblib0014 WHERE i = %d", i);
 			dbcmd(blobproc, sqlCmd); 
 			dbsqlexec(blobproc);			 
 			if (dbresults(blobproc) != SUCCEED) {

@@ -14,13 +14,14 @@
 
 
 
-static char  software_version[]   = "$Id: t0013.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0013.c,v 1.4 2002-08-31 06:32:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
 
+char *testargs[] = { "", "data.bin", "t0013.out" };
 
 int main(int argc, char *argv[])
 {
@@ -78,7 +79,11 @@ int main(int argc, char *argv[])
    fprintf(stdout, "After logon\n");
 
   fprintf(stdout, "About to read binary input file\n");
-  
+
+  if (argc == 1) {
+	  argv = testargs;
+	  argc = 3;
+  }  
   if (argc < 3) {
 	 fprintf(stderr, "Usage: %s infile outfile\n", argv[0]);
 	 return 1;

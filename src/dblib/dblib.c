@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.47 2002-08-30 21:09:22 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.48 2002-08-31 06:32:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2466,10 +2466,12 @@ char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
 TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
-    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, 35);
-    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, 19);
+    if (textptrlen > DBTXPLEN) return FAIL;
+    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, -1);
+    dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, -1);
+    
 
-	sprintf(query, "writetext bulk %s %s timestamp = %s",
+	sprintf(query, "writetext bulk %s 0x%s timestamp = 0x%s",
 		objname, textptr_string, timestamp_string); 
 	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {
 		return FAIL;
