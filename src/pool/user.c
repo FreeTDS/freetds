@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.23 2004-12-14 00:46:27 brianb Exp $";
+static char software_version[] = "$Id: user.c,v 1.24 2004-12-17 02:08:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
@@ -288,8 +288,13 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	} else {
 		pmbr->state = TDS_QUERYING;
 		pool_assign_member(pmbr, puser);
-		/* write(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len); */
+#ifdef MSG_NOSIGNAL	
+		/* cf. net.c for better technique.  */
 		ret = send(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len, MSG_NOSIGNAL);
+#else
+		/* write(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len); */
+		ret = send(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len, 0);
+#endif
 		/* write failed, cleanup member */
 		if (ret==-1) {
 			pool_free_member(pmbr);

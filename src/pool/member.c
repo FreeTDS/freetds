@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.33 2004-12-14 00:46:27 brianb Exp $";
+static char software_version[] = "$Id: member.c,v 1.34 2004-12-17 02:08:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -255,8 +255,13 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 						pmbr->state = TDS_IDLE;
 						puser->user_state = TDS_SRV_IDLE;
 					}
-					/* write(puser->tds->s, buf, tds->in_len); */
+#ifdef MSG_NOSIGNAL	
+					/* cf. net.c for better technique.  */
 					ret = send(puser->tds->s, buf, tds->in_len, MSG_NOSIGNAL);
+#else
+					/* write(puser->tds->s, buf, tds->in_len); */
+					ret = send(puser->tds->s, buf, tds->in_len, 0);
+#endif
 					if (ret==-1) { /* couldn't write, ditch the user */
 						fprintf(stdout, "member %d received error while writing\n",i);
 						pool_free_user(pmbr->current_user);
