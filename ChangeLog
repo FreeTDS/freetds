@@ -1,3 +1,12 @@
+Tue Sep 30 17:01:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/tds/config.c:
+	- use inet_ntoa_r if available
+	* src/tds/iconv.c: fix for SWAPBYTE flag
+	* src/tds/mem.c: fix bus error, unaligned data
+	* src/tds/threadsafe.c: some fixes
+	* src/tds/token.c: remove warning compiled under big endian machine	
+	* src/tds/unittests/convert.c: fill precision/scale members
+
 Sun Sep 28 16:55:58 PDT 2003	Peter Deacon <peterd@iea-software.com>
 	* src/tds/config.c src/tds/login.c src/tds/token.c:
 	* src/odbc/odbc.c include/tds.h src/tds/read.c:

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.103 2003-09-24 19:15:56 freddy77 Exp $
+dnl $Id: configure.in,v 1.104 2003-09-30 16:46:40 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -186,6 +186,10 @@ AC_CHECK_FUNCS(vsnprintf gettimeofday gethostname sethostent_r gethostent_r)
 AC_CHECK_FUNCS(nl_langinfo)
 AC_CHECK_FUNCS(locale_charset)
 AC_CHECK_FUNCS(getuid getpwuid getpwuid_r)
+OLD_LIBS="$LIBS"
+LIBS="$LIBS $NETWORK_LIBS"
+AC_CHECK_FUNCS(inet_ntoa_r)
+LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS(asprintf vasprintf atoll strtok_r)
 
 dnl ------------------------------------------------------------
