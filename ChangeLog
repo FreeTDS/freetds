@@ -1,3 +1,10 @@
+Fri Aug 16 19:54:55 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c:
+	- test conversion result
+	- initialize date_fmt
+	- free allocated string returned by tds_convert
+	- do not pass login as parent
+
 Fri Aug 16 19:31:03 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c src/tds/config.c:
 	- clear password field before releasing memory

@@ -52,7 +52,6 @@ add_history(char *s)
 int do_query(TDSSOCKET *tds, char *buf)
 {
 int rc, i;
-char tmpbuf[255];
 TDSCOLINFO *col;
 int ctype;
 CONV_RESULT dres;
@@ -79,14 +78,16 @@ CONV_RESULT dres;
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
-                    tds_convert(tds->tds_ctx,
+                    if(tds_convert(tds->tds_ctx,
  					ctype,
  					&tds->res_info->current_row[col->column_offset],
  					col->column_size,
 					SYBVARCHAR,
 					255,
-					&dres);
+					&dres) == TDS_FAIL)
+			    continue;
 				fprintf(stdout,"%s\t",dres.c);
+				free(dres.c);
 			}
 			fprintf(stdout,"\n");
          }
@@ -212,6 +213,8 @@ int tsql_handle_message(void *ctxptr, void *tdsptr, void *msgptr)
 
 	return 1;
 }
+
+int 
 main(int argc, char **argv)
 {
 char *s;
@@ -228,6 +231,11 @@ TDSCONTEXT *context;
 	login = (void *) tds_alloc_login();
 
 	context = tds_alloc_context();
+	if( context->locale && !context->locale->date_fmt ) {
+		/* set default in case there's no locale file */
+		context->locale->date_fmt = strdup("%b %e %Y %l:%M%p");
+	}
+
 	context->msg_handler = tsql_handle_message;
 	context->err_handler = tsql_handle_message;
 
@@ -235,7 +243,7 @@ TDSCONTEXT *context;
 	populate_login(login, argc, argv);
 
 	/* Try to open a connection*/
-	tds = tds_connect(login, context, login); 
+	tds = tds_connect(login, context, NULL); 
 
 	if (!tds) {
 		/* FIX ME -- need to hook up message/error handlers */
@@ -282,4 +290,6 @@ TDSCONTEXT *context;
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(context);
+
+	return 0;
 }
