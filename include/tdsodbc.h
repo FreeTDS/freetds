@@ -37,11 +37,13 @@
 #endif /* HAVE_IODBCINST_H */
 #endif
 
+#ifndef HAVE_SQLLEN
 #ifndef SQLULEN
 #define SQLULEN SQLUINTEGER
 #endif
 #ifndef SQLLEN
 #define SQLLEN SQLINTEGER
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -52,8 +54,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.73 2004-06-05 16:45:29 freddy77 Exp $";
-static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
+static const char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.74 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
 {
@@ -101,11 +103,12 @@ struct _dheader
 {
 	SQLSMALLINT sql_desc_alloc_type;
 	SQLINTEGER sql_desc_bind_type;
-	SQLUINTEGER sql_desc_array_size;
+	SQLULEN sql_desc_array_size;
+	/* TODO SQLLEN ?? see http://support.microsoft.com/default.aspx?scid=kb;en-us;298678 */
 	SQLSMALLINT sql_desc_count;
 	SQLUSMALLINT *sql_desc_array_status_ptr;
-	SQLUINTEGER *sql_desc_rows_processed_ptr;
-	SQLINTEGER *sql_desc_bind_offset_ptr;
+	SQLULEN *sql_desc_rows_processed_ptr;
+	SQLLEN *sql_desc_bind_offset_ptr;
 };
 
 struct _drecord
@@ -119,11 +122,11 @@ struct _drecord
 	SQLPOINTER sql_desc_data_ptr;
 	SQLSMALLINT sql_desc_datetime_interval_code;
 	SQLINTEGER sql_desc_datetime_interval_precision;
-	SQLINTEGER sql_desc_display_size;
+	SQLLEN sql_desc_display_size;
 	SQLSMALLINT sql_desc_fixed_prec_scale;
-	SQLINTEGER *sql_desc_indicator_ptr;
+	SQLLEN *sql_desc_indicator_ptr;
 	DSTR sql_desc_label;
-	SQLUINTEGER sql_desc_length;
+	SQLULEN sql_desc_length;
 	/* this point to a constant buffer, do not free or modify */
 	const char *sql_desc_literal_prefix;
 	/* this point to a constant buffer, do not free or modify */
@@ -132,8 +135,8 @@ struct _drecord
 	DSTR sql_desc_name;
 	SQLSMALLINT sql_desc_nullable;
 	SQLINTEGER sql_desc_num_prec_radix;
-	SQLINTEGER sql_desc_octet_length;
-	SQLINTEGER *sql_desc_octet_length_ptr;
+	SQLLEN sql_desc_octet_length;
+	SQLLEN *sql_desc_octet_length_ptr;
 	SQLSMALLINT sql_desc_parameter_type;
 	SQLSMALLINT sql_desc_precision;
 	SQLSMALLINT sql_desc_rowver;
@@ -242,9 +245,9 @@ struct _hsattr
 	SQLUINTEGER cursor_type;
 	SQLUINTEGER enable_auto_ipd;
 	SQLPOINTER fetch_bookmark_ptr;
-	SQLUINTEGER keyset_size;
-	SQLUINTEGER max_length;
-	SQLUINTEGER max_rows;
+	SQLULEN keyset_size;
+	SQLULEN max_length;
+	SQLULEN max_rows;
 	SQLUINTEGER metadata_id;
 	SQLUINTEGER noscan;
 	/* apd->sql_desc_bind_offset_ptr */
@@ -267,7 +270,7 @@ struct _hsattr
 	/* SQLUINTEGER row_array_size; */
 	/* ard->sql_desc_bind_type */
 	/* SQLUINTEGER row_bind_type; */
-	SQLUINTEGER row_number;
+	SQLULEN row_number;
 	/* ard->sql_desc_array_status_ptr */
 	/* SQLUINTEGER *row_operation_ptr; */
 	/* ird->sql_desc_array_status_ptr */
@@ -316,7 +319,7 @@ struct _hstmt
 	struct _sql_errors errs;
 	TDS_DESC *ard, *ird, *apd, *ipd;
 	TDS_DESC *orig_ard, *orig_apd;
-	SQLUINTEGER sql_rowset_size;
+	SQLULEN sql_rowset_size;
 	struct _hsattr attr;
 	DSTR cursor_name;	/* auto generated cursor name */
 };

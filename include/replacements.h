@@ -28,8 +28,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_replacements_h[] = "$Id: replacements.h,v 1.7 2003-12-19 10:29:25 freddy77 Exp $";
-static void *no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
+static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.8 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"

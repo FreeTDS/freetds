@@ -45,8 +45,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.44 2004-06-05 16:45:29 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: prepare_query.c,v 1.45 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
 static int
@@ -370,7 +370,7 @@ start_parse_prepared_query(struct _hstmt *stmt)
 }
 
 int
-continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGER StrLen_or_Ind)
+continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind)
 {
 	char *d;
 	struct _drecord *drec_apd, *drec_ipd;
@@ -491,10 +491,10 @@ start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
 }
 
 int
-continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGER StrLen_or_Ind)
+continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind)
 {
 	struct _drecord *drec_apd, *drec_ipd;
-	int len;
+	SQLLEN len;
 	int need_bytes;
 	TDSCOLUMN *curcol;
 	TDSBLOB *blob;

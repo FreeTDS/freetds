@@ -42,8 +42,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.12 2004-09-03 14:24:27 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: odbc_checks.c,v 1.13 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
 

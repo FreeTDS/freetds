@@ -36,8 +36,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.17 2004-03-24 16:21:43 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: native.c,v 1.18 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

@@ -20,8 +20,8 @@
 #ifndef ODBC_CHECKS_H
 #define ODBC_CHECKS_H
 
-static char rcsid_odbc_checks_h[] = "$Id: odbc_checks.h,v 1.2 2003-11-05 17:31:31 jklowden Exp $";
-static void *no_unused_odbc_checks_h_warn[] = { rcsid_odbc_checks_h, no_unused_odbc_checks_h_warn };
+static const char rcsid_odbc_checks_h[] = "$Id: odbc_checks.h,v 1.3 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_odbc_checks_h_warn[] = { rcsid_odbc_checks_h, no_unused_odbc_checks_h_warn };
 
 #if ENABLE_EXTRA_CHECKS
 /* macro */

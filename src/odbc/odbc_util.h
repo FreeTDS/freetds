@@ -32,8 +32,8 @@
 #include "isqlext.h"
 #endif
 
-static char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.27 2004-04-11 13:07:22 freddy77 Exp $";
-static void *no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
+static const char rcsid_odbc_util_h[] = "$Id: odbc_util.h,v 1.28 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_odbc_util_h_warn[] = { rcsid_odbc_util_h, no_unused_odbc_util_h_warn };
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
 int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len);

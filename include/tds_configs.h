@@ -20,8 +20,8 @@
 #ifndef _tds_configs_h_
 #define _tds_configs_h_
 
-static char rcsid_tds_configs_h[] = "$Id: tds_configs.h,v 1.19 2004-05-02 07:30:40 freddy77 Exp $";
-static void *no_unused_tds_configs_h_warn[] = { rcsid_tds_configs_h, no_unused_tds_configs_h_warn };
+static const char rcsid_tds_configs_h[] = "$Id: tds_configs.h,v 1.20 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_tds_configs_h_warn[] = { rcsid_tds_configs_h, no_unused_tds_configs_h_warn };
 
 #include "freetds_sysconfdir.h"
 

@@ -56,7 +56,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.8 2004-10-21 03:21:56 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.9 2004-10-28 12:42:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -825,4 +825,4 @@ char *basename(char *path)
 	
 	return (p)? p : path;
 }
-#endif HAVE_BASENAME
+#endif /* HAVE_BASENAME */

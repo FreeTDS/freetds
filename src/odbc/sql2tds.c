@@ -41,8 +41,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.36 2004-08-11 12:04:47 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: sql2tds.c,v 1.37 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)

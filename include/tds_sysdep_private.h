@@ -20,8 +20,8 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.14 2004-08-16 09:59:04 freddy77 Exp $";
-static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
+static const char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.15 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
 extern "C"

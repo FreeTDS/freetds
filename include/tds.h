@@ -20,8 +20,8 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.191 2004-10-13 13:07:26 freddy77 Exp $";
-static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.192 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -867,6 +867,7 @@ typedef struct tds_column
 	TDS_INT *column_lenbind;
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
+
 	BCPCOLDATA *bcp_column_data;
 	TDS_INT bcp_prefix_len;
 	TDS_INT bcp_term_len;

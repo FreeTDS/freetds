@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-06-28 05:25:27 $</date>
-		<releaseinfo>$Revision: 1.84 $</releaseinfo>
+		<date>$Date: 2004-10-28 12:42:11 $</date>
+		<releaseinfo>$Revision: 1.85 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.84 $</>
-<member>$Date: 2004-06-28 05:25:27 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.84 2004-06-28 05:25:27 jklowden Exp $.</>
+<member>$Revision: 1.85 $</>
+<member>$Date: 2004-10-28 12:42:11 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.85 2004-10-28 12:42:11 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -533,7 +533,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-06-28 05:25:27 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-10-28 12:42:11 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -1286,13 +1286,13 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2003-01-23</entry>
 </row>
 <row>
-	<entry>1</entry>
+	<entry>2</entry>
 	<entry>Microsoft</entry>
 	<entry>2000</entry>
 	<entry>Intel/Windows 2000</entry>
 	<entry>Intel/Linux</entry>
 	<entry>8.0</entry>
-	<entry>2003-01-23</entry>
+	<entry>2004-10-19</entry>
 </row>
 <row>
 	<entry>1</entry>
@@ -1304,13 +1304,31 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2002-12-20</entry>
 </row>
 <row>
-	<entry>1</entry>
+	<entry>2</entry>
 	<entry>Sybase ASE</entry>
 	<entry>10.9.2.3</entry>
 	<entry>Intel/Linux</entry>
 	<entry>Intel/Linux</entry>
 	<entry>5.0</entry>
-	<entry>2003-01-10</entry>
+	<entry>2004-10-18</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Microsoft</entry>
+	<entry>2000</entry>
+	<entry>Intel/Windows 2000</entry>
+	<entry>Intel/Linux</entry>
+	<entry>7.0</entry>
+	<entry>2004-10-19</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Microsoft</entry>
+	<entry>2000</entry>
+	<entry>Intel/Windows 2000</entry>
+	<entry>PARISC/HP-UX 11.00</entry>
+	<entry>8.0</entry>
+	<entry>2004-10-18</entry>
 </row>
 </tbody>
 </tgroup>

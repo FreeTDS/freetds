@@ -1,11 +1,8 @@
 #ifndef DES_H
 #define DES_H
 
-static char rcsid_des_h[] = "$Id: des.h,v 1.9 2003-11-01 23:02:07 jklowden Exp $";
-static void *no_unused_des_h_warn[] = {
-	rcsid_des_h,
-	no_unused_des_h_warn
-};
+static const char rcsid_des_h[] = "$Id: des.h,v 1.10 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_des_h_warn[] = {	rcsid_des_h, no_unused_des_h_warn };
 
 typedef unsigned char des_cblock[8];
 

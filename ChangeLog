@@ -1,7 +1,30 @@
+Thu Oct 28 14:39:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: more checks on odbc
+	* include/tdsodbc.h src/odbc/convert_tds2sql.c:
+	* src/odbc/convert_tds2sql.h src/odbc/error.c src/odbc/odbc.c:
+	* src/odbc/prepare_query.c src/odbc/prepare_query.h:
+	-  fixes for 64-bit ODBC
+	* src/apps/bsqldb.c: remove warning
+	* doc/userguide.sgml: updates
+	* include/bkpublic.h include/cspublic.h include/cstypes.h:
+	* include/ctlib.h include/ctpublic.h include/dblib.h:
+	* include/des.h include/md4.h include/md5.h include/replacements.h:
+	* include/sqldb.h include/sqlfront.h include/sybdb.h:
+	* include/syberror.h include/sybfront.h include/tds.h:
+	* include/tds_configs.h include/tds_sysdep_private.h:
+	* include/tdsconvert.h include/tdsiconv.h include/tdssrv.h:
+	* include/tdsstring.h src/odbc/connectparams.c:
+	* src/odbc/connectparams.h src/odbc/convert_sql2string.c:
+	* src/odbc/convert_sql2string.h src/odbc/native.c:
+	* src/odbc/odbc_checks.c src/odbc/odbc_checks.h:
+	* src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	* src/odbc/sql2tds.c src/odbc/sql2tds.h:
+	- const-ify
+
 Wed Oct 20 23:20:08 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in	test for basename(3)
 	* src/apps/bsqldb.c add basename replacement if unavailable
-	
+
 Tue Oct 19 13:13:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/dblib.h include/sybdb.h:
 	* include/tds_sysdep_public.h.in src/dblib/bcp.c:

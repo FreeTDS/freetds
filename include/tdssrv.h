@@ -29,8 +29,8 @@ extern "C"
 }
 #endif
 
-static char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.6 2004-05-27 14:50:06 freddy77 Exp $";
-static void *no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
+static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.7 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
 unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass);

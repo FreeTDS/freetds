@@ -30,8 +30,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.52 2004-03-23 12:05:30 freddy77 Exp $";
-static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.53 2004-10-28 12:42:11 freddy77 Exp $";
+static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
 

@@ -48,14 +48,14 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.33 2004-09-20 08:21:19 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: error.c,v 1.34 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
 static void odbc_get_v2state(const char *sqlstate, char *dest_state);
 static void sqlstate2to3(char *state);
-SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
+SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 
 struct s_SqlMsgMap
 {
@@ -612,7 +612,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		if (handleType != SQL_HANDLE_STMT)
 			return SQL_ERROR;
 
-		return _SQLRowCount((SQLHSTMT) handle, (SQLINTEGER FAR *) buffer);
+		return _SQLRowCount((SQLHSTMT) handle, (SQLLEN FAR *) buffer);
 	}
 
 	if (numRecord > errs->num_errors)

@@ -55,8 +55,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.40 2003-11-13 13:52:52 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: convert_sql2string.c,v 1.41 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
 convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_CHAR * dest, TDS_INT destlen)

@@ -1,8 +1,8 @@
 #ifndef MD5_H
 #define MD5_H
 
-static char rcsid_md5_h[] = "$Id: md5.h,v 1.1 2004-03-22 19:13:13 freddy77 Exp $";
-static void *no_unused_md5_h_warn[] = { rcsid_md5_h, no_unused_md5_h_warn };
+static const char rcsid_md5_h[] = "$Id: md5.h,v 1.2 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_md5_h_warn[] = { rcsid_md5_h, no_unused_md5_h_warn };
 
 struct MD5Context {
 	TDS_UINT buf[4];

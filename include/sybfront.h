@@ -30,8 +30,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybfront_h[] = "$Id: sybfront.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
-static void *no_unused_sybfront_h_warn[] = { rcsid_sybfront_h, no_unused_sybfront_h_warn };
+static const char rcsid_sybfront_h[] = "$Id: sybfront.h,v 1.3 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_sybfront_h_warn[] = { rcsid_sybfront_h, no_unused_sybfront_h_warn };
 
 
 

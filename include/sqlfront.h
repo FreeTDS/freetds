@@ -22,8 +22,8 @@
 
 #include <sybfront.h>
 
-static char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
-static void *no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.3 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
 
 #endif

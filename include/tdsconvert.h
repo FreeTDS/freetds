@@ -28,8 +28,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.19 2003-08-08 15:38:47 freddy77 Exp $";
-static void *no_unused_tdsconvert_h_warn[] = { rcsid_tdsconvert_h, no_unused_tdsconvert_h_warn };
+static const char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.20 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_tdsconvert_h_warn[] = { rcsid_tdsconvert_h, no_unused_tdsconvert_h_warn };
 
 typedef union conv_result
 {

@@ -31,8 +31,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.2 2002-11-21 16:53:43 freddy77 Exp $";
-static void *no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
+static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.3 2004-10-28 12:42:11 freddy77 Exp $";
+static const void *const no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
 
 
 #ifdef __cplusplus

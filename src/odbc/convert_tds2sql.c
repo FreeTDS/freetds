@@ -42,11 +42,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.39 2004-03-08 19:11:58 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: convert_tds2sql.c,v 1.40 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
-convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, TDS_UINT destlen)
+convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
 {
 	TDS_INT nDestSybType;
 	TDS_INT nRetVal = TDS_FAIL;
@@ -71,7 +71,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	/* special case for binary type */
 	if (desttype == SQL_C_BINARY) {
-		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %d \n", destlen);
+		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %lu \n", (unsigned long) destlen);
 
 		if (is_numeric_type(srctype)) {
 			desttype = SQL_C_NUMERIC;
@@ -112,7 +112,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	switch (desttype) {
 
 	case SQL_C_CHAR:
-		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
+		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %lu \n", (unsigned long) destlen);
 
 		ret = nRetVal;
 		/* TODO handle not terminated configuration */

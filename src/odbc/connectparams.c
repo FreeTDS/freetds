@@ -37,8 +37,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.54 2004-05-02 07:30:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static const char software_version[] = "$Id: connectparams.c,v 1.55 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -481,7 +481,7 @@ ODBCINSTPROPERTY, *HODBCINSTPROPERTY;
 
 int ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty);
 
-static const char *aTDSver[] = {
+static const char *const aTDSver[] = {
 	"",
 	"4.2",
 	"5.0",
@@ -490,7 +490,7 @@ static const char *aTDSver[] = {
 	NULL
 };
 
-static const char *aLanguage[] = {
+static const char *const aLanguage[] = {
 	"us_english",
 	NULL
 };

@@ -34,8 +34,8 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.63 2004-10-19 11:15:01 freddy77 Exp $";
-static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64 2004-10-28 12:42:12 freddy77 Exp $";
+static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
  * @file sybdb.h
