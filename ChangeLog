@@ -1,3 +1,8 @@
+Wed Aug 28 21:20:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c:
+	- fix handling EINTR in goodread (possible buffer underrun and single
+	  character losing)
+
 Wed Aug 28 10:06:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	- removed all C++-style comments
 

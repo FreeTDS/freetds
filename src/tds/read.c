@@ -34,12 +34,15 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.11 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.12 2002-08-28 19:22:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-/* Loops until we have received buflen characters */
+/** 
+ * Loops until we have received buflen characters 
+ * return -1 on failure 
+ */
 static int
 goodread (TDSSOCKET *tds, unsigned char *buf, int buflen)
 {
@@ -53,6 +56,7 @@ struct timeval selecttimeout;
 		start = time(NULL);
 		now = time(NULL);
 
+		/* FIXME return even if not finished read if timeout */
 		while ((buflen > 0) && ((now-start) < tds->timeout)) {
 			len = 0;
 			retcode = 0;
@@ -77,10 +81,9 @@ struct timeval selecttimeout;
 				now = time (NULL);
 			}
 			len = READ(tds->s, buf+got, buflen);
-
-			/* FIXME: we should do proper handling of EINTR here as well. */
 			if (len <= 0) {
-				return (-1); /* SOCKET_ERROR); */
+				if (len < 0 && errno == EINTR) len = 0;
+				else return (-1); /* SOCKET_ERROR); */
 			}
 
 			buflen -= len;
@@ -97,8 +100,9 @@ struct timeval selecttimeout;
 		/* got = READ(tds->s, buf, buflen); */
 		while (got < buflen) {
 			int len = READ(tds->s, buf + got, buflen - got);
-			if (len <= 0 && errno != EINTR) {
-				return (-1); /* SOCKET_ERROR); */
+			if (len <= 0) {
+				if (len < 0 && errno == EINTR) len = 0;
+				else return (-1); /* SOCKET_ERROR); */
 			}  
 			got += len;
 		}
