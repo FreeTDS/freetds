@@ -21,4 +21,25 @@ Announcements to:
 	comp.databases.ms-sqlserver
 	linuxpr.com
 	
-	
+
+We received this bit of advice on the mailing list on 
+Wed Oct 15 14:51:06 EDT 2003.  
+
+Please, please, *please* follow the common rules of good release
+engineering (in descending order of importance - two orders of magnitude
+less important per step ;-)
+
+(A) (Priority 100) A release is STATIC.  You NEVER EVER change the
+    contents of a release after the fact, such as replacing the
+    freetds-0.61.tgz archive with a DIFFERENT ARCHIVE containing
+    freetds-0.61.2.  This breaks everybody that has a system in place
+    for using the tarballs - and I know of at least eight public open
+    source systems that do this, as well as a bunch of proprietary systems.
+
+(B) (Priority 1) Release engineering needs to include procedures to
+    make sure that the documentation in the release is up to date.
+    FreeTDS 0.61.2 refers to itself as FreeTDS 0.61.1.
+
+(C) (Priority 0.01) It'd be nice if the archive name followed the normal
+    convention for naming - .tar.gz for tar and gzip, rather than .tgz.
+
