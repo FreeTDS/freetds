@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.17 2002-04-08 02:49:48 quozl Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.18 2002-04-08 08:18:01 quozl Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -218,7 +218,7 @@ FD_ZERO (&fds);
 		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
 		if (retval < 0 && errno == EINPROGRESS) retval = 0;
 		if (retval < 0) {
-			perror("src/tds/login.c: tds_connect");
+			perror("src/tds/login.c: tds_connect (timed)");
 			tds_free_config(config);
 			tds_free_socket(tds);
 			return NULL;
@@ -252,7 +252,11 @@ FD_ZERO (&fds);
 		}
 	} else {
         if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) <0) {
-                perror("src/tds/login.c: tds_connect");
+		char *message = malloc(128);
+		sprintf(message, "src/tds/login.c: tds_connect: %s:%d",
+			inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+		perror(message);
+		free(message);
 		tds_free_config(config);
 		tds_free_socket(tds);
 		return NULL;

@@ -1,4 +1,4 @@
-Mon Apr  8 12:38:12 2002  James Cameron  <quozl@us.netrek.org>
+Mon Apr  8 18:10:17 2002  James Cameron  <quozl@us.netrek.org>
 
 	* src/tds/login.c (tds_connect): Add more context to connection
 	failure message as written to stderr.  Call tds_free_socket()
