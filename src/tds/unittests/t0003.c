@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.8 2003-04-21 16:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.9 2003-04-25 12:12:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -50,15 +50,18 @@ main(int argc, char **argv)
 		tds_process_default_tokens(tds, marker);
 	} while (marker != TDS_DONE_TOKEN);
 
+	if (!tds || !tds->env || !tds->env->database) {
+		fprintf(stderr, "No database ??\n");
+		return 1;
+	}
+
 	/* Test currently disabled during TDSENVINFO changes */
-	if (tds && tds->env && tds->env->database) {
-		if (verbose) {
-			fprintf(stdout, "database changed to %s\n", tds->env->database);
-		}
-		if (strcmp(tds->env->database, "tempdb")) {
-			fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env->database);
-			return 1;
-		}
+	if (verbose) {
+		fprintf(stdout, "database changed to %s\n", tds->env->database);
+	}
+	if (strcmp(tds->env->database, "tempdb")) {
+		fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env->database);
+		return 1;
 	}
 
 	try_tds_logout(login, tds, verbose);

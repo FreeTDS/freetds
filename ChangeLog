@@ -1,3 +1,7 @@
+Fri Apr 25 14:12:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/t0003.c:
+	- fix test (broken...)
+
 Fri Apr 25 13:52:51 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- make tds_(alloc|free)_env static
