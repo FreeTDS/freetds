@@ -1,3 +1,9 @@
+Sat Mar 29 19:58:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdsiconv.h src/server/login.c:
+	* src/tds/iconv.c src/tds/mem.c src/tds/read.c:
+	* src/tds/token.c:
+	- improve i18n (charset conversion)
+
 Fri Mar 28 14:20:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: read collation info for output parameters
 

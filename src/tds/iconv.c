@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.42 2003-03-28 12:39:06 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.43 2003-03-29 18:58:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -67,6 +67,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
 #if HAVE_ICONV
+	iconv_info->bytes_per_char = 1;
 	strncpy(iconv_info->client_charset, strdup(charset), sizeof(iconv_info->client_charset));
 	iconv_info->client_charset[sizeof(iconv_info->client_charset)-1] = '\0';
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
@@ -83,9 +84,10 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 		return;
 	}
 	/* TODO init singlebyte server */
+	if (strcasecmp(charset, "utf8") == 0 || strcasecmp(charset, "utf-8") == 0)
+		/* 3 bytes per characters should be sufficient */
+		iconv_info->bytes_per_char = 3;
 	iconv_info->use_iconv = 1;
-	/* temporarily disable */
-	/* iconv_info->use_iconv = 0; */
 #else
 	iconv_info->use_iconv = 0;
 	tdsdump_log(TDS_DBG_FUNC, "%L iconv library not employed, relying on ISO-8859-1 compatibility\n");

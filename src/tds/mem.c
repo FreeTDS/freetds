@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.66 2003-03-26 16:20:51 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.67 2003-03-29 18:58:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -628,6 +628,7 @@ TDSICONVINFO *iconv_info;
 	iconv_info->cdto_ucs2 = (iconv_t)-1;
 	iconv_info->cdfrom_srv = (iconv_t)-1;
 	iconv_info->cdto_srv = (iconv_t)-1;
+	iconv_info->bytes_per_char = 1;
 #endif
 	/* Jeff's hack, init to no timeout */
 	tds_socket->timeout = 0;                

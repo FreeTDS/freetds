@@ -54,12 +54,14 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <assert.h>
+
 #include "tds.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.39 2003-03-26 16:20:52 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.40 2003-03-29 18:58:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -228,12 +230,12 @@ unsigned char bytes[4];
  * If TDS version is 7 or 8 read unicode string and convert it.
  * @return bytes written
  * @param tds  connection information
+ * @param string_len length of string to read from wire (in characters)
  * @param dest destination buffer, if NULL string is readed and discarded
  * @param need length to read (in characters)
  */
-/* FIXME handle output buffer len > character to read */
 int
-tds_get_string(TDSSOCKET * tds, char *dest, int need)
+tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 {
 	char temp[256];
 	char *p, *pend;
@@ -244,27 +246,29 @@ tds_get_string(TDSSOCKET * tds, char *dest, int need)
 	 * 
 	 * Bug to malloc(0) on some platforms.
 	 */
-	if (need == 0) {
+	if (string_len == 0) {
 		return 0;
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
-			tds_get_n(tds, NULL, need * 2);
-			return need;
+			tds_get_n(tds, NULL, string_len * 2);
+			return string_len;
 		}
 		p = dest;
 		pend = dest + need;
-		while (need > 0 && p < pend) {
-			in_left = need > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : need;
+		while (string_len > 0 && p < pend) {
+			in_left = string_len > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : string_len;
 			tds_get_n(tds, temp, in_left * 2);
 			p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p);
-			need -= in_left;
+			string_len -= in_left;
 		}
 		return p - dest;
 	} else {
-		tds_get_n(tds, dest, need);
-		return need;
+		/* FIXME convert to client charset */
+		assert(need >= string_len);
+		tds_get_n(tds, dest, string_len);
+		return string_len;
 	}
 }
 
