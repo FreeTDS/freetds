@@ -27,7 +27,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.15 2002-09-30 16:36:13 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.16 2002-10-09 20:35:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -97,9 +97,28 @@ int rc = INT_CANCEL;
 		}
 	}
 
-	if (((rc == INT_TIMEOUT) || (rc == INT_CONTINUE))
-	    && (msg->msg_number != SYBETIME)) {
-		rc = INT_EXIT;
+	/*
+	 * Preprocess the return code to handle INT_TIMEOUT/INT_CONTINUE
+	 * for non-SYBETIME errors in the strange and different ways as
+	 * specified by Sybase and Microsoft.
+	 */
+	if (msg->msg_number != SYBETIME) {
+		switch (rc) {
+		case INT_TIMEOUT:
+			rc = INT_EXIT;
+			break;
+		case INT_CONTINUE:
+#ifndef MSDBLIB
+			/* Sybase behavior */
+			rc = INT_EXIT;
+#else
+			/* Microsoft behavior */
+			rc = INT_CANCEL;
+#endif
+			break;
+		default:
+			break;
+		}
 	}
 
 	switch (rc) {
