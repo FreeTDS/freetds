@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.20 2003-11-13 13:52:53 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.21 2003-12-20 13:23:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -11,6 +11,23 @@ char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+char DRIVER[1024];
+
+static int
+check_lib(char *path, const char *file)
+{
+	int len = strlen(path);
+	FILE *f;
+
+	strcat(path, file);
+	f = fopen(path, "rb");
+	if (f) {
+		fclose(f);
+		return 1;
+	}
+	path[len] = 0;
+	return 0;
+}
 
 int
 read_login_info(void)
@@ -18,6 +35,8 @@ read_login_info(void)
 	FILE *in;
 	char line[512];
 	char *s1, *s2;
+	char path[1024];
+	int len;
 
 	in = fopen("../../../PWD", "r");
 	if (!in) {
@@ -38,6 +57,29 @@ read_login_info(void)
 		} else if (!strcmp(s1, "DB")) {
 			strcpy(DATABASE, s2);
 		}
+	}
+	fclose(in);
+
+	/* find our driver */
+	if (!getcwd(path, sizeof(path)))
+		return 0;
+	len = strlen(path);
+	if (len < 10 || strcmp(path + len - 10, "/unittests") != 0)
+		return 0;
+	path[len - 9] = 0;
+	/* TODO this must be extended with all system possibles... */
+	if (!check_lib(path, ".libs/libtdsodbc.sl") && !check_lib(path, ".libs/libtdsodbc.so")
+	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib"))
+		return 0;
+	strcpy(DRIVER, path);
+
+	/* craft out odbc.ini, avoid to read wrong one */
+	in = fopen("myodbc.ini", "w");
+	if (in) {
+		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", SERVER, DRIVER, DATABASE, SERVER);
+		fclose(in);
+		setenv("ODBCINI", "./myodbc.ini", 1);
+		setenv("SYSODBCINI", "./myodbc.ini", 1);
 	}
 	return 0;
 }

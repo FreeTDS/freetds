@@ -25,4 +25,6 @@ type
 genparams
 transaction
 preperror
+myodbc.ini
+odbcinst.ini
 

@@ -16,7 +16,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.8 2003-10-19 17:05:37 jklowden Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.9 2003-12-20 13:23:38 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern HENV Environment;
@@ -27,6 +27,7 @@ extern char USER[512];
 extern char SERVER[512];
 extern char PASSWORD[512];
 extern char DATABASE[512];
+extern char DRIVER[1024];
 
 int read_login_info(void);
 void CheckReturn(void);

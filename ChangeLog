@@ -1,3 +1,9 @@
+Sat Dec 20 14:18:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/common.c:
+	* src/odbc/unittests/common.h src/odbc/unittests/connect.c:
+	- autoconfigure ODBC unittests
+	- make connect test work even using iODBC
+
 Sat Dec 20 11:24:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am freetds.spec.in tds.dox doc/Makefile.am:
 	- do not tar reference / userguide
