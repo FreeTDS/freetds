@@ -22,13 +22,16 @@
 #include <tdsconvert.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: t0008.c,v 1.5 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.6 2002-10-03 18:46:09 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int g_result = 0;
 static TDSCONTEXT ctx;
 
-void test(const char* test, const char* result,int prec,int scale)
+void test(const char *test, const char *result, int prec, int scale);
+
+void
+test(const char *test, const char *result, int prec, int scale)
 {
 	int i;
 	char buf[256];
@@ -53,7 +56,8 @@ void test(const char* test, const char* result,int prec,int scale)
 	}
 }
 
-int main()
+int
+main(int argc, char **argv)
 {
 	/* very long string for test buffer overflow */
 	int i;

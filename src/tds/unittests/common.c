@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <tds.h>
+#include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.5 2002-09-12 19:27:00 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.6 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -10,7 +11,10 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 
-int read_login_info()
+int read_login_info(void);
+
+int
+read_login_info(void)
 {
    FILE *in;
    char line[512];

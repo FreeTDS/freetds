@@ -21,7 +21,11 @@ static const char *cur_result = "";
 static const char *cur_test = "";
 static int cur_line = 0;
 
-int test(int srctype,void *srcdata,int srclen,int dsttype,int dstlen) {
+int test(int srctype, void *srcdata, int srclen, int dsttype, int dstlen);
+
+int
+test(int srctype, void *srcdata, int srclen, int dsttype, int dstlen)
+{
 	DBCHAR	buf[10];
 	char	s[20],*p;
 	int	i,len,correct;

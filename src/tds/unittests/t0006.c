@@ -22,14 +22,15 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0006.c,v 1.5 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.6 2002-10-03 18:46:09 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
 
 static TDSCONTEXT ctx;
 
-int main()
+int
+main(int argc, char **argv)
 {
    TDSLOGIN *login;
    TDSSOCKET *tds;

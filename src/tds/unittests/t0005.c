@@ -21,13 +21,14 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0005.c,v 1.3 2002-09-16 20:28:02 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.4 2002-10-03 18:46:09 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
 char *value_as_string(TDSSOCKET *tds, int col_idx);
 
-int main()
+int
+main(int argc, char **argv)
 {
    TDSLOGIN *login;
    TDSSOCKET *tds;

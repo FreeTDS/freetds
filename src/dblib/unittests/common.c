@@ -12,7 +12,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.4 2002-09-20 14:52:13 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.5 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,7 +62,8 @@ char *s1, *s2;
 	return 0;
 }
 
-void check_crumbs()
+void
+check_crumbs(void)
 {
    int           i;
    memcheck_t   *ptr = breadcrumbs;
@@ -83,7 +84,8 @@ void check_crumbs()
 
 
    
-void add_bread_crumb()
+void
+add_bread_crumb(void)
 {
    memcheck_t   *tmp;
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char  software_version[]   = "$Id: t0006.c,v 1.4 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.5 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 CS_CONTEXT *ctx; 
@@ -9,18 +9,27 @@ int allSuccess = 1;
 
 typedef const char* STR;
 
-int DoTest(
+int DoTest(TDS_INT fromtype, void *fromdata, TDS_INT fromlen,
+                TDS_INT totype, TDS_INT tomaxlen,
+                CS_RETCODE tores, void *todata, TDS_INT tolen,
+                STR sdecl,
+                STR sfromtype, STR sfromdata, STR sfromlen,
+                STR stotype, STR stomaxlen,
+                STR stores, STR stodata, STR stolen, int line);
+
+int
+DoTest(
 		/* source information */ 
-		TDS_INT fromtype,void* fromdata,TDS_INT fromlen,
+		TDS_INT fromtype, void *fromdata, TDS_INT fromlen,
 		/* to information */
-		TDS_INT totype,TDS_INT tomaxlen,
+		TDS_INT totype, TDS_INT tomaxlen,
 		/* expected result */
-		CS_RETCODE tores,void* todata,TDS_INT tolen,
+		CS_RETCODE tores, void *todata, TDS_INT tolen,
 		
 		STR sdecl,
 		STR sfromtype, STR sfromdata, STR sfromlen,
 		STR stotype, STR stomaxlen,
-		STR stores, STR stodata,STR stolen,int line)
+		STR stores, STR stodata, STR stolen, int line)
 {
 	CS_DATAFMT destfmt,srcfmt;
 	CS_INT reslen;
@@ -101,7 +110,8 @@ Failed:
   __LINE__);\
 }
 	
-int main()
+int
+main(int argc, char **argv)
 {
    CS_RETCODE ret;
    volatile TDS_INT8 one = 1;

@@ -12,7 +12,7 @@
 #include <sqlfront.h>
 #include <sqldb.h>
 
-static char  software_version[]   = "$Id: t0021.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: t0021.c,v 1.4 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -24,7 +24,8 @@ char *unsafestr = "This is a string with ' and \" in it.";
 /* safestr must be at least strlen(unsafestr) + 3 */
 char safestr[100];
 
-int main()
+int
+main(int argc, char **argv)
 {
 int         len;
 RETCODE ret;

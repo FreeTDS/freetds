@@ -13,7 +13,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0003.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.3 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -22,7 +22,8 @@ static void *no_unused_var_warn[] = {software_version,
 int failed  = 0;
 
 
-int main()
+int
+main(int argc, char **argv)
 {
    RETCODE     rc;
    const int   rows_to_add = 50;

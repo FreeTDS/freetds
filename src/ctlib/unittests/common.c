@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.5 2002-09-26 21:10:18 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.6 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -15,7 +15,10 @@ int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
 
-CS_RETCODE read_login_info()
+CS_RETCODE read_login_info(void);
+
+CS_RETCODE
+read_login_info(void)
 {
    FILE *in;
    char line[512];

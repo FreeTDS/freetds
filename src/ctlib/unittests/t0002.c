@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0002.c,v 1.1 2001-10-12 23:29:07 brianb Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.2 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -10,7 +10,8 @@ static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
  * ct_bind variable
  * ct_fetch and print results
  */
-int main()
+int
+main(int argc, char **argv)
 {
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 

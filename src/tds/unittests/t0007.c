@@ -22,12 +22,16 @@
 #include <tdsconvert.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: t0007.c,v 1.5 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.6 2002-10-03 18:46:09 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static TDSCONTEXT ctx;
 
-void test0(const char* test, int len, int dsttype, const char* result)
+void test0(const char* test, int len, int dsttype, const char* result);
+void test(const char* test, int dsttype, const char* result);
+
+void
+test0(const char* test, int len, int dsttype, const char* result)
 {
 	int i,res;
 	char buf[256];
@@ -70,12 +74,14 @@ void test0(const char* test, int len, int dsttype, const char* result)
 		exit(1);
 }
 
-void test(const char* test, int dsttype, const char* result)
+void
+test(const char* test, int dsttype, const char* result)
 {
 	test0(test,strlen(test),dsttype,result);
 }
 
-int main()
+int
+main(int argc, char **argv)
 {
 	memset(&ctx,0,sizeof(ctx));
 

@@ -1,3 +1,25 @@
+Thu Oct  3 14:43:29 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/unittests/common.c src/ctlib/unittests/t0001.c
+	  src/ctlib/unittests/t0002.c src/ctlib/unittests/t0003.c
+	  src/ctlib/unittests/t0004.c src/ctlib/unittests/t0005.c
+	  src/ctlib/unittests/t0006.c src/ctlib/unittests/t0007.c
+	  src/ctlib/unittests/t0008.c src/dblib/unittests/common.c
+	  src/dblib/unittests/common.h src/dblib/unittests/t0001.c
+	  src/dblib/unittests/t0002.c src/dblib/unittests/t0003.c
+	  src/dblib/unittests/t0004.c src/dblib/unittests/t0005.c
+	  src/dblib/unittests/t0006.c src/dblib/unittests/t0007.c
+	  src/dblib/unittests/t0008.c src/dblib/unittests/t0009.c
+	  src/dblib/unittests/t0010.c src/dblib/unittests/t0011.c
+	  src/dblib/unittests/t0015.c src/dblib/unittests/t0018.c
+	  src/dblib/unittests/t0019.c src/dblib/unittests/t0020.c
+	  src/dblib/unittests/t0021.c src/dblib/unittests/t0022.c
+	  src/tds/unittests/common.c src/tds/unittests/t0001.c
+	  src/tds/unittests/t0002.c src/tds/unittests/t0003.c
+	  src/tds/unittests/t0004.c src/tds/unittests/t0005.c
+	  src/tds/unittests/t0006.c src/tds/unittests/t0007.c
+	  src/tds/unittests/t0008.c:
+	- Clean up prototype warnings in the unittests.
+
 Thu Oct  3 14:41:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Include ODBC library path in LDFLAGS so that we can find

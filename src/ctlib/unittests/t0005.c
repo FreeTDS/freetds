@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <ctpublic.h>
-/*  only include this if you need access to PWD information  */
 #include "common.h" 
 
-static char  software_version[]   = "$Id: t0005.c,v 1.2 2002-08-28 08:07:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.3 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-int main()
+int
+main(int argc, char **argv)
 {
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 

@@ -22,13 +22,14 @@
 #include <common.h>
 
 
-static char  software_version[]   = "$Id: t0002.c,v 1.2 2002-08-29 05:55:58 jklowden Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.3 2002-10-03 18:46:09 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-char *value_as_string(
-   TDSSOCKET  *tds,
-   int         col_idx)
+char *value_as_string(TDSSOCKET  *tds, int col_idx);
+
+char *
+value_as_string(TDSSOCKET  *tds, int col_idx)
 {
    static char  result[256]; 
    const int    type    = tds->res_info->columns[col_idx]->column_type;
@@ -52,7 +53,8 @@ char *value_as_string(
 } /* value_as_string()  */
 
 
-int main()
+int
+main(int argc, char **argv)
 {
    TDSLOGIN *login;
    TDSSOCKET *tds;

@@ -2,11 +2,12 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.5 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.6 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
-int main()
+int
+main(int argc, char **argv)
 {
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 

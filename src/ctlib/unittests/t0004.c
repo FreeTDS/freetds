@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.4 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.5 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* protos */
@@ -13,7 +13,8 @@ CS_RETCODE do_results(CS_COMMAND *cmd, CS_INT *results);
 #define NUMROWS 5
 
 /* Testing: Test order of ct_results() */
-int main()
+int
+main(int argc, char **argv)
 {
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 

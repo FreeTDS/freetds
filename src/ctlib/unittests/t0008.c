@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.5 2002-09-26 21:10:18 castellano Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.6 2002-10-03 18:46:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -12,7 +12,7 @@ static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
  * ct_fetch and print results
  */
 int
-main()
+main(int argc, char **argv)
 {
 int verbose = 1;
 CS_CONTEXT *ctx; 
