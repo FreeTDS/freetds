@@ -1,3 +1,8 @@
+Tue Oct  1 12:24:54 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/des.h src/tds/des.c:
+	- Correct existing prototypes, add missing prototypes.
+	- Make plaintext const in des_ecb_crypt().
+
 Tue Oct  1 11:38:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/bkpublic.h include/cspublic.h include/ctpublic.h
 	  include/dblib.h include/sybdb.h include/tds.h.in include/tdssrv.h

@@ -36,6 +36,13 @@
 #include "tds.h"
 #include "des.h"
 
+static void permute_ip(char *inblock, DES_KEY *key, char *outblock);
+static void permute_fp(char *inblock, DES_KEY *key, char *outblock);
+static void perminit_ip(DES_KEY *key);
+static void spinit(DES_KEY *key);
+static void perminit_fp(DES_KEY *key);
+static TDS_UINT f(DES_KEY *key, register TDS_UINT r, register char *subkey);
+
 void des_set_odd_parity(des_cblock key) {
 
 	int i;
@@ -51,11 +58,6 @@ void des_set_odd_parity(des_cblock key) {
 		key[i] = (key[i] & 0xfe) | (parity & 1);
 	}
 }
-
-
-static void permute_ip(), permute_fp(), perminit_ip(), spinit(),
-perminit_fp();
-static TDS_UINT f();
 
 #define byteswap32(x) (TDS_UINT) (((x) & 0xff000000) >> 24 | \
 				  ((x) & 0x00ff0000) >> 8 | \
@@ -593,10 +595,10 @@ static void spinit(DES_KEY * key)
 
 /* ECB MODE */
 
-int des_ecb_encrypt( void *plaintext, int len, DES_KEY *akey, des_cblock *output)
+int des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock *output)
 {
 	int j;
-	char *plain = plaintext;
+	const char *plain = plaintext;
 
 	for (j = 0; j < len / 8; j++) {
 		memcpy(&output[j*8], &plain[j*8], 8);
