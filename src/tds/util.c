@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.52 2004-12-13 13:21:25 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.53 2005-01-09 19:41:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -104,7 +104,7 @@ tds_ctx_get_parent(TDSCONTEXT * ctx)
 TDS_STATE
 tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 {
-	static const char *state_names[] = {    "TDS_QUERYING",
+	static const char * const state_names[] = {    "TDS_QUERYING",
 						"TDS_PENDING",
 						"TDS_IDLE",
 						"TDS_CANCELED",

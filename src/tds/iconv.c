@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.115 2004-12-02 13:20:44 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.116 2005-01-09 19:41:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -80,7 +80,6 @@ static void tds_iconv_info_close(TDSICONV * char_conv);
 /* this will contain real iconv names */
 static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charsets[0])];
 static int iconv_initialized = 0;
-static unsigned int ucs2pos;
 static const char *ucs2name;
 
 enum
@@ -193,8 +192,7 @@ tds_iconv_init(void)
 	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE])
 		return 2;
 
-	ucs2pos = iconv_names[POS_UCS2LE] ? POS_UCS2LE : POS_UCS2BE;
-	ucs2name = iconv_names[ucs2pos];
+	ucs2name = iconv_names[POS_UCS2LE] ? iconv_names[POS_UCS2LE] : iconv_names[POS_UCS2BE];
 
 	for (i = 0; i < 4; ++i)
 		tdsdump_log(TDS_DBG_INFO1, "names for %s: %s\n", canonic_charsets[i].name,
@@ -315,7 +313,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 void
 tds_iconv_open(TDSSOCKET * tds, const char *charset)
 {
-	static const char *UCS_2LE = "UCS-2LE";
+	static const char UCS_2LE[] = "UCS-2LE";
 	const char *name;
 	int fOK, ret;
 
@@ -334,7 +332,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	/* initialize */
 	if (!iconv_initialized) {
 		if ((ret = tds_iconv_init()) > 0) {
-			static char *names[] = { "ISO 8859-1", "UTF-8" };
+			static const char * const names[] = { "ISO 8859-1", "UTF-8" };
 			assert(ret < 3);
 			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
 						  "could not find a name for %s that your iconv accepts.\n"
