@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.14 2003-03-25 14:04:42 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.15 2003-03-26 10:34:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -212,11 +212,10 @@ static SQLRETURN
 _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
 	       SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
-	SQLRETURN result = SQL_SUCCESS;
+	SQLRETURN result;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
 	unsigned char odbc_ver = 2;
-	int cplen;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
@@ -266,17 +265,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	msg = errs->errs[numRecord].msg;
 	if (!msg)
 		msg = errs->errs[numRecord].err->msg;
-	cplen = strlen(msg);
-	if (pcbErrorMsg)
-		*pcbErrorMsg = cplen;
-	if (cplen >= cbErrorMsgMax) {
-		cplen = cbErrorMsgMax - 1;
-		result = SQL_SUCCESS_WITH_INFO;
-	}
-	if (szErrorMsg && cplen >= 0) {
-		strncpy((char *) szErrorMsg, msg, cplen);
-		((char *) szErrorMsg)[cplen] = 0;
-	}
+	result = odbc_set_string(szErrorMsg, cbErrorMsgMax, pcbErrorMsg, msg, -1);
 	if (pfNativeError)
 		*pfNativeError = errs->errs[numRecord].msgnum;
 
@@ -469,7 +458,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		else
 			cplen = 0;
 
-		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, cplen);
+		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, tmp, cplen);
 		break;
 
 	case SQL_DIAG_MESSAGE_TEXT:
