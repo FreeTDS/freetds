@@ -1,3 +1,15 @@
+Fri Aug 21 21:42:54 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- convert from text using char conversions
+	- return just fail converting from ntext avoiding crashes
+	- do not warning on missed conversion if conversion impossible
+	- added many TODO for missed conversion
+	- return TDS_FAIL converting from char to binary if wrong syntax
+	- add conversion from bit to binary
+	- fixed conversion from money to char in Bill code 
+	  (commented but not surely)
+	- added conversion from money to money4
+
 Fri Aug 21 20:31:57 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in:
 	- option to enable thread safety

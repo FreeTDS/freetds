@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.46 2002-08-21 12:42:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.47 2002-08-21 20:08:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -123,29 +123,10 @@ int len = strlen(s);
 	return len;
 }
 
-/* reverted function to 1.12 logic; 1.13 patch was mistaken. July 2002 jkl */
-static TDS_INT tds_convert_text(TDSCONTEXT *tds_ctx, int srctype,TDS_CHAR *src,TDS_UINT srclen,
-	int desttype,TDS_UINT destlen, CONV_RESULT *cr)
-{
-int cplen;
 
-	switch(desttype) {
-		case SYBTEXT:
-		case SYBCHAR:
-		case SYBVARCHAR:
-			cr->c = malloc(srclen + 1);
-			test_alloc(cr->c);
-			memset(cr->c, '\0', srclen + 1);
-			memcpy(cr->c, src, srclen);
-			return srclen;
-			break;
-	
-		default:
-			fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
-			return TDS_FAIL;
-			break;
-	}
-}
+/*TODO many conversions to binary are not implemented */
+
+
 
 static TDS_INT 
 tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
@@ -165,6 +146,11 @@ tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 /*
       utf16_t* wdest = (utf16_t*)dest;
 */
+
+      /* TODO implement me, 
+       * following code is just broken so best to return failure */
+      return TDS_FAIL;
+      
       assert(sizeof(utf16_t) == 2);
       switch (desttype) {
               case SYBNVARCHAR:
@@ -215,8 +201,8 @@ int  ret;
 
    switch(desttype) {
       case SYBCHAR:
-      case SYBTEXT:
       case SYBVARCHAR:
+      case SYBTEXT:
 
          /* 2 * source length + 1 for terminator */
 
@@ -247,12 +233,17 @@ int  ret;
          memcpy(cr->vb.array, src, cplen);
          return cplen;
          break;
+	 /* conversion not allowed */
+      case SYBDATETIME4:
+      case SYBDATETIME:
+      case SYBDATETIMN:
+	 break;
       default:
          fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
          return TDS_FAIL;
          break;
    }
-   return TDS_SUCCEED;
+   return TDS_FAIL;
 }
 
 static TDS_INT 
@@ -280,12 +271,12 @@ TDS_INT tds_i;
       case SYBTEXT:
 		 cr->c = malloc(srclen + 1);
 		test_alloc(cr->c);
-		/* FIXME optimize, only terminate, clear is useless */
-		 memset(cr->c, '\0', srclen + 1);
 		 memcpy(cr->c, src, srclen);
+		 cr->c[srclen] = 0;
          return srclen; 
 		 break;
 
+		 /* TODO VARBINARY missed */
       case SYBBINARY:
       case SYBIMAGE:
 
@@ -352,11 +343,9 @@ TDS_INT tds_i;
 					hex1 += 9;
 				} else {
 					fprintf(stderr,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
-					return;
+					return TDS_FAIL;
 				}
 			}
-			/* FIXME this terminate program, best to return FAIL
-			 * check all buffer first ?? */
 			assert( hex1 < 0x10 );
 			
 			if( i & 1 ) 
@@ -505,6 +494,10 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+			cr->ib =malloc(1);
+			test_alloc(cr->ib);
+			cr->ib[0] = src[0];
+			return 1;
 			break;
 		case SYBINT1:
 			cr->ti = src[0] ? 1 : 0;
@@ -531,10 +524,17 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			cr->ti = src[0];
 			return 1;
 			break;
+		/* conversions not allowed */
 		case SYBMONEY:
 		case SYBMONEY4:
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
+			/* TODO */
 		case SYBNUMERIC:
 		case SYBDECIMAL:
+		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
             return TDS_FAIL;
 	}
@@ -589,10 +589,16 @@ TDS_CHAR tmp_str[5];
 			cr->m.mny = buf * 10000;
 			return sizeof(TDS_MONEY);
 			break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 	}
+	return TDS_FAIL;
 }
 static TDS_INT 
 tds_convert_int2(int srctype,TDS_CHAR *src,
@@ -644,10 +650,16 @@ TDS_CHAR tmp_str[16];
 			cr->m.mny = buf * 10000;
 			return sizeof(TDS_MONEY);
 			break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 	}
+	return TDS_FAIL;
 }
 static TDS_INT 
 tds_convert_int4(int srctype,TDS_CHAR *src,
@@ -703,10 +715,16 @@ TDS_CHAR tmp_str[16];
 			cr->m.mny = (TDS_INT8)buf * 10000;
 			return sizeof(TDS_MONEY);
 			break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 	}
+	return TDS_FAIL;
 }
 static TDS_INT 
 tds_convert_numeric(int srctype,TDS_NUMERIC *src,TDS_INT srclen,
@@ -736,11 +754,18 @@ char tmpstr[MAXPRECISION];
             cr->r = atof(tmpstr);
             return 4;
             break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
+	    /* TODO conversions to int, bit and money */
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 			break;
 	}
+	return TDS_FAIL;
 }
 static TDS_INT 
 tds_convert_money4(int srctype,TDS_CHAR *src, int srclen,
@@ -805,12 +830,19 @@ char tmp_str[33];
             memcpy(&(cr->m4), src, sizeof(TDS_MONEY4));
             return sizeof(TDS_MONEY4);
             break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
+		/* TODO numeric */
         default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
             return TDS_FAIL;
     }
-
+	return TDS_FAIL;
 }
+
 static TDS_INT 
 tds_convert_money(int srctype,TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
@@ -836,8 +868,10 @@ int i;
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
+		case SYBTEXT:
 
 #ifdef UseBillsMoney
+			if (mymoney <= -10000 || mymoney >= 10000) {
 
 #		if HAVE_ATOLL
             sprintf(rawlong,"%lld", mymoney);
@@ -849,6 +883,15 @@ int i;
             strncpy(tmpstr, rawlong, rawlen - 4);
             tmpstr[rawlen - 4] = '.';
             strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
+			} else {
+				i = mymoney;
+				s = tmpstr;
+				if (i < 0) {
+					*s++ = '-';
+					i = -i;
+				}
+				sprintf(s,"0.%04d",i);
+			}
             
             return string_to_result(tmpstr,cr);
 #else
@@ -895,17 +938,29 @@ int i;
 			cr->r  = ((TDS_REAL)mymoney) / 10000.0;
             return 4;
 			break;
-		/* FIXME add conversion to MONEY4 */
+		case SYBMONEY4:
+			if (!IS_INT(mymoney))
+				return TDS_FAIL;
+			cr->m4.mny4 = mymoney;
+			break;
 		case SYBMONEY:
 			memcpy(&(cr->m), src, sizeof(TDS_MONEY));
 			return sizeof(TDS_MONEY);
 			break;
+		/* conversions not allowed */
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+			break;
+		/* TODO numeric */
 	    default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 			break;
 	}
+	return TDS_FAIL;
 }
+
 static TDS_INT 
 tds_convert_datetime(TDSCONTEXT *tds_ctx, int srctype,TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
@@ -1007,12 +1062,23 @@ struct tds_tm when;
 			cr->dt4.minutes = (dt_time / 300) / 60;
             return sizeof(TDS_DATETIME4);
 			break;
+		/* conversions not allowed */
+		case SYBBIT:
+		case SYBBITN:
+		case SYBINT1:
+		case SYBINT2:
+		case SYBINT4:
+		case SYBMONEY4:
+		case SYBMONEY:
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 			break;
 	}
-
+	return TDS_FAIL;
 }
 
 int days_this_year (int years)
@@ -1101,13 +1167,23 @@ struct tds_tm when;
 			cr->dt4.minutes = dt_mins;
             return sizeof(TDS_DATETIME4);
 			break;
+		/* conversions not allowed */
+		case SYBBIT:
+		case SYBBITN:
+		case SYBINT1:
+		case SYBINT2:
+		case SYBINT4:
+		case SYBMONEY4:
+		case SYBMONEY:
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 			break;
 	}
-
-
+	return TDS_FAIL;
 }
 
 static TDS_INT 
@@ -1150,12 +1226,17 @@ TDS_INT8 mymoney;
             memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
             return sizeof(TDS_MONEY4);
             break;
-
+	    /* not allowed */
+	  case SYBDATETIME4:
+	  case SYBDATETIME:
+	  case SYBDATETIMN:
+	    break;
+	/* TODO int, bit, numeric */
       default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
             return TDS_FAIL;
    }
-
+	return TDS_FAIL;
 }
 
 static TDS_INT 
@@ -1169,6 +1250,7 @@ char      tmp_str[25];
    switch(desttype) {
       case SYBCHAR:
       case SYBVARCHAR:
+      case SYBTEXT:
             sprintf(tmp_str,"%.15g", the_value);
 	    return string_to_result(tmp_str,cr);
             break;
@@ -1188,10 +1270,17 @@ char      tmp_str[25];
             cr->f = the_value;
             return 8;
             break;
+	    /* not allowed */
+	case SYBDATETIME4:
+	case SYBDATETIME:
+	case SYBDATETIMN:
+		break;
+	/* TODO int, bit, numeric */
       default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
    }
+	return TDS_FAIL;
 }
 
 static TDS_INT
@@ -1222,10 +1311,12 @@ TDS_UCHAR buf[37];
 			memcpy (&(cr->u), src, sizeof(TDS_UNIQUE));
 			return sizeof(TDS_UNIQUE);
 			break;
+		/* no not warning for not convertible types */
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
 			return TDS_FAIL;
 	}
+	return TDS_FAIL;
 }
 
 TDS_INT 
@@ -1238,6 +1329,7 @@ char errmsg[255];
 	switch(srctype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
+		case SYBTEXT:
 			return tds_convert_char(srctype,src, srclen,
 				desttype,destlen, cr);
 			break;
@@ -1296,10 +1388,6 @@ char errmsg[255];
 		case SYBBINARY:
 			return tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
 				desttype, destlen, cr);
-			break;
-		case SYBTEXT:
-			return tds_convert_text(tds_ctx, srctype,src,srclen,
-				desttype,destlen, cr);
 			break;
 		case SYBNVARCHAR:
 		case SYBNTEXT:
@@ -1699,7 +1787,7 @@ short int bytes, places, point_found, sign, digits;
  	return 1;
 
 
-  /* FIXME: this can be optimized in a single step */
+  /* TODO: this can be optimized in a single step */
 
   /* scale specified, pad out number with zeroes to the scale...  */
   ptr = mynumber+40-(cr->n.scale-places);

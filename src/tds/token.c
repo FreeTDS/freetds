@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.35 2002-08-21 12:42:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.36 2002-08-21 20:08:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -819,6 +819,7 @@ int remainder;
 			case 0: 
 				curcol->column_size = get_size_by_type(curcol->column_type);
 				break;
+			/* FIXME can varint_size be 2 ?? */
 		}
         tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
 
@@ -913,6 +914,7 @@ int len;
 				}
 				break;
 			case 2: 
+				/* FIXME add support for empty no-NULL string*/
 				colsize = tds_get_smallint(tds);
 				if (colsize == -1)
 					colsize=0;
