@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.62 2002-11-29 16:03:05 freddy77 Exp $";
+	"$Id: tds.h,v 1.63 2002-12-02 13:39:12 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -326,7 +326,7 @@ sheesh! </rant>
 #define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x == XSYBNVARCHAR || x==SYBNTEXT)
 
-#define TDS_MAX_CAPABILITY	18
+#define TDS_MAX_CAPABILITY	22
 #define MAXPRECISION 		80
 #define TDS_MAX_CONN		4096
 #define TDS_MAX_DYNID_LEN	30
@@ -478,8 +478,8 @@ typedef struct tds_column_info {
 	TDS_SMALLINT column_type;
 	/** type of data, saved from wire */
 	TDS_SMALLINT column_type_save;
-	TDS_INT column_usertype;
 	TDS_SMALLINT column_flags;
+	TDS_INT column_usertype;
 	/** maximun size of data. For fixed is the size. */
 	TDS_INT column_size;
 	/** size of length when reading from wire (0, 1, 2 or 4) */

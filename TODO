@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.17 2002-11-29 19:55:29 freddy77 Exp $
+To Do List	$Id: TODO,v 1.18 2002-12-02 13:39:11 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
@@ -38,6 +38,7 @@ For future versions:
 . Someone broke early binding in ODBC
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type
+. set database during login process (work in progress)
 
 (f77) Those was collected from ML...
 . ODBC: get a solid corpus of unittests for ODBC, and have it become a 

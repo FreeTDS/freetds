@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.54 2002-11-22 09:53:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.55 2002-12-02 13:39:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -478,8 +478,8 @@ TDSLOCINFO *locale;
 	return locale;
 }
 static const unsigned char defaultcaps[] = 
-{0x01,0x07,0x06,109,127,0xFF,0xFF,0xFF,0xFE,
- 0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
+{0x01,0x09,0x00,0x00,0x06,0x6D,0x7F,0xFF,0xFF,0xFF,0xFE,
+ 0x02,0x09,0x00,0x00,0x00,0x00,0x0A,0x68,0x00,0x00,0x00};
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)

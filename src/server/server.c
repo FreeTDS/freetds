@@ -28,7 +28,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.11 2002-11-17 11:30:57 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.12 2002-12-02 13:39:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -278,8 +278,7 @@ int i, totlen;
 		tds_put_byte(tds, strlen(curcol->column_name));
 		tds_put_n(tds, curcol->column_name, strlen(curcol->column_name));
 		tds_put_byte(tds, '0');
-		tds_put_smallint(tds, curcol->column_usertype);
-		tds_put_smallint(tds, 0);
+		tds_put_int(tds, curcol->column_usertype);
 		tds_put_byte(tds, curcol->column_type);
 		if (!is_fixed_type(curcol->column_type)) {
 			tds_put_byte(tds, curcol->column_size);

@@ -77,7 +77,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.65 2002-11-24 14:02:24 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.66 2002-12-02 13:39:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
@@ -482,7 +482,7 @@ tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 	} else if (IS_TDS50(tds)) {
 		tds_put_n(tds,magic50,4);
 		tds_put_byte(tds, TDS_CAP_TOKEN);
-		tds_put_smallint(tds, 18);
+		tds_put_smallint(tds, TDS_MAX_CAPABILITY);
 		tds_put_n(tds,tds->capabilities,TDS_MAX_CAPABILITY);
 	}
 

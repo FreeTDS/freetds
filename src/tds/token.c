@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.119 2002-11-29 16:59:46 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.120 2002-12-02 13:39:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1076,7 +1076,10 @@ int colnamelen;
 	curcol->column_name[colnamelen]='\0';
 
 	curcol->column_flags = tds_get_byte(tds);     /*  Flags */
+	/* TODO check if all flags are the same for all TDS versions */
+	curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
 	curcol->column_nullable  = (curcol->column_flags & 0x20) > 1;
+	curcol->column_identity  = (curcol->column_flags & 0x40) > 1;
 
 	curcol->column_usertype = tds_get_int(tds);
 	tds_set_column_type(curcol, tds_get_byte(tds));
