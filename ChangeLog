@@ -1,3 +1,6 @@
+Sun Aug 02 16:02:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c: add PacketSize DSN entry
+
 Sat Aug 02 19:49:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am include/tds.h include/tdsiconv.h:
 	- do not install tdsiconv.h

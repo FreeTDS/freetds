@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.46 2003-08-01 15:51:29 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.47 2003-08-03 14:05:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -150,6 +150,11 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 		connect_info->text_size = atoi(tmp);
 	}
 
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString(DSN, "PacketSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		connect_info->block_size = atoi(tmp);
+	}
+
 	return 1;
 }
 
@@ -245,6 +250,8 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			dest_s = &connect_info->default_domain;
 		} else if (strcasecmp(option, "TextSize") == 0) {
 			connect_info->text_size = atoi(tds_dstr_cstr(&value));
+		} else if (strcasecmp(option, "PacketSize") == 0) {
+			connect_info->block_size = atoi(tds_dstr_cstr(&value));
 			/* TODO "Address" field */
 		}
 
@@ -565,6 +572,14 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 	strncpy(hLastProperty->szName, "Domain", INI_MAX_PROPERTY_NAME);
 	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
 	hLastProperty->pszHelp = (char *) strdup("The default domain to use when using Domain Authentication.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "PacketSize", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Size of network packets.");
 
 	return 1;
 }
