@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.210 2003-08-08 06:53:52 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.211 2003-08-08 15:38:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -803,6 +803,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		if (cur->param_bindtype == SQL_C_CHAR || cur->param_bindtype == SQL_C_BINARY) {
 			cur->param_inlen = SQL_NTS;
 		} else {
+			/* FIXME check what happen to DATE/TIME types */
 			int size = tds_get_size_by_type(odbc_get_server_type(cur->param_bindtype));
 
 			if (size > 0)
@@ -2283,7 +2284,7 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER FAR * pcbValue)
 {
 	return _SQLBindParameter(hstmt, ipar, SQL_PARAM_INPUT_OUTPUT, fCType, fSqlType, cbParamDef, ibScale, rgbValue,
-				SQL_SETPARAM_VALUE_MAX, pcbValue);
+				 SQL_SETPARAM_VALUE_MAX, pcbValue);
 }
 
 /************************

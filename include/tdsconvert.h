@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.18 2003-05-22 18:32:44 castellano Exp $";
+static char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.19 2003-08-08 15:38:47 freddy77 Exp $";
 static void *no_unused_tdsconvert_h_warn[] = { rcsid_tdsconvert_h, no_unused_tdsconvert_h_warn };
 
 typedef union conv_result
@@ -61,19 +61,13 @@ CONV_RESULT;
 
 struct tds_time
 {
-	int tm_year;
-	int tm_mon;
-	int tm_mday;
-	int tm_hour;
-	int tm_min;
-	int tm_sec;
-	int tm_ms;
-};
-
-struct tds_tm
-{
-	struct tm tm;
-	int milliseconds;
+	int tm_year; /**< year (0=1900) */
+	int tm_mon;  /**< month (0-11) */
+	int tm_mday; /**< month day (1-31) */
+	int tm_hour; /**< hours (0-23) */
+	int tm_min;  /**< minutes (0-59) */
+	int tm_sec;  /**< seconds (0-59) */
+	int tm_ms;   /**< milliseconds (0-999) */
 };
 
 unsigned char tds_willconvert(int srctype, int desttype);

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.32 2003-05-22 19:27:48 castellano Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.33 2003-08-08 15:38:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -152,7 +152,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		tssp->hour = dr.hour;
 		tssp->minute = dr.minute;
 		tssp->second = dr.second;
-		tssp->fraction = dr.millisecond * 1000000;
+		tssp->fraction = dr.millisecond * 1000000u;
 
 		ret = sizeof(TIMESTAMP_STRUCT);
 		break;

@@ -42,8 +42,60 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.14 2003-07-03 19:28:33 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.15 2003-08-08 15:38:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static TDS_INT
+convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
+{
+	struct tds_time src_tm;
+	unsigned int dt_time;
+	TDS_INT dt_days;
+	int i;
+
+	const DATE_STRUCT *src_date = (const DATE_STRUCT *) src;
+	const TIME_STRUCT *src_time = (const TIME_STRUCT *) src;
+	const TIMESTAMP_STRUCT *src_timestamp = (const TIMESTAMP_STRUCT *) src;
+
+	memset(&src_tm, 0, sizeof(src_tm));
+
+	switch (bindtype) {
+	case SQL_C_DATE:
+	case SQL_C_TYPE_DATE:
+		src_tm.tm_year = src_date->year - 1900;
+		src_tm.tm_mon = src_date->month - 1;
+		src_tm.tm_mday = src_date->day;
+		break;
+	case SQL_C_TIME:
+	case SQL_C_TYPE_TIME:
+		src_tm.tm_hour = src_time->hour;
+		src_tm.tm_min = src_time->minute;
+		src_tm.tm_sec = src_time->second;
+		break;
+	case SQL_C_TIMESTAMP:
+	case SQL_C_TYPE_TIMESTAMP:
+		src_tm.tm_year = src_timestamp->year - 1900;
+		src_tm.tm_mon = src_timestamp->month - 1;
+		src_tm.tm_mday = src_timestamp->day;
+		src_tm.tm_hour = src_timestamp->hour;
+		src_tm.tm_min = src_timestamp->minute;
+		src_tm.tm_sec = src_timestamp->second;
+		src_tm.tm_ms = src_timestamp->fraction / 1000000lu;
+		break;
+	default:
+		return TDS_FAIL;
+	}
+
+	/* TODO code copied from convert.c, function */
+	i = (src_tm.tm_mon - 13) / 12;
+	dt_days = 1461 * (src_tm.tm_year + 300 + i) / 4 +
+		(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 + src_tm.tm_mday - 109544;
+
+	dt->dtdays = dt_days;
+	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;
+	dt->dttime = dt_time * 300 + (src_tm.tm_ms * 300 / 1000);
+	return sizeof(TDS_DATETIME);
+}
 
 /**
  * Convert parameters to libtds format
@@ -55,9 +107,11 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
 	TDSBLOBINFO *blob_info;
+	char *src;
 	unsigned char *dest;
 	TDSCOLINFO *curcol = info->columns[nparam];
 	int len;
+	TDS_DATETIME dt;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->param_sqltype);
@@ -110,7 +164,22 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 
 	/* TODO what happen to data ?? */
 	/* convert parameters */
-	src_type = odbc_get_server_type(param->param_bindtype);
+	src = param->varaddr;
+	switch (param->param_bindtype) {
+	case SQL_C_DATE:
+	case SQL_C_TIME:
+	case SQL_C_TIMESTAMP:
+	case SQL_C_TYPE_DATE:
+	case SQL_C_TYPE_TIME:
+	case SQL_C_TYPE_TIMESTAMP:
+		convert_datetime2server(param->param_bindtype, src, &dt);
+		src = (char *) &dt;
+		src_type = SYBDATETIME;
+		break;
+	default:
+		src_type = odbc_get_server_type(param->param_bindtype);
+		break;
+	}
 	if (src_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
 
@@ -122,7 +191,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 	}
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	res = tds_convert(dbc->henv->tds_ctx, src_type, param->varaddr, len, dest_type, &ores);
+	res = tds_convert(dbc->henv->tds_ctx, src_type, src, len, dest_type, &ores);
 	if (res < 0)
 		return res;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
