@@ -1,3 +1,6 @@
+Thu Feb 20 16:37:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c: fix a buffer overflow
+
 Wed Feb 19 14:01:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in src/tds/threadsafe.c:
 	- fixed portability problem using localtime_r

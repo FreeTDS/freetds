@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.49 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.49.2.1 2003-02-20 15:38:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -229,8 +229,6 @@ get_opt_flags(char *s, int *opt_flags)
 	if (argv[0])
 		while ((argv[argc++] = strtok(NULL, " ")) != NULL);
 
-	argv[argc] = NULL;
-
 	optind = 0;		/* reset getopt */
 	while ((opt = getopt(argc - 1, argv, "fhtv")) != -1) {
 		switch (opt) {
@@ -248,6 +246,7 @@ get_opt_flags(char *s, int *opt_flags)
 			break;
 		}
 	}
+	free(argv);
 	return *opt_flags;
 }
 
