@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.321 2004-05-03 18:50:53 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.322 2004-05-04 09:55:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4512,7 +4512,6 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	TDSSOCKET *tds;
 #endif
 	int icol;
-	char *p;
 	TDS_DESC *ird;
 
 	IRD_CHECK;
@@ -4524,6 +4523,8 @@ odbc_upper_column_names(TDS_STMT * stmt)
 
 	resinfo = tds->res_info;
 	for (icol = 0; icol < resinfo->num_cols; ++icol) {
+		char *p;
+
 		colinfo = resinfo->columns[icol];
 		/* upper case */
 		/* TODO procedure */

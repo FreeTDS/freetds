@@ -320,7 +320,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 	int result;
 	DSNINFO *di;
 	WSADATA wsadata;
-	char *errmsg;
+	const char *errmsg;
 
 	/*
 	 * Initialize Windows sockets.  This is necessary even though

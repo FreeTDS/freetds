@@ -76,11 +76,11 @@ get_desktop_file(const char *file)
 	char * res = NULL;
 
 	hr = SHGetMalloc(&pMalloc);
-	if (!FAILED(hr)) {
+	if (SUCCEEDED(hr)) {
 		hr = SHGetSpecialFolderLocation(NULL, CSIDL_DESKTOPDIRECTORY, &pidl);
-		if (!FAILED(hr)) {
+		if (SUCCEEDED(hr)) {
 			if (SHGetPathFromIDList(pidl, path))
-				asprintf(&res, "%s\\$s", path, file);
+				asprintf(&res, "%s\\%s", path, file);
 			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
 		}
 		(*pMalloc->lpVtbl->Release)(pMalloc);

@@ -1,3 +1,11 @@
+Tue May 04 11:53:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c win32/Makefile.am win32/winlogin.c:
+	* win32/winsetup.c:
+	- small fixes
+	- remove some warnings
+	* win32/freetds.nsi(added):
+	- installer for windows
+
 Tue May 04 09:44:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c: fix compile
 
