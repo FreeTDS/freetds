@@ -99,7 +99,7 @@ TDS_INT srclen;
 				srclen = col->column_cur_size;
 
 	 
-                    if(tds_convert(tds->tds_ctx,
+                    if(tds_convert(tds, tds->tds_ctx,
  					ctype,
 					src,
  					srclen,
@@ -244,12 +244,11 @@ int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
 int 
 main(int argc, char **argv)
 {
-char *s;
+char *s = NULL;
 char prompt[20];
-int line = 1;
+int line = 0;
 char *mybuf;
 int bufsz = 4096;
-int done = 0;
 TDSSOCKET *tds;
 TDSLOGIN *login;
 TDSCONTEXT *context;
@@ -282,19 +281,22 @@ TDSCONTEXT *context;
 	mybuf = (char *) malloc(bufsz);
 	mybuf[0]='\0';
 
-	sprintf(prompt,"1> ");
-	s=readline(prompt);
-	if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
-		done = 1;
-	}
-	if (!strcmp(s,"version")) {
-		done = tds_version( tds, mybuf );
-		if( done )
-			printf( "using TDS version %s\n", mybuf );
-	}
-
-	while (!done) {
-		if (!strcmp(s,"GO")) {
+	for (;;) {
+		sprintf(prompt,"%d> ",++line);
+		if (s)
+			free(s);
+		s = readline(prompt);
+		if (!s || !strcmp(s, "exit") || !strcmp(s, "quit") || !strcmp(s, "bye")) {
+			break;
+		}
+		if (!strcmp(s, "version")) {
+			tds_version(tds, mybuf);
+			printf("using TDS version %s\n", mybuf);
+			line = 0;
+			mybuf[0] = '\0';
+			continue;
+		}
+		if (!strcmp(s, "GO")) {
 			char version[64], message[128];
 			strcpy(s, "go");
 			line = tds_version( tds, version );
@@ -303,11 +305,11 @@ TDSCONTEXT *context;
 				tds_client_msg(context, tds, line, line, line, line, message);
 			}
 		}
-		if (!strcmp(s,"go")) {
+		if (!strcmp(s, "go")) {
 			line = 0;
 			do_query(tds, mybuf);
 			mybuf[0]='\0';
-		} else if (!strcmp(s,"reset")) {
+		} else if (!strcmp(s, "reset")) {
 			line = 0;
 			mybuf[0]='\0';
 		} else {
@@ -319,17 +321,6 @@ TDSCONTEXT *context;
 			strcat(mybuf,s);
 			/* preserve line numbering for the parser */
 			strcat(mybuf,"\n");
-		}
-		sprintf(prompt,"%d> ",++line);
-		free(s);
-		s=readline(prompt);
-		if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
-			done = 1;
-		}
-		if (!strcmp(s,"version")) {
-			done = tds_version( tds, mybuf );
-			if( done )
-				printf( "using TDS version %s\n", mybuf );
 		}
 	}
 

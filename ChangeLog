@@ -1,3 +1,11 @@
+Thu Sep 19 14:57:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- Rearrange main loop.  Reduces code duplication, and makes it
+	  easier to handle certain conditions properly (e.g. Jim's
+	  "version" command no longer causes the program to dump core when
+	  EOF is input.)
+	- Continue execution after "version" command, instead of exiting.
+
 Thu Sep 19 17:51:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/token.c:
 	- save version of product (Sybase/MS and version)
