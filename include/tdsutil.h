@@ -37,47 +37,47 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.4 2002-08-23 13:10:15 freddy77 Exp $";
+"$Id: tdsutil.h,v 1.5 2002-08-29 20:12:24 freddy77 Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
 #define MAXPATH 256
 
-extern TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
-extern unsigned char tds_get_byte(TDSSOCKET *tds);
-extern unsigned char tds_peek(TDSSOCKET *tds);
-extern void tds_unget_byte(TDSSOCKET *tds);
-extern char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
-extern int tds_read_packet (TDSSOCKET *tds);
-extern int set_interfaces_file_loc(char *interfloc);
-extern int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
-extern int get_size_by_type(int servertype);
-extern int tds_flush_packet(TDSSOCKET *tds);
-extern int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
-extern int tds_process_login_tokens(TDSSOCKET *tds);
-extern int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
+TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
+unsigned char tds_get_byte(TDSSOCKET *tds);
+unsigned char tds_peek(TDSSOCKET *tds);
+void tds_unget_byte(TDSSOCKET *tds);
+char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
+int tds_read_packet (TDSSOCKET *tds);
+int set_interfaces_file_loc(char *interfloc);
+int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
+int get_size_by_type(int servertype);
+int tds_flush_packet(TDSSOCKET *tds);
+int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
+int tds_process_login_tokens(TDSSOCKET *tds);
+int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
 
-extern void tds_free_compute_results(TDSCOMPUTEINFO *comp_info);
+void tds_free_compute_results(TDSCOMPUTEINFO *comp_info);
 
-extern int  tdsdump_open(const char *filename);
-extern void tdsdump_off();
-extern void tdsdump_on();
-extern void tdsdump_close();
-extern void tdsdump_log(int dbg_lvl, const char *fmt, ...);
-extern void tdsdump_dump_buf(const void *buf, int length);
+int  tdsdump_open(const char *filename);
+void tdsdump_off();
+void tdsdump_on();
+void tdsdump_close();
+void tdsdump_log(int dbg_lvl, const char *fmt, ...);
+void tdsdump_dump_buf(const void *buf, int length);
 		      
 
-extern int  tds_is_result_row(TDSSOCKET *tds);
-extern int  tds_is_result_set(TDSSOCKET *tds);
-extern int  tds_is_end_of_results(TDSSOCKET *tds);
-extern int  tds_is_error(TDSSOCKET *tds);
-extern int  tds_is_message(TDSSOCKET *tds);
-extern int  tds_is_doneinproc(TDSSOCKET *tds);
-extern int  tds_is_control(TDSSOCKET *tds);
+int  tds_is_result_row(TDSSOCKET *tds);
+int  tds_is_result_set(TDSSOCKET *tds);
+int  tds_is_end_of_results(TDSSOCKET *tds);
+int  tds_is_error(TDSSOCKET *tds);
+int  tds_is_message(TDSSOCKET *tds);
+int  tds_is_doneinproc(TDSSOCKET *tds);
+int  tds_is_control(TDSSOCKET *tds);
 
-extern int  tds_msleep(long usecs);
+int  tds_msleep(long usecs);
 /* added 'cause used but not declared (mlilback, 11/7/01) */
-extern TDS_INT tds_get_int(TDSSOCKET *tds);
+TDS_INT tds_get_int(TDSSOCKET *tds);
 
 #ifdef __cplusplus
 #if 0

@@ -21,7 +21,7 @@
 #define TDSCONVERT_h
 
 static char  rcsid_tdsconvert_h [ ] =
-         "$Id: tdsconvert.h,v 1.10 2002-08-23 19:36:21 freddy77 Exp $";
+         "$Id: tdsconvert.h,v 1.11 2002-08-29 20:12:24 freddy77 Exp $";
 static void *no_unused_tdsconvert_h_warn[]={rcsid_tdsconvert_h, 
                                          no_unused_tdsconvert_h_warn};
 
@@ -45,21 +45,21 @@ typedef union conv_result {
 struct tds_tm;
 
 
-extern TDS_INT _convert_money(int srctype,unsigned char *src,
+TDS_INT _convert_money(int srctype,unsigned char *src,
                             int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_bit(int srctype,unsigned char *src,
+TDS_INT _convert_bit(int srctype,unsigned char *src,
 	int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_int1(int srctype,unsigned char *src,
+TDS_INT _convert_int1(int srctype,unsigned char *src,
 	int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_int2(int srctype,unsigned char *src,
+TDS_INT _convert_int2(int srctype,unsigned char *src,
 	int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_int4(int srctype,unsigned char *src,
+TDS_INT _convert_int4(int srctype,unsigned char *src,
 	int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_flt8(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
-extern TDS_INT _convert_datetime(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
-extern int _get_conversion_type(int srctype, int colsize);
+TDS_INT _convert_flt8(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
+TDS_INT _convert_datetime(int srctype,unsigned char *src,int desttype,unsigned char *dest,TDS_INT destlen);
+int _get_conversion_type(int srctype, int colsize);
 
-extern unsigned char tds_willconvert(int srctype, int desttype);
+unsigned char tds_willconvert(int srctype, int desttype);
 
 TDS_INT tds_get_null_type(int srctype);
 int tds_get_conversion_type(int srctype, int colsize);

@@ -1,3 +1,7 @@
+Thu Aug 29 22:09:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/sybdb.h include/tdsconvert.h include/tdsutil.h:
+	- applied Castellano patch #601991 about ansi prototype
+
 Thu Aug 29 21:52:57 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c:
 	- fixed handling blob data
