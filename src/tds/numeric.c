@@ -191,4 +191,5 @@ int top, i, j;
 		s[j++]=array[i]+'0';
 	}
 	s[j]='\0';
+	return s;
 }
