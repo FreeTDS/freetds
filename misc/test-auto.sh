@@ -11,6 +11,8 @@ cd "$DIR/.."
 # save directory
 ORIGDIR="$PWD"
 DIR="$ORIGDIR/misc"
+LANG=C
+export LANG
 
 INFO="<table border=\"1\">
   <tr>
