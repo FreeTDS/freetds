@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.37 2003-12-27 09:41:07 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.38 2003-12-27 09:57:50 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -76,7 +76,7 @@ clean-local:
 DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
-$(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml  $(srcdir)/userguide.dsl.in
+$(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml  $(srcdir)/userguide.dsl.in $(srcdir)/api_status.txt
 	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl

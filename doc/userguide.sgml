@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-27 03:18:37 $</date>
-		<releaseinfo>$Revision: 1.77 $</releaseinfo>
+		<date>$Date: 2003-12-27 09:57:50 $</date>
+		<releaseinfo>$Revision: 1.78 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -51,9 +51,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.77 $</>
-<member>$Date: 2003-12-27 03:18:37 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.77 2003-12-27 03:18:37 jklowden Exp $.</>
+<member>$Revision: 1.78 $</>
+<member>$Date: 2003-12-27 09:57:50 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.78 2003-12-27 09:57:50 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -526,7 +526,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2003-12-27 03:18:37 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2003-12-27 09:57:50 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -2965,7 +2965,7 @@ Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ul
 		</sect1>
 		<sect1 id="APIreference"><title>API Reference Manual</title>
 			<para>
-The <ulink url="../reference">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.  
+The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.  
 			</para>
 			<para>
 The reference manual is a work in progress: only the db-lib library is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.  

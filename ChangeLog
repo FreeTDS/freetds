@@ -1,3 +1,7 @@
+Sat Dec 27 10:57:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: add dependency
+	* doc/userguide.sgml: fix link for local files
+
 Sat Dec 27 10:39:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: small fixes
 	* misc/test-dist.sh: use packaged files
