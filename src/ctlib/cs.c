@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.47 2004-03-22 20:41:07 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.48 2004-05-19 23:53:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -694,6 +694,7 @@ TDSDATEREC dr;
 	daterec->datehour = dr.hour;
 	daterec->dateminute = dr.minute;
 	daterec->datesecond = dr.second;
+	daterec->datemsecond = dr.millisecond;
 	daterec->datetzone = 0;
 
 	return CS_SUCCEED;

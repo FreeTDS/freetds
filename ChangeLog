@@ -1,3 +1,6 @@
+Wed May 19 19:51:10 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/cs.c add milliseconds to cs_dt_crack().
+	
 Wed May 19 09:07:23 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* src/tds/convert.c convert double-precision to 16 places, not 15.
 	
