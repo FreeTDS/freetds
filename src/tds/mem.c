@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.99 2003-09-23 18:56:22 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.100 2003-09-30 16:46:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -256,6 +256,10 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 	TDS_INT row_size;
 	unsigned char *row;
 
+#if ENABLE_EXTRA_CHECKS
+	assert(info->row_size % TDS_ALIGN_SIZE == 0);
+#endif
+
 	null_size = (unsigned) (info->num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
 	null_size = null_size - null_size % TDS_ALIGN_SIZE;
 	null_size -= info->null_info_size;
@@ -271,9 +275,13 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLINFO * curparam)
 		row_size = curparam->column_size;
 	}
 	row_size += info->row_size + null_size + (TDS_ALIGN_SIZE - 1);
-	row_size -= info->row_size % TDS_ALIGN_SIZE;
+	row_size -= row_size % TDS_ALIGN_SIZE;
 
 
+#if ENABLE_EXTRA_CHECKS
+	assert((row_size % TDS_ALIGN_SIZE) == 0 && (null_size % TDS_ALIGN_SIZE) == 0);
+#endif
+	
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
 		row = (unsigned char *) realloc(info->current_row, row_size);
