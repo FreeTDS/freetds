@@ -1,3 +1,7 @@
+Thu Feb  6 10:45:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h: 
+	- odbc include under win32 seem not define SQLLEN
+
 Thu Feb  6 10:22:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/FreeTDS.dsp win32/msvc6/Makefile.am:
 	* win32/msvc6/tds_sysdep_public.h win32/msvc6/freetds_sysconfdir.h:
