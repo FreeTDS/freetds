@@ -1,3 +1,7 @@
+Fri Mar 28 13:38:00 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsiconv.h src/tds/iconv.c src/tds/token.c:
+	- improve i18n (charset conversion)
+
 Thu Mar 27 21:52:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: add support for ROWFMT2 token
 

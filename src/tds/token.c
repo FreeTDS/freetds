@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.158 2003-03-27 20:53:20 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.159 2003-03-28 12:39:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1813,6 +1813,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	int new_block_size;
 	TDSENVINFO *env = tds->env;
 	unsigned char *new_out_buf;
+	int lcid;
 
 	size = tds_get_smallint(tds);
 	/* this came in a patch, apparently someone saw an env message
@@ -1829,11 +1830,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 		/* save new collation */
 		size = tds_get_byte(tds);
 		memset(tds->collation, 0, 5);
-		if (size <= 5) {
+		if (size < 5) {
 			tds_get_n(tds, tds->collation, size);
 		} else {
 			tds_get_n(tds, tds->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
+			lcid = (tds->collation[0] + ((int)tds->collation[1] << 8) + ((int)tds->collation[2] << 16)) & 0xffffflu;
+			tds7_srv_charset_changed(tds, lcid);
 		}
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));

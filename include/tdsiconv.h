@@ -21,7 +21,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.3 2003-03-26 16:20:49 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.4 2003-03-28 12:39:06 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -40,6 +40,7 @@ typedef struct tdsiconvinfo
 {
 	int use_iconv;
 #if HAVE_ICONV
+	char client_charset[64];
 	iconv_t cdto_ucs2;   /* conversion from client charset to UCS2LE MSSQLServer */
 	iconv_t cdfrom_ucs2; /* conversion from UCS2LE MSSQLServer to client charset */
 	iconv_t cdto_srv;    /* conversion from client charset to SQL Server ASCII charset */

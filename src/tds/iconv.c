@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.41 2003-03-26 21:17:27 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.42 2003-03-28 12:39:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -67,6 +67,8 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
 #if HAVE_ICONV
+	strncpy(iconv_info->client_charset, strdup(charset), sizeof(iconv_info->client_charset));
+	iconv_info->client_charset[sizeof(iconv_info->client_charset)-1] = '\0';
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
 	iconv_info->cdto_ucs2 = iconv_open("UCS-2LE", charset);
 	if (iconv_info->cdto_ucs2 == (iconv_t) - 1) {
@@ -290,20 +292,17 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 		cp = "CP1252";
 	}
 
-	/* TODO use real client charset */
-	tmp_cd = iconv_open(cp, /*iconv_info->client_charset*/"");
-	if (tmp_cd != (iconv_t) - 1) {
-		if (iconv_info->cdto_srv != (iconv_t) - 1) {
+	tmp_cd = iconv_open(cp, iconv_info->client_charset);
+	if (tmp_cd != (iconv_t) -1) {
+		if (iconv_info->cdto_srv != (iconv_t) -1)
 			iconv_close(iconv_info->cdto_srv);
-		}
 		iconv_info->cdto_srv = tmp_cd;
 	}
 
-	tmp_cd = iconv_open(/*iconv_info->client_charset*/"", cp);
-	if (tmp_cd != (iconv_t) - 1) {
-		if (iconv_info->cdfrom_srv != (iconv_t) - 1) {
+	tmp_cd = iconv_open(iconv_info->client_charset, cp);
+	if (tmp_cd != (iconv_t) -1) {
+		if (iconv_info->cdfrom_srv != (iconv_t) -1)
 			iconv_close(iconv_info->cdfrom_srv);
-		}
 		iconv_info->cdfrom_srv = tmp_cd;
 	}
 #endif
