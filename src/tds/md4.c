@@ -28,7 +28,10 @@
  * This code implements the MD4 message-digest algorithm.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include "tds.h"
 #include "md4.h"
 

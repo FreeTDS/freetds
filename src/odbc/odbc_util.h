@@ -20,7 +20,10 @@
 #ifndef ODBC_UTIL_h
 #define ODBC_UTIL_h
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #ifdef UNIXODBC
 #include <sql.h>
 #include <sqlext.h>
@@ -30,7 +33,7 @@
 #endif
 
 static char  rcsid_odbc_util_h [ ] =
-         "$Id: odbc_util.h,v 1.4 2002-10-03 19:07:32 castellano Exp $";
+         "$Id: odbc_util.h,v 1.5 2002-10-11 15:21:13 castellano Exp $";
 static void *no_unused_odbc_util_h_warn[]={rcsid_odbc_util_h, 
                                          no_unused_odbc_util_h_warn};
 

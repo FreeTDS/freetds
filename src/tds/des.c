@@ -32,7 +32,10 @@
  * All modifications are placed under the license of libmcrypt.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include "tds.h"
 #include "des.h"
 

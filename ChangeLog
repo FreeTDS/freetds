@@ -1,3 +1,8 @@
+Fri Oct 11 11:20:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/odbc/odbc_util.h src/odbc/prepare_query.h
+	  src/tds/des.c src/tds/md4.c:
+	- Fix the last few config.h stragglers.
+
 Fri Oct 11 11:03:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/freebcp.c src/apps/tsql.c:
 	- Include config.h properly.

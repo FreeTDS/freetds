@@ -20,7 +20,10 @@
 #ifndef PREPARE_QUERY_h
 #define PREPARE_QUERY_h
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #ifdef UNIXODBC
 #include <sql.h>
 #include <sqlext.h>
@@ -31,7 +34,7 @@
 
 
 static char  rcsid_prepare_query_h [ ] =
-         "$Id: prepare_query.h,v 1.2 2002-05-29 11:03:48 brianb Exp $";
+         "$Id: prepare_query.h,v 1.3 2002-10-11 15:21:14 castellano Exp $";
 static void *no_unused_prepare_query_h_warn[]={rcsid_prepare_query_h, 
                                          no_unused_prepare_query_h_warn};
 
