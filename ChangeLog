@@ -1,3 +1,8 @@
+Thu Jul 24 12:37:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/params.c(added) src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	- added ODBC test for parameters
+
 Thu Jul 24 11:37:47 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/write.c: small optimization and fix
 
