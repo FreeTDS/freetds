@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.19 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.20 2003-01-10 09:27:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -154,14 +154,18 @@ odbc_get_string_size(int size, SQLCHAR * str)
 	}
 }
 
-
+/**
+ * Convert type from database to ODBC
+ */
 SQLSMALLINT
 odbc_get_client_type(int col_type, int col_size)
 {
 	/* FIXME finish */
 	switch (col_type) {
+	case XSYBCHAR:
 	case SYBCHAR:
 		return SQL_CHAR;
+	case XSYBVARCHAR:
 	case SYBVARCHAR:
 		return SQL_VARCHAR;
 	case SYBTEXT:
@@ -169,8 +173,10 @@ odbc_get_client_type(int col_type, int col_size)
 	case SYBBIT:
 	case SYBBITN:
 		return SQL_BIT;
+#if (ODBCVER >= 0x0300)
 	case SYBINT8:
 		return SQL_BIGINT;
+#endif
 	case SYBINT4:
 		return SQL_INTEGER;
 	case SYBINT2:
@@ -185,18 +191,20 @@ odbc_get_client_type(int col_type, int col_size)
 			return SQL_SMALLINT;
 		case 4:
 			return SQL_INTEGER;
+#if (ODBCVER >= 0x0300)
 		case 8:
 			return SQL_BIGINT;
+#endif
 		}
 		break;
 	case SYBREAL:
-		return SQL_FLOAT;
+		return SQL_REAL;
 	case SYBFLT8:
 		return SQL_DOUBLE;
 	case SYBFLTN:
 		switch (col_size) {
 		case 4:
-			return SQL_FLOAT;
+			return SQL_REAL;
 		case 8:
 			return SQL_DOUBLE;
 		}
@@ -204,7 +212,7 @@ odbc_get_client_type(int col_type, int col_size)
 	case SYBMONEY:
 		return SQL_DOUBLE;
 	case SYBMONEY4:
-		return SQL_FLOAT;
+		return SQL_DOUBLE;
 	case SYBMONEYN:
 		break;
 	case SYBDATETIME:
@@ -214,25 +222,24 @@ odbc_get_client_type(int col_type, int col_size)
 	case SYBBINARY:
 		return SQL_BINARY;
 	case SYBIMAGE:
-		/* FIXME correct ? */
 		return SQL_LONGVARBINARY;
 	case SYBVARBINARY:
 		return SQL_VARBINARY;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		return SQL_BIGINT;
+		return SQL_NUMERIC;
 	case SYBNTEXT:
 	case SYBVOID:
 	case SYBNVARCHAR:
-	case XSYBCHAR:
-	case XSYBVARCHAR:
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:
 		break;
+#if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
 		return SQL_GUID;
 	case SYBVARIANT:
 		break;
+#endif
 	}
 	return SQL_UNKNOWN_TYPE;
 }

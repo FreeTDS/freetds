@@ -54,12 +54,12 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.24 2003-01-09 17:12:46 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.25 2003-01-10 09:27:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
- * Pass this an SQL_* type and get a SYB* type which most closely corresponds
- * to the SQL_* type.
+ * Pass this an SQL_C_* type and get a SYB* type which most closely corresponds
+ * to the SQL_C_* type.
  */
 int
 _odbc_get_server_type(int c_type)
