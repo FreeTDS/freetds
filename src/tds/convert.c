@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.90 2002-10-09 10:20:56 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.91 2002-10-12 14:45:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -385,7 +385,7 @@ TDS_INT rc;
 		if (!IS_TINYINT(tds_i))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = tds_i;
-     	    	return 1;
+		return sizeof(TDS_TINYINT);
          	break;
       case SYBINT2:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
@@ -393,35 +393,35 @@ TDS_INT rc;
 		if (!IS_SMALLINT(tds_i))
 			return TDS_CONVERT_OVERFLOW;
 		cr->si = tds_i;
-         	return 2;
+		return sizeof(TDS_SMALLINT);
          	break;
       case SYBINT4:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
 			return rc;
 		cr->i = tds_i;
-         	return 4;
-         	break;
+		return sizeof(TDS_INT);
+		break;
 	case SYBINT8:
 		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
 			return rc;
 		cr->bi = tds_i8;
-		return 8;
+		return sizeof(TDS_INT8);
 		break;
-      case SYBFLT8:
-         	cr->f = atof(src);
-         	return 8;
-         	break;
+	case SYBFLT8:
+		cr->f = atof(src);
+		return sizeof(TDS_FLOAT);
+		break;
       case SYBREAL:
          	cr->r = atof(src);
-         	return 4;
+		return sizeof(TDS_REAL);
          	break;
       case SYBBIT:
       case SYBBITN:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = tds_i ? 1 : 0;
-         	return 1;
-         	break;
+		return sizeof(TDS_TINYINT);
+		break;
       case SYBMONEY:
       case SYBMONEY4:
 
@@ -572,32 +572,32 @@ tds_convert_bit(int srctype, const TDS_CHAR *src,
 			break;
 		case SYBINT1:
 			cr->ti = canonic;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			cr->si = canonic;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			cr->i = canonic;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = canonic;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBFLT8:
 			cr->f = canonic;
-			return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = canonic;
-			return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = src[0];
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBMONEY:
 		case SYBMONEY4:
@@ -641,36 +641,36 @@ TDS_CHAR tmp_str[5];
 			break;
 		case SYBINT1:
 			cr->ti = buf;
-            return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			cr->si = buf;
-            return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			cr->i = buf;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = buf;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = buf ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f = buf;
-            return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = buf;
-            return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY4:
 			cr->m4.mny4 = buf * 10000;
-			return 4;
+			return sizeof(TDS_MONEY4);
 			break;
 		case SYBMONEY:
 			cr->m.mny = buf * 10000;
@@ -715,36 +715,36 @@ TDS_CHAR tmp_str[16];
 			if (!IS_TINYINT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = buf;
-            return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			cr->si = buf;
-            return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			cr->i = buf;
-            return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = buf;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = buf ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f = buf;
-            return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = buf;
-            return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY4:
 			cr->m4.mny4 = buf * 10000;
-			return 4;
+			return sizeof(TDS_MONEY4);
 			break;
 		case SYBMONEY:
 			cr->m.mny = buf * 10000;
@@ -790,40 +790,40 @@ TDS_CHAR tmp_str[16];
 			if (!IS_TINYINT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = buf;
-            return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			if (!IS_SMALLINT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = buf;
-            return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			cr->i = buf;
-            return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = buf;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = buf ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f = buf;
-            return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = buf;
-            return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY4:
 			if (buf > 214748 || buf < -214748)
 				return TDS_CONVERT_OVERFLOW;
 			cr->m4.mny4 = buf * 10000;
-			return 4;
+			return sizeof(TDS_MONEY4);
 			break;
 		case SYBMONEY:
 			cr->m.mny = (TDS_INT8)buf * 10000;
@@ -870,42 +870,42 @@ TDS_CHAR tmp_str[24];
 			if (!IS_TINYINT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = buf;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			if (!IS_SMALLINT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = buf;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			if (!IS_INT(buf))
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = buf;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = buf;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = buf ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f = buf;
-			return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = buf;
-			return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY4:
 			if (buf > 214748 || buf < -214748)
 				return TDS_CONVERT_OVERFLOW;
 			cr->m4.mny4 = buf * 10000;
-			return 4;
+			return sizeof(TDS_MONEY4);
 			break;
 		case SYBMONEY:
 			/* TODO check overflow */
@@ -1036,6 +1036,7 @@ char tmp_str[33];
 			dollars  = mny.mny4 / 10000;
 			fraction = mny.mny4 % 10000;
 			if (fraction < 0)	{ fraction = -fraction; }
+			/* TODO print 4 decimal digits ?? */
 			sprintf(tmp_str,"%ld.%02lu",dollars,fraction/100);
 			return string_to_result(tmp_str,cr);
 			break;
@@ -1048,44 +1049,44 @@ char tmp_str[33];
 			if (!IS_TINYINT(dollars))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = dollars;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			dollars  = mny.mny4 / 10000;
 			if (!IS_SMALLINT(dollars))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = dollars;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			cr->i = mny.mny4 / 10000;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->bi = mny.mny4 / 10000;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = mny.mny4 ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f = ((TDS_FLOAT)mny.mny4) / 10000.0;
-            return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r = ((TDS_REAL)mny.mny4) / 10000.0;
-			return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY:
 			cr->m.mny = (TDS_INT8)mny.mny4; 
 			return sizeof(TDS_MONEY);
-            break;
+			break;
 		case SYBMONEY4:
-            memcpy(&(cr->m4), src, sizeof(TDS_MONEY4));
-            return sizeof(TDS_MONEY4);
-            break;
+			memcpy(&(cr->m4), src, sizeof(TDS_MONEY4));
+			return sizeof(TDS_MONEY4);
+			break;
 		/* conversions not allowed */
 		case SYBUNIQUE:
 		case SYBDATETIME4:
@@ -1099,10 +1100,10 @@ char tmp_str[33];
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%04lu",dollars,fraction);
 			return stringz_to_numeric(tmp_str,cr);
-        	default:
-            		return TDS_CONVERT_NOAVAIL;
+		default:
+			return TDS_CONVERT_NOAVAIL;
 			break;
-    }
+	}
 	return TDS_CONVERT_FAIL;
 }
 
@@ -1114,11 +1115,6 @@ char *s;
 
 TDS_INT8 mymoney,dollars;
 char tmpstr [64];
-#ifdef UseBillsMoney
-char rawlong[64];
-int  rawlen;
-int i;
-#endif
 
     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_convert_money()\n");
 #if defined(WORDS_BIGENDIAN) || !defined(HAVE_INT64)
@@ -1129,48 +1125,17 @@ int i;
 #endif
 
 #	if (SIZEOF_LONG_LONG > 0)
-    tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
+	tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
 #	else
-    tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
+	tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
 #	endif
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
-
-#ifdef UseBillsMoney
-			if (mymoney <= -10000 || mymoney >= 10000) {
-
-#		if (SIZEOF_LONG_LONG > 0)
-            sprintf(rawlong,"%lld", mymoney);
-#		else
-            sprintf(rawlong,"%ld", mymoney);
-#		endif
-            rawlen = strlen(rawlong);
-
-            strncpy(tmpstr, rawlong, rawlen - 4);
-            tmpstr[rawlen - 4] = '.';
-            strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
-			} else {
-				i = mymoney;
-				s = tmpstr;
-				if (i < 0) {
-					*s++ = '-';
-					i = -i;
-				}
-				sprintf(s,"0.%04d",i);
-			}
-            
-            return string_to_result(tmpstr,cr);
-#else
-			/* use brian's money */
-			/* begin lkrauss 2001-10-13 - fix return to be strlen() */
-          	s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
-                return string_to_result(s,cr);
-          	break;
-		
-#endif	/* UseBillsMoney */
-            break;
+			s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
+			return string_to_result(s,cr);
+			break;
 
 		case SYBBINARY:
 		case SYBIMAGE:
@@ -1181,43 +1146,44 @@ int i;
 			if (!IS_TINYINT(dollars))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = dollars;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			dollars  = mymoney / 10000;
 			if (!IS_SMALLINT(dollars))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = dollars;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			dollars  = mymoney / 10000;
 			if (!IS_INT(dollars))
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = dollars;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			cr->i = mymoney / 10000;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = mymoney ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBFLT8:
 			cr->f  = ((TDS_FLOAT)mymoney) / 10000.0;
-            return 8;
+			return sizeof(TDS_FLOAT);
 			break;
 		case SYBREAL:
 			cr->r  = ((TDS_REAL)mymoney) / 10000.0;
-            return 4;
+			return sizeof(TDS_REAL);
 			break;
 		case SYBMONEY4:
 			if (!IS_INT(mymoney))
 				return TDS_CONVERT_OVERFLOW;
 			cr->m4.mny4 = mymoney;
+			return sizeof(TDS_MONEY4);
 			break;
 		case SYBMONEY:
 			cr->m.mny = mymoney;
@@ -1411,66 +1377,66 @@ TDS_INT8 mymoney;
 			if (!IS_TINYINT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = the_value;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			if (!IS_SMALLINT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = the_value;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			if (!IS_INT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = the_value;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			/* TODO check overflow */
 			cr->bi = the_value;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = the_value ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 
-      case SYBFLT8:
-            cr->f = the_value;
-            return 8;
-            break;
+		case SYBFLT8:
+			cr->f = the_value;
+			return sizeof(TDS_FLOAT);
+			break;
 
-      case SYBREAL:
-            cr->r = the_value;
-            return 4;
-            break;
+		case SYBREAL:
+			cr->r = the_value;
+			return sizeof(TDS_REAL);
+			break;
 
-	  case SYBMONEY:
-            mymoney = the_value * 10000;
+		case SYBMONEY:
+			mymoney = the_value * 10000;
 			memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY));
 			return sizeof(TDS_MONEY);
-            break;
+			break;
 
-	  case SYBMONEY4:
-            mymoney4 = the_value * 10000;
-            memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
-            return sizeof(TDS_MONEY4);
-            break;
+		case SYBMONEY4:
+			mymoney4 = the_value * 10000;
+			memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
+			return sizeof(TDS_MONEY4);
+			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
 			sprintf(tmp_str,"%.*f", cr->n.scale,  the_value);
 			return stringz_to_numeric(tmp_str, cr);
 			break;
-	    /* not allowed */
+		/* not allowed */
 		case SYBUNIQUE:
-	  case SYBDATETIME4:
-	  case SYBDATETIME:
-	  case SYBDATETIMN:
-	  default:
-            return TDS_CONVERT_NOAVAIL;
-	    break;
-   }
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+		default:
+			return TDS_CONVERT_NOAVAIL;
+			break;
+	}
 	return TDS_CONVERT_FAIL;
 }
 
@@ -1498,29 +1464,29 @@ char      tmp_str[25];
 			if (!IS_TINYINT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->ti = the_value;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 		case SYBINT2:
 			if (!IS_SMALLINT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->si = the_value;
-			return 2;
+			return sizeof(TDS_SMALLINT);
 			break;
 		case SYBINT4:
 			if (!IS_INT(the_value))
 				return TDS_CONVERT_OVERFLOW;
 			cr->i = the_value;
-			return 4;
+			return sizeof(TDS_INT);
 			break;
 		case SYBINT8:
 			/* TODO check overflow */
 			cr->bi = the_value;
-			return 8;
+			return sizeof(TDS_INT8);
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = the_value ? 1 : 0;
-			return 1;
+			return sizeof(TDS_TINYINT);
 			break;
 
       case SYBMONEY:
@@ -1531,17 +1497,17 @@ char      tmp_str[25];
             cr->m4.mny4 = the_value * 10000.0;
             return sizeof(TDS_MONEY4);
             break;
-      case SYBREAL:
-            cr->r = the_value;
-            return 4;
-            break;
-      case SYBFLT8:
-            cr->f = the_value;
-            return 8;
-            break;
+		case SYBREAL:
+			cr->r = the_value;
+			return sizeof(TDS_REAL);
+			break;
+		case SYBFLT8:
+			cr->f = the_value;
+			return sizeof(TDS_FLOAT);
+			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-            		sprintf(tmp_str,"%.15g", the_value);
+			sprintf(tmp_str,"%.15g", the_value);
 			return stringz_to_numeric(tmp_str, cr);
 			break;
 	/* not allowed */
@@ -1552,7 +1518,7 @@ char      tmp_str[25];
 	default:
 		return TDS_CONVERT_NOAVAIL;
 		break;
-   }
+	}
 	return TDS_CONVERT_FAIL;
 }
 

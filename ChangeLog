@@ -1,3 +1,9 @@
+Sat Oct 12 21:56:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c src/tds/numeric.c:
+	- move all string to money conversion to tds_money_to_string
+	- return sizeof(type) instead of constant values
+	- fixed a small bug converting money to money4
+
 Fri Oct 11 16:38:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in include/.cvsignore include/tds_configs.h.in
 	  src/replacements/atoll.c

@@ -61,6 +61,34 @@ const int g__numeric_bytes_per_prec[] =
 */
 char *tds_money_to_string(TDS_MONEY *money, char *s)
 {
+	/* use brian's money */
+#ifdef UseBillsMoney
+char rawlong[64];
+int  rawlen;
+int i;
+
+	if (mymoney <= -10000 || mymoney >= 10000) {
+#		if (SIZEOF_LONG_LONG > 0)
+		sprintf(rawlong,"%lld", mymoney);
+#		else
+		sprintf(rawlong,"%ld", mymoney);
+#		endif
+		rawlen = strlen(rawlong);
+
+		strncpy(tmpstr, rawlong, rawlen - 4);
+		tmpstr[rawlen - 4] = '.';
+		strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
+	} else {
+		i = mymoney;
+		s = tmpstr;
+		if (i < 0) {
+			*s++ = '-';
+			i = -i;
+		}
+		sprintf(s,"0.%04d",i);
+	}
+	return s;
+#else
 unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
 unsigned char product[MAXPRECISION];
 unsigned char *number;
@@ -117,6 +145,7 @@ int neg=0;
 		array_to_string(product, 4, s);
 	}
 	return s;
+#endif
 }
 char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s)
 {
