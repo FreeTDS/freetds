@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.18 2003-04-03 09:12:16 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.19 2003-05-03 18:46:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -263,12 +263,13 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 			if (p->maxlen < 0)
 				return NULL;
 			pcol->column_size = p->maxlen;
+
+			/* actual data */
+			pcol->column_cur_size = p->datalen;
 		}
 		pcol->column_output = p->status;
 
-		/* actual data */
-		pcol->column_cur_size = p->datalen;
-		prow = param_row_alloc(params, pcol, p->value, p->datalen);
+		prow = param_row_alloc(params, pcol, p->value, pcol->column_cur_size);
 
 		if (!prow) {
 			fprintf(stderr, "out of memory for rpc row!");

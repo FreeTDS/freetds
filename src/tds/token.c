@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.186 2003-05-03 13:16:24 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.187 2003-05-03 18:46:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -962,6 +962,10 @@ tds_process_col_fmt(TDSSOCKET * tds)
 			break;
 		}
 
+		/* Adjust column size according to client's encoding */
+		curcol->on_server.column_size = curcol->column_size;
+		adjust_character_column_size(tds, curcol);
+
 		tds_add_row_column_size(info, curcol);
 	}
 
@@ -1172,6 +1176,10 @@ tds_process_compute_result(TDSSOCKET * tds)
 			break;
 		}
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
+		
+		/* Adjust column size according to client's encoding */
+		curcol->on_server.column_size = curcol->column_size;
+		adjust_character_column_size(tds, curcol);
 
 		/* skip locale */
 		if (!IS_TDS42(tds))
@@ -1563,6 +1571,10 @@ tds5_process_result(TDSSOCKET * tds)
 			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
 		}
+
+		/* Adjust column size according to client's encoding */
+		curcol->on_server.column_size = curcol->column_size;
+		adjust_character_column_size(tds, curcol);
 
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
@@ -2378,6 +2390,10 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			break;
 		}
 
+		/* Adjust column size according to client's encoding */
+		curcol->on_server.column_size = curcol->column_size;
+		adjust_character_column_size(tds, curcol);
+
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->column_prec = tds_get_byte(tds);	/* precision */
@@ -2994,6 +3010,7 @@ _tds_token_name(unsigned char marker)
 static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
+	/* FIXME: and sybase ?? and single char to utf8 ??? */
 	if (is_unicode_type(curcol->on_server.column_type)) {
 		curcol->on_server.column_size = curcol->column_size;
 		curcol->column_size = determine_adjusted_size(tds->iconv_info, curcol->column_size);
