@@ -38,23 +38,23 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.14 2002-11-01 20:55:52 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: locale.c,v 1.15 2002-11-17 11:10:32 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
-static void tds_parse_locale(const char* option, const char* value, void *param);
+static void tds_parse_locale(const char *option, const char *value, void *param);
 
 /**
  * Get locale information. 
  * @return allocated structure with all information or NULL if error
  */
-TDSLOCINFO *tds_get_locale(void)
+TDSLOCINFO *
+tds_get_locale(void)
 {
-TDSLOCINFO *locale;
-unsigned char *s;
-int i;
-FILE *in;
+	TDSLOCINFO *locale;
+	unsigned char *s;
+	int i;
+	FILE *in;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	locale = tds_alloc_locale();
@@ -70,7 +70,8 @@ FILE *in;
 		s = getenv("LANG");
 		if (s && strlen(s)) {
 			rewind(in);
-			for (i=0;i<strlen(s);i++) s[i]=tolower(s[i]);
+			for (i = 0; i < strlen(s); i++)
+				s[i] = tolower(s[i]);
 			tds_read_conf_section(in, s, tds_parse_locale, locale);
 		}
 
@@ -79,18 +80,22 @@ FILE *in;
 	return locale;
 }
 
-static void tds_parse_locale(const char* option, const char* value, void *param)
+static void
+tds_parse_locale(const char *option, const char *value, void *param)
 {
-	TDSLOCINFO *locale = (TDSLOCINFO*)param;
+	TDSLOCINFO *locale = (TDSLOCINFO *) param;
 
-	if (!strcmp(option,TDS_STR_CHARSET)) {
-		if (locale->char_set) free(locale->char_set);
+	if (!strcmp(option, TDS_STR_CHARSET)) {
+		if (locale->char_set)
+			free(locale->char_set);
 		locale->char_set = strdup(value);
-	} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
-		if (locale->language) free(locale->language);
+	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
+		if (locale->language)
+			free(locale->language);
 		locale->language = strdup(value);
-	} else if (!strcmp(option,TDS_STR_DATEFMT)) {
-		if (locale->date_fmt) free(locale->date_fmt);
+	} else if (!strcmp(option, TDS_STR_DATEFMT)) {
+		if (locale->date_fmt)
+			free(locale->date_fmt);
 		locale->date_fmt = strdup(value);
 	}
 }
