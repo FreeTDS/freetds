@@ -1,3 +1,6 @@
+Sat Dec 21 15:08:08 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: updated a bit
+
 Fri Dec 20 22:51:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c src/ctlib/cs.c src/dblib/dblib.c:
 	- use %I instead of %l for strftime (portability problem)

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-12-18 21:27:59 $</date>
-		<releaseinfo>$Revision: 1.46 $</releaseinfo>
+		<date>$Date: 2002-12-21 14:08:50 $</date>
+		<releaseinfo>$Revision: 1.47 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.46 $
+$Revision: 1.47 $
 , dated 
-$Date: 2002-12-18 21:27:59 $ (CVS control number $Id: userguide.sgml,v 1.46 2002-12-18 21:27:59 jklowden Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2002-12-21 14:08:50 $ (CVS control number $Id: userguide.sgml,v 1.47 2002-12-21 14:08:50 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -326,7 +326,7 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--with-tdsver
 					</Parameter></term>
-				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, and <literal>8.0</literal> (experimental).  </para>
+				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, and <literal>8.0</literal>.</para>
 					<para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 					</listitem>
 				</varlistentry>
@@ -506,14 +506,14 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	<row>
 	<entry>Microsoft SQL Server 2000</entry>
 	<entry>8.0</entry>
-	<entry> <productname>FreeTDS</productname> support for 8.0 is new. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
+	<entry>Include support for bigint (64 bit integers), variant and collation on all fields. <productname>FreeTDS</productname> support for 8.0 is new. Variant are not supported, collation is not widely used. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
 	</row>
 </tbody>	
 </tgroup>
 </table>
 			</para>
 			<para>
-Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in Unicode (2 bytes/character).  
+Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (unicode, 2 bytes/character).  
 			</para>
 			<para>
 TDS 4.2 and 5.0 have limitations you should be aware of, though, including:
@@ -610,7 +610,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>tds version</entry>
 	<entry>--with-tdsver value (5.0 if unspecified)</entry>
 	<entry>The <acronym>TDS</> protocol version to use when connecting.</entry>
-	<entry>4.2, 5.0, 7.0</entry>
+	<entry>4.2, 5.0, 7.0, 8.0</entry>
 	</row>
 	<row>
 	<entry>host</entry>
@@ -665,13 +665,13 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>try server login</entry>
 	<entry>yes</entry>
-	<entry>(Experimental) Disable use of server logins when domain logins are in use.</entry>
+	<entry>Disable use of server logins when domain logins are in use.</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry>try domain login</entry>
 	<entry>yes</entry>
-	<entry>(Experimental) Attempt a domain login.  
+	<entry>Attempt a domain login.  
 		<emphasis> Setting try domain login has the effect 
 				of disallowing server logins!</emphasis></entry>
 	<entry>yes/no</entry>
@@ -679,7 +679,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<row>
 	<entry>nt domain</entry>
 	<entry>none</entry>
-	<entry>(Experimental) Specify an explicit domain</entry>
+	<entry>Specify an explicit domain</entry>
 	<entry>any</entry>
 	</row>
 	<row>
@@ -952,8 +952,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>Version</entry>
 	<entry>Server</entry>
 	<entry>Client</entry>
-	<entry>TDS
-</entry>
+	<entry>TDS</entry>
+	<entry>Tested date</entry>
 	</row>
 </thead>
 <tbody>
@@ -963,8 +963,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2000</entry>
 	<entry>Intel/Windows 2000       </entry>
 	<entry>Intel/Linux</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -972,8 +972,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2000</entry>
 	<entry>Intel/Windows 2000       </entry>
 	<entry>Sparc/Solaris</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -981,8 +981,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2000</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/FreeBSD</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -990,8 +990,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>2000</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Sparc/Solaris</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -999,8 +999,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>6.5</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/Linux</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1008,8 +1008,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/FreeBSD</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1017,8 +1017,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/Linux</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>2</entry>
@@ -1026,8 +1026,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/Linux</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1035,8 +1035,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/NT4</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1044,8 +1044,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/NT4</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1053,8 +1053,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Intel/Win2000</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>2</entry>
@@ -1062,8 +1062,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>PowerPC/Mac</entry>
-	<entry>4.2
-</entry>
+	<entry>4.2</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1071,8 +1071,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>7.0</entry>
 	<entry>Intel/Windows NT 4.0     </entry>
 	<entry>Sparc/Solaris</entry>
-	<entry>7.0
-</entry>
+	<entry>7.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1080,8 +1080,8 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>11.5</entry>
 	<entry>Sparc E300/Solaris 2.5.1 </entry>
 	<entry>Intel/Solaris</entry>
-	<entry>5.0
-</entry>
+	<entry>5.0</entry>
+	<entry>???</entry>
 	</row>
 <row>
 	<entry>1</entry>
@@ -1090,6 +1090,43 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>Intel/Windows NT 4.0</entry>
 	<entry>Intel/Linux</entry>
 	<entry>5.0</entry>
+	<entry>???</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Microsoft</entry>
+	<entry>7.0</entry>
+	<entry>Intel/Windows NT 4.0</entry>
+	<entry>Intel/Linux</entry>
+	<entry>7.0</entry>
+	<entry>2002-12-20</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Microsoft</entry>
+	<entry>2000</entry>
+	<entry>Intel/Windows 2000</entry>
+	<entry>Intel/Linux</entry>
+	<entry>8.0</entry>
+	<entry>2002-12-20</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Microsoft</entry>
+	<entry>7.0</entry>
+	<entry>Intel/Windows NT 4.0</entry>
+	<entry>PARISC/HP-UX 10.20</entry>
+	<entry>7.0</entry>
+	<entry>2002-12-20</entry>
+</row>
+<row>
+	<entry>1</entry>
+	<entry>Sybase ASE</entry>
+	<entry>10.9.2.3</entry>
+	<entry>Intel/Linux</entry>
+	<entry>Intel/Linux</entry>
+	<entry>5.0</entry>
+	<entry>2002-12-20</entry>
 </row>
 </tbody>
 </tgroup>
@@ -1291,7 +1328,8 @@ As mentioned in the installation chapter, <productname>SQL Server</productname> 
 </example>
 			</para>
 <Note><para>
-As of version 0.60, <productname>FreeTDS</productname>'s support for domain logins is very new.  It appears that it may also be mutually exclusive.  That is, although we would like it to be the case that you could set both <literal>try domain login</> and <literal>try server login</> to <literal>yes</>, we're not sure you can.  Not yet, anyway.  To work around this, you can simply use two sections for the server (one in each mode) in  <filename>freetds.conf</filename>.  
+As of version 0.60, <productname>FreeTDS</productname>'s support for domain logins is very new.  It appears that it may also be mutually exclusive.  That is, although we would like it to be the case that you could set both <literal>try domain login</> and <literal>try server login</> to <literal>yes</>, we're not sure you can.  Not yet, anyway.  To work around this, you can simply use two sections for the server (one in each mode) in  <filename>freetds.conf</filename>. If you specify username with DOMAIN\user syntax 
+<productname>FreeTDS</productname> automatically use domain login for TDS versions 7.0 and 8.0.
 </para></Note>
 		</sect1>
 		<sect1 id="appendmode">
@@ -1835,10 +1873,6 @@ The <literal>-g</literal> is important to keep the symbol tables for debugging p
 <!-- //////////////////// new work on ODBC (dsnless and freetds.conf'less) ////////////// -->
 
 <para>New configuration method (dnsless and freetds.conf'less)</para>
-<tip><sidebar><para>
-This part of documentation is still in developing, so is subject to change. 
-Global of freetds.conf readed only for freetds.conf configurations.
-</para></sidebar></tip>
 
 <para>
 Current CVS version support DSNless connection and freetds.conf'less connection. This mean that all connection informations
@@ -2464,6 +2498,7 @@ Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ul
 			<title>TDS <acronym>API</> [future reference]</title>
 			<para>
 Basic API coverage information is available at <ulink url="http://www.freetds.org//api_status.txt">www.freetds.org</ulink>.
+libtds documentation can be compiled using <productname>Doxygen</productname> and issuing <command>make doxy</command> command.
 			</para>
 		</sect1>
 		<sect1>
