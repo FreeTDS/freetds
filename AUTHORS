@@ -64,11 +64,8 @@ GNU standards compliance and minor fixes
 Patrick van Kleef <pkleef@openlinksw.com>
 Various bug fixes, dbcanquery() and odbc version checks.
 
-GNU standards compliance and minor fixes
-
-Thanks go to the folks at A2i, Inc. (http://www.a2i.com) for funding the 
-development of dblib host file bulk copy and writetext support, and to Dave 
-Poyourow there for helping with the debugging.
+Chris Eleveld <ihermit2@yahoo.com>
+ANSIfication patches.
 
 Thanks go to the folks at A2i, Inc. (http://www.a2i.com) for funding the 
 development of dblib host file bulk copy and writetext support, and to Dave 

@@ -1,3 +1,7 @@
+Thu Jan 31 10:07:18 EST 2002	Brian Bruns	<camber@ais.org>
+	* include/sybdb.h: add back define for dbopen removed by ansi patch
+	* AUTHORS: Add Chris Eleved
+
 Wed Jan 30 21:19:34 EST 2002	Brian Bruns	<camber@ais.org>
 	* : Patches from Chris Eleveld <ihermit2@yahoo.com> for ANSI C compliance
 
