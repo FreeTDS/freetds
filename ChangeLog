@@ -1,3 +1,7 @@
+Mon Jan 10 10:34:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: backport small rpc fixes
+	* src/dblib/unittests/rpc.c: test to fix #744992
+
 Sun Jan  9 14:52:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/t0018.c: improved from #1088672
 

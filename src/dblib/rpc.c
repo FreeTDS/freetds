@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32.2.5 2005-01-09 13:31:06 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.6 2005-01-10 09:34:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -356,6 +356,8 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 			if (param_is_null) {
 				temp_datalen = 0;
 				temp_value = NULL;
+			} else if (is_fixed_type(temp_type)) {
+				temp_datalen = tds_get_size_by_type(temp_type);
 			}
 			temp_type = tds_get_null_type(temp_type);
 		} else if (is_fixed_type(temp_type)) {
@@ -382,6 +384,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 				pcol->column_size = p->datalen;
 			}
 		}
+		pcol->on_server.column_size = pcol->column_size;
 
 		pcol->column_output = p->status;
 		pcol->column_cur_size = temp_datalen;
