@@ -1,3 +1,7 @@
+Sat Mar 06 15:00:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- fix invalid cursor state on SQLRowCount
+
 Sat Mar 06 14:11:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: removed old TODO
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
