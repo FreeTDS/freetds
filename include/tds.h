@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.162 2003-12-07 10:35:52 ppeterd Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.163 2003-12-14 15:07:45 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -497,8 +497,10 @@ typedef union tds_option_arg
 	TDS_CHAR *c;
 } TDS_OPTION_ARG;
 
-static const TDS_INT TDS_OPT_ARITHOVERFLOW = 0x01;
-static const TDS_INT TDS_OPT_NUMERICTRUNC = 0x02;
+enum {
+	TDS_OPT_ARITHOVERFLOW = 0x01,
+	TDS_OPT_NUMERICTRUNC = 0x02
+};
 
 enum TDS_OPT_DATEFIRST_CHOICE
 {
@@ -759,7 +761,7 @@ typedef struct
  */
 typedef struct _tds_encoding
 {
-	char name[64];
+	const char *name;
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
 } TDS_ENCODING;
