@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.102 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.103 2003-10-22 05:53:17 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -859,6 +859,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 
 			SQLS_ENTRY(3621, "01000");
 			SQLS_ENTRY(8153, "01003");	/* Null in aggregate */
+			SQLS_ENTRY(911, "08004");	/* Server rejected connection */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
 			SQLS_ENTRY(109, "21S01");
@@ -868,6 +869,8 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(5146, "22003");	/* Numeric value out of range */
 			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
 			SQLS_ENTRY(232, "22003");
+			SQLS_ENTRY(168, "22003");
+			SQLS_ENTRY(1007, "22003");
 			SQLS_ENTRY(3606, "22003");
 			SQLS_ENTRY(8115, "22003");
 			SQLS_ENTRY(210, "22007");	/* Invalid datetime format */
@@ -924,6 +927,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(170, "37000");
 			SQLS_ENTRY(174, "37000");
 			SQLS_ENTRY(201, "37000");
+			SQLS_ENTRY(2812, "37000");
 			SQLS_ENTRY(2526, "37000");
 			SQLS_ENTRY(8144, "37000");
 			SQLS_ENTRY(17308, "42000");	/* Syntax/Access violation */
@@ -977,6 +981,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 		switch (msgnum) {	/* Sybase */
 			SQLS_ENTRY(3621, "01000");
 			SQLS_ENTRY(9501, "01003");	/* Null in aggregate */
+			SQLS_ENTRY(911, "08004");	/* Server rejected connection */
 			SQLS_ENTRY(512, "21000");	/* Subquery returns more than one value */
 			SQLS_ENTRY(213, "21S01");	/* Insert column list mismatch */
 			SQLS_ENTRY(109, "21S01");
@@ -984,6 +989,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(1715, "21S02");	/* Ref column mismatch */
 			SQLS_ENTRY(9502, "22001");	/* String data would be truncated */
 			SQLS_ENTRY(220, "22003");	/* Arithmetic overflow */
+			SQLS_ENTRY(168, "22003");
 			SQLS_ENTRY(227, "22003");
 			SQLS_ENTRY(232, "22003");
 			SQLS_ENTRY(247, "22003");
@@ -1025,6 +1031,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(7327, "37000");
 			SQLS_ENTRY(201, "37000");
 			SQLS_ENTRY(257, "37000");
+			SQLS_ENTRY(2812, "37000");
 			SQLS_ENTRY(2526, "37000");
 			SQLS_ENTRY(11021, "37000");
 			SQLS_ENTRY(229, "42000");	/* Syntax/Access violation */

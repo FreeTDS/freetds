@@ -1,3 +1,7 @@
+Tue Oct 21 22:50:37 PDT 2003	Peter Deacon <peterd@iea-software.com>
+	* src/tds/mem.c: more native sqlstate mappings
+	* win32/tds_sysdep_public.h: fix win32 msvc6 project error
+
 Tue Oct 21 21:29:07 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h include/tdsiconv.h
 	* src/odbc/odbc.c src/server/login.c
