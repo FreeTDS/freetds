@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.39 2002-08-26 20:10:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.40 2002-08-27 05:18:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1097,7 +1097,7 @@ TDSMSGINFO msg_info;
         	ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
-		if (ret) {
+		if (ret && tds) {
 			tds->state=TDS_DEAD;
 		}	
 	}
