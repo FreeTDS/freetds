@@ -1,3 +1,7 @@
+Sun Sep 29 15:27:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/tds/login.c src/tds/write.c:
+	- as suggested by jkl put old tds_put_string in login as static
+
 Sun Sep 29 15:05:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/Makefile.am src/dblib/Makefile.am src/tds/Makefile.am:
 	- correct version info
