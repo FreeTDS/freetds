@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.1 2003-08-30 10:04:32 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.2 2003-08-30 13:01:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -66,6 +66,8 @@ odbc_check_drecord(struct _drecord *drec)
 	const int invalid_datetime_interval_code = 0;
 	int concise_type = 0;
 
+	assert(drec->sql_desc_concise_type != SQL_INTERVAL && drec->sql_desc_concise_type != SQL_DATETIME);
+
 	switch (drec->sql_desc_type) {
 	case SQL_BIT:
 	case SQL_SMALLINT:
@@ -89,7 +91,8 @@ odbc_check_drecord(struct _drecord *drec)
 	case SQL_FLOAT:
 	case SQL_REAL:
 	case SQL_DOUBLE:
-		assert(drec->sql_desc_type == drec->sql_desc_concise_type && drec->sql_desc_datetime_interval_code == 0);
+		assert(drec->sql_desc_type == drec->sql_desc_concise_type);
+		assert(drec->sql_desc_datetime_interval_code == 0);
 		break;
 
 	case SQL_DATETIME:

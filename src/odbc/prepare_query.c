@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.33 2003-08-29 20:37:48 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.34 2003-08-30 13:01:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -50,7 +50,7 @@ _get_sql_textsize(struct _drecord *drec_ipd, SQLINTEGER sql_len)
 {
 	int len;
 
-	switch (drec_ipd->sql_desc_type) {
+	switch (drec_ipd->sql_desc_concise_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
@@ -158,7 +158,7 @@ _need_comma(struct _drecord *drec_ipd)
 	if (SQL_NULL_DATA == drec_ipd->sql_desc_parameter_type)
 		return 0;
 
-	switch (drec_ipd->sql_desc_type) {
+	switch (drec_ipd->sql_desc_concise_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
@@ -285,12 +285,12 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 
 			need_comma = _need_comma(drec_ipd);
 			/* printf("ctype is %d %d %d\n",param->ipd_sql_desc_parameter_type, 
-			 * param->apd_sql_desc_type, param->ipd_sql_desc_type); */
+			 * param->apd_sql_desc_concise_type, param->ipd_sql_desc_concise_type); */
 
 			if (need_comma)
 				*d++ = comma;
 
-			if (drec_apd->sql_desc_type == SQL_C_BINARY) {
+			if (drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
 				memcpy(d, "0x", 2);
 				d += 2;
 			}
@@ -307,7 +307,8 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(context, drec_apd->sql_desc_type, drec_apd->sql_desc_data_ptr, sql_len, d, -1);
+			len = convert_sql2string(context, drec_apd->sql_desc_concise_type, drec_apd->sql_desc_data_ptr, sql_len, d,
+						 -1);
 			if (TDS_FAIL == len)
 				return SQL_ERROR;
 
@@ -397,7 +398,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		StrLen_or_Ind = need_bytes;
 
 	/* put parameter into query */
-	len = convert_sql2string(context, drec_apd->sql_desc_type, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
+	len = convert_sql2string(context, drec_apd->sql_desc_concise_type, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
 	if (TDS_FAIL == len)
 		return SQL_ERROR;
 

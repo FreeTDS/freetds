@@ -1,3 +1,8 @@
+Sat Aug 30 15:00:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_checks.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- some fixes for sql_desc_type and sql_desc_concise_type
+
 Sat Aug 30 12:03:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/Makefile.am src/odbc/odbc.c:
 	* src/odbc/odbc_checks.c(added) src/odbc/odbc_checks.h(added):

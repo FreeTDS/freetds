@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.19 2003-08-29 20:37:48 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.20 2003-08-30 13:01:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -118,10 +118,10 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	sql_len = odbc_get_param_len(drec_apd);
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, drec_ipd->sql_desc_type);
+	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, drec_ipd->sql_desc_concise_type);
 
 	/* what type to convert ? */
-	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_type);
+	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 	if (dest_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
@@ -169,19 +169,19 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 	/* TODO what happen to data ?? */
 	/* convert parameters */
 	src = drec_apd->sql_desc_data_ptr;
-	switch (drec_apd->sql_desc_type) {
+	switch (drec_apd->sql_desc_concise_type) {
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_DATE:
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
-		convert_datetime2server(drec_apd->sql_desc_type, src, &dt);
+		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dt);
 		src = (char *) &dt;
 		src_type = SYBDATETIME;
 		break;
 	default:
-		src_type = odbc_get_server_type(drec_apd->sql_desc_type);
+		src_type = odbc_get_server_type(drec_apd->sql_desc_concise_type);
 		break;
 	}
 	if (src_type == TDS_FAIL)

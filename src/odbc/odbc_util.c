@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.43 2003-08-29 20:37:48 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.44 2003-08-30 13:01:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -127,8 +127,8 @@ odbc_set_return_status(struct _hstmt *stmt)
 			return;
 		drec = &stmt->apd->records[0];
 
-		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT), drec->sql_desc_type,
-				      drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
+		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
+				      drec->sql_desc_concise_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
 		if (TDS_FAIL == len)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
@@ -185,7 +185,8 @@ odbc_set_return_params(struct _hstmt *stmt)
 			src = ((TDSBLOBINFO *) src)->textvalue;
 		srclen = colinfo->column_cur_size;
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
-				      drec_apd->sql_desc_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length);
+				      drec_apd->sql_desc_concise_type, drec_apd->sql_desc_data_ptr,
+				      drec_apd->sql_desc_octet_length);
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
@@ -631,11 +632,12 @@ odbc_get_param_len(struct _drecord *drec)
 	else {
 		len = 0;
 		/* TODO add XML if defined */
-		if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY) {
+		/* FIXME, other types available */
+		if (drec->sql_desc_concise_type == SQL_C_CHAR || drec->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
 			/* FIXME check what happen to DATE/TIME types */
-			size = tds_get_size_by_type(odbc_get_server_type(drec->sql_desc_type));
+			size = tds_get_size_by_type(odbc_get_server_type(drec->sql_desc_concise_type));
 			if (size > 0)
 				len = size;
 		}

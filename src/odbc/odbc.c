@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.234 2003-08-30 10:04:32 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.235 2003-08-30 13:01:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -813,6 +813,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec = &apd->records[ipar - 1];
 
 	drec->sql_desc_type = fCType;
+	/* FIXME this field can be SQL_C_DEFAULT... */
 	if (fCType == SQL_C_DEFAULT) {
 		drec->sql_desc_type = odbc_sql_to_c_type_default(fSqlType);
 		if (drec->sql_desc_type == 0) {
@@ -823,6 +824,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	} else {
 		drec->sql_desc_type = fCType;
 	}
+	drec->sql_desc_concise_type = drec->sql_desc_type;
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -840,6 +842,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	drec->sql_desc_parameter_type = fParamType;
 	drec->sql_desc_type = fSqlType;
+	drec->sql_desc_concise_type = drec->sql_desc_type;
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -1150,7 +1153,9 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	drec = &ard->records[icol - 1];
 
-	drec->sql_desc_type = fCType;
+	drec->sql_desc_concise_type = fCType;
+	/* FIXME use correct type */
+	drec->sql_desc_type = drec->sql_desc_concise_type;
 	drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -1292,7 +1297,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	}
 	if (pfSqlType) {
 		/* TODO sure ? check documentation for date and intervals */
-		*pfSqlType = drec->sql_desc_type;
+		*pfSqlType = drec->sql_desc_concise_type;
 	}
 
 	if (pcbColDef) {
@@ -1710,6 +1715,12 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 
 	/* TODO check for valid types and return "HY021" if not */
 	drec->sql_desc_type = nType;
+	drec->sql_desc_concise_type = nType;
+	if (nType == SQL_INTERVAL || nType == SQL_DATETIME) {
+		drec->sql_desc_datetime_interval_code = nSubType;
+		/* FIXME set concise type according */
+	} else
+		drec->sql_desc_datetime_interval_code = 0;
 	drec->sql_desc_octet_length = nLength;
 	drec->sql_desc_precision = nPrecision;
 	drec->sql_desc_scale = nScale;
@@ -1761,7 +1772,7 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	if (Scale)
 		*Scale = drec->sql_desc_scale;
 	if (SubType)
-		*SubType = 0;
+		*SubType = drec->sql_desc_datetime_interval_code;
 	if (Nullable)
 		*Nullable = drec->sql_desc_nullable;
 
@@ -2047,12 +2058,13 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
+		/* FIXME set other fields cascading */
 		IIN(SQLSMALLINT, drec->sql_desc_concise_type);
 		break;
 	case SQL_DESC_DATA_PTR:
 		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
 		break;
-		/* TODO SQL_DESC_DATETIME_INTERVAL_CODE */
+		/* TODO SQL_DESC_DATETIME_INTERVAL_CODE remember to check sql_desc_type */
 		/* TODO SQL_DESC_DATETIME_INTERVAL_PRECISION */
 	case SQL_DESC_DISPLAY_SIZE:
 	case SQL_DESC_FIXED_PREC_SCALE:
@@ -2135,6 +2147,8 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	case SQL_DESC_TYPE:
 		IIN(SQLSMALLINT, drec->sql_desc_type);
+		/* FIXME what happen for interval/datetime ?? */
+		drec->sql_desc_concise_type = drec->sql_desc_type;
 		break;
 	case SQL_DESC_TYPE_NAME:
 		odbc_errs_add(&desc->errs, "HY091", "Descriptor type read only", NULL);
@@ -2230,11 +2244,12 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		drec->sql_desc_catalog_name = strdup("");
-		/* TODO is correct ?? */
+		/* FIXME handle interval/datetime correctly */
 		drec->sql_desc_concise_type =
 			drec->sql_desc_type =
 			odbc_tds_to_sql_type(col->column_type, col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
-		drec->sql_desc_display_size = odbc_sql_to_displaysize(drec->sql_desc_type, col->column_size, col->column_prec);
+		drec->sql_desc_display_size =
+			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
 		drec->sql_desc_label = odbc_strndup(col->column_name, col->column_namelen);
 		/* TODO other types for date ?? */
@@ -2638,7 +2653,8 @@ SQLFetch(SQLHSTMT hstmt)
 			len = convert_tds2sql(context,
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 					      src,
-					      srclen, drec->sql_desc_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
+					      srclen, drec->sql_desc_concise_type, drec->sql_desc_data_ptr,
+					      drec->sql_desc_octet_length);
 			if (len < 0)
 				ODBC_RETURN(stmt, SQL_ERROR);
 		}
