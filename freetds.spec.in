@@ -18,20 +18,36 @@ FreeTDS is a project to document and implement the TDS (Tabular DataStream) prot
 Group: Development/Libraries 
 Summary: Include files needed for development with FreeTDS 
 Requires: freetds = %{version}
+
+%package unixodbc
+Group: System Environment/Libraries
+Summary: Driver ODBC for unixODBC
+Requires: freetds = %{version}, unixODBC >= 2.0.0
+
+%package doc
+Group: Documentation
+Summary: Documentation for FreeTDS
  
-%description devel 
+%description devel
 The freetds-devel package contains the files necessary for development with with the Free TDS libraries. 
- 
-%prep 
+
+%description unixodbc
+The freetds-unixodbc package contains ODBC driver build for unixODBC.
+
+%description doc
+The freetds-doc package contains the useguide of FreeTDS and can be installed even if FreeTDS main package is not installed
+
+%prep
 %setup 
  
 %build 
 %configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local
-make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" 
+make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
+gunzip -c doc/userguide.tgz | tar x
 
 %post 
 /sbin/ldconfig 
@@ -43,18 +59,28 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root) 
 %doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README TODO 
 %{_libdir}/libct.a
+%{_libdir}/libct.la
 %{_libdir}/libct.so*
 %{_libdir}/libsybdb.a
+%{_libdir}/libsybdb.la
 %{_libdir}/libsybdb.so*
 %{_libdir}/libtds.a
+%{_libdir}/libtds.la
 %{_libdir}/libtds.so*
-%{_libdir}/libtdsodbc.a
-%{_libdir}/libtdsodbc.so*
 %config %{_sysconfdir}/*
  
 %files devel 
 %defattr (-,root,root) 
 %{_includedir}/*
+
+%files unixodbc
+%defattr(-,root,root)
+%{_libdir}/libtdsodbc.a
+%{_libdir}/libtdsodbc.so*
+
+%files doc
+%defattr (-,root,root)
+%doc userguide
  
 %changelog 
 * Thu Dec 20 2001 Brian Bruns <camber@ais.org> 

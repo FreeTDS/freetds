@@ -60,7 +60,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.57 2002-09-23 02:13:53 castellano Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.58 2002-09-23 06:20:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1733,9 +1733,12 @@ SQLRETURN SQL_API SQLGetData(
     int srclen;
     TDSLOCINFO *locale;
     TDSCONTEXT *context;
+    SQLINTEGER dummy_cb;
     int nSybType;
 
     CHECK_HSTMT;
+
+    if (!pcbValue) pcbValue = &dummy_cb;
 
     stmt = (struct _hstmt *) hstmt;
     tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
