@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.1 2004-02-23 15:16:36 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.2 2004-02-23 15:21:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -68,12 +68,11 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 int
 main(int argc, char *argv[])
 {
-	int test = 1;
 	int big_endian = 1;
 
 	Connect();
 
-	if (((char *) &test)[0] == 1)
+	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
 
 	/* TODO correct ?? */
