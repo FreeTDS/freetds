@@ -1,3 +1,20 @@
+Tue Apr  9 10:24:12 2002  Frediano Ziglio <freddy77@angelfire.com>
+
+	* src/odbc/odbc.c:
+	- changed return of unimplemented function from SQL_SUCCESS to 
+	SQL_ERROR. User program assume that result are successfully set on 
+	SQL_SUCCESS so user program can read garbage data or do other strange 
+	assuming. Not changed result for function like SQLDisconnect that 
+	work in the same way
+	- implemented SQLMoreResults and SQLNumParams
+	- return SQL_ERROR on memory allocation failure
+	- check all statement entering in functions
+	- removed some compiler warning due to conversion
+	- improved SQLFreeStmt (support all type of free) and fix (not unbind
+	on SQL_CLOSE)
+	- added some type handling (like SYBINTN) converting from tds to odbc
+	- fixed some strange indentation
+
 Mon Apr  8 18:10:17 2002  James Cameron  <quozl@us.netrek.org>
 
 	* src/tds/login.c (tds_connect): Add more context to connection
