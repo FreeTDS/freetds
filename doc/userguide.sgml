@@ -1649,7 +1649,7 @@ Here we specified that the  <acronym>JDBC</> entry from the <productname>FreeTDS
 
 <screen>
 <prompt>$ </prompt><userinput>make odbctest.o</userinput>
-<prompt>$ </prompt><userinput>gcc -g -o odbctest odbctest.o `glib-config --libs` /usr/local/freetds/lib/libtdsodbc.a</userinput>
+<prompt>$ </prompt><userinput>gcc -g -o odbctest odbctest.o /usr/local/freetds/lib/libtdsodbc.a</userinput>
 </screen>
 The <literal>-g</literal> is important to keep the symbol tables for debugging purposes.  Now you can run <application>gdb</application> or another debugger and set breakpoints on functions in the library without the driver manager getting in the way.  
 			</para>
@@ -1714,7 +1714,29 @@ Escape character is '^]'.
 If you get output like this the dataserver is listening.  If you get a 'Connection Refused' message then either the dataserver is down, you have the port wrong, or you're talking to the wrong host.
 			</para>
 			<para>
-Assuming both <application>ping</application> and <application>telnet</application> worked OK, the last possibility is that the <productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed.
+If telnet works, the next step is to run the <application>tsql</application> program.  <application>tsql</application> can be run in two ways, one which uses the <filename>freetds.conf</filename> and one which connects directly using the host and port.  First attempt a connection using host and port.
+<screen>
+<prompt>$ </prompt><userinput>cd src/apps</userinput>
+<prompt>$ </prompt><userinput>./tsql -H myhost -p 1433 -U user</userinput>
+</screen>
+If you receive a message of 'Login Failed.' then your connectivity is ok, but you have a authentication issue.
+</para>
+<para>
+If you receive a message like
+<screen>
+<computeroutput>
+ Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid Reason: Not defined as a valid user of a trusted SQL Server connection
+</computeroutput>
+</screen>
+<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed.
+
+			</para>
+			<para>
+Finally if you received a prompt, then try <application>tsql</application> using the server name.
+<screen>
+<prompt>$ </prompt><userinput>./tsql -S myserver -U user</userinput>
+</screen>
+If this fails, FreeTDS is either not finding your <filename>freetds.conf</filename> file, finding the wrong one, or there is an error in the file.
 			</para>
 		</sect1>
 		<sect1 id="Logging">

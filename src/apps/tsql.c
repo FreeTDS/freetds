@@ -195,7 +195,7 @@ int  opt;
 }
 int tsql_handle_message(void *ctxptr, void *tdsptr, void *msgptr)
 {
-	TDSCONTEXT *context = (TDSCONTEXT *) tdsptr;
+	TDSCONTEXT *context = (TDSCONTEXT *) ctxptr;
 	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
 	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 
