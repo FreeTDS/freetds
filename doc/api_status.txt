@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.44 2004-05-28 03:19:15 jklowden Exp $s
+# $Id: api_status.txt,v 1.45 2004-05-29 17:40:18 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -99,7 +99,7 @@ odbc	(all)	SQLConnect	OK
 odbc	(all)	SQLCopyDesc	OK
 odbc	(all)	SQLDescribeCol	OK
 odbc	(all)	SQLDescribeParam	
-odbc	(all)	SQLDisconnect	partial
+odbc	(all)	SQLDisconnect	OK
 odbc	(all)	SQLDriverConnect	OK
 odbc	(all)	SQLEndTran	OK
 odbc	(all)	SQLError	OK
@@ -149,7 +149,7 @@ odbc	(all)	SQLSetPos
 odbc	(all)	SQLSetParam	OK
 odbc	(all)	SQLSetScrollOption	
 odbc	(all)	SQLSetStmtAttr	OK
-odbc	(all)	SQLSetStmtOption	partial
+odbc	(all)	SQLSetStmtOption	OK
 odbc	(all)	SQLSpecialColumns	OK
 odbc	(all)	SQLStatistics	OK
 odbc	(all)	SQLTablePrivileges	OK
