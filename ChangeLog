@@ -1,8 +1,11 @@
+Mon Dec  8 11:36:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: type and some fix for DSN-less configuration
+
 Mon Dec  8 02:30:24 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am doc/userguide.sgml doc/userguide.dsl.in
 	- Prepare UG for 0.62 release.  Added ODBC chapter.  
 	- Still needs integration with reference manual.  
-	
+
 Sun Dec  7 14:19:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/descriptor.c: small optimization
 	* src/odbc/odbc.c src/odbc/sql2tds.c:

@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-08 08:45:00 $</date>
-		<releaseinfo>$Revision: 1.72 $</releaseinfo>
+		<date>$Date: 2003-12-08 10:37:30 $</date>
+		<releaseinfo>$Revision: 1.73 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.72 $</>
-<member>$Date: 2003-12-08 08:45:00 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.72 2003-12-08 08:45:00 jklowden Exp $.</>
+<member>$Revision: 1.73 $</>
+<member>$Date: 2003-12-08 10:37:30 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.73 2003-12-08 10:37:30 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -523,7 +523,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X&reg;</title>
-			<para>As of this writing ($Date: 2003-12-08 08:45:00 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-12-08 10:37:30 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -1441,7 +1441,7 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<entry><literal>DSN</></entry>
 	<entry>Use DSN. <productname>FreeTDS</> will search <filename>odbc.ini</> for entry. 
 		It lets you specify a connection like <function>SQLConnect</>, but using
-		<function>SSQLDriverConnect</>.  
+		<function>SQLDriverConnect</>.  
 		Do not use <literal>Servername</> and <literal>DSN</> together.
 		Can be specified only in a connection string, not in <filename>odbc.ini</>.
 	</entry>
@@ -1563,11 +1563,11 @@ The following table defines all possible ODBC connection attributes for the <pro
 In a DSN-less configuration, the <filename>odbc.ini</filename> file is not consulted for server connection properties.  To connect to a dataserver, your application will refer to a dataserver entry in <filename>freetds.conf</>.    
 
 <example><title>Sample files for a DSN-less configuration</title>
-<para>The <filename>odbc.ini</filename> is quite brief: </para>
+<para>The <filename>odbcinst.ini</filename> is quite brief: </para>
 <blockquote>
 	<programlisting>
 	;
-	; odbc.ini
+	; odbcinst.ini
 	;
 	[FreeTDS]
 	Driver = /usr/local/freetds/lib/libtdsodbc.so
@@ -1593,7 +1593,26 @@ In a DSN-less configuration, the <filename>odbc.ini</filename> file is not consu
  * application call
  */
 const char servername[] = "JDBC"; <footnote><para>refers to the <literal>[JDBC]</> entry in <filename>freetds.conf</>.</para></footnote>
-sprintf(tmp, "DRIVER=FreeTDS<footnote><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbc.ini</>.</para></footnote>;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", 
+sprintf(tmp, "DRIVER=FreeTDS<footnote><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbcinst.ini</>.</para></footnote>;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", 
+	servername, username, password, dbname);
+res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, 
+			(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
+if (!SQL_SUCCEEDED(res)) {
+	printf("Unable to open data source (ret=%d)\n", res);
+	exit(1);
+}
+</programlisting>
+</example>
+
+You can even do a connection that do not require <filename>odbc.ini</filename> nor <filename>freetd.conf</filename>.
+
+<example><title>Connecting with a DSN-less configuration that do not use <filename>freetds.conf</filename></title>
+<programlisting>
+/*
+ * application call
+ */
+const char servername[] = "jdbc.sybase.com"; <footnote><para>refers to the real server name.</para></footnote>
+sprintf(tmp, "DRIVER=FreeTDS<footnote><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbcinst.ini</>.</para></footnote>;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;TDS_Version=5.0;Port=4444;", 
 	servername, username, password, dbname);
 res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, 
 			(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
@@ -1646,8 +1665,6 @@ Description     = Sybase JDBC Server
 Trace           = No
 Servername      = JDBC<footnote><para>Refers to the <literal>[JDBC]</> entry in  <filename>freetds.conf</>. </para></footnote>
 Database        = pubs2
-Port            = 4444
-TDS_Version     = 5.0
 
 [Default]
 Driver          = /usr/local/freetds/lib/libtdsodbc.so
