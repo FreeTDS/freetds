@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.147 2003-05-28 19:11:32 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.148 2003-06-05 17:14:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1646,7 +1646,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		tds = (TDSSOCKET *) dbproc->tds_socket;
 	}
 
-	if (src == NULL || srclen == 0) {
+	if (src == NULL || (srclen == 0 && is_nullable_type(srctype))) {
 
 		/* FIX set appropriate NULL value for destination type */
 		if (destlen > 0)
