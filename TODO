@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.79 2003-11-16 08:23:23 freddy77 Exp $
+To Do List	$Id: TODO,v 1.80 2003-11-23 08:59:08 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -19,6 +19,7 @@ For 0.62 version:
     (write functions to append to and search the TDSSOCKET::iconv_info array)
     DONE
   - convert string using input parameters
+    DONE
   - finish support for no-GNU iconv (indirect conversion see src/tds/iconv.c)
     (it affect UTF-8 client)
   - borrow GNU's libiconv m4 macro to test/provide EILSEQ
@@ -131,6 +132,7 @@ For future versions (in priority order within library):
   - what happen to SQL_DESC_DATETIME_INTERVAL_CODE and SQL_DESC_CONCISE_TYPE
     changing only SQL_DESC_TYPE (with SQLSetDescField)
 . constants parameters in call syntax (ie {?=func(10,?)} )
+. test and fix: select with compute
 
   pool
 . get connection pooling working with all protocol versions

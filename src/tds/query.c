@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.114 2003-11-22 22:54:16 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.115 2003-11-23 08:59:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1054,129 +1054,139 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 {
 	unsigned char *src;
 	TDS_NUMERIC *num;
-	TDSBLOBINFO *blob_info;
+	TDSBLOBINFO *blob_info = NULL;
 	int colsize;
 	int is_null;
 
 	is_null = tds_get_null(current_row, i);
 	colsize = curcol->column_cur_size;
+	src = &(current_row[curcol->column_offset]);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
 
-	/* FIXME ICONV handle charset conversions for data */
+	if (is_null) {
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
+		switch (curcol->column_varint_size) {
+		case 2:
+			tds_put_smallint(tds, -1);
+			break;
+		default:
+			assert(curcol->column_varint_size);
+			/* FIXME not good for SYBLONGBINARY/SYBLONGCHAR (still not supported) */
+			tds_put_byte(tds, 0);
+			break;
+		}
+		return TDS_SUCCEED;
+	}
 
 	if (IS_TDS7_PLUS(tds)) {
-		src = &(current_row[curcol->column_offset]);
-		if (is_null) {
+		const char *s;
+		int converted = 0;
 
-			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
-			switch (curcol->on_server.column_type) {
-			case XSYBCHAR:
-			case XSYBVARCHAR:
-			case XSYBBINARY:
-			case XSYBVARBINARY:
-			case XSYBNCHAR:
-			case XSYBNVARCHAR:
-				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting CHARBIN_NULL\n");
-				tds_put_smallint(tds, -1);
-				break;
-			default:
-				/* FIXME good for all other types ??? */
-				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
-				tds_put_byte(tds, 0);
-				break;
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n",
+			    curcol->column_varint_size);
 
-			}
-		} else {
-			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: not null param varint_size = %d\n",
-				    curcol->column_varint_size);
-			switch (curcol->column_varint_size) {
-			case 4:	/* Its a BLOB... */
-				blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
-				/* mssql require only size */
-				tds_put_int(tds, colsize);
-				break;
-			case 2:
-				tds_put_smallint(tds, colsize);
-				break;
-			case 1:
-				if (is_numeric_type(curcol->on_server.column_type))
-					colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
-				tds_put_byte(tds, colsize);
-				break;
-			case 0:
-				/* TODO should be column_size */
-				colsize = tds_get_size_by_type(curcol->on_server.column_type);
-				break;
-			}
-
-			/* put real data */
-			if (is_numeric_type(curcol->on_server.column_type)) {
-				TDS_NUMERIC buf;
-
-				num = (TDS_NUMERIC *) src;
-				memcpy(&buf, num, sizeof(buf));
-				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
-				/* TODO tds_get_conversion_type needed?? */
-				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
-				num = &buf;
-				tds_put_n(tds, num->array, colsize);
-			} else if (is_blob_type(curcol->column_type)) {
-				blob_info = (TDSBLOBINFO *) src;
-				/* FIXME ICONV support conversions */
-				tds_put_n(tds, blob_info->textvalue, colsize);
-			} else {
-#ifdef WORDS_BIGENDIAN
-				unsigned char buf[64];
-
-				if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
-					tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
-						    tds_get_conversion_type(curcol->column_type, colsize));
-					memcpy(buf, src, colsize);
-					tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
-					src = buf;
-				}
-#endif
-				tds_put_n(tds, src, colsize);
-			}
+		if (is_blob_type(curcol->column_type)) {
+			blob_info = (TDSBLOBINFO *) src;
+			src = blob_info->textvalue;
 		}
-	} else {
-		/* put size of data */
-		src = &(current_row[curcol->column_offset]);
-		switch (curcol->column_varint_size) {
-		case 4:	/* Its a BLOB... */
-			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
-			if (!is_null) {
-				tds_put_byte(tds, 16);
-				tds_put_n(tds, blob_info->textptr, 16);
-				tds_put_n(tds, blob_info->timestamp, 8);
-				tds_put_int(tds, colsize);
+
+		/* convert string if needed */
+		s = src;
+		if (curcol->iconv_info && curcol->iconv_info->flags != TDS_ENCODING_MEMCPY) {
+#if 0
+			/* TODO this case should be optimized */
+			/* we know converted bytes */
+			if (curcol->iconv_info->client_charset.min_bytes_per_char == curcol->iconv_info->client_charset.max_bytes_per_char 
+			    && curcol->iconv_info->server_charset.min_bytes_per_char == curcol->iconv_info->server_charset.max_bytes_per_char) {
+				converted_size = colsize * curcol->iconv_info->server_charset.min_bytes_per_char / curcol->iconv_info->client_charset.min_bytes_per_char;
+
 			} else {
-				tds_put_byte(tds, 0);
+#endif
+			/* we need to convert data before */
+			/* TODO this can be a waste of memory... */
+			s = tds_convert_string(tds, curcol->iconv_info, src, colsize, &colsize);
+			if (!s) {
+				/* FIXME this is a bad place to return error... */
+				/* TODO on memory failure we should compute comverted size and use chunks */
+				return TDS_FAIL;
 			}
+			converted = 1;
+		}
+			
+		switch (curcol->column_varint_size) {
+		case 4:	/* It's a BLOB... */
+			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+			/* mssql require only size */
+			tds_put_int(tds, colsize);
 			break;
 		case 2:
-			if (!is_null)
-				tds_put_smallint(tds, colsize);
-			else
-				tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, colsize);
 			break;
 		case 1:
-			if (!is_null) {
-				if (is_numeric_type(curcol->column_type))
-					colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
-				tds_put_byte(tds, colsize);
-			} else
-				tds_put_byte(tds, 0);
+			if (is_numeric_type(curcol->on_server.column_type))
+				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+			tds_put_byte(tds, colsize);
+			break;
+		case 0:
+			/* TODO should be column_size */
+			colsize = tds_get_size_by_type(curcol->on_server.column_type);
+			break;
+		}
+
+		/* put real data */
+		if (is_numeric_type(curcol->on_server.column_type)) {
+			TDS_NUMERIC buf;
+
+			num = (TDS_NUMERIC *) src;
+			memcpy(&buf, num, sizeof(buf));
+			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+			/* TODO tds_get_conversion_type needed?? */
+			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
+			num = &buf;
+			tds_put_n(tds, num->array, colsize);
+		} else if (blob_info) {
+			tds_put_n(tds, s, colsize);
+		} else {
+#ifdef WORDS_BIGENDIAN
+			unsigned char buf[64];
+
+			if (tds->emul_little_endian && colsize < 64) {
+				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
+					    tds_get_conversion_type(curcol->column_type, colsize));
+				memcpy(buf, s, colsize);
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+				s = buf;
+			}
+#endif
+			tds_put_n(tds, s, colsize);
+		}
+		if (converted)
+			tds_convert_string_free(src, s);
+	} else {
+		/* TODO ICONV handle charset conversions for data */
+		/* put size of data */
+		switch (curcol->column_varint_size) {
+		case 4:	/* It's a BLOB... */
+			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+			tds_put_byte(tds, 16);
+			tds_put_n(tds, blob_info->textptr, 16);
+			tds_put_n(tds, blob_info->timestamp, 8);
+			tds_put_int(tds, colsize);
+			break;
+		case 2:
+			tds_put_smallint(tds, colsize);
+			break;
+		case 1:
+			if (is_numeric_type(curcol->column_type))
+				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+			tds_put_byte(tds, colsize);
 			break;
 		case 0:
 			/* TODO should be column_size */
 			colsize = tds_get_size_by_type(curcol->column_type);
 			break;
 		}
-
-		if (is_null)
-			return TDS_SUCCEED;
 
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
