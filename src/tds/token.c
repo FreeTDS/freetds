@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.245.2.1 2004-01-12 17:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.245.2.2 2004-01-13 19:52:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2402,7 +2402,19 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	/* In case extended error data is sent, we just try to discard it */
 	if (has_eed == 1) {
-		tds_process_trailing_tokens(tds);
+		int next_marker;
+		for (;;) {
+			switch (next_marker = tds_get_byte(tds)) {
+			case TDS5_PARAMFMT_TOKEN:
+			case TDS5_PARAMFMT2_TOKEN:
+			case TDS5_PARAMS_TOKEN:
+				if (tds_process_default_tokens(tds, next_marker) != TDS_SUCCEED)
+					++rc;
+				continue;
+			}
+			break;
+		}
+		tds_unget_byte(tds);
 	}
 
 	/* call the msg_handler that was set by an upper layer 
