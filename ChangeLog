@@ -1,3 +1,8 @@
+Tue Jan  6 20:28:21 EST 2004	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/unittests/convert.c:
+	- Ensure that SIGFPE is ignored so that the convert unit test
+	  isn't killed by an attempt to convert a bogus FP number.
+
 Tue Jan  6 20:13:21 EST 2004	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/unittests/convert.c:
 	- Don't divide by zero if test takes less than a millisecond.

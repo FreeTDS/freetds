@@ -31,7 +31,9 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.13 2004-01-07 01:15:34 castellano Exp $";
+#include <signal.h>
+
+static char software_version[] = "$Id: convert.c,v 1.14 2004-01-07 01:32:24 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -78,6 +80,8 @@ main(int argc, char **argv)
 
 	TDS_REAL tds_real;
 	TDS_FLOAT tds_float;
+
+	signal(SIGFPE, SIG_IGN);
 
 	if (argc > 1) {
 		iterations = atoi(argv[1]);
