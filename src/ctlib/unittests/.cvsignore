@@ -25,4 +25,6 @@ ct_diagclient
 ct_diagserver
 cs_config
 cancel
+blk_in
+blk_out
 
