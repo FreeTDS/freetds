@@ -1,3 +1,6 @@
+Sun Jan  9 18:24:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/insert_speed.c: fixed
+
 Sun Jan  9 14:51:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/t0018.c: improved from #1088672
 

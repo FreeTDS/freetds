@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.2 2004-12-15 19:53:08 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.3 2005-01-09 17:24:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -64,7 +64,7 @@ insert_test_man(void)
 
 	char string[64];
 
-	if (!SQL_SUCCEEDED(SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, &commit_off, SQL_IS_INTEGER))) {
+	if (!SQL_SUCCEEDED(SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_off, SQL_IS_INTEGER))) {
 		fprintf(stderr, "Unable to set autocommit mode\n");
 		return (-1);
 	}
@@ -79,8 +79,8 @@ insert_test_man(void)
 	if (!SQL_SUCCEEDED(SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts))
 	    ||
 	    !SQL_SUCCEEDED(SQLBindParameter
-			   (hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, strlen(string) + 1, 0, string, 0, &sql_nts))) {
-		SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, &commit_on, SQL_IS_INTEGER);
+			   (hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts))) {
+		SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_on, SQL_IS_INTEGER);
 		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 		fprintf(stderr, "unable to bind parameters\n");
 		return (-1);
@@ -88,7 +88,7 @@ insert_test_man(void)
 
 
 	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, query, SQL_NTS))) {
-		SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, &commit_on, SQL_IS_INTEGER);
+		SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_on, SQL_IS_INTEGER);
 		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 		fprintf(stderr, "Unable to prepare statement\n");
 		return (-1);
@@ -98,15 +98,15 @@ insert_test_man(void)
 		sprintf(string, "This is a test (%d)", (int) id);
 		if (!SQL_SUCCEEDED(SQLExecute(hstmt))) {
 			SQLEndTran(SQL_HANDLE_DBC, hstmt, SQL_ROLLBACK);
-			SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, &commit_on, SQL_IS_INTEGER);
+			SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_on, SQL_IS_INTEGER);
 			SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-			fprintf(stderr, "Unable to execute statement %d\n", id);
+			fprintf(stderr, "Unable to execute statement %d\n", (int) id);
 			return (-1);
 		}
 	}
 
 	SQLEndTran(SQL_HANDLE_DBC, Connection, SQL_COMMIT);
-	SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, &commit_on, SQL_IS_INTEGER);
+	SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_on, SQL_IS_INTEGER);
 	SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 	return (0);
 }
