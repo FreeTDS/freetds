@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.138 2005-01-20 14:38:27 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.139 2005-01-31 10:01:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1473,7 +1473,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		if (dest) {
 
-			if (tds_get_null(resinfo->current_row, i)) {
+			if (curcol->column_cur_size < 0) {
 				if (nullind)
 					*nullind = -1;
 				if (datalen)
@@ -2141,7 +2141,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	 * what we may have already returned
 	 */
 	srclen = curcol->column_cur_size;
-	if (tds_get_null(resinfo->current_row, item - 1))
+	if (srclen < 0)
 		srclen = 0;
 	src += cmd->get_data_bytes_returned;
 	srclen -= cmd->get_data_bytes_returned;

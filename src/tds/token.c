@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.282 2005-01-24 18:38:31 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.283 2005-01-31 10:01:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -634,7 +634,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				}
 				if(tds->internal_sp_called == TDS_SP_PREPARE) {
 					curcol = pinfo->columns[0];
-					if (tds->cur_dyn && tds->cur_dyn->num_id == 0 && !tds_get_null(pinfo->current_row, 0)) {
+					if (tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
 						tds->cur_dyn->num_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
 					}
 				}
@@ -1668,13 +1668,14 @@ tds7_process_result(TDSSOCKET * tds)
 		tds_add_row_column_size(info, curcol);
 	}
 
-	CHECK_TDS_EXTRA(tds);
-
 	/* all done now allocate a row for tds_process_row to use */
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
+	if ((info->current_row = tds_alloc_row(info)) != NULL) {
+		CHECK_TDS_EXTRA(tds);
 		return TDS_SUCCEED;
-	else
+	} else {
+		CHECK_TDS_EXTRA(tds);
 		return TDS_FAIL;
+	}
 }
 
 /**
@@ -2050,7 +2051,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		if (curcol->column_type == SYBVARIANT) {
 			colsize = tds_get_int(tds);
 			tds_get_n(tds, NULL, colsize);
-			tds_set_null(current_row, i);
+			curcol->column_cur_size = -1;
 			return TDS_SUCCEED;
 		}
 		
@@ -2071,22 +2072,16 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			tds_get_n(tds, blob->timestamp, 8);
 			colsize = tds_get_int(tds);
 		} else {
-			colsize = 0;
+			colsize = -1;
 		}
 		break;
 	case 2:
 		colsize = tds_get_smallint(tds);
-		/* handle empty no-NULL string */
-		if (colsize == 0) {
-			tds_clr_null(current_row, i);
-			curcol->column_cur_size = 0;
-			return TDS_SUCCEED;
-		}
-		if (colsize == -1)
-			colsize = 0;
 		break;
 	case 1:
 		colsize = tds_get_byte(tds);
+		if (colsize == 0)
+			colsize = -1;
 		break;
 	case 0:
 		/* TODO this should be column_size */
@@ -2101,12 +2096,12 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 
 	tdsdump_log(TDS_DBG_INFO1, "processing row.  column size is %d \n", colsize);
 	/* set NULL flag in the row buffer */
-	if (colsize == 0) {
-		tds_set_null(current_row, i);
+	if (colsize < 0) {
+		curcol->column_cur_size = -1;
 		return TDS_SUCCEED;
 	}
 
-	tds_clr_null(current_row, i);
+	curcol->column_cur_size = colsize;
 	
 	/* 
 	 * We're now set to read the data from the wire.  For varying types (e.g. char/varchar)
@@ -2765,46 +2760,6 @@ tds_process_cancel(TDSSOCKET * tds)
 
 	/* TODO clear cancelled results */
 	return retcode;
-}
-
-/**
- * set the null bit for the given column in the row buffer
- */
-void
-tds_set_null(unsigned char *current_row, int column)
-{
-	int bytenum = ((unsigned int) column) / 8u;
-	int bit = ((unsigned int) column) % 8u;
-	unsigned char mask = 1 << bit;
-
-	tdsdump_log(TDS_DBG_INFO1, "setting column %d NULL bit\n", column);
-	current_row[bytenum] |= mask;
-}
-
-/**
- * clear the null bit for the given column in the row buffer
- */
-void
-tds_clr_null(unsigned char *current_row, int column)
-{
-	int bytenum = ((unsigned int) column) / 8u;
-	int bit = ((unsigned int) column) % 8u;
-	unsigned char mask = ~(1 << bit);
-
-	tdsdump_log(TDS_DBG_INFO1, "clearing column %d NULL bit\n", column);
-	current_row[bytenum] &= mask;
-}
-
-/**
- * Return the null bit for the given column in the row buffer
- */
-int
-tds_get_null(unsigned char *current_row, int column)
-{
-	int bytenum = ((unsigned int) column) / 8u;
-	int bit = ((unsigned int) column) % 8u;
-
-	return (current_row[bytenum] >> bit) & 1;
 }
 
 /**

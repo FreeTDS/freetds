@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.355 2005-01-21 11:38:11 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.356 2005-01-31 10:01:47 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2765,7 +2765,7 @@ _SQLFetch(TDS_STMT * stmt)
 				num_rows = 1;
 				continue;
 			}
-			if (tds_get_null(resinfo->current_row, i)) {
+			if (colinfo->column_cur_size < 0) {
 				if (drec_ard->sql_desc_indicator_ptr) {
 					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = SQL_NULL_DATA;
 				} else if (drec_ard->sql_desc_data_ptr) {
@@ -3720,7 +3720,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	}
 	colinfo = resinfo->columns[icol - 1];
 
-	if (tds_get_null(resinfo->current_row, icol - 1)) {
+	if (colinfo->column_cur_size < 0) {
 		*pcbValue = SQL_NULL_DATA;
 	} else {
 		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];

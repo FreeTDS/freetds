@@ -68,7 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.73 2004-12-13 19:13:49 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.74 2005-01-31 10:01:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -167,12 +167,12 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					continue;
 
 				for (i = 0; i < tds->current_results->num_cols; i++) {
-					if (tds_get_null(tds->current_results->current_row, i)) {
+					col = tds->current_results->columns[i];
+					if (col->column_cur_size < 0) {
 						if (print_rows)
 							fprintf(stdout, "NULL\t");
 						continue;
 					}
-					col = tds->current_results->columns[i];
 					ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
 					src = &(tds->current_results->current_row[col->column_offset]);

@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.159 2005-01-20 16:19:01 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.160 2005-01-31 10:01:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1068,19 +1068,17 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	unsigned char *src;
 	TDS_NUMERIC *num;
 	TDSBLOB *blob = NULL;
-	int colsize;
-	int is_null;
+	TDS_INT colsize;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	is_null = tds_get_null(current_row, i);
 	colsize = curcol->column_cur_size;
 	src = &(current_row[curcol->column_offset]);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
+	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) colsize);
 
-	if (is_null) {
+	if (colsize < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: null param\n");
 		switch (curcol->column_varint_size) {
 		case 4:

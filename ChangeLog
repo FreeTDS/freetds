@@ -1,3 +1,11 @@
+Mon Jan 31 10:54:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/sql2tds.c:
+	* src/tds/data.c src/tds/mem.c src/tds/query.c:
+	* src/tds/tds_checks.c src/tds/token.c:
+	- use column_cur_size to store nullability flag
+
 Sun Jan 30 12:46:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: updated
 	* doc/api_status.txt: add view source

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.203 2005-01-20 16:18:57 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.204 2005-01-31 10:01:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -407,7 +407,7 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
 		if (curcol->column_nullbind) {
-			if (tds_get_null(resinfo->current_row, i)) {
+			if (curcol->column_cur_size < 0) {
 				*(DBINT *)(curcol->column_nullbind) = -1;
 			} else {
 				*(DBINT *)(curcol->column_nullbind) = 0;
@@ -428,7 +428,7 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 			desttype = _db_get_server_type(curcol->column_bindtype);
 			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
-			if (tds_get_null(resinfo->current_row, i)) {
+			if (srclen < 0) {
 				_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
 			} else {
 				copy_data_to_host_var(dbproc, 
@@ -2504,7 +2504,7 @@ dbvarylen(DBPROCESS * dbproc, int column)
 		return FALSE;
 	colinfo = resinfo->columns[column - 1];
 
-	if (tds_get_null(resinfo->current_row, column))
+	if (colinfo->column_cur_size < 0)
 		return TRUE;
 
 	switch (colinfo->column_type) {
@@ -2562,7 +2562,7 @@ dbdatlen(DBPROCESS * dbproc, int column)
 	colinfo = resinfo->columns[column - 1];
 	tdsdump_log(TDS_DBG_INFO1, "dbdatlen() type = %d\n", colinfo->column_type);
 
-	if (tds_get_null(resinfo->current_row, column - 1))
+	if (colinfo->column_cur_size < 0)
 		ret = 0;
 	else
 		ret = colinfo->column_cur_size;
@@ -2592,7 +2592,7 @@ dbdata(DBPROCESS * dbproc, int column)
 		return NULL;
 
 	colinfo = resinfo->columns[column - 1];
-	if (tds_get_null(resinfo->current_row, column - 1)) {
+	if (colinfo->column_cur_size < 0) {
 		return NULL;
 	}
 	if (is_blob_type(colinfo->column_type)) {
@@ -2691,7 +2691,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
-		if (tds_get_null(resinfo->current_row, col)) {
+		if (colinfo->column_cur_size < 0) {
 			len = 4;
 			if (buf_len < len) {
 				return FAIL;
@@ -2795,7 +2795,7 @@ dbprrow(DBPROCESS * dbproc)
 
 			for (col = 0; col < resinfo->num_cols; col++) {
 				colinfo = resinfo->columns[col];
-				if (tds_get_null(resinfo->current_row, col)) {
+				if (colinfo->column_cur_size < 0) {
 					len = 4;
 					strcpy(dest, "NULL");
 				} else {
@@ -3466,7 +3466,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 	colinfo = info->columns[column - 1];
 	tdsdump_log(TDS_DBG_INFO1, "dbadlen() type = %d\n", colinfo->column_type);
 
-	if (tds_get_null(info->current_row, column - 1))
+	if (colinfo->column_cur_size < 0)
 		ret = 0;
 	else
 		ret = colinfo->column_cur_size;
@@ -3653,12 +3653,6 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 		return (BYTE *) NULL;
 
 	colinfo = info->columns[column - 1];
-
-#if 0
-	if (tds_get_null(info->current_row, column - 1)) {
-		return (BYTE *) NULL;
-	}
-#endif
 
 	if (is_blob_type(colinfo->column_type)) {
 		return (BYTE *) ((TDSBLOB *) (info->current_row + colinfo->column_offset))->textvalue;

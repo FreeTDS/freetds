@@ -75,7 +75,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.114 2005-01-20 14:38:28 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.115 2005-01-31 10:01:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -700,7 +700,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
-				if (tds_get_null(resinfo->current_row, hostcol->tab_colnum - 1)) {
+				if (curcol->column_cur_size < 0) {
 					srclen = 0;
 					hostcol->bcp_column_data->null_column = 1;
 				} else {

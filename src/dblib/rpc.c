@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.38 2005-01-10 08:50:56 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.39 2005-01-31 10:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -301,7 +301,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 	}
 	else {
 		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): setting parameter #%d to NULL\n", param_num);
-		tds_set_null(params->current_row, param_num);
+		curcol->column_cur_size = -1;
 	}
 
 	return row;

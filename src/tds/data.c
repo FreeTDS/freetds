@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.9 2004-12-02 12:37:54 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.10 2005-01-31 10:01:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !ENABLE_EXTRA_CHECKS
@@ -54,6 +54,7 @@ tds_set_column_type(TDSCOLUMN * curcol, int type)
 	curcol->column_type = tds_get_cardinal_type(type);
 
 	/* set size */
+	curcol->column_cur_size = -1;
 	curcol->column_varint_size = tds_get_varint_size(type);
 	if (curcol->column_varint_size == 0)
 		curcol->column_cur_size = curcol->on_server.column_size = curcol->column_size = tds_get_size_by_type(type);

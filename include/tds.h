@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.210 2005-01-30 10:20:38 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.211 2005-01-31 10:01:38 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -854,7 +854,7 @@ typedef struct tds_column
 	TDS_SMALLINT column_operand;
 
 	/* FIXME this is data related, not column */
-	/** size written in variable (ie: char, text, binary) */
+	/** size written in variable (ie: char, text, binary). -1 if NULL. */
 	TDS_INT column_cur_size;
 
 	/* related to binding or info stored by client libraries */
@@ -890,7 +890,6 @@ typedef struct tds_result_info
 	TDS_SMALLINT num_cols;
 	TDSCOLUMN **columns;
 	TDS_INT row_size;
-	int null_info_size;
 	unsigned char *current_row;
 
 	TDS_SMALLINT rows_exist;
@@ -1156,9 +1155,6 @@ unsigned char *tds_alloc_row(TDSRESULTINFO * res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
-void tds_set_null(unsigned char *current_row, int column);
-void tds_clr_null(unsigned char *current_row, int column);
-int tds_get_null(unsigned char *current_row, int column);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, char *id);
 const char *tds_prtype(int token);

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.7 2005-01-20 14:38:30 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.8 2005-01-31 10:01:52 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -200,8 +200,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
 		assert(size == column->column_size);
-		assert(column->column_size == column->column_cur_size
-		       || (column->column_type == SYBUNIQUE && column->column_cur_size == 0));
+		assert(column->column_size == column->column_cur_size || 
+			(column->column_type == SYBUNIQUE && column->column_cur_size == -1));
 		/* check same type and size on server */
 		assert(column->column_type == column->on_server.column_type);
 		assert(column->column_size == column->on_server.column_size);
@@ -219,7 +219,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		/* check that size it's correct for this type of nullable */
 		assert(tds_get_conversion_type(column->column_type, column->column_size) != column->column_type);
 		/* check current size */
-		assert(column->column_size == column->column_cur_size || column->column_cur_size == 0);
+		assert(column->column_size >= column->column_cur_size || column->column_cur_size == -1);
 		/* check same type and size on server */
 		assert(column->column_type == column->on_server.column_type);
 		assert(column->column_size == column->on_server.column_size);
@@ -238,7 +238,7 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 
 		assert(res_info->columns);
 		tds_check_column_extra(res_info->columns[i]);
-		offset_check = res_info->columns[i]->column_offset < res_info->row_size
+		offset_check = res_info->columns[i]->column_offset <= res_info->row_size
 			|| (i == (res_info->num_cols - 1) && res_info->columns[i]->column_offset == 0)
 			|| (res_info->columns[i]->column_offset == res_info->row_size && res_info->columns[i]->column_size == 0);
 		if (!offset_check) {
@@ -252,10 +252,6 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 	/* TODO check that column_offset are sequential, check size of current_row and column_offset[i+1]-column_offset[i] == size */
 
 	assert(res_info->row_size >= 0);
-	assert(res_info->null_info_size <= res_info->row_size);
-	/* space for parameters can be computed later */
-	assert((res_info->num_cols + 7) / 8 <= res_info->null_info_size
-	       || (res_info->null_info_size == 0 && !res_info->current_row));
 
 	assert(res_info->computeid >= 0);
 

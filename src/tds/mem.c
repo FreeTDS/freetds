@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.129 2005-01-24 20:07:59 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.130 2005-01-31 10:01:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -242,19 +242,12 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 unsigned char *
 tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 {
-	int null_size, i;
 	TDS_INT row_size;
 	unsigned char *row;
 
 #if ENABLE_EXTRA_CHECKS
 	assert(info->row_size % TDS_ALIGN_SIZE == 0);
 #endif
-
-	null_size = (unsigned) (info->num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
-	null_size = null_size - null_size % TDS_ALIGN_SIZE;
-	null_size -= info->null_info_size;
-	if (null_size < 0)
-		null_size = 0;
 
 	curparam->column_offset = info->row_size;
 	if (is_numeric_type(curparam->column_type)) {
@@ -264,12 +257,12 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 	} else {
 		row_size = curparam->column_size;
 	}
-	row_size += info->row_size + null_size + (TDS_ALIGN_SIZE - 1);
+	row_size += info->row_size + (TDS_ALIGN_SIZE - 1);
 	row_size -= row_size % TDS_ALIGN_SIZE;
 
 
 #if ENABLE_EXTRA_CHECKS
-	assert((row_size % TDS_ALIGN_SIZE) == 0 && (null_size % TDS_ALIGN_SIZE) == 0);
+	assert((row_size % TDS_ALIGN_SIZE) == 0);
 #endif
 
 	/* make sure the row buffer is big enough */
@@ -286,17 +279,6 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 	info->current_row = row;
 	info->row_size = row_size;
 
-	/* expand null buffer */
-	if (null_size) {
-		memmove(row + info->null_info_size + null_size,
-			row + info->null_info_size, row_size - null_size - info->null_info_size);
-		memset(row + info->null_info_size, 0, null_size);
-		info->null_info_size += null_size;
-		for (i = 0; i < info->num_cols; ++i) {
-			info->columns[i]->column_offset += null_size;
-		}
-	}
-
 	return row;
 }
 
@@ -310,7 +292,6 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 {
 	int col;
 	TDSCOMPUTEINFO *info;
-	int null_sz;
 
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
 	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
@@ -331,11 +312,6 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 		tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}
-
-	null_sz = (unsigned) (num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
-	null_sz = null_sz - null_sz % TDS_ALIGN_SIZE;
-	/* set the initial row size to the size of the null info */
-	info->row_size = info->null_info_size = null_sz;
 
 	return info;
       Cleanup:
@@ -382,7 +358,6 @@ tds_alloc_results(int num_cols)
 {
 	TDSRESULTINFO *res_info;
 	int col;
-	int null_sz;
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	memset(res_info, '\0', sizeof(TDSRESULTINFO));
@@ -392,11 +367,7 @@ tds_alloc_results(int num_cols)
 		memset(res_info->columns[col], '\0', sizeof(TDSCOLUMN));
 	}
 	res_info->num_cols = num_cols;
-	null_sz = (unsigned) (num_cols + (8 * TDS_ALIGN_SIZE - 1)) / 8u;
-	null_sz = null_sz - null_sz % TDS_ALIGN_SIZE;
-	res_info->null_info_size = null_sz;
-	/* set the initial row size to the size of the null info */
-	res_info->row_size = res_info->null_info_size;
+	res_info->row_size = 0;
 	return res_info;
       Cleanup:
 	tds_free_results(res_info);

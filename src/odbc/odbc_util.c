@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.71 2004-12-08 20:30:05 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.72 2005-01-31 10:01:49 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -174,7 +174,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 		}
 
 		/* null parameter ? */
-		if (tds_get_null(info->current_row, i)) {
+		if (colinfo->column_cur_size < 0) {
 			/* FIXME error if NULL */
 			if (drec_apd->sql_desc_indicator_ptr)
 				*drec_apd->sql_desc_indicator_ptr = SQL_NULL_DATA;

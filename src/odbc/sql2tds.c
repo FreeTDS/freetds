@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: sql2tds.c,v 1.39 2005-01-21 13:00:51 freddy77 Exp $";
+static const char software_version[] = "$Id: sql2tds.c,v 1.40 2005-01-31 10:01:49 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -235,8 +235,7 @@ sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *d
 	/* set null */
 	assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
 	if (sql_len == SQL_NULL_DATA) {
-		curcol->column_cur_size = 0;
-		tds_set_null(info->current_row, nparam);
+		curcol->column_cur_size = -1;
 		return TDS_SUCCEED;
 	}
 
