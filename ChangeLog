@@ -1,16 +1,19 @@
+Mon Jan 12 18:05:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: fix problem of last patch
+
 Mon Jan 12 11:28:26 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* AUTHORS corrected 'Peppler' typo
-	
+
 Sun Jan 11 17:37:43 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/contrib.html doc/htdoc/docs.html doc/htdoc/index.html
 	* doc/htdoc/news.html    doc/htdoc/software.html
 	- updated to reflect new release
-	
+
 Sun Jan 11 16:43:03 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* README reflect 0.62 status
 	* doc/api_status.txt added some missing functions
 	* src/tds/read.c Alex Kiesel patch: cancel processing.
-	
+
 Sun Jan 11 14:22:45 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: 0.63... start new fun :)
 

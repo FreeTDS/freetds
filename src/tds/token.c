@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.245 2004-01-10 19:09:06 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.246 2004-01-12 17:08:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2319,7 +2319,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	int rc;
 	int len;
 	int len_sqlstate;
-	int status;
+	int has_eed = 0;
 	TDSMSGINFO msg_info;
 
 	/* make sure message has been freed */
@@ -2361,8 +2361,8 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		if (strcmp(msg_info.sql_state, "ZZZZZ") == 0)
 			TDS_ZERO_FREE(msg_info.sql_state);
 
-		/* if status = 1, extended error data follows */
-		status = tds_get_byte(tds);
+		/* if has_eed = 1, extended error data follows */
+		has_eed = tds_get_byte(tds);
 
 		/* junk status and transaction state */
 		tds_get_smallint(tds);
@@ -2401,7 +2401,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 
 	/* In case extended error data is sent, we just try to discard it */
-	if (1 == status) {
+	if (has_eed == 1) {
 		tds_process_trailing_tokens(tds);
 	}
 
