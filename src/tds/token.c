@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.80 2002-10-26 06:37:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.81 2002-10-26 07:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -143,6 +143,11 @@ int   cancelled;
          order_len = tds_get_smallint(tds);
          tds_get_n(tds, NULL, order_len);
          break;
+	/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp */
+	case TDS_PARAM_TOKEN:
+		tds_unget_byte(tds);
+		tds_process_param_result_tokens(tds);
+		break;
       case TDS_CONTROL_TOKEN: 
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;
@@ -161,8 +166,6 @@ int   cancelled;
       case TDS5_DYN_TOKEN:
       case TDS5_DYNRES_TOKEN:
       case TDS5_DYN3_TOKEN:
-	/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp we ignore it because we don't use it */
-	case TDS_PARAM_TOKEN: 
 	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;
@@ -430,6 +433,9 @@ int complete_result;
 				tds->ret_status=tds_get_int(tds);
                 res_type = TDS_STATUS_RESULT;
                 complete_result = 1;
+				break;
+			case TDS5_DYN_TOKEN:
+				tds->cur_dyn_elem = tds_process_dynamic(tds);
 				break;
 			case TDS5_DYNRES_TOKEN:
 				tds_process_dyn_result(tds);

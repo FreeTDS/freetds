@@ -1,3 +1,7 @@
+Sat Oct 26 09:21:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: 
+	- rollback processing of PARAM_TOKEN and TDS5_DYN_TOKEN
+
 Sat Oct 26 08:37:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: 
 	- skip PARAM_TOKEN processing default (fix problem inserting text)
