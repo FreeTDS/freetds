@@ -1,3 +1,7 @@
+Mon Sep 23 11:09:16 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/server/server.h:
+	- standardize format of server.h include file.
+
 Mon Sep 23 08:17:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix core by DataManager
 	* src/server/Makefile.am: distribute even server.h
