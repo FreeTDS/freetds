@@ -18,13 +18,19 @@
  */
 
 #include <config.h>
+#ifndef WIN32
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 #include "tds.h"
 #include "tdsutil.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.1 2002-07-05 20:23:49 brianb Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.2 2002-07-05 20:45:01 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,7 +78,8 @@ struct hostent   *
 tds_gethostbyname_r(char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
 #ifdef _REENTRANT
-	return gethostbyname_r(servername, result, buffer, buflen, h_herrnop);
+	gethostbyname_r(servername, result, buffer, buflen, h_errnop);
+	return result;
 #else
 	return gethostbyname(servername);
 #endif
@@ -83,7 +90,8 @@ tds_gethostbyaddr_r(char *addr, int len, int type, struct hostent *result, char 
 {
 
 #ifdef _REENTRANT
-	return gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_herrnop);
+	gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
+	return result;
 #else
 	return gethostbyaddr(addr, len, type);
 #endif
@@ -94,7 +102,8 @@ tds_getservbyname_r(char *name, char *proto, struct servent *result, char *buffe
 {
 
 #ifdef _REENTRANT
-	return getservbyname_r(name, proto, type, result, buffer, buflen);
+	getservbyname_r(name, proto, result, buffer, buflen);
+	return result;
 #else
 	return getservbyname(name, proto);
 #endif
