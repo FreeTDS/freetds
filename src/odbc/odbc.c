@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.311 2004-03-17 16:37:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.312 2004-03-24 16:21:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -605,7 +605,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	}
 
 	/* TODO support not null terminated in native_sql */
-	native_sql(tds_dstr_cstr(&query));
+	native_sql(dbc, tds_dstr_cstr(&query));
 
 	ret = odbc_set_string_i(szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
 

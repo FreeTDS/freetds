@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.16 2003-12-20 12:38:36 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.17 2004-03-24 16:21:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -74,13 +74,18 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * TRUNCATE -> ??
  */
 static SQLRETURN
-to_native(struct _hstmt *stmt, char *buf)
+to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 {
 	char *d, *s, *p;
 	int nest_syntax = 0;
 
 	/* list of bit, used as stack, is call ? FIXME limites size... */
 	unsigned long is_calls = 0;
+	int server_scalar;
+
+	assert(dbc && buf);
+
+	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->product_version >= TDS_MS_VER(7, 0, 0);
 
 	/* we can do it because result string will be
 	 * not bigger than source string */
@@ -101,6 +106,11 @@ to_native(struct _hstmt *stmt, char *buf)
 
 			while (TDS_ISSPACE(*++s));
 			pcall = s;
+			/* FIXME if nest_syntax > 0 problems */
+			if (server_scalar && strncasecmp(pcall, "fn ", 3) == 0) {
+				*d++ = '{';
+				continue;
+			}
 			if (*pcall == '?') {
 				/* skip spaces after ? */
 				while (TDS_ISSPACE(*++pcall));
@@ -165,7 +175,7 @@ prepare_call(struct _hstmt * stmt)
 	else
 		return SQL_ERROR;
 
-	if ((rc = to_native(stmt, buf)) != SQL_SUCCESS)
+	if ((rc = to_native(stmt->dbc, stmt, buf)) != SQL_SUCCESS)
 		return rc;
 
 	/* TODO optimize ? */
@@ -220,9 +230,9 @@ prepare_call(struct _hstmt * stmt)
 
 /* TODO handle output parameter and not terminated string */
 SQLRETURN
-native_sql(char *s)
+native_sql(struct _hdbc * dbc, char *s)
 {
-	return to_native(NULL, s);
+	return to_native(dbc, NULL, s);
 }
 
 /* function info */
