@@ -1,3 +1,7 @@
+Fri Apr 27 13:16:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: fix for HP/UX 11 getpwuid_r detect
+	* src/tds/convert.c: portability and a comment
+
 Fri Apr 25 20:49:00 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: remove a TODO
 	
