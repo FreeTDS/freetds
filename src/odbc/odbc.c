@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.248 2003-09-23 08:23:08 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.249 2003-09-23 15:42:03 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1101,6 +1101,9 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	assert(stmt->ird->header.sql_desc_rows_processed_ptr == NULL);
 	stmt->attr.attr_simulate_cursor = SQL_SC_NON_UNIQUE;
 	stmt->attr.attr_use_bookmarks = SQL_UB_OFF;
+
+	/* is not the same of using APD sql_desc_bind_type */
+	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
 
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -2894,6 +2897,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->attr.attr_max_rows);
 		src = &stmt->attr.attr_max_rows;
 		break;
+		/* TODO SQL_ATTR_METADATA_ID */
 	case SQL_ATTR_NOSCAN:
 		size = sizeof(stmt->attr.attr_noscan);
 		src = &stmt->attr.attr_noscan;
@@ -2934,6 +2938,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->ard->header.sql_desc_bind_offset_ptr);
 		src = &stmt->ard->header.sql_desc_bind_offset_ptr;
 		break;
+	case SQL_BIND_TYPE: /* although this is ODBC2 we must support this attribute */
 	case SQL_ATTR_ROW_BIND_TYPE:
 		size = sizeof(stmt->ard->header.sql_desc_bind_type);
 		src = &stmt->ard->header.sql_desc_bind_type;
@@ -2982,6 +2987,11 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->ipd);
 		src = &stmt->ipd;
 		break;
+	case SQL_ROWSET_SIZE: /* although this is ODBC2 we must support this attribute */
+		size = sizeof(stmt->sql_rowset_size);
+		src = &stmt->sql_rowset_size;
+		break;
+	/* TODO SQL_COLUMN_SEARCHABLE, although ODBC2 */
 	default:
 		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -4747,6 +4757,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
 		stmt->ard->header.sql_desc_bind_offset_ptr = uip;
 		break;
+	case SQL_BIND_TYPE: /* although this is ODBC2 we must support this attribute */
 	case SQL_ATTR_ROW_BIND_TYPE:
 		stmt->ard->header.sql_desc_bind_type = ui;
 		break;
@@ -4772,6 +4783,9 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
 		stmt->attr.attr_use_bookmarks = ui;
+		break;
+	case SQL_ROWSET_SIZE: /* although this is ODBC2 we must support this attribute */
+		stmt->sql_rowset_size = ui;
 		break;
 	default:
 		odbc_errs_add(&stmt->errs, "HY092", NULL, NULL);

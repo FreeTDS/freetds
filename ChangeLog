@@ -1,3 +1,8 @@
+Tue Sep 23 11:29:22 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tdsodbc.h src/odbc/odbc.c
+	- Applied patch by Frediano from ML today.
+	- Adds ODBC2 support to SQLSetStmtAttr.
+
 Tue Sep 23 01:03:12 PDT 2003	Peter Deacon <peterd@iea-software.com>
 	* src/odbc/odbc.c src/tds/mem.c src/tds/query.c
 	* src/tds/read.c src/tds/token.c

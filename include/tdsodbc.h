@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.55 2003-09-22 20:12:50 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.56 2003-09-23 15:42:03 jklowden Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -281,6 +281,7 @@ struct _hstmt
 	struct _sql_errors errs;
 	TDS_DESC *ard, *ird, *apd, *ipd;
 	TDS_DESC *orig_ard, *orig_apd;
+	SQLUINTEGER sql_rowset_size;
 	struct _hsattr attr;
 	DSTR cursor_name;	/* auto generated cursor name */
 #ifdef TDS_NO_DM
