@@ -22,6 +22,7 @@
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
+#include "syberror.h"
 #include "dblib.h"
 #include <unistd.h>
 
@@ -43,7 +44,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.13 2002-09-12 14:45:50 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.14 2002-09-13 18:21:41 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -1,3 +1,7 @@
+Fri Sep 13 14:20:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h include/syberror.h src/dblib/bcp.c:
+	- relocate severity codes from sybdb.h to syberror.h
+
 Fri Sep 13 14:05:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/.cvsignore src/pool/.cvsignore:
 	- ignore more generated files.

@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.17 2002-09-12 14:45:50 castellano Exp $";
+"$Id: sybdb.h,v 1.18 2002-09-13 18:21:41 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -50,19 +50,6 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define INT_CONTINUE 1
 #define INT_CANCEL 2
 #define INT_TIMEOUT 3
-
-/* severity levels, gleaned from google */
-#define EXINFO         1
-#define EXUSER         2
-#define EXNONFATAL     3
-#define EXCONVERSION   4
-#define EXSERVER       5
-#define EXTIME         6
-#define EXPROGRAM      7
-#define EXRESOURCE     8
-#define EXCOMM         9
-#define EXFATAL       10
-#define EXCONSISTENCY 11
 
 #define DBMAXNUMLEN 33
 #define MAXNAME     30

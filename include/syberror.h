@@ -25,12 +25,21 @@ extern "C" {
 #endif
 
 static char  rcsid_syberror_h [ ] =
-         "$Id: syberror.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: syberror.h,v 1.2 2002-09-13 18:21:41 castellano Exp $";
 static void *no_unused_syberror_h_warn[]={rcsid_syberror_h, no_unused_syberror_h_warn};
 
-
-
-#define EXSERVER 5
+/* severity levels, gleaned from google */
+#define EXINFO         1
+#define EXUSER         2
+#define EXNONFATAL     3
+#define EXCONVERSION   4
+#define EXSERVER       5
+#define EXTIME         6
+#define EXPROGRAM      7
+#define EXRESOURCE     8
+#define EXCOMM         9
+#define EXFATAL       10
+#define EXCONSISTENCY 11
 
 #ifdef __cplusplus
 }
