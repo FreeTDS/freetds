@@ -51,10 +51,14 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <locale.h>
+#include <nl_types.h>
+#include <langinfo.h>
+
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.42 2002-11-17 10:01:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.43 2002-11-27 05:23:04 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -249,6 +253,22 @@ char *password = NULL;
 char *confile = NULL;
 int  port = 0;
 int  opt;
+const char * locale = setlocale(LC_ALL, (char*)NULL);
+char * charset
+#	if CODESET
+		= nl_langinfo(CODESET);
+#	else
+		= 0;
+#	endif
+
+	if (locale) 
+		printf("locale is \"%s\"\n", locale);
+	if (charset) {
+		printf("charset is \"%s\"\n", charset);
+	} else {
+		charset = "iso_1";
+		printf("using default charset \"%s\"\n", charset);
+	}
 
      while ((opt=getopt(argc, argv, "H:S:I:V::P:U:p:v"))!=-1) {
           switch (opt) {
@@ -310,12 +330,13 @@ int  opt;
 	/* all validated, let's do it */
 
 	/* if it's a servername */
+	
 	if (servername) {
 		tds_set_user(login, username);
 		tds_set_app(login, "TSQL");
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, servername);
-		tds_set_charset(login, "iso_1");
+		tds_set_charset(login, charset);
 		tds_set_language(login, "us_english");
 		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
@@ -329,7 +350,7 @@ int  opt;
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, hostname);
 		tds_set_port(login, port);
-		tds_set_charset(login, "iso_1");
+		tds_set_charset(login, charset);
 		tds_set_language(login, "us_english");
 		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
