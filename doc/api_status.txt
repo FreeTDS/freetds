@@ -62,7 +62,7 @@ odbc	(all)	SQLBindCol	OK
 odbc	(all)	SQLBindParam	
 odbc	(all)	SQLBindParameter	OK
 odbc	(all)	SQLBrowseConnect	stub
-odbc	(all)	SQLCancel	stub
+odbc	(all)	SQLCancel	OK
 odbc	(all)	SQLCloseCursor	
 odbc	(all)	SQLColAttribute	
 odbc	(all)	SQLColAttributes	OK
@@ -70,12 +70,10 @@ odbc	(all)	SQLColumnPrivileges	stub
 odbc	(all)	SQLColumns	stub
 odbc	(all)	SQLConnect	OK
 odbc	(all)	SQLCopyDesc	
-odbc	(all)	SQLDataSources	stub
 odbc	(all)	SQLDescribeCol	OK
 odbc	(all)	SQLDescribeParam	stub
 odbc	(all)	SQLDisconnect	stub
 odbc	(all)	SQLDriverConnect	OK
-odbc	(all)	SQLDrivers	stub
 odbc	(all)	SQLEndTran	
 odbc	(all)	SQLError	OK
 odbc	(all)	SQLExecDirect	OK
@@ -89,7 +87,7 @@ odbc	(all)	SQLFreeEnv	OK
 odbc	(all)	SQLFreeHandle	OK
 odbc	(all)	SQLFreeStmt	OK
 odbc	(all)	SQLGetConnectAttr	
-odbc	(all)	SQLGetConnectOption	stub
+odbc	(all)	SQLGetConnectOption	OK
 odbc	(all)	SQLGetCursorName	stub
 odbc	(all)	SQLGetData	OK
 odbc	(all)	SQLGetDescField	
@@ -97,23 +95,23 @@ odbc	(all)	SQLGetDescRec
 odbc	(all)	SQLGetDiagField	
 odbc	(all)	SQLGetDiagRec	
 odbc	(all)	SQLGetEnvAttr	
-odbc	(all)	SQLGetFunctions	stub
-odbc	(all)	SQLGetInfo	stub
-odbc	(all)	SQLGetStmtAttr	stub
-odbc	(all)	SQLGetStmtOption	stub
+odbc	(all)	SQLGetFunctions	OK
+odbc	(all)	SQLGetInfo	OK
+odbc	(all)	SQLGetStmtAttr	partial
+odbc	(all)	SQLGetStmtOption	partial
 odbc	(all)	SQLGetTypeInfo	OK
-odbc	(all)	SQLMoreResults	stub
+odbc	(all)	SQLMoreResults	OK
 odbc	(all)	SQLNativeSql	stub
-odbc	(all)	SQLNumParams	stub
+odbc	(all)	SQLNumParams	OK
 odbc	(all)	SQLNumResultCols	OK
-odbc	(all)	SQLParamData	stub
+odbc	(all)	SQLParamData	OK
 odbc	(all)	SQLParamOptions	stub
 odbc	(all)	SQLPrepare	OK
 odbc	(all)	SQLPrimaryKeys	stub
 odbc	(all)	SQLProcedureColumns	stub
 odbc	(all)	SQLProcedures	stub
-odbc	(all)	SQLPutData	stub
-odbc	(all)	SQLRowCount	stub
+odbc	(all)	SQLPutData	OK
+odbc	(all)	SQLRowCount	OK
 odbc	(all)	SQLSetConnectAttr	
 odbc	(all)	SQLSetConnectOption	stub
 odbc	(all)	SQLSetCursorName	stub
@@ -129,7 +127,7 @@ odbc	(all)	SQLSpecialColumns	stub
 odbc	(all)	SQLStatistics	stub
 odbc	(all)	SQLTablePrivileges	stub
 odbc	(all)	SQLTables	OK
-odbc	(all)	SQLTransact	stub
+odbc	(all)	SQLTransact	OK
 dblib	core	dbadata	OK
 dblib	core	dbadlen	OK
 dblib	core	dbaltbind	OK

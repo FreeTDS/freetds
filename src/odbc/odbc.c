@@ -68,7 +68,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.98 2002-12-09 16:40:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.99 2002-12-09 20:48:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1058,6 +1058,8 @@ SQLRETURN SQL_API SQLDisconnect(
 
     dbc = (struct _hdbc *) hdbc;
     tds_free_socket(dbc->tds_socket);
+
+    /* TODO free all associated statements (done by DM??) f77 */
 
     return SQL_SUCCESS;
 }

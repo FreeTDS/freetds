@@ -1,3 +1,7 @@
+Mon Dec 09 21:48:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt src/odbc/odbc.c:
+	- update odbc status
+
 Mon Dec  9 12:40:48 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* doc/api_status.txt	added perl to output bcp-ready format
 	* src/tds/login.c 	added TDS version to log file
