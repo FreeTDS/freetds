@@ -61,7 +61,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.70 2003-06-06 09:19:00 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.71 2003-06-06 19:13:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -71,6 +71,8 @@ static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int _bcp_rtrim_varchar(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE *terminator, int term_len);
+/* might be temporary */
+int tds_do_until_done(TDSSOCKET * tds);
 
 
 RETCODE
@@ -1568,9 +1570,13 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	tds_flush_packet(tds);
 
+#if _SIMPLE_QUERY_EXPERIMENT_ 
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return FAIL;
 	rows_copied_so_far += tds->rows_affected;
+#else
+	rows_copied_so_far += tds_do_until_done(tds);
+#endif
 	*rows_copied = rows_copied_so_far;
 
 	return SUCCEED;

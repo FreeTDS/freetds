@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.197 2003-06-06 09:19:19 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.198 2003-06-06 19:13:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -808,6 +808,26 @@ tds_process_simple_query(TDSSOCKET * tds)
 			break;
 		}
 	}
+}
+
+/** 
+ * simple flush function.  maybe be superseded soon.
+ */
+int
+tds_do_until_done(TDSSOCKET * tds)
+{
+	int marker, rows_affected;
+	do {
+		marker = tds_get_byte(tds);
+		if (marker == TDS_DONE_TOKEN) {
+			tds_process_end(tds, marker, NULL);
+			rows_affected = tds->rows_affected;
+		} else {
+			tds_process_default_tokens(tds, marker);
+		}
+	} while (marker != TDS_DONE_TOKEN);
+
+	return rows_affected;
 }
 
 /**
