@@ -1,3 +1,10 @@
+Mon Sep 16 15:44:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/cspublic.h include/dblib.h include/sybdb.h include/tds.h.in
+	  include/tdsutil.h src/apps/freebcp.c src/apps/tsql.c src/ctlib/cs.c
+	  src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c src/server/login.c
+	  src/server/server.c src/tds/config.c src/tds/iconv.c src/tds/token.c:
+	- More "gcc -Wall" cleanups.
+
 Sun Sep 15 18:45:04 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* acconfig.h configure.in src/apps/Makefile.am src/apps/tsql.c:
 	- compile tsql with readline, if found

@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.4 2002-08-16 21:01:25 freddy77 Exp $";
+         "$Id: dblib.h,v 1.5 2002-09-16 19:47:58 castellano Exp $";
 static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 
 
@@ -39,6 +39,12 @@ int dblib_handle_info_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO 
 int dblib_handle_err_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
 DBINT _convert_char(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
 DBINT _convert_intn(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
+
+RETCODE _bcp_clear_storage(DBPROCESS *dbproc);
+RETCODE _bcp_get_term_data(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, BYTE *coldata);
+RETCODE _bcp_get_term_var(BYTE *dataptr, BYTE *term, int term_len, BYTE *coldata);
+RETCODE _bcp_get_prog_data(DBPROCESS *dbproc);
+int _bcp_readfmt_colinfo(DBPROCESS *dbproc, char *buf, BCP_HOSTCOLINFO *ci);
 
 #ifdef __cplusplus
 }

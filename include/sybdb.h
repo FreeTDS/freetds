@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.19 2002-09-14 20:30:20 jklowden Exp $";
+"$Id: sybdb.h,v 1.20 2002-09-16 19:47:58 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -263,7 +263,7 @@ typedef struct dbdaterec
 
 typedef int (*EHANDLEFUNC) (DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *proc, int line);
+typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *proc, int line);
 
 enum {
 	DBPADOFF,
@@ -648,6 +648,23 @@ RETCODE dbsetllong(LOGINREC* login, long value, int which);
 #define DBSETLABELED		13
 #define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
+
+RETCODE bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction);
+RETCODE bcp_collen(DBPROCESS *dbproc, DBINT varlen, int table_column);
+RETCODE bcp_columns(DBPROCESS *dbproc, int host_colcount);
+RETCODE bcp_colfmt(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, BYTE *host_term, int host_termlen, int colnum);
+RETCODE bcp_colfmt_ps(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, BYTE *host_term, int host_termlen, int colnum, DBTYPEINFO *typeinfo);
+RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value);
+RETCODE bcp_colptr(DBPROCESS *dbproc, BYTE *colptr, int table_column);
+DBBOOL bcp_getl(LOGINREC *login);
+RETCODE bcp_sendrow(DBPROCESS *dbproc);
+RETCODE bcp_exec(DBPROCESS *dbproc, DBINT *rows_copied);
+RETCODE bcp_readfmt(DBPROCESS *dbproc, char *filename);
+RETCODE bcp_writefmt(DBPROCESS *dbproc, char *filename);
+RETCODE bcp_moretext(DBPROCESS *dbproc, DBINT size, BYTE *text);
+RETCODE bcp_batch(DBPROCESS *dbproc);
+RETCODE bcp_done(DBPROCESS *dbproc);
+RETCODE bcp_bind(DBPROCESS *dbproc, BYTE *varaddr, int prefixlen, DBINT varlen, BYTE *terminator, int termlen, int type, int table_column);
 
 #ifdef __cplusplus
 #if 0

@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.25 2002-09-08 13:22:36 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.26 2002-09-16 19:48:04 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -149,9 +149,9 @@ FILE *in;
 	return found;
 }
 
-static int tds_read_conf_file(char *server, TDSCONFIGINFO *config)
+static int
+tds_read_conf_file(char *server, TDSCONFIGINFO *config)
 {
-FILE *in;
 char  *home, *path;
 int found = 0; 
 

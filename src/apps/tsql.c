@@ -25,6 +25,7 @@
 #include <string.h>
 #include "tds.h"
 #include "tdsconvert.h"
+#include "tdsutil.h"
 
 #ifndef HAVE_READLINE
 char *
@@ -48,7 +49,9 @@ int i = 0;
 
 	return buf;
 }
-add_history(char *s)
+
+void
+add_history(const char *s)
 {
 }
 #endif
@@ -61,7 +64,6 @@ int ctype;
 CONV_RESULT dres;
 unsigned char *src;
 TDS_INT srclen;
-TDS_INT len;
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -118,7 +120,7 @@ void print_usage(char *progname)
 {
 			fprintf(stderr,"Usage: %s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n",progname);
 }
-int populate_login(TDSLOGIN *login, int argc, char **argv)
+void populate_login(TDSLOGIN *login, int argc, char **argv)
 {
 char *hostname = NULL;
 char *servername = NULL;

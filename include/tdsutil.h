@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.6 2002-09-13 21:00:21 castellano Exp $";
+"$Id: tdsutil.h,v 1.7 2002-09-16 19:47:58 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -81,6 +81,7 @@ TDS_INT tds_get_int(TDSSOCKET *tds);
 
 int tds_close_socket(TDSSOCKET *tds);
 int tds_swap_bytes(unsigned char *buf, int bytes);
+void tds_ctx_set_parent(TDSCONTEXT *ctx, void *the_parent);
 
 #ifdef __cplusplus
 #if 0

@@ -21,8 +21,10 @@
 #include <cspublic.h>
 #include <tdsconvert.h>
 #include <time.h>
+#include "ctlib.h"
+#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.16 2002-09-01 09:56:16 freddy77 Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.17 2002-09-16 19:47:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -22,9 +22,11 @@
 #include "tdsutil.h"
 #include <unistd.h>
 
-static char  software_version[]   = "$Id: login.c,v 1.6 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.7 2002-09-16 19:48:03 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+int tds_read_string(TDSSOCKET *tds, char *dest, int size);
 
 unsigned char *
 tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsigned char *clear_pass) 
@@ -45,7 +47,6 @@ TDSSOCKET *tds_listen(int ip_port)
 TDSCONTEXT	*context;
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
-unsigned char buf[BUFSIZ];
 int	fd, s;
 size_t	len;
 
@@ -73,9 +74,8 @@ size_t	len;
 	/* get_incoming(tds->s); */
 	return tds;
 }
-int tds_read_login(TDSSOCKET *tds, TDSLOGIN *login)
+void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login)
 {
-int len,i;
 char blockstr[7];
 /*
 	while (len = tds_read_packet(tds)) {

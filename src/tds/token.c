@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.52 2002-09-13 21:00:22 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.53 2002-09-16 19:48:08 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -44,7 +44,6 @@ static int tds_process_dynamic(TDSSOCKET *tds);
 static int tds_process_auth(TDSSOCKET *tds);
 static int tds_get_varint_size(int datatype);
 static int tds_get_cardinal_type(int datatype);
-void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
 ** The following little table is indexed by precision and will

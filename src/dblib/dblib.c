@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.59 2002-09-14 20:36:22 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.60 2002-09-16 19:48:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2491,7 +2491,6 @@ char query[1024];
 char textptr_string[35]; /* 16 * 2 + 2 (0x) + 1 */
 char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
-TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 
     if (textptrlen > DBTXPLEN) return FAIL;
     dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, -1);

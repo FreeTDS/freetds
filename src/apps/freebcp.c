@@ -22,10 +22,10 @@
 #include <strings.h>
 #include <sybfront.h>
 #include <sybdb.h>
-
+#include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.6 2002-09-05 22:19:12 jklowden Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.7 2002-09-16 19:47:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -33,15 +33,20 @@ void pusage();
 int process_parameters(int , char **, struct pd *);
 int login_to_database(struct pd *, DBPROCESS **);
 
+int file_character(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
+int file_native(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
+int file_formatted(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir);
+
 int err_handler();
 int msg_handler();
 
-
+int
 main (int argc, char **argv)
 {
-
 PARAMDATA        params;
 DBPROCESS       *dbproc;
+DBINT		direction;
+int		ok = FALSE;
 
     memset(&params, '\0', sizeof(PARAMDATA));
 
@@ -55,51 +60,28 @@ DBPROCESS       *dbproc;
        exit(1);
     }
 
-
     dbproc->firstrow = params.firstrow;
     dbproc->lastrow  = params.lastrow;
 
-    if (strcmp(params.dbdirection,"in") == 0)
-    {
-       if (params.cflag)              /* character format file */
-       {
-          file_character(&params, dbproc, DB_IN );
-       }
-       else if (params.nflag)         /* native format file    */
-            {
-                file_native(&params, dbproc, DB_IN );
-            }
-            else if (params.fflag)    /* formatted file        */
-                 {
-                      file_formatted(&params, dbproc, DB_IN );
-                 }
-                 else
-                 {
-                      exit(1);
-                 }
-     
-    }
-    else
-    {
-       if (params.cflag)              /* character format file */
-       {
-          file_character(&params, dbproc, DB_OUT );
-       }
-       else if (params.nflag)         /* native format file    */
-            {
-                file_native(&params, dbproc, DB_OUT );
-            }
-            else if (params.fflag)    /* formatted file        */
-                 {
-                      file_formatted(&params, dbproc, DB_OUT );
-                 }
-                 else
-                 {
-                      exit(1);
-                 }
-     
+    if (strcmp(params.dbdirection,"in") == 0) {
+       direction = DB_IN;
+    } else {
+       direction = DB_OUT;
     }
 
+    if (params.cflag) {            /* character format file */
+       ok = file_character(&params, dbproc, DB_IN );
+    } else if (params.nflag) {     /* native format file    */
+       ok = file_native(&params, dbproc, DB_IN );
+    } else if (params.fflag) {     /* formatted file        */
+       ok = file_formatted(&params, dbproc, DB_IN );
+    } else {
+       ok = FALSE;
+    }
+
+    exit((ok == TRUE) ? 0 : 1);
+   
+    return 0;
 }
 
 
@@ -428,7 +410,6 @@ int file_character(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir )
 {
 DBINT   li_rowsread = 0;
 int  i;
-int  li_direction = 0;
 int li_numcols = 0;
 
      if (dbfcmd (dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL)
@@ -496,7 +477,6 @@ int file_native(PARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir )
 {
 DBINT   li_rowsread = 0;
 int  i;
-int  li_direction = 0;
 int  li_numcols = 0;
 int  li_coltype;
 int  li_collen;
@@ -609,7 +589,7 @@ char            *oserrstr;
 
     if (dberr)
     {
-       fprintf(stderr,"Msg %ld, Level %d\n", dberr, severity);
+       fprintf(stderr,"Msg %d, Level %d\n", dberr, severity);
        fprintf(stderr,"%s\n\n", dberrstr);
     }
 
@@ -643,7 +623,7 @@ DBUSMALLINT     line;
         return(0);
 
     printf ("Msg %ld, Level %d, State %d\n", 
-            msgno, severity, msgstate);
+            (long) msgno, severity, msgstate);
 
     if (strlen(srvname) > 0)
         printf ("Server '%s', ", srvname);

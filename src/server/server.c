@@ -20,11 +20,11 @@
 #include <config.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: server.c,v 1.3 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: server.c,v 1.4 2002-09-16 19:48:04 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-
+void
 tds_env_change(TDSSOCKET *tds,int type, char *oldvalue, char *newvalue)
 {
 TDS_SMALLINT totsize;
@@ -147,6 +147,7 @@ void tds_send_login_ack(TDSSOCKET *tds, char *progname)
 	tds_put_byte(tds,0); /* unknown */
 	tds_put_byte(tds,1); /* unknown */
 }
+void
 tds_send_capabilities_token(TDSSOCKET *tds)
 {
 	tds_put_byte(tds,TDS_CAP_TOKEN);
@@ -171,6 +172,7 @@ tds_send_capabilities_token(TDSSOCKET *tds)
 	tds_put_byte(tds,0);
 	tds_put_byte(tds,0);
 }
+void
 tds_send_253_token(TDSSOCKET *tds, TDS_TINYINT flags, TDS_INT numrows)
 {
 	tds_put_byte(tds,253);
@@ -180,6 +182,7 @@ tds_send_253_token(TDSSOCKET *tds, TDS_TINYINT flags, TDS_INT numrows)
 	tds_put_byte(tds,0);
 	tds_put_int(tds,numrows);
 }
+void
 tds_send_174_token(TDSSOCKET *tds, TDS_SMALLINT numcols)
 {
 int i;
@@ -234,6 +237,8 @@ TDSCOLINFO *curcol;
 		}
 	}
 }
+
+void
 tds_send_result(TDSSOCKET *tds, TDSRESULTINFO *resinfo)
 {
 TDSCOLINFO *curcol;
@@ -266,6 +271,8 @@ int i, totlen;
 		tds_put_byte(tds,0);
 	}
 }
+
+void
 tds_send_row(TDSSOCKET *tds, TDSRESULTINFO *resinfo)
 {
 TDSCOLINFO *curcol;

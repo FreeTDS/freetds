@@ -80,9 +80,9 @@ TDSICONVINFO *iconv_info;
  */
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
 {
-TDSICONVINFO *iconv_info;
 int i;
 #if HAVE_ICONV
+TDSICONVINFO *iconv_info;
 const char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
@@ -150,8 +150,8 @@ tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int 
 register int out_pos = 0;
 register int i; 
 size_t string_length;
-TDSICONVINFO *iconv_info;
 #if HAVE_ICONV
+TDSICONVINFO *iconv_info;
 const char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;

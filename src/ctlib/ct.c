@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.29 2002-09-13 19:25:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.30 2002-09-16 19:48:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -382,7 +382,6 @@ CS_RETCODE ct_send(CS_COMMAND *cmd)
 }
 CS_RETCODE ct_results_dyn(CS_COMMAND *cmd, CS_INT *result_type)
 {
-TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
 
@@ -472,7 +471,6 @@ int ret;
 CS_RETCODE ct_bind(CS_COMMAND *cmd, CS_INT item, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT *copied, CS_SMALLINT *indicator)
 {
 TDSCOLINFO * colinfo;
-CT_COLINFO *ctcolinfo; /* additional information about columns used by ctlib */
 TDSRESULTINFO * resinfo;
 TDSSOCKET * tds;
 
@@ -524,7 +522,7 @@ TDSRESULTINFO *resinfo = tds->res_info;
 unsigned char *src;
 unsigned char *dest;
 int result = 0;
-TDS_INT srctype, srclen, desttype, destlen, len;
+TDS_INT srctype, srclen, desttype, len;
 CS_CONTEXT *ctx = cmd->con->ctx;
 
 CS_DATAFMT srcfmt, destfmt;
@@ -1274,7 +1272,6 @@ unsigned char *mask;
 }
 CS_RETCODE ct_dynamic(CS_COMMAND *cmd, CS_INT type, CS_CHAR *id, CS_INT idlen, CS_CHAR *buffer, CS_INT buflen)
 {
-static int stmt_no=1;
 int query_len, id_len;
 TDSDYNAMIC *dyn;
 TDSSOCKET *tds;

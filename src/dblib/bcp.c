@@ -20,6 +20,7 @@
 #include <config.h>
 #include "tdsutil.h"
 #include "tds.h"
+#include "tdsconvert.h"
 #include "sybfront.h"
 #include "sybdb.h"
 #include "syberror.h"
@@ -44,7 +45,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.15 2002-09-13 19:25:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.16 2002-09-16 19:48:00 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -395,12 +396,7 @@ static RETCODE _bcp_exec_out(DBPROCESS *dbproc, DBINT *rows_copied)
 {
 
 FILE *hostfile;
-
-int  ret;
 int  i;
-int  j;
-int  k;
-char *xx;
 
 TDSSOCKET     *tds = dbproc->tds_socket;
 TDSRESULTINFO *resinfo;
@@ -412,14 +408,12 @@ int           srctype;
 long          len;
 int           buflen;
 int           destlen;
-int           converted_data_size;
 BYTE          *outbuf;
 char          query[256];
 
 TDS_TINYINT   ti;
 TDS_SMALLINT  si;
 TDS_INT       li;
-TDS_NUMERIC *num;
 
 int           row_of_query;
 
@@ -657,14 +651,10 @@ int           rows_written;
 
 RETCODE _bcp_read_hostfile(DBPROCESS *dbproc, FILE *hostfile)
 {
-TDSSOCKET *tds = dbproc->tds_socket;
-TDSRESULTINFO   *resinfo;
 BCP_COLINFO     *bcpcol;
 BCP_HOSTCOLINFO *hostcol;
-TDSCOLINFO      *curcol;
 
 int i;
-int j = 0;
 TDS_TINYINT ti;
 TDS_SMALLINT si;
 TDS_INT li;
@@ -1067,19 +1057,14 @@ RETCODE bcp_sendrow(DBPROCESS *dbproc)
 
 TDSSOCKET       *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
-BCP_HOSTCOLINFO *hostcol;
-TDSCOLINFO      *curcol;
 
 int i;
-int collen;
 /* FIX ME -- calculate dynamically */
 unsigned char rowbuffer[ROWBUF_SIZE];
 int row_pos;
 int row_sz_pos;
 TDS_SMALLINT row_size;
-TDS_SMALLINT row_size_saved;
 
-int marker;
 int blob_cols = 0;
 
 unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
@@ -1224,7 +1209,7 @@ unsigned char row_token         = 0xd1;
   
           rowbuffer[0] = dbproc->var_cols;
   
-          if (row_pos = _bcp_add_fixed_columns(dbproc, rowbuffer, row_pos) == FAIL)
+          if ((row_pos = _bcp_add_fixed_columns(dbproc, rowbuffer, row_pos)) == FAIL)
              return(FAIL);
    
   
@@ -1281,11 +1266,8 @@ static RETCODE _bcp_exec_in(DBPROCESS *dbproc, DBINT *rows_copied)
 FILE            *hostfile;
 TDSSOCKET       *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
-BCP_HOSTCOLINFO *hostcol;
-TDSCOLINFO      *curcol;
 
 int i;
-int collen;
 /* FIX ME -- calculate dynamically */
 unsigned char rowbuffer[ROWBUF_SIZE];
 int row_pos;
@@ -1539,12 +1521,9 @@ static RETCODE _bcp_start_copy_in(DBPROCESS *dbproc)
 
 TDSSOCKET       *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
-TDSCOLINFO      *curcol;
-TDSRESULTINFO   *resinfo;
 
 int i;
 int marker;
-char colstatus;
 
 char query[256];
 char colclause[256];
@@ -1711,6 +1690,8 @@ char column_type[32];
                         break;
     case SYBNTEXT     : sprintf(column_type,"ntext");
                         break;
+    default:
+			return FAIL;
    }
    
    if (!first)
@@ -1720,6 +1701,7 @@ char column_type[32];
    strcat(clause," ");
 
    strcat(clause, column_type);
+   return SUCCEED;
  
 }
 
@@ -1768,7 +1750,6 @@ static RETCODE _bcp_send_colmetadata(DBPROCESS *dbproc)
 {
 
 TDSSOCKET   *tds = dbproc->tds_socket;
-int          marker;
 unsigned char         colmetadata_token = 0x81;
 BCP_COLINFO *bcpcol;
 char         unicode_string[256];
@@ -1820,14 +1801,12 @@ int i;
        
     }
   }
+  return SUCCEED;
 }
 
 
 RETCODE bcp_readfmt(DBPROCESS *dbproc, char *filename)
 {
-DBINT   li_rowsread = 0;
-int  i;
-
 FILE *ffile;
 char buffer[1024];
 
@@ -2244,14 +2223,10 @@ BCP_HOSTCOLINFO *hostcol;
 
 RETCODE _bcp_get_prog_data(DBPROCESS *dbproc)
 {
-TDSSOCKET *tds = dbproc->tds_socket;
-TDSRESULTINFO   *resinfo;
 BCP_COLINFO     *bcpcol;
 BCP_HOSTCOLINFO *hostcol;
-TDSCOLINFO      *curcol;
 
 int i;
-int j = 0;
 TDS_TINYINT ti;
 TDS_SMALLINT si;
 TDS_INT li;
