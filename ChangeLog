@@ -1,9 +1,14 @@
+Mon Nov 29 20:18:16 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml document MSDBLIB and SYBDBLIB defines.  
+
 Mon Nov 29 09:38:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/t0012.c: finish merge
 
 Sun Nov 28 10:11:40 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in set version number
 	* doc/api_status.txt implement (modified) patch from Frediano.
+	
+--- 0.63 Branch establish, RC1 ---
 
 Sun Nov 28 10:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/sybdb.h include/tds_sysdep_public.h.in:
