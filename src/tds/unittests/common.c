@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.16 2003-04-21 09:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.17 2003-04-21 16:06:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -45,7 +42,7 @@ read_login_info(void)
 	return TDS_SUCCEED;
 }
 
-static TDSCONTEXT *context = NULL;
+TDSCONTEXT *test_context = NULL;
 
 int
 try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
@@ -91,10 +88,10 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	if (verbose) {
 		fprintf(stdout, "Connecting to database\n");
 	}
-	context = tds_alloc_context();
-	*tds = tds_alloc_socket(context, 512);
+	test_context = tds_alloc_context();
+	*tds = tds_alloc_socket(test_context, 512);
 	tds_set_parent(*tds, NULL);
-	connect_info = tds_read_config_info(NULL, *login, context->locale);
+	connect_info = tds_read_config_info(NULL, *login, test_context->locale);
 	if (!connect_info || tds_connect(*tds, connect_info) == TDS_FAIL) {
 		if (connect_info) {
 			*tds = NULL;
@@ -118,8 +115,8 @@ try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 	}
 	tds_free_socket(tds);
 	tds_free_login(login);
-	tds_free_context(context);
-	context = NULL;
+	tds_free_context(test_context);
+	test_context = NULL;
 	return TDS_SUCCEED;
 }
 

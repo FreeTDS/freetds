@@ -23,28 +23,15 @@
  * The following shows performance converting to varchar:
  * $ make convert && ./convert 1 |grep iterations |grep 'varchar\.' |sort -n 
  */
-
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdlib.h>
+#include "common.h"
 #include <assert.h>
-
-#include <tds.h>
 #include <tdsconvert.h>
 
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.5 2003-04-03 09:14:56 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.6 2003-04-21 16:06:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;

@@ -17,24 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <tds.h>
+#include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.11 2003-04-21 09:05:59 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.12 2003-04-21 16:06:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;

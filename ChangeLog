@@ -1,3 +1,16 @@
+Mon Apr 21 18:05:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/Makefile.am src/tds/unittests/common.c:
+	* src/tds/unittests/common.h src/tds/unittests/convert.c:
+	* src/tds/unittests/dynamic1.c src/tds/unittests/t0001.c:
+	* src/tds/unittests/t0002.c src/tds/unittests/t0003.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c src/tds/unittests/t0007.c:
+	* src/tds/unittests/t0008.c:
+	- place include code in common.h
+	- define test_context to use context in unittest
+	* src/tds/unittests/dataread.c (added):
+	- test data from server
+
 Mon Apr 21 11:04:47 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsstring.h src/ctlib/ct.c:
 	* src/odbc/connectparams.c src/odbc/error.c src/odbc/odbc.c:

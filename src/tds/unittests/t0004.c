@@ -16,21 +16,9 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.13 2003-03-06 23:58:45 mlilback Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.14 2003-04-21 16:06:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
