@@ -4,3 +4,4 @@ Makefile.in
 *.lo
 *.la
 .deps
+num_limits.h
