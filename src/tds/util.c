@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.31 2002-12-10 17:01:58 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.32 2002-12-31 22:41:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -338,64 +338,64 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 		ret = tdsdump_append();
 	}
 	if (write_dump && dumpfile != NULL) {
-	const char *ptr;
-
-	va_list ap;
+		const char *ptr;
+		va_list ap;
 
 		va_start(ap, fmt);
 
 		if (tds_g_append_mode) {
 			fprintf(dumpfile, "pid: %d:", (int) getpid());
 		}
+
 		for (ptr = fmt; *ptr != '\0'; ptr++) {
 			if (*ptr == '%') {
 				ptr++;
 				switch (*ptr) {
 				case 's':
 					{
-	char *s = va_arg(ap, char *);
+						char *s = va_arg(ap, char *);
 
 						fputs(s, dumpfile);
 						break;
 					}
 				case 'd':
 					{
-	int i = va_arg(ap, int);
+						int i = va_arg(ap, int);
 
 						fprintf(dumpfile, "%d", i);
 						break;
 					}
 				case 'x':
 					{
-	int i = va_arg(ap, int);
+						int i = va_arg(ap, int);
 
 						fprintf(dumpfile, "%x", i);
 						break;
 					}
 				case 'D':
 					{
-	char *buf = va_arg(ap, char *);
-	int len = va_arg(ap, int);
+						char *buf = va_arg(ap, char *);
+						int len = va_arg(ap, int);
 
 						tdsdump_dump_buf(buf, len);
 						break;
 					}
 				case 'L':	/* current local time */
 					{
-	char buf[128];
+						char buf[128];
 
 						fputs(tds_timestamp_str(buf, 127), dumpfile);
 					}
 				default:
-					{
 						break;
-					}
 				}
 			} else {
 				fputc(*ptr, dumpfile);
 			}
 		}
+
 		fflush(dumpfile);
+
 		if (tds_g_append_mode && ret) {
 			fclose(dumpfile);
 		}
@@ -405,7 +405,7 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 int
 tds_close_socket(TDSSOCKET * tds)
 {
-int rc = -1;
+	int rc = -1;
 
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
