@@ -26,7 +26,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.3 2001-10-20 20:38:12 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.4 2001-10-24 03:42:04 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -489,22 +489,22 @@ int domain_login = 0;
    tds_put_smallint(tds, packet_size);
    tds_put_smallint(tds, 0); 
 
-   tds7_ascii2unicode(config->host_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,strlen(config->host_name)*2);
    if (!domain_login) {
-   	tds7_ascii2unicode(config->user_name, unicode_string, 255);
+   	tds7_ascii2unicode(tds,config->user_name, unicode_string, 255);
    	tds_put_n(tds,unicode_string,strlen(config->user_name)*2);
-   	tds7_ascii2unicode(config->password, unicode_string, 255);
+   	tds7_ascii2unicode(tds,config->password, unicode_string, 255);
    	tds7_crypt_pass(unicode_string, strlen(config->password)*2, unicode_string);
    	tds_put_n(tds,unicode_string,strlen(config->password)*2);
    }
-   tds7_ascii2unicode(config->app_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,config->app_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,strlen(config->app_name)*2);
-   tds7_ascii2unicode(config->server_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,config->server_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,strlen(config->server_name)*2);
-   tds7_ascii2unicode(config->library, unicode_string, 255);
+   tds7_ascii2unicode(tds,config->library, unicode_string, 255);
    tds_put_n(tds,unicode_string,strlen(config->library)*2);
-   tds7_ascii2unicode(config->language, unicode_string, 255);
+   tds7_ascii2unicode(tds,config->language, unicode_string, 255);
    tds_put_n(tds,unicode_string,strlen(config->language)*2);
 
    /* from here to the end of the packet is totally unknown */
@@ -524,39 +524,6 @@ int domain_login = 0;
    rc|=tds_flush_packet(tds);
    
 	return 0;
-}
-
-/*
-** tds7_unicode2ascii()
-** Note: The dest buf must be large enough to handle 'len' + 1 bytes.
-*/
-char *tds7_unicode2ascii(const char *in_string, char *out_string, int len)
-{
-int i;
-
-	for (i=0;i<len;i++) {
-		out_string[i]=in_string[i*2];
-	}
-	out_string[i]='\0';
-	return out_string;
-}
-/*
-** tds7_ascii2unicode()
-*/
-char *tds7_ascii2unicode(const char *in_string, char *out_string, int maxlen)
-{
-register int out_pos = 0;
-register int i; 
-size_t string_length = strlen(in_string);
-
-	memset(out_string, 0, string_length*2);
-
-	for (i=0;i<string_length;i++) {
-		out_string[out_pos++]=in_string[i];	
-		out_string[out_pos++]='\0';
-	}
-
-	return out_string;
 }
 
 /*

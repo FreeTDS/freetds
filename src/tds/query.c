@@ -20,7 +20,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.1 2001-10-12 23:29:02 brianb Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.2 2001-10-24 03:42:04 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,7 +73,7 @@ TDS_INT bufsize2;
 		bufsize = strlen(query)*2;
 		buf = (unsigned char *) malloc(bufsize);
 		memset(buf,'\0',bufsize);
-		tds7_ascii2unicode(query, buf, bufsize);
+		tds7_ascii2unicode(tds,query, buf, bufsize);
 		tds->out_flag=0x01;
 	} else { /* 4.2 */
 		bufsize = strlen(query);

@@ -23,7 +23,7 @@
 #define VERSION_NO "freetds v0.53"
 
 static char  rcsid_tdsver_h [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/include/Attic/tdsver.h,v 1.3 2001-10-20 20:38:12 brianb Exp $";
+         "$Header: /tmp/gitout/git/../freetds/freetds/include/Attic/tdsver.h,v 1.4 2001-10-24 03:42:04 brianb Exp $";
 static void *no_unused_tdsver_h_warn[]={rcsid_tdsver_h, no_unused_tdsver_h_warn};
 
 #endif

@@ -1,3 +1,8 @@
+Tue Oct 23 23:42:03 Brian Bruns <camber@ais.org>
+    * src/tds/iconv.c: new iconv functions for handling TDS7 unicode
+    * src/tds/login.c: tds7_ascii2unicode() and tds7_unicode2ascii() moved to iconv.c
+    * aclocal.m4: iconv detection
+
 Sat Oct 20 15:54:28 Brian Bruns <camber@ais.org>
 
     * src/tds/login.c: error handling for return of inet_addr()

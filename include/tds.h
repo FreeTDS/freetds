@@ -21,11 +21,14 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h,v 1.3 2001-10-20 20:38:12 brianb Exp $";
+	 "$Id: tds.h,v 1.4 2001-10-24 03:42:04 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
 
+#if HAVE_ICONV
+#include <iconv.h>
+#endif
 #ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -523,6 +526,11 @@ typedef struct tds_socket {
 	int cur_dyn_elem;
 	TDSDYNAMIC **dyns;
 	int emul_little_endian;
+	int use_iconv;
+#if HAVE_ICONV
+	iconv_t cdto;
+	iconv_t cdfrom;
+#endif
 } TDSSOCKET;
 
 typedef struct tds_context {
@@ -589,9 +597,13 @@ extern void tds_set_null(unsigned char *current_row, int column);
 extern void tds_clr_null(unsigned char *current_row, int column);
 extern int tds_get_null(unsigned char *current_row, int column);
 extern int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
-extern char *tds7_ascii2unicode(const char *in_string, char *out_string, int maxlen);
-extern char *tds7_unicode2ascii(const char *in_string, char *out_string, int len);
 extern char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
+
+/* iconv.c */
+void tds_iconv_open(TDSSOCKET *tds, char *charset);
+void tds_iconv_close(TDSSOCKET *tds);
+extern char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
+extern char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len);
  
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
