@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.222 2003-11-04 19:01:38 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.223 2003-11-08 18:01:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1497,7 +1497,8 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	/* TODO check if all flags are the same for all TDS versions */
-	curcol->column_hidden = curcol->column_flags & 0x1;
+	if (IS_TDS50(tds))
+		curcol->column_hidden = curcol->column_flags & 0x1;
 	curcol->column_key = (curcol->column_flags & 0x2) > 1;
 	curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
 	curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
