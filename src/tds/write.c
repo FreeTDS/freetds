@@ -56,6 +56,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SELECT_H
+#include <sys/select.h>
+#endif /* HAVE_SELECT_H */
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include <signal.h>		/* GW ADDED */
@@ -63,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.43 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.44 2003-07-20 01:39:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);

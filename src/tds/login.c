@@ -73,6 +73,10 @@
 #include <sys/ioctl.h>
 #endif /* HAVE_SYS_IOCTL_H */
 
+#if HAVE_SELECT_H
+#include <sys/select.h>
+#endif /* HAVE_SELECT_H */
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
@@ -81,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.104 2003-07-15 18:45:32 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.105 2003-07-20 01:39:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);

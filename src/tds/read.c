@@ -54,6 +54,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SELECT_H
+#include <sys/select.h>
+#endif /* HAVE_SELECT_H */
+
 #include <assert.h>
 
 #include "tds.h"
@@ -62,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.57 2003-07-15 08:04:14 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.58 2003-07-20 01:39:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
 			    size_t *wire_size, char **outbuf, size_t *outbytesleft);
