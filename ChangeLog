@@ -1,3 +1,9 @@
+Sun Sep  1 19:56:43 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* .cvsignore:
+	- ignore generated file ltcf-c.sh
+	* configure.in:
+	- Print out result of threadsafety checks
+
 Sun Sep  1 11:53:01 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/cs.c:
 	- fixed small problem for previous implicit conversion
