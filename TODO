@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.10 2002-10-18 18:26:12 freddy77 Exp $
+To Do List	$Id: TODO,v 1.11 2002-10-26 07:37:01 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
@@ -57,4 +57,8 @@ For future versions:
   allocation and all function that return allocated data and be able to 
   rollback to a safe state)
 . limit copy of data (now wire -> tds -> temp -> client)
+
+Tests
+- "if 0 = 1 select 1" should not fail
+- test dynamic query
 

@@ -1,3 +1,6 @@
+Sat Oct 26 09:36:35 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: fixed core if DONE was return without results
+
 Sat Oct 26 09:21:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: 
 	- rollback processing of PARAM_TOKEN and TDS5_DYN_TOKEN
