@@ -1,3 +1,6 @@
+Mon Jan 26 09:44:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: updated comments
+
 Tue Jan 20 10:55:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c: small fixes and comments
 

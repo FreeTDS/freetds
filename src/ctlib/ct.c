@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.112 2003-12-26 18:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.113 2004-01-26 08:44:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -876,8 +876,10 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	tds = cmd->con->tds_socket;
 	cmd->row_prefetched = 0;
 
-	/* depending on the current results state, we may */
-	/* not need to call tds_process_result_tokens...  */
+	/*
+	 * depending on the current results state, we may
+	 * not need to call tds_process_result_tokens...
+	 */
 
 	switch (cmd->results_state) {
 	case _CS_RES_CMD_SUCCEED:
@@ -894,10 +896,12 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 		break;
 	}
 
-	/* see what "result" tokens we have. a "result" in ct-lib terms also  */
-	/* includes row data. Some result types always get reported back  to  */
-	/* the calling program, others are only reported back if the relevant */
-	/* config flag is set.                                                */
+	/*
+	 * see what "result" tokens we have. a "result" in ct-lib terms also
+	 * includes row data. Some result types always get reported back  to
+	 * the calling program, others are only reported back if the relevant
+	 * config flag is set.
+	 */
 
 	for (;;) {
 
@@ -917,12 +921,14 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
 
-				/* set results state to indicate that we     */
-				/* have a result set (empty for the moment)  */
-				/* If the CS_EXPOSE_FMTS  property has been  */
-				/* set in ct_config(), we need to return an  */
-				/* appropraite format result, otherwise just */
-				/* carry on and get the next token.....      */
+				/*
+				 * set results state to indicate that we
+				 * have a result set (empty for the moment)
+				 * If the CS_EXPOSE_FMTS  property has been
+				 * set in ct_config(), we need to return an
+				 * appropraite format result, otherwise just
+				 * carry on and get the next token.....
+				 */
 
 				cmd->results_state = _CS_RES_RESULTSET_EMPTY;
 
@@ -934,9 +940,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 			case CS_ROW_RESULT:
 
-				/* we've hit a data row. pass back that fact */
-				/* to the calling program. set results state */
-				/* to show that the result set has rows...   */
+				/*
+				 * we've hit a data row. pass back that fact
+				 * to the calling program. set results state
+				 * to show that the result set has rows...
+				 */
 
 				cmd->results_state = _CS_RES_RESULTSET_ROWS;
 				if (cmd->command_type == CS_CUR_CMD) {
@@ -949,14 +957,16 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 			case CS_COMPUTE_RESULT:
 
-				/* we've hit a compute data row. We have to get hold of this */
-				/* data now, as it's necessary  to tie this data back to its */
-				/* result format...the user may call ct_res_info() & friends */
-				/* after getting back a compute "result".                    */
-
-				/* but first, if we've hit this compute row without having   */
-				/* hit a data row first, we need to return a  CS_ROW_RESULT  */
-				/* before letting them have the compute row...               */
+				/*
+				 * we've hit a compute data row. We have to get hold of this
+				 * data now, as it's necessary  to tie this data back to its
+				 * result format...the user may call ct_res_info() & friends
+				 * after getting back a compute "result".
+				 *
+				 * but first, if we've hit this compute row without having
+				 * hit a data row first, we need to return a  CS_ROW_RESULT
+				 * before letting them have the compute row...
+				 */
 
 				if (cmd->results_state == _CS_RES_RESULTSET_EMPTY) {
 					*result_type = CS_ROW_RESULT;
@@ -986,19 +996,21 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 			case TDS_DONE_RESULT:
 
-				/* A done token signifies the end of a logical */
-				/* command. There are three possibilities...   */
-				/* 1. Simple command with no result set, i.e.  */
-				/*    update, delete, insert                   */
-				/* 2. Command with result set but no rows      */ 
-				/* 3. Command with result set and rows         */ 
-				/* in these cases we need to:                  */
-				/* 1. return CS_CMD_FAIL/SUCCED depending on   */
-				/*    the status returned in done_flags        */
-				/* 2. "manufacture" a CS_ROW_RESULT return,    */ 
-				/*    and set the results state to DONE        */
-				/* 3. return with CS_CMD_DONE and reset the    */ 
-				/*    results_state                            */ 
+				/*
+				 * A done token signifies the end of a logical
+				 * command. There are three possibilities...
+				 * 1. Simple command with no result set, i.e.
+				 *    update, delete, insert
+				 * 2. Command with result set but no rows
+				 * 3. Command with result set and rows
+				 * in these cases we need to:
+				 * 1. return CS_CMD_FAIL/SUCCED depending on
+				 *    the status returned in done_flags
+				 * 2. "manufacture" a CS_ROW_RESULT return,
+				 *    and set the results state to DONE
+				 * 3. return with CS_CMD_DONE and reset the
+				 *    results_state
+				 */ 
 
 				tdsdump_log(TDS_DBG_FUNC, "%L ct_results() results state = %d\n",cmd->results_state);
 				switch (cmd->results_state) {
@@ -1033,9 +1045,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				 
 			case TDS_DONEINPROC_RESULT:
 
-				/* A doneinproc token may signify the end of a */
-				/* logical command if the command had a result */
-				/* set. Otherwise it is ignored....            */
+				/*
+				 * A doneinproc token may signify the end of a
+				 * logical command if the command had a result
+				 * set. Otherwise it is ignored....
+				 */
 
 				switch (cmd->results_state) {
 				case _CS_RES_INIT:   /* command had no result set */
@@ -1059,12 +1073,14 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 			case TDS_DONEPROC_RESULT:
 
-				/* A DONEPROC result means the end of a logical */
-				/* command only if it was one of the commands   */
-				/* directly sent from ct_send, not as a result  */
-				/* of a nested stored procedure call. We know   */
-				/* if this is the case if a STATUS_RESULT was   */
-				/* received immediately prior to the DONE_PROC  */
+				/*
+				 * A DONEPROC result means the end of a logical
+				 * command only if it was one of the commands
+				 * directly sent from ct_send, not as a result
+				 * of a nested stored procedure call. We know
+				 * if this is the case if a STATUS_RESULT was
+				 * received immediately prior to the DONE_PROC
+				 */
 
 				if (cmd->results_state == _CS_RES_STATUS) { 
 					if (done_flags & TDS_DONE_ERROR)
