@@ -1,3 +1,6 @@
+Fri Jan 14 11:52:45 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/apps/bsqldb.c corrected 'go' batch separator
+
 Fri Jan 14 11:48:27 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* TODO updated
 	* src/dblib/bcp.c quote column names
