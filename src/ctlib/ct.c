@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.39 2002-10-24 20:35:49 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.40 2002-10-25 22:52:26 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1565,3 +1565,11 @@ CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID 
 		CS_GET ? "CS_GET" : "CS_SET", option);
 	return CS_SUCCEED;
 }
+
+CS_RETCODE
+ct_poll (CS_CONTEXT *ctx, CS_CONNECTION *connection, CS_INT milliseconds, CS_CONNECTION **compconn, CS_COMMAND **compcmd, CS_INT *compid, CS_INT *compstatus)
+{
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED ct_poll()\n");
+	return CS_FAIL;
+}
+

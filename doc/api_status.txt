@@ -297,7 +297,7 @@ ctlib	(all)	ct_keydata		Specify or extract the contents of a key column.
 ctlib	(all)	ct_labels		Define a security label or clear security labels for a connection.
 ctlib	(all)	ct_options	OK	Set, retrieve, or clear the values of server query-processing options.
 ctlib	(all)	ct_param		Supply values for a server command's input parameters.
-ctlib	(all)	ct_poll		Poll connections for asynchronous operation completions and registered procedure notifications.
+ctlib	(all)	ct_poll	stub	Poll connections for asynchronous operation completions and registered procedure notifications.
 ctlib	(all)	ct_recvpassthru		Receive a TDS (Tabular Data Stream) packet from a server.
 ctlib	(all)	ct_remote_pwd		Define or clear passwords to be used for server-to-server connections.
 ctlib	(all)	ct_res_info	OK	Retrieve current result set or command information.

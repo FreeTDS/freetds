@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_ctpublic_h [ ] =
-         "$Id: ctpublic.h,v 1.4 2002-10-01 15:43:15 castellano Exp $";
+         "$Id: ctpublic.h,v 1.5 2002-10-25 22:52:26 castellano Exp $";
 static void *no_unused_ctpublic_h_warn[]={rcsid_ctpublic_h, no_unused_ctpublic_h_warn};
 
 CS_RETCODE ct_init(CS_CONTEXT *ctx, CS_INT version);
@@ -61,6 +61,7 @@ CS_RETCODE ct_capability(CS_CONNECTION *con, CS_INT action, CS_INT type, CS_INT 
 CS_RETCODE ct_dynamic(CS_COMMAND *cmd, CS_INT type, CS_CHAR *id, CS_INT idlen, CS_CHAR *buffer, CS_INT buflen);
 CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT datalen, CS_SMALLINT indicator);
 CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen);
+CS_RETCODE ct_poll(CS_CONTEXT *ctx, CS_CONNECTION *connection, CS_INT milliseconds, CS_CONNECTION **compconn, CS_COMMAND **compcmd, CS_INT *compid, CS_INT *compstatus);
 
 #ifdef __cplusplus
 }
