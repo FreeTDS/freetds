@@ -1,3 +1,6 @@
+Wed Jul 30 12:06:11 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/pool/config.c don't lowercase the incoming username.
+
 Wed Jul 30 12:00:31 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* INSTALL.CVS pointer to source forge, update
 	* TODO moved completed tasks to "done" section
