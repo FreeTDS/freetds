@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.15 2002-06-04 03:32:24 jklowden Exp $";
+	 "$Id: tds.h.in,v 1.16 2002-06-19 05:59:36 jklowden Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -651,6 +651,7 @@ extern char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out
 #define IS_TDS70(x) (x->major_version==7 && x->minor_version==0)
 #define IS_TDS80(x) (x->major_version==8 && x->minor_version==0)
 
+#define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
 
 #ifdef __cplusplus
 }
