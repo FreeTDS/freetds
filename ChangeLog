@@ -1,3 +1,7 @@
+Fri Aug 30 23:06:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- correct return of dbsqlok
+
 Fri Aug 30 22:29:30 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c src/tds/read.c src/tds/write.c:
 	- rewritten select stuff (patch #565838)

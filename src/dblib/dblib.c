@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.45 2002-08-30 20:11:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.46 2002-08-30 21:06:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1919,14 +1919,14 @@ TDSSOCKET *tds;
 			/* tds_process_default_tokens can return TDS_ERROR in which case
 			** we still want to read til end, but TDS_FAIL is an unrecoverable
 			** error */
-			if (tds_process_default_tokens(tds, marker)==TDS_FAIL) {
+			if (tds_process_default_tokens(tds, marker)!=TDS_SUCCEED) {
 				rc=FAIL;
 			}
 		}
 	} while (!is_hard_end_token(marker) && !is_result_token(marker));
 
 	/* clean up */
-	if (rc==TDS_ERROR && !is_end_token(marker)) {
+	if (rc==FAIL && !is_end_token(marker)) {
 		do {
 			marker = tds_get_byte(tds);
 			if (tds_process_default_tokens(tds, marker)!=TDS_SUCCEED) {
