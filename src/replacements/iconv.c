@@ -54,7 +54,7 @@
 
 #include "../tds/encodings.h"
 
-static char software_version[] = "$Id: iconv.c,v 1.1 2003-06-30 04:59:34 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.2 2003-07-01 05:33:14 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -78,7 +78,7 @@ iconv_open (const char* tocode, const char* fromcode)
 {
 	typedef struct _fromto { char *name; unsigned char pos; } FROMTO;
 	int i, ipos;
-	unsigned char fromto;
+	unsigned short fromto;
 	static char first_time = 1; 
 	FROMTO encodings[2] = { {NULL, 0xFF}, {NULL, 0xFF} };
 	encodings[0].name = (char*)fromcode;
@@ -108,9 +108,13 @@ iconv_open (const char* tocode, const char* fromcode)
 	
 	switch (fromto) {
 	case Like_to_Like:
+	case Latin1_ASCII:
+	case ASCII_Latin1:
 	case Latin1_UCS2LE:
 	case UCS2LE_Latin1:
-		return (iconv_t)(long)fromto;
+	case ASCII_UCS2LE:
+	case UCS2LE_ASCII:
+		return (iconv_t)(unsigned int)fromto;
 		break;
 	default:
 		errno = EINVAL;
@@ -129,28 +133,52 @@ iconv_close (iconv_t cd)
 size_t 
 iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
 {
+	enum {FALSE, TRUE};
 	int copybytes;
+	const char *p;
+	int finvalid = FALSE;
+	
 	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
 	assert(inbuf && inbytesleft && outbuf && outbytesleft);
 	
 	copybytes = (*inbytesleft < *outbytesleft)? *inbytesleft : *outbytesleft;
 
 	switch ((int)cd) {
+	case Latin1_ASCII:
+		for (p = *inbuf; p < *inbuf + *inbytesleft; p++) {
+			if (!isascii(*p)) {
+				errno = EINVAL;
+				copybytes = p - *inbuf;
+				finvalid = TRUE;
+				break;
+			}
+		}
+		/* fall through */
+	case ASCII_Latin1:
 	case Like_to_Like:
 		memcpy(*outbuf, *inbuf, copybytes);
 		*inbuf += copybytes;
 		*outbuf += copybytes;
 		*inbytesleft -= copybytes;
 		*outbytesleft -= copybytes;
+		if (finvalid) {
+			return (size_t)(-1);
+		}		
 		break;
+	case ASCII_UCS2LE:
 	case Latin1_UCS2LE:
 		while (*inbytesleft > 0 && *outbytesleft > 1) {
-			*outbuf++ = '\0';
-			*outbuf++ = *inbuf++;
+			if ((int)cd == ASCII_UCS2LE && !isascii(**inbuf)) {
+				errno = EINVAL;
+				return (size_t)(-1);
+			}
+			*(*outbuf)++ = '\0';
+			*(*outbuf)++ = *(*inbuf)++;
 			*inbytesleft--;
 			*outbytesleft -= 2;
 		}
 		break;
+	case UCS2LE_ASCII:
 	case UCS2LE_Latin1:
 		/* input should be an even number of bytes */
 		if (*inbytesleft & 1) {
@@ -159,11 +187,15 @@ iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, siz
 		}
 		while (*inbytesleft > 1 && *outbytesleft > 0) {
 			*inbytesleft--;
-			if (*inbuf++ != '\0') {
+			if (*(*inbuf)++ != '\0') {
 				errno = EILSEQ;
 				return (size_t)(-1);
 			}
-			*outbuf++ = *inbuf++;
+			if ((int)cd == UCS2LE_ASCII && !isascii(**inbuf)) {
+				errno = EINVAL;
+				return (size_t)(-1);
+			}
+			*(*outbuf)++ = *(*inbuf)++;
 			*inbytesleft--;
 			*outbytesleft--;
 		}
