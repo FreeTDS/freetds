@@ -1,13 +1,13 @@
-# version $Id: Makefile.am,v 1.38 2003-12-26 18:10:55 freddy77 Exp $
+# version $Id: Makefile.am,v 1.39 2005-04-03 09:22:27 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
 
-SUBDIRS		=	include src doc samples win32
+SUBDIRS		=	include src doc samples win32 vms
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
-		autogen.sh freetds.spec.in freetds.spec vms tds.dox
+		autogen.sh freetds.spec.in freetds.spec tds.dox
 
 ETC		=	$(DESTDIR)$(sysconfdir)
 DOCDIR		=	doc/doc/freetds-$(VERSION)

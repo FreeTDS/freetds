@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2005-04-01 20:43:25 jklowden Exp $
+# $Id: Makefile.am,v 1.48 2005-04-03 09:22:29 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -22,9 +22,7 @@ libtds_la_LDFLAGS	= -version-info 5:0:0 \
 libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la \
 			  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 
-noinst_HEADERS		= tds_willconvert.h character_sets.h \
-			  alternative_character_sets.h sybase_character_sets.h \
-			  encodings.h num_limits.h
+noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
@@ -41,18 +39,13 @@ endif
 
 # Perl is needed to build from a CVS checkout.  
 # Perl is *not* needed to build from a tarball.  
-# If num_limits.h was not included in your distribution, 
-# please report it as a bug.  
 
-# numeric.pl is not charset but is built with charset
 charset:
 	perl sybase_character_sets.h.pl > sybase_character_sets.h
 	perl encodings.pl > encodings.h
 
 ## We have to build num_limits.h because automake can't infer the
 ## dependency (on numeric.pl).  
-
-EXTRA_DIST =    num_limits.h
 
 if HAVE_NUMERIC_PL
 num_limits.h: numeric.pl
