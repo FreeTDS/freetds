@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.129 2002-12-25 11:19:32 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.130 2002-12-26 16:50:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -166,7 +166,13 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
+	case TDS_ORDERBY2_TOKEN:
+		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
+		tds_get_n(tds, NULL, tds_get_int(tds));
+		break;
 	default:
+		if (IS_TDSDEAD(tds))
+			tds->state = TDS_DEAD;
 		/* TODO perhaps is best to close this connection... */
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
 		return TDS_FAIL;

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.71 2002-12-25 11:19:32 freddy77 Exp $";
+	"$Id: tds.h,v 1.72 2002-12-26 16:50:04 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -167,7 +167,10 @@ enum tds_end {
 #define TDS_ERROR            3  
 #define TDS_DONT_RETURN      42
 
+#define TDS5_PARAMFMT2_TOKEN       32  /* 0x20 */
 #define TDS_LANGUAGE_TOKEN         33  /* 0x21    TDS 5.0 only              */
+#define TDS_ORDERBY2_TOKEN         34  /* 0x22 */
+#define TDS_ROWFMT2_TOKEN          97  /* 0x61 */
 #define TDS_LOGOUT_TOKEN          113  /* 0x71    TDS 5.0 only? ct_close()  */
 #define TDS_RETURNSTATUS_TOKEN    121  /* 0x79                              */
 #define TDS_PROCID_TOKEN          124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
@@ -175,6 +178,7 @@ enum tds_end {
 #define TDS7_COMPUTE_RESULT_TOKEN 136  /* 0x88    TDS 7.0 only              */
 #define TDS_COLNAME_TOKEN         160  /* 0xA0    TDS 4.2 only              */
 #define TDS_COLFMT_TOKEN          161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
+#define TDS_DYNAMIC2_TOKEN        163  /* 0xA3 */
 #define TDS_TABNAME_TOKEN         164  /* 0xA4 */
 #define TDS_COLINFO_TOKEN         165  /* 0xA5 */
 #define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7                        */
