@@ -28,6 +28,7 @@
  *==============================================================
  *                          Original.
  * 03.FEB.02    PAH         Started adding use of SQLGetPrivateProfileString().
+ * 04.FEB.02	PAH         Fixed small error preventing SQLBindParameter from being called
  *
  ***************************************************************/
 
@@ -48,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.13 2002-02-03 18:26:07 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.14 2002-02-05 06:22:08 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1231,8 +1232,8 @@ int i;
 	switch (fFunction) {
 #if ODBCVER >= 0x0300
 		case SQL_API_ODBC3_ALL_FUNCTIONS:
-/* 
-			for (i=0;i<SQL_API_ODBC3_ALL_FUNCTIONS_SIZE;i++) {
+ 
+/*			for (i=0;i<SQL_API_ODBC3_ALL_FUNCTIONS_SIZE;i++) {
 				pfExists[i] = 0xFFFF;
 			}
 */
@@ -1241,7 +1242,7 @@ int i;
 			_set_func_exists(pfExists,SQL_API_SQLALLOCHANDLE);
 			_set_func_exists(pfExists,SQL_API_SQLALLOCSTMT);
 			_set_func_exists(pfExists,SQL_API_SQLBINDCOL);
-			_set_func_exists(pfExists,SQL_API_SQLBINDPARAM);
+			_set_func_exists(pfExists,SQL_API_SQLBINDPARAMETER);
 			_set_func_exists(pfExists,SQL_API_SQLCANCEL);
 			_set_func_exists(pfExists,SQL_API_SQLCLOSECURSOR);
 			_set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTE);
