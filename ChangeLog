@@ -1,3 +1,9 @@
+Thu Sep 26 17:47:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in src/tds/login.c:
+	- Change names of parameters to tds_set_timeouts() so we
+	  don't shadow the libc connect().  (Other parameters changed
+	  just for consistency.)
+
 Thu Sep 26 23:39:17 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: fixed buffer overflow
 	* src/tds/query.c: do not exit abnormally

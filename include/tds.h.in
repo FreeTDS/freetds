@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.57 2002-09-26 21:10:17 castellano Exp $";
+	 "$Id: tds.h.in,v 1.58 2002-09-26 21:49:07 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -626,7 +626,7 @@ struct tds_socket {
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
-void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery);
+void tds_set_timeouts(TDSLOGIN *tds_login, int connect_timeout, int query_timeout, int longquery_timeout);
 int tds_write_packet(TDSSOCKET *tds,unsigned char final);
 int tds_init_write_buf(TDSSOCKET *tds);
 void tds_free_result_info(TDSRESULTINFO *info);

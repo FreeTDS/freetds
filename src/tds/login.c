@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.45 2002-09-26 11:26:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.46 2002-09-26 21:49:07 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -99,12 +99,16 @@ void tds_set_language(TDSLOGIN *tds_login, char *language)
 {
 	strncpy(tds_login->language, language, TDS_MAX_LOGIN_STR_SZ);
 }
-void tds_set_timeouts(TDSLOGIN *tds_login, int connect, int query, int longquery)                   /* Jeffs' hack to support timeouts */
+
+/* Jeffs' hack to support timeouts */
+void
+tds_set_timeouts(TDSLOGIN *tds_login, int connect_timeout, int query_timeout, int longquery_timeout)
 {
-	tds_login->connect_timeout = connect;
-	tds_login->query_timeout = query;
-	tds_login->longquery_timeout = longquery;
+	tds_login->connect_timeout = connect_timeout;
+	tds_login->query_timeout = query_timeout;
+	tds_login->longquery_timeout = longquery_timeout;
 }
+
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (*longquery_func)(long), long longquery_param) /* Jeff's hack */
 {
 	tds_login->longquery_func = longquery_func;
