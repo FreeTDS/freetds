@@ -1,0 +1,208 @@
+Please see bottom of this file for information about the 0.60.1 release.  
+
+Text of the FreeTDS release 0.60 announcement
+=============================================
+
+With unbounded pride and pleasure, the developers, contributors, and other
+partcipants of the FreeTDS project announce the arrival and delivery of 
+FreeTDS 0.60.
+
+FreeTDS is an open source implementation of the TDS (Tabular Data Stream)
+protocol used by Sybase and Microsoft SQL Servers. It supports many
+different flavors of the protocol and supports several APIs to access it, including
+an ODBC driver.
+
+FreeTDS works with other software including Perl, PHP, Python, and SybSQL,
+providing them access as well. It is frequently deployed in web environments as a
+vehicle to manage text and image data.  
+
+The FreeTDS C libraries are available under the terms of the Gnu LGPL license.  
+
+The FreeTDS project has seen quite a lot of activity lately and attracted
+several new developers (perhaps not in that order).  On occasion in recent
+months it has been ranked above the 95th percentile in activity, according to
+SourceForge statistics.  
+
+With release 0.60, FreeTDS boasts:
+
+*  Much improved support for Microsoft servers, including SQL Server 2000 
+   datatypes and domain logins.  
+   
+*  Support and convertibility of all major datatypes.
+
+*  Much expanded coverage of the ODBC API.  
+
+*  An all-new BCP implementation, including host variable support.  
+
+*  Character set conversions, via the iconv library.  
+
+*  Threadsafe operation.  
+
+The FreeTDS corner of the world wide web is www.freetds.org.  There you will
+find links to documentation, downloads, CVS access, as well as instructions for
+joining the mailing list.  
+
+FreeTDS can be downloaded from ibiblio and its mirrors, and from SourceForge
+(http://sourceforge.net/projects/freetds/)
+
+Below is the text of the README.0.60 file, included in the release distribution.
+
+[end announcement]
+
+
+************************************
+** Warning regarding Sybase 12.5! **
+************************************
+
+Do Not Use FreeTDS 0.60 with TDS version 4.2 to connect to Sybase 12.5.  Please!  
+
+While we don't like to put the bad news first, neither do we want you to hurt your
+server.  Late in the release cycle, we found that our implementation of TDS 4.2
+gives Sybase 12.5 a bad case of heartburn.  In short: it crashed the server.  
+
+We don't know what it is about our version of TDS 4.2 that Sybase 12.5 doesn't
+like, and we'll be looking closely at that question.  But in the meanwhile, until
+we can find the problem and fix it, please don't use that combination.  Unless you
+want to help us test it, that is.  
+
+FreeTDS 0.60 works fine with Sybase 12.5 if you use TDS version 5.0.  
+
+If you are using Sybase 12.5 and anything above is not clear to you, please see
+the User Guide.  If it is still not clear after that, please write to the FreeTDS
+mailing list.  We'd rather answer your questions while your server is still
+running.  
+
+Thank you.  We return now to your regularly scheduled README, already in
+progress.  
+
+New location of installed files!
+================================
+
+With version 0.60, FreeTDS by default installs itself in the 
+/usr/local tree.  You can of course override this location using the 
+--prefix parameter of the configure script.  
+
+Rationale:  Although we're not very passionate on the subject, we feel the new
+installation directory will be easier for new users to use, because they won't
+have to make adjustments to the runtime linking behavior.  
+
+Prior versions of FreeTDS installed into /usr/local/freetds.  If you wish to
+preserve the old behavior, build 0.60 with your prefix set to the old
+location.  Example: ./configure --prefix=/usr/local/freetds/
+
+If you have a previous version of FreeTDS installed, and want to "get with the
+program" (use the new default locations), you will want to be sure that the old
+configuration files are preserved, and the old binaries are removed.  To do
+that, follow these steps:
+
+1) move your configuration files to the new location. Example:
+	cp /usr/local/freetds/etc/*.conf /usr/local/etc/
+
+2) remove your old installation
+	rm -fr /usr/local/freetds
+
+3) if you have modified your /etc/ld.so.conf file to include 
+/usr/local/freetds/lib, remove this and rerun "ldconfig"
+
+4) if you have modified startup scripts for apache or similar applications 
+to include /usr/local/freetds/lib in the LD_LIBRARY_PATH, be sure to 
+remove them now.
+
+Once you have installed FreeTDS and taken these steps, your new installation
+should work at least as well as your old one.  You may wish to try out "tsql" to
+test things.  See "man tsql" (!) for details.  
+
+Major changes
+=============
+
+Functionality
+-------------
+
+Microsoft SQL Server 2000 compatibility.  FreeTDS works with all versions of
+SQL Server from either Microsoft or Sybase.  Support for Microsoft's servers is
+now as good as for Sybase's, and works equally well with big- or little-endian
+architectures.  
+
+Domain logins.  The ability to connect with domain logins to Microsoft's
+server. Requires SSL library.  See User Guide for details.  
+
+Speaking of datatypes, FreeTDS handles almost all datatypes, and can convert
+freely among them.  Conversions between integers, floating point, numeric, and
+character types has seen especially intensive work and testing.  The datetime
+datatype handling was completely rewritten to be freed from C's difftime(3)
+constraints, and is fully convertible with char/varchar datatypes.  Conversion
+failures will normally emit a message to the user-defined error handler.  
+
+BCP has been completely rewritten and improved.  BCP from host memory variables
+works.  There is a new utility, freebcp, to replace the bcp utility offered by
+the vendors.  It should be mentioned that freebcp does what neither vendor's
+product does: communicate with both vendors' servers.  
+
+The ODBC library has seen major improvements.  It continues to see a lot of
+attention from developers and users alike.  It is still not as mature as the
+db-lib and ct-lib implementations, but it is coming along and is quite useful
+in its current state.  
+
+Locale support.  Well, just the beginning of better things to come, we hope,
+but FreeTDS allows you to specify your client character set, language, and
+preferred date format.  
+
+Logging.  Oh boy, you want logging?  See the User Guide for the gory details,
+but logging can now among other things tell you what configuration file was
+used to connect to your server.  
+
+The iconv library can be used to convert Microsoft's UCS-2 Unicode data to any
+single-byte character set.  Work is planned to support multibyte character sets
+in the near future, possibly in the next release.  
+
+Threadsafe operation is new and not widely employed, but is reported to work. 
+Many changes were made (e.g., gethostbyname_r) to support thread safety.  You
+are still subject to the constraints of the TDS protocol and the servers'
+expectations, of course.  Not available by default; must be enabled with
+configure.  
+
+Support for the dmalloc debugging library was added.  This aided an already
+ongoing effort to fix buffer overflow and off-by-one errors.  Many error
+conditions that used to cause a segment violation now result in error messages
+or log messages.   
+
+
+Documentation
+-------------
+
+The User Guide reflects in full the capabilities of FreeTDS.  Many errors have
+been corrected, and many issues clarified.  There is a new appendix describing
+Unicode and how character sets affect FreeTDS.  
+
+There are man pages for the applications, freebcp and tsql.  
+
+
+Errata
+------
+
+The User Guide says you can configure "with-tdsver=8.0".  Well, you *can*,
+but it won't work.  You won't be able to build that configuration.  
+
+Just configure "with-tdsver=7.0", and set 8.0 in your freetds.conf.  
+
+
+Minor changes:  0.60.1
+======================
+
+Wed 18 Sep 2002.  This is a point release to  correct some version-numbering
+problems.  Specifically, 0.60 was released without properly bumping up the
+version numbers of some of the shared libraries. This caused some package
+managers (and some human beings) to misinterpret the extent of the changes
+to their binary interfaces.  
+
+With 0.60.1, the version numbers of the shared libraries conform to libtool
+standards.  
+
+Early adopters of 0.60 noticed this problem.  It manifested itself with
+complaints from the runtime linker about a missing "dbdead" symbol.  If you are
+very interested, see the mailing list archives.  Look for a discussion starting
+around 16 September, subject "dbdead, PHP, and Apache".  
+
+This is the *only* difference between 0.60 and 0.60.1.  You can confirm this
+yourself, of course, by examining the source distributions.  
+
