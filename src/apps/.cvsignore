@@ -2,5 +2,6 @@ Makefile
 Makefile.in
 tsql
 freebcp
+bsqldb
 .libs
 .deps
