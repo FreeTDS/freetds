@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.78 2005-02-18 12:56:43 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.79 2005-03-12 11:42:37 ppeterd Exp $ */
 
 struct _sql_error
 {
@@ -72,6 +72,7 @@ struct _sql_errors
 	SQLRETURN lastrc;
 	int num_errors;
 	struct _sql_error *errs;
+	char ranked;
 };
 
 #if ENABLE_EXTRA_CHECKS
