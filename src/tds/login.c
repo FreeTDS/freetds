@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.96 2003-04-21 09:05:58 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.97 2003-05-13 09:44:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -214,6 +214,10 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	int len;
 	TDS_INT restype;
 
+#ifdef SO_LINGER
+	struct linger linger_opt;
+#endif
+
 	FD_ZERO(&fds);
 
 	/*
@@ -289,6 +293,16 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
+#ifdef SO_LINGER
+	linger_opt.l_onoff = 1;
+	linger_opt.l_linger = 0;
+	setsockopt(tds->s, SOL_SOCKET, SO_LINGER, (char *) &linger_opt, sizeof(linger_opt));
+#endif
+
+#ifdef SO_KEEPALIVE
+	len = 1;
+	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, &len, sizeof(len));
+#endif
 
 	/* Jeff's hack *** START OF NEW CODE *** */
 	if (connect_timeout) {

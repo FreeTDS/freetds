@@ -1,3 +1,10 @@
+Tue May 13 11:43:02 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c: 
+	- enable some useful socket options
+	 - SO_LINGER: do a graceful close of socket (so server know 
+	   you are disconnected)
+	 - SO_KEEPALIVE: detect server crash
+
 Tue May 13 10:57:44 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c: use only 16bit of LCID
 	* src/tds/unittests/dataread.c: test tds7+ types (ntext fail)
