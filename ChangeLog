@@ -1,3 +1,9 @@
+Wed Dec 18 15:15:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- added dmalloc support
+	- fixed some indentation problems
+	- do not free NULL pointer setting date format
+
 Wed Dec 18 15:05:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c src/odbc/convert_sql2string.c:
 	* src/odbc/convert_tds2sql.c src/odbc/native.c:

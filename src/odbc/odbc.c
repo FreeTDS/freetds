@@ -68,7 +68,11 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: odbc.c,v 1.102 2002-12-15 11:24:17 freddy77 Exp $";
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+static char software_version[] = "$Id: odbc.c,v 1.103 2002-12-18 14:16:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -281,16 +285,12 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 	return SQL_ERROR;
 }
 
-SQLRETURN SQL_API SQLExtendedFetch(
-                                  SQLHSTMT           hstmt,
-                                  SQLUSMALLINT       fFetchType,
-                                  SQLINTEGER         irow,
-                                  SQLUINTEGER FAR   *pcrow,
-                                  SQLUSMALLINT FAR  *rgfRowStatus)
+SQLRETURN SQL_API
+SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUINTEGER FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
-    CHECK_HSTMT;
-    odbc_LogError ("SQLExtendedFetch: function not implemented");
-    return SQL_ERROR;
+	CHECK_HSTMT;
+	odbc_LogError("SQLExtendedFetch: function not implemented");
+	return SQL_ERROR;
 }
 
 SQLRETURN SQL_API
@@ -303,7 +303,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	odbc_LogError("SQLForeignKeys: function not implemented");
 	return SQL_ERROR;
 }
-#endif 
+#endif
 
 SQLRETURN SQL_API
 SQLMoreResults(SQLHSTMT hstmt)
@@ -337,11 +337,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 				/* ?? */
 			case TDS_CMD_DONE:
+				/* TODO: correct ?? */
 				if (tds->res_info) {
 					stmt->row = 0;
 					return SQL_SUCCESS;
 				}
-
 			case TDS_PARAM_RESULT:
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_MSG_RESULT:
@@ -428,20 +428,21 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 	odbc_LogError("SQLTablePrivileges: function not implemented");
 	return SQL_ERROR;
 }
-#endif 
+#endif
 
-/*
-SQLRETURN SQL_API SQLSetEnvAttr (
-                                SQLHENV henv,
-                                SQLINTEGER Attribute,
-                                SQLPOINTER Value,
-                                SQLINTEGER StringLength)
+
+SQLRETURN SQL_API
+SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
-    CHECK_HENV;
-    odbc_LogError ("SQLSetEnvAttr: function not implemented");
-    return SQL_ERROR;
+	CHECK_HENV;
+/*	switch (Attribute) {
+	case SQL_ATTR_ODBC_VERSION:
+		return SQL_SUCCESS;
+	} */
+	odbc_LogError("SQLSetEnvAttr: function not implemented");
+	return SQL_ERROR;
 }
-*/
+
 
 SQLRETURN SQL_API
 SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
@@ -561,7 +562,8 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	ctx->err_handler = myerrorhandler;
 
 	/* ODBC has its own format */
-	free(ctx->locale->date_fmt);
+	if (ctx->locale->date_fmt)
+		free(ctx->locale->date_fmt);
 	ctx->locale->date_fmt = strdup("%Y-%m-%d");
 
 	*phenv = (SQLHENV) env;
