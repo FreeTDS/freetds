@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2002  James K. Lowden
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,6 +23,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -34,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.58 2002-12-12 17:51:16 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.59 2002-12-12 20:06:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1234,504 +1236,364 @@ CS_RETCODE
 ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID * value)
 {
 TDSLOGIN *login;
+	int index = 0;
+	unsigned char bitmask = 0;
 	unsigned char *mask;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_capability()\n");
 	login = (TDSLOGIN *) con->tds_login;
 	mask = login->capabilities;
 
-	if (action == CS_SET && type == CS_CAP_RESPONSE) {
-		if (*((CS_BOOL *) value) == CS_TRUE) {
-			switch (capability) {
-			case CS_DATA_NOBOUNDARY:
-				mask[13] |= 0x01;
-				break;
-			case CS_DATA_NOTDSDEBUG:
-				mask[13] |= 0x02;
-				break;
-			case CS_RES_NOSTRIPBLANKS:
-				mask[13] |= 0x04;
-				break;
-			case CS_DATA_NOINT8:
-				mask[13] |= 0x08;
-				break;
-			case CS_DATA_NOINTN:
-				mask[14] |= 0x01;
-				break;
-			case CS_DATA_NODATETIMEN:
-				mask[14] |= 0x02;
-				break;
-			case CS_DATA_NOMONEYN:
-				mask[14] |= 0x04;
-				break;
-			case CS_CON_NOOOB:
-				mask[14] |= 0x08;
-				break;
-			case CS_CON_NOINBAND:
-				mask[14] |= 0x10;
-				break;
-			case CS_PROTO_NOTEXT:
-				mask[14] |= 0x20;
-				break;
-			case CS_PROTO_NOBULK:
-				mask[14] |= 0x40;
-				break;
-			case CS_DATA_NOSENSITIVITY:
-				mask[14] |= 0x80;
-				break;
-			case CS_DATA_NOFLT4:
-				mask[15] |= 0x01;
-				break;
-			case CS_DATA_NOFLT8:
-				mask[15] |= 0x02;
-				break;
-			case CS_DATA_NONUM:
-				mask[15] |= 0x04;
-				break;
-			case CS_DATA_NOTEXT:
-				mask[15] |= 0x08;
-				break;
-			case CS_DATA_NOIMAGE:
-				mask[15] |= 0x10;
-				break;
-			case CS_DATA_NODEC:
-				mask[15] |= 0x20;
-				break;
-			case CS_DATA_NOLCHAR:
-				mask[15] |= 0x40;
-				break;
-			case CS_DATA_NOLBIN:
-				mask[15] |= 0x80;
-				break;
-			case CS_DATA_NOCHAR:
-				mask[16] |= 0x01;
-				break;
-			case CS_DATA_NOVCHAR:
-				mask[16] |= 0x02;
-				break;
-			case CS_DATA_NOBIN:
-				mask[16] |= 0x04;
-				break;
-			case CS_DATA_NOVBIN:
-				mask[16] |= 0x08;
-				break;
-			case CS_DATA_NOMNY8:
-				mask[16] |= 0x10;
-				break;
-			case CS_DATA_NOMNY4:
-				mask[16] |= 0x20;
-				break;
-			case CS_DATA_NODATE8:
-				mask[16] |= 0x40;
-				break;
-			case CS_DATA_NODATE4:
-				mask[16] |= 0x80;
-				break;
-			case CS_RES_NOMSG:
-				mask[17] |= 0x02;
-				break;
-			case CS_RES_NOEED:
-				mask[17] |= 0x04;
-				break;
-			case CS_RES_NOPARAM:
-				mask[17] |= 0x08;
-				break;
-			case CS_DATA_NOINT1:
-				mask[17] |= 0x10;
-				break;
-			case CS_DATA_NOINT2:
-				mask[17] |= 0x20;
-				break;
-			case CS_DATA_NOINT4:
-				mask[17] |= 0x40;
-				break;
-			case CS_DATA_NOBIT:
-				mask[17] |= 0x80;
-				break;
-			}
-		} else {
-			switch (capability) {
-			case CS_DATA_NOBOUNDARY:
-				mask[13] &= (!0x01);
-				break;
-			case CS_DATA_NOTDSDEBUG:
-				mask[13] &= (!0x02);
-				break;
-			case CS_RES_NOSTRIPBLANKS:
-				mask[13] &= (!0x04);
-				break;
-			case CS_DATA_NOINT8:
-				mask[13] &= (!0x08);
-				break;
-			case CS_DATA_NOINTN:
-				mask[14] &= (!0x01);
-				break;
-			case CS_DATA_NODATETIMEN:
-				mask[14] &= (!0x02);
-				break;
-			case CS_DATA_NOMONEYN:
-				mask[14] &= (!0x04);
-				break;
-			case CS_CON_NOOOB:
-				mask[14] &= (!0x08);
-				break;
-			case CS_CON_NOINBAND:
-				mask[14] &= (!0x10);
-				break;
-			case CS_PROTO_NOTEXT:
-				mask[14] &= (!0x20);
-				break;
-			case CS_PROTO_NOBULK:
-				mask[14] &= (!0x40);
-				break;
-			case CS_DATA_NOSENSITIVITY:
-				mask[14] &= (!0x80);
-				break;
-			case CS_DATA_NOFLT4:
-				mask[15] &= (!0x01);
-				break;
-			case CS_DATA_NOFLT8:
-				mask[15] &= (!0x02);
-				break;
-			case CS_DATA_NONUM:
-				mask[15] &= (!0x04);
-				break;
-			case CS_DATA_NOTEXT:
-				mask[15] &= (!0x08);
-				break;
-			case CS_DATA_NOIMAGE:
-				mask[15] &= (!0x10);
-				break;
-			case CS_DATA_NODEC:
-				mask[15] &= (!0x20);
-				break;
-			case CS_DATA_NOLCHAR:
-				mask[15] &= (!0x40);
-				break;
-			case CS_DATA_NOLBIN:
-				mask[15] &= (!0x80);
-				break;
-			case CS_DATA_NOCHAR:
-				mask[16] &= (!0x01);
-				break;
-			case CS_DATA_NOVCHAR:
-				mask[16] &= (!0x02);
-				break;
-			case CS_DATA_NOBIN:
-				mask[16] &= (!0x04);
-				break;
-			case CS_DATA_NOVBIN:
-				mask[16] &= (!0x08);
-				break;
-			case CS_DATA_NOMNY8:
-				mask[16] &= (!0x10);
-				break;
-			case CS_DATA_NOMNY4:
-				mask[16] &= (!0x20);
-				break;
-			case CS_DATA_NODATE8:
-				mask[16] &= (!0x40);
-				break;
-			case CS_DATA_NODATE4:
-				mask[16] &= (!0x80);
-				break;
-			case CS_RES_NOMSG:
-				mask[17] &= (!0x02);
-				break;
-			case CS_RES_NOEED:
-				mask[17] &= (!0x04);
-				break;
-			case CS_RES_NOPARAM:
-				mask[17] &= (!0x08);
-				break;
-			case CS_DATA_NOINT1:
-				mask[17] &= (!0x10);
-				break;
-			case CS_DATA_NOINT2:
-				mask[17] &= (!0x20);
-				break;
-			case CS_DATA_NOINT4:
-				mask[17] &= (!0x40);
-				break;
-			case CS_DATA_NOBIT:
-				mask[17] &= (!0x80);
-				break;
-			}
-		}
-	} else if (action == CS_GET && type == CS_CAP_RESPONSE) {
-		switch (capability) {
-		case CS_DATA_NOBOUNDARY:
-			*((CS_BOOL *) value) = mask[13] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOTDSDEBUG:
-			*((CS_BOOL *) value) = mask[13] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_RES_NOSTRIPBLANKS:
-			*((CS_BOOL *) value) = mask[13] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOINT8:
-			*((CS_BOOL *) value) = mask[13] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOINTN:
-			*((CS_BOOL *) value) = mask[14] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NODATETIMEN:
-			*((CS_BOOL *) value) = mask[14] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOMONEYN:
-			*((CS_BOOL *) value) = mask[14] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CON_NOOOB:
-			*((CS_BOOL *) value) = mask[14] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CON_NOINBAND:
-			*((CS_BOOL *) value) = mask[14] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_PROTO_NOTEXT:
-			*((CS_BOOL *) value) = mask[14] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_PROTO_NOBULK:
-			*((CS_BOOL *) value) = mask[14] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOSENSITIVITY:
-			*((CS_BOOL *) value) = mask[14] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOFLT4:
-			*((CS_BOOL *) value) = mask[15] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOFLT8:
-			*((CS_BOOL *) value) = mask[15] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NONUM:
-			*((CS_BOOL *) value) = mask[15] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOTEXT:
-			*((CS_BOOL *) value) = mask[15] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOIMAGE:
-			*((CS_BOOL *) value) = mask[15] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NODEC:
-			*((CS_BOOL *) value) = mask[15] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOLCHAR:
-			*((CS_BOOL *) value) = mask[15] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOLBIN:
-			*((CS_BOOL *) value) = mask[15] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOCHAR:
-			*((CS_BOOL *) value) = mask[16] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOVCHAR:
-			*((CS_BOOL *) value) = mask[16] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOBIN:
-			*((CS_BOOL *) value) = mask[16] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOVBIN:
-			*((CS_BOOL *) value) = mask[16] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOMNY8:
-			*((CS_BOOL *) value) = mask[16] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOMNY4:
-			*((CS_BOOL *) value) = mask[16] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NODATE8:
-			*((CS_BOOL *) value) = mask[16] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NODATE4:
-			*((CS_BOOL *) value) = mask[16] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_RES_NOMSG:
-			*((CS_BOOL *) value) = mask[17] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_RES_NOEED:
-			*((CS_BOOL *) value) = mask[17] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_RES_NOPARAM:
-			*((CS_BOOL *) value) = mask[17] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOINT1:
-			*((CS_BOOL *) value) = mask[17] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOINT2:
-			*((CS_BOOL *) value) = mask[17] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOINT4:
-			*((CS_BOOL *) value) = mask[17] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NOBIT:
-			*((CS_BOOL *) value) = mask[17] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		}
-	} else if (action == CS_GET && type == CS_CAP_REQUEST) {
-		switch (capability) {
-		case CS_PROTO_DYNPROC:
-			*((CS_BOOL *) value) = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_FLTN:
-			*((CS_BOOL *) value) = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_BITN:
-			*((CS_BOOL *) value) = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_INT8:
-			*((CS_BOOL *) value) = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_VOID:
-			*((CS_BOOL *) value) = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CON_INBAND:
-			*((CS_BOOL *) value) = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CON_LOGICAL:
-			*((CS_BOOL *) value) = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_PROTO_TEXT:
-			*((CS_BOOL *) value) = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_PROTO_BULK:
-			*((CS_BOOL *) value) = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_URGNOTIF:
-			*((CS_BOOL *) value) = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_SENSITIVITY:
-			*((CS_BOOL *) value) = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_BOUNDARY:
-			*((CS_BOOL *) value) = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_PROTO_DYNAMIC:
-			*((CS_BOOL *) value) = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_MONEYN:
-			*((CS_BOOL *) value) = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_PREV:
-			*((CS_BOOL *) value) = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_FIRST:
-			*((CS_BOOL *) value) = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_LAST:
-			*((CS_BOOL *) value) = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_ABS:
-			*((CS_BOOL *) value) = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_REL:
-			*((CS_BOOL *) value) = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CSR_MULTI:
-			*((CS_BOOL *) value) = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_CON_OOB:
-			*((CS_BOOL *) value) = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_NUM:
-			*((CS_BOOL *) value) = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_TEXT:
-			*((CS_BOOL *) value) = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_IMAGE:
-			*((CS_BOOL *) value) = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_DEC:
-			*((CS_BOOL *) value) = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_LCHAR:
-			*((CS_BOOL *) value) = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_LBIN:
-			*((CS_BOOL *) value) = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_INTN:
-			*((CS_BOOL *) value) = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_DATETIMEN:
-			*((CS_BOOL *) value) = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_BIN:
-			*((CS_BOOL *) value) = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_VBIN:
-			*((CS_BOOL *) value) = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_MNY8:
-			*((CS_BOOL *) value) = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_MNY4:
-			*((CS_BOOL *) value) = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_DATE8:
-			*((CS_BOOL *) value) = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_DATE4:
-			*((CS_BOOL *) value) = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_FLT4:
-			*((CS_BOOL *) value) = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_FLT8:
-			*((CS_BOOL *) value) = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_MSG:
-			*((CS_BOOL *) value) = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_PARAM:
-			*((CS_BOOL *) value) = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_INT1:
-			*((CS_BOOL *) value) = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_INT2:
-			*((CS_BOOL *) value) = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_INT4:
-			*((CS_BOOL *) value) = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_BIT:
-			*((CS_BOOL *) value) = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_CHAR:
-			*((CS_BOOL *) value) = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_DATA_VCHAR:
-			*((CS_BOOL *) value) = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_LANG:
-			*((CS_BOOL *) value) = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_RPC:
-			*((CS_BOOL *) value) = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_NOTIF:
-			*((CS_BOOL *) value) = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_MSTMT:
-			*((CS_BOOL *) value) = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_BCP:
-			*((CS_BOOL *) value) = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_CURSOR:
-			*((CS_BOOL *) value) = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;
-			break;
-		case CS_REQ_DYN:
-			*((CS_BOOL *) value) = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;
-			break;
-			/* *((CS_BOOL *)value)=CS_FALSE; */
-		}
-	} else {
-		/* bad values */
+	switch (capability) {
+	case CS_DATA_NOBOUNDARY:
+		index = 13; 
+		bitmask = 0x01;
+		break;
+	case CS_DATA_NOTDSDEBUG:
+		index = 13; 
+		bitmask = 0x02;
+		break;
+	case CS_RES_NOSTRIPBLANKS:
+		index = 13; 
+		bitmask = 0x04;
+		break;
+	case CS_DATA_NOINT8:
+		index = 13; 
+		bitmask = 0x08;
+		break;
+	case CS_DATA_NOINTN:
+		index = 14; 
+		bitmask = 0x01;
+		break;
+	case CS_DATA_NODATETIMEN:
+		index = 14; 
+		bitmask = 0x02;
+		break;
+	case CS_DATA_NOMONEYN:
+		index = 14; 
+		bitmask = 0x04;
+		break;
+	case CS_CON_NOOOB:
+		index = 14; 
+		bitmask = 0x08;
+		break;
+	case CS_CON_NOINBAND:
+		index = 14; 
+		bitmask = 0x10;
+		break;
+	case CS_PROTO_NOTEXT:
+		index = 14; 
+		bitmask = 0x20;
+		break;
+	case CS_PROTO_NOBULK:
+		index = 14; 
+		bitmask = 0x40;
+		break;
+	case CS_DATA_NOSENSITIVITY:
+		index = 14; 
+		bitmask = 0x80;
+		break;
+	case CS_DATA_NOFLT4:
+		index = 15; 
+		bitmask = 0x01;
+		break;
+	case CS_DATA_NOFLT8:
+		index = 15; 
+		bitmask = 0x02;
+		break;
+	case CS_DATA_NONUM:
+		index = 15; 
+		bitmask = 0x04;
+		break;
+	case CS_DATA_NOTEXT:
+		index = 15; 
+		bitmask = 0x08;
+		break;
+	case CS_DATA_NOIMAGE:
+		index = 15; 
+		bitmask = 0x10;
+		break;
+	case CS_DATA_NODEC:
+		index = 15; 
+		bitmask = 0x20;
+		break;
+	case CS_DATA_NOLCHAR:
+		index = 15; 
+		bitmask = 0x40;
+		break;
+	case CS_DATA_NOLBIN:
+		index = 15; 
+		bitmask = 0x80;
+		break;
+	case CS_DATA_NOCHAR:
+		index = 16; 
+		bitmask = 0x01;
+		break;
+	case CS_DATA_NOVCHAR:
+		index = 16; 
+		bitmask = 0x02;
+		break;
+	case CS_DATA_NOBIN:
+		index = 16; 
+		bitmask = 0x04;
+		break;
+	case CS_DATA_NOVBIN:
+		index = 16; 
+		bitmask = 0x08;
+		break;
+	case CS_DATA_NOMNY8:
+		index = 16; 
+		bitmask = 0x10;
+		break;
+	case CS_DATA_NOMNY4:
+		index = 16; 
+		bitmask = 0x20;
+		break;
+	case CS_DATA_NODATE8:
+		index = 16; 
+		bitmask = 0x40;
+		break;
+	case CS_DATA_NODATE4:
+		index = 16; 
+		bitmask = 0x80;
+		break;
+	case CS_RES_NOMSG:
+		index = 17; 
+		bitmask = 0x02;
+		break;
+	case CS_RES_NOEED:
+		index = 17; 
+		bitmask = 0x04;
+		break;
+	case CS_RES_NOPARAM:
+		index = 17; 
+		bitmask = 0x08;
+		break;
+	case CS_DATA_NOINT1:
+		index = 17; 
+		bitmask = 0x10;
+		break;
+	case CS_DATA_NOINT2:
+		index = 17; 
+		bitmask = 0x20;
+		break;
+	case CS_DATA_NOINT4:
+		index = 17; 
+		bitmask = 0x40;
+		break;
+	case CS_DATA_NOBIT:
+		index = 17; 
+		bitmask = 0x80;
+		break;
+	default:
 		return CS_FAIL;
+	} /* end capability */
+
+	assert(13 <= index && index <= 17);
+	assert(bitmask);
+
+	if (type == CS_CAP_RESPONSE ) {
+		switch (action) {
+		case CS_SET:
+			/* Having established the offset and the bitmask, we can now turn the capability on or off */
+			switch (*(CS_BOOL*) value) {
+			case CS_TRUE:
+				mask[index] |= bitmask;
+				break;
+			case CS_FALSE:
+				mask[index] &= ~bitmask;
+				break;
+			default:
+				return CS_FAIL;
+			}
+			break;
+		case CS_GET:
+			*(CS_BOOL*) value = (mask[index] & bitmask)? CS_TRUE : CS_FALSE;
+			break;
+		default:
+			return CS_FAIL;
+		}
+		return CS_SUCCEED;
 	}
-	return CS_SUCCEED;
-}
+	/* 
+	 * End handling CS_CAP_RESPONSE (returned)
+	 */
+
+	/* 
+	 * Begin handling CS_CAP_REQUEST
+	 * These capabilities describe the types of requests that a server can support. 
+	 */
+	switch (capability) {
+	case CS_PROTO_DYNPROC:
+		*(CS_BOOL*) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_FLTN:
+		*(CS_BOOL*) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_BITN:
+		*(CS_BOOL*) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_INT8:
+		*(CS_BOOL*) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_VOID:
+		*(CS_BOOL*) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CON_INBAND:
+		*(CS_BOOL*) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CON_LOGICAL:
+		*(CS_BOOL*) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_PROTO_TEXT:
+		*(CS_BOOL*) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_PROTO_BULK:
+		*(CS_BOOL*) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_URGNOTIF:
+		*(CS_BOOL*) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_SENSITIVITY:
+		*(CS_BOOL*) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_BOUNDARY:
+		*(CS_BOOL*) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_PROTO_DYNAMIC:
+		*(CS_BOOL*) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_MONEYN:
+		*(CS_BOOL*) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_PREV:
+		*(CS_BOOL*) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_FIRST:
+		*(CS_BOOL*) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_LAST:
+		*(CS_BOOL*) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_ABS:
+		*(CS_BOOL*) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_REL:
+		*(CS_BOOL*) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CSR_MULTI:
+		*(CS_BOOL*) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_CON_OOB:
+		*(CS_BOOL*) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_NUM:
+		*(CS_BOOL*) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_TEXT:
+		*(CS_BOOL*) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_IMAGE:
+		*(CS_BOOL*) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_DEC:
+		*(CS_BOOL*) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_LCHAR:
+		*(CS_BOOL*) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_LBIN:
+		*(CS_BOOL*) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_INTN:
+		*(CS_BOOL*) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_DATETIMEN:
+		*(CS_BOOL*) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_BIN:
+		*(CS_BOOL*) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_VBIN:
+		*(CS_BOOL*) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_MNY8:
+		*(CS_BOOL*) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_MNY4:
+		*(CS_BOOL*) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_DATE8:
+		*(CS_BOOL*) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_DATE4:
+		*(CS_BOOL*) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_FLT4:
+		*(CS_BOOL*) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_FLT8:
+		*(CS_BOOL*) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_MSG:
+		*(CS_BOOL*) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_PARAM:
+		*(CS_BOOL*) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_INT1:
+		*(CS_BOOL*) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_INT2:
+		*(CS_BOOL*) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_INT4:
+		*(CS_BOOL*) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_BIT:
+		*(CS_BOOL*) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_CHAR:
+		*(CS_BOOL*) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_DATA_VCHAR:
+		*(CS_BOOL*) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_LANG:
+		*(CS_BOOL*) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_RPC:
+		*(CS_BOOL*) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_NOTIF:
+		*(CS_BOOL*) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_MSTMT:
+		*(CS_BOOL*) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_BCP:
+		*(CS_BOOL*) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_CURSOR:
+		*(CS_BOOL*) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;
+		break;
+	case CS_REQ_DYN:
+		*(CS_BOOL*) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;
+		break;
+	default:
+		return CS_FAIL;
+		break;
+	}	/* end capability */
+
+	assert(*(CS_BOOL*) value);
+
+	/* CS_CAP_RESPONSE is read-only */
+	if (type == CS_CAP_RESPONSE && action == CS_GET) {
+		return CS_SUCCEED;
+	}
+
+	return CS_FAIL;
+} /* end ct_capability(*/
 
 CS_RETCODE
 ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * buffer, CS_INT buflen)

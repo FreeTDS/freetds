@@ -1,3 +1,7 @@
+Thu Dec 12 14:58:23 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ct.c ct_capabilities: remove redundant code.  
+	* src/ctlib/unittests/t0009.c check results of compute_id 2
+
 Thu Dec 12 15:59:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c:
 	- fix error reading SERVER info
