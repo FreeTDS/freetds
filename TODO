@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.100 2004-03-24 10:40:40 freddy77 Exp $
+To Do List	$Id: TODO,v 1.101 2004-03-25 16:25:52 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -53,6 +53,7 @@ Started in 0.63
 - header privatizations (removing tds.h dependency)  this is quite 
   important for future binary compatibility.
   Add consistency test for dblib
+  Add also -Wl,-Bsymbolic or similar to libraries
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)
@@ -64,6 +65,7 @@ Started in 0.63
   NUMERIC ->NUMERIC changing precision/scale
   * this part never worked, commented
 - SQLFetch do not return error if error on rows
+- see problems raised by sqlserver tests in DBD::ODBC (SQLPrepare)
 
 For future versions (in priority order within library):
   All:
