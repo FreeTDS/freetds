@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.123 2004-09-08 12:51:23 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.124 2004-09-20 08:21:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -334,9 +334,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			con->locale = (CS_LOCALE *) buffer;
 			break;
 		case CS_USERDATA:
-			if (con->userdata) {
+			if (con->userdata)
 				free(con->userdata);
-			}
 			con->userdata = (void *) malloc(buflen + 1);
 			tdsdump_log(TDS_DBG_INFO2, "setting userdata orig %p new %p\n", buffer, con->userdata);
 			con->userdata_len = buflen;

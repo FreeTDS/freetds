@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.263 2004-09-16 11:42:25 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.264 2004-09-20 08:21:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2528,7 +2528,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 		return 0;
 	}
 
-	/* assure sufficient space for evry conversion */
+	/* assure sufficient space for every conversion */
 	s = (char *) malloc(len * 4 + 1);
 	out_len = tds_get_string(tds, len, s, len * 4);
 	if (!s) {

@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.32 2004-04-17 10:02:24 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.33 2004-09-20 08:21:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -282,8 +282,7 @@ odbc_errs_reset(struct _sql_errors *errs)
 			if (errs->errs[i].server)
 				free(errs->errs[i].server);
 		}
-		free(errs->errs);
-		errs->errs = NULL;
+		TDS_ZERO_FREE(errs->errs);
 		errs->num_errors = 0;
 	}
 	errs->lastrc = SQL_SUCCESS;

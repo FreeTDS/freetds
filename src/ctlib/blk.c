@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.18 2004-09-08 12:51:23 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.19 2004-09-20 08:21:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -278,15 +278,11 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		
 		/* free allocated storage in blkdesc & initialise flags, etc. */
 	
-		if (blkdesc->tablename) {
-			free(blkdesc->tablename);
-			blkdesc->tablename = NULL;
-		}
+		if (blkdesc->tablename)
+			TDS_ZERO_FREE(blkdesc->tablename);
 	
-		if (blkdesc->insert_stmt) {
-			free(blkdesc->insert_stmt);
-			blkdesc->insert_stmt = NULL;
-		}
+		if (blkdesc->insert_stmt)
+			TDS_ZERO_FREE(blkdesc->insert_stmt);
 	
 		if (blkdesc->bindinfo) {
 			tds_free_results(blkdesc->bindinfo);
@@ -375,7 +371,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 	if (blkdesc->insert_stmt) {
 		tdsdump_log(TDS_DBG_FUNC, "blk_init() freeing insert_stmt\n");
-		free(blkdesc->insert_stmt);
+		TDS_ZERO_FREE(blkdesc->insert_stmt);
 	}
 
 	if (blkdesc->bindinfo) {
@@ -789,10 +785,8 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 
 		erc = asprintf(&query, "insert bulk %s (%s)", blkdesc->tablename, colclause.pb);
 
-		if (colclause.pb != clause_buffer) {
-			free(colclause.pb);
-			colclause.pb = NULL;	/* just for good measure; not used beyond this point */
-		}
+		if (colclause.pb != clause_buffer)
+			TDS_ZERO_FREE(colclause.pb);	/* just for good measure; not used beyond this point */
 
 		if (erc < 0) {
 			return CS_FAIL;

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.116 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.117 2004-09-20 08:21:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -159,10 +159,8 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	for (i = 0; i < tds->num_dyns; ++i)
 		if (dyn == tds->dyns[i]) {
 			tds->dyns[i] = tds->dyns[--tds->num_dyns];
-			if (tds->num_dyns == 0) {
-				free(tds->dyns);
-				tds->dyns = NULL;
-			}
+			if (tds->num_dyns == 0)
+				TDS_ZERO_FREE(tds->dyns);
 			break;
 		}
 
@@ -475,7 +473,7 @@ tds_free_compute_results(TDSCOMPUTEINFO ** comp_info, TDS_INT num_comp)
 			tds_free_compute_result(comp_info[i]);
 	}
 	if (num_comp)
-		TDS_ZERO_FREE(comp_info);
+		free(comp_info);
 
 }
 
@@ -772,16 +770,16 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_free_env(tds);
 		tds_free_all_dynamic(tds);
 		if (tds->in_buf)
-			TDS_ZERO_FREE(tds->in_buf);
+			free(tds->in_buf);
 		if (tds->out_buf)
-			TDS_ZERO_FREE(tds->out_buf);
+			free(tds->out_buf);
 		tds_close_socket(tds);
 		if (tds->date_fmt)
 			free(tds->date_fmt);
 		tds_iconv_free(tds);
 		if (tds->product_name)
 			free(tds->product_name);
-		TDS_ZERO_FREE(tds);
+		free(tds);
 	}
 }
 void
@@ -817,7 +815,7 @@ tds_free_connection(TDSCONNECTION * connection)
 	tds_dstr_zero(&connection->password);
 	tds_dstr_free(&connection->password);
 	tds_dstr_free(&connection->library);
-	TDS_ZERO_FREE(connection);
+	free(connection);
 }
 
 static TDSENV *
@@ -839,11 +837,11 @@ tds_free_env(TDSSOCKET * tds)
 {
 	if (tds->env) {
 		if (tds->env->language)
-			TDS_ZERO_FREE(tds->env->language);
+			free(tds->env->language);
 		if (tds->env->charset)
-			TDS_ZERO_FREE(tds->env->charset);
+			free(tds->env->charset);
 		if (tds->env->database)
-			TDS_ZERO_FREE(tds->env->database);
+			free(tds->env->database);
 		TDS_ZERO_FREE(tds->env);
 	}
 }

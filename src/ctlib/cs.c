@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.50 2004-09-08 12:51:23 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.51 2004-09-20 08:21:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -278,9 +278,8 @@ CS_INT maxcp;
 		ctx->cs_errhandletype = _CS_ERRHAND_CB;
 		return CS_SUCCEED;
 	case CS_USERDATA:
-		if (ctx->userdata) {
+		if (ctx->userdata)
 			free(ctx->userdata);
-		}
 
 		if (buflen == CS_NULLTERM) {
 			maxcp = strlen(buffer) + 1;

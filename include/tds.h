@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.187 2004-09-16 11:42:25 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.188 2004-09-20 08:21:17 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -523,9 +523,14 @@ enum TDS_OPT_ISOLATION_CHOICE
 	TDS_OPT_LEVEL1 = 1, TDS_OPT_LEVEL3 = 3
 };
 
-#define TDS_ZERO_FREE(x) {free((x)); (x) = NULL;}
+#define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
+/*
+ * TODO use system macros for optimization
+ * See mcrypt for reference and linux kernel source for optimization
+ * check if unaligned access and use fast write/read when implemented
+ */
 #define TDS_BYTE_SWAP16(value)                 \
          (((((unsigned short)value)<<8) & 0xFF00)   | \
           ((((unsigned short)value)>>8) & 0x00FF))

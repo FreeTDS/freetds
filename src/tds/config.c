@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.94 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.95 2004-09-20 08:21:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -652,10 +652,8 @@ int
 tds_set_interfaces_file_loc(const char *interf)
 {
 	/* Free it if already set */
-	if (interf_file != NULL) {
-		free(interf_file);
-		interf_file = NULL;
-	}
+	if (interf_file != NULL)
+		TDS_ZERO_FREE(interf_file);
 	/* If no filename passed, leave it NULL */
 	if ((interf == NULL) || (interf[0] == '\0')) {
 		return TDS_SUCCEED;

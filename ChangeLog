@@ -1,3 +1,12 @@
+Mon Sep 20 10:19:28 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/descriptor.c:
+	* src/odbc/error.c src/odbc/odbc_util.c src/tds/config.c:
+	* src/tds/iconv.c src/tds/mem.c src/tds/read.c src/tds/token.c:
+	* src/tds/util.c:
+	- fix a possible bug in TDS_ZERO_FREE macro and reuse it
+	- minor changes
+
 Thu Sep 15 13:41:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/iconv.c src/tds/token.c:
 	- fix for some sql collation with a codepage not corresponding

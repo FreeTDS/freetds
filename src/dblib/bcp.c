@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.101 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.102 2004-09-20 08:21:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1695,10 +1695,8 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		erc = asprintf(&query, "insert bulk %s (%s) %s", dbproc->bcpinfo->tablename, colclause.pb, hint);
 
 		free(hint);
-		if (colclause.pb != clause_buffer) {
-			free(colclause.pb);
-			colclause.pb = NULL;	/* just for good measure; not used beyond this point */
-		}
+		if (colclause.pb != clause_buffer)
+			TDS_ZERO_FREE(colclause.pb);	/* just for good measure; not used beyond this point */
 
 		if (erc < 0) {
 			return FAIL;
@@ -2830,55 +2828,40 @@ _bcp_free_storage(DBPROCESS * dbproc)
 	int i;
 
 	if (dbproc->hostfileinfo) {
-		if (dbproc->hostfileinfo->hostfile) {
-			free(dbproc->hostfileinfo->hostfile);
-			dbproc->hostfileinfo->hostfile = (char *) NULL;
-		}
+		if (dbproc->hostfileinfo->hostfile)
+			TDS_ZERO_FREE(dbproc->hostfileinfo->hostfile);
 	
-		if (dbproc->hostfileinfo->errorfile) {
-			free(dbproc->hostfileinfo->errorfile);
-			dbproc->hostfileinfo->errorfile = (char *) NULL;
-		}
+		if (dbproc->hostfileinfo->errorfile)
+			TDS_ZERO_FREE(dbproc->hostfileinfo->errorfile);
 
 		/* free up storage that holds details of hostfile columns */
 	
 		if (dbproc->hostfileinfo->host_columns) {
 			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-				if (dbproc->hostfileinfo->host_columns[i]->terminator) {
-					free(dbproc->hostfileinfo->host_columns[i]->terminator);
-					dbproc->hostfileinfo->host_columns[i]->terminator = NULL;
-				}
+				if (dbproc->hostfileinfo->host_columns[i]->terminator)
+					TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]->terminator);
 				tds_free_bcp_column_data(dbproc->hostfileinfo->host_columns[i]->bcp_column_data);
-				free(dbproc->hostfileinfo->host_columns[i]);
-				dbproc->hostfileinfo->host_columns[i] = NULL;
+				TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]);
 			}
-			free(dbproc->hostfileinfo->host_columns);
-			dbproc->hostfileinfo->host_columns = NULL;
+			TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns);
 		}
-	
-		free(dbproc->hostfileinfo);
-		dbproc->hostfileinfo = NULL;
+		TDS_ZERO_FREE(dbproc->hostfileinfo);
 	}
 
 
 	if (dbproc->bcpinfo) {
-		if (dbproc->bcpinfo->tablename) {
-			free(dbproc->bcpinfo->tablename);
-			dbproc->bcpinfo->tablename = (char *) NULL;
-		}
-	
-		if (dbproc->bcpinfo->insert_stmt) {
-			free(dbproc->bcpinfo->insert_stmt);
-			dbproc->bcpinfo->insert_stmt = (char *) NULL;
-		}
-	
-	    if (dbproc->bcpinfo->bindinfo) {
-	        tds_free_results(dbproc->bcpinfo->bindinfo);
-	        dbproc->bcpinfo->bindinfo = NULL;
-	    }
+		if (dbproc->bcpinfo->tablename)
+			TDS_ZERO_FREE(dbproc->bcpinfo->tablename);
 
-		free(dbproc->bcpinfo);
-		dbproc->bcpinfo = NULL;
+		if (dbproc->bcpinfo->insert_stmt)
+			TDS_ZERO_FREE(dbproc->bcpinfo->insert_stmt);
+
+		if (dbproc->bcpinfo->bindinfo) {
+			tds_free_results(dbproc->bcpinfo->bindinfo);
+			dbproc->bcpinfo->bindinfo = NULL;
+		}
+
+		TDS_ZERO_FREE(dbproc->bcpinfo);
 	}
 
 	return (SUCCEED);

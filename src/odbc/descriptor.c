@@ -150,8 +150,7 @@ desc_free_records(TDS_DESC * desc)
 	if (desc->records) {
 		for (i = 0; i < desc->header.sql_desc_count; i++)
 			desc_free_record(&desc->records[i]);
-		free(desc->records);
-		desc->records = NULL;
+		TDS_ZERO_FREE(desc->records);
 	}
 
 	desc->header.sql_desc_count = 0;

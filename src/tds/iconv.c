@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.112 2004-09-16 11:42:25 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.113 2004-09-20 08:21:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -268,8 +268,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 		return 1;
 	char_conv = (TDSICONV *) malloc(sizeof(TDSICONV) * initial_char_conv_count);
 	if (!char_conv) {
-		free(tds->char_convs);
-		tds->char_convs = NULL;
+		TDS_ZERO_FREE(tds->char_convs);
 		return 1;
 	}
 	memset(char_conv, 0, sizeof(TDSICONV) * initial_char_conv_count);
@@ -555,8 +554,7 @@ tds_iconv_free(TDSSOCKET * tds)
 	free(tds->char_convs[0]);
 	for (i = initial_char_conv_count + 1; i < tds->char_conv_count; i += CHUNK_ALLOC)
 		free(tds->char_convs[i]);
-	free(tds->char_convs);
-	tds->char_convs = NULL;
+	TDS_ZERO_FREE(tds->char_convs);
 	tds->char_conv_count = 0;
 }
 

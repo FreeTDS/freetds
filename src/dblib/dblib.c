@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.183 2004-07-29 10:22:40 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.184 2004-09-20 08:21:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -191,20 +191,16 @@ buffer_clear(DBPROC_ROWBUF * buf)
 	buf->newest = -1;
 	buf->oldest = 0;
 	buf->rows_in_buf = 0;
-	if (buf->rows) {
-		free(buf->rows);
-	}
-	buf->rows = NULL;
+	if (buf->rows)
+		TDS_ZERO_FREE(buf->rows);
 }				/* buffer_clear()  */
 
 
 static void
 buffer_free(DBPROC_ROWBUF * buf)
 {
-	if (buf->rows != NULL) {
-		free(buf->rows);
-	}
-	buf->rows = NULL;
+	if (buf->rows != NULL)
+		TDS_ZERO_FREE(buf->rows);
 }				/* clear_buffer()  */
 
 static void
@@ -236,6 +232,7 @@ buffer_start_resultset(DBPROC_ROWBUF * buf,	/* (U) buffer to clear */
 	assert(element_size > 0);
 
 	if (buf->rows != NULL) {
+		/* TODO why ?? memory bug chech ?? security ?? */
 		memset(buf->rows, 0xad, buf->element_size * buf->rows_in_buf);
 		free(buf->rows);
 	}
@@ -770,8 +767,7 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 	}
 	(*strp)->strtotlen = strlen(p);
 	if (((*strp)->strtext = (BYTE *) malloc((*strp)->strtotlen)) == NULL) {
-		free(*strp);
-		*strp = NULL;
+		TDS_ZERO_FREE(*strp);
 		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
 		return FAIL;
 	}
@@ -4899,10 +4895,8 @@ void
 dbfreebuf(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "in dbfreebuf()\n");
-	if (dbproc->dbbuf) {
-		free(dbproc->dbbuf);
-		dbproc->dbbuf = NULL;
-	}
+	if (dbproc->dbbuf)
+		TDS_ZERO_FREE(dbproc->dbbuf);
 	dbproc->dbbufsz = 0;
 }				/* dbfreebuf()  */
 
