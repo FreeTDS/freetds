@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.17 2004-11-28 09:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.16.2.1 2004-11-29 08:40:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
