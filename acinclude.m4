@@ -21,7 +21,7 @@ unsigned long foo = INADDR_NONE;
   ac_cv_have_inaddr_none=yes,
   ac_cv_have_inaddr_none=no)])
  if test $ac_cv_have_inaddr_none != yes; then
-   AC_DEFINE(INADDR_NONE, 0xffffffff)
+   AC_DEFINE(INADDR_NONE, 0xffffffff, [Define to value of INADDR_NONE if not provided by your system header files.])
  fi])
 
 
@@ -148,11 +148,11 @@ AC_CHECK_FUNC(getservbyname_r, [
         ,ac_cv_func_which_getservbyname_r=no)])
 
 if test $ac_cv_func_which_getservbyname_r = six; then
-  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_6)
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_6, 1, [Define to 1 if your system provides the 6-parameter version of getservbyname_r().])
 elif test $ac_cv_func_which_getservbyname_r = five; then
-  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_5)
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_5, 1, [Define to 1 if your system provides the 5-parameter version of getservbyname_r().])
 elif test $ac_cv_func_which_getservbyname_r = four; then
-  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_4)
+  AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_4, 1, [Define to 1 if your system provides the 4-parameter version of getservbyname_r().])
 
 fi
 CFLAGS=$ac_save_CFLAGS
@@ -173,7 +173,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.11 2002-10-07 14:25:52 castellano Exp $
+dnl @version $Id: acinclude.m4,v 1.12 2002-10-07 18:34:44 castellano Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -227,11 +227,11 @@ dnl  ac_cv_func_which_gethostname_r=no
 	,ac_cv_func_which_gethostname_r=no)])
 
 if test $ac_cv_func_which_gethostname_r = six; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6, 1, [Define to 1 if your system provides the 6-parameter version of gethostbyname_r().])
 elif test $ac_cv_func_which_gethostname_r = five; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_5)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_5, 1, [Define to 1 if your system provides the 5-parameter version of gethostbyname_r().])
 elif test $ac_cv_func_which_gethostname_r = three; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_3, 1, [Define to 1 if your system provides the 3-parameter version of gethostbyname_r().])
 
 fi
 CFLAGS=$ac_save_CFLAGS
@@ -304,11 +304,11 @@ rc = gethostbyaddr_r(address, length, type, &h,
 	,ac_cv_func_which_gethostbyaddr_r=no)])
 
 if test $ac_cv_func_which_gethostbyaddr_r = eight; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_8)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_8, 1, [Define to 1 if your system provides the 8-parameter version of gethostbyaddr_r().])
 elif test $ac_cv_func_which_gethostbyaddr_r = seven; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_7)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_7, 1, [Define to 1 if your system provides the 6-parameter version of gethostbyaddr_r().])
 elif test $ac_cv_func_which_gethostbyaddr_r = five; then
-  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_5)
+  AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_5, 1, [Define to 1 if your system provides the 5-parameter version of gethostbyaddr_r().])
 
 fi
 CFLAGS=$ac_save_CFLAGS
@@ -326,5 +326,5 @@ malloc_options = "AJR";
      ac_cv_have_malloc_options=yes,
      ac_cv_have_malloc_options=no)])
   if test $ac_cv_have_malloc_options = yes; then
-   AC_DEFINE(HAVE_MALLOC_OPTIONS)
+   AC_DEFINE(HAVE_MALLOC_OPTIONS, 1, [Define to 1 if your system provides the malloc_options variable.])
   fi])

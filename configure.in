@@ -41,7 +41,7 @@ dnl linked in. Others (inc debian) have termcap built into ncurses.
 LIBS=""
 AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
 AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
-  AC_DEFINE(HAVE_READLINE)] )
+  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])] )
 READLINE_LIBS="$LIBS"
 AC_SUBST(READLINE_LIBS)
 LIBS="$OLDLIBS"
@@ -101,7 +101,7 @@ $ac_cv_sizeof___int64)    int64=__int64;;
 esac
 
 if test "$int64"; then
-    AC_DEFINE(HAVE_INT64)
+    AC_DEFINE(HAVE_INT64, 1, [Define to 1 if you have a 64-bit integral type.])
 else
     int64=long
 fi
@@ -133,7 +133,7 @@ AC_EGREP_CPP(yes,
  yes
 #endif
 ],
-    AC_DEFINE(BSD_COMP)  AC_MSG_RESULT(need -DBSD_COMP),
+    AC_DEFINE(BSD_COMP, 1, [Define to 1 if you need BSD_COMP defined to get FIONBIO defined.]) AC_MSG_RESULT(need -DBSD_COMP),
     AC_MSG_RESULT(no))
     ])
 
