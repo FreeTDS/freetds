@@ -1,3 +1,6 @@
+Thu Jun 12 16:00:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c: applyed patch #753288
+
 Wed Jun 11 22:09:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/tds.h src/apps/tsql.c:
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:

@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.18 2003-04-21 09:05:55 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.19 2003-06-12 14:01:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -401,7 +401,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			if (tsock->rows_affected == TDS_NO_COUNT) {
 				/* FIXME use row_count ?? */
 				if (tsock->res_info != NULL)
-					*(SQLINTEGER *) buffer = *(SQLINTEGER *) tsock->res_info->row_count;
+					*(SQLINTEGER *) buffer = tsock->res_info->row_count;
 				else
 					*(SQLINTEGER *) buffer = 0;
 			} else
