@@ -1,3 +1,7 @@
+Thu Mar 27 17:19:40 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	- remove some warnings
+
 Thu Mar 27 17:04:00 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/cs.c:
 	- namespace cleanup
