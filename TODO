@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.99 2004-03-22 20:48:52 freddy77 Exp $
+To Do List	$Id: TODO,v 1.100 2004-03-24 10:40:40 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -63,6 +63,7 @@ Started in 0.63
 - ODBC data test fails for numeric, convert.c do not convert 
   NUMERIC ->NUMERIC changing precision/scale
   * this part never worked, commented
+- SQLFetch do not return error if error on rows
 
 For future versions (in priority order within library):
   All:
