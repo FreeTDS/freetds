@@ -38,7 +38,7 @@ href="http://www.freetds.org/userguide/book1.html">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.<p>
 
-<div align=right><i>$Id: faq.html,v 1.6 2001-11-21 06:17:43 quozl Exp $</i></div><p>
+<div align=right><i>$Id: faq.html,v 1.7 2001-12-05 03:39:10 brianb Exp $</i></div><p>
 
 </font> </p>
 
@@ -189,9 +189,8 @@ any Sybase products and Microsoft SQL Server.
 number of CLIs (Call Level Interfaces). The current CLIs are DB-Lib,
 CT-Lib (as defined by Sybase), and ODBC.</p>
 
-<p>A JDBC driver and Perl DBI driver (see <a href="#34">Question
-3.4</a>) have also been contributed under a BSDish license and are
-available from the download page. These do not require the FreeTDS C
+<p>A JDBC driver has also been contributed under a BSDish license and is
+available from the download page. It does not require the FreeTDS C
 libraries.</p>
 </dd>
 
@@ -209,7 +208,7 @@ But, <tt>libtdssrv</tt> will do the trick for some applications.  </dd>
 
 <dd>
 <p>
-Yes, there is some<a href="http://metalab.unc.edu/freetds/tds.html"> preliminary documentation</a> available.</p>
+Yes, there is some<a href="http://www.freetds.org/tds.html"> preliminary documentation</a> available.</p>
 
 <p>Sybase has also made the TDS 5.0 protocol documentation available
 for free (price) download, however the license is too restrictive to be
@@ -409,10 +408,10 @@ When you untar the package you will need to run:
 statement:</p>
 <dl><!-- second level list of terms -->
 	<dt><tt>--with-tdsver=VERSION</tt></dt>
-	<dd>specify the TDS version to use 
+	<dd>specify the fallback TDS version 
 	<br />(4.2, 4.6, 5.0, or 7.0) [default is 5.0].</dd>
 	<dt><tt>--enable-msdblib</tt></dt>
-	<dd>enable Microsoft APIs and behaviour for DBLib</dd>
+	<dd>enable Microsoft APIs and behaviour for DBLib (useful only for porting Win32 dblib apps)</dd>
 	<dt><tt>--enable-dbmfix</tt></dt>
 	<dd>rename dbopen() to tdsdbopen() as a work around for dbm name
 	conflict</dd>
@@ -425,8 +424,8 @@ statement:</p>
 </dl> <!-- end nested dictionary list -->
 
 <p>
-<b>IMPORTANT</b> You must build with TDS version 4.2 to access Microsoft SQL
-Server or Sybase prior to 10.0! TDS 7.0 may also be used to talk to Microsoft
+<b>IMPORTANT</b> You must either build with TDS version 4.2 to access Microsoft SQL
+Server or Sybase prior to 10.0 or change these values to 4.2 at runtime! TDS 7.0 may also be used to talk to Microsoft
 SQL Server 7 and above.</p>
 </dd>
 
@@ -448,8 +447,8 @@ directory.  For example if your tds installation is in
 
 <dd>
 <p>
-TDSVER will override the default TDS version, possible values are 42, 50,
-and 70</p>
+TDSVER will override the default TDS version, possible values are 4.2, 5.0,
+and 7.0</p>
 
 <p>
 TDSDUMP will specify a location for a log file for debugging. Beware that
@@ -464,10 +463,10 @@ for TDS 4.2/7.0 and 4000 for TDS 5.0</p>
 <b>2.5 How do I install the RPM?</b></dt>
 <dd>
 <p>
-<tt>rpm -ivh freetds-0.51-1.i386.rpm</tt> (as root) will install the
+<tt>rpm -ivh freetds-0.52-1.i386.rpm</tt> (as root) will install the
 libraries.</p>
 <p>
-<tt>rpm -ivh freetds-devel-0.51-1.i386.rpm</tt> (as root) will install the
+<tt>rpm -ivh freetds-devel-0.52-1.i386.rpm</tt> (as root) will install the
 headers and other stuff needed to build other stuff.</p>
 </dd>
 
@@ -527,11 +526,11 @@ things started working.</p>
 <a name="34"></a>
 <b>3.4 Which Perl library should I use?</b></dt>
 <dd>
+<p>There are four options for using TDS and Perl to connect to a Sybase
+or MSSQL database, DBD::Sybase, DBD::ODBC, DBD::FreeTDS, and Sybperl. 
+</p>
+<p>
 From Mark Schaal:
-
-<p>There are three options for using TDS and Perl to connect to a Sybase
-or MSSQL database, DBD::Sybase, DBD::FreeTDS, and Sybperl. Once an ODBC
-library is available for FreeTDS you should also be able to use DBD::ODBC.
 </p>
 <p>DBD::Sybase is the recommended option, and yes it does work with MSSQL.
 You will need to install the perl DBI module and the FreeTDS package, particularly
@@ -554,6 +553,9 @@ APIs (or MS's DBlibrary). It's a little more powerfull/flexible than DBI,
 though obviously less portable. It's still actively maintained and developed
 (by yours truly)
 </p>
+<p>From Brian:<br />
+DBD::ODBC is the newest option available.  Its primary advantage is not having to load another DBI driver if you already have DBI::ODBC load for other systems.  On the downside, it may be a little less robust than DBD::Sybase.
+</p>
 </dd>
 
 <dt>
@@ -562,14 +564,14 @@ though obviously less portable. It's still actively maintained and developed
 <dd>
 <p>Floating point values are truncated by one position in version 0.51.   Datatypes affected are <tt>flt8</tt>, <tt>numeric</tt>, and <tt>money</tt>.  Status: <i>Fixed in current CVS version</i>  as of 12 March 2001.  </p>
 <p>
-Columns of datatype <tt>ntext</tt> are sometimes truncated by one position with TDS protocol version 7.0.  Workaround: convert them to <tt>varchar(8000)</tt> (or <tt>varchar(4000)</tt> if unicode data).  </p>
+Columns of datatype <tt>ntext</tt> are sometimes truncated by one position with TDS protocol version 7.0.  Workaround: convert them to <tt>varchar(8000)</tt> (or <tt>varchar(4000)</tt> if unicode data).  Status: <i>Fixed in 0.52</i></p>
 <p>
 MSSQL-7.0 has a known bug when communicating with 
 big-endian machines.  Columns of type 
 MONEY and DATETIME are returned as little-endian regardless of 
 what was requested.  There is a patch from Microsoft that fixes this.  Refer to the <a href="http://www.freetds.org/userguide/book1.html">User Guide</a> for further details.  </p>
 <p>
-Unicode&lt;-&gt;Ascii conversion is broken, except for languages whose alphabet is similar to that of English.  Specifically, although Microsoft SQL Server transmits all character data as Unicode (UCS2), and can store text in Unicode (<tt>nchar/nvarchar</tt>) columns, FreeTDS will translate Unicode to Ascii correctly only for languages -- such as, not coincidentally, English -- that use use the Latin alphabet..  A more general solution awaits an individual with an actual problem to solve, knowledge of a non-Latin language, and a willingness to facilitate testing.  </p>
+Unicode&lt;-&gt;Ascii conversion is broken, except for languages whose alphabet is similar to that of English.  Specifically, although Microsoft SQL Server transmits all character data as Unicode (UCS2), and can store text in Unicode (<tt>nchar/nvarchar</tt>) columns, FreeTDS will translate Unicode to Ascii correctly only for languages -- such as, not coincidentally, English -- that use use the Latin alphabet..  A more general solution awaits an individual with an actual problem to solve, knowledge of a non-Latin language, and a willingness to facilitate testing.  Status: Fixed with <i>client charset</i> option in 0.53pre2</p>
 </dd>
 
 <dt>
@@ -586,8 +588,11 @@ access via a mutex however.</dd>
 <a name="class_library"></a>
 <b>3.7 Any plans to write a C++ class library directly over TDS?</b></dt>
 <dd>
+<p>
 I have a JDBC-like class library written over dblib. I may port that (probably
-not soon).</dd>
+not soon).</p>
+<p>Another option may be using libodbc++, but I have not tested this.</p>
+</dd>
 <dt>
 <a name="jdbc_test"></a>
 <b>3.8 How can test my FreeTDS JDBC Driver?</b></dt>
@@ -675,7 +680,11 @@ In include/tds.h replace:
 with
 	typedef int TDS_INT;
 	typedef unsigned int TDS_UINT;
-</pre></dd>
+</pre>
+<p>
+Update: fixed in 0.52
+</p>
+</dd>
 
 <!-- fixed in 0.53? -->
 
@@ -692,6 +701,9 @@ replace with "tdsdbopen", then compile and run etc...
 
 <p>The reason for this is that Apache is linked against DBM which includes
 a function named dbopen() too.</p>
+<p>
+Update: fixed in 0.53pre2, dbopen is now always a define to tdsdbopen
+</p>
 </dd>
 
 <!-- fixed in 0.53? -->
@@ -888,7 +900,7 @@ run.&nbsp; The following combinations are reasonable:</li>
 <tr>
 <td>Microsoft</td>
 
-<td>7.0</td>
+<td>7.0/2000</td>
 
 <td>7.0</td>
 
@@ -899,18 +911,10 @@ run.&nbsp; The following combinations are reasonable:</li>
 
 <ol>
 <li>
-Edit the <b><tt>PWD</tt></b> file and try <tt>test.sh</tt>. You will find:
-
-<pre>./test.sh
-./src/tds/unittests/test.sh
-./src/dblib/unittests/test.sh
-./src/ctlib/unittests/test.sh
-</pre>
-The first calls he other three, working its way from the TDS layer "up
-the stack" to ctlib.</li>
+Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, and dblib in that order</li>
 
 <li>
-Compile <font size="+1"><tt><a href="http://www.voicenet.com/~gray/sqsh.html">sqsh</a></tt></font>
+Compile <font size="+1"><tt><a href="http://www.sqsh.org">sqsh</a></tt></font>
 and try that before the more complicated stuff (PHP/Perl). If you can connect
 with
 <tt>sqsh</tt>, you don't have a FreeTDS problem.&nbsp;</li>
@@ -958,6 +962,9 @@ Users who connect through a Windows NT account can make use of trusted
 connections in either Windows NT Authentication Mode or Mixed Mode. After
 successful connection to SQL Server, the security mechanism is the same
 for both modes.
+</p>
+<p>
+We are very close to getting domain authentication working.  If you have access to a SQL Server in domain authentication mode and can do a network trace, let us know!
 </p>
 <br />
 </dd>
