@@ -1,3 +1,7 @@
+Mon Jul  8 19:03:33 EDT 2002 JK Lowden <jklowden@schemamania.org>
+	* src/tds/convert.c: reverted tds_convert_text to 1.12 logic; 
+		1.13 patch was mistaken, per Brian.  
+
 Mon Jul  8 21:25:47 EDT 2002	Brian Bruns <camber@ais.org>
 	*acinclude.m4: add macros to detect _r function signature
 	*configure.in: add macros
@@ -13,11 +17,11 @@ Sat Jul  6 15:20:06 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	* patch 578058, spell check various documentation files.
 	* src/tds/iconv.c, patch 565835. Fixes some problem with iconv routines.
 	* src/tds/convert.c, patch 574490.  
-		Handle endianism for "unique identifier" datatype
+		Handle endianism for uniqueidentifier datatype
 	
 Sat Jul  6 11:22:08 EDT 2002 JK Lowden <jklowden@schemamania.org>
 	* autogen.sh: change so that "--include-deps" is always passed to automake.  
-    	* include/Makefile.am: change "$(RM)" into "rm -f".
+    	* include/Makefile.am: change "$(RM)" to "rm -f".
 
 Fri Jul  5 07:39:04 EDT 2002
 	*src/tds/token.c(tds_process_msg): (from lirm604) check for closed 
