@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-01-23 17:03:09 $</date>
-		<releaseinfo>$Revision: 1.50 $</releaseinfo>
+		<date>$Date: 2003-01-24 10:36:08 $</date>
+		<releaseinfo>$Revision: 1.51 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.50 $
+$Revision: 1.51 $
 , dated 
-$Date: 2003-01-23 17:03:09 $ (CVS control number $Id: userguide.sgml,v 1.50 2003-01-23 17:03:09 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2003-01-24 10:36:08 $ (CVS control number $Id: userguide.sgml,v 1.51 2003-01-24 10:36:08 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -180,6 +180,7 @@ In addition to the core <systemitem class="library">db-lib</systemitem> <acronym
 			</para>
 			<para>
 The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your application's needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+Starting from 0.60 version ODBC driver have seen an huge improvement and interesting. 0.61 version came with a ODBC 3.0 version.
 			</para>
 			<para>
 Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			</para>
@@ -352,9 +353,12 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				</varlistentry>
 			<varlistentry>
 				<term><Parameter>--enable-threadsafe</Parameter></term>
-				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().</para>
-					</listitem>
-				</varlistentry>
+				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().
+				Is not widely tested on all platform but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).
+				Is also a good idea to enable this switch if you configure Apache with multi-threading support.
+				From 0.61 version this option is turned on by default in RPM building.
+				</para></listitem>
+			</varlistentry>
 			<varlistentry>
 				<term><Parameter>--enable-sybase-compat</Parameter></term>
 				<listitem><para>Enable close compatibility with Sybase's ABI, at the expense of other features.  Currently, this enables the generation of a dbopen() entry point in <systemitem class="library">db-lib</systemitem>, which may clash with the <systemitem class="library">DBM</systemitem> function with the same name.  Absolutely <emphasis>not required</> for use with other free software.  </para>
@@ -540,6 +544,16 @@ TDS 4.2 and 5.0 have limitations you should be aware of, though, including:
 			</ItemizedList>
 			</para>
 			
+			<para>
+TDS 4.2 have also other limitations:
+			<ItemizedList>
+				<listitem><para><acronym>RPC</> are not supported.  
+					</para></listitem>
+				<listitem><para>dynamic query (also called prepared query) are not supported.
+					</para></listitem>
+			</ItemizedList>
+			</para>
+			
 			
 		</sect1>
 		<sect1 id="freetdsconf">
@@ -688,7 +702,8 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>yes</entry>
 	<entry>Attempt a domain login.  
 		<emphasis> Setting try domain login has the effect 
-				of disallowing server logins!</emphasis></entry>
+				of disallowing server logins!</emphasis>
+		To configure a dataserver for both server logins and domain login disable this option and use DOMAIN\username for login.</entry>
 	<entry>yes/no</entry>
 	</row>
 	<row>
