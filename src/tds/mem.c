@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.27 2002-09-27 03:09:55 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.28 2002-09-28 17:21:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -50,6 +50,8 @@ void tds_free_env(TDSSOCKET *tds);
 
 /**
  * \defgroup mem Allocation Routines
+ * Allocate or free resources. Allocation can fail only on out of memory. 
+ * In such case they return NULL and leave the state as before call.
  */
 
 /** \addtogroup mem
@@ -384,6 +386,11 @@ TDSLOCINFO *locale;
 
 	return locale;
 }
+/**
+ * Allocate space for configure structure and initialize with default values
+ * @param locale locale information (copied to configuration information)
+ * @result allocated structure or NULL if out of memory
+ */
 TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale)
 {
 TDSCONFIGINFO *config;
