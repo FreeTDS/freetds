@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.141 2005-02-15 09:08:49 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.142 2005-02-21 14:44:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -868,7 +868,13 @@ tds_tls_deinit(void)
 static int
 tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+	/*
+	 * In case we do not have SSL enabled do not send pre-login so
+	 * if server has certificate but no force encryption login success
+	 */
+	return tds7_send_login(tds, connection);
+#else
 	gnutls_session session;
 	gnutls_certificate_credentials xcred;
 
@@ -891,7 +897,6 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	};
 	int ret;
 	const char *tls_msg;
-#endif
 
 	int i, len;
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
@@ -977,9 +982,6 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	 * (even if data is not encrypted)
 	 */
 
-#ifndef HAVE_GNUTLS
-	return TDS_FAIL;
-#else
 	/* here we have to do encryption ... */
 
 	xcred = NULL;
