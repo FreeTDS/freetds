@@ -8,19 +8,28 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.22 2002-12-11 22:11:31 jklowden Exp $
+To Do List	$Id: TODO,v 1.23 2002-12-17 04:34:25 jklowden Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
 
 For 0.61 version:
 
+For 0.62 version:
+. Move website docs (not UG) to doc/htdoc, put in CVS
+. add doc/htdoc/Makefile with "publish" target to commit cvs and update freetds.org
+. drop txt2man from cvs, skip building man pages without it. 
+. Add doxygen to the nightly build
+. "make install" should put the UG in PREFIX/share/doc/freetds/userguide
+. "make install" should put doxygen html in PREFIX/share/doc/freetds/reference
+. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
+. Rationalize libtds structure and *_alloc functions (ML 5 December, sb:"names")
+. ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
+
 For future versions (in priority order within library):
   All:
-. numeric conversions (optimize).
 . move error message macro/prototype to tds.h.in; use in dblib.c.
 . Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords (checks).  Is this done?  
-. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character.
@@ -30,11 +39,11 @@ For future versions (in priority order within library):
 . tdsping program for testing purposes
 . Finish off the TDS dissector for ethereal
 . more solid. handle out of memory conditions (started, we must test all allocation and all function that return allocated data and be able to rollback to a safe state)
+. optimize numeric conversions 
 . limit copy of data (now wire -> tds -> temp -> client)
 . All manner of unimplemented functions (see doc/api_status.txt)
 
   ct-lib
-. ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . cs_calc and cs_cmp, for sybperl
 . DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
 . ct_get/send_data()
