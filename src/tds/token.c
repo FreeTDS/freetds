@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.7 2001-11-04 05:45:27 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.8 2001-11-07 21:01:15 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -30,8 +30,8 @@ static void *no_unused_var_warn[] = {software_version,
 ** may be used by the upper level functions.
 */
 
-int (*g_tds_msg_handler)() = NULL;
-int (*g_tds_err_handler)() = NULL;
+int (*g_tds_msg_handler)(void*) = NULL;
+int (*g_tds_err_handler)(void*) = NULL;
 
 
 static int tds_process_msg(TDSSOCKET *tds,int marker);
@@ -437,7 +437,7 @@ int rest;
 /* XXX this 4 should be a machine dependent #define */
 int align = 4;
 int remainder;
-
+char ci_flags[4];
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -445,7 +445,13 @@ int remainder;
 	for (col=0; col<info->num_cols; col++) 
 	{
 		curcol=info->columns[col];
-		tds_get_n(tds, NULL, 4);
+		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
+			the data in them. (mlilback, 11/7/01) */
+		tds_get_n(tds, ci_flags, 4);
+		curcol->column_nullable = ci_flags[3] & 0x01;
+		curcol->column_writeable = (ci_flags[3] & 0x08) > 0;
+		curcol->column_identity = (ci_flags[3] & 0x10) > 0;
+		/* on with our regularly scheduled code (mlilback, 11/7/01) */
 		curcol->column_type = tds_get_byte(tds);
 		if (is_blob_type(curcol->column_type)) {
 			curcol->column_size = tds_get_int(tds);
@@ -904,6 +910,8 @@ int len;
 				tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 			}
 
+			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
+			curcol->cur_row_size = colsize;
 #ifdef WORDS_BIGENDIAN
 			/* MS SQL Server 7.0 has broken date types from big endian 
 			** machines, this swaps the low and high halves of the 
@@ -920,7 +928,10 @@ int len;
 				curcol->column_type == SYBDATETIMN ||
 				curcol->column_type == SYBMONEY ||
 				curcol->column_type == SYBMONEY4 ||
-				curcol->column_type == SYBMONEYN)) {
+				(curcol->column_type == SYBMONEYN && curcol->column_size > 4))) 
+				/* above line changed -- don't want this for 4 byte SYBMONEYN 
+					values (mlilback, 11/7/01) */
+			{
 				memcpy(temp_buf,dest,colsize/2);
 				memcpy(dest,&dest[colsize/2],colsize/2);
 				memcpy(&dest[colsize/2],temp_buf,colsize/2);
@@ -1122,7 +1133,12 @@ int len_sqlstate;
 	len = tds_get_smallint(tds);
 
 	/* message number */
-	tds->msg_info->msg_number = tds_get_int(tds);
+		/* swap bytes on bigendian systems (mlilback, 11/7/01) */
+	rc = tds_get_int(tds);
+#ifdef WORDS_BIGENDIAN
+	tds_swap_bytes(&rc, 4);
+#endif
+	tds->msg_info->msg_number = rc;
 
 	/* msg state */
 	tds->msg_info->msg_state = tds_get_byte(tds);
