@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.186 2003-07-12 15:32:13 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.187 2003-07-24 12:28:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -83,6 +83,7 @@ static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
+static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 
 
 /**
@@ -1275,7 +1276,7 @@ SQLExecute(SQLHSTMT hstmt)
 #ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
 
-	/* TODO what happen if binding is dynamic (data incomplete?) */
+	/* FIXME SQLExecute return SQL_ERROR if binding is dynamic (data incomplete) */
 
 	/* TODO rebuild should be done for every bingings change, not every time */
 
@@ -1305,7 +1306,7 @@ SQLExecute(SQLHSTMT hstmt)
 	}
 
 	/* TODO test if two SQLPrepare on a statement */
-	/* TODO unprepare on statement free of connection close */
+	/* TODO unprepare on statement free or connection close */
 	/* prepare dynamic query (only for first SQLExecute call) */
 	if (!stmt->dyn && !stmt->prepared_query_is_rpc) {
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
@@ -1589,6 +1590,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 
 	/* close statement */
 	if (fOption == SQL_DROP || fOption == SQL_CLOSE) {
+		SQLRETURN retcode;
+
 		tds = stmt->hdbc->tds_socket;
 		/* 
 		 * FIX ME -- otherwise make sure the current statement is complete
@@ -1600,17 +1603,9 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		}
 
 		/* close prepared statement or add to connection */
-		if (stmt->dyn) {
-			if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
-				if (tds_process_simple_query(tds) != TDS_SUCCEED)
-					ODBC_RETURN(stmt, SQL_ERROR);
-				tds_free_dynamic(stmt->hdbc->tds_socket, stmt->dyn);
-				stmt->dyn = NULL;
-			} else {
-				/* TODO if fail add to odbc to free later, when we are in idle */
-				ODBC_RETURN(stmt, SQL_ERROR);
-			}
-		}
+		retcode = odbc_free_dynamic(stmt);
+		if (retcode != SQL_SUCCESS)
+			return retcode;
 	}
 
 	/* free it */
@@ -1623,7 +1618,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		if (stmt->hdbc->current_statement == stmt)
 			stmt->hdbc->current_statement = NULL;
 		free(stmt);
-		
+
 		/* NOTE we freed stmt, do not use ODBC_RETURN */
 		return SQL_SUCCESS;
 	}
@@ -1785,7 +1780,14 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 SQLRETURN SQL_API
 SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
+	SQLRETURN retcode;
+
 	INIT_HSTMT;
+
+	/* try to free dynamic associated */
+	retcode = odbc_free_dynamic(stmt);
+	if (retcode != SQL_SUCCESS)
+		return retcode;
 
 	if (SQL_SUCCESS != odbc_set_stmt_prepared_query(stmt, (char *) szSqlStr, cbSqlStr))
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -3514,4 +3516,23 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		odbc_upper_column_names(stmt);
 
 	return retcode;
+}
+
+static SQLRETURN
+odbc_free_dynamic(TDS_STMT * stmt)
+{
+	TDSSOCKET *tds = stmt->hdbc->tds_socket;
+
+	if (stmt->dyn) {
+		if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
+			if (tds_process_simple_query(tds) != TDS_SUCCEED)
+				ODBC_RETURN(stmt, SQL_ERROR);
+			tds_free_dynamic(tds, stmt->dyn);
+			stmt->dyn = NULL;
+		} else {
+			/* TODO if fail add to odbc to free later, when we are in idle */
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+	}
+	return SQL_SUCCESS;
 }
