@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.164 2003-12-15 19:04:48 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.165 2003-12-18 16:38:52 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -560,16 +560,20 @@ enum TDS_OPT_ISOLATION_CHOICE
 			x==SYBMONEY     || \
 			x==SYBMONEY4    || \
 			x==SYBUNIQUE)
-#define is_nullable_type(x) (x==SYBINTN || \
-			x==SYBFLTN      || \
-			x==SYBDATETIMN  || \
-			x==SYBVARCHAR   || \
-			x==SYBVARBINARY	|| \
-			x==SYBMONEYN	|| \
-			x==SYBTEXT	|| \
-			x==SYBNTEXT	|| \
+#define is_nullable_type(x) ( \
 			x==SYBBITN      || \
-			x==SYBIMAGE)
+                     x==SYBINTN      || \
+                     x==SYBFLTN      || \
+                     x==SYBMONEYN    || \
+                     x==SYBDATETIMN  || \
+                     x==SYBCHAR      || \
+                     x==SYBVARCHAR   || \
+                     x==SYBBINARY    || \
+                     x==SYBVARBINARY || \
+                     x==SYBTEXT      || \
+                     x==SYBNTEXT     || \
+                     x==SYBIMAGE)
+
 #define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */

@@ -1,3 +1,9 @@
+Thu Dec 18 11:20:53 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h corrected is_fixed_type
+	* src/dblib/bcp.c rewrote _bcp_get_term_var, better logging 
+	* src/dblib/dblib.c better destlen handling in dbconvert
+	* src/dblib/unittests/Makefile.am added bcp test
+
 Wed Dec 17 23:12:19 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fixed some issues with iODBC
 
