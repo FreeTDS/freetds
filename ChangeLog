@@ -1,3 +1,7 @@
+Sun Sep 22 23:31:25 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/.cvsignore:
+	- Ignore generated replacements.h
+
 Sun Sep 22 23:28:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/replacements/Makefile.am src/tds/convert.c
 	  include/replacements.h.in (added) src/replacements/atoll.c (added)
