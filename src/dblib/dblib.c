@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.128 2003-03-14 20:01:11 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.129 2003-03-15 11:26:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1592,7 +1592,6 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			for (i = len - 1; i >= 0 && dres.c[i] == ' '; --i) {
 				len = i;
 			}
-			assert(dres.c[len] == ' ');	/* if last position is not a blank, no room to null terminate */
 			memcpy(dest, dres.c, len);
 			dest[len] = '\0';
 			ret = len;
