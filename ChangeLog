@@ -1,3 +1,9 @@
+Fri Oct 18 13:18:34 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/Makefile.am
+	  include/tds_sysdep_private.h (added)
+	  include/tds_sysdep_private.h.in (removed):
+	- Conform to GNU coding standards when dealing with sysconfdir.
+
 Fri Oct 18 19:03:50 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/freebcp.c src/odbc/convert_sql2string.c:
 	* src/odbc/convert_tds2sql.c src/odbc/odbc.c:

@@ -21,10 +21,12 @@
 #define _tds_sysdep_private_h_
 
 static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h.in,v 1.6 2002-10-17 13:58:53 castellano Exp $";
+	"$Id: tds_sysdep_private.h,v 1.1 2002-10-18 17:20:12 castellano Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = {
 	rcsid_tds_sysdep_private_h,
 	no_unused_tds_sysdep_private_h_warn};
+
+#include "freetds_sysconfdir.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +61,6 @@ extern "C" {
 #ifndef IOCTLSOCKET
 #define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
 #endif /* !IOCTLSOCKET */
-
-#ifndef FREETDS_SYSCONFDIR
-#define FREETDS_SYSCONFDIR	"@prefix@/etc/"
-#endif /* !FREETDS_SYSCONFDIR */
 
 #ifdef __cplusplus
 }
