@@ -1,3 +1,8 @@
+Mon Sep 16 22:03:52 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/Makefile.am: fix for distribution and compile
+	* src/odbc/connectparams.c src/odbc/odbc.c:
+	- SQLDriverConnect should (not tested) work
+
 Mon Sep 16 15:44:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h include/dblib.h include/sybdb.h include/tds.h.in
 	  include/tdsutil.h src/apps/freebcp.c src/apps/tsql.c src/ctlib/cs.c

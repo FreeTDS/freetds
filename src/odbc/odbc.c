@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.51 2002-09-15 16:08:24 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.52 2002-09-16 20:05:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -186,12 +186,6 @@ SQLRETURN SQL_API SQLDriverConnect(
     if ( !(*szUID) )
     {
         odbc_LogError( "Could not find UID parameter" );
-        return SQL_ERROR;
-    }
-
-    if ( !(*szPWD) )
-    {
-        odbc_LogError( "Could not find PWD parameter" );
         return SQL_ERROR;
     }
 

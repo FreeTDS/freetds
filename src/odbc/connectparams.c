@@ -143,16 +143,62 @@ int tdoParseConnectString( char *pszConnectString,
                            char *pszUID, 
                            char *pszPWD )
 {
-    /* TODO */
-    *pszDataSourceName  = '\0'; 
-    *pszServer          = '\0';
-    *pszDatabase        = '\0';
-    *pszUID             = '\0';
-    *pszPWD             = '\0';
+char *p,*end,*dest;
 
-    return 1;
+	*pszDataSourceName  = '\0'; 
+	*pszServer          = '\0';
+	*pszDatabase        = '\0';
+	*pszUID             = '\0';
+	*pszPWD             = '\0';
+
+	for(p=pszConnectString;;) {
+		end = strchr(p,'=');
+		if (!end) break;
+
+		dest = NULL;
+		*end = 0;
+		if (strcasecmp(p,"server")==0) {
+			dest = pszServer;
+		} else if (strcasecmp(p,"servername")==0) {
+			dest = pszServer;
+		} else if (strcasecmp(p,"database")==0) {
+			dest = pszDatabase;
+		} else if (strcasecmp(p,"UID")==0) {
+			dest = pszUID;
+		} else if (strcasecmp(p,"PWD")==0) {
+			dest = pszPWD;
+		}
+		*end = '=';
+
+		/* parse value */
+		p = end + 1;
+		if (*p == '{') {
+			++p;
+			end = strstr(p,"};");
+		} else {
+			end = strchr(p,';');
+		}
+		if (!end) end = strchr(p,0);
+		
+		/* copy to destination */
+		if (dest) {
+			int cplen = end - p;
+			if (cplen > FILENAME_MAX)
+				cplen = FILENAME_MAX;
+			strncpy(dest,p,cplen);
+			dest[FILENAME_MAX-1] = 0;
+		}
+
+		/* handle "" ";.." "};.." cases */
+		if (!*p) break;
+		if (*p == '}') ++p;
+		++p;
+	}
+
+	return 1;
 }
 
+/* TODO: now even iODBC support SQLGetPrivateProfileString, best check */
 #ifndef UNIXODBC
 
 int SQLGetPrivateProfileString( LPCSTR  pszSection,
