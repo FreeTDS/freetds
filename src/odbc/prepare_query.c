@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.27 2003-05-31 16:12:15 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.28 2003-07-28 12:30:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -119,7 +119,7 @@ _get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
 		/* I don't know what to do */
-		odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported");
+		odbc_errs_add(&stmt->errs, 0, "HYC00", "SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported", NULL);
 		len = -1;
 		break;
 	default:

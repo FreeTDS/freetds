@@ -46,29 +46,18 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.33 2003-07-27 16:21:47 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.34 2003-07-28 12:30:10 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
-
-/* this is usually a const struct that store all errors */
-struct _sql_error_struct
-{
-	const char *msg;
-			 /**< default message */
-	char state2[6];
-			 /**< state for ODBC2 */
-	char state3[6];
-			 /**< state for ODBC3 */
-};
 
 struct _sql_error
 {
-	const struct _sql_error_struct *err;
-	/* override error if specified */
-	char *msg;
-	char sqlstate[6];
-	int msgstate;
-	int msgnum;
+	const char *msg;
+	char state2[6];
+	char state3[6];
+	TDS_UINT native;
+	char *server;
 	int linenum;
+	int msgstate;
 };
 
 struct _sql_errors
@@ -77,32 +66,16 @@ struct _sql_errors
 	struct _sql_error *errs;
 };
 
-enum _sql_error_types
-{
-	ODBCERR_GENERIC,
-	ODBCERR_NOTIMPLEMENTED,
-	ODBCERR_MEMORY,
-	ODBCERR_NODSN,
-	ODBCERR_CONNECT,
-	ODBCERR_INVALIDINDEX,
-	ODBCERR_INVALIDTYPE,
-	ODBCERR_INVALIDBUFFERLEN,
-	ODBCERR_DATATRUNCATION,
-	ODBCERR_NORESULT,
-	ODBCERR_INVALIDOPTION
-};
-
 #define ODBC_RETURN(handle, rc)       { return (handle->lastrc = (rc)); }
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
 
 /** add an error to list */
-void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg);
+void odbc_errs_add(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, const char *server);
 
 /** Add an error to list. This functions is for error that came from server */
-void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate,
-			 int msgnum, unsigned short linenum, int msgstate);
+void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum, int msgstate, const char *server);
 
 struct _heattr
 {
@@ -154,6 +127,7 @@ struct _hdbc
 	SQLSMALLINT htype;      /* do not reorder this field */
 	struct _henv *henv;
 	TDSSOCKET *tds_socket;
+	DSTR server;	/* aka Instance */
 	/** statement executing */
 	struct _hstmt *current_statement;
 	struct _sql_errors errs;

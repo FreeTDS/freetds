@@ -45,27 +45,265 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.20 2003-07-27 12:08:57 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.21 2003-07-28 12:30:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static void sqlstate2to3(char *state);
 static void odbc_errs_pop(struct _sql_errors *errs);
+static const char *odbc_get_msg(const char *sqlstate);
+static void odbc_get_sqlstate(TDS_UINT native, char *dest_state);
+static void odbc_get_v2state(const char *sqlstate, char *dest_state);
 
-#define ODBCERR(s2,s3,msg) { msg, s2, s3 }
-static const struct _sql_error_struct odbc_errs[] = {
-	ODBCERR("S1000", "HY000", "General driver error"),
-	ODBCERR("S1C00", "HYC00", "Optional feature not implemented"),
-	ODBCERR("S1001", "HY001", "Memory allocation error"),
-	/* TODO find best errors for ODBC version 2 */
-	ODBCERR("S1000", "IM007", "No data source or driver specified"),
-	ODBCERR("S1000", "08001", "Client unable to establish connection"),
-	ODBCERR("S1002", "07009", "Invalid index"),
-	ODBCERR("S1003", "HY004", "Invalid data type"),
-	ODBCERR("S1090", "HY090", "Invalid buffer length"),
-	ODBCERR("01004", "01004", "Data truncation"),
-	ODBCERR("S1010", "07005", "No result available"),
-	ODBCERR("S1092", "HY092", "Invalid option")
+struct s_SqlMsgMap
+{
+	const char *msg;
+	char sqlstate[6];
 };
+
+/* This list contains both v2 and v3 messages */
+#define ODBCERR(s3,msg) { msg, s3 }
+static const struct s_SqlMsgMap SqlMsgMap[] = {
+	ODBCERR("IM007", "No data source or driver specified"),
+	ODBCERR("01000", "Warning"),
+	ODBCERR("01002", "Disconnect error"),
+	ODBCERR("01004", "Data truncated"),
+	ODBCERR("01504", "The UPDATE or DELETE statement does not include a WHERE clause"),
+	ODBCERR("01508", "Statement disqualified for blocking"),
+	ODBCERR("01S00", "Invalid connection string attribute"),
+	ODBCERR("01S01", "Error in row"),
+	ODBCERR("01S02", "Option value changed"),
+	ODBCERR("01S06", "Attempt to fetch before the result set returned the first rowset"),
+	ODBCERR("01S07", "Fractional truncation"),
+	ODBCERR("07001", "Wrong number of parameters"),
+	ODBCERR("07002", "Too many columns"),
+	ODBCERR("07005", "The statement did not return a result set"),
+	ODBCERR("07006", "Invalid conversion"),
+	ODBCERR("07009", "Invalid descriptor index"),
+	ODBCERR("08001", "Unable to connect to data source"),
+	ODBCERR("08002", "Connection in use"),
+	ODBCERR("08003", "Connection is closed"),
+	ODBCERR("08004", "The application server rejected establishment of the connection"),
+	ODBCERR("08007", "Connection failure during transaction"),
+	ODBCERR("08S01", "Communication link failure"),
+	ODBCERR("0F001", "The LOB token variable does not currently represent any value"),
+	ODBCERR("21S01", "Insert value list does not match column list"),
+	ODBCERR("22001", "String data right truncation"),
+	ODBCERR("22002", "Invalid output or indicator buffer specified"),
+	ODBCERR("22003", "Numeric value out of range"),
+	ODBCERR("22005", "Error in assignment"),
+	ODBCERR("22007", "Invalid datetime format"),
+	ODBCERR("22008", "Datetime field overflow"),
+	ODBCERR("22011", "A substring error occurred"),
+	ODBCERR("22012", "Division by zero is invalid"),
+	ODBCERR("22015", "Interval field overflow"),
+	ODBCERR("22018", "Invalid character value for cast specification"),
+	ODBCERR("22019", "Invalid escape character"),
+	ODBCERR("22025", "Invalid escape sequence"),
+	ODBCERR("22026", "String data, length mismatch"),
+	ODBCERR("23000", "Integrity constraint violation"),
+	ODBCERR("24000", "Invalid cursor state"),
+	ODBCERR("24504", "The cursor identified in the UPDATE, DELETE, SET, or GET statement is not positioned on a row"),
+	ODBCERR("25501", "Invalid transaction state"),
+	ODBCERR("28000", "Invalid authorization specification"),
+	ODBCERR("34000", "Invalid cursor name"),
+	ODBCERR("37000", "Invalid SQL syntax"),
+	ODBCERR("40001", "Serialization failure"),
+	ODBCERR("40003", "Statement completion unknown"),
+	ODBCERR("42000", "Syntax error or access violation"),
+	ODBCERR("42601", "PARMLIST syntax error"),
+	ODBCERR("42818", "The operands of an operator or function are not compatible"),
+	ODBCERR("42895", "The value of a host variable in the EXECUTE or OPEN statement cannot be used because of its data type"),
+	ODBCERR("428A1", "Unable to access a file referenced by a host file variable"),
+	ODBCERR("44000", "Integrity constraint violation"),
+	ODBCERR("54028", "The maximum number of concurrent LOB handles has been reached"),
+	ODBCERR("56084", "LOB data is not supported in DRDA"),
+	ODBCERR("58004", "Unexpected system failure"),
+	ODBCERR("HY000", "General driver error"),
+	ODBCERR("HY001", "Memory allocation failure"),
+	ODBCERR("HY002", "Invalid column number"),
+	ODBCERR("HY003", "Program type out of range"),
+	ODBCERR("HY004", "Invalid data type"),
+	ODBCERR("HY007", "Associated statement is not prepared"),
+	ODBCERR("HY008", "Operation was cancelled"),
+	ODBCERR("HY009", "Invalid argument value"),
+	ODBCERR("HY010", "Function sequence error"),
+	ODBCERR("HY011", "Operation invalid at this time"),
+	ODBCERR("HY012", "Invalid transaction code"),
+	ODBCERR("HY013", "Unexpected memory handling error"),
+	ODBCERR("HY014", "No more handles"),
+	ODBCERR("HY016", "Cannot modify an implementation row descriptor"),
+	ODBCERR("HY017", "Invalid use of an automatically allocated descriptor handle"),
+	ODBCERR("HY018", "Server declined cancel request"),
+	ODBCERR("HY021", "Inconsistent descriptor information"),
+	ODBCERR("HY024", "Invalid attribute value"),
+	ODBCERR("HY090", "Invalid string or buffer length"),
+	ODBCERR("HY091", "Descriptor type out of range"),
+	ODBCERR("HY092", "Invalid option"),
+	ODBCERR("HY093", "Invalid parameter number"),
+	ODBCERR("HY094", "Invalid scale value"),
+	ODBCERR("HY096", "Information type out of range"),
+	ODBCERR("HY097", "Column type out of range"),
+	ODBCERR("HY098", "Scope type out of range"),
+	ODBCERR("HY099", "Nullable type out of range"),
+	ODBCERR("HY100", "Uniqueness option type out of range"),
+	ODBCERR("HY101", "Accuracy option type out of range"),
+	ODBCERR("HY103", "Direction option out of range"),
+	ODBCERR("HY104", "Invalid precision value"),
+	ODBCERR("HY105", "Invalid parameter type"),
+	ODBCERR("HY106", "Fetch type out of range"),
+	ODBCERR("HY107", "Row value out of range"),
+	ODBCERR("HY109", "Invalid cursor position"),
+	ODBCERR("HY110", "Invalid driver completion"),
+	ODBCERR("HY111", "Invalid bookmark value"),
+	ODBCERR("HY501", "Invalid data source name"),
+	ODBCERR("HY503", "Invalid file name length"),
+	ODBCERR("HY506", "Error closing a file"),
+	ODBCERR("HY509", "Error deleting a file"),
+	ODBCERR("HYC00", "Driver not capable"),
+	ODBCERR("HYT00", "Timeout expired"),
+	ODBCERR("HYT01", "Connection timeout expired"),
+	ODBCERR("S0001", "Database object already exists"),
+	ODBCERR("S0002", "Database object does not exist"),
+	ODBCERR("S0011", "Index already exists"),
+	ODBCERR("S0012", "Index not found"),
+	ODBCERR("S0021", "Column already exists"),
+	ODBCERR("S0022", "Column not found"),
+	ODBCERR("", NULL)
+};
+
+#undef ODBCERR
+
+struct s_NativeToSqlstateMap
+{
+	TDS_UINT native;
+	char sqlstate[6];
+};
+
+/* TODO use function in token.c */
+/* Try to map a native error code to a SQLSTATE */
+static const struct s_NativeToSqlstateMap NativeToSqlstateMap[] = {
+	{0, "42000"},
+	{109, "21S01"},
+	{110, "21S01"},
+	{207, "42S22"},
+	{208, "42S02"},
+	{245, "22018"},
+	{295, "22007"},
+	{296, "22007"},
+	{3621, "01000"},
+	{2627, "23000"},
+	{18456, "28000"},
+	{8152, "22001"},
+	{0, ""}
+};
+
+struct s_v3to2map
+{
+	char v3[6];
+	char v2[6];
+};
+
+/* Map a v3 SQLSTATE to a v2 */
+static const struct s_v3to2map v3to2map[] = {
+	{"01001", "01S03"},
+	{"01001", "01S04"},
+	{"HY019", "22003"},
+	{"22007", "22008"},
+	{"22018", "22005"},
+	{"07005", "24000"},
+	{"42000", "37000"},
+	{"HY018", "70100"},
+	{"42S01", "S0001"},
+	{"42S02", "S0002"},
+	{"42S11", "S0011"},
+	{"42S12", "S0012"},
+	{"42S21", "S0021"},
+	{"42S22", "S0022"},
+	{"42S23", "S0023"},
+	{"HY000", "S1000"},
+	{"HY001", "S1001"},
+	{"07009", "S1002"},
+	{"HY003", "S1003"},
+	{"HY004", "S1004"},
+	{"HY008", "S1008"},
+	{"HY009", "S1009"},
+	{"HY024", "S1009"},
+	{"HY007", "S1010"},
+	{"HY010", "S1010"},
+	{"HY011", "S1011"},
+	{"HY012", "S1012"},
+	{"HY090", "S1090"},
+	{"HY091", "S1091"},
+	{"HY092", "S1092"},
+/*	{"07009", "S1093"}, */
+	{"HY096", "S1096"},
+	{"HY097", "S1097"},
+	{"HY098", "S1098"},
+	{"HY099", "S1099"},
+	{"HY100", "S1100"},
+	{"HY101", "S1101"},
+	{"HY103", "S1103"},
+	{"HY104", "S1104"},
+	{"HY105", "S1105"},
+	{"HY106", "S1106"},
+	{"HY107", "S1107"},
+	{"HY108", "S1108"},
+	{"HY109", "S1109"},
+	{"HY110", "S1110"},
+	{"HY111", "S1111"},
+	{"HYC00", "S1C00"},
+	{"HYT00", "S1T00"},
+	{"08001", "S1000"},
+	{"IM007", "S1000"},
+	{"", ""}
+};
+
+static const char *
+odbc_get_msg(const char *sqlstate)
+{
+	const struct s_SqlMsgMap *pmap = SqlMsgMap;
+
+	/* TODO set flag and use pointers (no strdup) ?? */
+	while (pmap->msg) {
+		if (!strcasecmp(sqlstate, pmap->sqlstate)) {
+			return strdup(pmap->msg);
+		}
+		++pmap;
+	}
+	return strdup("");
+}
+
+/* TODO use function in token.c */
+static void
+odbc_get_sqlstate(TDS_UINT native, char *dest_state)
+{
+	const struct s_NativeToSqlstateMap *pmap = NativeToSqlstateMap;
+
+	while (pmap->sqlstate[0]) {
+		if (pmap->native == native) {
+			strncpy(dest_state, pmap->sqlstate, 5);
+			return;
+		}
+		++pmap;
+	}
+	/* The default sqlstate */
+	strncpy(dest_state, "42000", 5);
+}
+
+static void
+odbc_get_v2state(const char *sqlstate, char *dest_state)
+{
+	const struct s_v3to2map *pmap = v3to2map;
+
+	while (pmap->v3[0]) {
+		if (!strcasecmp(pmap->v3, sqlstate)) {
+			strncpy(dest_state, pmap->v2, 5);
+			return;
+		}
+		++pmap;
+	}
+	/* return the original if a v2 state is not found */
+	strncpy(dest_state, sqlstate, 5);
+}
 
 void
 odbc_errs_reset(struct _sql_errors *errs)
@@ -74,8 +312,11 @@ odbc_errs_reset(struct _sql_errors *errs)
 
 	if (errs->errs) {
 		for (i = 0; i < errs->num_errors; ++i) {
+			/* TODO see flags */
 			if (errs->errs[i].msg)
 				free(errs->errs[i].msg);
+			if (errs->errs[i].server)
+				free(errs->errs[i].server);
 		}
 		free(errs->errs);
 		errs->errs = NULL;
@@ -97,14 +338,15 @@ odbc_errs_pop(struct _sql_errors *errs)
 
 	if (errs->errs[0].msg)
 		free(errs->errs[0].msg);
+	if (errs->errs[0].server)
+		free(errs->errs[0].server);
 
 	--errs->num_errors;
 	memmove(&(errs->errs[0]), &(errs->errs[1]), errs->num_errors * sizeof(errs->errs[0]));
 }
 
 void
-odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate, int msgnum,
-		    unsigned short linenum, int msgstate)
+odbc_errs_add(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, const char *server)
 {
 	struct _sql_error *p;
 	int n = errs->num_errors;
@@ -115,44 +357,57 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, ch
 		p = (struct _sql_error *) malloc(sizeof(struct _sql_error));
 	if (!p)
 		return;
-
 	errs->errs = p;
-	errs->errs[n].err = &odbc_errs[err_type];
-	errs->errs[n].msg = msg ? strdup(msg) : NULL;
-	if (sqlstate != NULL) {
-		strncpy(errs->errs[n].sqlstate, sqlstate, 5);
-		errs->errs[n].sqlstate[5] = '\0';
+
+	memset(p, 0, sizeof(*p));
+	errs->errs[n].native = native;
+	if (sqlstate) {
+		strncpy(errs->errs[n].state3, sqlstate, 5);
+		errs->errs[n].state3[5] = '\0';
 	} else
-		errs->errs[n].sqlstate[0] = '\0';
-	errs->errs[n].msgnum = msgnum;
+		odbc_get_sqlstate(native, errs->errs[n].state3);
+	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
+	/* TODO why driver ?? -- freddy77 */
+	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
+	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
+	++errs->num_errors;
+}
+
+/* TODO check if TDS_UINT is correct for native error */
+void
+odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum, int msgstate,
+		    const char *server)
+{
+	struct _sql_error *p;
+	int n = errs->num_errors;
+
+	if (errs->errs)
+		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
+	else
+		p = (struct _sql_error *) malloc(sizeof(struct _sql_error));
+	if (!p)
+		return;
+	errs->errs = p;
+
+	memset(p, 0, sizeof(*p));
+	errs->errs[n].native = native;
+	if (sqlstate) {
+		/* FIXME this can cause all error to be wrong !!! */
+		/* TODO is correct to set state3 ?? */
+		strncpy(errs->errs[n].state3, sqlstate, 5);
+		errs->errs[n].state3[5] = '\0';
+	} else
+		odbc_get_sqlstate(native, errs->errs[n].state3);
+	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
+	/* TODO why driver ?? -- freddy77 */
+	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
+	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
 	errs->errs[n].linenum = linenum;
 	errs->errs[n].msgstate = msgstate;
 	++errs->num_errors;
 }
 
-void
-odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg)
-{
-	struct _sql_error *p;
-	int n = errs->num_errors;
-
-	if (errs->errs)
-		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
-	else
-		p = (struct _sql_error *) malloc(sizeof(struct _sql_error));
-	if (!p)
-		return;
-
-	errs->errs = p;
-	errs->errs[n].err = &odbc_errs[err_type];
-	errs->errs[n].msg = msg ? strdup(msg) : NULL;
-	errs->errs[n].sqlstate[0] = '\0';
-	errs->errs[n].msgnum = 0;
-	errs->errs[n].msgstate = 0;
-	errs->errs[n].linenum = 0;
-	++errs->num_errors;
-}
-
+#if 0
 #define SQLS_MAP(v2,v3) if (strcmp(p,v2) == 0) {strcpy(p,v3); return;}
 static void
 sqlstate2to3(char *state)
@@ -207,7 +462,7 @@ sqlstate2to3(char *state)
 	SQLS_MAP("S1C00", "HYC00");
 	SQLS_MAP("S1T00", "HYT00");
 }
-
+#endif
 
 static SQLRETURN
 _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
@@ -216,59 +471,57 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	SQLRETURN result;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
+	char *p;
+
+	/* TODO use FreeTDS name ?? */
+	static const char msgprefix[] = "[ODBC SQL Server Driver][SQL Server]";
+
+	/* FIXME change type, possible overflow */
 	unsigned char odbc_ver = SQL_OV_ODBC2;
-	TDS_STMT *stmt = NULL;
-	TDS_DBC *dbc = NULL;
-	TDS_ENV *env = NULL;
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0 || !handle)
 		return SQL_ERROR;
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		stmt = (TDS_STMT *) handle;
-		dbc = stmt->hdbc;
-		env = dbc->henv;
-		errs = &stmt->errs;
+		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->attr.attr_odbc_version;
+		errs = &((TDS_STMT *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
-		dbc = ((TDS_DBC *) handle);
-		env = dbc->henv;
-		errs = &dbc->errs;
+		odbc_ver = ((TDS_DBC *) handle)->henv->attr.attr_odbc_version;
+		errs = &((TDS_DBC *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
-		env = ((TDS_ENV *) handle);
-		errs = &env->errs;
+		odbc_ver = ((TDS_ENV *) handle)->attr.attr_odbc_version;
+		errs = &((TDS_ENV *) handle)->errs;
 		break;
 
 	default:
 		return SQL_INVALID_HANDLE;
 	}
-	odbc_ver = env->attr.attr_odbc_version;
 
 	if (numRecord > errs->num_errors)
 		return SQL_NO_DATA_FOUND;
 	--numRecord;
 
 	if (szSqlState) {
-		if (*errs->errs[numRecord].sqlstate != '\0') {
-			strcpy(szSqlState, errs->errs[numRecord].sqlstate);
-			if (odbc_ver == SQL_OV_ODBC3)
-				sqlstate2to3(szSqlState);
-		} else if (odbc_ver == SQL_OV_ODBC3)
-			strcpy((char *) szSqlState, errs->errs[numRecord].err->state3);
+		if (odbc_ver == SQL_OV_ODBC3)
+			strcpy((char *) szSqlState, errs->errs[numRecord].state3);
 		else
-			strcpy((char *) szSqlState, errs->errs[numRecord].err->state2);
+			strcpy((char *) szSqlState, errs->errs[numRecord].state2);
 	}
 
 	msg = errs->errs[numRecord].msg;
-	if (!msg)
-		msg = errs->errs[numRecord].err->msg;
-	result = odbc_set_string(szErrorMsg, cbErrorMsgMax, pcbErrorMsg, msg, -1);
+
+	if (asprintf(&p, "%s%s", msgprefix, msg) < 0)
+		return SQL_ERROR;
+	result = odbc_set_string(szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1);
+	free(p);
+
 	if (pfNativeError)
-		*pfNativeError = errs->errs[numRecord].msgnum;
+		*pfNativeError = errs->errs[numRecord].native;
 
 	return result;
 }
@@ -323,16 +576,21 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	SQLRETURN result = SQL_SUCCESS;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
+
+	/* FIXME possible int overflow, change type */
 	unsigned char odbc_ver = SQL_OV_ODBC2;
 	int cplen;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
-	TDSSOCKET *tsock;
 	char tmp[16];
+	SQLRETURN lastrc;
 
-	if (cbBuffer < 0 || !handle)
+	if (cbBuffer < 0)
 		return SQL_ERROR;
+
+	if (!handle)
+		return SQL_INVALID_HANDLE;
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
@@ -340,17 +598,20 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		dbc = stmt->hdbc;
 		env = dbc->henv;
 		errs = &stmt->errs;
+		lastrc = stmt->lastrc;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
 		env = dbc->henv;
 		errs = &dbc->errs;
+		lastrc = dbc->lastrc;
 		break;
 
 	case SQL_HANDLE_ENV:
 		env = ((TDS_ENV *) handle);
 		errs = &env->errs;
+		lastrc = env->lastrc;
 		break;
 
 	default:
@@ -376,15 +637,11 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_RETURNCODE:
-		/* TODO check if all warnings or not */
-		if (errs->num_errors > 0)
-			*(SQLRETURN *) buffer = SQL_ERROR;
-		else
-			*(SQLRETURN *) buffer = SQL_SUCCESS;
+		*(SQLRETURN *) buffer = lastrc;
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_CURSOR_ROW_COUNT:
-		if (stmt == NULL)
+		if (handleType != SQL_HANDLE_STMT)
 			return SQL_ERROR;
 
 		/* TODO */
@@ -392,23 +649,11 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_ROW_COUNT:
-		if (stmt == NULL)
+		if (handleType != SQL_HANDLE_STMT)
 			return SQL_ERROR;
 
-		/* FIXME I'm not sure this is correct. */
-		if (stmt->hdbc != NULL && stmt->hdbc->tds_socket != NULL) {
-			tsock = stmt->hdbc->tds_socket;
-			if (tsock->rows_affected == TDS_NO_COUNT) {
-				/* FIXME use row_count ?? */
-				if (tsock->res_info != NULL)
-					*(SQLINTEGER *) buffer = tsock->res_info->row_count;
-				else
-					*(SQLINTEGER *) buffer = 0;
-			} else
-				*(SQLINTEGER *) buffer = tsock->rows_affected;
-		} else
-			return SQL_ERROR;
-		return SQL_SUCCESS;
+		/* TODO use _SQLRowCount */
+		return SQLRowCount((SQLHSTMT) handle, (SQLINTEGER FAR *) buffer);
 	}
 
 	if (numRecord > errs->num_errors)
@@ -464,40 +709,39 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 	case SQL_DIAG_MESSAGE_TEXT:
 		msg = errs->errs[numRecord].msg;
-		if (!msg)
-			msg = errs->errs[numRecord].err->msg;
-
 		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
 		break;
 
 	case SQL_DIAG_NATIVE:
-		*(SQLINTEGER *) buffer = errs->errs[numRecord].msgnum;
+		*(SQLINTEGER *) buffer = errs->errs[numRecord].native;
 		break;
 
 	case SQL_DIAG_SERVER_NAME:
-		/* FIXME connect_info, as documented (or should be) is always NULL */
-		if (dbc && dbc->tds_socket && dbc->tds_socket->connect_info != NULL) {
-			if ((msg = tds_dstr_cstr(&dbc->tds_socket->connect_info->server_name)) != NULL) {
-				result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
-			} else {
-				if (pcbBuffer)
-					*pcbBuffer = 0;
+		msg = "";
+		switch (handleType) {
+		case SQL_HANDLE_ENV:
+			break;
+		case SQL_HANDLE_DBC:
+			msg = tds_dstr_cstr(&((TDS_DBC *) handle)->server);
+			break;
+		case SQL_HANDLE_STMT:
+			msg = tds_dstr_cstr(&((TDS_STMT *) handle)->hdbc->server);
+			/* if hdbc->server is not initialized, init it
+			 * from the errs structure */
+			if (!msg[0] && errs->errs[numRecord].server) {
+				tds_dstr_copy(&((TDS_STMT *) handle)->hdbc->server, errs->errs[numRecord].server);
+				msg = errs->errs[numRecord].server;
 			}
-		} else {
-			if (pcbBuffer)
-				*pcbBuffer = 0;
+			break;
 		}
+		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
 		break;
 
 	case SQL_DIAG_SQLSTATE:
-		msg = errs->errs[numRecord].sqlstate;
-		if (*msg != '\0') {
-			if (odbc_ver == SQL_OV_ODBC3)
-				sqlstate2to3(errs->errs[numRecord].sqlstate);
-		} else if (odbc_ver == SQL_OV_ODBC3)
-			msg = errs->errs[numRecord].err->state3;
+		if (odbc_ver == SQL_OV_ODBC3)
+			msg = errs->errs[numRecord].state3;
 		else
-			msg = errs->errs[numRecord].err->state2;
+			msg = errs->errs[numRecord].state2;
 
 		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, 5);
 		break;

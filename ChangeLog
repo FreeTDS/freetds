@@ -1,3 +1,9 @@
+Mon Jul 28 14:28:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	* src/odbc/prepare_query.c:
+	- continue merge from Steve patch:
+	 - merge error support (need test for state v2 from server errors)
+
 Sun Jul 27 18:20:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merging from Steve patch:
