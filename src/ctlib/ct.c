@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.128 2004-10-14 18:26:52 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.129 2004-11-02 15:18:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1935,6 +1935,18 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			break;
 		case CS_CLEAR:
 			ctx->config.cs_expose_formats = CS_FALSE;
+			break;
+		default:
+			ret = CS_FALSE;
+		}
+		break;
+        case CS_VER_STRING:
+		switch (action) {
+		case CS_GET:
+			if (buf && buflen > 0)
+				strncpy((char *)buf, TDS_VERSION_NO, buflen);
+			else
+				ret = CS_FALSE;
 			break;
 		default:
 			ret = CS_FALSE;

@@ -1,3 +1,10 @@
+Tue Nov  2 09:46:31 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ct.c support CS_VER_STRING (ML: 2 November 2004)
+	* locales.conf added Brazil
+	* doc/htdoc/faq.html fix typo 
+	* samples/test.pl accept query as last parameter
+	* src/tds/config.c s/THREAD_SAFE/_REENTRANT/
+
 Thu Oct 28 15:15:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/binary_test.c src/odbc/unittests/common.h:
 	* src/odbc/unittests/convert_error.c src/odbc/unittests/data.c:
