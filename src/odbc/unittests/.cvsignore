@@ -19,7 +19,7 @@ moreandcount
 earlybind
 putdata
 params
-raiseerror
+raiserror
 getdata
 type
 genparams

@@ -3,5 +3,6 @@ Makefile.in
 tsql
 freebcp
 bsqldb
+defncopy
 .libs
 .deps
