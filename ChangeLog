@@ -1,3 +1,8 @@
+Tue Dec 30 15:44:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c src/tds/token.c:
+	- comments
+	- fix return error converting from char to bit
+
 Tue Dec 30 13:43:21 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c  src/tds/convert.c src/tds/util.c:	
 	- removed Amd64 warnings

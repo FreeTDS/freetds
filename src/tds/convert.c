@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.130 2003-12-30 12:44:40 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.131 2003-12-30 14:45:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -453,17 +453,19 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		return sizeof(TDS_INT8);
 		break;
 	case SYBFLT8:
+		/* TODO check syntax and overflow */
 		cr->f = atof(src);
 		return sizeof(TDS_FLOAT);
 		break;
 	case SYBREAL:
+		/* TODO check syntax and overflow */
 		cr->r = atof(src);
 		return sizeof(TDS_REAL);
 		break;
 	case SYBBIT:
 	case SYBBITN:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
-			return TDS_CONVERT_OVERFLOW;
+			return rc;
 		cr->ti = tds_i ? 1 : 0;
 		return sizeof(TDS_TINYINT);
 		break;
@@ -1513,6 +1515,7 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBREAL:
+		/* TODO check overflow */
 		cr->r = the_value;
 		return sizeof(TDS_REAL);
 		break;
@@ -1943,7 +1946,8 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	char not_zero = 1;
 	int i = 0;
 	int j = 0;
-	short int bytes, places, point_found, sign, digits;
+	short int bytes, places, point_found, digits;
+	unsigned char sign;
 
 	sign = 0;
 	point_found = 0;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.243 2003-12-29 15:54:06 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.244 2003-12-30 14:45:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3010,6 +3010,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 	cur_by_col = info->bycolumns;
 	for (col = 0; col < by_cols; col++) {
+		/* FIXME *cur_by_col is smaller... */
 		*cur_by_col = tds_get_smallint(tds);
 		cur_by_col++;
 	}
