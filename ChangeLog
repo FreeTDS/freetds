@@ -1,3 +1,10 @@
+Mon Dec 13 11:57:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 autogen.sh configure.in misc/test-dist.sh:
+	* src/apps/Makefile.am src/ctlib/Makefile.am:
+	* src/dblib/Makefile.am src/odbc/Makefile.am:
+	* src/server/Makefile.am src/tds/Makefile.am:
+	- imported changes from 0.63 trunk
+
 Sun Dec 12 10:07:06 EST 2004	Brian Bruns <brian@bruns.com>
 	* src/pool/main.c: setsockopt to SO_REUSEADDR
 	* src/pool/member.c: use netlib final packet flag instead of done token.

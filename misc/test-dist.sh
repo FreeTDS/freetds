@@ -66,7 +66,7 @@ INSTALLDIR="$PWD/install"
 mkdir build
 cd build
 # --enable-msdblib --enable-sybase-compat can cause also problems, try to compile with both
-../configure --prefix="$INSTALLDIR" --enable-msdblib --enable-sybase-compat
+../configure --prefix="$INSTALLDIR" --enable-msdblib --enable-sybase-compat --disable-libiconv
 # make clean should not cause problems here
 make clean
 make install
