@@ -1,3 +1,7 @@
+Mon Apr 26 14:00:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/convert_error.c:
+	- cleanup and fix
+
 Sun Apr 25 10:54:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* BUGS NEWS TODO: updates
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:

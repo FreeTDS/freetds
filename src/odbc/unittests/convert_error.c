@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.1 2004-04-25 08:55:36 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.2 2004-04-26 12:01:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -39,11 +39,11 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	int id = 1;
 
 	++test_num;
-	sprintf(sql, "insert into #test_output values (%s, 'A', 'B', 'C', %s)", bind1, bind2);
+	sprintf(sql, "insert into #test_output values (%s, %s)", bind1, bind2);
 
 	success(2, SQLPrepare(Statement, (SQLCHAR *) sql, strlen(sql)));
 	if (bind1[0] == '?')
-		success(3, SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 0, 0, &test_num, 0, &inttmp));
+		success(3, SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &inttmp));
 	if (bind2[0] == '?')
 		success(4,
 			SQLBindParameter(Statement, id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
@@ -57,8 +57,7 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement,
-		"create table #test_output (id int, itemtype VARCHAR(64), item VARCHAR(255), rtype VARCHAR(23), msg text)");
+	Command(Statement, "create table #test_output (id int, msg text)");
 
 	Test("?", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
