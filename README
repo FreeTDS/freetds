@@ -2,8 +2,7 @@ README for FreeTDS 0.62.1
 Saturday, 14 January 2004
 
 The 0.62 release included one late change that had not been thoroughly tested. 
-This 0.62.1 release corrects that error.  A patch to convert 0.62 to 0.62.1 can
-be found on ftp.ibiblio.org.  
+This 0.62.1 release corrects that error.  
 
 The regular README follows.  
 
@@ -243,5 +242,5 @@ from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
 
-$Id: README,v 1.8.4.3 2004-01-15 05:00:56 jklowden Exp $
+$Id: README,v 1.8.4.4 2004-01-15 05:01:30 jklowden Exp $
 
