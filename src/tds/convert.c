@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.41 2002-08-16 11:00:16 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.42 2002-08-16 14:19:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -181,7 +181,7 @@ tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
                       return strlen(dest);
 */
       }
-      return 0;
+      return TDS_FAIL;
 }
 
 
@@ -749,6 +749,7 @@ TDS_INT8 mymoney;
 			cr->ti = mny.mny4 ? 1 : 0;
 			return 1;
 			break;
+		/* FIXME add conversion to REAL */
 		case SYBFLT8:
 			/* FIXME dollars can be 64 bit while src 32 */
 			memcpy(&dollars, src, sizeof(dollars));
@@ -856,6 +857,7 @@ int i;
 			cr->r  = (float) (mymoney / 10000.0);
             return 4;
 			break;
+		/* FIXME add conversion to MONEY4 */
 		case SYBMONEY:
 			memcpy(&(cr->m), src, sizeof(TDS_MONEY));
 			return sizeof(TDS_MONEY);
