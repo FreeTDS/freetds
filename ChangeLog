@@ -1,3 +1,8 @@
+Sat Nov 15 10:37:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt: added SQLFetchScroll
+	* src/tds/iconv.c: fixed for dblib problem
+	* src/odbc/odbc.c: rollback
+
 Sat Nov 15 10:26:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/common.c src/tds/unittests/common.h:
 	* src/tds/unittests/utf8_1.c:

@@ -105,7 +105,7 @@ odbc	(all)	SQLExecDirect	OK
 odbc	(all)	SQLExecute	OK
 odbc	(all)	SQLExtendedFetch	
 odbc	(all)	SQLFetch	OK
-odbc	(all)	SQLFetchScroll	
+odbc	(all)	SQLFetchScroll	OK
 odbc	(all)	SQLForeignKeys	OK
 odbc	(all)	SQLFreeConnect	OK
 odbc	(all)	SQLFreeEnv	OK
