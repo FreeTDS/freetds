@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.23 2002-07-11 05:55:44 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.24 2002-07-12 03:09:06 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2081,6 +2081,40 @@ RETCODE dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest)
 }
 RETCODE dbsafestr(DBPROCESS *dbproc,char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
 {
+int i, j = 0;
+int squote = FALSE, dquote = FALSE;
+
+	
+	if (srclen==-1) 
+		srclen = strlen(src);
+
+	if (quotetype == DBSINGLE || quotetype == DBBOTH)
+		squote = TRUE;
+	if (quotetype == DBDOUBLE || quotetype == DBBOTH)
+		dquote = TRUE;
+
+	for (i=0;i<srclen;i++) {
+
+		/* dbsafestr returns fail if the deststr is not big enough */
+		/* need one char + one for terminator */
+		if (destlen >= 0 && j>destlen)
+			return FAIL;
+
+		if (squote && src[i]=='\'')
+			dest[j++] = '\'';
+		else if (dquote && src[i]=='\"')
+			dest[j++] = '\"';
+
+		if (destlen >= 0 && j>destlen)
+			return FAIL;
+
+		dest[j++] = src[i];
+	}
+
+	if (destlen >= 0 && j>destlen)
+		return FAIL;
+
+	dest[j]='\0';
 	return SUCCEED;
 }
 char *dbprtype(int token)

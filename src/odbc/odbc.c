@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.35 2002-07-06 18:34:51 jklowden Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.36 2002-07-12 03:09:06 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1076,7 +1076,7 @@ SQLRETURN SQL_API SQLFetch(
     {
         colinfo = resinfo->columns[i];
         colinfo->column_text_sqlgetdatapos = 0;
-        if (colinfo->varaddr)
+        if (colinfo->varaddr && !tds_get_null(resinfo->current_row, i))
         {
             if (is_blob_type(colinfo->column_type))
             {
@@ -1098,7 +1098,10 @@ SQLRETURN SQL_API SQLFetch(
         }
         if (colinfo->column_lenbind)
         {
-            *((SQLINTEGER *)colinfo->column_lenbind)=len;
+        	if (tds_get_null(resinfo->current_row, i))
+            	*((SQLINTEGER *)colinfo->column_lenbind)=SQL_NULL_DATA;
+			else
+            	*((SQLINTEGER *)colinfo->column_lenbind)=len;
         }
     }
     if (ret==TDS_SUCCEED)
