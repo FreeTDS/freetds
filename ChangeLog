@@ -1,3 +1,7 @@
+Thu Nov 22 18:26:34 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/dblib/dblib.c: modify DBROWS to check for validity of resinfo
+
 Wed Nov 21 17:15:23 2001  James Cameron  <quozl@us.netrek.org>
 
 	* .cvsignore: remove all generated files from CVS.

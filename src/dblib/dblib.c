@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.5 2001-11-08 04:50:36 vorlon Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.6 2001-11-22 23:37:16 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1361,7 +1361,7 @@ TDSSOCKET * tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
-	if (resinfo->rows_exist) return TRUE;
+	if (resinfo && resinfo->rows_exist) return TRUE;
 	else return FALSE;
 }
 /* STUBS */
