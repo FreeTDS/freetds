@@ -1,3 +1,6 @@
+Sun Jan  9 14:52:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/t0018.c: improved from #1088672
+
 Sun Jan  9 14:30:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: remove warning and posible problem
 
