@@ -1,3 +1,9 @@
+Thu Aug 28 21:42:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/descriptor.c src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - populate IRD (updated)
+	- check res_info <=> IRD consistency and add some temporary fix
+
 Thu Aug 28 18:03:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue merging Steve Murphree patch

@@ -95,7 +95,7 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 	if (!drecs)
 		return SQL_ERROR;
 	desc->records = drecs;
-	memset(desc->records + desc->header.sql_desc_count, 0, sizeof(struct _drecord) * (desc->header.sql_desc_count - count));
+	memset(desc->records + desc->header.sql_desc_count, 0, sizeof(struct _drecord) * (count - desc->header.sql_desc_count));
 
 	for (i = desc->header.sql_desc_count; i < count; ++i) {
 		drec = &desc->records[i];

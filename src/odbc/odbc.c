@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.226 2003-08-28 16:03:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.227 2003-08-28 19:42:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -91,6 +91,7 @@ static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQL
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
 #endif
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
+static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static void log_unimplemented_type(const char function_name[], int fType);
@@ -99,6 +100,13 @@ static int odbc_col_setname(TDS_STMT * stmt, int colpos, char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 
+#if ENABLE_EXTRA_CHECKS
+static void odbc_ird_check(TDS_STMT * stmt);
+
+#define IRD_CHECK odbc_ird_check(stmt)
+#else
+#define IRD_CHECK
+#endif
 
 /**
  * \defgroup odbc_api ODBC API
@@ -149,12 +157,19 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, char *name)
 	TDSRESULTINFO *resinfo;
 	int retcode = -1;
 
+	IRD_CHECK;
 	if (colpos > 0 && stmt->hdbc->tds_socket != NULL && (resinfo = stmt->hdbc->tds_socket->res_info) != NULL) {
+		--colpos;
 		if (colpos <= resinfo->num_cols) {
 			/* TODO set column_namelen, see overflow */
-			strcpy(resinfo->columns[colpos - 1]->column_name, name);
+			strcpy(resinfo->columns[colpos]->column_name, name);
+			resinfo->columns[colpos]->column_namelen = strlen(name);
 			retcode = 0;
 		}
+		/* FIXME only this code at end ... */
+		if (stmt->ird->records[colpos].sql_desc_label)
+			free(stmt->ird->records[colpos].sql_desc_label);
+		stmt->ird->records[colpos].sql_desc_label = strdup(name);
 	}
 	return retcode;
 }
@@ -456,13 +471,16 @@ SQLMoreResults(SQLHSTMT hstmt)
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->hdbc->current_statement == stmt)
 				stmt->hdbc->current_statement = NULL;
+			odbc_populate_ird(stmt);
 			ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
-				if (in_row)
+				if (in_row) {
+					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
+				}
 				/* Skipping current result set's rows to access next resultset or proc's retval */
 				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
 				if (tdsret == TDS_FAIL)
@@ -484,20 +502,25 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* FIXME here ??? */
 				if (!in_row)
 					tds_free_all_results(tds);
+				odbc_populate_ird(stmt);
 				ODBC_RETURN(stmt, SQL_SUCCESS);
 				break;
 
 				/* TODO test flags ? check error and change result ? */
 			case TDS_DONEINPROC_RESULT:
-				if (in_row)
+				if (in_row) {
+					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
+				}
 				break;
 
 				/* do not stop at metadata, an error can follow... */
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
-				if (in_row)
+				if (in_row) {
+					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
+				}
 				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
 				in_row = 1;
@@ -1215,6 +1238,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 
 	INIT_HSTMT;
 
+	IRD_CHECK;
 	tds = stmt->hdbc->tds_socket;
 	if (icol <= 0 || tds->res_info == NULL || icol > tds->res_info->num_cols) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
@@ -1476,6 +1500,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	INIT_HSTMT;
 
+	IRD_CHECK;
 	dbc = stmt->hdbc;
 	tds = dbc->tds_socket;
 
@@ -2112,6 +2137,123 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	ODBC_RETURN(desc, result);
 }
 
+/* TODO remove this ugly functions */
+static char *
+odbc_strndup(const char *s, size_t n)
+{
+	char *p = (char *) malloc(n + 1);
+
+	if (p) {
+		memcpy(p, s, n);
+		p[n] = 0;
+	}
+	return p;
+}
+
+#if ENABLE_EXTRA_CHECKS
+static void
+odbc_ird_check(TDS_STMT * stmt)
+{
+	TDS_DESC *ird = stmt->ird;
+	struct _drecord *drec;
+	TDSCOLINFO *col;
+	TDSRESULTINFO *res_info = NULL;
+	int cols = 0, i;
+
+	if (!stmt->hdbc->tds_socket)
+		return;
+	if (stmt->hdbc->tds_socket->res_info) {
+		res_info = stmt->hdbc->tds_socket->res_info;
+		cols = res_info->num_cols;
+	}
+
+	/* check columns number */
+	assert(ird->header.sql_desc_count == cols);
+
+	/* check all columns */
+	for (i = 0; i < cols; ++i) {
+		drec = &ird->records[i];
+		col = res_info->columns[i];
+		assert(strlen(drec->sql_desc_label) == col->column_namelen);
+		assert(memcmp(drec->sql_desc_label, col->column_name, col->column_namelen) == 0);
+	}
+}
+#endif
+
+static SQLRETURN
+odbc_populate_ird(TDS_STMT * stmt)
+{
+	TDS_DESC *ird = stmt->ird;
+	struct _drecord *drec;
+	TDSCOLINFO *col;
+	TDSRESULTINFO *res_info;
+	int num_cols;
+	int i;
+
+	desc_free_records(ird);
+	if (!stmt->hdbc->tds_socket || !(res_info = stmt->hdbc->tds_socket->res_info))
+		return SQL_SUCCESS;
+	num_cols = res_info->num_cols;
+
+	/* FIXME check failure */
+	desc_alloc_records(ird, num_cols);
+
+	/* FIXME check failures on allocation !!! */
+	for (i = 0; i < num_cols; i++) {
+		drec = &ird->records[i];
+		col = res_info->columns[i];
+		drec->sql_desc_auto_unique_value = col->column_identity ? SQL_TRUE : SQL_FALSE;
+		drec->sql_desc_base_column_name = strdup("");
+		drec->sql_desc_base_table_name = strdup("");
+		/* TODO SQL_FALSE ?? */
+		drec->sql_desc_case_sensitive = SQL_TRUE;
+		drec->sql_desc_catalog_name = strdup("");
+		/* TODO is correct ?? */
+		drec->sql_desc_concise_type =
+			drec->sql_desc_type =
+			odbc_tds_to_sql_type(col->column_type, col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		drec->sql_desc_display_size = odbc_sql_to_displaysize(drec->sql_desc_type, col->column_size, col->column_prec);
+		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
+		drec->sql_desc_label = odbc_strndup(col->column_name, col->column_namelen);
+		/* TODO other types for date ?? */
+		if (drec->sql_desc_concise_type == SQL_TIMESTAMP)
+			drec->sql_desc_length = strlen("2000-01-01 12:00:00.0000");
+		else
+			drec->sql_desc_length = col->column_size;
+		/* TOOD use constants, not allocated string, fill correctly */
+		drec->sql_desc_literal_prefix = strdup("");
+		drec->sql_desc_literal_suffix = strdup("");
+
+		drec->sql_desc_local_type_name = strdup("");
+		drec->sql_desc_name = odbc_strndup(col->column_name, col->column_namelen);
+
+		drec->sql_desc_unnamed = strlen(drec->sql_desc_name) ? SQL_NAMED : SQL_UNNAMED;
+		/* TODO use is_nullable_type ?? */
+		drec->sql_desc_nullable = col->column_nullable ? SQL_TRUE : SQL_FALSE;
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+			drec->sql_desc_num_prec_radix = 10;
+		else
+			drec->sql_desc_num_prec_radix = 0;
+
+		drec->sql_desc_octet_length = col->column_size;
+		drec->sql_desc_octet_length_ptr = NULL;
+		drec->sql_desc_precision = col->column_prec;
+		/* TODO test timestamp from db, FOR BROWSE query */
+		drec->sql_desc_rowver = SQL_FALSE;
+		drec->sql_desc_scale = col->column_scale;
+		drec->sql_desc_schema_name = strdup("");
+		/* TODO seem not correct */
+		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
+		drec->sql_desc_table_name = strdup("");
+		drec->sql_desc_type_name = odbc_tds_to_sql_typename(col->column_type,
+								    col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		/* TODO perhaps TINYINY and BIT.. */
+		drec->sql_desc_unsigned = SQL_FALSE;
+		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
+	}
+	return (SQL_SUCCESS);
+}
+
 static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2195,6 +2337,7 @@ _SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
+	odbc_populate_ird(stmt);
 	switch (ret) {
 	case TDS_NO_MORE_RESULTS:
 		if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
@@ -2391,6 +2534,7 @@ SQLExecute(SQLHSTMT hstmt)
 		if (done)
 			break;
 	}
+	odbc_populate_ird(stmt);
 	if (result == SQL_SUCCESS && stmt->errs.num_errors != 0)
 		ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 	ODBC_RETURN(stmt, result);
@@ -2426,6 +2570,7 @@ SQLFetch(SQLHSTMT hstmt)
 
 	INIT_HSTMT;
 
+	IRD_CHECK;
 	tds = stmt->hdbc->tds_socket;
 
 	context = stmt->hdbc->henv->tds_ctx;
@@ -2452,6 +2597,7 @@ SQLFetch(SQLHSTMT hstmt)
 
 	switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid)) {
 	case TDS_NO_MORE_ROWS:
+		odbc_populate_ird(stmt);
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		break;
@@ -2778,7 +2924,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		size = sizeof(stmt->apd->header.sql_desc_array_size);
 		src = &stmt->apd->header.sql_desc_array_size;
 		break;
-	/* TODO use this attribute, set in tds_socket before every query */
+		/* TODO use this attribute, set in tds_socket before every query */
 	case SQL_ATTR_QUERY_TIMEOUT:
 		size = sizeof(stmt->attr.attr_query_timeout);
 		src = &stmt->attr.attr_query_timeout;
@@ -2883,6 +3029,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 
 	INIT_HSTMT;
 
+	IRD_CHECK;
 	tds = stmt->hdbc->tds_socket;
 	resinfo = tds->res_info;
 	if (resinfo == NULL) {
@@ -3183,6 +3330,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	INIT_HSTMT;
 
+	IRD_CHECK;
 	if (!pcbValue)
 		pcbValue = &dummy_cb;
 
@@ -4237,6 +4385,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	int icol;
 	char *p;
 
+	IRD_CHECK;
 	tds = stmt->hdbc->tds_socket;
 	if (!tds || !tds->res_info)
 		return;
@@ -4249,6 +4398,10 @@ odbc_upper_column_names(TDS_STMT * stmt)
 		for (p = colinfo->column_name; *p; ++p)
 			if ('a' <= *p && *p <= 'z')
 				*p = *p & (~0x20);
+		/* FIXME only this at end of works ... */
+		if (stmt->ird->records[icol].sql_desc_label)
+			free(stmt->ird->records[icol].sql_desc_label);
+		stmt->ird->records[icol].sql_desc_label = strdup(colinfo->column_name);
 	}
 }
 
