@@ -1,3 +1,7 @@
+Thu Sep  5 06:51:17 EDT 2002	Brian Bruns <camber@ais.org>
+	* src/odbc/obdc.c: added SQL_FLOAT and friends to SQLColAttributes 
+	display size.
+
 Thu Sep  5  10:19:56 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: print NULL for null, do not call tds_convert
 

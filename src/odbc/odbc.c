@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.44 2002-09-05 08:20:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.45 2002-09-05 11:04:34 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -919,6 +919,11 @@ SQLRETURN SQL_API SQLColAttributes(
             break;
         case SQL_DATE:
             *pfDesc = 19;
+            break;
+        case SQL_FLOAT:
+        case SQL_REAL:
+        case SQL_DOUBLE:
+            *pfDesc = 16; /* FIX ME -- what should the correct size be? */
             break;
         }
         break;
