@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.15 2002-07-04 12:32:50 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.16 2002-07-05 02:18:30 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -518,7 +518,7 @@ static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config)
 }
 int set_interfaces_file_loc(char *interf)
 {
-	if (strlen(interf)>MAXPATH) return 0;
+	if (strlen(interf)>=MAXPATH) return 0;
 
 	strcpy(interf_file,interf);
 	return 1; /* SUCCEED */
