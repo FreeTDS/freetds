@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.12 2005-02-07 14:23:40 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.13 2005-02-15 13:04:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -134,6 +134,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	fd_set fds;
 	time_t start, now;
 	int len, retval;
+	socklen_t optlen;
 
 	FD_ZERO(&fds);
 
@@ -205,6 +206,19 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		return TDS_FAIL;
 	}
 	/* END OF NEW CODE */
+
+	/* check socket error */
+	optlen = sizeof(len);
+	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, &len, &optlen) != 0) {
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt: %s\n", strerror(sock_errno));
+		tds_close_socket(tds);
+		return TDS_FAIL;
+	}
+	if (len != 0) {
+		tdsdump_log(TDS_DBG_ERROR, "connect error: %s\n", strerror(len));
+		tds_close_socket(tds);
+		return TDS_FAIL;
+	}
 
 	return TDS_SUCCEED;
 }
@@ -671,7 +685,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	unsigned long ioctl_blocking = 1;
 	struct timeval selecttimeout;
 	fd_set fds;
-	int len, retval;
+	int retval;
 	TDS_SYS_SOCKET s;
 	char msg[1024];
 	size_t msg_len;
@@ -692,19 +706,10 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		return 0;
 	}
 
-	/* TODO check what happen on Cluster env, different ip do not filter with connect */
-
-	/* connect, so we don't accept response from other machines */	
-	if (connect(s, &sin, sizeof(sin)) < 0) {
-		CLOSESOCKET(s);
-		tdsdump_log(TDS_DBG_ERROR, "connect error: %s\n", strerror(sock_errno));
-		return 0;
-	}
-
-	len = 1;
-#if defined(TCP_NODELAY) && defined(SOL_TCP)
-	setsockopt(s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
-#endif
+	/*
+	 * on cluster environment is possible that reply packet came from
+	 * different IP so do not filter by ip with connect
+	 */
 
 	ioctl_blocking = 1;
 	if (IOCTLSOCKET(s, FIONBIO, &ioctl_blocking) < 0) {
@@ -720,7 +725,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		msg[0] = 4;
 		strncpy(msg + 1, instance, sizeof(msg) - 2);
 		msg[sizeof(msg) - 1] = 0;
-		send(s, msg, strlen(msg) + 1, 0);
+		sendto(s, msg, strlen(msg) + 1, 0, &sin, sizeof(sin));
 
 		FD_ZERO(&fds);
 		FD_SET(s, &fds);
@@ -739,17 +744,48 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		/* got data, read and parse */
 		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
 			char *p;
-			long l;
+			long l = 0;
+			int instance_ok = 0, port_ok = 0;
 
+			/* assure null terminated */
 			msg[msg_len] = 0;
 			tdsdump_dump_buf(TDS_DBG_INFO1, "instance info", msg, msg_len);
-			p = strstr(msg + 3, ";tcp;");
-			if (!p)
-				continue;
-			l = strtol(p + 5, &p, 10);
-			if (l > 0 && l <= 0xffff && *p == ';')
+
+			/*
+			 * parse message and check instance name and port
+			 * we don't check servername cause it can be very
+			 * different from client one
+			 */
+			p = msg + 3;
+			for (;;) {
+				char *name, *value;
+
+				name = p;
+				p = strchr(p, ';');
+				if (!p)
+					break;
+				*p++ = 0;
+
+				value = p;
+				p = strchr(p, ';');
+				if (!p)
+					break;
+				*p++ = 0;
+
+				if (strcasecmp(name, "InstanceName") == 0) {
+					if (strcasecmp(value, instance) != 0)
+						break;
+					instance_ok = 1;
+				} else if (strcasecmp(name, "tcp") == 0) {
+					l = strtol(value, &p, 10);
+					if (l > 0 && l <= 0xffff && *p == 0)
+						port_ok = 1;
+				}
+			}
+			if (port_ok && instance_ok) {
 				port = l;
-			break;
+				break;
+			}
 		}
 	}
 	CLOSESOCKET(s);

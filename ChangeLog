@@ -1,3 +1,7 @@
+Tue Feb 15 14:03:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/net.c TODO:
+	- improve support for getting port on mssql2k (mainly using clusters)
+
 Tue Feb 15 10:07:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* src/ctlib/ct.c: fix possible client buffer overflow

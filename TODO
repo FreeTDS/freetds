@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.135 2005-02-15 09:08:42 freddy77 Exp $
+To Do List	$Id: TODO,v 1.136 2005-02-15 13:04:24 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -21,7 +21,6 @@ Working in progress:
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
 . support for named instances under mssql2k
   . utility to get port
-  . review TODO in procedure, check cluster
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
     (tds_peek if not in pending state hang... update)
