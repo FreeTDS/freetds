@@ -46,7 +46,7 @@ even if FreeTDS main package is not installed
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --enable-threadsafe
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --enable-threadsafe --sysconfdir=%{_sysconfdir}
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
@@ -63,9 +63,12 @@ rm -rf $RPM_BUILD_ROOT
 %files 
 %defattr(-,root,root) 
 %doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README TODO 
+%{_bindir}/*
+%{_mandir}/man1/*
 %{_libdir}/libct.so*
 %{_libdir}/libsybdb.so*
 %{_libdir}/libtds.so*
+%{_libdir}/libtdssrv.so*
 %config %{_sysconfdir}/*
  
 %files devel 
@@ -78,6 +81,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libtds.a
 %{_libdir}/libtds.la
 %{_libdir}/libtdsodbc.a
+%{_libdir}/libtdsodbc.la
+%{_libdir}/libtdssrv.a
+%{_libdir}/libtdssrv.la
 
 %files unixodbc
 %defattr(-,root,root)
@@ -88,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc userguide
  
 %changelog 
+* Wed Feb  5 2003 Ian Grant <Ian.Grant@cl.cam.ac.uk>
+- 0.61 tweaked. Added libtdssrv libraries and tools in /usr/bin + man pages
+
 * Sun Dec 30 2002 David Hollis <dhollis@davehollis.com>
 - 0.60 tweaked.  Move .a & .la files to -devel package
 
