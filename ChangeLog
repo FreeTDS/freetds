@@ -1,14 +1,25 @@
+Sun Feb 10 21:30:05 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* configure.in: error if gmake not found
+	* src/odbc/odbc.c: parameter bind support better
+	* src/tds/write.c(tds_put_string): change to char * from ansi C
+	 
 Wed Feb  6 07:32:32 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* src/odbc/odbc.c(SQLGetInfo): added SQL_ACTIVE_STATEMENTS
+	* src/odbc/odbc.c(SQLCancel): implemented
 	* include/tdsodbc.h: add parameter binding link list
 	* src/odbc/odbc.c: added back temporary link list for column binds to be
 	bound later when we have a res_info struture.  Preliminary work on 
 	parameter binding too.
  
 Thu Jan 31 10:07:18 EST 2002	Brian Bruns	<camber@ais.org>
+
 	* include/sybdb.h: add back define for dbopen removed by ansi patch
 	* AUTHORS: Add Chris Eleved
 
 Wed Jan 30 21:19:34 EST 2002	Brian Bruns	<camber@ais.org>
+	
 	* : Patches from Chris Eleveld <ihermit2@yahoo.com> for ANSI C compliance
 
 Fri Jan 25 08:11:09 EST 2002	Brian Bruns	<camber@ais.org>

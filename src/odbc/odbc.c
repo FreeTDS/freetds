@@ -49,7 +49,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.15 2002-02-06 13:02:47 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.16 2002-02-11 03:01:39 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -57,6 +57,7 @@ static SQLSMALLINT _odbc_get_client_type(int srv_type);
 static int _odbc_fix_literals(struct _hstmt *stmt);
 static int _odbc_fixup_sql(struct _hstmt *stmt);
 static int _odbc_get_server_type(int clt_type);
+static int _odbc_get_server_ctype(int c_type);
 static int _odbc_get_string_size(int size, char *str);
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR *phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR *phenv);
@@ -604,6 +605,12 @@ struct _sql_bind_info *cur, *prev, *newitem;
 SQLRETURN SQL_API SQLCancel(
     SQLHSTMT           hstmt)
 {
+struct _hstmt *stmt = (struct _hstmt *) hstmt;
+TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+
+	tds_send_cancel(tds);
+	tds_process_cancel(tds);
+
 	return SQL_SUCCESS;
 }
 
@@ -1510,6 +1517,8 @@ SQLRETURN SQL_API SQLGetInfo(
     SQLSMALLINT FAR   *pcbInfoValue)
 {
 char *p = NULL;
+SQLSMALLINT si = 0;
+int si_set = 0;
 int len;
 	
 	switch (fInfoType) {
@@ -1519,9 +1528,15 @@ int len;
 		case SQL_DRIVER_ODBC_VER:
 			p = "1.0";
 			break;
+		case SQL_ACTIVE_STATEMENTS:
+			si = 1;
+			si_set = 1;
+			break;
 	}
 	
-	if (p) {  /* char/binary data */
+	if (si_set) {
+		memcpy(rgbInfoValue, &si, sizeof(si));
+	} else if (p) {  /* char/binary data */
 		len = strlen(p);
 
 		if (rgbInfoValue) {
@@ -1704,8 +1719,16 @@ SQLRETURN SQL_API SQLDataSources(
 static struct _sql_param_info * 
 _odbc_find_param(struct _hstmt *stmt, int param_num)
 {
-	/* fix me */
-	return stmt->param_head;
+struct _sql_param_info *cur;
+
+	/* find parameter number n */
+	cur = stmt->param_head;
+	while (cur) {
+		if (cur->param_number==param_num) 
+			return cur;
+		cur = cur->next;
+	}
+	return NULL;
 }
 static int 
 _odbc_fixup_sql(struct _hstmt *stmt)
@@ -1724,7 +1747,7 @@ int len;
 			if (param = _odbc_find_param(stmt, param_num)) {
 				printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype);
 				len = tds_convert(
-					_odbc_get_server_type(param->param_sqltype), 
+					_odbc_get_server_ctype(param->param_bindtype), 
 					param->varaddr, -1, 
          				SYBVARCHAR, d, -1);
 			}
@@ -1786,6 +1809,34 @@ static int _odbc_get_string_size(int size, char *str)
 		return strlen(str);
 	} else {
 		return size;
+	}
+}
+static int _odbc_get_server_ctype(int c_type)
+{
+	switch (c_type) {
+		case SQL_C_BINARY:
+		case SQL_C_CHAR:
+			return SYBCHAR;
+		case SQL_C_FLOAT:
+			return SYBREAL;
+		case SQL_C_DOUBLE:
+			return SYBFLT8;
+		case SQL_C_NUMERIC:
+			return SYBNUMERIC;
+		case SQL_C_BIT:
+			return SYBBIT;
+		case SQL_C_LONG:
+		case SQL_C_SLONG:
+		case SQL_C_ULONG:
+			return SYBINT4;
+		case SQL_C_SHORT:
+		case SQL_C_SSHORT:
+		case SQL_C_USHORT:
+			return SYBINT2;
+		case SQL_C_TINYINT:
+		case SQL_C_STINYINT:
+		case SQL_C_UTINYINT:
+			return SYBINT1;
 	}
 }
 static int _odbc_get_server_type(int clt_type)

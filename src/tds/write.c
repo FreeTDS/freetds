@@ -28,7 +28,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.4 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.5 2002-02-11 03:01:39 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -51,11 +51,11 @@ unsigned char *bufp = buf;
 	}
 	return 0;
 }
-int tds_put_string(TDSSOCKET *tds, unsigned char *buf, int n)
+int tds_put_string(TDSSOCKET *tds, char *buf, int n)
 {
 int buf_len = ( buf ? strlen(buf) : 0);
 
-	return tds_put_buf(tds,buf,n,buf_len);
+	return tds_put_buf(tds,(unsigned char *)buf,n,buf_len);
 }
 int tds_put_buf(TDSSOCKET *tds, unsigned char *buf, int dsize, int ssize)
 {
