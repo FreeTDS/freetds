@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.54 2002-08-26 20:10:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.55 2002-08-27 05:20:37 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,6 +72,7 @@ static int  is_ampm(char *);
 static int  is_monthname(char *);
 static int  is_numeric_dateformat(char *);
 static TDS_UINT utf16len(const utf16_t* s);
+static char *tds_prtype(int token);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
 extern const int g__numeric_bytes_per_prec[];
@@ -85,6 +86,27 @@ extern const int g__numeric_bytes_per_prec[];
 #define LOG_CONVERT() \
 	tdsdump_log(TDS_DBG_ERROR, "error_handler: conversion from " \
 			"%d to %d not supported\n", srctype, desttype)
+
+#define CONVERSION_ERROR( socket, from, varchar, to ) \
+	send_conversion_error_msg( (socket), 249, __LINE__, (from), (varchar), (to) )
+
+/* eg "Syntax error during explicit conversion of VARCHAR value ' - 13 ' to a DATETIME field." */
+
+void
+send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *varchar, int to)
+{	
+	enum { level=16, state=1 };
+	/* 249 is the standard explicit conversion error number. 
+	 * If this function is passed some other number, it should have a 
+	 * static lookup table of message strings (by number and locale). --jkl
+	 */
+	const static char *message = "Syntax error during explicit conversion of %s value '%s' to a %s field.";
+	char buffer[4096];
+	
+	snprintf( buffer, sizeof(buffer), message, tds_prtype(from), varchar, tds_prtype(to) );
+
+	tds_client_msg(tds->tds_ctx, tds, err, level, state, line, buffer); 
+}
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
@@ -255,12 +277,11 @@ char hex2[3];
 }
 
 static TDS_INT 
-tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
+tds_convert_char(int srctype, TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 int           i, j;
 unsigned char hex1;
-/*int           inp;*/
 
 TDS_INT8     mymoney;
 TDS_INT      mymoney4;
@@ -478,8 +499,7 @@ TDS_INT tds_i;
 		 
 		 return sizeof(TDS_NUMERIC);
 		 break;
-      case SYBUNIQUE: 
-		{
+	 case SYBUNIQUE: {
 		int i;
 		unsigned n;
 		char c;
@@ -530,13 +550,13 @@ TDS_INT tds_i;
 					}
 			}
 		}
-		}
-		return sizeof(TDS_UNIQUE);
-	  default:
+	 }
+	 return sizeof(TDS_UNIQUE);
+	 default:
 		LOG_CONVERT();
 	     return TDS_FAIL;
-	}
-}
+	} /* end switch */
+} /* tds_convert_char */
 
 static TDS_INT 
 tds_convert_bit(int srctype,TDS_CHAR *src,
@@ -1406,89 +1426,119 @@ TDS_INT
 tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
 {
+TDS_INT length=0;
 TDS_VARBINARY *varbin;
 char errmsg[255];
+
+	/* For now, construct a TDSSOCKET.  It's what we should have been passed.
+	 * The only real consequence is that the user-supplied error handler's return
+	 * code can't be used to close the connection.  
+	 */
+TDSSOCKET fake_socket, *tds=&fake_socket;
+
+	memset( &fake_socket, 0, sizeof(fake_socket) );
+	fake_socket.tds_ctx = tds_ctx;
 
 	switch(srctype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
-			return tds_convert_char(srctype,src, srclen,
-				desttype,destlen, cr);
+			length= tds_convert_char(srctype,src, srclen, desttype,destlen, cr);
 			break;
 		case SYBMONEY4:
-			return tds_convert_money4(srctype,src,srclen,
-				desttype,destlen, cr);
+			length= tds_convert_money4(srctype,src, srclen, desttype,destlen, cr);
 			break;
 		case SYBMONEY:
-			return tds_convert_money(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_money(srctype,src, desttype, destlen, cr);
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			return tds_convert_numeric(srctype,(TDS_NUMERIC *) src,srclen,
-				desttype,destlen, cr);
+			length= tds_convert_numeric(srctype,(TDS_NUMERIC *) src,srclen, desttype,destlen, cr);
 			break;
 		case SYBBIT:
 		case SYBBITN:
-			return tds_convert_bit(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_bit(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBINT1:
-			return tds_convert_int1(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_int1(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBINT2:
-			return tds_convert_int2(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_int2(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBINT4:
-			return tds_convert_int4(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_int4(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBREAL:
-			return tds_convert_real(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_real(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBFLT8:
-			return tds_convert_flt8(srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_flt8(srctype,src, desttype,destlen, cr);
 			break;
 		case SYBDATETIME:
-			return tds_convert_datetime(tds_ctx, srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_datetime(tds_ctx, srctype,src, desttype,destlen, cr);
 			break;
 		case SYBDATETIME4:
-			return tds_convert_datetime4(tds_ctx, srctype,src,
-				desttype,destlen, cr);
+			length= tds_convert_datetime4(tds_ctx, srctype,src, desttype,destlen, cr);
 			break;
 		case SYBVARBINARY:
 			varbin = (TDS_VARBINARY *)src;
-			return tds_convert_binary(srctype, (TDS_UCHAR *)varbin->array,
+			length= tds_convert_binary(srctype, (TDS_UCHAR *)varbin->array,
 				varbin->len,desttype, destlen, cr);
 			break;
 		case SYBIMAGE:
 		case SYBBINARY:
-			return tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
+			length= tds_convert_binary(srctype, (TDS_UCHAR *)src,srclen,
 				desttype, destlen, cr);
 			break;
 		case SYBNVARCHAR:
 		case SYBNTEXT:
-			return tds_convert_ntext(srctype,src,srclen,
-				desttype,destlen, cr);
+			length= tds_convert_ntext(srctype,src,srclen, desttype,destlen, cr);
 			break;
 		case SYBUNIQUE:
-			return tds_convert_unique(srctype,src,srclen,
-				desttype,destlen, cr);
+			length= tds_convert_unique(srctype,src,srclen, desttype,destlen, cr);
 			break;
 		default:
-			sprintf(errmsg,"Attempting to convert unknown source type %d\n",srctype);
-			tds_client_msg(tds_ctx, NULL, 10001, 1, 4, 1, errmsg); 
+			send_conversion_error_msg( tds, 20029, __LINE__, srctype, "[unable to display]", desttype );
+			LOG_CONVERT();
 			return TDS_FAIL;
 		break;
 
 	}
+	
+	if( length == TDS_FAIL ) {
+		char varchar[2056];
+		CONV_RESULT result;
+		int fOK;
+		static short int depth=0;
+
+		assert( !depth++ );		/* failing to handle failure is a fault */
+		result.ib = varchar;
+		
+		switch(srctype) {
+			case SYBCHAR:
+			case SYBVARCHAR:
+			case SYBTEXT:
+				length= (srclen<destlen)? srclen : destlen;
+				if( length > sizeof(varchar) ) 
+					length = sizeof(varchar);
+				strncpy( varchar, src, length );
+				break;
+			default:
+				length= tds_convert_char(srctype,src, srclen, desttype,destlen, cr);
+				/* recurse once to convert whatever it was to varchar */
+				fOK = tds_convert(tds_ctx, srctype, src, srclen, SYBCHAR, destlen, &result);
+				break;
+		}
+
+		CONVERSION_ERROR( tds, srctype, varchar, desttype );
+		depth = 0;
+
+		return fOK; /* take the chance that length == 0, causing double recursion */
+	}
+
+	return length;
 }
+
 static int string_to_datetime(char *instr, int desttype,  CONV_RESULT *cr)
 {
 enum states { GOING_IN_BLIND,
@@ -2725,3 +2775,53 @@ unsigned int num; /* we use unsigned here for best overflow check */
 	return TDS_SUCCEED;
 }
 
+/* 
+ * Offer string equivalents of conversion tokens.  
+ */
+char *tds_prtype(int token)
+{
+   char  *result = "???";
+
+   switch (token)
+   {
+      case SYBBINARY:       result = "SYBBINARY";		break;
+      case SYBBIT:          result = "SYBBIT";		break;
+      case SYBBITN:         result = "SYBBITN";		break;
+      case SYBCHAR:         result = "SYBCHAR";		break;
+      case SYBDATETIME4:    result = "SYBDATETIME4";	break;
+      case SYBDATETIME:     result = "SYBDATETIME";	break;
+      case SYBDATETIMN:     result = "SYBDATETIMN";	break;
+      case SYBDECIMAL:      result = "SYBDECIMAL";	break;
+      case SYBFLT8:         result = "SYBFLT8";		break;
+      case SYBFLTN:         result = "SYBFLTN";		break;
+      case SYBIMAGE:        result = "SYBIMAGE";		break;
+      case SYBINT1:         result = "SYBINT1";        break;
+      case SYBINT2:         result = "SYBINT2";        break;
+      case SYBINT4:         result = "SYBINT4";        break;
+      case SYBINT8:         result = "SYBINT8";       	break;
+      case SYBINTN:         result = "SYBINTN";    	break;
+      case SYBMONEY4:       result = "SYBMONEY4";      break;
+      case SYBMONEY:        result = "SYBMONEY";       break;
+      case SYBMONEYN:       result = "SYBMONEYN";      break;
+      case SYBNTEXT:  	   result = "SYBNTEXT";      	break;
+      case SYBNVARCHAR:     result = "SYBNVARCHAR";	break;
+      case SYBNUMERIC:      result = "SYBNUMERIC";     break;
+      case SYBREAL:         result = "SYBREAL";        break;
+      case SYBTEXT:         result = "SYBTEXT";        break;
+      case SYBUNIQUE:       result = "SYBUNIQUE";		break;
+      case SYBVARBINARY:    result = "SYBVARBINARY";   break;
+      case SYBVARCHAR:      result = "SYBVARCHAR";     break;
+
+      case SYBVARIANT  :    result = "SYBVARIANT";	break;
+      case SYBVOID	   :    result = "SYBVOID";	   	break;
+      case XSYBBINARY  :    result = "XSYBBINARY";	break;
+      case XSYBCHAR    :    result = "XSYBCHAR";	    	break;
+      case XSYBNCHAR   :    result = "XSYBNCHAR";		break;
+      case XSYBNVARCHAR:    result = "XSYBNVARCHAR";	break;
+      case XSYBVARBINARY:   result = "XSYBVARBINARY";	break;
+      case XSYBVARCHAR :    result = "XSYBVARCHAR";	break;
+
+      default:	break;
+   }
+   return result;
+} 
