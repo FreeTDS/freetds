@@ -21,7 +21,7 @@
 #define _tdsconvert_h_
 
 static char rcsid_tdsconvert_h[] =
-         "$Id: tdsconvert.h,v 1.15 2002-10-09 10:20:55 freddy77 Exp $";
+         "$Id: tdsconvert.h,v 1.16 2002-11-17 10:01:03 freddy77 Exp $";
 static void *no_unused_tdsconvert_h_warn[] = {
 	rcsid_tdsconvert_h, 
 	no_unused_tdsconvert_h_warn};
@@ -39,7 +39,6 @@ typedef union conv_result {
     TDS_DATETIME    dt;
     TDS_DATETIME4   dt4;
     TDS_NUMERIC     n;
-    TDS_VARBINARY   vb;
     TDS_CHAR        *ib;
     TDS_UNIQUE      u;
 } CONV_RESULT;

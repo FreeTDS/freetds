@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.109 2002-11-17 08:38:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.110 2002-11-17 10:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -718,8 +718,8 @@ char ci_flags[4];
 		curcol->column_type = tds_get_byte(tds);
 
 		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
-		tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d, varint_size %d\n", 
-		curcol->column_type, curcol->column_varint_size);
+		tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n", 
+		curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
 		switch(curcol->column_varint_size) {
 			case 4: 
@@ -1047,7 +1047,7 @@ int colnamelen;
 
 	curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 
-	tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d, varint_size %d\n", curcol->column_type, curcol->column_varint_size);
+	tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n", curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 	switch(curcol->column_varint_size) {
 		case 4: 
 			curcol->column_size = tds_get_int(tds);
@@ -1230,24 +1230,6 @@ TDSBLOBINFO *blob_info;
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *)num );
 		}
 
-	} else if (curcol->column_type == SYBVARBINARY) {
-		TDS_VARBINARY *varbin;
-		
-		/* FIXME what happen if BINARY is bigger (mssql7*)? */
-		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
-		varbin->len = colsize;
-		/*  It is important to re-zero out the whole
-		column_size varbin array here because the result
-		of the query ("colsize") may be any number of
-		bytes <= column_size (because the result
-		will be truncated if the rest of the data
-		in the column would be all zeros).  */
-		memset(varbin->array,'\0',curcol->column_size);
-
-		/* server is going to crash freetds ??*/
-		if (colsize > sizeof(varbin->array))
-			return TDS_FAIL;
-		tds_get_n(tds,varbin->array,colsize);
 	} else if (is_blob_type(curcol->column_type)) {
 		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
 
@@ -1964,8 +1946,6 @@ static int
 tds_get_cardinal_type(int datatype)
 {
 	switch(datatype) {
-		/* FIXME in case of binary > 255 (mssql7+) reading data fail 
-		   (binary are saved to limited structure)... */
 		case XSYBVARBINARY: 
 			return SYBVARBINARY;
 		case XSYBBINARY: 

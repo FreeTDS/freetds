@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.102 2002-11-13 21:14:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.103 2002-11-17 10:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -241,13 +241,8 @@ char hex2[3];
          break;
       case SYBIMAGE:
       case SYBBINARY:
-	 return binary_to_result(src, srclen, cr);
-         break;
       case SYBVARBINARY:
-         cplen = srclen > 256 ? 256 : srclen;
-         cr->vb.len = cplen;
-         memcpy(cr->vb.array, src, cplen);
-         return cplen;
+	 return binary_to_result(src, srclen, cr);
          break;
 	case SYBINT1:
 	case SYBINT2:
@@ -313,9 +308,9 @@ TDS_INT rc;
          return srclen; 
 		 break;
 
-		 /* TODO VARBINARY missed */
-      case SYBBINARY:
-      case SYBIMAGE:
+	case SYBBINARY:
+	case SYBIMAGE:
+	case SYBVARBINARY:
 
          /* skip leading "0x" or "0X" */
 
@@ -590,6 +585,7 @@ tds_convert_bit(int srctype, const TDS_CHAR *src,
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,1,cr);
 			break;
 		case SYBINT1:
@@ -659,6 +655,7 @@ TDS_CHAR tmp_str[5];
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,1,cr);
 			break;
 		case SYBINT1:
@@ -731,6 +728,7 @@ TDS_CHAR tmp_str[16];
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,2,cr);
 			break;
 		case SYBINT1:
@@ -806,6 +804,7 @@ TDS_CHAR tmp_str[16];
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,4,cr);
 			break;
 		case SYBINT1:
@@ -886,6 +885,7 @@ TDS_CHAR tmp_str[24];
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,8,cr);
 			break;
 		case SYBINT1:
@@ -968,6 +968,7 @@ long i;
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_NUMERIC),cr);
 			break;
 		case SYBINT1:
@@ -1064,6 +1065,7 @@ char tmp_str[33];
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_MONEY4),cr);
 			break;
 		case SYBINT1:
@@ -1161,6 +1163,7 @@ char tmpstr [64];
 
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_MONEY),cr);
 			break;
 		case SYBINT1:
@@ -1259,6 +1262,7 @@ TDSDATEREC when;
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_DATETIME),cr);
 			break;
 		case SYBDATETIME:
@@ -1339,6 +1343,7 @@ TDSDATEREC when;
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_DATETIME4),cr);
 			break;
 		case SYBDATETIME:
@@ -1396,6 +1401,7 @@ TDS_INT8 mymoney;
 
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_REAL),cr);
 			break;
 		case SYBINT1:
@@ -1483,6 +1489,7 @@ char      tmp_str[25];
 
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_FLOAT),cr);
 			break;
 		case SYBINT1:
@@ -1571,6 +1578,7 @@ TDS_UCHAR buf[37];
    			break;
 		case SYBBINARY:
 		case SYBIMAGE:
+		case SYBVARBINARY:
 			return binary_to_result(src,sizeof(TDS_UNIQUE),cr);
 			break;
    		case SYBUNIQUE:
@@ -1622,7 +1630,6 @@ tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 		TDS_UINT srclen, int desttype, CONV_RESULT *cr)
 {
 TDS_INT length = 0;
-const TDS_VARBINARY *varbin;
 
 	switch (srctype) {
 		case SYBCHAR:
@@ -1670,13 +1677,9 @@ const TDS_VARBINARY *varbin;
 			length = tds_convert_datetime4(tds_ctx, srctype, src,
 					desttype, cr);
 			break;
-		case SYBVARBINARY:
-			varbin = (const TDS_VARBINARY *) src;
-			length = tds_convert_binary(srctype,
-				(const TDS_UCHAR *) varbin->array, srclen, desttype, cr);
-			break;
 		case SYBIMAGE:
 		case SYBBINARY:
+		case SYBVARBINARY:
 			length = tds_convert_binary(srctype,
 				(const TDS_UCHAR *) src, srclen, desttype, cr);
 			break;

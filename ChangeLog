@@ -1,3 +1,12 @@
+Sun Nov 17 10:58:33 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsconvert.h src/tds/convert.c src/tds/token.c:
+	- VARBINARY are stored in the same way of BINARY and IMAGE (an 
+	  array of byte instead of a structure)
+	- add all conversions to VARBINARY (now trivial)
+	- fix buffer overflow using VARBINARY
+	- support VARBINARY > 255 (mssql7+)
+	* src/apps/tsql.c: fix small buffer overflow
+
 Sun Nov 17 09:36:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/token.c:
 	- add tds_allog_get_string to read and alloc string from wire

@@ -54,7 +54,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.41 2002-11-08 19:07:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.42 2002-11-17 10:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -125,23 +125,23 @@ char message[128];
 		return 1;
 	}
 
-    while ((rc=tds_process_result_tokens(tds, &resulttype))==TDS_SUCCEED) {
+	while ((rc=tds_process_result_tokens(tds, &resulttype))==TDS_SUCCEED) {
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start,NULL);
 			print_rows = 0;
 		}
-    switch (resulttype) {
-    case TDS_ROWFMT_RESULT:
-		if ((!(opt_flags & OPT_NOHEADER)) && tds->res_info) {
-			for (i=0; i<tds->res_info->num_cols; i++) {
-				fprintf(stdout, "%s\t", tds->res_info->columns[i]->column_name);
+		switch (resulttype) {
+		case TDS_ROWFMT_RESULT:
+			if ((!(opt_flags & OPT_NOHEADER)) && tds->res_info) {
+				for (i=0; i<tds->res_info->num_cols; i++) {
+					fprintf(stdout, "%s\t", tds->res_info->columns[i]->column_name);
+				}
+				fprintf(stdout,"\n");
 			}
-			fprintf(stdout,"\n");
-		}
-      break;
-    case TDS_ROW_RESULT:
-		rows = 0;
-        while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
+			break;
+		case TDS_ROW_RESULT:
+			rows = 0;
+			while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
 			rows++;
 
 			if (!tds->res_info) 
@@ -160,28 +160,25 @@ char message[128];
 					src = ((TDSBLOBINFO *) src)->textvalue;
 				srclen = col->column_cur_size;
 
-	 
-                    if(tds_convert(tds->tds_ctx,
- 					ctype,
-					src,
- 					srclen,
-					SYBVARCHAR,
-					&dres) < 0)
-			    continue;
+
+				if(tds_convert(tds->tds_ctx, ctype, src, srclen,
+					SYBVARCHAR, &dres) < 0)
+					continue;
 				if (print_rows) fprintf(stdout,"%s\t",dres.c);
 				free(dres.c);
 			}
 			if (print_rows) fprintf(stdout,"\n");
-    
-      }
-      break;
-    case TDS_STATUS_RESULT:
-      printf("(return status = %d)\n", tds->ret_status);
-      break;
-    default:
-      break;
-         }
-		 if (opt_flags & OPT_VERSION) {
+
+			}
+			break;
+		case TDS_STATUS_RESULT:
+			printf("(return status = %d)\n", tds->ret_status);
+			break;
+		default:
+			break;
+		}
+
+		if (opt_flags & OPT_VERSION) {
 			char version[64];
 			int line = 0;
 			line = tds_version( tds, version );
@@ -189,15 +186,15 @@ char message[128];
 				sprintf(message, "using TDS version %s", version);
 				tds_client_msg(tds->tds_ctx, tds, line, line, line, line, message);
 			}
-		 }
-		 if (opt_flags & OPT_TIMER) {
+		}
+		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&stop,NULL);
 			sprintf(message,"Total time for processing %d rows: %ld msecs\n", 
 				rows, 
 				(long) ((stop.tv_sec - start.tv_sec) * 1000) + 
 				((stop.tv_usec -  start.tv_usec) / 1000));
 			tds_client_msg(tds->tds_ctx, tds, 1, 1, 1, 1, message);
-		 }
+		}
 	}
 	return 0;
 }
@@ -430,7 +427,7 @@ int opt_flags = 0;
 			line = 0;
 			mybuf[0]='\0';
 		} else {
-			while (strlen(mybuf) + strlen(s) > bufsz) {
+			while (strlen(mybuf) + strlen(s) +2 > bufsz) {
 				bufsz *= 2;
 				mybuf = (char *) realloc(mybuf, bufsz);
 			}
