@@ -1,3 +1,6 @@
+Fri Dec 20 22:30:57 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: fix big endian and numeric on TDS7
+
 Fri Dec 20 22:06:42 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 src/tds/threadsafe.c:
 	- fix error in HP/UX 10.20 (tds_get_homedir did not work)

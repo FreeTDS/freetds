@@ -40,10 +40,12 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.63 2002-12-18 10:29:31 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.64 2002-12-20 21:31:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
+
+extern const int tds_numeric_bytes_per_prec[];
 
 /* All manner of client to server submittal functions */
 
@@ -419,7 +421,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 static int
 tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i)
 {
-	unsigned char *dest;
+	unsigned char *src;
 	TDS_NUMERIC *num;
 	TDSBLOBINFO *blob_info;
 	int colsize;
@@ -448,9 +450,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_smallint(tds, -1);
 		break;
 	case 1:
-		if (!is_null)
+		if (!is_null) {
+			if (is_numeric_type(curcol->column_type))
+				colsize = tds_numeric_bytes_per_prec[num->precision];
 			tds_put_byte(tds, colsize);
-		else
+		} else
 			tds_put_byte(tds, 0);
 		break;
 	case 0:
@@ -462,18 +466,32 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		return TDS_SUCCEED;
 
 	/* put real data */
+	src = &(current_row[curcol->column_offset]);
 	if (is_numeric_type(curcol->column_type)) {
-		/* TODO use TDS7 and swap for big endian */
-		num = (TDS_NUMERIC *) & (current_row[curcol->column_offset]);
+		TDS_NUMERIC buf;
+		num = (TDS_NUMERIC *) src;
+		if (IS_TDS7_PLUS(tds)) {
+			memcpy(&buf, num, sizeof(buf));
+			tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
+			num = &buf;
+		}
 		/* TODO colsize is correct here ?? */
 		tds_put_n(tds, num->array, colsize);
 	} else if (is_blob_type(curcol->column_type)) {
-		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+		blob_info = (TDSBLOBINFO *) src;
 		tds_put_n(tds, blob_info->textvalue, colsize);
 	} else {
-		/* FIXME problem with big endian, swap data */
-		dest = &(current_row[curcol->column_offset]);
-		tds_put_n(tds, dest, colsize);
+#ifdef WORDS_BIGENDIAN
+		unsigned char buf[64];
+		if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
+			tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+			memcpy(buf, src, colsize);
+			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+			src = buf;
+		}
+#endif
+		tds_put_n(tds, src, colsize);
 	}
 	return TDS_SUCCEED;
 }
