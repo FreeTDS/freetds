@@ -1,3 +1,6 @@
+Fri Jan 16 17:37:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: use correct constant
+
 Fri Jan 16 07:56:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: return SQL_NO_DATA if no data and ODBC3
 

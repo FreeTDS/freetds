@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.290 2004-01-16 06:59:24 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.291 2004-01-16 16:37:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -480,7 +480,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	/* we already readed all results... */
 	if (stmt->dbc->current_statement != stmt)
-		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+		ODBC_RETURN(stmt, SQL_NO_DATA);
 
 	/* try to go to the next recordset */
 	for (;;) {
@@ -492,7 +492,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			tds_free_all_results(tds);
 #endif
 			odbc_populate_ird(stmt);
-			ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+			ODBC_RETURN(stmt, SQL_NO_DATA);
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
@@ -2552,7 +2552,7 @@ _SQLFetch(TDS_STMT * stmt)
 	case TDS_NO_MORE_ROWS:
 		odbc_populate_ird(stmt);
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
-		return SQL_NO_DATA_FOUND;
+		return SQL_NO_DATA;
 		break;
 	case TDS_FAIL:
 		if (stmt->ird->header.sql_desc_array_status_ptr)
@@ -2564,7 +2564,7 @@ _SQLFetch(TDS_STMT * stmt)
 	resinfo = tds->res_info;
 	if (!resinfo) {
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
-		return SQL_NO_DATA_FOUND;
+		return SQL_NO_DATA;
 	}
 	/* we got a row, return a row readed even if error (for ODBC specifications) */
 	++(*fetched_ptr);
@@ -3337,7 +3337,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 		if (is_blob_type(colinfo->column_type)) {
 			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-				ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
+				ODBC_RETURN(stmt, SQL_NO_DATA);
 
 			/* 2003-8-29 check for an old bug -- freddy77 */
 			assert(colinfo->column_text_sqlgetdatapos >= 0);
