@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.81 2003-11-23 09:12:34 freddy77 Exp $
+To Do List	$Id: TODO,v 1.82 2003-11-28 16:54:42 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -44,10 +44,6 @@ For 0.62 version:
   - obsolete configuration (nt domain, locale.conf, etc.)
 . UTF-8 unit tests (libTDS)
   - very large column name (128 on mssql), no-english to UTF-8 client
-. ODBC: dynamic query
-  - Sybase and blobs do not work
-    port code for string building from ODBC to libtds
-    (required also for some test working using tds4.2)
 
 Postponed to 0.63 version
 . iconv
@@ -170,6 +166,9 @@ Done in 0.62
 . ODBC: test NUMERIC parameter
 . ODBC: dynamic query
   - SQLPutData do not work
+  - Sybase and blobs do not work
+    port code for string building from ODBC to libtds
+    (required also for some test working using tds4.2)
 
 Done (removed from above):
 . Extend TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
