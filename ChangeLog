@@ -1,3 +1,9 @@
+Fri Aug 17 11:56:48 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/cs.c:
+	- count terminator for resultlen if string terminated
+	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/t0006.c:
+	- add test for some conversion
+
 Fri Aug 17 08:16:30 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c:
 	- test on blob with tds type, not ct type

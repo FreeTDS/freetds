@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.20 2002-08-17 06:18:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.21 2002-08-17 10:00:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -473,6 +473,7 @@ TDSSOCKET * tds;
 
    tds = (TDSSOCKET *) cmd->con->tds_socket;
    resinfo = tds->res_info;
+   /* FIXME check item value */
    colinfo = resinfo->columns[item-1];
    colinfo->varaddr = (char *)buffer;
    colinfo->column_bindtype = datafmt->datatype;

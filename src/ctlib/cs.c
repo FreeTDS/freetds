@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.12 2002-08-09 02:55:48 brianb Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.13 2002-08-17 10:00:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -144,7 +144,7 @@ CS_RETCODE ret;
                           else {
                              memcpy(dest, srcdata, src_len);
                              dest[src_len] = '\0';
-                             if (resultlen != (CS_INT *)NULL ) *resultlen = src_len;
+                             if (resultlen != (CS_INT *)NULL ) *resultlen = src_len+1;
                              ret = CS_SUCCEED;
                           }
                           break;
@@ -313,13 +313,14 @@ CS_RETCODE ret;
     
                     case CS_FMT_NULLTERM:
                         tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() FMT_NULLTERM\n");
-                        if (strlen(cres.c) == destlen ) { 
+                        if (len == destlen ) { 
                            tdsdump_log(TDS_DBG_FUNC, "%L not enough room for data + a null terminator - error\n");
                            ret = CS_FAIL;    /* not enough room for data + a null terminator - error */
                         }
                         else {
-                           strcpy(dest, cres.c);
-                           if (resultlen != (CS_INT *)NULL ) *resultlen = strlen(cres.c);
+                           memcpy(dest, cres.c, len);
+			   dest[len] = 0;
+                           if (resultlen != (CS_INT *)NULL ) *resultlen = len+1;
                            ret = CS_SUCCEED;
                         }
                         break;
