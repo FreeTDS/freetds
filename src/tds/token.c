@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.146 2003-02-13 06:17:54 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.147 2003-02-13 21:25:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1579,7 +1579,7 @@ unsigned char *new_out_buf;
 
 	/* handle collate default change (if you change db or during login) 
 	 * this environment is not a string so need different handles */
-	if (type == TDS_ENV_COLLATION) {
+	if (type == TDS_ENV_SQLCOLLATION) {
 		/* save new collation */
 		size = tds_get_byte(tds);
 		memset(tds->collation, 0, 5);

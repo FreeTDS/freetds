@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.25 2002-12-20 20:46:45 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.26 2003-02-13 21:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -85,7 +85,7 @@ tds_timestamp_str(char *str, int maxlen)
 	time(&t);
 #endif
 
-#ifdef _REENTRANT
+#if defined(_REENTRANT) && !defined(WIN32)
 	tm = localtime_r(&t, &res);
 #else
 	tm = localtime(&t);

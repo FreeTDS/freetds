@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.118 2003-02-13 16:58:05 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.119 2003-02-13 21:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1506,6 +1506,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		memcpy(dest, &(dres.i), 4);
 		ret = 4;
 		break;
+	case SYBINT8:
+		memcpy(dest, &(dres.bi), 8);
+		ret = 8;
+		break;
 	case SYBFLT8:
 		memcpy(dest, &(dres.f), 8);
 		ret = 8;
@@ -2281,6 +2285,8 @@ _get_printable_size(TDSCOLINFO * colinfo)
 			return 6;
 		case 4:
 			return 11;
+		case 8:
+			return 21;
 		}
 	case SYBINT1:
 		return 3;
@@ -2288,6 +2294,8 @@ _get_printable_size(TDSCOLINFO * colinfo)
 		return 6;
 	case SYBINT4:
 		return 11;
+	case SYBINT8:
+		return 21;
 	case SYBVARCHAR:
 	case SYBCHAR:
 		return colinfo->column_size;
@@ -4164,6 +4172,9 @@ static void
 _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen)
 {
 	switch (datatype) {
+	case SYBINT8:
+		memset(varaddr, '\0', 8);
+		break;
 	case SYBINT4:
 		memset(varaddr, '\0', 4);
 		break;

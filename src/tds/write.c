@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.31 2002-12-10 17:02:18 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.32 2003-02-13 21:25:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -131,6 +131,28 @@ tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize)
 	dsize -= cpsize;
 	tds_put_n(tds, NULL, dsize);
 	return tds_put_byte(tds, cpsize);
+}
+
+int
+tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
+{
+#if WORDS_BIGENDIAN
+	TDS_UINT h;
+	if (tds->emul_little_endian) {
+		h = (TDS_UINT) i;
+		tds_put_byte(tds, h & 0x000000FF);
+		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
+		tds_put_byte(tds, (h & 0x00FF0000) >> 16);
+		tds_put_byte(tds, (h & 0xFF000000) >> 24);
+		h = (TDS_UINT) (i >> 32);
+		tds_put_byte(tds, h & 0x000000FF);
+		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
+		tds_put_byte(tds, (h & 0x00FF0000) >> 16);
+		tds_put_byte(tds, (h & 0xFF000000) >> 24);
+		return 0;
+	}
+#endif
+	return tds_put_n(tds, (const unsigned char *) &i, sizeof(TDS_INT8));
 }
 
 int

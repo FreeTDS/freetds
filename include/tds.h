@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.85 2003-02-12 21:01:32 jklowden Exp $";
+	"$Id: tds.h,v 1.86 2003-02-13 21:25:02 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -202,7 +202,7 @@ enum tds_end {
 #define TDS5_PARAMFMT2_TOKEN       32  /* 0x20 */
 #define TDS_LANGUAGE_TOKEN         33  /* 0x21    TDS 5.0 only              */
 #define TDS_ORDERBY2_TOKEN         34  /* 0x22 */
-#define TDS_ROWFMT2_TOKEN          97  /* 0x61 */
+#define TDS_ROWFMT2_TOKEN          97  /* 0x61    TDS 5.0 only              */
 #define TDS_LOGOUT_TOKEN          113  /* 0x71    TDS 5.0 only? ct_close()  */
 #define TDS_RETURNSTATUS_TOKEN    121  /* 0x79                              */
 #define TDS_PROCID_TOKEN          124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
@@ -249,7 +249,8 @@ enum tds_end {
 #define TDS_ENV_LANG      2
 #define TDS_ENV_CHARSET   3
 #define TDS_ENV_PACKSIZE  4
-#define TDS_ENV_COLLATION 7
+#define TDS_ENV_LCID        5
+#define TDS_ENV_SQLCOLLATION 7
 
 /* string types */
 #define TDS_NULLTERM -9
@@ -292,6 +293,11 @@ sheesh! </rant>
 #define XSYBNCHAR    239  /* 0xEF */
 #define XSYBVARBINARY 165  /* 0xA5 */
 #define XSYBBINARY    173  /* 0xAD */
+#define SYBLONGBINARY 225  /* 0xE1 */
+#define SYBSINT1      64  /* 0x40 */
+#define SYBUINT2      65  /* 0x41 */
+#define SYBUINT4      66  /* 0x42 */
+#define SYBUINT8      67  /* 0x43 */
 
 #define SYBUNIQUE    36    /* 0x24 */
 #define SYBVARIANT   0x62
@@ -409,6 +415,7 @@ enum TDS_OPT_ISOLATION_CHOICE {
 			x==TDS_EED_TOKEN)
 
 #define is_result_token(x) (x==TDS_RESULT_TOKEN    || \
+			x==TDS_ROWFMT2_TOKEN || \
 			x==TDS7_RESULT_TOKEN    || \
 			x==TDS_COLFMT_TOKEN    || \
 			x==TDS_COLNAME_TOKEN)
@@ -442,6 +449,7 @@ enum TDS_OPT_ISOLATION_CHOICE {
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
 #define is_unicode(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
+#define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
 
 #define TDS_MAX_CAPABILITY	22
 #define MAXPRECISION 		80

@@ -1,3 +1,11 @@
+Thu Feb 13 22:21:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/dblib/dblib.c src/tds/threadsafe.c:
+	* src/tds/token.c src/tds/write.c:
+	- start merge patch from sybase
+	- add some new types (only constants)
+	- best support for bigint under dblib
+	- add tds_put_int8
+
 Thu Feb 13 11:53:55 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h src/dblib/dblib.c
 	- Bill Thompson's dbresults patch
