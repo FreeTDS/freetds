@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-02-03 09:04:04 $</date>
-		<releaseinfo>$Revision: 1.89 $</releaseinfo>
+		<date>$Date: 2005-02-08 21:48:49 $</date>
+		<releaseinfo>$Revision: 1.90 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -23,6 +23,7 @@
 		  <year>2002</year>
 		  <year>2003</year>
 		  <year>2004</year>
+		  <year>2005</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -41,7 +42,7 @@
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<preface id="about"><title>About this User Guide</title>
 			<para>
-This User Guide describes <productname>FreeTDS</productname> 0.63.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
+This User Guide describes <productname>FreeTDS</productname> 0.64.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
 			</para>
 			<para>
 It is surprisingly hard, after a while, to remember how it can be for someone newly approaching a project to use it.  What seems as obvious as a fog horn to an old hand may be much more like the fog itself to the newcomer.  That can make installing and setting up new software a puzzling or frustrating experience.  You may have heard, <quote>It's easy if you know how.</quote>  Indeed it is, and that's our purpose here: to make it easy, by letting you know how.  
@@ -52,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.89 $</>
-<member>$Date: 2005-02-03 09:04:04 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.89 2005-02-03 09:04:04 freddy77 Exp $.</>
+<member>$Revision: 1.90 $</>
+<member>$Date: 2005-02-08 21:48:49 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.90 2005-02-08 21:48:49 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -89,7 +90,7 @@ Enough.  Let's begin.
 <acronym>TDS</> is a <firstterm>protocol</firstterm>, a set of rules describing how to transmit data between two computers.  Like any protocol, it defines the types of messages that can be sent, and the order in which they may be sent.  Protocols describe the <quote>bits on the wire</quote>, how data flow.  
 			</para>
 			<para>
-In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries -- each with its own <acronym>API</> -- that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and  <acronym>JDBC</> have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.  
+In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries &mdash; each with its own <acronym>API</> &mdash; that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and  <acronym>JDBC</> have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.  
 			</para>
 			<para>
 The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with a flexible pair of products called <productname>netlib</productname> and <systemitem class="library">db-lib</systemitem>.
@@ -107,7 +108,7 @@ At about the same time, Sybase introduced a more powerful <quote>successor</quot
 			</para>
 			<para>
 
-<systemitem class="library">ct-lib</systemitem>, <systemitem class="library">db-lib</systemitem>, and <systemitem class="library">ODBC</systemitem> are <acronym>API</>s that -- however different their programming style may be -- all use <productname>netlib</productname> to communicate to the server.  The language they use is <acronym>TDS</>.  
+<systemitem class="library">ct-lib</systemitem>, <systemitem class="library">db-lib</systemitem>, and <systemitem class="library">ODBC</systemitem> are <acronym>API</>s that &mdash; however different their programming style may be &mdash; all use <productname>netlib</productname> to communicate to the server.  The language they use is <acronym>TDS</>.  
 			</para>
 			<para>
 The <acronym>TDS</> protocol comes in several flavors, most of which have never
@@ -198,7 +199,7 @@ project on SourceForge.  It is a fork of the
 		<sect2 id="Status">
 			<title>Status</title>
 			<para>
-The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.63 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
+The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.64 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
 			</para>
 			<para>
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
@@ -536,7 +537,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-02-03 09:04:04 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-02-08 21:48:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -574,6 +575,31 @@ point,
 </procedure>
 		</sect3>
 		</sect2>
+
+		<sect2 id="AIX"><title>AIX&reg;</title>
+			<para>
+AIX&reg; can induce linker indigestion.  libtool doesn't always understand that a <filename>.a</> file 
+can be a shared library.  One solution is to build only static libraries with the <option>--disable-shared</> 
+configure option.  
+			</para>
+			<para>
+Another problem seems to be that the linker isn't asked to pull in all the requisite libraries.  Cf. this helpful
+<ulink url="http://lists.ibiblio.org/pipermail/freetds/2004q3/016748.html">mailing list message</ulink>.  
+			</para>
+		</sect2>
+
+		<sect2 id="RPM"><title>GNU/Linux distributions that use RPMs</title>
+			<para>
+You may find it convenient to make an RPM from the source distribution, in which case you'll be glad to 
+know it is easily done:
+
+			<screen>
+			<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.63RC9.tar.gz</userinput>
+			</screen>
+
+			</para>
+		</sect2>
+
 		</sect1>
 	</chapter>
 	
@@ -1983,12 +2009,12 @@ When <productname>FreeTDS</productname> sees the <quote><literal>\</></quote> ch
   			</para>
 <Note><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).  
   			</para><para>
-The SQL Server machine may belong to an NT domain.  <productname>FreeTDS</productname> provides an encrypted password -- a domain password, known to the domain controller -- that the server will ask the domain controller to verify.  </para></Note>
+The SQL Server machine may belong to an NT domain.  <productname>FreeTDS</productname> provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.  </para></Note>
 
 		<sect2 id="domaindetails">
 			<title>Implementation details</title>
 			<para>
-Support for domain logins in <productname>FreeTDS</productname> is limited to the TCP/IP network protocol stack.   <productname>FreeTDS</productname> does not currently implement support for Named Pipe-based SQL connections -- that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licenced projects such as <productname>FreeTDS</productname> . 
+Support for domain logins in <productname>FreeTDS</productname> is limited to the TCP/IP network protocol stack.   <productname>FreeTDS</productname> does not currently implement support for Named Pipe-based SQL connections &mdash; that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licenced projects such as <productname>FreeTDS</productname> . 
 			</para>
 			<para>
 Your domain controller must allow authentication over TCP/IP, or you will be unable to log in.  One symptom of a server that requires Named Pipes for authentication is an error message such as:
@@ -2927,7 +2953,7 @@ Successful problem isolation will yield earliest resolution.  You (believe it or
 If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making <productname>FreeTDS</productname> useful and bugless is the goal of the project, after all.)  
 			</para>
 			<para>
-<productname>FreeTDS</productname> being what it is, problems frequently arise amidst complex environments.  It can be hard for both you and the list participants -- who are your allies and best resource -- to determine what's going wrong.  If you can submit a script that they can use to try to reproduce your results, you have a much better chance of happy resolution.  
+<productname>FreeTDS</productname> being what it is, problems frequently arise amidst complex environments.  It can be hard for both you and the list participants &mdash; who are your allies and best resource &mdash; to determine what's going wrong.  If you can submit a script that they can use to try to reproduce your results, you have a much better chance of happy resolution.  
 			</para>
 			<para>
 On the plus side, the list includes people with a variety of backgrounds, who frequently answer questions that aren't really about <productname>FreeTDS</productname> <foreignphrase>per se</foreignphrase>.  Clear questions have sometimes even led to submitting patches to other projects.  
@@ -3401,7 +3427,7 @@ The Unicode folks knew about Endianism, of course, and had to address it.  A Uni
 The presence of nulls embedded in character data and of byte order issues make straight Unicode i.e., UCS-2 or UCS-4 hard to work with in a heterogeneous environment.  Too many opportunities arise for the data to be truncated or misinterpreted, and too many systems would fail even to transmit such data.  In short, when 16-bit data are thrust into a multi-architecture 8-bit world, it frequently bodes ill for the data.  
 			</para>
 			<para>
-To answer that problem, to make Unicode transmissible and unambiguous to most machines, several <quote>transformation formats</quote> were adopted.  Their goals were generally similar: to create a generally recognized format that would unambiguously and safely convey Unicode information between machines and across the Internet.  To do that, they sought to remove nulls and endianism from the data stream.  The most popular one -- practically the only one used -- is known as UTF-8.  
+To answer that problem, to make Unicode transmissible and unambiguous to most machines, several <quote>transformation formats</quote> were adopted.  Their goals were generally similar: to create a generally recognized format that would unambiguously and safely convey Unicode information between machines and across the Internet.  To do that, they sought to remove nulls and endianism from the data stream.  The most popular one &mdash; practically the only one used &mdash; is known as UTF-8.  
 			</para>
 			<para>
 UTF-8 found wide acceptance for many reasons.  UTF-8 represents any Unicode character as a combination of 1-4 bytes.  The number of bytes required depends on the integer value of the Unicode character, and only one byte is used to represent the old <acronym>ASCII</> range (0-127).  UTF-8 does not use zero to represent any part of any character (except for the <acronym>ASCII</> NUL).  In consequence, UTF-8 is efficient with respect to space, has no endianism issues, and embeds no nulls.  UTF-8 strings can be treated as plain old <acronym>ASCII</> strings.  These properties make UTF-8 data relatively easy for systems accustomed to processing <acronym>ASCII</> data.  

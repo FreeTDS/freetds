@@ -1,3 +1,6 @@
+Tue Feb  8 16:42:14 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml add to OS-specific, and use mdash element
+
 Tue Feb  8 14:50:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/blk.c src/ctlib/cs.c:
 	* src/dblib/bcp.c src/tds/numeric.c src/tds/query.c:
