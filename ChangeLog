@@ -1,3 +1,8 @@
+Tue Jul 29 14:35:16 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.c:
+	- continue merge from Steve patch:
+	 - merge connection stuff (modified)
+
 Tue Jul 29 11:47:55 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* vms/odbc_driver_axp.opt win32/FreeTDS.def: updates
 	* src/odbc/checkexport.sh(added):

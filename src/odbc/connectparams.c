@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.42 2003-05-25 17:58:18 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.43 2003-07-29 12:36:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -72,6 +72,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 {
 	char tmp[FILENAME_MAX];
 	int freetds_conf_less = 1;
+	int address_specified = 0;
 
 	/* use old servername */
 	tmp[0] = '\0';
@@ -81,11 +82,23 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	}
 
 	/* search for server (compatible with ms one) */
-	tmp[0] = '\0';
-	if (freetds_conf_less && SQLGetPrivateProfileString(DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
-		tds_dstr_copy(&connect_info->server_name, tmp);
-		tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
-		tds_dstr_copy(&connect_info->ip_addr, tmp);
+	if (freetds_conf_less) {
+		tmp[0] = '\0';
+		if (SQLGetPrivateProfileString(DSN, "Address", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+			address_specified = 1;
+			/* TODO parse like MS */
+			tds_lookup_host(tmp, tmp);
+			tds_dstr_copy(&connect_info->ip_addr, tmp);
+		}
+
+		tmp[0] = '\0';
+		if (SQLGetPrivateProfileString(DSN, "Server", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+			tds_dstr_copy(&connect_info->server_name, tmp);
+			if (!address_specified) {
+				tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), tmp);
+				tds_dstr_copy(&connect_info->ip_addr, tmp);
+			}
+		}
 	}
 
 	tmp[0] = '\0';
@@ -107,6 +120,36 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	if (SQLGetPrivateProfileString(DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->database, tmp);
 	}
+#if 0
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString(DSN, "Authentication", "Server", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		if (!strcasecmp(tmp, "Server")) {
+			connect_info->try_domain_login = 0;
+			connect_info->try_server_login = 1;
+		} else if (!strcasecmp(tmp, "Domain")) {
+			connect_info->try_domain_login = 1;
+			connect_info->try_server_login = 0;
+		} else if (!strcasecmp(tmp, "Both")) {
+			connect_info->try_server_login = 1;
+			connect_info->try_domain_login = 1;
+		} else {
+			/* default to server authentication */
+			connect_info->try_domain_login = 0;
+			connect_info->try_server_login = 1;
+		}
+	}
+#endif
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString(DSN, "Domain", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->default_domain, tmp);
+	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString(DSN, "TextSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		connect_info->text_size = atoi(tmp);
+	}
+
 	return 1;
 }
 
@@ -198,6 +241,11 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			connect_info->port = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "TDS_Version") == 0) {
 			tds_config_verstr(tds_dstr_cstr(&value), connect_info);
+		} else if (strcasecmp(option, "Domain") == 0) {
+			dest_s = &connect_info->default_domain;
+		} else if (strcasecmp(option, "TextSize") == 0) {
+			connect_info->text_size = atoi(tds_dstr_cstr(&value));
+			/* TODO "Address" field */
 		}
 
 		/* copy to destination */
@@ -332,6 +380,190 @@ tdoGetIniFileName()
 		ret = fopen(SYS_ODBC_INI, "r");
 
 	return ret;
+}
+
+#endif /* !HAVE_SQLGETPRIVATEPROFILESTRING */
+
+#ifdef UNIXODBC
+
+/* FIXME unixODBC header seem broken... */
+/* #include <odbcinstext.h> */
+
+#if !defined(INI_MAX_PROPERTY_NAME) || !defined(INI_MAX_PROPERTY_VALUE)
+/*
+ * Begin BIG Hack.
+ *  
+ * We need these from idbcinstext.h but it wants to 
+ * include <log.h> and <ini.h>, which are not in the 
+ * standard include path.  XXX smurph 
+ */
+#define     INI_MAX_LINE            1000
+#define     INI_MAX_OBJECT_NAME     INI_MAX_LINE
+#define     INI_MAX_PROPERTY_NAME   INI_MAX_LINE
+#define     INI_MAX_PROPERTY_VALUE  INI_MAX_LINE
+
+#define	ODBCINST_PROMPTTYPE_LABEL		0	/* readonly */
+#define	ODBCINST_PROMPTTYPE_TEXTEDIT	1
+#define	ODBCINST_PROMPTTYPE_LISTBOX		2
+#define	ODBCINST_PROMPTTYPE_COMBOBOX	3
+#define	ODBCINST_PROMPTTYPE_FILENAME	4
+#define	ODBCINST_PROMPTTYPE_HIDDEN	    5
+
+typedef struct tODBCINSTPROPERTY
+{
+	struct tODBCINSTPROPERTY *pNext;	/* pointer to next property, NULL if last property                                                                              */
+
+	char szName[INI_MAX_PROPERTY_NAME + 1];	/* property name                                                                                                                                                */
+	char szValue[INI_MAX_PROPERTY_VALUE + 1];	/* property value                                                                                                                                               */
+	int nPromptType;	/* PROMPTTYPE_TEXTEDIT, PROMPTTYPE_LISTBOX, PROMPTTYPE_COMBOBOX, PROMPTTYPE_FILENAME    */
+	char **aPromptData;	/* array of pointers terminated with a NULL value in array.                                                     */
+	char *pszHelp;		/* help on this property (driver setups should keep it short)                                                   */
+	void *pWidget;		/* CALLER CAN STORE A POINTER TO ? HERE                                                                                                 */
+	int bRefresh;		/* app should refresh widget ie Driver Setup has changed aPromptData or szValue                 */
+	void *hDLL;		/* for odbcinst internal use... only first property has valid one                                               */
+}
+ODBCINSTPROPERTY, *HODBCINSTPROPERTY;
+
+/* 
+ * End BIG Hack.
+ */
+#endif
+
+int ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty);
+
+static const char *aTDSver[] = {
+	"4.2",
+	"5.0",
+	"7.0",
+	"8.0",
+	NULL
+};
+
+static const char *aLanguage[] = {
+	"us_english",
+	NULL
+};
+
+/*
+static const char *aAuth[] = {
+	"Server",
+	"Domain",
+	"Both",
+	NULL
+};
+*/
+
+int
+ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
+{
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Servername", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Name of FreeTDS connection to connect to.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Server", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Name of server to connect to.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Address", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("The hostname or ip address of the server.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Port", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "1433", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("TCP/IP Port to connect to.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Database", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Default database.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
+	hLastProperty->aPromptData = malloc(sizeof(aTDSver));
+	memcpy(hLastProperty->aPromptData, aTDSver, sizeof(aTDSver));
+	strncpy(hLastProperty->szName, "TDS_Version", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "4.2", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("The TDS protocol version.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
+	hLastProperty->aPromptData = malloc(sizeof(aLanguage));
+	memcpy(hLastProperty->aPromptData, aLanguage, sizeof(aLanguage));
+	strncpy(hLastProperty->szName, "Language", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "us_english", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("The default language setting.");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_HIDDEN;
+	strncpy(hLastProperty->szName, "TextSize", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Text datatype limit.");
+
+	/* ??? in odbc.ini ??? */
+/*
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "UID", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("User ID (Beware of security issues).");
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "PWD", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("Password (Beware of security issues).");
+*/
+
+/*
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
+	hLastProperty->aPromptData = malloc(sizeof(aAuth));
+	memcpy(hLastProperty->aPromptData, aAuth, sizeof(aAuth));
+	strncpy(hLastProperty->szName, "Authentication", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "Server", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("The server authentication mechanism.");
+*/
+
+	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty = hLastProperty->pNext;
+	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
+	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
+	strncpy(hLastProperty->szName, "Domain", INI_MAX_PROPERTY_NAME);
+	strncpy(hLastProperty->szValue, "", INI_MAX_PROPERTY_VALUE);
+	hLastProperty->pszHelp = (char *) strdup("The default domain to use when using Domain Authentication.");
+
+	return 1;
 }
 
 #endif
