@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.69 2002-10-18 12:59:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.70 2002-10-18 17:04:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -223,13 +223,13 @@ TDSCONNECTINFO *connect_info;
 
 	tdoParseConnectString( szConnStrIn, connect_info );
 
-	if ( tds_dstr_empty(connect_info->server_name) )
+	if ( tds_dstr_isempty(&connect_info->server_name) )
 	{
 		odbc_LogError( "Could not find Servername parameter" );
 		return SQL_ERROR;
 	}
 
-	if ( tds_dstr_empty(connect_info->user_name) )
+	if ( tds_dstr_isempty(&connect_info->user_name) )
 	{
 		odbc_LogError( "Could not find UID parameter" );
 		return SQL_ERROR;
@@ -240,7 +240,7 @@ TDSCONNECTINFO *connect_info;
 		return ret;
 	}
 
-	if ( !tds_dstr_empty(connect_info->database) )
+	if ( !tds_dstr_isempty(&connect_info->database) )
 	{
 		return change_database( hdbc, connect_info->database );
 	}
@@ -2242,12 +2242,13 @@ SQLRETURN SQL_API SQLGetTypeInfo(
 {
 struct _hstmt *stmt;
 SQLRETURN res;
-TDSSOCKET *tds = (TDSSOCKET*)stmt->hdbc->tds_socket;
+TDSSOCKET *tds;
 int varchar_pos = -1,n;
 
     CHECK_HSTMT;
 
-    stmt = (struct _hstmt *) hstmt;
+	stmt = (struct _hstmt *) hstmt;
+	tds = stmt->hdbc->tds_socket;
 
     /* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
     /* FIXME what about early Sybase products ? */
@@ -2355,7 +2356,7 @@ SQLRETURN SQL_API SQLSetConnectAttr(SQLHDBC       hdbc,
                                    SQLPOINTER     ValuePtr,
                                    SQLINTEGER     StringLength)
 {
-struct _hdbc *dbc = (struct _hdbc *) hdbc;
+/* struct _hdbc *dbc = (struct _hdbc *) hdbc; */
 SQLUINTEGER u_value = (SQLUINTEGER)ValuePtr;
 
 	CHECK_HDBC;

@@ -44,7 +44,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.23 2002-10-14 13:36:54 castellano Exp $";
+	"$Id: iconv.c,v 1.24 2002-10-18 17:04:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -112,7 +112,7 @@ char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string
 int i;
 #if HAVE_ICONV
 TDSICONVINFO *iconv_info;
-const char *in_ptr;
+ICONV_CONST char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 char quest_mark[] = "?\0"; /* best to live no-const */
@@ -183,7 +183,7 @@ register int i;
 size_t string_length;
 #if HAVE_ICONV
 TDSICONVINFO *iconv_info;
-const char *in_ptr;
+ICONV_CONST char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 #endif

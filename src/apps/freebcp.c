@@ -21,15 +21,23 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <strings.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include <tdsutil.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.10 2002-10-11 15:04:13 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.11 2002-10-18 17:04:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

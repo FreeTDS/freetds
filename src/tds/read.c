@@ -59,7 +59,7 @@
 
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: read.c,v 1.25 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.26 2002-10-18 17:04:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -144,11 +144,10 @@ tds_get_byte(TDSSOCKET *tds)
 int rc;
 
 	if (tds->in_pos >= tds->in_len) {
-		while (!IS_TDSDEAD(tds) && (rc = tds_read_packet(tds)) == 0)
-			;
-		if (IS_TDSDEAD(tds) || rc == -1) {
-			return 0;
-		}
+		do {
+			if (IS_TDSDEAD(tds) || (rc = tds_read_packet(tds)) < 0)
+				return 0;
+		} while (!rc);
 	}
 	return tds->in_buf[tds->in_pos++];
 }
@@ -308,12 +307,13 @@ tds_get_size_by_type(int servertype)
       default:             return -1; break;
    }
 }
-/*
-** Read in one 'packet' from the server.  This is a wrapped outer packet of
-** the protocol (they bundle resulte packets into chunks and wrap them at
-** what appears to be 512 bytes regardless of how that breaks internal packet
-** up.   (tetherow@nol.org)
-*/
+/**
+ * Read in one 'packet' from the server.  This is a wrapped outer packet of
+ * the protocol (they bundle resulte packets into chunks and wrap them at
+ * what appears to be 512 bytes regardless of how that breaks internal packet
+ * up.   (tetherow@nol.org)
+ * @return bytes readed or -1 on failure
+ */
 int tds_read_packet (TDSSOCKET *tds)
 {
 unsigned char header[8];
