@@ -183,6 +183,7 @@ AC_ARG_WITH(iodbc,
 if test "$with_iodbc"; then
 	CFLAGS="$CFLAGS -DIODBC";
 	ODBC_INC=$with_iodbc/include;
+	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
 	odbc=true
 fi
 
@@ -191,6 +192,7 @@ AC_ARG_WITH(unixodbc,
 if test "$with_unixodbc"; then
 	CFLAGS="$CFLAGS -DUNIXODBC"
 	ODBC_INC=$with_unixodbc/include
+	LDFLAGS="$LDFLAGS -L$with_unixodbc/lib"
 	odbc=true
 	unixodbc=true
 fi

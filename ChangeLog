@@ -1,3 +1,8 @@
+Thu Oct  3 14:41:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Include ODBC library path in LDFLAGS so that we can find
+	  the ODBC libraries, and get a proper -rpath.
+
 Wed Oct  2 16:59:27 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/cs.c src/tds/config.c src/tds/convert.c
 	  src/tds/login.c src/tds/query.c src/tds/vstrbuild.c:
