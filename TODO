@@ -8,13 +8,14 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.63 2003-08-05 01:25:57 jklowden Exp $
+To Do List	$Id: TODO,v 1.64 2003-08-05 04:01:56 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
 . Write functions to append to and search the TDSSOCKET::iconv_info array.  
 
 For 0.62 version:
+. borrow GNU's libiconv m4 macro to test/provide EILSEQ.  
 . add test for locale_charset() to configure.in.  Use it if available instead
   of nl_langinfo, because it implies we're using GNU iconv.  
 . Walk through charset name initialization.  Make sure it works in the absence

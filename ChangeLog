@@ -1,3 +1,7 @@
+Mon Aug  4 23:58:42 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO added EILSEQ issue
+	* include/tds.h started redefinition of log levels. 
+	
 Mon Aug  4 21:57:50 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/index.html doc/htdoc/software.html
 	- updated per Frediano's suggestions today on ML
