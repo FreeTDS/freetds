@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.92 2002-11-04 19:49:20 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.93 2002-11-05 05:32:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,7 +73,7 @@ extern const int g__numeric_bytes_per_prec[];
  */
 
 /* TODO do a best check for alignment than this */
-union { void *p; int i; } align_struct;
+static union { void *p; int i; } align_struct;
 #define ALIGN_SIZE sizeof(align_struct)
 
 /** \addtogroup token

@@ -1,3 +1,7 @@
+Tue Nov  5 00:30:58 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/mem.c src/tds/token.c:
+	- Make align_struct static.
+
 Fri Nov  4 22:09:37 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- remove some warnings

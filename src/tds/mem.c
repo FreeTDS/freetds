@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.45 2002-11-04 10:30:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.46 2002-11-05 05:32:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -61,7 +61,7 @@ void tds_free_env(TDSSOCKET *tds);
 	{if (!(dest = strdup(str))) goto Cleanup;}
 
 /* TODO do a best check for alignment than this, duplicate from token.c */
-union { void *p; int i; } align_struct;
+static union { void *p; int i; } align_struct;
 #define ALIGN_SIZE sizeof(align_struct)
 
 /**
