@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.21 2002-07-09 02:10:01 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.22 2002-07-10 05:06:41 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -318,14 +318,12 @@ TDS_NUMERIC	numeric;
 			}
 		}
 		if (curcol->varaddr) {
+ 			DBINT srclen = -1;
 			int   index = buffer_index_of_resultset_row(buf, row_num);
          
-			if (index<0) {
-				assert(1==0);
+			assert (index >= 0);
 				/* XXX now what? */
-			} else {
- 			DBINT srclen = -1;
-	
+				
 			if (is_blob_type(curcol->column_type)) {
 				srclen =  curcol->column_textsize;
 				src = (BYTE *)curcol->column_textvalue;
@@ -357,7 +355,6 @@ TDS_NUMERIC	numeric;
 					      (BYTE *)curcol->varaddr,	/* dest     */
 					      destlen);       	/* destlen  */
 			} /* else not null */
-			}
 		}
 	}
 } /* buffer_transfer_bound_data()  */
@@ -886,18 +883,24 @@ static int _db_get_server_type(int bindtype)
                break;
 	}
 }
-/* Notes on changes:
-** conversion functions are now handled in the TDS layer.
-** The main reason for this is that ctlib and ODBC (and presumably DBI) need
-** to be able to do conversions between datatypes. This is possible because
-** the format of complex data (dates, money, numeric, decimal) is defined by
-** its representation on the wire, thus what we call DBMONEY is exactly its
-** format on the wire. CLIs that need a differtent representation (ODBC?) 
-** need to convert from this format anyway, so the code would already be in
-** place.
-** The datatypes are also defined by its Server-type so all CLIs should be 
-** able to map native types to server types as well.
-*/
+/**
+ * Conversion functions are handled in the TDS layer.
+ * The main reason for this is that ctlib and ODBC (and presumably DBI) need
+ * to be able to do conversions between datatypes. This is possible because
+ * the format of complex data (dates, money, numeric, decimal) is defined by
+ * its representation on the wire, thus what we call DBMONEY is exactly its
+ * format on the wire. CLIs that need a differtent representation (ODBC?) 
+ * need to convert from this format anyway, so the code would already be in
+ * place.
+ * The datatypes are also defined by its Server-type so all CLIs should be 
+ * able to map native types to server types as well.
+ *
+ * tds_convert copies from src to dest and returns the output data length,
+ * period.  All padding and termination is the responsibilty of the API library
+ * and is done post conversion.  The peculiar rule in dbconvert() is that
+ * a dest len of -1 and a desttype of SYBCHAR means the output buffer
+ * should be null-teminated.  
+ */
 DBINT dbconvert(DBPROCESS *dbproc,
 		int srctype,
 		BYTE *src,
@@ -906,15 +909,27 @@ DBINT dbconvert(DBPROCESS *dbproc,
 		BYTE *dest,
 		DBINT destlen)
 {
-TDSSOCKET *tds = NULL;
+TDS_UINT len;
+DBINT length;
 
-	if (dbproc) {
-		tds = (TDSSOCKET *) dbproc->tds_socket;
-	}
-
-	if (srclen==-1) srclen = strlen((char *)src);
-	return tds_convert(g_tds_context->locale, srctype, (TDS_CHAR *)src, srclen, desttype, (TDS_CHAR *)dest, destlen);
+	if (srclen==-1)
+		srclen = strlen((char *)src);
+		
+	/*
+	 * a -1 destlen is legal, but we have to be more specific with
+	 * tds_convert, and implies the output buffer should be null-teminated.
+	 */
+	len = (destlen == -1)? srclen : destlen;
+	length = tds_convert (g_tds_context->locale, 
+						srctype,  (TDS_CHAR *)src,  srclen, 
+						desttype, (TDS_CHAR *)dest, len);
+						
+	if (length > 0 && destlen == -1 && desttype == SYBCHAR) 
+		((TDS_CHAR *)dest)[length++] = '\0';
+		
+	return length;
 }
+
 RETCODE dbbind(
    DBPROCESS *dbproc,
    int        column,
