@@ -74,7 +74,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.111 2005-01-12 19:42:05 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.112 2005-01-14 16:49:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1967,7 +1967,7 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 		return FAIL;
 	}
 
-	if (clause->cb < strlen((char *)clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 2 : 4)) {
+	if (clause->cb < strlen((char *)clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 4 : 6)) {
 		unsigned char *temp = malloc(2 * clause->cb);
 
 		if (!temp)
@@ -1980,8 +1980,9 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 	if (!first)
 		strcat((char *)clause->pb, ", ");
 
+	strcat((char *)clause->pb, "[");
 	strcat((char *)clause->pb, bcpcol->column_name);
-	strcat((char *)clause->pb, " ");
+	strcat((char *)clause->pb, "] ");
 	strcat((char *)clause->pb, column_type);
 
 	return SUCCEED;
