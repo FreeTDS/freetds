@@ -1,7 +1,17 @@
+Tue Nov 13 23:41:17 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/dblib/dbutil.c: fix call to tds_reset_msg after libtds change.
+	
 Tue Nov 13 16:04:54 2001  James Cameron  <quozl@us.netrek.org>
 
 	* doc/faq.html: add MAC OS X build FAQ entry, make a few language
 	adjustments to text.
+
+Sat Nov 10 12:37:27 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/tds/unittests/common.c: fix call to tds_connect()
+	* src/tds/config.c: revert Marks call to lookup_host for the host_name
+	field.
 
 Fri Nov  9 20:16:21 EST 2001	Brian Bruns <camber@ais.org>
 

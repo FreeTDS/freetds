@@ -5,7 +5,7 @@ To Do List
 . RPC stuff not implemented
 . All manner of unimplemented functions
 . Need a way to track problems with running apache/PHP, may have many apache 
-  children going.
+  children going. (done, see append mode)
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (partly done)
 . Server API needs more work, especially for TDS 5.0/7.0
 . Add support for TDS 8.0 (login works)

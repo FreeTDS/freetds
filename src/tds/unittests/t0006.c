@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char  software_version[]   = "$Id: t0006.c,v 1.1 2001-10-12 23:29:04 brianb Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.2 2001-11-14 04:52:33 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -146,7 +146,7 @@ int main()
    if (verbose)  printf("Starting SYBFLT8 tests\n");
    rc = run_query(tds, "DROP TABLE test_table");
    if (rc != TDS_SUCCEED) { return 1; }
-   rc = run_query(tds, "CREATE TABLE test_table (id int, val float(53))");
+   rc = run_query(tds, "CREATE TABLE test_table (id int, val float(48))");
    if (rc != TDS_SUCCEED) { return 1; }
 
    for (i=0; i<num_sybflt8; i++) {

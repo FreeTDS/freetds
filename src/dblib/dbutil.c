@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.4 2001-11-08 17:50:24 mlilback Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.5 2001-11-14 04:52:33 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,7 +73,7 @@ int dblib_handle_info_message(void *aStruct)
 		}
 
 		/* and now clean up the structure for next time */
-		tds_reset_msg_info(dbproc->tds_socket);
+		tds_reset_msg_info(tds);
 	}
         return 1;
 }

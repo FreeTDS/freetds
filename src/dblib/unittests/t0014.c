@@ -14,7 +14,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0014.c,v 1.1 2001-10-12 23:29:13 brianb Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.2 2001-11-14 04:52:33 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
 	// Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 	// Use #ifndef for big buffer version (32-bit)
-#ifndef 1
+#if 1
 //DBWRITE_OK_FOR_OVER_4K
 		if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, blob) != SUCCEED)
 			return 5;
