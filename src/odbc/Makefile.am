@@ -3,7 +3,7 @@ SUBDIRS		= unittests
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
-	convert_sql2string.c prepare_query.c odbc_util.c \
+	convert_sql2string.c descriptor.c prepare_query.c odbc_util.c \
 	convert_sql2string.h convert_tds2sql.h odbc_util.h \
 	prepare_query.h connectparams.h native.c \
 	sql2tds.c sql2tds.h error.c

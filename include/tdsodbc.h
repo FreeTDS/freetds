@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.36 2003-07-30 05:57:09 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.37 2003-07-31 21:24:08 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -76,6 +76,77 @@ void odbc_errs_add(struct _sql_errors *errs, TDS_UINT native, const char *sqlsta
 
 /** Add an error to list. This functions is for error that came from server */
 void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum, int msgstate, const char *server);
+
+struct _dheader
+{
+	SQLSMALLINT sql_desc_alloc_type;
+	SQLINTEGER sql_desc_bind_type;
+	SQLUINTEGER sql_desc_array_size;
+	SQLSMALLINT sql_desc_count;
+	SQLUSMALLINT *sql_desc_array_status_ptr;
+	SQLUINTEGER *sql_desc_rows_processed_ptr;
+	SQLINTEGER *sql_desc_bind_offset_ptr;
+};
+
+struct _drecord
+{
+	SQLUINTEGER sql_desc_auto_unique_value;
+	SQLCHAR *sql_desc_base_column_name;
+	SQLCHAR *sql_desc_base_table_name;
+	SQLINTEGER sql_desc_case_sensitive;
+	SQLCHAR *sql_desc_catalog_name;
+	SQLSMALLINT sql_desc_concise_type;
+	SQLPOINTER *sql_desc_data_ptr;
+	SQLSMALLINT sql_desc_datetime_interval_code;
+	SQLINTEGER sql_desc_datetime_interval_precision;
+	SQLINTEGER sql_desc_display_size;
+	SQLSMALLINT sql_desc_fixed_prec_scale;
+	SQLINTEGER *sql_desc_indicator_ptr;
+	SQLCHAR *sql_desc_label;
+	SQLUINTEGER sql_desc_length;
+	SQLCHAR *sql_desc_literal_prefix;
+	SQLCHAR *sql_desc_literal_suffix;
+	SQLCHAR *sql_desc_local_type_name;
+	SQLCHAR *sql_desc_name;
+	SQLSMALLINT sql_desc_nullable;
+	SQLINTEGER sql_desc_num_prec_radix;
+	SQLINTEGER sql_desc_octet_length;
+	SQLINTEGER *sql_desc_octet_length_ptr;
+	SQLSMALLINT sql_desc_parameter_type;
+	SQLSMALLINT sql_desc_precision;
+	SQLSMALLINT sql_desc_rowver;
+	SQLSMALLINT sql_desc_scale;
+	SQLCHAR *sql_desc_schema_name;
+	SQLSMALLINT sql_desc_searchable;
+	SQLCHAR *sql_desc_table_name;
+	SQLSMALLINT sql_desc_type;
+	SQLCHAR *sql_desc_type_name;
+	SQLSMALLINT sql_desc_unnamed;
+	SQLSMALLINT sql_desc_unsigned;
+	SQLSMALLINT sql_desc_updatable;
+};
+
+struct _hdesc
+{
+	SQLSMALLINT htype;	/* do not reorder this field */
+	int type;
+	SQLHDESC parent;
+	struct _dheader header;
+	struct _drecord *records;
+	struct _sql_errors errs;
+	SQLRETURN lastrc;
+};
+
+typedef struct _hdesc IRD;
+typedef struct _hdesc IPD;
+typedef struct _hdesc ARD;
+typedef struct _hdesc APD;
+typedef struct _hdesc TDS_DESC;
+
+#define DESC_IRD	1
+#define DESC_IPD	2
+#define DESC_ARD	3
+#define DESC_APD	4
 
 struct _heattr
 {
@@ -197,6 +268,11 @@ typedef struct _hchk TDS_CHK;
 #define IS_HDBC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DBC)
 #define IS_HSTMT(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_STMT)
 #define IS_HDESC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DESC)
+
+TDS_DESC *desc_alloc(SQLHDESC parent, int desc_type, int alloc_type);
+SQLRETURN desc_free(TDS_DESC * desc);
+SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
+SQLRETURN desc_free_records(TDS_DESC * desc);
 
 #ifdef __cplusplus
 #if 0
