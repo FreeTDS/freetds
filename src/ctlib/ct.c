@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.119 2004-05-17 15:17:01 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.120 2004-05-17 15:34:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -53,7 +53,7 @@ static int _ct_process_return_status(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
-static void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, 
+void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, 
 			  const char *fmt, ...);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 
@@ -164,7 +164,7 @@ _ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 	return m;
 }
 
-static void
+void
 _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, const char *fmt, ...)
 {
 	CS_CONTEXT *ctx = con->ctx;

@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.21 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.22 2004-05-17 15:34:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -62,7 +62,7 @@ main(int argc, char **argv)
 	sybreal[4] = 1.234567890e-20;
 
 	sybflt8[0] = 1.1;
-	sybflt8[1] = 1234567890123456;
+	sybflt8[1] = 1234567890123456.0;
 	sybflt8[2] = 0.01234567890123456;
 	sybflt8[3] = 1.234567890123456e+20;
 	sybflt8[4] = 1.234567890123456e-20;

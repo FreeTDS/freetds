@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.8 2004-05-17 15:17:01 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.9 2004-05-17 15:34:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -57,6 +57,8 @@ static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 int _ct_get_client_type(int datatype, int usertype, int size);
+void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
+		   const char *fmt, ...);
 
 CS_RETCODE
 blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
