@@ -28,11 +28,15 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_replacements_h[] = "$Id: replacements.h,v 1.5 2002-11-21 16:53:43 freddy77 Exp $";
+static char rcsid_replacements_h[] = "$Id: replacements.h,v 1.6 2003-12-09 16:55:15 jklowden Exp $";
 static void *no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
+
+#if !HAVE_VSNPRINTF
+int vsnprintf (char * ret, size_t max, const char *fmt, va_list ap);
+#endif /* !HAVE_VSNPRINTF */
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);
