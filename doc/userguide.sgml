@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-03 08:38:28 $</date>
-		<releaseinfo>$Revision: 1.69 $</releaseinfo>
+		<date>$Date: 2003-12-05 10:06:07 $</date>
+		<releaseinfo>$Revision: 1.70 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.69 $</>
-<member>$Date: 2003-12-03 08:38:28 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.69 2003-12-03 08:38:28 jklowden Exp $.</>
+<member>$Revision: 1.70 $</>
+<member>$Date: 2003-12-05 10:06:07 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.70 2003-12-05 10:06:07 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -495,7 +495,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2><title>OS X &reg;</title>
-			<para>As of this writing ($Date: 2003-12-03 08:38:28 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
+			<para>As of this writing ($Date: 2003-12-05 10:06:07 $), the regular distribution will not compile on OS X.  Current CVS code works, but it appears <application>libtool 1.5.5</> is required.  We expect to fix this (probably by upgrading the libtool used to generate the distributed <filename>configure</> file) for the 0.62 release.</para>
 			
 			<sidebar>
 			<para><productname>FreeTDS</productname> builds, installs, and runs on virtually any machine with an OS vaguely related to Unix.  If you've recently built and installed <productname>FreeTDS</productname> and noticed steps peculiar to your OS, we'll happily include your comments here. </para>
@@ -2840,7 +2840,7 @@ Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ul
 		<sect1>
 			<title>TDS <acronym>API</> [future reference]</title>
 			<para>
-Basic API coverage information is available at <ulink url="http://www.freetds.org//api_status.txt">www.freetds.org</ulink>.
+Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink>.
 libtds documentation can be compiled using <productname>Doxygen</productname> and issuing <command>make doxy</command> command.
 			</para>
 		</sect1>
