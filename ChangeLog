@@ -1,3 +1,8 @@
+Sat Jul  3 14:05:12 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/token.c ignore spurious TDS_RETURNSTATUS_TOKEN packets
+	* src/dblib/dblib.c better comments
+	* include/tds.h small reformatting
+	
 Sat Jul 03 19:40:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/date.c: updated reusing macros
 

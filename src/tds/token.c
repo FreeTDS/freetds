@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.259 2004-05-17 15:17:03 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.260 2004-07-03 18:14:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -97,6 +97,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 {
 	int tok_size;
 	int done_flags;
+	TDS_INT ret_status;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
 
@@ -122,8 +123,12 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, 8);
 		break;
 	case TDS_RETURNSTATUS_TOKEN:
+		ret_status = tds_get_int(tds);
+		marker = tds_peek(tds);
+		if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN)
+			break;
 		tds->has_status = 1;
-		tds->ret_status = tds_get_int(tds);
+		tds->ret_status = ret_status;
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens: return status is %d\n", tds->ret_status);
 		break;
 	case TDS_ERROR_TOKEN:
@@ -486,6 +491,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
 	TDSCOLUMN   *curcol;
 	int rc;
+	TDS_INT ret_status;
 
 	if (tds->state == TDS_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens() state is COMPLETED\n");
@@ -633,12 +639,15 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			return TDS_SUCCEED;
 			break;
 		case TDS_RETURNSTATUS_TOKEN:
+			ret_status = tds_get_int(tds);
+			marker = tds_peek(tds);
+			if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN)
+				break;
 			if (tds->internal_sp_called) {
-				/* TODO perhaps we should use this result ?? */
-				tds_get_int(tds);
+				/* TODO perhaps we should use ret_status ?? */
 			} else {
 				tds->has_status = 1;
-				tds->ret_status = tds_get_int(tds);
+				tds->ret_status = ret_status;
 				*result_type = TDS_STATUS_RESULT;
 				tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens: return status is %d\n", tds->ret_status);
 				return TDS_SUCCEED;
