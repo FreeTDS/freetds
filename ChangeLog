@@ -1,3 +1,6 @@
+Fri Apr 27 19:57:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/config.c: cleanup
+
 Fri Apr 27 16:47:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix problem with RPC returning result
 

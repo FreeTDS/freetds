@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.73 2003-04-21 09:05:57 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.74 2003-04-27 17:57:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -77,10 +77,9 @@ static void tds_config_env_tdsport(TDSCONNECTINFO * connect_info);
 static void tds_config_env_tdshost(TDSCONNECTINFO * connect_info);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTINFO * connect_info);
 static void tds_parse_conf_section(const char *option, const char *value, void *param);
-static void tds_read_interfaces(char *server, TDSCONNECTINFO * connect_info);
+static void tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login);
-static int get_server_info(const char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
 extern int tds_g_append_mode;
 
@@ -449,25 +448,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 }
 
 static void
-tds_read_interfaces(char *server, TDSCONNECTINFO * connect_info)
-{
-	char ip_addr[255], ip_port[255], tds_ver[255];
-
-	/* read $SYBASE/interfaces */
-	/* This needs to be cleaned up */
-	get_server_info(server, ip_addr, ip_port, tds_ver);
-	if (strlen(ip_addr)) {
-		tds_dstr_copy(&connect_info->ip_addr, ip_addr);
-	}
-	if (atoi(ip_port)) {
-		connect_info->port = atoi(ip_port);
-	}
-	if (strlen(tds_ver)) {
-		tds_config_verstr(tds_ver, connect_info);
-		/* if it doesn't match a known version do nothing with it */
-	}
-}
-static void
 tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 {
 	if (!tds_dstr_isempty(&login->server_name)) {
@@ -686,10 +666,9 @@ void
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		const char *portname,	/* (I) name or number of the port          */
 		char *ip,	/* (O) dotted-decimal ip address of server */
-		char *port)
+		int *port)
 {				/* (O) port number of the service          */
 	struct hostent *host = NULL;
-	struct servent *service = NULL;
 	int num = 0;
 	unsigned int ip_addr = 0;
 
@@ -734,21 +713,18 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 
 		strncpy(ip, inet_ntoa(*ptr), 17);
 	}
+
 	if (portname) {
-		service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
+		struct servent *service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
+
 		if (service == NULL) {
 			num = atoi(portname);
 		} else {
 			num = ntohs(service->s_port);
 		}
 	}
-
-	if (num == 0) {
-		if (port)
-			port[0] = '\0';
-	} else {
-		sprintf(port, "%d", num);
-	}
+	if (port)
+		*port = num;
 }				/* tds_lookup_host()  */
 
 static int
@@ -781,14 +757,14 @@ hex2num(char *hex)
  *
  * ===========================================================================
  */
-static void
-search_interface_file(const char *dir,	/* (I) Name of base directory for interface file */
+static int
+search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Name of base directory for interface file */
 		      const char *file,	/* (I) Name of the interface file                */
 		      const char *host,	/* (I) Logical host to search for                */
 		      char *ip_addr,	/* (O) dotted-decimal IP address                 */
-		      char *ip_port,	/* (O) Port number for database server           */
-		      char *tds_ver)
-{				/* (O) Protocol version to use when connecting   */
+		      int *ip_port	/* (O) Port number for database server           */
+	)
+{
 	char *pathname;
 	char line[255];
 	char tmp_ip[sizeof(line)];
@@ -884,32 +860,27 @@ search_interface_file(const char *dir,	/* (I) Name of base directory for interfa
 	 */
 	tds_lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
 	tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n", ip_addr);
-	strcpy(tds_ver, tmp_ver);
+	if (tmp_ver[0])
+		tds_config_verstr(tmp_ver, connect_info);
 }				/* search_interface_file()  */
-
 
 /**
  * Try to find the IP number and port for a (possibly) logical server name.
  *
- * @note It is the callers responsibility to supply large enough buffers
- *       to hold the ip and port numbers.  ip_addr should be at least 17
- *       bytes long and ip_port should be at least 6 bytes long.
- *
  * @note This function uses only the interfaces file and is deprecated.
- *
- * @return True if it found the server, false otherwise.
  *
  * ===========================================================================
  */
-static int
-get_server_info(const char *server,	/* (I) logical or physical server name      */
-		char *ip_addr,	/* (O) string representation of IP address  */
-		char *ip_port,	/* (O) string representation of port number */
-		char *tds_ver)
-{				/* (O) string value specifying which protocol version */
+static void
+tds_read_interfaces(const char *server, TDSCONNECTINFO * connect_info)
+{
+	char ip_addr[255];
+	int ip_port;
+
+	/* read $SYBASE/interfaces */
+	/* This needs to be cleaned up */
 	ip_addr[0] = '\0';
-	ip_port[0] = '\0';
-	tds_ver[0] = '\0';
+	ip_port = 0;
 
 	if (!server || strlen(server) == 0) {
 		server = getenv("TDSQUERY");
@@ -922,50 +893,50 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 	tdsdump_log(TDS_DBG_INFO1, "%L Looking for server %s....\n", server);
 
 	/*
-	 * * Look for the server in the interf_file iff interf_file has been set.
+	 * Look for the server in the interf_file iff interf_file has been set.
 	 */
-	if (ip_addr[0] == '\0' && interf_file) {
+	if (interf_file) {
 		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in file %s.\n", interf_file);
-		search_interface_file("", interf_file, server, ip_addr, ip_port, tds_ver);
+		search_interface_file(connect_info, "", interf_file, server, ip_addr, &ip_port);
 	}
 
 	/*
-	 * * if we haven't found the server yet then look for a $HOME/.interfaces file
+	 * if we haven't found the server yet then look for a $HOME/.interfaces file
 	 */
 	if (ip_addr[0] == '\0') {
 		char *path = tds_get_home_file(".interfaces");
 
 		if (path) {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s.\n", path);
-			search_interface_file("", path, server, ip_addr, ip_port, tds_ver);
+			search_interface_file(connect_info, "", path, server, ip_addr, &ip_port);
 			free(path);
 		}
 	}
 
 	/*
-	 * * if we haven't found the server yet then look in $SYBBASE/interfaces file
+	 * if we haven't found the server yet then look in $SYBBASE/interfaces file
 	 */
 	if (ip_addr[0] == '\0') {
 		char *sybase = getenv("SYBASE");
 
-		if (sybase != NULL && sybase[0] != '\0') {
+		if (sybase && sybase[0]) {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
-			search_interface_file(sybase, "interfaces", server, ip_addr, ip_port, tds_ver);
+			search_interface_file(connect_info, sybase, "interfaces", server, ip_addr, &ip_port);
 		} else {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in /etc/freetds/interfaces.\n");
-			search_interface_file("/etc/freetds", "interfaces", server, ip_addr, ip_port, tds_ver);
+			search_interface_file(connect_info, "/etc/freetds", "interfaces", server, ip_addr, &ip_port);
 		}
 	}
 
 	/*
-	 * * If we still don't have the server and port then assume the user
-	 * * typed an actual server name.
+	 * If we still don't have the server and port then assume the user
+	 * typed an actual server name.
 	 */
 	if (ip_addr[0] == '\0') {
 		const char *tmp_port, *env_port;
 
 		/*
-		 * * Make a guess about the port number
+		 * Make a guess about the port number
 		 */
 
 #ifdef TDS50
@@ -981,14 +952,16 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 
 
 		/*
-		 * * lookup the host and service
+		 * lookup the host and service
 		 */
-		tds_lookup_host(server, tmp_port, ip_addr, ip_port);
-
+		tds_lookup_host(server, tmp_port, ip_addr, &ip_port);
 	}
 
-	return ip_addr[0] != '\0' && ip_port[0] != '\0';
-}				/* get_server_info()  */
+	if (ip_addr[0])
+		tds_dstr_copy(&connect_info->ip_addr, ip_addr);
+	if (ip_port)
+		connect_info->port = ip_port;
+}
 
 /**
  * Check the server name to find port info first
