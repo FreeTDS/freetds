@@ -20,12 +20,12 @@
 #ifndef CONVERT_SQL2STRING_h
 #define CONVERT_SQL2STRING_h
 
-static char rcsid_convert_sql2string_h[] = "$Id: convert_sql2string.h,v 1.7 2003-05-31 16:12:15 freddy77 Exp $";
+static char rcsid_convert_sql2string_h[] = "$Id: convert_sql2string.h,v 1.8 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_convert_sql2string_h_warn[] = { rcsid_convert_sql2string_h, no_unused_convert_sql2string_h_warn };
 
 
 TDS_INT convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, int param_lenbind, TDS_CHAR * dest,
 			   TDS_INT destlen);
-int odbc_get_server_type(int c_type);
+int odbc_c_to_server_type(int c_type);
 
 #endif

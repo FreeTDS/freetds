@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.35 2003-08-01 15:51:29 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.36 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -62,7 +62,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * to the SQL_C_* type.
  */
 int
-odbc_get_server_type(int c_type)
+odbc_c_to_server_type(int c_type)
 {
 	switch (c_type) {
 		/* FIXME this should be dependent on size of data !!! */
@@ -305,7 +305,7 @@ convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, int 
 
 	/* TODO check srctype passed */
 	/* FIXME test type returned from function */
-	res = tds_convert(context, odbc_get_server_type(srctype), src, srclen, SYBVARCHAR, &ores);
+	res = tds_convert(context, odbc_c_to_server_type(srctype), src, srclen, SYBVARCHAR, &ores);
 
 	if (res < 0) {
 		/* FIXME do not print error but return it  */

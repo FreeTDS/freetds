@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.20 2003-08-30 13:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.21 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -166,7 +166,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	/* TODO what happen to data ?? */
+	/* TODO what happen to numeric ?? */
 	/* convert parameters */
 	src = drec_apd->sql_desc_data_ptr;
 	switch (drec_apd->sql_desc_concise_type) {
@@ -181,7 +181,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		src_type = SYBDATETIME;
 		break;
 	default:
-		src_type = odbc_get_server_type(drec_apd->sql_desc_concise_type);
+		src_type = odbc_c_to_server_type(drec_apd->sql_desc_concise_type);
 		break;
 	}
 	if (src_type == TDS_FAIL)
@@ -206,7 +206,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 
 	/* free allocated memory */
 	dest = &info->current_row[curcol->column_offset];
-	switch (dest_type) {
+	switch ((TDS_SERVER_TYPE) dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case XSYBCHAR:
@@ -227,14 +227,46 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		memcpy(&info->current_row[curcol->column_offset], ores.ib, res);
 		free(ores.ib);
 		break;
+	case SYBLONGBINARY:
 	case SYBIMAGE:
 		blob_info = (TDSBLOBINFO *) dest;
 		if (blob_info->textvalue)
 			free(blob_info->textvalue);
 		blob_info->textvalue = ores.ib;
 		break;
-	default:
+	case SYBINTN:
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBINT8:
+	case SYBFLT8:
+	case SYBDATETIME:
+	case SYBBIT:
+	case SYBMONEY4:
+	case SYBMONEY:
+	case SYBDATETIME4:
+	case SYBREAL:
+	case SYBBITN:
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+	case SYBFLTN:
+	case SYBMONEYN:
+	case SYBDATETIMN:
+	case SYBSINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+	case SYBUNIQUE:
 		memcpy(&info->current_row[curcol->column_offset], &ores, res);
+		break;
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case SYBNVARCHAR:
+	case SYBNTEXT:
+	case SYBVOID:
+	case SYBVARIANT:
+		/* TODO ODBC 3.5 */
+		assert(0);
 		break;
 	}
 

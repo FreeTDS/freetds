@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.48 2003-08-06 12:34:07 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.49 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -60,6 +60,35 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  */
 static FILE *tdoGetIniFileName(void);
 
+/*****************************
+ * SQLGetPrivateProfileString
+ *
+ * PURPOSE
+ *
+ *  This is an implementation of a common MS API call. This implementation 
+ *  should only be used if the ODBC sub-system/SDK does not have it.
+ *  For example; unixODBC has its own so those using unixODBC should NOT be
+ *  using this implementation because unixODBC;
+ *  - provides caching of ODBC config data 
+ *  - provides consistent interpretation of ODBC config data (i.e, location)
+ *
+ * ARGS
+ *
+ *  see ODBC documentation
+ *                      
+ * RETURNS
+ *
+ *  see ODBC documentation
+ *
+ * NOTES:
+ *
+ *  - the spec is not entirely implemented... consider this a lite version
+ *  - rules for determining the location of ODBC config may be different then what you 
+ *    expect see tdoGetIniFileName().
+ *
+ *****************************/
+static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault, LPSTR pRetBuffer, int nRetBuffer,
+				      LPCSTR pszFileName);
 #endif
 
 /** 
@@ -165,7 +194,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
  * @param connect_info       where to store connection info
  * @return 1 if success 0 otherwhise */
 int
-tdoParseConnectString(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info)
+odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info)
 {
 	const char *p, *end;
 	DSTR *dest_s, value;
@@ -307,7 +336,7 @@ tdoParseProfile(const char *option, const char *value, void *param)
 	}
 }
 
-int
+static int
 SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault, LPSTR pRetBuffer, int nRetBuffer,
 			   LPCSTR pszFileName)
 {

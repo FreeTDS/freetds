@@ -20,17 +20,11 @@
 #ifndef CONNECTPARAMS_H
 #define CONNECTPARAMS_H
 
-#ifdef UNIXODBC
-#ifndef HAVEODBCINST
-#define HAVEODBCINST
-#endif
-#endif
-
-static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.9 2003-08-06 12:34:07 freddy77 Exp $";
+static char rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.10 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unused_connectparams_h_warn };
 
 /*****************************
- * tdoParseConnectString
+ * odbc_parse_connect_string
  *
  * PURPOSE
  *
@@ -49,40 +43,8 @@ static void *no_unused_connectparams_h_warn[] = { rcsid_connectparams_h, no_unus
  *  - I doubt pszDataSourceName is useful here?
  *
  *****************************/
-int tdoParseConnectString(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info);
+int odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info);
 
 int odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info);
-
-#ifndef HAVEODBCINST
-/*****************************
- * SQLGetPrivateProfileString
- *
- * PURPOSE
- *
- *  This is an implementation of a common MS API call. This implementation 
- *  should only be used if the ODBC sub-system/SDK does not have it.
- *  For example; unixODBC has its own so those using unixODBC should NOT be
- *  using this implementation because unixODBC;
- *  - provides caching of ODBC config data 
- *  - provides consistent interpretation of ODBC config data (i.e, location)
- *
- * ARGS
- *
- *  see ODBC documentation
- *                      
- * RETURNS
- *
- *  see ODBC documentation
- *
- * NOTES:
- *
- *  - the spec is not entirely implemented... consider this a lite version
- *  - rules for determining the location of ODBC config may be different then what you 
- *    expect see tdoGetIniFileName().
- *
- *****************************/
-int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault, LPSTR pRetBuffer, int nRetBuffer,
-			       LPCSTR pszFileName);
-#endif
 
 #endif

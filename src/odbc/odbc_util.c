@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.44 2003-08-30 13:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.45 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -213,10 +213,10 @@ odbc_get_string_size(int size, SQLCHAR * str)
  * Convert type from database to ODBC
  */
 SQLSMALLINT
-odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
+odbc_server_to_sql_type(int col_type, int col_size, int odbc_ver)
 {
 	/* FIXME finish */
-	switch (col_type) {
+	switch ((TDS_SERVER_TYPE) col_type) {
 	case XSYBCHAR:
 	case SYBCHAR:
 		return SQL_CHAR;
@@ -279,17 +279,20 @@ odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 			return SQL_TYPE_TIMESTAMP;
 #endif
 		return SQL_TIMESTAMP;
+	case XSYBBINARY:
 	case SYBBINARY:
 		return SQL_BINARY;
+	case SYBLONGBINARY:
 	case SYBIMAGE:
 		return SQL_LONGVARBINARY;
+	case XSYBVARBINARY:
 	case SYBVARBINARY:
 		return SQL_VARBINARY;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		return SQL_NUMERIC;
+		/* TODO this is ODBC 3.5 */
 	case SYBNTEXT:
-	case SYBVOID:
 	case SYBNVARCHAR:
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:
@@ -300,13 +303,20 @@ odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 	case SYBVARIANT:
 		break;
 #endif
+		/* TODO what should I do with these types ?? */
+	case SYBVOID:
+	case SYBSINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+		break;
 	}
 	return SQL_UNKNOWN_TYPE;
 }
 
 /* TODO return just constant buffer ?? */
 char *
-odbc_tds_to_sql_typename(int col_type, int col_size, int odbc_ver)
+odbc_server_to_sql_typename(int col_type, int col_size, int odbc_ver)
 {
 	/* FIXME finish */
 	/* TODO use a function to clash nullable type ?? */
@@ -637,12 +647,120 @@ odbc_get_param_len(struct _drecord *drec)
 			len = SQL_NTS;
 		} else {
 			/* FIXME check what happen to DATE/TIME types */
-			size = tds_get_size_by_type(odbc_get_server_type(drec->sql_desc_concise_type));
+			size = tds_get_size_by_type(odbc_c_to_server_type(drec->sql_desc_concise_type));
 			if (size > 0)
 				len = size;
 		}
 	}
 	return len;
+}
+
+#define TYPES \
+	TYPE_NORMAL(SQL_BIT) \
+	TYPE_NORMAL(SQL_SMALLINT) \
+	TYPE_NORMAL(SQL_TINYINT) \
+	TYPE_NORMAL(SQL_INTEGER) \
+	TYPE_NORMAL(SQL_BIGINT) \
+	TYPE_NORMAL(SQL_C_SSHORT) \
+	TYPE_NORMAL(SQL_C_SLONG) \
+\
+	TYPE_NORMAL(SQL_GUID) \
+\
+	TYPE_NORMAL(SQL_BINARY) \
+	TYPE_NORMAL(SQL_VARBINARY) \
+	TYPE_NORMAL(SQL_LONGVARBINARY) \
+\
+	TYPE_NORMAL(SQL_CHAR) \
+	TYPE_NORMAL(SQL_VARCHAR) \
+	TYPE_NORMAL(SQL_LONGVARCHAR) \
+\
+	TYPE_NORMAL(SQL_DECIMAL) \
+	TYPE_NORMAL(SQL_NUMERIC) \
+\
+	TYPE_NORMAL(SQL_FLOAT) \
+	TYPE_NORMAL(SQL_REAL) \
+	TYPE_NORMAL(SQL_DOUBLE)\
+\
+	TYPE_VERBOSE_START(SQL_DATETIME) \
+	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_DATE, SQL_TYPE_DATE, SQL_DATE) \
+	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_TIME, SQL_TYPE_TIME, SQL_TIME) \
+	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_TIMESTAMP, SQL_TYPE_TIMESTAMP, SQL_TIMESTAMP) \
+	TYPE_VERBOSE_END(SQL_DATETIME) \
+\
+	TYPE_VERBOSE_START(SQL_INTERVAL) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_DAY, SQL_INTERVAL_DAY) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_DAY_TO_HOUR, SQL_INTERVAL_DAY_TO_HOUR) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_DAY_TO_MINUTE, SQL_INTERVAL_DAY_TO_MINUTE) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_DAY_TO_SECOND, SQL_INTERVAL_DAY_TO_SECOND) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_HOUR, SQL_INTERVAL_HOUR) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_HOUR_TO_MINUTE, SQL_INTERVAL_HOUR_TO_MINUTE) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_HOUR_TO_SECOND, SQL_INTERVAL_HOUR_TO_SECOND) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_MINUTE, SQL_INTERVAL_MINUTE) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_MINUTE_TO_SECOND, SQL_INTERVAL_MINUTE_TO_SECOND) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_MONTH, SQL_INTERVAL_MONTH) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_SECOND, SQL_INTERVAL_SECOND) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_YEAR, SQL_INTERVAL_YEAR) \
+	TYPE_VERBOSE(SQL_INTERVAL, SQL_CODE_YEAR_TO_MONTH, SQL_INTERVAL_YEAR_TO_MONTH) \
+	TYPE_VERBOSE_END(SQL_INTERVAL)
+
+SQLSMALLINT
+odbc_get_concise_type(SQLSMALLINT type, SQLSMALLINT interval)
+{
+#define TYPE_NORMAL(t) case t: return type;
+#define TYPE_VERBOSE_START(t) \
+	case t: switch (interval) {
+#define TYPE_VERBOSE(t, interval, concise) \
+	case interval: return concise;
+#define TYPE_VERBOSE_DATE(t, interval, concise, old) \
+	case interval: return concise;
+#define TYPE_VERBOSE_END(t) \
+	}
+
+	switch (type) {
+		TYPES;
+	}
+	return 0;
+#undef TYPE_NORMAL
+#undef TYPE_VERBOSE_START
+#undef TYPE_VERBOSE
+#undef TYPE_VERBOSE_END
+}
+
+/**
+ * Set concise type and all cascading field.
+ * @param concise_type concise type to set
+ * @param drec         record to set. NULL to test error without setting
+ * @param check_only   it <>0 (true) check only, do not set type
+ */
+SQLRETURN
+odbc_set_concise_type(SQLSMALLINT concise_type, struct _drecord * drec, int check_only)
+{
+	SQLSMALLINT type = concise_type, interval_code = 0;
+
+#define TYPE_NORMAL(t) case t: break;
+#define TYPE_VERBOSE_START(t)
+#define TYPE_VERBOSE(t, interval, concise) \
+	case concise: type = t; interval_code = interval; break;
+#define TYPE_VERBOSE_DATE(t, interval, concise, old) \
+	case concise: type = t; interval_code = interval; break; \
+	case old: concise_type = concise; type = t; interval_code = interval; break;
+#define TYPE_VERBOSE_END(t)
+
+	switch (type) {
+		TYPES;
+	default:
+		return SQL_ERROR;
+	}
+	if (!check_only) {
+		drec->sql_desc_concise_type = concise_type;
+		drec->sql_desc_type = type;
+		drec->sql_desc_datetime_interval_code = interval_code;
+	}
+	return SQL_SUCCESS;
+#undef TYPE_NORMAL
+#undef TYPE_VERBOSE_START
+#undef TYPE_VERBOSE
+#undef TYPE_VERBOSE_END
 }
 
 /** \@} */

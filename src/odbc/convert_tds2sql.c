@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.33 2003-08-08 15:38:47 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.34 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -66,7 +66,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
-	nDestSybType = odbc_get_server_type(desttype);
+	nDestSybType = odbc_c_to_server_type(desttype);
 	if (nDestSybType == TDS_FAIL)
 		return TDS_CONVERT_NOAVAIL;
 

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.242 2003-09-01 10:00:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.243 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -92,9 +92,8 @@ static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQL
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
-static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
-static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
-static void log_unimplemented_type(const char function_name[], int fType);
+static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
+static void odbc_log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static int odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
@@ -355,7 +354,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	if (hwnd)
 		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
 
-	tdoParseConnectString(szConnStrIn, szConnStrIn + conlen, connect_info);
+	odbc_parse_connect_string(szConnStrIn, szConnStrIn + conlen, connect_info);
 
 	/* TODO what should be correct behavior for output string?? -- freddy77 */
 	if (szConnStrOut)
@@ -815,19 +814,18 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	}
 	drec = &apd->records[ipar - 1];
 
-	drec->sql_desc_type = fCType;
 	/* FIXME this field can be SQL_C_DEFAULT... */
 	if (fCType == SQL_C_DEFAULT) {
-		drec->sql_desc_type = odbc_sql_to_c_type_default(fSqlType);
-		if (drec->sql_desc_type == 0) {
+		if (odbc_set_concise_type(odbc_sql_to_c_type_default(fSqlType), drec, 0) != SQL_SUCCESS) {
 			desc_alloc_records(apd, orig_apd_size);
 			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	} else {
-		drec->sql_desc_type = fCType;
+		/* TODO test error */
+		odbc_set_concise_type(fCType, drec, 0);
 	}
-	drec->sql_desc_concise_type = drec->sql_desc_type;
+	/* TODO other types ?? */
 	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -844,8 +842,8 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec = &ipd->records[ipar - 1];
 
 	drec->sql_desc_parameter_type = fParamType;
-	drec->sql_desc_type = fSqlType;
-	drec->sql_desc_concise_type = drec->sql_desc_type;
+	/* TODO test error */
+	odbc_set_concise_type(fSqlType, drec, 0);
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -965,8 +963,8 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	}
 	env->tds_ctx = ctx;
 	tds_ctx_set_parent(ctx, env);
-	ctx->msg_handler = mymessagehandler;
-	ctx->err_handler = myerrorhandler;
+	ctx->msg_handler = odbc_errmsg_handler;
+	ctx->err_handler = odbc_errmsg_handler;
 
 	/* ODBC has its own format */
 	if (ctx->locale->date_fmt)
@@ -1171,9 +1169,8 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	drec = &ard->records[icol - 1];
 
-	drec->sql_desc_concise_type = fCType;
-	/* FIXME use correct type */
-	drec->sql_desc_type = drec->sql_desc_concise_type;
+	/* TODO test error, support SQL_C_DEFAULT ?? */
+	odbc_set_concise_type(fCType, drec, 0);
 	drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_indicator_ptr = pcbValue;
@@ -1491,10 +1488,33 @@ SQLRETURN SQL_API
 SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 		 SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
 {
+	SQLRETURN rc;
+	SQLSMALLINT type;
+
+	INIT_HSTMT;
+
 	switch (fDescType) {
 	case SQL_COLUMN_TYPE:
-		/* FIXME special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
+		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
 		fDescType = SQL_DESC_CONCISE_TYPE;
+		if (stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3)
+			break;
+		/* get type and convert it to ODBC 2 type */
+		rc = _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, &type);
+		switch (type) {
+		case SQL_TYPE_DATE:
+			type = SQL_DATE;
+			break;
+		case SQL_TYPE_TIME:
+			type = SQL_TIME;
+			break;
+		case SQL_TYPE_TIMESTAMP:
+			type = SQL_TIMESTAMP;
+			break;
+		}
+		if (pfDesc)
+			*((SQLSMALLINT *) pfDesc) = type;
+		return rc;
 		break;
 	case SQL_COLUMN_NAME:
 		fDescType = SQL_DESC_NAME;
@@ -1542,7 +1562,7 @@ SQLDisconnect(SQLHDBC hdbc)
 }
 
 static int
-mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
+odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc;
@@ -1570,40 +1590,12 @@ mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 	return 1;
 }
 
-static int
-myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
-{
-	struct _sql_errors *errs = NULL;
-	TDS_DBC *dbc;
-
-	/*
-	 * if (asprintf(&p,
-	 * " Err %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-	 * msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
-	 * return 0;
-	 */
-	if (tds && tds->parent) {
-		dbc = (TDS_DBC *) tds->parent;
-		errs = &dbc->errs;
-		if (dbc->current_statement)
-			errs = &dbc->current_statement->errs;
-		/* set server info if not setted in dbc */
-		if (msg->server && tds_dstr_isempty(&dbc->server))
-			tds_dstr_copy(&dbc->server, msg->server);
-	} else if (ctx->parent) {
-		errs = &((TDS_ENV *) ctx->parent)->errs;
-	}
-	if (errs)
-		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level,
-				    msg->server);
-	return 1;
-}
-
 SQLRETURN SQL_API
 SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLSMALLINT nSubType, SQLINTEGER nLength,
 	      SQLSMALLINT nPrecision, SQLSMALLINT nScale, SQLPOINTER pData, SQLINTEGER * pnStringLength, SQLINTEGER * pnIndicator)
 {
 	struct _drecord *drec;
+	SQLSMALLINT concise_type;
 
 	INIT_HDESC;
 
@@ -1619,14 +1611,24 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 
 	drec = &desc->records[nRecordNumber];
 
-	/* TODO check for valid types and return "HY021" if not */
-	drec->sql_desc_type = nType;
-	drec->sql_desc_concise_type = nType;
+	/* check for valid types and return "HY021" if not */
+	concise_type = odbc_get_concise_type(nType, nSubType);
 	if (nType == SQL_INTERVAL || nType == SQL_DATETIME) {
-		drec->sql_desc_datetime_interval_code = nSubType;
-		/* FIXME set concise type according */
-	} else
-		drec->sql_desc_datetime_interval_code = 0;
+		if (!concise_type) {
+			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
+			ODBC_RETURN(desc, SQL_ERROR);
+		}
+	} else {
+		if (concise_type != nType) {
+			odbc_errs_add(&desc->errs, "HY021", NULL, NULL);
+			ODBC_RETURN(desc, SQL_ERROR);
+		}
+		nSubType = 0;
+	}
+	drec->sql_desc_concise_type = concise_type;
+	drec->sql_desc_type = nType;
+	drec->sql_desc_datetime_interval_code = nSubType;
+
 	drec->sql_desc_octet_length = nLength;
 	drec->sql_desc_precision = nPrecision;
 	drec->sql_desc_scale = nScale;
@@ -1964,8 +1966,8 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
-		/* FIXME set other fields cascading */
-		IIN(SQLSMALLINT, drec->sql_desc_concise_type);
+		if ((result = odbc_set_concise_type((SQLSMALLINT) (int) Value, drec, 0)) != SQL_ERROR)
+			odbc_errs_add(&desc->errs, "HY021", "Descriptor type read only", NULL);
 		break;
 	case SQL_DESC_DATA_PTR:
 		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
@@ -2166,10 +2168,9 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		drec->sql_desc_catalog_name = strdup("");
-		/* FIXME handle interval/datetime correctly */
-		drec->sql_desc_concise_type =
-			drec->sql_desc_type =
-			odbc_tds_to_sql_type(col->column_type, col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		/* TODO test error ?? */
+		odbc_set_concise_type(odbc_server_to_sql_type
+				      (col->column_type, col->column_size, stmt->hdbc->henv->attr.attr_odbc_version), drec, 0);
 		drec->sql_desc_display_size =
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
@@ -2204,8 +2205,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = strdup("");
-		drec->sql_desc_type_name = odbc_tds_to_sql_typename(col->column_type,
-								    col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
+		drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
+								       col->column_size, stmt->hdbc->henv->attr.attr_odbc_version);
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -4313,7 +4314,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "1995";
 		break;
 	default:
-		log_unimplemented_type("SQLGetInfo", fInfoType);
+		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, "HY092", "Option not supported", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -4937,7 +4938,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
  * Those duplicates are commented out below.
  */
 static void
-log_unimplemented_type(const char function_name[], int fType)
+odbc_log_unimplemented_type(const char function_name[], int fType)
 {
 	const char *name, *category;
 

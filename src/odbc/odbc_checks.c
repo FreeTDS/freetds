@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.3 2003-08-30 17:10:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.4 2003-09-03 19:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -73,6 +73,9 @@ odbc_check_drecord(struct _drecord *drec)
 	case SQL_TINYINT:
 	case SQL_INTEGER:
 	case SQL_BIGINT:
+		/* FIXME correct ?? */
+	case SQL_C_SSHORT:
+	case SQL_C_SLONG:
 
 	case SQL_GUID:
 
