@@ -44,14 +44,18 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.51 2003-04-10 13:09:57 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.52 2003-04-14 03:08:00 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
+#define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->min_bytes_per_char )? \
+				(charset)->min_bytes_per_char : 0 )
+
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
+static int skip_one_input_sequence(TDS_ENCODING *charset, const char **input);
 
 /**
  * \ingroup libtds
@@ -144,7 +148,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 	const size_t output_buffer_size = output_size;
-	int erc;
+	int erc, one_character;
 
 	iconv_t cd = (iconv_t) - 1, error_cd = (iconv_t) - 1;
 
@@ -183,28 +187,15 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		if (erc != EILSEQ)
 			break;
 
-		/* skip one input sequence */
-		if (input_charset->min_bytes_per_char == input_charset->min_bytes_per_char) {
-			input += input_charset->min_bytes_per_char;
-			input_size -= input_charset->min_bytes_per_char;
-		} else {
-			/* FIXME this do not work for many charset like UTF16, BIG5... */
-			/* deal with UTF-8.  Others will just break :-( 
-			 * bytes | bits | representation
-			 *     1 |    7 | 0vvvvvvv
-			 *     2 |   11 | 110vvvvv 10vvvvvv
-			 *     3 |   16 | 1110vvvv 10vvvvvv 10vvvvvv
-			 *     4 |   21 | 11110vvv 10vvvvvv 10vvvvvv 10vvvvvv
-			 */
-			while (*input | 0x80) {
-				++input;
-				--*input_size;
-			}
-
-		}
+		/* skip one input sequence, adjusting input pointer */
+		one_character = skip_one_input_sequence(input_charset, &input);
+		input_size -= one_character;
+		
+		if (!one_character)
+			break;	/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
 
 		/* 
-		 * To replace invalid intput with '?', we have to convert an ASCII '?' 
+		 * To replace invalid input with '?', we have to convert an ASCII '?' 
 		 * into the output character set.  In unimaginably weird circumstances, this might  be
 		 * impossible.  
 		 */
@@ -300,6 +291,69 @@ bytes_per_char(TDS_ENCODING * charset)
 	}
 
 	return 0;
+}
+
+/**
+ * Move the input sequence pointer to the next valid position.
+ * Used when an input character cannot be converted.  
+ * \returns number of bytes to skip.
+ */
+static int
+skip_one_input_sequence(TDS_ENCODING *charset, const char **input)
+{
+	int charsize = CHARSIZE(charset);
+
+	if (charsize) {
+		*input += charsize;
+		return charsize;
+	}
+	
+	if (0 == strcmp(charset->name, "UTF-8")) {
+		/* Deal with UTF-8.  
+		 * bytes | bits | representation
+		 *     1 |    7 | 0vvvvvvv
+		 *     2 |   11 | 110vvvvv 10vvvvvv
+		 *     3 |   16 | 1110vvvv 10vvvvvv 10vvvvvv
+		 *     4 |   21 | 11110vvv 10vvvvvv 10vvvvvv 10vvvvvv
+		 */
+		charsize = 0;
+		while (**input | 0x80) {
+			++*input;
+			++charsize;
+		}
+		return charsize;
+	}
+	
+	/* FIXME this do not work for many charset like UTF16, BIG5... */
+	return 0;
+}
+
+/**
+ * Determine cannonical iconv character set name.  
+ * \returns cannonical name, or NULL if lookup failed.
+ * \remarks Returned name can be used in bytes_per_char(), above.
+ */
+const char *
+tds_cannonical_charset_name(const char *charset_name)
+{
+	CHARACTER_SET_ALIAS aliases[] = {
+#include "alternative_character_sets.h"
+	};
+	int i;
+	
+	if (!charset_name || *charset_name == '\0')
+		return charset_name;
+
+	for (i = 0; i < sizeof(aliases) / sizeof(CHARACTER_SET_ALIAS); i++) {
+		if (aliases[i].alias == 0)
+			break;
+
+		if (0 == strcmp(charset_name, aliases[i].alias)) {
+			return aliases[i].name;
+		}
+	}
+
+	return NULL;
 }
 
 static char *
@@ -481,123 +535,4 @@ lcid2charset(int lcid)
 	return cp;
 }
 
-#if 0
-/**
- * convert from ucs2 string to ascii.
- * @return saved bytes
- * @param in_string ucs2 string (not terminated) to convert to ascii
- * @param in_len length of input string in characters (2 byte)
- * @param out_string buffer to store translated string. It should be large enough 
- *        to handle out_len bytes. string won't be zero terminated.
- * @param out_len length of input string in characters
- */
-int
-tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, int in_len, char *out_string, int out_len)
-{
-	int i;
-
-#if HAVE_ICONV
-	TDSICONVINFO *iconv_info;
-	ICONV_CONST char *in_ptr;
-	char *out_ptr;
-	size_t out_bytes, in_bytes;
-	char quest_mark[] = "?\0";	/* best to live no-const */
-	ICONV_CONST char *pquest_mark;
-	size_t lquest_mark;
-#endif
-
-	if (!in_string)
-		return 0;
-
-#if HAVE_ICONV
-	iconv_info = (TDSICONVINFO *) tds->iconv_info;
-	if (iconv_info->use_iconv) {
-		out_bytes = out_len;
-		in_bytes = in_len * 2;
-		in_ptr = (ICONV_CONST char *) in_string;
-		out_ptr = out_string;
-		while (iconv(iconv_info->cdfrom_ucs2, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t) - 1) {
-			/* iconv call can reset errno */
-			i = errno;
-			/* reset iconv state */
-			iconv(iconv_info->cdfrom_ucs2, NULL, NULL, NULL, NULL);
-			if (i != EILSEQ)
-				break;
-
-			/* skip one UCS-2 sequence */
-			in_ptr += 2;
-			in_bytes -= 2;
-
-			/* replace invalid with '?' */
-			pquest_mark = quest_mark;
-			lquest_mark = 2;
-			iconv(iconv_info->cdfrom_ucs2, &pquest_mark, &lquest_mark, &out_ptr, &out_bytes);
-			if (out_bytes == 0)
-				break;
-		}
-		return out_len - out_bytes;
-	}
-#endif
-
-	/* no iconv, strip high order byte if zero or replace with '?' 
-	 * this is the same of converting to ISO8859-1 charset using iconv */
-	/* TODO update docs */
-	if (out_len < in_len)
-		in_len = out_len;
-	for (i = 0; i < in_len; ++i) {
-		out_string[i] = in_string[i * 2 + 1] ? '?' : in_string[i * 2];
-	}
-	return in_len;
-}
-
-/**
- * convert a ascii string to ucs2.
- * Note: output string is not terminated
- * @param in_string string to translate, null terminated
- * @param out_string buffer to store translated string
- * @param maxlen length of out_string buffer in bytes
- */
-char *
-tds7_ascii2unicode(TDSSOCKET * tds, const char *in_string, char *out_string, int maxlen)
-{
-	register int out_pos = 0;
-	register int i;
-	size_t string_length;
-
-#if HAVE_ICONV
-	TDSICONVINFO *iconv_info;
-	ICONV_CONST char *in_ptr;
-	char *out_ptr;
-	size_t out_bytes, in_bytes;
-#endif
-
-	if (!in_string)
-		return NULL;
-	string_length = strlen(in_string);
-
-#if HAVE_ICONV
-	iconv_info = (TDSICONVINFO *) tds->iconv_info;
-	if (iconv_info->use_iconv) {
-		out_bytes = maxlen;
-		in_bytes = string_length;
-		in_ptr = (ICONV_CONST char *) in_string;
-		out_ptr = out_string;
-		iconv(iconv_info->cdto_ucs2, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
-
-		return out_string;
-	}
-#endif
-
-	/* no iconv, add null high order byte to convert 7bit ascii to unicode */
-	if (string_length * 2 > maxlen)
-		string_length = maxlen >> 1;
-
-	for (i = 0; i < string_length; i++) {
-		out_string[out_pos++] = in_string[i];
-		out_string[out_pos++] = '\0';
-	}
-
-	return out_string;
-}
-#endif
 /** \@} */

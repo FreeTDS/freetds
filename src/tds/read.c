@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.46 2003-04-08 10:25:42 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.47 2003-04-14 03:08:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -302,7 +302,6 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curco
 	 */
 	char temp[256];
 	char *p;
-///	const unsigned int client_bpc = tds->iconv_info.client_charset.min_bytes_per_char;
 	unsigned int in_left, wire_size;
 	
 	/* avoid integer division truncation */
@@ -333,14 +332,24 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curco
 			return wire_size;
 		}
 		p = dest;
-		for (in_left = wire_size; wire_size > 0; ) {
-			int buffer_size;
-			if (in_left > sizeof(temp))
-				in_left = sizeof(temp);
-			tds_get_n(tds, temp, in_left);
-			buffer_size = in_left;
+		in_left = 0;
+		while (wire_size > 0) {
+			int in_size;
+			in_size = wire_size; 
+			if (in_size > sizeof(temp))
+				in_size = sizeof(temp);
+			tds_get_n(tds, &temp[in_left], in_size - in_left);
+			tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: read %d of %d.\n", in_size - in_left, wire_size);
+			in_left = in_size;
 			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, size);
-			wire_size -= buffer_size - in_left;
+			wire_size -= in_size - in_left;
+			
+			if (in_left) {
+				assert(in_left < 4);
+				tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: partial character, %d bytes, not converted, "
+							     "%d bytes left to read from wire.\n", in_left, wire_size);
+				memmove(temp, &temp[in_size - in_left], in_left);
+			}
 		}
 		return p - dest;
 	} else {
