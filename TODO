@@ -1,62 +1,70 @@
 This list is ordered top-to-bottom by priority.  
 Things that are broken and need mending are at the top, 
 followed by things that should work before the next release, 
-followed by features that should be added/fixed/reworked.  
+followed by features that should be added/fixed/reworked (grouped by library).  
 
 Everyone is encouraged to add to the list.  Developers can do it directly; 
 anyone else can post a patch to Source Forge.  
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.20 2002-12-10 03:21:51 jklowden Exp $
+To Do List	$Id: TODO,v 1.21 2002-12-11 19:54:14 jklowden Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
 
 For 0.61 version:
-. RPC stuff not implemented (work in progress, libtds ok)
 
-For future versions:
+For future versions (in priority order within library):
+  All:
 . numeric conversions (optimize).
 . move error message macro/prototype to tds.h.in; use in dblib.c.
-. conversion from ucs2 to utf8, provide for 2+ bytes/character.
-  (multibyte support)
-. Remove old char(30) limitations to various sysnames e.g., tables, columns, 
-  passwords (checks).
-. Add bcp support to tds/dblib/ctlib. (started in dblib)
-. Array binding for ctlib not working
-. All manner of unimplemented functions
-. ct_dynamic and friends needed for DBD::Sybase placeholder support 
-  (work in progress)
-. Server API needs more work, especially for TDS 5.0/7.0
-. Add support for TDS 8.0 (login works)
-. TDS 7 Unicode to native charset conversion using iconv (partly done)
-. tdsping program for testing purposes
-. autoconf the connection pooling stuff
-. Make pool configuration a non-recompile process
+. Remove old char(30) limitations to various sysnames e.g., tables, columns, passwords (checks).  Is this done?  
+. Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
-. Someone broke early binding in ODBC
+. conversion from ucs2 to utf8, provide for 2+ bytes/character.
+. set database during login process (work in progress)
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type
-. set database during login process (work in progress)
-
-(f77) Those was collected from ML...
-. ODBC: get a solid corpus of unittests for ODBC, and have it become a 
-  top tier API.
-. DBLIB: output params (tests)
-. get connection pooling working with all protocol versions
+. tdsping program for testing purposes
 . Finish off the TDS dissector for ethereal
-. ODBC: dynamic query (need rewrite SQLPrepare and related)
-  (support binding parameters for all types)
-. ODBC: improve, best error report (even multiple)
-. dynamic query (work in progress, lack unprepare)
-. cursor support
-. more solid. handle out of memory conditions (started, we must test all 
-  allocation and all function that return allocated data and be able to 
-  rollback to a safe state)
+. more solid. handle out of memory conditions (started, we must test all allocation and all function that return allocated data and be able to rollback to a safe state)
 . limit copy of data (now wire -> tds -> temp -> client)
+. All manner of unimplemented functions (see doc/api_status.txt)
+
+  ct-lib
+. ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
+. cs_calc and cs_cmp, for sybperl
+. ct_get/send_data()
+. ct_option() calls (CS_OPT_ROWCOUNT, CS_OPT_TEXTSIZE, among others)
+. Array binding for ctlib not working
+. async function, async calls (dbpoll() and friends)
+. bcp support to ctlib
+
+  odbc
+. Someone broke early binding in ODBC
+. dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types)
+. dynamic query (work in progress, lack unprepare)
+. get a solid corpus of unittests for ODBC, and have it become a top tier API.
+. improve, best error report (even multiple)
+. cursor support
+
+  pool
+. get connection pooling working with all protocol versions
+. Make pool configuration a non-recompile process
+
+  server
+. Server API needs more work, especially for TDS 5.0/7.0
 
 Tests
 - "if 0 = 1 select 1" should not fail
+
+Done (removed from above):
+. Add bcp support to tds/dblib/ctlib. (started in dblib)
+. RPC stuff not implemented (work in progress, libtds ok)
+. Add support for TDS 8.0 (login works)
+. TDS 7 Unicode to native charset conversion using iconv (partly done)
+. autoconf the connection pooling stuff
+. DBLIB: output params (tests)
 
