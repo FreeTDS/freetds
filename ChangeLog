@@ -1,3 +1,6 @@
+Wed Feb  5 21:51:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: check if compiler support const
+
 Wed Feb  5 14:12:47 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c don't copy null pointer in bcp_colfmt
 
