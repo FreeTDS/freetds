@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.272 2003-11-30 12:02:06 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.273 2003-12-06 20:18:46 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2182,10 +2182,11 @@ odbc_ird_check(TDS_STMT * stmt)
 	}
 
 	/* check columns number */
-	assert(ird->header.sql_desc_count == cols);
+	assert(ird->header.sql_desc_count == cols || ird->header.sql_desc_count == 0);
+
 
 	/* check all columns */
-	for (i = 0; i < cols; ++i) {
+	for (i = 0; i < ird->header.sql_desc_count; ++i) {
 		drec = &ird->records[i];
 		col = res_info->columns[i];
 		assert(strlen(drec->sql_desc_label) == col->column_namelen);
