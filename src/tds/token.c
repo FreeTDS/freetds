@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.172 2003-04-08 10:25:42 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.173 2003-04-21 09:05:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1191,14 +1191,13 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-	tdsdump_log(TDS_DBG_INFO1, 	"%L tds7_get_data_info:%d: \n"
-					"\ttype = %d (%s)\n"
-					"\tcolumn_varint_size = %d\n"
-					"\tcolname = %s (%d bytes)\n"
-					"\tcolumn_size = %d (%d on server)\n",
-		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, 
-		    curcol->column_name, curcol->column_namelen, 
-		    curcol->column_size, curcol->on_server.column_size);
+	tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: \n"
+		    "\ttype = %d (%s)\n"
+		    "\tcolumn_varint_size = %d\n"
+		    "\tcolname = %s (%d bytes)\n"
+		    "\tcolumn_size = %d (%d on server)\n",
+		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size,
+		    curcol->column_name, curcol->column_namelen, curcol->column_size, curcol->on_server.column_size);
 
 	return TDS_SUCCEED;
 }
@@ -1632,7 +1631,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 
 	} else {
-		if (curcol->column_size != curcol->on_server.column_size)
+		if (is_char_type(curcol->column_type) && curcol->column_size != curcol->on_server.column_size)
 			colsize = determine_adjusted_size(tds->iconv_info, colsize);
 
 		if (is_blob_type(curcol->column_type)) {
@@ -1650,18 +1649,25 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			if (blob_info->textvalue == NULL) {
 				return TDS_FAIL;
 			}
-			colsize = tds_get_char_data(tds, blob_info->textvalue, colsize, curcol);
+			if (is_char_type(curcol->column_type))
+				colsize = tds_get_char_data(tds, blob_info->textvalue, colsize, curcol);
+			else
+				tds_get_n(tds, blob_info->textvalue, colsize);
 		} else {	/* non-numeric and non-blob */
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
 			dest = &(current_row[curcol->column_offset]);
-			colsize = tds_get_char_data(tds, (char *) dest, colsize, curcol);
+			if (is_char_type(curcol->column_type))
+				colsize = tds_get_char_data(tds, (char *) dest, colsize, curcol);
+			else
+				tds_get_n(tds, dest, colsize);
 
 			/* pad CHAR and BINARY types */
 			fillchar = 0;
 			switch (curcol->column_type) {
 			case SYBCHAR:
 			case XSYBCHAR:
+				/* FIXME use client charset */
 				fillchar = ' ';
 			case SYBBINARY:
 			case XSYBBINARY:
@@ -2352,8 +2358,8 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 		tds_swap_bytes(buf, 2);
 		tds_swap_bytes(&buf[2], 2);
 		break;
-	/* should we place numeric conversion in another place ??
-	 * this is not used for big/little-endian conversion... */
+		/* should we place numeric conversion in another place ??
+		 * this is not used for big/little-endian conversion... */
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		num = (TDS_NUMERIC *) buf;
@@ -2727,16 +2733,16 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 		argsize = was;
 	}
 
-        switch (argsize) {
-        case 0:
+	switch (argsize) {
+	case 0:
 		break;
-        case 1:
-                ptds_argument->ti = tds_get_byte(tds);
-                break;
-        case 4:
-                ptds_argument->i = tds_get_int(tds);
-                break;
-        default:
+	case 1:
+		ptds_argument->ti = tds_get_byte(tds);
+		break;
+	case 4:
+		ptds_argument->i = tds_get_int(tds);
+		break;
+	default:
 		/* FIXME not null terminated and size not saved */
 		/* FIXME do not take into account conversion */
 		tds_get_string(tds, argsize, ptds_argument->c, argsize);
@@ -2898,7 +2904,7 @@ static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 	if (is_unicode_type(curcol->on_server.column_type)) {
-		curcol->on_server.column_size = curcol->column_size; 
+		curcol->on_server.column_size = curcol->column_size;
 		curcol->column_size = determine_adjusted_size(tds->iconv_info, curcol->column_size);
 	}
 }
@@ -2915,7 +2921,7 @@ determine_adjusted_size(const TDSICONVINFO * iconv_info, int size)
 {
 	if (!iconv_info)
 		return size;
-		
+
 	size *= iconv_info->client_charset.max_bytes_per_char;
 	if (size % iconv_info->server_charset.min_bytes_per_char)
 		size += iconv_info->server_charset.min_bytes_per_char;

@@ -33,6 +33,7 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
+#include "tdsstring.h"
 #include "tdsodbc.h"
 #include "odbc_util.h"
 
@@ -44,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.17 2003-04-01 10:17:15 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.18 2003-04-21 09:05:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -476,7 +477,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	case SQL_DIAG_SERVER_NAME:
 		/* FIXME connect_info, as documented (or should be) is always NULL */
 		if (dbc && dbc->tds_socket && dbc->tds_socket->connect_info != NULL) {
-			if ((msg = dbc->tds_socket->connect_info->server_name) != NULL) {
+			if ((msg = tds_dstr_cstr(&dbc->tds_socket->connect_info->server_name)) != NULL) {
 				result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
 			} else {
 				if (pcbBuffer)

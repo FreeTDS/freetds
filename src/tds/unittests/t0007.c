@@ -34,7 +34,7 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.10 2002-11-22 15:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.11 2003-04-21 09:05:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -75,6 +75,7 @@ test0(const char *src, int len, int dsttype, const char *result)
 			sprintf(buf, "len=%d", res);
 			for (i = 0; i < res; ++i)
 				sprintf(strchr(buf, 0), " %02X", (TDS_UCHAR) cr.ib[i]);
+			free(cr.ib);
 			break;
 		}
 	}

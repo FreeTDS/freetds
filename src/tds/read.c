@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.47 2003-04-14 03:08:00 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.48 2003-04-21 09:05:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -225,6 +225,16 @@ tds_get_int(TDSSOCKET * tds)
 	return *(TDS_INT *) bytes;
 }
 
+#if ENABLE_EXTRA_CHECKS
+# define TEMP_INIT(s) char* temp = (char*)malloc(s); const size_t temp_size = s
+# define TEMP_FREE free(temp);
+# define TEMP_SIZE temp_size
+#else
+# define TEMP_INIT(s) char temp[s]
+# define TEMP_FREE ;
+# define TEMP_SIZE sizeof(temp)
+#endif
+
 /**
  * Fetch a string from the wire.
  * Output string is NOT null terminated.
@@ -243,9 +253,9 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	 * and there's no advantage to allocating dynamically 
 	 * Also this prevent memory error problem on dynamic memory
 	 */
-	char temp[256];
+	TEMP_INIT(256);
 	char *p, *pend;
-	unsigned int in_left, wire_bytes; 
+	unsigned int in_left, wire_bytes;
 	const unsigned int bpc = tds->iconv_info->server_charset.max_bytes_per_char;	/* bytes per char */
 
 
@@ -255,32 +265,36 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 	 * Bug to malloc(0) on some platforms.
 	 */
 	if (string_len == 0) {
+		TEMP_FREE;
 		return 0;
 	}
 
 	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: need %d on wire for %d to client?\n", need, string_len);
-	
+
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, string_len * bpc);
+			TEMP_FREE;
 			return string_len;
 		}
 		p = dest;
 		pend = dest + need;
 		while (string_len > 0 && p < pend) {
 			in_left = string_len * bpc;
-			if (in_left > sizeof(temp))
-				in_left = sizeof(temp);
+			if (in_left > TEMP_SIZE)
+				in_left = TEMP_SIZE;
 			wire_bytes = in_left;
 			tds_get_n(tds, temp, wire_bytes);
 			p += tds_iconv(to_client, tds->iconv_info, temp, &wire_bytes, p, pend - p);	/* p += tds7_unicode2ascii(tds, temp, in_left, p, pend - p); */
 			string_len -= (in_left - wire_bytes) / bpc;
 		}
+		TEMP_FREE;
 		return p - dest;
 	} else {
 		/* FIXME convert to client charset */
 		assert(need >= string_len);
 		tds_get_n(tds, dest, string_len);
+		TEMP_FREE;
 		return string_len;
 	}
 }
@@ -293,26 +307,27 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
  * \todo put a TDSICONVINFO structure in every TDSCOLINFO
  */
 int
-tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curcol)
+tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO * curcol)
 {
 	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
 	 * and there's no advantage to allocating dynamically 
 	 * Also this prevent memory error problem on dynamic memory
 	 */
-	char temp[256];
+	TEMP_INIT(256);
 	char *p;
 	unsigned int in_left, wire_size;
-	
+
 	/* avoid integer division truncation */
 	wire_size = (size * curcol->on_server.column_size) / curcol->column_size;
-	
+
 	if (size == 0) {
+		TEMP_FREE;
 		return 0;
 	}
 
 	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size, size);
-	
+
 	/*
 	 * The next test is crude.  The question we're trying to answer is, 
 	 * "Should these data be converted, and if so, which TDSICONVINFO do we use?"  
@@ -325,35 +340,39 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curco
 	 * conversion descriptor.  Then, with the metadata pre-established, we just pass everything to 
 	 * tds_iconv and let it do the Right Thing.  
 	 */
-	
-	if (curcol->column_size != curcol->on_server.column_size) { /* TODO: remove this test */
+
+	if (curcol->column_size != curcol->on_server.column_size) {	/* TODO: remove this test */
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, wire_size);
+			TEMP_FREE;
 			return wire_size;
 		}
 		p = dest;
 		in_left = 0;
 		while (wire_size > 0) {
 			int in_size;
-			in_size = wire_size; 
-			if (in_size > sizeof(temp))
-				in_size = sizeof(temp);
+
+			in_size = wire_size;
+			if (in_size > TEMP_SIZE)
+				in_size = TEMP_SIZE;
 			tds_get_n(tds, &temp[in_left], in_size - in_left);
 			tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: read %d of %d.\n", in_size - in_left, wire_size);
 			in_left = in_size;
 			p += tds_iconv(to_client, tds->iconv_info, temp, &in_left, p, size);
 			wire_size -= in_size - in_left;
-			
+
 			if (in_left) {
 				assert(in_left < 4);
 				tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: partial character, %d bytes, not converted, "
-							     "%d bytes left to read from wire.\n", in_left, wire_size);
+					    "%d bytes left to read from wire.\n", in_left, wire_size);
 				memmove(temp, &temp[in_size - in_left], in_left);
 			}
 		}
+		TEMP_FREE;
 		return p - dest;
 	} else {
 		tds_get_n(tds, dest, size);
+		TEMP_FREE;
 		return size;
 	}
 }

@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.15 2003-04-10 10:16:25 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.16 2003-04-21 09:05:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -45,11 +45,11 @@ read_login_info(void)
 	return TDS_SUCCEED;
 }
 
+static TDSCONTEXT *context = NULL;
 
 int
 try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
 {
-	TDSCONTEXT *context;
 	TDSCONNECTINFO *connect_info;
 
 	if (verbose) {
@@ -118,6 +118,8 @@ try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 	}
 	tds_free_socket(tds);
 	tds_free_login(login);
+	tds_free_context(context);
+	context = NULL;
 	return TDS_SUCCEED;
 }
 

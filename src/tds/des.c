@@ -43,7 +43,7 @@
 #include "tds.h"
 #include "des.h"
 
-static char software_version[] = "$Id: des.c,v 1.10 2003-04-06 09:56:37 freddy77 Exp $";
+static char software_version[] = "$Id: des.c,v 1.11 2003-04-21 09:05:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -602,10 +602,6 @@ spinit(DES_KEY * key)
 				}
 			}
 			key->sp[s][i] = val;
-
-#ifdef DEBUG
-			printf("sp[%d][%2d] = %08lx\n", s, i, key->sp[s][i]);
-#endif
 		}
 	}
 }

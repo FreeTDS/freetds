@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.72 2003-04-07 19:02:29 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.73 2003-04-21 09:05:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -142,10 +142,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
-	if (!tds_read_conf_file(connect_info, login->server_name)) {
+	if (!tds_read_conf_file(connect_info, tds_dstr_cstr(&login->server_name))) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "%L Failed in reading conf file.  Trying interface files.\n");
-		tds_read_interfaces(login->server_name, connect_info);
+		tds_read_interfaces(tds_dstr_cstr(&login->server_name), connect_info);
 	}
 
 	if (parse_server_name_for_port(connect_info, login)) {
@@ -471,25 +471,26 @@ static void
 tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 {
 	if (!tds_dstr_isempty(&login->server_name)) {
-		tds_dstr_copy(&connect_info->server_name, login->server_name);
+		tds_dstr_copy(&connect_info->server_name, tds_dstr_cstr(&login->server_name));
 	}
 	if (login->major_version || login->minor_version) {
 		connect_info->major_version = login->major_version;
 		connect_info->minor_version = login->minor_version;
 	}
 	if (!tds_dstr_isempty(&login->language)) {
-		tds_dstr_copy(&connect_info->language, login->language);
+		tds_dstr_copy(&connect_info->language, tds_dstr_cstr(&login->language));
 	}
 	if (!tds_dstr_isempty(&login->server_charset)) {
-		tds_dstr_copy(&connect_info->server_charset, login->server_charset);
+		tds_dstr_copy(&connect_info->server_charset, tds_dstr_cstr(&login->server_charset));
 	}
 	/* don't overwrite freetds.conf client charset with one derived from the environment. */
 	if (tds_dstr_isempty(&connect_info->client_charset) && !tds_dstr_isempty(&login->client_charset)) {
-		tds_dstr_copy(&connect_info->client_charset, login->client_charset);
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset", connect_info->client_charset);
+		tds_dstr_copy(&connect_info->client_charset, tds_dstr_cstr(&login->client_charset));
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_config_login:%d: %s is %s.\n", __LINE__, "client_charset",
+			    connect_info->client_charset);
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
-		tds_dstr_copy(&connect_info->host_name, login->host_name);
+		tds_dstr_copy(&connect_info->host_name, tds_dstr_cstr(&login->host_name));
 		/* DBSETLHOST and it's equivilants are commentary fields
 		 * ** they don't affect connect_info->ip_addr (the server) but they show
 		 * ** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
@@ -502,18 +503,18 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 		 */
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
-		tds_dstr_copy(&connect_info->app_name, login->app_name);
+		tds_dstr_copy(&connect_info->app_name, tds_dstr_cstr(&login->app_name));
 	}
 	if (!tds_dstr_isempty(&login->user_name)) {
-		tds_dstr_copy(&connect_info->user_name, login->user_name);
+		tds_dstr_copy(&connect_info->user_name, tds_dstr_cstr(&login->user_name));
 	}
 	if (!tds_dstr_isempty(&login->password)) {
 		/* for security reason clear memory */
 		tds_dstr_zero(&connect_info->password);
-		tds_dstr_copy(&connect_info->password, login->password);
+		tds_dstr_copy(&connect_info->password, tds_dstr_cstr(&login->password));
 	}
 	if (!tds_dstr_isempty(&login->library)) {
-		tds_dstr_copy(&connect_info->library, login->library);
+		tds_dstr_copy(&connect_info->library, tds_dstr_cstr(&login->library));
 	}
 	if (login->encrypted) {
 		connect_info->encrypted = 1;
@@ -998,29 +999,27 @@ static int
 parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 {
 	char *pSep, *pEnd;
-
-	if (!login->server_name)
-		return 0;	/* FALSE */
+	char *server;
 
 	/* seek the ':' in login server_name */
-	pEnd = login->server_name + strlen(login->server_name);
-	for (pSep = login->server_name; pSep < pEnd; pSep++)
+	server = tds_dstr_cstr(&login->server_name);
+	pEnd = server + strlen(server);
+	for (pSep = server; pSep < pEnd; pSep++)
 		if (*pSep == ':')
 			break;
 
-	if ((pSep < pEnd) && (pSep != login->server_name)) {	/* yes, i found it! */
-		tds_dstr_copy(&connect_info->server_name, login->server_name);
+	if ((pSep < pEnd) && (pSep != server)) {	/* yes, i found it! */
+		tds_dstr_copyn(&connect_info->server_name, server, pSep - server);	/* end the server_name before the ':' */
 
 		/* modify connect_info-> && login->server_name & ->port */
 		login->port = connect_info->port = atoi(pSep + 1);
-		connect_info->server_name[pSep - login->server_name] = 0;	/* end the server_name before the ':' */
 		*pSep = 0;
 
 		/* connect_info->ip_addr needed */
 		{
 			char tmp[256];
 
-			tds_lookup_host(connect_info->server_name, NULL, tmp, NULL);
+			tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), NULL, tmp, NULL);
 			tds_dstr_copy(&connect_info->ip_addr, tmp);
 		}
 

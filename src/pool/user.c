@@ -41,8 +41,9 @@
 
 #include "pool.h"
 #include "tdssrv.h"
+#include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.13 2003-04-03 09:10:41 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.14 2003-04-21 09:05:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -162,7 +163,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds = puser->tds;
 	tds_read_login(tds, &login);
 	dump_login(&login);
-	if (!strcmp(login.user_name, pool->user) && !strcmp(login.password, pool->password)) {
+	if (!strcmp(tds_dstr_cstr(&login.user_name), pool->user) && !strcmp(tds_dstr_cstr(&login.password), pool->password)) {
 		tds->out_flag = 4;
 		tds_env_change(tds, 1, "master", pool->database);
 		sprintf(msg, "Changed database context to '%s'.", pool->database);

@@ -35,8 +35,9 @@
 
 #include "ctpublic.h"
 #include "ctlib.h"
+#include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.90 2003-04-03 19:43:29 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.91 2003-04-21 09:05:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -51,18 +52,18 @@ static int _ct_get_client_type(int datatype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
-static int _ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data, 
-	CS_INT *datalen, CS_SMALLINT *indicator, CS_BYTE byvalue);
+static int _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
+			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
 
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
 
-static CS_INT ct_diag_storeclientmsg(CS_CONTEXT *context, CS_CONNECTION *conn, CS_CLIENTMSG *message);
-static CS_INT ct_diag_storeservermsg(CS_CONTEXT *context, CS_CONNECTION *conn, CS_SERVERMSG *message);
-static CS_INT ct_diag_countmsg(CS_CONTEXT *context,CS_INT type,  CS_INT *count);
-static CS_INT ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
-static CS_INT ct_diag_getclientmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message);
-static CS_INT ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message);
+static CS_INT ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message);
+static CS_INT ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message);
+static CS_INT ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count);
+static CS_INT ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
+static CS_INT ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message);
+static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVERMSG * message);
 
 /* Code changes ends here - CT_DIAG - 01 */
 
@@ -72,7 +73,7 @@ static CS_INT ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERM
 static void rpc_clear(CSREMOTE_PROC * rpc);
 static void param_clear(CSREMOTE_PROC_PARAM * pparam);
 
-static TDSPARAMINFO* paraminfoalloc(CS_PARAM * first_param);
+static TDSPARAMINFO *paraminfoalloc(CS_PARAM * first_param);
 
 /* RPC Code changes ends here */
 
@@ -129,10 +130,9 @@ _ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 {
 	char *m;
 
-	if (asprintf(&m, 
-				"%s: %s: %s: %s", 
-				funcname, _ct_get_layer(layer), _ct_get_origin(origin), _ct_get_user_api_layer_error(number) 
-				) < 0) {
+	if (asprintf(&m,
+		     "%s: %s: %s: %s", funcname, _ct_get_layer(layer), _ct_get_origin(origin), _ct_get_user_api_layer_error(number)
+	    ) < 0) {
 		return NULL;
 	}
 	return m;
@@ -209,7 +209,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 CS_RETCODE
 ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, CS_VOID * func)
 {
-int (*funcptr) (void *, void *, void *) = (int (*)(void *, void *, void *)) func;
+	int (*funcptr) (void *, void *, void *) = (int (*)(void *, void *, void *)) func;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_callback() action = %s\n", CS_GET ? "CS_GET" : "CS_SET");
 	/* one of these has to be defined */
@@ -251,10 +251,10 @@ int (*funcptr) (void *, void *, void *) = (int (*)(void *, void *, void *)) func
 CS_RETCODE
 ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-CS_INT intval = 0, maxcp;
-TDSSOCKET *tds;
-TDSLOGIN *tds_login;
-char *set_buffer = NULL;
+	CS_INT intval = 0, maxcp;
+	TDSSOCKET *tds;
+	TDSLOGIN *tds_login;
+	char *set_buffer = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_con_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
 
@@ -294,7 +294,7 @@ char *set_buffer = NULL;
 			tds_set_host(tds_login, set_buffer);
 			break;
 		case CS_PORT:
-			tds_set_port(tds_login, *((int*)buffer));
+			tds_set_port(tds_login, *((int *) buffer));
 			break;
 		case CS_LOC_PROP:
 			con->locale = (CS_LOCALE *) buffer;
@@ -354,39 +354,39 @@ char *set_buffer = NULL;
 	} else if (action == CS_GET) {
 		switch (property) {
 		case CS_USERNAME:
-			maxcp = strlen(tds_login->user_name);
+			maxcp = tds_dstr_len(&tds_login->user_name);
 			if (out_len)
 				*out_len = maxcp;
 			if (maxcp >= buflen)
 				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_login->user_name, maxcp);
+			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->user_name), maxcp);
 			((char *) buffer)[maxcp] = '\0';
 			break;
 		case CS_PASSWORD:
-			maxcp = strlen(tds_login->password);
+			maxcp = tds_dstr_len(&tds_login->password);
 			if (out_len)
 				*out_len = maxcp;
 			if (maxcp >= buflen)
 				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_login->password, maxcp);
+			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->password), maxcp);
 			((char *) buffer)[maxcp] = '\0';
 			break;
 		case CS_APPNAME:
-			maxcp = strlen(tds_login->app_name);
+			maxcp = tds_dstr_len(&tds_login->app_name);
 			if (out_len)
 				*out_len = maxcp;
 			if (maxcp >= buflen)
 				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_login->app_name, maxcp);
+			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->app_name), maxcp);
 			((char *) buffer)[maxcp] = '\0';
 			break;
 		case CS_HOSTNAME:
-			maxcp = strlen(tds_login->host_name);
+			maxcp = tds_dstr_len(&tds_login->host_name);
 			if (out_len)
 				*out_len = maxcp;
 			if (maxcp >= buflen)
 				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_login->host_name, maxcp);
+			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->host_name), maxcp);
 			((char *) buffer)[maxcp] = '\0';
 			break;
 		case CS_LOC_PROP:
@@ -456,9 +456,9 @@ char *set_buffer = NULL;
 			}
 			break;
 		case CS_PARENT_HANDLE:
-			*(CS_CONTEXT **)buffer = con->ctx;
-			break; 
-			
+			*(CS_CONTEXT **) buffer = con->ctx;
+			break;
+
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "%L Unknown property %d\n", property);
 			break;
@@ -470,10 +470,10 @@ char *set_buffer = NULL;
 CS_RETCODE
 ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 {
-char *server;
-int needfree = 0;
-CS_CONTEXT *ctx;
-TDSCONNECTINFO *connect_info;
+	char *server;
+	int needfree = 0;
+	CS_CONTEXT *ctx;
+	TDSCONNECTINFO *connect_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_connect() servername = %s\n", servername);
 
@@ -532,11 +532,11 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 CS_RETCODE
 ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen, CS_INT option)
 {
-int query_len;
+	int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
 	/* starting a command invalidates the previous command. This means any
-		input params go away. */
+	 * input params go away. */
 	if (cmd->input_params && !((CS_LANG_CMD == type) && (CS_MORE == option))) {
 		param_clear(cmd->input_params);
 		cmd->input_params = NULL;
@@ -573,26 +573,26 @@ int query_len;
 
 	case CS_RPC_CMD:
 
-		/* Code changed for RPC functionality -SUHA*/
+		/* Code changed for RPC functionality -SUHA */
 		/* RPC code changes starts here */
-	
+
 		if (cmd == NULL)
 			return CS_FAIL;
 
 		rpc_clear(cmd->rpc);
 		cmd->rpc = (CSREMOTE_PROC *) malloc(sizeof(CSREMOTE_PROC));
-		if (cmd->rpc == (CSREMOTE_PROC *)NULL)
+		if (cmd->rpc == (CSREMOTE_PROC *) NULL)
 			return CS_FAIL;
 
 		memset(cmd->rpc, 0, sizeof(CSREMOTE_PROC));
 
 		if (buflen == CS_NULLTERM) {
 			cmd->rpc->name = strdup(buffer);
-			if (cmd->rpc->name == (char *)NULL)
+			if (cmd->rpc->name == (char *) NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
-			cmd->rpc->name = (char *)malloc(buflen + 1);
-			if (cmd->rpc->name == (char *)NULL)
+			cmd->rpc->name = (char *) malloc(buflen + 1);
+			if (cmd->rpc->name == (char *) NULL)
 				return CS_FAIL;
 			memset(cmd->rpc->name, 0, buflen + 1);
 			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
@@ -600,23 +600,23 @@ int query_len;
 			return CS_FAIL;
 		}
 
-		cmd->rpc->param_list =  NULL;
+		cmd->rpc->param_list = NULL;
 
-		tdsdump_log(TDS_DBG_INFO1, "%L ct_command() added rpcname \"%s\"\n",cmd->rpc->name);
+		tdsdump_log(TDS_DBG_INFO1, "%L ct_command() added rpcname \"%s\"\n", cmd->rpc->name);
 
 		/* FIXME: I don't know the value for RECOMPILE, NORECOMPILE options. Hence assigning zero  */
 		switch (option) {
-			case CS_RECOMPILE:	/* Recompile the stored procedure before executing it. */
-				cmd->rpc->options = 0;
-				break;
-			case CS_NO_RECOMPILE:	/* Do not recompile the stored procedure before executing it. */
-				cmd->rpc->options = 0;
-				break;
-			case CS_UNUSED:	/* Equivalent to CS_NO_RECOMPILE. */
-				cmd->rpc->options = 0;
-				break;
-			default:
-				return CS_FAIL;
+		case CS_RECOMPILE:	/* Recompile the stored procedure before executing it. */
+			cmd->rpc->options = 0;
+			break;
+		case CS_NO_RECOMPILE:	/* Do not recompile the stored procedure before executing it. */
+			cmd->rpc->options = 0;
+			break;
+		case CS_UNUSED:	/* Equivalent to CS_NO_RECOMPILE. */
+			cmd->rpc->options = 0;
+			break;
+		default:
+			return CS_FAIL;
 		}
 		break;
 		/* RPC code changes ends here */
@@ -654,7 +654,7 @@ int query_len;
 CS_RETCODE
 ct_send_dyn(CS_COMMAND * cmd)
 {
-TDSDYNAMIC *dyn;
+	TDSDYNAMIC *dyn;
 
 	if (cmd->dynamic_cmd == CS_PREPARE) {
 		cmd->dynamic_cmd = 0;
@@ -676,10 +676,10 @@ TDSDYNAMIC *dyn;
 CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
-TDSSOCKET *tds;
-CS_RETCODE ret;
-CSREMOTE_PROC ** rpc;
-TDSPARAMINFO* pparam_info;
+	TDSSOCKET *tds;
+	CS_RETCODE ret;
+	CSREMOTE_PROC **rpc;
+	TDSPARAMINFO *pparam_info;
 
 	tds = cmd->con->tds_socket;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send()\n");
@@ -689,13 +689,11 @@ TDSPARAMINFO* pparam_info;
 	/* Code changed for RPC functionality -SUHA */
 	/* RPC code changes starts here */
 
-	if (cmd->command_type == CS_RPC_CMD){
+	if (cmd->command_type == CS_RPC_CMD) {
 		/* sanity */
-		if (   cmd == NULL
-			|| cmd->rpc == NULL	       /* ct_command should allocate pointer */
-			|| cmd->rpc->name == NULL) /* can't be ready without a name      */
-		{
-			return CS_FAIL;  
+		if (cmd == NULL || cmd->rpc == NULL	/* ct_command should allocate pointer */
+		    || cmd->rpc->name == NULL) {	/* can't be ready without a name      */
+			return CS_FAIL;
 		}
 
 		rpc = &(cmd->rpc);
@@ -707,7 +705,7 @@ TDSPARAMINFO* pparam_info;
 		if (ret == TDS_FAIL) {
 			return CS_FAIL;
 		}
-	
+
 		return CS_SUCCEED;
 	}
 
@@ -734,15 +732,15 @@ TDSPARAMINFO* pparam_info;
 		tds->state = TDS_QUERYING;
 		tds_flush_packet(tds);
 	}
-	
+
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 ct_results_dyn(CS_COMMAND * cmd, CS_INT * result_type)
 {
-TDSSOCKET *tds;
-TDSDYNAMIC *dyn;
+	TDSSOCKET *tds;
+	TDSDYNAMIC *dyn;
 
 	tds = cmd->con->tds_socket;
 
@@ -763,13 +761,13 @@ TDSDYNAMIC *dyn;
 CS_RETCODE
 ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 {
-TDSSOCKET *tds;
-CS_CONTEXT *context;
+	TDSSOCKET *tds;
+	CS_CONTEXT *context;
 
-int tdsret;
-int rowtype;
-int computeid;
-CS_INT res_type;
+	int tdsret;
+	int rowtype;
+	int computeid;
+	CS_INT res_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_results()\n");
 
@@ -785,7 +783,7 @@ CS_INT res_type;
 		cmd->empty_result = 0;
 		*result_type = CS_CMD_DONE;
 		return CS_SUCCEED;
-	} 
+	}
 
 	tds = cmd->con->tds_socket;
 
@@ -859,8 +857,7 @@ CS_INT res_type;
 					} else {
 						*result_type = CS_CMD_DONE;
 					}
-				}
-				else
+				} else
 					*result_type = CS_CMD_SUCCEED;
 
 				return CS_SUCCEED;
@@ -897,16 +894,16 @@ CS_INT res_type;
 CS_RETCODE
 ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * copied, CS_SMALLINT * indicator)
 {
-TDSCOLINFO *colinfo;
-TDSRESULTINFO *resinfo;
-TDSSOCKET *tds;
-CS_CONNECTION *con = cmd->con;
-CS_INT  bind_count;
+	TDSCOLINFO *colinfo;
+	TDSRESULTINFO *resinfo;
+	TDSSOCKET *tds;
+	CS_CONNECTION *con = cmd->con;
+	CS_INT bind_count;
 
 	tds = (TDSSOCKET *) cmd->con->tds_socket;
 	resinfo = tds->curr_resinfo;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind() datafmt count = %d column_number = %d\n",datafmt->count, item);
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind() datafmt count = %d column_number = %d\n", datafmt->count, item);
 
 	/* check item value */
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
@@ -916,12 +913,12 @@ CS_INT  bind_count;
 
 	/* check whether the request is for array binding and ensure that user */
 	/* supplies the same datafmt->count to the subsequent ct_bind calls    */
-	
+
 	bind_count = (datafmt->count == 0) ? 1 : datafmt->count;
 
 	/* first bind for this result set */
 
-	if (cmd->bind_count == CS_UNUSED) { 
+	if (cmd->bind_count == CS_UNUSED) {
 		cmd->bind_count = bind_count;
 	} else {
 		/* all subsequent binds for this result set - the bind counts must be the same */
@@ -930,7 +927,7 @@ CS_INT  bind_count;
 			return CS_FAIL;
 		}
 	}
-		
+
 	/* bind the column_varaddr to the address of the buffer */
 
 	colinfo = resinfo->columns[item - 1];
@@ -950,11 +947,11 @@ CS_INT  bind_count;
 CS_RETCODE
 ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read)
 {
-TDS_INT rowtype;
-TDS_INT computeid;
-TDS_INT ret;
-TDS_INT marker;
-TDS_INT temp_count;
+	TDS_INT rowtype;
+	TDS_INT computeid;
+	TDS_INT ret;
+	TDS_INT marker;
+	TDS_INT temp_count;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()\n");
 
@@ -986,13 +983,13 @@ TDS_INT temp_count;
 		return CS_CMD_FAIL;
 
 	marker = tds_peek(cmd->con->tds_socket);
-	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) || 
-	    (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
+	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) ||
+	    (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN))
 		return CS_END_DATA;
 
 	/* Array Binding Code changes start here */
 
-	if ( cmd->bind_count == CS_UNUSED ) 
+	if (cmd->bind_count == CS_UNUSED)
 		cmd->bind_count = 1;
 
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
@@ -1002,24 +999,24 @@ TDS_INT temp_count;
 		tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
-			case TDS_SUCCEED: 
-				cmd->get_data_item = 0;
-				cmd->get_data_bytes_returned = 0;
-				if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
-					if (_ct_bind_data(cmd, temp_count))
-						return CS_ROW_FAIL;
-					if (rows_read)
-						*rows_read = *rows_read + 1;
-				}
-				break;
-		
-			case TDS_NO_MORE_ROWS: 
-				return CS_END_DATA;
-				break;
+		case TDS_SUCCEED:
+			cmd->get_data_item = 0;
+			cmd->get_data_bytes_returned = 0;
+			if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+				if (_ct_bind_data(cmd, temp_count))
+					return CS_ROW_FAIL;
+				if (rows_read)
+					*rows_read = *rows_read + 1;
+			}
+			break;
 
-			default:
-				return CS_FAIL;
-				break;
+		case TDS_NO_MORE_ROWS:
+			return CS_END_DATA;
+			break;
+
+		default:
+			return CS_FAIL;
+			break;
 		}
 
 		/* have we reached the end of the rows ? */
@@ -1029,7 +1026,7 @@ TDS_INT temp_count;
 		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
 			break;
 
-	} 
+	}
 
 	/* Array Binding Code changes end here */
 
@@ -1039,16 +1036,16 @@ TDS_INT temp_count;
 static int
 _ct_bind_data(CS_COMMAND * cmd, CS_INT offset)
 {
-int i;
-TDSCOLINFO *curcol;
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->curr_resinfo;
-unsigned char *src;
-unsigned char *dest, *temp_add;
-int result = 0;
-TDS_INT srctype, srclen, desttype, len;
-CS_CONTEXT *ctx = cmd->con->ctx;
-CS_DATAFMT srcfmt, destfmt;
+	int i;
+	TDSCOLINFO *curcol;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	unsigned char *src;
+	unsigned char *dest, *temp_add;
+	int result = 0;
+	TDS_INT srctype, srclen, desttype, len;
+	CS_CONTEXT *ctx = cmd->con->ctx;
+	CS_DATAFMT srcfmt, destfmt;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_bind_data()\n");
 
@@ -1073,7 +1070,7 @@ CS_DATAFMT srcfmt, destfmt;
 		/* check for array binding cmd->bind_count >0 and skip for the */
 		/* first row ie for resinfo->row_count == 1, for which the address is temp_add itself. */
 
-		dest = temp_add + (offset *  curcol->column_bindlen);
+		dest = temp_add + (offset * curcol->column_bindlen);
 
 		/* Array Binding Code changes end here */
 
@@ -1100,9 +1097,9 @@ CS_DATAFMT srcfmt, destfmt;
 				len = 0;
 				tdsdump_log(TDS_DBG_INFO1, "%L \n  convert failed for %d \n", srcfmt.datatype);
 			}
-			
+
 			if (curcol->column_lenbind) {
-				
+
 				*((CS_INT *) curcol->column_lenbind) = len;
 			}
 
@@ -1314,7 +1311,7 @@ _ct_get_server_type(int datatype)
 	case CS_UNIQUE_TYPE:
 		return SYBUNIQUE;
 		break;
-	case CS_LONGBINARY_TYPE:       /* vicm */
+	case CS_LONGBINARY_TYPE:	/* vicm */
 		return SYBLONGBINARY;
 		break;
 	default:
@@ -1326,7 +1323,7 @@ _ct_get_server_type(int datatype)
 CS_RETCODE
 ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 {
-CS_RETCODE ret;
+	CS_RETCODE ret;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cancel()\n");
 	if (type == CS_CANCEL_CURRENT) {
@@ -1362,9 +1359,9 @@ CS_RETCODE ret;
 CS_RETCODE
 ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 {
-TDSSOCKET *tds;
-TDSRESULTINFO *resinfo;
-TDSCOLINFO *curcol;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+	TDSCOLINFO *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_describe()\n");
 	tds = cmd->con->tds_socket;
@@ -1397,7 +1394,7 @@ TDSCOLINFO *curcol;
 		datafmt->status |= CS_CANBENULL;
 	if (curcol->column_identity)
 		datafmt->status |= CS_IDENTITY;
-	if (strcmp(datafmt->name,"txts") == 0)
+	if (strcmp(datafmt->name, "txts") == 0)
 		datafmt->status |= CS_TIMESTAMP;
 
 	datafmt->count = 1;
@@ -1409,9 +1406,9 @@ TDSCOLINFO *curcol;
 CS_RETCODE
 ct_res_info_dyn(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSDYNAMIC *dyn;
-CS_INT int_val;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSDYNAMIC *dyn;
+	CS_INT int_val;
 
 	switch (type) {
 	case CS_NUMDATA:
@@ -1429,9 +1426,9 @@ CS_INT int_val;
 CS_RETCODE
 ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->curr_resinfo;
-CS_INT int_val;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	CS_INT int_val;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_res_info()\n");
 	if (cmd->dynamic_cmd) {
@@ -1463,8 +1460,8 @@ CS_INT int_val;
 CS_RETCODE
 ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-CS_RETCODE ret = CS_SUCCEED;
-CS_INT *buf = (CS_INT *) buffer;
+	CS_RETCODE ret = CS_SUCCEED;
+	CS_INT *buf = (CS_INT *) buffer;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_config() action = %s property = %d\n",
 		    CS_GET ? "CS_GET" : CS_SET ? "CS_SET" : CS_SUPPORTED ? "CS_SUPPORTED" : "CS_CLEAR", property);
@@ -1508,26 +1505,26 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cmd_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
 	if (action == CS_GET) {
 		switch (property) {
-			case CS_PARENT_HANDLE:
-				*(CS_CONNECTION **)buffer = cmd->con;
-				break;
-			default:
-				break;
+		case CS_PARENT_HANDLE:
+			*(CS_CONNECTION **) buffer = cmd->con;
+			break;
+		default:
+			break;
 		}
 	}
-	return CS_SUCCEED; 
+	return CS_SUCCEED;
 }
 
 CS_RETCODE
 ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->curr_resinfo;
-TDSCOLINFO *curcol;
-CS_INT int_val;
-CS_SMALLINT *dest_by_col_ptr;
-CS_TINYINT *src_by_col_ptr;
-int i;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	TDSCOLINFO *curcol;
+	CS_INT int_val;
+	CS_SMALLINT *dest_by_col_ptr;
+	CS_TINYINT *src_by_col_ptr;
+	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_compute_info() type = %d, colnum = %d\n", type, colnum);
 
@@ -1600,12 +1597,12 @@ int i;
 CS_RETCODE
 ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->curr_resinfo;
-TDSCOLINFO *curcol;
-TDSBLOBINFO *blob_info;
-unsigned char *src;
-TDS_INT srclen;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	TDSCOLINFO *curcol;
+	TDSBLOBINFO *blob_info;
+	unsigned char *src;
+	TDS_INT srclen;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_get_data() item = %d buflen = %d\n", item, buflen);
 
@@ -1714,15 +1711,15 @@ TDS_INT srclen;
 CS_RETCODE
 ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-char writetext_cmd[512];
-unsigned char marker;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	char writetext_cmd[512];
+	unsigned char marker;
 
-char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
-char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
-char *c;
-int s;
-char hex2[3];
+	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
+	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
+	char *c;
+	int s;
+	char hex2[3];
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send_data()\n");
 
@@ -1793,8 +1790,8 @@ char hex2[3];
 CS_RETCODE
 ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 {
-TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->curr_resinfo;
+	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSRESULTINFO *resinfo = tds->curr_resinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_data_info() colnum %d\n", colnum);
 
@@ -1852,10 +1849,10 @@ TDSRESULTINFO *resinfo = tds->curr_resinfo;
 CS_RETCODE
 ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID * value)
 {
-TDSLOGIN *login;
-int index = 0;
-unsigned char bitmask = 0;
-unsigned char *mask;
+	TDSLOGIN *login;
+	int index = 0;
+	unsigned char bitmask = 0;
+	unsigned char *mask;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_capability()\n");
 	login = (TDSLOGIN *) con->tds_login;
@@ -2215,9 +2212,9 @@ unsigned char *mask;
 CS_RETCODE
 ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * buffer, CS_INT buflen)
 {
-int query_len, id_len;
-TDSDYNAMIC *dyn;
-TDSSOCKET *tds;
+	int query_len, id_len;
+	TDSDYNAMIC *dyn;
+	TDSSOCKET *tds;
 
 	/* this call resets the command, clearing any params */
 	if (cmd->input_params) {
@@ -2282,22 +2279,23 @@ TDSSOCKET *tds;
 CS_RETCODE
 ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen, CS_SMALLINT indicator)
 {
-TDSSOCKET *tds;
-TDSDYNAMIC *dyn;
-CSREMOTE_PROC *rpc;
-CS_PARAM **pparam;
-CS_PARAM *param;
+	TDSSOCKET *tds;
+	TDSDYNAMIC *dyn;
+	CSREMOTE_PROC *rpc;
+	CS_PARAM **pparam;
+	CS_PARAM *param;
 
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
 
-	if (cmd == NULL) return CS_FAIL;
+	if (cmd == NULL)
+		return CS_FAIL;
 
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
 		if (cmd->rpc == NULL) {
-			fprintf (stdout, "RPC is NULL ct_param\n");
+			fprintf(stdout, "RPC is NULL ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -2311,11 +2309,10 @@ CS_PARAM *param;
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
-		if (*pparam == NULL){
+		if (*pparam == NULL) {
 			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		}
-		else {
-			while ((*pparam)->next != NULL){
+		} else {
+			while ((*pparam)->next != NULL) {
 				pparam = &(*pparam)->next;
 			}
 
@@ -2324,18 +2321,17 @@ CS_PARAM *param;
 		}
 		*pparam = param;
 		(*pparam)->next = NULL;
-		tdsdump_log(TDS_DBG_INFO1, " ct_param() added rpc parameter %s \n",(*param).name );
+		tdsdump_log(TDS_DBG_INFO1, " ct_param() added rpc parameter %s \n", (*param).name);
 		return CS_SUCCEED;
 		break;
 
 	case CS_LANG_CMD:
 		/* only accept CS_INPUTVALUE as the status */
 		if (CS_INPUTVALUE != datafmt->status) {
-			tdsdump_log(TDS_DBG_ERROR, "illegal datafmt->status(%d) passed to ct_param()\n",
-				datafmt->status);
+			tdsdump_log(TDS_DBG_ERROR, "illegal datafmt->status(%d) passed to ct_param()\n", datafmt->status);
 			return CS_FAIL;
 		}
-		
+
 		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
 		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
@@ -2343,7 +2339,7 @@ CS_PARAM *param;
 			free(param);
 			return CS_FAIL;
 		}
-		
+
 		if (NULL == cmd->input_params)
 			cmd->input_params = param;
 		else {
@@ -2360,7 +2356,7 @@ CS_PARAM *param;
 		tds = cmd->con->tds_socket;
 
 		dyn = tds_lookup_dynamic(tds, cmd->dyn_id);
-	
+
 		/* TODO */
 		return CS_FAIL;
 		break;
@@ -2370,23 +2366,24 @@ CS_PARAM *param;
 }
 
 CS_RETCODE
-ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT *datalen, CS_SMALLINT *indicator)
+ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * datalen, CS_SMALLINT * indicator)
 {
-CSREMOTE_PROC *rpc;
-CSREMOTE_PROC_PARAM **pparam;
-CSREMOTE_PROC_PARAM *param;
+	CSREMOTE_PROC *rpc;
+	CSREMOTE_PROC_PARAM **pparam;
+	CSREMOTE_PROC_PARAM *param;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_setparam()\n");
 
-	/* Code changed for RPC functionality - SUHA*/
+	/* Code changed for RPC functionality - SUHA */
 	/* RPC code changes starts here */
 
-	if (cmd == NULL) return CS_FAIL;
+	if (cmd == NULL)
+		return CS_FAIL;
 
 	if (cmd->command_type == CS_RPC_CMD) {
 
 		if (cmd->rpc == NULL) {
-			fprintf (stdout, "RPC is NULL ct_param\n");
+			fprintf(stdout, "RPC is NULL ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -2398,12 +2395,11 @@ CSREMOTE_PROC_PARAM *param;
 
 		rpc = cmd->rpc;
 		pparam = &rpc->param_list;
-		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() reached here\n",(*param).name );
-		if (*pparam == NULL){
+		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() reached here\n", (*param).name);
+		if (*pparam == NULL) {
 			*pparam = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		}
-		else {
-			while ((*pparam)->next != NULL){
+		} else {
+			while ((*pparam)->next != NULL) {
 				pparam = &(*pparam)->next;
 			}
 
@@ -2412,7 +2408,7 @@ CSREMOTE_PROC_PARAM *param;
 		}
 		*pparam = param;
 		(*pparam)->next = NULL;
-		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() added parameter %s \n",(*param).name );
+		tdsdump_log(TDS_DBG_INFO1, " ct_setparam() added parameter %s \n", (*param).name);
 		return CS_SUCCEED;
 	}
 
@@ -2426,9 +2422,9 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_OPTION_CMD tds_command = 0;
 	TDS_OPTION tds_option = 0;
 	TDS_OPTION_ARG tds_argument;
-	TDS_INT  tds_argsize = 0;
+	TDS_INT tds_argsize = 0;
 
-	char * action_string = NULL;
+	char *action_string = NULL;
 	int i;
 
 	/* boolean options can all be treated the same way */
@@ -2436,24 +2432,41 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	{
 		CS_INT option;
 		TDS_OPTION tds_option;
-	} tds_bool_option_map[] = 
+	}
+	tds_bool_option_map[] =
 	{
-		  { CS_OPT_ANSINULL, TDS_OPT_ANSINULL } 
-		, { CS_OPT_ANSINULL, TDS_OPT_ANSINULL } 
-		, { CS_OPT_CHAINXACTS, TDS_OPT_CHAINXACTS }
-		, { CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT }
-		, { CS_OPT_FIPSFLAG, TDS_OPT_FIPSFLAG }
-		, { CS_OPT_FORCEPLAN, TDS_OPT_FORCEPLAN }
-		, { CS_OPT_FORMATONLY, TDS_OPT_FORMATONLY }
-		, { CS_OPT_GETDATA, TDS_OPT_GETDATA }
-		, { CS_OPT_NOCOUNT, TDS_OPT_NOCOUNT }
-		, { CS_OPT_NOEXEC, TDS_OPT_NOEXEC }
-		, { CS_OPT_PARSEONLY, TDS_OPT_PARSEONLY }
-		, { CS_OPT_QUOTED_IDENT, TDS_OPT_QUOTED_IDENT }
-		, { CS_OPT_RESTREES, TDS_OPT_RESTREES }
-		, { CS_OPT_SHOWPLAN, TDS_OPT_SHOWPLAN }
-		, { CS_OPT_STATS_IO, TDS_OPT_STAT_IO, }
-		, { CS_OPT_STATS_TIME, TDS_OPT_STAT_TIME, }
+		{
+		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
+		, {
+		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
+		, {
+		CS_OPT_CHAINXACTS, TDS_OPT_CHAINXACTS}
+		, {
+		CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT}
+		, {
+		CS_OPT_FIPSFLAG, TDS_OPT_FIPSFLAG}
+		, {
+		CS_OPT_FORCEPLAN, TDS_OPT_FORCEPLAN}
+		, {
+		CS_OPT_FORMATONLY, TDS_OPT_FORMATONLY}
+		, {
+		CS_OPT_GETDATA, TDS_OPT_GETDATA}
+		, {
+		CS_OPT_NOCOUNT, TDS_OPT_NOCOUNT}
+		, {
+		CS_OPT_NOEXEC, TDS_OPT_NOEXEC}
+		, {
+		CS_OPT_PARSEONLY, TDS_OPT_PARSEONLY}
+		, {
+		CS_OPT_QUOTED_IDENT, TDS_OPT_QUOTED_IDENT}
+		, {
+		CS_OPT_RESTREES, TDS_OPT_RESTREES}
+		, {
+		CS_OPT_SHOWPLAN, TDS_OPT_SHOWPLAN}
+		, {
+		CS_OPT_STATS_IO, TDS_OPT_STAT_IO,}
+		, {
+		CS_OPT_STATS_TIME, TDS_OPT_STAT_TIME,}
 	};
 
 	if (param == NULL)
@@ -2464,7 +2477,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	 */
 	switch (action) {
 	case CS_GET:
-		tds_command = TDS_OPT_LIST; 	/* will be acknowledged by TDS_OPT_INFO */
+		tds_command = TDS_OPT_LIST;	/* will be acknowledged by TDS_OPT_INFO */
 		action_string = "CS_GET";
 		tds_argsize = 0;
 		break;
@@ -2488,21 +2501,21 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 
 	/*
 	 * Set the tds option
-	 *	The following TDS options apparently cannot be set with this function.  
-	 *	TDS_OPT_CHARSET
-	 *	TDS_OPT_CURREAD
-	 *	TDS_OPT_IDENTITYOFF
-	 *	TDS_OPT_IDENTITYON
-	 *	TDS_OPT_CURWRITE
-	 *	TDS_OPT_NATLANG
-	 *	TDS_OPT_ROWCOUNT
-	 *	TDS_OPT_TEXTSIZE
+	 *      The following TDS options apparently cannot be set with this function.  
+	 *      TDS_OPT_CHARSET
+	 *      TDS_OPT_CURREAD
+	 *      TDS_OPT_IDENTITYOFF
+	 *      TDS_OPT_IDENTITYON
+	 *      TDS_OPT_CURWRITE
+	 *      TDS_OPT_NATLANG
+	 *      TDS_OPT_ROWCOUNT
+	 *      TDS_OPT_TEXTSIZE
 	 */
 
 	/* 
 	 * First, take care of the easy cases, the booleans.  
 	 */
-	for (i=0; i < TDS_VECTOR_SIZE(tds_bool_option_map); i++) {
+	for (i = 0; i < TDS_VECTOR_SIZE(tds_bool_option_map); i++) {
 		if (tds_bool_option_map[i].option == option) {
 			tds_option = tds_bool_option_map[i].tds_option;
 			break;
@@ -2520,8 +2533,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		default:
 			return CS_FAIL;
 		}
-		tds_argsize = (action == CS_SET)? 1 : 0;
-		
+		tds_argsize = (action == CS_SET) ? 1 : 0;
+
 		goto SEND_OPTION;
 	}
 
@@ -2552,7 +2565,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			return CS_FAIL;
 		}
 		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET)? 4 : 0;
+		tds_argsize = (action == CS_SET) ? 4 : 0;
 		break;
 	case CS_OPT_ARITHIGNORE:
 		switch (*(CS_BOOL *) param) {
@@ -2566,49 +2579,75 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			return CS_FAIL;
 		}
 		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET)? 4 : 0;
+		tds_argsize = (action == CS_SET) ? 4 : 0;
 		break;
 	case CS_OPT_AUTHOFF:
 		tds_option = TDS_OPT_AUTHOFF;
 		tds_argument.c = (TDS_CHAR *) param;
-		tds_argsize = (action == CS_SET)? paramlen : 0;
+		tds_argsize = (action == CS_SET) ? paramlen : 0;
 		break;
 	case CS_OPT_AUTHON:
 		tds_option = TDS_OPT_AUTHON;
 		tds_argument.c = (TDS_CHAR *) param;
-		tds_argsize = (action == CS_SET)? paramlen : 0;
+		tds_argsize = (action == CS_SET) ? paramlen : 0;
 		break;
 
 	case CS_OPT_DATEFIRST:
 		tds_option = TDS_OPT_DATEFIRST;
 		switch (*(char *) param) {
-		case CS_OPT_SUNDAY:	tds_argument.ti = TDS_OPT_SUNDAY; 	break;
-		case CS_OPT_MONDAY:	tds_argument.ti = TDS_OPT_MONDAY; 	break;
-		case CS_OPT_TUESDAY:	tds_argument.ti = TDS_OPT_TUESDAY; 	break;
-		case CS_OPT_WEDNESDAY:	tds_argument.ti = TDS_OPT_WEDNESDAY; 	break;
-		case CS_OPT_THURSDAY:	tds_argument.ti = TDS_OPT_THURSDAY; 	break;
-		case CS_OPT_FRIDAY:	tds_argument.ti = TDS_OPT_FRIDAY; 	break;
-		case CS_OPT_SATURDAY:	tds_argument.ti = TDS_OPT_SATURDAY; 	break;
+		case CS_OPT_SUNDAY:
+			tds_argument.ti = TDS_OPT_SUNDAY;
+			break;
+		case CS_OPT_MONDAY:
+			tds_argument.ti = TDS_OPT_MONDAY;
+			break;
+		case CS_OPT_TUESDAY:
+			tds_argument.ti = TDS_OPT_TUESDAY;
+			break;
+		case CS_OPT_WEDNESDAY:
+			tds_argument.ti = TDS_OPT_WEDNESDAY;
+			break;
+		case CS_OPT_THURSDAY:
+			tds_argument.ti = TDS_OPT_THURSDAY;
+			break;
+		case CS_OPT_FRIDAY:
+			tds_argument.ti = TDS_OPT_FRIDAY;
+			break;
+		case CS_OPT_SATURDAY:
+			tds_argument.ti = TDS_OPT_SATURDAY;
+			break;
 		default:
 			return CS_FAIL;
 		}
-		tds_argument.ti = *(char*) param;
-		tds_argsize = (action == CS_SET)? 1 : 0;
+		tds_argument.ti = *(char *) param;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_DATEFORMAT:
 		tds_option = TDS_OPT_DATEFORMAT;
 		switch (*(char *) param) {
-		case CS_OPT_FMTMDY:	tds_argument.ti = TDS_OPT_FMTMDY; 	break;        
-		case CS_OPT_FMTDMY:	tds_argument.ti = TDS_OPT_FMTDMY; 	break;        
-		case CS_OPT_FMTYMD:	tds_argument.ti = TDS_OPT_FMTYMD; 	break;        
-		case CS_OPT_FMTYDM:	tds_argument.ti = TDS_OPT_FMTYDM; 	break;        
-		case CS_OPT_FMTMYD:	tds_argument.ti = TDS_OPT_FMTMYD; 	break;        
-		case CS_OPT_FMTDYM:	tds_argument.ti = TDS_OPT_FMTDYM; 	break;        
+		case CS_OPT_FMTMDY:
+			tds_argument.ti = TDS_OPT_FMTMDY;
+			break;
+		case CS_OPT_FMTDMY:
+			tds_argument.ti = TDS_OPT_FMTDMY;
+			break;
+		case CS_OPT_FMTYMD:
+			tds_argument.ti = TDS_OPT_FMTYMD;
+			break;
+		case CS_OPT_FMTYDM:
+			tds_argument.ti = TDS_OPT_FMTYDM;
+			break;
+		case CS_OPT_FMTMYD:
+			tds_argument.ti = TDS_OPT_FMTMYD;
+			break;
+		case CS_OPT_FMTDYM:
+			tds_argument.ti = TDS_OPT_FMTDYM;
+			break;
 		default:
 			return CS_FAIL;
 		}
-		tds_argument.ti = *(char*) param;
-		tds_argsize = (action == CS_SET)? 1 : 0;
+		tds_argument.ti = *(char *) param;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_ISOLATION:
 		tds_option = TDS_OPT_ISOLATION;
@@ -2626,7 +2665,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		default:
 			return CS_FAIL;
 		}
-		tds_argsize = (action == CS_SET)? 1 : 0;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_TRUNCIGNORE:
 		tds_option = TDS_OPT_TRUNCABORT;	/* note inverted sense */
@@ -2637,24 +2676,24 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		default:
 			return CS_FAIL;
 		}
-		tds_argument.ti = ! *(char*) param;
-		tds_argsize = (action == CS_SET)? 1 : 0;
+		tds_argument.ti = !*(char *) param;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	default:
 		return CS_FAIL;	/* invalid option */
 	}
 
-  SEND_OPTION:
+      SEND_OPTION:
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_option: UNIMPLEMENTED %d\n", option);
 
-	tdsdump_log(TDS_DBG_FUNC, "\ttds_send_optioncmd will be option(%d) arg(%x) arglen(%d)\n"
-			, tds_option, tds_argument.i, tds_argsize);
+	tdsdump_log(TDS_DBG_FUNC, "\ttds_send_optioncmd will be option(%d) arg(%x) arglen(%d)\n", tds_option, tds_argument.i,
+		    tds_argsize);
 
 	return CS_SUCCEED;	/* return succeed for now unless inputs are wrong */
 	return CS_FAIL;
 
-} /* end ct_options() */
+}				/* end ct_options() */
 
 CS_RETCODE
 ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CONNECTION ** compconn, CS_COMMAND ** compcmd,
@@ -2693,11 +2732,11 @@ _ct_fetchable_results(CS_COMMAND * cmd)
 static int
 _ct_process_return_status(TDSSOCKET * tds)
 {
-TDSRESULTINFO *info;
-TDSCOLINFO *curcol;
+	TDSRESULTINFO *info;
+	TDSCOLINFO *curcol;
 
-enum
-{ num_cols = 1 };
+	enum
+	{ num_cols = 1 };
 
 	assert(tds);
 	tds_free_all_results(tds);
@@ -2735,10 +2774,12 @@ enum
 /* RPC code changes starts here */
 
 static const unsigned char *
-paramrowalloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
+paramrowalloc(TDSPARAMINFO * params, TDSCOLINFO * curcol, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
-	if (!row) return NULL;
+
+	if (!row)
+		return NULL;
 	memcpy(&params->current_row[curcol->column_offset], value, size);
 
 	return row;
@@ -2747,128 +2788,132 @@ paramrowalloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
 /** 
  * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
  */
-static TDSPARAMINFO*
+static TDSPARAMINFO *
 paraminfoalloc(CS_PARAM * first_param)
 {
 	int i;
 	CS_PARAM *p;
 	TDSCOLINFO *pcol;
-	TDSPARAMINFO *params=NULL;
+	TDSPARAMINFO *params = NULL;
 
-	int      temp_type;
+	int temp_type;
 	CS_BYTE *temp_value;
-	CS_INT   temp_datalen;
-	int      param_is_null;
-	
+	CS_INT temp_datalen;
+	int param_is_null;
+
 
 	/* sanity */
-	if (first_param == NULL) return NULL;
+	if (first_param == NULL)
+		return NULL;
 
-	for (i=0, p = first_param; p != NULL; p = p->next, i++) {
-  		const unsigned char * prow;
+	for (i = 0, p = first_param; p != NULL; p = p->next, i++) {
+		const unsigned char *prow;
+
 		if (!(params = tds_alloc_param_result(params))) {
 			fprintf(stderr, "out of rpc memory!");
 			return NULL;
 		}
-		
+
 		/* The parameteter data has been passed by reference */
 		/* i.e. using ct_setparam rather than ct_param       */
 
 		if (p->param_by_value == 0) {
 
 			param_is_null = 0;
-			temp_datalen  = 0;
-			temp_value    = NULL;
-			temp_type     = p->type;
+			temp_datalen = 0;
+			temp_value = NULL;
+			temp_type = p->type;
 
 			/* here's one way of passing a null parameter */
 
 			if (*(p->ind) == -1) {
-				temp_value    = NULL;
-				temp_datalen  = 0;
+				temp_value = NULL;
+				temp_datalen = 0;
 				param_is_null = 1;
 			} else {
-	
+
 				/* and here's another... */
-				if ( (*(p->datalen) == 0 || *(p->datalen) == CS_UNUSED) && p->value == NULL ) {
-					temp_value    = NULL;
-					temp_datalen  = 0;
+				if ((*(p->datalen) == 0 || *(p->datalen) == CS_UNUSED) && p->value == NULL) {
+					temp_value = NULL;
+					temp_datalen = 0;
 					param_is_null = 1;
 				} else {
-	
+
 					/* datafmt.datalen is ignored for fixed length types */
-			
+
 					if (is_fixed_type(temp_type)) {
 						temp_datalen = tds_get_size_by_type(temp_type);
 					} else {
 						temp_datalen = (*(p->datalen) == CS_UNUSED) ? 0 : *(p->datalen);
 					}
-					
+
 					if (temp_datalen && p->value) {
 						temp_value = p->value;
 					} else {
-						temp_value    = NULL;
-						temp_datalen  = 0;
+						temp_value = NULL;
+						temp_datalen = 0;
 						param_is_null = 1;
 					}
 				}
 			}
-	
+
 			if (param_is_null) {
 				switch (temp_type) {
-					case SYBINT1:
-					case SYBINT2:
-					case SYBINT4:
-						temp_type = SYBINTN;
-						break;
-					case SYBDATETIME:
-					case SYBDATETIME4:
-						temp_type = SYBDATETIMN;
-						break;
-					case SYBFLT8:
-						temp_type = SYBFLTN;
-						break;
-					case SYBBIT:
-						temp_type = SYBBITN;
-						break;
-					case SYBMONEY:
-					case SYBMONEY4:
-						temp_type = SYBMONEYN;
-						break;
-					default:
-						break;
+				case SYBINT1:
+				case SYBINT2:
+				case SYBINT4:
+					temp_type = SYBINTN;
+					break;
+				case SYBDATETIME:
+				case SYBDATETIME4:
+					temp_type = SYBDATETIMN;
+					break;
+				case SYBFLT8:
+					temp_type = SYBFLTN;
+					break;
+				case SYBBIT:
+					temp_type = SYBBITN;
+					break;
+				case SYBMONEY:
+				case SYBMONEY4:
+					temp_type = SYBMONEYN;
+					break;
+				default:
+					break;
 				}
 			}
 		} else {
-			temp_type     = p->type;
-			temp_value    = p->value;
-			temp_datalen  = *(p->datalen);
+			temp_type = p->type;
+			temp_value = p->value;
+			temp_datalen = *(p->datalen);
 		}
 
 		pcol = params->columns[i];
 
 		/* meta data */
-		if (p->name) 
-			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
+		if (p->name)
+			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
 
 		tds_set_column_type(pcol, temp_type);
 
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
 				return NULL;
-			pcol->column_size	= p->maxlen;
+			pcol->column_size = p->maxlen;
 		}
 
 		if (p->status == CS_RETURN)
-			pcol->column_output	= 1;
+			pcol->column_output = 1;
 		else
-			pcol->column_output	= 0;
+			pcol->column_output = 0;
 
 		/* actual data */
-		pcol->column_cur_size	= temp_datalen;
+		pcol->column_cur_size = temp_datalen;
 		tdsdump_log(TDS_DBG_FUNC, "%L paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
-		tdsdump_log(TDS_DBG_FUNC, "%L paraminfoalloc: name = %s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
-					pcol->column_name, pcol->column_varint_size, pcol->column_type, pcol->column_cur_size, pcol->column_output);
+		tdsdump_log(TDS_DBG_FUNC,
+			    "%L paraminfoalloc: name = %s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
+			    pcol->column_name, pcol->column_varint_size, pcol->column_type, pcol->column_cur_size,
+			    pcol->column_output);
 		prow = paramrowalloc(params, pcol, temp_value, temp_datalen);
 		if (!prow) {
 			fprintf(stderr, "out of memory for rpc row!");
@@ -2877,16 +2922,17 @@ paraminfoalloc(CS_PARAM * first_param)
 	}
 
 	return params;
-	
+
 }
 
 static void
 rpc_clear(CSREMOTE_PROC * rpc)
 {
-	if (rpc == NULL) return;
-	
-    param_clear(rpc->param_list);
-	
+	if (rpc == NULL)
+		return;
+
+	param_clear(rpc->param_list);
+
 	assert(rpc->name);
 	free(rpc->name);
 	free(rpc);
@@ -2898,97 +2944,98 @@ rpc_clear(CSREMOTE_PROC * rpc)
 static void
 param_clear(CS_PARAM * pparam)
 {
-	if (pparam == NULL) return;
-	
+	if (pparam == NULL)
+		return;
+
 	if (pparam->next) {
 		param_clear(pparam->next);
 		pparam->next = NULL;
 	}
-	
+
 	/* free self after clearing children */
 
 	if (pparam->name)
 		free(pparam->name);
 	if (pparam->param_by_value)
-	 	free(pparam->value);
-		free(pparam->datalen);
-		free(pparam->ind);
+		free(pparam->value);
+	free(pparam->datalen);
+	free(pparam->ind);
 
 	free(pparam);
 }
+
 /* RPC Code changes ends here */
 
 
 static int
-_ct_fill_param(CS_PARAM *param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT *datalen, 
-	CS_SMALLINT *indicator, CS_BYTE byvalue)
+_ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue)
 {
-int  param_is_null = 0;
+	int param_is_null = 0;
 
 	if (datafmt->namelen == CS_NULLTERM) {
 		param->name = strdup(datafmt->name);
-		if (param->name == (char *)NULL)
+		if (param->name == (char *) NULL)
 			return CS_FAIL;
 	} else if (datafmt->namelen > 0) {
 		param->name = malloc(datafmt->namelen + 1);
-		if (param->name == NULL) 
+		if (param->name == NULL)
 			return CS_FAIL;
 		memset(param->name, 0, datafmt->namelen + 1);
 		strncpy(param->name, datafmt->name, datafmt->namelen);
-	} 
-	
+	}
+
 	param->status = datafmt->status;
-	tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() status = %d \n", param->status );
-	
+	tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() status = %d \n", param->status);
+
 	/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
 	/* to Server type, e.g. SYBINT2                      */
-	
-	param->type   = _ct_get_server_type(datafmt->datatype);
-	
+
+	param->type = _ct_get_server_type(datafmt->datatype);
+
 	param->maxlen = datafmt->maxlength;
-	
+
 	if (is_fixed_type(param->type)) {
-		param->maxlen  = tds_get_size_by_type(param->type);
-	} 
-	
+		param->maxlen = tds_get_size_by_type(param->type);
+	}
+
 	param->param_by_value = byvalue;
 
 	if (byvalue) {
-		param->datalen = malloc(sizeof(CS_INT));		
+		param->datalen = malloc(sizeof(CS_INT));
 		if (param->datalen == NULL)
 			return CS_FAIL;
-		
+
 		*(param->datalen) = *datalen;
-		
-		param->ind = malloc(sizeof(CS_INT));		
+
+		param->ind = malloc(sizeof(CS_INT));
 		if (param->ind == NULL)
 			return CS_FAIL;
-		
+
 		*(param->ind) = *indicator;
-		
+
 		/* here's one way of passing a null parameter */
-		
+
 		if (*indicator == -1) {
 			param->value = NULL;
 			*(param->datalen) = 0;
-			param_is_null  = 1;
+			param_is_null = 1;
 		} else {
-		
+
 			/* and here's another... */
-			if ( (*datalen == 0 || *datalen == CS_UNUSED) && data == NULL ) {
+			if ((*datalen == 0 || *datalen == CS_UNUSED) && data == NULL) {
 				param->value = NULL;
 				*(param->datalen) = 0;
-				param_is_null  = 1;
+				param_is_null = 1;
 			} else {
-		
+
 				/* datafmt.datalen is ignored for fixed length types */
-		
+
 				if (is_fixed_type(param->type)) {
 					*(param->datalen) = tds_get_size_by_type(param->type);
 				} else {
 					*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
 				}
-				
+
 				if (*(param->datalen) && data) {
 					param->value = malloc(*(param->datalen));
 					if (param->value == NULL)
@@ -2998,40 +3045,40 @@ int  param_is_null = 0;
 				} else {
 					param->value = NULL;
 					*(param->datalen) = 0;
-					param_is_null  = 1;
+					param_is_null = 1;
 				}
 			}
 		}
-		
+
 		if (param_is_null) {
 			switch (param->type) {
-				case SYBINT1:
-				case SYBINT2:
-				case SYBINT4:
-					param->type = SYBINTN;
-					break;
-				case SYBDATETIME:
-				case SYBDATETIME4:
-					param->type = SYBDATETIMN;
-					break;
-				case SYBFLT8:
-					param->type = SYBFLTN;
-					break;
-				case SYBBIT:
-					param->type = SYBBITN;
-					break;
-				case SYBMONEY:
-				case SYBMONEY4:
-					param->type = SYBMONEYN;
-					break;
-				default:
-					break;
+			case SYBINT1:
+			case SYBINT2:
+			case SYBINT4:
+				param->type = SYBINTN;
+				break;
+			case SYBDATETIME:
+			case SYBDATETIME4:
+				param->type = SYBDATETIMN;
+				break;
+			case SYBFLT8:
+				param->type = SYBFLTN;
+				break;
+			case SYBBIT:
+				param->type = SYBBITN;
+				break;
+			case SYBMONEY:
+			case SYBMONEY4:
+				param->type = SYBMONEYN;
+				break;
+			default:
+				break;
 			}
 		}
-	} else { /* not by value, i.e. by reference */
+	} else {		/* not by value, i.e. by reference */
 		param->datalen = datalen;
-		param->ind     = indicator;
-		param->value   = data;
+		param->ind = indicator;
+		param->value = data;
 	}
 	return CS_SUCCEED;
 }
@@ -3039,12 +3086,12 @@ int  param_is_null = 0;
 /* Code added for ct_diag implementation */
 /* Code changes start here - CT_DIAG - 02*/
 
-CS_RETCODE 
-ct_diag(CS_CONNECTION *conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer)
+CS_RETCODE
+ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
 	switch (operation) {
 	case CS_INIT:
-		if ( conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
+		if (conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
 			/* contrary to the manual page you don't seem to */
 			/* be able to turn on inline message handling    */
 			/* using cs_diag, once a callback is installed!  */
@@ -3068,62 +3115,64 @@ ct_diag(CS_CONNECTION *conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID 
 		break;
 
 	case CS_MSGLIMIT:
-		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
-		
+
 		if (type == CS_CLIENTMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_client = *(CS_INT *)buffer;
+			conn->ctx->cs_diag_msglimit_client = *(CS_INT *) buffer;
 
 		if (type == CS_SERVERMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_server = *(CS_INT *)buffer;
+			conn->ctx->cs_diag_msglimit_server = *(CS_INT *) buffer;
 
 		if (type == CS_ALLMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_total = *(CS_INT *)buffer;
-			
+			conn->ctx->cs_diag_msglimit_total = *(CS_INT *) buffer;
+
 		break;
 
 	case CS_CLEAR:
-		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
 		return (ct_diag_clearmsg(conn->ctx, type));
 		break;
 
 	case CS_GET:
-		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
 
 		if (buffer == NULL)
 			return CS_FAIL;
 
 		if (type == CS_CLIENTMSG_TYPE) {
-			if (idx == 0 || (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_client) )
+			if (idx == 0
+			    || (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_client))
 				return CS_FAIL;
 
-			return (ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *)buffer)); 
+			return (ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *) buffer));
 		}
 
-		if (type == CS_SERVERMSG_TYPE){
-			if (idx == 0 || (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_server) )
+		if (type == CS_SERVERMSG_TYPE) {
+			if (idx == 0
+			    || (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_server))
 				return CS_FAIL;
-			return (ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *)buffer)); 
+			return (ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *) buffer));
 		}
 
 		break;
 
 	case CS_STATUS:
-		if ( conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
-		if (buffer == NULL) 
+		if (buffer == NULL)
 			return CS_FAIL;
 
-		return (ct_diag_countmsg(conn->ctx, type, (CS_INT *)buffer));
+		return (ct_diag_countmsg(conn->ctx, type, (CS_INT *) buffer));
 		break;
 	}
 	return CS_SUCCEED;
 }
 
-static CS_INT 
-ct_diag_storeclientmsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_CLIENTMSG *message)
+static CS_INT
+ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message)
 {
 	struct cs_diag_msg_client **curptr;
 	struct cs_diag_msg_svr **scurptr;
@@ -3145,16 +3194,15 @@ ct_diag_storeclientmsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_CLIENTMSG *me
 	/* messages over and above the agreed limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT &&
-		msg_count >= conn->ctx->cs_diag_msglimit_client) {
+	if (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && msg_count >= conn->ctx->cs_diag_msglimit_client) {
 		return CS_FAIL;
 	}
 
 	/* messages over and above the agreed TOTAL limit */
 	/* are simply discarded */
 
-	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT ) {
-		while (*scurptr != (struct cs_diag_msg_svr *)NULL) {
+	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
+		while (*scurptr != (struct cs_diag_msg_svr *) NULL) {
 			msg_count++;
 			scurptr = &((*scurptr)->next);
 		}
@@ -3164,11 +3212,11 @@ ct_diag_storeclientmsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_CLIENTMSG *me
 	}
 
 	*curptr = (struct cs_diag_msg_client *) malloc(sizeof(struct cs_diag_msg_client));
-	if (*curptr == (struct cs_diag_msg_client *)NULL) { 
+	if (*curptr == (struct cs_diag_msg_client *) NULL) {
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = (struct cs_diag_msg_client *) NULL;
-		(*curptr)->clientmsg  = malloc(sizeof(CS_CLIENTMSG));
+		(*curptr)->clientmsg = malloc(sizeof(CS_CLIENTMSG));
 		if ((*curptr)->clientmsg == (CS_CLIENTMSG *) NULL) {
 			return CS_FAIL;
 		} else {
@@ -3179,11 +3227,11 @@ ct_diag_storeclientmsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_CLIENTMSG *me
 	return CS_SUCCEED;
 }
 
-static CS_INT 
-ct_diag_storeservermsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_SERVERMSG *message)
+static CS_INT
+ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr **curptr;
-	struct cs_diag_msg_client  **ccurptr;
+	struct cs_diag_msg_client **ccurptr;
 
 	CS_INT msg_count = 0;
 
@@ -3201,30 +3249,29 @@ ct_diag_storeservermsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_SERVERMSG *me
 	/* messages over and above the agreed limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT &&
-		msg_count >= conn->ctx->cs_diag_msglimit_server) {
+	if (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && msg_count >= conn->ctx->cs_diag_msglimit_server) {
 		return CS_FAIL;
 	}
 
 	/* messages over and above the agreed TOTAL limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT){
+	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
 		while (*ccurptr != (struct cs_diag_msg_client *) NULL) {
 			msg_count++;
 			ccurptr = &((*ccurptr)->next);
 		}
-		if (msg_count >= conn->ctx->cs_diag_msglimit_total){
-		  return CS_FAIL;
+		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
+			return CS_FAIL;
 		}
 	}
 
 	*curptr = (struct cs_diag_msg_svr *) malloc(sizeof(struct cs_diag_msg_svr));
-	if (*curptr == (struct cs_diag_msg_svr *) NULL) { 
+	if (*curptr == (struct cs_diag_msg_svr *) NULL) {
 		return CS_FAIL;
 	} else {
-		(*curptr)->next = (struct cs_diag_msg_svr *)NULL;
-		(*curptr)->servermsg  = malloc(sizeof(CS_SERVERMSG));
+		(*curptr)->next = (struct cs_diag_msg_svr *) NULL;
+		(*curptr)->servermsg = malloc(sizeof(CS_SERVERMSG));
 		if ((*curptr)->servermsg == (CS_SERVERMSG *) NULL) {
 			return CS_FAIL;
 		} else {
@@ -3235,8 +3282,8 @@ ct_diag_storeservermsg(CS_CONTEXT *context,CS_CONNECTION *conn, CS_SERVERMSG *me
 	return CS_SUCCEED;
 }
 
-static CS_INT 
-ct_diag_getclientmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
+static CS_INT
+ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT index, CS_CLIENTMSG * message)
 {
 	struct cs_diag_msg_client *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
@@ -3262,8 +3309,8 @@ ct_diag_getclientmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
 	return CS_NOMSG;
 }
 
-static CS_INT 
-ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message)
+static CS_INT
+ct_diag_getservermsg(CS_CONTEXT * context, CS_INT index, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
@@ -3273,7 +3320,7 @@ ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message)
 	/* if we already have a list of messages, */
 	/* go to the end of the list...           */
 
-	while (curptr != (struct cs_diag_msg_svr *)NULL) {
+	while (curptr != (struct cs_diag_msg_svr *) NULL) {
 		msg_count++;
 		if (msg_count == index) {
 			msg_found++;
@@ -3290,8 +3337,8 @@ ct_diag_getservermsg(CS_CONTEXT *context, CS_INT index, CS_SERVERMSG *message)
 	}
 }
 
-static CS_INT 
-ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
+static CS_INT
+ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 {
 	struct cs_diag_msg_client *curptr, *freeptr;
 	struct cs_diag_msg_svr *scurptr, *sfreeptr;
@@ -3300,7 +3347,7 @@ ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
 		curptr = context->clientstore;
 		context->clientstore = NULL;
 
-		while (curptr != (struct cs_diag_msg_client *) NULL ) {
+		while (curptr != (struct cs_diag_msg_client *) NULL) {
 			freeptr = curptr;
 			curptr = freeptr->next;
 			if (freeptr->clientmsg)
@@ -3313,7 +3360,7 @@ ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
 		scurptr = context->svrstore;
 		context->svrstore = NULL;
 
-		while (scurptr != (struct cs_diag_msg_svr *) NULL ) {
+		while (scurptr != (struct cs_diag_msg_svr *) NULL) {
 			sfreeptr = scurptr;
 			scurptr = sfreeptr->next;
 			if (sfreeptr->servermsg)
@@ -3324,8 +3371,8 @@ ct_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
 	return CS_SUCCEED;
 }
 
-static CS_INT 
-ct_diag_countmsg(CS_CONTEXT *context,CS_INT type,  CS_INT *count)
+static CS_INT
+ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 {
 	struct cs_diag_msg_client *curptr;
 	struct cs_diag_msg_svr *scurptr;

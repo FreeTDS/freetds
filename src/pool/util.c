@@ -30,8 +30,9 @@
 #include <ctype.h>
 
 #include "pool.h"
+#include "tdsstring.h"
 
-static char software_version[] = "$Id: util.c,v 1.10 2003-04-03 09:10:42 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.11 2003-04-21 09:05:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -66,15 +67,15 @@ dump_buf(const void *buf, int length)
 void
 dump_login(TDSLOGIN * login)
 {
-	fprintf(stderr, "host %s\n", login->host_name);
-	fprintf(stderr, "user %s\n", login->user_name);
-	fprintf(stderr, "pass %s\n", login->password);
-	fprintf(stderr, "app  %s\n", login->app_name);
-	fprintf(stderr, "srvr %s\n", login->server_name);
+	fprintf(stderr, "host %s\n", tds_dstr_cstr(&login->host_name));
+	fprintf(stderr, "user %s\n", tds_dstr_cstr(&login->user_name));
+	fprintf(stderr, "pass %s\n", tds_dstr_cstr(&login->password));
+	fprintf(stderr, "app  %s\n", tds_dstr_cstr(&login->app_name));
+	fprintf(stderr, "srvr %s\n", tds_dstr_cstr(&login->server_name));
 	fprintf(stderr, "vers %d.%d\n", login->major_version, login->minor_version);
-	fprintf(stderr, "lib  %s\n", login->library);
-	fprintf(stderr, "lang %s\n", login->language);
-	fprintf(stderr, "char %s\n", login->server_charset);
+	fprintf(stderr, "lib  %s\n", tds_dstr_cstr(&login->library));
+	fprintf(stderr, "lang %s\n", tds_dstr_cstr(&login->language));
+	fprintf(stderr, "char %s\n", tds_dstr_cstr(&login->server_charset));
 	fprintf(stderr, "bsiz %d\n", login->block_size);
 }
 

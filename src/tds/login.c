@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.95 2003-04-08 15:38:45 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.96 2003-04-21 09:05:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -220,7 +220,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	 * If a dump file has been specified, start logging
 	 */
 	if (!tds_dstr_isempty(&connect_info->dump_file)) {
-		tdsdump_open(connect_info->dump_file);
+		tdsdump_open(tds_dstr_cstr(&connect_info->dump_file));
 	}
 
 	tds->connect_info = connect_info;
@@ -237,7 +237,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	/* set up iconv */
 	if (connect_info->client_charset) {
-		tds_iconv_open(tds, connect_info->client_charset);
+		tds_iconv_open(tds, tds_dstr_cstr(&connect_info->client_charset));
 	}
 
 	/* specified a date format? */
@@ -266,7 +266,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-	sin.sin_addr.s_addr = inet_addr(connect_info->ip_addr);
+	sin.sin_addr.s_addr = inet_addr(tds_dstr_cstr(&connect_info->ip_addr));
 	if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", connect_info->ip_addr);
 		tds_free_socket(tds);
@@ -352,7 +352,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	}
 
 	if (connect_info->text_size || (!db_selected && !tds_dstr_isempty(&connect_info->database))) {
-		len = 64 + tds_quote_id(tds, NULL, connect_info->database);
+		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connect_info->database));
 		str = (char *) malloc(len);
 		str[0] = 0;
 		if (connect_info->text_size) {
@@ -360,7 +360,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		}
 		if (!db_selected && !tds_dstr_isempty(&connect_info->database)) {
 			strcat(str, "use ");
-			tds_quote_id(tds, strchr(str, 0), connect_info->database);
+			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&connect_info->database));
 		}
 		retval = tds_submit_query(tds, str, NULL);
 		free(str);
@@ -460,9 +460,9 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	 * do this, (well...mine was a kludge actually) so here's mostly his
 	 */
 
-	tds_put_login_string(tds, connect_info->host_name, TDS_MAX_LOGIN_STR_SZ);	/* client host name */
-	tds_put_login_string(tds, connect_info->user_name, TDS_MAX_LOGIN_STR_SZ);	/* account name */
-	tds_put_login_string(tds, connect_info->password, TDS_MAX_LOGIN_STR_SZ);	/* account password */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
 	tds_put_login_string(tds, "37876", TDS_MAX_LOGIN_STR_SZ);	/* host process */
 #ifdef WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
@@ -481,12 +481,12 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		tds_put_int(tds, 0);
 	}
 	tds_put_n(tds, magic3, 3);
-	tds_put_login_string(tds, connect_info->app_name, TDS_MAX_LOGIN_STR_SZ);
-	tds_put_login_string(tds, connect_info->server_name, TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->app_name), TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->server_name), TDS_MAX_LOGIN_STR_SZ);
 	if (IS_TDS42(tds)) {
-		tds_put_login_string(tds, connect_info->password, 255);
+		tds_put_login_string(tds, tds_dstr_cstr(&connect_info->password), 255);
 	} else {
-		len = strlen(connect_info->password);
+		len = tds_dstr_len(&connect_info->password);
 		if (len > 253)
 			len = 0;
 		tds_put_byte(tds, 0);
@@ -497,7 +497,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	}
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
-	tds_put_login_string(tds, connect_info->library, 10);	/* client program name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->library), 10);	/* client program name */
 	if (IS_TDS42(tds)) {
 		tds_put_int(tds, 0);
 	} else {
@@ -512,12 +512,12 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 #else
 	tds_put_n(tds, le2, 3);
 #endif
-	tds_put_login_string(tds, connect_info->language, TDS_MAX_LOGIN_STR_SZ);	/* language */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->language), TDS_MAX_LOGIN_STR_SZ);	/* language */
 	tds_put_byte(tds, connect_info->suppress_language);
 	tds_put_n(tds, magic5, 2);
 	tds_put_byte(tds, connect_info->encrypted);
 	tds_put_n(tds, magic6, 10);
-	tds_put_login_string(tds, connect_info->server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
+	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->server_charset), TDS_MAX_LOGIN_STR_SZ);	/* charset */
 	tds_put_byte(tds, magic7);
 
 	/* network packet size */
@@ -564,12 +564,12 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 		return TDS_FAIL;
 
 	/* parse a bit of config */
-	domain = connect_info->default_domain;
-	user_name = connect_info->user_name;
+	domain = tds_dstr_cstr(&connect_info->default_domain);
+	user_name = tds_dstr_cstr(&connect_info->user_name);
 	user_name_len = user_name ? strlen(user_name) : 0;
-	host_name_len = connect_info->host_name ? strlen(connect_info->host_name) : 0;
-	password_len = connect_info->password ? strlen(connect_info->password) : 0;
-	domain_len = domain ? strlen(domain) : 0;
+	host_name_len = tds_dstr_len(&connect_info->host_name);
+	password_len = tds_dstr_len(&connect_info->password);
+	domain_len = strlen(domain);
 
 	/* check override of domain */
 	if (user_name && (p = strchr(user_name, '\\')) != NULL) {
@@ -625,9 +625,9 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 
 	tds_put_string(tds, domain, domain_len);
 	tds_put_string(tds, user_name, user_name_len);
-	tds_put_string(tds, connect_info->host_name, host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->host_name), host_name_len);
 
-	tds_answer_challenge(connect_info->password, challenge, &answer);
+	tds_answer_challenge(tds_dstr_cstr(&connect_info->password), challenge, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
 	tds_put_n(tds, answer.nt_resp, 24);
 
@@ -670,18 +670,18 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	static const unsigned char ntlm_id[] = "NTLMSSP";
 	int domain_login = connect_info->try_domain_login ? 1 : 0;
 
-	const char *domain = connect_info->default_domain;
-	const char *user_name = connect_info->user_name;
+	const char *domain = tds_dstr_cstr(&connect_info->default_domain);
+	const char *user_name = tds_dstr_cstr(&connect_info->user_name);
 	const char *p;
-	int user_name_len = user_name ? strlen(user_name) : 0;
-	int host_name_len = connect_info->host_name ? strlen(connect_info->host_name) : 0;
-	int app_name_len = connect_info->app_name ? strlen(connect_info->app_name) : 0;
-	int password_len = connect_info->password ? strlen(connect_info->password) : 0;
-	int server_name_len = connect_info->server_name ? strlen(connect_info->server_name) : 0;
-	int library_len = connect_info->library ? strlen(connect_info->library) : 0;
-	int language_len = connect_info->language ? strlen(connect_info->language) : 0;
-	int database_len = connect_info->database ? strlen(connect_info->database) : 0;
-	int domain_len = domain ? strlen(domain) : 0;
+	int user_name_len = strlen(user_name);
+	int host_name_len = tds_dstr_len(&connect_info->host_name);
+	int app_name_len = tds_dstr_len(&connect_info->app_name);
+	int password_len = tds_dstr_len(&connect_info->password);
+	int server_name_len = tds_dstr_len(&connect_info->server_name);
+	int library_len = tds_dstr_len(&connect_info->library);
+	int language_len = tds_dstr_len(&connect_info->language);
+	int database_len = tds_dstr_len(&connect_info->database);
+	int domain_len = strlen(domain);
 	int auth_len = 0;
 
 	/* avoid overflow limiting password */
@@ -805,18 +805,20 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, 0);
 
-	tds_put_string(tds, connect_info->host_name, host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->host_name), host_name_len);
 	if (!domain_login) {
-		tds_put_string(tds, connect_info->user_name, user_name_len);
-		password_len = tds_iconv(to_server, tds->iconv_info, connect_info->password, (size_t *) &password_len, unicode_string, 256);
+		tds_put_string(tds, tds_dstr_cstr(&connect_info->user_name), user_name_len);
+		password_len =
+			tds_iconv(to_server, tds->iconv_info, tds_dstr_cstr(&connect_info->password), (size_t *) & password_len,
+				  unicode_string, 256);
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
 	}
-	tds_put_string(tds, connect_info->app_name, app_name_len);
-	tds_put_string(tds, connect_info->server_name, server_name_len);
-	tds_put_string(tds, connect_info->library, library_len);
-	tds_put_string(tds, connect_info->language, language_len);
-	tds_put_string(tds, connect_info->database, database_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->app_name), app_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->server_name), server_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->library), library_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->language), language_len);
+	tds_put_string(tds, tds_dstr_cstr(&connect_info->database), database_len);
 
 	if (domain_login) {
 		/* from here to the end of the packet is the NTLMSSP authentication */

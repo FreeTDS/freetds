@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.54 2003-04-15 05:22:06 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.55 2003-04-21 09:05:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -55,7 +55,9 @@ static void *no_unused_var_warn[] = {
 
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
-static int skip_one_input_sequence(TDS_ENCODING *charset, const char **input);
+static int skip_one_input_sequence(TDS_ENCODING * charset, const char **input);
+static const char *tds_canonical_charset_name(const char *charset_name);
+static const char *tds_sybase_charset_name(const char *charset_name);
 
 /**
  * \ingroup libtds
@@ -128,10 +130,12 @@ tds_iconv_close(TDSSOCKET * tds)
 #if HAVE_ICONV
 	if (tds->iconv_info->to_wire != (iconv_t) - 1) {
 		iconv_close(tds->iconv_info->to_wire);
+		tds->iconv_info->to_wire = (iconv_t) - 1;
 	}
 
 	if (tds->iconv_info->from_wire != (iconv_t) - 1) {
 		iconv_close(tds->iconv_info->from_wire);
+		tds->iconv_info->from_wire = (iconv_t) - 1;
 	}
 #endif
 }
@@ -172,7 +176,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		break;
 	}
 
-	if (cd == (iconv_t) - 1) /* FIXME: call memcpy, adjust input and *input_size, and return copied size */ 
+	if (cd == (iconv_t) - 1)	/* FIXME: call memcpy, adjust input and *input_size, and return copied size */
 		return 0;
 
 	/*
@@ -190,7 +194,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 		/* skip one input sequence, adjusting input pointer */
 		one_character = skip_one_input_sequence(input_charset, &input);
 		input_size -= one_character;
-		
+
 		if (!one_character)
 			break;	/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
 
@@ -216,14 +220,14 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	if (error_cd != (iconv_t) - 1)
 		iconv_close(error_cd);
 
-	return  output_buffer_size - output_size;
+	return output_buffer_size - output_size;
 #else
-    /* FIXME best code, please, this do not convert unicode <-> singlebyte */
-    if (output_size > *input_size)
-        output_size = *input_size;
-    memcpy(output, input, output_size);
-    *input_size += output_size;
-    return output_size;
+	/* FIXME best code, please, this do not convert unicode <-> singlebyte */
+	if (output_size > *input_size)
+		output_size = *input_size;
+	memcpy(output, input, output_size);
+	*input_size += output_size;
+	return output_size;
 #endif
 }
 
@@ -299,7 +303,7 @@ bytes_per_char(TDS_ENCODING * charset)
  * \returns number of bytes to skip.
  */
 static int
-skip_one_input_sequence(TDS_ENCODING *charset, const char **input)
+skip_one_input_sequence(TDS_ENCODING * charset, const char **input)
 {
 	int charsize = CHARSIZE(charset);
 
@@ -307,7 +311,7 @@ skip_one_input_sequence(TDS_ENCODING *charset, const char **input)
 		*input += charsize;
 		return charsize;
 	}
-	
+
 	if (0 == strcmp(charset->name, "UTF-8")) {
 		/* Deal with UTF-8.  
 		 * bytes | bits | representation
@@ -323,7 +327,7 @@ skip_one_input_sequence(TDS_ENCODING *charset, const char **input)
 		}
 		return charsize;
 	}
-	
+
 	/* FIXME this do not work for many charset like UTF16, BIG5... */
 	return 0;
 }
@@ -332,7 +336,7 @@ static const char *
 lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_name)
 {
 	int i;
-	
+
 	if (!charset_name || *charset_name == '\0')
 		return charset_name;
 
@@ -353,12 +357,12 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
  * \returns canonical name, or NULL if lookup failed.
  * \remarks Returned name can be used in bytes_per_char(), above.
  */
-const char *
+static const char *
 tds_canonical_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {
 #		include "alternative_character_sets.h"
-		, 
+		,
 #		include "sybase_character_sets.h"
 	};
 
@@ -370,7 +374,7 @@ tds_canonical_charset_name(const char *charset_name)
  * \returns Sybase name, or NULL if lookup failed.
  * \remarks Returned name can be sent to Sybase a server.
  */
-const char * 
+static const char *
 tds_sybase_charset_name(const char *charset_name)
 {
 	static const CHARACTER_SET_ALIAS aliases[] = {
@@ -399,7 +403,7 @@ lcid2charset(int lcid)
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
-		/* case 0x81a: *//* seem wrong in XP table TODO check */
+/* case 0x81a: *//* seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
 		cp = "CP1250";
 		break;
@@ -465,7 +469,7 @@ lcid2charset(int lcid)
 	case 0x42d:
 	case 0x436:
 	case 0x438:
-		/*case 0x439:  *//*??? Unicode only */
+/*case 0x439:  *//*??? Unicode only */
 	case 0x43e:
 	case 0x440a:
 	case 0x441:

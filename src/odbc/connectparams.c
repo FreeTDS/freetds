@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.39 2003-04-03 20:17:00 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.40 2003-04-21 09:05:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -84,7 +84,7 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 	tmp[0] = '\0';
 	if (freetds_conf_less && SQLGetPrivateProfileString(DSN, "Server", "localhost", tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_dstr_copy(&connect_info->server_name, tmp);
-		tds_lookup_host(connect_info->server_name, NULL, tmp, NULL);
+		tds_lookup_host(tds_dstr_cstr(&connect_info->server_name), NULL, tmp, NULL);
 		tds_dstr_copy(&connect_info->ip_addr, tmp);
 	}
 
@@ -119,7 +119,7 @@ int
 tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_info)
 {
 	const char *p, *end;
-	char **dest_s, *value;
+	DSTR *dest_s, value;
 	int reparse = 0;	/* flag for indicate second parse of string */
 	char option[16];
 	char tmp[256];
@@ -162,7 +162,7 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			/* ignore if servername specified */
 			if (!reparse) {
 				dest_s = &connect_info->server_name;
-				tds_lookup_host(value, NULL, tmp, NULL);
+				tds_lookup_host(tds_dstr_cstr(&value), NULL, tmp, NULL);
 				if (!tds_dstr_copy(&connect_info->ip_addr, tmp)) {
 					tds_dstr_free(&value);
 					return 0;
@@ -170,14 +170,14 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			}
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if (!reparse) {
-				tds_read_conf_file(connect_info, value);
+				tds_read_conf_file(connect_info, tds_dstr_cstr(&value));
 				reparse = 1;
 				p = pszConnectString;
 				continue;
 			}
 		} else if (strcasecmp(option, "DSN") == 0) {
 			if (!reparse) {
-				odbc_get_dsn_info(value, connect_info);
+				odbc_get_dsn_info(tds_dstr_cstr(&value), connect_info);
 				reparse = 1;
 				p = pszConnectString;
 				continue;
@@ -195,14 +195,14 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 		} else if (strcasecmp(option, "LANGUAGE") == 0) {
 			dest_s = &connect_info->language;
 		} else if (strcasecmp(option, "Port") == 0) {
-			connect_info->port = atoi(value);
+			connect_info->port = atoi(tds_dstr_cstr(&value));
 		} else if (strcasecmp(option, "TDS_Version") == 0) {
-			tds_config_verstr(value, connect_info);
+			tds_config_verstr(tds_dstr_cstr(&value), connect_info);
 		}
 
 		/* copy to destination */
 		if (dest_s) {
-			tds_dstr_set(dest_s, value);
+			tds_dstr_set(dest_s, tds_dstr_cstr(&value));
 			tds_dstr_init(&value);
 		}
 

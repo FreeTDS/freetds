@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.110 2003-04-08 15:38:44 jklowden Exp $";
+	"$Id: tds.h,v 1.111 2003-04-21 09:05:54 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -58,6 +58,9 @@ typedef struct _tds_compiletime_settings
 	int unixodbc; 		/* build odbc driver against unixODBC in DIR */
 
 } TDS_COMPILETIME_SETTINGS;
+
+struct DSTR_CHAR;
+typedef struct DSTR_CHAR *DSTR;
 
 /**
  * @file tds.h
@@ -527,20 +530,20 @@ typedef union { void *p; int i; } tds_align_struct;
 
 #define TDS_MAX_LOGIN_STR_SZ 30
 typedef struct tds_login {
-	char *server_name;
+	DSTR server_name;
 	int port;
 	TDS_TINYINT  major_version; /* TDS version */
 	TDS_TINYINT  minor_version; /* TDS version */
 	int block_size; 
-	char *language; /* ie us-english */
-	char *server_charset; /*  ie iso_1 */
+	DSTR language; /* ie us-english */
+	DSTR server_charset; /*  ie iso_1 */
 	TDS_INT connect_timeout;
-	char *host_name;
-	char *app_name;
-	char *user_name;
-	char *password;
+	DSTR host_name;
+	DSTR app_name;
+	DSTR user_name;
+	DSTR password;
 	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
-	char *library;
+	DSTR library;
 	TDS_TINYINT bulk_copy; 
 	TDS_TINYINT suppress_language;
 	TDS_TINYINT encrypted; 
@@ -550,24 +553,24 @@ typedef struct tds_login {
 	void (*longquery_func)(long lHint);
 	long longquery_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	char *client_charset;
+	DSTR client_charset;
 } TDSLOGIN;
 
 typedef struct tds_connect_info {
 	/* first part of structure is the same of login one */
-	char *server_name; /**< server name (in freetds.conf) */
+	DSTR server_name; /**< server name (in freetds.conf) */
 	int port;          /**< port of database service */
 	TDS_TINYINT major_version;
 	TDS_TINYINT minor_version;
 	int block_size;
-	char *language;
-	char *server_charset;    /**< charset of server */
+	DSTR language;
+	DSTR server_charset;    /**< charset of server */
 	TDS_INT connect_timeout;
-	char *host_name;     /**< client hostname */
-	char *app_name;
-	char *user_name;     /**< account for login */
-	char *password;      /**< password of account login */
-	char *library;
+	DSTR host_name;     /**< client hostname */
+	DSTR app_name;
+	DSTR user_name;     /**< account for login */
+	DSTR password;      /**< password of account login */
+	DSTR library;
 	TDS_TINYINT bulk_copy;
 	TDS_TINYINT suppress_language;
 	TDS_TINYINT encrypted;
@@ -577,12 +580,12 @@ typedef struct tds_connect_info {
 	void (*longquery_func)(long lHint);
 	long longquery_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	char *client_charset;
+	DSTR client_charset;
 
-	char *ip_addr;     /**< ip of server */
-	char *database;
-	char *dump_file;
-	char *default_domain;
+	DSTR ip_addr;     /**< ip of server */
+	DSTR database;
+	DSTR dump_file;
+	DSTR default_domain;
 	int timeout;
 	int debug_level;
 	int text_size;

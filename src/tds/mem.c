@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.76 2003-04-15 15:11:39 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.77 2003-04-21 09:05:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -496,9 +496,11 @@ tds_alloc_context(void)
 void
 tds_free_context(TDSCONTEXT * context)
 {
-	if (context)
-		tds_free_locale(context->locale);
-	TDS_ZERO_FREE(context);
+	if (!context)
+		return;
+
+	tds_free_locale(context->locale);
+	free(context);
 }
 
 TDSLOCALE *
@@ -509,7 +511,7 @@ tds_alloc_locale(void)
 	locale = (TDSLOCALE *) malloc(sizeof(TDSLOCALE));
 	if (!locale)
 		return NULL;
-	memset(locale, '\0', sizeof(TDSLOCALE));
+	memset(locale, 0, sizeof(TDSLOCALE));
 
 	return locale;
 }
@@ -526,7 +528,7 @@ TDSCONNECTINFO *
 tds_alloc_connect(TDSLOCALE * locale)
 {
 	TDSCONNECTINFO *connect_info;
-	char hostname[30];
+	char hostname[128];
 
 	TEST_MALLOC(connect_info, TDSCONNECTINFO);
 	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
@@ -653,18 +655,19 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
-	tds_socket->in_buf_max=0;
-	TEST_MALLOCN(tds_socket->out_buf,unsigned char,bufsize);
-	tds_socket->parent = (char*)NULL;
+	tds_socket->in_buf_max = 0;
+	TEST_MALLOCN(tds_socket->out_buf, unsigned char, bufsize);
+
+	tds_socket->parent = (char *) NULL;
 	if (!(tds_socket->env = tds_alloc_env(tds_socket)))
 		goto Cleanup;
-		
-	/* an iconv conversion descriptor of -1 means we don't use iconv.*/
+
+	/* an iconv conversion descriptor of -1 means we don't use iconv. */
 	TEST_MALLOC(iconv_info, TDSICONVINFO);
 	tds_socket->iconv_info = iconv_info;
 #if HAVE_ICONV
-	iconv_info->to_wire = (iconv_t) -1;
-	iconv_info->from_wire = (iconv_t) -1;
+	iconv_info->to_wire = (iconv_t) - 1;
+	iconv_info->from_wire = (iconv_t) - 1;
 #endif
 
 	/* Jeff's hack, init to no timeout */
@@ -708,7 +711,7 @@ tds_free_socket(TDSSOCKET * tds)
 void
 tds_free_locale(TDSLOCALE * locale)
 {
-	if (locale == NULL)
+	if (!locale)
 		return;
 
 	if (locale->language)
@@ -717,7 +720,7 @@ tds_free_locale(TDSLOCALE * locale)
 		free(locale->char_set);
 	if (locale->date_fmt)
 		free(locale->date_fmt);
-	TDS_ZERO_FREE(locale);
+	free(locale);
 }
 
 void

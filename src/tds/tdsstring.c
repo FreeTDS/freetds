@@ -34,9 +34,10 @@
 #include <dmalloc.h>
 #endif
 
+#include "tds.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.7 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.8 2003-04-21 09:05:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -54,20 +55,25 @@ char tds_str_empty[] = "";
  *  \@{ 
  */
 
+struct DSTR
+{
+	char c;
+};
+
 /** clear all string filling with zeroes (mainly for security reason) */
 void
-tds_dstr_zero(char **s)
+tds_dstr_zero(DSTR * s)
 {
-	if (*s)
-		memset(*s, 0, strlen(*s));
+	if (*(char **) s)
+		memset(*(char **) s, 0, strlen(*(char **) s));
 }
 
 /** free string */
 void
-tds_dstr_free(char **s)
+tds_dstr_free(DSTR * s)
 {
-	if (*s != tds_str_empty)
-		free(*s);
+	if (*(char **) s != tds_str_empty)
+		free(*(char **) s);
 }
 
 /**
@@ -77,16 +83,16 @@ tds_dstr_free(char **s)
  * @param length length of source buffer
  * @return string copied or NULL on memory error
  */
-char *
-tds_dstr_copyn(char **s, const char *src, unsigned int length)
+DSTR
+tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 {
-	if (*s != tds_str_empty)
-		free(*s);
-	*s = (char *) malloc(length + 1);
-	if (!*s)
+	if (*(char **) s != tds_str_empty)
+		free(*(char **) s);
+	*(char **) s = (char *) malloc(length + 1);
+	if (!*(char **) s)
 		return NULL;
-	memcpy(*s, src, length);
-	(*s)[length] = 0;
+	memcpy(*(char **) s, src, length);
+	(*(char **) s)[length] = 0;
 	return *s;
 }
 
@@ -98,12 +104,13 @@ tds_dstr_copyn(char **s, const char *src, unsigned int length)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-char *
-tds_dstr_set(char **s, char *src)
+DSTR
+tds_dstr_set(DSTR * s, char *src)
 {
-	if (*s != tds_str_empty)
-		free(*s);
-	return (*s = (src));
+	if (*(char **) s != tds_str_empty)
+		free(*(char **) s);
+	*(char **) s = src;
+	return *s;
 }
 
 /**
@@ -112,12 +119,39 @@ tds_dstr_set(char **s, char *src)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-char *
-tds_dstr_copy(char **s, const char *src)
+DSTR
+tds_dstr_copy(DSTR * s, const char *src)
 {
-	if (*s != tds_str_empty)
-		free(*s);
-	return (*s = strdup(src));
+	if (*(char **) s != tds_str_empty)
+		free(*(char **) s);
+	*(char **) s = strdup(src);
+	return *s;
 }
+
+#if ENABLE_EXTRA_CHECKS
+void
+tds_dstr_init(DSTR * s)
+{
+	*(char **) s = tds_str_empty;
+}
+
+int
+tds_dstr_isempty(DSTR * s)
+{
+	return **(char **) s == 0;
+}
+
+char *
+tds_dstr_cstr(DSTR * s)
+{
+	return *(char **) s;
+}
+
+size_t
+tds_dstr_len(DSTR * s)
+{
+	return strlen(*(char **) s);
+}
+#endif
 
 /** \@} */

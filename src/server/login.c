@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.27 2003-04-08 10:25:42 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.28 2003-04-21 09:05:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -100,12 +100,12 @@ tds_listen(int ip_port)
 	return tds;
 }
 
-static char *tds_read_string(TDSSOCKET * tds, char **s, int size);
+static char *tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
 
 void
 tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
-	char *blockstr;
+	DSTR blockstr;
 
 /*
 	while (len = tds_read_packet(tds)) {
@@ -135,8 +135,8 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_read_string(tds, &login->server_charset, 30);
 	tds_get_n(tds, NULL, 1);	/* magic */
 	tds_read_string(tds, &blockstr, 6);
-	printf("block size %s\n", blockstr);
-	login->block_size = atoi(blockstr);
+	printf("block size %s\n", tds_dstr_cstr(&blockstr));
+	login->block_size = atoi(tds_dstr_cstr(&blockstr));
 	tds_dstr_free(&blockstr);
 	tds_get_n(tds, NULL, tds->in_len - tds->in_pos);	/* read junk at end */
 }
@@ -202,7 +202,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	buf = (char *) malloc(password_len + 1);
 	tds_get_n(tds, unicode_string, password_len * 2);
 	tds7_decrypt_pass((unsigned char *) unicode_string, password_len * 2, (unsigned char *) unicode_string);
-///	password_len = tds7_unicode2ascii(tds, unicode_string, password_len, buf, password_len);
+///     password_len = tds7_unicode2ascii(tds, unicode_string, password_len, buf, password_len);
 	password_len = tds_iconv(to_client, tds->iconv_info, unicode_string, &password_len, buf, password_len);
 	buf[password_len] = 0;
 	tds_dstr_set(&login->password, buf);
@@ -231,7 +231,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 }
 static char *
-tds_read_string(TDSSOCKET * tds, char **s, int size)
+tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
 {
 	char *tempbuf;
 	int len;
