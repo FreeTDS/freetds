@@ -27,4 +27,5 @@ transaction
 preperror
 myodbc.ini
 odbcinst.ini
+prepare_results
 

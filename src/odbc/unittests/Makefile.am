@@ -1,11 +1,12 @@
-# $Id: Makefile.am,v 1.27 2003-12-20 13:23:38 freddy77 Exp $
+# $Id: Makefile.am,v 1.28 2004-02-09 13:04:05 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
 			binary_test moreandcount earlybind \
 			putdata params raiseerror getdata \
 			transaction \
-			type genparams preperror
+			type genparams preperror \
+			prepare_results
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -31,6 +32,7 @@ type_SOURCES	= type.c common.c common.h
 transaction_SOURCES = transaction.c common.c common.h
 genparams_SOURCES = genparams.c common.c common.h
 preperror_SOURCES = preperror.c common.c common.h
+prepare_results_SOURCES = prepare_results.c common.c common.h
 
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
