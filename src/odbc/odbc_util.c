@@ -25,9 +25,31 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.2 2002-05-29 11:03:48 brianb Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.3 2002-06-09 13:50:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
+
+
+#define _MAX_ERROR_LEN 255
+static char lastError[_MAX_ERROR_LEN+1];
+
+void odbc_LogError (const char* error)
+{
+   /*
+    * Someday, I might make this store more than one error.
+    */
+        if (error) {
+                   strncpy (lastError, error, _MAX_ERROR_LEN);
+                   lastError[_MAX_ERROR_LEN] = '\0'; /* in case we had a long message */
+        }
+}
+
+
+const char *odbc_GetLastError()
+{
+    return lastError;
+}
+
 
 int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
 {
@@ -179,9 +201,7 @@ SQLSMALLINT odbc_get_client_type(int col_type, int col_size)
 	case SYBMONEYN:
 		break;
 	case SYBDATETIME:
-		return SQL_TIMESTAMP;
 	case SYBDATETIME4:
-		return SQL_TIMESTAMP;
 	case SYBDATETIMN:
 		return SQL_TIMESTAMP;
 	case SYBBINARY:

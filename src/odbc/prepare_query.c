@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.2 2002-05-29 11:03:48 brianb Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.3 2002-06-09 13:50:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -160,7 +160,8 @@ static int _get_param_textsize(struct _sql_param_info *param)
 		break;
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
-		// I don't know what to do
+		/* I don't know what to do */
+		odbc_LogError("SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported");
 		len = -1;
 		break;
 	default:

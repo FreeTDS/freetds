@@ -1,3 +1,23 @@
+Sun Jun  9 09:47:34 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
+	* src/odbc/convert_sql2string.c:
+	- add checking of ODBC driver version
+	* src/odbc/odbc.c:
+	- move LogError() to odbc_util.c to odbc_LogError()
+	- replace all LogError() calls to odbc_LogError()
+	- add checking of ODBC driver version
+	- add more logging
+	- fix SQLGetFunctions()
+	- improve SQLGetInfo() a little
+	- change ODBC driver version to 02.00 to help driver
+	   manager do it's work
+	- improve SQLGetStmtOption()/SQLSetStmtOption() a little
+	- improve SQLGetConnectionOption()/SQLSetConnectionOption() a little
+	* src/odbc/odbc_util.c:
+	- add declaration of odbc_LogError() and odbc_GetLastError()
+	- add implementation of odbc_LogError() and odbc_GetLastError()
+	* src/odbc/prepare_query.c:
+	- add more logging
+
 Wed May 29 07:02:37 EDT 2002	Viktar Klimkovitch <vklimk@yahoo.com>
 	* include/tdsodbc.h:
 	- add prepared_query_is_func member to struct _hstmt

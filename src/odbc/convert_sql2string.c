@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.1 2002-05-27 20:12:43 brianb Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.2 2002-06-09 13:50:38 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -40,13 +40,17 @@ static int _odbc_get_server_ctype(int c_type)
 			return SYBREAL;
 		case SQL_C_DOUBLE:
 			return SYBFLT8;
-		case SQL_C_NUMERIC:
+		case SQL_NUMERIC:
 			return SYBNUMERIC;
 		case SQL_C_BIT:
 			return SYBBIT;
+#if (ODBCVER >= 0x0300)
 		case SQL_C_SBIGINT:
 		case SQL_C_UBIGINT:
 			return SYBINT8;
+		case SQL_C_GUID:
+			return SYBUNIQUE;
+#endif
 		case SQL_C_LONG:
 		case SQL_C_SLONG:
 		case SQL_C_ULONG:
