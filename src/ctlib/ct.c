@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.43 2002-10-27 19:59:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.44 2002-10-30 19:37:27 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -513,7 +513,8 @@ CS_INT        res_type;
          case TDS_NO_MORE_RESULTS:
               return CS_END_RESULTS;
               break;
-		case TDS_FAIL:
+	case TDS_FAIL:
+	default:
               return CS_FAIL;
               break;
 			}

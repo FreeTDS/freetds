@@ -1,3 +1,7 @@
+Wed Oct 30 14:35:40 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/ct.c:
+	- Add a default case in outer loop of ct_results().  Paranoia.
+
 Tue Oct 29 16:23:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/sybdb.h src/dblib/dblib.c:
 	- Implement dbmny4minus(), dbmny4zero(), dbmny4add(), dbmny4sub(),
