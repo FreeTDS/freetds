@@ -27,6 +27,9 @@
 /* The number of bytes in a short.  */
 #undef SIZEOF_SHORT
 
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
+
 /* Define if you have the <malloc.h> header file.  */
 #undef HAVE_MALLOC_H
 

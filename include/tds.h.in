@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.6 2001-11-08 22:32:43 quozl Exp $";
+	 "$Id: tds.h.in,v 1.7 2001-11-10 02:12:27 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -332,6 +332,7 @@ sheesh! </rant>
 #define TDS_STR_EMUL_LE	"emulate little endian"
 #define TDS_STR_CHARSET	"charset"
 #define TDS_STR_LANGUAGE	"language"
+#define TDS_STR_APPENDMODE	"dump file append"
 
 #define TDS_MAX_LOGIN_STR_SZ 30
 typedef struct tds_login {

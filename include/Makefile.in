@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -63,23 +63,30 @@ AS = @AS@
 CC = @CC@
 CPP = @CPP@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 LIBICONV = @LIBICONV@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NETWORK_LIBS = @NETWORK_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 ODBC = @ODBC@
 ODBC_INC = @ODBC_INC@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+STRIP = @STRIP@
 VERSION = @VERSION@
 float = @float@
 int = @int@
 real = @real@
 smallint = @smallint@
 
-include_HEADERS = cspublic.h ctpublic.h sybdb.h sybfront.h          			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h 			ctlib.h sqldb.h sqlfront.h                        			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h
+include_HEADERS = cspublic.h ctpublic.h sybdb.h sybfront.h          \
+			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h \
+			ctlib.h sqldb.h sqlfront.h                        \
+			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h
 
 
 EXTRA_DIST = tds_configs.h.in tds_configs.h

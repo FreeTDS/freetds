@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.4 2001-11-08 19:04:55 mlilback Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.5 2001-11-10 02:12:27 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -62,6 +62,8 @@ static void tds_read_interfaces(char *server, TDSCONFIGINFO *config);
 static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config);
 static int tds_config_boolean(char *value);
 static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
+
+extern int g_append_mode;
 
 static char interf_file[MAXPATH];
 
@@ -284,6 +286,8 @@ int found = 0;
 			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
 				if (config->language) free(config->language);
 				config->language = strdup(value);
+			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
+				g_append_mode = tds_config_boolean(value);
 			}
 		}
 

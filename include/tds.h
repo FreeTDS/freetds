@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h,v 1.11 2001-11-07 20:40:45 mlilback Exp $";
+	 "$Id: tds.h,v 1.12 2001-11-10 02:12:27 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -54,8 +54,7 @@ static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-/* FIX ME -- use autoconf for the existance of malloc.h */
-#ifndef __APPLE__
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 #include <sys/time.h>
@@ -333,6 +332,7 @@ sheesh! </rant>
 #define TDS_STR_EMUL_LE	"emulate little endian"
 #define TDS_STR_CHARSET	"charset"
 #define TDS_STR_LANGUAGE	"language"
+#define TDS_STR_APPENDMODE	"dump file append"
 
 #define TDS_MAX_LOGIN_STR_SZ 30
 typedef struct tds_login {
@@ -573,6 +573,7 @@ extern TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login);
 extern void *tds_alloc_row(TDSRESULTINFO *res_info);
 extern char *tds_msg_get_proc_name(TDSSOCKET *tds);
 extern TDSLOGIN *tds_alloc_login();
+extern void tds_free_login(TDSLOGIN *login);
 extern TDSCONFIGINFO *tds_alloc_config();
 extern TDSSOCKET *tds_connect(TDSLOGIN *login, void *parent);
 extern void tds_set_packet(TDSLOGIN *tds_login, short packet_size);

@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -63,16 +63,20 @@ AS = @AS@
 CC = @CC@
 CPP = @CPP@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 LIBICONV = @LIBICONV@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NETWORK_LIBS = @NETWORK_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 ODBC = @ODBC@
 ODBC_INC = @ODBC_INC@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+STRIP = @STRIP@
 VERSION = @VERSION@
 float = @float@
 int = @int@
@@ -113,83 +117,83 @@ CONFIG_CLEAN_FILES =
 DEFS = @DEFS@ -I. -I$(srcdir) -I../../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-t0001_OBJECTS =  t0001.o common.o pwd.o
+t0001_OBJECTS =  t0001.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0001_LDADD = $(LDADD)
 t0001_DEPENDENCIES = 
 t0001_LDFLAGS = 
-t0002_OBJECTS =  t0002.o common.o pwd.o
+t0002_OBJECTS =  t0002.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0002_LDADD = $(LDADD)
 t0002_DEPENDENCIES = 
 t0002_LDFLAGS = 
-t0003_OBJECTS =  t0003.o common.o pwd.o
+t0003_OBJECTS =  t0003.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0003_LDADD = $(LDADD)
 t0003_DEPENDENCIES = 
 t0003_LDFLAGS = 
-t0004_OBJECTS =  t0004.o common.o pwd.o
+t0004_OBJECTS =  t0004.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0004_LDADD = $(LDADD)
 t0004_DEPENDENCIES = 
 t0004_LDFLAGS = 
-t0005_OBJECTS =  t0005.o common.o pwd.o
+t0005_OBJECTS =  t0005.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0005_LDADD = $(LDADD)
 t0005_DEPENDENCIES = 
 t0005_LDFLAGS = 
-t0006_OBJECTS =  t0006.o common.o pwd.o
+t0006_OBJECTS =  t0006.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0006_LDADD = $(LDADD)
 t0006_DEPENDENCIES = 
 t0006_LDFLAGS = 
-t0007_OBJECTS =  t0007.o common.o pwd.o
+t0007_OBJECTS =  t0007.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0007_LDADD = $(LDADD)
 t0007_DEPENDENCIES = 
 t0007_LDFLAGS = 
-t0008_OBJECTS =  t0008.o common.o pwd.o
+t0008_OBJECTS =  t0008.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0008_LDADD = $(LDADD)
 t0008_DEPENDENCIES = 
 t0008_LDFLAGS = 
-t0009_OBJECTS =  t0009.o common.o pwd.o
+t0009_OBJECTS =  t0009.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0009_LDADD = $(LDADD)
 t0009_DEPENDENCIES = 
 t0009_LDFLAGS = 
-t0010_OBJECTS =  t0010.o common.o pwd.o
+t0010_OBJECTS =  t0010.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0010_LDADD = $(LDADD)
 t0010_DEPENDENCIES = 
 t0010_LDFLAGS = 
-t0011_OBJECTS =  t0011.o common.o pwd.o
+t0011_OBJECTS =  t0011.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0011_LDADD = $(LDADD)
 t0011_DEPENDENCIES = 
 t0011_LDFLAGS = 
-t0012_OBJECTS =  t0012.o common.o pwd.o
+t0012_OBJECTS =  t0012.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0012_LDADD = $(LDADD)
 t0012_DEPENDENCIES = 
 t0012_LDFLAGS = 
-t0013_OBJECTS =  t0013.o common.o pwd.o
+t0013_OBJECTS =  t0013.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0013_LDADD = $(LDADD)
 t0013_DEPENDENCIES = 
 t0013_LDFLAGS = 
-t0014_OBJECTS =  t0014.o common.o pwd.o
+t0014_OBJECTS =  t0014.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0014_LDADD = $(LDADD)
 t0014_DEPENDENCIES = 
 t0014_LDFLAGS = 
-t0015_OBJECTS =  t0015.o common.o pwd.o
+t0015_OBJECTS =  t0015.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0015_LDADD = $(LDADD)
 t0015_DEPENDENCIES = 
 t0015_LDFLAGS = 
-t0016_OBJECTS =  t0016.o common.o pwd.o
+t0016_OBJECTS =  t0016.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0016_LDADD = $(LDADD)
 t0016_DEPENDENCIES = 
 t0016_LDFLAGS = 
-t0017_OBJECTS =  t0017.o common.o pwd.o
+t0017_OBJECTS =  t0017.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0017_LDADD = $(LDADD)
 t0017_DEPENDENCIES = 
 t0017_LDFLAGS = 
-t0018_OBJECTS =  t0018.o common.o pwd.o
+t0018_OBJECTS =  t0018.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0018_LDADD = $(LDADD)
 t0018_DEPENDENCIES = 
 t0018_LDFLAGS = 
-t0019_OBJECTS =  t0018.o common.o pwd.o
+t0019_OBJECTS =  t0018.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0019_LDADD = $(LDADD)
 t0019_DEPENDENCIES = 
 t0019_LDFLAGS = 
-t0020_OBJECTS =  t0020.o common.o pwd.o
+t0020_OBJECTS =  t0020.$(OBJEXT) common.$(OBJEXT) pwd.$(OBJEXT)
 t0020_LDADD = $(LDADD)
 t0020_DEPENDENCIES = 
 t0020_LDFLAGS = 
@@ -217,7 +221,7 @@ OBJECTS = $(t0001_OBJECTS) $(t0002_OBJECTS) $(t0003_OBJECTS) $(t0004_OBJECTS) $(
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/dblib/unittests/Makefile
 
@@ -225,6 +229,11 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
 
 .s.o:
 	$(COMPILE) -c $<
@@ -234,6 +243,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -258,84 +268,84 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-t0001: $(t0001_OBJECTS) $(t0001_DEPENDENCIES)
-	@rm -f t0001
+t0001$(EXEEXT): $(t0001_OBJECTS) $(t0001_DEPENDENCIES)
+	@rm -f t0001$(EXEEXT)
 	$(LINK) $(t0001_LDFLAGS) $(t0001_OBJECTS) $(t0001_LDADD) $(LIBS)
 
-t0002: $(t0002_OBJECTS) $(t0002_DEPENDENCIES)
-	@rm -f t0002
+t0002$(EXEEXT): $(t0002_OBJECTS) $(t0002_DEPENDENCIES)
+	@rm -f t0002$(EXEEXT)
 	$(LINK) $(t0002_LDFLAGS) $(t0002_OBJECTS) $(t0002_LDADD) $(LIBS)
 
-t0003: $(t0003_OBJECTS) $(t0003_DEPENDENCIES)
-	@rm -f t0003
+t0003$(EXEEXT): $(t0003_OBJECTS) $(t0003_DEPENDENCIES)
+	@rm -f t0003$(EXEEXT)
 	$(LINK) $(t0003_LDFLAGS) $(t0003_OBJECTS) $(t0003_LDADD) $(LIBS)
 
-t0004: $(t0004_OBJECTS) $(t0004_DEPENDENCIES)
-	@rm -f t0004
+t0004$(EXEEXT): $(t0004_OBJECTS) $(t0004_DEPENDENCIES)
+	@rm -f t0004$(EXEEXT)
 	$(LINK) $(t0004_LDFLAGS) $(t0004_OBJECTS) $(t0004_LDADD) $(LIBS)
 
-t0005: $(t0005_OBJECTS) $(t0005_DEPENDENCIES)
-	@rm -f t0005
+t0005$(EXEEXT): $(t0005_OBJECTS) $(t0005_DEPENDENCIES)
+	@rm -f t0005$(EXEEXT)
 	$(LINK) $(t0005_LDFLAGS) $(t0005_OBJECTS) $(t0005_LDADD) $(LIBS)
 
-t0006: $(t0006_OBJECTS) $(t0006_DEPENDENCIES)
-	@rm -f t0006
+t0006$(EXEEXT): $(t0006_OBJECTS) $(t0006_DEPENDENCIES)
+	@rm -f t0006$(EXEEXT)
 	$(LINK) $(t0006_LDFLAGS) $(t0006_OBJECTS) $(t0006_LDADD) $(LIBS)
 
-t0007: $(t0007_OBJECTS) $(t0007_DEPENDENCIES)
-	@rm -f t0007
+t0007$(EXEEXT): $(t0007_OBJECTS) $(t0007_DEPENDENCIES)
+	@rm -f t0007$(EXEEXT)
 	$(LINK) $(t0007_LDFLAGS) $(t0007_OBJECTS) $(t0007_LDADD) $(LIBS)
 
-t0008: $(t0008_OBJECTS) $(t0008_DEPENDENCIES)
-	@rm -f t0008
+t0008$(EXEEXT): $(t0008_OBJECTS) $(t0008_DEPENDENCIES)
+	@rm -f t0008$(EXEEXT)
 	$(LINK) $(t0008_LDFLAGS) $(t0008_OBJECTS) $(t0008_LDADD) $(LIBS)
 
-t0009: $(t0009_OBJECTS) $(t0009_DEPENDENCIES)
-	@rm -f t0009
+t0009$(EXEEXT): $(t0009_OBJECTS) $(t0009_DEPENDENCIES)
+	@rm -f t0009$(EXEEXT)
 	$(LINK) $(t0009_LDFLAGS) $(t0009_OBJECTS) $(t0009_LDADD) $(LIBS)
 
-t0010: $(t0010_OBJECTS) $(t0010_DEPENDENCIES)
-	@rm -f t0010
+t0010$(EXEEXT): $(t0010_OBJECTS) $(t0010_DEPENDENCIES)
+	@rm -f t0010$(EXEEXT)
 	$(LINK) $(t0010_LDFLAGS) $(t0010_OBJECTS) $(t0010_LDADD) $(LIBS)
 
-t0011: $(t0011_OBJECTS) $(t0011_DEPENDENCIES)
-	@rm -f t0011
+t0011$(EXEEXT): $(t0011_OBJECTS) $(t0011_DEPENDENCIES)
+	@rm -f t0011$(EXEEXT)
 	$(LINK) $(t0011_LDFLAGS) $(t0011_OBJECTS) $(t0011_LDADD) $(LIBS)
 
-t0012: $(t0012_OBJECTS) $(t0012_DEPENDENCIES)
-	@rm -f t0012
+t0012$(EXEEXT): $(t0012_OBJECTS) $(t0012_DEPENDENCIES)
+	@rm -f t0012$(EXEEXT)
 	$(LINK) $(t0012_LDFLAGS) $(t0012_OBJECTS) $(t0012_LDADD) $(LIBS)
 
-t0013: $(t0013_OBJECTS) $(t0013_DEPENDENCIES)
-	@rm -f t0013
+t0013$(EXEEXT): $(t0013_OBJECTS) $(t0013_DEPENDENCIES)
+	@rm -f t0013$(EXEEXT)
 	$(LINK) $(t0013_LDFLAGS) $(t0013_OBJECTS) $(t0013_LDADD) $(LIBS)
 
-t0014: $(t0014_OBJECTS) $(t0014_DEPENDENCIES)
-	@rm -f t0014
+t0014$(EXEEXT): $(t0014_OBJECTS) $(t0014_DEPENDENCIES)
+	@rm -f t0014$(EXEEXT)
 	$(LINK) $(t0014_LDFLAGS) $(t0014_OBJECTS) $(t0014_LDADD) $(LIBS)
 
-t0015: $(t0015_OBJECTS) $(t0015_DEPENDENCIES)
-	@rm -f t0015
+t0015$(EXEEXT): $(t0015_OBJECTS) $(t0015_DEPENDENCIES)
+	@rm -f t0015$(EXEEXT)
 	$(LINK) $(t0015_LDFLAGS) $(t0015_OBJECTS) $(t0015_LDADD) $(LIBS)
 
-t0016: $(t0016_OBJECTS) $(t0016_DEPENDENCIES)
-	@rm -f t0016
+t0016$(EXEEXT): $(t0016_OBJECTS) $(t0016_DEPENDENCIES)
+	@rm -f t0016$(EXEEXT)
 	$(LINK) $(t0016_LDFLAGS) $(t0016_OBJECTS) $(t0016_LDADD) $(LIBS)
 
-t0017: $(t0017_OBJECTS) $(t0017_DEPENDENCIES)
-	@rm -f t0017
+t0017$(EXEEXT): $(t0017_OBJECTS) $(t0017_DEPENDENCIES)
+	@rm -f t0017$(EXEEXT)
 	$(LINK) $(t0017_LDFLAGS) $(t0017_OBJECTS) $(t0017_LDADD) $(LIBS)
 
-t0018: $(t0018_OBJECTS) $(t0018_DEPENDENCIES)
-	@rm -f t0018
+t0018$(EXEEXT): $(t0018_OBJECTS) $(t0018_DEPENDENCIES)
+	@rm -f t0018$(EXEEXT)
 	$(LINK) $(t0018_LDFLAGS) $(t0018_OBJECTS) $(t0018_LDADD) $(LIBS)
 
-t0019: $(t0019_OBJECTS) $(t0019_DEPENDENCIES)
-	@rm -f t0019
+t0019$(EXEEXT): $(t0019_OBJECTS) $(t0019_DEPENDENCIES)
+	@rm -f t0019$(EXEEXT)
 	$(LINK) $(t0019_LDFLAGS) $(t0019_OBJECTS) $(t0019_LDADD) $(LIBS)
 
-t0020: $(t0020_OBJECTS) $(t0020_DEPENDENCIES)
-	@rm -f t0020
+t0020$(EXEEXT): $(t0020_OBJECTS) $(t0020_DEPENDENCIES)
+	@rm -f t0020$(EXEEXT)
 	$(LINK) $(t0020_LDFLAGS) $(t0020_OBJECTS) $(t0020_LDADD) $(LIBS)
 
 install-includeHEADERS: $(include_HEADERS)

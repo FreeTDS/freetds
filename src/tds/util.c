@@ -45,12 +45,14 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: util.c,v 1.2 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.3 2001-11-10 02:12:27 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* for now all messages go to the log */
 int g_debug_lvl = 99;
+int g_append_mode = 0;
+static char *g_dump_filename;
 
 void tds_set_parent(TDSSOCKET* tds, void* the_parent)
 {
@@ -108,10 +110,7 @@ void tdsdump_off()
  */
 void tdsdump_on()
 {
-   if (dumpfile != NULL)
-   {
-      write_dump = 1;
-   }
+	write_dump = 1;
 } /* tdsdump_on()  */
 
 
@@ -135,10 +134,16 @@ int   result;   /* really should be a boolean, not an int */
    if (filename == NULL || filename[0]=='\0') {
       filename = "tdsdump.out";
    }
-   if (!strcmp(filename,"stdout")) {
+   if (g_append_mode) {
+	 g_dump_filename = strdup(filename);
+      tdsdump_on();
+      result = 1;
+   } else if (!strcmp(filename,"stdout")) {
       dumpfile = stdout;
+      result = 1;
    } else if (!strcmp(filename,"stderr")) {
       dumpfile = stderr;
+      result = 1;
    } else if (NULL == (dumpfile = fopen(filename, "w"))) {
       tdsdump_off();
       result = 0;
@@ -149,6 +154,27 @@ int   result;   /* really should be a boolean, not an int */
    return result;
 } /* tdsdump_open()  */
 
+int tdsdump_append()
+{
+int result;
+
+	if (!g_dump_filename) {
+		return 0;
+	}
+
+	if (!strcmp(g_dump_filename,"stdout")) {
+		dumpfile = stdout;
+		result = 1;
+	} else if (!strcmp(g_dump_filename,"stderr")) {
+		dumpfile = stderr;
+		result = 1;
+	} else if (NULL == (dumpfile = fopen(g_dump_filename, "a"))) {
+		result = 0;
+	} else {
+		result = 1;
+	}
+	return result;
+}
 
 
 /* ============================= tdsdump_close() =============================
@@ -164,6 +190,9 @@ void tdsdump_close()
    if (dumpfile!=NULL)
    {
       fclose(dumpfile);
+   }
+   if (g_dump_filename) {
+      free(g_dump_filename);
    }
    tdsdump_off();
 } /* tdsdump_close()  */
@@ -250,6 +279,9 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
    if (debug_lvl>g_debug_lvl) 
 	return;
 
+   if (g_append_mode) {
+      tdsdump_append();
+   }
    if (write_dump && dumpfile!=NULL)
    {
       const char     *ptr;
@@ -257,6 +289,9 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
       va_list   ap;
       va_start(ap, fmt);
       
+   	 if (g_append_mode) {
+          fprintf(dumpfile, "pid: %d:", pid);
+      }
       for(ptr = fmt; *ptr != '\0'; ptr++)
       {
          if (*ptr == '%')

@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -63,16 +63,20 @@ AS = @AS@
 CC = @CC@
 CPP = @CPP@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 LIBICONV = @LIBICONV@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 NETWORK_LIBS = @NETWORK_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 ODBC = @ODBC@
 ODBC_INC = @ODBC_INC@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+STRIP = @STRIP@
 VERSION = @VERSION@
 float = @float@
 int = @int@
@@ -93,23 +97,25 @@ include_HEADERS = common.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../include/config.h
 CONFIG_CLEAN_FILES = 
+check_PROGRAMS =  t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT) \
+t0004$(EXEEXT)
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-t0001_OBJECTS =  t0001.o common.o
+t0001_OBJECTS =  t0001.$(OBJEXT) common.$(OBJEXT)
 t0001_LDADD = $(LDADD)
 t0001_DEPENDENCIES = 
 t0001_LDFLAGS = 
-t0002_OBJECTS =  t0002.o common.o
+t0002_OBJECTS =  t0002.$(OBJEXT) common.$(OBJEXT)
 t0002_LDADD = $(LDADD)
 t0002_DEPENDENCIES = 
 t0002_LDFLAGS = 
-t0003_OBJECTS =  t0003.o common.o
+t0003_OBJECTS =  t0003.$(OBJEXT) common.$(OBJEXT)
 t0003_LDADD = $(LDADD)
 t0003_DEPENDENCIES = 
 t0003_LDFLAGS = 
-t0004_OBJECTS =  t0004.o common.o
+t0004_OBJECTS =  t0004.$(OBJEXT) common.$(OBJEXT)
 t0004_LDADD = $(LDADD)
 t0004_DEPENDENCIES = 
 t0004_LDFLAGS = 
@@ -134,7 +140,7 @@ OBJECTS = $(t0001_OBJECTS) $(t0002_OBJECTS) $(t0003_OBJECTS) $(t0004_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/ctlib/unittests/Makefile
 
@@ -152,6 +158,11 @@ distclean-checkPROGRAMS:
 
 maintainer-clean-checkPROGRAMS:
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -160,6 +171,7 @@ maintainer-clean-checkPROGRAMS:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -184,20 +196,20 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-t0001: $(t0001_OBJECTS) $(t0001_DEPENDENCIES)
-	@rm -f t0001
+t0001$(EXEEXT): $(t0001_OBJECTS) $(t0001_DEPENDENCIES)
+	@rm -f t0001$(EXEEXT)
 	$(LINK) $(t0001_LDFLAGS) $(t0001_OBJECTS) $(t0001_LDADD) $(LIBS)
 
-t0002: $(t0002_OBJECTS) $(t0002_DEPENDENCIES)
-	@rm -f t0002
+t0002$(EXEEXT): $(t0002_OBJECTS) $(t0002_DEPENDENCIES)
+	@rm -f t0002$(EXEEXT)
 	$(LINK) $(t0002_LDFLAGS) $(t0002_OBJECTS) $(t0002_LDADD) $(LIBS)
 
-t0003: $(t0003_OBJECTS) $(t0003_DEPENDENCIES)
-	@rm -f t0003
+t0003$(EXEEXT): $(t0003_OBJECTS) $(t0003_DEPENDENCIES)
+	@rm -f t0003$(EXEEXT)
 	$(LINK) $(t0003_LDFLAGS) $(t0003_OBJECTS) $(t0003_LDADD) $(LIBS)
 
-t0004: $(t0004_OBJECTS) $(t0004_DEPENDENCIES)
-	@rm -f t0004
+t0004$(EXEEXT): $(t0004_OBJECTS) $(t0004_DEPENDENCIES)
+	@rm -f t0004$(EXEEXT)
 	$(LINK) $(t0004_LDFLAGS) $(t0004_OBJECTS) $(t0004_LDADD) $(LIBS)
 
 install-includeHEADERS: $(include_HEADERS)

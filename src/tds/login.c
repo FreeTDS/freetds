@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.8 2001-11-06 00:01:55 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.9 2001-11-10 02:12:27 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -248,6 +248,8 @@ FD_ZERO (&fds);
 }
 int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 {	
+   char *tmpbuf;
+   int tmplen;
    unsigned char be1[]= {0x02,0x00,0x06,0x04,0x08,0x01};
    unsigned char le1[]= {0x03,0x01,0x06,0x0a,0x09,0x01};
    unsigned char magic2[]={0x00,0x00};
@@ -385,7 +387,18 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       rc|=tds_put_n(tds,tds->capabilities,TDS_MAX_CAPABILITY);
    }
    
+/*
+   tmpbuf = malloc(tds->out_pos);
+   tmplen = tds->out_pos;
+   memcpy(tmpbuf, tds->out_buf, tmplen);
+   tdsdump_off();
+*/
    rc|=tds_flush_packet(tds);
+/*
+   tdsdump_on();
+   tdsdump_log(TDS_DBG_NETWORK, "Sending packet (passwords supressed)@ %L\n%D\n", tmpbuf, tmplen);
+   free(tmpbuf);
+*/
    /* get_incoming(tds->s); */
 	return 0;
 }
@@ -532,7 +545,9 @@ int language_len = config->language ? strlen(config->language) : 0;
    tds_put_byte(tds,48);
    tds_put_n(tds,NULL,3);
 
+   tdsdump_off();
    rc|=tds_flush_packet(tds);
+   tdsdump_on();
    
 	return 0;
 }

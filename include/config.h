@@ -28,6 +28,12 @@
 /* The number of bytes in a short.  */
 #define SIZEOF_SHORT 2
 
+/* Define if you have the <dlfcn.h> header file.  */
+#define HAVE_DLFCN_H 1
+
+/* Define if you have the <malloc.h> header file.  */
+#define HAVE_MALLOC_H 1
+
 /* Name of package */
 #define PACKAGE "freetds"
 
