@@ -1,3 +1,7 @@
+Fri Oct 11 15:26:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/vasprintf.c:
+	- Fix another /dev/null...thanks Jim.
+
 Fri Oct 11 11:20:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/odbc/odbc_util.h src/odbc/prepare_query.h
 	  src/tds/des.c src/tds/md4.c:

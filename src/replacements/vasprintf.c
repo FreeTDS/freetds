@@ -18,7 +18,7 @@
 #endif /* HAVE_PATHS_H */
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.6 2002-10-11 14:46:34 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.7 2002-10-11 19:29:58 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -69,7 +69,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   if ((fp = fopen(_PATH_DEVNULL, "w")) == NULL)
     return -1;
 #else
-  if ((fp == NULL) && ((fp = fopen("/dev/null", "w")) == NULL))
+  if ((fp == NULL) && ((fp = fopen(_PATH_DEVNULL, "w")) == NULL))
     return -1;
 #endif
 
