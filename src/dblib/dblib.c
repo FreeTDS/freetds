@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.48 2002-08-31 06:32:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.49 2002-09-01 07:45:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1011,11 +1011,13 @@ DBNUMERIC   *num;
 
           case SYBBINARY:
           case SYBIMAGE:
-               if (srclen > destlen ) {
-                  ret = FAIL;
+               if (srclen > destlen && destlen >= 0) {
+                  ret = -1;
                }
                else {
                   memcpy(dest, src, srclen);
+		  if (srclen < destlen)
+			  memset(dest+srclen,0,destlen-srclen);
                   ret = srclen;
                }
                break;
@@ -1033,12 +1035,11 @@ DBNUMERIC   *num;
                   ret = FAIL;
                }
                else if (destlen == -1) { /* rtrim and null terminate */
-                  memcpy(dest,src,srclen);
-                  dest[srclen] = '\0';
-                  for (i = srclen; i>=0 && (dest[i] == ' ' || dest[i] == '\0'); i--) {
-                      dest[i]='\0';
+                  for (i = srclen-1; i>=0 && src[i] == ' '; --i) {
 		      srclen = i;
 		  } 
+                  memcpy(dest,src,srclen);
+                  dest[srclen] = '\0';
                   ret = srclen;
                }
                else if (destlen == -2) { /* just null terminate */
@@ -1048,15 +1049,15 @@ DBNUMERIC   *num;
                }
                else { /* destlen is > 0 */
                   if (srclen > destlen) {
-                     fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
-                     fprintf(stderr,"\tsrclen (%d)> destlen (%d).\n", srclen, destlen);
+                     /* fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
+                     fprintf(stderr,"\tsrclen (%d)> destlen (%d).\n", srclen, destlen); */
                     ret = -1;
                   }
                   else {
                      memcpy(dest, src, srclen);
                      for (i = srclen; i < destlen; i++ )
                        dest[i] = ' ';
-                     ret = destlen;
+                     ret = srclen;
                   }
                }
                   
@@ -1115,16 +1116,16 @@ DBNUMERIC   *num;
         case SYBBINARY:
         case SYBIMAGE:
 
-             if (len > destlen) {
+             if (len > destlen && destlen >= 0) {
                 fprintf(stderr,"%s: Line %d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
                 fprintf(stderr,"\tlen (%d) > destlen (%d).\n", len, destlen);
                 ret = -1;
              } else {
                 memcpy(dest, dres.ib, len);
                 free(dres.ib);
-		for ( i = len ; i < destlen; i++ )
-			dest[i] = '\0';
-		ret = destlen;
+		if (len < destlen)
+			memset(dest+len,0,destlen-len);
+		ret = len;
              }
              break;
         case SYBINT1:
@@ -1182,12 +1183,11 @@ DBNUMERIC   *num;
                 ret = FAIL;
              }
              else if (destlen == -1) { /* rtrim and null terminate */
-                memcpy(dest, dres.c, len);
-		dest[len] = 0;
-                for (i = len; i>=0 && (dest[i] == ' ' || dest[i] == '\0'); i--) {
-                    dest[i]='\0';
+                for (i = len-1; i>=0 && dres.c[i] == ' '; --i) {
 		    len = i;
 		}
+                memcpy(dest, dres.c, len);
+		dest[len] = '\0';
                 ret = len;
              }
              else if (destlen == -2) { /* just null terminate */
@@ -1197,15 +1197,15 @@ DBNUMERIC   *num;
              }
              else { /* destlen is > 0 */
                 if (len > destlen) {
-               	 fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
-               	 fprintf(stderr,"\tlen (%d)> destlen (%d).\n", len, destlen);
+               	 /*fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
+               	 fprintf(stderr,"\tlen (%d)> destlen (%d).\n", len, destlen);*/
                    	 ret = -1;
                 }
                 else
                    memcpy(dest, dres.c, len);
                    for (i = len; i < destlen; i++ )
                        dest[i] = ' ';
-                   ret = destlen;
+                   ret = len;
              }
                 
              free(dres.c);

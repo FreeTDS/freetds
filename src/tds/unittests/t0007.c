@@ -22,18 +22,19 @@
 #include <tdsconvert.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: t0007.c,v 1.3 2002-08-27 09:52:04 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.4 2002-09-01 07:45:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static TDSCONTEXT ctx;
 
 void test0(const char* test, int len, int dsttype, const char* result)
 {
-	int i;
+	int i,res;
 	char buf[256];
 	CONV_RESULT cr;
 
-	if (tds_convert(&ctx,SYBVARCHAR,test,len,dsttype,0,&cr) == TDS_FAIL)
+	res = tds_convert(&ctx,SYBVARCHAR,test,len,dsttype,0,&cr);
+	if (res == TDS_FAIL)
 		strcpy(buf,"error");
 	else
 	{
@@ -56,6 +57,11 @@ void test0(const char* test, int len, int dsttype, const char* result)
 						cr.u.Data4[2],cr.u.Data4[3],
 						cr.u.Data4[4],cr.u.Data4[5],
 						cr.u.Data4[6],cr.u.Data4[7]);
+				break;
+			case SYBBINARY:
+				sprintf(buf,"len=%d",res);
+				for(i=0;i<res;++i)
+					sprintf(strchr(buf,0)," %02X",(TDS_UCHAR)cr.ib[i]);
 				break;
 		}
 	}
@@ -109,6 +115,7 @@ int main()
 	test0("1234",2,SYBINT4,"12");
 
 	/* some test for unique */
+	printf("unique type...\n");
 	test("12345678-1234-1234-9876543298765432",SYBUNIQUE,
 			"12345678-1234-1234-9876543298765432");
 	test("{12345678-1234-1E34-9876ab3298765432}",SYBUNIQUE,
@@ -126,5 +133,14 @@ int main()
 	test("123-5678-1234-a234-9876543298765432",SYBUNIQUE,
 			"error");
 
+	printf("binary test...\n");
+	test("0x1234",SYBBINARY,"len=2 12 34");
+	test("0xaBFd  ",SYBBINARY,"len=2 AB FD");
+	test("AbfD  ",SYBBINARY,"len=2 AB FD");
+	test("0x000",SYBBINARY,"len=2 00 00");
+	test("0x0",SYBBINARY,"len=1 00");
+	test("0x100",SYBBINARY,"len=2 01 00");
+	test("0x1",SYBBINARY,"len=1 01");
+	
 	return 0;
 }

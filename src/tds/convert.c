@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.65 2002-08-30 20:11:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.66 2002-09-01 07:45:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,11 +48,18 @@ extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
 /**
- * convert a number in string to a TDSNUMERIC return 0 if success
+ * convert a number in string to a TDSNUMERIC
+ * @return sizeof(TDS_NUMERIC) on success, TDS_FAIL on failure 
  */
 static int string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr);
 /**
- * convert a number in string to TDS_INT return TDS_FAIL if failure
+ * convert a zero terminated string to NUMERIC
+ * @return sizeof(TDS_NUMERIC) on success, TDS_FAIL on failure 
+ */
+static int stringz_to_numeric(const char *instr, CONV_RESULT *cr);
+/**
+ * convert a number in string to TDS_INT 
+ * @return TDS_FAIL if failure
  */
 static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
 
@@ -268,11 +275,21 @@ TDS_INT tds_i;
             srclen -= 2;
          }
 
+	/* ignore trailing blanks and nulls */
+	/* FIXME is good to ignore null ?? */
+	while( srclen > 0 && (src[srclen-1] == ' ' || src[srclen-1] == '\0') )
+		--srclen;
+
          /* a binary string output will be half the length of */
          /* the string which represents it in hexadecimal     */
-
-         cr->ib = malloc(srclen / 2);
-		test_alloc(cr->ib);
+	
+	/* if srclen if odd we must add a "0" before ... */
+	j = 0; /* number where to start converting */
+	if (srclen & 1) {
+		++srclen; j = 1; --src;
+	}
+        cr->ib = malloc(srclen / 2);
+	test_alloc(cr->ib);
 
 #if 0
          /* hey, I know this looks a bit cruddy,   */
@@ -312,13 +329,7 @@ TDS_INT tds_i;
             cr->ib[j] = hex1;
          }
 #else
-		/* ignore trailing blanks and nulls */
-		while( srclen > 0 && (src[srclen-1] == ' ' || src[srclen-1] == '\0') ) {
-			if( --srclen == 0 ) 
-				break;
-		}
-
-		for ( i=0; i < srclen; i++ ) {
+		for ( i=srclen; --i >= j; ) {
 			hex1 = src[i];
 			
 			if( '0' <= hex1 && hex1 <= '9' )
@@ -326,8 +337,7 @@ TDS_INT tds_i;
 			else {
 				hex1 &= 0x20 ^ 0xff;	/* mask off 0x20 to ensure upper case */
 				if( 'A' <= hex1 && hex1 <= 'F' ) {
-					hex1 &= 0x0f;
-					hex1 += 9;
+					hex1 -= ('A'-10);
 				} else {
 					tdsdump_log(TDS_DBG_INFO1,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
 					return TDS_FAIL;
@@ -336,14 +346,12 @@ TDS_INT tds_i;
 			assert( hex1 < 0x10 );
 			
 			if( i & 1 ) 
-				cr->ib[i/2] <<= 4;
+				cr->ib[i/2] = hex1;
 			else
-				cr->ib[i/2] = 0;
-				
-			cr->ib[i/2] |= hex1;
+				cr->ib[i/2] |= hex1 << 4;
 		}
 #endif
-         return (srclen / 2);
+         return srclen / 2;
          break;
       case SYBINT1:
 		if (string_to_int(src,src + srclen,&tds_i) == TDS_FAIL)
@@ -451,11 +459,8 @@ TDS_INT tds_i;
 		 break;
       case SYBNUMERIC:
       case SYBDECIMAL:
-		if (string_to_numeric(src, src + srclen, cr))
-			return TDS_FAIL;
-		 
-		 return sizeof(TDS_NUMERIC);
-		 break;
+		return string_to_numeric(src, src+srclen, cr);
+		break;
 	 case SYBUNIQUE: {
 		int i;
 		unsigned n;
@@ -519,13 +524,14 @@ static TDS_INT
 tds_convert_bit(int srctype,TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
+	int canonic = src[0] ? 1 : 0;
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
 			cr->c = malloc(2);
 			test_alloc(cr->c);
-			cr->c[0] = src[0] ? '1' : '0';
+			cr->c[0] = '0' + canonic;
 			cr->c[1] = 0;
 			return 1;
 			break;
@@ -537,23 +543,23 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			return 1;
 			break;
 		case SYBINT1:
-			cr->ti = src[0] ? 1 : 0;
+			cr->ti = canonic;
 			return 1;
 			break;
 		case SYBINT2:
-			cr->si = src[0] ? 1 : 0;
+			cr->si = canonic;
 			return 2;
 			break;
 		case SYBINT4:
-			cr->i = src[0] ? 1 : 0;
+			cr->i = canonic;
 			return 4;
 			break;
 		case SYBFLT8:
-			cr->f = src[0] ? 1.0 : 0.0;
+			cr->f = canonic;
 			return 8;
 			break;
 		case SYBREAL:
-			cr->r = src[0] ? 1.0 : 0.0;
+			cr->r = canonic;
 			return 4;
 			break;
 		case SYBBIT:
@@ -563,11 +569,12 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			break;
 		case SYBMONEY:
 		case SYBMONEY4:
-			return tds_convert_int1( SYBINT1, (src[0])? "1" : "0", desttype, destlen, cr);
+			return tds_convert_int1( SYBINT1, (src[0])? "\1" : "\0", desttype, destlen, cr);
 			break;
-			/* TODO */
 		case SYBNUMERIC:
 		case SYBDECIMAL:
+			return stringz_to_numeric(canonic ? "1" : "0",cr);
+			break;
 
 		/* conversions not allowed */
 		case SYBUNIQUE:
@@ -630,6 +637,11 @@ TDS_CHAR tmp_str[5];
 			cr->m.mny = buf * 10000;
 			return sizeof(TDS_MONEY);
 			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			sprintf(tmp_str,"%d",buf);
+			return stringz_to_numeric(tmp_str,cr);
+			break;
 		/* conversions not allowed */
 		case SYBUNIQUE:
 		case SYBDATETIME4:
@@ -691,6 +703,11 @@ TDS_CHAR tmp_str[16];
 		case SYBMONEY:
 			cr->m.mny = buf * 10000;
 			return sizeof(TDS_MONEY);
+			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			sprintf(tmp_str,"%d",buf);
+			return stringz_to_numeric(tmp_str,cr);
 			break;
 		/* conversions not allowed */
 		case SYBUNIQUE:
@@ -757,6 +774,11 @@ TDS_CHAR tmp_str[16];
 		case SYBMONEY:
 			cr->m.mny = (TDS_INT8)buf * 10000;
 			return sizeof(TDS_MONEY);
+			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			sprintf(tmp_str,"%d",buf);
+			return stringz_to_numeric(tmp_str,cr);
 			break;
 		/* conversions not allowed */
 		case SYBUNIQUE:
@@ -881,7 +903,13 @@ char tmp_str[33];
 		case SYBDATETIME:
 		case SYBDATETIMN:
 			break;
-		/* TODO numeric */
+		case SYBDECIMAL:
+		case SYBNUMERIC:
+			dollars  = mny.mny4 / 10000;
+			fraction = mny.mny4 % 10000;
+			if (fraction < 0)	{ fraction = -fraction; }
+			sprintf(tmp_str,"%ld.%04lu",dollars,fraction);
+			return stringz_to_numeric(tmp_str,cr);
         default:
 			LOG_CONVERT();
             return TDS_FAIL;
@@ -1003,7 +1031,11 @@ int i;
 		case SYBDATETIME:
 		case SYBDATETIMN:
 			break;
-		/* TODO numeric */
+		case SYBDECIMAL:
+		case SYBNUMERIC:
+			s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
+			return stringz_to_numeric(tmpstr,cr);
+			break;
 	    default:
 			LOG_CONVERT();
 			return TDS_FAIL;
@@ -1304,19 +1336,17 @@ TDS_INT8 mymoney;
             memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
             return sizeof(TDS_MONEY4);
             break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			sprintf(tmp_str,"%.*f", cr->n.scale,  the_value);
+			return stringz_to_numeric(tmp_str, cr);
+			break;
 	    /* not allowed */
 		case SYBUNIQUE:
 	  case SYBDATETIME4:
 	  case SYBDATETIME:
 	  case SYBDATETIMN:
 	    break;
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			sprintf(tmp_str,"%.*f", cr->n.scale,  the_value);
-			if (string_to_numeric(tmp_str, tmp_str + strlen(tmp_str), cr))
-				return TDS_FAIL;
-			return sizeof(TDS_NUMERIC);
-			break;
       default:
 	    LOG_CONVERT();
             return TDS_FAIL;
@@ -1380,13 +1410,17 @@ char      tmp_str[25];
             cr->f = the_value;
             return 8;
             break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+            		sprintf(tmp_str,"%.15g", the_value);
+			return stringz_to_numeric(tmp_str, cr);
+			break;
 	    /* not allowed */
 		case SYBUNIQUE:
 	case SYBDATETIME4:
 	case SYBDATETIME:
 	case SYBDATETIMN:
 		break;
-	/* TODO numeric */
       default:
 		LOG_CONVERT();
 			return TDS_FAIL;
@@ -1881,6 +1915,12 @@ int current_state;
 }
 
 static int 
+stringz_to_numeric(const char *instr, CONV_RESULT *cr)
+{
+	return string_to_numeric(instr,instr+strlen(instr),cr);
+}
+
+static int 
 string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr)
 {
 
@@ -1904,19 +1944,19 @@ short int bytes, places, point_found, sign, digits;
 
   /* FIXME: application can pass invalid value for precision and scale ?? */
   if (cr->n.precision > 38)
-  	return 1;
+  	return TDS_FAIL;
 
   if (cr->n.precision == 0)
      cr->n.precision = 38; /* assume max precision */
       
   if ( cr->n.scale > cr->n.precision )
-	return 1;
+	return TDS_FAIL;
 
 
   /* skip leading blanks */
   for (pstr = instr;; ++pstr)
   {
-  	if (pstr == pend) return 1;
+  	if (pstr == pend) return TDS_FAIL;
   	if (*pstr != ' ') break;
   }
 
@@ -1941,19 +1981,19 @@ short int bytes, places, point_found, sign, digits;
      else if (*pstr == '.')               /* found a decimal point */
           {
              if (point_found)             /* already had one. return error */
-                return 1;
+                return TDS_FAIL;
              if (cr->n.scale == 0)       /* no scale...lose the rest  */
                 break; /* FIXME: check other characters */
              point_found = 1;
           }
           else                            /* first invalid character */
-             return 1;                    /* return error.          */
+             return TDS_FAIL;                    /* return error.          */
 
   }
 
   /* no digits? no number!*/
   if (!digits)
-  	return 1;
+  	return TDS_FAIL;
 
   /* truncate decimal digits */
   if ( cr->n.scale > 0 && places > cr->n.scale)
@@ -1961,7 +2001,7 @@ short int bytes, places, point_found, sign, digits;
 
   /* too digits, error */
   if ( (digits+cr->n.scale) > cr->n.precision)
- 	return 1;
+ 	return TDS_FAIL;
 
 
   /* TODO: this can be optimized in a single step */
@@ -2033,7 +2073,7 @@ short int bytes, places, point_found, sign, digits;
      }
   }
   }
-  return 0;
+  return sizeof(TDS_NUMERIC);
 }
 
 /*

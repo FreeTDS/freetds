@@ -1,3 +1,13 @@
+Sun Sep  1 09:10:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c src/dblib/unittests/t0019.c:
+	- return and trimming compatible with sybase (test added)
+	- allow destlen < 0 for binary (copy all buffer and not padding) 
+	* src/tds/convert.c src/tds/unittests/t0007.c:
+	- add conversion to numeric (any -> char -> numeric for now)
+	- fixed conversion from bit to money
+	- moved rtrim before to allocate less memory (in char -> binary)
+	- fixed conversion from char to binary if odd length string (added test)
+
 Sat Aug 31 16:27:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/freebcp.c:
 	- use dbfcmd() instead of dbcmd() to eliminate potential buffer
