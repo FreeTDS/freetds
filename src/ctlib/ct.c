@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.104 2003-09-25 21:14:24 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.105 2003-10-18 22:57:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -858,7 +858,9 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 							*result_type = CS_ROW_RESULT;
 						}
 					} else {
-						*result_type = CS_CMD_DONE;
+						/* No new results have been returned, check next token */
+						*result_type= CS_ROW_RESULT;
+						break;
 					}
 				} else
 					*result_type = CS_CMD_SUCCEED;
