@@ -1,3 +1,12 @@
+Wed May  7 23:08:12 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* acinclude.m4 Add comments for iconv testing
+	* configure.in test for locale_charset
+	* src/tds/util.c remove date from %L in tdsdump, added to tds_open	
+	* src/ctlib/cs.c src/ctlib/ct.c src/dblib/dblib.c src/dblib/rpc.c
+	* src/tds/convert.c src/tds/query.c src/tds/threadsafe.c 
+	* src/tds/token.c
+	- remove "inside" from most logging statements.  
+
 Wed May  7 14:48:28 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/unittests/moreandcount.c(added):
 	- test for SQLMoreResults and SQLRowCount in batch (fail)

@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.18 2003-05-06 11:13:41 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.19 2003-05-08 03:13:44 jklowden Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -396,7 +396,12 @@ else
 fi
 ])
 
+dnl Infer what flavor of iconv(3) we're likely to be linking with, and what 
+dnl names it uses for some of our favorite character sets, by trying out a few obvious
+dnl choices with iconv(1).  (Character set names are famously not standardized.)
+
 dnl TDS_ICONV_CHARSET VAR RES LIST
+
 AC_DEFUN(TDS_ICONV_CHARSET,
 [tds_charset=
 for TDSTO in $3
@@ -454,7 +459,7 @@ AC_DEFINE_UNQUOTED(CHARSET_ISO1, ["$ICONV_ISO1"], [Define to the iconv name of I
 AC_DEFINE(HAVE_CHARSET_UCS2, 1, [Define to 1 if iconv support UCS2 charset.])
 AC_DEFINE_UNQUOTED(CHARSET_UCS2, ["$ICONV_UCS2"], [Define to the iconv name of UCS2 charset.])
 
-# now we have a type we can check for others names
+dnl now we have a type we can check for others names
 TDSFROM=$ICONV_ISO1
 TDS_ICONV_CHARSET(UTF8, 3915528286, ["UTF-8" "UTF8" "utf8"])
 TDS_ICONV_CHARSET(UCS2LE, 3637111430, ["$ICONV_UCS2" "UCS2LE" "UCS-2LE" "ucs2le"])
