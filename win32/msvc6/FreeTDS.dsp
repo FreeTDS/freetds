@@ -103,7 +103,7 @@ SOURCE=..\..\src\odbc\convert_tds2sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\error.c
+SOURCE=..\..\src\odbc\error.c
 # End Source File
 # Begin Source File
 
@@ -143,83 +143,91 @@ SOURCE=.\config.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\connectparams.h
+SOURCE=..\..\src\odbc\connectparams.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\convert_sql2string.h
+SOURCE=..\..\src\odbc\convert_sql2string.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\convert_tds2sql.h
+SOURCE=..\..\src\odbc\convert_tds2sql.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\des.h
+SOURCE=..\..\include\des.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\freetds_sysconfdir.h
+SOURCE=..\..\include\freetds_sysconfdir.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\md4.h
+SOURCE=.\freetds_sysconfdir.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\odbc_util.h
+SOURCE=..\..\include\md4.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\prepare_query.h
+SOURCE=..\..\src\odbc\odbc_util.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\replacements.h
+SOURCE=..\..\src\odbc\prepare_query.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\odbc\sql2tds.h
+SOURCE=..\..\include\replacements.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tds.h
+SOURCE=..\..\src\odbc\sql2tds.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tds_configs.h
+SOURCE=..\..\include\tds.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tds_sysdep_private.h
+SOURCE=..\..\include\tds_configs.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tds_sysdep_public.h
+SOURCE=..\..\include\tds_sysdep_private.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\src\tds\tds_willconvert.h
+SOURCE=..\..\include\tds_sysdep_public.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tdsconvert.h
+SOURCE=.\tds_sysdep_public.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tdsiconv.h
+SOURCE=..\..\src\tds\tds_willconvert.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tdsodbc.h
+SOURCE=..\..\include\tdsconvert.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tdsstring.h
+SOURCE=..\..\include\tdsiconv.h
 # End Source File
 # Begin Source File
 
-SOURCE=\cpp\freetds\freetds\include\tdsver.h
+SOURCE=..\..\include\tdsodbc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\tdsstring.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\tdsver.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
