@@ -1,17 +1,16 @@
 It's pretty simple, basically:
 
-1) change the version number.
-   places I know of: configure.in, include/tdsver.h, and UG
-2) put out a -rcx (x=1; x!=right; x++)
-   to do this I just do a 'make dist' and mv the tar.gz file to the right 
-   name.
-3) ftp to 
-	ftp://ftp.ibiblio.org/pub/linux/ALPHA/freetds/
-   and post message to list, update web pages.  
-   repeat 2-3 as necessary.
-4) tag cvs: 'cvs tag R0_61' from the top level directory
-5) check out tagged version, do a 'make distcheck', release tarball
-6) create rpm with 'rpm -ta freetds-0.61.tar.gz', post these to 
+0) Form a branch in cvs.  Use the form BRANCH0_xx, where xx is the release #.  
+1) Change the version number in configure.in and UG.  
+2) Update web pages regarding purpose and status of rc.  
+3) Put out a release candidates until everyone's happy.  
+   jkl has a "make dist" script on /etc/nightly.freetds that works well.  
+4) ftp tarball to 
+	ftp://login.ibiblio.org/pub/linux/ALPHA/freetds/current
+5) ftp user guide to www.freetds.org/userguide/.  
+   repeat 3-4 as necessary.
+6) Log into ibiblio.  Trim rc# from tarball.  Update web site.  
+7) Create rpm with 'rpm -ta freetds-0.61.tar.gz', post these to 
    ibiblio as well.
    
 Announcements to:
