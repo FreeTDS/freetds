@@ -77,7 +77,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.61 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.62 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -382,9 +382,8 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
    unsigned char protocol_version[4];
    unsigned char program_version[4];
    
-   int rc;
-   char *passwdstr;
-   char *blockstr;
+	int rc, len;
+	char blockstr[16];
    
    if (IS_TDS42(tds)) {
       memcpy(protocol_version,"\004\002\000\000",4);
@@ -431,20 +430,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
    if (IS_TDS42(tds)) {
 		rc|=tds_put_login_string(tds,connect_info->password,255);
    } else {
-		if(connect_info->password == NULL) {
-		/* FIXME check out of memory */
-		asprintf(&passwdstr, "%c%c%s", 0, 0, "");
-      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
-		free(passwdstr);
-	 } else {
-		/* FIXME check out of memory */
-      		asprintf(&passwdstr, "%c%c%s",0,
-			(unsigned char)strlen(connect_info->password),
-			connect_info->password);
-      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(connect_info->password)+2);
-		free(passwdstr);
-	 }
-   }
+		len = strlen(connect_info->password);
+		if (len > 253) 
+			len = 0;
+		rc |= tds_put_byte(tds, 0);
+		rc |= tds_put_byte(tds, len);
+		rc |= tds_put_n(tds, connect_info->password, len);
+		rc |= tds_put_n(tds, NULL, 253 - len);
+		rc |= tds_put_byte(tds, len + 2);
+	}
    
    rc|=tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
 	rc|=tds_put_login_string(tds,connect_info->library,10);  /* client program name */
@@ -469,10 +463,14 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 	rc|=tds_put_n(tds,magic6,10);
 	rc|=tds_put_login_string(tds,connect_info->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
    rc|=tds_put_byte(tds,magic7);
-   /* FIXME check out of memory */
-	asprintf(&blockstr,"%d",connect_info->block_size);
-   rc|=tds_put_login_string(tds,blockstr,6); /* network packet size */
-   free(blockstr);
+
+	/* network packet size */
+	if (connect_info->block_size < 1000000)
+		sprintf(blockstr, "%d", connect_info->block_size);
+	else
+		strcpy(blockstr,"512");
+	rc |= tds_put_login_string(tds,blockstr, 6);
+
    if (IS_TDS42(tds)) {
       rc|=tds_put_n(tds,magic42,8);
    } else if (IS_TDS46(tds)) {

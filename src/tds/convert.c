@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.100 2002-11-08 16:59:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.101 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -448,51 +448,51 @@ TDS_INT rc;
       case SYBMONEY:
       case SYBMONEY4:
 
-	 /* TODO code similar to string_to_numeric... */
-         i           = 0;
-         places      = 0;
-         point_found = 0;
-	 pend        = src + srclen;
+		/* TODO code similar to string_to_numeric... */
+		i           = 0;
+		places      = 0;
+		point_found = 0;
+		pend        = src + srclen;
 
-         /* skip leading blanks */
-         for (ptr = src; ptr != pend && *ptr == ' '; ++ptr);
+		/* skip leading blanks */
+		for (ptr = src; ptr != pend && *ptr == ' '; ++ptr);
 
-	 switch ( ptr != pend ? *ptr : 0 ) {
-		 case '-':
-			 mynumber[i++] = '-';
-			 /* fall through*/
-		 case '+':
+		switch ( ptr != pend ? *ptr : 0 ) {
+		case '-':
+			mynumber[i++] = '-';
+			/* fall through*/
+		case '+':
 			ptr++;
 			for (; ptr != pend && *ptr == ' '; ++ptr);
 			break;
-         }
+		}
 
-         for(; ptr != pend; ptr++)                      /* deal with the rest */
-         {
-            if (isdigit((unsigned char) *ptr) )                   /* it's a number */
-            {  
-               mynumber[i++] = *ptr;
-	       /* assure not buffer overflow */
-	       if (i==30) return TDS_CONVERT_OVERFLOW;
-               if (point_found) {                 /* if we passed a decimal point */
-                  /* count digits after that point  */
-		  /* FIXME check rest of buffer */
-		  if (++places == 4)
-			  break;
-	       }
-            }
-            else if (*ptr == '.')                /* found a decimal point */
-                 {
-                    if (point_found)             /* already had one. lose the rest */
-                       return TDS_CONVERT_SYNTAX;
-                    point_found = 1;
-                 }
-                 else                            /* first invalid character */
-                    return TDS_CONVERT_SYNTAX;   /* lose the rest.          */
-         }
-         for ( j = places; j < 4; j++ )
-             mynumber[i++] = '0';
-	 mynumber[i] = 0;
+		for(; ptr != pend; ptr++)                      /* deal with the rest */
+		{
+			if (isdigit((unsigned char) *ptr) )                   /* it's a number */
+			{
+				/* no more than 4 decimal digits */
+				if (places < 4)
+					mynumber[i++] = *ptr;
+				/* assure not buffer overflow */
+				if (i==30) return TDS_CONVERT_OVERFLOW;
+				if (point_found) {                 /* if we passed a decimal point */
+					/* count digits after that point  */
+					++places;
+				}
+			}
+			else if (*ptr == '.')                /* found a decimal point */
+			{
+				if (point_found)             /* already had one. error */
+					return TDS_CONVERT_SYNTAX;
+				point_found = 1;
+			}
+			else                            /* first invalid character */
+				return TDS_CONVERT_SYNTAX;   /* lose the rest.          */
+		}
+		for ( j = places; j < 4; j++ )
+			mynumber[i++] = '0';
+		mynumber[i] = 0;
 
 	 /* FIXME overflow not handled */
          if (desttype == SYBMONEY) {
@@ -1948,9 +1948,9 @@ static int
 string_to_numeric(const char *instr, const char *pend, CONV_RESULT *cr)
 {
 
-char  mynumber[80];
+char  mynumber[(MAXPRECISION+7)/8*8];
 /* num packaged 8 digit, see below for detail */
-TDS_UINT packed_num[10];
+TDS_UINT packed_num[TDS_VECTOR_SIZE(mynumber)/8];
 
 char *ptr;
 const char *pdigits;
@@ -1966,13 +1966,13 @@ short int bytes, places, point_found, sign, digits;
   point_found = 0;
   places      = 0;
 
-  /* FIXME: application can pass invalid value for precision and scale ?? */
-  if (cr->n.precision > 38)
-  	return TDS_CONVERT_FAIL;
+	/* FIXME: application can pass invalid value for precision and scale ?? */
+	if (cr->n.precision > 77)
+		return TDS_CONVERT_FAIL;
 
-  if (cr->n.precision == 0)
-     cr->n.precision = 38; /* assume max precision */
-      
+	if (cr->n.precision == 0)
+		cr->n.precision = 77; /* assume max precision */
+
   if ( cr->n.scale > cr->n.precision )
 	return TDS_CONVERT_FAIL;
 
@@ -2006,8 +2006,6 @@ short int bytes, places, point_found, sign, digits;
           {
              if (point_found)             /* already had one. return error */
                 return TDS_CONVERT_SYNTAX;
-             if (cr->n.scale == 0)       /* no scale...lose the rest  */
-                break; /* FIXME: check other characters */
              point_found = 1;
           }
           else                            /* first invalid character */
@@ -2018,9 +2016,9 @@ short int bytes, places, point_found, sign, digits;
   if (!digits)
   	return TDS_CONVERT_SYNTAX;
 
-  /* truncate decimal digits */
-  if ( cr->n.scale > 0 && places > cr->n.scale)
-  	places = cr->n.scale;
+	/* truncate decimal digits */
+	if ( places > cr->n.scale)
+		places = cr->n.scale;
 
   /* too digits, error */
   if ( (digits+cr->n.scale) > cr->n.precision)
@@ -2051,52 +2049,50 @@ short int bytes, places, point_found, sign, digits;
    * So I can split for bytes in an optmized way
    */
  
-  /* transform to packaged one */
-  for(j=0;j<10;++j)
-      {
-  	TDS_UINT n = mynumber[j*8];
- 	for(i=1;i<8;++i)
-      {
-  		n = n * 10 + mynumber[j*8+i];
-      }
-  	packed_num[j] = n;
-  }
+	/* transform to packaged one */
+	for(j=0; j<TDS_VECTOR_SIZE(packed_num); ++j)
+	{
+		TDS_UINT n = mynumber[j*8];
+		for(i=1;i<8;++i)
+			n = n * 10 + mynumber[j*8+i];
+		packed_num[j] = n;
+	}
 
-  memset(cr->n.array,0,sizeof(cr->n.array));
-  cr->n.array[0] =  sign;
-  bytes = g__numeric_bytes_per_prec[cr->n.precision];
+	memset(cr->n.array,0,sizeof(cr->n.array));
+	cr->n.array[0] =  sign;
+	bytes = g__numeric_bytes_per_prec[cr->n.precision];
 
-  while (not_zero)
-  {
-     not_zero = 0;
-     carry = 0;
-     for (i = 0; i < 10; ++i)
-     {
-     	TDS_UINT tmp;
-     
-        if (packed_num[i] > 0)
-            not_zero = 1;
+	while (not_zero)
+	{
+		not_zero = 0;
+		carry = 0;
+		for (i = 0; i < TDS_VECTOR_SIZE(packed_num); ++i)
+		{
+			TDS_UINT tmp;
 
-     	/* divide for 256 for find another byte */
-     	tmp = packed_num[i];
-     	/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
-     	 * using unsigned number is just an optimization
-     	 * compiler can translate division to a shift and remainder 
-     	 * to a binary and
-     	 */
-     	packed_num[i] = carry * (25u*25u*25u*25u) + packed_num[i] / 256u;
-     	carry = tmp % 256u;
+			if (packed_num[i] > 0)
+				not_zero = 1;
 
-        if ( i == 9 && not_zero)
-     {
-           /* source number is limited to 38 decimal digit
-            * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
-            */
-	   cr->n.array[--bytes] = carry;
-     }
-  }
-  }
-  return sizeof(TDS_NUMERIC);
+			/* divide for 256 for find another byte */
+			tmp = packed_num[i];
+			/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
+			 * using unsigned number is just an optimization
+			 * compiler can translate division to a shift and remainder 
+			 * to a binary and
+			 */
+			packed_num[i] = carry * (25u*25u*25u*25u) + packed_num[i] / 256u;
+			carry = tmp % 256u;
+
+			if ( i == (TDS_VECTOR_SIZE(packed_num) - 1) && not_zero)
+			{
+				/* source number is limited to 38 decimal digit
+				 * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
+				 */
+				cr->n.array[--bytes] = carry;
+			}
+		}
+	}
+	return sizeof(TDS_NUMERIC);
 }
 
 static int is_numeric_dateformat(char *t)
@@ -2899,7 +2895,6 @@ TDS_UINT8 num; /* we use unsigned here for best overflow check */
 			return TDS_CONVERT_SYNTAX;
 	
 		/* add a digit to number and check for overflow */
-		/* FIXME not portable constant */
 		if (num > ( (((TDS_UINT8)1)<<63) / ((TDS_UINT8)10) ) )
 			return TDS_CONVERT_OVERFLOW;
 		num = num * 10u + (*p-'0');

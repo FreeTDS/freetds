@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.101 2002-11-10 12:40:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.102 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1683,7 +1683,7 @@ int tds_process_cancel(TDSSOCKET *tds)
 {
 int marker, done_flags=0;
 
-	/* FIXME we must wait for cancel packet first, then wait for done */
+	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	do {
 		marker=tds_get_byte(tds);
 		if (marker==TDS_DONE_TOKEN) {

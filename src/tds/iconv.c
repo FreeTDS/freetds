@@ -43,7 +43,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.30 2002-11-10 10:55:23 freddy77 Exp $";
+	"$Id: iconv.c,v 1.31 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -157,7 +157,7 @@ size_t lquest_mark;
 
 	/* no iconv, strip high order byte if zero or replace with '?' 
 	 * this is the same of converting to ISO8859-1 charset using iconv */
-	/* FIXME update docs */
+	/* TODO update docs */
 	for (i=0;i<len;++i) {
 		out_string[i] = 
 			in_string[i*2+1] ? '?' : in_string[i*2];

@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.56 2002-11-10 12:40:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.57 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -430,7 +430,6 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 	/* This needs to be cleaned up */
 	get_server_info(server, ip_addr, ip_port, tds_ver);
 	if (strlen(ip_addr)) {
-		/* FIXME check result */
 		tds_dstr_copy(&connect_info->ip_addr, ip_addr);
 	}
 	if (atoi(ip_port)) {
@@ -762,17 +761,17 @@ char *lasts;
 	tmp_ver[0]  = '\0';
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s.\n",dir,file);
-	/* FIXME check result or use open fchdir fopen ... */
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
-   
+	if (!pathname)
+		return;
+
 	/*
 	* create the full pathname to the interface file
 	*/
-	/* FIXME file and dir can't be NULL, used before in strlen */
-	if (file==NULL || file[0]=='\0') {
+	if (file[0]=='\0') {
 		pathname[0] = '\0';
 	} else {
-		if (dir==NULL || dir[0]=='\0') {
+		if (dir[0]=='\0') {
 			pathname[0] = '\0';
 		} else {
 			strcpy(pathname, dir);

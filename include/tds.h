@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.46 2002-11-08 19:07:38 freddy77 Exp $";
+	"$Id: tds.h,v 1.47 2002-11-10 16:18:26 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -266,6 +266,7 @@ sheesh! </rant>
 #define SYBAOPMAX  0x52
 
 #define TDS_ZERO_FREE(x) {free((x)); (x) = NULL;}
+#define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
 #define TDS_BYTE_SWAP16(value)                 \
          (((((unsigned short)value)<<8) & 0xFF00)   | \
