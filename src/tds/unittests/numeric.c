@@ -23,14 +23,14 @@
 
 /* test numeric scale */
 
-static char software_version[] = "$Id: numeric.c,v 1.1 2005-03-23 16:51:43 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.2 2005-03-24 14:44:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
 static TDSCONTEXT ctx;
 
 static void
-test(const char *src, int prec, int scale, int scale2)
+test0(const char *src, int prec, int scale, int prec2, int scale2)
 {
 	int i;
 	char buf[256];
@@ -44,7 +44,7 @@ test(const char *src, int prec, int scale, int scale2)
 	cr.n.precision = prec;
 	cr.n.scale = scale;
 	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0) {
-		fprintf(stderr, "Error getting numeric %s\n", src);
+		fprintf(stderr, "Error getting numeric %s(%d,%d)\n", src, prec, scale);
 		exit(1);
 	}
 	num = cr.n;
@@ -66,24 +66,31 @@ test(const char *src, int prec, int scale, int scale2)
 		memmove(buf + len - scale2 + 1, buf + len - scale2, scale2 + 1);
 		buf[len-scale2] = '.';
 	}
+	cr.n.precision = prec2;
 	cr.n.scale = scale2;
 	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0)
 		strcpy(buf, "error");
 
 	/* change scale with function */
-	if (tds_numeric_change_scale(&num, scale2) < 0)
+	if (tds_numeric_change_prec_scale(&num, prec2, scale2) < 0)
 		strcpy(result, "error");
 	else
 		tds_numeric_to_string(&num, result);
 
 	if (strcmp(buf, result) != 0) {
 		fprintf(stderr, "Failed! %s (%d,%d) -> (%d,%d)\n\tshould be %s\n\tis %s\n",
-			src, prec, scale, prec, scale2, buf, result);
+			src, prec, scale, prec2, scale2, buf, result);
 		g_result = 1;
 		exit(1);
 	} else {
 		printf("%s -> %s ok!\n", src, buf);
 	}
+}
+
+static void
+test(const char *src, int prec, int scale, int scale2)
+{
+	test0(src, prec, scale, prec, scale2);
 }
 
 int
@@ -109,6 +116,19 @@ main(int argc, char **argv)
 	/* decrease scale */
 	test("1234", 10, 4, 0);
 	test("1234.765", 30, 20, 2);
+
+#if 0
+	{
+		int p1, s1, p2, s2;
+		for (p1 = 1; p1 <= 77; ++p1) {
+			printf("(%d,%d) -> (%d,%d)\n", p1, s1, p2, s2);
+			for (s1 = 0; s1 < p1; ++s1)
+				for (p2 = 1; p2 <= 77; ++p2)
+					for (s2 = 0; s2 < p2; ++s2)
+						test0("9", p1, s1, p2, s2);
+		}
+	}
+#endif
 
 	if (!g_result)
 		printf("All passed!\n");

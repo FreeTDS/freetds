@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.30 2005-03-23 19:00:51 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.31 2005-03-24 14:44:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -346,8 +346,45 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 /* include to check limits */
 #include "num_limits.h"
 
+static int
+tds_packet_check_overflow(TDS_WORD *packet, unsigned int packet_len, unsigned int prec)
+{
+	unsigned int i;
+	int l, stop;
+	const TDS_WORD *limit = &limits[limit_indexes[prec] + LIMIT_INDEXES_ADJUST * prec];
+	l = limit_indexes[prec+1] - limit_indexes[prec] + LIMIT_INDEXES_ADJUST;
+	stop = prec / (sizeof(TDS_WORD) * 8);
+	/*
+	 * Now a number is
+	 * ... P[3] P[2] P[1] P[0]
+	 * while upper limit + 1 is
+ 	 * zeroes limit[0 .. l-1] 0[0 .. stop-1]
+	 * we must assure that number < upper limit + 1
+	 */
+	if (packet_len >= l + stop) {
+		/* higher packets must be zero */
+		for (i = packet_len; --i >= l + stop; )
+			if (packet[i] > 0)
+				return TDS_CONVERT_OVERFLOW;
+		/* test limit */
+		for (;; --i, ++limit) {
+			if (i <= stop) {
+				/* last must be >= not > */
+				if (packet[i] >= *limit)
+					return TDS_CONVERT_OVERFLOW;
+				break;
+			}
+			if (packet[i] > *limit)
+				return TDS_CONVERT_OVERFLOW;
+			if (packet[i] < *limit)
+				break;
+		}
+	}
+	return 0;
+}
+
 TDS_INT
-tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
+tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale)
 {
 	static const TDS_WORD factors[] = {
 		1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
@@ -358,10 +395,10 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 	unsigned int i, packet_len;
 	int scale_diff, bytes;
 
-	if (numeric->precision < 1 || numeric->precision > MAXPRECISION || numeric->scale > numeric->precision)
+	if (numeric->precision < 1 || numeric->precision > 77 || numeric->scale > numeric->precision)
 		return TDS_CONVERT_FAIL;
 
-	if (new_scale > numeric->precision)
+	if (new_prec < 1 || new_prec > 77 || new_scale > new_prec)
 		return TDS_CONVERT_FAIL;
 
 	scale_diff = new_scale - numeric->scale;
@@ -386,40 +423,15 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 	/* fix last packet */
 	if (bytes < 0)
 		packet[i-1] &= 0xffffffffu >> (8 * -bytes);
+	while (i > 1 && packet[i-1] == 0)
+		--i;
 	packet_len = i;
 
 	if (scale_diff > 0) {
 		/* check overflow before multiply */
-		int n = numeric->precision - scale_diff;
-		if (n == 0) {
-			/* must be zero */
-			for (i = 0; i < packet_len; ++i)
-				if (packet[i] != 0)
-					return TDS_CONVERT_OVERFLOW;
-			return sizeof(TDS_NUMERIC);
-		} else {
-			/* check limit */
-			int l, stop;
-			const TDS_WORD *limit = &limits[limit_indexes[n] + LIMIT_INDEXES_ADJUST * n];
-			l = limit_indexes[n+1] - limit_indexes[n] + LIMIT_INDEXES_ADJUST;
-			stop = n / (sizeof(TDS_WORD) * 8);
-			for (i = packet_len; --i >= l + stop; )
-				if (packet[i] > 0)
-					return TDS_CONVERT_OVERFLOW;
-			for (i = l + stop; ; ++limit) {
-				if (--i <= stop) {
-					if (packet[i] >= *limit)
-						return TDS_CONVERT_OVERFLOW;
-					break;
-				}
-				if (packet[i] > *limit)
-					return TDS_CONVERT_OVERFLOW;
-				if (packet[i] < *limit)
-					break;
-			}
-		}
-		
-		
+		if (tds_packet_check_overflow(packet, packet_len, new_prec - scale_diff))
+			return TDS_CONVERT_OVERFLOW;
+
 		/* multiply */
 		do {
 			/* multiply by at maximun TDS_WORD_DDIGIT */
@@ -432,10 +444,16 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 				packet[i] = (TDS_WORD) n;
 				carry = n >> (8 * sizeof(TDS_WORD));
 			}
+			/* here we can expand number safely cause we know that it can't overflow */
 			if (carry)
-				return TDS_CONVERT_OVERFLOW;
+				packet[packet_len++] = carry;
 		} while (scale_diff > 0);
 	} else {
+		/* check overflow */
+		if (new_prec - scale_diff < numeric->precision)
+			if (tds_packet_check_overflow(packet, packet_len, new_prec - scale_diff))
+				return TDS_CONVERT_OVERFLOW;
+
 		/* divide */
 		scale_diff = -scale_diff;
 		do {
@@ -452,7 +470,11 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 	}
 
 	/* back to our format */
+	numeric->precision = new_prec;
+	numeric->scale = new_scale;
 	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
+	for (i = bytes / sizeof(TDS_WORD); i >= packet_len; --i)
+		packet[i] = 0;
 	for (i = 0; bytes >= sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
 		numeric->array[bytes]   = (TDS_UCHAR) packet[i];
 		numeric->array[bytes-1] = (TDS_UCHAR) (packet[i] >> 8);
@@ -469,9 +491,6 @@ tds_numeric_change_scale(TDS_NUMERIC * numeric, unsigned char new_scale)
 			remainder >>= 8;
 		} while (--bytes);
 	}
-	numeric->scale = new_scale;
-
-	/* TODO for multiply we should check for overflow ... */
 
 	return sizeof(TDS_NUMERIC);
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# $Id: numeric.pl,v 1.1 2005-03-23 16:52:12 freddy77 Exp $
+# $Id: numeric.pl,v 1.2 2005-03-24 14:44:09 freddy77 Exp $
 # Compute limits table to check numeric typs
 #
 
@@ -40,7 +40,7 @@ sub print_all()
 	my $i;
 
 	$indexes[0] = 0;
-	for $i (1..77) {
+	for $i (0..77) {
 		my @packet = &to_pack("1".('0'x$i), $bit);
 		$indexes[$i] = $#limits + 1;
 		while($packet[0] == 0) {
