@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.37 2002-08-16 05:58:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.38 2002-08-16 06:08:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -447,34 +447,40 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-            cr->c = malloc(1);
-            *(cr->c) = src[0] ? '1' : '0';
-            break;
-
 		case SYBTEXT:
+			cr->c = malloc(2);
+			test_alloc(cr->c);
+			cr->c[0] = src[0] ? '1' : '0';
+			cr->c[1] = 0;
+			return 1;
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
 			break;
 		case SYBINT1:
 			cr->ti = src[0] ? 1 : 0;
-           
+			return 1;
 			break;
 		case SYBINT2:
 			cr->si = src[0] ? 1 : 0;
+			return 2;
 			break;
 		case SYBINT4:
 			cr->i = src[0] ? 1 : 0;
+			return 4;
 			break;
 		case SYBFLT8:
 			cr->f = src[0] ? 1.0 : 0.0;
+			return 8;
 			break;
 		case SYBREAL:
 			cr->r = src[0] ? 1.0 : 0.0;
+			return 4;
 			break;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = src[0];
+			return 1;
 			break;
 		case SYBMONEY:
 		case SYBMONEY4:
@@ -483,7 +489,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
             return TDS_FAIL;
 	}
-    return TDS_SUCCEED;
+	return TDS_FAIL;
 }
 
 static TDS_INT 

@@ -1,3 +1,9 @@
+Fri Aug 16 08:05:42 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	+ src/tds/convert.c: converting from bit:
+	- return correct values
+	- added terminator to returned string
+	- return TDS_FAIL if failure
+
 Fri Aug 16 07:51:38 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	+ src/tds/convert.c:
 	- add VARCHAR to convert table
