@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131.2.1 2003-02-06 05:46:15 vorlon Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.2 2003-02-14 13:19:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -996,8 +996,10 @@ _SQLExecute(TDS_STMT * stmt)
 		case TDS_COMPUTE_RESULT:
 		case TDS_PARAM_RESULT:
 		case TDS_ROW_RESULT:
-		case TDS_STATUS_RESULT:
 			done = 1;
+			break;
+		case TDS_STATUS_RESULT:
+			odbc_set_return_status(stmt);
 			break;
 		case TDS_CMD_FAIL:
 			result = SQL_ERROR;
