@@ -1,3 +1,7 @@
+Thu Jan 29 18:03:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/iconv.c:
+	- more names normalization
+
 Wed Jan 28 21:37:43 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am include/dblib.h include/sybdb.h:
 	* include/tds.h src/apps/freebcp.c src/dblib/dblib.c:

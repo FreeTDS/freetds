@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.170 2004-01-28 20:37:42 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.171 2004-01-29 17:03:15 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1024,12 +1024,12 @@ struct tds_context
 	int (*err_handler) (TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 };
 
-enum TDS_ICONV_INFO_ENTRY
+enum TDS_ICONV_ENTRY
 { 
 	  client2ucs2
 	, client2server_chardata
 	, iso2server_metadata
-	, initial_iconv_info_count	/* keep last */
+	, initial_iconv_count	/* keep last */
 };
 
 struct tds_socket
@@ -1083,7 +1083,7 @@ struct tds_socket
 	int emul_little_endian;
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
-	int iconv_info_count;
+	int iconv_count;
 	TDSICONV **iconvs;
 
 	/** config for login stuff. After login this field is NULL */

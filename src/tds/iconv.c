@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.105 2004-01-28 11:06:18 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.106 2004-01-29 17:03:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -264,18 +264,18 @@ tds_iconv_alloc(TDSSOCKET * tds)
 	TDSICONV *iconv;
 
 	assert(!tds->iconvs);
-	if (!(tds->iconvs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_iconv_info_count + 1))))
+	if (!(tds->iconvs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_iconv_count + 1))))
 		return 1;
-	iconv = (TDSICONV *) malloc(sizeof(TDSICONV) * initial_iconv_info_count);
+	iconv = (TDSICONV *) malloc(sizeof(TDSICONV) * initial_iconv_count);
 	if (!iconv) {
 		free(tds->iconvs);
 		tds->iconvs = NULL;
 		return 1;
 	}
-	memset(iconv, 0, sizeof(TDSICONV) * initial_iconv_info_count);
-	tds->iconv_info_count = initial_iconv_info_count + 1;
+	memset(iconv, 0, sizeof(TDSICONV) * initial_iconv_count);
+	tds->iconv_count = initial_iconv_count + 1;
 
-	for (i = 0; i < initial_iconv_info_count; ++i) {
+	for (i = 0; i < initial_iconv_count; ++i) {
 		tds->iconvs[i] = &iconv[i];
 		iconv[i].server_charset.name = iconv[i].client_charset.name = "";
 		iconv[i].to_wire = (iconv_t) - 1;
@@ -285,7 +285,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 	}
 
 	/* chardata is just a pointer to another iconv info */
-	tds->iconvs[initial_iconv_info_count] = tds->iconvs[client2server_chardata];
+	tds->iconvs[initial_iconv_count] = tds->iconvs[client2server_chardata];
 
 	return 0;
 }
@@ -529,7 +529,7 @@ tds_iconv_close(TDSSOCKET * tds)
 #if HAVE_ICONV_ALWAYS
 	int i;
 
-	for (i = 0; i < tds->iconv_info_count; ++i) {
+	for (i = 0; i < tds->iconv_count; ++i) {
 		tds_iconv_info_close(tds->iconvs[i]);
 	}
 #endif
@@ -547,11 +547,11 @@ tds_iconv_free(TDSSOCKET * tds)
 	tds_iconv_close(tds);
 
 	free(tds->iconvs[0]);
-	for (i = initial_iconv_info_count + 1; i < tds->iconv_info_count; i += CHUNK_ALLOC)
+	for (i = initial_iconv_count + 1; i < tds->iconv_count; i += CHUNK_ALLOC)
 		free(tds->iconvs[i]);
 	free(tds->iconvs);
 	tds->iconvs = NULL;
-	tds->iconv_info_count = 0;
+	tds->iconv_count = 0;
 }
 
 /** 
@@ -915,19 +915,19 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 	int i;
 
 	/* search a charset from already allocated charsets */
-	for (i = tds->iconv_info_count; --i >= initial_iconv_info_count;)
+	for (i = tds->iconv_count; --i >= initial_iconv_count;)
 		if (strcmp(canonic_charset, tds->iconvs[i]->server_charset.name) == 0)
 			return tds->iconvs[i];
 
 	/* allocate a new iconv structure */
-	if (tds->iconv_info_count % CHUNK_ALLOC == ((initial_iconv_info_count + 1) % CHUNK_ALLOC)) {
+	if (tds->iconv_count % CHUNK_ALLOC == ((initial_iconv_count + 1) % CHUNK_ALLOC)) {
 		TDSICONV **p;
 		TDSICONV *infos;
 
 		infos = (TDSICONV *) malloc(sizeof(TDSICONV) * CHUNK_ALLOC);
 		if (!infos)
 			return NULL;
-		p = (TDSICONV **) realloc(tds->iconvs, sizeof(TDSICONV *) * (tds->iconv_info_count + CHUNK_ALLOC));
+		p = (TDSICONV **) realloc(tds->iconvs, sizeof(TDSICONV *) * (tds->iconv_count + CHUNK_ALLOC));
 		if (!p) {
 			free(infos);
 			return NULL;
@@ -935,7 +935,7 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 		tds->iconvs = p;
 		memset(infos, 0, sizeof(TDSICONV) * CHUNK_ALLOC);
 		for (i = 0; i < CHUNK_ALLOC; ++i) {
-			tds->iconvs[i + tds->iconv_info_count] = &infos[i];
+			tds->iconvs[i + tds->iconv_count] = &infos[i];
 			infos[i].server_charset.name = infos[i].client_charset.name = "";
 			infos[i].to_wire = (iconv_t) - 1;
 			infos[i].to_wire2 = (iconv_t) - 1;
@@ -943,7 +943,7 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 			infos[i].from_wire2 = (iconv_t) - 1;
 		}
 	}
-	info = tds->iconvs[tds->iconv_info_count++];
+	info = tds->iconvs[tds->iconv_count++];
 
 	/* init */
 	/* TODO test allocation */
