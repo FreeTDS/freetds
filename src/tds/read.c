@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.13 2002-08-30 20:33:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.14 2002-09-04 11:38:19 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -113,9 +113,13 @@ struct timeval selecttimeout;
 */
 unsigned char tds_get_byte(TDSSOCKET *tds)
 {
+int rc;
+
 	if (tds->in_pos >= tds->in_len) {
-		if(!tds->s || !tds_read_packet(tds))
-			return (0);
+		while (tds->s && (rc = tds_read_packet(tds) == 0)) ;
+		if(!tds->s || rc == -1) {
+			return 0;
+		}
 	}
 	return tds->in_buf[tds->in_pos++];
 }
@@ -297,7 +301,7 @@ int           x = 0, have, need;
 			tds->s=0;
                 	tds->in_len=0;
 			tds->in_pos=0;
-			return 0;
+			return -1;
 		}
 		/* GW ADDED */
 		/*  Not sure if this is the best way to do the error 
@@ -310,7 +314,7 @@ int           x = 0, have, need;
 			CLOSE(tds->s);
 			tds->s=0;
 		}
-		return 0;
+		return -1;
 	}
 
 /* Note:
@@ -318,7 +322,7 @@ int           x = 0, have, need;
 ** under 5.0, but I haven't gotten a result big enough to test this yet.
 */
 	if (IS_TDS42(tds)) {
-		if (header[0]!=0x04) {
+		if (header[0]!=0x04 && header[0]!=0x0f) {
 			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
 			/*  Not sure if this is the best way to do the error 
 			**  handling here but this is the way it is currently 
@@ -326,7 +330,7 @@ int           x = 0, have, need;
 			tds->in_len=0;
 			tds->in_pos=0;
 			tds->last_packet=1;
-			return(0);
+			return(-1);
 		}
 	}
  
@@ -364,7 +368,7 @@ int           x = 0, have, need;
 				CLOSE(tds->s);
 				tds->s=0;
 			}
-			return(0);
+			return(-1);
 		}
 		have+=x;
 		need-=x;
@@ -375,7 +379,7 @@ int           x = 0, have, need;
 		tds->in_len=0;
 		tds->in_pos=0;
 		tds->last_packet=1;
-		return(0);
+		return(-1);
 	}
 
 	/* Set the last packet flag */

@@ -1,3 +1,6 @@
+Wed Sep  4 05:43:26 EDT 20002 Brian Bruns <camber@ais.org>
+	* src/tds/read.c: return -1 from tds_read_packet to be unambigious
+
 Tue Sep  3 20:35:49 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/userguide.sgml:
 	- Applied patch #604084 from Brian with various corrections.
