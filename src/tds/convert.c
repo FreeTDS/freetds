@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.49 2002-08-22 08:45:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.50 2002-08-22 16:13:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -476,6 +476,8 @@ TDS_INT tds_i;
 		 
 		 return sizeof(TDS_NUMERIC);
 		 break;
+	/* TODO */
+      case SYBUNIQUE:
 	  default:
 		LOG_CONVERT();
 	     return TDS_FAIL;
@@ -529,6 +531,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			return 1;
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBMONEY:
 		case SYBMONEY4:
 		case SYBDATETIME4:
@@ -594,6 +597,7 @@ TDS_CHAR tmp_str[5];
 			return sizeof(TDS_MONEY);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -655,6 +659,7 @@ TDS_CHAR tmp_str[16];
 			return sizeof(TDS_MONEY);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -720,6 +725,7 @@ TDS_CHAR tmp_str[16];
 			return sizeof(TDS_MONEY);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -759,6 +765,7 @@ char tmpstr[MAXPRECISION];
             return 4;
             break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -835,6 +842,7 @@ char tmp_str[33];
             return sizeof(TDS_MONEY4);
             break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -952,6 +960,7 @@ int i;
 			return sizeof(TDS_MONEY);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBDATETIME4:
 		case SYBDATETIME:
 		case SYBDATETIMN:
@@ -1067,6 +1076,7 @@ struct tds_tm when;
             return sizeof(TDS_DATETIME4);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBBIT:
 		case SYBBITN:
 		case SYBINT1:
@@ -1172,6 +1182,7 @@ struct tds_tm when;
             return sizeof(TDS_DATETIME4);
 			break;
 		/* conversions not allowed */
+		case SYBUNIQUE:
 		case SYBBIT:
 		case SYBBITN:
 		case SYBINT1:
@@ -1231,6 +1242,7 @@ TDS_INT8 mymoney;
             return sizeof(TDS_MONEY4);
             break;
 	    /* not allowed */
+		case SYBUNIQUE:
 	  case SYBDATETIME4:
 	  case SYBDATETIME:
 	  case SYBDATETIMN:
@@ -1275,6 +1287,7 @@ char      tmp_str[25];
             return 8;
             break;
 	    /* not allowed */
+		case SYBUNIQUE:
 	case SYBDATETIME4:
 	case SYBDATETIME:
 	case SYBDATETIMN:
@@ -1316,6 +1329,20 @@ TDS_UCHAR buf[37];
 			return sizeof(TDS_UNIQUE);
 			break;
 		/* no not warning for not convertible types */
+		case SYBBIT:
+		case SYBBITN:
+		case SYBINT1:
+		case SYBINT2:
+		case SYBINT4:
+		case SYBMONEY4:
+		case SYBMONEY:
+		case SYBDATETIME4:
+		case SYBDATETIME:
+		case SYBDATETIMN:
+		case SYBREAL:
+		case SYBFLT8:
+			break;
+		case SYBBINARY:
 		default:
 			LOG_CONVERT();
 			return TDS_FAIL;

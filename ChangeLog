@@ -1,3 +1,7 @@
+Thu Aug 22 18:10:18 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- added cases for SYBUNIQUE, do not warn on disallowed conversion
+
 Thu Aug 22 17:35:34 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c:
 	- fix error that cause core dump in Linux, errno is strangely
