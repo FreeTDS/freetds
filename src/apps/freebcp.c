@@ -46,7 +46,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.36 2004-12-31 20:31:26 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.37 2005-02-03 09:41:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -389,6 +389,7 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	DBINT li_rowsread = 0;
 	int i;
 	int li_numcols = 0;
+	RETCODE ret_code = 0;
 
 	if (dir == DB_QUERYOUT) {
 		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
@@ -407,9 +408,13 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbproc));
+	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
+		if (ret_code == SUCCEED && li_numcols == 0) {
+			li_numcols = dbnumcols(dbproc);
+		}
+	}
 
-	if (0 == (li_numcols = dbnumcols(dbproc))) {
+	if (0 == li_numcols) {
 		printf("Error in dbnumcols\n");
 		return FALSE;
 	}
@@ -479,6 +484,7 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int li_numcols = 0;
 	int li_coltype;
 	int li_collen;
+	RETCODE ret_code = 0;
 
 	if (dir == DB_QUERYOUT) {
 		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
@@ -497,9 +503,13 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbproc));
+	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
+		if (ret_code == SUCCEED && li_numcols == 0) {
+			li_numcols = dbnumcols(dbproc);
+		}
+	}
 
-	if (0 == (li_numcols = dbnumcols(dbproc))) {
+	if (0 == li_numcols) {
 		printf("Error in dbnumcols\n");
 		return FALSE;
 	}

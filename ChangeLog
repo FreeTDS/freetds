@@ -1,3 +1,7 @@
+Thu Feb  3 10:38:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/freebcp.c vms/descrip_mms.template vms/getpass.c:
+	- applied patch from Craig A. Berry for bcp and VMS
+
 Thu Feb  3 10:03:57 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds_ssl.html doc/userguide.sgml:
 	- update some docs
