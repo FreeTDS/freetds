@@ -1,3 +1,6 @@
+Fri Feb 13 12:03:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c: remove warning
+
 Thu Feb 12 18:36:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/testodbc.c(added):

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.61 2004-02-12 16:55:29 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.62 2004-02-13 10:59:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -466,6 +466,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec)
 		SET_INFO("uniqueidentifier", "'", "'");
 	case SYBVARIANT:
 		/* SET_INFO("sql_variant", "", ""); */
+		break;
 #endif
 	}
 	SET_INFO("", "", "");
