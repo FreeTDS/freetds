@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.138 2005-02-18 12:56:40 freddy77 Exp $
+To Do List	$Id: TODO,v 1.139 2005-03-25 16:32:00 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -18,18 +18,23 @@ Broken:
 
 Working in progress:
 . ct_dynamic and friends needed for DBD::Sybase placeholder support
+  done ??
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
 . support for named instances under mssql2k
   . utility to get port
+  done ??
+  add documentation
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
     (tds_peek if not in pending state hang... update)
   . tdsdump_log is not reentrant, cancellation core if logging enabled ...
+    fixed ??
 . fix timeout problem reported in ML
   . check dblib behavior
 . support encrypted connections
   . mssql
   . sybase
+    mssql done, require docs update (patch to gnutls)
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
@@ -37,7 +42,7 @@ Postponed to 0.64 version
   - support string conversions for Sybase
   - add test for locale_charset() to configure.in.  Use it if available
     instead of nl_langinfo, because it implies we're using GNU iconv
-. add doc/htdoc/Makefile with "publish" target to commit cvs and update 
+. add doc/htdoc/Makefile with "publish" target to commit cvs and update
   freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
 . be able to disable iconv for BCP (see Sybase documentation)
@@ -60,6 +65,7 @@ For future versions (in priority order within library):
 . optimize numeric conversions (partial, handle numeric->int and similar directly)
   change precision (multiply/divide by 10^n) and extract number
   checking overflow/underflow
+  change precision done (numeric.c)
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
   In token.c getting row should write data even to client
@@ -84,6 +90,7 @@ For future versions (in priority order within library):
 . under Sybase using prepared statements and BLOBs we shouldn't try to
   prepare every time (cache failure preparing, see odbc unittests logs,
   binary_test)
+  done in ODBC ??
 . Native bcp has no iconv support; character bcp files are assumed be encoded
   with the client's charset.  More flexibility one both sides would be good.  
 . date/time on Sybase (from 12.5)
