@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.245.2.3 2004-04-01 14:25:17 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.245.2.4 2004-04-06 08:34:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2091,9 +2091,6 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	tmp = tds_get_smallint(tds);
 
 	state = tds_get_smallint(tds);
-	/* ignore error calling RAISERROR */
-	if (TDS_IS_MSSQL(tds) && state == 0xf6)
-		tmp &= ~TDS_DONE_ERROR;
 
 	more_results = (tmp & TDS_DONE_MORE_RESULTS) != 0;
 	was_cancelled = (tmp & TDS_DONE_CANCELLED) != 0;

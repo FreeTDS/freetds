@@ -1,3 +1,6 @@
+Tue Apr 06 10:45:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: backported fix for RAISERROR
+
 Sun Apr 04 11:18:58 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- backported Bill Thompson patch on DONE handling
