@@ -1,3 +1,7 @@
+Mon Feb 14 13:44:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/.cvsignore doc/Makefile.am:
+	- use less temporary files
+
 Fri Feb 11 14:12:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/cstypes.h include/ctlib.h:
 	* include/ctpublic.h include/tds.h src/ctlib/cs.c:

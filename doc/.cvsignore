@@ -11,9 +11,6 @@ userguide.dsl
 doc
 
 ctlib.api.sgml
-ctlib.api
 dblib.api.sgml
-dblib.api
 doxy.log
 odbc.api.sgml
-odbc.api

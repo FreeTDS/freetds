@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.50 2005-01-26 08:17:58 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.51 2005-02-14 12:44:30 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -76,9 +76,6 @@ uninstall-local:
 
 clean-local:
 	rm -rf userguide.dsl doxy.log userguide reference \
-		dblib.api	\
-		ctlib.api	\
-		 odbc.api	\
 		dblib.api.sgml	\
 		ctlib.api.sgml	\
 		 odbc.api.sgml   
@@ -175,8 +172,8 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 #
 # This lets us use the api_status.txt document in our SGML.
 #
-dblib.api.sgml: dblib.api 
-	echo '<table id="dblib.api"><title>db-lib API Implementation Summary</title>' > .dblib.api.head
+dblib.api.sgml:
+	echo '<table id="dblib.api"><title>db-lib API Implementation Summary</title>' > .dblib.api
 	echo '<tgroup cols=5><thead><row> \
   		<entry>Category</> \
   		<entry>Microsoft name</> \
@@ -185,25 +182,18 @@ dblib.api.sgml: dblib.api
   		<entry>Comments</> \
 		</row></thead> \
 		<tbody>' \
-			> .tableheader
-	sed -e' s!^dblib[	]!<row><entry>!; \
+			>> .dblib.api
+	grep '^dblib' $(srcdir)/api_status.txt | sed -e' s!^dblib[	]!<row><entry>!; \
 		s![	][	]*!</> <entry>!g; \
 		s!$$!</></row>!; \
-	      ' dblib.api \
-			> .dblib.api.body
-	echo '</tbody></tgroup></table>' > .dblib.api.tail
-	cat .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail >$@
-	rm  .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail
+	      ' >> .dblib.api
+	echo '</tbody></tgroup></table>' >> .dblib.api
+	mv .dblib.api $@
 
-dblib.api: api_status.txt
-	grep '^dblib' $(srcdir)/api_status.txt > .dblib.api
-	test -s  .dblib.api
-	mv .dblib.api dblib.api
-
-ctlib.api.sgml: ctlib.api 
+ctlib.api.sgml:
 	echo '<table id="ctlib.api" colsep=0> \
 		<title>ct-lib API Implementation Summary</title>' \
-			> .ctlib.api.head
+			> .ctlib.api
 	echo '<tgroup cols=4><thead><row> \
   		<entry>Category</> \
   		<entry>Function</> \
@@ -211,26 +201,19 @@ ctlib.api.sgml: ctlib.api
   		<entry>Comments</> \
 		</row></thead> \
 		<tbody>' \
-			> .tableheader
-	sed -e' s!^ctlib[	]!<row><entry>!; \
+			>> .ctlib.api
+	grep '^ctlib' $(srcdir)/api_status.txt | sed -e' s!^ctlib[	]!<row><entry>!; \
 		s![	]!</> <entry>!g; \
 		s!$$!</></row>!; \
-	      ' ctlib.api \
-			> .ctlib.api.body
+	      ' >> .ctlib.api
 	echo '</tbody></tgroup></table>' \
-			> .ctlib.api.tail
-	cat .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail >$@
-	rm  .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail
-
-ctlib.api: api_status.txt
-	grep '^ctlib' $(srcdir)/api_status.txt > .ctlib.api
-	test -s  .ctlib.api
-	mv .ctlib.api ctlib.api
+			>> .ctlib.api
+	mv .ctlib.api $@
 
 MSDN_ODBC = http://msdn.microsoft.com/library/default.asp?url=/library/en-us/odbc/htm/odbc
-odbc.api.sgml: odbc.api 
+odbc.api.sgml:
 	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
-			> .odbc.api.head
+			> .odbc.api
 	echo '<tgroup cols=4><thead><row> \
   		<entry>Category</> \
   		<entry>Function</> \
@@ -238,25 +221,18 @@ odbc.api.sgml: odbc.api
   		<entry>Comments</> \
 		</row></thead> \
 		<tbody>' \
-			> .tableheader
+			>> .odbc.api
 # The mean RE below (with "ulink" in it) forms a URL to Microsoft's reference page
 # for the function.  It assumes a word starting with "SQL" is an ODBC function. 
 # Let's hope they don't change their site too often.  
-	sed -e' s!^odbc[	]!<row><entry>!; \
+	grep '^odbc' $(srcdir)/api_status.txt | sed -e' s!^odbc[	]!<row><entry>!; \
 		s![	][	]*!</> <entry>!g; \
 		s!\<\(SQL[[:alpha:]]*\)\>!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
 		s!$$!</></row>!; \
-	      ' odbc.api \
-			> .odbc.api.body
+	      ' >> .odbc.api
 	echo '</tbody></tgroup></table>' \
-			> .odbc.api.tail
-	cat .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail >$@
-	rm  .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail
-
-odbc.api: api_status.txt
-	grep '^odbc' $(srcdir)/api_status.txt > .odbc.api
-	test -s  .odbc.api
-	mv .odbc.api odbc.api
+			>> .odbc.api
+	mv .odbc.api $@
 
 
 
