@@ -1,3 +1,7 @@
+Thu Nov  8 13:55:20 2001  James Cameron  <quozl@us.netrek.org>
+
+	* .cvsignore: populate list of files to ignore during cvs update.
+
 Tue Nov  6 20:00:14 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/tds/iconv.c: Check for null input on tds7_ascii2unicode and 
@@ -5,13 +9,14 @@ Tue Nov  6 20:00:14 EST 2001	Brian Bruns <camber@ais.org>
 
 Mon Nov  5 18:47:08 EST 2001  Brian Bruns <camber@ais.org>
 
-	* src/tds/token.c(tds7_send_login): Precompute the lengths of login field 
-	and check for null strings.
+	* src/tds/token.c(tds7_send_login): Precompute the lengths of
+	login field and check for null strings.
 
 Sun Nov  4 00:21:46 EST 2001	Brian Bruns <camber@ais.org>
 
-	* src/tds/token.c(tds_client_msg): Client messages were not updated to pass
-     TDSSOCKET instead of parent to CLI message handler.
+	* src/tds/token.c(tds_client_msg): Client messages were not
+	updated to pass TDSSOCKET instead of parent to CLI message
+	handler.
 
 Fri Nov  2 12:03:44 2001  James Cameron  <quozl@us.netrek.org>
 
