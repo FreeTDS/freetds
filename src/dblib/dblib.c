@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.160.2.1 2004-04-04 09:07:04 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.160.2.2 2004-06-01 08:58:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -733,12 +733,18 @@ dbsetlbool(LOGINREC * login, int value, int which)
 static void
 dbstring_free(DBSTRING ** dbstrp)
 {
-	if ((dbstrp != NULL) && (*dbstrp != NULL)) {
-		if ((*dbstrp)->strnext != NULL) {
-			dbstring_free(&((*dbstrp)->strnext));
-		}
-		free(*dbstrp);
-		*dbstrp = NULL;
+	DBSTRING *curr, *next;
+	if (!dbstrp)
+		return;
+
+	curr = *dbstrp;
+	*dbstrp = NULL;
+	for (; curr; ) {
+		next = curr->strnext;
+		if (curr->strtext)
+			free(curr->strtext);
+		free(curr);
+		curr = next;
 	}
 }
 

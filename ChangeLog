@@ -1,3 +1,6 @@
+Tue Jun 01 10:57:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: backported memory leak fix
+
 Tue May 04 09:06:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: backported memory leak fix
 
