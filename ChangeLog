@@ -1,3 +1,10 @@
+Thu Oct 17 21:43:43 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/Makefile.am include/tds.h include/tdssrv.h:
+	* src/server/login.c src/tds/Makefile.am src/tds/config.c:
+	* src/tds/login.c src/tds/mem.c:
+	* include/tdsstring.h(added) src/tds/tdsstring.c(added):
+	- used dynamic string in login structure
+
 Thu Oct 17 14:54:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0022.c:
 	- If no output parameters are received and TDS 7 or TDS 8

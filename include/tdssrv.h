@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 static char rcsid_tdssrv_h[] =
-	"$Id: tdssrv.h,v 1.2 2002-10-01 15:43:15 castellano Exp $";
+	"$Id: tdssrv.h,v 1.3 2002-10-17 19:46:10 freddy77 Exp $";
 static void *no_unused_tdssrv_h_warn[] = {
 	rcsid_tdssrv_h,
 	no_unused_tdssrv_h_warn};
@@ -39,7 +39,6 @@ unsigned char *tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsig
 TDSSOCKET *tds_listen(int ip_port);
 void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login);
 int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login);
-int tds_read_string(TDSSOCKET *tds, char *dest, int size);
 
 /* query.c */
 char *tds_get_query(TDSSOCKET *tds);

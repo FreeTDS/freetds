@@ -59,12 +59,13 @@
 #include "tds.h"
 #include "tds_configs.h"
 #include "tdsutil.h"
+#include "tdsstring.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.43 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.44 2002-10-17 19:46:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -115,6 +116,8 @@ int opened = 0;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	config = tds_alloc_config(locale);
+	if (!config)
+		return NULL;
 
 	s = getenv("TDSDUMPCONFIG");
 	if (s) {
@@ -409,7 +412,7 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 }
 static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 {
-	if (login->server_name && strlen(login->server_name)) {
+	if (!tds_dstr_isempty(&login->server_name)) {
 		if (config->server_name) free(config->server_name);
 		config->server_name = strdup(login->server_name);
 	}	
@@ -417,15 +420,15 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		config->major_version = login->major_version;
 		config->minor_version = login->minor_version;
 	}
-        if (login->language && strlen(login->language)) {
+	if (!tds_dstr_isempty(&login->language)) {
 		if (config->language) free(config->language);
 		config->language = strdup(login->language);
 	}
-        if (login->char_set && strlen(login->char_set)) {
+	if (!tds_dstr_isempty(&login->char_set)) {
 		if (config->char_set) free(config->char_set);
 		config->char_set = strdup(login->char_set);
 	}
-        if (login->host_name && strlen(login->host_name)) {
+	if (!tds_dstr_isempty(&login->host_name)) {
 		if (config->host_name) free(config->host_name);
 		config->host_name = strdup(login->host_name);
 		/* DBSETLHOST and it's equivilants are commentary fields
@@ -439,15 +442,15 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		lookup_host(config->host_name, NULL, config->ip_addr, NULL);
 		*/
 	}
-        if (login->app_name && strlen(login->app_name)) {
+	if (!tds_dstr_isempty(&login->app_name)) {
 		if (config->app_name) free(config->app_name);
 		config->app_name = strdup(login->app_name);
 	}
-        if (login->user_name && strlen(login->user_name)) {
+	if (!tds_dstr_isempty(&login->user_name)) {
 		if (config->user_name) free(config->user_name);
 		config->user_name = strdup(login->user_name);
 	}
-        if (login->password && strlen(login->password)) {
+	if (!tds_dstr_isempty(&login->password)) {
 		if (config->password) {
 			/* for security reason clear memory */
 			memset(config->password,0,strlen(config->password));
@@ -455,23 +458,23 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		}
 		config->password = strdup(login->password);
 	}
-        if (login->library && strlen(login->library)) {
+	if (!tds_dstr_isempty(&login->library)) {
 		if (config->library) free(config->library);
 		config->library = strdup(login->library);
 	}
-        if (login->encrypted) {
+	if (login->encrypted) {
 		config->encrypted = 1;
 	}
-        if (login->suppress_language) {
+	if (login->suppress_language) {
 		config->suppress_language = 1;
 	}
-        if (login->bulk_copy) {
+	if (login->bulk_copy) {
 		config->bulk_copy = 1;
 	}
-        if (login->block_size) {
+	if (login->block_size) {
 		config->block_size = login->block_size;
 	}
-        if (login->port) {
+	if (login->port) {
 		config->port = login->port;
 	}
 

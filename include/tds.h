@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.19 2002-10-14 21:02:36 freddy77 Exp $";
+	"$Id: tds.h,v 1.20 2002-10-17 19:46:10 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -348,21 +348,20 @@ sheesh! </rant>
 #define TDS_MAX_LOGIN_STR_SZ 30
 #define TDS_MAX_LIBRARY_STR_SZ 11
 typedef struct tds_login {
-	TDS_CHAR  server_name[TDS_MAX_LOGIN_STR_SZ+1];
+	char *server_name;
 	int port;
 	TDS_TINYINT  major_version; /* TDS version */
 	TDS_TINYINT  minor_version; /* TDS version */
 	int block_size; 
-	TDS_CHAR language[TDS_MAX_LOGIN_STR_SZ+1]; /* ie us-english */
-	TDS_CHAR char_set[TDS_MAX_LOGIN_STR_SZ+1]; /*  ie iso_1 */
+	char *language; /* ie us-english */
+	char *char_set; /*  ie iso_1 */
 	TDS_INT connect_timeout;
-	TDS_CHAR  host_name[TDS_MAX_LOGIN_STR_SZ+1];
-	TDS_CHAR  app_name[TDS_MAX_LOGIN_STR_SZ+1];
-	TDS_CHAR  user_name[TDS_MAX_LOGIN_STR_SZ+1];
-	/* FIXME temporary fix, 40 pwd max len */
-	TDS_CHAR  password[40+1];
+	char *host_name;
+	char *app_name;
+	char *user_name;
+	char *password;
 	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
-	TDS_CHAR  library[TDS_MAX_LIBRARY_STR_SZ+1];
+	char *library;
 	TDS_TINYINT bulk_copy; 
 	TDS_TINYINT suppress_language;
 	TDS_TINYINT encrypted; 

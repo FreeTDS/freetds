@@ -42,8 +42,9 @@
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdssrv.h"
+#include "tdsstring.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.13 2002-10-15 03:46:13 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.14 2002-10-17 19:46:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -93,38 +94,43 @@ size_t	len;
 	/* get_incoming(tds->s); */
 	return tds;
 }
+
+static char* tds_read_string(TDSSOCKET *tds, char** s, int size);
+
 void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login)
 {
-char blockstr[7];
+char *blockstr;
 /*
 	while (len = tds_read_packet(tds)) {
 		for (i=0;i<len;i++)
 			printf("%d %d %c\n",i, tds->in_buf[i], (tds->in_buf[i]>=' ' && tds->in_buf[i]<='z') ? tds->in_buf[i] : ' ');
 	}	
 */
-	tds_read_string(tds, login->host_name, 30);
-	tds_read_string(tds, login->user_name, 30);
-	tds_read_string(tds, login->password, 30);
-	tds_read_string(tds, NULL, 30); /* host process, junk for now */
-	tds_read_string(tds, NULL, 15); /* magic */
-	tds_read_string(tds, login->app_name, 30); 
-	tds_read_string(tds, login->server_name, 30); 
-	tds_read_string(tds, NULL, 255); /* secondary passwd...encryption? */
+	tds_dstr_init(&blockstr);
+	tds_read_string(tds, &login->host_name, 30);
+	tds_read_string(tds, &login->user_name, 30);
+	tds_read_string(tds, &login->password, 30);
+	tds_get_n(tds, NULL, 31); /* host process, junk for now */
+	tds_get_n(tds, NULL, 16); /* magic */
+	tds_read_string(tds, &login->app_name, 30); 
+	tds_read_string(tds, &login->server_name, 30); 
+	tds_get_n(tds, NULL, 256); /* secondary passwd...encryption? */
 	login->major_version = tds_get_byte(tds);
 	login->minor_version = tds_get_byte(tds);
 	tds_get_smallint(tds); /* unused part of protocol field */
-	tds_read_string(tds, login->library, 10); 
+	tds_read_string(tds, &login->library, 10); 
 	tds_get_byte(tds); /* program version, junk it */
 	tds_get_byte(tds);
 	tds_get_smallint(tds); 
 	tds_get_n(tds, NULL, 3); /* magic */
-	tds_read_string(tds, login->language, 30); 
+	tds_read_string(tds, &login->language, 30); 
 	tds_get_n(tds, NULL, 14); /* magic */
-	tds_read_string(tds, login->char_set, 30); 
+	tds_read_string(tds, &login->char_set, 30); 
 	tds_get_n(tds, NULL, 1); /* magic */
-	tds_read_string(tds, blockstr, 6); 
+	tds_read_string(tds, &blockstr, 6); 
 	printf("block size %s\n",blockstr);
 	login->block_size=atoi(blockstr);
+	tds_dstr_free(&blockstr);
 	tds_get_n(tds, NULL, tds->in_len - tds->in_pos); /* read junk at end */
 }
 int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login)
@@ -171,58 +177,51 @@ char *buf;
 	buf = (unsigned char *) malloc(host_name_len*2);
 	tds_get_n(tds,unicode_string,host_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,host_name_len);
-	strncpy(login->host_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->host_name,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(user_name_len*2);
 	buf = (unsigned char *) malloc(user_name_len*2);
 	tds_get_n(tds,unicode_string,user_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,user_name_len);
-	strncpy(login->user_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->user_name,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(password_len*2);
 	buf = (unsigned char *) malloc(password_len*2);
 	tds_get_n(tds,unicode_string,password_len*2);
 	tds7_decrypt_pass(unicode_string,password_len*2,unicode_string);
 	tds7_unicode2ascii(tds,unicode_string,buf,password_len);
-	strncpy(login->password,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->password,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(app_name_len*2);
 	buf = (unsigned char *) malloc(app_name_len*2);
 	tds_get_n(tds,unicode_string,app_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,app_name_len);
-	strncpy(login->app_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->app_name,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(server_name_len*2);
 	buf = (unsigned char *) malloc(server_name_len*2);
 	tds_get_n(tds,unicode_string,server_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,server_name_len);
-	strncpy(login->server_name,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->server_name,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(library_name_len*2);
 	buf = (unsigned char *) malloc(library_name_len*2);
 	tds_get_n(tds,unicode_string,library_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,library_name_len);
-	strncpy(login->library,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->library,buf);
 	free(unicode_string);
-	free(buf);
 
 	unicode_string = (unsigned char *) malloc(language_name_len*2);
 	buf = (unsigned char *) malloc(language_name_len*2);
 	tds_get_n(tds,unicode_string,language_name_len*2);
 	tds7_unicode2ascii(tds,unicode_string,buf,language_name_len);
-	strncpy(login->language,buf,TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_set(&login->language,buf);
 	free(unicode_string);
-	free(buf);
 
 	tds_get_n(tds,NULL,7);  /*magic3*/
 	tds_get_byte(tds);
@@ -235,25 +234,24 @@ char *buf;
 	tds_get_n(tds,NULL,7);
 	a=tds_get_byte(tds);    /*0x30*/
 	tds_get_n(tds,NULL,3);
-	strcpy(login->char_set,""); /*empty char_set for TDS 7.0*/
+	tds_dstr_copy(&login->char_set,""); /*empty char_set for TDS 7.0*/
 	login->block_size=0;        /*0 block size for TDS 7.0*/
 	login->encrypted=1;
 	return(0);
 
 }
-int tds_read_string(TDSSOCKET *tds, char *dest, int size)
+static char* tds_read_string(TDSSOCKET *tds, char ** s, int size)
 {
 char *tempbuf;
 int len;
 
 	tempbuf = (char *) malloc(size+1);
 	tds_get_n(tds,tempbuf,size);
+	tempbuf[size] = 0;
 	len=tds_get_byte(tds);
-	if (dest) {
-		memcpy(dest,tempbuf,len);
-		dest[len]='\0';
-	}
-	free(tempbuf);
-
-	return len;
+	if (len <= size)
+		tempbuf[len]='\0';
+	
+	tds_dstr_set(s,tempbuf);
+	return tempbuf;
 }

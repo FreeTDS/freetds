@@ -36,11 +36,12 @@
 #include "tds.h"
 #include "tdsutil.h"
 #include "tdsiconv.h"
+#include "tdsstring.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.33 2002-10-14 21:02:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.34 2002-10-17 19:46:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -458,6 +459,14 @@ char *tdsver;
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
 	if (!tds_login) return NULL;
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
+	tds_dstr_init(&tds_login->server_name);
+	tds_dstr_init(&tds_login->language);
+	tds_dstr_init(&tds_login->char_set);
+	tds_dstr_init(&tds_login->host_name);
+	tds_dstr_init(&tds_login->app_name);
+	tds_dstr_init(&tds_login->user_name);
+	tds_dstr_init(&tds_login->password);
+	tds_dstr_init(&tds_login->library);
 	if ((tdsver=getenv("TDSVER"))) {
 		if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
 			tds_login->major_version=4;
@@ -480,11 +489,20 @@ char *tdsver;
 	memcpy(tds_login->capabilities,defaultcaps,TDS_MAX_CAPABILITY);
 	return tds_login;
 }
+
 void tds_free_login(TDSLOGIN *login)
 {
 	if (login) {
 		/* for security reason clear memory */
-		memset(login->password,0,sizeof(login->password));
+		tds_dstr_zero(&login->password);
+		tds_dstr_free(&login->password);
+		tds_dstr_free(&login->server_name);
+		tds_dstr_free(&login->language);
+		tds_dstr_free(&login->char_set);
+		tds_dstr_free(&login->host_name);
+		tds_dstr_free(&login->app_name);
+		tds_dstr_free(&login->user_name);
+		tds_dstr_free(&login->library);
 		free(login);
 	}
 }

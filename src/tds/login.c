@@ -68,12 +68,13 @@
 
 #include "tds.h"
 #include "tdsutil.h"
+#include "tdsstring.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.54 2002-10-15 11:53:11 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.55 2002-10-17 19:46:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -94,7 +95,8 @@ void tds_set_port(TDSLOGIN *tds_login, int port)
 void tds_set_passwd(TDSLOGIN *tds_login, char *password)
 { 
 	if (password) {
-		strncpy(tds_login->password, password, sizeof(tds_login->password)-1);
+		tds_dstr_zero(&tds_login->password);
+		tds_dstr_copy(&tds_login->password,password);
 	}
 }
 void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled)
@@ -102,16 +104,16 @@ void tds_set_bulk(TDSLOGIN *tds_login, TDS_TINYINT enabled)
 	tds_login->bulk_copy = enabled ? 0 : 1;
 }
 void tds_set_user(TDSLOGIN *tds_login, char *username)
-{ 
-	strncpy(tds_login->user_name, username, TDS_MAX_LOGIN_STR_SZ);
+{
+	tds_dstr_copy(&tds_login->user_name,username);
 }
 void tds_set_host(TDSLOGIN *tds_login, char *hostname)
 {
-	strncpy(tds_login->host_name, hostname, TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_copy(&tds_login->host_name,hostname);
 }
 void tds_set_app(TDSLOGIN *tds_login, char *application)
 {
-	strncpy(tds_login->app_name, application, TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_copy(&tds_login->app_name,application);
 }
 void tds_set_server(TDSLOGIN *tds_login, char *server)
 {
@@ -121,19 +123,19 @@ void tds_set_server(TDSLOGIN *tds_login, char *server)
 			server = "SYBASE";
 		}
 	}
-	strncpy(tds_login->server_name, server, TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_copy(&tds_login->server_name,server);
 }
 void tds_set_library(TDSLOGIN *tds_login, char *library)
 {
-	strncpy(tds_login->library, library, TDS_MAX_LIBRARY_STR_SZ);
+	tds_dstr_copy(&tds_login->library,library);
 }
 void tds_set_charset(TDSLOGIN *tds_login, char *charset)
 {
-	strncpy(tds_login->char_set, charset, TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_copy(&tds_login->char_set,charset);
 }
 void tds_set_language(TDSLOGIN *tds_login, char *language)
 {
-	strncpy(tds_login->language, language, TDS_MAX_LOGIN_STR_SZ);
+	tds_dstr_copy(&tds_login->language,language);
 }
 
 /* Jeffs' hack to support timeouts */
