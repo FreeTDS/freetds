@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.25 2002-10-23 02:21:19 castellano Exp $";
+"$Id: sybdb.h,v 1.26 2002-10-24 19:50:10 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -198,73 +198,14 @@ typedef struct {
 	int	    txptr_offset;
 } BCP_COLINFO;
 
-typedef struct {
-   TDSSOCKET	  *tds_socket ;
-   
-   DBPROC_ROWBUF   row_buf;
-   
-   int             noautofree;
-   int             more_results; /* boolean.  Are we expecting results? */
-   int             empty_result; /* boolean.  has dbsqlok eaten the results ? */
-   BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
-   unsigned char  *dbbuf; /* is dynamic!                   */
-   int             dbbufsz;
-   TDS_INT         text_size;   
-   TDS_INT         text_sent;
-   TDS_CHAR        *bcp_hostfile;
-   TDS_CHAR        *bcp_errorfile;
-   TDS_CHAR        *bcp_tablename;
-   TDS_CHAR        *bcp_insert_stmt;
-   TDS_INT         bcp_direction;
-   TDS_INT         bcp_colcount;
-   TDS_INT         host_colcount;
-   BCP_COLINFO     **bcp_columns;
-   BCP_HOSTCOLINFO **host_columns;
-   TDS_INT         firstrow;
-   TDS_INT         lastrow;
-   TDS_INT         maxerrs;
-   TDS_INT         bcpbatch;
-   TDS_INT         sendrow_init;
-   TDS_INT         var_cols;
-   DBTYPEINFO      typeinfo;
-   unsigned char   avail_flag;
-} DBPROCESS;
-
-typedef struct dbdaterec
+struct dbstring
 {
-#ifndef MSDBLIB
-	DBINT	dateyear;
-	DBINT	datemonth;
-	DBINT	datedmonth;
-	DBINT	datedyear;
-	DBINT	datedweek;
-	DBINT	datehour;
-	DBINT	dateminute;
-	DBINT	datesecond;
-	DBINT	datemsecond;
-	DBINT	datetzone;
-#else
-	DBINT	year;
-	DBINT	month;
-	DBINT	day;
-	DBINT	dayofyear;
-	DBINT	weekday;
-	DBINT	hour;
-	DBINT	minute;
-	DBINT	second;
-	DBINT	millisecond;
-	DBINT	tzone;
-#endif
-} DBDATEREC;
-
-typedef int (*EHANDLEFUNC) (DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-
-typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *proc, int line);
-
-enum {
-	DBPADOFF,
-	DBPADON
+	BYTE *strtext;
+	DBINT strtotlen;
+	struct dbstring *strnext;
 };
+typedef struct dbstring DBSTRING;
+
 /* a large list of options, DBTEXTSIZE is needed by sybtcl */
 #define DBPARSEONLY    0
 #define DBESTIMATE     1
@@ -297,11 +238,95 @@ enum {
 #define DBISOLATION   28
 #define DBAUTH        29
 #define DBIDENTITY    30
+#define DBNOIDCOL     31
+#define DBDATESHORT   32
 
-#define DBNUMOPTIONS  31
+#define DBNUMOPTIONS  33
 
-#define DBPRPADON      1
-#define DBPRPADOFF     0
+#define DBPADOFF       0
+#define DBPADON        1
+
+#define OFF            0
+#define ON             1
+
+#define NOSUCHOPTION   2
+
+#define MAXOPTTEXT    32
+
+struct dboption
+{
+	char opttext[MAXOPTTEXT];
+	DBSTRING *optparam;
+	DBUSMALLINT optstatus;
+	DBBOOL optactive;
+	struct dboption *optnext;
+};
+typedef struct dboption DBOPTION;
+
+typedef struct {
+   TDSSOCKET	  *tds_socket ;
+   
+   DBPROC_ROWBUF   row_buf;
+   
+   int             noautofree;
+   int             more_results; /* boolean.  Are we expecting results? */
+   int             empty_result; /* boolean.  has dbsqlok eaten the results ? */
+   BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
+   unsigned char  *dbbuf; /* is dynamic!                   */
+   int             dbbufsz;
+   TDS_INT         text_size;   
+   TDS_INT         text_sent;
+   TDS_CHAR        *bcp_hostfile;
+   TDS_CHAR        *bcp_errorfile;
+   TDS_CHAR        *bcp_tablename;
+   TDS_CHAR        *bcp_insert_stmt;
+   TDS_INT         bcp_direction;
+   TDS_INT         bcp_colcount;
+   TDS_INT         host_colcount;
+   BCP_COLINFO     **bcp_columns;
+   BCP_HOSTCOLINFO **host_columns;
+   TDS_INT         firstrow;
+   TDS_INT         lastrow;
+   TDS_INT         maxerrs;
+   TDS_INT         bcpbatch;
+   TDS_INT         sendrow_init;
+   TDS_INT         var_cols;
+   DBTYPEINFO      typeinfo;
+   unsigned char   avail_flag;
+   DBOPTION        *dbopts;
+   DBSTRING        *dboptcmd;
+} DBPROCESS;
+
+typedef struct dbdaterec
+{
+#ifndef MSDBLIB
+	DBINT	dateyear;
+	DBINT	datemonth;
+	DBINT	datedmonth;
+	DBINT	datedyear;
+	DBINT	datedweek;
+	DBINT	datehour;
+	DBINT	dateminute;
+	DBINT	datesecond;
+	DBINT	datemsecond;
+	DBINT	datetzone;
+#else
+	DBINT	year;
+	DBINT	month;
+	DBINT	day;
+	DBINT	dayofyear;
+	DBINT	weekday;
+	DBINT	hour;
+	DBINT	minute;
+	DBINT	second;
+	DBINT	millisecond;
+	DBINT	tzone;
+#endif
+} DBDATEREC;
+
+typedef int (*EHANDLEFUNC) (DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+
+typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *proc, int line);
 
 /* dbpoll() result codes, sybtcl needs DBRESULT */
 #define DBRESULT       1

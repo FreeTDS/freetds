@@ -1,3 +1,18 @@
+Thu Oct 24 15:42:18 EDT 2002
+	* include/sybdb.h src/dblib/dblib.c:
+	- Add DBSTRING and DBOPTION structures, and some utility functions
+	  to manipulate them,
+	- Implement basic DBOPTION functionality for a few
+	  client-side options.
+	- Add some preliminary infrastructure for server-side options.
+	- Use some of the DBPR* client-side options in the db*pr*()
+	  data formatting functions.  Still no real DBPRLINELEN support...
+	- Fix handling of compute rows in dbprrow() -- support multiple
+	  compute columns in the same row.
+	- Fix some warnings.
+	- Hack to prevent core dump in dbadata(), don't call tds_get_null()
+	  (Not really sure this is the correct fix).
+
 Thu Oct 24 21:37:34 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- fix malloc(0) problem coring on some platform
