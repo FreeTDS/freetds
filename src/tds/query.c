@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.96 2003-07-21 08:50:06 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.97 2003-07-21 09:55:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -130,10 +130,11 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+		/* FIXME ICONV use converted size */
+		tds_put_int(tds, query_len * 2);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
 		/* FIXME ICONV use converted size */
-		tds_put_int(tds, query_len * 2);
 		tds_put_int(tds, query_len * 2);
 		tds_put_string(tds, query, query_len);
 
@@ -141,10 +142,11 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-		if (IS_TDS80(tds))
-			tds_put_n(tds, tds->collation, 5);
 		/* FIXME ICONV someone should change results from tds_build_params_definition to ucs2 and use provided length */
 		tds_put_int(tds, definition_len * 2);
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
+		/* FIXME ICONV see above */
 		tds_put_int(tds, definition_len * 2);
 		tds_put_string(tds, param_definition, definition_len);
 
@@ -425,8 +427,6 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-	if (IS_TDS80(tds))
-		tds_put_n(tds, tds->collation, 5);
 	/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
 	n = tds_count_placeholders(query);
 	len = n * 16 - 1;
@@ -438,6 +438,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 		/* TODO put this code in caller and pass param_definition */
 		if (n) {
 			tds_put_int(tds, len * 2);
+			if (IS_TDS80(tds))
+				tds_put_n(tds, tds->collation, 5);
 			tds_put_int(tds, len * 2);
 			for (i = 1; i <= n; ++i) {
 				sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
@@ -445,6 +447,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 			}
 		} else {
 			tds_put_int(tds, 0);
+			if (IS_TDS80(tds))
+				tds_put_n(tds, tds->collation, 5);
 			tds_put_int(tds, 0);
 		}
 	} else {
@@ -460,11 +464,11 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-	if (IS_TDS80(tds))
-		tds_put_n(tds, tds->collation, 5);
 	len = (len + 1 - 14 * n) + strlen(query);
 	/* FIXME ICONV use converted size. Perhaps we should construct entire string ? */
 	tds_put_int(tds, len * 2);
+	if (IS_TDS80(tds))
+		tds_put_n(tds, tds->collation, 5);
 	tds_put_int(tds, len * 2);
 	s = query;
 	/* TODO do a test with "...?" and "...?)" */

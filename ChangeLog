@@ -1,3 +1,7 @@
+Mon Jul 21 11:54:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html src/tds/query.c:
+	- updated and fixed some RPC issues
+
 Mon Jul 21 10:49:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: add a TODO from ML
 	* src/tds/query.c: comments
