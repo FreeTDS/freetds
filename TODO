@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.21 2002-12-11 19:54:14 jklowden Exp $
+To Do List	$Id: TODO,v 1.22 2002-12-11 22:11:31 jklowden Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
@@ -36,6 +36,7 @@ For future versions (in priority order within library):
   ct-lib
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . cs_calc and cs_cmp, for sybperl
+. DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
 . ct_get/send_data()
 . ct_option() calls (CS_OPT_ROWCOUNT, CS_OPT_TEXTSIZE, among others)
 . Array binding for ctlib not working

@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.55 2002-12-11 19:56:30 jklowden Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.56 2002-12-11 22:11:41 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -353,6 +353,49 @@ ct_command(CS_COMMAND *cmd, CS_INT type, const CS_VOID *buffer, CS_INT buflen, C
 int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
+
+	switch (type) {
+	case CS_LANG_CMD:
+		switch (option) {
+		case CS_MORE: 	/* The text in buffer is only part of the language command to be executed. */
+		case CS_END:	/* The text in buffer is the last part of the language command to be executed. */
+		case CS_UNUSED:	/* Equivalent to CS_END. */
+			break;
+		default:
+			return CS_FAIL;
+		}
+
+	case CS_RPC_CMD: 
+		switch (option) {
+		case CS_RECOMPILE: 	/* Recompile the stored procedure before executing it. */
+		case CS_NO_RECOMPILE: 	/* Do not recompile the stored procedure before executing it. */
+		case CS_UNUSED: 	/* Equivalent to CS_NO_RECOMPILE. */
+			break;
+		default:
+			return CS_FAIL;
+		}
+
+	case CS_SEND_DATA_CMD:
+		switch (option) {
+		case CS_COLUMN_DATA: 	/* The data will be used for a text or image column update. */
+			break;
+		case CS_BULK_DATA: 	/* For internal Sybase use only. The data will be used for a bulk copy operation. */
+		default:
+			return CS_FAIL;
+		}
+
+	case CS_SEND_BULK_CMD: 
+		switch (option) {
+		case CS_BULK_INIT: 	/* For internal Sybase use only. Initialize a bulk copy operation. */
+		case CS_BULK_CONT: 	/* For internal Sybase use only. Continue a bulk copy operation. */
+		default:
+			return CS_FAIL;
+		}
+
+	default:
+		return CS_FAIL;
+	}
+
 	/* FIX ME -- will only work for type CS_LANG_CMD */
 	if (buflen==CS_NULLTERM) {
 		query_len = strlen((const char*) buffer);

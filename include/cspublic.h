@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.22 2002-12-11 19:56:30 jklowden Exp $";
+         "$Id: cspublic.h,v 1.23 2002-12-11 22:11:40 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -386,6 +386,20 @@ enum {
 #define CS_OPT_TEXTSIZE		30
 #define CS_OPT_TRUNCIGNORE	31
 
+/* options accepted by ct_command() */
+enum ct_command_options {
+	CS_MORE, 
+	CS_END, 
+	CS_UNUSED, 
+	CS_RECOMPILE, 
+	CS_NO_RECOMPILE, 
+	CS_COLUMN_DATA, 
+	CS_BULK_DATA, 
+	CS_BULK_INIT, 
+	CS_BULK_CONT
+};
+
+
 /* bind formats, should be mapped to TDS types 
  * can be a combination of bit */
 enum {
@@ -467,6 +481,8 @@ enum {
 #define CS_DEALLOC	83
 #define CS_CAP_RESPONSE	84
 #define CS_RPC_CMD	85
+/* need correct value for CS_SEND_BULK_CMD  */
+#define CS_SEND_BULK_CMD 0xFFFF
 #define CS_INPUTVALUE	86
 #define CS_GOODDATA	87
 #define CS_RETURN	88
