@@ -295,6 +295,9 @@ Now you're ready to build.  Follow these easy steps.
 					</para></listitem>
 			</orderedlist>
 			<para>
+You will need to be root to <emphasis>make install</emphasis>, unless you use the <emphasis>--prefix</emphasis> flag during configuration to install into your own directory.
+			</para>
+			<para>
 With any luck, you've built and installed the FreeTDS libraries.  Of course, you can't connect to anything yet; you have to link a library to <emphasis>something</emphasis> first.  
 			</para>
 		</sect2>
