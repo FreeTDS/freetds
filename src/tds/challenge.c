@@ -35,12 +35,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] =
-	"$Id: challenge.c,v 1.16 2002-10-14 13:36:54 castellano Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: challenge.c,v 1.17 2002-11-14 20:06:14 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
  * \defgroup auth Authentication
@@ -57,7 +53,7 @@ static void *no_unused_var_warn[] = {
  */
 
 static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
-static void tds_convert_key(unsigned char *key_56, DES_KEY *ks);
+static void tds_convert_key(unsigned char *key_56, DES_KEY * ks);
 
 /**
  * Crypt a given password using schema required for NTLMv1 authentication
@@ -65,61 +61,63 @@ static void tds_convert_key(unsigned char *key_56, DES_KEY *ks);
  * @param challenge challenge data given by server
  * @param answer buffer where to store crypted password
  */
-void tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER* answer)
+void
+tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER * answer)
 {
 #define MAX_PW_SZ 14
-int   len;
-int i;
-static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
-DES_KEY ks;
-unsigned char hash[24];
-unsigned char passwd_up[MAX_PW_SZ];
-unsigned char nt_pw[256];
-MD4_CTX context;
+	int len;
+	int i;
+	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
+	DES_KEY ks;
+	unsigned char hash[24];
+	unsigned char passwd_up[MAX_PW_SZ];
+	unsigned char nt_pw[256];
+	MD4_CTX context;
 
-	memset(answer,0,sizeof(TDSANSWER));
+	memset(answer, 0, sizeof(TDSANSWER));
 
 	/* convert password to upper and pad to 14 chars */
 	memset(passwd_up, 0, MAX_PW_SZ);
 	len = strlen(passwd);
-	if (len>MAX_PW_SZ) len=MAX_PW_SZ;
-	for (i=0; i<len; i++)
+	if (len > MAX_PW_SZ)
+		len = MAX_PW_SZ;
+	for (i = 0; i < len; i++)
 		passwd_up[i] = toupper((unsigned char) passwd[i]);
 
 	/* hash the first 7 characters */
 	tds_convert_key(passwd_up, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash+0));
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
 
 	/* hash the second 7 characters */
-	tds_convert_key(passwd_up+7, &ks);
-	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash+8));
+	tds_convert_key(passwd_up + 7, &ks);
+	des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
 
-	memset(hash+16, 0, 5);
+	memset(hash + 16, 0, 5);
 
 	tds_encrypt_answer(hash, challenge, answer->lm_resp);
 
 	/* NT resp */
 	len = strlen(passwd);
-	if (len > 128) len = 128;
-	for(i=0;i<len;++i)
-	{
-		nt_pw[2*i] = passwd[i];
-		nt_pw[2*i+1] = 0;
+	if (len > 128)
+		len = 128;
+	for (i = 0; i < len; ++i) {
+		nt_pw[2 * i] = passwd[i];
+		nt_pw[2 * i + 1] = 0;
 	}
 
 	MD4Init(&context);
-	MD4Update(&context, nt_pw, len*2);
+	MD4Update(&context, nt_pw, len * 2);
 	MD4Final(&context, hash);
 
-	memset(hash+16, 0, 5);
+	memset(hash + 16, 0, 5);
 	tds_encrypt_answer(hash, challenge, answer->nt_resp);
 
 	/* with security is best be pedantic */
-	memset(&ks,0,sizeof(ks));
-	memset(hash,0,sizeof(hash));
-	memset(passwd_up,0,sizeof(passwd_up));
-	memset(nt_pw,0,sizeof(nt_pw));
-	memset(&context,0,sizeof(context));
+	memset(&ks, 0, sizeof(ks));
+	memset(hash, 0, sizeof(hash));
+	memset(passwd_up, 0, sizeof(passwd_up));
+	memset(nt_pw, 0, sizeof(nt_pw));
+	memset(&context, 0, sizeof(context));
 }
 
 
@@ -128,9 +126,10 @@ MD4_CTX context;
 * 8 byte plaintext is encrypted with each key and the resulting 24
 * bytes are stored in the results array.
 */
-static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
+static void
+tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
 {
-DES_KEY ks;
+	DES_KEY ks;
 
 	tds_convert_key(hash, &ks);
 	des_ecb_encrypt(challenge, 8, &ks, answer);
@@ -141,7 +140,7 @@ DES_KEY ks;
 	tds_convert_key(&hash[14], &ks);
 	des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
 
-	memset(&ks,0,sizeof(ks));
+	memset(&ks, 0, sizeof(ks));
 }
 
 
@@ -149,9 +148,10 @@ DES_KEY ks;
 * turns a 56 bit key into the 64 bit, odd parity key and sets the key.
 * The key schedule ks is also set.
 */
-static void tds_convert_key(unsigned char *key_56, DES_KEY *ks)
+static void
+tds_convert_key(unsigned char *key_56, DES_KEY * ks)
 {
-des_cblock key;
+	des_cblock key;
 
 	key[0] = key_56[0];
 	key[1] = ((key_56[0] << 7) & 0xFF) | (key_56[1] >> 1);
@@ -160,7 +160,7 @@ des_cblock key;
 	key[4] = ((key_56[3] << 4) & 0xFF) | (key_56[4] >> 4);
 	key[5] = ((key_56[4] << 3) & 0xFF) | (key_56[5] >> 5);
 	key[6] = ((key_56[5] << 2) & 0xFF) | (key_56[6] >> 6);
-	key[7] =  (key_56[6] << 1) & 0xFF;
+	key[7] = (key_56[6] << 1) & 0xFF;
 
 	des_set_odd_parity(key);
 	des_set_key(ks, key, sizeof(key));

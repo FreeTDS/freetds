@@ -36,9 +36,8 @@
 
 #include "tdsstring.h"
 
-static char  software_version[]   = "$Id: tdsstring.c,v 1.4 2002-10-24 20:35:49 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: tdsstring.c,v 1.5 2002-11-14 20:06:15 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 /**
@@ -55,13 +54,16 @@ char tds_str_empty[] = "";
  */
 
 /** clear all string filling with zeroes (mainly for security reason) */
-void tds_dstr_zero(char **s)
+void
+tds_dstr_zero(char **s)
 {
-	if (*s) memset(*s,0,strlen(*s));
+	if (*s)
+		memset(*s, 0, strlen(*s));
 }
 
 /** free string */
-void tds_dstr_free(char **s)
+void
+tds_dstr_free(char **s)
 {
 	if (*s != tds_str_empty)
 		free(*s);
@@ -74,13 +76,15 @@ void tds_dstr_free(char **s)
  * @param length length of source buffer
  * @return string copied or NULL on memory error
  */
-char* tds_dstr_copyn(char **s,const char* src,unsigned int length)
+char *
+tds_dstr_copyn(char **s, const char *src, unsigned int length)
 {
 	if (*s != tds_str_empty)
 		free(*s);
-	*s = malloc(length+1);
-	if (!*s) return NULL;
-	memcpy(*s,src,length);
+	*s = malloc(length + 1);
+	if (!*s)
+		return NULL;
+	memcpy(*s, src, length);
 	(*s)[length] = 0;
 	return *s;
 }
@@ -93,9 +97,11 @@ char* tds_dstr_copyn(char **s,const char* src,unsigned int length)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-char* tds_dstr_set(char **s,char *src)
+char *
+tds_dstr_set(char **s, char *src)
 {
-	if (*s != tds_str_empty) free(*s);
+	if (*s != tds_str_empty)
+		free(*s);
 	return (*s = (src));
 }
 
@@ -105,7 +111,8 @@ char* tds_dstr_set(char **s,char *src)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-char* tds_dstr_copy(char **s,const char* src)
+char *
+tds_dstr_copy(char **s, const char *src)
 {
 	if (*s != tds_str_empty)
 		free(*s);
