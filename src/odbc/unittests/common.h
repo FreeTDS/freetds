@@ -2,6 +2,9 @@
 #include <sql.h>
 #include <sqlext.h>
 
+static char  rcsid_common_h[] = "$Id: common.h,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_common_h_warn[]={rcsid_common_h, no_unused_common_h_warn};
+
 extern HENV                    Environment; 
 extern HDBC                    Connection; 
 extern HSTMT                   Statement; 

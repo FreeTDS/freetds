@@ -1,3 +1,6 @@
+static char  rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.2 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_freebcp_h_warn[]={rcsid_freebcp_h, no_unused_freebcp_h_warn};
+
 enum states {
 GET_NEXTARG,
 GET_MAXERRORS,

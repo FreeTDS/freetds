@@ -42,6 +42,9 @@
 #include "pool.h"
 #include "tdssrv.h"
 
+static char  software_version[]   = "$Id: user.c,v 1.11 2002-10-19 03:02:35 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 extern int waiters;
 
 void pool_user_init(TDS_POOL *pool)

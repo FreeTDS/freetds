@@ -1,3 +1,24 @@
+Fri Oct 18 22:20:15 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* apps/freebcp.h
+	  apps/tsql.c
+	  dblib/unittests/t0019.c
+	  odbc/unittests/common.c
+	  odbc/unittests/common.h
+	  odbc/unittests/t0001.c
+	  odbc/unittests/t0002.c
+	  odbc/unittests/t0003.c
+	  odbc/unittests/t0004.c
+	  odbc/connectparams.c
+	  odbc/connectparams.h
+	  pool/main.c
+	  pool/member.c
+	  pool/stream.c
+	  pool/user.c
+	  pool/util.c
+	  server/unittest.c
+	  replacements/atoll.c
+	- added cvs $Id: ChangeLog,v 1.431 2002-10-19 03:02:30 jklowden Exp $ string for all above files. (All *.[ch] have one now.)
+	  
 Fri Oct 18 20:25:42 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* include/tdsstring.h src/tds/tdsstring.c:

@@ -22,6 +22,9 @@
 
 #include "common.h"
 
+static char  software_version[]   = "$Id: t0019.c,v 1.7 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 static int failure = 0;
 
 static const char *cur_result = "";

@@ -55,6 +55,9 @@
 #include "tdsconvert.h"
 #include "tdsutil.h"
 
+static char  software_version[]   = "$Id: tsql.c,v 1.36 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 enum {
 	OPT_VERSION   = 0x01,
 	OPT_TIMER     = 0x02,

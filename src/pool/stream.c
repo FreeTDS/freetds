@@ -39,6 +39,9 @@
 #include "pool.h"
 #include "tds.h"
 
+static char  software_version[]   = "$Id: stream.c,v 1.8 2002-10-19 03:02:35 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 struct tmp_col_struct {
         char *column_name;
         struct tmp_col_struct *next;

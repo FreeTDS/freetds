@@ -12,6 +12,9 @@
 
 /* Test for SQLMoreResults */
 
+static char  software_version[]   = "$Id: t0003.c,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 int main( int argc, char * argv[] ) 
 { 
 /* int res; */

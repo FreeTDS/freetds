@@ -31,6 +31,9 @@
 
 #include "pool.h"
 
+static char  software_version[]   = "$Id: util.c,v 1.6 2002-10-19 03:02:35 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 void dump_buf(const void *buf,int length)  
 {
    int                   i;

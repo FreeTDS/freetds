@@ -10,6 +10,9 @@
 
 #include "common.h"
 
+static char  software_version[]   = "$Id: common.c,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 HENV                    Environment; 
 HDBC                    Connection; 
 HSTMT                   Statement; 

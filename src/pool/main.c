@@ -49,6 +49,9 @@
 #include "pool.h"
 #include "tdsutil.h"
 
+static char  software_version[]   = "$Id: main.c,v 1.11 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 /* this will go away...starting with just 1 global pool */
 TDS_POOL *g_pool = NULL;
 /* to be set by sig term */

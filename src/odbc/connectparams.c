@@ -49,6 +49,9 @@
 #define max_line 256
 static char line[max_line];
 
+static char  software_version[]   = "$Id: connectparams.c,v 1.16 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 /*****************************
  * tdoGetIniFileName
  *

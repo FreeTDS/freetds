@@ -46,6 +46,9 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
+static char  software_version[]   = "$Id: member.c,v 1.15 2002-10-19 03:02:35 jklowden Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
 static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
 static void pool_free_member(TDS_POOL_MEMBER *pmbr);
 

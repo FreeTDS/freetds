@@ -26,6 +26,9 @@
     #endif
 #endif
 
+static char  rcsid_connectparams_h[] = "$Id: connectparams.h,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
+static void *no_unused_connectparams_h_warn[]={rcsid_connectparams_h, no_unused_connectparams_h_warn};
+
 /*****************************
  * tdoParseConnectString
  *
