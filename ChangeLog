@@ -1,3 +1,8 @@
+Thu Sep 12 15:59:01 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/apps/tsql.c:
+	- fix tsql so it will exit on EOF instead of hanging.
+	- Problem reported by Leon Brooks <leon@cclinic.com.au> ... thanks!
+
 Thu Sep 12 15:17:01 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/tds_layer.txt include/tds.h.in src/apps/tsql.c src/ctlib/ct.c
 	  src/dblib/dblib.c src/dblib/unittests/common.c src/odbc/odbc.c

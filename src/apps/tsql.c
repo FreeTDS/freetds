@@ -26,13 +26,16 @@
 #include "tdsconvert.h"
 
 #ifndef HAVE_READLINE
-char *readline(char *prompt)
+char *
+readline(char *prompt)
 {
 char *buf, line[1000];
 int i = 0;
 
 	printf("%s",prompt);
-	fgets(line,1000,stdin);
+	if (fgets(line, 1000, stdin) == NULL) {
+		return NULL;
+	}
 	for (i=strlen(line);i>0;i--) {
 		if (line[i]=='\n') {
 			line[i]='\0';
@@ -279,7 +282,7 @@ TDSCONTEXT *context;
 
 	sprintf(prompt,"1> ");
 	s=readline(prompt);
-	if (!strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
+	if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 		done = 1;
 	}
 	while (!done) {
@@ -303,7 +306,7 @@ TDSCONTEXT *context;
 		sprintf(prompt,"%d> ",++line);
 		free(s);
 		s=readline(prompt);
-		if (!strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
+		if (!s || !strcmp(s,"exit") || !strcmp(s,"quit") || !strcmp(s,"bye")) {
 			done = 1;
 		}
 	}
