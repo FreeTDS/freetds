@@ -1,6 +1,6 @@
 include_HEADERS = connectparams.h odbc_util.h convert_tds2sql.h prepare_query.h convert_sql2string.h
 TDSDIR		=	../tds
-TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c locale.c
+TDSOBJECTS	=	$(TDSDIR)/mem.lo $(TDSDIR)/token.lo $(TDSDIR)/util.lo $(TDSDIR)/login.lo $(TDSDIR)/read.lo $(TDSDIR)/write.lo $(TDSDIR)/convert.lo $(TDSDIR)/numeric.lo $(TDSDIR)/config.lo $(TDSDIR)/query.lo $(TDSDIR)/iconv.lo $(TDSDIR)/locale.lo
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
@@ -9,9 +9,9 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	prepare_query.h
 EXTRA_DIST = tables.sql
 if UNIXODBC
-libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
+libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lglib -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
 else
-libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) $(NETWORK_LIBS)
+libtdsodbc_la_LIBADD=	$(TDSOBJECTS) -lglib $(NETWORK_LIBS)
 endif
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 

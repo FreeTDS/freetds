@@ -1,10 +1,9 @@
 SUBDIRS		=	unittests
 
 TDSDIR		=	../tds
-TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c locale.c
+TDSOBJECTS	=	$(TDSDIR)/mem.lo $(TDSDIR)/token.lo $(TDSDIR)/util.lo $(TDSDIR)/login.lo $(TDSDIR)/read.lo $(TDSDIR)/write.lo $(TDSDIR)/convert.lo $(TDSDIR)/numeric.lo $(TDSDIR)/config.lo $(TDSDIR)/query.lo $(TDSDIR)/iconv.lo $(TDSDIR)/locale.lo
 lib_LTLIBRARIES	=	libsybdb.la
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c
 libsybdb_la_LDFLAGS=	-version-info 1 0 0
-libsybdb_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, \
-				$(patsubst %.c, %.lo, $(TDSSOURCES)))
+libsybdb_la_LIBADD=	$(TDSOBJECTS)
 INCLUDES	=	-I$(top_srcdir)/include

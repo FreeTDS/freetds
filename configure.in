@@ -106,21 +106,6 @@ dnl ------------------------------------------------------------
 AC_C_BIGENDIAN
 
 dnl ------------------------------------------------------------
-dnl Checks for gmake
-dnl ------------------------------------------------------------
-AC_MSG_CHECKING(whether make is GNU Make)
-STRIP_BEGIN=
-STRIP_END=
-if $ac_make --version 2>/dev/null | grep '^GNU Make ' >/dev/null ; then
-     STRIP_BEGIN='$(strip $(STRIP_DUMMY)'
-     STRIP_END=')'
-     AC_MSG_RESULT(yes)
-else
-     AC_MSG_RESULT(no)
-	AC_MSG_ERROR([*** gmake is required to build FreeTDS.])
-fi
-
-dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
 
