@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.33 2002-12-06 16:55:43 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.34 2002-12-10 17:01:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -230,7 +230,7 @@ unsigned char bytes[4];
  * @return buffer of character
  */
 char *
-tds_get_string(TDSSOCKET * tds, void *dest, int need)
+tds_get_string(TDSSOCKET * tds, char *dest, int need)
 {
 	char temp[256];
 	char *p;
@@ -271,7 +271,7 @@ tds_get_string(TDSSOCKET * tds, void *dest, int need)
  * bounds checking for us since they know how many bytes they want here.
  * dest of NULL means we just want to eat the bytes.   (tetherow@nol.org)
  */
-char *
+void *
 tds_get_n(TDSSOCKET * tds, void *dest, int need)
 {
 	int pos, have;

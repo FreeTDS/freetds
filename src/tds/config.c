@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.61 2002-11-29 14:03:07 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.62 2002-12-10 17:00:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -263,7 +263,7 @@ tds_read_conf_file(TDSCONNECTINFO * connect_info, const char *server)
 static int
 tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTINFO * connect_info)
 {
-	unsigned char *section;
+	char *section;
 	int i, found = 0;
 
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connect_info);
@@ -302,8 +302,8 @@ int
 tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *param)
 {
 	char line[256], option[256], value[256];
-	unsigned char *s;
-	unsigned char p;
+	char *s;
+	char p;
 	int i;
 	int insection = 0;
 	int found = 0;
@@ -780,7 +780,7 @@ search_interface_file(const char *dir,	/* (I) Name of base directory for interfa
 		      char *tds_ver)
 {				/* (O) Protocol version to use when connecting   */
 	char *pathname;
-	unsigned char line[255];
+	char line[255];
 	char tmp_ip[sizeof(line)];
 	char tmp_port[sizeof(line)];
 	char tmp_ver[sizeof(line)];

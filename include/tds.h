@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.68 2002-12-09 22:27:25 jklowden Exp $";
+	"$Id: tds.h,v 1.69 2002-12-10 17:00:22 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -676,7 +676,7 @@ void tds_free_all_results(TDSSOCKET *tds);
 void tds_free_results(TDSRESULTINFO *res_info);
 void tds_free_param_results(TDSPARAMINFO *param_info);
 void tds_free_msg(TDSMSGINFO *msg_info);
-int tds_put_n(TDSSOCKET *tds, const unsigned char *buf, int n);
+int tds_put_n(TDSSOCKET *tds, const void *buf, int n);
 int tds_put_string(TDSSOCKET *tds, const char *buf,int len);
 int tds_put_int(TDSSOCKET *tds, TDS_INT i);
 int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si);
@@ -699,8 +699,8 @@ void tds_lookup_host(const char *servername, const char *portname, char *ip, cha
 int tds_set_interfaces_file_loc(char *interfloc);
 
 TDSLOCINFO *tds_get_locale(void);
-void *tds_alloc_row(TDSRESULTINFO *res_info);
-void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
+unsigned char *tds_alloc_row(TDSRESULTINFO *res_info);
+unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
 char *tds_alloc_get_string(TDSSOCKET *tds, int len);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
@@ -739,7 +739,7 @@ const char *tds_prtype(int token);
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
 void tds_iconv_close(TDSSOCKET *tds);
-unsigned char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
+char *tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen);
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len);
  
 /* threadsafe.c */
@@ -759,7 +759,7 @@ void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp);
 unsigned char *tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam);
 
 /* login.c */
-int tds7_send_auth(TDSSOCKET *tds, const char *challenge);
+int tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge);
 
 /* query.c */
 int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out);
@@ -792,8 +792,8 @@ void tds_unget_byte(TDSSOCKET *tds);
 unsigned char tds_peek(TDSSOCKET *tds);
 TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
 TDS_INT tds_get_int(TDSSOCKET *tds);
-char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
-char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
+char *tds_get_string(TDSSOCKET *tds, char *dest, int n);
+void *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
 int tds_read_packet (TDSSOCKET *tds);
 
@@ -828,7 +828,7 @@ typedef struct tds_answer
 	unsigned char lm_resp[24];
 	unsigned char nt_resp[24];
 } TDSANSWER;
-void tds_answer_challenge(const char *passwd, const char *challenge,TDSANSWER* answer);
+void tds_answer_challenge(const char *passwd, const unsigned char *challenge,TDSANSWER* answer);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

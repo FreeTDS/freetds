@@ -1,3 +1,11 @@
+Tue Dec 10 17:58:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/challenge.c src/tds/config.c:
+	* src/tds/convert.c src/tds/iconv.c src/tds/locale.c:
+	* src/tds/login.c src/tds/mem.c src/tds/read.c:
+	* src/tds/tdsstring.c src/tds/token.c src/tds/util.c:
+	* src/tds/vstrbuild.c src/tds/write.c:
+	- cleanup removing errors compiling with a C++ compiler
+
 Mon Dec  9 22:15:17 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* TODO minor update
 	* configure.in added test for libgen.h

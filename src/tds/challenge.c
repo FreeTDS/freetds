@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: challenge.c,v 1.17 2002-11-14 20:06:14 freddy77 Exp $";
+static char software_version[] = "$Id: challenge.c,v 1.18 2002-12-10 17:00:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -62,7 +62,7 @@ static void tds_convert_key(unsigned char *key_56, DES_KEY * ks);
  * @param answer buffer where to store crypted password
  */
 void
-tds_answer_challenge(const char *passwd, const char *challenge, TDSANSWER * answer)
+tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDSANSWER * answer)
 {
 #define MAX_PW_SZ 14
 	int len;

@@ -51,6 +51,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif /* HAVE_STRINGS_H */
+
 #include "tds.h"
 #include "tdsconvert.h"
 #include "replacements.h"
@@ -58,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.106 2002-12-06 16:54:45 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.107 2002-12-10 17:00:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -175,7 +179,7 @@ string_to_result(const char* s,CONV_RESULT* cr)
 {
 int len = strlen(s);
 
-	cr->c = malloc(len + 1);
+	cr->c = (TDS_CHAR *) malloc(len + 1);
 	test_alloc(cr->c);
 	memcpy(cr->c, s, len + 1);
 	return len;
@@ -187,7 +191,7 @@ int len = strlen(s);
 static TDS_INT
 binary_to_result(const void* data,size_t len,CONV_RESULT* cr)
 {
-	cr->ib = malloc(len);
+	cr->ib = (TDS_CHAR *) malloc(len);
 	test_alloc(cr->ib);
 	memcpy(cr->ib, data, len);
 	return len;
@@ -226,7 +230,7 @@ char hex2[3];
 
          /* 2 * source length + 1 for terminator */
 
-         cr->c = malloc((srclen * 2) + 1);
+         cr->c = (TDS_CHAR *) malloc((srclen * 2) + 1);
 		test_alloc(cr->c);
 
          c = cr->c;
@@ -256,7 +260,7 @@ char hex2[3];
 		cplen = tds_get_size_by_type(desttype);
 		if (cplen <= srclen)
 			return binary_to_result(src, cplen, cr);
-		cr->ib = malloc(cplen);
+		cr->ib = (TDS_CHAR *) malloc(cplen);
 		test_alloc(cr->ib);
 		memcpy(cr->ib, src, srclen);
 		memset(cr->ib+srclen, 0, cplen-srclen);
@@ -302,7 +306,7 @@ TDS_INT rc;
       case SYBCHAR:
       case SYBVARCHAR:
       case SYBTEXT:
-		 cr->c = malloc(srclen + 1);
+		 cr->c = (TDS_CHAR *) malloc(srclen + 1);
 		test_alloc(cr->c);
 		 memcpy(cr->c, src, srclen);
 		 cr->c[srclen] = 0;
@@ -333,7 +337,7 @@ TDS_INT rc;
 	if (srclen & 1) {
 		++srclen; j = 1; --src;
 	}
-        cr->ib = malloc(srclen / 2);
+        cr->ib = (TDS_CHAR *) malloc(srclen / 2);
 	test_alloc(cr->ib);
 
 #if 0
@@ -578,7 +582,7 @@ tds_convert_bit(int srctype, const TDS_CHAR *src,
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
-			cr->c = malloc(2);
+			cr->c = (TDS_CHAR *) malloc(2);
 			test_alloc(cr->c);
 			cr->c[0] = '0' + canonic;
 			cr->c[1] = 0;
@@ -1248,7 +1252,7 @@ TDSDATEREC when;
 		case SYBVARCHAR:
 		case SYBTEXT:
 			if (!src) {
-				cr->c = malloc(1);
+				cr->c = (TDS_CHAR *) malloc(1);
 				test_alloc(cr->c);
 				*(cr->c) = '\0';
                 return 0;
@@ -1329,7 +1333,7 @@ TDSDATEREC when;
 		case SYBVARCHAR:
 		case SYBTEXT:
 			if (!src) {
-				cr->c = malloc(1);
+				cr->c = (TDS_CHAR *) malloc(1);
 				test_alloc(cr->c);
 				*(cr->c) = '\0';
                 return 0;
@@ -1565,7 +1569,7 @@ tds_convert_unique(int srctype, const TDS_CHAR *src, TDS_INT srclen,
    is portable */
 
 const TDS_UNIQUE *u = (const TDS_UNIQUE *) src;
-TDS_UCHAR buf[37];
+char buf[37];
 
 	switch(desttype) {
    	   case SYBCHAR:
@@ -2575,7 +2579,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *dr
     tm.tm_isdst = 0;
 
     /* NOTE 2 in intentional. one more character is required because we replace %z with 3 digits */
-    our_format = malloc( strlen(format) + 2 );
+    our_format = (char*) malloc( strlen(format) + 2 );
     if( !our_format ) return 0;
     strcpy( our_format, format );
 

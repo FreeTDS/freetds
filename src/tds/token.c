@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.124 2002-12-07 13:32:28 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.125 2002-12-10 17:01:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -298,7 +298,7 @@ static int
 tds_process_auth(TDSSOCKET * tds)
 {
 int pdu_size;
-char nonce[8];
+unsigned char nonce[8];
 
 /* char domain[30]; */
 int where = 0;
@@ -963,7 +963,7 @@ int colnamelen;
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	tds_set_column_type(curcol, tds_get_byte(tds)); 	/* sets "cardinal" type */
+	tds_set_column_type(curcol, tds_get_byte(tds));	/* sets "cardinal" type */
 
 	switch (curcol->column_varint_size) {
 	case 4:
@@ -985,10 +985,11 @@ int colnamelen;
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save)) 	/* based on true type as sent by server */
+	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save))
+		/* based on true type as sent by server */
 		/* first 2 bytes are windows code (such as 0x409 for english)
-		 * other 2 bytes ???
-		 * last bytes is id in syscharsets */
+		 * * other 2 bytes ???
+		 * * last bytes is id in syscharsets */
 		tds_get_n(tds, curcol->column_collation, 5);
 
 	if (is_blob_type(curcol->column_type)) {
@@ -1003,8 +1004,10 @@ int colnamelen;
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-        tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: \n\ttype = %d (%s)\n\tcolumn_varint_size = %d\n\tcolname = %s\n\tcolnamelen = %d\n", 
-		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, curcol->column_name, curcol->column_namelen);
+	tdsdump_log(TDS_DBG_INFO1,
+		    "%L tds7_get_data_info:%d: \n\ttype = %d (%s)\n\tcolumn_varint_size = %d\n\tcolname = %s\n\tcolnamelen = %d\n",
+		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, curcol->column_name,
+		    curcol->column_namelen);
 
 	return TDS_SUCCEED;
 }
@@ -1284,9 +1287,9 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		if (curcol->column_unicodedata)
 			colsize /= 2;
 		if (blob_info->textvalue == NULL) {
-			blob_info->textvalue = malloc(colsize);
+			blob_info->textvalue = (TDS_CHAR *) malloc(colsize);
 		} else {
-			blob_info->textvalue = realloc(blob_info->textvalue, colsize);
+			blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, colsize);
 		}
 		if (blob_info->textvalue == NULL) {
 			return TDS_FAIL;
@@ -1304,7 +1307,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			/* server is going to crash freetds ?? */
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
-			tds_get_string(tds, dest, colsize);
+			tds_get_string(tds, (char *) dest, colsize);
 		} else {
 			/* server is going to crash freetds ?? */
 			if (colsize > curcol->column_size)
@@ -1502,7 +1505,7 @@ unsigned char *new_out_buf;
 	type = tds_get_byte(tds);
 
 	/* handle collate default change (if you change db or during login) 
-	   this environment is not a string so need different handles */
+	 * this environment is not a string so need different handles */
 	if (type == TDS_ENV_COLLATION) {
 		/* save new collation */
 		size = tds_get_byte(tds);
@@ -1976,11 +1979,11 @@ struct namelist *freeptr = NULL;
 		namelen = tds_get_byte(tds);
 		remainder--;
 		if (topptr == (struct namelist *) NULL) {
-			topptr = malloc(sizeof(struct namelist));
+			topptr = (struct namelist *) malloc(sizeof(struct namelist));
 			curptr = topptr;
 			curptr->nextptr = NULL;
 		} else {
-			curptr->nextptr = malloc(sizeof(struct namelist));
+			curptr->nextptr = (struct namelist *) malloc(sizeof(struct namelist));
 			curptr = curptr->nextptr;
 			curptr->nextptr = NULL;
 		}

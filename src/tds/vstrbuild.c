@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.10 2002-11-20 13:30:15 freddy77 Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.11 2002-12-10 17:02:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct string_linked_list
@@ -59,7 +59,7 @@ norm_fmt(const char *fmt, int fmtlen)
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
 	}
-	if ((newfmt = malloc(fmtlen + 1)) == NULL) {
+	if ((newfmt = (char *) malloc(fmtlen + 1)) == NULL) {
 		return TDS_FAIL;
 	}
 	for (cp = newfmt; fmtlen > 0; fmtlen--, fmt++) {
@@ -114,7 +114,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen,
 	}
 	free(newformat);
 	for (token = strtok_r(params, sep, &lasts); token != NULL; token = strtok_r(NULL, sep, &lasts)) {
-		if ((*tail = malloc(sizeof(struct string_linked_list))) == NULL) {
+		if ((*tail = (struct string_linked_list *) malloc(sizeof(struct string_linked_list))) == NULL) {
 			goto out;
 		}
 		(*tail)->str = token;
@@ -122,7 +122,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen,
 		tail = &((*tail)->next);
 		tokcount++;
 	}
-	if ((string_array = malloc((tokcount + 1) * sizeof(char *))) == NULL) {
+	if ((string_array = (char **) malloc((tokcount + 1) * sizeof(char *))) == NULL) {
 		goto out;
 	}
 	for (item = head, i = 0; i < tokcount; item = item->next, i++) {

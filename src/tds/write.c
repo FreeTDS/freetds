@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.30 2002-12-06 16:56:14 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.31 2002-12-10 17:02:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -74,10 +74,10 @@ static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
  *		much like read() and memcpy()
  */
 int
-tds_put_n(TDSSOCKET * tds, const unsigned char *buf, int n)
+tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 {
 	int i;
-	const unsigned char *bufp = buf;
+	const unsigned char *bufp = (const unsigned char *) buf;
 
 	if (bufp) {
 		for (i = 0; i < n; i++)
@@ -244,7 +244,7 @@ static int
 goodwrite(TDSSOCKET * tds)
 {
 int left;
-char *p;
+unsigned char *p;
 int result = TDS_SUCCEED;
 int retval;
 
@@ -279,6 +279,7 @@ static int
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int retcode;
+
 #ifndef WIN32
 	void (*oldsig) (int);
 #endif

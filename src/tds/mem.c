@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.55 2002-12-02 13:39:13 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.56 2002-12-10 17:01:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -233,9 +233,9 @@ unsigned char *row;
 
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
-		row = realloc(info->current_row, row_size);
+		row = (unsigned char*) realloc(info->current_row, row_size);
 	} else {
-		row = (void *)malloc(row_size);
+		row = (unsigned char*) malloc(row_size);
 	}
 	if (!row) return NULL;
 	info->current_row = row;
@@ -356,21 +356,21 @@ Cleanup:
  * Allocate space for row store
  * return NULL on out of memory
  */
-void *tds_alloc_row(TDSRESULTINFO *res_info)
+unsigned char *tds_alloc_row(TDSRESULTINFO *res_info)
 {
-void *ptr;
+unsigned char *ptr;
 
-	ptr = (void *) malloc(res_info->row_size);
+	ptr = (unsigned char *) malloc(res_info->row_size);
 	if (!ptr) return NULL;
 	memset(ptr,'\0',res_info->row_size); 
 	return ptr;
 }
 
-void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info)
+unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info)
 {
-void *ptr;
+unsigned char *ptr;
 
-	ptr = (void *) malloc(res_info->row_size);
+	ptr = (unsigned char *) malloc(res_info->row_size);
 	if (!ptr) return NULL;
 	memset(ptr,'\0',res_info->row_size); 
 	return ptr;

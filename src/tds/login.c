@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.72 2002-12-10 05:39:37 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.73 2002-12-10 17:01:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -519,7 +519,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 
 int
-tds7_send_auth(TDSSOCKET * tds, const char *challenge)
+tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 {
 	int current_pos;
 	TDSANSWER answer;
@@ -647,7 +647,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	unsigned char hwaddr[6];
 
 	/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
-	unsigned char unicode_string[256];
+	char unicode_string[256];
 	int packet_size;
 	int current_pos;
 	static const unsigned char ntlm_id[] = "NTLMSSP";
@@ -763,7 +763,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	if (!domain_login) {
 		tds_put_string(tds, connect_info->user_name, user_name_len);
 		tds7_ascii2unicode(tds, connect_info->password, unicode_string, 256);
-		tds7_crypt_pass(unicode_string, password_len * 2, unicode_string);
+		tds7_crypt_pass((unsigned char *) unicode_string, password_len * 2, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len * 2);
 	}
 	tds_put_string(tds, connect_info->app_name, app_name_len);

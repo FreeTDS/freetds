@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.32 2002-11-24 12:01:16 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.33 2002-12-10 17:01:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -127,7 +127,7 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int
 		return NULL;
 
 #if HAVE_ICONV
-	iconv_info = tds->iconv_info;
+	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 	if (iconv_info->use_iconv) {
 		out_bytes = len;
 		in_bytes = len * 2;
@@ -179,7 +179,7 @@ tds7_unicode2ascii(TDSSOCKET * tds, const char *in_string, char *out_string, int
  * @param out_string buffer to store translated string
  * @param maxlen length of out_string buffer in bytes
  */
-unsigned char *
+char *
 tds7_ascii2unicode(TDSSOCKET * tds, const char *in_string, char *out_string, int maxlen)
 {
 	register int out_pos = 0;
@@ -198,7 +198,7 @@ tds7_ascii2unicode(TDSSOCKET * tds, const char *in_string, char *out_string, int
 	string_length = strlen(in_string);
 
 #if HAVE_ICONV
-	iconv_info = tds->iconv_info;
+	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 	if (iconv_info->use_iconv) {
 		out_bytes = maxlen;
 		in_bytes = string_length;

@@ -36,7 +36,7 @@
 
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.5 2002-11-14 20:06:15 freddy77 Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.6 2002-12-10 17:01:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -81,7 +81,7 @@ tds_dstr_copyn(char **s, const char *src, unsigned int length)
 {
 	if (*s != tds_str_empty)
 		free(*s);
-	*s = malloc(length + 1);
+	*s = (char *) malloc(length + 1);
 	if (!*s)
 		return NULL;
 	memcpy(*s, src, length);
