@@ -1,3 +1,10 @@
+Tue Mar 11 15:08:18 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h added missing functional prototype
+	* include/dblib.h _bcp_get_term_data new signature
+	* src/dblib/bcp.c handle loading text columns > 4090 bytes
+	* src/dblib/dblib.c cleaned up warnings
+	* src/tds/Makefile.am document source refers to $(srcdir)
+
 Mon Mar 10 15:23:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c:
 	- small syntax change
