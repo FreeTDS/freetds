@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.2 2003-02-06 09:27:21 freddy77 Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.1 2003-02-21 09:42:34 freddy77 Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
