@@ -48,6 +48,7 @@
 
 #include <stdarg.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "tds.h"
 #include "tdsodbc.h"
@@ -65,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.167 2003-05-18 18:05:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.168 2003-05-19 09:25:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1124,7 +1125,7 @@ _SQLExecute(TDS_STMT * stmt)
 		char *end = stmt->query, tmp;
 
 		if (*end == '[')
-			end = tds_skip_quoted(end);
+			end = (char *) tds_skip_quoted(end);
 		else
 			while (!isspace(*++end));
 		tmp = *end;
@@ -1299,7 +1300,7 @@ SQLExecute(SQLHSTMT hstmt)
 			char *end = stmt->prepared_query, tmp;
 
 			if (*end == '[')
-				end = tds_skip_quoted(end);
+				end = (char *) tds_skip_quoted(end);
 			else
 				while (!isspace(*++end));
 			tmp = *end;

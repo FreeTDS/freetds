@@ -1,3 +1,6 @@
+Mon May 19 11:26:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/locale.c: cleanup
+
 Sun May 18 20:05:25 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: continue RPC work
 
