@@ -1,3 +1,8 @@
+Mon Dec 29 14:56:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/images/important.gif(added) doc/images/tip.gif(added):
+	* doc/images/note.gif(added):
+	- added images for userguide
+
 Sun Dec 28 18:53:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c src/tds/token.c: comment updates
 	* src/tds/query.c: fix possible buffer read overflow
