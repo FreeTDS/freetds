@@ -1,3 +1,9 @@
+Sat Mar 06 14:11:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: removed old TODO
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/transaction.c:
+	- improve test to test SQLRowCount
+
 Sat Mar 06 12:05:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fixed link problem on some platform

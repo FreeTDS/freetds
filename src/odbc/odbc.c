@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.303 2004-03-06 10:58:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.304 2004-03-06 13:03:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3125,7 +3125,6 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 	ODBC_RETURN(stmt, rc);
 }
 
-/* TODO join all this similar function... */
 /*
  * spinellia@acm.org : copied shamelessly from change_database
  * transaction support

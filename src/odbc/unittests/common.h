@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.13 2004-02-23 16:13:53 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.14 2004-03-06 13:03:43 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern HENV Environment;
@@ -37,6 +37,9 @@ extern char DRIVER[1024];
 
 int read_login_info(void);
 void CheckReturn(void);
+void ReportError(const char *msg, int line, const char *file);
+
+#define ODBC_REPORT_ERROR(msg) ReportError(msg, __LINE__, __FILE__)
 int Connect(void);
 int Disconnect(void);
 void Command(HSTMT stmt, const char *command);

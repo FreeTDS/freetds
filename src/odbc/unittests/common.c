@@ -6,7 +6,7 @@
 
 #include <ctype.h>
 
-static char software_version[] = "$Id: common.c,v 1.28 2004-02-23 19:18:38 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.29 2004-03-06 13:03:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -109,7 +109,7 @@ read_login_info(void)
 }
 
 void
-CheckReturn(void)
+ReportError(const char *errmsg, int line, const char *file)
 {
 	SQLSMALLINT handletype;
 	SQLHANDLE handle;
@@ -128,10 +128,22 @@ CheckReturn(void)
 		handletype = SQL_HANDLE_ENV;
 		handle = Environment;
 	}
+	if (errmsg[0]) {
+		if (line)
+			printf("%s:%d %s\n", file, line, errmsg);
+		else
+			printf("%s\n", errmsg);
+	}
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
 	exit(1);
+}
+
+void
+CheckReturn(void)
+{
+	ReportError("", 0, "");
 }
 
 int
