@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.6 2005-01-13 08:39:26 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.7 2005-01-14 15:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -89,6 +89,10 @@ main(int argc, char *argv[])
 	Command(Statement, "insert into #tmp1 values('pluto', 3)");
 
 
+	/* 
+	 * TODO skip rows/column on compute (compute.c)
+	 * TODO check rows/column after moreresults after compute
+	 */
 
 
 	/* select * from #tmp1 compute sum(i) */

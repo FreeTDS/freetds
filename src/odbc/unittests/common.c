@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.34 2005-01-13 08:39:26 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.35 2005-01-14 15:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -286,3 +286,46 @@ driver_is_freetds(void)
 	}
 	return freetds_driver;
 }
+
+void
+CheckCols(int n, int line, const char * file)
+{
+	SQLSMALLINT cols;
+	SQLRETURN res;
+
+	res = SQLNumResultCols(Statement, &cols);
+	if (res != SQL_SUCCESS) {
+		if (res == SQL_ERROR && n < 0)
+			return;
+		fprintf(stderr, "%s:%d: Unable to get column numbers\n", file, line);
+		CheckReturn();
+		exit(1);
+	}
+
+	if (cols != n) {
+		fprintf(stderr, "%s:%d: Expected %d columns returned %d\n", file, line, n, (int) cols);
+		exit(1);
+	}
+}
+
+void
+CheckRows(int n, int line, const char * file)
+{
+	SQLLEN rows;
+	SQLRETURN res;
+
+	res = SQLRowCount(Statement, &rows);
+	if (res != SQL_SUCCESS) {
+		if (res == SQL_ERROR && n < -1)
+			return;
+		fprintf(stderr, "%s:%d: Unable to get row\n", file, line);
+		CheckReturn();
+		exit(1);
+	}
+
+	if (rows != n) {
+		fprintf(stderr, "%s:%d: Expected %d rows returned %d\n", file, line, n, (int) rows);
+		exit(1);
+	}
+}
+

@@ -7,11 +7,11 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.1 2004-07-30 14:22:08 freddy77 Exp $";
+static char software_version[] = "$Id: rownumber.c,v 1.2 2005-01-14 15:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
-CheckRows(int n, int line)
+CheckRowNum(int n, int line)
 {
 	SQLRETURN res;
 	SQLUINTEGER value;
@@ -28,7 +28,8 @@ CheckRows(int n, int line)
 	}
 }
 
-#define CHECK_ROWS(n) CheckRows(n,__LINE__)
+#undef CHECK_ROWS
+#define CHECK_ROWS(n) CheckRowNum(n,__LINE__)
 
 static void
 NextResults(SQLRETURN expected)

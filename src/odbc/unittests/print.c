@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.11 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.12 2005-01-14 15:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -20,19 +20,50 @@ int
 main(int argc, char *argv[])
 {
 	SQLLEN cnamesize;
+	const char *query;
+	SQLRETURN rc;
 
 	Connect();
 
 	/* issue print statement and test message returned */
-	if (CommandWithResult(Statement, "print 'Test message'") != SQL_SUCCESS_WITH_INFO) {
+	output[0] = 0;
+	query = "print 'START' select count(*) from sysobjects where name='sysobjects' print 'END'";
+	if (CommandWithResult(Statement, query) != SQL_SUCCESS_WITH_INFO) {
 		printf("SQLExecDirect should return SQL_SUCCESS_WITH_INFO\n");
 		return 1;
 	}
 	ReadError();
-	if (!strstr((char *) output, "Test message")) {
+	if (!strstr((char *) output, "START")) {
 		printf("Message invalid\n");
 		return 1;
 	}
+	output[0] = 0;
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
+
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLFetch no succeeded");
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Still data?");
+	CHECK_COLS(1);
+	CHECK_ROWS(1);
+
+	/* SQLMoreResults return NO DATA ... */
+	rc = SQLMoreResults(Statement);
+	if (rc != SQL_NO_DATA && rc != SQL_SUCCESS_WITH_INFO)
+		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+
+	/* ... but read error */
+	ReadError();
+	if (!strstr((char *) output, "END")) {
+		printf("Message invalid\n");
+		return 1;
+	}
+	output[0] = 0;
+	CHECK_COLS(-1);
+	CHECK_ROWS(-2);
 
 	/* issue invalid command and test error */
 	if (CommandWithResult(Statement, "SELECT donotexistsfield FROM donotexiststable") != SQL_ERROR) {

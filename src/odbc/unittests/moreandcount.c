@@ -2,50 +2,8 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.10 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.11 2005-01-14 15:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static void
-CheckCols(int n)
-{
-	SQLSMALLINT cols;
-	SQLRETURN res;
-
-	res = SQLNumResultCols(Statement, &cols);
-	if (res != SQL_SUCCESS) {
-		if (res == SQL_ERROR && n < 0)
-			return;
-		fprintf(stderr, "Unable to get column numbers\n");
-		CheckReturn();
-		exit(1);
-	}
-
-	if (cols != n) {
-		fprintf(stderr, "Expected %d columns returned %d\n", n, (int) cols);
-		exit(1);
-	}
-}
-
-static void
-CheckRows(int n)
-{
-	SQLLEN rows;
-	SQLRETURN res;
-
-	res = SQLRowCount(Statement, &rows);
-	if (res != SQL_SUCCESS) {
-		if (res == SQL_ERROR && n < -1)
-			return;
-		fprintf(stderr, "Unable to get row\n");
-		CheckReturn();
-		exit(1);
-	}
-
-	if (rows != n) {
-		fprintf(stderr, "Expected %d rows returned %d\n", n, (int) rows);
-		exit(1);
-	}
-}
 
 static void
 NextResults(SQLRETURN expected)
@@ -100,61 +58,61 @@ DoTest(int prepare)
 	}
 	if (!prepare) {
 		printf("Result %d\n", ++n);
-		CheckCols(0);
-		CheckRows(1);
+		CHECK_COLS(0);
+		CHECK_ROWS(1);
 		NextResults(SQL_SUCCESS);
 	}
 	printf("Result %d\n", ++n);
-	CheckCols(1);
-	CheckRows(-1);
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
 	Fetch(SQL_SUCCESS);
 	Fetch(SQL_SUCCESS);
-	CheckCols(1);
-	CheckRows(-1);
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
 	Fetch(SQL_NO_DATA);
-	CheckCols(1);
-	CheckRows(2);
+	CHECK_COLS(1);
+	CHECK_ROWS(2);
 	NextResults(SQL_SUCCESS);
 	if (!prepare) {
 		printf("Result %d\n", ++n);
-		CheckCols(0);
-		CheckRows(1);
+		CHECK_COLS(0);
+		CHECK_ROWS(1);
 		NextResults(SQL_SUCCESS);
 		printf("Result %d\n", ++n);
-		CheckCols(0);
-		CheckRows(2);
+		CHECK_COLS(0);
+		CHECK_ROWS(2);
 		NextResults(SQL_SUCCESS);
 	}
 	printf("Result %d\n", ++n);
-	CheckCols(1);
-	CheckRows(-1);
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
 	Fetch(SQL_SUCCESS);
-	CheckCols(1);
-	CheckRows(-1);
+	CHECK_COLS(1);
+	CHECK_ROWS(-1);
 	Fetch(SQL_NO_DATA);
-	CheckCols(1);
+	CHECK_COLS(1);
 	if (prepare) {
 		/* MS driver collapse 2 recordset... very bad */
 		if (!driver_is_freetds()) {
-			CheckRows(2);
+			CHECK_ROWS(2);
 		} else {
-			CheckRows(1);
+			CHECK_ROWS(1);
 			NextResults(SQL_SUCCESS);
-			CheckRows(2);
-			CheckCols(0);
+			CHECK_ROWS(2);
+			CHECK_COLS(0);
 		}
 	} else {
-		CheckRows(1);
+		CHECK_ROWS(1);
 		NextResults(SQL_SUCCESS);
-		CheckCols(0);
-		CheckRows(2);
+		CHECK_COLS(0);
+		CHECK_ROWS(2);
 	}
 
 	NextResults(SQL_NO_DATA);
 #ifndef TDS_NO_DM
 	if (!prepare)
-		CheckCols(-1);
-	CheckRows(-2);
+		CHECK_COLS(-1);
+	CHECK_ROWS(-2);
 #endif
 }
 
