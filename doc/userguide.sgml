@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-12-26 16:50:04 $</date>
-		<releaseinfo>$Revision: 1.48 $</releaseinfo>
+		<date>$Date: 2003-01-10 20:23:16 $</date>
+		<releaseinfo>$Revision: 1.49 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -46,9 +46,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
 The document you are reading is version 
-$Revision: 1.48 $
+$Revision: 1.49 $
 , dated 
-$Date: 2002-12-26 16:50:04 $ (CVS control number $Id: userguide.sgml,v 1.48 2002-12-26 16:50:04 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
+$Date: 2003-01-10 20:23:16 $ (CVS control number $Id: userguide.sgml,v 1.49 2003-01-10 20:23:16 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
@@ -1099,7 +1099,7 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>Intel/Windows NT 4.0</entry>
 	<entry>Intel/Linux</entry>
 	<entry>7.0</entry>
-	<entry>2002-12-20</entry>
+	<entry>2003-01-10</entry>
 </row>
 <row>
 	<entry>1</entry>
@@ -1126,7 +1126,7 @@ We asked subscribers to the <productname>FreeTDS</productname> mailing list to t
 	<entry>Intel/Linux</entry>
 	<entry>Intel/Linux</entry>
 	<entry>5.0</entry>
-	<entry>2002-12-20</entry>
+	<entry>2003-01-10</entry>
 </row>
 </tbody>
 </tgroup>

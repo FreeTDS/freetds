@@ -8,11 +8,9 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.28 2003-01-06 21:48:51 freddy77 Exp $
+To Do List	$Id: TODO,v 1.29 2003-01-10 20:23:15 freddy77 Exp $
 ------------
 Broken:
-. Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken
-  (should work now, need testing).
 . tds_connect free tds structure on failure. This cause in some condition
   a pointer to garbage in some library
 
