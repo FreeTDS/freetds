@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.49 2003-08-29 14:20:09 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.50 2003-08-29 15:47:56 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -294,6 +294,7 @@ struct _sql_param_info
 	SQLPOINTER apd_sql_desc_data_ptr;
 	SQLINTEGER apd_sql_desc_octet_length;
 	/* also APD SQL_DESC_INDICATOR_PTR */
+	SQLINTEGER *apd_sql_desc_indicator_ptr;
 	SQLINTEGER *apd_sql_desc_octet_length_ptr;
 	/** this parameter is used if provided param_lenbind is NULL */
 	SQLINTEGER param_inlen;

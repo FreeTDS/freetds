@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.231 2003-08-29 15:07:11 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.232 2003-08-29 15:47:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -831,8 +831,9 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	if (cur->apd_sql_desc_type == SQL_C_CHAR)
 		cur->apd_sql_desc_octet_length = cbValueMax;
 	if (!pcbValue) {
-		/* TODO check when we'll use descriptor... descriptors can be relocated !!! */
+		/* FIXME check when we'll use descriptor... descriptors can be relocated !!! */
 		cur->param_inlen = 0;
+		cur->apd_sql_desc_indicator_ptr = NULL;
 		cur->apd_sql_desc_octet_length_ptr = &cur->param_inlen;
 		/* TODO add XML if defined */
 		if (cur->apd_sql_desc_type == SQL_C_CHAR || cur->apd_sql_desc_type == SQL_C_BINARY) {
@@ -845,6 +846,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 				cur->param_inlen = size;
 		}
 	} else {
+		cur->apd_sql_desc_indicator_ptr = pcbValue;
 		cur->apd_sql_desc_octet_length_ptr = pcbValue;
 	}
 	cur->apd_sql_desc_data_ptr = (char *) rgbValue;

@@ -1,3 +1,8 @@
+Fri Aug 29 17:46:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- added and use sql_desc_indicator_ptr in parameters
+
 Fri Aug 29 17:06:11 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/getdata.c(added):

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.41 2003-08-26 15:50:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.42 2003-08-29 15:47:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -129,6 +129,8 @@ odbc_set_return_status(struct _hstmt *stmt)
 
 			if (TDS_FAIL == len)
 				return /* SQL_ERROR */ ;
+			if (param->apd_sql_desc_indicator_ptr)
+				*param->apd_sql_desc_indicator_ptr = 0;
 			*param->apd_sql_desc_octet_length_ptr = len;
 		}
 	}
@@ -170,7 +172,9 @@ odbc_set_return_params(struct _hstmt *stmt)
 
 		/* null parameter ? */
 		if (tds_get_null(info->current_row, i)) {
-			*param->apd_sql_desc_octet_length_ptr = SQL_NULL_DATA;
+			/* FIXME error if NULL */
+			if (param->apd_sql_desc_indicator_ptr)
+				*param->apd_sql_desc_indicator_ptr = SQL_NULL_DATA;
 			continue;
 		}
 
@@ -183,6 +187,8 @@ odbc_set_return_params(struct _hstmt *stmt)
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
+		if (param->apd_sql_desc_indicator_ptr)
+			*param->apd_sql_desc_indicator_ptr = 0;
 		*param->apd_sql_desc_octet_length_ptr = len;
 	}
 }
