@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.10 2004-05-18 08:08:53 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.11 2004-05-18 15:05:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -95,9 +95,9 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 			for (i = 0; i < blkdesc->bindinfo->num_cols; i++ ) {
 				colinfo = blkdesc->bindinfo->columns[i];
 				colinfo->column_varaddr  = NULL;
-				colinfo->column_bindtype = CS_UNUSED;
-				colinfo->column_bindfmt  = CS_UNUSED;
-				colinfo->column_bindlen  = CS_UNUSED;
+				colinfo->column_bindtype = 0;
+				colinfo->column_bindfmt  = 0;
+				colinfo->column_bindlen  = 0;
 				colinfo->column_nullbind = NULL;
 				colinfo->column_lenbind  = NULL;
 			}
@@ -118,9 +118,9 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 
 		colinfo = blkdesc->bindinfo->columns[item - 1];
 		colinfo->column_varaddr  = NULL;
-		colinfo->column_bindtype = CS_UNUSED;
-		colinfo->column_bindfmt  = CS_UNUSED;
-		colinfo->column_bindlen  = CS_UNUSED;
+		colinfo->column_bindtype = 0;
+		colinfo->column_bindfmt  = 0;
+		colinfo->column_bindlen  = 0;
 		colinfo->column_nullbind = NULL;
 		colinfo->column_lenbind  = NULL;
 
