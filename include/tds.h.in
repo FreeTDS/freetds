@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.63 2002-10-02 14:22:34 castellano Exp $";
+	 "$Id: tds.h.in,v 1.64 2002-10-05 14:49:12 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -449,8 +449,7 @@ typedef struct tds_loc_info {
 typedef struct tds_column_info {
 	TDS_SMALLINT column_type;
 	TDS_SMALLINT column_type_save;
-	/* FIXME should this be INT ?? */
-	TDS_SMALLINT column_usertype;
+	TDS_INT column_usertype;
 	TDS_SMALLINT column_flags;
 	TDS_INT column_size;
 	/** size written in variable (ie: char, text, binary) */

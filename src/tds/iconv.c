@@ -36,6 +36,16 @@
 #include <dmalloc.h>
 #endif
 
+/**
+ * \defgroup conv Conversion
+ * Convert between different charsets
+ */
+
+/**
+ * \addtogroup conv
+ * \@{ 
+ */
+
 void tds_iconv_open(TDSSOCKET *tds, char *charset)
 {
 TDSICONVINFO *iconv_info;
@@ -77,9 +87,11 @@ TDSICONVINFO *iconv_info;
 }
 
 /**
- * tds7_unicode2ascii()
- * Note: The dest buf must be large enough to handle 'len' + 1 bytes.
- * in_string have not to be terminated and len characters (2 byte) long
+ * convert from ucs2 string to ascii.
+ * @param in_string ucs2 string (not terminated) to convert to ascii
+ * @param out_string buffer to store translated string. It should be large enough 
+ *        to handle len + 1 bytes
+ * @param len length of input string in characters (2 byte)
  */
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
 {
@@ -143,8 +155,7 @@ size_t lquest_mark;
 }
 
 /**
- * tds7_ascii2unicode()
- * Convert a string to Unicode
+ * convert a ascii string to ucs2.
  * Note: output string is not terminated
  * @param in_string string to translate, null terminated
  * @param out_string buffer to store translated string
@@ -191,3 +202,4 @@ size_t out_bytes, in_bytes;
 	return out_string;
 }
 
+/** \@} */

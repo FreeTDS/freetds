@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.70 2002-09-30 15:48:44 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.71 2002-10-05 14:49:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -63,10 +63,10 @@ union { void *p; int i; } align_struct;
 #define ALIGN_SIZE sizeof(align_struct)
 
 
-/*
-** tds_process_default_tokens() is a catch all function that is called to
-** process tokens not known to other tds_process_* routines
-*/
+/**
+ * tds_process_default_tokens() is a catch all function that is called to
+ * process tokens not known to other tds_process_* routines
+ */
 int tds_process_default_tokens(TDSSOCKET *tds, int marker)
 {
 int order_len;
@@ -169,12 +169,12 @@ int   cancelled;
    return TDS_SUCCEED;
 }	
 
-/*
-** tds_process_login_tokens() is called after sending the login packet 
-** to the server.  It returns the success or failure of the login 
-** dependent on the protocol version. 4.2 sends an ACK token only when
-** successful, TDS 5.0 sends it always with a success byte within
-*/
+/**
+ * tds_process_login_tokens() is called after sending the login packet 
+ * to the server.  It returns the success or failure of the login 
+ * dependent on the protocol version. 4.2 sends an ACK token only when
+ * successful, TDS 5.0 sends it always with a success byte within
+ */
 int tds_process_login_tokens(TDSSOCKET *tds)
 {
 int succeed=0;
@@ -298,11 +298,11 @@ int where = 0;
 
 	return TDS_SUCCEED;
 }
-/*
-** tds_process_result_tokens() is called after submitting a query with
-** tds_submit_query() and is responsible for calling the routines to
-** populate tds->res_info if appropriate (some query have no result sets)
-*/
+/**
+ * tds_process_result_tokens() is called after submitting a query with
+ * tds_submit_query() and is responsible for calling the routines to
+ * populate tds->res_info if appropriate (some query have no result sets)
+ */
 int tds_process_result_tokens(TDSSOCKET *tds)
 {
 int result=0;
@@ -325,9 +325,9 @@ int rc;
 tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
 
 		switch(marker) {
-      			case TDS_ERR_TOKEN:
-      			case TDS_MSG_TOKEN:
-      			case TDS_EED_TOKEN:
+			case TDS_ERR_TOKEN:
+			case TDS_MSG_TOKEN:
+			case TDS_EED_TOKEN:
 				rc = tds_process_msg(tds,marker);
 				/* don't fail until we get a DONE */
 				if (rc == TDS_ERROR) 
@@ -367,7 +367,7 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
 					tds_unget_byte(tds);
 					return TDS_SUCCEED;
 				}
-      			case TDS_RET_STAT_TOKEN:
+			case TDS_RET_STAT_TOKEN:
 				tds->has_status=1;
 				tds->ret_status=tds_get_int(tds);
 				/* return TDS_SUCCEED; */
@@ -375,7 +375,7 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
 			case TDS5_DYN_TOKEN:
 				tds->cur_dyn_elem = tds_process_dynamic(tds);
 				break;
-      		case TDS5_DYNRES_TOKEN:
+			case TDS5_DYNRES_TOKEN:
 				tds_process_dyn_result(tds);
 				break;
 			case TDS_DONE_TOKEN:
@@ -403,11 +403,11 @@ tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", mark
 	return retcode;
 }
 
-/* 
-** tds_process_row_tokens() is called once a result set has been obtained
-** with tds_process_result_tokens(). It calls tds_process_row() to copy
-** data into the row buffer.
-*/
+/**
+ * tds_process_row_tokens() is called once a result set has been obtained
+ * with tds_process_result_tokens(). It calls tds_process_row() to copy
+ * data into the row buffer.
+ */
 int tds_process_row_tokens(TDSSOCKET *tds)
 {
 int marker;
@@ -420,7 +420,7 @@ int   cancelled;
 
 	while (1) {
 		marker=tds_get_byte(tds);
-        tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x\n", marker);
+		tdsdump_log(TDS_DBG_INFO1, "%L processing row tokens.  marker is  %x\n", marker);
 		switch(marker) {
 			case TDS_RESULT_TOKEN:
 			case TDS7_RESULT_TOKEN:
@@ -446,12 +446,12 @@ int   cancelled;
 	return TDS_SUCCEED;
 }
 
-/* 
-** tds_process_col_name() is one half of the result set under TDS 4.2
-** it contains all the column names, a TDS_COLINFO_TOKEN should 
-** immediately follow this token with the datatype/size information
-** This is a 4.2 only function
-*/
+/**
+ * tds_process_col_name() is one half of the result set under TDS 4.2
+ * it contains all the column names, a TDS_COLINFO_TOKEN should 
+ * immediately follow this token with the datatype/size information
+ * This is a 4.2 only function
+ */
 static int tds_process_col_name(TDSSOCKET *tds)
 {
 int hdrsize, len=0;
@@ -510,12 +510,12 @@ TDSRESULTINFO *info;
 	return TDS_SUCCEED;
 } 
 
-/* 
-** tds_process_col_info() is the other half of result set processing
-** under TDS 4.2. It follows tds_process_col_name(). It contains all the 
-** column type and size information.
-** This is a 4.2 only function
-*/
+/**
+ * tds_process_col_info() is the other half of result set processing
+ * under TDS 4.2. It follows tds_process_col_name(). It contains all the 
+ * column type and size information.
+ * This is a 4.2 only function
+ */
 static int tds_process_col_info(TDSSOCKET *tds)
 {
 int col,hdrsize;
@@ -544,7 +544,7 @@ char ci_flags[4];
 
 		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d, varint_size %d\n", 
-		    curcol->column_type, curcol->column_varint_size);
+		curcol->column_type, curcol->column_varint_size);
 
 		switch(curcol->column_varint_size) {
 			case 4: 
@@ -586,11 +586,11 @@ char ci_flags[4];
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_param_result() processes output parameters of a stored 
-** procedure. This differs from regular row/compute results in that there
-** is no total number of parameters given, they just show up singley.
-*/
+/**
+ * tds_process_param_result() processes output parameters of a stored 
+ * procedure. This differs from regular row/compute results in that there
+ * is no total number of parameters given, they just show up singley.
+ */
 static int tds_process_param_result(TDSSOCKET *tds)
 {
 int hdrsize;
@@ -654,11 +654,11 @@ int marker;
 	tds_unget_byte(tds);
 	return TDS_SUCCEED;
 }
-/*
-** tds_process_compute_result() processes compute result sets.  These functions
-** need work but since they get little use, nobody has complained!
-** It is very similar to normal result sets.
-*/
+/**
+ * tds_process_compute_result() processes compute result sets.  These functions
+ * need work but since they get little use, nobody has complained!
+ * It is very similar to normal result sets.
+ */
 static int tds_process_compute_result(TDSSOCKET *tds)
 {
 int hdrsize;
@@ -682,11 +682,13 @@ int remainder;
 	for (col=0;col<num_cols;col++) 
 	{
 		curcol=info->columns[col];
-		/* user type and some other stuff? */
-		tds_get_n(tds,NULL,6);
+		/* some other stuff? */
+		tds_get_n(tds,NULL,2);
+		curcol->column_usertype = tds_get_int(tds);
 		/* column type */
 		curcol->column_type = tds_get_byte(tds);
 		/* column size */
+		/* FIXME handle different sizes */
 		if (!is_fixed_type(curcol->column_type)) {
 			curcol->column_size = tds_get_byte(tds);
 		} else { 
@@ -697,7 +699,8 @@ int remainder;
 		remainder = info->row_size % ALIGN_SIZE; 
 		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
 
-		tds_get_byte(tds);
+		/* skip locale information */
+		tds_get_n(tds,NULL,tds_get_byte(tds));
 	}
 	tds_get_n(tds,NULL,tds_get_smallint(tds));
 
@@ -842,8 +845,7 @@ int colnamelen;
 	curcol->column_flags = tds_get_byte(tds);     /*  Flags */
 	curcol->column_nullable  = (curcol->column_flags & 0x20) > 1;
 
-	curcol->column_usertype = tds_get_smallint(tds);
-	tds_get_smallint(tds);  /* another unknown */
+	curcol->column_usertype = tds_get_int(tds);
 	curcol->column_type = tds_get_byte(tds);
 
 	curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
@@ -874,11 +876,11 @@ int colnamelen;
 	return TDS_SUCCEED;
 }
 
-/*
-** tds_process_result() is the TDS 5.0 result set processing routine.  It 
-** is responsible for populating the tds->res_info structure.
-** This is a TDS 5.0 only function
-*/
+/**
+ * tds_process_result() is the TDS 5.0 result set processing routine.  It 
+ * is responsible for populating the tds->res_info structure.
+ * This is a TDS 5.0 only function
+ */
 static int tds_process_result(TDSSOCKET *tds)
 {
 int hdrsize;
@@ -986,8 +988,13 @@ int len,colsize;
 			}
 			break;
 		case 2: 
-			/* FIXME add support for empty no-NULL string*/
 			colsize = tds_get_smallint(tds);
+			/* handle empty no-NULL string*/
+			if (colsize == 0) {
+				tds_clr_null(current_row, i);
+				curcol->column_cur_size = 0;
+				return TDS_SUCCEED;
+			}
 			if (colsize == -1)
 				colsize=0;
 			break;
@@ -1084,8 +1091,6 @@ int len,colsize;
 				return TDS_FAIL;
 			tds_get_n(tds,dest,colsize);
 		}
-		/* FIXME correct for unicode ? */
-		dest[colsize]='\0';
 		if (curcol->column_type == SYBDATETIME4) {
 			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}

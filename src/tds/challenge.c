@@ -31,6 +31,10 @@
 
 /**
  * \defgroup auth Authentication
+ * Functions for handling authentication.
+ */
+
+/**
  * \addtogroup auth
  *  \@{ 
  */

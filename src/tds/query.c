@@ -29,7 +29,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.24 2002-10-02 21:00:34 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.25 2002-10-05 14:49:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,6 +37,10 @@ static void *no_unused_var_warn[] = {software_version,
 
 /**
  * \defgroup query Query
+ * Function to handle query.
+ */
+
+/**
  * \addtogroup query
  *  \@{ 
  */
