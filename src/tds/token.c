@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.5 2001-10-30 00:38:24 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.6 2001-11-02 01:22:55 quozl Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -367,9 +367,8 @@ static int tds_process_col_name(TDSSOCKET *tds)
 {
 int hdrsize, len=0;
 int col,num_cols=0;
-int colnamelen;
 struct tmp_col_struct {
-	char *column_name;
+	char *column_name, column_namelen;
 	struct tmp_col_struct *next;
 };
 struct tmp_col_struct *head=NULL, *cur=NULL, *prev;
@@ -390,13 +389,13 @@ TDSRESULTINFO *info;
 		if (prev) prev->next=cur;
 		if (!head) head = cur;
 
-		colnamelen = tds_get_byte(tds);
-		cur->column_name = (char *) malloc(colnamelen+1);
-		tds_get_n(tds,cur->column_name, colnamelen);
-		cur->column_name[colnamelen]='\0';
+		cur->column_namelen = tds_get_byte(tds);
+		cur->column_name = (char *) malloc(cur->column_namelen+1);
+		tds_get_n(tds,cur->column_name, cur->column_namelen);
+		cur->column_name[cur->column_namelen]='\0';
 		cur->next=NULL;
 
-		len += colnamelen + 1;
+		len += cur->column_namelen + 1;
 		num_cols++;
 	}
 
@@ -411,6 +410,7 @@ TDSRESULTINFO *info;
 	for (col=0;col<info->num_cols;col++) 
 	{
 		curcol=info->columns[col];
+		curcol->column_namelen = cur->column_namelen;
 		strncpy(curcol->column_name, cur->column_name, 
 			sizeof(curcol->column_name));
 		prev=cur; cur=cur->next;

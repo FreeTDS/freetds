@@ -1,3 +1,11 @@
+Fri Nov  2 12:03:44 2001  James Cameron  <quozl@us.netrek.org>
+
+	* include/tds.h.in, src/tds/token.c (tds_process_col_name):
+	optimisation to add the column name length in the tds_column_info
+	structure so as to obviate the need for strlen calls higher up.
+	Since the length value is already available, this costs nothing.
+	Derived from a patch by Ruslan R. Laishev <laishev@mail.dls.net>
+
 Wed Oct 31 12:21:57 2001  James Cameron  <quozl@us.netrek.org>
 
 	* src/ctlib/ct.c (ct_results): return CS_END_RESULTS instead of
