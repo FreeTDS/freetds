@@ -62,7 +62,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.60 2003-03-19 17:05:15 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.61 2003-03-20 16:08:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -678,6 +678,7 @@ int rows_written;
 						destlen = -1;
 						break;
 					case SYBDATETIME:
+					case SYBDATETIME4:
 						buflen = 255 + 1;
 						destlen = -1;
 						break;
@@ -703,7 +704,7 @@ int rows_written;
 					tdsdump_log(TDS_DBG_FUNC, "%L buflen is %d\n", buflen);
 					if (bcpcol->data_size > 0) {
 						tds_datecrack(bcpcol->db_type, bcpcol->data, &when);
-						buflen = tds_strftime((char *) outbuf, buflen, "%Y-%m-%d %H:%M:%S.%z", &when);
+						buflen = tds_strftime((char *) outbuf, 256, "%Y-%m-%d %H:%M:%S.%z", &when);
 					}
 				} else {
 					/* 
