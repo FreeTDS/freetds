@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.36 2003-08-07 14:22:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.37 2003-08-12 07:54:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -149,6 +149,11 @@ odbc_set_return_params(struct _hstmt *stmt)
 	int i_begin = stmt->prepared_query_is_func ? 2 : 1;
 	int i;
 	int nparam = i_begin;
+
+	/* I don't understand why but this happen -- freddy77 */
+	/* TODO check why, put an assert ? */
+	if (!info)
+		return;
 
 	for (i = 0; i < info->num_cols; ++i) {
 		struct _sql_param_info *param;
