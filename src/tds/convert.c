@@ -23,7 +23,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.1 2001-10-12 23:29:01 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.2 2001-10-15 01:49:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -478,11 +478,14 @@ TDS_INT tds_convert_money(int srctype,unsigned char *src,
 TDS_INT high;
 TDS_UINT low;
 double dmoney;
+char *s;
 
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-			return (int)tds_money_to_string((TDS_MONEY *)src, dest);
+			/* begin lkrauss 2001-10-13 - fix return to be strlen() */
+			s = tds_money_to_string((TDS_MONEY *)src, dest);
+			return strlen(s);
 			break;
 		case SYBFLT8:
 			/* Used memcpy to avoid alignment/bus errors */
@@ -521,8 +524,14 @@ time_t tmp_secs_from_epoch;
 			}
 			memcpy(&dtdays, src, 4);
 			memcpy(&dttime, src+4, 4);
+			/* begin <lkrauss@wbs-blank.de> 2001-10-13 */
+			if (dtdays==0 && dttime==0) {
+				*dest='\0';
+				return 0;
+			}
+			/* end lkrauss */
 			tmp_secs_from_epoch = ((dtdays - 25567)*24*60*60) + (dttime/300);
-			if (strlen(src)>destlen) {
+			if (destlen<20) {
 				strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
 				(struct tm*)gmtime(&tmp_secs_from_epoch));
 				return destlen;
@@ -563,9 +572,14 @@ TDS_INT tds_convert_datetime4(int srctype,unsigned char *src,int desttype,unsign
 	}
 	memcpy(&days, src, 2);
 	memcpy(&minutes, src+2, 2);
+	if (days==0 && minutes==0) {
+		*dest='\0';
+		return 0;
+	}
 	tdsdump_log(TDS_DBG_INFO1, "%L inside tds_convert_datetime4() days = %d minutes = %d\n", days, minutes);
         tmp_secs_from_epoch = (days - 25567)*(24*60*60) + (minutes*60);
-        if (strlen(src)>destlen) {
+        /* if (strlen(src)>destlen) { */
+	   if (destlen<20) {
            strftime(dest, destlen-1, "%b %d %Y %I:%M%p",
                     (struct tm*)gmtime(&tmp_secs_from_epoch));
            return destlen;

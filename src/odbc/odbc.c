@@ -33,7 +33,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.1 2001-10-12 23:29:15 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.2 2001-10-15 01:49:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -717,6 +717,9 @@ struct _hdbc *dbc;
 					break;
 				case SQL_TINYINT:
 					*pfDesc = 4;
+					break;
+				case SQL_DATETIME:
+					*pfDesc = 19;
 					break;
 			}
 			break;
@@ -1419,6 +1422,12 @@ static SQLSMALLINT _odbc_get_client_type(int srv_type)
          case SYBMONEY4:
 		break;
          case SYBDATETIME:
+		return SQL_DATE;
+		break;
+         case SYBDATETIME4:
+		return SQL_DATE;
+		break;
+         case SYBDATETIMN:
 		return SQL_DATE;
 		break;
 	}

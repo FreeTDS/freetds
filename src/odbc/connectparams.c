@@ -31,7 +31,7 @@
 #define max_line 256
 static char line[max_line];
 
-static guint HashFunction (gconstpointer key);
+static guint HashFunction (const void *key);
 static GString* GetIniFileName ();
 static int FileExists (const gchar* name);
 static int FindSection (FILE* stream, const char* section);
@@ -71,7 +71,8 @@ void FreeConnectParams (ConnectParams* params)
          g_string_free (params->iniFileName, TRUE);
       if (params->table)
       {
-         g_hash_table_foreach_remove (params->table, cleanup, NULL);
+		/* 2001-10-13 lkrauss */
+         /* g_hash_table_foreach_remove (params->table, cleanup, NULL); */
          g_hash_table_destroy (params->table);
       }
    }
@@ -370,7 +371,7 @@ int LoadDSN (
 /*
  * Make a hash from all the characters
  */
-static guint HashFunction (gconstpointer key)
+static guint HashFunction (const void *key)
 {
    guint value = 0;
    const char* s = key;
