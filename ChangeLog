@@ -1,3 +1,7 @@
+Sat Oct 26 20:47:14 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h: updated capabilities constants
+	* src/tds/token.c: update documentation using html commands
+
 Sat Oct 26 14:13:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/tds.dox src/tds/token.c:
 	- add documentation from Bill patch

@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.16 2002-10-23 02:21:17 castellano Exp $";
+         "$Id: cspublic.h,v 1.17 2002-10-26 18:49:15 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -113,12 +113,12 @@ typedef struct cs_command
 #define CS_MAX_NAME 132
 #define CS_MAX_PREC 77  /* used by php */
 #define CS_OBJ_NAME 132 /* ? */
-#define CS_TP_SIZE  16  /* ? */
-#define CS_TS_SIZE  16  /* ? */
+#define CS_TP_SIZE  16  /* text pointer */
+#define CS_TS_SIZE  8   /* length of timestamp */
 #define CS_SQLSTATE_SIZE 8
 
 
-#define CS_SRC_VALUE   -999
+#define CS_SRC_VALUE   -2562
 
 typedef struct cs_datafmt {
 	int datatype;
@@ -207,96 +207,96 @@ typedef struct cs_iodesc {
 } CS_IODESC;
 
 /* CS_CAP_REQUEST values */
-#define CS_CON_INBAND	1
-#define CS_CON_OOB	2
-#define CS_CSR_ABS	3
-#define CS_CSR_FIRST	4
-#define CS_CSR_LAST	5
-#define CS_CSR_MULTI	6
-#define CS_CSR_PREV	7
-#define CS_CSR_REL	8
-#define CS_DATA_BIN	9
-#define CS_DATA_VBIN	10
-#define CS_DATA_LBIN	11
-#define CS_DATA_BIT	12
-#define CS_DATA_BITN	13
-#define CS_DATA_BOUNDARY	14
-#define CS_DATA_CHAR	15
-#define CS_DATA_VCHAR	16
-#define CS_DATA_LCHAR	17
-#define CS_DATA_DATE4	18
-#define CS_DATA_DATE8	19
-#define CS_DATA_DATETIMEN	20
-#define CS_DATA_DEC	21
+#define CS_REQ_LANG	1
+#define CS_REQ_RPC	2
+#define CS_REQ_NOTIF	3
+#define CS_REQ_MSTMT	4
+#define CS_REQ_BCP	5
+#define CS_REQ_CURSOR	6
+#define CS_REQ_DYN	7
+#define CS_REQ_MSG	8
+#define CS_REQ_PARAM	9
+#define CS_DATA_INT1	10
+#define CS_DATA_INT2	11
+#define CS_DATA_INT4	12
+#define CS_DATA_BIT	13
+#define CS_DATA_CHAR	14
+#define CS_DATA_VCHAR	15
+#define CS_DATA_BIN	16
+#define CS_DATA_VBIN	17
+#define CS_DATA_MNY8	18
+#define CS_DATA_MNY4	19
+#define CS_DATA_DATE8	20
+#define CS_DATA_DATE4	21
 #define CS_DATA_FLT4	22
 #define CS_DATA_FLT8	23
-#define CS_DATA_FLTN	24
-#define CS_DATA_IMAGE	25
-#define CS_DATA_INT1	26
-#define CS_DATA_INT2	27
-#define CS_DATA_INT4	28
-#define CS_DATA_INTN	29
-#define CS_DATA_MNY4	30
-#define CS_DATA_MNY8	31
+#define CS_DATA_NUM	24
+#define CS_DATA_TEXT	25
+#define CS_DATA_IMAGE	26
+#define CS_DATA_DEC	27
+#define CS_DATA_LCHAR	28
+#define CS_DATA_LBIN	29
+#define CS_DATA_INTN	30
+#define CS_DATA_DATETIMEN	31
 #define CS_DATA_MONEYN	32
-#define CS_DATA_NUM	33
-#define CS_DATA_SENSITIVITY	34
-#define CS_DATA_TEXT	35
-#define CS_OPTION_GET	36
-#define CS_PROTO_BULK	37
-#define CS_PROTO_DYNAMIC	38
-#define CS_PROTO_DYNPROC	39
-#define CS_REQ_BCP	40
-#define CS_REQ_CURSOR	41
-#define CS_REQ_DYN	42
-#define CS_REQ_LANG	43
-#define CS_REQ_MSG	44
-#define CS_REQ_MSTMT	45
-#define CS_REQ_NOTIF	46
-#define CS_REQ_PARAM	47
-#define CS_REQ_URGNOTIF	48
-#define CS_REQ_RPC	49
-#define CS_DATA_INT8	50
-#define CS_DATA_VOID	51
-#define CS_CON_LOGICAL	52
-#define CS_PROTO_TEXT	53
+#define CS_CSR_PREV	33
+#define CS_CSR_FIRST	34
+#define CS_CSR_LAST	35
+#define CS_CSR_ABS	36
+#define CS_CSR_REL	37
+#define CS_CSR_MULTI	38
+#define CS_CON_OOB	39
+#define CS_CON_INBAND	40
+#define CS_CON_LOGICAL	41
+#define CS_PROTO_TEXT	42
+#define CS_PROTO_BULK	43
+#define CS_REQ_URGNOTIF	44
+#define CS_DATA_SENSITIVITY	45
+#define CS_DATA_BOUNDARY	46
+#define CS_PROTO_DYNAMIC	47
+#define CS_PROTO_DYNPROC	48
+#define CS_DATA_FLTN	49
+#define CS_DATA_BITN	50
+#define CS_DATA_INT8	51
+#define CS_DATA_VOID	52
+#define CS_OPTION_GET	53
 
 /* CS_CAP_RESPONSE values */
-#define CS_DATA_NOBOUNDARY	1
-#define CS_DATA_NOTDSDEBUG	2
-#define CS_RES_NOSTRIPBLANKS	3
-#define CS_DATA_NOINT8	4
-#define CS_DATA_NOINTN	5
-#define CS_DATA_NODATETIMEN	6
-#define CS_DATA_NOMONEYN	7
-#define CS_CON_NOOOB	8
-#define CS_CON_NOINBAND	9
-#define CS_PROTO_NOTEXT	10
-#define CS_PROTO_NOBULK	11
-#define CS_DATA_NOSENSITIVITY	12
-#define CS_DATA_NOFLT4	13
-#define CS_DATA_NOFLT8	14
-#define CS_DATA_NONUM	15
-#define CS_DATA_NOTEXT	16
-#define CS_DATA_NOIMAGE	17
-#define CS_DATA_NODEC	18
-#define CS_DATA_NOLCHAR	19
-#define CS_DATA_NOLBIN	20
-#define CS_DATA_NOCHAR	21
-#define CS_DATA_NOVCHAR	22
-#define CS_DATA_NOBIN	23
-#define CS_DATA_NOVBIN	24
-#define CS_DATA_NOMNY8	25
-#define CS_DATA_NOMNY4	26
-#define CS_DATA_NODATE8	27
-#define CS_DATA_NODATE4	28
-#define CS_RES_NOMSG	29
-#define CS_RES_NOEED	30
-#define CS_RES_NOPARAM	31
-#define CS_DATA_NOINT1	32
-#define CS_DATA_NOINT2	33
-#define CS_DATA_NOINT4	34
-#define CS_DATA_NOBIT	35
+#define CS_RES_NOMSG	1
+#define CS_RES_NOEED	2
+#define CS_RES_NOPARAM	3
+#define CS_DATA_NOINT1	4
+#define CS_DATA_NOINT2	5
+#define CS_DATA_NOINT4	6
+#define CS_DATA_NOBIT	7
+#define CS_DATA_NOCHAR	8
+#define CS_DATA_NOVCHAR	9
+#define CS_DATA_NOBIN	10
+#define CS_DATA_NOVBIN	11
+#define CS_DATA_NOMNY8	12
+#define CS_DATA_NOMNY4	13
+#define CS_DATA_NODATE8	14
+#define CS_DATA_NODATE4	15
+#define CS_DATA_NOFLT4	16
+#define CS_DATA_NOFLT8	17
+#define CS_DATA_NONUM	18
+#define CS_DATA_NOTEXT	19
+#define CS_DATA_NOIMAGE	20
+#define CS_DATA_NODEC	21
+#define CS_DATA_NOLCHAR	22
+#define CS_DATA_NOLBIN	23
+#define CS_DATA_NOINTN	24
+#define CS_DATA_NODATETIMEN	25
+#define CS_DATA_NOMONEYN	26
+#define CS_CON_NOOOB	27
+#define CS_CON_NOINBAND	28
+#define CS_PROTO_NOTEXT	29
+#define CS_PROTO_NOBULK	30
+#define CS_DATA_NOSENSITIVITY	31
+#define CS_DATA_NOBOUNDARY	32
+#define CS_DATA_NOTDSDEBUG	33
+#define CS_RES_NOSTRIPBLANKS	34
+#define CS_DATA_NOINT8	35
 
 /* Properties */
 enum {
@@ -386,12 +386,13 @@ enum {
 #define CS_OPT_TEXTSIZE		30
 #define CS_OPT_TRUNCIGNORE	31
 
-/* bind formats, should be mapped to TDS types */
+/* bind formats, should be mapped to TDS types 
+ * can be a combination of bit */
 enum {
 	CS_FMT_UNUSED = 0,
-	CS_FMT_NULLTERM,
-	CS_FMT_PADBLANK,
-	CS_FMT_PADNULL
+	CS_FMT_NULLTERM = 1,
+	CS_FMT_PADNULL = 2,
+	CS_FMT_PADBLANK = 4
 };
 
 /* callbacks */
@@ -498,7 +499,7 @@ enum {
 
 /* result_types */
 #define CS_COMPUTE_RESULT	TDS_COMPUTE_RESULT
-#define CS_CURSOR_RESULT	2
+#define CS_CURSOR_RESULT	4041
 #define CS_PARAM_RESULT		TDS_PARAM_RESULT
 #define CS_ROW_RESULT		TDS_ROW_RESULT
 #define CS_STATUS_RESULT	TDS_STATUS_RESULT

@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.83 2002-10-26 12:14:11 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.84 2002-10-26 18:49:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -353,21 +353,39 @@ int where = 0;
  * @param tds A pointer to the TDSSOCKET structure managing a client/server operation.
  * @param result_type A pointer to an integer variable which 
  *        tds_process_result_tokens sets to indicate the current type of result.
- * @par Possible values of *result_type
- *        @li @c TDS_CMD_DONE The results of a  command have been completely processed
- *        @li @c TDS_CMD_FAIL The server encountered an error while executing a command.
- *        @li @c TDS_ROWFMT_RESULT Regular Data format information. 
- *          tds->res_info now contains the result details ; tds->curr_resinfo now points to that data.
- *        @li @c TDS_COMPUTEFMT_ RESULT Compute data format information. 
- *          tds->comp_info now contains the result data; tds->curr_resinfo now points to that data.
- *        @li @c TDS_DESCRIBE_RESULT 
- *        @arg @c TDS_ROW_RESULT Regular row results.
- *          1 or more rows of regular data can now be retrieved
- *        @arg @c TDS_COMPUTE_RESULT Compute row results.
- *          A single row of compute data can now be retrieved
- *        @arg @c TDS_PARAM_RESULT Return parameter results
- *        @arg @c TDS_STATUS_RESULT Stored procedure status results.
- *          tds->ret_status contain the returned code
+ *  @par
+ *  <b>Values that indicate command status</b>
+ *  <table>
+ *   <tr><td>TDS_CMD_DONE</td><td>The results of a  command have been completely processed</td></tr>
+ *   <tr><td>TDS_CMD_FAIL</td><td>The server encountered an error while executing a command</td></tr>
+ *  </table>
+ *  <b>Values that indicate results information is available</b>
+ *  <table><tr>
+ *    <td>TDS_ROWFMT_RESULT</td><td>Regular Data format information</td>
+ *    <td>tds->res_info now contains the result details ; tds->curr_resinfo now points to that data</td>
+ *   </tr><tr>
+ *    <td>TDS_COMPUTEFMT_ RESULT</td><td>Compute data format information</td>
+ *    <td>tds->comp_info now contains the result data; tds->curr_resinfo now points to that data</td>
+ *   </tr><tr>
+ *    <td>TDS_DESCRIBE_RESULT</td><td></td>
+ *    <td></td>
+ *  </tr></table>
+ *  <b>Values that indicate data is available</b>
+ *  <table><tr>
+ *   <td><b>Value</b></td><td><b>Meaning</b></td><td><b>Information returned</b></td>
+ *   </tr><tr>
+ *    <td>TDS_ROW_RESULT</td><td>Regular row results</td>
+ *    <td>1 or more rows of regular data can now be retrieved</td>
+ *   </tr><tr>
+ *    <td>TDS_COMPUTE_RESULT</td><td>Compute row results</td>
+ *    <td>A single row of compute data can now be retrieved</td>
+ *   </tr><tr>
+ *    <td>TDS_PARAM_RESULT</td><td>Return parameter results</td>
+ *    <td></td>
+ *   </tr><tr>
+ *    <td>TDS_STATUS_RESULT</td><td>Stored procedure status results</td>
+ *    <td>tds->ret_status contain the returned code</td>
+ *  </tr></table>
  * @todo Complete TDS_DESCRIBE_RESULT and TDS_PARAM_RESULT description
  * @retval TDS_SUCCEED if a result set is available for processing.
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
