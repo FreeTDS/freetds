@@ -4,8 +4,8 @@ project.  There are likely to be portions of code that do not follow this
 style, but ideally all would.
 
 We are of course not trying to dictate how you code, but patches or submissions 
-to CVS should be converted to this style prior to committing.  The indent program
-found on most Unix systems will do this nicely.
+to CVS should be converted to this style prior to committing.  The indent 
+program found on most Unix systems will do this nicely.
 
 Code Blocks
 -----------
@@ -22,7 +22,8 @@ This applies to for, do, while, switch, if and any other looping or branching
 constructs.  The exception to this is function declarations, in which the { 
 should follow the declaration, as in
 
-void foo(int bar)
+void 
+foo(int bar)
 {
 	...
 }
@@ -30,7 +31,10 @@ void foo(int bar)
 Indenting
 ---------
 
-Indenting should be done with one tab character per level.
+Indenting should be done with one tab character per level. Default tabspace 
+is 8 characters. You can set in your editor whatever tabspace you want
+but be sure that you indent using tabs and that line break work well with a
+tabspace of 8.
 
 Variables
 ---------
@@ -50,7 +54,8 @@ Variable declarations at the top of the function should be left aligned. This is
 a departure from K&R style but one I find is helpful when scanning through the 
 code.  Example,
 
-void foo(int bar)
+void 
+foo(int bar)
 {
 int i;
 
@@ -69,7 +74,8 @@ Function Declarations
 
 Function declarations started out a little like this:
 
-void foo(int bar, int baz)
+void 
+foo(int bar, int baz)
 {
 }
 
@@ -177,6 +183,7 @@ commented out, and won't appear in .indent.pro.  Same goes for options e.g.
   -nfc1, -fc1	  Disable formatting comments that start in column 1.  
   -i8		  The number of spaces for one indentation level.
   -ts8		  Tab stops at 8 postitions.
+  -ut             Use Tabs
   -ip, -nip	  Enable the indentation of parameter declarations 
 		  from the left margin.  The default is -ip.
   -l80		  Maximum length of an output line.  The default is 75.
