@@ -703,20 +703,38 @@ in FreeTDS, we are working on adding them.  Until then, try DBD::Sybase
 <b>5.1 How do I access the CVS Repository?</b></dt>
 
 <dd>
-The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">Source Forge</a>
+<p>The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">SourceForge</a></p>
 
-<ul><li>The db-lib, ct-lib, and ODBC libraries are found in <a href="http://sourceforge.net/cvs/?group_id=33106">FreeTDS</a> project.
-Versions 0.3 and up are checked in. The
-root for anonymous access is <tt>:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds</tt></li>
+<ul>
+
+<li>The TDS, dblib, ctlib, and ODBC libraries are in the <a
+href="http://sourceforge.net/cvs/?group_id=33106">FreeTDS</a> project.
+(The root for anonymous access is
+<tt>:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds</tt>,
+the password is empty, and the module name is <tt>freetds</tt>)</li>
+
 <!-- :pserver:anon-cvs@freetds.internetcds.com:/Repository -->
-<li>
-The JDBC library can be found as the <a href="http://sourceforge.net/cvs/?group_id=33291">JTDS</a> project.  </li>
+<li>The JDBC library is in the <a
+href="http://sourceforge.net/cvs/?group_id=33291">JTDS</a> project.
+(The root for anonymous access is
+<tt>:pserver:anonymous@cvs.jtds.sourceforge.net:/cvsroot/jtds</tt>,
+the password is empty, and the module name is <tt>jtds</tt>)</li>
+
 </ul>
-<p> For anonymous (read-only) access, there is no password.  For commit rights, send mail to <a href="mailto:camber@ais.org">Brian Bruns</a>.  
-</p>
+<p>Read-only access requires no password.  For the right to commit
+changes, contact the Project Admins listed on the SourceForge project
+summary pages.</p>
+<p>To obtain the current CVS copy of FreeTDS</p>
+<pre><small>cvs \
+-d:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds \
+login
+
+cvs -z3 \
+-d:pserver:anonymous@cvs.freetds.sourceforge.net:/cvsroot/freetds \
+checkout freetds</small></pre>
 </dd>
 </dl>
-		<!-- RUNING -->
+		<!-- RUNNING -->
 
 <h2>Problems Running</h2>
 

@@ -1,3 +1,8 @@
+Fri Nov  9 11:49:58 2001  James Cameron  <quozl@us.netrek.org>
+
+	* doc/faq.html: 5.1, adjust the CVS instructions in response to
+	Norman's feedbakc, including module name.
+
 Fri Nov  9 09:31:35 2001  James Cameron  <quozl@us.netrek.org>
 
 	* include/tds.h.in: add tds_free_login, it was missing.
