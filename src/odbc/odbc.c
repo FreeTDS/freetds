@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.283 2003-12-20 10:25:52 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.284 2003-12-20 12:38:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -233,14 +233,14 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 	 */
 	if (tds) {
 		/* build query */
-		char *query = (char *) malloc(6 + tds_quote_id(tds,NULL,database,database_len));
+		char *query = (char *) malloc(6 + tds_quote_id(tds, NULL, database, database_len));
 
 		if (!query) {
 			odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		strcpy(query, "USE ");
-		tds_quote_id(tds,query + 4,database,database_len);
+		tds_quote_id(tds, query + 4, database, database_len);
 
 
 		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
@@ -2275,7 +2275,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = NULL;
 		if ((drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
-								       col->column_size, stmt->dbc->env->attr.odbc_version)) == NULL) {
+									    col->column_size,
+									    stmt->dbc->env->attr.odbc_version)) == NULL) {
 			return SQL_ERROR;
 		}
 		/* TODO perhaps TINYINY and BIT.. */
@@ -2405,7 +2406,7 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 		case TDS_DONEINPROC_RESULT:
-			if(done_flags & TDS_DONE_ERROR)
+			if (done_flags & TDS_DONE_ERROR)
 				result = SQL_ERROR;
 			if (in_row)
 				done = 1;
@@ -3123,7 +3124,7 @@ change_transaction(TDS_DBC * dbc, int state)
 		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
 
 	if (tds->state == TDS_PENDING && dbc->current_statement != NULL) {
-		if (!SQL_SUCCEEDED(_SQLFreeStmt(dbc->current_statement,SQL_CLOSE)))
+		if (!SQL_SUCCEEDED(_SQLFreeStmt(dbc->current_statement, SQL_CLOSE)))
 			return SQL_ERROR;
 	}
 
