@@ -1,3 +1,6 @@
+Sun Oct  5 23:18:46 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* INSTALL.CVS added information about CVS tarballs.
+	
 Sun Oct 05 18:41:22 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in:
 	- test for other socket functions
