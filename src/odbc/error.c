@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: error.c,v 1.36 2005-03-12 11:42:00 ppeterd Exp $";
+static const char software_version[] = "$Id: error.c,v 1.37 2005-03-13 10:21:01 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -238,30 +238,27 @@ static const struct s_v3to2map v3to2map[] = {
 };
 
 /* 
-ODBC messages must be sorted by importance
-1. Errors regarding the status of a transaction
-2. Other errors (level ordered)
-3. No-Data messages with a state class of 02 ??
-4. Warning
-5. Informational
-*/
-void rank_errors(struct _sql_errors *errs)
+ * ODBC messages must be sorted by importance
+ * 1. Errors regarding the status of a transaction
+ * 2. Other errors (level ordered)
+ * 3. No-Data messages with a state class of 02 ??
+ * 4. Warning
+ * 5. Informational
+ */
+static void
+rank_errors(struct _sql_errors *errs)
 {
-int settled, current, best;
-struct _sql_error swapbuf;
-char istrans;
+	int settled, current, best;
+	struct _sql_error swapbuf;
+	char istrans;
 
-if (errs->ranked == 0 && errs->num_errors > 1)
-	{
-	/* Find the highest of all unranked errors until there are none left */
-	for (settled = 0; settled < errs->num_errors; settled++)
-		{
-		best = -1;
-		istrans = 0;
-		for (current = settled; current < errs->num_errors; current++)
-			{
-			switch(errs->errs[current].native)
-				{
+	if (errs->ranked == 0 && errs->num_errors > 1) {
+		/* Find the highest of all unranked errors until there are none left */
+		for (settled = 0; settled < errs->num_errors; settled++) {
+			best = -1;
+			istrans = 0;
+			for (current = settled; current < errs->num_errors; current++) {
+				switch (errs->errs[current].native) {
 				case 1205:
 				case 1211:
 				case 2625:
@@ -280,41 +277,38 @@ if (errs->ranked == 0 && errs->num_errors > 1)
 					break;
 				}
 
-			if (istrans == 0)
-				{
-				if (strcmp(errs->errs[current].state3,"25000") == 0)
-					istrans = 1;
-				else if (strcmp(errs->errs[current].state3,"S1012") == 0)
-					istrans = 1;
-				else if (strcmp(errs->errs[current].state3,"08007") == 0)
-					istrans = 1;
+				if (istrans == 0) {
+					if (strcmp(errs->errs[current].state3,"25000") == 0)
+						istrans = 1;
+					else if (strcmp(errs->errs[current].state3,"S1012") == 0)
+						istrans = 1;
+					else if (strcmp(errs->errs[current].state3,"08007") == 0)
+						istrans = 1;
 				}
 
-			/* Transaction errors are always best */
-			if (istrans == 1 && errs->errs[current].msgstate >= 10)
-				{
-				best = current;
-				break;
+				/* Transaction errors are always best */
+				if (istrans == 1 && errs->errs[current].msgstate >= 10)	{
+					best = current;
+					break;
 				}
 
-			if (best == -1)
-				best = current;
+				if (best == -1)
+					best = current;
 
-			/* Non-terminating comparisons only below this point */
-			if (errs->errs[current].msgstate > errs->errs[best].msgstate)
-				best = current;
+				/* Non-terminating comparisons only below this point */
+				if (errs->errs[current].msgstate > errs->errs[best].msgstate)
+					best = current;
 			}
 
-		/* swap settled position with best */
-		if (best != settled)
-			{
-			memcpy(&swapbuf,&errs->errs[settled],sizeof(struct _sql_error));
-			memcpy(&errs->errs[settled],&errs->errs[best],sizeof(struct _sql_error));
-			memcpy(&errs->errs[best],&swapbuf,sizeof(struct _sql_error));
+			/* swap settled position with best */
+			if (best != settled) {
+				swapbuf = errs->errs[settled];
+				errs->errs[settled] = errs->errs[best];
+				errs->errs[best] = swapbuf;
 			}
 		}
 	}
-errs->ranked = 1;
+	errs->ranked = 1;
 }
 
 static const char *
@@ -552,8 +546,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 		return SQL_NO_DATA_FOUND;
 	--numRecord;
 
-	if (errs != NULL)
-		rank_errors(errs);
+	rank_errors(errs);
 
 	if (szSqlState) {
 		if (odbc_ver == SQL_OV_ODBC3)
@@ -599,8 +592,7 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	} else
 		return SQL_INVALID_HANDLE;
 
-	if (errs != NULL)
-		rank_errors(errs);
+	rank_errors(errs);
 
 	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 

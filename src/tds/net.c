@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.15 2005-03-12 11:49:16 ppeterd Exp $";
+static char software_version[] = "$Id: net.c,v 1.16 2005-03-13 10:21:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -135,7 +135,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	time_t start, now;
 	int len, retval;
 #ifdef WIN32
-	int FAR optlen;
+	int optlen;
 #else
 	socklen_t optlen;
 #endif

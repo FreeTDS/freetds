@@ -1,3 +1,9 @@
+Sun Mar 13 11:21:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c:
+	- make rank_errors static
+	- change style
+	* src/tds/net.c: int FAR have no sense in no pointer context
+
 Sat Mar 12 01:23:17 PST 2005	Peter Deacon <peterd@iea-software.com>
 	* include/tdsodbc.h src/odbc/error.c:
 	- order messages by severity and type
