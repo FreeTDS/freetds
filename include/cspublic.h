@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.15 2002-10-22 14:58:33 castellano Exp $";
+         "$Id: cspublic.h,v 1.16 2002-10-23 02:21:17 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -56,6 +56,11 @@ typedef TDS_VARBINARY CS_VARBINARY;
 #define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
 #define CS_NUMBER(x)   ((x) & 0xFF)
 
+typedef struct cs_config
+{
+    short cs_expose_formats;
+} CS_CONFIG;
+
 /* forward declarations */
 typedef struct cs_context CS_CONTEXT;
 typedef struct cs_clientmsg CS_CLIENTMSG;
@@ -69,6 +74,7 @@ struct cs_context
 	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 	TDSCONTEXT *tds_ctx;
+    CS_CONFIG config;
 };
 
 typedef struct cs_locale {
@@ -97,9 +103,10 @@ typedef struct cs_command
 	CS_CONNECTION *con;
 	void *userdata;
 	int userdata_len;
-	short empty_res_hack;
 	short dynamic_cmd;
 	char  *dyn_id; 
+    int   row_prefetched;
+    int   curr_result_type;
 } CS_COMMAND;
 
 #define CS_MAX_MSG 1024
@@ -406,13 +413,14 @@ enum {
 #define CS_UNUSED	-99999
 
 /* other */
+#define CS_CLEAR	3
 #define CS_SET		4
 #define CS_LANG_CMD	7
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
 #define CS_CMD_SUCCEED	12
-#define CS_CMD_FAIL	13
-#define CS_CMD_DONE	14
+#define CS_CMD_FAIL	TDS_CMD_FAIL
+#define CS_CMD_DONE	TDS_CMD_DONE
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
@@ -483,19 +491,21 @@ enum {
 #define CS_NO_RECOMPILE	117
 #define CS_COLUMN_DATA	118
 #define CS_SEND_DATA_CMD	119
+#define CS_SUPPORTED 120
+#define CS_EXPOSE_FMTS 121
 #define CS_VERSION	9114
 #define CS_EXTRA_INF	9121
 
 /* result_types */
-#define CS_COMPUTE_RESULT	1
+#define CS_COMPUTE_RESULT	TDS_COMPUTE_RESULT
 #define CS_CURSOR_RESULT	2
-#define CS_PARAM_RESULT		3
-#define CS_ROW_RESULT		4
-#define CS_STATUS_RESULT	5
-#define CS_COMPUTEFMT_RESULT	6
-#define CS_ROWFMT_RESULT	7
-#define CS_MSG_RESULT		8
-#define CS_DESCRIBE_RESULT	9
+#define CS_PARAM_RESULT		TDS_PARAM_RESULT
+#define CS_ROW_RESULT		TDS_ROW_RESULT
+#define CS_STATUS_RESULT	TDS_STATUS_RESULT
+#define CS_COMPUTEFMT_RESULT	TDS_COMPUTEFMT_RESULT
+#define CS_ROWFMT_RESULT	TDS_ROWFMT_RESULT
+#define CS_MSG_RESULT		TDS_MSG_RESULT
+#define CS_DESCRIBE_RESULT	TDS_DESCRIBE_RESULT
 
 /* bind types */
 #define CS_CHAR_TYPE	1

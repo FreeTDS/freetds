@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.26 2002-10-14 15:41:03 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.27 2002-10-23 02:21:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -68,9 +68,11 @@ static int     _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno);
 RETCODE
 bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
 {
+
 TDSSOCKET *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
 TDSRESULTINFO   *resinfo;
+TDS_INT          result_type;
 int i;
 int rc;
 
@@ -131,15 +133,11 @@ int rc;
        if (tds_submit_queryf(tds, "select * from %s where 0 = 1", dbproc->bcp_tablename) == TDS_FAIL) {
 	  return FAIL;
        }
-   
-       while ((rc = tds_process_result_tokens(tds)) == TDS_SUCCEED) {
-          while ((rc = tds_process_row_tokens(tds)) == TDS_SUCCEED) {
-          }
-          if (rc == TDS_FAIL) {
-             return FAIL;
-          }
+
+       while ((rc = tds_process_result_tokens(tds, &result_type))
+              == TDS_SUCCEED) {
        }
-       if (rc == TDS_FAIL) {
+       if (rc != TDS_NO_MORE_RESULTS) {
           return FAIL;
        }
 
@@ -194,6 +192,18 @@ int rc;
               bcpcol->db_varint_size = resinfo->columns[i]->column_varint_size;
               bcpcol->db_unicodedata = resinfo->columns[i]->column_unicodedata;
            }
+       }
+
+       if ( hfile == (char *) NULL ) {
+
+          dbproc->host_colcount = dbproc->bcp_colcount;
+          dbproc->host_columns  = (BCP_HOSTCOLINFO **) malloc(dbproc->host_colcount * sizeof(BCP_HOSTCOLINFO *));
+      
+          for ( i = 0; i < dbproc->host_colcount; i++ ) 
+          {
+             dbproc->host_columns[i] = (BCP_HOSTCOLINFO *) malloc(sizeof(BCP_HOSTCOLINFO));
+             memset(dbproc->host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
+          }
        }
     }
 
@@ -424,6 +434,10 @@ int           buflen;
 int           destlen;
 BYTE          *outbuf;
 
+TDS_INT       rowtype;
+TDS_INT       computeid;
+TDS_INT       result_type;
+
 TDS_TINYINT   ti;
 TDS_SMALLINT  si;
 TDS_INT       li;
@@ -445,7 +459,7 @@ int           rows_written;
         return FAIL;
     }
 
-    if (tds_process_result_tokens(tds) == TDS_FAIL) {
+    if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
         fclose(hostfile);
         return FAIL;
     }
@@ -476,7 +490,7 @@ int           rows_written;
     row_of_query = 0;
     rows_written = 0;
 
-    while (tds_process_row_tokens(tds)==TDS_SUCCEED) {
+    while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED) {
 
         row_of_query++;
 
@@ -1138,19 +1152,6 @@ unsigned char row_token         = 0xd1;
        if (_bcp_start_copy_in(dbproc) == FAIL)
           return(FAIL);
 
-       /* Next, allocate the storage to hold data about the */
-       /* program variable data - these must be the same in */
-       /* number as the table columns...                    */
-
-       dbproc->host_colcount = dbproc->bcp_colcount;
-       dbproc->host_columns  = (BCP_HOSTCOLINFO **) malloc(dbproc->host_colcount * sizeof(BCP_HOSTCOLINFO *));
-
-       for ( i = 0; i < dbproc->host_colcount; i++ ) 
-       {
-          dbproc->host_columns[i] = (BCP_HOSTCOLINFO *) malloc(sizeof(BCP_HOSTCOLINFO));
-          memset(dbproc->host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
-       }
-
        /* set packet type to send bulk data */
        tds->out_flag = 0x07;
    
@@ -1491,7 +1492,8 @@ unsigned char row_token         = 0xd1;
               do {
                  marker = tds_get_byte(tds);
                  if (marker==TDS_DONE_TOKEN) {
-                    rows_copied_this_batch = tds_process_end(tds,marker,NULL,NULL);
+                    tds_process_end(tds,marker,NULL,NULL);
+                    rows_copied_this_batch = tds->rows_affected;
                     rows_copied_so_far += rows_copied_this_batch;
                  } else {
                     tds_process_default_tokens(tds,marker);
@@ -1515,7 +1517,8 @@ unsigned char row_token         = 0xd1;
     do {
         marker = tds_get_byte(tds);
         if (marker==TDS_DONE_TOKEN) {
-           rows_copied_this_batch = tds_process_end(tds,marker,NULL,NULL);
+           tds_process_end(tds,marker,NULL,NULL);
+           rows_copied_this_batch = tds->rows_affected;
            rows_copied_so_far += rows_copied_this_batch;
            *rows_copied = rows_copied_so_far;
         } else {
@@ -1559,11 +1562,16 @@ static RETCODE _bcp_start_copy_in(DBPROCESS *dbproc)
 TDSSOCKET       *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
 
+TDS_INT         result_type;
+TDS_INT         rowtype;
+TDS_INT         computeid;
+
 int i;
 int marker;
 
-char query[256];
-char colclause[256];
+char query    [1024];
+char colclause[1024];
+
 int  firstcol;
 
     if (IS_TDS7_PLUS(tds))
@@ -1603,15 +1611,15 @@ int  firstcol;
 
     if (IS_TDS50(tds))
     {
-       if (tds_process_result_tokens(tds) == TDS_FAIL) {
+       if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
            return FAIL;
        }
        if (!tds->res_info) {
            return FAIL;
        }
    
-       while (tds_process_row_tokens(tds) == SUCCEED); 
-
+       while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED)
+          ; 
     }
     else
     {
@@ -1746,6 +1754,9 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *dbproc)
 {
 
 TDSSOCKET *tds = dbproc->tds_socket;
+TDS_INT   result_type;
+TDS_INT   rowtype;
+TDS_INT   computeid;
 int        marker;
 
     _bcp_err_handler(dbproc, SYBEBBCI);
@@ -1755,15 +1766,15 @@ int        marker;
 
        tds_submit_query(tds,dbproc->bcp_insert_stmt);
 
-       if (tds_process_result_tokens(tds) == TDS_FAIL) {
+       if (tds_process_result_tokens(tds, &result_type) == TDS_FAIL) {
            return FAIL;
        }
        if (!tds->res_info) {
            return FAIL;
        }
    
-       while (tds_process_row_tokens(tds) == SUCCEED); 
-
+       while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED)
+          ; 
     }   
     else 
     {
@@ -2132,8 +2143,10 @@ int        rows_copied;
     do {
 
         marker = tds_get_byte(tds);
-        if ( marker == TDS_DONE_TOKEN ) 
-            rows_copied = tds_process_end(tds,marker,NULL,NULL);
+        if ( marker == TDS_DONE_TOKEN ) { 
+            tds_process_end(tds,marker,NULL,NULL);
+            rows_copied = tds->rows_affected;
+        }
         else 
             tds_process_default_tokens(tds,marker);
 
@@ -2143,7 +2156,7 @@ int        rows_copied;
     _bcp_start_new_batch(dbproc);
 
 
-    return SUCCEED;
+    return (rows_copied);
 }
 
 /* end the transafer of data from program variables */
@@ -2165,8 +2178,10 @@ int        rows_copied = -1;
     do {
 
         marker = tds_get_byte(tds);
-        if ( marker == TDS_DONE_TOKEN ) 
-            rows_copied = tds_process_end(tds,marker,NULL,NULL);
+        if ( marker == TDS_DONE_TOKEN )  {
+            tds_process_end(tds,marker,NULL,NULL);
+            rows_copied = tds->rows_affected;
+        }
         else 
             tds_process_default_tokens(tds,marker);
 

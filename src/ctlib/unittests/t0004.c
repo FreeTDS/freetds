@@ -6,7 +6,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.7 2002-10-23 02:21:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* protos */
@@ -160,6 +160,8 @@ CS_RETCODE results_ret, result_type;
    result_num = 0;
    while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		printf("result_ret %d result_type %d\n",results_ret,result_type);
+      if (result_type == CS_STATUS_RESULT)
+         continue;
       if (result_type != results[result_num]) {
          fprintf(stderr, "ct_results() expected %d received %d\n",
                  results[result_num], result_type);
@@ -169,11 +171,9 @@ CS_RETCODE results_ret, result_type;
          case CS_ROW_RESULT:
             if (do_fetch(cmd)) { return CS_FAIL; }
             break;
-         case CS_STATUS_RESULT:
-            if (do_fetch(cmd)) { return CS_FAIL; }
-            break;
       }
    	result_num++;
 	}
 	return results_ret;
 }
+

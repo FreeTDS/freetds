@@ -1,3 +1,17 @@
+Tue Oct 22 22:15:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt include/cspublic.h include/sybdb.h include/tds.h
+	  include/tdsutil.h src/apps/tsql.c src/ctlib/ct.c
+	  src/ctlib/unittests/Makefile.am src/ctlib/unittests/t0004.c
+	  src/ctlib/unittests/t0009.c (added) src/dblib/bcp.c src/dblib/dblib.c
+	  src/dblib/unittests/Makefile.am src/dblib/unittests/t0023.c (added)
+	  src/odbc/odbc.c src/tds/login.c src/tds/mem.c src/tds/token.c
+	  src/tds/unittests/t0002.c src/tds/unittests/t0004.c
+	  src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	- Merge Bill Thompson's infamous patch to add compute row support.
+	  With several changes/bug fixes/hacks of my own, so blame me first.
+	  Still needs some cleanup, there are some warnings that need
+	  to be fixed, and Freddy has some issues he wants to fix.
+
 Tue Oct 22 11:30:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/.cvsignore:
 	- Ignore generated freetds_sysconfdir.h

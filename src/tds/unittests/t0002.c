@@ -31,7 +31,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0002.c,v 1.4 2002-10-13 23:28:13 castellano Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.5 2002-10-23 02:21:25 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -69,6 +69,9 @@ main(int argc, char **argv)
    TDSSOCKET *tds;
    int verbose = 0;
    int num_cols = 2;
+   TDS_INT result_type;
+   TDS_INT row_type;
+   TDS_INT compute_id;
    int rc;
    int i;
 
@@ -85,7 +88,9 @@ main(int argc, char **argv)
       return 1;
    }
 
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      switch (result_type) {
+         case TDS_ROWFMT_RESULT:
       if (tds->res_info->num_cols != num_cols) {
          fprintf(stderr, "Error:  num_cols != %d in %s\n", num_cols, __FILE__);
          return 1;
@@ -100,25 +105,31 @@ main(int argc, char **argv)
          fprintf(stderr, "Wrong column_name in %s\n", __FILE__);
          return 1;
       }
+              break;
 
-      while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+         case TDS_ROW_RESULT:
+
+              while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id))==TDS_SUCCEED ) {
          if (verbose) {
             for (i=0; i<num_cols; i++) {
                printf("col %i is %s\n", i, value_as_string(tds, i));
             }
          }
       }
-      if (rc == TDS_FAIL) {
-         fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
-      }
-      else if (rc != TDS_NO_MORE_ROWS) {
+              if (rc != TDS_NO_MORE_ROWS) {
          fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
       }
+              break;
+
+         case TDS_CMD_DONE:
+              break;
+
+         default:
+              fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");
+              break;
    }
-   if (rc == TDS_FAIL) {
-      fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL\n");
    }
-   else if (rc != TDS_NO_MORE_RESULTS) {
+   if (rc != TDS_NO_MORE_RESULTS) {
       fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
    }
 

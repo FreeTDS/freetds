@@ -55,7 +55,7 @@
 #include "tdsconvert.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.36 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.37 2002-10-23 02:21:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -112,6 +112,9 @@ int ctype;
 CONV_RESULT dres;
 unsigned char *src;
 TDS_INT srclen;
+TDS_INT rowtype;
+TDS_INT resulttype;
+TDS_INT computeid;
 struct timeval start, stop;
 int print_rows=1;
 char message[128];
@@ -122,7 +125,7 @@ char message[128];
 		return 1;
 	}
 
-	while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
+    while ((rc=tds_process_result_tokens(tds, &resulttype))==TDS_SUCCEED) {
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start,NULL);
 			print_rows = 0;
@@ -135,7 +138,7 @@ char message[128];
 		}
 
 		rows = 0;
-		while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+        while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
 			rows++;
 
 			if (!tds->res_info) 
@@ -436,3 +439,5 @@ int opt_flags = 0;
 
 	return 0;
 }
+
+

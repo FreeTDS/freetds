@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.24 2002-10-01 15:43:15 castellano Exp $";
+"$Id: sybdb.h,v 1.25 2002-10-23 02:21:19 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -78,15 +78,6 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBTDS_5_0               7       /* 5.0 SQL Server */
 #define DBTDS_7_0               8       /* Microsoft SQL Server 7.0 */
 #define DBTDS_8_0               9       /* Microsoft SQL Server 2000 */
-
-#define SYBAOPCNT  0x4b
-#define SYBAOPCNTU 0x4c
-#define SYBAOPSUM  0x4d
-#define SYBAOPSUMU 0x4e
-#define SYBAOPAVG  0x4f
-#define SYBAOPAVGU 0x50
-#define SYBAOPMIN  0x51
-#define SYBAOPMAX  0x52
 
 #define DBTXPLEN 16
 
@@ -214,10 +205,10 @@ typedef struct {
    
    int             noautofree;
    int             more_results; /* boolean.  Are we expecting results? */
+   int             empty_result; /* boolean.  has dbsqlok eaten the results ? */
    BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
    unsigned char  *dbbuf; /* is dynamic!                   */
    int             dbbufsz;
-   int             empty_res_hack;
    TDS_INT         text_size;   
    TDS_INT         text_sent;
    TDS_CHAR        *bcp_hostfile;

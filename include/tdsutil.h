@@ -33,7 +33,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.15 2002-10-17 20:45:43 freddy77 Exp $";
+"$Id: tdsutil.h,v 1.16 2002-10-23 02:21:21 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 void tds_set_parent(TDSSOCKET *tds, void *the_parent);
@@ -53,7 +53,8 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 int tds_process_login_tokens(TDSSOCKET *tds);
 int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
 
-void tds_free_compute_results(TDSCOMPUTEINFO *comp_info);
+void tds_free_compute_result(TDSCOMPUTEINFO *comp_info);
+void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp);
 
 int  tdsdump_open(const char *filename);
 void tdsdump_off(void);
@@ -85,4 +86,3 @@ int tds_swap_bytes(unsigned char *buf, int bytes);
 #endif
 
 #endif
-

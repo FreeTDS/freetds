@@ -16,10 +16,11 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif  /* HAVE_CONFIG_H */
+
+#include <stdio.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -30,7 +31,7 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0006.c,v 1.7 2002-10-13 23:28:13 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.8 2002-10-23 02:21:25 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -50,6 +51,7 @@ main(int argc, char **argv)
    TDSCOLINFO *curcol;
    TDSRESULTINFO *resinfo;
    char *src;
+
    CONV_RESULT cr;
    TDS_INT srctype, srclen;
 
@@ -63,6 +65,7 @@ main(int argc, char **argv)
    float sybreal[5];
    int num_sybflt8 = 7;
    double sybflt8[7];
+   int    result_type, row_type, compute_id;
 
    memset(&ctx, 0, sizeof(ctx));
 
@@ -107,8 +110,11 @@ main(int argc, char **argv)
    rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 
    row_count = 0;
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      switch (result_type) {
+         case TDS_ROW_RESULT:
+              while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
+                    if (row_type == TDS_REG_ROW) {
          resinfo = tds->res_info;
          for (i=0; i<resinfo->num_cols; i++) {
             curcol = resinfo->columns[i];
@@ -137,6 +143,9 @@ main(int argc, char **argv)
          }
          row_count++;
       }
+                    else
+                       continue;
+              }
       if (rc == TDS_FAIL) {
          fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
          return 1;
@@ -145,12 +154,12 @@ main(int argc, char **argv)
          fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
          return 1;
       }
+              break;
+         default:            
+              break;
    }
-   if (rc == TDS_FAIL) {
-      fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for SELECT\n");
-      return 1;
    }
-   else if (rc != TDS_NO_MORE_RESULTS) {
+   if (rc != TDS_NO_MORE_RESULTS) {
       fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
    }
 
@@ -172,8 +181,11 @@ main(int argc, char **argv)
    }
 
    rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      switch (result_type) {
+         case TDS_ROW_RESULT:
+              while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED ) {
+                    if (row_type == TDS_REG_ROW) {
          resinfo = tds->res_info;
          for (i=0; i<resinfo->num_cols; i++) {
             curcol = resinfo->columns[i];
@@ -201,6 +213,9 @@ main(int argc, char **argv)
             }
          }
       }
+                   else
+                      continue;
+              }
       if (rc == TDS_FAIL) {
          fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
          return 1;
@@ -209,12 +224,12 @@ main(int argc, char **argv)
          fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
          return 1;
       }
+              break;
+         default:            
+              break;
    }
-   if (rc == TDS_FAIL) {
-      fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for SELECT\n");
-      return 1;
    }
-   else if (rc != TDS_NO_MORE_RESULTS) {
+   if (rc != TDS_NO_MORE_RESULTS) {
       fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
    }
 
@@ -222,11 +237,11 @@ main(int argc, char **argv)
    return 0;
 }
 
-
 /* Run query for which there should be no return results */
 int run_query(TDSSOCKET *tds, char *query)
 {
    int rc;
+   int result_type;
 
    rc = tds_submit_query(tds, query);
    if (rc != TDS_SUCCEED) {
@@ -234,8 +249,9 @@ int run_query(TDSSOCKET *tds, char *query)
       return TDS_FAIL;
    }
 
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      if (tds->res_info->rows_exist) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+
+      if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_FAIL) {
          fprintf(stderr, "Error:  query should not return results\n");
          return TDS_FAIL;
       }

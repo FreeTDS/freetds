@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.24 2002-10-20 05:24:16 castellano Exp $";
+	"$Id: tds.h,v 1.25 2002-10-23 02:21:21 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -134,6 +134,21 @@ typedef struct tdsdaterec
 #define TDS_SUCCEED          1
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
+#define TDS_REG_ROW          -1
+#define TDS_NO_MORE_ROWS     -2
+#define TDS_COMP_ROW         -3
+                                                             
+#define TDS_ROW_RESULT        4040
+#define TDS_PARAM_RESULT      4042
+#define TDS_STATUS_RESULT     4043
+#define TDS_MSG_RESULT        4044
+#define TDS_COMPUTE_RESULT    4045
+#define TDS_CMD_DONE          4046
+#define TDS_CMD_FAIL          4048
+#define TDS_ROWFMT_RESULT     4049
+#define TDS_COMPUTEFMT_RESULT 4050
+#define TDS_DESCRIBE_RESULT   4051
+
 /*
 ** TDS_ERROR indicates a successful processing, but an TDS_ERR_TOKEN or 
 ** TDS_EED_TOKEN error was encountered, whereas TDS_FAIL indicates an
@@ -150,18 +165,19 @@ typedef struct tdsdaterec
 #define TDS_RET_STAT_TOKEN  121  /* 0x79                              */
 #define TDS_124_TOKEN       124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
 #define TDS7_RESULT_TOKEN   129  /* 0x81    TDS 7.0 only              */
+#define TDS7_COMPUTE_RESULT_TOKEN   136  /* 0x88    TDS 7.0 only              */
 #define TDS_COL_NAME_TOKEN  160  /* 0xA0    TDS 4.2 only              */
 #define TDS_COL_INFO_TOKEN  161  /* 0xA1    TDS 4.2 only - TDS_COLFMT */
 /*#define  TDS_TABNAME   164 */
 /*#define  TDS_COL_INFO   165 */
-#define TDS_167_TOKEN       167  /* 0xA7                              */
-#define TDS_168_TOKEN       168  /* 0xA8                              */
+#define TDS_COMPUTE_NAMES_TOKEN   167  /* 0xA7                        */
+#define TDS_COMPUTE_RESULT_TOKEN  168  /* 0xA8                        */
 #define TDS_ORDER_BY_TOKEN  169  /* 0xA9    TDS_ORDER                 */
 #define TDS_ERR_TOKEN       170  /* 0xAA                              */
 #define TDS_MSG_TOKEN       171  /* 0xAB                              */
 #define TDS_PARAM_TOKEN     172  /* 0xAC    RETURNVALUE?              */
 #define TDS_LOGIN_ACK_TOKEN 173  /* 0xAD                              */
-#define TDS_174_TOKEN       174  /* 0xAE    TDS_CONTROL               */
+#define TDS_CONTROL_TOKEN   174  /* 0xAE    TDS_CONTROL               */
 #define TDS_ROW_TOKEN       209  /* 0xD1                              */
 #define TDS_CMP_ROW_TOKEN   211  /* 0xD3                              */
 #define TDS_CAP_TOKEN       226  /* 0xE2                              */
@@ -229,6 +245,15 @@ sheesh! </rant>
 
 #define SYBUNIQUE    36    /* 0x24 */
 #define SYBVARIANT   0x62
+
+#define SYBAOPCNT  0x4b
+#define SYBAOPCNTU 0x4c
+#define SYBAOPSUM  0x4d
+#define SYBAOPSUMU 0x4e
+#define SYBAOPAVG  0x4f
+#define SYBAOPAVGU 0x50
+#define SYBAOPMIN  0x51
+#define SYBAOPMAX  0x52
 
 #define TDS_ZERO_FREE(x) {free((x)); (x) = NULL;}
 
@@ -423,6 +448,8 @@ typedef struct tds_loc_info {
 
 /* structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
+    TDS_TINYINT  column_operator;
+    TDS_SMALLINT column_operand;
 	TDS_SMALLINT column_type;
 	TDS_SMALLINT column_type_save;
 	TDS_INT column_usertype;
@@ -461,9 +488,12 @@ typedef struct tds_result_info {
 	TDS_SMALLINT  rows_exist;
 	TDS_INT       row_count;
 	TDS_INT       row_size;
+    TDS_SMALLINT  computeid;
 	TDS_SMALLINT  num_cols;
+	TDS_SMALLINT  by_cols;
 	TDS_TINYINT   more_results;
 	TDSCOLINFO    **columns;
+    TDS_TINYINT   *bycolumns;
 	int           null_info_size;
 	unsigned char *current_row;
 } TDSRESULTINFO;
@@ -485,13 +515,7 @@ enum {
 #define TDS_DBG_ERROR   2
 #define TDS_DBG_SEVERE  1
 
-typedef struct tds_compute_info {
-        TDS_SMALLINT num_cols;
-	TDS_INT row_size;
-        TDSCOLINFO **columns;
-	int           null_info_size;
-	unsigned char *current_row;
-} TDSCOMPUTEINFO;
+typedef struct tds_result_info TDSCOMPUTEINFO;
 
 typedef struct tds_param_info {
         TDS_SMALLINT num_cols;
@@ -573,8 +597,10 @@ struct tds_socket {
 	unsigned char last_packet;
 	void *parent;
 	/* info about current query */
+	TDSRESULTINFO *curr_resinfo;
 	TDSRESULTINFO *res_info;
-        TDSCOMPUTEINFO *comp_info;
+	TDS_INT        num_comp_info;
+	TDSCOMPUTEINFO **comp_info;
         TDSPARAMINFO *param_info;
 	TDS_TINYINT   has_status;
 	TDS_INT       ret_status;
@@ -598,7 +624,6 @@ struct tds_socket {
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
-
 	int spid;
 };
 
@@ -628,7 +653,7 @@ char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
 char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int n);
 TDSRESULTINFO *tds_alloc_results(int num_cols);
-TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
+TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols);
 TDSCONTEXT *tds_alloc_context(void);
 void tds_free_context(TDSCONTEXT *locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
@@ -639,10 +664,10 @@ void tds_fix_connect(TDSCONNECTINFO *connect_info);
 void tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info);
 void tds_lookup_host(const char *servername, const char *portname, char *ip, char *port);
 
-
 TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
-char *tds_msg_get_proc_name(TDSSOCKET *tds);
+void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
+char *tds_msg_get_proc_name(TDSSOCKET *tds, int namelen);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id);
 void tds_free_login(TDSLOGIN *login);
@@ -666,8 +691,8 @@ void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver);
 void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, int size);
 int tds_submit_query(TDSSOCKET *tds, char *query);
 int tds_submit_queryf(TDSSOCKET *tds, char *queryf, ...);
-int tds_process_result_tokens(TDSSOCKET *tds);
-int tds_process_row_tokens(TDSSOCKET *tds);
+int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
+int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
@@ -680,6 +705,7 @@ int tds_get_null(unsigned char *current_row, int column);
 int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
+char *tds_prtype(int token);
 
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);

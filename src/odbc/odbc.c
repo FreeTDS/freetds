@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.70 2002-10-18 17:04:37 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.71 2002-10-23 02:21:23 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -329,6 +329,7 @@ SQLRETURN SQL_API SQLMoreResults(
 {
     TDSSOCKET * tds;
     struct _hstmt *stmt;
+    TDS_INT  result_type;
 
     CHECK_HSTMT;
 
@@ -336,7 +337,7 @@ SQLRETURN SQL_API SQLMoreResults(
     tds = stmt->hdbc->tds_socket;
 
     /* try to go to the next recordset */
-    switch (tds_process_result_tokens(tds))
+    switch (tds_process_result_tokens(tds, &result_type))
     {
     case TDS_NO_MORE_RESULTS:
         odbc_set_return_status(stmt);
@@ -1125,6 +1126,8 @@ _SQLExecute( SQLHSTMT hstmt)
     struct _hstmt *stmt = (struct _hstmt *) hstmt;
     int ret;
     TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+    TDS_INT    result_type;
+    TDS_INT    done = 0;
 
     CHECK_HSTMT;
 
@@ -1137,7 +1140,26 @@ _SQLExecute( SQLHSTMT hstmt)
     }
     stmt->hdbc->current_statement = stmt;
 
-    ret = tds_process_result_tokens(tds);
+    while (!done && (ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED)
+    {
+      switch (result_type) {
+        case  TDS_COMPUTE_RESULT    :
+        case  TDS_PARAM_RESULT      :
+        case  TDS_ROW_RESULT        :
+        case  TDS_STATUS_RESULT     :
+        case  TDS_CMD_DONE          :
+        case  TDS_CMD_FAIL          :
+              done = 1;
+              break;
+
+        case  TDS_COMPUTEFMT_RESULT :
+        case  TDS_MSG_RESULT        :
+        case  TDS_ROWFMT_RESULT     :
+        case  TDS_DESCRIBE_RESULT   :
+              break;
+
+      }
+    }
     if (ret==TDS_NO_MORE_RESULTS) {
         return SQL_SUCCESS;
     } else if (ret==TDS_SUCCEED) {
@@ -1274,6 +1296,9 @@ SQLRETURN SQL_API SQLFetch(
     struct _sql_bind_info *cur;
     TDSLOCINFO *locale;
     TDSCONTEXT *context;
+    TDS_INT    rowtype;
+    TDS_INT    computeid;
+
 
     CHECK_HSTMT;
 
@@ -1308,7 +1333,7 @@ SQLRETURN SQL_API SQLFetch(
     }
     stmt->row++;
 
-    ret = tds_process_row_tokens(stmt->hdbc->tds_socket);
+    ret = tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid);
     if (ret==TDS_NO_MORE_ROWS) {
 	tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n" );
         return SQL_NO_DATA_FOUND;
@@ -2243,6 +2268,8 @@ SQLRETURN SQL_API SQLGetTypeInfo(
 struct _hstmt *stmt;
 SQLRETURN res;
 TDSSOCKET *tds;
+TDS_INT row_type;
+TDS_INT compute_id;
 int varchar_pos = -1,n;
 
     CHECK_HSTMT;
@@ -2284,7 +2311,8 @@ redo:
 		if (n == (varchar_pos-1))
 			break;
 
-		switch(tds_process_row_tokens(stmt->hdbc->tds_socket)) {
+		switch(tds_process_row_tokens(stmt->hdbc->tds_socket,
+                                              &row_type, &compute_id)) {
 		case TDS_NO_MORE_ROWS:
 			while(tds->state==TDS_PENDING)
 				tds_process_default_tokens(tds,tds_get_byte(tds));

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.37 2002-10-18 09:34:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.38 2002-10-23 02:21:25 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -240,29 +240,52 @@ Cleanup:
 	return NULL;
 }
 
-/**
- * Allocate memory for storing compute info
- * return NULL on out of memory
- */
-TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols)
+TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT *num_comp_results, TDSCOMPUTEINFO** ci, int num_cols, int by_cols)
 {
-/*TDSCOLINFO *curcol;
- */
-TDSCOMPUTEINFO *comp_info;
-int col;
 
-	TEST_MALLOC(comp_info,TDSCOMPUTEINFO);
-	memset(comp_info,'\0',sizeof(TDSCOMPUTEINFO));
-	TEST_MALLOCN(comp_info->columns, TDSCOLINFO*, num_cols);
+int col;
+TDSCOMPUTEINFO **comp_info;
+TDSCOMPUTEINFO *cur_comp_info;
+
+    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
+    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+
+    if (*num_comp_results == 0) {
+       *num_comp_results = *num_comp_results + 1;
+	   comp_info  = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
+	   *comp_info = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
+	   memset(*comp_info,'\0',sizeof(TDSCOMPUTEINFO));
+       cur_comp_info = *comp_info;
+    }
+    else {
+       *num_comp_results = *num_comp_results + 1;
+	   comp_info = (TDSCOMPUTEINFO **) realloc(ci, sizeof(TDSCOMPUTEINFO *) * *num_comp_results);
+	   comp_info[*num_comp_results - 1] = (TDSCOMPUTEINFO *) malloc(sizeof(TDSCOMPUTEINFO));
+	   memset(comp_info[*num_comp_results - 1],'\0',sizeof(TDSCOMPUTEINFO));
+       cur_comp_info = comp_info[*num_comp_results - 1];
+
+    }
+
+    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. num_comp_results = %d\n", *num_comp_results);
+
+	cur_comp_info->columns = (TDSCOLINFO **) malloc(sizeof(TDSCOLINFO *) * num_cols);
+    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 1\n");
 	for (col=0;col<num_cols;col++)  {
-		TEST_MALLOC(comp_info->columns[col], TDSCOLINFO);
-		memset(comp_info->columns[col],'\0',sizeof(TDSCOLINFO));
+		cur_comp_info->columns[col] = (TDSCOLINFO *) malloc(sizeof(TDSCOLINFO));
+		memset(cur_comp_info->columns[col],'\0',sizeof(TDSCOLINFO));
 	}
-	comp_info->num_cols = num_cols;
+	cur_comp_info->num_cols = num_cols;
+
+    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 2\n");
+
+    if (by_cols) {
+		cur_comp_info->bycolumns = (TDS_TINYINT *) malloc(by_cols);
+		memset(cur_comp_info->bycolumns,'\0', by_cols);
+	    tdsdump_log(TDS_DBG_INFO1, "%L alloc_compute_result. point 3\n");
+		cur_comp_info->by_cols = by_cols;
+    }
+
 	return comp_info;
-Cleanup:
-	tds_free_compute_results(comp_info);
-	return NULL;
 }
 
 TDSRESULTINFO *tds_alloc_results(int num_cols)
@@ -308,6 +331,16 @@ void *ptr;
 	return ptr;
 }
 
+void *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info)
+{
+void *ptr;
+
+	ptr = (void *) malloc(res_info->row_size);
+	if (!ptr) return NULL;
+	memset(ptr,'\0',res_info->row_size); 
+	return ptr;
+}
+
 void tds_free_param_results(TDSPARAMINFO *param_info)
 {
 int i;
@@ -324,21 +357,42 @@ int i;
 		TDS_ZERO_FREE(param_info);
 	}
 }
-void tds_free_compute_results(TDSCOMPUTEINFO *comp_info)
+void tds_free_compute_result(TDSCOMPUTEINFO *comp_info)
 {
+
 int i;
 
 	if(comp_info)
 	{
+		if (comp_info->current_row) 
+           TDS_ZERO_FREE(comp_info->current_row);
+
 		for (i=0;i<comp_info->num_cols;i++)
 		{
-			if(comp_info->columns[i])
-			TDS_ZERO_FREE(comp_info->columns[i]);
+			if(comp_info->columns && comp_info->columns[i])
+				tds_free_column(comp_info->columns[i]);
 		}
 		if (comp_info->num_cols) TDS_ZERO_FREE(comp_info->columns);
-		if (comp_info->current_row) TDS_ZERO_FREE(comp_info->current_row);
+
+		if (comp_info->by_cols) TDS_ZERO_FREE(comp_info->bycolumns);
+
 		TDS_ZERO_FREE(comp_info);
 	}
+
+}
+
+void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp)
+{
+
+int i;
+
+    for ( i = 0 ; i < num_comp; i++ ) {
+      if (comp_info && comp_info[i] )
+         tds_free_compute_result(comp_info[i]);
+    }
+    if (num_comp)
+       TDS_ZERO_FREE(comp_info);
+
 }
 
 void tds_free_results(TDSRESULTINFO *res_info)
@@ -348,13 +402,16 @@ int i;
 
 	if(res_info)
 	{
-		if (res_info->current_row) TDS_ZERO_FREE(res_info->current_row);
+		if (res_info->current_row) 
+           TDS_ZERO_FREE(res_info->current_row);
+
 		for (i=0;i<res_info->num_cols;i++)
 		{
 			if(res_info->columns && res_info->columns[i])
 				tds_free_column(res_info->columns[i]);
 		}
 		if (res_info->num_cols) TDS_ZERO_FREE(res_info->columns);
+
 		TDS_ZERO_FREE(res_info);
 	}
 
@@ -365,8 +422,9 @@ void tds_free_all_results(TDSSOCKET *tds)
 	tds->res_info = NULL;
 	tds_free_param_results(tds->param_info);
 	tds->param_info = NULL;
-	tds_free_compute_results(tds->comp_info);
+	tds_free_compute_results(tds->comp_info, tds->num_comp_info);
 	tds->comp_info = NULL;
+    tds->num_comp_info = 0;
 }
 void tds_free_column(TDSCOLINFO *column)
 {
@@ -406,9 +464,8 @@ TDSLOCINFO *locale;
 
 	return locale;
 }
-
-static const unsigned char defaultcaps[] = {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
-
+static const unsigned char defaultcaps[] = 
+{0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)
@@ -509,7 +566,6 @@ char *tdsver;
 	memcpy(tds_login->capabilities,defaultcaps,TDS_MAX_CAPABILITY);
 	return tds_login;
 }
-
 void tds_free_login(TDSLOGIN *login)
 {
 	if (login) {
@@ -606,6 +662,7 @@ void tds_free_connect(TDSCONNECTINFO *connect_info)
 	tds_dstr_free(&connect_info->library);
 	TDS_ZERO_FREE(connect_info);
 }
+
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)
 {
 TDSENVINFO *env;

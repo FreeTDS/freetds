@@ -74,7 +74,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.58 2002-10-17 22:36:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.59 2002-10-23 02:21:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -170,6 +170,7 @@ int retval;
 time_t start, now;
 /* 13 + max string of 32bit int, 30 should cover it */
 int connect_timeout = 0;
+int result_type;
 
 	FD_ZERO(&fds);
 
@@ -310,7 +311,7 @@ int connect_timeout = 0;
    		retval = tds_submit_queryf(tds, "set textsize %d",
 						connect_info->text_size);
    		if (retval == TDS_SUCCEED) {
-   			while (tds_process_result_tokens(tds) == TDS_SUCCEED)
+   			while (tds_process_result_tokens(tds, &result_type) == TDS_SUCCEED)
 				;
    		}
 	}

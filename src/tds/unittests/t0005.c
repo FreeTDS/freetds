@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0005.c,v 1.5 2002-10-13 23:28:13 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.6 2002-10-23 02:21:25 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -44,6 +44,8 @@ main(int argc, char **argv)
    int verbose = 0;
    int rc;
    int i;
+
+   int result_type, row_type, compute_id;
 
    char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
    char large_sql[1000];
@@ -74,8 +76,10 @@ main(int argc, char **argv)
     * The heart of the test
     */
    rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      switch (result_type) {
+         case TDS_ROW_RESULT:
+              while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id))==TDS_SUCCEED) {
          for (i=0; i<tds->res_info->num_cols; i++) {
             if (verbose) {
                printf("col %i is %s\n", i, value_as_string(tds, i));
@@ -89,6 +93,10 @@ main(int argc, char **argv)
       else if (rc != TDS_NO_MORE_ROWS) {
          fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
          return 1;
+      }
+              break;
+         default:
+              break;
       }
    }
    if (rc == TDS_FAIL) {
@@ -106,11 +114,11 @@ main(int argc, char **argv)
    return 0;
 }
 
-
 /* Run query for which there should be no return results */
 int run_query(TDSSOCKET *tds, char *query)
 {
    int rc;
+   int result_type;
 
    rc = tds_submit_query(tds, query);
    if (rc != TDS_SUCCEED) {
@@ -118,8 +126,9 @@ int run_query(TDSSOCKET *tds, char *query)
       return TDS_FAIL;
    }
 
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      if (tds->res_info->rows_exist) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+
+      if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_FAIL) {
          fprintf(stderr, "Error:  query should not return results\n");
          return TDS_FAIL;
       }

@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.5 2002-10-13 23:28:13 castellano Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.6 2002-10-23 02:21:25 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -59,6 +59,10 @@ main(int argc, char **argv)
    int rc;
    int i;
 
+   int result_type;
+   int row_type;
+   int compute_id;
+
    char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
    char long_query[1000];
    sprintf(long_query, "SELECT name FROM #longquerytest WHERE (name = 'A%s' OR name = 'B%s' OR name = 'C%s' OR name = 'correct')", len200, len200, len200);
@@ -84,13 +88,16 @@ main(int argc, char **argv)
     */
    if (verbose) { fprintf(stdout, "block size %d\n", tds->env->block_size); }
    rc = tds_submit_query(tds, long_query);
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      switch (result_type) {
+         case TDS_ROWFMT_RESULT:
       if (tds->res_info->columns[0]->column_type != SYBVARCHAR) {
          fprintf(stderr, "Wrong column_type in %s\n", __FILE__);
          return 1;
       }
-
-      while ((rc=tds_process_row_tokens(tds))==TDS_SUCCEED) {
+              break;
+         case TDS_ROW_RESULT:
+              while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id))==TDS_SUCCEED) {
          if (verbose) {
             printf("col %i is %s\n", i, varchar_as_string(tds, 0));
          }
@@ -102,6 +109,10 @@ main(int argc, char **argv)
       else if (rc != TDS_NO_MORE_ROWS) {
          fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
          return 1;
+      }
+              break;
+         default:
+              break;
       }
    }
    if (rc == TDS_FAIL) {
@@ -124,6 +135,7 @@ main(int argc, char **argv)
 int run_query(TDSSOCKET *tds, char *query)
 {
    int rc;
+   int result_type;
 
    rc = tds_submit_query(tds, query);
    if (rc != TDS_SUCCEED) {
@@ -131,8 +143,9 @@ int run_query(TDSSOCKET *tds, char *query)
       return TDS_FAIL;
    }
 
-   while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
-      if (tds->res_info->rows_exist) {
+   while ((rc=tds_process_result_tokens(tds, &result_type))==TDS_SUCCEED) {
+      
+      if (result_type != TDS_CMD_DONE && result_type != TDS_CMD_FAIL) {
          fprintf(stderr, "Error:  query should not return results\n");
          return TDS_FAIL;
       }

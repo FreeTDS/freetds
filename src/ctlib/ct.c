@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.37 2002-10-17 21:21:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.38 2002-10-23 02:21:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -333,6 +333,7 @@ TDSCONNECTINFO *connect_info;
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving ct_connect() returning %d\n", CS_SUCCEED);
 	return CS_SUCCEED;
 }
+
 CS_RETCODE ct_cmd_alloc(CS_CONNECTION *con, CS_COMMAND **cmd)
 {
 
@@ -415,74 +416,124 @@ TDSDYNAMIC *dyn;
 	}
 	return CS_FAIL;
 }
+
 CS_RETCODE ct_results(CS_COMMAND *cmd, CS_INT *result_type)
 {
 TDSRESULTINFO *resinfo;
 TDSSOCKET *tds;
-int ret;
+CS_CONTEXT    *context;
+
+int           tdsret;
+CS_RETCODE    retcode;
+int           done;
+int           rowtype;
+int           computeid;
+CS_INT        res_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_results()\n");
+
+    context = cmd->con->ctx;
 
 	if (cmd->dynamic_cmd) {
 		return ct_results_dyn(cmd, result_type);
 	}
 
-	if (cmd->cmd_done) {
-		cmd->cmd_done = 0;
-		*result_type = CS_CMD_DONE;
-		return CS_SUCCEED;
-	} 
-
 	tds = cmd->con->tds_socket;
 
-	switch (ret = tds_process_result_tokens(tds)) {
+    cmd->row_prefetched = 0;
+    done = 0;
+
+    /* see what "result" tokens we have. a "result" in ct-lib terms also  */
+    /* includes row data. Some result types always get reported back  to  */
+    /* the calling program, others are only reported back if the relevant */
+    /* config flag is set.                                                */
+
+    while (!done) {
+
+	   tdsret = tds_process_result_tokens(tds, &res_type); 
+   
+	   tdsdump_log(TDS_DBG_FUNC, "%L inside ct_results() process_result_tokens returned %d (type %d) \n",
+                   tdsret, res_type);
+
+       switch (tdsret) {
 		case TDS_SUCCEED:
-			resinfo = tds->res_info;
-			if (resinfo->rows_exist) {
-				*result_type = CS_ROW_RESULT;
-				cmd->cmd_done = 1;
-			} else {
-				*result_type = CS_CMD_SUCCEED;
+
+              cmd->curr_result_type = res_type;
+
+              switch (res_type) {
+                 case CS_COMPUTEFMT_RESULT:
+                 case CS_ROWFMT_RESULT:
+                      if (context->config.cs_expose_formats) {
+                         done = 1;
+                         retcode = CS_SUCCEED;
+                         *result_type = res_type;
 			}
-			return CS_SUCCEED;
-		case TDS_NO_MORE_RESULTS:
-			if (! tds->res_info) {
-				if (cmd->empty_res_hack) {
-					cmd->empty_res_hack=0;
-					*result_type = CS_CMD_DONE;
-					return CS_END_RESULTS;
-				} else {
-					cmd->empty_res_hack=1;
-					*result_type = CS_CMD_SUCCEED;
-					return CS_SUCCEED;
+                      break;
+
+                 case CS_COMPUTE_RESULT:
+
+                      /* we've hit a compute data row. We have to get hold of this */
+                      /* data now, as it's necessary  to tie this data back to its */
+                      /* result format...the user may call ct_res_info() & friends */
+                      /* after getting back a compute "result".                    */
+
+                      tdsret = tds_process_row_tokens(tds, &rowtype, &computeid);
+
+                      if (tdsret == TDS_SUCCEED) {
+                         if (rowtype == TDS_COMP_ROW) {
+                            cmd->row_prefetched = 1;
+                            retcode = CS_SUCCEED;
 				}
+                         else {
+                            /* this couldn't really happen, but... */
+                            retcode = CS_FAIL;
 			}	
-			if (tds->res_info && !tds->res_info->rows_exist) {
-				if (cmd->empty_res_hack) {
-					cmd->empty_res_hack=0;
-					*result_type = CS_CMD_DONE;
-					return CS_END_RESULTS;
-				} else {
-					cmd->empty_res_hack=1;
-					*result_type = CS_ROW_RESULT;
-					return CS_SUCCEED;
 				}
-			} else {
+                      else
+                         retcode = CS_FAIL;
+
+                      done = 1;
+                      *result_type = res_type;
+                      break;
+
+                 case CS_CMD_DONE:
+
+                      /* there's a distinction in ct-library     */
+                      /* depending on whether a command returned */ 
+                      /* results or not...                          */
+
+                      if (tds->res_info)
 				*result_type = CS_CMD_DONE;
-				return CS_END_RESULTS;
+                      else
+                         *result_type = CS_CMD_SUCCEED;
+
+                      retcode = CS_SUCCEED;
+                      done = 1;
+                      break;
+                      
+
+                 default:
+                      retcode = CS_SUCCEED;
+                      *result_type = res_type;
+                      done = 1;
+                      break;
 			}
+              break;
+         case TDS_NO_MORE_RESULTS:
+              done    = 1;
+              retcode = CS_END_RESULTS;
+              break;
 		case TDS_FAIL:
-			if (tds->state == TDS_DEAD) {
-				return CS_FAIL;
-			} else {
-				*result_type = CS_CMD_FAIL;
-				return CS_SUCCEED;
+              done    = 1;
+              retcode = CS_FAIL;
+              break;
 			}
-		default:
-			return CS_FAIL;
 	}	
-	return CS_FAIL;
+   return (retcode);
+    
 }
+
+
 CS_RETCODE ct_bind(CS_COMMAND *cmd, CS_INT item, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT *copied, CS_SMALLINT *indicator)
 {
 TDSCOLINFO * colinfo;
@@ -492,7 +543,8 @@ TDSSOCKET * tds;
    tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind()\n");
 
    tds = (TDSSOCKET *) cmd->con->tds_socket;
-   resinfo = tds->res_info;
+   resinfo = tds->curr_resinfo;
+
 	/* check item value */
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
 		return CS_FAIL;
@@ -513,21 +565,52 @@ TDSSOCKET * tds;
 
 CS_RETCODE ct_fetch(CS_COMMAND *cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT *rows_read)
 {
+TDS_INT rowtype;
+TDS_INT computeid;
+TDS_INT ret;
+TDS_INT marker;
+
    tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()\n");
 
    if (rows_read) *rows_read = 0;
-   switch (tds_process_row_tokens(cmd->con->tds_socket)) {
-      case TDS_SUCCEED:
+
+   /* compute rows have been pre-fetched by ct_results() */
+
+   if (cmd->row_prefetched) {
+      cmd->row_prefetched = 0;
 	if (_ct_bind_data(cmd))
 		return CS_ROW_FAIL;
-      	if (rows_read) *rows_read = 1;
-      	return TDS_SUCCEED;
-      case TDS_NO_MORE_ROWS:
+      if (rows_read)  
+         *rows_read = 1;
+      return CS_SUCCEED;
+   }
+
+   if (cmd->curr_result_type == CS_COMPUTE_RESULT)
       	return CS_END_DATA;
-      default:
-      	return CS_FAIL;
+      
+   marker = tds_peek(cmd->con->tds_socket);
+
+   if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
+      return CS_END_DATA;
+
+   ret = tds_process_row_tokens(cmd->con->tds_socket, &rowtype, &computeid);
+
+   tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch() process_row_tokens returned %d\n", ret);
+
+   if (ret == TDS_SUCCEED) {
+      if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+           if (_ct_bind_data(cmd))
+		      return CS_ROW_FAIL;
+      	   if (rows_read)  
+               *rows_read = 1;
    }
    return CS_SUCCEED;
+}
+   else if (ret == TDS_NO_MORE_ROWS) {
+      	   return CS_END_DATA;
+        }
+        else
+           return CS_FAIL;
 }
 
 static int _ct_bind_data(CS_COMMAND *cmd)
@@ -535,7 +618,7 @@ static int _ct_bind_data(CS_COMMAND *cmd)
 int i;
 TDSCOLINFO *curcol;
 TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->res_info;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
 unsigned char *src;
 unsigned char *dest;
 int result = 0;
@@ -837,7 +920,7 @@ TDSCOLINFO *curcol;
 	if (cmd->dynamic_cmd) {
 		resinfo = tds->dyns[tds->cur_dyn_elem]->res_info;
 	} else {
- 		resinfo = cmd->con->tds_socket->res_info;
+ 		resinfo = cmd->con->tds_socket->curr_resinfo;;
 	}
 
 	if (item<1 || item>resinfo->num_cols) return CS_FAIL;	
@@ -881,7 +964,7 @@ CS_INT int_val;
 CS_RETCODE ct_res_info(CS_COMMAND *cmd, CS_INT type, CS_VOID *buffer, CS_INT buflen, CS_INT *out_len)
 {
 TDSSOCKET *tds = cmd->con->tds_socket;
-TDSRESULTINFO *resinfo = tds->res_info;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
 CS_INT int_val;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_res_info()\n");
@@ -915,9 +998,44 @@ CS_INT int_val;
 }
 CS_RETCODE ct_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
+
+CS_RETCODE ret = CS_SUCCEED;
+CS_INT *buf = (CS_INT *)buffer;
+
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_config() action = %s property = %d\n",
-		CS_GET ? "CS_GET" : "CS_SET", property);
-	return CS_SUCCEED;
+		        CS_GET ? "CS_GET" : CS_SET ? "CS_SET" : CS_SUPPORTED ? "CS_SUPPORTED" : "CS_CLEAR" , property);
+
+    switch (property) {
+       case CS_EXPOSE_FMTS:
+            switch (action) {
+               case CS_SUPPORTED: 
+                    *buf = CS_TRUE;
+                    break;
+               case CS_SET: 
+                    if (*buf != CS_TRUE && *buf != CS_FALSE ) 
+                       ret = CS_FALSE;
+                    else 
+                       ctx->config.cs_expose_formats = *buf;
+                    break;
+               case CS_GET: 
+                    if (buf)
+                       *buf = ctx->config.cs_expose_formats;
+                    else
+                       ret = CS_FALSE;
+                    break;
+               case CS_CLEAR:
+                    ctx->config.cs_expose_formats = CS_FALSE;
+                    break;
+               default:
+                    ret = CS_FALSE;
+            }
+            break;
+       default:
+            ret = CS_SUCCEED;
+            break;
+    }
+
+	return ret;
 }
 CS_RETCODE ct_cmd_props(CS_COMMAND *cmd, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
@@ -927,7 +1045,76 @@ CS_RETCODE ct_cmd_props(CS_COMMAND *cmd, CS_INT action, CS_INT property, CS_VOID
 }
 CS_RETCODE ct_compute_info(CS_COMMAND *cmd, CS_INT type, CS_INT colnum, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_compute_info()\n");
+TDSSOCKET     *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+TDSCOLINFO    *curcol; 
+CS_INT         int_val;
+CS_SMALLINT   by_col;
+CS_SMALLINT  *dest_by_col_ptr;
+CS_TINYINT   *src_by_col_ptr;
+int           i;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_compute_info() type = %d, colnum = %d\n", type, colnum);
+
+	switch(type) {
+		case CS_BYLIST_LEN:
+			if (!resinfo) {
+				int_val = 0;
+			} else {
+				int_val = resinfo->by_cols;
+			}
+			memcpy(buffer, &int_val, sizeof(CS_INT));
+            if (outlen) *outlen = sizeof(CS_INT);
+			break;
+		case CS_COMP_BYLIST:
+            if ( buflen < (resinfo->by_cols * sizeof(CS_SMALLINT))) {
+               return CS_FAIL;
+            }
+            else {
+               dest_by_col_ptr = (CS_SMALLINT *)buffer; 
+               src_by_col_ptr  = resinfo->bycolumns;
+               for (i = 0; i < resinfo->by_cols; i++ ) {
+                   *dest_by_col_ptr = *src_by_col_ptr;
+                   dest_by_col_ptr++;
+                   src_by_col_ptr++;
+               }
+               if (outlen) *outlen = (resinfo->by_cols * sizeof(CS_SMALLINT));
+            }
+			break;
+        case CS_COMP_COLID:
+			if (!resinfo) {
+				int_val = 0;
+			} else {
+                curcol  = resinfo->columns[colnum - 1];
+				int_val = curcol->column_operand;
+			}
+			memcpy(buffer, &int_val, sizeof(CS_INT));
+            if (outlen) *outlen = sizeof(CS_INT);
+			break;
+        case CS_COMP_ID:
+			if (!resinfo) {
+				int_val = 0;
+			} else {
+				int_val = resinfo->computeid;
+			}
+			memcpy(buffer, &int_val, sizeof(CS_INT));
+            if (outlen) *outlen = sizeof(CS_INT);
+			break;
+        case CS_COMP_OP:
+			if (!resinfo) {
+				int_val = 0;
+			} else {
+                curcol  = resinfo->columns[colnum - 1];
+				int_val = curcol->column_operator;
+			}
+			memcpy(buffer, &int_val, sizeof(CS_INT));
+            if (outlen) *outlen = sizeof(CS_INT);
+			break;
+		default:
+			fprintf(stderr,"Unknown type in ct_compute_info: %d\n",type);
+			return CS_FAIL;
+			break;
+	}
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_get_data(CS_COMMAND *cmd, CS_INT item, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
