@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.35 2003-04-07 19:02:39 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.36 2003-04-08 07:14:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -129,7 +129,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	assert(len >= 0);
 
 	if (IS_TDS7_PLUS(tds)) {
-		eob = s[len];	/* 1 past the end of the input buffer */
+		eob = s + len;	/* 1 past the end of the input buffer */
 		while (len > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
 			output_size = len * bpc;

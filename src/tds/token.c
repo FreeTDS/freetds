@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.170 2003-04-07 19:02:37 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.171 2003-04-08 07:14:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -262,7 +262,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	/* get_incoming(tds->s); */
 	do {
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L looking for login token, got  %d(%x)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_FUNC, "%L looking for login token, got  %x(%s)\n", marker, _tds_token_name(marker));
 
 		switch (marker) {
 		case TDS_AUTH_TOKEN:
@@ -1164,6 +1164,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	}
 
 	/* Adjust column size according to client's encoding */
+	curcol->on_server.column_size = curcol->column_size;
 	adjust_character_column_size(tds, curcol);
 
 	/* numeric and decimal have extra info */
@@ -1172,7 +1173,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save))
+	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type))
 		/* based on true type as sent by server */
 		/* first 2 bytes are windows code (such as 0x409 for english)
 		 * * other 2 bytes ???
@@ -1190,10 +1191,14 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
 
-	tdsdump_log(TDS_DBG_INFO1,
-		    "%L tds7_get_data_info:%d: \n\ttype = %d (%s)\n\tcolumn_varint_size = %d\n\tcolname = %s\n\tcolnamelen = %d\n",
-		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, curcol->column_name,
-		    curcol->column_namelen);
+	tdsdump_log(TDS_DBG_INFO1, 	"%L tds7_get_data_info:%d: \n"
+					"\ttype = %d (%s)\n"
+					"\tcolumn_varint_size = %d\n"
+					"\tcolname = %s (%d bytes)\n"
+					"\tcolumn_size = %d (%d on server)\n",
+		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size, 
+		    curcol->column_name, curcol->column_namelen, 
+		    curcol->column_size, curcol->on_server.column_size);
 
 	return TDS_SUCCEED;
 }
@@ -1248,7 +1253,7 @@ void
 tds_set_column_type(TDSCOLINFO * curcol, int type)
 {
 	/* set type */
-	curcol->column_type_save = type;
+	curcol->on_server.column_type = type;
 	curcol->column_type = tds_get_cardinal_type(type);
 
 	/* set size */
@@ -1305,11 +1310,12 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	/* read sql collation info */
 	/* TODO: we should use it ! */
-	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save)) {
+	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 	}
 
 	/* Adjust column size according to client's encoding */
+	curcol->on_server.column_size = curcol->column_size;
 	adjust_character_column_size(tds, curcol);
 
 	return TDS_SUCCEED;
@@ -1626,9 +1632,13 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 
 	} else {
-		colsize = determine_adjusted_size(&tds->iconv_info, colsize);
+		if (curcol->column_size != curcol->on_server.column_size)
+			colsize = determine_adjusted_size(&tds->iconv_info, colsize);
 
 		if (is_blob_type(curcol->column_type)) {
+			/* This seems wrong.  text and image have the same wire format, 
+			 * but I don't see any reason to convert image data.  --jkl
+			 */
 			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 
 			if (blob_info->textvalue == NULL) {
@@ -1640,12 +1650,12 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			if (blob_info->textvalue == NULL) {
 				return TDS_FAIL;
 			}
-			colsize = tds_get_string(tds, colsize, blob_info->textvalue, colsize);
+			colsize = tds_get_char_data(tds, blob_info->textvalue, colsize, curcol);
 		} else {	/* non-numeric and non-blob */
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
 			dest = &(current_row[curcol->column_offset]);
-			colsize = tds_get_string(tds, colsize, (char *) dest, curcol->column_size);
+			colsize = tds_get_char_data(tds, (char *) dest, colsize, curcol);
 
 			/* pad CHAR and BINARY types */
 			fillchar = 0;
@@ -2887,7 +2897,10 @@ _tds_token_name(unsigned char marker)
 static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
-	curcol->column_size = determine_adjusted_size(&tds->iconv_info, curcol->column_size);
+	if (is_unicode_type(curcol->on_server.column_type)) {
+		curcol->on_server.column_size = curcol->column_size; 
+		curcol->column_size = determine_adjusted_size(&tds->iconv_info, curcol->column_size);
+	}
 }
 
 /** 
@@ -2900,7 +2913,9 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 static int
 determine_adjusted_size(const TDSICONVINFO * iconv_info, int size)
 {
-	assert(iconv_info);
+	if (!iconv_info)
+		return size;
+		
 	size *= iconv_info->client_charset.max_bytes_per_char;
 	if (size % iconv_info->server_charset.min_bytes_per_char)
 		size += iconv_info->server_charset.min_bytes_per_char;
@@ -2908,3 +2923,4 @@ determine_adjusted_size(const TDSICONVINFO * iconv_info, int size)
 
 	return size;
 }
+

@@ -1,3 +1,8 @@
+Tue Apr  8 03:10:02 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/dblib/bcp.c
+	* src/tds/read.c src/tds/token.c src/tds/write.c
+	- More charset fixes: tsql runs sp_who.  
+
 Mon Apr  7 14:57:59 EDT 2003
 	* src/tds/character_sets.h added ISO-8855-1
 	* src/tds/config.c src/tds/iconv.c src/tds/login.c

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.44 2003-04-07 19:02:36 jklowden Exp $";
+static char software_version[] = "$Id: read.c,v 1.45 2003-04-08 07:14:10 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -232,8 +232,7 @@ tds_get_int(TDSSOCKET * tds)
  * @param tds  connection information
  * @param string_len length of string to read from wire (in characters)
  * @param dest destination buffer, if NULL string is read and discarded
- * @param need length to read (in characters)
- * @remarks What is the difference between \a string_len and \a need?
+ * @param need like \a string_len, only different?
  */
 int
 tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
@@ -258,6 +257,8 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 		return 0;
 	}
 
+	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: need %d on wire for %d to client?\n", need, string_len);
+	
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, string_len * bpc);
@@ -280,6 +281,70 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int need)
 		assert(need >= string_len);
 		tds_get_n(tds, dest, string_len);
 		return string_len;
+	}
+}
+
+/**
+ * Fetch character data the wire.
+ * Output is NOT null terminated.
+ * If \a iconv_info is not NULL, convert data accordingly.
+ * @return bytes written to \a dest
+ * \todo put a TDSICONVINFO structure in every TDSCOLINFO
+ */
+int
+tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curcol)
+{
+	/* temp is the "preconversion" buffer, the place where the UCS-2 data 
+	 * are parked before converting them to ASCII.  It has to have a size, 
+	 * and there's no advantage to allocating dynamically 
+	 * Also this prevent memory error problem on dynamic memory
+	 */
+	char temp[256];
+	char *p;
+///	const unsigned int client_bpc = tds->iconv_info.client_charset.min_bytes_per_char;
+	unsigned int in_left, wire_size;
+	
+	/* avoid integer division truncation */
+	wire_size = (size * curcol->on_server.column_size) / curcol->column_size;
+	
+	if (size == 0) {
+		return 0;
+	}
+
+	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size, size);
+	
+	/*
+	 * The next test is crude.  The question we're trying to answer is, 
+	 * "Should these data be converted, and if so, which TDSICONVINFO do we use?"  
+	 * A Microsoft server sends nchar data in UCS-2, and char/varchar data in the server's 
+	 * installed (single-byte) encoding.  SQL Server 2000 has per-column encodings.  
+	 *
+	 * The right way to answer this question is by passing sufficient metadata to this function.
+	 * The right way to do that is to put a TDSICONVINFO structure in every TDSCOLINFO, and teach
+	 * tds_iconv to copy input->output (IOW, to act transparently) if it doesn't have a valid 
+	 * conversion descriptor.  Then, with the metadata pre-established, we just pass everything to 
+	 * tds_iconv and let it do the Right Thing.  
+	 */
+	
+	if (curcol->column_size != curcol->on_server.column_size) { /* TODO: remove this test */
+		if (dest == NULL) {
+			tds_get_n(tds, NULL, wire_size);
+			return wire_size;
+		}
+		p = dest;
+		for (in_left = wire_size; wire_size > 0; ) {
+			int buffer_size;
+			if (in_left > sizeof(temp))
+				in_left = sizeof(temp);
+			tds_get_n(tds, temp, in_left);
+			buffer_size = in_left;
+			p += tds_iconv(to_client, &tds->iconv_info, temp, &in_left, p, size);
+			wire_size -= buffer_size - in_left;
+		}
+		return p - dest;
+	} else {
+		tds_get_n(tds, dest, size);
+		return size;
 	}
 }
 

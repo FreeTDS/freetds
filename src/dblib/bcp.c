@@ -62,7 +62,7 @@ typedef struct _pbcb
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.64 2003-04-06 20:34:56 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.65 2003-04-08 07:14:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -186,7 +186,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			if (IS_TDS7_PLUS(tds)) {
 				bcpcol->db_usertype = resinfo->columns[i]->column_usertype;
 				bcpcol->db_flags = resinfo->columns[i]->column_flags;
-				bcpcol->db_type_save = resinfo->columns[i]->column_type_save;
+				bcpcol->db_type_save = resinfo->columns[i]->on_server.column_type;
 				bcpcol->db_prec = resinfo->columns[i]->column_prec;
 				bcpcol->db_scale = resinfo->columns[i]->column_scale;
 				memcpy(bcpcol->db_collate, resinfo->columns[i]->column_collation, 5);

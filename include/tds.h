@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.106 2003-04-06 20:34:56 jklowden Exp $";
+	"$Id: tds.h,v 1.107 2003-04-08 07:14:06 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -634,8 +634,9 @@ enum {TDS_SYSNAME_SIZE= 512};
 typedef struct tds_column_info {
 	TDS_SMALLINT column_type;	/* This type can be different from wire type because 
 	 				 * conversion (e.g. UCS-2->Ascii) can be applied.    
+					 * I'm beginning to wonder about the wisdom of this, however. 
+					 * April 2003 jkl
 					 */	
-	TDS_SMALLINT column_type_save;	/* type of data, saved from wire */
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
 	
@@ -648,6 +649,10 @@ typedef struct tds_column_info {
 
 	TDS_TINYINT column_namelen;	/* length of column name */
 	TDS_TINYINT table_namelen;
+	struct {
+		TDS_SMALLINT column_type;	/* type of data, saved from wire */
+		TDS_INT column_size;
+	} on_server;
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
@@ -863,7 +868,7 @@ int tds_set_interfaces_file_loc(char *interfloc);
 TDSLOCALE *tds_get_locale(void);
 unsigned char *tds_alloc_row(TDSRESULTINFO *res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
-char *tds_alloc_get_string(TDSSOCKET *tds, int len);
+char *tds_alloc_get_string(TDSSOCKET *tds, int len); 
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
 void tds_free_login(TDSLOGIN *login);
@@ -966,6 +971,7 @@ unsigned char tds_peek(TDSSOCKET *tds);
 TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
 TDS_INT tds_get_int(TDSSOCKET *tds);
 int tds_get_string(TDSSOCKET *tds, int string_len, char *dest, int need);
+int tds_get_char_data(TDSSOCKET * tds, char *dest, int size, const TDSCOLINFO *curcol);
 void *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 int tds_get_size_by_type(int servertype);
 int tds_read_packet (TDSSOCKET *tds);
