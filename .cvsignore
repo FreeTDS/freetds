@@ -3,6 +3,7 @@ config.cache
 config.status
 config.sub
 config.guess
+configure
 Makefile
 Makefile.in
 libtool
