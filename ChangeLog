@@ -1,3 +1,6 @@
+Wed May 29 21:15:00 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c: fix typo in dump
+
 Wed May 29 21:07:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- fix core if execute prepared statement with no parameters
