@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.190 2004-10-13 12:57:05 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.191 2004-10-13 13:07:26 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -287,14 +287,16 @@ enum tds_end
 #define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */
 #define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
 
-#define TDS_CUR_ISTAT_UNUSED    0x00 
-#define TDS_CUR_ISTAT_DECLARED  0x01 
-#define TDS_CUR_ISTAT_OPEN      0x02 
-#define TDS_CUR_ISTAT_CLOSED    0x04 
-#define TDS_CUR_ISTAT_RDONLY    0x08 
-#define TDS_CUR_ISTAT_UPDATABLE 0x10 
-#define TDS_CUR_ISTAT_ROWCNT    0x20 
-#define TDS_CUR_ISTAT_DEALLOC   0x40 
+enum {
+	TDS_CUR_ISTAT_UNUSED    = 0x00,
+	TDS_CUR_ISTAT_DECLARED  = 0x01,
+	TDS_CUR_ISTAT_OPEN      = 0x02,
+	TDS_CUR_ISTAT_CLOSED    = 0x04,
+	TDS_CUR_ISTAT_RDONLY    = 0x08,
+	TDS_CUR_ISTAT_UPDATABLE = 0x10,
+	TDS_CUR_ISTAT_ROWCNT    = 0x20,
+	TDS_CUR_ISTAT_DEALLOC   = 0x40
+};
 
 /* 
  * Cursor Declare, SetRows, Open and Close all return 0x83 token. 
