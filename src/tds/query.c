@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.89 2003-05-12 05:52:13 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.90 2003-05-12 08:53:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -414,7 +414,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	const char *s, *e;
 	char buf[24];
 
-	assert(IS_TDS7_PLUS(tds) && param_definition);
+	assert(IS_TDS7_PLUS(tds));
 
 	/* TODO placeholder should be same number as parameters in definition ??? */
 
@@ -424,12 +424,28 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
-
-	/* FIXME ICONV just to add some incompatibility with charset... see above */
-	i = strlen(param_definition);
-	tds_put_int(tds, i * 2);
-	tds_put_int(tds, i * 2);
-	tds_put_string(tds, param_definition, i);
+	/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
+	n = tds_count_placeholders(query);
+	len = n * 16 - 1;
+	/* adjust for the length of X */
+	for (i = 10; i <= n; i *= 10) {
+		len += n - i + 1;
+	}
+	if (!param_definition) {
+		/* TODO put this code in caller and pass param_definition */
+		tds_put_int(tds, len * 2);
+		tds_put_int(tds, len * 2);
+		for (i = 1; i <= n; ++i) {
+			sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
+			tds_put_string(tds, buf, -1);
+		}
+	} else {
+		/* FIXME ICONV just to add some incompatibility with charset... see above */
+		i = strlen(param_definition);
+		tds_put_int(tds, i * 2);
+		tds_put_int(tds, i * 2);
+		tds_put_string(tds, param_definition, i);
+	}
 
 	/* string with sql statement */
 	/* replace placeholders with dummy parametes */
@@ -438,14 +454,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
-
-	n = tds_count_placeholders(query);
-	len = n * 2 + strlen(query);
-	/* adjust for the length of X */
-	for (i = 10; i <= n; i *= 10) {
-		len += n - i + 1;
-	}
-	
+	len = (len + 1 - 14 * n) + strlen(query);
 	/* FIXME ICONV use converted size. Perhaps we should construct entire string ? */
 	tds_put_int(tds, len * 2);
 	tds_put_int(tds, len * 2);
