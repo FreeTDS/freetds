@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.71 2002-09-13 21:00:21 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.72 2002-09-13 23:43:58 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -465,7 +465,7 @@ TDS_INT tds_i;
 
          for(; ptr != pend; ptr++)                      /* deal with the rest */
          {
-            if (isdigit((int) *ptr) )                   /* it's a number */
+            if (isdigit((unsigned char) *ptr) )                   /* it's a number */
             {  
                mynumber[i++] = *ptr;
 	       /* assure not buffer overflow */
@@ -2115,7 +2115,7 @@ short int bytes, places, point_found, sign, digits;
   pdigits = pstr;
   for(; pstr != pend; ++pstr)             /* deal with the rest */
   {
-     if (isdigit((int) *pstr))            /* its a number */
+     if (isdigit((unsigned char) *pstr))  /* its a number */
      {  
         if (point_found)                  /* if we passed a decimal point */
            ++places;                      /* count digits after that point  */
@@ -2245,7 +2245,7 @@ int   digits   = 0;
 
     for (instr = t; *instr; instr++ )
     {
-        if (!isdigit((int) *instr) && *instr != '/' && *instr != '-' && *instr != '.' )
+        if (!isdigit((unsigned char) *instr) && *instr != '/' && *instr != '-' && *instr != '.' )
         {
             ret = 0;
             break;
@@ -2326,7 +2326,7 @@ static int is_alphabetic(char *datestr)
 char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) {
-        if (!isalpha((int) *s))
+        if (!isalpha((unsigned char) *s))
            ret = 0; 
     }
     return(ret);
@@ -2337,7 +2337,7 @@ static int is_numeric(char *datestr)
 char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) {
-        if (!isdigit((int) *s))
+        if (!isdigit((unsigned char) *s))
            ret = 0; 
     }
     return(ret);
@@ -2349,7 +2349,7 @@ char *s;
 int  ret = 1;
     for (s = datestr; *s; s++) 
     {
-        if (!isdigit((int) *s) && *s != ':' && *s != '.' )
+        if (!isdigit((unsigned char) *s) && *s != ':' && *s != '.' )
           break;
     }
     if ( *s )
@@ -2416,7 +2416,7 @@ char *s;
 int  month = 0, year = 0, mday = 0;
 
     for (s = datestr; *s; s++) {
-        if (! isdigit((int) *s) && isdigit((int) last_char)) {
+        if (!isdigit((unsigned char) *s) && isdigit((unsigned char) last_char)) {
             state++;
         } else switch(state) {
             case TDS_MONTH:
@@ -2985,7 +2985,7 @@ unsigned int num; /* we use unsigned here for best overflow check */
 		}
 	
 		/* must be a digit */
-		if (!isdigit((int) *p))
+		if (!isdigit((unsigned char) *p))
 			return TDS_FAIL;
 	
 		/* add a digit to number and check for overflow */

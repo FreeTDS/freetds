@@ -1,3 +1,11 @@
+Fri Sep 13 19:39:31 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/convert.c:
+	- Fix my stupid mistakes in revision 1.71 of convert.c.
+	  Casting these chars to int would just mask the problem instead of
+	  fixing it, on hosts with signed chars.  Cast to unsigned char
+	  instead, and let the compiler implicitly convert to a positive
+	  integer for subscripting in the ctype arrays.
+
 Fri Sep 13 16:50:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in include/tdsutil.h src/tds/convert.c
 	  src/tds/login.c src/tds/token.c:
