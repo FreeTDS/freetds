@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.29 2002-10-23 11:27:28 jklowden Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.30 2002-10-23 18:44:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -527,7 +527,7 @@ int           rows_written;
                    else
                       memcpy(bcpcol->data, src, curcol->column_size);
 
-                   bcpcol->data_size = curcol->column_size;
+                   bcpcol->data_size = curcol->column_cur_size;
                }
            }
    

@@ -1,3 +1,6 @@
+Wed Oct 23 20:43:21 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: use the correct field size (Bill patch)
+
 Wed Oct 23 09:46:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds_configs.h:
 	- Add missing path separator.
