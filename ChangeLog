@@ -1,3 +1,7 @@
+Fri Feb 27 20:06:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/Makefile.am src/dblib/Makefile.am:
+	- filter exports
+
 Wed Feb 25 08:20:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- fixed buffer reading overflow (thanks to Matthew Davis)
