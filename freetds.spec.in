@@ -51,10 +51,8 @@ make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
 rm -rf "$RPM_BUILD_ROOT"
-gunzip -c doc/userguide.tgz | tar x
-gunzip -c doc/reference.tgz | tar x
 make DESTDIR="$RPM_BUILD_ROOT" install
-rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds"
+rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds-%{version}"
 
 %post 
 /sbin/ldconfig 
@@ -93,7 +91,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files doc
 %defattr (-,root,root)
-%doc userguide reference
+%doc doc/doc/freetds-%{version}/userguide doc/doc/freetds-%{version}/reference
  
 %changelog 
 * Sun Mar 30 2003 Frediano Ziglio <freddy77@angelfire.com>

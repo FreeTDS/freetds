@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.31 2003-12-11 11:25:44 freddy77 Exp $
+# version $Id: Makefile.am,v 1.32 2003-12-20 10:25:52 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -7,7 +7,8 @@ SUBDIRS		=	include src doc samples win32
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
-		autogen.sh freetds.spec.in freetds.spec vms
+		autogen.sh freetds.spec.in freetds.spec vms \
+		tds.dox
 
 ETC            =       $(DESTDIR)$(sysconfdir)
 
@@ -48,8 +49,6 @@ if HAVE_DOXYGEN
 ## The doxygen configuration file understands environment variables.  
 
 doxy: $(SUBDIRS)
-	SRCDIR=$(top_srcdir); \
-	export SRCDIR; \
-	$(DOXYGEN) $(top_srcdir)/tds.dox
+	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
 
 endif
