@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.7 2002-11-01 22:51:35 castellano Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.8 2002-11-04 10:30:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -50,7 +50,7 @@ struct string_linked_list {
  */
 
 static char *
-norm_fmt(char *fmt, int fmtlen)
+norm_fmt(const char *fmt, int fmtlen)
 {
 char *newfmt;
 char *cp;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.35 2002-11-03 10:13:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.36 2002-11-04 10:30:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -343,6 +343,7 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 		break;
 	}
 	if (!IS_TDS7_PLUS(tds)) tds_put_byte(tds,0x00); /* locale info length */
+	return TDS_SUCCEED;
 }
 
 /**
@@ -373,7 +374,7 @@ tds_put_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i
 unsigned char *dest;
 TDS_NUMERIC *num;
 TDS_VARBINARY *varbin;
-int len,colsize;
+int colsize;
 int is_null;
 
 	is_null = tds_get_null(current_row,i);

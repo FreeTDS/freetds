@@ -22,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -52,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.35 2002-11-03 20:21:08 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.36 2002-11-04 10:30:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2271,7 +2272,7 @@ BYTE coldata[256];
 
 		/* a terminated field is specified - get the data into temporary space... */
 
-		memset(coldata, '\0', size(coldata));
+		memset(coldata, '\0', sizeof(coldata));
 
 		if (hostcol->term_len > 0) {
 			bytes_read = _bcp_get_term_var(dataptr, hostcol->terminator, hostcol->term_len, coldata);

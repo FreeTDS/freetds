@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.44 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.45 2002-11-04 10:30:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -266,7 +266,7 @@ unsigned char *row;
 
 	curparam->column_offset = info->row_size;
 	/* the +1 are needed for terminater... still required (freddy77) */
-	row_size += info->row_size + curparam->column_size + 1 + null_size;
+	row_size = info->row_size + curparam->column_size + 1 + null_size;
 	remainder = row_size % ALIGN_SIZE; 
 	if (remainder) row_size += (ALIGN_SIZE - remainder);
 

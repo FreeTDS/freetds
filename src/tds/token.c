@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.90 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.91 2002-11-04 10:30:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -743,7 +743,6 @@ static int tds_process_param_result(TDSSOCKET *tds)
 int hdrsize;
 TDSCOLINFO *curparam;
 TDSPARAMINFO *info;
-int remainder;
 int i;
 
 	hdrsize = tds_get_smallint(tds);
