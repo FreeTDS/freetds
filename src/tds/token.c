@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.193 2003-05-28 19:29:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.194 2003-05-28 19:57:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -69,7 +69,9 @@ static int tds5_process_result(TDSSOCKET * tds);
 static void tds5_process_dyn_result2(TDSSOCKET * tds);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int determine_adjusted_size(const TDSICONVINFO * iconv_info, int size);
+static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
+
 
 /**
  * \ingroup libtds
@@ -87,8 +89,7 @@ static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
  * tds_process_default_tokens() is a catch all function that is called to
  * process tokens not known to other tds_process_* routines
  */
-/* TODO should be static ?? */
-int
+static int
 tds_process_default_tokens(TDSSOCKET * tds, int marker)
 {
 	int tok_size;

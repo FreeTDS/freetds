@@ -1,3 +1,8 @@
+Wed May 28 21:59:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/odbc.c src/pool/member.c:
+	* src/tds/token.c src/tds/unittests/t0003.c:
+	- cleanup tds_process_default_tokens (now static)
+
 Wed May 28 21:31:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/dblib/bcp.c src/tds/token.c:
 	- end tds_process_end cleanup (now static)

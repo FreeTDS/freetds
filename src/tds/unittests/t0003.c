@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.9 2003-04-25 12:12:42 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.10 2003-05-28 19:58:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -30,6 +30,7 @@ main(int argc, char **argv)
 	int verbose = 0;
 	int rc;
 	int marker;
+	TDS_INT result_type;
 
 	fprintf(stdout, "%s: Testing DB change -- 'use tempdb'\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
@@ -45,10 +46,10 @@ main(int argc, char **argv)
 	}
 
 	/* warning: this mucks with some internals to get the env chg message */
-	do {
-		marker = tds_get_byte(tds);
-		tds_process_default_tokens(tds, marker);
-	} while (marker != TDS_DONE_TOKEN);
+	if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
+		fprintf(stderr, "query results failed\n");
+		return 1;
+	}
 
 	if (!tds || !tds->env || !tds->env->database) {
 		fprintf(stderr, "No database ??\n");

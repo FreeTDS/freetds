@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.173 2003-05-27 20:15:01 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.174 2003-05-28 19:57:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1346,7 +1346,7 @@ SQLExecute(SQLHSTMT hstmt)
 				break;
 
 			case TDS_CMD_DONE:
-				/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (wanted), 
+				/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (unwanted), 
 				 * do a better job under mssql (it return operation type in DONE), 
 				 * see Sybase and MS ODBC exact behaviour, 
 				 * update moreandcount test  */
@@ -2530,6 +2530,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		TDSRESULTINFO *resinfo;
 		TDSCOLINFO *colinfo;
 		char *name;
+		TDS_INT result_type;
 
 		/* if next is varchar leave next for SQLFetch */
 		if (n == (varchar_pos - 1))
@@ -2537,8 +2538,8 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 		switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &row_type, &compute_id)) {
 		case TDS_NO_MORE_ROWS:
-			while (tds->state == TDS_PENDING)
-				tds_process_default_tokens(tds, tds_get_byte(tds));
+			/* discard other tokens */
+			tds_process_simple_query(tds, &result_type);
 			if (n >= varchar_pos && varchar_pos > 0)
 				goto redo;
 			break;
