@@ -50,6 +50,8 @@ dnl ------------------------------------------------------------
 dnl Checks for header files.
 dnl ------------------------------------------------------------
 AC_HEADER_STDC
+AC_HEADER_TIME
+AC_CHECK_HEADERS(sys/time.h)
 AC_CHECK_HEADERS(malloc.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(sys/socket.h)

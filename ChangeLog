@@ -1,3 +1,13 @@
+Wed Oct  2 16:36:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in include/tdsutil.h src/ctlib/cs.c
+	  src/dblib/dblib.c src/odbc/convert_sql2string.c
+	  src/odbc/convert_tds2sql.c src/odbc/odbc_util.c
+	  src/odbc/prepare_query.c src/tds/config.c
+	  src/tds/convert.c src/tds/locale.c src/tds/util.c:
+	- Don't include time.h where it isn't needed.
+	- Follow GNU autoconf portability guidelines for time.h
+	  and sys/time.h, where they are needed.
+
 Wed Oct  2 15:30:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in src/tds/threadsafe.c:
 	- Add autoconf check for gettimeofday() and use it on

@@ -27,11 +27,10 @@
 #include "prepare_query.h"
 #include "convert_sql2string.h"
 #include "odbc_util.h"
-#include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: prepare_query.c,v 1.8 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: prepare_query.c,v 1.9 2002-10-02 20:38:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

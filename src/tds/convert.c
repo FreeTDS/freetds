@@ -21,7 +21,16 @@
 #include <config.h>
 #endif
 
-#include <time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <assert.h>
 #include <errno.h>
 #include "tds.h"
@@ -32,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.87 2002-10-02 14:22:41 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.88 2002-10-02 20:38:56 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

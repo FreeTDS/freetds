@@ -24,11 +24,20 @@
 #include <config.h>
 #endif
 
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <time.h>
 #include <stdarg.h>
 
 #include "tdsutil.h"
@@ -40,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.73 2002-10-01 15:43:15 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.74 2002-10-02 20:38:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

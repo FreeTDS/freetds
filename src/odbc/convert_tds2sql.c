@@ -25,11 +25,10 @@
 #include <tds.h>
 #include <tdsconvert.h>
 #include "convert_tds2sql.h"
-#include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.13 2002-09-27 03:09:52 castellano Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.14 2002-10-02 20:38:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

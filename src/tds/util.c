@@ -21,18 +21,24 @@
 #include <config.h>
 #endif
 
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 #include <limits.h>
 #include <assert.h>
 #include <ctype.h>
 #ifdef __DGUX__
 #include <paths.h>
-#endif
-#ifdef __FreeBSD__
-#include <sys/time.h>
 #endif
 #ifdef WIN32
 #include <windows.h>
@@ -52,7 +58,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.18 2002-10-01 15:43:16 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.19 2002-10-02 20:38:57 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -21,15 +21,24 @@
 #include <config.h>
 #endif
 
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <tdsutil.h>
 #include <tds.h>
 #include <tdsconvert.h>
 #include "convert_sql2string.h"
-#include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.10 2002-09-27 03:09:52 castellano Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.11 2002-10-02 20:38:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

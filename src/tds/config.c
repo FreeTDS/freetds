@@ -24,15 +24,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 #include <limits.h>
 #include <assert.h>
 #include <ctype.h>
 #ifdef __DGUX__
 #include <paths.h>
-#endif
-#ifdef __FreeBSD__
-#include <sys/time.h>
 #endif
 #ifdef WIN32
 #include <windows.h>
@@ -52,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.35 2002-10-02 14:22:40 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.36 2002-10-02 20:38:56 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

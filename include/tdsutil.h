@@ -23,10 +23,6 @@
 #include "tds.h"
 
 #include <sys/ioctl.h>
-#include <time.h>                  /* Jeff's hack */
-#ifndef __INCvxWorksh             /* vxWorks doesn't have a sys/time.h */
-#include <sys/time.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +33,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.12 2002-10-01 15:43:15 castellano Exp $";
+"$Id: tdsutil.h,v 1.13 2002-10-02 20:38:54 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 void tds_set_parent(TDSSOCKET *tds, void *the_parent);

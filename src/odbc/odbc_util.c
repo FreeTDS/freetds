@@ -26,11 +26,10 @@
 #include <tdsodbc.h>
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
-#include <time.h>
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: odbc_util.c,v 1.7 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: odbc_util.c,v 1.8 2002-10-02 20:38:55 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
