@@ -1,3 +1,11 @@
+Wed Sep 11 08:01:37 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* Retag following files, make HEAD today also R0_60
+	* Makefile.am
+	* configure.in
+	* freetds.spec.in
+	* doc/Makefile.am
+	* src/Makefile.am	  #done, now 1.4
+	* src/dblib/Makefile.am
 Tue Sep 10 20:56:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am configure.in freetds.spec.in doc/Makefile.am:
 	- spec file for rpm build included
