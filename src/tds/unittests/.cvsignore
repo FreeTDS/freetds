@@ -1,4 +1,5 @@
 Makefile
+Makefile.in
 .libs
 .deps
 t0001

@@ -1,4 +1,5 @@
 Makefile
+Makefile.in
 tdsver.h
 config.h
 tds_configs.h
