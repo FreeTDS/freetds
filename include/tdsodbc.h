@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.62 2003-12-18 19:35:23 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.63 2003-12-19 10:29:25 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -74,7 +74,8 @@ struct _sql_errors
 };
 
 #if ENABLE_EXTRA_CHECKS
-void odbc_check_struct_extra(void * p);
+void odbc_check_struct_extra(void *p);
+
 #define ODBC_RETURN(handle, rc) \
 	do { odbc_check_struct_extra(handle); return (handle->errs.lastrc = (rc)); } while(0)
 #else

@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.44 2003-11-30 12:02:04 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.45 2003-12-19 10:29:24 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -438,8 +438,6 @@ enum
 #define CS_APPNAME CS_APPNAME
 	CS_HOSTNAME,
 #define CS_HOSTNAME CS_HOSTNAME
-	CS_SERVERNAME,
-#define CS_SERVERNAME CS_SERVERNAME
 	CS_PACKETSIZE,
 #define CS_PACKETSIZE CS_PACKETSIZE
 	CS_SEC_ENCRYPTION,
@@ -466,6 +464,8 @@ enum
 #define CS_ANSI_BINDS CS_ANSI_BINDS
 	CS_VER_STRING,
 #define CS_VER_STRING CS_VER_STRING
+	CS_SERVERNAME,
+#define CS_SERVERNAME CS_SERVERNAME
 	CS_PORT
 #define CS_PORT CS_PORT
 };
