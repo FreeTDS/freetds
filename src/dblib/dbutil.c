@@ -33,9 +33,8 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.17 2002-10-13 23:28:12 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: dbutil.c,v 1.18 2002-11-17 11:20:16 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* The next 2 functions will be the reciever for the info and error messages
  * that come from the TDS layer.  The address of this function is passed to
@@ -44,12 +43,12 @@ static void *no_unused_var_warn[] = {software_version,
  * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
  * TDS layer didn't what it really was */
 int
-dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
+dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
 DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
-		dbproc = (DBPROCESS*)tds->parent;
+		dbproc = (DBPROCESS *) tds->parent;
 	}
 	if (msg->msg_number > 0) {
 		/* now check to see if the user supplied a function,
@@ -57,13 +56,9 @@ DBPROCESS *dbproc = NULL;
 		 */
 		if (_dblib_msg_handler) {
 			_dblib_msg_handler(dbproc,
-					msg->msg_number,
-					msg->msg_state,
-					msg->msg_level, 
-					msg->message,
-					msg->server, 
-					msg->proc_name,
-					msg->line_number);
+					   msg->msg_number,
+					   msg->msg_state,
+					   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
 		}
 	}
 	if (msg->msg_level > 10) {
@@ -75,31 +70,26 @@ DBPROCESS *dbproc = NULL;
 		 * server messages with severity greater than 10.
 		 */
 		tds_client_msg(tds_ctx, tds, SYBESMSG, EXSERVER, -1, -1,
-			"General SQL Server error: Check messages from the SQL Server.");
+			       "General SQL Server error: Check messages from the SQL Server.");
 	}
 	return SUCCEED;
 }
 
 int
-dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
+dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
 DBPROCESS *dbproc = NULL;
 int rc = INT_CANCEL;
 
 	if (tds && tds->parent) {
-		dbproc = (DBPROCESS*)tds->parent;
+		dbproc = (DBPROCESS *) tds->parent;
 	}
 	if (msg->msg_number > 0) {
 		/* now check to see if the user supplied a function,
 		 * if not, ignore the problem
 		 */
 		if (_dblib_err_handler) {
-			rc  = _dblib_err_handler(dbproc,
-					msg->msg_level,
-					msg->msg_number,
-					msg->msg_state, 
-					msg->message,
-					msg->server); 
+			rc = _dblib_err_handler(dbproc, msg->msg_level, msg->msg_number, msg->msg_state, msg->message, msg->server);
 		}
 	}
 
@@ -149,21 +139,21 @@ int rc = INT_CANCEL;
 	}
 
 	/* notreached */
-        return FAIL;
+	return FAIL;
 }
 
-void dblib_setTDS_version(TDSLOGIN *tds_login, DBINT version)
+void
+dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version)
 {
-	switch(version)
-	{
-		case DBVERSION_42:
-			tds_set_version(tds_login, 4, 2);
-			break;
-		case DBVERSION_46:
-			tds_set_version(tds_login, 4, 6);
-			break;
-		case DBVERSION_100:
-			tds_set_version(tds_login, 5, 0);
-			break;
+	switch (version) {
+	case DBVERSION_42:
+		tds_set_version(tds_login, 4, 2);
+		break;
+	case DBVERSION_46:
+		tds_set_version(tds_login, 4, 6);
+		break;
+	case DBVERSION_100:
+		tds_set_version(tds_login, 5, 0);
+		break;
 	}
 }

@@ -30,21 +30,24 @@
 #include <unistd.h>
 
 
-static char  software_version[]   = "$Id: rpc.c,v 1.5 2002-11-01 20:55:48 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: rpc.c,v 1.6 2002-11-17 11:20:17 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
-RETCODE dbrpcinit(DBPROCESS *dbproc,char *rpcname,DBSMALLINT options)
+RETCODE
+dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 {
 	return SUCCEED;
 }
-RETCODE dbrpcparam(DBPROCESS *dbproc, char *paramname, BYTE status, int type,
-	DBINT maxlen, DBINT datalen, BYTE *value)
+
+RETCODE
+dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
 {
 	return SUCCEED;
 }
-RETCODE dbrpcsend(DBPROCESS *dbproc)
+
+RETCODE
+dbrpcsend(DBPROCESS * dbproc)
 {
 	return SUCCEED;
 }

@@ -32,51 +32,67 @@
 #include "sybdb.h"
 #include "dblib.h"
 
-static char  software_version[]   = "$Id: xact.c,v 1.6 2002-11-01 20:55:48 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: xact.c,v 1.7 2002-11-17 11:20:17 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
-void build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result)
+void
+build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED build_xact_string()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED build_xact_string()\n");
 }
-RETCODE remove_xact(DBPROCESS *connect, DBINT commid, int n)
+
+RETCODE
+remove_xact(DBPROCESS * connect, DBINT commid, int n)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED remove_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED remove_xact()\n");
 	return SUCCEED;
 }
-RETCODE abort_xact(DBPROCESS *connect, DBINT commid)
+
+RETCODE
+abort_xact(DBPROCESS * connect, DBINT commid)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED abort_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED abort_xact()\n");
 	return SUCCEED;
 }
-void close_commit(DBPROCESS *connect)
+
+void
+close_commit(DBPROCESS * connect)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED close_commit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED close_commit()\n");
 }
-RETCODE commit_xact(DBPROCESS *connect, DBINT commid)
+
+RETCODE
+commit_xact(DBPROCESS * connect, DBINT commid)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED commit_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED commit_xact()\n");
 	return SUCCEED;
 }
-DBPROCESS *open_commit(LOGINREC *login, char *servername)
+
+DBPROCESS *
+open_commit(LOGINREC * login, char *servername)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED open_commit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED open_commit()\n");
 	return NULL;
 }
-RETCODE scan_xact(DBPROCESS *connect, DBINT commid)
+
+RETCODE
+scan_xact(DBPROCESS * connect, DBINT commid)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED scan_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED scan_xact()\n");
 	return SUCCEED;
 }
-DBINT start_xact(DBPROCESS *connect, char *application_name, char *xact_name, int site_count)
+
+DBINT
+start_xact(DBPROCESS * connect, char *application_name, char *xact_name, int site_count)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED start_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED start_xact()\n");
 	return 0;
 }
-DBINT stat_xact(DBPROCESS *connect, DBINT commid)
+
+DBINT
+stat_xact(DBPROCESS * connect, DBINT commid)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED stat_xact()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED stat_xact()\n");
 	return 0;
 }
