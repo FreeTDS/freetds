@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-04-26 23:49:17 $</date>
-		<releaseinfo>$Revision: 1.81 $</releaseinfo>
+		<date>$Date: 2004-04-29 03:08:50 $</date>
+		<releaseinfo>$Revision: 1.82 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.81 $</>
-<member>$Date: 2004-04-26 23:49:17 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.81 2004-04-26 23:49:17 jklowden Exp $.</>
+<member>$Revision: 1.82 $</>
+<member>$Date: 2004-04-29 03:08:50 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.82 2004-04-29 03:08:50 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -536,7 +536,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-04-26 23:49:17 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-04-29 03:08:50 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -3049,15 +3049,18 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 
 		<sect1 id="dblib.api.summary">
 			<title>db-lib API Implementation Summary</title>
+			<para>Microsoft's version of db-lib is <ulink url="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dblibc/dbc_pdc04a_6qsl.asp">online</ulink>.   Sybase's is both <ulink url="http://sybooks.sybase.com/onlinebooks/group-cn/cng1251e/dblib/@Generic__BookView">online</ulink>  and can be <ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>  as a PDF file.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote></para>
 			&dblibapisgml;
 		</sect1>
 		<sect1 id="ctlib.api.summary">
 			<title>ct-lib API Implementation Summary</title>
+			<para>Sybase ct-lib documentation can be found <ulink url="http://sybooks.sybase.com/onlinebooks/group-cn/cng1251e/ctref/@Generic__BookView">online</ulink> and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote> </para>
 			&ctlibapisgml;
 		</sect1>
 	
 		<sect1 id="odbc.api.summary">
 			<title>ODBC API Implementation Summary</title>
+			<para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote></para>
 			&odbcapisgml;
 		</sect1>
 	

@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.44 2004-02-05 13:17:33 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.45 2004-04-29 03:08:50 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -109,7 +109,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	if test -n "${DOCBOOK_DSL}" ; then \
 		if test ! -r userguide.sgml; then ln -s ../../../$(srcdir)/userguide.sgml userguide.sgml; fi; \
 		openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
-		if test -L userguide.sgml; then rm userguide.sgml; fi; \
+		if test -h userguide.sgml; then rm userguide.sgml; fi; \
 	fi
 # if still no joy, create a stub
 	if test ! -r $@ ; then \
@@ -120,7 +120,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	test -f $(DOCDIR)/userguide/index.htm
 	cd $(DOCDIR)/userguide && if test ! -L index.html ; then ln -s index.htm index.html; fi
 # for convenience, create a link in the build directory
-	if test -L userguide; then rm userguide; fi
+	if test -h userguide; then rm userguide; fi
 	ln -sf $(DOCDIR)/userguide userguide
 
 userguide: $(DOCDIR)/userguide/index.htm
@@ -144,7 +144,7 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 		mv .index.html index.html; \
 	fi
 # for convenience, create a link in the build directory
-	if test -L reference; then rm reference; fi
+	if test -h reference; then rm reference; fi
 	ln -sf $(DOCDIR)/reference reference
 
 #
@@ -213,6 +213,7 @@ ctlib.api: api_status.txt
 	test -s  .ctlib.api
 	mv .ctlib.api ctlib.api
 
+MSDN_ODBC = http://msdn.microsoft.com/library/default.asp?url=/library/en-us/odbc/htm/odbc
 odbc.api.sgml: odbc.api 
 	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
 			> .odbc.api.head
@@ -224,8 +225,12 @@ odbc.api.sgml: odbc.api
 		</row></thead> \
 		<tbody>' \
 			> .tableheader
+# The mean RE below (with "ulink" in it) forms a URL to Microsoft's reference page
+# for the function.  It assumes a word starting with "SQL" is an ODBC function. 
+# Let's hope they don't change their site too often.  
 	sed -e' s!^odbc[	]!<row><entry>!; \
 		s![	][	]*!</> <entry>!g; \
+		s![[:<:]]\(SQL[[:alpha:]]*\)[[:>:]]!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
 		s!$$!</></row>!; \
 	      ' odbc.api \
 			> .odbc.api.body
