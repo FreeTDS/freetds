@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.118 2004-10-13 11:06:09 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.119 2004-10-13 12:57:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -634,18 +634,18 @@ tds_alloc_connection(TDSLOCALE * locale)
 	return NULL;
 }
 
-TDS_CURSOR *
+TDSCURSOR *
 tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen)
 {
-	TDS_CURSOR *cursor;
-	TDS_CURSOR *pcursor;
+	TDSCURSOR *cursor;
+	TDSCURSOR *pcursor;
 
 	int new_cursor_id = 0;
 
-	TEST_MALLOC(cursor, TDS_CURSOR);
-	memset(cursor, '\0', sizeof(TDS_CURSOR));
+	TEST_MALLOC(cursor, TDSCURSOR);
+	memset(cursor, '\0', sizeof(TDSCURSOR));
 
-	if ( tds->cursor == (TDS_CURSOR *) NULL ) {
+	if ( tds->cursor == (TDSCURSOR *) NULL ) {
 		++new_cursor_id;
 		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d to head\n", new_cursor_id);
 		tds->cursor = cursor;
@@ -686,9 +686,9 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 void
 tds_free_cursor(TDSSOCKET *tds, TDS_INT client_cursor_id)
 {
-	TDS_CURSOR *victim = NULL;
-	TDS_CURSOR *prev = NULL;
-	TDS_CURSOR *next = NULL;
+	TDSCURSOR *victim = NULL;
+	TDSCURSOR *prev = NULL;
+	TDSCURSOR *next = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", client_cursor_id);
 	victim = tds->cursor;

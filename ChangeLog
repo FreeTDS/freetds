@@ -1,3 +1,8 @@
+Wed Oct 13 14:55:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/tds/mem.c:
+	* src/tds/query.c src/tds/token.c:
+	- rename TDS_CURSOR -> TDSCURSOR, mycursor -> cursor
+
 Wed Oct 13 13:03:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/tds.h src/ctlib/blk.c:
 	* src/ctlib/cs.c src/ctlib/ct.c src/ctlib/unittests/blk_out.c:

@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.140 2004-10-13 11:06:09 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.141 2004-10-13 12:57:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1597,18 +1597,18 @@ int
 tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
 {
 
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare() client cursor id = %d\n", client_cursor_id);
 
 	tds->queryStarttime = time(NULL);
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_declare() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
@@ -1620,7 +1620,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 		return TDS_FAIL;
 	}
 
-	tds_free_results(mycursor->res_info);
+	tds_free_results(cursor->res_info);
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
@@ -1630,16 +1630,16 @@ tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 		tds_put_byte(tds, TDS_CURDECLARE_TOKEN);
 
 		/* length of the data stream that follows */
-		tds_put_smallint(tds, (6 + strlen(mycursor->cursor_name) + strlen(mycursor->query)));
+		tds_put_smallint(tds, (6 + strlen(cursor->cursor_name) + strlen(cursor->query)));
 
-		tdsdump_log(TDS_DBG_ERROR, "size = %d\n", (6 + strlen(mycursor->cursor_name) + strlen(mycursor->query)));
+		tdsdump_log(TDS_DBG_ERROR, "size = %d\n", (6 + strlen(cursor->cursor_name) + strlen(cursor->query)));
 
-		tds_put_tinyint(tds, strlen(mycursor->cursor_name));
-		tds_put_n(tds, mycursor->cursor_name, strlen(mycursor->cursor_name));
+		tds_put_tinyint(tds, strlen(cursor->cursor_name));
+		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
 		tds_put_byte(tds, 1);	/* cursor option is read only=1, unused=0 */
 		tds_put_byte(tds, 0);	/* status unused=0 */
-		tds_put_smallint(tds, strlen(mycursor->query));
-		tds_put_n(tds, mycursor->query, strlen(mycursor->query));
+		tds_put_smallint(tds, strlen(cursor->query));
+		tds_put_n(tds, cursor->query, strlen(cursor->query));
 		tds_put_tinyint(tds, 0);	/* number of columns = 0 , valid value applicable only for updatable cursor */
 		*something_to_send = 1;
 	}
@@ -1652,18 +1652,18 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 {
 	int converted_query_len;
 	const char *converted_query;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open() client cursor id = %d\n", client_cursor_id);
 
 	tds->queryStarttime = time(NULL);
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_open() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
@@ -1676,7 +1676,7 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 		return TDS_FAIL;
 	}
 
-	tds_free_results(mycursor->res_info);
+	tds_free_results(cursor->res_info);
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
@@ -1686,13 +1686,13 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CUROPEN_TOKEN);
-		tds_put_smallint(tds, 6 + strlen(mycursor->cursor_name));	/* length of the data stream that follows */
+		tds_put_smallint(tds, 6 + strlen(cursor->cursor_name));	/* length of the data stream that follows */
 
-		/*tds_put_int(tds, mycursor->cursor_id); *//* Only if cursor id is passed as zero, the cursor name need to be sent */
+		/*tds_put_int(tds, cursor->cursor_id); *//* Only if cursor id is passed as zero, the cursor name need to be sent */
 
 		tds_put_int(tds, 0);
-		tds_put_tinyint(tds, strlen(mycursor->cursor_name));
-		tds_put_n(tds, mycursor->cursor_name, strlen(mycursor->cursor_name));
+		tds_put_tinyint(tds, strlen(cursor->cursor_name));
+		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
 		tds_put_byte(tds, 0);	/* Cursor status : 0 for no arguments */
 		*something_to_send = 1;
 	}
@@ -1700,7 +1700,7 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 
 		/* cursor statement */
 		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2],
-						     mycursor->query, strlen(mycursor->query), &converted_query_len);
+						     cursor->query, strlen(cursor->query), &converted_query_len);
 		if (!converted_query) {
 			return TDS_FAIL;
 		}
@@ -1738,7 +1738,7 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 			tds_put_n(tds, tds->collation, 5);
 		tds_put_int(tds, converted_query_len);
 		tds_put_n(tds, converted_query, converted_query_len);
-		tds_convert_string_free(mycursor->query, converted_query);
+		tds_convert_string_free(cursor->query, converted_query);
 
 		*something_to_send = 1;
 		tds->internal_sp_called = TDS_SP_CURSOROPEN;
@@ -1754,21 +1754,21 @@ int
 tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
 {
 
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() client cursor id = %d\n", client_cursor_id);
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_setrows() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() internal cursor id = %d\n", mycursor->cursor_id);
+	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() internal cursor id = %d\n", cursor->cursor_id);
 	tds->queryStarttime = time(NULL);
 
 	if (!tds->cursor)
@@ -1780,7 +1780,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 		return TDS_FAIL;
 	}
 
-	tds_free_results(mycursor->res_info);
+	tds_free_results(cursor->res_info);
 	tds->rows_affected = TDS_NO_COUNT;
 	tds->state = TDS_QUERYING;
 	tds->internal_sp_called = 0;
@@ -1793,18 +1793,18 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 		/*      tds_put_smallint(tds, 8);
 		 * 
 		 * tds_put_int(tds, 0); */
-		tds_put_smallint(tds, 12 + strlen(mycursor->cursor_name));
+		tds_put_smallint(tds, 12 + strlen(cursor->cursor_name));
 		/* length of data stream that follows */
 
 		/*tds_put_int(tds, tds->cursor->cursor_id); *//* Cursor id */
 
 		tds_put_int(tds, 0);
-		tds_put_tinyint(tds, strlen(mycursor->cursor_name));
-		tds_put_n(tds, mycursor->cursor_name, strlen(mycursor->cursor_name));
+		tds_put_tinyint(tds, strlen(cursor->cursor_name));
+		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
 		tds_put_byte(tds, 1);	/* Command  TDS_CUR_CMD_SETCURROWS */
 		tds_put_byte(tds, 0x00);	/* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
 		tds_put_byte(tds, 0x20);	/* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
-		tds_put_int(tds, mycursor->cursor_rows);	/* row count to set */
+		tds_put_int(tds, cursor->cursor_rows);	/* row count to set */
 		*something_to_send = 1;
 
 	}
@@ -1815,21 +1815,21 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 int
 tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 {
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() client cursor id = %d\n", client_cursor_id);
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_fetch() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() internal cursor id = %d\n", mycursor->cursor_id);
+	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() internal cursor id = %d\n", cursor->cursor_id);
 	tds->queryStarttime = time(NULL);
 
 	if (tds->state == TDS_PENDING) {
@@ -1851,13 +1851,13 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 
 		/*tds_put_smallint(tds, 8); */
 
-		tds_put_smallint(tds, 6 + strlen(mycursor->cursor_name));	/* length of the data stream that follows */
+		tds_put_smallint(tds, 6 + strlen(cursor->cursor_name));	/* length of the data stream that follows */
 
-		/*tds_put_int(tds, mycursor->cursor_id); *//* cursor id returned by the server */
+		/*tds_put_int(tds, cursor->cursor_id); *//* cursor id returned by the server */
 
 		tds_put_int(tds, 0);
-		tds_put_tinyint(tds, strlen(mycursor->cursor_name));
-		tds_put_n(tds, mycursor->cursor_name, strlen(mycursor->cursor_name));
+		tds_put_tinyint(tds, strlen(cursor->cursor_name));
+		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
 		tds_put_tinyint(tds, 1);	/* Fetch Type : TDS_CUR_NEXT */
 
 		/* tds_put_int(tds, row#) Optional argument to fetch row at absolute/relative position */
@@ -1889,7 +1889,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, mycursor->cursor_id);
+		tds_put_int(tds, cursor->cursor_id);
 
 		/* fetch type - 2 = NEXT */
 
@@ -1910,7 +1910,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, mycursor->cursor_rows);
+		tds_put_int(tds, cursor->cursor_rows);
 
 		tds->internal_sp_called = TDS_SP_CURSORFETCH;
 		return tds_flush_packet(tds);
@@ -1923,21 +1923,21 @@ int
 tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 {
 
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() client cursor id = %d\n", client_cursor_id);
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_close() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() internal cursor id = %d\n", mycursor->cursor_id);
+	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() internal cursor id = %d\n", cursor->cursor_id);
 
 	tds->queryStarttime = time(NULL);
 
@@ -1957,9 +1957,9 @@ tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
-		tds_put_int(tds, mycursor->cursor_id);	/* cursor id returned by the server is available now */
+		tds_put_int(tds, cursor->cursor_id);	/* cursor id returned by the server is available now */
 
-		if (mycursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED)
+		if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED)
 			tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
 		else
 			tds_put_byte(tds, 0x00);	/* Close option: TDS_CUR_COPT_UNUSED */
@@ -1990,7 +1990,7 @@ tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
 		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, mycursor->cursor_id);
+		tds_put_int(tds, cursor->cursor_id);
 		tds->internal_sp_called = TDS_SP_CURSORCLOSE;
 	}
 	return tds_flush_packet(tds);
@@ -2001,16 +2001,16 @@ int
 tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 {
 	int res = TDS_SUCCEED;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_dealloc ():\n");
 
-	mycursor = tds->cursor; 
-	while (mycursor->client_cursor_id != client_cursor_id) {
-		mycursor = mycursor->next;
+	cursor = tds->cursor; 
+	while (cursor->client_cursor_id != client_cursor_id) {
+		cursor = cursor->next;
 	}
 
-	if (mycursor->client_cursor_id != client_cursor_id) {
+	if (cursor->client_cursor_id != client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_dealloc() : cannot find cursor_id %d\n", client_cursor_id);
 		return TDS_FAIL;
 	}
@@ -2023,7 +2023,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
-		tds_put_int(tds, mycursor->cursor_id);	/* cursor id returned by the server is available now */
+		tds_put_int(tds, cursor->cursor_id);	/* cursor id returned by the server is available now */
 		tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
 		tds->state = TDS_QUERYING;
 		res = tds_flush_packet(tds);

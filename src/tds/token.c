@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.265 2004-10-13 11:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.266 2004-10-13 12:57:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -605,22 +605,22 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				if(tds->internal_sp_called == TDS_SP_CURSOROPEN) {
 					curcol = pinfo->columns[0];
 					if (tds->client_cursor_id) {
-						TDS_CURSOR  *mycursor;
+						TDSCURSOR  *cursor;
 
 						tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
-						mycursor = tds->cursor; 
-						while (mycursor->client_cursor_id != tds->client_cursor_id) {
-							mycursor = mycursor->next;
+						cursor = tds->cursor; 
+						while (cursor->client_cursor_id != tds->client_cursor_id) {
+							cursor = cursor->next;
 							tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
 						}
 					
-						if (mycursor->client_cursor_id != tds->client_cursor_id) {
+						if (cursor->client_cursor_id != tds->client_cursor_id) {
 							tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 							return TDS_FAIL;
 						}
-						mycursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+						cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
 						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d in client cursor id %d \n", 
-							    mycursor->cursor_id, mycursor->client_cursor_id);
+							    cursor->cursor_id, cursor->client_cursor_id);
 					} 
 				}
 				if(tds->internal_sp_called == TDS_SP_PREPARE) {
@@ -652,19 +652,19 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			/* overstepped the mark... */
 			*result_type = TDS_ROW_RESULT;
 			if (tds->client_cursor_id) {
-				TDS_CURSOR  *mycursor;
+				TDSCURSOR  *cursor;
 
-				mycursor = tds->cursor; 
-				while (mycursor->client_cursor_id != tds->client_cursor_id) {
-					mycursor = mycursor->next;
+				cursor = tds->cursor; 
+				while (cursor->client_cursor_id != tds->client_cursor_id) {
+					cursor = cursor->next;
 				}
 			
-				if (mycursor->client_cursor_id != tds->client_cursor_id) {
+				if (cursor->client_cursor_id != tds->client_cursor_id) {
 					tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 					return TDS_FAIL;
 				}
-				tds->current_results = mycursor->res_info;
-				tdsdump_log(TDS_DBG_INFO1, "tds_process_result_tokens(). set current_results to mycursor->res_info\n");
+				tds->current_results = cursor->res_info;
+				tdsdump_log(TDS_DBG_INFO1, "tds_process_result_tokens(). set current_results to cursor->res_info\n");
 			} else {
 				if (tds->res_info)
 					tds->current_results = tds->res_info;
@@ -832,7 +832,7 @@ static int
 _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token)
 {
 	int marker;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
@@ -858,17 +858,17 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 
 		case TDS_ROW_TOKEN:
 			if (tds->client_cursor_id) {
-				mycursor = tds->cursor; 
-				while (mycursor->client_cursor_id != tds->client_cursor_id) {
-					mycursor = mycursor->next;
+				cursor = tds->cursor; 
+				while (cursor->client_cursor_id != tds->client_cursor_id) {
+					cursor = cursor->next;
 				}
 			
-				if (mycursor->client_cursor_id != tds->client_cursor_id) {
+				if (cursor->client_cursor_id != tds->client_cursor_id) {
 					tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 					return TDS_FAIL;
 				}
-				tds->current_results = mycursor->res_info;
-				tdsdump_log(TDS_DBG_INFO1, "tds_process_row_tokens(). set current_results to mycursor->res_info\n");
+				tds->current_results = cursor->res_info;
+				tdsdump_log(TDS_DBG_INFO1, "tds_process_row_tokens(). set current_results to cursor->res_info\n");
 			} else {
 				if (tds->res_info)
 					tds->current_results = tds->res_info;
@@ -1576,7 +1576,7 @@ tds7_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	/* read number of columns and allocate the columns structure */
 
@@ -1593,20 +1593,20 @@ tds7_process_result(TDSSOCKET * tds)
 	tds->rows_affected = TDS_NO_COUNT;
 
 	if (tds->client_cursor_id) {
-		mycursor = tds->cursor; 
-		while (mycursor->client_cursor_id != tds->client_cursor_id) {
-			mycursor = mycursor->next;
+		cursor = tds->cursor; 
+		while (cursor->client_cursor_id != tds->client_cursor_id) {
+			cursor = cursor->next;
 		}
 	
-		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+		if (cursor->client_cursor_id != tds->client_cursor_id) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
-		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
-		info = mycursor->res_info;
-		tds->current_results = mycursor->res_info;
-		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. set current_results to mycursor->res_info\n");
+		info = cursor->res_info;
+		tds->current_results = cursor->res_info;
+		tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result. set current_results to cursor->res_info\n");
 	} else {
 		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
@@ -1717,7 +1717,7 @@ tds_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
@@ -1728,19 +1728,19 @@ tds_process_result(TDSSOCKET * tds)
 	num_cols = tds_get_smallint(tds);
 
 	if (tds->client_cursor_id) {
-		mycursor = tds->cursor; 
-		while (mycursor->client_cursor_id != tds->client_cursor_id) {
-			mycursor = mycursor->next;
+		cursor = tds->cursor; 
+		while (cursor->client_cursor_id != tds->client_cursor_id) {
+			cursor = cursor->next;
 		}
 	
-		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+		if (cursor->client_cursor_id != tds->client_cursor_id) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
-		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
-		info = mycursor->res_info;
-		tds->current_results = mycursor->res_info;
+		info = cursor->res_info;
+		tds->current_results = cursor->res_info;
 	} else {
 		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
@@ -1787,7 +1787,7 @@ tds5_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result\n");
 
@@ -1806,18 +1806,18 @@ tds5_process_result(TDSSOCKET * tds)
 	num_cols = tds_get_smallint(tds);
 
 	if (tds->client_cursor_id) {
-		mycursor = tds->cursor; 
-		while (mycursor->client_cursor_id != tds->client_cursor_id) {
-			mycursor = mycursor->next;
+		cursor = tds->cursor; 
+		while (cursor->client_cursor_id != tds->client_cursor_id) {
+			cursor = cursor->next;
 		}
 	
-		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+		if (cursor->client_cursor_id != tds->client_cursor_id) {
 			tdsdump_log(TDS_DBG_FUNC, "tds7_process_result() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
-		if ((mycursor->res_info = tds_alloc_results(num_cols)) == NULL)
+		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
-		info = mycursor->res_info;
+		info = cursor->res_info;
 	} else {
 		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
@@ -3269,7 +3269,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	char name[30];	
 	unsigned char cursor_cmd;
 	TDS_SMALLINT cursor_status;
-	TDS_CURSOR *mycursor;
+	TDSCURSOR *cursor;
 	
 	hdrsize  = tds_get_smallint(tds);
 	cursor_id = tds_get_int(tds);
@@ -3289,17 +3289,17 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 
 	if (tds->client_cursor_id) {
 		tdsdump_log(TDS_DBG_FUNC, "locating cursor_id %d\n", tds->client_cursor_id);
-		mycursor = tds->cursor; 
-		while (mycursor->client_cursor_id != tds->client_cursor_id) {
-			mycursor = mycursor->next;
+		cursor = tds->cursor; 
+		while (cursor->client_cursor_id != tds->client_cursor_id) {
+			cursor = cursor->next;
 			tdsdump_log(TDS_DBG_FUNC, "still looking...\n");
 		}
 	
-		if (mycursor->client_cursor_id != tds->client_cursor_id) {
+		if (cursor->client_cursor_id != tds->client_cursor_id) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_process_cursor_tokens() : cannot find cursor_id %d\n", tds->client_cursor_id);
 			return TDS_FAIL;
 		}
-		mycursor->cursor_id = cursor_id;
+		cursor->cursor_id = cursor_id;
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
 			tds_free_cursor(tds, tds->client_cursor_id);
 	} 

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.189 2004-10-13 11:06:07 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.190 2004-10-13 12:57:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -989,7 +989,7 @@ typedef struct _tds_cursor
 	TDS_CURSOR_STATUS status;
 	TDSRESULTINFO *res_info;
 	struct _tds_cursor *next;
-} TDS_CURSOR;
+} TDSCURSOR;
 
 /*
  * Current environment as reported by the server
@@ -1069,7 +1069,7 @@ struct tds_socket
 	TDS_INT num_comp_info;
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
-	TDS_CURSOR *cursor;
+	TDSCURSOR *cursor;
 	TDS_TINYINT has_status;
 	TDS_INT ret_status;
 	TDS_TINYINT state;
@@ -1187,7 +1187,7 @@ void tds_free_login(TDSLOGIN * login);
 TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCALE * locale);
-TDS_CURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
+TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge);
