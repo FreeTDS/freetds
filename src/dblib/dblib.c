@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.181 2004-06-19 05:56:30 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.182 2004-07-03 18:15:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1447,18 +1447,18 @@ dbcolname(DBPROCESS * dbproc, int column)
  * \ingroup dblib_api
  * \brief Read a row from the row buffer.
  * 
- * When row buffering is enabled, the client can use dbgetrow() to re-read a row previously fetched 
+ * When row buffering is enabled (DBBUFFER option is on), the client can use dbgetrow() to re-read a row previously fetched 
  * with dbnextrow().  The effect is to move the row pointer -- analagous to fseek() -- back to \a row.  
  * Calls to dbnextrow() read from \a row + 1 until the buffer is exhausted, at which point it resumes
- * its normal behavior, except that as each row is fetched from the server, it's place in the row
- * buffer (in addition to being returned to the client.When the buffer is filled, dbnextrow()  returns 
+ * its normal behavior, except that as each row is fetched from the server, it is added to the row
+ * buffer (in addition to being returned to the client).  When the buffer is filled, dbnextrow()  returns 
  * \c FAIL until the buffer is at least partially emptied with dbclrbuf().
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param row Nth row to read, starting with 1.
  * \retval REG_ROW returned row is a regular row.
  * \returns computeid when returned row is a compute row.
  * \retval NO_MORE_ROWS no such row in the row buffer.  Current row is unchanged.
- * \retval FAIL unsuccessful
+ * \retval FAIL unsuccessful; row buffer may be full.  
  * \sa dbaltbind(), dbbind(), dbclrbuf(), DBCURROW(), DBFIRSTROW(), DBLASTROW(), dbnextrow(), dbsetrow().
  */
 RETCODE
