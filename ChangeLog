@@ -1,3 +1,17 @@
+Tue Nov  4 13:42:08 EST 2003	JK Lowden <jklowden@schemamania.org>
+	- Applied Frediano's patch:
+	* include/tds.h src/tds/token.c
+	- support for newer mssql compute clauses
+	* include/tdsodbc.h
+	* src/odbc/odbc.c
+	* src/odbc/odbc_checks.c
+	* src/odbc/odbc_util.h
+	* src/odbc/odbc_util.c
+	- fixed type test and problems related
+	- extra structures checks on functions exit
+	- fix problem with macro (thanks to David Fraser)
+	* TODO updated
+
 Tue Nov  4 03:03:38 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml Updated for 0.62, except for ODBC
 	
