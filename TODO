@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.96 2004-02-10 16:52:54 freddy77 Exp $
+To Do List	$Id: TODO,v 1.97 2004-02-11 16:28:35 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -122,7 +122,6 @@ For future versions (in priority order within library):
 . test and fix: select with compute
 . test and fix: hidden fields (FOR BROWSE select)
 . SQLDescribeParam (Sybase seem to require it)
-. use tds_dstr* functions to store descriptor infos
 . change ODBC_RETURN to return errs.lastrc (not to set) and use errs.lastrc
   to store error, cache some errors (truncated output)
 . handle no termination on odbc_set_string*
@@ -137,6 +136,9 @@ For future versions (in priority order within library):
 
 Tests
 - "if 0 = 1 select 1" should not fail
+
+Done in 0.63
+. ODBC: use tds_dstr* functions to store descriptor infos
 
 Done in 0.62
 . cursor support in ct-lib
