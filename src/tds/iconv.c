@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.74 2003-05-29 19:13:36 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.75 2003-06-05 17:14:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -483,6 +483,8 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
 			return term_len;
 		}
+
+		*outbytesleft -= field_len;
 
 		return 0;
 	}
