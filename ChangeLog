@@ -1,3 +1,9 @@
+Thu Oct 17 11:08:33 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* freetds.conf:
+	- Set a reasonable default text size for now, until someone
+	  implements a better solution to the unreasonable memory
+	  requirements when dealing with text objects on MS SQL Server.
+
 Thu Oct 17 10:15:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c src/dblib/unittests/t0014.c:
 	- Add support for logged bulk writetext requests.
