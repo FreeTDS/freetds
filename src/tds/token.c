@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.26 2002-07-05 13:18:21 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.27 2002-07-10 05:04:45 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -905,10 +905,16 @@ int len;
 				** it uses a few more bytes
 				*/
 				num = (TDS_NUMERIC *) &(info->current_row[curcol->column_offset]);
+                memset(num, '\0', sizeof(TDS_NUMERIC));
 				num->precision = curcol->column_prec;
 				num->scale = curcol->column_scale;
 
 				tds_get_n(tds,num->array,colsize);
+		        if (IS_TDS70(tds) || IS_TDS80(tds)) 
+                {
+				   tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+                   tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *)num );
+                }
 
 			} else if (curcol->column_type == SYBVARBINARY) {
 				varbin = (TDS_VARBINARY *) &(info->current_row[curcol->column_offset]);
@@ -940,12 +946,12 @@ int len;
 			}
 
 			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
-			/* was: curcol->cur_row_size = colsize; */
-   			if (curcol->column_unicodedata) {
-      				curcol->cur_row_size = strlen(dest);
-   			} else {
-      				curcol->cur_row_size = colsize;
-   			}
+            /* was: curcol->cur_row_size = colsize; */
+            if (curcol->column_unicodedata) {
+                            curcol->cur_row_size = strlen(dest);
+            } else {
+                            curcol->cur_row_size = colsize;
+            }
 
 #ifdef WORDS_BIGENDIAN
 			/* MS SQL Server 7.0 has broken date types from big endian 
@@ -973,7 +979,7 @@ int len;
 				memcpy(dest,&dest[colsize/2],colsize/2);
 				memcpy(&dest[colsize/2],temp_buf,colsize/2);
 			}
-            if (tds->emul_little_endian) {
+            if (tds->emul_little_endian && !is_numeric_type(curcol->column_type)) {
                 tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
                             tds_get_conversion_type(curcol->column_type,colsize));
                 tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize),
