@@ -54,15 +54,19 @@
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 
+typedef struct _pbcb 
+{ 
+	unsigned char *pb; 
+	int cb;
+} TDS_PBCB;
+
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.58 2003-03-12 21:29:52 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: bcp.c,v 1.59 2003-03-14 20:00:41 jklowden Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn};
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
-static RETCODE _bcp_build_bulk_insert_stmt(char *, BCP_COLINFO *, int);
+static RETCODE _bcp_build_bulk_insert_stmt(TDS_PBCB *, BCP_COLINFO *, int);
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int _bcp_rtrim_varchar(char *, int);
@@ -1716,37 +1720,39 @@ RETCODE ret;
 	}
 }
 
+
 static RETCODE
 _bcp_start_copy_in(DBPROCESS * dbproc)
 {
 
-TDSSOCKET *tds = dbproc->tds_socket;
-BCP_COLINFO *bcpcol;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	BCP_COLINFO *bcpcol;
 
-TDS_INT result_type;
-TDS_INT rowtype;
-TDS_INT computeid;
+	TDS_INT result_type;
+	TDS_INT rowtype;
+	TDS_INT computeid;
 
-int i;
-int marker;
+	int i;
+	int marker;
+	int firstcol;
 
-char *query;
-char colclause[4096];
+	char *query;
+	char clause_buffer[4096] = {0};
 
-int firstcol;
+	TDS_PBCB colclause = { clause_buffer, sizeof(clause_buffer) };
+
 
 	if (IS_TDS7_PLUS(tds)) {
-int erc;
-char *hint;
+		int erc;
+		char *hint;
 
 		firstcol = 1;
-		strcpy(colclause, "");
 
 		for (i = 0; i < dbproc->bcp_colcount; i++) {
 			bcpcol = dbproc->bcp_columns[i];
 
 			if (IS_TDS7_PLUS(tds)) {
-				_bcp_build_bulk_insert_stmt(colclause, bcpcol, firstcol);
+				_bcp_build_bulk_insert_stmt(&colclause, bcpcol, firstcol);
 				firstcol = 0;
 			}
 		}
@@ -1761,9 +1767,13 @@ char *hint;
 		if (!hint)
 			return FAIL;
 
-		erc = asprintf(&query, "insert bulk %s (%s)%s", dbproc->bcp_tablename, colclause, hint);
+		erc = asprintf(&query, "insert bulk %s (%s)%s", dbproc->bcp_tablename, colclause.pb, hint);
 
 		free(hint);
+		if (colclause.pb != clause_buffer) {
+			free(colclause.pb);
+			colclause.pb = NULL; /* just for good measure; not used beyond this point */
+		}
 
 		if (erc < 0) {
 			return FAIL;
@@ -1820,92 +1830,93 @@ char *hint;
 }
 
 static RETCODE
-_bcp_build_bulk_insert_stmt(char *clause, BCP_COLINFO * bcpcol, int first)
+_bcp_build_bulk_insert_stmt(TDS_PBCB *clause, BCP_COLINFO * bcpcol, int first)
 {
-	char column_type[32];
+	char buffer[32];
+	char *column_type = buffer;
 
 	switch (bcpcol->db_type_save) {
 	case SYBINT1:
-		strcpy(column_type, "tinyint");
+		column_type = "tinyint";
 		break;
 	case SYBBIT:
-		strcpy(column_type, "bit");
+		column_type = "bit";
 		break;
 	case SYBINT2:
-		strcpy(column_type, "smallint");
+		column_type = "smallint";
 		break;
 	case SYBINT4:
-		strcpy(column_type, "int");
+		column_type = "int";
 		break;
 	case SYBDATETIME:
-		strcpy(column_type, "datetime");
+		column_type = "datetime";
 		break;
 	case SYBDATETIME4:
-		strcpy(column_type, "smalldatetime");
+		column_type = "smalldatetime";
 		break;
 	case SYBREAL:
-		strcpy(column_type, "real");
+		column_type = "real";
 		break;
 	case SYBMONEY:
-		strcpy(column_type, "money");
+		column_type = "money";
 		break;
 	case SYBMONEY4:
-		strcpy(column_type, "smallmoney");
+		column_type = "smallmoney";
 		break;
 	case SYBFLT8:
-		strcpy(column_type, "float");
+		column_type = "float";
 		break;
 	case SYBINT8:
-		strcpy(column_type, "bigint");
+		column_type = "bigint";
 		break;
 
 	case SYBINTN:
 		switch (bcpcol->db_length) {
 		case 1:
-			strcpy(column_type, "tinyint");
+			column_type = "tinyint";
 			break;
 		case 2:
-			strcpy(column_type, "smallint");
+			column_type = "smallint";
 			break;
 		case 4:
-			strcpy(column_type, "int");
+			column_type = "int";
 			break;
 		case 8:
-			strcpy(column_type, "bigint");
+			column_type = "bigint";
 			break;
 		}
 		break;
 
 	case SYBBITN:
-		strcpy(column_type, "bit");
+		column_type = "bit";
 		break;
 	case SYBFLTN:
 		switch (bcpcol->db_length) {
 		case 4:
-			strcpy(column_type, "real");
+			column_type = "real";
 			break;
 		case 8:
-			strcpy(column_type, "float");
+			column_type = "float";
 			break;
 		}
 		break;
 	case SYBMONEYN:
 		switch (bcpcol->db_length) {
 		case 4:
-			strcpy(column_type, "smallmoney");
+			column_type = "smallmoney";
 			break;
 		case 8:
-			strcpy(column_type, "money");
+			column_type = "money";
 			break;
 		}
 		break;
 	case SYBDATETIMN:
 		switch (bcpcol->db_length) {
 		case 4:
-			strcpy(column_type, "smalldatetime");
+			column_type = "smalldatetime";
 			break;
 		case 8:
-			strcpy(column_type, "datetime");
+			column_type = "datetime";
 			break;
 		}
 		break;
@@ -1947,15 +1958,24 @@ _bcp_build_bulk_insert_stmt(char *clause, BCP_COLINFO * bcpcol, int first)
 		return FAIL;
 	}
 
+	if (clause->cb < strlen(clause->pb) + strlen(bcpcol->db_name) + strlen(column_type) + ((first)? 2 : 4)) {
+		unsigned char *temp = malloc(2 * clause->cb);
+		assert(temp);
+		if (!temp)
+			return FAIL;
+		strcpy(temp, clause->pb);
+		clause->pb = temp;
+		clause->cb *= 2;
+	}
+
 	if (!first)
-		strcat(clause, ", ");
+		strcat(clause->pb, ", ");
 
-	strcat(clause, bcpcol->db_name);
-	strcat(clause, " ");
+	strcat(clause->pb, bcpcol->db_name);
+	strcat(clause->pb, " ");
+	strcat(clause->pb, column_type);
 
-	strcat(clause, column_type);
 	return SUCCEED;
-
 }
 
 static RETCODE
