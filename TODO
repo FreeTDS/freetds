@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.56 2003-05-11 08:33:48 freddy77 Exp $
+To Do List	$Id: TODO,v 1.57 2003-05-12 15:21:00 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -91,16 +91,19 @@ For future versions (in priority order within library):
 
   odbc
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
-. Add test for SQLPutData/SQLGetData
 . cursor support
 . Star Office complains that these TypeInfo constants are not implemented in SQLGetInfo:
 	47      SQL_USER_NAME
   (handle environment callbacks)
+  do a "SELECT USER_NAME()". If data pending MS do another connection with 
+  same login.
 . Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
-. Add a check for SQLGetTypeInfo (test column names in versions 2 and 3 
+. test: SQLPutData/SQLGetData
+. test: check for SQLGetTypeInfo (test column names in versions 2 and 3 
   of odbc, varchar/nvarchar should be before sysname, numeric type for data 
   with different odbc versions)
-. SQLNativeSql and fill SQLGetInfo according
+. SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
+  directly)
 . configure should detect iODBC or unixODBC automatically
 . autoinstall for RPM
 
