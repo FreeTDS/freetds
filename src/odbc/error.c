@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.29 2003-11-09 07:50:27 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.30 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -448,12 +448,12 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->attr.odbc_version;
+		odbc_ver = ((TDS_STMT *) handle)->dbc->env->attr.odbc_version;
 		errs = &((TDS_STMT *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
-		odbc_ver = ((TDS_DBC *) handle)->henv->attr.odbc_version;
+		odbc_ver = ((TDS_DBC *) handle)->env->attr.odbc_version;
 		errs = &((TDS_DBC *) handle)->errs;
 		break;
 
@@ -557,14 +557,14 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
 		stmt = ((TDS_STMT *) handle);
-		dbc = stmt->hdbc;
-		env = dbc->henv;
+		dbc = stmt->dbc;
+		env = dbc->env;
 		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
-		env = dbc->henv;
+		env = dbc->env;
 		errs = &dbc->errs;
 		break;
 
@@ -683,11 +683,11 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			msg = tds_dstr_cstr(&dbc->server);
 			break;
 		case SQL_HANDLE_STMT:
-			msg = tds_dstr_cstr(&stmt->hdbc->server);
-			/* if hdbc->server is not initialized, init it
+			msg = tds_dstr_cstr(&stmt->dbc->server);
+			/* if dbc->server is not initialized, init it
 			 * from the errs structure */
 			if (!msg[0] && errs->errs[numRecord].server) {
-				tds_dstr_copy(&stmt->hdbc->server, errs->errs[numRecord].server);
+				tds_dstr_copy(&stmt->dbc->server, errs->errs[numRecord].server);
 				msg = errs->errs[numRecord].server;
 			}
 			break;

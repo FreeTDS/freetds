@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.38 2003-11-13 13:52:53 jklowden Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.39 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -116,7 +116,7 @@ static int
 _get_param_textsize(TDS_STMT * stmt, struct _drecord *drec_ipd, struct _drecord *drec_apd)
 {
 	int len = 0;
-	SQLINTEGER sql_len = odbc_get_param_len(stmt->hdbc->tds_socket, drec_apd, drec_ipd);
+	SQLINTEGER sql_len = odbc_get_param_len(stmt->dbc->tds_socket, drec_apd, drec_ipd);
 
 	switch (sql_len) {
 	case SQL_NTS:
@@ -263,7 +263,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 	int need_comma;
 	SQLINTEGER sql_len;
 
-	context = stmt->hdbc->henv->tds_ctx;
+	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
 
 	if (start) {
@@ -307,7 +307,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				d += 2;
 			}
 
-			sql_len = odbc_get_param_len(stmt->hdbc->tds_socket, drec_apd, drec_ipd);
+			sql_len = odbc_get_param_len(stmt->dbc->tds_socket, drec_apd, drec_ipd);
 			if (_get_len_data_at_exec(sql_len) > 0) {
 				/* save prepared_query parameters to stmt */
 				stmt->prepared_query_s = s;
@@ -388,7 +388,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 	if (stmt->prepared_query_need_bytes <= 0)
 		return SQL_ERROR;
 
-	context = stmt->hdbc->henv->tds_ctx;
+	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
 	if (stmt->prepared_query_param_num > stmt->apd->header.sql_desc_count
 	    || stmt->prepared_query_param_num > stmt->ipd->header.sql_desc_count)
@@ -465,7 +465,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 		stmt->params = temp_params;
 
 		switch (sql2tds
-			(stmt->hdbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
+			(stmt->dbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
 			 stmt->params, nparam)) {
 		case SQL_ERROR:
 			return SQL_ERROR;

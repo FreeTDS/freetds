@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.26 2003-11-13 13:52:53 jklowden Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.27 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -248,7 +248,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		/* TODO intervals */
 	}
 
-	res = tds_convert(dbc->henv->tds_ctx, src_type, src, len, dest_type, &ores);
+	res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
 	if (res < 0)
 		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);

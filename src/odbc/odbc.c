@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.269 2003-11-15 09:39:25 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.270 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -162,7 +162,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	IRD_CHECK;
 
 #if ENABLE_EXTRA_CHECKS
-	if (colpos > 0 && stmt->hdbc->tds_socket != NULL && (resinfo = stmt->hdbc->tds_socket->res_info) != NULL) {
+	if (colpos > 0 && stmt->dbc->tds_socket != NULL && (resinfo = stmt->dbc->tds_socket->res_info) != NULL) {
 		if (colpos <= resinfo->num_cols) {
 			/* TODO see overflow */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
@@ -284,7 +284,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 static SQLRETURN
 odbc_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 {
-	TDS_ENV *env = dbc->henv;
+	TDS_ENV *env = dbc->env;
 
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
 	if (!dbc->tds_socket) {
@@ -348,7 +348,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	}
 #endif
 
-	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
+	connect_info = tds_alloc_connect(dbc->env->tds_ctx->locale);
 	if (!connect_info) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -412,7 +412,7 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -455,7 +455,7 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 				  "@pktable_name", szPkTableName, cbPkTableName,
 				  "@fktable_qualifier", szFkCatalogName, cbFkCatalogName,
 				  "@fktable_owner", szFkSchemaName, cbFkSchemaName, "@fktable_name", szFkTableName, cbFkTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PKTABLE_CAT");
 		odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
 		odbc_col_setname(stmt, 5, "FKTABLE_CAT");
@@ -476,14 +476,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	INIT_HSTMT;
 
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 
 	/* try to go to the next recordset */
 	for (;;) {
 		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
 		case TDS_NO_MORE_RESULTS:
-			if (stmt->hdbc->current_statement == stmt)
-				stmt->hdbc->current_statement = NULL;
+			if (stmt->dbc->current_statement == stmt)
+				stmt->dbc->current_statement = NULL;
 			odbc_populate_ird(stmt);
 			ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		case TDS_SUCCEED:
@@ -612,7 +612,7 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 		odbc_stat_execute(stmt, "sp_pkeys ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -633,7 +633,7 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 				  "@procedure_qualifier", szCatalogName, cbCatalogName,
 				  "@procedure_owner", szSchemaName, cbSchemaName,
 				  "@procedure_name", szProcName, cbProcName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 		odbc_col_setname(stmt, 8, "COLUMN_SIZE");
@@ -656,7 +656,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		odbc_stat_execute(stmt, "sp_stored_procedures ", 3,
 				  "@sp_name", szProcName, cbProcName,
 				  "@sp_owner", szSchemaName, cbSchemaName, "@sp_qualifier", szCatalogName, cbCatalogName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
 	}
@@ -685,7 +685,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 		odbc_stat_execute(stmt, "sp_table_privileges ", 3,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName, "@table_name", szTableName, cbTableName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -919,7 +919,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	memset(dbc, '\0', sizeof(TDS_DBC));
 
 	dbc->htype = SQL_HANDLE_DBC;
-	dbc->henv = env;
+	dbc->env = env;
 	tds_dstr_init(&dbc->server);
 	tds_dstr_init(&dbc->dsn);
 
@@ -1047,7 +1047,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	tds_dstr_init(&stmt->cursor_name);
 
 	stmt->htype = SQL_HANDLE_STMT;
-	stmt->hdbc = dbc;
+	stmt->dbc = dbc;
 	pstr = NULL;
 	if (asprintf(&pstr, "C%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
 		free(stmt);
@@ -1218,7 +1218,7 @@ SQLCancel(SQLHSTMT hstmt)
 	TDSSOCKET *tds;
 
 	INIT_HSTMT;
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 
 	if (tds_send_cancel(tds) == TDS_FAIL)
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -1255,7 +1255,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 #endif
 
-	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
+	connect_info = tds_alloc_connect(dbc->env->tds_ctx->locale);
 	if (!connect_info) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -1446,7 +1446,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 #if SQL_COLUMN_TYPE != SQL_DESC_CONCISE_TYPE
 	case SQL_COLUMN_TYPE:
 		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
-		if (stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+		if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 			IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
 			break;
 		}
@@ -2171,10 +2171,10 @@ odbc_ird_check(TDS_STMT * stmt)
 	TDSRESULTINFO *res_info = NULL;
 	int cols = 0, i;
 
-	if (!stmt->hdbc->tds_socket)
+	if (!stmt->dbc->tds_socket)
 		return;
-	if (stmt->hdbc->tds_socket->res_info) {
-		res_info = stmt->hdbc->tds_socket->res_info;
+	if (stmt->dbc->tds_socket->res_info) {
+		res_info = stmt->dbc->tds_socket->res_info;
 		cols = res_info->num_cols;
 	}
 
@@ -2202,7 +2202,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 	int i;
 
 	desc_free_records(ird);
-	if (!stmt->hdbc->tds_socket || !(res_info = stmt->hdbc->tds_socket->res_info))
+	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->res_info))
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
@@ -2256,7 +2256,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_table_name = strdup("");
 		drec->sql_desc_type_name = odbc_server_to_sql_typename(col->column_type,
-								       col->column_size, stmt->hdbc->henv->attr.odbc_version);
+								       col->column_size, stmt->dbc->env->attr.odbc_version);
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
@@ -2279,7 +2279,7 @@ static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
 	int ret;
-	TDSSOCKET *tds = stmt->hdbc->tds_socket;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	SQLRETURN result = SQL_SUCCESS;
@@ -2356,7 +2356,7 @@ _SQLExecute(TDS_STMT * stmt)
 		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	stmt->hdbc->current_statement = stmt;
+	stmt->dbc->current_statement = stmt;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
@@ -2519,9 +2519,9 @@ _SQLFetch(TDS_STMT * stmt)
 	}
 #endif
 
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 
-	context = stmt->hdbc->henv->tds_ctx;
+	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
 
 	stmt->row++;
@@ -2534,7 +2534,7 @@ _SQLFetch(TDS_STMT * stmt)
 	if (stmt->ird->header.sql_desc_array_status_ptr)
 		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
 
-	switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid)) {
+	switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
 	case TDS_NO_MORE_ROWS:
 		odbc_populate_ird(stmt);
 		tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
@@ -2723,12 +2723,12 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	if (fOption == SQL_DROP || fOption == SQL_CLOSE) {
 		SQLRETURN retcode;
 
-		tds = stmt->hdbc->tds_socket;
+		tds = stmt->dbc->tds_socket;
 		/*
 		 * FIXME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
-		if (tds->state != TDS_IDLE && stmt->hdbc->current_statement == stmt) {
+		if (tds->state != TDS_IDLE && stmt->dbc->current_statement == stmt) {
 			if (tds_send_cancel(tds) == TDS_SUCCEED)
 				tds_process_cancel(tds);
 		}
@@ -2747,8 +2747,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 			free(stmt->prepared_query);
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
-		if (stmt->hdbc->current_statement == stmt)
-			stmt->hdbc->current_statement = NULL;
+		if (stmt->dbc->current_statement == stmt)
+			stmt->dbc->current_statement = NULL;
 		tds_dstr_free(&stmt->cursor_name);
 		desc_free(stmt->ird);
 		desc_free(stmt->ipd);
@@ -3050,10 +3050,10 @@ _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 
 	INIT_HSTMT;
 
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 
 	/* test is this is current statement */
-	if (stmt->hdbc->current_statement != stmt)
+	if (stmt->dbc->current_statement != stmt)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	*pcrow = -1;
 	if (tds->rows_affected != TDS_NO_COUNT)
@@ -3195,7 +3195,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 				  "@table_name", szTableName, cbTableName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@column_name", szColumnName, cbColumnName);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 7, "COLUMN_SIZE");
@@ -3318,8 +3318,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (!pcbValue)
 		pcbValue = &dummy_cb;
 
-	tds = stmt->hdbc->tds_socket;
-	context = stmt->hdbc->henv->tds_ctx;
+	tds = stmt->dbc->tds_socket;
+	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
 	resinfo = tds->res_info;
 	if (icol <= 0 || icol > tds->res_info->num_cols) {
@@ -3356,7 +3356,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			int readed = cbValueMax;
 
 			/* FIXME test on destination char ??? */
-			if (stmt->hdbc->henv->attr.output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
+			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;
@@ -3950,7 +3950,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		UIVAL = (SQLUINTEGER) dbc;
 		break;
 	case SQL_DRIVER_HENV:
-		UIVAL = (SQLUINTEGER) dbc->henv;
+		UIVAL = (SQLUINTEGER) dbc->env;
 		break;
 	case SQL_DRIVER_HSTMT:
 		UIVAL = (SQLUINTEGER) dbc->current_statement;
@@ -4394,7 +4394,7 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	IRD_CHECK;
 
 #if ENABLE_EXTRA_CHECKS
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 	if (!tds || !tds->res_info)
 		return;
 
@@ -4434,13 +4434,13 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	INIT_HSTMT;
 
-	tds = stmt->hdbc->tds_socket;
+	tds = stmt->dbc->tds_socket;
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
 	/* TODO what about early Sybase products ? */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	sprintf(sql, sql_templ, fSqlType);
-	if (TDS_IS_MSSQL(tds) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3)
+	if (TDS_IS_MSSQL(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 		strcat(sql, ",3");
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -4450,7 +4450,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	odbc_upper_column_names(stmt);
 
-	if (TDS_IS_MSSQL(stmt->hdbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
+	if (TDS_IS_MSSQL(stmt->dbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
 		ODBC_RETURN(stmt, res);
 
 	/*
@@ -4467,7 +4467,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		if (n == (varchar_pos - 1))
 			break;
 
-		switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &row_type, &compute_id)) {
+		switch (tds_process_row_tokens(stmt->dbc->tds_socket, &row_type, &compute_id)) {
 		case TDS_NO_MORE_ROWS:
 			/* discard other tokens */
 			tds_process_simple_query(tds);
@@ -4892,12 +4892,12 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		col_type[0] = 'V';
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->hdbc->tds_socket) ? 6 : 4,
+		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 6 : 4,
 				  "", szTableName, cbTableName,
 				  "@owner", szSchemaName, cbSchemaName,
 				  "@qualifier", szCatalogName, cbCatalogName,
 				  "@col_type", col_type, 1, "@scope", scope, 1, "@nullable", nullable, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
@@ -4953,11 +4953,11 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 		unique[0] = 'N';
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->hdbc->tds_socket) ? 5 : 4,
+		odbc_stat_execute(stmt, "sp_statistics ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
 				  "@table_qualifier", szCatalogName, cbCatalogName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_name", szTableName, cbTableName, "@is_unique", unique, 1, "@accuracy", accuracy, 1);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 		odbc_col_setname(stmt, 8, "ORDINAL_POSITION");
@@ -5043,7 +5043,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType, cbTableType);
 	if (type)
 		free(type);
-	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.odbc_version == SQL_OV_ODBC3) {
+	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
@@ -5164,7 +5164,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		params[i].value = va_arg(marker, SQLCHAR *);
 		params[i].len = odbc_get_string_size(va_arg(marker, int), params[i].value);
 
-		len += strlen(params[i].name) + tds_quote_string(stmt->hdbc->tds_socket, NULL, (char *) params[i].value,
+		len += strlen(params[i].name) + tds_quote_string(stmt->dbc->tds_socket, NULL, (char *) params[i].value,
 								 params[i].len) + 3;
 	}
 	va_end(marker);
@@ -5187,7 +5187,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 			p += strlen(params[i].name);
 			*p++ = '=';
 		}
-		p += tds_quote_string(stmt->hdbc->tds_socket, p, (char *) params[i].value, params[i].len);
+		p += tds_quote_string(stmt->dbc->tds_socket, p, (char *) params[i].value, params[i].len);
 		*p++ = ',';
 	}
 	*--p = '\0';
@@ -5210,7 +5210,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 static SQLRETURN
 odbc_free_dynamic(TDS_STMT * stmt)
 {
-	TDSSOCKET *tds = stmt->hdbc->tds_socket;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	if (stmt->dyn) {
 		if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {

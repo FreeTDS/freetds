@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_checks.c,v 1.8 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: odbc_checks.c,v 1.9 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -64,7 +64,7 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 {
 	assert(stmt && stmt->htype == SQL_HANDLE_STMT);
 	/* TODO deep check on connection */
-	assert(stmt->hdbc);
+	assert(stmt->dbc);
 	odbc_check_desc_extra(stmt->ard);
 	odbc_check_desc_extra(stmt->ird);
 	odbc_check_desc_extra(stmt->apd);

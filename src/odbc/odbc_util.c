@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.53 2003-11-13 13:52:53 jklowden Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.54 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -115,8 +115,8 @@ odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 void
 odbc_set_return_status(struct _hstmt *stmt)
 {
-	TDSSOCKET *tds = stmt->hdbc->tds_socket;
-	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 #if 0
 	TDSLOCALE *locale = context->locale;
@@ -144,9 +144,9 @@ odbc_set_return_status(struct _hstmt *stmt)
 void
 odbc_set_return_params(struct _hstmt *stmt)
 {
-	TDSSOCKET *tds = stmt->hdbc->tds_socket;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSPARAMINFO *info = tds->curr_resinfo;
-	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	int i_begin = stmt->prepared_query_is_func ? 1 : 0;
 	int i;

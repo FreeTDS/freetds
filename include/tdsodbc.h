@@ -49,7 +49,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.60 2003-11-09 07:50:27 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.61 2003-11-22 17:22:25 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -205,7 +205,7 @@ struct _hstmt;
 struct _hdbc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
-	struct _henv *henv;
+	struct _henv *env;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
 	DSTR server;		/* aka Instance */
@@ -270,7 +270,7 @@ struct _hsattr
 struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
-	struct _hdbc *hdbc;
+	struct _hdbc *dbc;
 	char *query;
 	/* begin prepared query stuff */
 	char *prepared_query;
