@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.23 2002-12-11 22:11:40 jklowden Exp $";
+         "$Id: cspublic.h,v 1.24 2003-01-02 02:00:19 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -336,7 +336,7 @@ enum {
 	CS_TDS_70
 };
 
-/* fields used by CS_DATAFMT.status */
+/* bit mask values used by CS_DATAFMT.status */
 #define CS_CANBENULL   (1)
 #define CS_HIDDEN      (1 << 1)
 #define CS_IDENTITY    (1 << 2)
@@ -344,6 +344,8 @@ enum {
 #define CS_VERSION_KEY (1 << 4)
 #define CS_TIMESTAMP   (1 << 5)
 #define CS_UPDATABLE   (1 << 6)
+#define CS_UPDATECOL   (1 << 7)
+#define CS_RETURN      (1 << 8)
 
 /* DBD::Sybase compares indicator to CS_NULLDATA so this is -1
 ** (the documentation states -1) */
@@ -485,7 +487,7 @@ enum {
 #define CS_SEND_BULK_CMD 0xFFFF
 #define CS_INPUTVALUE	86
 #define CS_GOODDATA	87
-#define CS_RETURN	88
+/* define CS_RETURN	88 */
 #define CS_CMD_NUMBER	89
 #define CS_BROWSE_INFO	90
 #define CS_NUMORDERCOLS	91
@@ -493,7 +495,7 @@ enum {
 #define CS_NODATA	96
 #define CS_DESCIN	98
 #define CS_DESCOUT	99
-#define CS_UPDATECOL	100
+/* define CS_UPDATECOL	100 */
 #define CS_NODEFAULT	102
 #define CS_FMT_JUSTIFY_RT	106
 #define CS_TRANS_STATE	107
