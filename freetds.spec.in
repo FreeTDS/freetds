@@ -1,5 +1,5 @@
-%define	name	freetds 
-%define version 0.53 
+%define	name	@PACKAGE@
+%define	version	@VERSION@
  
 Name: %{name} 
 Version: %{version} 
@@ -7,7 +7,7 @@ Release: 1
 Vendor: www.freetds.org 
 Copyright: LGPL 
 Group: System Environment/Libraries 
-Source: ftp://ftp.metalab.unc.edu/pub/Linux/ALPHA/freetds/%{name}-%{version}.tgz 
+Source: ftp://ftp.metalab.unc.edu/pub/Linux/ALPHA/freetds/%{name}-%{version}.tar.gz 
 BuildRoot: /var/tmp/%{name}-buildroot 
 Summary: FreeTDS is a free re-implementation of the TDS (Tabular DataStream) protocol that is used by Sybase and Microsoft for their database products. 
  
@@ -17,7 +17,7 @@ FreeTDS is a project to document and implement the TDS (Tabular DataStream) prot
 %package devel 
 Group: Development/Libraries 
 Summary: Include files needed for development with FreeTDS 
-Requires: freetds = 0.53
+Requires: freetds = %{version}
  
 %description devel 
 The freetds-devel package contains the files necessary for development with with the Free TDS libraries. 
@@ -26,7 +26,7 @@ The freetds-devel package contains the files necessary for development with with
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local 
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --sysconfdir=/etc/freetds
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" 
  
 %install 

@@ -1,3 +1,8 @@
+Tue Sep 10 20:56:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am configure.in freetds.spec.in doc/Makefile.am:
+	- spec file for rpm build included
+	- include also autogen.sh and doc/CodingStyle in distro
+
 Tue Sep 10 17:55:37 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: fix dependency problem rebuilding html files
 	* src/dblib/Makefile.am: add always dbopen.c

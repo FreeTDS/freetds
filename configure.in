@@ -225,5 +225,6 @@ AC_OUTPUT(include/tdsver.h include/tds.h \
 	src/pool/Makefile \
 	src/odbc/Makefile \
 	src/odbc/unittests/Makefile \
-	src/apps/Makefile 
+	src/apps/Makefile \
+	freetds.spec
 )

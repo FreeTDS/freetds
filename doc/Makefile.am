@@ -13,7 +13,7 @@ man_MANS	= freebcp.1 tsql.1
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds7.txt tds_layer.txt userguide.sgml \
 		basic_jdbc_question.html faq.html tds.html userguide.tgz \
-		freebcp.1 tsql.1
+		freebcp.1 tsql.1 CodingStyle
 
 html:: userguide.tgz
 
@@ -41,4 +41,4 @@ freebcp.1:
 tsql.1:
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
 
-	
+
