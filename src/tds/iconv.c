@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.55 2003-04-21 09:05:58 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.56 2003-05-01 18:53:36 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -226,7 +226,7 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, ICONV_CONST c
 	if (output_size > *input_size)
 		output_size = *input_size;
 	memcpy(output, input, output_size);
-	*input_size += output_size;
+	*input_size -= output_size;
 	return output_size;
 #endif
 }

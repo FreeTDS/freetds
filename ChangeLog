@@ -1,3 +1,6 @@
+Thu May  1 13:51:32 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c decrement input_size if no iconv
+
 Thu May 01 14:39:10 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h include/tdsodbc.h src/odbc/odbc.c:
 	* src/tds/mem.c:
