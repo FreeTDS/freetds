@@ -27,7 +27,7 @@ Home&nbsp;&nbsp;|&nbsp;
 <h1>FAQ</h1>
 
 <p><font size="-1">
-The <a href="http://www.freetds.org/userguide/book1.html">FreeTDS User
+The <a href="http://www.freetds.org/userguide/">FreeTDS User
 Guide</a>, included in each release, is the appropriate place for new
 users to start.  
 </p>
@@ -35,11 +35,13 @@ users to start.
 
 This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
-since the last release.  And to answer perennial questions (there are some).  You can find mention of "Release 0.61".  There is none such (yet); that number refers to the current development version.  The last release of FreeTDS is version 0.60
+since the last release, and to answer perennial questions (there are some).  
+</p>
+<p>You may find mention of a "Release 0.61".  There is none such (yet); that number refers to the current development version.  The last release of FreeTDS is version 0.60.1.  
 <p>
 
 
-<div align=right><i>$Id: faq.html,v 1.17 2002-10-08 19:22:24 freddy77 Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.18 2002-10-17 04:12:58 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -130,12 +132,6 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 Problems Building<ul>
 
 <li>
-<a href="#I get a message 'AM_PROG_LIBTOOL' not found">I get a message 'AM_PROG_LIBTOOL' not found</a></li>
-
-<li>
-<a href="#Getting it to work on Alpha">Getting it to work on Alpha</a></li>
-
-<li>
 <a href="#Apache/PHP core dumps on start up">Apache/PHP core dumps on start up</a></li>
 
 <li>
@@ -213,7 +209,7 @@ places. </p>
 <a name="Does FreeTDS support MSSQL"></a>
 <h3>Does FreeTDS support MSSQL?</h3>
 
-<p>Yes, as long as you configure the libraries with the 4.2, 5.0, 7.0 or 8.0 protocol
+<p>Yes, as long as you configure the libraries with the 4.2, 7.0 or 8.0 protocol
 version. See the <a href="http://www.freetds.org/userguide/">User Guide</a> for details. </p>
 
 
@@ -561,16 +557,17 @@ DBD::ODBC is the newest option available.  Its primary advantage is not having t
 <a name="Are there any known issues"></a>
 <h3>Are there any known issues?</h3>
 
-<p>Floating point values are truncated by one position in version 0.51.   Datatypes affected are <tt>flt8</tt>, <tt>numeric</tt>, and <tt>money</tt>.  Status: <i>Fixed in current CVS version</i>  as of 12 March 2001.  </p>
-<p>
-Columns of datatype <tt>ntext</tt> are sometimes truncated by one position with TDS protocol version 7.0.  Workaround: convert them to <tt>varchar(8000)</tt> (or <tt>varchar(4000)</tt> if unicode data).  Status: <i>Fixed in 0.52</i></p>
-<p>
-MSSQL-7.0 has a known bug when communicating with 
-big-endian machines.  Columns of type 
-MONEY and DATETIME are returned as little-endian regardless of 
-what was requested.  There is a patch from Microsoft that fixes this.  Refer to the <a href="http://www.freetds.org/userguide/book1.html">User Guide</a> for further details.  </p>
-<p>
-Unicode&lt;-&gt;Ascii conversion is broken, except for languages whose alphabet is similar to that of English.  Specifically, although Microsoft SQL Server transmits all character data as Unicode (UCS2), and can store text in Unicode (<tt>nchar/nvarchar</tt>) columns, FreeTDS will translate Unicode to Ascii correctly only for languages -- such as, not coincidentally, English -- that use use the Latin alphabet..  A more general solution awaits an individual with an actual problem to solve, knowledge of a non-Latin language, and a willingness to facilitate testing.  Status: Fixed with <i>client charset</i> option in 0.53pre2</p>
+<p>ODBC can be confusing to set up, but it works, subject to limitations in the implementation.  See the samples directory for example .ini files.  
+</p>
+<p>BCP of text and image types is currently broken for Microsoft servers. 
+</p>
+<p>BCP does not support TDS 4.2.  You must use a more modern protocol version.  
+</p>
+<p>FreeTDS 0.60 was released without properly upgrading the library version numbers.  This can cause your applications to be confused.  You can use ldd(1) to check what library they're linking to, and you can use 0.60.1 to correct the version number problem.  See <a href="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/README ">README.0.60.1</a> for details.  
+</p>
+<p><code>src/dblib/unittests/t0022</code> fails for Microsoft servers.  <font size="-1"><em>16 October 2002</em></font>
+</p>
+
 
 <a name="thread_safe"></a>
 <h3>Is FreeTDS thread safe?</h3>
@@ -654,38 +651,6 @@ But, <tt>libtdssrv</tt> will do the trick for some applications.</p>
 
 <h2>Problems Building</h2>
 
-<a name="I get a message 'AM_PROG_LIBTOOL' not found"></a>
-<h3>I get a message 'AM_PROG_LIBTOOL' not found</h3>
-
-
-<p>
-Since CVS is diff based, the <tt>aclocal.m4</tt> file doesn't get the
-right date on it. Do a <kbd>touch aclocal.m4</kbd> and then do the
-<kbd>make</kbd>. This was fixed in the 0.50 release.</p>
-
-
-<a name="Getting it to work on Alpha"></a>
-<h3>Getting it to work on Alpha</h3>
-
-<p>
-This is a 64-bit problem. The library itself uses typedef'd types when it
-needs to read or write certain sized values, however the typedef's are
-wrong for 64-bit architectures. So until a permanent solution is in place,
-apply the following patch:</p>
-
-<pre>
-In include/tds.h replace:
-	typedef long TDS_INT;
-	typedef unsigned long TDS_UINT;
-with
-	typedef int TDS_INT;
-	typedef unsigned int TDS_UINT;
-</pre>
-<p>
-Update: fixed in 0.52
-</p>
-
-
 <!-- fixed in 0.53? -->
 
 <a name="Apache/PHP core dumps on start up"></a>
@@ -737,11 +702,58 @@ If you have a Solaris machine and the requisite <tt>autoconf</tt> skills to fix 
 <h3>Getting it to work on MAC OS X.</h3>
 
 
-<p>FreeTDS prior to 0.53pre2 fails to build, reporting malloc.h as
-being unavailable.  Solved in CVS on 8th November 2001.  Workaround is
-to remove the <tt>#include malloc.h</tt> from
-<tt>include/tds.h.in</tt>
+<p><font size="-1"><em>Wed 16 October 2002</em></font></p>
+
+
+<p>Mark J. Lilback rolled up his sleeves and solved this.  But, it's not baby simple, because you have to use bleeding edge tools.  The latest stable release of libtool, which FreeTDS uses to generate its configure script, doesn't do what you need.  But, as a dynalib builder, you're used to that, eh?   
 </p>
+<p>To get started, first, obtain a current CVS version.  Then follow Mark's instructions:
+</p>
+
+Here's the final process that allows compiling out of cvs. I've 
+tested it on a clean install (after mucking around with many 
+solutions on my system) and it should work for anyone on 10.2.
+</p>
+<p>
+
+The steps seem kinda stupid in some places, but that's because most 
+users don't have a /usr/local/bin and it isn't in the path by 
+default. I also avoided giving shell commands because the default 
+shell is tcsh and I refuse to deal with anything other than bash.
+</p>
+
+<ol>
+<li>If you don't have /usr/local/bin, create it.</li>
+
+<li>Run the command "ln -s /usr/bin/glibtoolize /usr/local/bin/libtoolize"</li>
+
+<li>Add /usr/local/bin to your path if not there.</li>
+
+<li>Download and install autoconf-2.54, making sure it is in your 
+path. I installed it in /usr/local/autoconf-2.54 and added 
+/usr/local/autoconf-2.54/bin to my path just for getting freetds to 
+work, but I'm paranoid about updating Apple-supplied software.</li>
+
+<li>Apply the patch <http://www.lilback.com/misc/ltmain.diff> to 
+/usr/share/libtool/ltmain.sh. This modifies the installed libtool 
+with a libtool patch that is in CVS but has not made it into a public 
+release.</li>
+
+<li>Follow the normal instructions for compiling freetds from cvs.</li>
+</ol>
+
+<p>
+After this, they compile and the unit tests work up to dblib0013, 
+which hung for 10 minutes or so until I canceled it.
+
+</p>
+<p>
+There were a couple of other issues I want to clean up at some point 
+(like the fact that iODBC is installed on the system by default, so 
+there is no need to specify a directory), but it works with the above 
+steps.
+</p>
+
 
 <hr>
 		<!-- RUNNING -->
@@ -792,50 +804,24 @@ message?</h3>
 
 <p>You want to make sure:</p>
 <ul>
-<li>
-your server is running,&nbsp;</li>
-
-<li>
-you can connect to it,&nbsp;</li>
-
-<li>
-your account has permissions in the database to execute your query.&nbsp;</li>
+	<li>your server is running,&nbsp;</li>
+	<li>you can connect to it,&nbsp;</li>
+	<li>your account has permissions in the database to execute your query.&nbsp;</li>
 </ul>
+
 <p>Steps:</p>
 <ol>
-<li>
-Try <tt>telnet &lt;hostmachine&gt; &lt;port&gt;</tt> and see if it's listening.
+	<li>Try <tt>telnet &lt;hostmachine&gt; &lt;port&gt;</tt> and see if it's listening.
 You should get some form of response from the server (actual text varies
 by vendor &amp; version).<br>&nbsp;</li>
 
-<li>
-Check the interfaces file (<tt>$SYBASE/interfaces</tt>)&nbsp;</li>
-</ol>
+	<li><p>Try <kbd>tsql -U &lt;hostmachine&gt; -p &lt;port&gt; -U &lt;username&gt; -P &lt;password&gt; </kbd></p>
+	<p>That will connect to the server, bypassing the freetds.conf file.  If it doesn't work, the problem lies upstream.  </p> </li>
+	
+	<li><p>Try <kbd>tsql -S &lt;servername&gt; -p &lt;port&gt; -U &lt;username&gt; -P &lt;password&gt; </kbd></p>
+	<p>That will connect to the server using freetds.conf.  This allows you to isolate freetds.conf mistakes.  <kbd>man tsql</kbd> for more.  </p> </li>
 
-<ul>
-<li>
-You should see something like:<br>
-<pre>
-myserver
-	query tcp ether 127.0.0.1 4000
-	master tcp ether 127.0.0.1 4000
-</pre>
-A lot of people overlook the port number (<i>4000</i> in this example).<br></li>
-<li>
-The default port for TDS 4.2/7.0 is 1433.</li>
- 
-<li>
-The default port for TDS 5.0 is 4000.</li>
-
-<li>
-Oh, and replace <tt>127.0.0.1</tt> with the name/address of <tt>myserver</tt>.<br>&nbsp;</li>
-
-<li>
-Check your ./configure and
-environment variables. The <tt>--with-tdsver</tt> determines what flavors
-of the TDS protocol your build of FreeTDS <i>can</i> run (and will run,
-by default); the $TDSVER variable determines what flavor it <i>will</i>
-run.&nbsp; The following combinations are reasonable:</li>
+	<li>Check your ./configure and environment variables. The <tt>--with-tdsver</tt> determines what flavor of the TDS protocol your runs by default; the $TDSVER variable overrides that default.  The following combinations are reasonable:</li>
 
 
 <table>
@@ -873,17 +859,12 @@ run.&nbsp; The following combinations are reasonable:</li>
 </tr>
 <tr><td>&nbsp;</td></tr>
 </table>
-</ul>
 
-<ol>
-<li>
-Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, dblib and odbc in that order</li>
+	<li><p>Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, dblib and odbc in that order</p></li>
 
-<li>
-Compile <font size="+1"><tt><a href="http://www.sqsh.org">sqsh</a></tt></font>
+	<li><p>Compile <font size="+1"><tt><a href="http://www.sqsh.org">sqsh</a></tt></font>
 and try that before the more complicated stuff (PHP/Perl). If you can connect
-with
-<tt>sqsh</tt>, you don't have a FreeTDS problem.&nbsp;</li>
+with <tt>sqsh</tt>, you don't have a FreeTDS problem.</p></li>
 
 </ol>
 

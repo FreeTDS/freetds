@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-10-10 17:13:45 $</date>
-		<releaseinfo>$Revision: 1.35 $</releaseinfo>
+		<date>$Date: 2002-10-17 04:12:58 $</date>
+		<releaseinfo>$Revision: 1.36 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -202,9 +202,9 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 			<title>Status of this document</title>
 			<para>
 The document you are reading is version 
-$Revision: 1.35 $
+$Revision: 1.36 $
 , dated 
-$Date: 2002-10-10 17:13:45 $
+$Date: 2002-10-17 04:12:58 $
 .  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  It is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  
 			</para>
@@ -479,6 +479,11 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	<entry>Still the most current protocol used by Sybase. </entry>
 	</row>
 	<row>
+	<entry>Sybase System SQL Anywhere</entry>
+	<entry>5.0 <emphasis>only</> </entry>
+	<entry>Originally Watcom SQL Server, a completely separate codebase. Our best information is that SQL Anywhere first supported TDS in version 5.5.03 using the OpenServer Gateway (OSG), and native TDS 5.0 support arrived with version 6.0.  </entry>
+	</row>
+	<row>
 	<entry>Microsoft SQL Server 7.0</entry>
 	<entry>7.0</entry>
 	<entry>Includes support for the extended datatypes in <productname>SQL Server</productname> 7.0 (such as char/<structname>varchar</structname> fields of more than 255 characters), and support for Unicode.</entry>
@@ -602,7 +607,44 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>port</entry>
 	<entry>1433 for <acronym>TDS</> 4.2/7.0/8.0, 4000 for <acronym>TDS</> 5.0</entry>
 	<entry>The port number that the dataserver is running at.</entry>
-	<entry>any valid port.  MS <productname>SQL Server</productname> defaults to 1433</entry>
+	<entry>any valid port.  
+	
+		<table <title>Default ports by product</title>
+		<tgroup cols='3' align='left' >
+		<colspec colname='Product'/>
+		<colspec colname='Version'/>
+		<colspec colname='Port'/>
+		<thead>
+		<row>
+		  <entry>Product</entry>
+		  <entry>Version</entry>
+		  <entry>Port</entry>
+		</row>
+		</thead>
+
+		<tbody>
+		<row>
+		  <entry>Sybase <productname>SQL Server</productname></entry>
+		  <entry>all</entry>
+		  <entry>5000</entry>
+		</row>
+		<row>
+		  <entry>Sybase <productname>SQL Anywhere</productname></entry>
+		  <entry>7</entry>
+		  <entry>2638</entry>
+		</row>
+		<row>
+		  <entry>Microsoft <productname>SQL Server</productname></entry>
+		  <entry>all</entry>
+		  <entry>1433</entry>
+		</row>
+		</tbody>
+		
+		</tgroup>
+		</table>
+	<!--Microsoft <productname>SQL Server</productname> defaults to 1433. <productname>Sybase SQL Anywhere</productname> version 7.0 defaults to 2638.  -->
+	</entry>
+	
 	</row>
 	<row>
 	<entry>initial block size</entry>
@@ -1803,6 +1845,17 @@ Now build freetds using the <parameter>--with-unixodbc</parameter> flag to speci
 			<para>
 In this example the <productname>FreeTDS</productname> <systemitem class="library">ODBC</systemitem> libraries will be installed in <filename>/usr/local/freetds/lib</filename>.  Now we need to tell the driver manager where to find them.  Do this by editing <envar>$HOME</envar><filename>/.odbc.ini</filename> or the <filename>/etc/odbc.ini</filename> file.  The sample <filename>odbc.ini</filename> file that comes with <productname>FreeTDS</productname> in the samples directory will work for either supported driver manager. See the <link linkend="iodbc"><productname>iODBC</productname> section</link> for details.
 			</para>
+		<sect2><title>Troubleshooting <productname>unixODBC</productname></title>
+			<para>
+Supposing everything compiles and installs without trouble, how do you know if <productname>unixODBC</productname> works?  Or, if you know it doesn't, what then?  
+			</para>
+			<para>
+First, make sure you can connect with <application>tsql</application>.  Then try the <application>isql</application> that comes with <productname>unixODBC</productname>.  If <application>tsql</application> works and <application>isql</application> doesn't, you've really isolated the problem to the <productname>unixODBC</productname> setup.  <productname>FreeTDS</productname> might have some interoperability problems with  <productname>unixODBC</productname>, but mere connection to the database isn't one of them!
+			</para>
+			<para>
+Next, try <command>isql -v <replaceable>dsn</> <replaceable>username</> <replaceable>password</></command>.  Probably that won't tell you much more.  Last suggestion is to turn on logging.  Simple inspection of the log will make clear what server is being connected to (if any) and what account is being used.  Often, that will lead you back to the .ini files.  Better guidance will be provided in this space as the editor becomes better informed.  
+			</para>
+		</sect2>
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
