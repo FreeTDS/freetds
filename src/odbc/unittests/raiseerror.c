@@ -2,7 +2,9 @@
 
 /* test RAISEERROR in a store procedure, from Tom Rogers tests */
 
-static char software_version[] = "$Id: raiseerror.c,v 1.4 2004-04-05 15:26:50 freddy77 Exp $";
+/* TODO add support for Sybase */
+
+static char software_version[] = "$Id: raiseerror.c,v 1.5 2004-04-06 08:30:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -17,42 +19,18 @@ static const char create_proc[] =
 	"     SET @OutParam = @InParam\n"
 	"     SET @OutString = 'This is bogus!'\n" "     RAISERROR('An error occurred.', @InParam, 1)\n" "     RETURN (0)";
 
-static void
-Test(int level)
-{
-	SQLRETURN result;
-	SQLSMALLINT ReturnCode = 0;
-	SQLSMALLINT InParam = level;
-	SQLSMALLINT OutParam = 1;
-	SQLCHAR OutString[OUTSTRING_LEN];
-	SQLINTEGER cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
-	SQLINTEGER cbOutString = SQL_NTS;
+static SQLSMALLINT ReturnCode;
 
+static void
+TestResult(SQLRETURN result, int level, const char *func)
+{
 	SQLCHAR SqlState[6];
 	SQLINTEGER NativeError;
 	SQLCHAR MessageText[1000];
 	SQLSMALLINT TextLength;
 
-	if (!SQL_SUCCEEDED(SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)))) {
-		fprintf(stderr, "SQLPrepare failure!\n");
-		exit(1);
-	}
-
-	SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
-	SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
-	SQLBindParameter(Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
-	strcpy((char *) OutString, "Test");
-	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
-			 &cbOutString);
-
-	result = SQLExecute(Statement);
-
-	printf("SpDateTest Output:\n");
-	printf("   Result = %d\n", (int) result);
-	printf("   Return Code = %d\n", (int) ReturnCode);
-
 	if ((level <= 10 && !SQL_SUCCEEDED(result)) || (level > 10 && result != SQL_ERROR) || ReturnCode != 0) {
-		fprintf(stderr, "SQLExecute failed!\n");
+		fprintf(stderr, "%s failed!\n", func);
 		exit(1);
 	}
 
@@ -72,6 +50,48 @@ Test(int level)
 		fprintf(stderr, "Error returned: %s\n", MessageText);
 		exit(1);
 	}
+}
+
+static void
+Test(int level)
+{
+	SQLRETURN result;
+	SQLSMALLINT InParam = level;
+	SQLSMALLINT OutParam = 1;
+	SQLCHAR OutString[OUTSTRING_LEN];
+	SQLINTEGER cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
+	SQLINTEGER cbOutString = SQL_NTS;
+
+	char sql[80];
+
+	ReturnCode = 0;
+
+	/* test with SQLExecDirect */
+	sprintf(sql, "RAISERROR('An error occurred.', %d, 1)", level);
+	result = CommandWithResult(Statement, sql);
+
+	TestResult(result, level, "SQLExecDirect");
+
+	/* test with SQLPrepare/SQLExecute */
+	if (!SQL_SUCCEEDED(SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)))) {
+		fprintf(stderr, "SQLPrepare failure!\n");
+		exit(1);
+	}
+
+	SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
+	SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
+	SQLBindParameter(Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
+	strcpy((char *) OutString, "Test");
+	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
+			 &cbOutString);
+
+	result = SQLExecute(Statement);
+
+	printf("SpDateTest Output:\n");
+	printf("   Result = %d\n", (int) result);
+	printf("   Return Code = %d\n", (int) ReturnCode);
+
+	TestResult(result, level, "SQLExecute");
 }
 
 int
