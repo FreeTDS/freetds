@@ -19,6 +19,7 @@ TDS 5.0 (Sybase SQLServer >= 11?), and TDS 7.0 (MS SQLServer7).
 <li><a href="#packet">The Packet Format</a>
 <li><a href="#login">Login Packet</a>
 <li><a href="#login7">TDS 7.0 Login Packet</a>
+<li><a href="#collate">Collate structure</a>
 <li><a href="#responses">Server Responses</a>
 </ul>
 
@@ -246,6 +247,34 @@ That implies there are at least 2 more strings that could be defined.
 (character set??)
 <br><br>
 Password and user is not used is NT authentication is used (setted as empty).
+<hr>
+<p>
+<a name="collate"></a>
+<b class="section">Collate type - TDS8</b>
+<p>Collate structure contain information on characters set encoding and compare
+method.</p>
+<pre>
+ INT16      INT16    INT8
++----------+--------+------------+
+| codepage | flags  | charset_id |
++----------+--------+------------+
+
+codepage    windows codepage (see <a href="http://www.microsoft.com/globaldev/nlsweb/">http://www.microsoft.com/globaldev/nlsweb/</a>)
+            also specified in lcid column of master..syslanguages
+flags       sort flags
+            0x100 binary compare
+            0x080 width insensitive
+            0x040 Katatype insensitive
+            0x020 accent insensitive
+            0x010 case insensitive
+            If binary flag is specified other flags are not present
+            Low nibble of flags is a charset specifier (like chinese dialect)
+charset_id  charset id in master..syscharsets table or zero for no SQL collations
+</pre>
+
+<p>Collations names can be obtained from <code>select name from ::fn_helpcollations()</code>
+query</p>
+
 <hr>
 <p>
 <a name="responses"></a>

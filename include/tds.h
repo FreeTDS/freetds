@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.79 2003-01-23 14:49:19 freddy77 Exp $";
+	"$Id: tds.h,v 1.78 2003-01-23 14:45:44 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -480,6 +480,22 @@ typedef struct tds_blob_info {
 	TDS_CHAR textptr[16];
 	TDS_CHAR timestamp[8];
 } TDSBLOBINFO;
+
+/** hold information for collate in TDS8
+ */
+typedef struct 
+{
+	TDS_USMALLINT   locale_id;  /* master..syslanguages.lcid */
+	TDS_USMALLINT   flags;      
+	TDS_UCHAR	charset_id; /* or zero */
+} TDS8_COLLATION;
+
+/* SF stands for "sort flag" */
+#define TDS_SF_BIN                   (TDS_USMALLINT) 0x100
+#define TDS_SF_WIDTH_INSENSITIVE     (TDS_USMALLINT) 0x080
+#define TDS_SF_KATATYPE_INSENSITIVE  (TDS_USMALLINT) 0x040
+#define TDS_SF_ACCENT_SENSITIVE      (TDS_USMALLINT) 0x020
+#define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
 
 /** structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
