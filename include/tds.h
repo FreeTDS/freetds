@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.18 2002-10-14 15:41:03 castellano Exp $";
+	"$Id: tds.h,v 1.19 2002-10-14 21:02:36 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -118,15 +118,15 @@ typedef struct tdsunique
 
 typedef struct tdsdaterec
 {
-	TDS_INT   year;
-	TDS_INT   month;
-	TDS_INT   day;
-	TDS_INT   dayofyear;
-	TDS_INT   weekday;
-	TDS_INT   hour;
-	TDS_INT   minute;
-	TDS_INT   second;
-	TDS_INT   millisecond;
+	TDS_INT   year;        /**< year */
+	TDS_INT   month;       /**< month number (0-11) */
+	TDS_INT   day;         /**< day of month (1-31) */
+	TDS_INT   dayofyear;   /**< day of year  (1-366) */
+	TDS_INT   weekday;     /**< day of week  (0-6, 0 = sunday) */
+	TDS_INT   hour;        /**< 0-23 */
+	TDS_INT   minute;      /**< 0-59 */
+	TDS_INT   second;      /**< 0-59 */
+	TDS_INT   millisecond; /**< 0-999 */
 	TDS_INT   tzone;
 } TDSDATEREC;
 
@@ -348,63 +348,69 @@ sheesh! </rant>
 #define TDS_MAX_LOGIN_STR_SZ 30
 #define TDS_MAX_LIBRARY_STR_SZ 11
 typedef struct tds_login {
+	TDS_CHAR  server_name[TDS_MAX_LOGIN_STR_SZ+1];
+	int port;
+	TDS_TINYINT  major_version; /* TDS version */
+	TDS_TINYINT  minor_version; /* TDS version */
+	int block_size; 
+	TDS_CHAR language[TDS_MAX_LOGIN_STR_SZ+1]; /* ie us-english */
+	TDS_CHAR char_set[TDS_MAX_LOGIN_STR_SZ+1]; /*  ie iso_1 */
+	TDS_INT connect_timeout;
 	TDS_CHAR  host_name[TDS_MAX_LOGIN_STR_SZ+1];
+	TDS_CHAR  app_name[TDS_MAX_LOGIN_STR_SZ+1];
 	TDS_CHAR  user_name[TDS_MAX_LOGIN_STR_SZ+1];
 	/* FIXME temporary fix, 40 pwd max len */
 	TDS_CHAR  password[40+1];
-	TDS_TINYINT bulk_copy; 
-	TDS_CHAR  app_name[TDS_MAX_LOGIN_STR_SZ+1];
-	TDS_CHAR  server_name[TDS_MAX_LOGIN_STR_SZ+1];
-	TDS_TINYINT  major_version; /* TDS version */
-	TDS_TINYINT  minor_version; /* TDS version */
 	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
 	TDS_CHAR  library[TDS_MAX_LIBRARY_STR_SZ+1];
-	TDS_CHAR language[TDS_MAX_LOGIN_STR_SZ+1]; /* ie us-english */
-	TDS_TINYINT encrypted; 
-	TDS_CHAR char_set[TDS_MAX_LOGIN_STR_SZ+1]; /*  ie iso_1 */
-	int block_size; 
+	TDS_TINYINT bulk_copy; 
 	TDS_TINYINT suppress_language;
-     TDS_INT connect_timeout;
-     TDS_INT query_timeout;
-     TDS_INT longquery_timeout;
-     void (*longquery_func)(long lHint);
-     long longquery_param;
+	TDS_TINYINT encrypted; 
+
+	TDS_INT query_timeout;
+	TDS_INT longquery_timeout;
+	void (*longquery_func)(long lHint);
+	long longquery_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	int port;
 } TDSLOGIN;
 
 typedef struct tds_config_info {
-        char *server_name;
-        char *host;
-        char *ip_addr;
-        int port;
-        TDS_SMALLINT minor_version;
-        TDS_SMALLINT major_version;
-        int block_size;
-        char *language;
-        char *char_set;
-        char *database;
-        char *dump_file;
-        int broken_dates;
-        int broken_money;
-        int timeout;
-        int connect_timeout;
-        char *host_name;
-        char *default_domain;
-        int try_server_login;
-        int try_domain_login;
-        int xdomain_auth;
-        int debug_level;
-        int emul_little_endian;
-        int text_size;
-        char *app_name;
-        char *user_name;
-        char *password;
-        char *library;
-        int bulk_copy;
-	   int suppress_language;
-	   int encrypted;
-        char *client_charset;
+	char *server_name; /**< server name (in freetds.conf) */
+	char *ip_addr;     /**< ip of server */
+	int port;          /**< port of database service */
+	TDS_SMALLINT major_version;
+	TDS_SMALLINT minor_version;
+	int block_size;
+	char *language;
+	char *char_set;    /**< charset of server */
+	char *database;
+	char *dump_file;
+	int broken_dates;
+	int broken_money;
+	int timeout;
+	int connect_timeout;
+	char *host_name;     /**< client hostname */
+	char *default_domain;
+	int try_server_login;
+	int try_domain_login;
+	int xdomain_auth;
+	int debug_level;
+	int emul_little_endian;
+	int text_size;
+	char *app_name;
+	char *user_name;     /**< account for login */
+	char *password;      /**< password of account login */
+	char *library;
+	int bulk_copy;
+	int suppress_language;
+	int encrypted;
+	char *client_charset;
+
+/*	TDS_INT query_timeout;
+	TDS_INT longquery_timeout;
+	void (*longquery_func)(long lHint);
+	long longquery_param;
+	unsigned char capabilities[TDS_MAX_CAPABILITY]; */
 } TDSCONFIGINFO;
 
 typedef struct tds_loc_info {

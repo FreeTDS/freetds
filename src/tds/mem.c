@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.32 2002-10-14 08:10:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.33 2002-10-14 21:02:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -561,7 +561,6 @@ void tds_free_config(TDSCONFIGINFO *config)
 	if (config->default_domain) free(config->default_domain);
 	if (config->client_charset) free(config->client_charset);
 	/* dnr */
-	if (config->host) free(config->host);
 	if (config->app_name) free(config->app_name);
 	if (config->user_name) free(config->user_name);
 	if (config->password) {

@@ -1,3 +1,9 @@
+Mon Oct 14 23:02:03 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/mem.c:
+	- add some documentation
+	- remove unused field from tds_config
+	- sorted field of tds_login like tds_config
+
 Mon Oct 14 21:26:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am: fix make dist problem
 
