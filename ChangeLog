@@ -1,3 +1,6 @@
+Fri Nov 29 20:51:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c: remove some warnings
+
 Fri Nov 29 20:44:55 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c: enable RPC check for Sybase
 

@@ -21,12 +21,13 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.7 2002-11-29 19:45:33 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.8 2002-11-29 19:52:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
+static int init_proc(DBPROCESS * dbproc, const char *name);
 
-int
+static int
 init_proc(DBPROCESS * dbproc, const char *name)
 {
 	int res = 0;
@@ -71,7 +72,7 @@ main(int argc, char **argv)
 	char *retname = NULL;
 	int rettype = 0, retlen = 0, retval = 0xdeadbeef;
 	char proc[] = "#t0022", param[] = "@b";
-	const char *proc_name = proc;
+	char *proc_name = proc;
 	RETCODE erc;
 
 	set_malloc_options();
