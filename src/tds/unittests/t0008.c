@@ -20,11 +20,13 @@
 #include <stdio.h>
 #include <tds.h>
 #include <tdsconvert.h>
+#include <string.h>
 
-static char  software_version[]   = "$Id: t0008.c,v 1.2 2002-08-21 12:42:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.3 2002-08-27 09:52:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int g_result = 0;
+static TDSCONTEXT ctx;
 
 void test(const char* test, const char* result,int prec,int scale)
 {
@@ -35,7 +37,7 @@ void test(const char* test, const char* result,int prec,int scale)
 	memset(&cr.n,0,sizeof(cr.n));
 	cr.n.precision = prec;
 	cr.n.scale = scale;
-	if (tds_convert(NULL,SYBVARCHAR,test,strlen(test),SYBNUMERIC,sizeof(cr.n),&cr) == TDS_FAIL)
+	if (tds_convert(&ctx,SYBVARCHAR,test,strlen(test),SYBNUMERIC,sizeof(cr.n),&cr) == TDS_FAIL)
 		strcpy(buf,"error");
 	else
 	{
@@ -56,6 +58,8 @@ int main()
 	/* very long string for test buffer overflow */
 	int i;
 	char long_test[201];
+
+	memset(&ctx,0,sizeof(ctx));
 
 	printf("test some valid values..\n");
 	test("    1234",      "prec=18 scale=0 00 00 00 00 00 00 00 04 D2 00 00 00 00 00 00 00 00",18,0);

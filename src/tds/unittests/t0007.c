@@ -20,9 +20,12 @@
 #include <stdio.h>
 #include <tds.h>
 #include <tdsconvert.h>
+#include <string.h>
 
-static char  software_version[]   = "$Id: t0007.c,v 1.2 2002-08-26 20:10:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.3 2002-08-27 09:52:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+
+static TDSCONTEXT ctx;
 
 void test0(const char* test, int len, int dsttype, const char* result)
 {
@@ -30,7 +33,7 @@ void test0(const char* test, int len, int dsttype, const char* result)
 	char buf[256];
 	CONV_RESULT cr;
 
-	if (tds_convert(NULL,SYBVARCHAR,test,len,dsttype,0,&cr) == TDS_FAIL)
+	if (tds_convert(&ctx,SYBVARCHAR,test,len,dsttype,0,&cr) == TDS_FAIL)
 		strcpy(buf,"error");
 	else
 	{
@@ -68,6 +71,8 @@ void test(const char* test, int dsttype, const char* result)
 
 int main()
 {
+	memset(&ctx,0,sizeof(ctx));
+
 	/* test some conversion */
 	printf("some checks...\n");
 	test("1234",SYBINT4,"1234");

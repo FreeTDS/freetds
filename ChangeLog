@@ -1,3 +1,10 @@
+Tue Aug 27 11:48:35 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- return valid value for tds_convert
+	- fix copy of src returning error
+	* src/tds/unittests/t0007.c src/tds/unittests/t0008.c:
+	- pass context to tds_convert (now required)
+
 Tue Aug 27 11:09:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- fixed some possible buffer overflow

@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.58 2002-08-27 09:11:30 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.59 2002-08-27 09:52:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1512,7 +1512,7 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 	if( length == TDS_FAIL ) {
 		char varchar[2056];
 		CONV_RESULT result;
-		int fOK, len;
+		int len;
 		/* FIXME assert errors on multithread */
 		static short int depth=0;
 
@@ -1522,7 +1522,7 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
-				len= (destlen < (sizeof(varchar)-1))? destlen : (sizeof(varchar)-1);
+				len= (srclen < (sizeof(varchar)-1))? srclen : (sizeof(varchar)-1);
 				strncpy( varchar, src, len );
 				varchar[len] = 0;
 				break;
@@ -1541,7 +1541,7 @@ TDSSOCKET fake_socket, *tds=&fake_socket;
 		CONVERSION_ERROR( tds, srctype, varchar, desttype );
 		depth = 0;
 
-		return fOK; /* take the chance that length == 0, causing double recursion */
+		return TDS_FAIL; /* take the chance that length == 0, causing double recursion */
 	}
 
 	return length;
