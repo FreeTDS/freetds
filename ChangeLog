@@ -1,3 +1,10 @@
+Tue Aug  6 00:16:34 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	+ include/tds.h.in	cosmetic changes
+	+ include/sybdb.h 	changed DBDEAD to dbdead; provided macro.  Aids binary compatibility.
+	+ src/dblib/dblib.c	dbconvert returns 0 if tds_convert returns 0
+	+ src/tds/convert.c	char->bit disallows <0
+				char->int allows embedded spaces
+				hex->int is more efficient
 Tue Jul 16 01:16:29 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ src/tds/tds_willconvert.h added, to support dbwillconvert
 	+ src/tds/convert.c slightly modified to insert comments in tds_willconvert.h

@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.30 2002-08-04 19:55:48 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.31 2002-08-06 04:32:01 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,6 +72,12 @@ static TDS_UINT utf16len(const utf16_t* s);
 extern int g__numeric_bytes_per_prec[];
 
 extern int (*g_tds_err_handler)(void*);
+
+static int tds_atoi(const char *buf);
+#define atoi(x) tds_atoi((x))
+
+#define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
+
 int tds_get_conversion_type(int srctype, int colsize)
 {
 	if (srctype == SYBINTN) {
@@ -242,6 +248,7 @@ tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 int           ret;
 int           i, j;
 unsigned char hex1;
+unsigned char nyb1, nyb2;
 int           inp;
 
 TDS_INT8     mymoney;
@@ -280,6 +287,7 @@ int point_found, places;
          cr->ib = malloc(srclen / 2);
 		test_alloc(cr->ib);
 
+#if 0
          /* hey, I know this looks a bit cruddy,   */
          /* and I'm sure it can all be done in one */
          /* statement, so go on, make my day!      */
@@ -316,11 +324,37 @@ int point_found, places;
       
             cr->ib[j] = hex1;
          }
+#else
+		for ( i=0; i < srclen; i++ ) {
+			inp = src[i];
+			cr->ib[i/2] = 0;
+			
+			if( '0' <= inp <= '9' )
+				inp &= '0';
+			else {
+				inp &= 'a' ^ 'A';	/* mask off 0x20 */
+				if( 'A' <= inp <= 'F' ) {
+					inp &= 'A';
+					inp += 10;
+				} else {
+					fprintf(stderr,"error_handler:  attempt to convert data stopped by syntax error in source field \n");
+					return;
+				}
+			}
+			assert( 0 <= inp <= 16 );
+			
+			cr->ib[i/2] <<= 4;
+			cr->ib[i/2] |= inp;
+		}
+#endif
          return (srclen / 2);
          break;
       case SYBINT1:
-         cr->ti = atoi(src);
-         return 1;
+	 	if( IS_TINYINT( atoi(src) ) ) {
+	         cr->ti = atoi(src);
+     	    return 1;
+		}
+		return 0;
          break;
       case SYBINT2:
          cr->si = atoi(src);
@@ -637,10 +671,10 @@ TDS_INT8 mymoney;
 			fraction = mny.mny4 % 10000;
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%02lu",dollars,fraction/100);
-            cr->c = malloc(strlen(tmp_str) + 1);
-		test_alloc(cr->c);
-            strcpy(cr->c, tmp_str);
-            return strlen(tmp_str);
+			cr->c = malloc(strlen(tmp_str) + 1);
+			test_alloc(cr->c);
+			strcpy(cr->c, tmp_str);
+			return strlen(tmp_str);
 			break;
 		case SYBFLT8:
 			memcpy(&dollars, src, sizeof(dollars));
@@ -2323,3 +2357,46 @@ int i;
 	dr->second      = secs;
 	dr->millisecond = ms;
 }
+
+/**
+ * sybase's char->int conversion tolerates embedded blanks, 
+ * such that "convert( int, ' - 13 ' )" works.  
+ * if we find blanks, we copy the string to a temporary buffer, 
+ * skipping the blanks.  
+ * we return the results of atoi() with a clean string.  
+ * 
+ * n.b. it is possible to embed all sorts of non-printable characters, but we
+ * only check for spaces.  at this time, no one on the project has tested anything else.  
+ */
+#undef atoi
+int
+tds_atoi(const char *buf)
+{
+enum { blank = ' ' };
+char *s;
+const char *p;
+int 	i;
+	
+	s = strchr( buf, blank );
+	if( !s )
+		return atoi(buf);
+	
+	while( *s++ == blank );		/* ignore trailing */
+	
+	if( *s == '\0' )
+		return atoi(buf);
+	
+	s = (char*) malloc( strlen(buf) );
+	
+	for( i=0, p=buf; *p != '\0'; p++ ) {
+		if( *p != blank )
+			s[i++] = *p;
+	}
+	s[i] = '\0';
+	
+	i = atoi(s);
+	free(s);
+	
+	return i;
+}
+

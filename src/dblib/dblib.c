@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.29 2002-08-04 13:43:11 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.30 2002-08-06 04:32:01 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1060,6 +1060,9 @@ int         len;
 
 	len = tds_convert (g_dblib_ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, 
                        desttype, destlen, &dres);
+				   
+	if( len == 0 )
+		return len;
 
     switch (desttype) {
         case SYBBINARY:
@@ -1904,7 +1907,7 @@ dbbylist(DBPROCESS *dbproc, int computeid, int *size)
 	if (size) *size = 0;
 	return NULL;
 }
-DBBOOL DBDEAD(DBPROCESS *dbproc)
+DBBOOL dbdead(DBPROCESS *dbproc)
 {
 	if(dbproc &&
 	dbproc->tds_socket &&

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.25 2002-08-04 13:43:10 brianb Exp $";
+	 "$Id: tds.h.in,v 1.26 2002-08-06 04:32:01 jklowden Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -78,21 +78,22 @@ extern "C" {
 ** missed a bunch, but the idea is we can do an ifdef here 
 ** to set the appropriately sized native type.
 **
-** If you have problems on 64bit machines and the code is 
+** If you have problems on 64-bit machines and the code is 
 ** using a native datatype, please change the code to use
 ** these. (In the TDS layer only, the API layers have their
 ** own typedefs which equate to these).
 */
-typedef char		TDS_CHAR;      /*  8 bit char     */
-typedef unsigned char	TDS_UCHAR;     /*  8 bit uchar    */
-typedef unsigned char	TDS_TINYINT;   /*  8 bit int      */
-typedef @smallint@             TDS_SMALLINT;  /* 16 bit int      */
-typedef unsigned @smallint@  TDS_USMALLINT; /* 16 bit unsigned */
-typedef @int@                  TDS_INT;       /* 32 bit int      */
-typedef unsigned @int@       TDS_UINT;      /* 32 bit unsigned */
-typedef @real@                 TDS_REAL;      /* 32 bit float    */
-typedef @float@                TDS_FLOAT;     /* 64 bit float    */
-typedef long long                TDS_INT8;     /* 64 bit float    */
+typedef char				TDS_CHAR;      /*  8 bit char     */
+typedef unsigned char		TDS_UCHAR;     /*  8 bit uchar    */
+typedef unsigned char		TDS_TINYINT;   /*  8 bit int      */
+typedef @smallint@            TDS_SMALLINT;  /* 16 bit int      */
+typedef unsigned @smallint@  	TDS_USMALLINT; /* 16 bit unsigned */
+typedef @int@                 TDS_INT;       /* 32 bit int      */
+typedef unsigned @int@       	TDS_UINT;      /* 32 bit unsigned */
+typedef @real@                TDS_REAL;      /* 32 bit float    */
+typedef @float@               TDS_FLOAT;     /* 64 bit float    */
+typedef long long             TDS_INT8;     	/* 64 bit integer  */
+
 typedef struct tdsnumeric
 {
         unsigned char         precision;

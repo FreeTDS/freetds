@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.8 2002-07-09 02:10:01 brianb Exp $";
+"$Id: sybdb.h,v 1.9 2002-08-06 04:32:01 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -395,7 +395,8 @@ extern DBINT dbdatepart(DBPROCESS *dbprocess, int datepart, DBDATETIME *datetime
 extern RETCODE dbdatezero(DBPROCESS *dbprocess, DBDATETIME *d1);
 extern DBINT dbdatlen(DBPROCESS *dbproc, int column);
 extern char *dbdayname(DBPROCESS *dbprocess, char *language, int daynum);
-extern DBBOOL DBDEAD(DBPROCESS *dbproc);
+extern DBBOOL dbdead(DBPROCESS *dbproc);
+#define DBDEAD(x) dbdead((x))
 extern EHANDLEFUNC dberrhandle(EHANDLEFUNC handler);
 extern void dbexit(void);
 extern RETCODE dbfcmd(DBPROCESS *dbproc, char *fmt, ...);
