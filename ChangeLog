@@ -1,3 +1,6 @@
+Wed Mar 10 12:07:06 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/unittests/transaction.c check results for errors
+
 Wed Mar 10 14:07:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix for SQLEndTran/SQLTransact if errors
 
