@@ -1,6 +1,7 @@
 Sat Sep 14 15:55:26 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am  use $DOCBOOK_DSL to find jade files, manpages depend on inputs (!)
 	* doc/api_status.txt 	added dbversion, DBTDS
+	* doc/tsql.txt		added information about getting the TDS version.
 	* include/sybdb.h	added dbversion, DBTDS, dbtds
 	* include/tds.h.in	added tds_version
 	* src/apps/tsql.c	added "version" and "GO" magic words
