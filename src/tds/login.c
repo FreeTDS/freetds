@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.30 2002-08-16 17:10:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.31 2002-08-18 19:45:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -195,9 +195,11 @@ FD_ZERO (&fds);
 		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
 		if (config->server_name) {
 			tmpstr = malloc(strlen(config->server_name)+100);
-			sprintf(tmpstr,"Server %s not found!",config->server_name);
-			tds_client_msg(tds->tds_ctx, tds, 10019, 9, 0, 0, tmpstr);
-			free(tmpstr);
+			if (tmpstr) {
+				sprintf(tmpstr,"Server %s not found!",config->server_name);
+				tds_client_msg(tds->tds_ctx, tds, 10019, 9, 0, 0, tmpstr);
+				free(tmpstr);
+			}
 		} else {
 			tds_client_msg(tds->tds_ctx, tds, 10020, 9, 0, 0, "No server specified!");
 		}
@@ -272,11 +274,10 @@ FD_ZERO (&fds);
 		}
 	} else {
         if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) <0) {
-		char *message = malloc(128);
+		char message[128];
 		sprintf(message, "src/tds/login.c: tds_connect: %s:%d",
 			inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 		perror(message);
-		free(message);
 		tds_free_config(config);
 		tds_free_socket(tds);
 		return NULL;

@@ -1,3 +1,16 @@
+Fri Aug 18 21:32:06 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0006.c:
+	- add some tests for converting from char to money
+	- print failed test line
+	* src/tds/convert.c: fix conversion from char to money
+	- handle not terminated string correctly
+	- fix strange sintax like '++++-123.12.3'
+	- do not overflow buffer for digits
+	- do not convert '1.11111' to 11.1111
+	- do not handle syntax like 'foo'
+	* src/tds/login.c:
+	- do not core on out of memory
+
 Fri Aug 18 14:26:05 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/cs.c:
 	- fix 2 off-by-one buffer overflow in cs_convert

@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.44 2002-08-18 11:47:21 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.45 2002-08-18 19:45:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -269,7 +269,7 @@ TDS_INT8     mymoney;
 TDS_INT      mymoney4;
 char         mynumber[39];
 
-char *ptr;
+char *ptr,*pend;
 int point_found, places;
 TDS_INT tds_i;
 
@@ -410,41 +410,53 @@ TDS_INT tds_i;
       case SYBMONEY:
       case SYBMONEY4:
 
+	 /* TODO code similar to string_to_numeric... */
          i           = 0;
          places      = 0;
          point_found = 0;
+	 pend        = src + srclen;
 
-         for (ptr = src; *ptr == ' '; ptr++);  /* skip leading blanks */
-	 /* FIXME is '   ++++-23' rigth ?? */
-         for (ptr = src; *ptr == '+'; ptr++);  /* skip leading '+' */
+         /* skip leading blanks */
+         for (ptr = src; ptr != pend && *ptr == ' '; ++ptr);
 
-         if ( *ptr == '-' ) {
-            mynumber[i] = '-';
-            ptr++;
-            i++;
+	 switch ( ptr != pend ? *ptr : 0 ) {
+		 case '-':
+			 mynumber[i++] = '-';
+			 /* fall through*/
+		 case '+':
+			ptr++;
+			for (; ptr != pend && *ptr == ' '; ++ptr);
+			break;
          }
 
-	 /* FIXME this code contain some buffer overflow... */
-         for(; *ptr; ptr++)                      /* deal with the rest */
+         for(; ptr != pend; ptr++)                      /* deal with the rest */
          {
             if (isdigit(*ptr) )                   /* it's a number */
             {  
                mynumber[i++] = *ptr;
-               if (point_found)                  /* if we passed a decimal point */
-                  places++;                      /* count digits after that point  */
+	       /* assure not buffer overflow */
+	       if (i==30) return TDS_FAIL;
+               if (point_found) {                 /* if we passed a decimal point */
+                  /* count digits after that point  */
+		  /* FIXME check rest of buffer */
+		  if (++places == 4)
+			  break;
+	       }
             }
             else if (*ptr == '.')                /* found a decimal point */
                  {
                     if (point_found)             /* already had one. lose the rest */
-                       break;
+                       return TDS_FAIL;
                     point_found = 1;
                  }
                  else                            /* first invalid character */
-                    break;                       /* lose the rest.          */
+                    return TDS_FAIL;                       /* lose the rest.          */
          }
          for ( j = places; j < 4; j++ )
              mynumber[i++] = '0';
+	 mynumber[i] = 0;
 
+	 /* FIXME overflow not handled */
          if (desttype == SYBMONEY) {
             mymoney = atoll(mynumber);
             memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY) ); 

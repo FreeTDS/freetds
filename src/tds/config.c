@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.19 2002-08-16 17:33:49 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.20 2002-08-18 19:45:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -147,8 +147,11 @@ int found = 0;
 	}
 
 	if (!found) {
+		/* FIXME use getpwent for security */
 		home = getenv("HOME");
 		if (home!=NULL && home[0]!='\0') {
+			/* FIXME check buffer of use open fchdir fopen 
+			 * to not allocate buffer */
 			path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
 			sprintf(path,"%s/.freetds.conf",home);
 			in = fopen(path, "r");
@@ -345,6 +348,7 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 	get_server_info(server, ip_addr, ip_port, tds_ver);
 	if (strlen(ip_addr)) {
 		if (config->ip_addr) free(config->ip_addr);
+		/* FIXME check result, use strdup */
 		config->ip_addr = (char *) malloc(strlen(ip_addr)+1);
 		strcpy(config->ip_addr, ip_addr);
 	}
@@ -669,11 +673,13 @@ char *lasts;
 	tmp_ver[0]  = '\0';
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s.\n",dir,file);
+	/* FIXME check result or use open fchdir fopen ... */
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
    
 	/*
 	* create the full pathname to the interface file
 	*/
+	/* FIXME file and dir can't be NULL, used before in strlen */
 	if (file==NULL || file[0]=='\0') {
 		pathname[0] = '\0';
 	} else {
@@ -797,6 +803,7 @@ int get_server_info(
 	* if we haven't found the server yet then look for a $HOME/.interfaces file
 	*/
 	if (ip_addr[0]=='\0') {
+		/* FIXME use getpwent, see above */
 		char  *home = getenv("HOME");
 		if (home!=NULL && home[0]!='\0') {
                         tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/.interfaces.\n", home);
