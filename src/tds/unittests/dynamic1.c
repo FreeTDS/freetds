@@ -34,7 +34,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.4 2002-11-22 22:11:56 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.5 2002-11-23 13:47:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -85,7 +85,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	if (tds_submit_execute(tds, dyn) != TDS_SUCCEED)
 		fatal_error("tds_submit_execute() error");
 	if (discard_result(tds) != TDS_SUCCEED)
-		fatal_error("tds_submit_prepare() output error");
+		fatal_error("tds_submit_execute() output error");
 }
 
 int
@@ -94,7 +94,7 @@ main(int argc, char **argv)
 	TDSLOGIN *login;
 	TDSSOCKET *tds;
 	int verbose = 0;
-	TDSDYNAMIC *dyn;
+	TDSDYNAMIC *dyn = NULL;
 	int rc;
 
 	fprintf(stdout, "%s: Test dynamic queries\n", __FILE__);
@@ -110,12 +110,11 @@ main(int argc, char **argv)
 		fatal_error("already a dynamic query??");
 
 	/* prepare to insert */
-	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL) != TDS_SUCCEED)
+	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL, &dyn) != TDS_SUCCEED)
 		fatal_error("tds_submit_prepare() error");
 	if (discard_result(tds) != TDS_SUCCEED)
 		fatal_error("tds_submit_prepare() output error");
 
-	dyn = tds->cur_dyn;
 	if (!dyn)
 		fatal_error("dynamic not present??");
 
@@ -157,12 +156,12 @@ main(int argc, char **argv)
 static int
 discard_result(TDSSOCKET * tds)
 {
-	int rc;
-	int result_type;
+int rc;
+int result_type;
 
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 
-		switch(result_type) {
+		switch (result_type) {
 		case TDS_CMD_DONE:
 		case TDS_CMD_SUCCEED:
 		case TDS_CMD_FAIL:

@@ -1,3 +1,10 @@
+Sat Nov 23 14:44:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/odbc/odbc.c src/tds/query.c:
+	* src/tds/token.c src/tds/unittests/dynamic1.c:
+	- tds_submit_prepare return allocated TDSDYNAMIC structure
+	- add tds_set_column_type to set column type and calc dependency fields
+	- fix discard of PARAMFMT/PARAMS token in TDS5
+
 Sat Nov 23 10:42:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: some comment and fix for numeric parameters
 

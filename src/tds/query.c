@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.48 2002-11-23 09:42:55 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.49 2002-11-23 13:47:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -183,10 +183,12 @@ tds_count_placeholders(const char *query)
  * Currently works with TDS 5.0 and TDS7+
  * @param query language query with given placeholders (?)
  * @param id string to identify the dynamic query. Pass NULL for automatic generation.
+ * @param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
  * @return TDS_FAIL or TDS_SUCCEED
  */
 /* TODO return dynamic and parse all results ?? */
-int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id)
+int 
+tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out)
 {
 int id_len, query_len;
 TDSDYNAMIC *dyn;
@@ -221,6 +223,9 @@ TDSDYNAMIC *dyn;
 		return TDS_FAIL;
 
 	tds->cur_dyn = dyn;
+
+	if (dyn_out)
+		*dyn_out = dyn;
 
 	tds->rows_affected = 0;
 	tds->state = TDS_QUERYING;

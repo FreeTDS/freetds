@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.115 2002-11-22 21:31:33 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.116 2002-11-23 13:47:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -146,9 +146,15 @@ int done_flags;
       case TDS_ROW_TOKEN:
          tds_process_row(tds); 
          break;
-	/* FIXME TDS5_PARAMS_TOKEN can't be handled in such way */
-	case TDS5_PARAMS_TOKEN:
 	case TDS5_PARAMFMT_TOKEN:
+		/* store discarded parameters in param_info, not in old dynamic */
+		tds->cur_dyn = NULL;
+		tds_process_dyn_result(tds);
+		break;
+	case TDS5_PARAMS_TOKEN:
+		/* save params */
+		tds_process_params_result_token(tds);
+		break;
 	case TDS5_DYN_TOKEN:
 	case TDS_LOGIN_ACK_TOKEN:
 	case TDS_ORDER_BY_TOKEN:
@@ -709,11 +715,10 @@ char ci_flags[4];
 		curcol->column_writeable = (ci_flags[3] & 0x08) > 0;
 		curcol->column_identity = (ci_flags[3] & 0x10) > 0;
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
-		curcol->column_type = tds_get_byte(tds);
+		tds_set_column_type(curcol, tds_get_byte(tds));
 
-		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n", 
-		curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
+			curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
 		switch(curcol->column_varint_size) {
 			case 4: 
@@ -728,7 +733,6 @@ char ci_flags[4];
 				bytes_read += 5+1;
 				break;
 			case 0: 
-				curcol->column_size = tds_get_size_by_type(curcol->column_type);
 				bytes_read += 5+0;
 				break;
 		}
@@ -870,11 +874,11 @@ int             i;
     tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. num_cols = %d\n", num_cols);
 
 	for (col = 0; col < num_cols; col++) 
-{
-        tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
+	{
+		tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 2\n");
 		curcol = info->columns[col];
 
-        curcol->column_operator = tds_get_byte(tds);
+		curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand  = tds_get_byte(tds);  
 
         /* if no name has been defined for the compute column, */
@@ -888,29 +892,22 @@ int             i;
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);  
 
-	curcol->column_type = tds_get_byte(tds); 
-		
-	curcol->column_type_save = curcol->column_type;
+		tds_set_column_type(curcol, tds_get_byte(tds));
 
-	curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
-
-	switch(curcol->column_varint_size) {
-		case 4: 
-			curcol->column_size = tds_get_int(tds);
-			break;
-		case 2: 
-			curcol->column_size = tds_get_smallint(tds);
-			break;
-		case 1: 
-			curcol->column_size = tds_get_byte(tds);
-			break;
-		case 0: 
-			curcol->column_size = tds_get_size_by_type(curcol->column_type);
-			break;
-	}
-        tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
-
-		curcol->column_type = tds_get_cardinal_type(curcol->column_type);
+		switch(curcol->column_varint_size) {
+			case 4:
+				curcol->column_size = tds_get_int(tds);
+				break;
+			case 2:
+				curcol->column_size = tds_get_smallint(tds);
+				break;
+			case 1:
+				curcol->column_size = tds_get_byte(tds);
+				break;
+			case 0:
+				break;
+		}
+		tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
 
 		/* skip locale */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
@@ -948,7 +945,6 @@ static int
 tds7_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol)
 {
 TDS_SMALLINT tabnamelen;
-TDS_SMALLINT collate_type;
 int colnamelen;
 
 	/*  User defined data type of the column */
@@ -960,11 +956,7 @@ int colnamelen;
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity  = (curcol->column_flags & 0x10) > 0;
 
-	curcol->column_type = tds_get_byte(tds); 
-		
-	curcol->column_type_save = curcol->column_type;
-	collate_type = is_collate_type(curcol->column_type);
-	curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
+	tds_set_column_type(curcol, tds_get_byte(tds));
 
 	switch(curcol->column_varint_size) {
 		case 4: 
@@ -977,16 +969,8 @@ int colnamelen;
 			curcol->column_size = tds_get_byte(tds);
 			break;
 		case 0: 
-			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
 	}
-
-	curcol->column_unicodedata = 0;
-
-	if (is_unicode(curcol->column_type))
-		curcol->column_unicodedata = 1;
-
-	curcol->column_type = tds_get_cardinal_type(curcol->column_type);
 
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
@@ -994,10 +978,8 @@ int colnamelen;
 		curcol->column_scale = tds_get_byte(tds); /* scale */
 	}
 
-	if (IS_TDS80(tds)) {
-		if (collate_type) 
-			tds_get_n(tds, curcol->column_collation, 5);
-	}
+	if (IS_TDS80(tds) && is_collate_type(curcol->column_type))
+		tds_get_n(tds, curcol->column_collation, 5);
 
 	if (is_blob_type(curcol->column_type)) {
 		tabnamelen = tds_get_smallint(tds);
@@ -1031,7 +1013,7 @@ TDSRESULTINFO *info;
 	num_cols = tds_get_smallint(tds);
 	tds->res_info = tds_alloc_results(num_cols);
 	info = tds->res_info;
-    tds->curr_resinfo = tds->res_info;
+	tds->curr_resinfo = tds->res_info;
 
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING; 
@@ -1055,11 +1037,34 @@ TDSRESULTINFO *info;
 }
 
 /**
+ * Set type of column initializing all dependency 
+ * @param curcol column to set
+ * @param type   type to set
+ */
+void
+tds_set_column_type(TDSCOLINFO *curcol, int type)
+{
+	/* set type */
+	curcol->column_type_save = type;
+	curcol->column_type= tds_get_cardinal_type(type);
+
+	/* set size */
+	curcol->column_varint_size = tds_get_varint_size(type);
+	if (curcol->column_varint_size == 0)
+		curcol->column_cur_size = curcol->column_size = tds_get_size_by_type(type);
+
+	/* check for unicode */
+	curcol->column_unicodedata = 0;
+	if (is_unicode(type))
+		curcol->column_unicodedata = 1;
+}
+
+/**
  * Read data information from wire
  * @param curcol column where to store information
  */
 static int 
-tds_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol)
+tds_get_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 {
 int colnamelen;
 
@@ -1071,11 +1076,10 @@ int colnamelen;
 	curcol->column_nullable  = (curcol->column_flags & 0x20) > 1;
 
 	curcol->column_usertype = tds_get_int(tds);
-	curcol->column_type = tds_get_byte(tds);
+	tds_set_column_type(curcol, tds_get_byte(tds));
 
-	curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
-
-	tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n", curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
+	tdsdump_log(TDS_DBG_INFO1, "%L processing result. type = %d(%s), varint_size %d\n", 
+		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 	switch(curcol->column_varint_size) {
 		case 4: 
 			curcol->column_size = tds_get_int(tds);
@@ -1089,7 +1093,6 @@ int colnamelen;
 			curcol->column_size = tds_get_byte(tds);
 			break;
 		case 0: 
-			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "%L processing result. column_size %d\n", curcol->column_size);
@@ -1213,6 +1216,7 @@ TDSBLOBINFO *blob_info;
 			colsize = tds_get_byte(tds);
 			break;
 		case 0: 
+			/* TODO this should be column_size */
 			colsize = tds_get_size_by_type(curcol->column_type);
 			break;
 		default:

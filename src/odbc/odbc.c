@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.92 2002-11-21 21:31:05 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.93 2002-11-23 13:47:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1232,7 +1232,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
 			tdsdump_log(TDS_DBG_INFO1,"Creating prepared statement\n");
-			if (tds_submit_prepare(tds,stmt->prepared_query,NULL) == TDS_FAIL)
+			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn) == TDS_FAIL)
 				return SQL_ERROR;
 			/* TODO get results and other things */
 			do
@@ -1241,8 +1241,6 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				tds_process_default_tokens(tds,marker);
 			/* FIXME is DEAD loop do not end...Put all in tds_submit_prepare ?? */
 			} while (tds->state != TDS_COMPLETED);
-
-			stmt->dyn = tds->cur_dyn;
 		}
 		/* build parameters list */
 		dyn = stmt->dyn;
