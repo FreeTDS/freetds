@@ -22,7 +22,7 @@
 #include <common.h>
 
 
-static char  software_version[]   = "$Id: t0002.c,v 1.1 2001-10-12 23:29:03 brianb Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.2 2002-08-29 05:55:58 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -76,7 +76,7 @@ int main()
 
    while ((rc=tds_process_result_tokens(tds))==TDS_SUCCEED) {
       if (tds->res_info->num_cols != num_cols) {
-         fprintf(stderr, "Error:  num_cols != %d in %s\n", num_cols);
+         fprintf(stderr, "Error:  num_cols != %d in %s\n", num_cols, __FILE__);
          return 1;
       } 
       if (tds->res_info->columns[0]->column_type != SYBVARCHAR
