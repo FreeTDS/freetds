@@ -1,0 +1,91 @@
+
+This is FreeTDS 0.53
+
+	FreeTDS is a free (open source) implementation of Sybase's db-lib, 
+ct-lib, and ODBC libraries. Currently, dblib and ctlib are most mature.  Both 
+of these libraries have several programs known to compile and run against them. 
+ODBC is not quite as mature, but may work depending on your needs.
+
+	Submissions of test programs (self-contained programs that demonstrate 
+functionality or problems) are greatly appreciated.  They should create any
+tables needed (since we obviously don't have access to your database) and 
+populate them.  One possible exception is test code that works against the 
+pubs2 database. Unit tests for any of the libraries is appreciated
+
+	FreeTDS will run at protocol versions 4.2, 5.0 and 7.0 and thus can 
+access both Sybase and Microsoft SQL-Servers.  Note: Microsoft SQL servers 
+do not support TDS version 5.0 and need to be configured with the 
+--with-tdsver=4.2 flag.
+
+Support for TDS 7.0 (the version used by MS SQL Server 7.0) is now included. 
+It is not as mature as the other protocol versions, but is required to access 
+large (more than 255 character) char/varchar fields.  That said, TDS 7.0 
+support can be configured by using the --with-tdsver=7.0 when running 
+configure.
+
+FreeTDS is licensed under the Gnu LGPL license. See COPYING.LIB for details.
+
+To build look at the INSTALL file.  
+
+Note to FreeBSD users-  You must use 'gmake' to build this package.
+
+Bug submissions
+---------------
+
+If you want your bugs actually fixed in a timely manner (and who doesn't!?), 
+any bug submissions (to the mailing list or the bug tracking system) should 
+include the following.
+
+1) a small program demonstrating the problem.  This can be in C, PHP, Perl, or 
+   simply the SQL if it is reproducable in SQSH.
+2) The DDL for your table(s) from the SQL above.  A lot of bugs can be 
+   particular to one datatype and without this information it'll be hard to
+   determine your problem.  A simple list of column names, datatypes, and 
+   lengths would also be acceptable if you can't get or don't know how to 
+   produce the DDL. (output from sp_help <tablename> will do this nicely)
+3) The version of FreeTDS you are running, but in general try to get the 
+   lastest snapshot or CVS version before reporting a bug.
+4) The TDS protocol version.  It's the --with-tdsver flag you configured with
+   5.0 is the default.  Many bugs are protocol specific and you may just get
+   a 'works for me' if you don't say which version.
+5) Your platform e.g. Redhat 7.0, Solaris 2.6, Linux 2.2.14...anything close 
+   will do.  This is especially important if you are on a big endian platform 
+   (Power/PowerPC, Sparc, etc...), a 64bit platform (Alpha), or you are 
+   experiencing an bus error because of unaligned access (Sparc mostly).
+   'uname -a' should produce this info.
+6) The type and version of the server you are connecting to.  You can send
+   the query 'select @@version' to get this information.
+
+Also, be sure to check the FAQ (http://www.freetds.org/faq.html) and mailing 
+list archive (http://franklin.oit.unc.edu/cgi-bin/lyris.pl?enter=freetds)
+
+Notes to developers
+-------------------
+
+The code is split into several pieces.
+
+1) tds directory is the wire level stuff, it should be independant of the 
+library using it, this will allow DB-Lib, CT-Lib, and ODBC to sit on top. 
+
+2) dblib directory. This is the actual dblib code which runs on top of tds.
+
+3) ctlib directory. This is the ctlib code which runs on top of tds. 
+
+4) server directory. This will be a set of server routines basically to 
+impersonate a dataserver, functions like send_login_ack() etc... 
+
+5) odbc directory. ODBC implementation over tds.  Uses iODBC or unixODBC as a driver manager.  You need to have one of those if you are using the ODBC CLI. 
+
+6) unittests directories. Test harness code for ctlib, dblib and tds.
+
+6) samples directories. Sample code for getting started with Perl, PHP, etc...
+
+7) pool directory. A connection pooling server for TDS.  Useful if you have a 
+   connection limited license.  Needs some hacking to get configured but is 
+   quite stable once configured correctly. Contact the list if interested in 
+   how to use it.
+
+Please look at doc/getting_started.txt for a description of what is going on
+in the code.
+
+Side note: I, as many free software authors, appreciate postcards from all over. So if you live someplace neat (read: not Michigan) and want to send one, email me (camber@ais.org) for my current snail mail address.

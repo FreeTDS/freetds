@@ -1,0 +1,193 @@
+- tdspool now working for big endian systems
+- Fixed mem leak in ctlib
+- Added some descriptive text to the PWD file
+- EINTR handling during login (Kostya Ivanov)
+- Added support for TLI style interfaces files (thanks Michael for explaining)
+- Added 'text size' config option which changes textsize on connect
+- Added preliminary TDS 8.0 support (no new datatypes supported though)
+- Added 'emulate little endian' config flag
+- Some TDS5 placeholder stuff.  Not ready for primetime yet.
+- Fixed interfaces handling seg fault
+
+* Jul 2001 Brian Bruns <camber@ais.org>
+- Version 0.52
+- Mem leak fixes in dbloginfree() and tds_free_env() (John Dumas)
+- Added support for new configuration format (freetds.conf)
+- unixODBC now working
+- Fixed error in two's complement function for money types
+- Added support for nullable bits (BITN)
+- checked in work on tds connection pooling server
+- added preliminary userguide (James Lowden and me)
+- a lot of work on ODBC driver, now works with PHP
+- added config options for iodbc/unixodbc (unixODBC doesn't actually work yet)
+- image -> char now works (verified with ctlib only)
+- varbinary -> char now works with destlen of -1
+- New config routines
+- Free socket on login fail
+- 64bit patches
+- off by one error
+- numeric problem with 7.0 fixed
+- digit cutoff on numerics/floats fixed
+
+* Nov 2000 Brian Bruns <camber@ais.org>
+- Version 0.51
+- removed all the old unittests from the samples directory
+- endian detection fixed
+- 'make check' and ctlib unittests (Mark)
+- TDS 7.0 fixes, numerics et al. (Scott)
+- dead connection handling (Geoff)
+- query timeout stuff (Jeff)
+
+* Dec 1999 Brian Bruns <camber@ais.org>
+- Version 0.50
+- Added TDS 7.0 support for MS SQL 7
+- Added hostfile bulk copy for dblib
+- Added writetext support for dblib
+- Added CS_CON_STATUS property to ctlib
+- Fixed bugs for ctlib version of PHP 3/4
+- Many changes to text/image handling
+- New script for running the unittests
+- dbcancel/ct_cancel now working properly
+- inserts/updates now return proper rowcount
+- Numerous bug fixes
+
+* Sep 1999 Brian Bruns <camber@ais.org>
+- Version 0.47
+- Added workaround for SQL 7.0 bug handling datetime/money 
+  for big endian (testing/bug report - Paul Schaap)
+- Added TDS 7.0 login function (untested)
+- Fixed many big endian bugs
+- Fixed some bus errors on Sparc
+- Fixed big endian detection
+- DBD::Sybase 0.19 now passes all tests
+- Fixed date bug working with PHP 3.x
+- binary/varbinary support added
+- Fixed Text datatypes in tds layer
+- More conversions implemented (Mark Schaal)
+- Fix make install for not overwriting interfaces (Michael Peppler)
+- CS_USERDATA now works
+- Numerous bug fixes (many people)
+
+* Thu Aug xx 1999 Brian Bruns <camber@ais.org>
+- Version 0.46
+- Fixed floating type support
+- Fixed lots of little datatype conversion bugs
+- Fixed 5.0 login acknowledgement bug
+- Message processing was cleaned up (Mark Schaal)
+- Fixed login bug for SQL Server 7.0
+- DBD::Sybase 0.19 now compiles and partially works (very partially)
+- Fixed Solaris #define clash
+- Numerous bug fixes
+
+* Thu Jun 03 1999 Brian Bruns <camber@ais.org>
+- Version 0.45
+- Capabilities added to ctlib code
+- Numeric support working
+- MONEY to string conversions now support > 32 bit values
+- Fixed underread in message handling
+- Fixed various buffer overflow problems
+- Fixed NULL handling
+- Added support for length binding (copied arguement to ct_bind)
+- Converted ODBC to use iODBC driver manager
+- SQSH 1.7 runs
+- PHP 3.0.x with ctlib now runs
+
+* Thu Jan 14 1999 Brian Bruns <camber@ais.org>
+- Version 0.41
+- Better row buffering (Craig Spannring)
+- CT-Lib code improved greatly
+- Closer behaviour to real dblib
+- Commonized datatype conversions
+- Server side code is running somewhat.
+- SQSH 1.6 running
+- More ODBC functionality
+- Many bug fixes
+- Lots of other stuff I've already forgotten
+
+* Sun Nov 22 1998 Brian Bruns <camber@ais.org>
+- Version 0.40
+- Row buffering is now supported for dblib.
+- Better row handling (side effect of above)
+- Improved conversion code
+- Preliminary ODBC layer 
+- PHP now runs basic scripts, maybe more
+- Many many bug fixes
+- General cleanup (better error handling, C++ friendly headers, etc...)
+
+* Fri Sep 04 1998 Mihai Ibanescu <misa@dntis.ro>
+- Version 0.31
+- By default the install dir is /usr/local/freetds
+- The Makefile in the samples dir is automatically built from Makefile.am.
+	The samples dir is not installed, only packaged in the distribution.
+
+* Wed Sep 02 1998 Brian Bruns <camber@ais.org>
+- Version 0.3
+- Updated the AUTHORS file
+- FIXME Brian (added by misa)
+
+* Mon Aug 31 1998 Mihai Ibanescu <misa@dntis.ro>
+- Version 0.21
+- GNUified
+- Fixed a couple of the TODO issues: byte order is automatically determined,
+	and the TDS version is a configurable option
+- Modified the README file to reflect the new directory structure
+
+Pre-GNUification log by Brian <camber@ais.org>:
+
+2/8/98	Should be able to send the first packet to a server soon, my output is 
+	only slightly different than open clients.
+	This codes pretty crappy right now. I need to clean up alot of stuff, 
+	remove hardcode values, etc...but I'm anxious to see something work!
+2/7/98	Broke the code up a bit, tds.c now handles all wire level stuff, 
+	dblib.c handles dblib specific stuff. So, in the future there can be 
+	ctlib.c and obdc.c can also sit on top of tds.c to handle the other CLIs
+3/16/98 Been working on the code here and there...We can now send a query to 
+	the server, dbnumcols() and dbcolname() both work. Almost ready to get
+	some data back. I put in a dummy dbbind to just handle strings so,
+	I could do some work on dbnextrow().  However, we will have revisit 
+	almost everything later.
+3/23/98	Haven't been able to work on it lately.  Still trying to decide on the
+	best way to propagate the row data from tds.c to dblib.c to the calling
+ 	func.  Not that hard, but nothing strikes me as the "Right Way" (tm).
+4/2/98	Ok we are ready to release 0.01 (marked by the fact that a simple dblib 
+	program actually works!)
+5/1/98  Haven't updated in quite a while. A few more dblib commands are 
+	supported. dbconvert() support is preliminary. Fixed alot of bugs. A
+	little bit of cleanup. dbbind() sorta works now, needs work still. 
+	At least one mem leak that I know of (haven't gotten around to fixing 
+	it.  Wish I had more time to work on it...
+5/2/98  Decided to release what I have. executing sp_who seems to mostly work..
+	a step in the right direction.  Version 0.02.  Seem to have generated a
+	little interest after mentioning it in a usenet post.
+5/6/98	Can compile against sqsh!!! Did a reorg on tds.c, all dblib func that 
+	read data now go through tds_process_messages() which read the marker
+	and calls other routines as necessary. sqsh's output is a little screwy
+	(well I don't have a real dbprrow() yet, but the number of result sets 
+	coming back is too many).  So, anyway Version 0.04
+5/9/98  Decided to upload some new code, mostly just stubs.  Sybperl compiles 
+	I can't get my perl to work with it. (I need to download perl and link
+	statically, the one that comes on the system won't do).  Anyway,
+	most of dblib is present in stub form.
+5/17/98 Managed to scrape up some time and release new code. Duplicate result 
+	sets went away, and handling of more datatypes (money, bit, more int 
+	stuff).  Also, improved dbprhead()/row() function.
+5/26/98 Ok, I'm doing the long overdue cleaning up of the code. All the kludges
+	should be gone.  Thanks, to everyone who contributed 
+	code/idea/corrections.
+6/3/98  The majority of the overhaul is done...still some work to do, but this 
+        is much better than before. I'm bumping the version to 0.1 signifying 
+        that I actually use sqsh compiled against it on a regular basis.	
+6/5/98	TDS 4.2 support seems to be working properly
+6/26/98 Gregg Jenson has added support for err and msg handling among other 
+	things. I've added some prelimary ctlib support (nothing working yet)
+7/3/98	I think we are about ready to release 0.2. Gregg sent some datetime code
+	which appears to work great.  I added TDS 4.6 support (small changes 
+	really) and tested all the byte order issues on an RS/6000.  Also, ctlib
+	code will run the unittest.c and will compile all modules in sqsh 1.6, 
+	however there are many missing functions before it will link!
+7/10/98 Haven't been able to work on it lately (moved this week). Anyway,
+        trying to add some functions to server.
+7/13/98	Tom Poindexter made some changes to get sybtcl to work.
+8/8/98	Haven't had much time lately (again), however some small stuff has 
+	been fixed and the protocol version stuff has (mostly) been moved to a 
+	runtime option. sybperl is supposedly running for simple stuff.

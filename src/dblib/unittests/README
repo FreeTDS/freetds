@@ -1,0 +1,21 @@
+Oct 13, 1999
+------------
+Added test.sh to run all tests from 'make test', reduced the rows_to_add to 50
+and relocated the user/password/server/database information to a common file to
+be used for all CLIs.
+
+-------------
+The programs in this directory will test the dblib routines.  Tests
+that dblib passes will print "dblib okay for t000X.c" as the last line
+of output and exit with a status of 0.  If the test does not print
+that message for the last line of output it means that dblib failed
+that test.  
+
+Some of the tests are designed to dump core if an error is detected.
+This is to assist with post-mortem debugging of the dblib routines.
+
+
+**** Notice **** 
+As of January 20, 1999 t0003.c is broken.  The test
+fails on Microsoft's DB Library.
+

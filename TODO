@@ -1,0 +1,21 @@
+To Do List
+------------
+. Add bcp support to tds/dblib/ctlib. (started in dblib)
+. Array binding for ctlib not working
+. RPC stuff not implemented
+. All manner of unimplemented functions
+. Need a way to track problems with running apache/PHP, may have many apache 
+  children going.
+. ct_dynamic and friends needed for DBD::Sybase placeholder support
+. Server API needs more work, especially for TDS 5.0/7.0
+. Add support for TDS 8.0
+. Domain support for MS SQL
+. TDS 7 support on big endian clients
+. add textsize option for TDS 7 to freetds.conf
+. TDS 7 Unicode to native charset conversion using iconv
+. tdsping program for testing purposes
+. autoconf the connection pooling stuff
+. Make pool configuration a non-recompile process
+. Add missing constants needed for python and verify working
+. Add missing constants needed for Gnome-DB and verify working 
+. Someone broke early binding in ODBC

@@ -1,0 +1,19 @@
+include_HEADERS	=	cspublic.h ctpublic.h sybdb.h sybfront.h          \
+			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h \
+			ctlib.h sqldb.h sqlfront.h                        \
+			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h
+
+EXTRA_DIST     =    tds_configs.h.in
+
+all-local: tds_configs.h 
+
+tds_configs.h: tds_configs.h.in Makefile
+	@$(RM) $@
+	@echo "Making $@"
+	@echo "/* Generated from tds_configs.h.in on `date` */" > $@;  \
+	sed \
+		-e 's;%SYSCONFDIR%;$(sysconfdir);' \
+		tds_configs.h.in >> $@; \
+	chmod 444 $@
+
+

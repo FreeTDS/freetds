@@ -1,0 +1,170 @@
+dnl Process this file with autoconf to produce a configure script.
+
+dnl ------------------------------------------------------------
+dnl Initialization
+dnl ------------------------------------------------------------
+AC_INIT(src/dblib/dblib.c)
+AM_INIT_AUTOMAKE(freetds, 0.53)
+AC_PREFIX_DEFAULT(/usr/local/freetds)
+
+dnl ------------------------------------------------------------
+dnl Checks for programs.
+dnl ------------------------------------------------------------
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_ARG_PROGRAM
+AM_PROG_LIBTOOL
+
+dnl ------------------------------------------------------------
+dnl Checks for libraries.
+dnl ------------------------------------------------------------
+AC_CHECK_LIB(socket, socket, NETWORK_LIBS="$NETWORK_LIBS -lsocket")
+AC_SUBST(NETWORK_LIBS)
+
+
+dnl ------------------------------------------------------------
+dnl Checks for header files.
+dnl ------------------------------------------------------------
+AC_HEADER_STDC
+
+dnl ------------------------------------------------------------
+dnl Checks for integers/floats of different sizes
+dnl ------------------------------------------------------------
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+
+case 2 in
+$ac_cv_sizeof_short)   smallint=short;;
+$ac_cv_sizeof_int)     smallint=int;;
+esac
+case 4 in
+$ac_cv_sizeof_short)   int=short;;
+$ac_cv_sizeof_int)     int=int;;
+$ac_cv_sizeof_long)    int=long;;
+esac
+
+case 4 in
+$ac_cv_sizeof_float)   real=float;;
+$ac_cv_sizeof_double)  real=double;;
+*)                     AC_ERROR(No 32-bit float found.)
+esac
+
+case 8 in
+$ac_cv_sizeof_float)   float=float;;
+$ac_cv_sizeof_double)  float=double;;
+*)                     AC_ERROR(No 64-bit float found.)
+esac
+
+AC_SUBST(smallint)
+AC_SUBST(int)
+AC_SUBST(real)
+
+AC_SUBST(float)
+
+dnl ------------------------------------------------------------
+dnl Checks for typedefs and structures
+dnl ------------------------------------------------------------
+
+dnl ---- Solaris needs -DBSD_COMP to get FIONBIO defined ----
+AC_MSG_CHECKING(is FIONBIO defined)
+AC_EGREP_CPP(yes,
+[#include <sys/ioctl.h>
+#ifdef FIONBIO
+ yes
+#endif
+],
+    AC_MSG_RESULT(yes),
+    [ AC_EGREP_CPP(yes,
+[#define BSD_COMP
+#include <sys/ioctl.h>
+#ifdef FIONBIO
+ yes
+#endif
+],
+    AC_DEFINE(BSD_COMP)  AC_MSG_RESULT(need -DBSD_COMP),
+    AC_MSG_RESULT(no))
+    ])
+
+dnl ------------------------------------------------------------
+dnl Checks for compiler characteristics.
+dnl ------------------------------------------------------------
+AC_C_BIGENDIAN
+
+dnl ------------------------------------------------------------
+dnl Checks for library functions.
+dnl ------------------------------------------------------------
+
+
+dnl ------------------------------------------------------------
+dnl Compile time options
+dnl ------------------------------------------------------------
+
+AC_ARG_WITH(tdsver,
+[  --with-tdsver=VERSION	specify the TDS version to use \
+(4.2/4.6/5.0/7.0/8.0) [5.0]])
+if test "$with_tdsver" = "4.2"; then
+	CFLAGS="$CFLAGS -DTDS42"
+elif test "$with_tdsver" = "4.6"; then
+	CFLAGS="$CFLAGS -DTDS46"
+elif test "$with_tdsver" = "7.0"; then
+	CFLAGS="$CFLAGS -DTDS70"
+elif test "$with_tdsver" = "8.0"; then
+	CFLAGS="$CFLAGS -DTDS80"
+else
+	CFLAGS="$CFLAGS -DTDS50"
+fi
+
+AC_ARG_WITH(iodbc,
+[  --with-iodbc=/path/to/iodbc build odbc driver against iODBC])
+if test "$with_iodbc"; then
+	CFLAGS="$CFLAGS -DIODBC";
+	ODBC_INC=$with_iodbc/include;
+	odbc=true
+fi
+
+AC_ARG_WITH(iodbc,
+[  --with-unixodbc=/path/to/unixodbc build odbc driver against unixODBC])
+if test "$with_unixodbc"; then
+	CFLAGS="$CFLAGS -DUNIXODBC"
+	ODBC_INC=$with_unixodbc/include
+	odbc=true
+fi
+AM_CONDITIONAL(ODBC, test x$odbc = xtrue)
+AC_SUBST(ODBC)
+AC_SUBST(ODBC_INC)
+
+AC_ARG_ENABLE(msdblib,
+  [  --enable-msdblib For MS style dblib.])
+
+if test "$enable_msdblib" = "yes" ; then
+	CFLAGS="$CFLAGS -DMSDBLIB"
+fi
+
+AC_ARG_ENABLE(dbmfix,
+  [  --enable-dbmfix Fix conflict with the dbm dbopen.])
+
+if test "$enable_dbmfix" = "yes" ; then
+	CFLAGS="$CFLAGS -DDBMFIX"
+fi
+
+
+dnl ------------------------------------------------------------
+dnl Final output
+dnl ------------------------------------------------------------
+AC_OUTPUT(include/tdsver.h include/tds.h \
+	Makefile \
+	include/Makefile \
+	src/Makefile \
+		src/tds/Makefile src/tds/unittests/Makefile \
+		src/dblib/Makefile src/dblib/unittests/Makefile \
+		src/ctlib/Makefile src/ctlib/unittests/Makefile \
+	src/server/Makefile \
+	src/odbc/Makefile 
+)

@@ -1,0 +1,58 @@
+Brian Bruns <camber@ais.org>
+Started this crazy thing
+
+Gregg Jensen <greggj@savvis.com>
+Message handlers and extra datatype support and some sybperl stuff?
+
+Arno Pedusaar <psaar@fenar.ee>
+Donated his TDS4.2 code to the cause
+
+Mihai Ibanescu <misa@dntis.ro>
+GNUified the packet
+
+Craig Spannring <cts@internetcds.com>
+JDBC driver and CVS repository.
+
+Mark Schaal <mark@champ.tstonramp.com>
+Cleaned up message handling, bug fixes, ctlib unittests
+
+Kevin Lyons <kevin@nol.org>
+Various TDS bug fixes
+
+Sam Tetherow<tetherow@nol.org>
+Various TDS bug fixes
+
+Geoff Winkless <geoff@farmline.com>
+Lost connection stuff
+
+Ken Seymour <KenASeymour@yahoo.com>
+ODBC Driver Fixes
+
+Scott Gray <gray@voicenet.com>
+TDS 7.0 numeric support and bug fixes
+
+Bob Kline <bkline@rksystems.com>
+NTEXT support
+
+Koscheev Andrey <andrey@eller.cz>
+negative money patch
+
+Dennis Nicklaus <nicklaus@crusher.fnal.gov>
+vxWorks port and fixes for dbdata() and SYBVARBINARY
+
+Brandon M. Reynolds <breynolds@comtime.com>
+fix for arbitrarily large queries under dblib.
+
+Steve Langasek <vorlon@netexpress.net>
+off by one fixes and autoconf byte size thing.
+
+Mark J. Lilback <mark@lilback.com>
+implementation of dbstrlen and dbstrcpy
+
+John F. Dumas <jdumas@locutus.kingwoodcable.com>
+patch to fix memory leaks.
+
+Thanks go to the folks at A2i, Inc. (http://www.a2i.com) for funding the 
+development of dblib host file bulk copy and writetext support, and to Dave 
+Poyourow there for helping with the debugging.
+
