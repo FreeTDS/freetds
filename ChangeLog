@@ -1,3 +1,6 @@
+Tue Aug 26 18:23:45 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix silly memory leak
+
 Tue Aug 26 17:50:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- continue changing field names

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.220 2003-08-26 15:50:42 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.221 2003-08-26 16:23:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2402,6 +2402,10 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		odbc_errs_reset(&stmt->errs);
 		if (stmt->hdbc->current_statement == stmt)
 			stmt->hdbc->current_statement = NULL;
+		desc_free(stmt->ird);
+		desc_free(stmt->ipd);
+		desc_free(stmt->ard);
+		desc_free(stmt->apd);
 		free(stmt);
 
 		/* NOTE we freed stmt, do not use ODBC_RETURN */
