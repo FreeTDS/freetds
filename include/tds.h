@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.61 2002-11-29 11:35:46 freddy77 Exp $";
+	"$Id: tds.h,v 1.62 2002-11-29 16:03:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -193,6 +193,7 @@ enum tds_end {
 #define TDS_CAP_TOKEN       226  /* 0xE2                              */
 #define TDS_ENV_CHG_TOKEN   227  /* 0xE3                              */
 #define TDS_EED_TOKEN       229  /* 0xE5                              */
+#define TDS_DBRPC_TOKEN     230  /* 0xE6                              */
 #define TDS_AUTH_TOKEN      237  /* 0xED                              */
 #define TDS_RESULT_TOKEN    238  /* 0xEE                              */
 #define TDS_DONE_TOKEN      253  /* 0xFD    TDS_DONE                  */

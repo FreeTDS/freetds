@@ -1,3 +1,7 @@
+Fri Nov 29 17:01:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- add support for RPC using TDS5 (not tested)
+
 Fri Nov 29 12:34:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/dblib/rpc.c src/tds/query.c:
 	- added column_output for specify output parameters

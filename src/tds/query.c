@@ -40,9 +40,10 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.55 2002-11-29 11:35:46 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char  software_version[]   = "$Id: query.c,v 1.56 2002-11-29 16:03:12 freddy77 Exp $";
+static void *no_unused_var_warn[] = {software_version, no_unused_var_warn };
+
+static void tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags);
 
 /* All manner of client to server submittal functions */
 
@@ -336,7 +337,9 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 	} else {
 		tds_put_byte(tds,0x00); /* param name len*/
 	}
-	/* TODO store and use flags (output/use defaul null)*/
+	/* TODO support other flags (use defaul null/no metadata)
+	   bit 1 (2 as flag) in TDS7+ is "default value" bit 
+	   (what's the meaning of "default value" ?) */
 	tds_put_byte(tds, curcol->column_output); /* status (input) */
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_int(tds,curcol->column_usertype); /* usertype */
@@ -464,7 +467,7 @@ int tds_submit_execute(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 TDSCOLINFO *param;
 TDSPARAMINFO *info;
 int id_len;
-int i, len;
+int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute()\n");
 
@@ -518,22 +521,30 @@ int i, len;
 	tds_put_byte(tds,0x00); 
 	tds_put_byte(tds,0x00); 
 
-	/* TODO use this code in RPC too ?? */
+	tds_put_params(tds, dyn->params, 0);
+
+	/* send it */
+	return tds_flush_packet(tds);
+}
+
+static void
+tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags)
+{
+	int i, len;
 
 	/* column descriptions */
 	tds_put_byte(tds,TDS5_PARAMFMT_TOKEN); 
 	/* size */
 	len = 2;
-	info = dyn->params;
 	for (i=0;i<info->num_cols;i++)
-		len += tds_put_data_info_length(tds, info->columns[i], 0);
+		len += tds_put_data_info_length(tds, info->columns[i], flags);
 	tds_put_smallint(tds, len);
 	/* number of parameters */
 	tds_put_smallint(tds,info->num_cols); 
 	/* column detail for each parameter */
 	for (i=0;i<info->num_cols;i++) {
 		/* FIXME add error handling */
-		tds_put_data_info(tds, info->columns[i], 0);
+		tds_put_data_info(tds, info->columns[i], flags);
 	}
 
 	/* row data */
@@ -541,9 +552,6 @@ int i, len;
 	for (i=0;i<info->num_cols;i++) {
 		tds_put_data(tds, info->columns[i], info->current_row, i);
 	}
-
-	/* send it */
-	return tds_flush_packet(tds);
 }
 
 static volatile int inc_num = 1;
@@ -606,6 +614,10 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 		/* procedure name */
 		tds_put_smallint(tds, rpc_name_len);
 		tds_put_string(tds, rpc_name, rpc_name_len);
+		/* TODO support flags
+		   bit 0 (1 as flag) in TDS7/TDS5 is "recompile"
+	   	   bit 1 (2 as flag) in TDS7+ is "no metadata" bit 
+	   	   (I don't know meaning of "no metadata") */
 		tds_put_smallint(tds,0); 
 		
 		for (i=0;i<params->num_cols;i++) {
@@ -617,7 +629,25 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 		return tds_flush_packet(tds);
 	}
 	
-	/* TODO continue, support for TDS5 */
+	if (IS_TDS50(tds)) {
+		tds->out_flag = 0xf; /* normal */
+		
+		/* DBRPC */
+		tds_put_byte(tds, TDS_DBRPC_TOKEN);
+		tds_put_smallint(tds, rpc_name_len + 3);
+		tds_put_byte(tds, rpc_name_len);
+		tds_put_string(tds, rpc_name, rpc_name_len);
+		/* TODO flags */
+		tds_put_smallint(tds, params->num_cols ? 2 : 0);
+		
+		if (params->num_cols)
+			tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME);
+
+		/* send it */
+		return tds_flush_packet(tds);
+	}
+	
+	/* TODO continue, support for TDS4?? */
 	return TDS_FAIL;
 }
 
