@@ -1,3 +1,8 @@
+Thu Jul 31 14:32:32 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
+	- continue merge from Steve patch:
+	 - put some code in utils
+
 Wed Jul 30 12:06:11 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/pool/config.c don't lowercase the incoming username.
 

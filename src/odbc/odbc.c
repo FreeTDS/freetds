@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.200 2003-07-30 05:57:10 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.201 2003-07-31 12:33:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1203,66 +1203,18 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		*pfDesc = colinfo->column_size;
 		break;
 	case SQL_COLUMN_DISPLAY_SIZE:
-		switch (odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size, stmt->hdbc->henv->attr.attr_odbc_version)) {
-		case SQL_CHAR:
-		case SQL_VARCHAR:
-		case SQL_LONGVARCHAR:
-			*pfDesc = colinfo->column_size;
-			break;
-		case SQL_BIGINT:
-			*pfDesc = 20;
-			break;
-		case SQL_INTEGER:
-			*pfDesc = 11;	/* -1000000000 */
-			break;
-		case SQL_SMALLINT:
-			*pfDesc = 6;	/* -10000 */
-			break;
-		case SQL_TINYINT:
-			*pfDesc = 3;	/* 255 */
-			break;
-		case SQL_DECIMAL:
-		case SQL_NUMERIC:
-			*pfDesc = colinfo->column_prec + 2;
-			break;
-		case SQL_DATE:
-			/* FIXME check always yyyy-mm-dd ?? */
-			*pfDesc = 19;
-			break;
-		case SQL_TIME:
-			/* FIXME check always hh:mm:ss[.fff] */
-			*pfDesc = 19;
-			break;
-		case SQL_TYPE_TIMESTAMP:
-		case SQL_TIMESTAMP:
-			*pfDesc = 24;	/* FIXME check, always format 
-					 * yyyy-mm-dd hh:mm:ss[.fff] ?? */
-			/* spinellia@acm.org: int token.c it is 30 should we comply? */
-			break;
-		case SQL_FLOAT:
-		case SQL_REAL:
-		case SQL_DOUBLE:
-			*pfDesc = 24;	/* FIXME -- what should the correct size be? */
-			break;
-		case SQL_GUID:
-			*pfDesc = 36;
-			break;
-		default:
-			/* FIXME TODO finish, should support ALL types (interval) */
-			*pfDesc = 40;
-			tdsdump_log(TDS_DBG_INFO1,
-				    "SQLColAttributes(%d,SQL_COLUMN_DISPLAY_SIZE): unknown client type %d\n",
-				    icol, odbc_tds_to_sql_type(colinfo->column_type, colinfo->column_size,
-							       stmt->hdbc->henv->attr.attr_odbc_version)
-				);
-			break;
-		}
+		*pfDesc =
+			odbc_sql_to_displaysize(odbc_tds_to_sql_type
+						(colinfo->column_type, colinfo->column_size,
+						 stmt->hdbc->henv->attr.attr_odbc_version), colinfo->column_size,
+						colinfo->column_prec);
 		break;
 		/* FIXME other types ... */
 	default:
 		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
 		break;
 	}
+
 	ODBC_RETURN(stmt, result);
 }
 

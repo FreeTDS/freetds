@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.32 2003-07-29 19:25:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.33 2003-07-31 12:33:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -309,6 +309,64 @@ odbc_tds_to_sql_type(int col_type, int col_size, int odbc_ver)
 #endif
 	}
 	return SQL_UNKNOWN_TYPE;
+}
+
+SQLINTEGER
+odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
+{
+	SQLINTEGER size = 0;
+
+	switch (sqltype) {
+	case SQL_CHAR:
+	case SQL_VARCHAR:
+	case SQL_LONGVARCHAR:
+		size = column_size;
+		break;
+	case SQL_BIGINT:
+		size = 20;
+		break;
+	case SQL_INTEGER:
+		size = 11;	/* -1000000000 */
+		break;
+	case SQL_SMALLINT:
+		size = 6;	/* -10000 */
+		break;
+	case SQL_TINYINT:
+		size = 3;	/* 255 */
+		break;
+	case SQL_DECIMAL:
+	case SQL_NUMERIC:
+		size = column_prec + 2;
+		break;
+	case SQL_DATE:
+		/* FIXME check always yyyy-mm-dd ?? */
+		size = 19;
+		break;
+	case SQL_TIME:
+		/* FIXME check always hh:mm:ss[.fff] */
+		size = 19;
+		break;
+	case SQL_TYPE_TIMESTAMP:
+	case SQL_TIMESTAMP:
+		size = 24;	/* FIXME check, always format 
+				 * yyyy-mm-dd hh:mm:ss[.fff] ?? */
+		/* spinellia@acm.org: int token.c it is 30 should we comply? */
+		break;
+	case SQL_FLOAT:
+	case SQL_REAL:
+	case SQL_DOUBLE:
+		size = 24;	/* FIXME -- what should the correct size be? */
+		break;
+	case SQL_GUID:
+		size = 36;
+		break;
+	default:
+		/* FIXME TODO finish, should support ALL types (interval) */
+		size = 40;
+		tdsdump_log(TDS_DBG_INFO1, "odbc_sql_to_displaysize: unknown sql type %d\n", (int) sqltype);
+		break;
+	}
+	return size;
 }
 
 int
