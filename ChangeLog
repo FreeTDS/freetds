@@ -1,3 +1,9 @@
+Mon Mar 10 15:19:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/freebcp.c src/apps/freebcp.h src/tds/mem.c:
+	- applied patch #700835 from Bill Thompson
+		- fix -e option in freebcp
+		- fix small segmentation fault
+
 Sat Mar 08 13:44:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/cs.c: remove a warning
 

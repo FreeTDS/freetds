@@ -1,4 +1,4 @@
-static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.5 2003-02-04 13:28:28 freddy77 Exp $";
+static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.6 2003-03-10 14:20:14 freddy77 Exp $";
 static void *no_unused_freebcp_h_warn[] = { rcsid_freebcp_h, no_unused_freebcp_h_warn };
 
 enum states
@@ -34,7 +34,7 @@ typedef struct pd
 	char dbdirection[4];
 	char hostfilename[FILENAME_MAX + 1];
 	char formatfile[FILENAME_MAX + 1];
-	char errorfile[FILENAME_MAX + 1];
+	char *errorfile;
 	char interfacesfile[FILENAME_MAX + 1];
 	int firstrow;
 	int lastrow;

@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.19 2003-02-13 06:17:19 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.20 2003-03-10 14:20:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -196,8 +196,10 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				break;
 			case 'e':
 				pdata->eflag++;
-				if (strlen(arg) > 2)
+				if (strlen(arg) > 2) {
+					pdata->errorfile = (char *) malloc(strlen(arg));
 					strcpy(pdata->errorfile, &arg[2]);
+				}
 				else
 					state = GET_ERRORFILE;
 				break;
@@ -307,6 +309,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_ERRORFILE:
+			pdata->errorfile = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->errorfile, arg);
 			state = GET_NEXTARG;
 			break;
