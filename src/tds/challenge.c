@@ -35,10 +35,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: challenge.c,v 1.19 2002-12-18 03:33:58 jklowden Exp $";
+static char software_version[] = "$Id: challenge.c,v 1.20 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
+ * \ingroup libtds
  * \defgroup auth Authentication
  * Functions for handling authentication.
  */

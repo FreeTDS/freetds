@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.64 2003-03-24 23:08:21 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.65 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -61,6 +61,7 @@ void tds_free_env(TDSSOCKET *tds);
 	{if (!(dest = strdup(str))) goto Cleanup;}
 
 /**
+ * \ingroup libtds
  * \defgroup mem Memory allocation
  * Allocate or free resources. Allocation can fail only on out of memory. 
  * In such case they return NULL and leave the state as before call.

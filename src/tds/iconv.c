@@ -42,13 +42,14 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.36 2003-02-21 22:21:17 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.37 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
 /**
+ * \ingroup libtds
  * \defgroup conv Charset conversion
  * Convert between different charsets
  */

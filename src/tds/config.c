@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.67 2003-03-24 23:08:20 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.68 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -87,6 +87,7 @@ extern int tds_g_append_mode;
 static char *interf_file = NULL;
 
 /**
+ * \ingroup libtds
  * \defgroup config Configuration
  * Handle reading of configuration
  */

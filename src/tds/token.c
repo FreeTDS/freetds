@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.155 2003-03-23 20:13:51 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.156 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -67,6 +67,7 @@ static int tds_process_dyn_result(TDSSOCKET * tds);
 
 
 /**
+ * \ingroup libtds
  * \defgroup token Results processing
  * Handle tokens in packets. Many PDU (packets data unit) contain tokens.
  * (like result description, rows, data, errors and many other).

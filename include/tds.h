@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.97 2003-03-24 23:08:20 freddy77 Exp $";
+	"$Id: tds.h,v 1.98 2003-03-25 04:31:24 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -62,6 +62,16 @@ typedef struct _tds_compiletime_settings
 /**
  * @file tds.h
  * Main include file for libtds
+ */
+
+/**
+ * \defgroup libtds LibTDS API
+ * Callable functions in \c libtds.
+ * 
+   The \c libtds library is for use internal to \em FreeTDS.  It is not
+   intended for use by applications.  Although any use is \em permitted, you're
+   encouraged to use one of the established public APIs instead, because their
+   interfaces are stable and documented by the vendors.  
  */
 
 /* 

@@ -1,3 +1,9 @@
+Mon Mar 24 23:26:32 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* tds.dox include/tds.h src/dblib/dblib.c src/tds/challenge.c
+	* src/tds/config.c src/tds/convert.c src/tds/iconv.c src/tds/mem.c
+	* src/tds/query.c src/tds/read.c src/tds/tdsstring.c src/tds/token.c
+	- doxygen comments and reorganization, plus some reformatting.
+	
 Tue Mar 25 00:07:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/pool/util.c src/server/login.c:
 	* src/server/unittest.c src/tds/config.c src/tds/login.c:

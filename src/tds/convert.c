@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.117 2003-03-19 17:05:18 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.118 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -85,6 +85,7 @@ static int store_dd_mon_yyy_date(char *datestr , struct tds_time *t);
 #define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
 
 /**
+ * \ingroup libtds
  * \defgroup convert Conversion
  */
 

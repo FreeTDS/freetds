@@ -36,11 +36,12 @@
 
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.6 2002-12-10 17:01:40 freddy77 Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.7 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 /**
+ * \ingroup libtds
  * \defgroup dstring Dynamic string functions
  * Handle dynamic string. In this string are always valid 
  * (you don't have NULL pointer, only empty string)

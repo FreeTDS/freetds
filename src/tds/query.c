@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.76 2003-03-19 17:05:21 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.77 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -53,6 +53,7 @@ static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *cur
 /* All manner of client to server submittal functions */
 
 /**
+ * \ingroup libtds
  * \defgroup query Query
  * Function to handle query.
  */

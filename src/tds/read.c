@@ -59,10 +59,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.35 2002-12-11 10:55:26 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.36 2003-03-25 04:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
+ * \ingroup libtds
  * \defgroup network Network functions
  * Functions for reading or writing from network.
  */
