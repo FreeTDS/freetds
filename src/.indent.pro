@@ -19,8 +19,8 @@
 
 -nfc1
 
--i5
--ts5
+-i8
+-ts8
 
 -l80
 
@@ -32,7 +32,7 @@
 -sc
 -nsob
 
--nut
+-ut
 
 -nv
 
