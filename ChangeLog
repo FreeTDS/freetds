@@ -1,3 +1,7 @@
+Sun Mar 23 22:03:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdsodbc.h src/odbc/error.c:
+	- remove some warnings
+
 Sun Mar 23 21:48:35 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	- merged rest of Peter Deacon patch

@@ -44,8 +44,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.9 2003-03-23 20:52:22 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.10 2003-03-23 21:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static void sqlstate2to3(char *state);
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
 static const struct _sql_error_struct odbc_errs[] = {
@@ -131,7 +133,7 @@ odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const ch
 }
 
 #define SQLS_MAP(v2,v3) if (strcmp(p,v2) == 0) {strcpy(p,v3); return;}
-void
+static void
 sqlstate2to3(char *state)
 {
 	char *p = state;

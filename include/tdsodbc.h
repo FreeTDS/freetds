@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.23 2003-03-23 20:52:22 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.24 2003-03-23 21:03:39 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
@@ -89,6 +89,9 @@ enum _sql_error_types {
 void odbc_errs_reset(struct _sql_errors *errs);
 /** add an error to list */
 void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg);
+/** Add an error to list. This functions is for error that came from server */
+void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate, 
+	int msgnum, unsigned short linenum, int msgstate);
 
 struct _henv {
 	TDSCONTEXT *tds_ctx;
