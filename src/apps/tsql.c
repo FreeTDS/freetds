@@ -66,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.55 2003-03-27 07:33:28 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.56 2003-05-05 00:12:03 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -502,6 +502,9 @@ main(int argc, char **argv)
 			s2 = strdup(s);  /* copy that can be safely mangled by str functions */
 			cmd =  strtok(s2," \t");
 		}
+		if (!cmd) 
+			continue;
+			
 		if (!s || !strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
 			break;
 		}
