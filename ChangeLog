@@ -1,3 +1,8 @@
+Tue Jan 20 02:14:52 PST 2004	Peter Deacon <peterd@iea-software.com>
+	* src/odbc/odbc.c:
+	- fix SQLDescribe fails with some result sets having no rows
+	* src/tds/read.c: backout 1.79 change
+
 Mon Jan 19 11:02:58 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* vms/configure.com:
 	- patch from Craig A. Berry for iconv detect problem
