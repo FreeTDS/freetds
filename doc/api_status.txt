@@ -113,10 +113,10 @@ dblib	core	dbanullbind	OK
 dblib	core	dbbind	OK
 dblib	core	dbbylist	OK
 dblib	core	dbcancel	OK
-dblib	core	dbcanquery	stub
+dblib	core	dbcanquery	OK
 dblib	core	dbchange	OK
 dblib	core	dbclose	OK
-dblib	core	dbclrbuf	stub
+dblib	core	dbclrbuf	OK
 dblib	core	dbclropt	partial
 dblib	core	dbcmd	OK
 dblib	core	dbcmdrow	OK

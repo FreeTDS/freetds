@@ -1,3 +1,7 @@
+Thu Nov  7 16:44:53 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt:
+	- Update status of dbcanquery() and dbclrbuf().
+
 Thu Nov  7 16:36:09 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/sybdb.h include/tds.h src/dblib/dblib.c
 	  src/tds/mem.c src/tds/token.c:
