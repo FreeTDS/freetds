@@ -36,11 +36,15 @@
 #include "tdsodbc.h"
 #include "odbc_util.h"
 
+#ifdef WIN32
+#include <Odbcss.h>
+#endif
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.8 2003-03-23 10:45:02 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.9 2003-03-23 20:52:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
@@ -76,6 +80,34 @@ odbc_errs_reset(struct _sql_errors *errs)
 }
 
 void
+odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate, int msgnum,
+		    unsigned short linenum, int msgstate)
+{
+	struct _sql_error *p;
+	int n = errs->num_errors;
+
+	if (errs->errs)
+		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
+	else
+		p = (struct _sql_error *) malloc(sizeof(struct _sql_error));
+	if (!p)
+		return;
+
+	errs->errs = p;
+	errs->errs[n].err = &odbc_errs[err_type];
+	errs->errs[n].msg = msg ? strdup(msg) : NULL;
+	if (sqlstate != NULL) {
+		strncpy(errs->errs[n].sqlstate, sqlstate, 5);
+		errs->errs[n].sqlstate[5] = '\0';
+	} else
+		errs->errs[n].sqlstate[0] = '\0';
+	errs->errs[n].msgnum = msgnum;
+	errs->errs[n].linenum = linenum;
+	errs->errs[n].msgstate = msgstate;
+	++errs->num_errors;
+}
+
+void
 odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg)
 {
 	struct _sql_error *p;
@@ -91,8 +123,68 @@ odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const ch
 	errs->errs = p;
 	errs->errs[n].err = &odbc_errs[err_type];
 	errs->errs[n].msg = msg ? strdup(msg) : NULL;
+	errs->errs[n].sqlstate[0] = '\0';
+	errs->errs[n].msgnum = 0;
+	errs->errs[n].msgstate = 0;
+	errs->errs[n].linenum = 0;
 	++errs->num_errors;
 }
+
+#define SQLS_MAP(v2,v3) if (strcmp(p,v2) == 0) {strcpy(p,v3); return;}
+void
+sqlstate2to3(char *state)
+{
+	char *p = state;
+
+	if (p[0] == 'S' && p[1] == '0' && p[2] == '0') {
+		p[0] = '4';
+		p[1] = '2';
+		p[2] = 'S';
+		return;
+	}
+
+	/* TODO optimize with a switch */
+	SQLS_MAP("01S03", "01001");
+	SQLS_MAP("01S04", "01001");
+	SQLS_MAP("22003", "HY019");
+	SQLS_MAP("22008", "22007");
+	SQLS_MAP("22005", "22018");
+	SQLS_MAP("24000", "07005");
+	SQLS_MAP("37000", "42000");
+	SQLS_MAP("70100", "HY018");
+	SQLS_MAP("S1000", "HY000");
+	SQLS_MAP("S1001", "HY001");
+	SQLS_MAP("S1002", "07009");
+	SQLS_MAP("S1003", "HY003");
+	SQLS_MAP("S1004", "HY004");
+	SQLS_MAP("S1008", "HY008");
+	SQLS_MAP("S1009", "HY009");
+	SQLS_MAP("S1010", "HY007");
+	SQLS_MAP("S1011", "HY011");
+	SQLS_MAP("S1012", "HY012");
+	SQLS_MAP("S1090", "HY090");
+	SQLS_MAP("S1091", "HY091");
+	SQLS_MAP("S1092", "HY092");
+	SQLS_MAP("S1093", "07009");
+	SQLS_MAP("S1096", "HY096");
+	SQLS_MAP("S1097", "HY097");
+	SQLS_MAP("S1098", "HY098");
+	SQLS_MAP("S1099", "HY099");
+	SQLS_MAP("S1100", "HY100");
+	SQLS_MAP("S1101", "HY101");
+	SQLS_MAP("S1103", "HY103");
+	SQLS_MAP("S1104", "HY104");
+	SQLS_MAP("S1105", "HY105");
+	SQLS_MAP("S1106", "HY106");
+	SQLS_MAP("S1107", "HY107");
+	SQLS_MAP("S1108", "HY108");
+	SQLS_MAP("S1109", "HY109");
+	SQLS_MAP("S1110", "HY110");
+	SQLS_MAP("S1111", "HY111");
+	SQLS_MAP("S1C00", "HYC00");
+	SQLS_MAP("S1T00", "HYT00");
+}
+
 
 static SQLRETURN
 _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
@@ -103,24 +195,33 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	const char *msg;
 	unsigned char odbc_ver = 2;
 	int cplen;
+	TDS_STMT *stmt = NULL;
+	TDS_DBC *dbc = NULL;
+	TDS_ENV *env = NULL;
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0 || !handle)
 		return SQL_ERROR;
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->odbc_ver;
-		errs = &((TDS_STMT *) handle)->errs;
+		stmt = (TDS_STMT *) handle;
+		dbc = stmt->hdbc;
+		env = dbc->henv;
+		odbc_ver = env->odbc_ver;
+		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
-		odbc_ver = ((TDS_DBC *) handle)->henv->odbc_ver;
-		errs = &((TDS_DBC *) handle)->errs;
+		dbc = ((TDS_DBC *) handle);
+		env = dbc->henv;
+		odbc_ver = env->odbc_ver;
+		errs = &dbc->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
-		odbc_ver = ((TDS_ENV *) handle)->odbc_ver;
-		errs = &((TDS_ENV *) handle)->errs;
+		env = ((TDS_ENV *) handle);
+		odbc_ver = env->odbc_ver;
+		errs = &env->errs;
 		break;
 
 	default:
@@ -132,7 +233,11 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	--numRecord;
 
 	if (szSqlState) {
-		if (odbc_ver == 3)
+		if (*errs->errs[numRecord].sqlstate != '\0') {
+			strcpy(szSqlState, errs->errs[numRecord].sqlstate);
+			if (odbc_ver == 3)
+				sqlstate2to3(szSqlState);
+		} else if (odbc_ver == 3)
 			strcpy((char *) szSqlState, errs->errs[numRecord].err->state3);
 		else
 			strcpy((char *) szSqlState, errs->errs[numRecord].err->state2);
@@ -152,9 +257,8 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 		strncpy((char *) szErrorMsg, msg, cplen);
 		((char *) szErrorMsg)[cplen] = 0;
 	}
-	/* TODO what to return ?? */
 	if (pfNativeError)
-		*pfNativeError = 1;
+		*pfNativeError = errs->errs[numRecord].msgnum;
 
 	return result;
 }
@@ -211,24 +315,35 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	const char *msg;
 	unsigned char odbc_ver = 2;
 	int cplen;
+	TDS_STMT *stmt = NULL;
+	TDS_DBC *dbc = NULL;
+	TDS_ENV *env = NULL;
+	TDSSOCKET *tsock;
+	char tmp[16];
 
-	if (numRecord <= 0 || cbBuffer < 0 || !handle)
+	if (cbBuffer < 0 || !handle)
 		return SQL_ERROR;
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		odbc_ver = ((TDS_STMT *) handle)->hdbc->henv->odbc_ver;
-		errs = &((TDS_STMT *) handle)->errs;
+		stmt = ((TDS_STMT *) handle);
+		dbc = stmt->hdbc;
+		env = dbc->henv;
+		odbc_ver = env->odbc_ver;
+		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
-		odbc_ver = ((TDS_DBC *) handle)->henv->odbc_ver;
-		errs = &((TDS_DBC *) handle)->errs;
+		dbc = ((TDS_DBC *) handle);
+		env = dbc->henv;
+		odbc_ver = env->odbc_ver;
+		errs = &dbc->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
-		odbc_ver = ((TDS_ENV *) handle)->odbc_ver;
-		errs = &((TDS_ENV *) handle)->errs;
+		env = ((TDS_ENV *) handle);
+		odbc_ver = env->odbc_ver;
+		errs = &env->errs;
 		break;
 
 	default:
@@ -265,7 +380,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_CURSOR_ROW_COUNT:
-		if (handleType != SQL_HANDLE_STMT)
+		if (stmt == NULL)
 			return SQL_ERROR;
 
 		/* TODO */
@@ -273,11 +388,22 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		return SQL_SUCCESS;
 
 	case SQL_DIAG_ROW_COUNT:
-		if (handleType != SQL_HANDLE_STMT)
+		if (stmt == NULL)
 			return SQL_ERROR;
 
-		/* TODO */
-		*(SQLINTEGER *) buffer = 0;
+		/* FIXME I'm not sure this is correct.*/
+		if (stmt != NULL && stmt->hdbc != NULL && stmt->hdbc->tds_socket != NULL) {
+			tsock = stmt->hdbc->tds_socket;
+			if (tsock->rows_affected == TDS_NO_COUNT) {
+				/* FIXME use row_count ?? */
+				if (tsock->res_info != NULL)
+					*(SQLINTEGER *) buffer = *(SQLINTEGER *) tsock->res_info->row_count;
+				else
+					*(SQLINTEGER *) buffer = 0;
+			} else
+				*(SQLINTEGER *) buffer = tsock->rows_affected;
+		} else
+			return SQL_ERROR;
 		return SQL_SUCCESS;
 	}
 
@@ -295,23 +421,62 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 
 	case SQL_DIAG_CLASS_ORIGIN:
 	case SQL_DIAG_SUBCLASS_ORIGIN:
-		/* TODO */
-		return SQL_ERROR;
+		/* FIXME copy partial string if not enogh space */
+		if (cbBuffer >= 8) {
+			if (odbc_ver < 3)
+				strcpy(buffer, "ISO 9075");
+			else
+				strcpy(buffer, "ODBC 3.0");
+		}
+
+		if (pcbBuffer)
+			*pcbBuffer = 8;
 		break;
 
 	case SQL_DIAG_COLUMN_NUMBER:
 		*(SQLINTEGER *) buffer = SQL_COLUMN_NUMBER_UNKNOWN;
 		break;
 
+#ifdef WIN32			// Is this ok for unix?
+	case SQL_DIAG_SS_MSGSTATE:
+		if (errs->errs[numRecord].msgstate == 0)
+			return SQL_ERROR;
+		else
+			*(SQLINTEGER *) buffer = errs->errs[numRecord].msgstate;
+		break;
+
+	case SQL_DIAG_SS_LINE:
+		if (errs->errs[numRecord].linenum == 0)
+			return SQL_ERROR;
+		else
+			*(SQLUSMALLINT *) buffer = errs->errs[numRecord].linenum;
+		break;
+#endif
+
 	case SQL_DIAG_CONNECTION_NAME:
-		/* TODO */
-		return SQL_ERROR;
+		if (dbc && dbc->tds_socket && dbc->tds_socket->spid > 0)
+			cplen = sprintf(tmp, "%d", dbc->tds_socket->spid);
+		else
+			cplen = 0;
+
+		if (pcbBuffer)
+			*pcbBuffer = cplen;
+
+		if (cbBuffer > 0) {
+			if (cplen >= cbBuffer) {
+				cplen = cbBuffer - 1;
+				result = SQL_SUCCESS_WITH_INFO;
+			}
+			strncpy(buffer, tmp, cplen);
+			((char *) buffer)[cplen] = '\0';
+		}
 		break;
 
 	case SQL_DIAG_MESSAGE_TEXT:
 		msg = errs->errs[numRecord].msg;
 		if (!msg)
 			msg = errs->errs[numRecord].err->msg;
+
 		cplen = strlen(msg);
 		if (pcbBuffer)
 			*pcbBuffer = cplen;
@@ -326,20 +491,40 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		break;
 
 	case SQL_DIAG_NATIVE:
-		/* TODO */
-		*(SQLINTEGER *) buffer = 0;
+		*(SQLINTEGER *) buffer = errs->errs[numRecord].msgnum;
 		break;
 
 	case SQL_DIAG_SERVER_NAME:
-		/* TODO */
-		return SQL_ERROR;
+		/* FIXME connect_info, as documented (or should be) is always NULL */
+		if (dbc && dbc->tds_socket && dbc->tds_socket->connect_info != NULL) {
+			if ((msg = dbc->tds_socket->connect_info->server_name) != NULL) {
+				cplen = strlen(msg);
+				if (pcbBuffer)
+					*pcbBuffer = cplen;
+				if (cplen > cbBuffer)
+					cplen = cbBuffer - 1;
+				strncpy(buffer, msg, cplen);
+				((char *) buffer)[cplen] = '\0';
+			} else {
+				if (pcbBuffer)
+					*pcbBuffer = 0;
+			}
+		} else {
+			if (pcbBuffer)
+				*pcbBuffer = 0;
+		}
 		break;
 
 	case SQL_DIAG_SQLSTATE:
-		if (odbc_ver == 3)
+		msg = errs->errs[numRecord].sqlstate;
+		if (*msg != '\0') {
+			if (odbc_ver == 3)
+				sqlstate2to3(errs->errs[numRecord].sqlstate);
+		} else if (odbc_ver == 3)
 			msg = errs->errs[numRecord].err->state3;
 		else
 			msg = errs->errs[numRecord].err->state2;
+
 		cplen = 5;
 		if (pcbBuffer)
 			*pcbBuffer = cplen;

@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.22 2003-03-06 11:46:23 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.23 2003-03-23 20:52:22 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
@@ -59,6 +59,10 @@ struct _sql_error
 	const struct _sql_error_struct *err;
 	/* override error if specified */
 	char *msg;
+	char sqlstate[6];
+	int msgstate;
+	int msgnum;
+	int linenum;
 };
 
 struct _sql_errors

@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.140 2003-03-23 20:13:51 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.141 2003-03-23 20:52:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -929,14 +929,15 @@ SQLDisconnect(SQLHDBC hdbc)
 static int
 mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
-	char *p;
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc;
 
-	if (asprintf(&p,
-		     " Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-		     msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
-		return 0;
+	/*
+	 * if (asprintf(&p,
+	 * " Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+	 * msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
+	 * return 0;
+	 */
 	/* latest_msg_number = msg->msg_number; */
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
@@ -947,22 +948,23 @@ mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
 	if (errs)
-		odbc_errs_add(errs, ODBCERR_GENERIC, p);
-	free(p);
+		odbc_errs_add_rdbms(errs, ODBCERR_GENERIC, msg->message, msg->sql_state, msg->msg_number, msg->line_number,
+				    msg->msg_level);
 	return 1;
 }
 
 static int
 myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 {
-	char *p;
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc;
 
-	if (asprintf(&p,
-		     " Err %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-		     msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
-		return 0;
+	/*
+	 * if (asprintf(&p,
+	 * " Err %d, Level %d, State %d, Server %s, Line %d\n%s\n",
+	 * msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
+	 * return 0;
+	 */
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
 		errs = &dbc->errs;
@@ -972,8 +974,8 @@ myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
 	if (errs)
-		odbc_errs_add(errs, ODBCERR_GENERIC, p);
-	free(p);
+		odbc_errs_add_rdbms(errs, ODBCERR_GENERIC, msg->message, msg->sql_state, msg->msg_number, msg->line_number,
+				    msg->msg_level);
 	return 1;
 }
 
@@ -1800,7 +1802,13 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (is_blob_type(colinfo->column_type)) {
 			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 				return SQL_NO_DATA_FOUND;
-			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+
+			/* FIXME why this became < 0 ??? */
+			if (colinfo->column_text_sqlgetdatapos > 0)
+				src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+			else
+				src = ((TDSBLOBINFO *) src)->textvalue;
+
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
 			srclen = colinfo->column_cur_size;
@@ -2168,7 +2176,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	switch (fInfoType) {
 		/* TODO dbms name and version can be safed from login... */
 	case SQL_DBMS_NAME:
-		if (dbc->tds_socket && TDS_IS_MSSQL(dbc->tds_socket)) {
+		if (dbc->tds_socket && TDS_IS_MSSQL(dbc->tds_socket))
 			p = "Microsoft SQL Server";
 		else
 			p = "SQL Server";

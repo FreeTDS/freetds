@@ -1,3 +1,10 @@
+Sun Mar 23 21:48:35 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	- merged rest of Peter Deacon patch
+	- return much more information for ODBC errors
+	- return correct ODBCv3 state
+	- fix SQLGetData returning garbage
+	
 Sun Mar 23 21:12:11 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds_sysdep_private.h: portability define
 	* src/odbc/connectparams.c: discard space before attributes
