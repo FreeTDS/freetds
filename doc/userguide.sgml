@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-11-27 22:01:35 $</date>
-		<releaseinfo>$Revision: 1.86 $</releaseinfo>
+		<date>$Date: 2004-11-29 14:26:42 $</date>
+		<releaseinfo>$Revision: 1.86.2.1 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.86 $</>
-<member>$Date: 2004-11-27 22:01:35 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.86 2004-11-27 22:01:35 jklowden Exp $.</>
+<member>$Revision: 1.86.2.1 $</>
+<member>$Date: 2004-11-29 14:26:42 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.86.2.1 2004-11-29 14:26:42 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -170,7 +170,7 @@ In early 1997, the only option for connecting to a Sybase server from Linux or o
 Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
 			</para>
 			<para>
-As the project matured, it gained new partcipants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
+As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
 			</para>
 			<para>
 There have been many other contributions.  Please see the <filename>AUTHORS</> in the distribution for a (we hope) complete list.  
@@ -535,7 +535,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-11-27 22:01:35 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2004-11-29 14:26:42 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1724,7 +1724,7 @@ if (!SQL_SUCCEEDED(res)) {
 </programlisting>
 </example>
 
-You can even establish a connection without reference to either <filename>odbc.ini</filename> or <filename>freetd.conf</filename>.
+You can even establish a connection without reference to either <filename>odbc.ini</filename> or <filename>freetds.conf</filename>.
 
 <example id="e.g.ConnectDSNlessnoconf"><title>Connecting with a DSN-less configuration that does not use <filename>freetds.conf</filename></title>
 <programlisting>
@@ -2871,7 +2871,7 @@ in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 	Won't you please, please help me?
 </literallayout></para>
 </epigraph>
-			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowlegable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
+			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowledgeable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
 			</para>
 			
 		<sect1 id="IsolateCause"><title>Isolate the cause</title>
@@ -2879,7 +2879,7 @@ in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 Successful problem isolation will yield earliest resolution.  You (believe it or not) have more information about your environment than anyone else does, and have the greatest motivation to solve your problem.  The resources at your disposal will be much more useful if the problem is specific.  (Sorry if this is obvious.  If it is, you might be surprised how often it's not.)
 			</para>
 			<para>
-If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making <productname>FreeTDS</productname> useful and bugless is the goal of the project, after all.)  
+If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making <productname>FreeTDS</productname> useful and bug-less is the goal of the project, after all.)  
 			</para>
 			<para>
 <productname>FreeTDS</productname> being what it is, problems frequently arise amidst complex environments.  It can be hard for both you and the list participants -- who are your allies and best resource -- to determine what's going wrong.  If you can submit a script that they can use to try to reproduce your results, you have a much better chance of happy resolution.  
@@ -2997,7 +2997,7 @@ Good patches are nearly always applied in short order.  Patches uploaded to <uli
 Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
 			</para>
 			<para>
-The User Guide is maintained in SGML DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.  
+The User Guide is maintained in SGML DocBook format; the file in your distribution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.  
 			</para>
 		</sect2>
 		<sect2 id="Documentapi">
@@ -3295,7 +3295,7 @@ For better or worse, <productname>FreeTDS</productname> brings the otherwise inn
 			</para>
 		<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 			<para>
-The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> <footnote><para>czyborra.com is offline at the time of this writing (December 2003).  It contained good information, so it's still included here, in case it comes back to life.  </para></footnote>  was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
+The world we are all familiar with, programming wise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> <footnote><para>czyborra.com is offline at the time of this writing (December 2003).  It contained good information, so it's still included here, in case it comes back to life.  </para></footnote>  was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.  
 			</para>
 			<para>
 Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.  
