@@ -1,3 +1,7 @@
+Sun Nov 28 10:11:40 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in set version number
+	* doc/api_status.txt implement (modified) patch from Frediano.
+	
 Sun Nov 28 10:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/sybdb.h include/tds_sysdep_public.h.in:
 	* src/dblib/dblib.c src/dblib/dbopen.c:
