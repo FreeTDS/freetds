@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.25 2003-08-01 15:51:29 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.26 2003-08-04 09:13:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -175,12 +175,6 @@ static const struct s_SqlMsgMap SqlMsgMap[] = {
 
 #undef ODBCERR
 
-struct s_NativeToSqlstateMap
-{
-	TDS_UINT native;
-	char sqlstate[6];
-};
-
 struct s_v3to2map
 {
 	char v3[6];
@@ -262,6 +256,7 @@ odbc_get_v2state(const char *sqlstate, char *dest_state)
 {
 	const struct s_v3to2map *pmap = v3to2map;
 
+	dest_state[5] = 0;
 	while (pmap->v3[0]) {
 		if (!strcasecmp(pmap->v3, sqlstate)) {
 			strncpy(dest_state, pmap->v2, 5);
@@ -304,6 +299,7 @@ odbc_errs_pop(struct _sql_errors *errs)
 		return;
 	}
 
+	/* TODO see flags */
 	if (errs->errs[0].msg)
 		free((char *) errs->errs[0].msg);
 	if (errs->errs[0].server)
@@ -318,7 +314,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, c
 {
 	struct _sql_error *p;
 	int n = errs->num_errors;
-	
+
 	assert(sqlstate);
 
 	if (errs->errs)
@@ -362,12 +358,11 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	if (sqlstate) {
 		strncpy(errs->errs[n].state2, sqlstate, 5);
 		errs->errs[n].state2[5] = '\0';
-	} 
-	else
+	} else
 		errs->errs[n].state2[0] = '\0';
 	strcpy(errs->errs[n].state3, errs->errs[n].state2);
 	sqlstate2to3(errs->errs[n].state3);
-	
+
 	/* TODO why driver ?? -- freddy77 */
 	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
@@ -444,8 +439,11 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 
-	if (numRecord <= 0 || cbErrorMsgMax < 0 || !handle)
+	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
+
+	if (!handle)
+		return SQL_INVALID_HANDLE;
 
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
@@ -685,14 +683,14 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		case SQL_HANDLE_ENV:
 			break;
 		case SQL_HANDLE_DBC:
-			msg = tds_dstr_cstr(&((TDS_DBC *) handle)->server);
+			msg = tds_dstr_cstr(&dbc->server);
 			break;
 		case SQL_HANDLE_STMT:
-			msg = tds_dstr_cstr(&((TDS_STMT *) handle)->hdbc->server);
+			msg = tds_dstr_cstr(&stmt->hdbc->server);
 			/* if hdbc->server is not initialized, init it
 			 * from the errs structure */
 			if (!msg[0] && errs->errs[numRecord].server) {
-				tds_dstr_copy(&((TDS_STMT *) handle)->hdbc->server, errs->errs[numRecord].server);
+				tds_dstr_copy(&stmt->hdbc->server, errs->errs[numRecord].server);
 				msg = errs->errs[numRecord].server;
 			}
 			break;

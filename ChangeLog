@@ -1,3 +1,6 @@
+Mon Aug 04 11:12:42 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c: cleanup and small changes
+
 Sun Aug  3 23:46:25 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/basic_jdbc_question.html doc/htdoc/faq.html
 	- moved from doc directory
@@ -11,7 +14,7 @@ Sun Aug  3 23:46:25 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/which_api.html
 	- Added website pages to doc/htdoc
 
-Sun Aug 02 16:02:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sun Aug 03 16:02:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c: add PacketSize DSN entry
 
 Sat Aug 02 19:49:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
