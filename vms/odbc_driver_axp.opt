@@ -46,6 +46,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLGetConnectAttr=PROCEDURE,-
 		SQLGetConnectOption=PROCEDURE,-
 		SQLGetData=PROCEDURE,-
+		SQLGetDescRec=PROCEDURE,-
 		SQLGetDiagField=PROCEDURE,-
 		SQLGetDiagRec=PROCEDURE,-
 		SQLGetEnvAttr=PROCEDURE,-
@@ -67,6 +68,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLRowCount=PROCEDURE,-
 		SQLSetConnectAttr=PROCEDURE,-
 		SQLSetConnectOption=PROCEDURE,-
+		SQLSetDescRec=PROCEDURE,-
 		SQLSetEnvAttr=PROCEDURE,-
 		SQLSetParam=PROCEDURE,-
 		SQLSetStmtOption=PROCEDURE,-

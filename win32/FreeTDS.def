@@ -31,6 +31,7 @@ EXPORTS
 	SQLGetConnectOption
 ;	SQLGetCursorName
 	SQLGetData
+	SQLGetDescRec
 	SQLGetDiagField
 	SQLGetDiagRec
 	SQLGetEnvAttr
@@ -54,6 +55,7 @@ EXPORTS
 	SQLSetConnectAttr
 	SQLSetConnectOption
 ;	SQLSetCursorName
+	SQLSetDescRec
 	SQLSetEnvAttr
 	SQLSetParam
 ;	SQLSetPos

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.205 2003-08-05 09:03:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.206 2003-08-06 09:15:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -720,8 +720,30 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 
 	INIT_HSTMT;
 
-	if (ipar == 0) {
-		odbc_errs_add(&stmt->errs, "07009", NULL, NULL);
+#ifdef TDS_NO_DM
+	/* TODO - more error checking ...  XXX smurph */
+
+	/* Check param type */
+	switch (fParamType) {
+	case SQL_PARAM_INPUT:
+	case SQL_PARAM_INPUT_OUTPUT:
+	case SQL_PARAM_OUTPUT:
+		break;
+	default:
+		odbc_errs_add(&stmt->errs, "HY105", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* Check max buffer length */
+	if (cbValueMax < 0) {
+		odbc_errs_add(&stmt->errs, "HY090", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+#endif
+
+	/* Check parameter number */
+	if (ipar < 1) {
+		odbc_errs_add(&stmt->errs, "HY093", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
@@ -1331,6 +1353,86 @@ myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level,
 				    msg->server);
 	return 1;
+}
+
+SQLRETURN SQL_API
+SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLSMALLINT nSubType, SQLINTEGER nLength,
+	      SQLSMALLINT nPrecision, SQLSMALLINT nScale, SQLPOINTER pData, SQLINTEGER * pnStringLength, SQLINTEGER * pnIndicator)
+{
+	struct _drecord *drec;
+
+	INIT_HDESC;
+
+	if (desc->type == DESC_IRD) {
+		odbc_errs_add(&desc->errs, "HY016", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	if (nRecordNumber > desc->header.sql_desc_count || nRecordNumber < 0) {
+		odbc_errs_add(&desc->errs, "07009", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	drec = &desc->records[nRecordNumber];
+
+	/* TODO check for valid types and return "HY021" if not */
+	drec->sql_desc_type = nType;
+	drec->sql_desc_octet_length = nLength;
+	drec->sql_desc_precision = nPrecision;
+	drec->sql_desc_scale = nScale;
+	drec->sql_desc_data_ptr = pData;
+	drec->sql_desc_octet_length_ptr = pnStringLength;
+	drec->sql_desc_indicator_ptr = pnIndicator;
+
+	ODBC_RETURN(desc, SQL_SUCCESS);
+}
+
+SQLRETURN SQL_API
+SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALLINT BufferLength, SQLSMALLINT * StringLength,
+	      SQLSMALLINT * Type, SQLSMALLINT * SubType, SQLINTEGER * Length, SQLSMALLINT * Precision, SQLSMALLINT * Scale,
+	      SQLSMALLINT * Nullable)
+{
+	struct _drecord *drec = NULL;
+	SQLRETURN rc = SQL_SUCCESS;
+	int len;
+
+	INIT_HDESC;
+
+	if (desc->type == DESC_IRD && desc->header.sql_desc_count) {
+		odbc_errs_add(&desc->errs, "HY007", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	if (RecordNumber > desc->header.sql_desc_count || RecordNumber < 0) {
+		odbc_errs_add(&desc->errs, "07009", NULL, NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
+	drec = &desc->records[RecordNumber];
+	len = strlen(drec->sql_desc_name);
+
+	if (StringLength)
+		*StringLength = len;
+
+	if (Name) {
+		if ((rc = odbc_set_string(Name, BufferLength, StringLength, drec->sql_desc_name, len)) != SQL_SUCCESS)
+			odbc_errs_add(&desc->errs, "01004", NULL, NULL);
+	}
+
+	if (Type)
+		*Type = drec->sql_desc_type;
+	if (Length)
+		*Length = drec->sql_desc_octet_length;
+	if (Precision)
+		*Precision = drec->sql_desc_precision;
+	if (Scale)
+		*Scale = drec->sql_desc_scale;
+	if (SubType)
+		*SubType = 0;
+	if (Nullable)
+		*Nullable = drec->sql_desc_nullable;
+
+	ODBC_RETURN(desc, rc);
 }
 
 static SQLRETURN SQL_API
@@ -2447,7 +2549,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
 		API3_(SQL_API_SQLGETDESCFIELD);
-		API3_(SQL_API_SQLGETDESCREC);
+		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
 		API3X(SQL_API_SQLGETENVATTR);
@@ -2472,7 +2574,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
 		API3_(SQL_API_SQLSETDESCFIELD);
-		API3_(SQL_API_SQLSETDESCREC);
+		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
@@ -2539,7 +2641,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
 		API3_(SQL_API_SQLGETDESCFIELD);
-		API3_(SQL_API_SQLGETDESCREC);
+		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
 		API3X(SQL_API_SQLGETENVATTR);
@@ -2564,7 +2666,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
 		API3_(SQL_API_SQLSETDESCFIELD);
-		API3_(SQL_API_SQLSETDESCREC);
+		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
@@ -2628,7 +2730,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API__(SQL_API_SQLGETCURSORNAME);
 		API_X(SQL_API_SQLGETDATA);
 		API3_(SQL_API_SQLGETDESCFIELD);
-		API3_(SQL_API_SQLGETDESCREC);
+		API3X(SQL_API_SQLGETDESCREC);
 		API3X(SQL_API_SQLGETDIAGFIELD);
 		API3X(SQL_API_SQLGETDIAGREC);
 		API3X(SQL_API_SQLGETENVATTR);
@@ -2653,7 +2755,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETCONNECTOPTION);
 		API__(SQL_API_SQLSETCURSORNAME);
 		API3_(SQL_API_SQLSETDESCFIELD);
-		API3_(SQL_API_SQLSETDESCREC);
+		API3X(SQL_API_SQLSETDESCREC);
 		API3X(SQL_API_SQLSETENVATTR);
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
@@ -2817,7 +2919,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		/* Cursors not supported yet */
 		*uiInfoValue = 0;
 		break;
-#endif
+#endif /* ODBCVER >= 0x0300 */
 	case SQL_FILE_USAGE:
 		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
 		break;
@@ -2827,7 +2929,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		/* Cursors not supported yet */
 		*uiInfoValue = 0;
 		break;
-#endif
+#endif /* ODBCVER >= 0x0300 */
 	case SQL_IDENTIFIER_QUOTE_CHAR:
 		p = "\"";
 		break;
@@ -2865,7 +2967,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		/* Cursors not supported yet */
 		*uiInfoValue = 0;
 		break;
-#endif
+#endif /* ODBCVER >= 0x0300 */
 	case SQL_TXN_CAPABLE:
 		/* transaction for DML and DDL */
 		*siInfoValue = SQL_TC_ALL;
