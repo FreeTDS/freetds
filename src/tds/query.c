@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.163 2005-02-11 13:15:56 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.164 2005-02-20 09:19:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -2096,6 +2096,15 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(params);
+
+	if (src_len < 0) {
+		/* on TDS 4 and 5 TEXT/IMAGE cannot be NULL, use empty */
+		if (!IS_TDS7_PLUS(tds) && (curcol->column_type == SYBIMAGE || curcol->column_type == SYBTEXT))
+			tds_put_n(tds, "''", 2);
+		else
+			tds_put_n(tds, "NULL", 4);
+		return TDS_SUCCEED;
+	}
 	
 	if (is_blob_type(curcol->column_type))
 		src = ((TDSBLOB *)src)->textvalue;

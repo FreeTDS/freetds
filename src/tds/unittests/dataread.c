@@ -19,19 +19,35 @@
 
 #include "common.h"
 
+#include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.13 2004-10-14 14:47:40 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.14 2005-02-20 09:19:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
 static TDSLOGIN *login;
 static TDSSOCKET *tds;
 
-void test(const char *type, const char *value, const char *result);
+static void test0(const char *type, ...);
 
-void
+static void
 test(const char *type, const char *value, const char *result)
+{
+	test0(type, value, result, NULL);
+}
+
+static void
+exec_query(const char *query)
+{
+	if (tds_submit_query(tds, query) != TDS_SUCCEED || tds_process_simple_query(tds) != TDS_SUCCEED) {
+                fprintf(stderr, "executing query failed\n");
+                exit(1);
+        }
+}
+
+static void
+test0(const char *type, ...)
 {
 	char buf[512];
 	CONV_RESULT cr;
@@ -40,15 +56,36 @@ test(const char *type, const char *value, const char *result)
 	TDS_INT row_type;
 	TDS_INT compute_id;
 	int done_flags;
+	va_list ap;
+	struct {
+		const char *value;
+		const char *result;
+	} data[10];
+	int num_data = 0, i_row;
 
-	if (!result)
-		result = value;
+	sprintf(buf, "CREATE TABLE #tmp(a %s)", type);
+	exec_query(buf);
 
-	/* build select */
-	sprintf(buf, "SELECT CONVERT(%s,'%s')", type, value);
+        va_start(ap, type);
+	for (;;) {
+		const char * value = va_arg(ap, const char *);
+		const char * result = va_arg(ap, const char *);
+		if (!value)
+			break;
+		if (!result)
+			result = value;
+		data[num_data].value = value;
+		data[num_data].result = result;
+		sprintf(buf, "INSERT INTO #tmp VALUES(CONVERT(%s,'%s'))", type, value);
+		exec_query(buf);
+		++num_data;
+	}
+        va_end(ap);
+
+	assert(num_data > 0);
 
 	/* execute it */
-	rc = tds_submit_query(tds, buf);
+	rc = tds_submit_query(tds, "SELECT * FROM #tmp");
 	if (rc != TDS_SUCCEED) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		exit(1);
@@ -74,11 +111,14 @@ test(const char *type, const char *value, const char *result)
 		exit(1);
 	}
 
+	i_row = 0;
 	while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
 
 		TDSCOLUMN *curcol = tds->current_results->columns[0];
 		unsigned char *src = tds->current_results->current_row + curcol->column_offset;
 		int conv_type = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+
+		assert(i_row < num_data);
 
 		if (is_blob_type(curcol->column_type)) {
 			TDSBLOB *blob = (TDSBLOB *) src;
@@ -90,12 +130,13 @@ test(const char *type, const char *value, const char *result)
 			fprintf(stderr, "Error converting\n");
 			g_result = 1;
 		} else {
-			if (strcmp(result, cr.c) != 0) {
-				fprintf(stderr, "Failed! Is \n%s\nShould be\n%s\n", cr.c, result);
+			if (strcmp(data[i_row].result, cr.c) != 0) {
+				fprintf(stderr, "Failed! Is \n%s\nShould be\n%s\n", cr.c, data[i_row].result);
 				g_result = 1;
 			}
 			free(cr.c);
 		}
+		++i_row;
 	}
 
 	if (rc != TDS_NO_MORE_ROWS) {
@@ -120,6 +161,8 @@ test(const char *type, const char *value, const char *result)
 			break;
 		}
 	}
+
+	exec_query("DROP TABLE #tmp");
 }
 
 int
@@ -162,12 +205,12 @@ main(int argc, char **argv)
 	/* char */
 	test("CHAR(10)", "pippo", "pippo     ");
 	test("VARCHAR(20)", "pippo", NULL);
-	test("TEXT", "foofoo", NULL);
+	test0("TEXT", "a", NULL, "foofoo", NULL, "try with a relatively long value, we hope for the best", NULL, NULL);
 
 	/* binary */
 	test("VARBINARY(6)", "foo", "666f6f");
 	test("BINARY(6)", "foo", "666f6f000000");
-	test("IMAGE", "foo", "666f6f");
+	test0("IMAGE", "foo", "666f6f", "foofoofoofoo", "666f6f666f6f666f6f666f6f", NULL);
 
 	/* numeric */
 	test("NUMERIC(10,2)", "12765.76", NULL);

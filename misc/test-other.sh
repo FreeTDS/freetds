@@ -41,9 +41,27 @@ if perl --help > /dev/null 2>&1; then
 		echo Testing $DIR
 		if ! test -d "$DIR"; then
 			tar zxvf "$DIR.tar.gz"
+			# try to apply patch for Sybase
+			cd "$DIR"
+			echo 'diff -ru DBD-ODBC-1.13/t/07bind.t DBD-ODBC-1.13my/t/07bind.t
+--- DBD-ODBC-1.13/t/07bind.t	2005-02-20 10:09:17.039561424 +0100
++++ DBD-ODBC-1.13my/t/07bind.t	2004-12-18 15:19:11.000000000 +0100
+@@ -133,7 +133,7 @@
+ 		  # expect!
+ 		  $row[2] = "";
+ 	       }
+-	       if ($row[2] ne $_->[2]) {
++	       if ($row[2] ne $_->[2] && ($dbname ne "sql server" || $row[2] ne " ") ) {
+ 		  print "Column C value failed! bind value = $bind_val, returned values = $row[0]|$row[1]|$row[2]|$row[3]\n";
+ 		  return undef;
+ 	       }
+' | patch -p1 || true
+			cd ..
 		fi
 		test -d "$DIR"
 		cd "$DIR"
+		test -r Makefile || perl Makefile.PL
+		make clean
 		test -r Makefile || perl Makefile.PL
 		make
 		make test

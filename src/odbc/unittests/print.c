@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.12 2005-01-14 15:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.13 2005-02-20 09:19:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -62,8 +62,10 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	output[0] = 0;
+#ifdef ENABLE_DEVELOPING
 	CHECK_COLS(-1);
 	CHECK_ROWS(-2);
+#endif
 
 	/* issue invalid command and test error */
 	if (CommandWithResult(Statement, "SELECT donotexistsfield FROM donotexiststable") != SQL_ERROR) {
@@ -72,14 +74,12 @@ main(int argc, char *argv[])
 	}
 	ReadError();
 
-#ifndef TDS_NO_DM
 	/* test no data returned */
 	if (SQLFetch(Statement) != SQL_ERROR) {
 		printf("Row fetched ??\n");
 		return 1;
 	}
 	ReadError();
-#endif
 
 	if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_ERROR) {
 		printf("Data ??\n");

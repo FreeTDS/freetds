@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.287 2005-02-11 13:15:56 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.288 2005-02-20 09:19:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2132,8 +2132,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		return TDS_SUCCEED;
 	}
 
-	curcol->column_cur_size = colsize;
-	
 	/* 
 	 * We're now set to read the data from the wire.  For varying types (e.g. char/varchar)
 	 * make sure that curcol->column_cur_size reflects the size of the read data, 
@@ -2208,6 +2206,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			tds_get_n(tds, blob->textvalue, colsize);
 		}
 	} else {		/* non-numeric and non-blob */
+		curcol->column_cur_size = colsize;
+
 		if (curcol->char_conv) {
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;

@@ -1,3 +1,11 @@
+Sun Feb 20 10:18:47 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* misc/test-other.sh: improved
+	* src/odbc/unittests/print.c: some fixes
+	* src/tds/query.c: fix core in emulated prepared, handle NULLs
+	* src/tds/token.c: fix buffer overflow using text
+	* src/tds/unittests/dataread.c:
+	- improved to catch problems reallocating BLOBs
+
 Fri Feb 18 13:55:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/typeinfo.c:
