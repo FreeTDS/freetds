@@ -1,3 +1,7 @@
+Sat Dec 07 14:32:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c src/tds/token.c:
+	- handle collate change from server and use it
+
 Fri Dec 06 22:54:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in src/tds/threadsafe.c:
 	- fix compile under Solaris

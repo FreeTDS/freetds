@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.59 2002-12-06 16:55:32 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.60 2002-12-07 13:32:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags);
@@ -344,10 +344,6 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_int(tds,curcol->column_usertype); /* usertype */
 	tds_put_byte(tds, curcol->column_type); 
-	if (is_numeric_type(curcol->column_type)) {
-		tds_put_byte(tds, curcol->column_prec);
-		tds_put_byte(tds, curcol->column_scale);
-	}
 	switch(curcol->column_varint_size) {
 	case 0:
 		break;
@@ -361,7 +357,15 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 		tds_put_int(tds, curcol->column_cur_size);
 		break;
 	}
-	/* TODO in TDS8 we MUST output collate information !!! */
+	if (is_numeric_type(curcol->column_type)) {
+		tds_put_byte(tds, curcol->column_prec);
+		tds_put_byte(tds, curcol->column_scale);
+	}
+
+	/* TDS8 output collate information */
+	if (IS_TDS80(tds))
+		tds_put_n(tds, tds->collation, 5);
+
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
 	if (!IS_TDS7_PLUS(tds))
 		tds_put_byte(tds,0x00); /* locale info length */

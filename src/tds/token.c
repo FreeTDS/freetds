@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.123 2002-12-06 16:55:58 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.124 2002-12-07 13:32:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -953,7 +953,6 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 TDS_SMALLINT tabnamelen;
 int colnamelen;
-unsigned char column_type;
 
 	/*  User defined data type of the column */
 	curcol->column_usertype = tds_get_smallint(tds);
@@ -964,8 +963,7 @@ unsigned char column_type;
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	column_type = tds_get_byte(tds);
-	tds_set_column_type(curcol, column_type); 	/* sets "cardinal" type */
+	tds_set_column_type(curcol, tds_get_byte(tds)); 	/* sets "cardinal" type */
 
 	switch (curcol->column_varint_size) {
 	case 4:
@@ -987,7 +985,7 @@ unsigned char column_type;
 		curcol->column_scale = tds_get_byte(tds);	/* scale */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(column_type)) 	/* based on true type as sent by server */
+	if (IS_TDS80(tds) && is_collate_type(curcol->column_type_save)) 	/* based on true type as sent by server */
 		/* first 2 bytes are windows code (such as 0x409 for english)
 		 * other 2 bytes ???
 		 * last bytes is id in syscharsets */
@@ -1503,14 +1501,20 @@ unsigned char *new_out_buf;
 
 	type = tds_get_byte(tds);
 
-	/* TODO I don't understand why... What's env 7? */
-	if (type == 0x07) {
+	/* handle collate default change (if you change db or during login) 
+	   this environment is not a string so need different handles */
+	if (type == TDS_ENV_COLLATION) {
+		/* save new collation */
 		size = tds_get_byte(tds);
-		if (size)
-			tds_get_n(tds, NULL, size);
-		size = tds_get_byte(tds);
-		if (size)
-			tds_get_n(tds, NULL, size);
+		memset(tds->collation, 0, 5);
+		if (size <= 5) {
+			tds_get_n(tds, tds->collation, size);
+		} else {
+			tds_get_n(tds, tds->collation, 5);
+			tds_get_n(tds, NULL, size - 5);
+		}
+		/* discard old one */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCEED;
 	}
 

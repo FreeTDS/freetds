@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.65 2002-12-05 17:34:30 jklowden Exp $";
+	"$Id: tds.h,v 1.66 2002-12-07 13:32:28 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -212,6 +212,7 @@ enum tds_end {
 #define TDS_ENV_LANG      2
 #define TDS_ENV_CHARSET   3
 #define TDS_ENV_PACKSIZE  4
+#define TDS_ENV_COLLATION 7
 
 /* string types */
 #define TDS_NULLTERM -9
@@ -661,6 +662,7 @@ struct tds_socket {
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
 	int spid;
+	TDS_CHAR collation[5];
 	void (*env_chg_func)(TDSSOCKET *tds, int type, char *oldval, char *newval);
 };
 
