@@ -1,3 +1,7 @@
+Fri Jan 21 13:59:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/sql2tds.c:
+	- workaround for DBD::ODBC
+
 Fri Jan 21 12:37:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/cancel.c: not developing anymore
 	* src/odbc/odbc.c: improve timeout
