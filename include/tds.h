@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.153 2003-11-04 19:01:38 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.154 2003-11-16 08:19:34 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -76,33 +76,30 @@ typedef struct DSTR_CHAR *DSTR;
  * \defgroup libtds LibTDS API
  * Callable functions in \c libtds.
  * 
-   The \c libtds library is for use internal to \em FreeTDS.  It is not
-   intended for use by applications.  Although any use is \em permitted, you're
-   encouraged to use one of the established public APIs instead, because their
-   interfaces are stable and documented by the vendors.  
+ * The \c libtds library is for use internal to \em FreeTDS.  It is not
+ * intended for use by applications.  Although any use is \em permitted, you're
+ * encouraged to use one of the established public APIs instead, because their
+ * interfaces are stable and documented by the vendors.  
  */
 
 /* 
-** I've tried to change all references to data that goes to 
-** or comes off the wire to use these typedefs.  I've probably 
-** missed a bunch, but the idea is we can use these definitions
-** to set the appropriately sized native type.
-**
-** If you have problems on 64-bit machines and the code is 
-** using a native datatype, please change the code to use
-** these. (In the TDS layer only, the API layers have their
-** own typedefs which equate to these).
-*/
-typedef char TDS_CHAR;		/*  8-bit char     */
-typedef unsigned char TDS_UCHAR;	/*  8-bit uchar    */
-typedef unsigned char TDS_TINYINT;	/*  8-bit unsigned */
-typedef tds_sysdep_int16_type TDS_SMALLINT;	/* 16-bit int      */
+ * All references to data that touch the wire should use the following typedefs.  
+ *
+ * If you have problems on 64-bit machines and the code is 
+ * using a native datatype, please change it to use
+ * these. (In the TDS layer only, the API layers have their
+ * own typedefs which equate to these).
+ */
+typedef char TDS_CHAR;					/*  8-bit char     */
+typedef unsigned char TDS_UCHAR;			/*  8-bit uchar    */
+typedef unsigned char TDS_TINYINT;			/*  8-bit unsigned */
+typedef tds_sysdep_int16_type TDS_SMALLINT;		/* 16-bit int      */
 typedef unsigned tds_sysdep_int16_type TDS_USMALLINT;	/* 16-bit unsigned */
-typedef tds_sysdep_int32_type TDS_INT;	/* 32-bit int      */
+typedef tds_sysdep_int32_type TDS_INT;			/* 32-bit int      */
 typedef unsigned tds_sysdep_int32_type TDS_UINT;	/* 32-bit unsigned */
-typedef tds_sysdep_real32_type TDS_REAL;	/* 32-bit real     */
-typedef tds_sysdep_real64_type TDS_FLOAT;	/* 64-bit real     */
-typedef tds_sysdep_int64_type TDS_INT8;	/* 64-bit integer  */
+typedef tds_sysdep_real32_type TDS_REAL;		/* 32-bit real     */
+typedef tds_sysdep_real64_type TDS_FLOAT;		/* 64-bit real     */
+typedef tds_sysdep_int64_type TDS_INT8;			/* 64-bit integer  */
 typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
 
 typedef struct tdsnumeric
@@ -232,12 +229,10 @@ enum tds_end
 		, TDS_DONE_TRAN_ABORT = 4	/* Transaction aborted */
 };
 
-
 /*
-** TDS_ERROR indicates a successful processing, but an TDS_ERROR_TOKEN or 
-** TDS_EED_TOKEN error was encountered, whereas TDS_FAIL indicates an
-** unrecoverable failure.
-*/
+ * TDS_ERROR indicates a successful processing, but that a TDS_ERROR_TOKEN or TDS_EED_TOKEN error was encountered.  
+ * TDS_FAIL indicates an unrecoverable failure.
+ */
 #define TDS_ERROR            3
 #define TDS_DONT_RETURN      42
 
@@ -280,18 +275,18 @@ enum tds_end
 #define TDS_DONEINPROC_TOKEN      255	/* 0xFF    TDS_DONEINPROC            */
 
 /* CURSOR support: TDS 5.0 only*/
-#define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
+#define TDS_CURCLOSE_TOKEN        128  /* 0x80    TDS 5.0 only              */
+#define TDS_CURFETCH_TOKEN        130  /* 0x82    TDS 5.0 only              */
 #define TDS_CURINFO_TOKEN         131  /* 0x83    TDS 5.0 only              */
 #define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */
-#define TDS_CURFETCH_TOKEN        130  /* 0x82    TDS 5.0 only              */
-#define TDS_CURCLOSE_TOKEN        128  /* 0x80    TDS 5.0 only              */
+#define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
 
-/* Cursor Declare, SetRows, Open and Close all return 0x83 token. 
-   But only SetRows includes the rowcount (4 byte) in the stream. 
-   So for Setrows we read the rowcount from the stream and not for others. 
-   These values are useful to determine when to read the rowcount from the packet
-*/
-
+/* 
+ * Cursor Declare, SetRows, Open and Close all return 0x83 token. 
+ * But only SetRows includes the rowcount (4 byte) in the stream. 
+ * So for Setrows we read the rowcount from the stream and not for others. 
+ * These values are useful to determine when to read the rowcount from the packet
+ */
 #define IS_DECLARE  100
 #define IS_CURROW   200
 #define IS_OPEN     300
@@ -305,27 +300,27 @@ enum tds_end
 #define LOGIN           4
 
 /* environment type field */
-#define TDS_ENV_DATABASE  1
-#define TDS_ENV_LANG      2
-#define TDS_ENV_CHARSET   3
-#define TDS_ENV_PACKSIZE  4
-#define TDS_ENV_LCID        5
-#define TDS_ENV_SQLCOLLATION 7
+#define TDS_ENV_DATABASE  	1
+#define TDS_ENV_LANG      	2
+#define TDS_ENV_CHARSET   	3
+#define TDS_ENV_PACKSIZE  	4
+#define TDS_ENV_LCID        	5
+#define TDS_ENV_SQLCOLLATION	7
 
 /* string types */
 #define TDS_NULLTERM -9
 
 /* Microsoft internal stored procedure id's */
 
-#define TDS_SP_CURSOR          1
-#define TDS_SP_CURSOROPEN      2
-#define TDS_SP_CURSORPREPARE   3
-#define TDS_SP_CURSOREXECUTE   4
-#define TDS_SP_CURSORPREPEXEC  5
-#define TDS_SP_CURSORUNPREPARE 6
-#define TDS_SP_CURSORFETCH     7
-#define TDS_SP_CURSOROPTION    8
-#define TDS_SP_CURSORCLOSE     9
+#define TDS_SP_CURSOR           1
+#define TDS_SP_CURSOROPEN       2
+#define TDS_SP_CURSORPREPARE    3
+#define TDS_SP_CURSOREXECUTE    4
+#define TDS_SP_CURSORPREPEXEC   5
+#define TDS_SP_CURSORUNPREPARE  6
+#define TDS_SP_CURSORFETCH      7
+#define TDS_SP_CURSOROPTION     8
+#define TDS_SP_CURSORCLOSE      9
 #define TDS_SP_EXECUTESQL      10
 #define TDS_SP_PREPARE         11
 #define TDS_SP_EXECUTE         12
@@ -432,12 +427,12 @@ typedef enum
 #define SYBAOPMAX  0x52
 
 /* mssql2k compute operator */
-#define SYBAOPCHECKSUM_AGG 0x72
-#define SYBAOPCNT_BIG 0x09
-#define SYBAOPSTDEV 0x30
-#define SYBAOPSTDEVP 0x31
-#define SYBAOPVAR 0x32
-#define SYBAOPVARP 0x33
+#define SYBAOPCNT_BIG		0x09
+#define SYBAOPSTDEV		0x30
+#define SYBAOPSTDEVP		0x31
+#define SYBAOPVAR		0x32
+#define SYBAOPVARP		0x33
+#define SYBAOPCHECKSUM_AGG	0x72
 
 
 /** 
@@ -445,47 +440,47 @@ typedef enum
  */
 typedef enum
 {
-	TDS_OPT_SET = 1		/* Set an option. */
-		, TDS_OPT_DEFAULT = 2	/* Set option to its default value. */
-		, TDS_OPT_LIST = 3	/* Request current setting of a specific option. */
-		, TDS_OPT_INFO = 4	/* Report current setting of a specific option. */
+	  TDS_OPT_SET = 1	/* Set an option. */
+	, TDS_OPT_DEFAULT = 2	/* Set option to its default value. */
+	, TDS_OPT_LIST = 3	/* Request current setting of a specific option. */
+	, TDS_OPT_INFO = 4	/* Report current setting of a specific option. */
 } TDS_OPTION_CMD;
 
 typedef enum
 {
-	TDS_OPT_DATEFIRST = 1	/* 0x01 */
-		, TDS_OPT_TEXTSIZE = 2	/* 0x02 */
-		, TDS_OPT_STAT_TIME = 3	/* 0x03 */
-		, TDS_OPT_STAT_IO = 4	/* 0x04 */
-		, TDS_OPT_ROWCOUNT = 5	/* 0x05 */
-		, TDS_OPT_NATLANG = 6	/* 0x06 */
-		, TDS_OPT_DATEFORMAT = 7	/* 0x07 */
-		, TDS_OPT_ISOLATION = 8	/* 0x08 */
-		, TDS_OPT_AUTHON = 9	/* 0x09 */
-		, TDS_OPT_CHARSET = 10	/* 0x0a */
-		, TDS_OPT_SHOWPLAN = 13	/* 0x0d */
-		, TDS_OPT_NOEXEC = 14	/* 0x0e */
-		, TDS_OPT_ARITHIGNOREON = 15	/* 0x0f */
-		, TDS_OPT_ARITHABORTON = 17	/* 0x11 */
-		, TDS_OPT_PARSEONLY = 18	/* 0x12 */
-		, TDS_OPT_GETDATA = 20	/* 0x14 */
-		, TDS_OPT_NOCOUNT = 21	/* 0x15 */
-		, TDS_OPT_FORCEPLAN = 23	/* 0x17 */
-		, TDS_OPT_FORMATONLY = 24	/* 0x18 */
-		, TDS_OPT_CHAINXACTS = 25	/* 0x19 */
-		, TDS_OPT_CURCLOSEONXACT = 26	/* 0x1a */
-		, TDS_OPT_FIPSFLAG = 27	/* 0x1b */
-		, TDS_OPT_RESTREES = 28	/* 0x1c */
-		, TDS_OPT_IDENTITYON = 29	/* 0x1d */
-		, TDS_OPT_CURREAD = 30	/* 0x1e */
-		, TDS_OPT_CURWRITE = 31	/* 0x1f */
-		, TDS_OPT_IDENTITYOFF = 32	/* 0x20 */
-		, TDS_OPT_AUTHOFF = 33	/* 0x21 */
-		, TDS_OPT_ANSINULL = 34	/* 0x22 */
-		, TDS_OPT_QUOTED_IDENT = 35	/* 0x23 */
-		, TDS_OPT_ARITHIGNOREOFF = 36	/* 0x24 */
-		, TDS_OPT_ARITHABORTOFF = 37	/* 0x25 */
-		, TDS_OPT_TRUNCABORT = 38	/* 0x26 */
+	  TDS_OPT_DATEFIRST = 1		/* 0x01 */
+	, TDS_OPT_TEXTSIZE = 2		/* 0x02 */
+	, TDS_OPT_STAT_TIME = 3		/* 0x03 */
+	, TDS_OPT_STAT_IO = 4		/* 0x04 */
+	, TDS_OPT_ROWCOUNT = 5		/* 0x05 */
+	, TDS_OPT_NATLANG = 6		/* 0x06 */
+	, TDS_OPT_DATEFORMAT = 7	/* 0x07 */
+	, TDS_OPT_ISOLATION = 8		/* 0x08 */
+	, TDS_OPT_AUTHON = 9		/* 0x09 */
+	, TDS_OPT_CHARSET = 10		/* 0x0a */
+	, TDS_OPT_SHOWPLAN = 13		/* 0x0d */
+	, TDS_OPT_NOEXEC = 14		/* 0x0e */
+	, TDS_OPT_ARITHIGNOREON = 15	/* 0x0f */
+	, TDS_OPT_ARITHABORTON = 17	/* 0x11 */
+	, TDS_OPT_PARSEONLY = 18	/* 0x12 */
+	, TDS_OPT_GETDATA = 20		/* 0x14 */
+	, TDS_OPT_NOCOUNT = 21		/* 0x15 */
+	, TDS_OPT_FORCEPLAN = 23	/* 0x17 */
+	, TDS_OPT_FORMATONLY = 24	/* 0x18 */
+	, TDS_OPT_CHAINXACTS = 25	/* 0x19 */
+	, TDS_OPT_CURCLOSEONXACT = 26	/* 0x1a */
+	, TDS_OPT_FIPSFLAG = 27		/* 0x1b */
+	, TDS_OPT_RESTREES = 28		/* 0x1c */
+	, TDS_OPT_IDENTITYON = 29	/* 0x1d */
+	, TDS_OPT_CURREAD = 30		/* 0x1e */
+	, TDS_OPT_CURWRITE = 31		/* 0x1f */
+	, TDS_OPT_IDENTITYOFF = 32	/* 0x20 */
+	, TDS_OPT_AUTHOFF = 33		/* 0x21 */
+	, TDS_OPT_ANSINULL = 34		/* 0x22 */
+	, TDS_OPT_QUOTED_IDENT = 35	/* 0x23 */
+	, TDS_OPT_ARITHIGNOREOFF = 36	/* 0x24 */
+	, TDS_OPT_ARITHABORTOFF = 37	/* 0x25 */
+	, TDS_OPT_TRUNCABORT = 38	/* 0x26 */
 } TDS_OPTION;
 
 typedef union tds_option_arg
@@ -658,8 +653,8 @@ typedef struct tds_login
 	DSTR app_name;
 	DSTR user_name;
 	DSTR password;
-	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
-	DSTR library;
+	
+	DSTR library;	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
 	TDS_TINYINT bulk_copy;
 	TDS_TINYINT suppress_language;
 	TDS_TINYINT encrypted;
@@ -721,8 +716,9 @@ typedef struct tds_locale
 	char *date_fmt;
 } TDSLOCALE;
 
-/** structure that hold information about blobs (like text or image).
- * current_row contain this structure.
+/** 
+ * Information about blobs (e.g. text or image).
+ * current_row contains this structure.
  */
 typedef struct tds_blob_info
 {
@@ -731,13 +727,14 @@ typedef struct tds_blob_info
 	TDS_CHAR timestamp[8];
 } TDSBLOBINFO;
 
-/** hold information for collate in TDS8
+/** 
+ * TDS 8.0 collation information.
  */
 typedef struct
 {
 	TDS_USMALLINT locale_id;	/* master..syslanguages.lcid */
 	TDS_USMALLINT flags;
-	TDS_UCHAR charset_id;	/* or zero */
+	TDS_UCHAR charset_id;		/* or zero */
 } TDS8_COLLATION;
 
 /* SF stands for "sort flag" */
@@ -831,7 +828,7 @@ typedef struct
 	char db_name[256];	/* column name */
 	TDS_SMALLINT db_minlen;
 	TDS_SMALLINT db_maxlen;
-	TDS_SMALLINT db_colcnt;	/* I dont know what this does */
+	TDS_SMALLINT db_colcnt;	/* I don't know what this does */
 	TDS_TINYINT db_type;
 	struct
 	{
@@ -900,18 +897,18 @@ enum
  */
 enum TDS_DBG_LOG_STATE
 {
-	TDS_DBG_LOGIN = 1	/* for diagnosing login problems;                                       
-				 * otherwise the username/password information is suppressed. */
-		, TDS_DBG_API = (1 << 1)	/* Log calls to client libraries */
-		, TDS_DBG_ASYNC = (1 << 2)	/* Log asynchronous function starts or completes. */
-		, TDS_DBG_DIAG = (1 << 3)	/* Log client- and server-generated messages */
-		, TDS_DBG_error = (1 << 4)
-		/* Log FreeTDS runtime/logic error occurs. */
-		/* TODO:  ^^^^^ make upper case when old #defines (above) are removed */
-		, TDS_DBG_PACKET = (1 << 5)	/* Log hex dump of packets to/from the server. */
-		, TDS_DBG_LIBTDS = (1 << 6)	/* Log calls to (and in) libtds */
-		, TDS_DBG_CONFIG = (1 << 7)	/* replaces TDSDUMPCONFIG */
-		, TDS_DBG_DEFAULT = 0xFE	/* all above except login packets */
+	  TDS_DBG_LOGIN = 1		/* for diagnosing login problems;                                       
+				 	   otherwise the username/password information is suppressed. */
+	, TDS_DBG_API =    (1 << 1)	/* Log calls to client libraries */
+	, TDS_DBG_ASYNC =  (1 << 2)	/* Log asynchronous function starts or completes. */
+	, TDS_DBG_DIAG =   (1 << 3)	/* Log client- and server-generated messages */
+	, TDS_DBG_error =  (1 << 4)
+	/* TODO:  ^^^^^ make upper case when old #defines (above) are removed */
+	/* Log FreeTDS runtime/logic error occurs. */
+	, TDS_DBG_PACKET = (1 << 5)	/* Log hex dump of packets to/from the server. */
+	, TDS_DBG_LIBTDS = (1 << 6)	/* Log calls to (and in) libtds */
+	, TDS_DBG_CONFIG = (1 << 7)	/* replaces TDSDUMPCONFIG */
+	, TDS_DBG_DEFAULT = 0xFE	/* all above except login packets */
 };
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
@@ -956,31 +953,26 @@ typedef struct _tds_cursor_status
 
 typedef struct _tds_cursor 
 {
-	TDS_INT length;		         /* total length of the remaining datastream */
-	TDS_TINYINT cursor_name_len; /* length of cursor name > 0 and <= 30  */
-	char *cursor_name;	         /* name of the cursor */
-	TDS_INT cursor_id;           /* cursor id returned by the server after cursor declare */
-	TDS_TINYINT options;		 /* read only|updatable */
-	TDS_TINYINT hasargs;		 /* cursor parameters exists ? */
-	TDS_USMALLINT query_len;	 /* SQL query length */
-	char *query;                 /* SQL query */
+	TDS_INT length;			/* total length of the remaining datastream */
+	TDS_TINYINT cursor_name_len;	/* length of cursor name > 0 and <= 30  */
+	char *cursor_name;		/* name of the cursor */
+	TDS_INT cursor_id;		/* cursor id returned by the server after cursor declare */
+	TDS_TINYINT options;		/* read only|updatable */
+	TDS_TINYINT hasargs;		/* cursor parameters exists ? */
+	TDS_USMALLINT query_len;	/* SQL query length */
+	char *query;                 	/* SQL query */
 	/* TODO for updatable columns */
-	TDS_TINYINT number_upd_cols; /* number of updatable columns */
-	TDS_INT cursor_rows;         /* number of cursor rows to fetch */
+	TDS_TINYINT number_upd_cols;	/* number of updatable columns */
+	TDS_INT cursor_rows;		/* number of cursor rows to fetch */
 	/*TODO when cursor has parameters*/
 	/*TDS_PARAM *param_list;	 cursor parameter */
 	TDSUPDCOL *cur_col_list;	/* updatable column list */
-	TDS_SMALLINT declare_status;    /* 0 - Initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
-	TDS_SMALLINT cursor_row_status; /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
-	TDS_SMALLINT open_status;       /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
-	TDS_SMALLINT fetch_status;      /* 0 - initial value. 1 - if called by ct_cursor. 2 - if sent to server and ack */
-	TDS_SMALLINT close_status; 
-	TDS_SMALLINT dealloc_status;
+	TDS_CURSOR_STATUS status;
 } TDS_CURSOR;
 
 /*
-** This is the current environment as reported by the server
-*/
+ * Current environment as reported by the server
+ */
 typedef struct tds_env_info
 {
 	int block_size;
@@ -1012,8 +1004,11 @@ struct tds_context
 };
 
 enum TDS_ICONV_INFO_ENTRY
-{ client2ucs2, client2server_chardata, iso2server_metadata,
-	initial_iconv_info_count	/* keep last */
+{ 
+	  client2ucs2
+	, client2server_chardata
+	, iso2server_metadata
+	, initial_iconv_info_count	/* keep last */
 };
 
 struct tds_socket
@@ -1129,6 +1124,7 @@ const char *tds_prtype(int token);
 
 
 /* iconv.c */
+int tds_is_utf8(const TDS_ENCODING *encoding);
 void tds_iconv_open(TDSSOCKET * tds, const char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);

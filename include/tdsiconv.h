@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.24 2003-10-22 02:11:09 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.25 2003-11-16 08:19:34 jklowden Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -54,9 +54,6 @@ typedef void *iconv_t;
 #ifdef __cplusplus
 extern "C"
 {
-#if 0
-}
-#endif
 #endif
 
 #if ! HAVE_ICONV
@@ -72,12 +69,17 @@ extern "C"
 	 */
 enum ICONV_CD_VALUE
 {
-	Like_to_Like = 0x100, Latin1_ASCII = 0x01, ASCII_Latin1 = 0x10, Latin1_UCS2LE = 0x02, UCS2LE_Latin1 = 0x20, ASCII_UCS2LE =
-		0x12, UCS2LE_ASCII = 0x21
-		/* these aren't needed 
-		 * , Latin1_UCS2BE = 0x03
-		 * , UCS2BE_Latin1 = 0x30
-		 */
+	  Like_to_Like = 0x100
+	, Latin1_ASCII  = 0x01
+	, ASCII_Latin1  = 0x10
+	, Latin1_UCS2LE = 0x02
+	, UCS2LE_Latin1 = 0x20
+	, ASCII_UCS2LE  = 0x12
+	, UCS2LE_ASCII  = 0x21
+	/* these aren't needed 
+	 * , Latin1_UCS2BE = 0x03
+	 * , UCS2BE_Latin1 = 0x30
+	 */
 };
 
 iconv_t iconv_open(const char *tocode, const char *fromcode);
@@ -103,8 +105,6 @@ struct tdsiconvinfo
 #define TDS_ENCODING_INDIRECT 1
 #define TDS_ENCODING_SWAPBYTE 2
 #define TDS_ENCODING_MEMCPY   4
-	/* ^^^ As of June 2003, no reference to this macro 
-	 * It's just a TODO... freddy77 */
 	unsigned int flags;
 
 	iconv_t to_wire;	/* conversion from client charset to server's format */
@@ -114,7 +114,7 @@ struct tdsiconvinfo
 	iconv_t from_wire2;	/* conversion from server's format to client charset - indirect */
 };
 
-/* we use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
+/* We use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
 #ifndef ICONV_CONST
 # define ICONV_CONST const
 #endif
@@ -126,9 +126,6 @@ const char *tds_canonical_charset_name(const char *charset_name);
 const char *tds_sybase_charset_name(const char *charset_name);
 
 #ifdef __cplusplus
-#if 0
-{
-#endif
 }
 #endif
 
