@@ -19,7 +19,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0005.c,v 1.9 2002-11-06 17:00:28 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.10 2002-11-06 17:25:10 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -38,8 +38,6 @@ main(int argc, char **argv)
    int         failed = 0;
 
    set_malloc_options();
-
-   tdsdump_open("");
 
    read_login_info();
    fprintf(stdout, "Start\n");

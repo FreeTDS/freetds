@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.14 2002-11-06 17:00:32 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.15 2002-11-06 17:25:10 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -45,8 +45,6 @@ int main(int argc, char *argv[])
    BOOL				readFirstImage;
 
    set_malloc_options();
-
-   tdsdump_open(NULL);
 
    read_login_info();
    fprintf(stdout, "Start\n");

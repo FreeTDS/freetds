@@ -1,3 +1,13 @@
+Wed Nov  6 12:23:59 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/unittests/t0009.c src/dblib/unittests/t0001.c
+	  src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c
+	  src/dblib/unittests/t0012.c src/dblib/unittests/t0013.c
+	  src/dblib/unittests/t0014.c src/dblib/unittests/t0015.c
+	  src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c
+	  src/dblib/unittests/t0018.c src/dblib/unittests/t0020.c
+	  src/dblib/unittests/t0023.c:
+	- Don't enable TDS logging by default in unit tests.
+
 Wed Nov  6 12:21:36 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/unittests/t0007.c src/tds/unittests/t0008.c:
 	- Fix shadow warnings.
