@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.101 2002-11-08 19:07:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.102 2002-11-10 18:06:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -394,15 +394,15 @@ int            destlen;
 			}
 		}
 		if (curcol->column_varaddr) {
- 			DBINT srclen = -1;
+ 			DBINT srclen;
 			int   idx = buffer_index_of_resultset_row(buf, row_num);
          
 			assert (idx >= 0);
 				/* XXX now what? */
 				
 			src = ((BYTE *)buffer_row_address(buf, idx)) + curcol->column_offset;
+			srclen =  curcol->column_cur_size;
 			if (is_blob_type(curcol->column_type)) {
-				srclen =  curcol->column_cur_size; /* TODO only for blob ?? */
 				src = ((TDSBLOBINFO *) src)->textvalue;
 			}
 			desttype = _db_get_server_type(curcol->column_bindtype);
