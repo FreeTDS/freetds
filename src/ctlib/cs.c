@@ -47,10 +47,11 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.36 2003-03-08 12:44:45 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.37 2003-03-27 07:39:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
+CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 
 /* 	returns the fixed length of the specified data type, or 0 if not a 
 	fixed length data type */
@@ -250,8 +251,13 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 	/* CS_SET */
 	switch (property) {
 	case CS_MESSAGE_CB:
+		if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
+			cs_diag_clearmsg(ctx, CS_UNUSED);
+		}
 		ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
+		ctx->cs_errhandletype = _CS_ERRHAND_CB;
 		return CS_SUCCEED;
+
 	case CS_EXTRA_INF:
 	case CS_LOC_PROP:
 	case CS_USERDATA:
@@ -723,8 +729,59 @@ CS_RETCODE
 cs_diag(CS_CONTEXT * ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
 
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED cs_diag()\n");
-	return CS_FAIL;
+int msg_no;
+
+	switch (operation) {
+
+		case CS_INIT:
+			if ( ctx->cs_errhandletype == _CS_ERRHAND_CB) {
+				/* contrary to the manual page you don't seem to */
+				/* be able to turn on inline message handling    */
+				/* using cs_diag, once a callback is installed!  */
+				return CS_FAIL;
+			}
+			ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
+			ctx->cs_diag_msglimit = CS_NO_LIMIT;
+			ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) cs_diag_storemsg; 
+			break;
+		case CS_MSGLIMIT:
+			if ( ctx->cs_errhandletype != _CS_ERRHAND_INLINE) {
+				return CS_FAIL;
+			}
+			ctx->cs_diag_msglimit = *(CS_INT *)buffer;
+			break;
+		case CS_CLEAR:
+			if ( ctx->cs_errhandletype != _CS_ERRHAND_INLINE) {
+				return CS_FAIL;
+			}
+			return (cs_diag_clearmsg(ctx, type));
+
+			break;
+		case CS_GET:
+			if ( ctx->cs_errhandletype != _CS_ERRHAND_INLINE) {
+				return CS_FAIL;
+			}
+			if (buffer == NULL)
+				return CS_FAIL;
+
+			if (idx == 0 || (ctx->cs_diag_msglimit != CS_NO_LIMIT && idx > ctx->cs_diag_msglimit) )
+				return CS_FAIL;
+
+			return (cs_diag_getmsg(ctx, idx, (CS_CLIENTMSG *)buffer)); 
+			
+			break;
+		case CS_STATUS:
+			if ( ctx->cs_errhandletype != _CS_ERRHAND_INLINE) {
+				return CS_FAIL;
+			}
+			if (buffer == NULL) 
+				return CS_FAIL;
+
+			return (cs_diag_countmsg(ctx, (CS_INT *)buffer));
+			break;
+	}
+	return CS_SUCCEED;
+		
 }
 
 CS_RETCODE
@@ -782,5 +839,102 @@ cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * res
 {
 
 	*result = (tds_willconvert(srctype, desttype) ? CS_TRUE : CS_FALSE);
+	return CS_SUCCEED;
+}
+
+CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
+{
+
+struct cs_diag_msg **curptr;
+CS_INT msg_count = 0;
+
+	curptr = &(context->msgstore);
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (*curptr != (struct cs_diag_msg *)NULL) {
+		msg_count++;
+		curptr = &((*curptr)->next);
+	}
+
+	/* messages over and above the agreed limit */
+	/* are simply discarded...                  */
+
+	if (context->cs_diag_msglimit != CS_NO_LIMIT &&
+		msg_count >= context->cs_diag_msglimit) {
+		return CS_FAIL;
+	}
+
+	*curptr = (struct cs_diag_msg *) malloc(sizeof(struct cs_diag_msg));
+	if (*curptr == (struct cs_diag_msg *)NULL) { 
+		return CS_FAIL;
+	} else {
+		(*curptr)->next = (struct cs_diag_msg *)NULL;
+		(*curptr)->msg  = malloc(sizeof(CS_CLIENTMSG));
+		if ((*curptr)->msg == (CS_CLIENTMSG *) NULL) {
+			return CS_FAIL;
+		} else {
+			memcpy((*curptr)->msg, message, sizeof(CS_CLIENTMSG));
+		}
+	}
+
+	return CS_SUCCEED;
+}
+
+CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT index, CS_CLIENTMSG *message)
+{
+
+struct cs_diag_msg *curptr;
+CS_INT msg_count = 0, msg_found = 0;
+
+	curptr = context->msgstore;
+
+	/* if we already have a list of messages, */
+	/* go to the end of the list...           */
+
+	while (curptr != (struct cs_diag_msg *)NULL) {
+		msg_count++;
+		if (msg_count == index) {
+			msg_found++;
+			break;
+		}
+		curptr = curptr->next;
+	}
+	if (msg_found) {
+		memcpy(message, curptr->msg, sizeof(CS_CLIENTMSG));
+		return CS_SUCCEED;
+	} else {
+		return CS_NOMSG;
+	}
+}
+
+CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
+{
+
+struct cs_diag_msg **curptr, **freeptr;
+
+	curptr = &(context->msgstore);
+
+	while (*curptr != (struct cs_diag_msg *)NULL ) {
+        freeptr = curptr;
+		curptr = &((*curptr)->next);
+        TDS_ZERO_FREE(*freeptr);
+	}
+	return CS_SUCCEED;
+}
+
+CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
+{
+struct cs_diag_msg *curptr;
+CS_INT msg_count = 0;
+
+	curptr = context->msgstore;
+
+	while (curptr != (struct cs_diag_msg *)NULL) {
+		msg_count++;
+		curptr = curptr->next;
+	}
+	*count = msg_count;
 	return CS_SUCCEED;
 }

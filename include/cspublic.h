@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.36 2003-03-19 17:05:09 jklowden Exp $";
+         "$Id: cspublic.h,v 1.37 2003-03-27 07:39:05 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -59,6 +59,7 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_FAIL	   TDS_FAIL
 #define CS_SUCCEED TDS_SUCCEED
 #define CS_SIZEOF(x) sizeof(x)
+#define CS_NOMSG   -99
 
 #define CS_LAYER(x)    (((x) >> 24) & 0xFF)
 #define CS_ORIGIN(x)   (((x) >> 16) & 0xFF)
@@ -115,9 +116,21 @@ typedef struct _CSREMOTE_PROC
 
 /* RPC Code changes ends here */
 
+#define _CS_ERRHAND_INLINE 1
+#define _CS_ERRHAND_CB     2
+
+struct cs_diag_msg {
+CS_CLIENTMSG *msg;
+struct cs_diag_msg *next;
+};
+
+
 struct cs_context
 {
 	CS_INT date_convert_fmt;
+	CS_INT cs_errhandletype;
+	CS_INT cs_diag_msglimit;
+	struct cs_diag_msg *msgstore;
 	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;

@@ -1,3 +1,14 @@
+Thu Mar 27 01:30:27 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/apps/tsql.c Patch #699749 by Craig A. Berry, add ":r"
+	* include/tds.h added declaration
+	* src/dblib/bcp.c removed minor warning
+	* doc/Makefile.am fixed installation prefix
+	* include/cspublic.h src/ctlib/cs.c
+	* src/ctlib/unittests/Makefile.am
+	* src/ctlib/unittests/cs_diag.c
+	* src/ctlib/unittests/get_send_data.c
+	- Patch #709919 by Suhasini Sriramulu
+
 Thu Mar 27 07:57:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/.indent.pro: change after ML discussion
 
