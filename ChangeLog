@@ -1,3 +1,8 @@
+Mon Oct 14 21:12:21 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Warn about anavailable bigint only if we really don't have
+	  64-bit integers at all.
+
 Mon Oct 14 23:02:03 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c:
 	- add some documentation

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.59 2002-10-14 03:48:01 castellano Exp $
+dnl $Id: configure.in,v 1.60 2002-10-15 01:13:57 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -133,6 +133,7 @@ if test "$tds_sysdep_int64_type"; then
     AC_DEFINE(HAVE_INT64, 1, [Define to 1 if you have a 64-bit integral type.])
 else
     tds_sysdep_int64_type=long
+    AC_MSG_WARN([SQL Server 2000 "bigint" 8-byte integer will not work])
 fi
 
 AC_SUBST(tds_sysdep_int16_type)
@@ -175,17 +176,6 @@ dnl Checks for library functions.
 dnl ------------------------------------------------------------
 AC_CHECK_FUNCS(vsnprintf gettimeofday)
 AC_REPLACE_FUNCS(asprintf vasprintf atoll strtok_r)
-
-AC_MSG_CHECKING(if 64-bit arithmetic is available)
-AC_EGREP_CPP(yes,
-[#if HAVE_ATOLL || SIZEOF_LONG == 8
- yes
- #else
- no
-#endif
-], AC_MSG_RESULT(yes)
- , AC_MSG_RESULT(no)
-   AC_MSG_WARN([SQL Server 2000 "bigint" 8-byte integer will not work]))
 
 dnl ------------------------------------------------------------
 dnl Checks for library variables.
