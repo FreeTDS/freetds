@@ -1,3 +1,6 @@
+Fri May 14 19:17:38 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* samples/mssql.php added, courtesy of Sven Goldt
+
 Fri May 14 10:47:19 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am 
 	- s/-L/-h/g: use more standard -h to test for links. 
