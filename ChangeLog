@@ -1,3 +1,6 @@
+Mon Feb  3 19:44:28 EST 2003	JK Lowden <jklowden@schemamania.org>
+	- Release 0.61rc1
+	
 Sun Feb 02 10:27:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsconvert.h: declare as extern "C"
 
