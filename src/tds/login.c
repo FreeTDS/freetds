@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.70 2002-12-09 22:27:26 jklowden Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.71 2002-12-10 03:21:12 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
@@ -276,7 +276,7 @@ char version[256];
 			FD_SET (tds->s, &fds);
 			selecttimeout.tv_sec = connect_timeout - (now-start);
 			selecttimeout.tv_usec = 0;
-			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
+			retval = select(tds->s, NULL, &fds, NULL, &selecttimeout);
 			if (retval < 0 && errno == EINTR)
 				retval = 0;
 			now = time (NULL);
