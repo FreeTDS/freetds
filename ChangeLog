@@ -1,3 +1,10 @@
+Thu Mar 11 11:35:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/Makefile.am: commented cancel test
+	* src/odbc/unittests/data.c: commented numeric test
+	* src/odbc/unittests/prepare_results.c:
+	- only if --enable-developing
+	* src/odbc/unittests/transaction.c: improved a bit
+
 Wed Mar 10 12:07:06 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/unittests/transaction.c check results for errors
 

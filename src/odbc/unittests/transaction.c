@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.5 2004-03-10 17:08:56 jklowden Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.6 2004-03-11 10:29:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -108,13 +108,14 @@ Test(int discard_test)
 	}
 	if (SQLBindCol(Statement, 1, SQL_C_SLONG , &out_buf, sizeof(out_buf), &out_len) != SQL_SUCCESS) {
 		ODBC_REPORT_ERROR("error: SQLBindCol: testerror");
+		retcode = 1;
 		goto cleanup;
 	}
 	do {
 		while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
 			printf("\t%ld\n", out_buf);
 			if (out_buf != 1) {
-				printf("error: expected to select '1'\n", out_buf);
+				printf("error: expected to select 1 got %d\n", (int) out_buf);
 				retcode = 1;
 				goto cleanup;
 			}

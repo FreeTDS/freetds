@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.4 2004-03-08 18:38:32 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.5 2004-03-11 10:29:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -75,8 +75,9 @@ main(int argc, char *argv[])
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
 
-	/* TODO correct ?? */
+#ifdef ENABLE_DEVELOPING
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, "38 0 1 7B");
+#endif
 
 	/* all binary results */
 	Test("CHAR(7)", "pippo", SQL_C_BINARY, "706970706F2020");
