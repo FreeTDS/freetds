@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.310 2004-03-16 08:10:08 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.311 2004-03-17 16:37:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -174,6 +174,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	if (colpos > 0 && colpos <= stmt->ird->header.sql_desc_count) {
 		--colpos;
 		tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_label, name);
+		tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_name, name);
 	}
 }
 

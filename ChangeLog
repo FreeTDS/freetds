@@ -1,3 +1,6 @@
+Wed Mar 17 17:46:16 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix a problem with DBD::ODBC
+
 Tue Mar 16 09:18:28 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: transaction test now works
 
