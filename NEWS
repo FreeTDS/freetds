@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.17 2005-01-30 10:09:38 freddy77 Exp $
+$Id: NEWS,v 1.18 2005-02-08 12:10:44 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -8,6 +8,7 @@ $Id: NEWS,v 1.17 2005-01-30 10:09:38 freddy77 Exp $
 - more dblib functions
 - add named instance support (mssql2k)
 - fixed cancel and timeout
+- add support for encrypted connection using mssql
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

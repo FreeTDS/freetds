@@ -1,3 +1,11 @@
+Tue Feb  8 13:08:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS: updated
+	* include/tds.h src/tds/config.c src/tds/login.c:
+	* src/tds/mem.c src/tds/util.c:
+	- support "debug flags" option
+	* src/dblib/bcp.c:
+	- fix invalid free
+
 Tue Feb  8 10:26:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: fix return from dbretlen
 

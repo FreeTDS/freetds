@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.117 2005-02-03 08:27:32 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.118 2005-02-08 12:11:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1768,6 +1768,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > dbproc->bcpinfo->bindinfo->row_size) {
+			/* FIXME remove memory leak */
 			dbproc->bcpinfo->bindinfo->current_row = realloc(dbproc->bcpinfo->bindinfo->current_row, bcp_record_size);
 			if (dbproc->bcpinfo->bindinfo->current_row == NULL) {
 				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
@@ -2864,6 +2865,11 @@ _bcp_free_storage(DBPROCESS * dbproc)
 			TDS_ZERO_FREE(dbproc->bcpinfo->insert_stmt);
 
 		if (dbproc->bcpinfo->bindinfo) {
+			/* bcp use current_row in another way, this can cause invalid free for blobs */
+			if (dbproc->bcpinfo->bindinfo->current_row) {
+				free(dbproc->bcpinfo->bindinfo->current_row);
+				dbproc->bcpinfo->bindinfo->current_row = NULL;
+			}
 			tds_free_results(dbproc->bcpinfo->bindinfo);
 			dbproc->bcpinfo->bindinfo = NULL;
 		}

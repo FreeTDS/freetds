@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.215 2005-02-08 09:23:36 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.216 2005-02-08 12:11:01 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -647,6 +647,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define TDS_STR_SWAPMNY  "swap broken money"
 #define TDS_STR_DUMPFILE "dump file"
 #define TDS_STR_DEBUGLVL "debug level"
+#define TDS_STR_DEBUGFLAGS "debug flags"
 #define TDS_STR_TIMEOUT  "timeout"
 #define TDS_STR_CONNTIMEOUT "connect timeout"
 #define TDS_STR_HOSTNAME "hostname"
@@ -730,7 +731,7 @@ typedef struct tds_connection
 	DSTR database;
 	DSTR dump_file;
 	int timeout;
-	int debug_level;
+	int debug_flags;
 	int text_size;
 	int broken_dates;
 	int broken_money;
@@ -910,6 +911,19 @@ typedef enum _TDS_STATE
 #define TDS_DBG_WARN    __FILE__, ((__LINE__ << 4) | 3)
 #define TDS_DBG_ERROR   __FILE__, ((__LINE__ << 4) | 2)
 #define TDS_DBG_SEVERE  __FILE__, ((__LINE__ << 4) | 1)
+
+#define TDS_DBGFLAG_FUNC    0x80
+#define TDS_DBGFLAG_INFO2   0x40
+#define TDS_DBGFLAG_INFO1   0x20
+#define TDS_DBGFLAG_NETWORK 0x10
+#define TDS_DBGFLAG_WARN    0x08
+#define TDS_DBGFLAG_ERROR   0x04
+#define TDS_DBGFLAG_SEVERE  0x02
+#define TDS_DBGFLAG_ALLLVL  0xfff
+#define TDS_DBGFLAG_PID     0x1000
+#define TDS_DBGFLAG_TIME    0x2000
+#define TDS_DBGFLAG_SOURCE  0x4000
+#define TDS_DBGFLAG_THREAD  0x8000
 
 /**
  * An attempt at better logging.
@@ -1291,6 +1305,7 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
+extern int tds_debug_flags;
 
 /* net.c */
 int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);

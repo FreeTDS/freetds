@@ -21,6 +21,10 @@
 #include <config.h>
 #endif
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -65,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.104 2005-02-02 19:09:03 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.105 2005-02-08 12:11:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -415,9 +419,13 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		connection->broken_money = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		tds_dstr_copy(&connection->dump_file, value);
-	} else if (!strcmp(option, TDS_STR_DEBUGLVL)) {
-		if (atoi(value))
-			connection->debug_level = atoi(value);
+	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
+		char *end;
+		long l;
+		errno = 0;
+		l = strtol(value, &end, 0);
+		if (errno == 0 && *end == 0)
+			connection->debug_flags = l;
 	} else if (!strcmp(option, TDS_STR_TIMEOUT)) {
 		if (atoi(value))
 			connection->timeout = atoi(value);
