@@ -1,7 +1,9 @@
 Fri Sep 13 10:43:28 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/unittests/t0022.c:
 	- Check status of dbsqlexec() when trying to create procedure in t0022.
-	  Test still fails on my system, but doesn't dump core now :-)
+	- Don't use temporary stored procedures in t0022.  This feature is
+	  specific to MSSQL 7.0 and MSSQL 2000.  Tests should work on
+	  Sybase too!
 
 Fri Sep 13 14:52:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c src/tds/convert.c:
