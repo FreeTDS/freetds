@@ -32,5 +32,6 @@ t0023_SOURCES	=	t0023.c common.c common.h
 LIBS		=	../libsybdb.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
 EXTRA_DIST	=	t0016.in t0017.in data.bin
-CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out
+CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
+	t0016.err t0017.err
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\"
