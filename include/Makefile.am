@@ -21,3 +21,5 @@ DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 
 freetds_sysconfdir.h: Makefile
 	echo '#define FREETDS_SYSCONFDIR "$(sysconfdir)"' >$@
+
+all: freetds_sysconfdir.h
