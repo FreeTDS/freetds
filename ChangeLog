@@ -1,3 +1,7 @@
+Wed Jun 25 17:05:02 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml
+	- Added paragraph from ML regarding effect of TDS version.
+
 Tue Jun 24 16:58:35 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h include/sybdb.h
 	* src/dblib/dblib.c src/dblib/unittests/t0001.c

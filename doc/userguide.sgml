@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-02-28 03:28:31 $</date>
-		<releaseinfo>$Revision: 1.57 $</releaseinfo>
+		<date>$Date: 2003-06-25 21:07:04 $</date>
+		<releaseinfo>$Revision: 1.58 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -47,9 +47,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.57 $</>
-<member>$Date: 2003-02-28 03:28:31 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.57 2003-02-28 03:28:31 jklowden Exp $.</>
+<member>$Revision: 1.58 $</>
+<member>$Date: 2003-06-25 21:07:04 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.58 2003-06-25 21:07:04 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -561,6 +561,14 @@ TDS 4.2 have also other limitations:
 				<listitem><para>dynamic query (also called prepared query) are not supported.
 					</para></listitem>
 			</ItemizedList>
+			</para>
+			<para>
+The protocol version may also affect how database servers
+    interpret commands.  For example, Microsoft SQL Server 2000 is
+    known to behave differently with versions 4.2 and 7.0.  Version
+    7.0 is recommended for compatibility with SQL Server tools.
+
+
 			</para>
 			
 			
