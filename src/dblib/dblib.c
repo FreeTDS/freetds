@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.110 2002-12-20 21:51:39 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.111 2003-01-05 14:29:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -685,7 +685,7 @@ char *cp;
 		return NULL;
 	}
 	len = dbstring_length(dbstr);
-	if ((ret = malloc(len + 1)) == NULL) {
+	if ((ret = (char*) malloc(len + 1)) == NULL) {
 		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
 		return NULL;
 	}
@@ -1893,10 +1893,10 @@ TDSSOCKET *tds;
 		return NULL;
 	}
 	if (is_blob_type(colinfo->column_type)) {
-		return ((TDSBLOBINFO *) (resinfo->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE*) ((TDSBLOBINFO *) (resinfo->current_row + colinfo->column_offset))->textvalue;
 	}
 
-	return &resinfo->current_row[colinfo->column_offset];
+	return (BYTE*) &resinfo->current_row[colinfo->column_offset];
 }
 
 RETCODE
@@ -2046,7 +2046,7 @@ TDS_SMALLINT *col_printlens = NULL;
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				col_printlens = malloc(sizeof(TDS_SMALLINT) * resinfo->num_cols);
+				col_printlens = (TDS_SMALLINT*) malloc(sizeof(TDS_SMALLINT) * resinfo->num_cols);
 			}
 
 			for (col = 0; col < resinfo->num_cols; col++) {
@@ -2775,10 +2775,10 @@ int i;
 #endif
 
 	if (is_blob_type(colinfo->column_type)) {
-		return ((TDSBLOBINFO *) (info->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE*) ((TDSBLOBINFO *) (info->current_row + colinfo->column_offset))->textvalue;
 	}
 
-	return &info->current_row[colinfo->column_offset];
+	return (BYTE*) &info->current_row[colinfo->column_offset];
 }
 
 int
@@ -3747,8 +3747,8 @@ int marker;
 	if (textptrlen > DBTXPLEN)
 		return FAIL;
 
-	dbconvert(dbproc, SYBBINARY, (TDS_CHAR *) textptr, textptrlen, SYBCHAR, textptr_string, -1);
-	dbconvert(dbproc, SYBBINARY, (TDS_CHAR *) timestamp, 8, SYBCHAR, timestamp_string, -1);
+	dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen, SYBCHAR, (BYTE*) textptr_string, -1);
+	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE*) timestamp_string, -1);
 
 	if (tds_submit_queryf(dbproc->tds_socket,
 			      "writetext bulk %s 0x%s timestamp = 0x%s %s",

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.66 2002-12-25 11:19:32 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.67 2003-01-05 14:29:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -772,6 +772,58 @@ tds_send_cancel(TDSSOCKET * tds)
 
 	tds->out_flag = 0x06;
 	return tds_flush_packet(tds);
+}
+
+/**
+ * Quote an id
+ * @param buffer buffer to store quoted id. If NULL do not write anything 
+ *        (useful to compute quote length)
+ * @param id     id to quote
+ * @result written chars (not including needed terminator)
+ */
+int
+tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id)
+{
+	int need_quote, len, i;
+	char quoting;
+	const char *src;
+	char *dst;
+
+	len = strlen(id);
+
+	/* need quote ?? */
+	need_quote = (strcspn(id, "\"\' ()[]{}") != len);
+
+	if (!need_quote) {
+		if (buffer)
+			memcpy(buffer, id, len + 1);
+		return len;
+	}
+
+	/* quote */
+	quoting = '\"';
+	if (TDS_IS_MSSQL(tds))
+		quoting = ']';
+
+	src = id;
+	if (!buffer) {
+		i = 2 + len;
+		for (; *src; ++src)
+			if (*src == quoting)
+				++i;
+		return i;
+	}
+
+	dst = buffer;
+	*dst++ = (quoting == ']') ? '[' : quoting;
+	for (; *src; ++src) {
+		if (*src == quoting)
+			*dst++ = quoting;
+		*dst++ = *src;
+	}
+	*dst++ = quoting;
+	*dst = 0;
+	return dst - buffer;
 }
 
 /** \@} */

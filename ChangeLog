@@ -1,3 +1,10 @@
+Sun Jan  5 15:27:401 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: prevent error setting length of NULL to 0
+	* src/ctlib/unittests/t0002.c: do not try to print NULL data
+	* src/dblib/dblib.c: cleanup for C++ compile
+	* src/tds/login.c: small optimization
+	* src/tds/query.c: add tds_quote_id
+
 Sun Jan  5 14:38:21 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/token.c:
 	- added tds_process_simple_query to libtds

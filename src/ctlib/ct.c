@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.69 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.70 2003-01-05 14:29:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -762,6 +762,9 @@ CS_DATAFMT srcfmt, destfmt;
 				*((CS_INT *) curcol->column_lenbind) = len;
 			}
 
+		} else {
+			if (curcol->column_lenbind)
+				*((CS_INT *) curcol->column_lenbind) = 0;
 		}
 	}
 	return result;

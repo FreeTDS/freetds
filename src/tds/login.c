@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.77 2002-12-25 11:19:32 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.78 2003-01-05 14:29:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -219,7 +219,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds->minor_version = connect_info->minor_version;
 	tds->emul_little_endian = connect_info->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
-	if (IS_TDS70(tds) || IS_TDS80(tds)) {
+	if (IS_TDS7_PLUS(tds)) {
 		/* TDS 7/8 only supports little endian */
 		tds->emul_little_endian = 1;
 	}
