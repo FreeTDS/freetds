@@ -22,6 +22,7 @@
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
+#include "syberror.h"
 #include "dblib.h"
 #include "tdsconvert.h"
 #include <unistd.h>
@@ -30,7 +31,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.62 2002-09-17 22:13:02 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.63 2002-09-20 14:48:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1025,6 +1026,7 @@ DBNUMERIC   *num;
           case SYBBINARY:
           case SYBIMAGE:
                if (srclen > destlen && destlen >= 0) {
+		  _dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
                   ret = -1;
                }
                else {
@@ -1062,8 +1064,7 @@ DBNUMERIC   *num;
                }
                else { /* destlen is > 0 */
                   if (srclen > destlen) {
-                     /* fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
-                     fprintf(stderr,"\tsrclen (%d)> destlen (%d).\n", srclen, destlen); */
+		    _dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
                     ret = -1;
                   }
                   else {
@@ -1119,8 +1120,9 @@ DBNUMERIC   *num;
 		
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
 
-	len = tds_convert (g_dblib_ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, 
-                       desttype, destlen, &dres);
+	len = tds_convert(g_dblib_ctx->tds_ctx,
+		srctype, (TDS_CHAR *)src, srclen, 
+		desttype, destlen, &dres);
 				   
 	if( len == TDS_FAIL )
 		return 0;
@@ -1128,10 +1130,8 @@ DBNUMERIC   *num;
     switch (desttype) {
         case SYBBINARY:
         case SYBIMAGE:
-
              if (len > destlen && destlen >= 0) {
-                fprintf(stderr,"%s: Line %d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
-                fprintf(stderr,"\tlen (%d) > destlen (%d).\n", len, destlen);
+		_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
                 ret = -1;
              } else {
                 memcpy(dest, dres.ib, len);
@@ -1210,8 +1210,7 @@ DBNUMERIC   *num;
              }
              else { /* destlen is > 0 */
                 if (len > destlen) {
-               	 /*fprintf(stderr,"%s: Line%d: Data-conversion resulted in overflow.\n", __FILE__, __LINE__);
-               	 fprintf(stderr,"\tlen (%d)> destlen (%d).\n", len, destlen);*/
+			 _dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
                    	 ret = -1;
                 }
                 else
@@ -2802,3 +2801,15 @@ void dbsetavail(DBPROCESS *dbproc)
 {
 	dbproc->avail_flag = TRUE;
 }
+
+int
+_dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, char *dberrstr)
+{
+TDSSOCKET *tds = NULL;
+
+	if (dbproc)
+		tds = dbproc->tds_socket;
+	return tds_client_msg(g_dblib_ctx->tds_ctx, tds,
+		dberr, severity, -1, -1, dberrstr);
+}
+

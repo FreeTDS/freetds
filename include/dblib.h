@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.5 2002-09-16 19:47:58 castellano Exp $";
+         "$Id: dblib.h,v 1.6 2002-09-20 14:48:35 castellano Exp $";
 static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 
 
@@ -37,6 +37,8 @@ static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 */
 int dblib_handle_info_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
 int dblib_handle_err_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
+int _dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, char *dberrstr);
+
 DBINT _convert_char(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
 DBINT _convert_intn(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
 
