@@ -1,3 +1,8 @@
+Mon May 10 20:52:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/Makefile.am win32/freetds.nsi configure.in:
+	* win32/freetds.nsh.in(added):
+	- update automatically NSIS installer
+
 Mon May 10 20:44:41 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in win32/Makefile.am win32/setup.rc:
 	* win32/version.rc.in(added):

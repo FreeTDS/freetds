@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.131 2004-05-10 18:44:55 freddy77 Exp $
+dnl $Id: configure.in,v 1.132 2004-05-10 18:53:00 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -465,5 +465,5 @@ AC_OUTPUT(include/tdsver.h \
 	src/apps/Makefile \
 	freetds.spec \
 	win32/Makefile win32/msvc6/Makefile win32/dev-cpp/Makefile \
-	win32/version.rc
+	win32/version.rc win32/freetds.nsh
 )

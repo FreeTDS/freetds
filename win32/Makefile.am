@@ -4,5 +4,6 @@ EXTRA_DIST      = config.h FreeTDS.def initnet.c \
 		winsetup.c winlogin.c \
 		setup.rc resource.h \
 		version.rc version.rc.in \
+		freetds.nsh freetds.nsh.in \
 		installfreetds.bat freetds.nsi
 
