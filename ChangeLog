@@ -1,3 +1,7 @@
+Mon Apr  5 03:18:39 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/Makefile.am src/apps/bsqldb.c
+	- added bsqldb
+	
 Sun Apr 04 17:55:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/dblib/dbutil.c:
 	- consistency check for headers
