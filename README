@@ -2,7 +2,7 @@ README for FreeTDS
 
 * to build FreeTDS read the file INSTALL,
 * see also the FreeTDS Users Guide,
-  http://www.freetds.org/userguide/book1.html 
+  http://www.freetds.org/userguide/
 
 FreeTDS is a free (open source) implementation of Sybase's db-lib,
 ct-lib, and ODBC libraries. Currently, dblib and ctlib are most
@@ -61,7 +61,7 @@ tracking system) should include the following.
 
 Also, be sure to check the FAQ (http://www.freetds.org/faq.html) and
 mailing list archive
-(http://franklin.oit.unc.edu/cgi-bin/lyris.pl?enter=freetds)
+(http://lists.ibiblio.org/mailman/listinfo/freetds)
 
 Notes to Developers
 -------------------
