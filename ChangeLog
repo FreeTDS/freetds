@@ -1,3 +1,10 @@
+Mon Mar 08 11:38:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fixed row counts problem in prepared
+	* src/odbc/unittests/moreandcount.c:
+	- updated to reflect FreeTDS status
+	* src/odbc/unittests/t0003.c:
+	- reuse macro
+
 Sat Mar 06 15:00:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- fix invalid cursor state on SQLRowCount

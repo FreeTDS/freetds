@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.7 2004-02-14 19:39:11 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.8 2004-03-08 10:33:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -79,8 +79,7 @@ DoTest(int prepare)
 		"SELECT * FROM #tmp1 WHERE i <= 3 "
 		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
 		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 3 "
-		"SELECT * FROM #tmp1 WHERE i = 1 "
-		"UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
+		"SELECT * FROM #tmp1 WHERE i = 1 " "UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
 
 	if (prepare) {
 		if (SQLPrepare(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
@@ -135,7 +134,15 @@ DoTest(int prepare)
 	Fetch(SQL_NO_DATA);
 	CheckCols(1);
 	if (prepare) {
-		CheckRows(2);
+		/* MS driver collapse 2 recordset... very bad */
+		if (!driver_is_freetds()) {
+			CheckRows(2);
+		} else {
+			CheckRows(1);
+			NextResults(SQL_SUCCESS);
+			CheckRows(2);
+			CheckCols(0);
+		}
 	} else {
 		CheckRows(1);
 		NextResults(SQL_SUCCESS);

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.305 2004-03-06 13:52:53 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.306 2004-03-08 10:33:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -471,6 +471,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDS_INT rowtype;
 	int in_row = 0;
 	int done_flags;
+	int got_rows = 0;
 
 	INIT_HSTMT;
 
@@ -479,6 +480,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 	/* we already readed all results... */
 	if (stmt->dbc->current_statement != stmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA);
+
+	stmt->row_count = TDS_NO_COUNT;
 
 	/* try to go to the next recordset */
 	for (;;) {
@@ -490,6 +493,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 			tds_free_all_results(tds);
 #endif
 			odbc_populate_ird(stmt);
+			if (got_rows)
+				ODBC_RETURN(stmt, SQL_SUCCESS);
 			ODBC_RETURN(stmt, SQL_NO_DATA);
 		case TDS_SUCCEED:
 			switch (result_type) {
@@ -501,6 +506,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				}
 				/* Skipping current result set's rows to access next resultset or proc's retval */
 				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
+				/* TODO should we set in_row ?? */
 				if (tdsret == TDS_FAIL)
 					ODBC_RETURN(stmt, SQL_ERROR);
 				break;
@@ -513,7 +519,10 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
-				stmt->row_count = tds->rows_affected;
+				if (done_flags & TDS_DONE_COUNT) {
+					got_rows = 1;
+					stmt->row_count = tds->rows_affected;
+				}
 				if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
 					break;
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
@@ -530,11 +539,17 @@ SQLMoreResults(SQLHSTMT hstmt)
 				 * see also other DONEINPROC handle (below)
 				 */
 			case TDS_DONEINPROC_RESULT:
-				stmt->row_count = tds->rows_affected;
+				if (done_flags & TDS_DONE_COUNT) {
+					got_rows = 1;
+					stmt->row_count = tds->rows_affected;
+				}
 				if (in_row) {
 					odbc_populate_ird(stmt);
 					ODBC_RETURN(stmt, SQL_SUCCESS);
 				}
+				/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
+				tds_free_all_results(tds);
+				odbc_populate_ird(stmt);
 				break;
 
 				/* do not stop at metadata, an error can follow... */
@@ -1135,7 +1150,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	/* is not the same of using APD sql_desc_bind_type */
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
-	
+
 	stmt->row_count = TDS_NO_COUNT;
 
 	*phstmt = (SQLHSTMT) stmt;
@@ -2300,7 +2315,7 @@ _SQLExecute(TDS_STMT * stmt)
 		/* prepare dynamic query (only for first SQLExecute call) */
 		if (!stmt->dyn) {
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			/* TODO use tds_submit_prepexec (mssql2k, tds8)*/
+			/* TODO use tds_submit_prepexec (mssql2k, tds8) */
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
