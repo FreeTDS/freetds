@@ -1,3 +1,7 @@
+Mon Jan  5 10:09:30 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/index.html doc/htdoc/news.html
+	- small repairs
+
 Mon Jan  5 00:45:00 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in set to 0.62rc2
 	* doc/htdoc/index.html doc/htdoc/news.html
