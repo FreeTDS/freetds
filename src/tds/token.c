@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.278 2005-01-12 19:42:07 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.279 2005-01-12 20:44:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -502,7 +502,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	int marker;
 	TDSPARAMINFO *pinfo = (TDSPARAMINFO *)NULL;
 	TDSCOLUMN   *curcol;
-	int rc;
+	TDS_INT rc;
 	int saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
 
@@ -514,6 +514,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		return TDS_NO_MORE_RESULTS;
 	}
 
+	rc = TDS_SUCCEED;
 	for (;;) {
 
 		marker = tds_get_byte(tds);
@@ -578,7 +579,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			return tds5_process_result(tds);
 			break;
 		case TDS_COLNAME_TOKEN:
-			tds_process_col_name(tds);
+			rc = tds_process_col_name(tds);
 			break;
 		case TDS_COLFMT_TOKEN:
 			rc = tds_process_col_fmt(tds);
@@ -598,10 +599,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			}
 			if (rc == TDS_FAIL)
 				return TDS_FAIL;
-			else {
-				tds_process_colinfo(tds);
-				return TDS_SUCCEED;
-			}
+			tds_process_colinfo(tds);
+			return TDS_SUCCEED;
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
@@ -631,22 +630,20 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				}
 				tds_free_param_results(pinfo);
 			} else {
-				tds_process_param_result_tokens(tds);
 				*result_type = TDS_PARAM_RESULT;
-				return TDS_SUCCEED;
+				return tds_process_param_result_tokens(tds);
 			}
 			break;
 		case TDS_COMPUTE_NAMES_TOKEN:
-			return tds_process_compute_names(tds);
+			rc = tds_process_compute_names(tds);
 			break;
 		case TDS_COMPUTE_RESULT_TOKEN:
 			*result_type = TDS_COMPUTEFMT_RESULT;
 			return tds_process_compute_result(tds);
 			break;
 		case TDS7_COMPUTE_RESULT_TOKEN:
-			tds7_process_compute_result(tds);
 			*result_type = TDS_COMPUTEFMT_RESULT;
-			return TDS_SUCCEED;
+			return tds7_process_compute_result(tds);
 			break;
 		case TDS_ROW_TOKEN:
 			/* overstepped the mark... */
@@ -657,6 +654,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds->current_results = cursor->res_info;
 				tdsdump_log(TDS_DBG_INFO1, "tds_process_result_tokens(). set current_results to cursor->res_info\n");
 			} else {
+				/* assure that we point to row, not to compute */
 				if (tds->res_info)
 					tds->current_results = tds->res_info;
 			}
@@ -704,46 +702,42 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds_unget_byte(tds);
 				break;
 			}
-			tds_process_end(tds, marker, done_flags);
+			rc = tds_process_end(tds, marker, done_flags);
 			if (done_flags)
 				*done_flags &= ~TDS_DONE_ERROR;
 			*result_type = TDS_DONE_RESULT;
-			return TDS_SUCCEED;
+			return rc;
 			break;
 		case TDS5_PARAMFMT_TOKEN:
-			tds_process_dyn_result(tds);
 			*result_type = TDS_DESCRIBE_RESULT;
-			return TDS_SUCCEED;
+			return tds_process_dyn_result(tds);
 			break;
 		case TDS5_PARAMFMT2_TOKEN:
-			tds5_process_dyn_result2(tds);
 			*result_type = TDS_DESCRIBE_RESULT;
-			return TDS_SUCCEED;
+			return tds5_process_dyn_result2(tds);
 			break;
 		case TDS5_PARAMS_TOKEN:
-			tds_process_params_result_token(tds);
 			*result_type = TDS_PARAM_RESULT;
-			return TDS_SUCCEED;
+			return tds_process_params_result_token(tds);
 			break;
 		case TDS_CURINFO_TOKEN:
-			tds_process_cursor_tokens(tds);
+			rc = tds_process_cursor_tokens(tds);
 			break;
 		case TDS_DONE_TOKEN:
-			tds_process_end(tds, marker, done_flags);
 			*result_type = TDS_DONE_RESULT;
-			return TDS_SUCCEED;
+			return tds_process_end(tds, marker, done_flags);
 		case TDS_DONEPROC_TOKEN:
-			tds_process_end(tds, marker, done_flags);
+			rc = tds_process_end(tds, marker, done_flags);
 			switch (tds->internal_sp_called ) {
 				case 0: 
 				case TDS_SP_PREPARE: 
 					*result_type = TDS_DONEPROC_RESULT;
-					return TDS_SUCCEED;
+					return rc;
 					break;
 				case TDS_SP_CURSOROPEN: 
 					*result_type       = TDS_DONE_RESULT;
 					tds->rows_affected = saved_rows_affected;
-					return TDS_SUCCEED;
+					return rc;
 					break;
 				default:
 					*result_type = TDS_NO_MORE_RESULTS;
@@ -752,7 +746,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			}
 			break;
 		case TDS_DONEINPROC_TOKEN:
-			tds_process_end(tds, marker, done_flags);
+			rc = tds_process_end(tds, marker, done_flags);
 			if (tds->internal_sp_called == TDS_SP_CURSOROPEN  ||
 				tds->internal_sp_called == TDS_SP_CURSORFETCH ||
 				tds->internal_sp_called == TDS_SP_CURSORCLOSE ) {
@@ -761,15 +755,15 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				}
 			} else {
 				*result_type = TDS_DONEINPROC_RESULT;
-				return TDS_SUCCEED;
+				return rc;
 			}
 			break;
 		default:
-			if (tds_process_default_tokens(tds, marker) == TDS_FAIL) {
-				return TDS_FAIL;
-			}
+			rc = tds_process_default_tokens(tds, marker);
 			break;
 		}
+		if (rc != TDS_SUCCEED)
+			return rc;
 	}
 }
 
@@ -950,6 +944,7 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 			tds_process_param_result_tokens(tds);
 			break;
 		case TDS5_PARAMFMT_TOKEN:
+			/* TODO handle error here, in all this function */
 			tds_process_dyn_result(tds);
 			break;
 		case TDS5_PARAMFMT2_TOKEN:

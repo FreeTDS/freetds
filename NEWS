@@ -1,9 +1,10 @@
-$Id: NEWS,v 1.13 2005-01-12 19:42:00 freddy77 Exp $
+$Id: NEWS,v 1.14 2005-01-12 20:44:28 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
 - moved network stuff in net.c
 - fixed conversion NUMERIC->NUMERIC changing precision/scale
+- fixed compute handling in ODBC
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

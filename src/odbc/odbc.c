@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.349 2005-01-12 19:42:05 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.350 2005-01-12 20:44:29 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -152,8 +152,6 @@ static void odbc_ird_check(TDS_STMT * stmt);
  * Bah!
  */
 
-/* TODO cursors res_info or current_result ?? check compute */
-
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 {
@@ -164,7 +162,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	IRD_CHECK;
 
 #if ENABLE_EXTRA_CHECKS
-	if (colpos > 0 && stmt->dbc->tds_socket != NULL && (resinfo = stmt->dbc->tds_socket->res_info) != NULL) {
+	if (colpos > 0 && stmt->dbc->tds_socket != NULL && (resinfo = stmt->dbc->tds_socket->current_results) != NULL) {
 		if (colpos <= resinfo->num_cols) {
 			/* TODO see overflow */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
@@ -2268,8 +2266,8 @@ odbc_ird_check(TDS_STMT * stmt)
 
 	if (!stmt->dbc->tds_socket)
 		return;
-	if (stmt->dbc->tds_socket->res_info) {
-		res_info = stmt->dbc->tds_socket->res_info;
+	if (stmt->dbc->tds_socket->current_results) {
+		res_info = stmt->dbc->tds_socket->current_results;
 		cols = res_info->num_cols;
 	}
 
@@ -2299,7 +2297,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 	int i;
 
 	desc_free_records(ird);
-	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->res_info))
+	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->current_results))
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
@@ -3667,7 +3665,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	tds = stmt->dbc->tds_socket;
 	context = stmt->dbc->env->tds_ctx;
 	locale = context->locale;
-	resinfo = tds->res_info;
+	resinfo = tds->current_results;
 	if (!resinfo) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -4760,10 +4758,10 @@ odbc_upper_column_names(TDS_STMT * stmt)
 
 #if ENABLE_EXTRA_CHECKS
 	tds = stmt->dbc->tds_socket;
-	if (!tds || !tds->res_info)
+	if (!tds || !tds->current_results)
 		return;
 
-	resinfo = tds->res_info;
+	resinfo = tds->current_results;
 	for (icol = 0; icol < resinfo->num_cols; ++icol) {
 		char *p;
 
@@ -4843,7 +4841,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	 * Some program use first entry so we discard all entry bfore varchar
 	 */
 	n = 0;
-	while (tds->res_info) {
+	while (tds->current_results) {
 		TDSRESULTINFO *resinfo;
 		TDSCOLUMN *colinfo;
 		char *name;
@@ -4860,11 +4858,11 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 				goto redo;
 			break;
 		}
-		if (!tds->res_info)
+		if (!tds->current_results)
 			break;
 		++n;
 
-		resinfo = tds->res_info;
+		resinfo = tds->current_results;
 		colinfo = resinfo->columns[0];
 		name = (char *) (resinfo->current_row + colinfo->column_offset);
 		/* skip nvarchar and sysname */

@@ -1,3 +1,11 @@
+Wed Jan 12 21:42:47 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/compute.c:
+	- fix metadata handling in compute
+	- improve compute test
+	* src/tds/token.c:
+	- fix wrong return
+	- handle error correctly in tds_process_result_tokens
+
 Wed Jan 12 20:40:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS include/tds.h include/tdsodbc.h src/dblib/bcp.c:
 	* src/odbc/odbc.c src/odbc/unittests/compute.c:
