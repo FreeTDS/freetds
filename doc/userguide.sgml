@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-07-27 11:27:02 $</date>
-		<releaseinfo>$Revision: 1.60 $</releaseinfo>
+		<date>$Date: 2003-08-05 13:28:18 $</date>
+		<releaseinfo>$Revision: 1.61 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.60 $</>
-<member>$Date: 2003-07-27 11:27:02 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.60 2003-07-27 11:27:02 freddy77 Exp $.</>
+<member>$Revision: 1.61 $</>
+<member>$Date: 2003-08-05 13:28:18 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.61 2003-08-05 13:28:18 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -190,6 +190,7 @@ In addition to the core <systemitem class="library">db-lib</systemitem> <acronym
 			<para>
 The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your application's needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and with 0.61 it began to comply with the ODBC 3.0 specification.
+0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (ODBC RPC parameters, descriptors and others).
 			</para>
 			<para>
 Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
@@ -345,14 +346,18 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 			<varlistentry>
 				<term><Parameter>--with-iodbc
 					</Parameter></term>
-				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>iODBC</productname> Driver Manager. (Requires <productname>iODBC</productname> to have already been installed.)</para>
+				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>iODBC</productname> Driver Manager. 
+				From 0.62 version ODBC DM are detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
+				(Requires <productname>iODBC</productname> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
 
 			<varlistentry>
 				<term><Parameter>--with-unixodbc 
 					</Parameter></term>
-				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>unixODBC</productname> Driver Manager.(Requires <productname>unixODBC</productname> to have already been installed.)</para>
+				<listitem><para>Build with <systemitem class="library">ODBC</systemitem> support and to use the <productname>unixODBC</productname> Driver Manager.
+				From 0.62 version ODBC DM are detected by configure script, so use this parameter only if your DM is installed in a no-standard path.
+				(Requires <productname>unixODBC</productname> to have already been installed.)</para>
 					</listitem>
 				</varlistentry>
 
@@ -366,13 +371,19 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<listitem><para>Force FreeTDS to use threadsafe versions of functions where available, such as using gethostbyname_r() instead of the older and non-safe gethostbyname().
 				Is not widely tested on all platform but has been tested on: Linux, FreeBSD, HP-UX 10.20 and should work on Solaris, Tru64, IRIX (reported to work).
 				Is also a good idea to enable this switch if you configure Apache with multi-threading support.
-				From 0.61 version this option is turned on by default in RPM building.
+				From 0.61 version this option is turned on by default in RPM building. From version 0.62 this option is turned on by default.
 				</para></listitem>
 			</varlistentry>
 			<varlistentry>
 				<term><Parameter>--enable-sybase-compat</Parameter></term>
 				<listitem><para>Enable close compatibility with Sybase's ABI, at the expense of other features.  Currently, this enables the generation of a dbopen() entry point in <systemitem class="library">db-lib</systemitem>, which may clash with the <systemitem class="library">DBM</systemitem> function with the same name.  Absolutely <emphasis>not required</> for use with other free software.  </para>
 					</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term><Parameter>--enable-debug</Parameter></term>
+				<listitem><para>This enable some check in FreeTDS code. Enabled by default.
+				</para></listitem>
 			</varlistentry>
 
 			<varlistentry>
@@ -543,6 +554,7 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 			</para>
 			<para>
 Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (unicode, 2 bytes/character).  
+However 4.2 version has many limitations (see below) so if you encounter problems is best to report to ML and wait for a fix.
 			</para>
 			<para>
 TDS 4.2 and 5.0 have limitations you should be aware of, though, including:
@@ -716,33 +728,6 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>multiple of 512</entry>
 	</row>
 	<row>
-	<entry>try server login</entry>
-	<entry>yes</entry>
-	<entry>Disable use of server logins when domain logins are in use.</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>try domain login</entry>
-	<entry>yes</entry>
-	<entry>Attempt a domain login.  
-		<emphasis> Setting try domain login has the effect 
-				of disallowing server logins!</emphasis>
-		To configure a dataserver for both server logins and domain login disable this option and use DOMAIN\username for login.</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>nt domain</entry>
-	<entry>none</entry>
-	<entry>Specify an explicit domain</entry>
-	<entry>any</entry>
-	</row>
-	<row>
-	<entry>cross domain login</entry>
-	<entry>no</entry>
-	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
 	<entry>dump file</entry>
 	<entry>none</entry>
 	<entry>Specifies the location of a tds dump file and turns on logging</entry>
@@ -789,6 +774,41 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	<entry>4,294,967,295</entry>
 	<entry>default value of TEXTSIZE, in bytes.  Affects column width of <type>text</type> and <type>image</type> datatypes.  </entry>
 	<entry>0 to 4,294,967,295</entry>
+	</row>
+	<row>
+	<entry>try server login</entry>
+	<entry>yes</entry>
+	<entry>Disable use of server logins when domain logins are in use. 
+		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
+	</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>try domain login</entry>
+	<entry>yes</entry>
+	<entry>Attempt a domain login.  
+		<emphasis> Setting try domain login has the effect 
+				of disallowing server logins!</emphasis>
+		To configure a dataserver for both server logins and domain login disable this option and use DOMAIN\username for login.
+		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
+	</entry>
+	<entry>yes/no</entry>
+	</row>
+	<row>
+	<entry>nt domain</entry>
+	<entry>none</entry>
+	<entry>Specify an explicit domain.
+		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
+	</entry>
+	<entry>any</entry>
+	</row>
+	<row>
+	<entry>cross domain login</entry>
+	<entry>no</entry>
+	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.
+		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
+	</entry>
+	<entry>yes/no</entry>
 	</row>
 </tbody>
 </tgroup>
@@ -1296,6 +1316,7 @@ Several version of Microsoft SQL server have a bug that affects big endian clien
 
 <para>
 In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
+<emphasis>You shouldn't use this option, set another protocol version instead (7.0 or 8.0)</emphasis>.
 </para>
 <example>
 <title>Emulate Little Endian <filename>freetds.conf</filename> setting</title>
@@ -1367,24 +1388,12 @@ It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any
 			<title>Domain Logins</title>
 			<para>
 As mentioned in the installation chapter, <productname>SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
+<productname>FreeTDS</productname> began supporting domain logins in version 0.60.
 			</para>
 			<para>
-<example>
-<title>Turning on domain login support in <filename>freetds.conf</filename></title>
-<programlisting>
-[mssql]
-	host = ntbox.mydomain.com
-	port = 1433
-	tds version = 7.0
-	try domain login = yes
-	try server login = no
-</programlisting>
-</example>
+To use domain logins use <literal>DOMAIN\user</> syntax for user and use domain password.
 			</para>
-<Note><para>
-<productname>FreeTDS</productname> began supporting domain logins in version 0.60.  It appears that server- and domain-logins are mutually exclusive.  That is, although we would like it to be the case that you could set both <literal>try domain login</> and <literal>try server login</> to <literal>yes</>, we're not sure you can.  Not yet, anyway.  To work around this, you can simply use two sections for the server (one in each mode) in  <filename>freetds.conf</filename>. If you specify a username with the <literal>DOMAIN\user</> syntax, 
-<productname>FreeTDS</productname> automatically uses a domain login for TDS versions 7.0 and 8.0.
-</para></Note>
+<Note><para>Domain logins can be used only with versions 7.0 and 8.0 or protocol.</para></Note>
 		</sect1>
 		<sect1 id="appendmode">
 			<title>Appending Dump Files</title>
@@ -2038,6 +2047,34 @@ To support these methods, some options were added.
 	<entry>LANGUAGE</entry>
 	<entry>us_english</entry>
 	<entry>Language used by server.</entry>
+	<entry>Any</entry>
+	<entry>yes</entry>
+	</row>
+	<row>
+	<entry>Address</entry>
+	<entry>none</entry>
+	<entry>Address to connect. This is useful if you want to specify a server and give an IP to connect to. Specify IP you want to connect.</entry>
+	<entry>Any</entry>
+	<entry>yes</entry>
+	</row>
+	<row>
+	<entry>Database</entry>
+	<entry>none</entry>
+	<entry>Specify which database you want to access. If database do not exists or you haven't access to connection will fail.</entry>
+	<entry>Any</entry>
+	<entry>yes</entry>
+	</row>
+	<row>
+	<entry>TextSize</entry>
+	<entry>DB dependent</entry>
+	<entry>Maximun size returned from server for blobs.</entry>
+	<entry>Any</entry>
+	<entry>yes</entry>
+	</row>
+	<row>
+	<entry>PacketSize</entry>
+	<entry>DB dependent</entry>
+	<entry>Size of packets to server. Usually you shouldn't set this parameters. Some users saw some performance gain increasing this value.</entry>
 	<entry>Any</entry>
 	<entry>yes</entry>
 	</row>

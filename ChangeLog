@@ -1,3 +1,6 @@
+Tue Aug 05 15:27:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: some updates
+
 Tue Aug 05 14:22:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/print.c:
 	- add a test for raiseerror
