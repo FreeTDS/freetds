@@ -47,7 +47,7 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: defncopy.c,v 1.1 2004-04-12 20:36:42 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.2 2004-04-12 22:30:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -706,6 +706,26 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 int
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
+	char *dbname, *endquote; 
+
+	switch (msgno) {
+	case 5701: /* Print USE <dbname> for "Changed database context to 'blah'" */
+		dbname = strchr(msgtext, '\'');
+		if (!dbname)
+			break;
+		endquote = strchr(++dbname, '\'');
+		if (!endquote)
+			break;
+		*endquote = '\0';
+		fprintf(stdout, "USE %s\nGO\n\n", dbname);
+		return 0;		
+
+	case 5703:	/* Ignore "Changed language setting to <language>". */
+		return 0;		
+		
+	default:
+		break;
+	}
 	printf("Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
 
 	if (strlen(srvname) > 0)
