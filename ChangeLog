@@ -1,3 +1,6 @@
+Thu Dec 04 23:27:09 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.conf: updated removing old configurations
+
 Thu Dec 04 23:03:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: make "make check" happy even for Sybase
 
