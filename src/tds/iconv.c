@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.33 2002-12-10 17:01:13 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.34 2003-01-08 18:00:33 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -66,6 +66,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
 #if HAVE_ICONV
+	tdsdump_log(TDS_DBG_FUNC, "%L iconv will convert client-side data to the \"%s\" character set\n", charset);
 	iconv_info->cdto = iconv_open("UCS-2LE", charset);
 	if (iconv_info->cdto == (iconv_t) - 1) {
 		iconv_info->use_iconv = 0;
@@ -81,6 +82,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	/* iconv_info->use_iconv = 0; */
 #else
 	iconv_info->use_iconv = 0;
+	tdsdump_log(TDS_DBG_FUNC, "%L iconv library not employed, relying on ISO-8859-1 compatibility\n");
 #endif
 }
 
