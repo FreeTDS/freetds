@@ -272,20 +272,6 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 					</listitem>
 				</varlistentry>
 
-			<varlistentry>
-				<term><Parameter>--enable-dbmfix
-					</Parameter></term>
-				<listitem><para>Force the function dbopen() in the dblib API to be renamed tdsdbopen().  This option is used to avoid a conflict with programs that link in both dblib and some flavor of DBM (ndbm, gdbm, etc...).  Note the application will have to be modified to call tdsdbopen() instead, see the <link linkend="php">PHP Section</link> for information on fixing this in PHP.</para>
-				
-				<para>With this option, <Parameter>dbopen()</Parameter> remains defined in <filename>sybdb.h</filename>, so modules can still call the real <Parameter>dbopen()</Parameter> directly.  
-<Note> <para><function>dbm</function> and <function>dblib</function> still cannot be compiled in the same object file (without undefining <Parameter>dbopen</Parameter> , and using <Parameter>tdsdbopen</Parameter> ), but they can be referenced in separate objects and linked together.  Which is what most people (perl,
-php) are looking for anyway.</para></note></para>
-				
-				
-				
-					</listitem>
-				</varlistentry>
-
 			</variablelist>
 			<para>
 Now you're ready to build.  Follow these easy steps.  
@@ -1120,11 +1106,14 @@ You'll note this is the same program as for DBD::Sybase with the exception of th
 			<title>PHP</title>
 			<para>
 There are three options for building PHP with support for FreeTDS corresponding to the three APIs that FreeTDS supports: <type>dblib</type>, <type>ctlib</type>, and <type>ODBC</type>.
+<note><para>All these examples build the CGI version.  Consult PHPs documentation for building the apache module and including other extensions.</para></note>
 			</para>
 		<sect2 id="phpDblib">
 			<title>Dblib</title>
 			<para>
-Dblib is perhaps the most straightforward to build.  The only caveat here is that you may run into the dbm conflict which would require some hand editing of PHP sources.  This first example assumes that PHP is <emphasis>not</emphasis> built with DBM.
+Dblib is perhaps the most straightforward to build.  Previously, some source
+code tweaking was required to build PHP with both Dblib and DBM support, but
+as of version 0.53, FreeTDS now handles this automatically.
  			</para>
 			<para>
 First build FreeTDS normally.
@@ -1145,26 +1134,6 @@ Then build PHP with support for <quote>sybase</quote>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
 And that's it!  
-<note><para>All these examples build the CGI version.  Consult PHPs documentation for building the apache module and including other extensions.</para></note>
-			</para>
-			<para>
-If you need to include support for DBM in PHP, configure FreeTDS with the dbmfix option, this will automatically rename dblib's dbopen() function to tdsdbopen().
-<screen>
-<prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds --enable-dbmfix</userinput>
-<prompt>$ </prompt><userinput>gmake</userinput>
-<prompt>$ </prompt><userinput>su root</userinput>
-<prompt>Password: </prompt>
-<prompt>$ </prompt><userinput>gmake install</userinput>
-</screen>
-Next edit the file ext/sybase/php_sybase_db.c in the PHP source directory.  Look for the text 'dbopen' and replace it with 'tdsdbopen'.  At the time of this writing there were 3 occurances of it. Then build PHP with support for 'sybase' and 'DBM'
-<screen>
-<prompt>$ </prompt><userinput>cd php</userinput>
-<prompt>$ </prompt><userinput>./configure --with-sybase=/usr/local/freetds --with-dbm</userinput>
-<prompt>$ </prompt><userinput>make</userinput>
-<prompt>$ </prompt><userinput>su root</userinput>
-<prompt>Password: </prompt>
-<prompt>$ </prompt><userinput>make install</userinput>
-</screen>
 			</para>
 		</sect2>
 		<sect2>

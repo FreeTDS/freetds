@@ -1,3 +1,7 @@
+Wed Nov  7 22:18:02 CST 2001    Steve Langasek <vorlon@netexpress.net>
+	* Removed --enable-dbmfix configure option, because there's no longer
+	a reason to ever disable this
+
 Thu Nov  8 13:55:20 2001  James Cameron  <quozl@us.netrek.org>
 
 	* .cvsignore: populate list of files to ignore during cvs update.

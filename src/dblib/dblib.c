@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.4 2001-11-07 21:02:38 mlilback Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.5 2001-11-08 04:50:36 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -429,11 +429,7 @@ RETCODE DBSETLAPP(LOGINREC *login, char *application)
 	tds_set_app(login->tds_login,application);
 	return SUCCEED;
 }
-#ifdef DBMFIX
 DBPROCESS *tdsdbopen(LOGINREC *login,char *server)
-#else
-DBPROCESS *dbopen(LOGINREC *login,char *server)
-#endif
 {
    DBPROCESS *dbproc;
    char	*envbuf;

@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.2 2001-11-07 20:42:13 mlilback Exp $";
+"$Id: sybdb.h,v 1.3 2001-11-08 04:50:36 vorlon Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -299,12 +299,8 @@ extern	RETCODE    DBSETLPWD(LOGINREC *login, char *password);
 extern	RETCODE    DBSETLUSER(LOGINREC *login, char *username);
 extern	RETCODE    DBSETLHOST(LOGINREC *login, char *hostname);
 extern	RETCODE    DBSETLAPP(LOGINREC *login, char *application);
-#ifdef DBMFIX
 extern	DBPROCESS *tdsdbopen(LOGINREC *login,char *server);
 #define   dbopen(x,y) tdsdbopen(x,y)
-#else
-extern	DBPROCESS *dbopen(LOGINREC *login,char *server);
-#endif
 extern  RETCODE    dbclose(DBPROCESS *dbprocess);
 extern	DBINT      dbconvert(DBPROCESS *dbproc, int srctype, 
                              BYTE *src, DBINT srclen, int desttype, BYTE *dest,

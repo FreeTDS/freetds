@@ -148,13 +148,6 @@ if test "$enable_msdblib" = "yes" ; then
 	CFLAGS="$CFLAGS -DMSDBLIB"
 fi
 
-AC_ARG_ENABLE(dbmfix,
-  [  --enable-dbmfix         fix naming conflict with the dbm dbopen()])
-
-if test "$enable_dbmfix" = "yes" ; then
-	CFLAGS="$CFLAGS -DDBMFIX"
-fi
-
 
 dnl ------------------------------------------------------------
 dnl Final output
