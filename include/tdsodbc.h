@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.21 2003-02-13 05:47:10 jklowden Exp $";
+         "$Id: tdsodbc.h,v 1.22 2003-03-06 11:46:23 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
@@ -95,7 +95,6 @@ struct _henv {
 struct _hstmt;
 struct _hdbc {
 	struct _henv *henv;
-	TDSLOGIN *tds_login;
 	TDSSOCKET *tds_socket;
 	/** statement executing */
 	struct _hstmt *current_statement;

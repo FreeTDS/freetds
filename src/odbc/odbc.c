@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.136 2003-03-02 09:47:12 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.137 2003-03-06 11:46:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -502,12 +502,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	memset(dbc, '\0', sizeof(TDS_DBC));
 	dbc->henv = env;
-	dbc->tds_login = tds_alloc_login();
-	if (!dbc->tds_login) {
-		free(dbc);
-		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
-		return SQL_ERROR;
-	}
+
 	/* spinellia@acm.org
 	 * after login is enabled autocommit */
 	dbc->autocommit_state = 1;
@@ -1301,6 +1296,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 {
 	INIT_HDBC;
 
+	tds_free_socket(dbc->tds_socket);
+	odbc_errs_reset(&dbc->errs);
 	free(dbc);
 
 	return SQL_SUCCESS;
@@ -1317,7 +1314,11 @@ static SQLRETURN SQL_API
 _SQLFreeEnv(SQLHENV henv)
 {
 	INIT_HENV;
-	/* TODO why don't free anything ??? */
+
+	tds_free_context(env->tds_ctx);
+	odbc_errs_reset(&env->errs);
+	free(env);
+
 	return SQL_SUCCESS;
 }
 

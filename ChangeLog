@@ -1,3 +1,7 @@
+Thu Mar 06 12:45:01 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- remove some memory leak
+
 Thu Mar 06 12:26:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: cleanup
 	* src/tds/convert.c: 
