@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.132 2003-02-06 05:44:14 vorlon Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.133 2003-02-10 21:49:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -388,6 +388,10 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 #endif
 
 #if (ODBCVER >= 0x0300)
+#ifndef SQLULEN
+/* unixodbc began defining SQLULEN in recent versions; this lets us complile if you're using an older version. */
+# define SQLULEN SQLUINTEGER
+#endif
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
