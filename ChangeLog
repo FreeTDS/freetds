@@ -1,3 +1,6 @@
+Fri Nov  2  8:40:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: look better
+
 Fri Nov  1 17:49:49 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h include/dblib.h include/sybdb.h include/tds.h
 	  src/ctlib/cs.c src/ctlib/ct.c src/dblib/dblib.c src/pool/config.c

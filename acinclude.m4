@@ -103,8 +103,7 @@ dnl Based on David Arnold's autoconf suggestion in the threads faq.
 AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
-AC_CACHE_CHECK(for getservbyname_r, ac_cv_func_which_getservbyname_r, [
-AC_CHECK_FUNC(getservbyname_r, [
+AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname_r, [
         AC_TRY_COMPILE([
 #               include <netdb.h>
         ],      [
@@ -144,8 +143,7 @@ AC_CHECK_FUNC(getservbyname_r, [
 
   )
                         ]
-                )]
-        ,ac_cv_func_which_getservbyname_r=no)])
+                )])
 
 if test $ac_cv_func_which_getservbyname_r = six; then
   AC_DEFINE(HAVE_FUNC_GETSERVBYNAME_R_6, 1, [Define to 1 if your system provides the 6-parameter version of getservbyname_r().])
@@ -173,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.12 2002-10-07 18:34:44 castellano Exp $
+dnl @version $Id: acinclude.m4,v 1.13 2002-11-02 07:41:07 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -182,7 +180,6 @@ AC_DEFUN(AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R,
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
-AC_CHECK_FUNC(gethostbyname_r, [
 	AC_TRY_COMPILE([
 #		include <netdb.h> 
   	], 	[
@@ -223,8 +220,7 @@ dnl  ac_cv_func_which_gethostname_r=no
   
   )
 			]
-		)]
-	,ac_cv_func_which_gethostname_r=no)])
+		)])
 
 if test $ac_cv_func_which_gethostname_r = six; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYNAME_R_6, 1, [Define to 1 if your system provides the 6-parameter version of gethostbyname_r().])
@@ -244,7 +240,6 @@ AC_DEFUN(AC_tds_FUNC_WHICH_GETHOSTBYADDR_R,
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyaddr_r, ac_cv_func_which_gethostbyaddr_r, [
-AC_CHECK_FUNC(gethostbyaddr_r, [
 	AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <netdb.h>
@@ -300,8 +295,7 @@ rc = gethostbyaddr_r(address, length, type, &h,
 ]
   )
 			]
-		)]
-	,ac_cv_func_which_gethostbyaddr_r=no)])
+		)])
 
 if test $ac_cv_func_which_gethostbyaddr_r = eight; then
   AC_DEFINE(HAVE_FUNC_GETHOSTBYADDR_R_8, 1, [Define to 1 if your system provides the 8-parameter version of gethostbyaddr_r().])
