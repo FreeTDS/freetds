@@ -32,7 +32,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: numeric.c,v 1.12 2002-10-14 13:36:55 castellano Exp $";
+	"$Id: numeric.c,v 1.13 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -70,7 +70,8 @@ const int g__numeric_bytes_per_prec[] =
 /*
 ** money is a special case of numeric really...that why its here
 */
-char *tds_money_to_string(TDS_MONEY *money, char *s)
+char *
+tds_money_to_string(const TDS_MONEY *money, char *s)
 {
 	/* use brian's money */
 #ifdef UseBillsMoney
@@ -102,10 +103,8 @@ int i;
 #else
 unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
 unsigned char product[MAXPRECISION];
-unsigned char *number;
-#ifndef WORDS_BIGENDIAN
-unsigned char reorder[8];
-#endif
+const unsigned char *number;
+unsigned char tmpnumber[8];
 int num_bytes = 8;
 int i;
 int pos;
@@ -115,35 +114,35 @@ int neg=0;
 	memset(product,0,MAXPRECISION);
 	multiplier[0]=1;
 
+	number = (const unsigned char *) money;
+
 #ifdef WORDS_BIGENDIAN
 	/* big endian makes things easy */
-	number = (unsigned char *) money;
+	memcpy(tmpnumber, number, 8);
 #else
 	/* money is two 32 bit ints and thus is out of order on 
 	** little endian machines. Proof of the superiority of 
 	** big endian design. ;)
 	*/
-	number = (unsigned char *) money;
 	for (i=0;i<4;i++)
-		reorder[3-i] = number[i];
+		tmpnumber[3-i] = number[i];
 	for (i=4;i<8;i++)
-		reorder[7-i+4] = number[i];
-	number = reorder;
+		tmpnumber[7-i+4] = number[i];
 #endif
 
-	if (number[0] & 0x80) {
+	if (tmpnumber[0] & 0x80) {
 		/* negative number -- preform two's complement */
 		neg = 1;
 		for (i=0;i<8;i++) {
-			number[i] = ~number[i];
+			tmpnumber[i] = ~tmpnumber[i];
 		}
 		for (i=7; i>=0; i--) {
-			number[i] += 1;
-			if (number[i]!=0) break;
+			tmpnumber[i] += 1;
+			if (tmpnumber[i]!=0) break;
 		}
 	}
 	for (pos=num_bytes-1;pos>=0;pos--) {
-		multiply_byte(product, number[pos], multiplier);
+		multiply_byte(product, tmpnumber[pos], multiplier);
 
 		memcpy(temp, multiplier, MAXPRECISION);
 		memset(multiplier,0,MAXPRECISION);
@@ -158,11 +157,13 @@ int neg=0;
 	return s;
 #endif
 }
-char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s)
+
+char *
+tds_numeric_to_string(const TDS_NUMERIC *numeric, char *s)
 {
 unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
 unsigned char product[MAXPRECISION];
-unsigned char *number;
+const unsigned char *number;
 int num_bytes;
 int pos;
 

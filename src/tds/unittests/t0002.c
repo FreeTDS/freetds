@@ -31,7 +31,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0002.c,v 1.5 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.6 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,11 +48,11 @@ value_as_string(TDSSOCKET  *tds, int col_idx)
 
    switch(type) {
       case SYBVARCHAR:
-         strncpy(result, (char *)value, sizeof(result)-1);
+         strncpy(result, (const char *) value, sizeof(result)-1);
          result[sizeof(result)-1] = '\0';
          break;
       case SYBINT4:
-         sprintf(result, "%d", *(int *)value);
+         sprintf(result, "%d", *(const int *)value);
          break;
       default:
          sprintf(result, "Unexpected column_type %d", type);

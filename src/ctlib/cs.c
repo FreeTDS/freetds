@@ -47,11 +47,11 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.29 2002-11-01 22:51:33 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.30 2002-11-04 19:49:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-static char *
+static const char *
 _cs_get_layer(int layer)
 {
 	switch (layer) {
@@ -64,7 +64,7 @@ _cs_get_layer(int layer)
 	return "unrecognized layer";
 }
 
-static char *
+static const char *
 _cs_get_origin(int origin)
 {
 	switch (origin) {
@@ -86,7 +86,7 @@ _cs_get_origin(int origin)
 	return "unrecognized origin";
 }
 
-static char *
+static const char *
 _cs_get_user_api_layer_error(int error)
 {
 	switch (error) {

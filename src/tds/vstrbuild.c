@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.8 2002-11-04 10:30:52 freddy77 Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.9 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -67,7 +67,7 @@ char skip = 0;
 		case ',':
 		case ' ':
 			if (!skip) {
-				*cp++ = '\xFF';
+				*cp++ = '\377';
 				skip = 1;
 			}
 			break;
@@ -87,7 +87,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen,
 char *newformat;
 char *params;
 char *token;
-char *sep = "\xFF";
+const char *sep = "\377";
 char *lasts;
 int tokcount = 0;
 struct string_linked_list *head = NULL;

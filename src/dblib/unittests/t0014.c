@@ -17,14 +17,14 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.12 2002-11-01 20:55:48 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.13 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
 
-char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
+const char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
 
 int main(int argc, char *argv[])
 {

@@ -3,7 +3,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.7 2002-10-17 21:21:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.8 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -42,7 +42,7 @@ read_login_info(void)
 int try_tds_login(
    TDSLOGIN  **login,
    TDSSOCKET **tds,
-   char *appname,
+   const char *appname,
    int verbose)
 {
 TDSCONTEXT *context;

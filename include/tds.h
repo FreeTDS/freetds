@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.36 2002-11-03 10:13:06 freddy77 Exp $";
+	"$Id: tds.h,v 1.37 2002-11-04 19:49:17 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -721,7 +721,7 @@ int tds_get_null(unsigned char *current_row, int column);
 int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
-char *tds_prtype(int token);
+const char *tds_prtype(int token);
 
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET *tds, char *charset);
@@ -812,8 +812,8 @@ int tds_close_socket(TDSSOCKET *tds);
 int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen, va_list ap);
 
 /* numeric.c */
-char *tds_money_to_string(TDS_MONEY *money, char *s);
-char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
+char *tds_money_to_string(const TDS_MONEY *money, char *s);
+char *tds_numeric_to_string(const TDS_NUMERIC *numeric, char *s);
 
 typedef struct tds_answer
 {

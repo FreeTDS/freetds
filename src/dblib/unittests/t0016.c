@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0016.c,v 1.11 2002-11-01 20:55:49 castellano Exp $";
+static char  software_version[]   = "$Id: t0016.c,v 1.12 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
    int         i;
    char			sqlCmd[256];
    RETCODE      ret;
-   char         *out_file = "t0016.out";
-   char         *in_file = FREETDS_SRCDIR "/t0016.in";
-   char         *err_file = "t0016.err";
+   const char   *out_file = "t0016.out";
+   const char   *in_file = FREETDS_SRCDIR "/t0016.in";
+   const char   *err_file = "t0016.err";
    DBINT        rows_copied;
    int          num_cols;
 
@@ -114,14 +114,14 @@ int main(int argc, char *argv[])
 
    for (i = 1; i < num_cols ; i++ )
    {
-      if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
+      if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i)) == FAIL)
       {
           fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
 	  failed = 1;
       }
    }
 
-   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
+   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
    {
       fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
       failed = 1;
@@ -154,14 +154,14 @@ int main(int argc, char *argv[])
 
    for (i = 1; i < num_cols ; i++ )
    {
-      if ((ret = bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i)) == FAIL)
+      if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i)) == FAIL)
       {
           fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
 	  failed = 1;
       }
    }
 
-   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1,(BYTE *)"\n",sizeof(char) ,num_cols)) == FAIL)
+   if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
    {
       fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
       failed = 1;

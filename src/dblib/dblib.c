@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.94 2002-11-01 22:51:34 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.95 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -654,7 +654,7 @@ char *cp;
   return ret;
 }
 
-static char *opttext[DBNUMOPTIONS] = {
+static const char *opttext[DBNUMOPTIONS] = {
 	"parseonly",
 	"estimate",
 	"showplan",
@@ -3726,8 +3726,8 @@ RETCODE dbregexec(
 }
 char      *dbmonthname(DBPROCESS *dbproc,char *language,int monthnum,DBBOOL shortform)
 {
-char *shortmon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-char *longmon[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+const char *shortmon[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+const char *longmon[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
 	if (shortform)
 		return shortmon[monthnum-1];

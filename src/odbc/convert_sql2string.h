@@ -21,13 +21,13 @@
 #define CONVERT_SQL2STRING_h
 
 static char  rcsid_convert_sql2string_h [ ] =
-         "$Id: convert_sql2string.h,v 1.2 2002-07-15 03:29:58 brianb Exp $";
+         "$Id: convert_sql2string.h,v 1.3 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_convert_sql2string_h_warn[]={rcsid_convert_sql2string_h, 
                                          no_unused_convert_sql2string_h_warn};
 
 
 
-TDS_INT convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, 
+TDS_INT convert_sql2string(TDSCONTEXT *context, int srctype, const TDS_CHAR *src, 
 		TDS_INT srclen, TDS_CHAR *dest, TDS_INT destlen,
 		int param_lenbind);
 

@@ -43,7 +43,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.28 2002-11-01 20:55:52 castellano Exp $";
+	"$Id: iconv.c,v 1.29 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -126,7 +126,7 @@ size_t lquest_mark;
 	if (iconv_info->use_iconv) {
      	out_bytes = len;
      	in_bytes = len * 2;
-     	in_ptr = (char *)in_string;
+     	in_ptr = (ICONV_CONST char *) in_string;
      	out_ptr = out_string;
      	while (iconv(iconv_info->cdfrom, &in_ptr, &in_bytes, &out_ptr, &out_bytes) == (size_t)-1) {
 		/* iconv call can reset errno */
@@ -195,7 +195,7 @@ size_t out_bytes, in_bytes;
 	if (iconv_info->use_iconv) {
      	out_bytes = maxlen;
      	in_bytes = string_length;
-     	in_ptr = (char *)in_string;
+     	in_ptr = (ICONV_CONST char *) in_string;
      	out_ptr = out_string;
      	iconv(iconv_info->cdto, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
 

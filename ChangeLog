@@ -1,3 +1,23 @@
+Mon Nov  4 14:45:26 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h include/tdssrv.h src/apps/freebcp.c src/ctlib/cs.c
+	  src/ctlib/unittests/common.c src/ctlib/unittests/common.h
+	  src/dblib/bcp.c src/dblib/dblib.c src/dblib/unittests/t0007.c
+	  src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c
+	  src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c
+	  src/dblib/unittests/t0019.c src/dblib/unittests/t0021.c
+	  src/odbc/convert_sql2string.c src/odbc/convert_sql2string.h
+	  src/odbc/odbc.c src/odbc/unittests/common.c src/pool/stream.c
+	  src/server/server.c src/tds/config.c src/tds/convert.c
+	  src/tds/iconv.c src/tds/numeric.c src/tds/token.c src/tds/vstrbuild.c
+	  src/tds/unittests/common.c src/tds/unittests/common.h
+	  src/tds/unittests/t0002.c src/tds/unittests/t0004.c
+	  src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	- Use octal character constants instead of hex, for portability.
+	- More constification.
+	- Fix bug in tds_money_to_string() made apprarent by constification:
+	  input argument was being altered (corrupted) during the conversion.
+	  Use a temporary copy instead.
+
 Fri Nov  4 11:30:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/tds/mem.c src/tds/query.c:
 	* src/tds/token.c src/tds/vstrbuild.c:

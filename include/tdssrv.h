@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 static char rcsid_tdssrv_h[] =
-	"$Id: tdssrv.h,v 1.3 2002-10-17 19:46:10 freddy77 Exp $";
+	"$Id: tdssrv.h,v 1.4 2002-11-04 19:49:17 castellano Exp $";
 static void *no_unused_tdssrv_h_warn[] = {
 	rcsid_tdssrv_h,
 	no_unused_tdssrv_h_warn};
@@ -44,10 +44,9 @@ int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login);
 char *tds_get_query(TDSSOCKET *tds);
 
 /* server.c */
-void tds_env_change(TDSSOCKET *tds,int type, char *oldvalue, char *newvalue);
-void tds_send_msg(TDSSOCKET *tds,int msgno, int msgstate, int severity,
-        char *msgtext, char *srvname, char *procname, int line);
-void tds_send_login_ack(TDSSOCKET *tds, char *progname);
+void tds_env_change(TDSSOCKET *tds, int type, const char *oldvalue, const char *newvalue);
+void tds_send_msg(TDSSOCKET *tds,int msgno, int msgstate, int severity, const char *msgtext, const char *srvname, const char *procname, int line);
+void tds_send_login_ack(TDSSOCKET *tds, const char *progname);
 void tds_send_eed(TDSSOCKET *tds,int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 void tds_send_err(TDSSOCKET *tds,int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 void tds_send_capabilities_token(TDSSOCKET *tds);
@@ -56,7 +55,6 @@ void tds_send_174_token(TDSSOCKET *tds, TDS_SMALLINT numcols);
 void tds_send_col_name(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
 void tds_send_col_info(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
 void tds_send_result(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
-void tds_send_row(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
 void tds_send_row(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
 
 #if 0

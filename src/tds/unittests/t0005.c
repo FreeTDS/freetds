@@ -30,10 +30,10 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0005.c,v 1.6 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: t0005.c,v 1.7 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
-int run_query(TDSSOCKET *tds, char *query);
+int run_query(TDSSOCKET *tds, const char *query);
 char *value_as_string(TDSSOCKET *tds, int col_idx);
 
 int
@@ -47,7 +47,7 @@ main(int argc, char **argv)
 
    int result_type, row_type, compute_id;
 
-   char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+   const char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
    char large_sql[1000];
 
    fprintf(stdout, "%s: Test large (>512 bytes) replies\n", __FILE__);
@@ -115,7 +115,7 @@ main(int argc, char **argv)
 }
 
 /* Run query for which there should be no return results */
-int run_query(TDSSOCKET *tds, char *query)
+int run_query(TDSSOCKET *tds, const char *query)
 {
    int rc;
    int result_type;
@@ -158,11 +158,11 @@ char *value_as_string(
 
    switch(type) {
       case SYBVARCHAR:
-         strncpy(result, (char *)value, sizeof(result)-1);
+         strncpy(result, (const char *) value, sizeof(result)-1);
          result[sizeof(result)-1] = '\0';
          break;
       case SYBINT4:
-         sprintf(result, "%d", *(int *)value);
+         sprintf(result, "%d", *(const int *) value);
          break;
       default:
          sprintf(result, "Unexpected column_type %d", type);

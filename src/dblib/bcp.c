@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.36 2002-11-04 10:30:52 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.37 2002-11-04 19:49:18 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2451,7 +2451,7 @@ int i;
 static int
 _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 {
-	char *errmsg;
+	const char *errmsg;
 	int severity;
 
 	switch (bcp_errno) {

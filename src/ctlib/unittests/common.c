@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.7 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.8 2002-11-04 19:49:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -140,7 +140,8 @@ CS_RETCODE try_ctlogout(
 }
 
 /* Run commands from which we expect no results returned */
-CS_RETCODE run_command(CS_COMMAND *cmd, char *sql)
+CS_RETCODE
+run_command(CS_COMMAND *cmd, const char *sql)
 {
    CS_RETCODE ret, results_ret;
    CS_INT result_type;

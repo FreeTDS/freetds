@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char  software_version[]   = "$Id: freebcp.c,v 1.12 2002-11-01 20:55:46 castellano Exp $";
+static char  software_version[]   = "$Id: freebcp.c,v 1.13 2002-11-04 19:49:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -455,14 +455,14 @@ int li_numcols = 0;
 
         for (i = 1; i <= li_numcols - 1; i++ )
         {
-             if (bcp_colfmt(dbproc,i, SYBCHAR, 0, -1,(BYTE *)"\t",sizeof(char) ,i) == FAIL)
+             if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i) == FAIL)
              {
                    printf("Error in bcp_colfmt col %d\n",i);
                    return FALSE;
              }
         }
 
-        if (bcp_colfmt(dbproc,li_numcols,SYBCHAR,0, -1,(BYTE *)"\n",sizeof(char) ,li_numcols) == FAIL)
+        if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), li_numcols) == FAIL)
         {
               printf("Error in bcp_colfmt col %d\n",li_numcols);
               return FALSE;

@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0019.c,v 1.7 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: t0019.c,v 1.8 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static int failure = 0;
@@ -31,10 +31,10 @@ static const char *cur_result = "";
 static const char *cur_test = "";
 static int cur_line = 0;
 
-int test(int srctype, void *srcdata, int srclen, int dsttype, int dstlen);
+int test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen);
 
 int
-test(int srctype, void *srcdata, int srclen, int dsttype, int dstlen)
+test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 {
 	DBCHAR	buf[10];
 	char	s[20],*p;

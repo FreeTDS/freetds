@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.81 2002-11-03 10:13:06 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.82 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -2218,7 +2218,7 @@ SQLRETURN SQL_API SQLGetInfo(
                             SQLSMALLINT        cbInfoValueMax,
                             SQLSMALLINT FAR   *pcbInfoValue)
 {
-    char *p = NULL;
+    const char *p = NULL;
     SQLSMALLINT *siInfoValue = (SQLSMALLINT *)rgbInfoValue;
     SQLUINTEGER *uiInfoValue = (SQLUINTEGER *)rgbInfoValue;
 
@@ -2619,9 +2619,7 @@ printf( "[PAH][%s][%d] Is query being free()'d?\n", __FILE__, __LINE__ );
     if (tds->res_info) {
 	TDSRESULTINFO * resinfo;
 	TDSCOLINFO *colinfo;
-
         int icol;
-	char *p;
 
 	resinfo = tds->res_info;
 	for(icol=0; icol < resinfo->num_cols; ++icol) {

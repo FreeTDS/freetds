@@ -28,12 +28,12 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: server.c,v 1.9 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: server.c,v 1.10 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 void
-tds_env_change(TDSSOCKET *tds,int type, char *oldvalue, char *newvalue)
+tds_env_change(TDSSOCKET *tds, int type, const char *oldvalue, const char *newvalue)
 {
 TDS_SMALLINT totsize;
 
@@ -100,8 +100,10 @@ int totsize;
 	tds_put_byte(tds,1); /* unknown */
 	tds_put_byte(tds,0); /* unknown */
 }
-void tds_send_msg(TDSSOCKET *tds,int msgno, int msgstate, int severity,
-	char *msgtext, char *srvname, char *procname, int line)
+
+void
+tds_send_msg(TDSSOCKET *tds, int msgno, int msgstate, int severity,
+	const char *msgtext, const char *srvname, const char *procname, int line)
 {
 int msgsz;
 
@@ -133,7 +135,7 @@ void tds_send_err(TDSSOCKET *tds,int severity, int dberr, int oserr, char *dberr
 {
 	tds_put_byte(tds,TDS_ERR_TOKEN);
 }
-void tds_send_login_ack(TDSSOCKET *tds, char *progname)
+void tds_send_login_ack(TDSSOCKET *tds, const char *progname)
 {
 	tds_put_byte(tds,TDS_LOGIN_ACK_TOKEN);
 	tds_put_smallint(tds,10+strlen(progname)); /* length of message */

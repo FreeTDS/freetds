@@ -18,7 +18,7 @@
 #include <sqlfront.h>
 #include <sqldb.h>
 
-static char  software_version[]   = "$Id: t0021.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0021.c,v 1.7 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -26,7 +26,7 @@ static void *no_unused_var_warn[] = {software_version,
 
 int failed = 0;
 /* unsafestr must contain one quote of each type */
-char *unsafestr = "This is a string with ' and \" in it.";
+const char *unsafestr = "This is a string with ' and \" in it.";
 /* safestr must be at least strlen(unsafestr) + 3 */
 char safestr[100];
 

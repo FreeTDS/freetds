@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-static char  software_version[]   = "$Id: stream.c,v 1.8 2002-10-19 03:02:35 jklowden Exp $";
+static char  software_version[]   = "$Id: stream.c,v 1.9 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 struct tmp_col_struct {
@@ -332,13 +332,15 @@ int ret;
 
 	return 1;
 }
-int pool_find_end_token(TDS_POOL_MEMBER *pmbr,const unsigned char *buf,int len) 
+
+int
+pool_find_end_token(TDS_POOL_MEMBER *pmbr, const unsigned char *buf, int len) 
 {
 int pos = 0, startpos, ret;
 int bytes_read;
 int stop = 0;
-char *curbuf;
-char tmpbuf[PGSIZ+BLOCKSIZ];
+const unsigned char *curbuf;
+unsigned char tmpbuf[PGSIZ+BLOCKSIZ];
 int  totlen;
 static int last_mark;
 
@@ -355,7 +357,7 @@ static int last_mark;
 		curbuf = tmpbuf;
 		totlen = len + pmbr->num_bytes_left;
 	} else {
-		curbuf = (unsigned char *) buf;
+		curbuf = buf;
 		totlen = len;
 	}
 

@@ -48,7 +48,7 @@
 #include "convert_sql2string.h"
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.15 2002-11-01 20:55:50 castellano Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.16 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -113,7 +113,7 @@ static int _odbc_get_server_ctype(int c_type)
 
 
 static TDS_INT 
-convert_datetime2string(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
+convert_datetime2string(TDSCONTEXT *context,int srctype, const TDS_CHAR *src,
 	TDS_CHAR *dest,TDS_INT destlen)
 {
 	struct tm src_tm;
@@ -121,9 +121,9 @@ convert_datetime2string(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
 	char      tmpbuf[256];
 	int       ret;
 
-	DATE_STRUCT      *src_date      = (DATE_STRUCT*)src;
-	TIME_STRUCT      *src_time      = (TIME_STRUCT*)src;
-	TIMESTAMP_STRUCT *src_timestamp = (TIMESTAMP_STRUCT*)src;
+	const DATE_STRUCT      *src_date      = (const DATE_STRUCT *) src;
+	const TIME_STRUCT      *src_time      = (const TIME_STRUCT *) src;
+	const TIMESTAMP_STRUCT *src_timestamp = (const TIMESTAMP_STRUCT *) src;
 
 	memset(&src_tm, 0, sizeof(src_tm));
 
@@ -169,7 +169,7 @@ convert_datetime2string(TDSCONTEXT *context,int srctype,TDS_CHAR *src,
 
 
 static TDS_INT 
-convert_text2string(TDS_CHAR *src, TDS_INT srclen,
+convert_text2string(const TDS_CHAR *src, TDS_INT srclen,
 	TDS_CHAR *dest,TDS_INT destlen)
 {
 	if (srclen<0 || !src[srclen])
@@ -185,13 +185,13 @@ convert_text2string(TDS_CHAR *src, TDS_INT srclen,
 
 
 TDS_INT 
-convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srclen,
+convert_sql2string(TDSCONTEXT *context, int srctype, const TDS_CHAR *src, TDS_INT srclen,
 		TDS_CHAR *dest, TDS_INT destlen, int param_lenbind)
 {
 	int res;
 	CONV_RESULT ores;
 
-	static char *str_null = "null";
+	static const char *str_null = "null";
 	if (SQL_NULL_DATA==param_lenbind){
 		src     = str_null;
 		srclen  = strlen(str_null);

@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0007.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.7 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -68,12 +68,10 @@ static void create_tables(
 } /* create_tables()  */
 
 
-static int start_query(
-   DBPROCESS *dbproc,
-   char      *cmd)
+static int
+start_query(DBPROCESS *dbproc, const char *cmd)
 {
    int    i;
-
 
    fprintf(stdout, "%s\n", cmd);
    if (SUCCEED != dbcmd(dbproc, cmd))
@@ -85,7 +83,6 @@ static int start_query(
       return 0;
    }
    add_bread_crumb();
-
    
    if (dbresults(dbproc)!=SUCCEED) 
    {

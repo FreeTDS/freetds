@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.6 2002-11-04 19:49:19 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 HENV                    Environment; 
@@ -143,7 +143,7 @@ void
 Command(HSTMT stmt, const char *command)
 {
 	printf("%s\n",command);
-	if( SQLExecDirect( stmt, (SQLCHAR *) command, SQL_NTS )
+	if( SQLExecDirect( stmt, (const SQLCHAR *) command, SQL_NTS )
 		!= SQL_SUCCESS ) {
 		printf( "Unable to execute statement\n" );
 		CheckReturn();

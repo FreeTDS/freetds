@@ -30,10 +30,10 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.6 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.7 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
-int run_query(TDSSOCKET *tds, char *query);
+int run_query(TDSSOCKET *tds, const char *query);
 char *varchar_as_string(TDSSOCKET *tds, int col_idx);
 
 char *
@@ -44,7 +44,7 @@ varchar_as_string(TDSSOCKET *tds, int col_idx)
    const int    offset  = tds->res_info->columns[col_idx]->column_offset;
    const void  *value   = (row+offset);
 
-   strncpy(result, (char *)value, sizeof(result)-1);
+   strncpy(result, (const char *)value, sizeof(result)-1);
    result[sizeof(result)-1] = '\0';
    return result;
 }
@@ -63,7 +63,7 @@ main(int argc, char **argv)
    int row_type;
    int compute_id;
 
-   char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+   const char *len200 = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
    char long_query[1000];
    sprintf(long_query, "SELECT name FROM #longquerytest WHERE (name = 'A%s' OR name = 'B%s' OR name = 'C%s' OR name = 'correct')", len200, len200, len200);
 
@@ -132,7 +132,7 @@ main(int argc, char **argv)
 
 
 /* Run query for which there should be no return results */
-int run_query(TDSSOCKET *tds, char *query)
+int run_query(TDSSOCKET *tds, const char *query)
 {
    int rc;
    int result_type;

@@ -31,10 +31,10 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0006.c,v 1.8 2002-10-23 02:21:25 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.9 2002-11-04 19:49:21 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
-int run_query(TDSSOCKET *tds, char *query);
+int run_query(TDSSOCKET *tds, const char *query);
 
 static TDSCONTEXT ctx;
 
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 }
 
 /* Run query for which there should be no return results */
-int run_query(TDSSOCKET *tds, char *query)
+int run_query(TDSSOCKET *tds, const char *query)
 {
    int rc;
    int result_type;

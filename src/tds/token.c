@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.91 2002-11-04 10:30:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.92 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -833,7 +833,7 @@ int             i;
         /* put in "max", "avg" etc.                            */
 
         if (curcol->column_namelen == 0) {
-           strcpy(curcol->column_name, (char *)tds_prtype(curcol->column_operator));
+           strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
            curcol->column_namelen = strlen(curcol->column_name);
         }
 
@@ -2227,7 +2227,7 @@ int colnamelen;
            curcol->column_namelen = colnamelen;
         }
         else {
-           strcpy(curcol->column_name, (char *)tds_prtype(curcol->column_operator));
+           strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
            curcol->column_namelen = strlen(curcol->column_name);
         }
 
@@ -2254,56 +2254,134 @@ int colnamelen;
 
 	return TDS_SUCCEED;
 }
-char *tds_prtype(int token) {
-char *result = NULL;
 
-   switch (token)
-   {
-      case SYBAOPAVG:       result = "avg";                 break;
-      case SYBAOPCNT:       result = "count";               break;
-      case SYBAOPMAX:       result = "max";                 break;
-      case SYBAOPMIN:       result = "min";                 break;
-      case SYBAOPSUM:       result = "sum";                 break;
+const char *
+tds_prtype(int token) {
 
-      case SYBBINARY:       result = "binary";              break;
-      case SYBBIT:          result = "bit";                 break;
-      case SYBBITN:         result = "bit-null";            break;
-      case SYBCHAR:         result = "char";                break;
-      case SYBDATETIME4:    result = "smalldatetime";       break;
-      case SYBDATETIME:     result = "datetime";            break;
-      case SYBDATETIMN:     result = "datetime-null";       break;
-      case SYBDECIMAL:      result = "decimal";             break;
-      case SYBFLT8:         result = "float";               break;
-      case SYBFLTN:         result = "float-null";          break;
-      case SYBIMAGE:        result = "image";               break;
-      case SYBINT1:         result = "tinyint";             break;
-      case SYBINT2:         result = "smallint";            break;
-      case SYBINT4:         result = "int";                 break;
-      case SYBINT8:         result = "long long";           break;
-      case SYBINTN:         result = "integer-null";        break;
-      case SYBMONEY4:       result = "smallmoney";          break;
-      case SYBMONEY:        result = "money";               break;
-      case SYBMONEYN:       result = "money-null";          break;
-      case SYBNTEXT:       result = "UCS-2 text";       break;
-      case SYBNVARCHAR:     result = "UCS-2 varchar";       break;
-      case SYBNUMERIC:      result = "numeric";             break;
-      case SYBREAL:         result = "real";                break;
-      case SYBTEXT:         result = "text";                break;
-      case SYBUNIQUE:       result = "uniqueidentifier";    break;
-      case SYBVARBINARY:    result = "varbinary";           break;
-      case SYBVARCHAR:      result = "varchar";             break;
-
-      case SYBVARIANT  :    result = "variant ";                break;
-      case SYBVOID     :    result = "void";                break;
-      case XSYBBINARY  :    result = "xbinary";             break;
-      case XSYBCHAR    :    result = "xchar";               break;
-      case XSYBNCHAR   :    result = "x UCS-2 char";        break;
-      case XSYBNVARCHAR:    result = "x UCS-2 varchar"; break;
-      case XSYBVARBINARY:   result = "xvarbinary";          break;
-      case XSYBVARCHAR :    result = "xvarchar ";               break;
-
-      default:              result = "";                    break;
-   }
-   return result;
+	switch (token) {
+	case SYBAOPAVG:
+		return "avg";
+		break;
+	case SYBAOPCNT:
+		return "count";
+		break;
+	case SYBAOPMAX:
+		return "max";
+		break;
+	case SYBAOPMIN:
+		return "min";
+		break;
+	case SYBAOPSUM:
+		return "sum";
+		break;
+	case SYBBINARY:
+		return "binary";
+		break;
+	case SYBBIT:
+		return "bit";
+		break;
+	case SYBBITN:
+		return "bit-null";
+		break;
+	case SYBCHAR:
+		return "char";
+                break;
+	case SYBDATETIME4:
+		return "smalldatetime";
+		break;
+	case SYBDATETIME:
+		return "datetime";
+		break;
+	case SYBDATETIMN:
+		return "datetime-null";
+		break;
+	case SYBDECIMAL:
+		return "decimal";
+		break;
+	case SYBFLT8:
+		return "float";
+		break;
+	case SYBFLTN:
+		return "float-null";
+		break;
+	case SYBIMAGE:
+		return "image";
+		break;
+	case SYBINT1:
+		return "tinyint";
+		break;
+	case SYBINT2:
+		return "smallint";
+		break;
+	case SYBINT4:
+		return "int";
+		break;
+	case SYBINT8:
+		return "long long";
+		break;
+	case SYBINTN:
+		return "integer-null";
+		break;
+	case SYBMONEY4:
+		return "smallmoney";
+		break;
+	case SYBMONEY:
+		return "money";
+		break;
+	case SYBMONEYN:
+		return "money-null";
+		break;
+	case SYBNTEXT:
+		return "UCS-2 text";
+		break;
+	case SYBNVARCHAR:
+		return "UCS-2 varchar";
+		break;
+	case SYBNUMERIC:
+		return "numeric";
+		break;
+	case SYBREAL:
+		return "real";
+                break;
+	case SYBTEXT:
+		return "text";
+                break;
+	case SYBUNIQUE:
+		return "uniqueidentifier";
+		break;
+	case SYBVARBINARY:
+		return "varbinary";
+		break;
+	case SYBVARCHAR:
+		return "varchar";
+		break;
+	case SYBVARIANT:
+		return "variant";
+                break;
+	case SYBVOID:
+		return "void";
+                break;
+	case XSYBBINARY:
+		return "xbinary";
+		break;
+	case XSYBCHAR:
+		return "xchar";
+		break;
+	case XSYBNCHAR:
+		return "x UCS-2 char";
+		break;
+	case XSYBNVARCHAR:
+		return "x UCS-2 varchar";
+		break;
+	case XSYBVARBINARY:
+		return "xvarbinary";
+		break;
+	case XSYBVARCHAR:
+		return "xvarchar";
+		break;
+	default:
+		break;
+	}
+	return "";
 }
 /** \@} */

@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.98 2002-11-01 22:51:34 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.99 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -206,7 +206,7 @@ tds_convert_ntext(int srctype,TDS_CHAR *src,TDS_UINT srclen,
 */
 
 static TDS_INT 
-tds_convert_binary(int srctype,TDS_UCHAR *src,TDS_INT srclen,
+tds_convert_binary(int srctype, const TDS_UCHAR *src, TDS_INT srclen,
 	int desttype, CONV_RESULT *cr)
 {
 int cplen;
@@ -953,7 +953,7 @@ TDS_CHAR tmp_str[24];
 }
 
 static TDS_INT 
-tds_convert_numeric(int srctype,TDS_NUMERIC *src,TDS_INT srclen,
+tds_convert_numeric(int srctype, const TDS_NUMERIC *src, TDS_INT srclen,
 	int desttype, CONV_RESULT *cr)
 {
 char tmpstr[MAXPRECISION];
@@ -1155,7 +1155,7 @@ char tmpstr [64];
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
-			s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
+			s = tds_money_to_string((const TDS_MONEY *)src, tmpstr);
 			return string_to_result(s,cr);
 			break;
 
@@ -1213,7 +1213,7 @@ char tmpstr [64];
 			break;
 		case SYBDECIMAL:
 		case SYBNUMERIC:
-			s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
+			s = tds_money_to_string((const TDS_MONEY *)src, tmpstr);
 			return stringz_to_numeric(tmpstr,cr);
 			break;
 		/* conversions not allowed */
@@ -1555,7 +1555,7 @@ tds_convert_unique(int srctype, const TDS_CHAR *src, TDS_INT srclen,
 /* Raw data is equivalent to structure and always aligned, so this cast 
    is portable */
 
-TDS_UNIQUE *u = (TDS_UNIQUE*)src;
+const TDS_UNIQUE *u = (const TDS_UNIQUE *) src;
 TDS_UCHAR buf[37];
 
 	switch(desttype) {
@@ -1622,7 +1622,7 @@ tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 		TDS_UINT srclen, int desttype, CONV_RESULT *cr)
 {
 TDS_INT length = 0;
-TDS_VARBINARY *varbin;
+const TDS_VARBINARY *varbin;
 
 	switch (srctype) {
 		case SYBCHAR:
@@ -1638,7 +1638,7 @@ TDS_VARBINARY *varbin;
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			length = tds_convert_numeric(srctype, (TDS_NUMERIC *) src, srclen, desttype, cr);
+			length = tds_convert_numeric(srctype, (const TDS_NUMERIC *) src, srclen, desttype, cr);
 			break;
 		case SYBBIT:
 		case SYBBITN:
@@ -1671,14 +1671,14 @@ TDS_VARBINARY *varbin;
 					desttype, cr);
 			break;
 		case SYBVARBINARY:
-			varbin = (TDS_VARBINARY *)src;
+			varbin = (const TDS_VARBINARY *) src;
 			length = tds_convert_binary(srctype,
-				(TDS_UCHAR *) varbin->array, srclen, desttype, cr);
+				(const TDS_UCHAR *) varbin->array, srclen, desttype, cr);
 			break;
 		case SYBIMAGE:
 		case SYBBINARY:
 			length = tds_convert_binary(srctype,
-				(TDS_UCHAR *) src, srclen, desttype, cr);
+				(const TDS_UCHAR *) src, srclen, desttype, cr);
 			break;
 		case SYBUNIQUE:
 			length = tds_convert_unique(srctype, src, srclen,
@@ -2714,8 +2714,8 @@ int i;
 TDS_INT tds_datecrack( TDS_INT datetype, const void *di, TDSDATEREC *dr )
 {
 
-TDS_DATETIME  *dt;
-TDS_DATETIME4 *dt4;
+const TDS_DATETIME  *dt;
+const TDS_DATETIME4 *dt4;
 
 int dt_days;
 unsigned int dt_time;
@@ -2724,7 +2724,7 @@ int years, months, days, ydays, wday, hours, mins, secs, ms;
 int l,n,i,j;
 
 	if ( datetype == SYBDATETIME ) {
-		dt = (TDS_DATETIME *)di;
+		dt = (const TDS_DATETIME *) di;
 		dt_time = dt->dttime;
 		ms = ((dt_time % 300) * 1000) / 300 ;
 		dt_time = dt_time / 300;
@@ -2733,7 +2733,7 @@ int l,n,i,j;
 		dt_days = dt->dtdays;
 	} 
 	else if (datetype == SYBDATETIME4 ) {
-		dt4 = (TDS_DATETIME4 *)di;
+		dt4 = (const TDS_DATETIME4 *) di;
 		secs = 0;
 		ms = 0;
 		dt_days = dt4->days;

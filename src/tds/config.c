@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.53 2002-11-01 22:51:34 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.54 2002-11-04 19:49:20 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -80,7 +80,7 @@ static void tds_parse_conf_section(const char* option, const char* value, void *
 static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login );
-static int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
+static int get_server_info(const char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
 extern int g_append_mode;
 
@@ -858,8 +858,9 @@ free(pathname);
  *
  * ===========================================================================
  */
-int get_server_info(
-   char *server,   /* (I) logical or physical server name      */
+static int
+get_server_info(
+   const char *server,   /* (I) logical or physical server name      */
    char *ip_addr,  /* (O) string representation of IP address  */
    char *ip_port,  /* (O) string representation of port number */
    char *tds_ver)  /* (O) string value specifying which protocol version */
@@ -921,7 +922,7 @@ int get_server_info(
  	* typed an actual server name.
  	*/
  	if (ip_addr[0]=='\0') {
- 		char  *tmp_port;
+ 		const char  *tmp_port;
 
 		/*
 		* Make a guess about the port number
