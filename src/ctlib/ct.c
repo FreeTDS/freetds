@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.106 2003-11-01 23:02:11 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.107 2003-11-16 08:19:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -758,10 +758,10 @@ ct_send(CS_COMMAND * cmd)
 			return CS_FAIL;  
 		}
 
-		if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED) {
+		if (tds->cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
 			ret =  tds_cursor_declare(tds, &something_to_send);
 			if (ret == CS_SUCCEED){
-				tds->cursor->declare_status = _CS_CURS_TYPE_SENT; /* Cursor is declared */
+				tds->cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
 			}
 			else {
 				tdsdump_log(TDS_DBG_WARN, "%L ct_send(): cursor declare failed \n");		  
@@ -769,12 +769,12 @@ ct_send(CS_COMMAND * cmd)
 			}
 		}
 	
-		if (tds->cursor->cursor_row_status == _CS_CURS_TYPE_REQUESTED && 
-			tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+		if (tds->cursor->status.cursor_row == _CS_CURS_TYPE_REQUESTED && 
+			tds->cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
  			ret = tds_cursor_setrows(tds, &something_to_send);
 			if (ret == CS_SUCCEED){
-				tds->cursor->cursor_row_status = _CS_CURS_TYPE_SENT; /* Cursor rows set */
+				tds->cursor->status.cursor_row = _CS_CURS_TYPE_SENT; /* Cursor rows set */
 			}
 			else {
 				tdsdump_log(TDS_DBG_WARN, "%L ct_send(): cursor set rows failed\n");
@@ -782,12 +782,12 @@ ct_send(CS_COMMAND * cmd)
 			}
 		}
 
-		if (tds->cursor->open_status == _CS_CURS_TYPE_REQUESTED && 
-			tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+		if (tds->cursor->status.open == _CS_CURS_TYPE_REQUESTED && 
+			tds->cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 			ret = tds_cursor_open(tds, &something_to_send);
  			if (ret == CS_SUCCEED){
-				tds->cursor->open_status = _CS_CURS_TYPE_SENT;
+				tds->cursor->status.open = _CS_CURS_TYPE_SENT;
 				cursor_open_sent = 1;
 			}
 			else {
@@ -807,14 +807,14 @@ ct_send(CS_COMMAND * cmd)
 			return CS_SUCCEED;
 		}
 
-		if (tds->cursor->close_status == _CS_CURS_TYPE_REQUESTED){
+		if (tds->cursor->status.close == _CS_CURS_TYPE_REQUESTED){
 			ret = tds_cursor_close(tds);
-			tds->cursor->close_status = _CS_CURS_TYPE_SENT;
-			if (tds->cursor->dealloc_status == _CS_CURS_TYPE_REQUESTED)
-				tds->cursor->dealloc_status = _CS_CURS_TYPE_SENT;
+			tds->cursor->status.close = _CS_CURS_TYPE_SENT;
+			if (tds->cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED)
+				tds->cursor->status.dealloc = _CS_CURS_TYPE_SENT;
 		}
 
-		if (tds->cursor->dealloc_status == _CS_CURS_TYPE_REQUESTED){
+		if (tds->cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED){
 			ret = tds_cursor_dealloc(tds);
 			tds_free_all_results(tds);
 		}
@@ -1298,7 +1298,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	}
 
 	if ( tds_cursor_fetch(tds) == CS_SUCCEED) {
-		tds->cursor->fetch_status = _CS_CURS_TYPE_SENT;
+		tds->cursor->status.fetch = _CS_CURS_TYPE_SENT;
 	}
 	else {
 		tdsdump_log(TDS_DBG_WARN, "%L ct_fetch(): cursor fetch failed\n");
@@ -3028,12 +3028,12 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	  		tds->cursor->cursor_rows = 1;
 	   		tds->cursor->options = option;
-			tds->cursor->declare_status    = _CS_CURS_TYPE_REQUESTED;
-			tds->cursor->cursor_row_status = _CS_CURS_TYPE_UNACTIONED;
-			tds->cursor->open_status       = _CS_CURS_TYPE_UNACTIONED;
-			tds->cursor->fetch_status      = _CS_CURS_TYPE_UNACTIONED;
-			tds->cursor->close_status      = _CS_CURS_TYPE_UNACTIONED;
-			tds->cursor->dealloc_status    = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->status.declare    = _CS_CURS_TYPE_REQUESTED;
+			tds->cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
+			tds->cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
 			return CS_SUCCEED;
 		} else {
 			return CS_FAIL;
@@ -3044,16 +3044,16 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	
 		if (tds->cursor != NULL) {
 
-			if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED || 
-				tds->cursor->declare_status == _CS_CURS_TYPE_SENT) {
+			if (tds->cursor->status.declare == _CS_CURS_TYPE_REQUESTED || 
+				tds->cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 				tds->cursor->cursor_rows = option;
-				tds->cursor->cursor_row_status = _CS_CURS_TYPE_REQUESTED;
+				tds->cursor->status.cursor_row = _CS_CURS_TYPE_REQUESTED;
 				
 				return CS_SUCCEED;
 			}
 			else {
-				tds->cursor->cursor_row_status  = _CS_CURS_TYPE_UNACTIONED;
+				tds->cursor->status.cursor_row  = _CS_CURS_TYPE_UNACTIONED;
 				tdsdump_log(TDS_DBG_FUNC, "%L ct_cursor() : cursor not declared\n");
 				return CS_FAIL;
 			}
@@ -3063,15 +3063,15 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	case CS_CURSOR_OPEN:
 
 		if (tds->cursor != NULL) {
-			if (tds->cursor->declare_status == _CS_CURS_TYPE_REQUESTED || 
-				tds->cursor->declare_status == _CS_CURS_TYPE_SENT ) {
+			if (tds->cursor->status.declare == _CS_CURS_TYPE_REQUESTED || 
+				tds->cursor->status.declare == _CS_CURS_TYPE_SENT ) {
 	
-				tds->cursor->open_status  = _CS_CURS_TYPE_REQUESTED;
+				tds->cursor->status.open  = _CS_CURS_TYPE_REQUESTED;
 		
 				return CS_SUCCEED;
 			}
 			else {
-				tds->cursor->open_status = _CS_CURS_TYPE_UNACTIONED;
+				tds->cursor->status.open = _CS_CURS_TYPE_UNACTIONED;
 				tdsdump_log(TDS_DBG_FUNC, "%L ct_cursor() : cursor not declared\n");
 				return CS_FAIL;
 			}
@@ -3080,18 +3080,18 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_CLOSE:
 
-		tds->cursor->cursor_row_status = _CS_CURS_TYPE_UNACTIONED;
-		tds->cursor->open_status       = _CS_CURS_TYPE_UNACTIONED;
-		tds->cursor->fetch_status      = _CS_CURS_TYPE_UNACTIONED;
-		tds->cursor->close_status      = _CS_CURS_TYPE_REQUESTED;
+		tds->cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
+		tds->cursor->status.close      = _CS_CURS_TYPE_REQUESTED;
 		if (option == CS_DEALLOC) {
-		 	tds->cursor->dealloc_status   = _CS_CURS_TYPE_REQUESTED;
+		 	tds->cursor->status.dealloc   = _CS_CURS_TYPE_REQUESTED;
 		}
 		return CS_SUCCEED;
 
 	case CS_CURSOR_DEALLOC:
 
-		tds->cursor->dealloc_status   = _CS_CURS_TYPE_REQUESTED;
+		tds->cursor->status.dealloc   = _CS_CURS_TYPE_REQUESTED;
 		return CS_SUCCEED;
 
 	case CS_IMPLICIT_CURSOR:
