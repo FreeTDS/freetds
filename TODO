@@ -8,22 +8,24 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.126 2005-01-15 18:28:43 freddy77 Exp $
+To Do List	$Id: TODO,v 1.127 2005-01-17 15:35:21 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
   tsql (and so libTDS) can pass invalid charset names to Sybase
   libTDS assume Sybase can handle this charset but it's false
   and doesn't convert correctly.
+. cancel. We added a test, analyzed the problem but no code... 
+  We have two options: comment test or start coding.
+  * test commented (document in README ??)
 
 Working in progress:
+. ct_dynamic and friends needed for DBD::Sybase placeholder support
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
 . logging bit flags to select levels and info types with defaults
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
-. ct_dynamic and friends needed for DBD::Sybase placeholder support
- (work in progress)
 . iconv
   - support string conversions for Sybase
   - add test for locale_charset() to configure.in.  Use it if available
@@ -36,11 +38,6 @@ Postponed to 0.64 version
   - update table of working configurations
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
-
-Started in 0.63
-- cancel. We added a test, analyzed the problem but no code... 
-  We have two options: comment test or start coding.
-  * test commented (document in README ??)
 
 For future versions (in priority order within library):
   All:
@@ -77,10 +74,12 @@ For future versions (in priority order within library):
 . read on partial packet, do not wait entire one
 . detect if realloc/free accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
+  (anybody know how ??)
 . under Sybase using prepared statements and BLOBs we shouldn't try to
   prepare every time (cache failure preparing, see odbc unittests logs)
 . Native bcp has no iconv support; character bcp files are assumed be encoded
   with the client's charset.  More flexibility one both sides would be good.  
+. date/time on Sybase (from 12.5)
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
@@ -108,8 +107,13 @@ For future versions (in priority order within library):
   to store error, cache some errors (truncated output)
   optimize ODBC_RETURN (remove useless)
 . handle no termination on odbc_set_string*
+. cursors support
+. use odbc_config if available
+. *W functions support (wide version, ODBC 3.51)
+. handle async flags ??
+. handle timeout (required by DBD::ODBC tests)
 
-. test and fix: hidden fields (FOR BROWSE select)
+. test and fix: hidden fields (FOR BROWSE select, see flag test on tds)
 . test: all binding types (input and output)
 . test: new descriptors work
   - ODBC 2 type returned (datetime)
