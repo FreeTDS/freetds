@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.10 2002-01-25 03:44:15 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.11 2002-01-25 13:13:54 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,6 +48,7 @@ static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR *phstmt);
 static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
+static char *strncpy_null(char *dst, const char *src, int len)
 
 #define _MAX_ERROR_LEN 255
 static char lastError[_MAX_ERROR_LEN+1];
@@ -1271,6 +1272,37 @@ int i;
 	return SQL_SUCCESS;
 }
 
+
+/* pwillia6@csc.com.au 01/25/02 */
+/*// strncpy copies up to len characters, and doesn't terminate */
+/*// the destination string if src has len characters or more. */
+/*// instead, I want it to copy up to len-1 characters and always */
+/*// terminate the destination string. */
+static char *strncpy_null(char *dst, const char *src, int len)
+{
+int i;
+
+
+	if (NULL != dst) {
+		/*  Just in case, check for special lengths */
+		if (len == SQL_NULL_DATA) {
+			dst[0] = '\0';
+			return NULL;
+		}	
+		else if (len == SQL_NTS)
+			len = strlen(src) + 1;
+
+		for(i = 0; src[i] && i < len - 1; i++) {
+			dst[i] = src[i];
+		}
+
+		if(len > 0) {
+			dst[i] = '\0';
+		}
+	}
+	return dst;
+}
+
 SQLRETURN SQL_API SQLGetInfo(
     SQLHDBC            hdbc,
     SQLUSMALLINT       fInfoType,
@@ -1278,8 +1310,35 @@ SQLRETURN SQL_API SQLGetInfo(
     SQLSMALLINT        cbInfoValueMax,
     SQLSMALLINT FAR   *pcbInfoValue)
 {
+char *p = NULL;
+int len;
+	
+	switch (fInfoType) {
+		case SQL_DRIVER_NAME: /* ODBC 1.0 */
+			p = "libtdsodbc.so";
+			break;
+		case SQL_DRIVER_ODBC_VER:
+			p = "1.0";
+			break;
+	}
+	
+	if (p) {  /* char/binary data */
+		len = strlen(p);
+
+		if (rgbInfoValue) {
+			strncpy_null((char *)rgbInfoValue, p, (size_t)cbInfoValueMax);
+
+			if (len >= cbInfoValueMax)  {
+				LogError("The buffer was too small for the result.");
+				return( SQL_SUCCESS_WITH_INFO);
+			}
+		}
+	}
+		
 	return SQL_SUCCESS;
 }
+
+/* end pwillia6@csc.com.au 01/25/02 */
 
 SQLRETURN SQL_API SQLGetStmtOption(
     SQLHSTMT           hstmt,

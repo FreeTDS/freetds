@@ -1,3 +1,8 @@
+Fri Jan 25 08:11:09 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* src/odbc/odbc.c (SQLGetInfo): Initial implementation by Paul Williamson 
+	<pwillia6@csc.com.au>
+
 Thu Jan 24 21:27:26 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* src/pool/user.c: Remove C++ style comment
