@@ -1,3 +1,6 @@
+Wed Mar 05 11:12:59 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: declare function
+
 Wed Mar 05 10:45:52 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c src/odbc/prepare_query.c:
 	* src/tds/convert.c src/tds/numeric.c src/tds/query.c:

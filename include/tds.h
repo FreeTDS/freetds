@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.87 2003-03-04 16:51:50 freddy77 Exp $";
+	"$Id: tds.h,v 1.88 2003-03-05 10:13:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -824,6 +824,7 @@ void tds_free_msg(TDSMSGINFO *msg_info);
 int tds_put_n(TDSSOCKET *tds, const void *buf, int n);
 int tds_put_string(TDSSOCKET *tds, const char *buf,int len);
 int tds_put_int(TDSSOCKET *tds, TDS_INT i);
+int tds_put_int8(TDSSOCKET *tds, TDS_INT8 i);
 int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si);
 int tds_put_tinyint(TDSSOCKET *tds, TDS_TINYINT ti);
 int tds_put_byte(TDSSOCKET *tds, unsigned char c);
