@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.166 2003-05-17 18:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.167 2003-05-18 18:05:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1117,7 +1117,23 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->row = 0;
 
-	if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED))
+	/* TODO submit rpc with more parameters */
+	if (stmt->param_count == 0 && stmt->prepared_query_is_rpc) {
+		/* get rpc name */
+		/* TODO change method */
+		char *end = stmt->query, tmp;
+
+		if (*end == '[')
+			end = tds_skip_quoted(end);
+		else
+			while (!isspace(*++end));
+		tmp = *end;
+		*end = 0;
+		ret = tds_submit_rpc(tds, stmt->query, NULL);
+		*end = tmp;
+		if (ret != TDS_SUCCEED)
+			return SQL_ERROR;
+	} else if (!(tds_submit_query(tds, stmt->query, NULL) == TDS_SUCCEED))
 		return SQL_ERROR;
 	stmt->hdbc->current_statement = stmt;
 
@@ -1255,7 +1271,7 @@ SQLExecute(SQLHSTMT hstmt)
 		/* TODO test if two SQLPrepare on a statement */
 		/* TODO unprepare on statement free of connection close */
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn) {
+		if (!stmt->dyn && !stmt->prepared_query_is_rpc) {
 			TDS_INT result_type;
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
@@ -1269,13 +1285,31 @@ SQLExecute(SQLHSTMT hstmt)
 				return SQL_ERROR;
 			}
 		}
-		dyn = stmt->dyn;
-		tds_free_input_params(dyn);
-		dyn->params = params;
-		tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
-		/* TODO return error to client */
-		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
-			return SQL_ERROR;
+		if (!stmt->prepared_query_is_rpc) {
+			dyn = stmt->dyn;
+			tds_free_input_params(dyn);
+			dyn->params = params;
+			tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
+			/* TODO return error to client */
+			if (tds_submit_execute(tds, dyn) == TDS_FAIL)
+				return SQL_ERROR;
+		} else {
+			/* get rpc name */
+			/* TODO change method */
+			char *end = stmt->prepared_query, tmp;
+
+			if (*end == '[')
+				end = tds_skip_quoted(end);
+			else
+				while (!isspace(*++end));
+			tmp = *end;
+			*end = 0;
+			ret = tds_submit_rpc(tds, stmt->prepared_query, params);
+			*end = tmp;
+			tds_free_param_results(params);
+			if (ret != TDS_SUCCEED)
+				return SQL_ERROR;
+		}
 
 		/* TODO copied from _SQLExecute, use a function... */
 		stmt->hdbc->current_statement = stmt;
