@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.139 2003-03-23 10:09:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.140 2003-03-23 20:13:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2168,7 +2168,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	switch (fInfoType) {
 		/* TODO dbms name and version can be safed from login... */
 	case SQL_DBMS_NAME:
-		if (TDS_IS_MSSQL(dbc->tds_socket))
+		if (dbc->tds_socket && TDS_IS_MSSQL(dbc->tds_socket)) {
 			p = "Microsoft SQL Server";
 		else
 			p = "SQL Server";

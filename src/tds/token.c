@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.154 2003-03-19 17:05:22 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.155 2003-03-23 20:13:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1773,6 +1773,13 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	/* line number in the sql statement where the problem occured */
 	msg_info.line_number = tds_get_smallint(tds);
+
+	/* If the server doesen't provide an sqlstate, map one via server native errors
+	 * I'm assuming there is not a protocol I'm missing to fetch these from the server?
+	 * I know sybase has an sqlstate column in it's sysmessages table, mssql doesn't and
+	 * TDS_EED_TOKEN is not being called for me. */
+	if (msg_info.sql_state == NULL)
+		msg_info.sql_state = tds_alloc_lookup_sqlstate(tds, msg_info.msg_number);
 
 	/* call the msg_handler that was set by an upper layer 
 	 * (dblib, ctlib or some other one).  Call it with the pointer to 

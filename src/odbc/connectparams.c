@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.33 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.34 2003-03-23 20:13:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -132,6 +132,11 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		end = strchr(p, '=');
 		if (!end)
 			break;
+
+		/* account for spaces between ;'s. */
+		while (p < end && *p == ' ')
+			++p;
+
 		if ((end - p) >= (int) sizeof(option))
 			option[0] = 0;
 		else {

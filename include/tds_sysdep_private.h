@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.6 2003-02-21 09:46:46 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.7 2003-03-23 20:13:51 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -50,6 +50,7 @@ extern "C"
 typedef DWORD pid_t;
 #endif
 #define strcasecmp stricmp
+#define strncasecmp strnicmp
 #define atoll _atoi64
 #define vsnprintf _vsnprintf
 
