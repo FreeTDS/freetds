@@ -1,3 +1,6 @@
+Thu Dec 09 11:17:27 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: cleanup, reuse tds_set_state
+
 Thu Dec 09 11:15:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/insert_speed.c(added):
