@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.116 2004-08-17 17:53:00 freddy77 Exp $
+To Do List	$Id: TODO,v 1.117 2004-11-04 13:11:32 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -99,17 +99,10 @@ For future versions (in priority order within library):
 
   ct-lib
 . dynamic placeholders (DBD::Sybase)
-. DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
 . ct_option() calls (CS_OPT_ROWCOUNT, CS_OPT_TEXTSIZE, among others)
-. cs_calc and cs_cmp, for sybperl
-. ct_get/send_data()
-. Array binding for ctlib not working
 . async function, async calls (dbpoll() and friends)
-. bcp support to ctlib
 . support all type of bind in ct_bind (CS_VARBINARY_TYPE and other)
   search "site:.sybase.com CS_VARBINARY ct_bind" on google for more info
-. support ct_command/CS_SEND_DATA_CMD, now crash
-  (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
 . complete sqlstate and other field in message (for Python)
 
   odbc
@@ -159,3 +152,11 @@ Done
   - PHP workaround with multiple connections (see ML)
 . ODBC test: SQLPutData/SQLGetData
 . ODBC: see putdata test SQLPutData really broken
+. DBD::Sybase uses the ct_command(CS_RPC_CMD) and ct_param()
+. cs_calc and cs_cmp, for sybperl
+. ct_get/send_data()
+. Array binding for ctlib not working
+. bcp support to ctlib
+. support ct_command/CS_SEND_DATA_CMD, now crash
+  (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
+
