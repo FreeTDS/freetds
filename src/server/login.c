@@ -43,7 +43,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.15 2002-11-01 20:55:51 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.16 2002-11-08 15:57:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -172,6 +172,7 @@ char *buf;
 	a=tds_get_smallint(tds); /*total packet size*/
 	tds_get_smallint(tds);
 
+	/* TODO use tds_get_string */
 	unicode_string = (unsigned char *) malloc(host_name_len*2);
 	buf = (unsigned char *) malloc(host_name_len*2);
 	tds_get_n(tds,unicode_string,host_name_len*2);

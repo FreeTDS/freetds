@@ -33,7 +33,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: connectparams.c,v 1.20 2002-11-08 08:03:47 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.21 2002-11-08 15:57:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef HAVEODBCINST
@@ -66,48 +66,26 @@ static FILE *tdoGetIniFileName(void);
 int
 tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 {
-	char *p, *end;		/*,*dest; */
+	char *p, *end;
 	char **dest_s;
-	int *dest_i;
-	char *tdsver;
-	char *server_name;
 	int reparse = 0;	/* flag for indicate second parse of string */
+	char option[16];
+	char tmp[256];
+	char temp_c;
 
 	for (p = pszConnectString;;) {
+		dest_s = NULL;
+
+		/* parse option */
 		end = strchr(p, '=');
 		if (!end)
 			break;
-
-		dest_s = NULL;
-		dest_i = NULL;
-		tds_dstr_init(&tdsver);
-		tds_dstr_init(&server_name);
-		*end = 0;
-		if (strcasecmp(p, "SERVER") == 0) {
-			/* ignore if servername specified */
-			if (reparse)
-				dest_s = &connect_info->server_name;
-		} else if (strcasecmp(p, "SERVERNAME") == 0) {
-			if (!reparse)
-				dest_s = &server_name;
-		} else if (strcasecmp(p, "DATABASE") == 0) {
-			dest_s = &connect_info->database;
-		} else if (strcasecmp(p, "UID") == 0) {
-			dest_s = &connect_info->user_name;
-		} else if (strcasecmp(p, "PWD") == 0) {
-			dest_s = &connect_info->password;
-		} else if (strcasecmp(p, "APP") == 0) {
-			dest_s = &connect_info->app_name;
-		} else if (strcasecmp(p, "WSID") == 0) {
-			dest_s = &connect_info->host_name;
-		} else if (strcasecmp(p, "LANGUAGE") == 0) {
-			dest_s = &connect_info->language;
-		} else if (strcasecmp(p, "Port") == 0) {
-			dest_i = &connect_info->port;
-		} else if (strcasecmp(p, "TDS_Version") == 0) {
-			dest_s = &tdsver;
+		if ((end - p) >= sizeof(option))
+			option[0] = 0;
+		else {
+			strncpy(option, p, end - p);
+			option[end - p] = 0;
 		}
-		*end = '=';
 
 		/* parse value */
 		p = end + 1;
@@ -120,33 +98,47 @@ tdoParseConnectString(char *pszConnectString, TDSCONNECTINFO * connect_info)
 		if (!end)
 			end = strchr(p, 0);
 
+		temp_c = *end;
+		if (strcasecmp(option, "SERVER") == 0) {
+			/* ignore if servername specified */
+			if (reparse) {
+				dest_s = &connect_info->server_name;
+				tds_lookup_host(p, NULL, tmp, NULL);
+				*end = temp_c;
+				if (!tds_dstr_copy(&connect_info->ip_addr, tmp))
+					return 0;
+			}
+		} else if (strcasecmp(option, "SERVERNAME") == 0) {
+			if (!reparse) {
+				tds_read_conf_file(connect_info, p);
+				reparse = 1;
+				p = pszConnectString;
+				*end = temp_c;
+				continue;
+			}
+		} else if (strcasecmp(option, "DATABASE") == 0) {
+			dest_s = &connect_info->database;
+		} else if (strcasecmp(option, "UID") == 0) {
+			dest_s = &connect_info->user_name;
+		} else if (strcasecmp(option, "PWD") == 0) {
+			dest_s = &connect_info->password;
+		} else if (strcasecmp(option, "APP") == 0) {
+			dest_s = &connect_info->app_name;
+		} else if (strcasecmp(option, "WSID") == 0) {
+			dest_s = &connect_info->host_name;
+		} else if (strcasecmp(option, "LANGUAGE") == 0) {
+			dest_s = &connect_info->language;
+		} else if (strcasecmp(option, "Port") == 0) {
+			connect_info->port = atoi(p);
+		} else if (strcasecmp(option, "TDS_Version") == 0) {
+			tds_config_verstr(p, connect_info);
+		}
+		*end = temp_c;
+
 		/* copy to destination */
 		if (dest_s) {
-	int cplen = end - p;
-
-			if (!tds_dstr_copyn(dest_s, p, cplen))
+			if (!tds_dstr_copyn(dest_s, p, end - p))
 				return 0;
-		} else if (dest_i) {
-			*dest_i = atoi(p);
-		}
-		if (dest_s == &tdsver) {
-			tds_config_verstr(tdsver, connect_info);
-			tds_dstr_free(&tdsver);
-
-		}
-		if (dest_s == &connect_info->server_name) {
-	char tmp[256];
-
-			tds_lookup_host(connect_info->server_name, NULL, tmp, NULL);
-			if (!tds_dstr_copy(&connect_info->ip_addr, tmp))
-				return 0;
-		}
-		if (dest_s == &server_name) {
-			tds_read_conf_file(connect_info, server_name);
-			tds_dstr_free(&server_name);
-			reparse = 1;
-			p = pszConnectString;
-			continue;
 		}
 
 		p = end;

@@ -1,3 +1,11 @@
+Fri Nov  8 16:54:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/read.c src/tds/token.c:
+	- removed tds_get_ntstring, unused
+	* src/odbc/connectparams.c: rewritten (code now more readable)
+	* src/odbc/native.c: improve
+	* src/server/login.c: small comment added
+	* src/tds/query.c: improve for code reuse
+
 Fri Nov  8 08:51:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c src/pool/member.c:
 	- remove warning compiling

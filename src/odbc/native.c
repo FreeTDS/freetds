@@ -29,7 +29,7 @@
 #include "tdsodbc.h"
 #include "prepare_query.h"
 
-static char software_version[] = "$Id: native.c,v 1.3 2002-11-07 13:26:44 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.4 2002-11-08 15:57:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -143,16 +143,28 @@ prepare_call(struct _hstmt *stmt)
 	return SQL_SUCCESS;
 }
 
-/* fucntion info */
+/* function info */
+struct func_info;
+struct native_info;
+typedef void (*special_fn) (struct native_info * ni, struct func_info * fi, char **params);
+
 struct func_info
 {
 	const char *name;
 	int num_param;
 	const char *sql_name;
-	void *special;
+	special_fn special;
+};
+
+struct native_info
+{
+	char *d;
+	int length;
 };
 
 #if 0				/* developing ... */
+
+#define MAX_PARAMS 4
 
 static const struct func_info funcs[] = {
 	/* string functions */
@@ -199,7 +211,7 @@ static const struct func_info funcs[] = {
 	{"PI", 0},
 	{"POWER", 2},
 	{"RADIANS", 1},
-	{"RAND", -1, "RAND", fn_rand},	/* accept 0 or 1 parameters */
+	{"RAND", -1, NULL, fn_rand},	/* accept 0 or 1 parameters */
 	{"ROUND", 2},
 	{"SIGN", 1},
 	{"SIN", 1},

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.36 2002-11-04 10:30:52 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.37 2002-11-08 15:57:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -134,6 +134,26 @@ int rc = TDS_FAIL;
 	return rc;
 }
 
+
+/**
+ * Skip quoting string (like 'sfsf', "dflkdj" or [dfkjd])
+ * @param s pointer to first quoting character (should be '," or [)
+ * @return character after quoting
+ */
+static const char* 
+tds_skip_quoted(const char* s)
+{
+	const char *p = s;
+	char quote = (*s == '[') ? ']' : *s;
+	for(;*++p;) {
+		if (*p == quote) {
+			if (*++p != quote)
+				return p;
+		}
+	}
+	return p;
+}
+
 /**
  * Get position of next placeholders
  * @param start pointer to part of query to search
@@ -143,29 +163,20 @@ const char*
 tds_next_placeholders(const char* start)
 {
 	const char *p = start;
-	char quote = 0;
 
 	if (!p) return NULL;
 
-	for(;*p;++p) {
+	for(;*p;) {
 		switch(*p) {
 		case '\'':
 		case '\"':
-		case ']':
-			if (!quote) {
-				quote = *p;
-			} else if (*p == quote) {
-				if (p[1] == quote) ++p;
-				else quote = 0;
-			}
-			break;
 		case '[':
-			if (!quote)
-				quote = ']';
+			p = tds_skip_quoted(p);
 			break;
 		case '?':
-			if (!quote) return p;
+			return p;
 		default:
+			++p;
 			break;
 		}
 	}

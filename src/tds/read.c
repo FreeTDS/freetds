@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: read.c,v 1.29 2002-11-01 22:51:35 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.30 2002-11-08 15:57:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -209,23 +209,14 @@ unsigned char bytes[4];
 	return *(TDS_INT *)bytes;
 }
 
-
-/*
- * fetches a null terminated ascii string
+/**
+ * Fetch a string from the wire
+ * If TDS version is 7 or 8 read unicode string and convert it
+ * @param tds  connection information
+ * @param dest destination buffer, if NULL string is readed and discarded
+ * @param need length to read (in characters)
+ * @return buffer of character
  */
-char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int max)
-{
-int i = 0;
-char c;
-
-	while ((c = tds_get_byte(tds))) {
-		if (i < (max - 1) && dest)
-			dest[i++] = c;
-	}
-	if (dest) dest[i]='\0';
-
-	return dest;
-}
 char *tds_get_string(TDSSOCKET *tds, void *dest, int need)
 {
 char *temp;
