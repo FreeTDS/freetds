@@ -1,6 +1,6 @@
 Thu Jul 15 09:17:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c:
-	- fix RPC with no parameters (thanks to liam AT inodes.org)
+	- fix RPC with no parameters (thanks to Liam Widdowson)
 	- backported some fix for memory errors
 
 Wed Jul 14 11:08:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
