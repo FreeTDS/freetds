@@ -7,14 +7,9 @@
 #define IDC_PROTOCOL                    1003
 #define IDC_ADDRESS                     1004
 #define IDC_PORT                        1005
-#define IDC_LOGIN                       1010
-#define IDC_PASSWORD                    1011
 #define IDC_DATABASE                    1011
-#define IDC_DESCRIPTION                 1014
 #define IDC_DSNNAME                     1015
 #define IDC_HINT                        1017
-#define IDC_AUTHSERVER                  1018
-#define IDC_AUTHDOMAIN                  1019
 #define IDC_LOGINSERVER                 1020
 #define IDC_LOGINUID                    1021
 #define IDC_LOGINPWD                    1022

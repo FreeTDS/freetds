@@ -1,3 +1,8 @@
+Mon May 10 21:40:52 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/.cvsignore win32/resource.h win32/setup.rc:
+	* win32/winsetup.c:
+	- update resources, cleanup obsolete settings
+
 Mon May 10 20:52:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/Makefile.am win32/freetds.nsi configure.in:
 	* win32/freetds.nsh.in(added):

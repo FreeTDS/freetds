@@ -154,27 +154,14 @@ write_all_strings(DSNINFO * di)
 	strcpy(odbcini, "odbc.ini");
 
 	WRITESTR("Server", FIELD_STRING(server_name));
-	WRITESTR("Address", FIELD_STRING(ip_addr));
 	WRITESTR("Language", FIELD_STRING(language));
 	WRITESTR("Database", FIELD_STRING(database));
-	WRITESTR("Domain", FIELD_STRING(default_domain));
 
 	sprintf(tmp, "%u", di->connection->port);
 	WRITESTR("Port", tmp);
 
 	sprintf(tmp, "%d.%d", di->connection->major_version, di->connection->minor_version);
 	WRITESTR("TDS_Version", tmp);
-
-	if (di->connection->try_domain_login) {
-		if (di->connection->try_server_login) {
-			strcpy(tmp, "Both");
-		} else {
-			strcpy(tmp, "Domain");
-		}
-	} else {
-		strcpy(tmp, "Server");
-	}
-	WRITESTR("Authentication", tmp);
 
 	sprintf(tmp, "%u", di->connection->text_size);
 	WRITESTR("TextSize", tmp);
@@ -194,21 +181,13 @@ write_all_strings(DSNINFO * di)
 static const char *
 validate(DSNINFO * di)
 {
-	char tmp[100];
-
 	if (!SQLValidDSN(tds_dstr_cstr(&di->dsn)))
 		return "Invalid DSN";
-	if (!di->connection->try_server_login && !di->connection->try_domain_login)
-		return "Select an authorization type";
 	if (!IS_TDS42(di->connection) && !IS_TDS46(di->connection)
 	    && !IS_TDS50(di->connection) && !IS_TDS7_PLUS(di->connection))
 		return "Bad Protocol version";
 	if (tds_dstr_isempty(&di->connection->server_name))
 		return "Address is required";
-	tds_lookup_host(tds_dstr_cstr(&di->connection->server_name), tmp);
-	if (tmp[0] == '\0')
-		return "Invalid address";
-	tds_dstr_copy(&di->connection->ip_addr, tmp);
 	if (di->connection->port < 1 || di->connection->port > 65535)
 		return "Bad port - Try 1433 or 4000";
 	return NULL;
@@ -252,8 +231,6 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->connection->server_name));
 		sprintf(tmp, "%u", di->connection->port);
 		SendDlgItemMessage(hDlg, IDC_PORT, WM_SETTEXT, 0, (LPARAM) tmp);
-		SendDlgItemMessage(hDlg, IDC_AUTHSERVER, BM_SETCHECK, di->connection->try_server_login, 0);
-		SendDlgItemMessage(hDlg, IDC_AUTHDOMAIN, BM_SETCHECK, di->connection->try_domain_login, 0);
 		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->connection->database));
 
 		return TRUE;
@@ -285,8 +262,6 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		tds_dstr_copy(&di->connection->server_name, tmp);
 		SendDlgItemMessage(hDlg, IDC_PORT, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		di->connection->port = atoi(tmp);
-		di->connection->try_server_login = SendDlgItemMessage(hDlg, IDC_AUTHSERVER, BM_GETCHECK, 0, 0);
-		di->connection->try_domain_login = SendDlgItemMessage(hDlg, IDC_AUTHDOMAIN, BM_GETCHECK, 0, 0);
 		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		tds_dstr_copy(&di->connection->database, tmp);
 

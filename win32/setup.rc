@@ -16,6 +16,7 @@
 # endif
 #endif
 
+#include "version.rc"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -33,7 +34,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_DSN DIALOG DISCARDABLE  0, 0, 202, 161
+IDD_DSN DIALOG DISCARDABLE  0, 0, 202, 132
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_SETFOREGROUND | DS_3DLOOK | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION
 CAPTION "FreeTDS DSN Configuration"
@@ -48,17 +49,12 @@ BEGIN
     EDITTEXT        IDC_ADDRESS,74,49,121,14,ES_AUTOHSCROLL
     LTEXT           "Server Port",IDC_STATIC,24,71,36,8
     EDITTEXT        IDC_PORT,74,68,60,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Authentication",IDC_STATIC,14,90,46,8
-    CONTROL         "Server",IDC_AUTHSERVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,74,89,37,10
-    CONTROL         "Domain",IDC_AUTHDOMAIN,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,117,89,40,10
-    LTEXT           "Database",IDC_STATIC,28,109,32,8
-    EDITTEXT        IDC_DATABASE,74,106,121,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "OK",IDOK,92,136,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,144,136,50,14
-    LTEXT           "www.freetds.org",IDC_STATIC,7,142,52,8
-    CTEXT           "",IDC_HINT,7,123,188,8
+    LTEXT           "Database",IDC_STATIC,28,90,32,8
+    EDITTEXT        IDC_DATABASE,74,87,121,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,92,109,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,144,109,50,14
+    LTEXT           "www.freetds.org",IDC_STATIC,7,115,52,8
+    CTEXT           "",IDC_HINT,7,115,188,8
 END
 
 IDD_LOGIN DIALOG DISCARDABLE  0, 0, 164, 117
@@ -94,8 +90,16 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
+    "#ifdef _MSC_VER\r\n"
+    "# include ""winres.h""\r\n"
+    "#else\r\n"
+    "# include ""windows.h""\r\n"
+    "# ifndef IDC_STATIC\r\n"
+    "#  define IDC_STATIC -1\r\n"
+    "# endif\r\n"
+    "#endif\r\n"
+    "\r\n"
+    "#include ""version.rc""\0"
 END
 
 3 TEXTINCLUDE DISCARDABLE 
@@ -120,7 +124,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 195
         TOPMARGIN, 7
-        BOTTOMMARGIN, 150
+        BOTTOMMARGIN, 123
     END
 
     IDD_LOGIN, DIALOG
@@ -132,31 +136,6 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
-
-
-#ifdef _MSC_VER
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog Info
-//
-
-IDD_DSN DLGINIT
-BEGIN
-    IDC_PROTOCOL, 0x403, 8, 0
-0x4454, 0x2053, 0x2e34, 0x0032, 
-    IDC_PROTOCOL, 0x403, 8, 0
-0x4454, 0x2053, 0x2e34, 0x0036, 
-    IDC_PROTOCOL, 0x403, 8, 0
-0x4454, 0x2053, 0x2e35, 0x0030, 
-    IDC_PROTOCOL, 0x403, 8, 0
-0x4454, 0x2053, 0x2e37, 0x0030, 
-    IDC_PROTOCOL, 0x403, 8, 0
-0x4454, 0x2053, 0x2e38, 0x0030, 
-    0
-END
-#endif
-
-#include "version.rc"
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

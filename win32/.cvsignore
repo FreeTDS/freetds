@@ -1,2 +1,4 @@
 Makefile
 Makefile.in
+version.rc
+freetds.nsh
