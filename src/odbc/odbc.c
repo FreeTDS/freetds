@@ -52,7 +52,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.27 2002-06-09 13:50:38 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.28 2002-06-09 17:07:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1762,8 +1762,8 @@ SQLRETURN SQL_API SQLGetInfo(
     SQLSMALLINT FAR   *pcbInfoValue)
 {
 char *p = NULL;
-SQLSMALLINT siInfoValue = (SQLSMALLINT *)rgbInfoValue;
-SQLUSMALLINT uiInfoValue = (SQLUSMALLINT *)rgbInfoValue;
+SQLSMALLINT *siInfoValue = (SQLSMALLINT *)rgbInfoValue;
+SQLUSMALLINT *uiInfoValue = (SQLUSMALLINT *)rgbInfoValue;
 
 	CHECK_HDBC;
 

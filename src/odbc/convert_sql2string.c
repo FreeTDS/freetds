@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.2 2002-06-09 13:50:38 brianb Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.3 2002-06-09 17:07:44 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -63,8 +63,6 @@ static int _odbc_get_server_ctype(int c_type)
 		case SQL_C_STINYINT:
 		case SQL_C_UTINYINT:
 			return SYBINT1;
-		case SQL_C_GUID:
-			return SYBUNIQUE;
 		case SQL_C_DATE:
 		case SQL_C_TIME:
 		case SQL_C_TIMESTAMP:
