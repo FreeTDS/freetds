@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.92 2003-04-21 07:59:36 freddy77 Exp $
+dnl $Id: configure.in,v 1.93 2003-05-06 11:13:41 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -52,6 +52,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_LIBTOOL
 AM_ICONV
+TDS_ICONV
 dnl test if we have doxygen installed
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
@@ -83,21 +84,9 @@ dnl Checks for header files.
 dnl ------------------------------------------------------------
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS(errno.h)
-AC_CHECK_HEADERS(sys/time.h)
-AC_CHECK_HEADERS(malloc.h)
-AC_CHECK_HEADERS(sys/types.h)
-AC_CHECK_HEADERS(sys/socket.h)
-AC_CHECK_HEADERS(arpa/inet.h)
-AC_CHECK_HEADERS(netdb.h)
-AC_CHECK_HEADERS(netinet/in.h)
-AC_CHECK_HEADERS(langinfo.h)
-AC_CHECK_HEADERS(paths.h)
-AC_CHECK_HEADERS(sys/ioctl.h)
-AC_CHECK_HEADERS(libgen.h)
-AC_CHECK_HEADERS(sys/param.h)
-AC_CHECK_HEADERS(locale.h)
-AC_CHECK_HEADERS(odbcss.h)
+AC_CHECK_HEADERS(errno.h sys/time.h malloc.h sys/types.h sys/socket.h)
+AC_CHECK_HEADERS(arpa/inet.h netdb.h netinet/in.h langinfo.h paths.h)
+AC_CHECK_HEADERS(sys/ioctl.h libgen.h sys/param.h locale.h odbcss.h)
 AC_HAVE_INADDR_NONE
 
 dnl ------------------------------------------------------------

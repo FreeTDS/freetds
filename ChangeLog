@@ -1,3 +1,6 @@
+Tue May  6 13:14:14 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in: start test for iconv names
+
 Tue May  6 11:53:11 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c: some small fixes
 

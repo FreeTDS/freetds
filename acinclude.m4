@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.17 2003-04-27 11:16:49 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.18 2003-05-06 11:13:41 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -395,3 +395,71 @@ else
   AC_DEFINE(HAVE_FUNC_LOCALTIME_R_INT, 1, [Define to 1 if your localtime_r return a int.])
 fi
 ])
+
+dnl TDS_ICONV_CHARSET VAR RES LIST
+AC_DEFUN(TDS_ICONV_CHARSET,
+[tds_charset=
+for TDSTO in $3
+do
+	RES=`(eval $tds_iconvtest) 2> /dev/null`
+	if test "X$RES" = "X$2"; then
+		tds_charset=$TDSTO
+		break
+	fi
+done
+if test "X$tds_charset" != "X"; then
+AC_DEFINE(HAVE_CHARSET_$1, 1, [Define to 1 if iconv support $1 charset.])
+AC_DEFINE_UNQUOTED(CHARSET_$1, ["$tds_charset"], [Define to the iconv name of $1 charset.])
+fi
+])
+
+AC_DEFUN(TDS_ICONV,
+[
+dnl does cksum use tab or space (Solaris use space)
+SUM=`true | cksum | cut -f 1`
+if test "X$SUM" = "X4294967295"; then
+	tds_iconvtest='echo $TDSSTR | iconv -f $TDSFROM -t $TDSTO | cksum | cut -f 1'
+else
+	SUM=`true | cksum | cut -d " " -f 1`
+	if test "X$SUM" = "X4294967295"; then
+		tds_iconvtest='echo $TDSSTR | iconv -f $TDSFROM -t $TDSTO | cksum | cut -d " " -f 1'
+	fi
+fi
+
+dnl test for ucs2 and iso8859-1 (types always presents)
+TDSSTR=foo
+ICONV_ISO1=
+ICONV_UCS2=
+for TDSFROM in "ISO8859-1" "ISO-8859-1" "iso8859-1" "iso88591" "iso8859_1"
+do
+        for TDSTO in "UCS-2" "UCS2" "ucs2"
+        do
+                RES=`(eval $tds_iconvtest) 2> /dev/null`
+                if test "X$RES" = "X3637111430" -o "X$RES" = "X823496052"; then
+			if test "X$ICONV_ISO1" = "X"; then
+				ICONV_ISO1=$TDSFROM
+			fi
+			if test "X$ICONV_UCS2" = "X"; then
+				ICONV_UCS2=$TDSTO
+			fi
+		fi
+		if test "X$ICONV_ISO1" != "X" -a "X$ICONV_UCS2" != "X"; then
+			break 2
+		fi
+        done
+done
+
+AC_DEFINE(HAVE_CHARSET_ISO1, 1, [Define to 1 if iconv support ISO1 charset.])
+AC_DEFINE_UNQUOTED(CHARSET_ISO1, ["$ICONV_ISO1"], [Define to the iconv name of ISO1 charset.])
+AC_DEFINE(HAVE_CHARSET_UCS2, 1, [Define to 1 if iconv support UCS2 charset.])
+AC_DEFINE_UNQUOTED(CHARSET_UCS2, ["$ICONV_UCS2"], [Define to the iconv name of UCS2 charset.])
+
+# now we have a type we can check for others names
+TDSFROM=$ICONV_ISO1
+TDS_ICONV_CHARSET(UTF8, 3915528286, ["UTF-8" "UTF8" "utf8"])
+TDS_ICONV_CHARSET(UCS2LE, 3637111430, ["$ICONV_UCS2" "UCS2LE" "UCS-2LE" "ucs2le"])
+TDS_ICONV_CHARSET(UCS4LE, 2049347138, ["UCS4" "UCS-4" "UCS4LE" "UCS-4LE"])
+TDS_ICONV_CHARSET(UCS4BE, 991402119, ["UCS4" "UCS-4" "UCS4BE" "UCS-4BE"])
+
+])
+
