@@ -1,3 +1,7 @@
+Fri Sep 27 21:00:29 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt:
+	- Update API status with some recent changes.
+
 Fri Sep 27 20:31:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/cspublic.h src/ctlib/cs.c:
 	- Implement cs_ctx_global().

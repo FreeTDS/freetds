@@ -16,8 +16,9 @@
 #	Library:	odbc, dblib, or ctlib
 #	Category:	chunk of api functionality (bcp/cursors/etc.)
 #	Name:		self-explanatory
-#	Status:		*OK	 thought to working
+#	Status:		*OK	 thought to be working
 #			*stub	 present but non-functional
+#			*partial parts thought to be working
 #			*(blank) Mentioned in vendor documentation but
 #				 not in the FreeTDS C code.  
 #			Other statuses are acceptable if you see a need.
@@ -195,6 +196,7 @@ dblib	core	dbsetuserdata	OK
 dblib	core	dbsqlexec	OK
 dblib	core	dbsqlok	OK
 dblib	core	dbsqlsend	OK
+dblib	core	dbstrbuild	OK
 dblib	core	dbstrcpy	stub
 dblib	core	dbstrlen	stub
 dblib	core	dbtds	OK
@@ -307,12 +309,12 @@ ctlib	(all)	ct_setparam		Specify source variables from which ct_send reads input
 ctlib	(all)	ct_wakeup		Call a connection's completion callback.
 ctlib	(all)	cs_calc		Perform an arithmetic operation on two operands.
 ctlib	(all)	cs_cmp		Compare two data values.
-ctlib	(all)	cs_config	stub	Set or retrieve CS-Library properties.
+ctlib	(all)	cs_config	partial	Set or retrieve CS-Library properties.
 ctlib	(all)	cs_conv_mult		Retrieve the conversion multiplier for converting character data from one character set to another.
 ctlib	(all)	cs_convert	OK	Convert a data value from one datatype, locale, or format to another datatype, locale, or format.
 ctlib	(all)	cs_ctx_alloc	OK	Allocate a CS_CONTEXT structure.
 ctlib	(all)	cs_ctx_drop	OK	Deallocate a CS_CONTEXT structure.
-ctlib	(all)	cs_ctx_global		Allocate or return a CS_CONTEXT structure.
+ctlib	(all)	cs_ctx_global	OK	Allocate or return a CS_CONTEXT structure.
 ctlib	(all)	cs_diag		Manage inline error handling.
 ctlib	(all)	cs_dt_crack	OK	Convert a machine-readable datetime value into a user-accessible format.
 ctlib	(all)	cs_dt_info	OK	Set or retrieve language-specific datetime information.
@@ -323,7 +325,7 @@ ctlib	(all)	cs_manage_convert		Install or retrieve a user-defined character set 
 ctlib	(all)	cs_objects		Save, retrieve, or clear objects and data associated with them.
 ctlib	(all)	cs_set_convert		Install or retrieve a user-defined conversion routine.
 ctlib	(all)	cs_setnull		Define a null substitution value to be used when binding or converting NULL data.
-ctlib	(all)	cs_strbuild		Construct native language message strings.
+ctlib	(all)	cs_strbuild	OK	Construct native language message strings.
 ctlib	(all)	cs_strcmp		Compare two strings using a specified sort order.
 ctlib	(all)	cs_time		Retrieve the current date and time.
 ctlib	(all)	cs_will_convert		Indicate whether a specific datatype conversion is available in the Client/Server libraries.
