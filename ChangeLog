@@ -1,3 +1,9 @@
+Thu Aug 29 17:55:31 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ctutil.c: 	patch #602045
+	- ctlib_handle_err_message wasn't propagating the return code from the callback
+	* include/sybdb.h:
+	* src/dblib/dblib.c:	Patch #602086: Improves compatibility with Sybase's DB- Lib ABI.
+
 Thu Aug 29 22:09:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/sybdb.h include/tdsconvert.h include/tdsutil.h:
 	- applied Castellano patch #601991 about ansi prototype
