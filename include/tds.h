@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.135 2003-07-13 16:06:02 freddy77 Exp $";
+	"$Id: tds.h,v 1.136 2003-08-02 17:50:43 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -30,14 +30,9 @@ static void *no_unused_tds_h_warn[] = {
 #include <stdarg.h>
 #include <time.h>
 
-#if HAVE_ICONV
-#include <iconv.h>
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONVINFO;
 typedef struct tds_socket  TDSSOCKET;
-#else
-#include <tdsiconv.h>
-#endif
 
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
@@ -700,18 +695,6 @@ typedef struct _tds_encoding
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
 } TDS_ENCODING;
-
-struct tdsiconvinfo
-{
-	TDS_ENCODING client_charset;
-	TDS_ENCODING server_charset;
-	iconv_t to_wire;   /* conversion from client charset to server's format */
-	iconv_t from_wire; /* conversion from server's format to client charset */
-#define TDS_ENCODING_INDIRECT 1
-	/* ^^^ As of June 2003, no reference to this macro 
-	 * It's just a TODO... freddy77 */
-	unsigned int flags;
-};
 
 
 enum {TDS_SYSNAME_SIZE= 512};

@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.19 2003-08-01 15:24:47 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.20 2003-08-02 17:50:43 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -86,6 +86,18 @@ typedef struct _character_set_alias
 	const char *alias;
 	int canonic;
 } CHARACTER_SET_ALIAS;
+
+struct tdsiconvinfo
+{
+	TDS_ENCODING client_charset;
+	TDS_ENCODING server_charset;
+	iconv_t to_wire;   /* conversion from client charset to server's format */
+	iconv_t from_wire; /* conversion from server's format to client charset */
+#define TDS_ENCODING_INDIRECT 1
+	/* ^^^ As of June 2003, no reference to this macro 
+	 * It's just a TODO... freddy77 */
+	unsigned int flags;
+};
 
 /* we use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
 #ifndef ICONV_CONST
