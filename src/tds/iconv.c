@@ -83,11 +83,11 @@ char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string
 TDSICONVINFO *iconv_info;
 int i;
 #if HAVE_ICONV
-const char *in_ptr;
+char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 char quest_mark[] = "?\0"; /* best to live no-const */
-const char *pquest_mark; 
+char *pquest_mark; 
 size_t lquest_mark;
 #endif
 
@@ -152,7 +152,7 @@ register int i;
 size_t string_length;
 TDSICONVINFO *iconv_info;
 #if HAVE_ICONV
-const char *in_ptr;
+char *in_ptr;
 char *out_ptr;
 size_t out_bytes, in_bytes;
 #endif

@@ -1,3 +1,12 @@
+Fri Sep 13 16:08:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in include/tdsconvert.h src/dblib/dbopen.c
+	  src/dblib/unittests/t0021.c src/tds/convert.c src/tds/iconv.c:
+	- Clean up warnings.  It is now possible to compile with
+	  "gcc -Werror", at least in some setups.  For HP Compaq Digital
+	  Tru64 OSF/1 UNIX 4.0d (and possibly other versions thereof), you
+	  will need "-D_OSF_SOURCE -D_XOPEN_EXTENDED_SOURCE" in your CFLAGS
+	  for this to work.
+
 Fri Sep 13 21:24:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/apps/tsql.c src/ctlib/ct.c:
 	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/odbc.c:

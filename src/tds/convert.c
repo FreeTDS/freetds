@@ -36,17 +36,17 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.69 2002-09-13 12:55:50 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.70 2002-09-13 20:13:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef unsigned short utf16_t;
 
 /* static int  _tds_pad_string(char *dest, int destlen); */
-static TDS_INT tds_convert_int1(int srctype,TDS_CHAR *src, int desttype,TDS_INT destlen , CONV_RESULT *cr);
+static TDS_INT tds_convert_int1(int srctype, const TDS_CHAR *src, int desttype,TDS_INT destlen , CONV_RESULT *cr);
 extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 extern char *tds_money_to_string(TDS_MONEY *money, char *s);
-static int  string_to_datetime(char *datestr, int desttype, CONV_RESULT *cr );
+static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
 /**
  * convert a number in string to a TDSNUMERIC
  * @return sizeof(TDS_NUMERIC) on success, TDS_FAIL on failure 
@@ -70,7 +70,7 @@ static TDS_INT string_to_int(const char *buf,const char *pend,TDS_INT* res);
  * TDS_CONVERT_NOAVAIL if conversion impossible
  */
 static TDS_INT
-tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, 
+tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src, 
 	TDS_UINT srclen, int desttype, TDS_UINT destlen, CONV_RESULT *cr);
 
 static size_t 
@@ -286,7 +286,7 @@ char hex2[3];
 }
 
 static TDS_INT 
-tds_convert_char(int srctype, TDS_CHAR *src, TDS_UINT srclen,
+tds_convert_char(int srctype, const TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 int           i, j;
@@ -296,7 +296,7 @@ TDS_INT8     mymoney;
 TDS_INT      mymoney4;
 char         mynumber[39];
 
-char *ptr,*pend;
+const char *ptr, *pend;
 int point_found, places;
 TDS_INT tds_i;
 
@@ -569,7 +569,7 @@ TDS_INT tds_i;
 } /* tds_convert_char */
 
 static TDS_INT 
-tds_convert_bit(int srctype,TDS_CHAR *src,
+tds_convert_bit(int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 	int canonic = src[0] ? 1 : 0;
@@ -635,7 +635,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 }
 
 static TDS_INT 
-tds_convert_int1(int srctype,TDS_CHAR *src,
+tds_convert_int1(int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen , CONV_RESULT *cr)
 {
 TDS_TINYINT buf;
@@ -704,7 +704,7 @@ TDS_CHAR tmp_str[5];
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_int2(int srctype,TDS_CHAR *src,
+tds_convert_int2(int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_SMALLINT buf;
@@ -775,7 +775,7 @@ TDS_CHAR tmp_str[16];
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_int4(int srctype,TDS_CHAR *src,
+tds_convert_int4(int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_INT buf;
@@ -854,7 +854,7 @@ tds_convert_numeric(int srctype,TDS_NUMERIC *src,TDS_INT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 char tmpstr[MAXPRECISION];
-TDS_INT i;
+long i;
 
 	switch(desttype) {
 		case SYBCHAR:
@@ -931,7 +931,7 @@ TDS_INT i;
 	return TDS_FAIL;
 }
 static TDS_INT 
-tds_convert_money4(int srctype,TDS_CHAR *src, int srclen,
+tds_convert_money4(int srctype, const TDS_CHAR *src, int srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_MONEY4 mny;
@@ -1018,7 +1018,7 @@ char tmp_str[33];
 }
 
 static TDS_INT 
-tds_convert_money(int srctype,TDS_CHAR *src,
+tds_convert_money(int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 char *s;
@@ -1149,7 +1149,7 @@ int i;
 }
 
 static TDS_INT 
-tds_convert_datetime(TDSCONTEXT *tds_ctx, int srctype,TDS_CHAR *src,
+tds_convert_datetime(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 
@@ -1285,7 +1285,7 @@ int year;
 }
 
 static TDS_INT 
-tds_convert_datetime4(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src,
+tds_convert_datetime4(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 	int desttype, TDS_INT destlen, CONV_RESULT *cr)
 {
 
@@ -1384,7 +1384,7 @@ struct tds_tm when;
 }
 
 static TDS_INT 
-tds_convert_real(int srctype, TDS_CHAR *src,
+tds_convert_real(int srctype, const TDS_CHAR *src,
 	int desttype, TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_REAL the_value;
@@ -1471,7 +1471,7 @@ TDS_INT8 mymoney;
 }
 
 static TDS_INT 
-tds_convert_flt8(int srctype, TDS_CHAR *src,
+tds_convert_flt8(int srctype, const TDS_CHAR *src,
 	int desttype, TDS_INT destlen, CONV_RESULT *cr)
 {
 TDS_FLOAT the_value;
@@ -1549,7 +1549,7 @@ char      tmp_str[25];
 }
 
 static TDS_INT
-tds_convert_unique(int srctype,TDS_CHAR *src, TDS_INT srclen,
+tds_convert_unique(int srctype, const TDS_CHAR *src, TDS_INT srclen,
 	int desttype,TDS_INT destlen, CONV_RESULT *cr)
 {
 
@@ -1620,7 +1620,7 @@ TDS_UCHAR buf[37];
  * @return length of result or TDS_FAIL on failure
  */
 TDS_INT
-tds_convert(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, 
+tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src, 
 		TDS_UINT srclen, int desttype, TDS_UINT destlen, 
 		CONV_RESULT *cr)
 {
@@ -1682,8 +1682,9 @@ int len;
 }
 
 static TDS_INT 
-tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, TDS_CHAR *src, TDS_UINT srclen,
-		int desttype, TDS_UINT destlen, CONV_RESULT *cr)
+tds_convert_noerror(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
+		TDS_UINT srclen, int desttype, TDS_UINT destlen,
+		CONV_RESULT *cr)
 {
 TDS_INT length=0;
 TDS_VARBINARY *varbin;
@@ -1759,7 +1760,7 @@ TDS_VARBINARY *varbin;
 	return length;
 }
 
-static int string_to_datetime(char *instr, int desttype,  CONV_RESULT *cr)
+static int string_to_datetime(const char *instr, int desttype,  CONV_RESULT *cr)
 {
 enum states { GOING_IN_BLIND,
               PUT_NUMERIC_IN_CONTEXT,
