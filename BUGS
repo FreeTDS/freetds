@@ -11,5 +11,9 @@ Needs Fixing
 3. dbwritetext() and friends do not work under TDS 7.0
 4. There is a bug with the order of returns from ct_results() such that rows
    affected doesn't show up in sqsh.
+   
+--
+$Id: BUGS,v 1.4.2.1 2004-12-01 02:05:08 jklowden Exp $
+
 
 

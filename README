@@ -1,4 +1,4 @@
-$Id: README,v 1.10 2004-11-27 22:01:33 jklowden Exp $
+$Id: README,v 1.10.2.1 2004-12-01 02:05:08 jklowden Exp $
 README for FreeTDS 0.63
 Saturday, 27 November 2004
 
@@ -57,35 +57,91 @@ New in this version
 
 ct-lib
 ------
-
 Ct-lib now sports bcp and cursors.  The largest missing feature is now
 placeholder support compatible with Perl's DBD::Sybase.  
 
 ODBC
 ----
-
 ODBC continues to be improved.  It is now compatible with OpenOffice.org, for
 example, and even works with Oracle's OTL libary.  It has better 64-bit
-support.  
+support.  It has better support for configure's --with-odbc-nodm (no driver
+manager) option, and the rpm package no longer depends on the main package. 
+
+db-lib
+------
+BCP improvements, mostly.  
+
+Win32 (tm)
+----------
+Several fixes (timeout, dblib BOOL).  And a better installer.  
 
 Applications
 ------------
-
 This version includes two new applications, bsqldb and defncopy.  See their man
 pages for details.  
 
-etc.
+l18n
 ----
+ - remove duplicate conversion warnings
+ - better collate support
+ - improved errors report
+ 
+Support
+-------
+- OpenOffice
+- Oracle connector
+- DBD::ODBC improved
+- HP-UX and Mac OS X should compile flawlessy now
 
-Naturally, there have been other improvements as well.  This version compiles
-and runs better than its predecessors.  
+
+Technical
+---------
+- internal names normalization
+- header privatization
+- memory leaks and errors
+- fixes for big-endian machines
+
+As is our practice, our new version supersedes all others.  It compiles and
+runs better than its predecessors.  
 
 
+Thanks!
+=======
+
+Many people contributed patches: 
+
+- Alex Kiesel
+- Edward Quackenbush (memory leak)
+- David Fraser (ODBC test and patches)
+- Matthew Davis (buffer reading overflow)
+- Dmitri Fedortchenko (userguide, Mac OS X)
+- Christos Zoulas (bcp)
+- Nick Stoughton (odbc query patch)
+- Steve Kirkendall (win32, server)
+- Sven Goldt (php samples)
+- Liam Widdowson (fix for rpc in dblib)
+- Hannu Niemi (i18n problem)
+- Magni Fabrizio (Oracle connector)
+- Jun Chen (Oracle connector)
+- Craig A. Berry (VMS support)
+- Iain Calder (dblib memory leaks)
+- Tom Rogers (win32 stuff, configuration)
+
+A note from Frediano
+====================
+
+Many thanks to the guys that helped me fix the ODBC stuff for Oracle
+Generic Connectivity. They were fast and provided very useful
+information.
+
+Thanks to the "official" FreeTDS staff Bill Thompson, James Lowden and
+Peter Deacon and many thanks also to Brian Bruns, Martin Spott, Michael
+Peppler and Alex Kiesel for their continued contributions.
 
 Documentation
 =============
 
-A User Guide, in sgml and html form, is included in this distribution. 
+A User Guide, in SGML and HTML form, is included in this distribution. 
 Also included is a reference manual, generated in HTML with Doxygen. 
 "make install" installs the HTML documentation, by default to
 /usr/local/share/doc/freetds-<version>.  
