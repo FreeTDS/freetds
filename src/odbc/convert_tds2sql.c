@@ -25,10 +25,15 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.1 2002-05-27 20:12:43 brianb Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.2 2002-06-27 21:55:37 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+/*
+ * Pass this an SQL_* type and get a SYB* type which most closely corresponds
+ * to the SQL_* type.
+ *
+ */
 static int _odbc_get_server_type(int clt_type)
 {
 	switch (clt_type) {
@@ -105,16 +110,33 @@ TDS_INT
 convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
 		int desttype, TDS_CHAR *dest, TDS_UINT destlen)
 {
-	if (TDS_FAIL!=_odbc_get_server_type(desttype))
-		return tds_convert(locale, 
+    TDS_INT nDestSybType;
+    TDS_INT nRetVal;
+        
+	/*
+         * I guess tds_convert(), mostly, converts to formats which make us happy for SQL but 
+         * DATETIME seems to be at least one exception in such a case we fail here and do our
+         * own conversion.
+         */
+        nDestSybType = _odbc_get_server_type( desttype );
+fprintf( stderr, "[PAH][%s][%d] srctype(SYB)=%d srclen=%d destype(SQL)=%d destlen=%d nDestSybType=%d\n", __FILE__, __LINE__, srctype, srclen, desttype, destlen, nDestSybType );
+        if ( nDestSybType != TDS_FAIL )
+        {
+            nRetVal = tds_convert(locale, 
 		srctype,
 		src,
 		srclen, 
-		_odbc_get_server_type(desttype), 
+		nDestSybType, 
 		dest, 
 		destlen);
-
-
+            if ( nRetVal == TDS_FAIL )
+fprintf( stderr, "[PAH][%s][%d] %d %d\n", __FILE__, __LINE__, srctype, nDestSybType );
+            else
+fprintf( stderr, "[PAH][%s][%d] %s\n", __FILE__, __LINE__, dest );
+            return nRetVal;
+        }
+        
+fprintf( stderr, "[PAH][%s][%d]\n", __FILE__, __LINE__ );
 	switch(srctype) {
 //		case SYBCHAR:
 //		case SYBVARCHAR:
