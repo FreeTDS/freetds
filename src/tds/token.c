@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.214 2003-09-29 02:24:17 ppeterd Exp $";
+static char software_version[] = "$Id: token.c,v 1.215 2003-09-30 16:47:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1766,6 +1766,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 	tds_clr_null(current_row, i);
 
+	dest = &(current_row[curcol->column_offset]);
 	if (is_numeric_type(curcol->column_type)) {
 		TDS_NUMERIC *num;
 
@@ -1777,7 +1778,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		 * instead of using the wire representation even though
 		 * it uses a few more bytes
 		 */
-		num = (TDS_NUMERIC *) & (current_row[curcol->column_offset]);
+		num = (TDS_NUMERIC *) dest;
 		memset(num, '\0', sizeof(TDS_NUMERIC));
 		num->precision = curcol->column_prec;
 		num->scale = curcol->column_scale;
@@ -1800,7 +1801,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		/* This seems wrong.  text and image have the same wire format, 
 		 * but I don't see any reason to convert image data.  --jkl
 		 */
-		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+		blob_info = (TDSBLOBINFO *) dest;
 
 		p = blob_info->textvalue;
 		if (!p) {
@@ -1821,7 +1822,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		} else
 			tds_get_n(tds, blob_info->textvalue, colsize);
 	} else {		/* non-numeric and non-blob */
-		dest = &(current_row[curcol->column_offset]);
 		if (is_char_type(curcol->column_type)) {
 			/* this shouldn't fail here */
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
