@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursor.c,v 1.1 2004-10-13 18:29:10 freddy77 Exp $";
+static char software_version[] = "$Id: ct_cursor.c,v 1.2 2004-10-13 19:55:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int update_second_table(CS_COMMAND * cmd2, char *value);
@@ -180,7 +180,7 @@ main(int argc, char **argv)
 				}
 
 				ret = update_second_table(cmd2, col1);
-				if (!ret)
+				if (ret)
 					return ret;
 			}
 
@@ -530,6 +530,9 @@ main(int argc, char **argv)
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");
 	}
+
+	ct_cmd_drop(cmd2);
+
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");

@@ -12,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursors.c,v 1.1 2004-10-13 18:29:10 freddy77 Exp $";
+static char software_version[] = "$Id: ct_cursors.c,v 1.2 2004-10-13 19:55:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -414,6 +414,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_results() returned BAD.\n");
 		return 1;
 	}
+
+	ct_cmd_drop(cmd2);
+	ct_cmd_drop(cmd3);
 
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");
