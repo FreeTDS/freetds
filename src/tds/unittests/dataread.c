@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.6 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.7 2003-12-06 10:56:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -145,8 +145,13 @@ main(int argc, char **argv)
 	test("FLOAT", "-49586.345", NULL);
 
 	/* money */
-	test("MONEY", "-123.3400", NULL);
+	test("MONEY", "-123.3400", "-123.34");
+	test("MONEY", "-123.3450", "-123.35");
+	test("MONEY", "123.3450", "123.35");
 	test("SMALLMONEY", "89123.12", NULL);
+	test("SMALLMONEY", "-123.3400", "-123.34");
+	test("SMALLMONEY", "-123.3450", "-123.35");
+	test("SMALLMONEY", "123.3450", "123.35");
 
 	/* char */
 	test("CHAR(10)", "pippo", "pippo     ");

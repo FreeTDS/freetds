@@ -32,29 +32,30 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.21 2003-12-05 20:47:56 jklowden Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.22 2003-12-06 10:56:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
 /* 
-** these routines use arrays of unsigned char to handle arbitrary
-** precision numbers.  All-in-all it's probably pretty slow, but it
-** does work. I just heard of a GNU lib for arb. precision math, so
-** that might be an option in the future.
-*/
-
+ * these routines use arrays of unsigned char to handle arbitrary
+ * precision numbers.  All-in-all it's probably pretty slow, but it
+ * does work. I just heard of a GNU lib for arb. precision math, so
+ * that might be an option in the future.
+ */
+#ifndef HAVE_INT64
 static int multiply_byte(unsigned char *product, int num, unsigned char *multiplier);
 static int do_carry(unsigned char *product);
 static char *array_to_string(unsigned char *array, int scale, char *s);
+#endif
 
 /*
-** The following little table is indexed by precision-1 and will
-** tell us the number of bytes required to store the specified
-** precision (with the sign).
-** Support precision up to 77 digits
-*/
+ * The following little table is indexed by precision-1 and will
+ * tell us the number of bytes required to store the specified
+ * precision (with the sign).
+ * Support precision up to 77 digits
+ */
 const int tds_numeric_bytes_per_prec[] = {
 	-1, 2, 2, 3, 3, 4, 4, 4, 5, 5,
 	6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
@@ -67,36 +68,34 @@ const int tds_numeric_bytes_per_prec[] = {
 };
 
 /*
-** money is a special case of numeric really...that why its here
-*/
+ * money is a special case of numeric really...that why its here
+ */
 char *
 tds_money_to_string(const TDS_MONEY * money, char *s)
 {
-	/* use brian's money */
-#ifdef UseBillsMoney
-	char rawlong[64];
-	int rawlen;
-	int i;
+#ifdef HAVE_INT64
+	int frac;
+	TDS_INT8 mymoney;
+	char *p;
 
-	if (mymoney <= -10000 || mymoney >= 10000) {
-#		if (SIZEOF_LONG_LONG > 0)
-		sprintf(rawlong, "%lld", mymoney);
-#		else
-		sprintf(rawlong, "%ld", mymoney);
-#		endif
-		rawlen = strlen(rawlong);
+#ifdef WORDS_BIGENDIAN
+	mymoney = *((TDS_INT8*) money);
+#else
+	mymoney = (((TDS_INT8)(((TDS_INT*)money)[0])) << 32) | ((TDS_UINT*) money)[1];
+#endif
 
-		strncpy(tmpstr, rawlong, rawlen - 4);
-		tmpstr[rawlen - 4] = '.';
-		strcpy(&tmpstr[rawlen - 3], &rawlong[rawlen - 4]);
+	p = s;
+	if (mymoney < 0) {
+		*p++ = '-';
+		mymoney = -mymoney;
+	}
+	mymoney = (mymoney / 50 + 1 ) / 2;
+	frac = mymoney % 100;
+	mymoney /= 100;
+	if (mymoney >= 1000000000) {
+		sprintf(p, "%ld%09ld.%02d", (long)(mymoney / 1000000000), (long)(mymoney % 1000000000), frac);
 	} else {
-		i = mymoney;
-		s = tmpstr;
-		if (i < 0) {
-			*s++ = '-';
-			i = -i;
-		}
-		sprintf(s, "0.%02d", i);
+		sprintf(p, "%ld.%02d", (long)mymoney, frac);
 	}
 	return s;
 #else
@@ -117,9 +116,10 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	/* big endian makes things easy */
 	memcpy(tmpnumber, number, 8);
 #else
-	/* money is two 32 bit ints and thus is out of order on 
-	 * ** little endian machines. Proof of the superiority of 
-	 * ** big endian design. ;)
+	/*
+	 * money is two 32 bit ints and thus is out of order on 
+	 * little endian machines. Proof of the superiority of 
+	 * big endian design. ;)
 	 */
 	for (i = 0; i < 4; i++)
 		tmpnumber[3 - i] = number[i];
@@ -162,36 +162,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 #endif
 }
 
-#if 0
-char *
-tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
-{
-	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
-	unsigned char product[MAXPRECISION];
-	const unsigned char *number;
-	int num_bytes;
-	int pos;
-
-	memset(multiplier, 0, MAXPRECISION);
-	memset(product, 0, MAXPRECISION);
-	multiplier[0] = 1;
-	number = numeric->array;
-	num_bytes = tds_numeric_bytes_per_prec[numeric->precision];
-
-	if (numeric->array[0] == 1)
-		*s++ = '-';
-
-	for (pos = num_bytes - 1; pos > 0; pos--) {
-		multiply_byte(product, number[pos], multiplier);
-
-		memcpy(temp, multiplier, MAXPRECISION);
-		memset(multiplier, 0, MAXPRECISION);
-		multiply_byte(multiplier, 256, temp);
-	}
-	array_to_string(product, numeric->scale, s);
-	return s;
-}
-#endif
+#ifndef HAVE_INT64
 static int
 multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
 {
@@ -213,6 +184,7 @@ multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
 	}
 	return 0;
 }
+
 static int
 do_carry(unsigned char *product)
 {
@@ -226,6 +198,7 @@ do_carry(unsigned char *product)
 	}
 	return 0;
 }
+
 static char *
 array_to_string(unsigned char *array, int scale, char *s)
 {
@@ -248,6 +221,7 @@ array_to_string(unsigned char *array, int scale, char *s)
 	s[j] = '\0';
 	return s;
 }
+#endif
 
 char *
 tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)

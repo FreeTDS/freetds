@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.127 2003-11-30 12:02:07 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.128 2003-12-06 10:56:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1051,22 +1051,27 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 	TDS_MONEY4 mny;
 	long dollars, fraction;
 	char tmp_str[33];
+	char *p;
 
 	memcpy(&mny, src, sizeof(mny));
 	switch (desttype) {
 	case CASE_ALL_CHAR:
-		/* FIXME should be rounded ??
-		 * see also all conversion to int and from money 
+		/*
+		 * round to 2 decimal digits
 		 * rounding with dollars = (mny.mny4 + 5000) /10000
-		 * can give arithmetic overflow solution should be
-		 * dollars = (mny.mny4/2 + 2500)/5000 */
-		dollars = mny.mny4 / 10000;
-		fraction = mny.mny4 % 10000;
-		if (fraction < 0) {
-			fraction = -fraction;
+		 * can give arithmetic overflow so I use
+		 * dollars = (mny.mny4/50 + 1)/2 
+		 */
+		/* TODO round also all conversions to int and from money ?? */
+		p = tmp_str;
+		if (mny.mny4 < 0) {
+			*p++ = '-';
+			dollars = (-mny.mny4 / 50 + 1 ) / 2;
+		} else {
+			dollars = (mny.mny4 / 50 + 1 ) / 2;
 		}
-		/* TODO print 4 decimal digits ?? */
-		sprintf(tmp_str, "%ld.%02lu", dollars, fraction / 100);
+		/* print only 2 decimal digits as server does */
+		sprintf(p, "%ld.%02lu", dollars / 100, dollars % 100);
 		return string_to_result(tmp_str, cr);
 		break;
 	case CASE_ALL_BINARY:
