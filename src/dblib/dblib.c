@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.58 2002-09-13 19:25:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.59 2002-09-14 20:36:22 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2580,15 +2580,39 @@ RETCODE dbmoretext(DBPROCESS *dbproc, DBINT size, BYTE *text)
 }
 void dbrecftos(char *filename)
 {
+        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrecftos()\n");
 }
-char *dbversion()
+
+/**
+ * The integer values of the constants are counterintuitive.  
+ */
+int dbtds(DBPROCESS *dbprocess)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbversion()\n");
-	return NULL;
+	if (dbprocess && dbprocess->tds_socket ) {
+		switch (dbprocess->tds_socket->major_version) {
+			case 4:
+				switch (dbprocess->tds_socket->minor_version) {
+				case 2:	return DBTDS_4_2;
+				case 6:	return DBTDS_4_6;
+				default:	return DBTDS_UNKNOWN;
+			}
+			case 5:		return DBTDS_5_0;
+			case 7:		return DBTDS_7_0;
+			case 8:		return DBTDS_8_0;
+			default:		return DBTDS_UNKNOWN;
+		}
+	}
+	return DBTDS_UNKNOWN;
 }
+
+const char *dbversion()
+{
+	return software_version;
+}
+
 RETCODE dbsetdefcharset(char *charset)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdefcharset()\n");
+	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdefcharset()\n");
 	return SUCCEED;
 }
 RETCODE dbreginit(
