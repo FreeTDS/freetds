@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.208 2005-01-24 20:07:47 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.209 2005-01-29 08:11:51 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -869,6 +869,14 @@ typedef struct tds_column
 	TDS_INT column_text_sqlgetdatapos;
 
 	BCPCOLDATA *bcp_column_data;
+	/**
+	 * The length, in bytes, of any length prefix this column may have.
+	 * For example, strings in some non-C programming languages are
+	 * made up of a one-byte length prefix, followed by the string
+	 * data itself.
+	 * If the data does not have a length prefix, set prefixlen to 0.
+	 * Currently not very used in code, however do not remove.
+	 */
 	TDS_INT bcp_prefix_len;
 	TDS_INT bcp_term_len;
 	TDS_CHAR *bcp_terminator;
