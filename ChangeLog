@@ -1,3 +1,6 @@
+Fri Jun 28 00:10:15 EDT 2002	Brian Bruns <camber@ais.org>
+	*configure.in: change version number in preparation for 0.60
+
 Tue Jun 11 07:18:29 EDT 2002	Brian Bruns <camber@ais.org>
 	*src/apps/tsql.c: get conversion type before calling tds_convert
 	*src/apps/freebcp.c: memset PARAMDATA structure to 0 (Bill)
