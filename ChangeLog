@@ -1,3 +1,16 @@
+Sun Aug  3 23:46:25 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/basic_jdbc_question.html doc/htdoc/faq.html
+	- moved from doc directory
+	* doc/htdoc/contrib.html
+	* doc/htdoc/docs.html
+	* doc/htdoc/index.html
+	* doc/htdoc/news.html
+	* doc/htdoc/software.html
+	* doc/htdoc/support.html
+	* doc/htdoc/vague_jdbc_question.html
+	* doc/htdoc/which_api.html
+	- Added website pages to doc/htdoc
+
 Sun Aug 02 16:02:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c: add PacketSize DSN entry
 
