@@ -1,3 +1,8 @@
+Sun Nov 30 13:42:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/Makefile.am src/tds/encodings.h:
+	- updated encodings.h
+	- added a charset target to make to update encodings.h
+
 Sun Nov 30 13:00:17 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/tds.h src/ctlib/cs.c:
 	* src/ctlib/ct.c src/tds/convert.c src/tds/token.c:

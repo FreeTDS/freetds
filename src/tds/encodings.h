@@ -1,6 +1,6 @@
 /*
- * This file produced from ./encodings.pl on Sat Oct 18 19:58:19 2003
- * $Id: encodings.h,v 1.8 2003-10-19 03:40:26 jklowden Exp $
+ * This file produced from encodings.pl on Sun Nov 30 13:37:58 2003
+ * $Id: encodings.h,v 1.9 2003-11-30 12:42:12 freddy77 Exp $
  */
 static const TDS_ENCODING canonic_charsets[] = {
 	{        "ISO-8859-1",	1, 1},	/*   0 */
@@ -8,12 +8,12 @@ static const TDS_ENCODING canonic_charsets[] = {
 	{           "UCS-2LE",	2, 2},	/*   2 */
 	{           "UCS-2BE",	2, 2},	/*   3 */
 	{         "ARMSCII-8",	1, 1},	/*   4 */
-	{             "BIG-5",	1, 1},	/*   5 */
-	{        "BIG5-HKSCS",	1, 1},	/*   6 */
+	{             "BIG-5",	1, 2},	/*   5 */
+	{        "BIG5-HKSCS",	1, 2},	/*   6 */
 	{               "C99",	1, 1},	/*   7 */
 	{           "CHINESE",	1, 1},	/*   8 */
 	{                "CN",	1, 1},	/*   9 */
-	{             "CN-GB",	1, 1},	/*  10 */
+	{             "CN-GB",	1, 2},	/*  10 */
 	{    "CN-GB-ISOIR165",	1, 1},	/*  11 */
 	{            "CP1133",	1, 1},	/*  12 */
 	{            "CP1250",	1, 1},	/*  13 */
@@ -25,18 +25,18 @@ static const TDS_ENCODING canonic_charsets[] = {
 	{            "CP1256",	1, 1},	/*  19 */
 	{            "CP1257",	1, 1},	/*  20 */
 	{            "CP1258",	1, 1},	/*  21 */
-	{            "CP1361",	1, 1},	/*  22 */
+	{            "CP1361",	1, 2},	/*  22 */
 	{             "CP850",	1, 1},	/*  23 */
 	{             "CP862",	1, 1},	/*  24 */
 	{             "CP866",	1, 1},	/*  25 */
 	{             "CP874",	1, 1},	/*  26 */
-	{             "CP932",	1, 1},	/*  27 */
-	{             "CP936",	1, 1},	/*  28 */
-	{             "CP949",	1, 1},	/*  29 */
-	{             "CP950",	1, 1},	/*  30 */
-	{            "EUC-JP",	1, 1},	/*  31 */
-	{            "EUC-KR",	1, 1},	/*  32 */
-	{            "EUC-TW",	1, 1},	/*  33 */
+	{             "CP932",	1, 2},	/*  27 */
+	{             "CP936",	1, 2},	/*  28 */
+	{             "CP949",	1, 2},	/*  29 */
+	{             "CP950",	1, 2},	/*  30 */
+	{            "EUC-JP",	1, 3},	/*  31 */
+	{            "EUC-KR",	1, 2},	/*  32 */
+	{            "EUC-TW",	1, 4},	/*  33 */
 	{           "GB18030",	1, 1},	/*  34 */
 	{  "GEORGIAN-ACADEMY",	1, 1},	/*  35 */
 	{       "GEORGIAN-PS",	1, 1},	/*  36 */
@@ -86,7 +86,7 @@ static const TDS_ENCODING canonic_charsets[] = {
 	{         "MULELAO-1",	1, 1},	/*  80 */
 	{          "NEXTSTEP",	1, 1},	/*  81 */
 	{            "ROMAN8",	1, 1},	/*  82 */
-	{              "SJIS",	1, 1},	/*  83 */
+	{              "SJIS",	1, 2},	/*  83 */
 	{              "TCVN",	1, 1},	/*  84 */
 	{             "UCS-2",	2, 2},	/*  85 */
 	{    "UCS-2-INTERNAL",	2, 2},	/*  86 */
