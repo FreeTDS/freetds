@@ -6,7 +6,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.5 2003-01-01 23:02:07 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.6 2003-01-04 10:35:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int sp_who(CS_COMMAND *cmd);
@@ -154,6 +154,7 @@ sp_who(CS_COMMAND *cmd)
 	CS_RETCODE ret;
 	CS_RETCODE results_ret;
 	int i, is_return_status=0;
+	int is_status_result=0;
 
 	ret = ct_command(cmd, CS_LANG_CMD, "exec sp_who", CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
@@ -166,6 +167,7 @@ sp_who(CS_COMMAND *cmd)
 		return 1;
 	}
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+		is_status_result = 0;
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
 			break;
@@ -176,11 +178,22 @@ sp_who(CS_COMMAND *cmd)
 			return 1;
 		case CS_STATUS_RESULT:
 			fprintf(stdout, "ct_results: CS_STATUS_RESULT detected for sp_who\n");
+			is_status_result = 1;
 			/* fall through */
 		case CS_ROW_RESULT:
 			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
 			if (ret != CS_SUCCEED || num_cols > maxcol) {
 				fprintf(stderr, "ct_res_info() failed\n");
+				return 1;
+			}
+
+			if (num_cols <= 0) {
+				fprintf(stderr, "ct_res_info() return strange values\n");
+				return 1;
+			}
+
+			if (is_status_result && num_cols != 1) {
+				fprintf(stderr, "CS_STATUS_RESULT return more than 1 column\n");
 				return 1;
 			}
 			
@@ -229,6 +242,10 @@ sp_who(CS_COMMAND *cmd)
 				if( row_count == 0) { /* titles */
 					for (i=0; i < num_cols; i++) {
 						char fmt[40];
+						if (col[i].datafmt.namelen == 0) {
+							printf("unnamed%d ",i+1);
+							continue;
+						}
 						sprintf(fmt, "%%-%d.%ds  ", col[i].datafmt.namelen, col[i].datafmt.maxlength);
 						printf(fmt, col[i].datafmt.name);
 					}
@@ -239,11 +256,19 @@ sp_who(CS_COMMAND *cmd)
 					char fmt[40];
 					sprintf(fmt, "%%-%d.%ds  ", col[i].datalength, col[i].datafmt.maxlength);
 					printf(fmt, col[i].data);
+					if (is_status_result && strcmp(col[i].data,"0")) {
+						fprintf(stderr, "CS_STATUS_RESULT should return 0 as result\n");
+						return 1;
+					}
 				}
 
 				printf("\n");
 
 				row_count += count;
+			}
+			if (is_status_result && row_count != 1) {
+				fprintf(stderr, "CS_STATUS_RESULT should return a row\n");
+				return 1;
 			}
 			
 			switch ((int) ret) {

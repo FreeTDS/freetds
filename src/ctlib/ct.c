@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.67 2003-01-04 09:52:07 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.68 2003-01-04 10:35:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1994,7 +1994,7 @@ TDSCOLINFO *curcol;
 	tds_free_all_results(tds);
 
 	/* allocate the columns structure */
-	tds->res_info = tds_alloc_results(num_cols);
+	tds->curr_resinfo = tds->res_info = tds_alloc_results(num_cols);
 
 	if (!tds->res_info) 
 		return TDS_FAIL;

@@ -1,3 +1,8 @@
+Fri Jan  4 11:34:49 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/ctlib/unittests/t0002.c:
+	- set also curr_resinfo for STATUS_RESULT
+	- more check for sp_who call
+
 Fri Jan  4 10:52:09 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: cleanup
 
