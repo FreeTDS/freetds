@@ -1,3 +1,9 @@
+Wed Apr  6 02:38:19 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* autogen.sh src/tds/Makefile.am src/tds/encodings.pl
+	- allowed for out-of-tree building.  Do not assume .c and .o 
+	- are in the same directory.  Put built .h files in $(srcdir). 
+	* doc/userguide.sgml edited debug flags for idiom, plus explanations.  
+	
 Tue Apr  5 19:02:49 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* samples/odbc_rpc.pl fixed silly getopt misprocessing
 	

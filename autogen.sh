@@ -1,7 +1,7 @@
 #! /bin/sh
 # Run this to generate all the initial makefiles, etc.
 
-# $Id: autogen.sh,v 1.7 2005-04-01 20:36:42 jklowden Exp $
+# $Id: autogen.sh,v 1.8 2005-04-06 06:44:33 jklowden Exp $
 
 # From automake.info:
 #
@@ -26,9 +26,10 @@ PKG_NAME="FreeTDS."
 # Revision 1.6 was the last one not to use autoreconf.  If you can't get
 # this (simpler) one to work, you might try that one. 
 
-(	cd ${srcdir} 
+(	cd ${srcdir}
+	echo running $(which autoreconf) in $(pwd): 
 	autoreconf || autoreconf --install
-)
+) || exit
 
 #conf_flags="--enable-maintainer-mode --enable-compile-warnings" #--enable-iso-c
 

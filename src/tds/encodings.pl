@@ -1,8 +1,13 @@
 #!/usr/bin/perl
 ## This file is in the public domain.
+use File::Basename;
+
+$basename = basename($0);
+$srcdir = "$ARGV[0]/";
 
 # get list of character sets we know about
-open ALT, "alternative_character_sets.h" or die;
+$filename = "${srcdir}alternative_character_sets.h";
+open ALT, $filename or die qq($basename: could not open "$filename"\n);
 while(<ALT>){
 	next unless /^\t[, ] {\s+"(.+?)", "(.+?)"/;
 	$alternates{$2} = $1;
@@ -21,10 +26,11 @@ $alternates{'MACTURK'}  = 'MACTURKISH';
 
 $alternates{'KOI8'}  = 'KOI8-R';
 
-open(OUT, ">sybase_character_sets.h") or die;
+$filename = "${srcdir}sybase_character_sets.h";
+open(OUT, ">$filename") or die qq($basename: could not open "$filename"\n);
 print OUT "/*\n";
 print OUT " * This file produced from $0\n";
-print OUT ' * $Id: encodings.pl,v 1.9 2005-04-05 14:56:47 freddy77 Exp $', "\n";
+print OUT ' * $Id: encodings.pl,v 1.10 2005-04-06 06:44:33 jklowden Exp $', "\n";
 print OUT " */\n";
 
 # look up the canonical name
@@ -71,11 +77,12 @@ close(OUT);
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.9 2005-04-05 14:56:47 freddy77 Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.10 2005-04-06 06:44:33 jklowden Exp $', "\n";
 print " */\n";
 
 %charsets = ();
-open(IN, "<character_sets.h") or die("Error opening");
+$filename = "${srcdir}character_sets.h";
+open(IN, "<$filename") or die qq($basename: could not open "$filename"\n);
 while(<IN>)
 {
 	if (/{.*"(.*)".*,\s*([0-9]+)\s*,\s*([0-9]+)\s*}/)
@@ -88,7 +95,8 @@ close(IN);
 
 # from all iconv to canonic
 %alternates = ();
-open(IN, "<alternative_character_sets.h") or die("Error opening");
+$filename = "${srcdir}alternative_character_sets.h";
+open(IN, "<$filename") or die qq($basename: could not open "$filename"\n);
 while(<IN>)
 {
 	if (/{\s*"(.+)"\s*,\s*"(.+)"\s*}/)
@@ -100,7 +108,8 @@ close(IN);
 
 # from sybase to canonic
 %sybase = ();
-open(IN, "<sybase_character_sets.h") or die("Error opening");
+$filename = "${srcdir}sybase_character_sets.h";
+open(IN, "<$filename") or die qq($basename: could not open "$filename"\n);
 while(<IN>)
 {
 	if (/{\s*"(.+)"\s*,\s*"(.+)"\s*}/)

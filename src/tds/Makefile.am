@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.51 2005-04-05 14:56:47 freddy77 Exp $
+# $Id: Makefile.am,v 1.52 2005-04-06 06:44:33 jklowden Exp $
 
 SUBDIRS			=	unittests
 
@@ -23,6 +23,7 @@ libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la \
 			  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h
+EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
@@ -44,15 +45,20 @@ endif
 ## dependency (on num_limits.pl).  
 
 if HAVE_PERL_SOURCES
-tds_willconvert.h: tds_willconvert.pl
-	perl $(srcdir)/tds_willconvert.pl > .$@
-	mv .$@ $@
+BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h
 
-encodings.h: encodings.pl alternative_character_sets.h
-	perl $(srcdir)/encodings.pl > .$@
-	mv .$@ $@
+clean-local: 
+	cd $(srcdir) && rm -f $(EXTRA_DIST)
+	
+tds_willconvert.h: tds_willconvert.pl Makefile
+	perl $(srcdir)/tds_willconvert.pl > $@.tmp
+	mv $@.tmp $(srcdir)/$@
 
-num_limits.h: num_limits.pl
+encodings.h: encodings.pl alternative_character_sets.h Makefile
+	perl $(srcdir)/encodings.pl $(srcdir) > $@.tmp
+	mv $@.tmp $@
+
+num_limits.h: num_limits.pl Makefile
 	perl $(srcdir)/num_limits.pl > .$@
-	mv .$@ $@
+	mv .$@ $(srcdir)/$@
 endif
