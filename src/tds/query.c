@@ -25,18 +25,28 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.15 2002-09-25 17:59:14 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.16 2002-09-25 20:26:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 /* All manner of client to server submittal functions */
 
-/* 
-** tds_submit_query() sends a language string to the database server for
-** processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
-** TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
-** TDS_LANG_TOKEN to encapsulate the query and a packet type of 0x0f.
-*/
+/**
+ * \defgroup query Submit query functions
+ */
+
+/** \addtogroup query
+ *  \@{ 
+ */
+
+/**
+ * tds_submit_query() sends a language string to the database server for
+ * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
+ * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
+ * TDS_LANG_TOKEN to encapsulate the query and a packet type of 0x0f.
+ * @param query language query to submit
+ * @return TDS_FAIL or TDS_SUCCEED
+ */
 int tds_submit_query(TDSSOCKET *tds, char *query)
 {
 unsigned char *buf;
@@ -92,17 +102,72 @@ TDS_INT bufsize2;
 
 	return TDS_SUCCEED;
 }
-/* 
-** tds_submit_prepare() creates a temporary stored procedure in the server.
-** Currently works only with TDS 5.0 
-*/
+
+/**
+ * Get position of next placeholders
+ * @param start pointer to part of query to search
+ * @return next placaholders or NULL if not found
+ */
+const char*
+tds_next_placeholders(const char* start)
+{
+	const char *p = start;
+	char quote = 0;
+
+	if (!p) return NULL;
+
+	for(;*p;++p) {
+		switch(*p) {
+		case '\'':
+		case '\"':
+		case ']':
+			if (!quote) {
+				quote = *p;
+			} else if (*p == quote) {
+				if (p[1] == quote) ++p;
+				else quote = 0;
+			}
+			break;
+		case '[':
+			if (!quote)
+				quote = ']';
+			break;
+		case '?':
+			if (!quote) return p;
+		default:
+		}
+	}
+	return NULL;
+}
+
+/**
+ * Count the number of placeholders in query
+ */
+static int 
+tds_count_placeholders(const char *query)
+{
+	const char *p = query-1;
+	int count = 0;
+	for(;;++count) {
+		if (!(p=tds_next_placeholders(p+1)))
+			return count;
+	}
+}
+
+/**
+ * tds_submit_prepare() creates a temporary stored procedure in the server.
+ * Currently works only with TDS 5.0 
+ * @param query language query with given placeholders (?)
+ * @param id string to identify the dynamic query
+ * @return TDS_FAIL or TDS_SUCCEED
+ */
 int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id)
 {
 int id_len, query_len;
 
 	if (!query || !id) return TDS_FAIL;
 
-	if (!IS_TDS50(tds) /* && !IS_TDS7_PLUS(tds) */ ) {
+	if (!IS_TDS50(tds) /*&& !IS_TDS7_PLUS(tds)*/ ) {
 		tdsdump_log(TDS_DBG_ERROR,
 			"Dynamic placeholders only supported under TDS 5.0\n");
 		return TDS_FAIL;
@@ -124,7 +189,8 @@ int id_len, query_len;
 
 	/* FIXME add support for mssql, use RPC and sp_prepare */
 	if (0 && IS_TDS7_PLUS(tds)) {
-		int len;
+		int len,i,n;
+		const char *s,*e;
 
 		tds->out_flag = 3; /* RPC */
 		/* procedure name */
@@ -143,20 +209,40 @@ int id_len, query_len;
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
+		/* TODO build true param string from parameters */
+		/* for now we use all "@PX varchar(80)," for parameters */
+		n = tds_count_placeholders(query);
+		len = n * 16 -1;
+		/* adjust for the length of X */
+		for(i=10;i<=n;i*=10) {
+			len += n-i+1;
+		}
 		tds_put_int(tds,len);
 		tds_put_int(tds,len);
-		/* TODO */
-		/* tds_put_n(tds,params_string,len); */
+		for (i=1;i<=n;++i) {
+			char buf[24];
+			sprintf(buf,"%s@P%d varchar(80)",(i==1?"":","),i);
+			tds_put_n(tds,buf,strlen(buf));
+		}
 	
 		/* string with sql statement */
-		/* TODO build param strings from parameters */
-		len = strlen(query);
+		/* replace placeholders with dummy parametes */
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
-		tds_put_int(tds,query_len);
-		tds_put_int(tds,query_len);
-		tds_put_n(tds,query,query_len);
+		len = (len+1-14*n)+query_len;
+		tds_put_int(tds,len);
+		tds_put_int(tds,len);
+		s = query;
+		for(i=1;i<=n;++i) {
+			char buf[24];
+			e = tds_next_placeholders(s);
+			tds_put_n(tds,s,e?e-s:strlen(s));
+			sprintf(buf,"@P%d",i);
+			tds_put_n(tds,buf,strlen(buf));
+			if (!e) return;
+			s = e+1;
+		}
 
 		/* 1 param ?? why ? */
 		tds_put_byte(tds,0);
@@ -164,9 +250,9 @@ int id_len, query_len;
 		tds_put_byte(tds,SYBINT4);
 		tds_put_int(tds,1);
 		
-		tds->out_flag = 0xf; /* default */
-
 		tds_flush_packet(tds);
+
+		tds->out_flag = 0xf; /* default */
 		return TDS_SUCCEED;
 	}
 
@@ -240,9 +326,9 @@ int one = 1;
 			}
 		}
 		
-		tds->out_flag = 0xf; /* default */
-
 		tds_flush_packet(tds);
+
+		tds->out_flag = 0xf; /* default */
 		return TDS_SUCCEED;
 	}
 
@@ -316,4 +402,6 @@ int tds_send_cancel(TDSSOCKET *tds)
 
         return 0;
 }
+
+/** \@} */
 
