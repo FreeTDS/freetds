@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-01-24 10:36:08 $</date>
-		<releaseinfo>$Revision: 1.51 $</releaseinfo>
+		<date>$Date: 2003-02-23 20:48:24 $</date>
+		<releaseinfo>$Revision: 1.52 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -18,6 +18,7 @@
 		<copyright>
 		  <year>2001</year>
 		  <year>2002</year>
+		  <year>2003</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -41,15 +42,22 @@ This User Guide is the product of (lots of) happy collaborative effort.  Althoug
 It is surprisingly hard, after a while, to remember how it can be for someone newly approaching a project to use it.  What seems as obvious as a fog horn to an old hand may be much more like the fog itself to the newcomer.  That can make installing and setting up new software a puzzling or frustrating experience.  You may have heard, <quote>It's easy if you know how.</quote>  Indeed it is, and that's our purpose here: to make it easy, by letting you know how.  
 			</para>
 			<para>
-This guide is here for you, and we hope that you will be here for it, that others might benefit from your experience or inexperience.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.  
+This guide is here for you, and we hope that you will be here for it, that others might benefit from your experience or inexperience.  The most recent version <footnote>
+			<para>
+The version you're reading is:
+			</para> 
+  			<simplelist type='vert'>
+<member>$Revision: 1.52 $</>
+<member>$Date: 2003-02-23 20:48:24 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.52 2003-02-23 20:48:24 jklowden Exp $.</>
+  			</simplelist>
+			</footnote>
+can be found on the <productname>FreeTDS</productname> 
+<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.  
 			</para>
 			<para>
 A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.  
-The document you are reading is version 
-$Revision: 1.51 $
-, dated 
-$Date: 2003-01-24 10:36:08 $ (CVS control number $Id: userguide.sgml,v 1.51 2003-01-24 10:36:08 freddy77 Exp $).  The most recent version can be found on the <productname>FreeTDS</productname> 
-<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
+The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.  
 			</para>
 			<para> 
 Enough.  Let's begin.  
@@ -63,7 +71,7 @@ Enough.  Let's begin.
 		<title>What is <productname>FreeTDS</productname>?</title>
 
 		<para>
-<productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an ODBC library.  It allows many open source applications such as Perl and PHP (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
+<productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an <systemitem class="library">ODBC library</systemitem>.  It allows many open source applications such as <productname>Perl</productname> and <productname>PHP</productname> (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
 		</para>
 		<sect1 id="tdsprotocol">
 			<title>Background: The <acronym>TDS</> Protocol
@@ -180,10 +188,11 @@ In addition to the core <systemitem class="library">db-lib</systemitem> <acronym
 			</para>
 			<para>
 The <systemitem class="library">ODBC</systemitem> driver is slightly weaker but may be usable depending on your application's needs.  It is under active development.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
-Starting from 0.60 version ODBC driver have seen an huge improvement and interesting. 0.61 version came with a ODBC 3.0 version.
+The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and with 0.61 it began to comply with the ODBC 3.0 specification.
 			</para>
 			<para>
-Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			</para>
+Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
+			</para> 
 		</sect2>
 		<sect2>
 			<title>Languages besides C and Java</title>
@@ -252,7 +261,7 @@ If the following nevertheless reads like gibberish, you might very well want to 
 		<sect1 id="packages">
     			<title>What to build: Packages, Tarballs, and the <productname>CVS</productname></title>
 			<para>
-The latest <productname>FreeTDS</productname> package is version 0.60.  It is available from 
+The latest <productname>FreeTDS</productname> package is version 0.61.  It is available from 
 	<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-release.tgz">
 		<citetitle>iBiblio</citetitle></ulink> 
 and its mirrors.
@@ -1358,8 +1367,8 @@ As mentioned in the installation chapter, <productname>SQL Server</productname> 
 </example>
 			</para>
 <Note><para>
-As of version 0.60, <productname>FreeTDS</productname>'s support for domain logins is very new.  It appears that it may also be mutually exclusive.  That is, although we would like it to be the case that you could set both <literal>try domain login</> and <literal>try server login</> to <literal>yes</>, we're not sure you can.  Not yet, anyway.  To work around this, you can simply use two sections for the server (one in each mode) in  <filename>freetds.conf</filename>. If you specify username with DOMAIN\user syntax 
-<productname>FreeTDS</productname> automatically use domain login for TDS versions 7.0 and 8.0.
+<productname>FreeTDS</productname> began supporting domain logins in version 0.60.  It appears that server- and domain-logins are mutually exclusive.  That is, although we would like it to be the case that you could set both <literal>try domain login</> and <literal>try server login</> to <literal>yes</>, we're not sure you can.  Not yet, anyway.  To work around this, you can simply use two sections for the server (one in each mode) in  <filename>freetds.conf</filename>. If you specify a username with the <literal>DOMAIN\user</> syntax, 
+<productname>FreeTDS</productname> automatically uses a domain login for TDS versions 7.0 and 8.0.
 </para></Note>
 		</sect1>
 		<sect1 id="appendmode">
