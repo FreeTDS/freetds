@@ -33,4 +33,5 @@ testodbc
 error
 rebindpar
 convert_error
+typeinfo
 
