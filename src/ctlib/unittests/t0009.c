@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.5 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.6 2002-12-12 20:05:19 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve compute results */
@@ -263,6 +263,10 @@ main(int argc, char *argv[])
 					}
 					if (compute_id == 2) {
 						fprintf(stdout, "compute_col3 = '%s'\n", compute_col3);
+						if (strcmp("Jan  5 2002 10:00:00AM", compute_col3)) {
+							fprintf(stderr, "(should be \"Jan  5 2002 10:00:00AM\")\n");
+							return 1;
+						}
 					}
 				}
 			}
