@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.43 2002-08-18 09:19:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.44 2002-08-18 11:47:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,6 +107,20 @@ int tds_get_conversion_type(int srctype, int colsize)
 			return SYBMONEY4;
 	}
 	return srctype;
+}
+
+/**
+ * copy a terminared string to result and return len or TDS_FAIL
+ */
+static TDS_INT 
+string_to_result(const char* s,CONV_RESULT* cr)
+{
+int len = strlen(s);
+
+	cr->c = malloc(len + 1);
+	test_alloc(cr->c);
+	memcpy(cr->c, s, len + 1);
+	return len;
 }
 
 /* reverted function to 1.12 logic; 1.13 patch was mistaken. July 2002 jkl */
@@ -266,6 +280,7 @@ TDS_INT tds_i;
       case SYBTEXT:
 		 cr->c = malloc(srclen + 1);
 		test_alloc(cr->c);
+		/* FIXME optimize, only terminate, clear is useless */
 		 memset(cr->c, '\0', srclen + 1);
 		 memcpy(cr->c, src, srclen);
          return srclen; 
@@ -340,6 +355,8 @@ TDS_INT tds_i;
 					return;
 				}
 			}
+			/* FIXME this terminate program, best to return FAIL
+			 * check all buffer first ?? */
 			assert( hex1 < 0x10 );
 			
 			if( i & 1 ) 
@@ -398,6 +415,7 @@ TDS_INT tds_i;
          point_found = 0;
 
          for (ptr = src; *ptr == ' '; ptr++);  /* skip leading blanks */
+	 /* FIXME is '   ++++-23' rigth ?? */
          for (ptr = src; *ptr == '+'; ptr++);  /* skip leading '+' */
 
          if ( *ptr == '-' ) {
@@ -406,6 +424,7 @@ TDS_INT tds_i;
             i++;
          }
 
+	 /* FIXME this code contain some buffer overflow... */
          for(; *ptr; ptr++)                      /* deal with the rest */
          {
             if (isdigit(*ptr) )                   /* it's a number */
@@ -444,6 +463,7 @@ TDS_INT tds_i;
 		 break;
       case SYBNUMERIC:
       case SYBDECIMAL:
+		 /* FIXME ctlib should pass precision values to tds_convert...*/
 		 cr->n.precision = 18;
 		 cr->n.scale     = 0;
 		if (string_to_numeric(src, src + srclen, cr))
@@ -522,10 +542,7 @@ TDS_CHAR tmp_str[5];
 		case SYBTEXT:
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
-            cr->c = malloc(strlen(tmp_str) + 1);
-			test_alloc(cr->c);
-			strcpy(cr->c,tmp_str);
-            return strlen(tmp_str);
+			return string_to_result(tmp_str,cr);
 			break;
 		case SYBINT1:
 			cr->ti = buf;
@@ -558,7 +575,7 @@ TDS_CHAR tmp_str[5];
 			break;
 		case SYBMONEY:
 			cr->m.mny = buf * 10000;
-			return 8;
+			return sizeof(TDS_MONEY);
 			break;
 		default:
             fprintf(stderr,"error_handler: conversion from %d to %d not supported\n", srctype, desttype);
@@ -578,10 +595,7 @@ TDS_CHAR tmp_str[16];
 		case SYBTEXT:
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
-            cr->c = malloc(strlen(tmp_str) + 1);
-			test_alloc(cr->c);
-			strcpy(cr->c,tmp_str);
-            return strlen(tmp_str);
+			return string_to_result(tmp_str,cr);
 			break;
 		case SYBINT1:
 			if (!IS_TINYINT(buf))
@@ -636,10 +650,7 @@ TDS_CHAR tmp_str[16];
 		case SYBTEXT:
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
-            cr->c = malloc(strlen(tmp_str) + 1);
-			test_alloc(cr->c);
-			strcpy(cr->c,tmp_str);
-            return strlen(tmp_str);
+			return string_to_result(tmp_str,cr);
 			break;
 		case SYBINT1:
 			if (!IS_TINYINT(buf))
@@ -696,10 +707,7 @@ char tmpstr[MAXPRECISION];
 		case SYBTEXT:
 		case SYBVARCHAR:
 			tds_numeric_to_string(src,tmpstr);
-            cr->c = malloc(strlen(tmpstr) + 1);
-			test_alloc(cr->c);
-            strcpy(cr->c, tmpstr);
-            return strlen(tmpstr);
+			return string_to_result(tmpstr,cr);
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
@@ -735,14 +743,16 @@ char tmp_str[33];
 		case SYBCHAR:
 		case SYBTEXT:
 		case SYBVARCHAR:
+			/* FIXME should be rounded ??
+			 * see also all conversion to int and from money 
+			 * rounding with dollars = (mny.mny4 + 5000) /10000
+			 * can give arithmetic overflow solution should be
+			 * dollars = (mny.mny4/2 + 2500)/5000 */
 			dollars  = mny.mny4 / 10000;
 			fraction = mny.mny4 % 10000;
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%02lu",dollars,fraction/100);
-			cr->c = malloc(strlen(tmp_str) + 1);
-			test_alloc(cr->c);
-			strcpy(cr->c, tmp_str);
-			return strlen(tmp_str);
+			return string_to_result(tmp_str,cr);
 			break;
 		case SYBINT1:
 			dollars  = mny.mny4 / 10000;
@@ -828,18 +838,12 @@ int i;
             tmpstr[rawlen - 4] = '.';
             strcpy(&tmpstr[rawlen -3], &rawlong[rawlen - 4]); 
             
-            cr->c = malloc(strlen(tmpstr) + 1);
-		  test_alloc(cr->c);
-            strcpy(cr->c, tmpstr);
-            return strlen(tmpstr);
+            return string_to_result(tmpstr,cr);
 #else
 			/* use brian's money */
 			/* begin lkrauss 2001-10-13 - fix return to be strlen() */
           	s = tds_money_to_string((TDS_MONEY *)src, tmpstr);
-			cr->c = malloc(strlen(s) + 1);
-			test_alloc(cr->c);
-			strcpy(cr->c, s);
-			return strlen(s);
+                return string_to_result(s,cr);
           	break;
 		
 #endif	/* UseBillsMoney */
@@ -974,10 +978,7 @@ struct tds_tm when;
 				when.tm.tm_sec =  when.tm.tm_sec %   60; 
 
 				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
-				cr->c = malloc (strlen(whole_date_string) + 1);
-				test_alloc(cr->c);
-				strcpy(cr->c , whole_date_string);
-                return strlen(whole_date_string);
+				return string_to_result(whole_date_string,cr);
 			}
 			break;
 		case SYBDATETIME:
@@ -1071,10 +1072,7 @@ struct tds_tm when;
 
 				tds_strftime( whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when );
 
-				cr->c = malloc (strlen(whole_date_string) + 1);
-				test_alloc(cr->c);
-				strcpy(cr->c , whole_date_string);
-                return strlen(whole_date_string);
+				return string_to_result(whole_date_string,cr);
 			}
 			break;
 		case SYBDATETIME:
@@ -1116,10 +1114,7 @@ TDS_INT8 mymoney;
       case SYBTEXT:
       case SYBVARCHAR:
             sprintf(tmp_str,"%.7g", the_value);
-            cr->c = malloc(strlen(tmp_str) + 1);
-		test_alloc(cr->c);
-            strcpy(cr->c, tmp_str);
-            return strlen(tmp_str);
+	    return string_to_result(tmp_str,cr);
             break;
 
       case SYBFLT8:
@@ -1163,10 +1158,7 @@ char      tmp_str[25];
       case SYBCHAR:
       case SYBVARCHAR:
             sprintf(tmp_str,"%.15g", the_value);
-            cr->c = malloc(strlen(tmp_str) + 1);
-		test_alloc(cr->c);
-            strcpy(cr->c, tmp_str);
-            return strlen(tmp_str);
+	    return string_to_result(tmp_str,cr);
             break;
       case SYBMONEY:
             cr->m.mny = the_value * 10000;
@@ -1210,10 +1202,7 @@ TDS_UCHAR buf[37];
         			u->Data4[0], u->Data4[1],
         			u->Data4[2], u->Data4[3], u->Data4[4],
         			u->Data4[5], u->Data4[6], u->Data4[7]);
-            cr->c = malloc(strlen(buf) + 1);
-		test_alloc(cr->c);
-   			strcpy(cr->c,buf);
-            return strlen(buf);
+			return string_to_result(buf,cr);
    			break;
    		case SYBUNIQUE:
 			/* Here we can copy raw to structure because we adjust
@@ -1347,7 +1336,7 @@ int current_state;
 	memset(&mytime, '\0', sizeof(struct tds_time));
 	t = &mytime;
 
-	in = (char *)malloc(strlen(instr));
+	in = (char *)malloc(strlen(instr)+1);
 	test_alloc(in);
 	strcpy (in , instr );
 

@@ -1,3 +1,10 @@
+Fri Aug 18 13:40:50 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- add function to handle return to char
+	- add some TODO and FIXME
+	- fixed a small off-by-one buffer 
+	  overflow converting from char to date
+
 Fri Aug 18 10:52:03 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- return sizeof(TDS_MONEY) instead of 8 (not always 8 byte long)
