@@ -1,3 +1,6 @@
+Fri Dec 19 10:53:46 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/Makefile.am: bump version info
+
 Thu Dec 18 20:34:45 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in include/tdsodbc.h:
 	- remove a warning if iODBC is used
