@@ -1,3 +1,8 @@
+Sat Nov 15 10:26:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/common.c src/tds/unittests/common.h:
+	* src/tds/unittests/utf8_1.c:
+	- continued UTF8 test
+
 Thu Nov 13 15:58:38 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/read.c prepare read_and_convert for UTF-8
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.267 2003-11-13 13:52:52 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.268 2003-11-15 09:30:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4023,7 +4023,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		USIVAL = SQL_IC_MIXED;
 		break;
 	case SQL_IDENTIFIER_QUOTE_CHAR:
-		p = "\"";
+		p = "";
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_INDEX_KEYWORDS:

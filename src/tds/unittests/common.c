@@ -1,12 +1,14 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.19 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.20 2003-11-15 09:30:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+/* TODO use another default ?? */
+char CHARSET[512] = "ISO-8859-1";
 
 int read_login_info(void);
 
@@ -80,8 +82,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	tds_set_host(*login, "myhost");
 	tds_set_library(*login, "TDS-Library");
 	tds_set_server(*login, SERVER);
-	/* TODO use another default ?? */
-	tds_set_client_charset(*login, "ISO-8859-1");
+	tds_set_client_charset(*login, CHARSET);
 	tds_set_language(*login, "us_english");
 	tds_set_packet(*login, 512);
 
