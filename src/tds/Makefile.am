@@ -21,7 +21,7 @@ doxyfile: $(srcdir)/tds.dox
 	
 ## The doxygen configuration file understands environment variables.  
 
-doxy: doxyfile
+doxy: doxyfile  $(libtds_objects_la_SOURCES)
 	SRCDIR=$(srcdir); \
 	TOP_SRCDIR=$(top_srcdir); \
 	export SRCDIR TOP_SRCDIR; \
