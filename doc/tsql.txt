@@ -50,6 +50,13 @@ NOTES
 	If you have suggestions for ways to make tsql more useful as a diagnostic tool,
 	please recommend them to the FreeTDS mailing list for consideration. 
 
+	Typing "exit", "quit", or "bye" (or ^D) exits tsql. 
+
+	Typing "version" displays the version and exits. 
+
+	Command batches may be separated with "go" or "GO". If "GO", the version string is reported 
+	before executing the batch. 
+
 HISTORY
 
  tsql first appeared in FreeTDS 0.60
