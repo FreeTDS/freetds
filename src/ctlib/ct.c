@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.51 2002-11-16 15:21:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.52 2002-11-21 21:03:40 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -885,7 +885,10 @@ CS_RETCODE ret;
 		if (cmd->con->tds_socket) {
 			tds_free_all_results(cmd->con->tds_socket);
 		}
-		return ret;
+		if (ret == CS_END_DATA) {
+			return CS_SUCCEED;
+		}
+		return CS_FAIL;
 	}
 
 	if ((conn && cmd) || (!conn && !cmd)) {

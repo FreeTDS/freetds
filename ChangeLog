@@ -1,3 +1,7 @@
+Thu Nov 21 16:01:27 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/ct.c:
+	- Fix return value from ct_cancel().
+
 Thu Nov 21 21:48:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/token.c:
 	- cleanup old unused functions
