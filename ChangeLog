@@ -1,3 +1,7 @@
+Thu Jul 24 23:04:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/params.c:
+	- fixed portability in sql code
+
 Thu Jul 24 14:27:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fix problem with 2 SQLPrepare on same statement

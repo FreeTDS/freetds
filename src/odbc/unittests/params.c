@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.2 2003-07-24 13:18:19 jklowden Exp $";
+static char software_version[] = "$Id: params.c,v 1.3 2003-07-24 21:04:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -13,8 +13,8 @@ static const char sp_define[] = "CREATE PROCEDURE spTestProc\n"
 	"    @OutParam int OUTPUT,\n"
 	"    @OutString varchar(20) OUTPUT\n"
 	"AS\n"
-	"     SET @OutParam = @InParam\n"
-	"     SET @OutString = 'This is cool!'\n"
+	"     SELECT @OutParam = @InParam\n"
+	"     SELECT @OutString = 'This is cool!'\n"
 	"     IF @InParam < 10\n" "          RETURN (0)\n" "     ELSE\n" "          RETURN (1)\n";
 
 #define SP_TEXT "{?=call spTestProc(?,?,?)}"
