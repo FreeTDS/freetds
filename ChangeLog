@@ -1,5 +1,5 @@
 Thu Sep 12 11:19:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
-	* Makefile.am
+	* Makefile.am .cvsignore
 	* PWD (removed)
 	* PWD.in (added)
 	- Create PWD from PWD.in.  Only PWD.in will be maintained in CVS.
