@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.68 2002-10-31 14:48:22 freddy77 Exp $
+dnl $Id: configure.in,v 1.69 2002-10-31 16:59:34 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -60,8 +60,8 @@ dnl Checks for libraries.
 dnl ------------------------------------------------------------
 AC_CHECK_LIB(socket, socket, NETWORK_LIBS="$NETWORK_LIBS -lsocket")
 AC_CHECK_LIB(nsl, gethostbyname, NETWORK_LIBS="$NETWORK_LIBS -lnsl")
-AC_CHECK_LIB(d4r, gethostbyname_r, NETWORK_LIBS="$NETWORK_LIBS -ld4r")
 AC_SUBST(NETWORK_LIBS)
+AC_CHECK_LIB(d4r, gethostbyname_r)
 
 dnl readline test
 dnl Readline is needed by the tty session. Set up a special RL_LIBS

@@ -1,3 +1,7 @@
+Thu Oct 31 11:55:25 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Put libd4r in LIBS instead of NETWORK_LIBS.
+
 Thu Oct 31 15:46:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am configure.in samples/Makefile.am:
 	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
