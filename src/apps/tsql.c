@@ -23,6 +23,7 @@
 #endif
 #include <string.h>
 #include "tds.h"
+#include "tdsconvert.h"
 
 #ifndef HAVE_READLINE
 char *readline(char *prompt)
@@ -54,6 +55,7 @@ int rc, i;
 char tmpbuf[255];
 TDSCOLINFO *col;
 int ctype;
+CONV_RESULT dres;
 
 	rc = tds_submit_query(tds,buf);
 	if (rc != TDS_SUCCEED) {
@@ -76,14 +78,15 @@ int ctype;
 			for (i=0; i<tds->res_info->num_cols; i++) {
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
+
                     tds_convert(NULL,
  					ctype,
  					&tds->res_info->current_row[col->column_offset],
  					col->column_size,
 					SYBVARCHAR,
-					tmpbuf,
-					-1);
-				fprintf(stdout,"%s\t",tmpbuf);
+					255,
+					&dres);
+				fprintf(stdout,"%s\t",dres.c);
 			}
 			fprintf(stdout,"\n");
          }

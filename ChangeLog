@@ -4,6 +4,10 @@ Thu Aug  8 22:02:01 EDT 2002	Brian Bruns <camber@ais.org>
 	+ src/dblib/dblib.c: set context parent
 	+ src/odbc/odbc.c: set context parent
 	+ src/tds/util.c: context parent convience functions	
+	+ configure.in: add checks for various 64bit int types
+	+ acconfig.h: add HAVE_INT64
+	+ include/tds.h.in: make TDS_INT8 a substituted value
+	+ src/apps/tsql.c: fix call to tds_convert
 
 Thu Aug  8 00:13:30 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ include/tds.h.in	tdsmoney now a union of TDS_INT8 and TDS_OLD_MONEY

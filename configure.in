@@ -47,6 +47,8 @@ AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(__int64)
 
 case 2 in
 $ac_cv_sizeof_short)   smallint=short;;
@@ -70,11 +72,24 @@ $ac_cv_sizeof_double)  float=double;;
 *)                     AC_ERROR(No 64-bit float found.)
 esac
 
+case 8 in
+$ac_cv_sizeof_long)    int64=long;;
+$ac_cv_sizeof_long_long)   int64="long long";;
+$ac_cv_sizeof___int64)    int64=__int64;;
+esac
+
+if test "$int64"; then
+    AC_DEFINE(HAVE_INT64)
+else
+    int64=long
+fi
+
+
 AC_SUBST(smallint)
 AC_SUBST(int)
 AC_SUBST(real)
-
 AC_SUBST(float)
+AC_SUBST(int64)
 
 dnl ------------------------------------------------------------
 dnl Checks for typedefs and structures
