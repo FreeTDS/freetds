@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.155 2003-11-22 23:05:09 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.156 2003-11-24 19:57:36 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1127,7 +1127,6 @@ const char *tds_prtype(int token);
 
 
 /* iconv.c */
-int tds_is_utf8(const TDS_ENCODING *encoding);
 void tds_iconv_open(TDSSOCKET * tds, const char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);

@@ -1,3 +1,8 @@
+Mon Nov 24 20:57:18 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/iconv.c:
+	- cleanup and comments
+	- small iconv fixes
+
 Sun Nov 23 22:09:31 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/write.c s/eilseq/einval/ 
 	* src/tds/query.c fixed warning

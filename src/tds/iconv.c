@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.95 2003-11-23 09:12:34 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.96 2003-11-24 19:57:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -85,12 +85,6 @@ static const char *ucs2name;
 
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
-
-int
-tds_is_utf8(const TDS_ENCODING *encoding)
-{
-	return 0 == strcmp(encoding->name, canonic_charsets[TDS_CHARSET_UTF_8].name); 
-}	
 
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
@@ -496,8 +490,9 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 		}
 
 		iconv_info->flags |= TDS_ENCODING_INDIRECT;
-		return 1;
 	}
+	
+	/* TODO, do some optimizations like UCS2 -> UTF8 min,max = 2,2 (UCS2) and 1,4 (UTF8) */
 
 	tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name);
 
@@ -650,7 +645,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 	p = *outbuf;
 	for (;;) {
 		if (iconv_info->flags & TDS_ENCODING_INDIRECT) {
-			/* swap bytes if necessary */
+			/* TODO swap bytes if necessary */
 #if ENABLE_EXTRA_CHECKS
 			char tmp[8];
 #else
@@ -660,7 +655,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 			size_t ol = sizeof(tmp);
 
 			irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pob, &ol);
-			if (irreversible == (size_t) - 1 || errno == E2BIG) {
+			if (irreversible != (size_t) - 1 || errno == E2BIG) {
 				char *pib = tmp;
 				size_t il = sizeof(tmp) - ol;
 
@@ -670,6 +665,9 @@ tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION 
 						continue;
 					break;
 				}
+				/* TODO handle error in second conversion !!! */
+				if (errno == E2BIG)
+					break;
 			}
 			break;
 		} else if (io == to_client && iconv_info->flags & TDS_ENCODING_SWAPBYTE) {
