@@ -13,3 +13,4 @@ ltcf-c.sh
 aclocal.m4
 autom4te.cache
 so_locations
+freetds.spec
