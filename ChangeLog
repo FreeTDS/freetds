@@ -1,3 +1,8 @@
+Fri Mar 19 17:00:49 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h
+	* src/odbc/unittests/transaction.c
+	- synchronize with HEAD: better messages, fuller test
+
 Fri Mar 19 08:52:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: remove invalid error
 

@@ -4,12 +4,15 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: common.c,v 1.24 2003-12-26 18:11:08 freddy77 Exp $";
+#include <ctype.h>
+
+static char software_version[] = "$Id: common.c,v 1.24.2.1 2004-03-19 22:04:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
 HDBC Connection;
 HSTMT Statement;
+int use_odbc_version3 = 0;
 
 char USER[512];
 char SERVER[512];
@@ -36,10 +39,11 @@ check_lib(char *path, const char *file)
 /* some platforms do not have setenv, define a replacement */
 #if !HAVE_SETENV
 void
-odbc_setenv(const char* name, const char *value, int overwrite)
+odbc_setenv(const char *name, const char *value, int overwrite)
 {
 #if HAVE_PUTENV
 	char buf[1024];
+
 	sprintf(buf, "%s=%s", name, value);
 	putenv(buf);
 #endif
@@ -56,6 +60,9 @@ read_login_info(void)
 	int len;
 
 	in = fopen("../../../PWD", "r");
+	if (!in)
+		in = fopen("PWD", "r");
+
 	if (!in) {
 		fprintf(stderr, "Can not open PWD file\n\n");
 		return 1;
@@ -84,7 +91,7 @@ read_login_info(void)
 	if (len < 10 || strcmp(path + len - 10, "/unittests") != 0)
 		return 0;
 	path[len - 9] = 0;
-	/* TODO this must be extended with all system possibles... */
+	/* TODO this must be extended with all possible systems... */
 	if (!check_lib(path, ".libs/libtdsodbc.so") && !check_lib(path, ".libs/libtdsodbc.sl")
 	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib"))
 		return 0;
@@ -102,7 +109,7 @@ read_login_info(void)
 }
 
 void
-CheckReturn(void)
+ReportError(const char *errmsg, int line, const char *file)
 {
 	SQLSMALLINT handletype;
 	SQLHANDLE handle;
@@ -121,10 +128,22 @@ CheckReturn(void)
 		handletype = SQL_HANDLE_ENV;
 		handle = Environment;
 	}
+	if (errmsg[0]) {
+		if (line)
+			printf("%s:%d %s\n", file, line, errmsg);
+		else
+			printf("%s\n", errmsg);
+	}
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
 	exit(1);
+}
+
+void
+CheckReturn(void)
+{
+	ReportError("", 0, "");
 }
 
 int
@@ -143,6 +162,10 @@ Connect(void)
 		printf("Unable to allocate env\n");
 		exit(1);
 	}
+
+	if (use_odbc_version3)
+		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+
 	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
 		printf("Unable to allocate connection\n");
 		SQLFreeEnv(Environment);
@@ -216,4 +239,40 @@ CommandWithResult(HSTMT stmt, const char *command)
 {
 	printf("%s\n", command);
 	return SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
+}
+
+static int ms_db = -1;
+int
+db_is_microsoft(void)
+{
+	char buf[64];
+	SQLSMALLINT len;
+	int i;
+
+	if (ms_db < 0) {
+		buf[0] = 0;
+		SQLGetInfo(Connection, SQL_DBMS_NAME, buf, sizeof(buf), &len);
+		for (i = 0; buf[i]; ++i)
+			buf[i] = tolower(buf[i]);
+		ms_db = (strstr(buf, "microsoft") != NULL);
+	}
+	return ms_db;
+}
+
+static int freetds_driver = -1;
+int
+driver_is_freetds(void)
+{
+	char buf[64];
+	SQLSMALLINT len;
+	int i;
+
+	if (freetds_driver < 0) {
+		buf[0] = 0;
+		SQLGetInfo(Connection, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
+		for (i = 0; buf[i]; ++i)
+			buf[i] = tolower(buf[i]);
+		freetds_driver = (strstr(buf, "tds") != NULL);
+	}
+	return freetds_driver;
 }
