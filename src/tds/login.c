@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.11 2002-01-12 11:02:11 quozl Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.12 2002-01-18 03:33:47 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -109,15 +109,12 @@ TDSSOCKET *tds_connect(TDSLOGIN *login, void *parent)
 {
 TDSSOCKET	*tds;
 struct sockaddr_in      sin;
-char *s;
 /* Jeff's hack - begin */
 unsigned long ioctl_blocking = 1;                      
 struct timeval selecttimeout;                         
 fd_set fds;                                          
 int retval;                                         
 time_t start, now;
-char path[100];
-pid_t pid;
 TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
 char query[30];
@@ -125,7 +122,7 @@ char query[30];
 FD_ZERO (&fds);                                    
 /* end */
 
-	config = tds_get_config(tds, login);
+	config = tds_get_config(NULL, login);
 
 	/*
 	** If a dump file has been specified, start logging

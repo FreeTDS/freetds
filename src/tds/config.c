@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.7 2001-11-25 19:11:39 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.8 2002-01-18 03:33:46 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -117,8 +117,6 @@ TDSCONFIGINFO *config;
 static int tds_read_conf_file(char *server, TDSCONFIGINFO *config)
 {
 FILE *in;
-char *section;
-int i;
 char  *home, *path;
 int found = 0; 
 
@@ -175,7 +173,7 @@ static int tds_read_conf_section(FILE *in, char *section, TDSCONFIGINFO *config)
 char line[256], option[256], value[256], *s;
 int i;
 char p;
-int insection;
+int insection = 0;
 char tmp[256];
 int found = 0;
 
@@ -342,6 +340,7 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		/* DBSETLHOST and it's equivilants are commentary fields
 		** they don't affect config->ip_addr (the server) but they show
 		** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
+		*/
 		/* should work with IP (mlilback, 11/7/01) */
 		/*
 		if (config->ip_addr) free(config->ip_addr);
@@ -387,7 +386,7 @@ static void tds_config_env_dsquery(TDSCONFIGINFO *config)
 {
 char *s;
 
-        if (s=getenv("DSQUERY")) {
+        if ((s=getenv("DSQUERY"))) {
 		if (s && strlen(s)) {
 			if (config->server_name) free(config->server_name);
 			config->server_name = strdup(s);
@@ -400,7 +399,7 @@ char *s;
 char path[255];
 pid_t pid=0;
 
-        if (s=getenv("TDSDUMP")) {
+        if ((s=getenv("TDSDUMP"))) {
                 if (!strlen(s)) {
                         pid = getpid();
                         sprintf(path,"/tmp/freetds.log.%d",pid);
@@ -416,7 +415,7 @@ static void tds_config_env_tdsport(TDSCONFIGINFO *config)
 {
 char *s;
 
-	if (s=getenv("TDSPORT")) {
+	if ((s=getenv("TDSPORT"))) {
 		config->port=atoi(s);
 	}
 	return;
@@ -425,7 +424,7 @@ static void tds_config_env_tdsver(TDSCONFIGINFO *config)
 {
 char *tdsver;
 
-	if (tdsver=getenv("TDSVER")) {
+	if ((tdsver=getenv("TDSVER"))) {
 		tds_config_verstr(tdsver, config);
 	}
 	return;

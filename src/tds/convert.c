@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.5 2001-12-03 00:06:14 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.6 2002-01-18 03:33:47 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -391,7 +391,7 @@ DBANY any;
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
-			sprintf(tmp_str,"%ld",*((TDS_INT *) buf));
+			sprintf(tmp_str,"%d",*((TDS_INT *) buf));
 			any.c = tmp_str;
 			break;
 		case SYBINT1:

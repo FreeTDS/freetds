@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.5 2001-12-03 00:06:14 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.6 2002-01-18 03:33:47 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -294,7 +294,7 @@ char *tdsver;
 
 	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
-	if (tdsver=getenv("TDSVER")) {
+	if ((tdsver=getenv("TDSVER"))) {
 		if (!strcmp(tdsver,"42")) {
 			tds_login->major_version=4;
 			tds_login->minor_version=2;

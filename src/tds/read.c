@@ -31,7 +31,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.4 2002-01-18 03:33:47 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -257,7 +257,7 @@ int tds_read_packet (TDSSOCKET *tds)
 {
 unsigned char header[8];
 int           len;
-int           x, have, need;
+int           x = 0, have, need;
 
 
 	/* Read in the packet header.  We use this to figure out our packet 

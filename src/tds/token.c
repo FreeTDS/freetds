@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.9 2001-11-26 00:04:17 vorlon Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.10 2002-01-18 03:33:47 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -44,8 +44,9 @@ static int tds_process_row(TDSSOCKET *tds);
 static int tds_process_param_result(TDSSOCKET *tds);
 static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
-static int tds_process_dyn_result(TDSSOCKET *tds);
-int tds_swap_datatype(int coltype, unsigned char *buf);
+static void tds_process_dyn_result(TDSSOCKET *tds);
+static int tds_process_dynamic(TDSSOCKET *tds);
+static void tds_swap_datatype(int coltype, unsigned char *buf);
 
 /*
 ** The following little table is indexed by precision and will
@@ -368,7 +369,8 @@ static int tds_process_col_name(TDSSOCKET *tds)
 int hdrsize, len=0;
 int col,num_cols=0;
 struct tmp_col_struct {
-	char *column_name, column_namelen;
+	char *column_name;
+	int column_namelen;
 	struct tmp_col_struct *next;
 };
 struct tmp_col_struct *head=NULL, *cur=NULL, *prev;
@@ -789,7 +791,6 @@ TDSRESULTINFO *info;
 unsigned char *dest;
 TDS_NUMERIC *num;
 TDS_VARBINARY *varbin;
-unsigned char temp_buf[8];
 int len;
 
 	info = tds->res_info;
@@ -905,9 +906,9 @@ int len;
 					tds_get_n(tds,dest,colsize);
 				}
 				dest[colsize]='\0';
-			}
-			if (curcol->column_type == SYBDATETIME4) {
-				tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
+				if (curcol->column_type == SYBDATETIME4) {
+					tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
+				}
 			}
 
 			/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
@@ -932,6 +933,8 @@ int len;
 				/* above line changed -- don't want this for 4 byte SYBMONEYN 
 					values (mlilback, 11/7/01) */
 			{
+				unsigned char temp_buf[8];
+
 				memcpy(temp_buf,dest,colsize/2);
 				memcpy(dest,&dest[colsize/2],colsize/2);
 				memcpy(&dest[colsize/2],temp_buf,colsize/2);
@@ -942,6 +945,8 @@ int len;
 				if (is_numeric_type(curcol->column_type)) {
 					tds_swap_datatype(curcol->column_type, &num);
 				} else {
+					/* FIXME: dest is unitialized for
+					   SYBVARBINARY and blob types! */
 					tds_swap_datatype(
 					tds_get_conversion_type(curcol->column_type,colsize),
 					dest);
@@ -1418,7 +1423,7 @@ int i;
 ** tds_process_dynamic()
 ** finds the element of the dyns array for the id
 */
-int tds_process_dynamic(TDSSOCKET *tds)
+static int tds_process_dynamic(TDSSOCKET *tds)
 {
 int token_sz;
 char subtoken[2];
@@ -1430,7 +1435,8 @@ int drain = 0;
 	subtoken[0] = tds_get_byte(tds);
 	subtoken[1] = tds_get_byte(tds);
 	if (subtoken[0]!=0x20 || subtoken[1]!=0x00) {
-		fprintf(stderr,"Unrecognized TDS5_DYN subtoken %02x%02x\n");
+		fprintf(stderr,"Unrecognized TDS5_DYN subtoken %02x%02x\n",
+		        subtoken[0], subtoken[1]);
 		tds_get_n(tds, NULL, token_sz-2);
 		return -1;
 	}
@@ -1447,15 +1453,13 @@ int drain = 0;
 	return tds_lookup_dynamic(tds,id);
 }
 
-static int tds_process_dyn_result(TDSSOCKET *tds)
+static void tds_process_dyn_result(TDSSOCKET *tds)
 {
 int hdrsize;
-int colnamelen;
 int col, num_cols;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
 TDSDYNAMIC *dyn;
-int remainder;
 
 	dyn = tds->dyns[tds->cur_dyn_elem];
 	tds_free_results(dyn->res_info);
@@ -1520,9 +1524,8 @@ int tds_get_token_size(int marker)
 			return 0;
 	}
 }
-int tds_swap_datatype(int coltype, unsigned char *buf)
+static void tds_swap_datatype(int coltype, unsigned char *buf)
 {
-int len;
 TDS_NUMERIC *num;
 
 	switch(coltype) {

@@ -69,7 +69,7 @@ char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string
 int i;
 #if HAVE_ICONV
 char *in_ptr, *out_ptr;
-int  out_bytes, in_bytes;
+size_t out_bytes, in_bytes;
 #endif
 
 	if (!in_string) return NULL;
@@ -103,7 +103,7 @@ register int i;
 size_t string_length;
 #if HAVE_ICONV
 char *in_ptr, *out_ptr;
-int  out_bytes, in_bytes;
+size_t out_bytes, in_bytes;
 #endif
 
 	if (!in_string) return NULL;
