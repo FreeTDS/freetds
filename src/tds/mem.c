@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.73 2003-04-10 13:09:57 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.74 2003-04-14 13:32:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -708,6 +708,9 @@ tds_free_socket(TDSSOCKET * tds)
 void
 tds_free_locale(TDSLOCALE * locale)
 {
+	if (locale == NULL)
+		return;
+
 	if (locale->language)
 		free(locale->language);
 	if (locale->char_set)
