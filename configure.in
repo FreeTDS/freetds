@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.115 2003-12-09 16:57:55 freddy77 Exp $
+dnl $Id: configure.in,v 1.116 2003-12-10 10:26:37 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -275,6 +275,7 @@ if test "$with_odbc_nodm"; then
 	odbc=true
 fi
 
+build_odbc=yes
 if test "$odbc" != "true"; then
 AC_ARG_ENABLE(odbc,
 	AC_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
