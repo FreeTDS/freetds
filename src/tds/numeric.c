@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.31 2005-03-24 14:44:09 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.32 2005-03-25 16:22:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -462,9 +462,14 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 			TDS_WORD borrow = 0;
 			scale_diff -= n;
 			for (i = packet_len; i > 0; ) {
+#if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__) && defined(HAVE_INT64)
+				--i;
+				__asm__ __volatile__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
+#else
 				TDS_DWORD n = (((TDS_DWORD) borrow) << (8 * sizeof(TDS_WORD))) + packet[--i];
 				packet[i] = n / factor;
 				borrow = n % factor;
+#endif
 			}
 		} while (scale_diff > 0);
 	}
