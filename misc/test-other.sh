@@ -23,9 +23,9 @@ echo "log started" >> "$LOG"
 #make all
 #echo "make all ok" >> "$LOG"
 
-tUID=`cat ../PWD | grep '^UID=' | sed 's,^....,,g'`
-tPWD=`cat ../PWD | grep '^PWD=' | sed 's,^....,,g'`
-tSRV=`cat ../PWD | grep '^SRV=' | sed 's,^....,,g'`
+tUID=`cat PWD | grep '^UID=' | sed 's,^....,,g'`
+tPWD=`cat PWD | grep '^PWD=' | sed 's,^....,,g'`
+tSRV=`cat PWD | grep '^SRV=' | sed 's,^....,,g'`
 
 # Perl
 if perl --help > /dev/null 2>&1; then

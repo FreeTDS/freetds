@@ -22,28 +22,45 @@
 #endif
 
 #include <stdio.h>
-#include <tds.h>
 
-static char software_version[] = "$Id: unittest.c,v 1.8 2003-09-21 18:37:43 freddy77 Exp $";
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#include <tds.h>
+#include <tdsstring.h>
+#include <tdssrv.h>
+
+static char software_version[] = "$Id: unittest.c,v 1.9 2004-04-14 07:52:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-void dump_login(TDSLOGIN * login);
+static void dump_login(TDSLOGIN * login);
 
+int
 main(int argc, char **argv)
 {
 	TDSSOCKET *tds;
-	TDSLOGIN login;
+	TDSLOGIN *login;
 	TDSRESULTINFO *resinfo;
 
 	tds = tds_listen(atoi(argv[1]));
 	/* get_incoming(tds->s); */
-	tds_read_login(tds, &login);
-	dump_login(&login);
-	if (!strcmp(login.user_name, "guest") && !strcmp(login.password, "sybase")) {
+	login = tds_alloc_login();
+	tds_read_login(tds, login);
+	dump_login(login);
+	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = 4;
 		tds_env_change(tds, 1, "master", "pubs2");
 		tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
-		if (!login.suppress_language) {
+		if (!login->suppress_language) {
 			tds_env_change(tds, 2, NULL, "us_english");
 			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
@@ -71,19 +88,21 @@ main(int argc, char **argv)
 	tds_send_253_token(tds, 16, 1);
 	tds_flush_packet(tds);
 	sleep(30);
+	
+	return 0;
 }
 
-void
+static void
 dump_login(TDSLOGIN * login)
 {
-	printf("host %s\n", login->host_name);
-	printf("user %s\n", login->user_name);
-	printf("pass %s\n", login->password);
-	printf("app  %s\n", login->app_name);
-	printf("srvr %s\n", login->server_name);
+	printf("host %s\n", tds_dstr_cstr(&login->host_name));
+	printf("user %s\n", tds_dstr_cstr(&login->user_name));
+	printf("pass %s\n", tds_dstr_cstr(&login->password));
+	printf("app  %s\n", tds_dstr_cstr(&login->app_name));
+	printf("srvr %s\n", tds_dstr_cstr(&login->server_name));
 	printf("vers %d.%d\n", login->major_version, login->minor_version);
-	printf("lib  %s\n", login->library);
-	printf("lang %s\n", login->language);
-	printf("char %s\n", login->server_charset);
+	printf("lib  %s\n", tds_dstr_cstr(&login->library));
+	printf("lang %s\n", tds_dstr_cstr(&login->language));
+	printf("char %s\n", tds_dstr_cstr(&login->server_charset));
 	printf("bsiz %d\n", login->block_size);
 }
