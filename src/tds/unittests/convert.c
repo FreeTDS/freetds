@@ -44,7 +44,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.2 2003-02-10 17:03:01 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.3 2003-03-03 21:19:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -295,7 +295,7 @@ main(int argc, char **argv)
 		endtime = (float) end.tv_sec + (float) end.tv_usec * 0.000001;
 		
 		printf("%8.0f interations/second converting %13s => %s.\n", 
-			iterations / (endtime - starttime), 
+			j / (endtime - starttime), 
 			tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
 		
 	}

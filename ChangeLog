@@ -1,3 +1,7 @@
+Mon Mar 03 22:19:31 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: update
+	* src/tds/unittests/convert.c: fix an error computing speed
+
 Mon Mar  3 13:32:04 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c bcp out of null datetime writes nothing.
 
