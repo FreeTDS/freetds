@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.60 2002-12-07 13:32:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.61 2002-12-07 13:48:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags);
@@ -253,6 +253,8 @@ TDSDYNAMIC *dyn;
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBNTEXT); /* must be Ntype */
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
 		/* TODO build true param string from parameters */
 		/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
 		n = tds_count_placeholders(query);
@@ -274,6 +276,8 @@ TDSDYNAMIC *dyn;
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBNTEXT); /* must be Ntype */
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
 		len = (len+1-14*n)+query_len;
 		tds_put_int(tds,len*2);
 		tds_put_int(tds,len*2);
@@ -363,7 +367,7 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 	}
 
 	/* TDS8 output collate information */
-	if (IS_TDS80(tds))
+	if (IS_TDS80(tds) && is_collate_type(curcol->column_type))
 		tds_put_n(tds, tds->collation, 5);
 
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
