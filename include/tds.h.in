@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.38 2002-08-30 14:16:00 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.39 2002-08-30 20:23:00 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -373,6 +373,7 @@ sheesh! </rant>
 #define TDS_STR_DATEFMT	"date format"
 
 #define TDS_MAX_LOGIN_STR_SZ 30
+#define TDS_MAX_LIBRARY_STR_SZ 11
 typedef struct tds_login {
 	TDS_CHAR  host_name[TDS_MAX_LOGIN_STR_SZ+1];
 	TDS_CHAR  user_name[TDS_MAX_LOGIN_STR_SZ+1];
@@ -383,7 +384,8 @@ typedef struct tds_login {
 	TDS_CHAR  server_name[TDS_MAX_LOGIN_STR_SZ+1];
 	TDS_TINYINT  major_version; /* TDS version */
 	TDS_TINYINT  minor_version; /* TDS version */
-	TDS_CHAR  library[11]; /* Ct-Library or DB-Library */
+	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
+	TDS_CHAR  library[TDS_MAX_LIBRARY_STR_SZ+1];
 	TDS_CHAR language[TDS_MAX_LOGIN_STR_SZ+1]; /* ie us-english */
 	TDS_TINYINT encrypted; 
 	TDS_CHAR char_set[TDS_MAX_LOGIN_STR_SZ+1]; /*  ie iso_1 */

@@ -40,12 +40,12 @@ TDSICONVINFO *iconv_info;
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
 #if HAVE_ICONV
-	iconv_info->cdto = iconv_open("UCS-2",charset);
+	iconv_info->cdto = iconv_open("UCS-2LE",charset);
 	if (iconv_info->cdto == (iconv_t)-1) {
 		iconv_info->use_iconv = 0;
 		return;
 	}
-	iconv_info->cdfrom = iconv_open(charset, "UCS-2");
+	iconv_info->cdfrom = iconv_open(charset, "UCS-2LE");
 	if (iconv_info->cdfrom == (iconv_t)-1) {
 		iconv_info->use_iconv = 0;
 		return;

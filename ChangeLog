@@ -1,4 +1,10 @@
 Fri Aug 30 22:00:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/tds/login.c:
+	- add one char to library name to store tds-library
+	* patching file src/tds/iconv.c:
+	- fix conversion from mssql ucs2 for big endian machines (patch #565831)
+
+Fri Aug 30 22:00:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h src/ctlib/cs.c src/dblib/dblib.c
 	  src/odbc/convert_tds2sql.c
 	  (patch by Bill Thompson):

@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.35 2002-08-23 13:10:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.36 2002-08-30 20:23:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -89,7 +89,7 @@ void tds_set_server(TDSLOGIN *tds_login, char *server)
 }
 void tds_set_library(TDSLOGIN *tds_login, char *library)
 {
-	strncpy(tds_login->library, library, 10);
+	strncpy(tds_login->library, library, TDS_MAX_LIBRARY_STR_SZ);
 }
 void tds_set_charset(TDSLOGIN *tds_login, char *charset)
 {
