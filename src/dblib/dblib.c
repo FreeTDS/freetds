@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.137 2003-03-25 04:29:47 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.138 2003-04-01 21:43:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1341,20 +1341,21 @@ dbnumcols(DBPROCESS * dbproc)
  * \return pointer to ASCII null-terminated string, the name of the column. 
  * \retval NULL \a column is not in range.
  * \sa dbcollen(), dbcoltype(), dbdata(), dbdatlen(), dbnumcols().
+ * \todo call the error handler with 10011 (SQLECNOR)
+ * \bug Relies on ASCII column names, post iconv conversion.  
+ *      Will not work as described for UTF-8 or UCS-2 clients.  
+ *      But maybe it shouldn't.  
  */
 char *
 dbcolname(DBPROCESS * dbproc, int column)
 {
-	static char buf[255];
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo = dbproc->tds_socket->res_info;
+	assert(resinfo);
 
-	tds = (TDSSOCKET *) dbproc->tds_socket;
-	resinfo = tds->res_info;
 	if (column < 1 || column > resinfo->num_cols)
 		return NULL;
-	strcpy(buf, resinfo->columns[column - 1]->column_name);
-	return buf;
+
+	return resinfo->columns[column - 1]->column_name;
 }
 
 /**
