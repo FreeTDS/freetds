@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.185 2003-05-03 12:51:50 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.186 2003-05-03 13:16:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1718,9 +1718,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 
 	} else {
-		if (is_char_type(curcol->column_type) && curcol->column_size != curcol->on_server.column_size)
-			colsize = determine_adjusted_size(tds->iconv_info, colsize);
-
 		if (is_blob_type(curcol->column_type)) {
 			TDS_CHAR *p;
 

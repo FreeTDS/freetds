@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.50 2003-05-03 12:51:50 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.51 2003-05-03 13:16:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -356,9 +356,13 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 	tdsdump_log(TDS_DBG_NETWORK, "tds_get_char_data: reading %d on wire for %d to client\n", wire_size,
 		    curcol->column_cur_size);
 
+	/* TODO: reallocate if blob and no space */
 	p = dest;
-	if (blob_info)
+	pend = p + curcol->column_size;
+	if (blob_info) {
 		p = blob_info->textvalue;
+		pend = p + curcol->column_cur_size;
+	}
 
 	/*
 	 * The next test is crude.  The question we're trying to answer is, 
@@ -373,8 +377,6 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 	 * tds_iconv and let it do the Right Thing.  
 	 */
 	if (curcol->column_size != curcol->on_server.column_size) {	/* TODO: remove this test */
-		/* TODO: reallocate if blob and no space */
-		pend = p + curcol->column_cur_size;
 		in_left = 0;
 		while (wire_size > 0) {
 			int in_size;
