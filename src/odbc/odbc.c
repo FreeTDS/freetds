@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.296 2004-02-10 09:32:19 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.297 2004-02-10 11:33:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1321,7 +1321,6 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 {
 	TDS_DESC *ird;
 	struct _drecord *drec;
-	int cplen;
 	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HSTMT;

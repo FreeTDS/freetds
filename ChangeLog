@@ -1,3 +1,7 @@
+Tue Feb 10 12:35:13 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: fix a possible reading buffer overflow
+	* src/odbc/odbc.c: remove a warning
+
 Tue Feb 10 10:34:02 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: remove small TODO
 

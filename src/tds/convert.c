@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.135 2004-02-09 22:59:34 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.136 2004-02-10 11:33:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -550,24 +550,14 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			 */
 			if (srclen < (32 + 3))
 				return TDS_CONVERT_SYNTAX;
-			if (src[0] == '{') {
-				int ndashes;
-				static const short dashes[] = {	8, 
-									8+1 + 4, 
-									8+1 + 4+1 + 4, 
-									8+1 + 4+1 + 4+1 + 4};
 
-				for (++src, ndashes=i=0; i < 32 + ndashes && src[i] != '}'; i++ ) {
-					if (src[i] == '-') {	/* see that the dashes are where they belong */
-						if (i != dashes[ndashes])
-							return TDS_CONVERT_SYNTAX;
-						ndashes++;
-					}
-				}
-				if (ndashes < 3 || src[i] != '}')
+			if (src[0] == '{') {
+				int last = (src[8+1 + 4+1 + 4+1 + 4 + 1] == '-') ? 32+4+1 : 32+3+1;
+				if (srclen <= last || src[last] != '}')
 					return TDS_CONVERT_SYNTAX;
-				assert(ndashes <= 4);
+				++src;
 			}
+
 			/* 
 			 * Test each character and get value.  
 			 * sscanf works if the number terminates with less digits. 
@@ -596,6 +586,8 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 				case 8+1 + 4+1 + 4+1 + 4:
 					/* skip last (optional) dash */
 					if (c == '-') {
+						if (--srclen < 32 + 3)
+							return TDS_CONVERT_SYNTAX;
 						c = (++src)[i];
 					}
 					/* fall through */
