@@ -1,7 +1,10 @@
+Fri Jan 16 07:56:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: return SQL_NO_DATA if no data and ODBC3
+
 Thu Jan 15 00:25:58 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/news.html doc/htdoc/software.html
 	- updated for 0.62.1 and RPMs
-	
+
 Wed Jan 14 12:16:33 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: set NETDB_REENTRANT if cygwin
 	* include/tdsodbc.h src/odbc/odbc.c:
