@@ -1,3 +1,6 @@
+Wed Dec 22 21:09:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: fix memory leak reported by Brad Rittenhouse
+
 Wed Dec 15 10:45:45 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/sybdb.h: workaround for PHP
 
