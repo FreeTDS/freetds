@@ -1,3 +1,8 @@
+Wed Oct  2 15:30:17 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/tds/threadsafe.c:
+	- Add autoconf check for gettimeofday() and use it on
+	  any system where it is present (not just FreeBSD).
+
 Wed Oct  2 15:12:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/vasprintf.c:
 	- Remove extraneous close paren from expresison.

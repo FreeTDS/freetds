@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.9 2002-10-02 14:22:44 castellano Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.10 2002-10-02 19:31:27 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -42,7 +42,7 @@ tds_timestamp_str(char *str, int maxlen)
 {
 struct tm  *tm;
 time_t      t;
-#ifdef __FreeBSD__
+#if HAVE_GETTIMEOFDAY
 struct timeval  tv;
 char usecs[10];
 #endif
@@ -50,14 +50,14 @@ char usecs[10];
 struct tm res;
 #endif
 
-#ifdef __FreeBSD__
+#if HAVE_GETTIMEOFDAY
 	gettimeofday(&tv, NULL);
 	t = tv.tv_sec;
 #else
 	/*
-	* XXX Need to get a better time resolution for
-	* non-FreeBSD systems.
-	*/
+	 * XXX Need to get a better time resolution for
+	 * systems that don't have gettimeofday().
+	 */
 	time(&t);
 #endif
 
@@ -69,8 +69,8 @@ struct tm res;
 
 	strftime(str, maxlen - 6, "%Y-%m-%d %H:%M:%S", tm);
 
-#ifdef __FreeBSD__
-    sprintf(usecs, ".%06lu", tv.tv_usec);
+#if HAVE_GETTIMEOFDAY
+	sprintf(usecs, ".%06lu", tv.tv_usec);
 	strcat(str, usecs);
 #endif
 
