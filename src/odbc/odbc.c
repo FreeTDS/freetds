@@ -17,6 +17,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/***************************************************************
+ * PROGRAMMER   NAME            CONTACT
+ *==============================================================
+ *              Brian Bruns
+ * PAH          Peter Harvey    pharvey@codebydesign.com
+ *
+ ***************************************************************
+ * DATE         PROGRAMMER  CHANGE
+ *==============================================================
+ *                          Original.
+ * 03.FEB.02    PAH         Started adding use of SQLGetPrivateProfileString().
+ *
+ ***************************************************************/
+
 #include <config.h>
 #ifdef UNIXODBC
 #include <sql.h>
@@ -34,7 +48,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.12 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.13 2002-02-03 18:26:07 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -184,6 +198,7 @@ SQLRETURN SQL_API SQLDriverConnect(
 	 return SQL_ERROR;
       }
    }
+
    if ((ret = do_connect (hdbc, server, uid, pwd))!=SQL_SUCCESS) 
    {
       return ret;
@@ -526,12 +541,68 @@ SQLRETURN SQL_API SQLConnect(
     SQLCHAR FAR       *szAuthStr,
     SQLSMALLINT        cbAuthStr)
 {
-   SQLCHAR FAR* server = NULL;
-   SQLCHAR FAR* database = NULL;
-   SQLCHAR FAR* uid = NULL;
-   SQLCHAR FAR* pwd = NULL;
-   ConnectParams* params;
-   SQLRETURN ret;
+#ifdef UNIXODBC
+/* This should work for any environment which provides the 
+ * MS SQLGetPrivateProfileString() - PAH
+ */
+    SQLCHAR FAR server[101];
+    SQLCHAR FAR dsn[101];
+    SQLCHAR FAR uid[101];
+    SQLCHAR FAR pwd[101];
+    SQLCHAR FAR database[101];
+    SQLRETURN   ret;
+
+    *server     = '\0';
+    *dsn        = '\0';
+    *uid        = '\0';
+    *pwd        = '\0';
+    *database   = '\0';
+
+    strcpy (lastError, "");
+
+	if ( SQLGetPrivateProfileString( szDSN, "Servername", "", server, sizeof(server), "odbc.ini" ) < 1 )
+    {
+       LogError ("Could not find Servername parameter");
+       return SQL_ERROR;
+    }
+
+    if ( !szUID || !strlen(szUID) ) 
+    {
+       if ( SQLGetPrivateProfileString( szDSN, "UID", "", uid, sizeof(uid), "odbc.ini" ) < 1 )
+       {
+         LogError ("Could not find UID parameter");
+         return SQL_ERROR;
+       }
+    } 
+    else 
+        strcpy( uid, szUID );
+
+    if ( !szAuthStr || !strlen(szAuthStr) ) 
+    {
+       if ( SQLGetPrivateProfileString( szDSN, "PWD", "", pwd, sizeof(pwd), "odbc.ini" ) < 1 )
+       {
+         LogError ("Could not find PWD parameter");
+         return SQL_ERROR;
+       }
+    } 
+    else 
+        strcpy( pwd, szAuthStr );
+
+    if ((ret = do_connect (hdbc, server, uid, pwd))!=SQL_SUCCESS)
+       return ret;
+
+    if ( SQLGetPrivateProfileString( szDSN, "Database", "", database, sizeof(database), "odbc.ini" ) > 0 )
+        return change_database(hdbc, database);
+
+    return SQL_SUCCESS;
+#else
+    SQLCHAR FAR* server = NULL;
+    SQLCHAR FAR* database = NULL;
+    SQLCHAR FAR* uid = NULL;
+    SQLCHAR FAR* pwd = NULL;
+    ConnectParams* params;
+    SQLRETURN ret;
+
 
    strcpy (lastError, "");
 
@@ -564,6 +635,7 @@ SQLRETURN SQL_API SQLConnect(
    } else {
 	pwd = szAuthStr;
    }
+
    if ((ret = do_connect (hdbc, server, uid, pwd))!=SQL_SUCCESS)
    {
       return ret;
@@ -577,6 +649,8 @@ SQLRETURN SQL_API SQLConnect(
    {
        return change_database(hdbc, database);
    }
+#endif
+
 }
 
 SQLRETURN SQL_API SQLDescribeCol(
