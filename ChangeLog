@@ -1,3 +1,7 @@
+Thu Feb 19 15:01:54 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/params.c: early bind and post bind
+	* src/odbc/unittests/testodbc.c: remove some part, duplicated
+
 Sat Feb 14 20:42:46 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/moreandcount.c:
 	- check UPDATE in last statement (do not work) 

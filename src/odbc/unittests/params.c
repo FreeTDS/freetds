@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.4 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.5 2004-02-19 13:58:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -20,8 +20,8 @@ static const char sp_define[] = "CREATE PROCEDURE spTestProc\n"
 #define SP_TEXT "{?=call spTestProc(?,?,?)}"
 #define OUTSTRING_LEN 20
 
-int
-main(int argc, char *argv[])
+static int
+Test(int bind_before)
 {
 	SQLSMALLINT ReturnCode = 0;
 	SQLSMALLINT InParam = 5;
@@ -39,9 +39,11 @@ main(int argc, char *argv[])
 	/* create proc */
 	Command(Statement, sp_define);
 
-	if (SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to prepare statement\n");
-		return 1;
+	if (!bind_before) {
+		if (SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)) != SQL_SUCCESS) {
+			fprintf(stderr, "Unable to prepare statement\n");
+			return 1;
+		}
 	}
 
 	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode) !=
@@ -71,6 +73,13 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (bind_before) {
+		if (SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)) != SQL_SUCCESS) {
+			fprintf(stderr, "Unable to prepare statement\n");
+			return 1;
+		}
+	}
+
 	if (SQLExecute(Statement) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to execute statement\n");
 		return 1;
@@ -93,6 +102,18 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Bad string returned\n");
 		return 1;
 	}
+
+	Disconnect();
+	return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+	if (Test(0))
+		return 1;
+	if (Test(1))
+		return 1;
 
 	printf("Done successfully!\n");
 	return 0;

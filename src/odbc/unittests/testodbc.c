@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.2 2004-02-14 18:52:15 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.3 2004-02-19 13:58:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -96,163 +96,6 @@ DispODBCDiags(SQLHSTMT statementHandle)
 	} while (status == SQL_SUCCESS);
 
 	AB_FUNCT(("DispODBCDiags (out)"));
-}
-
-/*
- * Test that makes a parameterized ODBC query using SQLPrepare and SQLExecute
- */
-static int
-TestRawODBCStoredProc(void)
-{
-	SQLRETURN status;
-	SQLCHAR queryString[200];
-	SQLINTEGER lenOrInd = 0;
-	SQLINTEGER pk = 10248;
-	int count;
-
-	AB_FUNCT(("TestRawODBCStoredProc (in)"));
-
-	/* INIT */
-
-	Connect();
-
-	/* MAKE QUERY */
-
-	strcpy((char *) (queryString), "{call CustOrdersDetail(?)}");
-
-	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &pk, 0, &lenOrInd);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		AB_FUNCT(("TestRawODBCStoredProc (out): error"));
-		return FALSE;
-	}
-
-	status = SQLPrepare(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Prepare failed"));
-		AB_FUNCT(("TestRawODBCStoredProc (out): error"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		return FALSE;
-	}
-
-	status = SQLExecute(Statement);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Execute failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		AB_FUNCT(("TestRawODBCStoredProc (out): error"));
-		return FALSE;
-	}
-
-	count = 0;
-
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
-		count++;
-	}
-	AB_PRINT(("Got %d rows", count));
-
-	if (count != 3) {
-		/*
-		 * OK - so 3 is a magic number - it's the number of rows matching
-		 * this query from the MS sample Northwind database and is a constant.
-		 */
-		AB_ERROR(("Expected %d rows - but got %d rows", 3, count));
-		AB_FUNCT(("TestRawODBCStoredProc (out): error"));
-		return FALSE;
-	}
-
-	/* CLOSEDOWN */
-
-	Disconnect();
-
-	AB_FUNCT(("TestRawODBCStoredProc (out): ok"));
-	return TRUE;
-}
-
-/*
- * Test that makes a parameterized ODBC query using SQLPrepare and SQLExecute
- */
-static int
-TestRawODBCStoredProc2(void)
-{
-	SQLRETURN status;
-	SQLCHAR queryString[200];
-	SQLINTEGER lenOrInd = SQL_NTS;
-	SQLINTEGER lenOrInd2 = SQL_NTS;
-	int count;
-
-	AB_FUNCT(("TestRawODBCStoredProc2 (in)"));
-
-	/* INIT */
-
-	Connect();
-
-	/* MAKE QUERY */
-
-	strcpy((char *) (queryString), "{call SalesByCategory(?,?)}");
-
-	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 256, 0, "Confections", 12, &lenOrInd);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		AB_FUNCT(("TestRawODBCStoredProc2 (out): error"));
-		return FALSE;
-	}
-
-	status = SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 256, 0, "1997", 5, &lenOrInd2);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter2 failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		AB_FUNCT(("TestRawODBCStoredProc2 (out): error"));
-		return FALSE;
-	}
-
-	status = SQLPrepare(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Prepare failed"));
-		AB_FUNCT(("TestRawODBCStoredProc2 (out): error"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		return FALSE;
-	}
-
-	status = SQLExecute(Statement);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Execute failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
-		AB_FUNCT(("TestRawODBCStoredProc2 (out): error"));
-		return FALSE;
-	}
-
-	count = 0;
-
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
-		count++;
-	}
-	AB_PRINT(("Got %d rows", count));
-
-	if (count != 13) {
-		/*
-		 * OK - so 13 is a magic number - it's the number of rows matching
-		 * this query from the MS sample Northwind database and is a constant.
-		 */
-		AB_ERROR(("Expected %d rows - but got %d rows", 13, count));
-		AB_FUNCT(("TestRawODBCStoredProc2 (out): error"));
-		return FALSE;
-	}
-
-	/* CLOSEDOWN */
-
-	Disconnect();
-
-	AB_FUNCT(("TestRawODBCStoredProc2 (out): ok"));
-	return TRUE;
 }
 
 /*
@@ -474,7 +317,7 @@ TestRawODBCGuid(void)
                 SELECT name, guid FROM #pet WHERE guid = @guidpar");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Create table failed"));
+		AB_ERROR(("Create procedure failed"));
 		goto odbcfail;
 	}
 
@@ -749,9 +592,7 @@ TestRawODBCGuid(void)
 static DbTestEntry _dbTests[] = {
 	/* 1 */ {TestRawODBCDirectQuery, "Raw ODBC direct query"},
 	/* 2 */ {TestRawODBCPreparedQuery, "Raw ODBC prepared query"},
-	/* 3 */ {TestRawODBCStoredProc, "Raw ODBC stored procedure 1"},
-	/* 4 */ {TestRawODBCStoredProc2, "Raw ODBC stored procedure 2"},
-	/* 5 */ {TestRawODBCGuid, "Raw ODBC GUID"},
+	/* 3 */ {TestRawODBCGuid, "Raw ODBC GUID"},
 	/* end */ {0, 0}
 };
 
