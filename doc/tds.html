@@ -37,6 +37,12 @@ This document attempts to cover the TDS protocol for:
 <a name="terms"></a>
 <b class="section">Common Terms</b>
 <pre>
+TDS protocol versions
+  TDS5    tds version 5.0
+  TDS7    tds version 7.0
+  TDS7+   tds version 7.0 and 8.0
+  TDS5-   tds version 5.0 and previous
+
 Variable types used in this document:
   CHAR      8-bit char
     CHAR[6]	string of 6 chars
@@ -44,6 +50,7 @@ Variable types used in this document:
   XCHAR    single byte (TDS5-) or ucs2le (TDS7+) characters
   INT8      8-bit int
   INT16    16-bit int
+  INT32    32-bit int
   UCS2LE   Unicode in UCS2LE format
 </pre>
 Note:  FreeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.
@@ -102,13 +109,13 @@ All packets start with the following 8 byte header.
 Fields:
 packet type 
      0x01 <a href="#p1">TDS 4.2 or 7.0 query</a>
-     0x02 TDS 4.2 or 5.0 login packet
+     0x02 <a href="#login">TDS 4.2 or 5.0 login packet</a>
      0x03 <a href="#p3">RPC</a>
-     0x04 responses from server
+     0x04 <a href="#responses">responses from server</a>
      0x06 cancels
      0x07 Used in Bulk
      0x0F TDS 5.0 query
-     0x10 TDS 7.0 login packet
+     0x10 <a href="#login7">TDS 7.0 login packet</a>
 last packet indicator 
      0x00 if more packets
      0x01 if last packet
@@ -298,14 +305,14 @@ charset_id  charset id in master..syscharsets table or zero for no SQL collation
 query</p>
 
 <hr>
-<hr>
 <p>
 <a name="requests"></a>
 <b class="section">Client request</b>
 <p>
 
-Normal packets (in packets 0xF)
+Normal tokens (contained in packets 0xF)
 <pre>
+TODO
 </pre>
 
 Special packets
@@ -313,7 +320,6 @@ Special packets
 0x1  1  <a href="#p1">Language</a>
 0x3  3  <a href="#p3">RPC</a>      TDS4.6+
 </pre>
-<hr>
 
 <hr>
 <a name="p1"><b class="section">Language packet (0x1 1)</b></a>
@@ -325,6 +331,8 @@ This sample packet contain just SQL commands. It's supported by all TDS version
 +---------+
 | string  |
 +---------+
+
+string   SQL text
 </pre>
 
 <hr>
@@ -340,7 +348,8 @@ This is the oldest (and the only one in mssql) way to call directly an RPC.
 | name length | rpc name | flags | params   |
 +-------------+----------+-------+----------+
 
-name length   length of RPC name. mssql2k+ support some core RPC using numbers
+name length   length of RPC name in characters. 
+              mssql2k+ support some core RPC using numbers
               If a number is used instead of name name length is marked as -1
               (null) and a INT16 is used for the name.
                 0xB  11  sp_prepexec ??? sp_prepare ???
@@ -825,15 +834,15 @@ column info        <a href="#column_info">column info</a>
 <b class="section">Done Inside Process (0xFF 255)</b><br>
 
 <pre>
- INT16       INT16     4 bytes
+ INT16       INT16     INT32
 +-----------+---------+-----------+
 | bit flags | unknown | row count |
 +-----------+---------+-----------+
 
 Fields:
 bit flags          0x01 more results
-		   0x02 invalid sql ?
-		   0x10 suceeded ?
+		   0x02 error (like invalid sql syntax)
+		   0x10 row count is valid
 		   0x20 cancelled
 unknown            2,0  /* something to do with block size perhaps */
 row count          number of rows affected / returned in the result set. 
