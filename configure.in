@@ -1,22 +1,25 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.134 2004-06-13 13:18:27 freddy77 Exp $
+dnl $Id: configure.in,v 1.135 2004-06-13 23:39:20 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
 dnl ------------------------------------------------------------
 
-dnl ------------------------------------------------------------
-dnl Initialization
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Initialization
+# ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
 AC_PREREQ(2.53)
+AC_REVISION($Revision: 1.135 $)
+
 define(TDSDATE, esyscmd(echo -n $(date +"%Y%m%d")))
 AM_INIT_AUTOMAKE(freetds, 0.63.dev.TDSDATE)
 AM_CONFIG_HEADER(include/config.h)
 	dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
+
 MAJOR=$(echo $VERSION | sed 's,\..*,,g')
 MINOR=[$(echo $VERSION | sed 's,^[0-9]*\.\([0-9]*\).*,\1,g')]
 SUBVERSION=[$(echo $VERSION | sed 's,^[0-9]*\.[0-9]*\.\([^.]*\).*,\1,g')]
@@ -30,9 +33,9 @@ AC_SUBST(MINOR)
 AC_SUBST(SUBVERSION)
 AC_SUBST(BUILD_NUMBER)
 
-dnl ------------------------------------------------------------
-dnl Host-specific configuration
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Host-specific configuration
+# ------------------------------------------------------------
 AC_CANONICAL_HOST
 netdb_reentrant=no
 case $host in
@@ -55,14 +58,14 @@ fi
 
 AC_GNU_SOURCE
 
-dnl ------------------------------------------------------------
-dnl Flag to include library-private definitions
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Flag to include library-private definitions
+# ------------------------------------------------------------
 CPPFLAGS="$CPPFLAGS -D_FREETDS_LIBRARY_SOURCE"
 
-dnl ------------------------------------------------------------
-dnl Checks for programs.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for programs.
+# ------------------------------------------------------------
 AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_LIBTOOL
@@ -82,9 +85,9 @@ dnl test if we have doxygen installed
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
 
-dnl ------------------------------------------------------------
-dnl Checks for libraries.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for libraries.
+# ------------------------------------------------------------
 OLDLIBS="$LIBS"
 LIBS=""
 AC_SEARCH_LIBS(socket, socket)
@@ -93,12 +96,12 @@ NETWORK_LIBS="$LIBS"
 LIBS="$OLDLIBS"
 AC_SUBST(NETWORK_LIBS)
 
-dnl readline test
-dnl Readline is needed by the tty session. Set up a special RL_LIBS
-dnl substitution for it.
+# readline test
+# Readline is needed by the tty session. Set up a special RL_LIBS
+# substitution for it.
 OLDLIBS="$LIBS"
-dnl Readline is linked with curses, and on some systems termcap must be
-dnl linked in. Others (inc debian) have termcap built into ncurses.
+# Readline is linked with curses, and on some systems termcap must be
+# linked in. Others (inc debian) have termcap built into ncurses.
 LIBS=""
 AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
 AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
@@ -108,9 +111,9 @@ AC_SUBST(READLINE_LIBS)
 LIBS="$OLDLIBS"
 
 
-dnl ------------------------------------------------------------
-dnl Checks for header files.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for header files.
+# ------------------------------------------------------------
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h malloc.h sys/types.h \
@@ -119,9 +122,9 @@ paths.h sys/ioctl.h libgen.h sys/param.h locale.h odbcss.h sys/select.h \
 regex.h])
 AC_HAVE_INADDR_NONE
 
-dnl ------------------------------------------------------------
-dnl Checks for integers/floats of different sizes
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for integers/floats of different sizes
+# ------------------------------------------------------------
 AC_CHECK_SIZEOF(char)
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(long)
@@ -188,11 +191,11 @@ AC_SUBST(tds_sysdep_real64_type)
 AC_SUBST(tds_sysdep_int64_type)
 AC_SUBST(tds_sysdep_intptr_type)
 
-dnl ------------------------------------------------------------
-dnl Checks for typedefs and structures
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for typedefs and structures
+# ------------------------------------------------------------
 
-dnl ---- Solaris needs -DBSD_COMP to get FIONBIO defined ----
+# ---- Solaris needs -DBSD_COMP to get FIONBIO defined ----
 AC_MSG_CHECKING(is FIONBIO defined)
 AC_EGREP_CPP(yes,
 [#include <sys/ioctl.h>
@@ -214,9 +217,9 @@ AC_EGREP_CPP(yes,
 
 TYPE_SOCKLEN_T
 
-dnl ------------------------------------------------------------
-dnl Checks for compiler characteristics.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for compiler characteristics.
+# ------------------------------------------------------------
 AC_C_BIGENDIAN
 AC_C_CONST
 for freetds_ldflag in "-Wl,-Bsymbolic" "-Bsymbolic"; do
@@ -234,9 +237,9 @@ for freetds_ldflag in "-Wl,-Bsymbolic" "-Bsymbolic"; do
 done
 AC_SUBST(FREETDS_SYMBOLIC)
 
-dnl ------------------------------------------------------------
-dnl Checks for library functions.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for library functions.
+# ------------------------------------------------------------
 AC_CHECK_FUNCS([vsnprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r])
@@ -248,14 +251,14 @@ gethostname sethostent_r gethostent_r])
 LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS(asprintf vasprintf atoll strtok_r)
 
-dnl ------------------------------------------------------------
-dnl Checks for library variables.
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Checks for library variables.
+# ------------------------------------------------------------
 AC_HAVE_MALLOC_OPTIONS
 
-dnl ------------------------------------------------------------
-dnl Compile time options
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Compile time options
+# ------------------------------------------------------------
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
@@ -441,9 +444,9 @@ else
 	AM_CONDITIONAL(DISTCHECK_BUILD, false)
 fi
 
-dnl ------------------------------------------------------------
-dnl LTLIBOBJS hack (for autoconf-2.53)
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# LTLIBOBJS hack (for autoconf-2.53)
+# ------------------------------------------------------------
 # This is necessary so that .o files in LIBOBJS are also built via
 # the ANSI2KNR-filtering rules.
 LIB@&t@OBJS=`echo "$LIB@&t@OBJS" |
@@ -458,9 +461,9 @@ if test "$ac_compiler_gnu" = "yes" ; then
 fi
 
 AC_MSG_RESULT(done)
-dnl ------------------------------------------------------------
-dnl Final output
-dnl ------------------------------------------------------------
+# ------------------------------------------------------------
+# Final output
+# ------------------------------------------------------------
 AC_OUTPUT(include/tdsver.h \
 	include/tds_sysdep_public.h \
 	Makefile \

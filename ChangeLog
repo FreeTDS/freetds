@@ -1,3 +1,7 @@
+Sun Jun 13 19:35:43 EDT 2004	JK Lowden <jklowden@schemamania.org>
+	* configure.in comments with '#' instead of 'dnl'; add AC_REVISION.
+	* src/dblib/rpc.c dos2unix: s/\r//g.
+	
 Sun Jun 13 15:18:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: some updates and fix for -Bsymbolic detect
 	* src/apps/defncopy.c src/ctlib/blk.c:	
