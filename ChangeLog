@@ -1,3 +1,8 @@
+Fri Sep 13 14:52:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c src/tds/convert.c:
+	- fix dbrettype for variant type and some cleanup
+	* src/dblib/unittests/t0022.c: use temporary procedure
+
 Fri Sep 13 08:32:06 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/tds/tds.dox: doxygen config file
 	* src/tds/mem.c: start doxygen style comments

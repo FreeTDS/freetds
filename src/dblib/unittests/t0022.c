@@ -12,7 +12,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0022.c,v 1.1 2002-09-12 23:31:46 brianb Exp $";
+static char  software_version[]   = "$Id: t0022.c,v 1.2 2002-09-13 12:55:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -71,7 +71,7 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "Dropping table\n");
    add_bread_crumb();
-   dbcmd(dbproc, "drop proc t0022");
+   dbcmd(dbproc, "drop proc #t0022");
    add_bread_crumb();
    dbsqlexec(dbproc);
    add_bread_crumb();
@@ -83,14 +83,14 @@ fprintf(stdout, "About to open\n");
    
    fprintf(stdout, "creating proc\n");
    dbcmd(dbproc,
-         "create proc t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
+         "create proc #t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
    dbsqlexec(dbproc);
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
       /* nop */
    }
    
-   sprintf(cmd, "declare @b int\nexec t0022 @b = @b output\n");
+   sprintf(cmd, "declare @b int\nexec #t0022 @b = @b output\n");
    fprintf(stdout, "%s\n", cmd);
    dbcmd(dbproc, cmd);
    dbsqlexec(dbproc);

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.55 2002-09-13 12:03:11 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.56 2002-09-13 12:55:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1383,33 +1383,9 @@ TDSSOCKET * tds;
 			return SYBCHAR; 
 		case SYBVARBINARY:
 			return SYBBINARY;
-		case SYBDATETIMN:
-			if (colinfo->column_size==8)
-				return SYBDATETIME;
-			else if (colinfo->column_size==4)
-				return SYBDATETIME4;
-		case SYBMONEYN:
-			/* needs to be based on column size (mlilback, 11/7/01) */
-			if (colinfo->column_size==4)
-				return SYBMONEY4;
-			else
-				return SYBMONEY;
-		case SYBFLTN:
-			if (colinfo->column_size==8)
-				return SYBFLT8;
-			else if (colinfo->column_size==4)
-				return SYBREAL;
-		case SYBINTN:
-			if (colinfo->column_size==4)
-				return SYBINT4;
-			else if (colinfo->column_size==2)
-				return SYBINT2; 
-			else if (colinfo->column_size==1)
-				return SYBINT1;
-		case SYBBITN:
-			return SYBBIT;
 		default:
-			return colinfo->column_type;
+			return tds_get_conversion_type(colinfo->column_type,
+					colinfo->column_size);
 	}
 	return 0; /* something went wrong */
 }
@@ -2352,7 +2328,8 @@ TDSSOCKET *tds;
 
         colinfo = param_info->columns[retnum-1];
 
-        return colinfo->column_type;
+	return tds_get_conversion_type(colinfo->column_type,
+			colinfo->column_size);
 }
 int dbstrlen(DBPROCESS *dbproc)
 {

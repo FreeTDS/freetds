@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.68 2002-09-05 12:07:20 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.69 2002-09-13 12:55:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -130,30 +130,39 @@ send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *var
 
 int tds_get_conversion_type(int srctype, int colsize)
 {
-	if (srctype == SYBINTN) {
-		if (colsize==8)
-			 return SYBINT8;
-		else if (colsize==4)
-			 return SYBINT4;
-		else if (colsize==2)
-			 return SYBINT2;
-		else if (colsize==1)
-			 return SYBINT1;
-	} else if (srctype == SYBFLTN) {
-		if (colsize==8)
-			return SYBFLT8;
-		else if (colsize==4)
-			return SYBREAL;
-	} else if (srctype == SYBDATETIMN) {
-		if (colsize==8) 
-			return SYBDATETIME;
-		else if (colsize==4)
-			return SYBDATETIME4;
-	} else if (srctype == SYBMONEYN) {
-		if (colsize==8) 
-			return SYBMONEY;
-		else if (colsize==4) 
-			return SYBMONEY4;
+	switch(srctype)
+	{
+	case SYBINTN:
+		switch(colsize) {
+		case 8: return SYBINT8;
+		case 4: return SYBINT4;
+		case 2: return SYBINT2;
+		case 1: return SYBINT1;
+		}
+		break;
+	case SYBFLTN:
+		switch(colsize) {
+		case 8:	return SYBFLT8;
+		case 4:	return SYBREAL;
+		}
+		return;
+	case SYBDATETIMN:
+		switch(colsize) {
+		case 8:	return SYBDATETIME;
+		case 4: return SYBDATETIME4;
+		}
+		break;
+	case SYBMONEYN:
+		switch(colsize) {
+		case 8: return SYBMONEY;
+		case 4: return SYBMONEY4;
+		}
+		break;
+	/* altough tds_conmvert handle SYBBITN other routine use this 
+	 * function to retrieve not variant type */
+	case SYBBITN:
+		return SYBBIT;
+		break;
 	}
 	return srctype;
 }
