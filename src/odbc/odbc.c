@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.32 2002-06-29 23:41:58 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.33 2002-07-05 19:06:14 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1409,20 +1409,90 @@ SQLRETURN SQL_API SQLSetParam(            /*      Use SQLBindParameter */
     return SQL_ERROR;
 }
 
+/************************
+ * SQLColumns
+ ************************
+ *
+ * Return column information for a table or view. This is
+ * mapped to a call to sp_columns which - lucky for us - returns
+ * the exact result set we need.
+ *
+ * exec sp_columns [ @table_name = ] object 
+ *                 [ , [ @table_owner = ] owner ] 
+ *                 [ , [ @table_qualifier = ] qualifier ] 
+ *                 [ , [ @column_name = ] column ] 
+ *                 [ , [ @ODBCVer = ] ODBCVer ] 
+ *
+ ************************/
 SQLRETURN SQL_API SQLColumns(
                             SQLHSTMT           hstmt,
-                            SQLCHAR FAR       *szCatalogName,
-                            SQLSMALLINT        cbCatalogName,
-                            SQLCHAR FAR       *szSchemaName,
+                            SQLCHAR FAR       *szCatalogName,   /* object_qualifier */
+                            SQLSMALLINT        cbCatalogName, 
+                            SQLCHAR FAR       *szSchemaName,    /* object_owner */
                             SQLSMALLINT        cbSchemaName,
-                            SQLCHAR FAR       *szTableName,
+                            SQLCHAR FAR       *szTableName,     /* object_name */
                             SQLSMALLINT        cbTableName,
-                            SQLCHAR FAR       *szColumnName,
-                            SQLSMALLINT        cbColumnName)
+                            SQLCHAR FAR       *szColumnName,    /* column_name */
+                            SQLSMALLINT        cbColumnName )
 {
+    struct  _hstmt *stmt;
+    char    szQuery[4096];
+    int     nTableName      = odbc_get_string_size( cbTableName, szTableName );
+    int     nTableOwner     = odbc_get_string_size( cbSchemaName, szSchemaName ); 
+    int     nTableQualifier = odbc_get_string_size( cbCatalogName, szCatalogName ); 
+    int     nColumnName     = odbc_get_string_size( cbColumnName, szColumnName );
+    int     bNeedComma      = 0;
+
     CHECK_HSTMT;
-    odbc_LogError ("SQLColumns: function not implemented");
-    return SQL_ERROR;
+
+    stmt = (struct _hstmt *) hstmt;
+
+    sprintf( szQuery, "exec sp_columns " ); 
+
+    if ( szTableName && *szTableName )
+    {
+        strcat( szQuery, "@table_name = '" );
+        strncat( szQuery, szTableName, nTableName );
+        strcat( szQuery, "'" );
+        bNeedComma = 1;
+    }
+
+    if ( szSchemaName && *szSchemaName )
+    {
+        if ( bNeedComma )
+            strcat( szQuery, ", " );
+        strcat( szQuery, "@table_owner = '" );
+        strncat( szQuery, szSchemaName, nTableOwner );
+        strcat( szQuery, "'" );
+        bNeedComma = 1;
+    }
+
+    if ( szCatalogName && *szCatalogName )
+    {
+        if ( bNeedComma )
+            strcat( szQuery, ", " );
+        strcat( szQuery, "@table_qualifier = '" );
+        strncat( szQuery, szCatalogName, nTableQualifier );
+        strcat( szQuery, "'" );
+        bNeedComma = 1;
+    }
+
+    if ( szColumnName && *szColumnName )
+    {
+        if ( bNeedComma )
+            strcat( szQuery, ", " );
+        strcat( szQuery, "@column_name = '" );
+        strncat( szQuery, szColumnName, nColumnName );
+        strcat( szQuery, "'" );
+        bNeedComma = 1;
+    }
+
+printf( "[PAH][%s][%d]%s\n", __FILE__, __LINE__, szQuery );
+
+    if ( SQL_SUCCESS != odbc_set_stmt_query( stmt, szQuery, strlen( szQuery ) ) )
+        return SQL_ERROR;
+
+    return _SQLExecute( hstmt );
 }
 
 SQLRETURN SQL_API SQLGetConnectOption(
@@ -1616,7 +1686,7 @@ SQLRETURN SQL_API SQLGetFunctions(
         _set_func_exists(pfExists,SQL_API_SQLBINDCOL);
         _set_func_exists(pfExists,SQL_API_SQLCANCEL);
         _set_func_exists(pfExists,SQL_API_SQLCOLATTRIBUTES);
-/*			_set_func_exists(pfExists,SQL_API_SQLCOLUMNS); */
+		_set_func_exists(pfExists,SQL_API_SQLCOLUMNS);
         _set_func_exists(pfExists,SQL_API_SQLCONNECT);
         _set_func_exists(pfExists,SQL_API_SQLDATASOURCES);
         _set_func_exists(pfExists,SQL_API_SQLDESCRIBECOL);
