@@ -1,3 +1,11 @@
+Sun Apr 25 10:54:11 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* BUGS NEWS TODO: updates
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/convert_error.c(added):
+	- add test from bug #885122
+	* src/odbc/unittests/common.c:
+	- SQL_NO_DATA not considered an error
+
 Wed Apr 21 11:10:21 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/odbc.c: todo updates
 
