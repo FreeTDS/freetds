@@ -1,3 +1,6 @@
+Tue Sep  3 14:49:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c: small optimization (full tested)
+
 Mon Sep  2 15:25:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am src/dblib/unittests/Makefile.am:
 	- fixed distcheck copying needed file if they not exists in 

@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.37 2002-08-30 20:33:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.38 2002-09-03 12:49:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -616,8 +616,6 @@ int packet_size;
 int current_pos;
 #if DOMAIN
 int domain_login = config->try_domain_login ? 1 : 0;
-#else
-int domain_login = 0;
 #endif
 
 const char* domain = config->default_domain;
@@ -674,12 +672,14 @@ int auth_len = 0;
    tds_put_smallint(tds,current_pos); 
    tds_put_smallint(tds,host_name_len);
    current_pos += host_name_len * 2;
+#if DOMAIN
    if (domain_login) {
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
 	tds_put_smallint(tds,0);
    } else {
+#endif
    	/* username */
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,user_name_len);
@@ -688,7 +688,9 @@ int auth_len = 0;
    	tds_put_smallint(tds,current_pos);
    	tds_put_smallint(tds,password_len);
    	current_pos += password_len * 2;
+#if DOMAIN
    }
+#endif
    /* app name */
    tds_put_smallint(tds,current_pos);
    tds_put_smallint(tds,app_name_len);
@@ -733,13 +735,17 @@ int auth_len = 0;
 
    tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,host_name_len * 2);
+#if DOMAIN
    if (!domain_login) {
+#endif
    	tds7_ascii2unicode(tds,config->user_name, unicode_string, 255);
    	tds_put_n(tds,unicode_string,user_name_len * 2);
    	tds7_ascii2unicode(tds,config->password, unicode_string, 255);
    	tds7_crypt_pass(unicode_string, password_len * 2, unicode_string);
    	tds_put_n(tds,unicode_string,password_len * 2);
+#if DOMAIN
    }
+#endif
    tds7_ascii2unicode(tds,config->app_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,app_name_len * 2);
    tds7_ascii2unicode(tds,config->server_name, unicode_string, 255);
