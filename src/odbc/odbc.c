@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.326 2004-05-22 17:25:26 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.327 2004-05-31 09:38:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3566,7 +3566,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		 * first letter mean pre ODBC 3 (_) or ODBC 3 (3)
 		 * second letter mean implemented (X) or unimplemented (_)
 		 * You should copy these macro 3 times... not very good
-		 * but work. Perhaps best method is build the bit array statically
+		 * but works. Perhaps best method is build the bit array statically
 		 * and then use it but I don't know how to build it...
 		 */
 #define API_X(n) if (n >= 0 && n < (16*SQL_API_ODBC3_ALL_FUNCTIONS_SIZE)) pfExists[n/16] |= (1 << n%16);
