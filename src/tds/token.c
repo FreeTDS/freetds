@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.58 2002-09-22 08:01:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.59 2002-09-23 23:05:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1260,9 +1260,6 @@ unsigned char *dest;
 ** tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
 ** for calling the CLI's message handling routine
 ** returns TDS_SUCCEED if informational, TDS_ERROR if error.
-**
-** Note: the called function is responsible for calling tds_reset_msg on the 
-** passed structure.
 */
 static int tds_process_msg(TDSSOCKET *tds,int marker)
 {
@@ -1360,7 +1357,6 @@ int len_sqlstate;
 			tds->msg_info->server,
 			tds->msg_info->line_number,
 			tds->msg_info->message);
-		tds_free_msg(tds->msg_info);
 	}
 	/*
 	 * Next, invoke the error handler to indicate that a msg was sent
@@ -1371,6 +1367,7 @@ int len_sqlstate;
 		tds_client_msg(tds->tds_ctx, tds, 20018, 5, -1, 1,
 			 "General SQL Server error: Check messages from the SQL Server.");
 	}
+	tds_free_msg(tds->msg_info);
 	return rc;
 }
 
@@ -1392,27 +1389,6 @@ char *proc_name;
 
 	return proc_name;
 
-}
-
-int tds_reset_msg_info(TDSMSGINFO *msg_info)
-{
-	if (!msg_info) 
-		return 0;
-
-	msg_info->priv_msg_type = 0;
-	msg_info->msg_number = 0;
-	msg_info->msg_state = 0;
-	msg_info->msg_level = 0;
-	msg_info->line_number = 0;
-
-	if( msg_info->message)
-		TDS_ZERO_FREE(msg_info->message);
-	if(msg_info->server)
-		TDS_ZERO_FREE(msg_info->server);
-	if(msg_info->proc_name)
-		TDS_ZERO_FREE(msg_info->proc_name);
-
-	return 0;
 }
 
 /*

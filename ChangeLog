@@ -1,3 +1,12 @@
+Mon Sep 23 19:01:48 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in src/apps/tsql.c src/dblib/dbutil.c
+	  src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	- Do away with tds_reset_msg_info.  Move the important
+	  parts into tds_free_msg.
+	- Relocate call to tds_free_msg() in tds_process_msg() so that
+	  we can safely reuse the msg_info structure to call the
+	  client message handler if required.
+
 Mon Sep 23 18:55:48 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/util.c:
 	- in tdsdump_close(), make it allowable to close even if not

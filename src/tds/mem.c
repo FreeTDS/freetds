@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.24 2002-09-17 17:37:41 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.25 2002-09-23 23:05:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -573,13 +573,20 @@ void tds_free_env(TDSSOCKET *tds)
 		TDS_ZERO_FREE(tds->env);
 	}
 }
-void tds_free_msg(TDSMSGINFO *msg_info)
+
+void
+tds_free_msg(TDSMSGINFO *msg_info)
 {
 	if (msg_info) {
-		if(msg_info->message) TDS_ZERO_FREE(msg_info->message);
-		if(msg_info->server) TDS_ZERO_FREE(msg_info->server);
-		if(msg_info->proc_name) TDS_ZERO_FREE(msg_info->proc_name);
-		if(msg_info->sql_state) TDS_ZERO_FREE(msg_info->sql_state);
+		msg_info->priv_msg_type = 0;
+		msg_info->msg_number = 0;
+		msg_info->msg_state = 0;
+		msg_info->msg_level = 0; 
+		msg_info->line_number = 0;  
+		if (msg_info->message) TDS_ZERO_FREE(msg_info->message);
+		if (msg_info->server) TDS_ZERO_FREE(msg_info->server);
+		if (msg_info->proc_name) TDS_ZERO_FREE(msg_info->proc_name);
+		if (msg_info->sql_state) TDS_ZERO_FREE(msg_info->sql_state);
 	}
 }
 

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.51 2002-09-20 21:08:35 castellano Exp $";
+	 "$Id: tds.h.in,v 1.52 2002-09-23 23:05:22 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -681,7 +681,6 @@ int tds_process_env_chg(TDSSOCKET *tds);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message);
-int tds_reset_msg_info(TDSMSGINFO *msg_info);
 void  tds_set_parent(TDSSOCKET* tds, void* the_parent);
 void* tds_get_parent(TDSSOCKET* tds);
 void tds_set_null(unsigned char *current_row, int column);

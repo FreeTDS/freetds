@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.11 2002-09-20 14:42:30 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.12 2002-09-23 23:05:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -58,9 +58,6 @@ int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *m
 					msg->proc_name,
 					msg->line_number);
 		}
-
-		/* and now clean up the structure for next time */
-		tds_reset_msg_info(msg);
 	}
         return 1;
 }
@@ -85,8 +82,6 @@ int dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *ms
 					msg->message,
 					msg->server); 
 		}
-		/* and now clean up the structure for next time */
-		tds_reset_msg_info(msg);
 	}
 
 	if (((rc == INT_TIMEOUT) || (rc == INT_CONTINUE))

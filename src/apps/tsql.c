@@ -237,7 +237,6 @@ int tsql_handle_message(TDSCONTEXT *context, TDSSOCKET *tds, TDSMSGINFO *msg)
                          msg->line_number,
                          msg->message);
 	}
-	tds_reset_msg_info(msg);
 
 	return 1;
 }

@@ -60,7 +60,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.58 2002-09-23 06:20:21 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.59 2002-09-23 23:05:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1073,7 +1073,6 @@ char *p;
 	/* latest_msg_number = msg->msg_number; */
 	odbc_LogError( p );
 	free(p);
-	tds_reset_msg_info(msg);
 	return 1;
 }
 
@@ -1096,7 +1095,6 @@ char *p;
 	) < 0) return 0;
 	odbc_LogError( p );
 	free(p);
-	tds_reset_msg_info(msg);
 	return 1;
 }
 
