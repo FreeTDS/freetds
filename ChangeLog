@@ -1,3 +1,9 @@
+Sat Feb 26 14:08:27 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/alternative_character_sets.h:
+	* src/tds/character_sets.h src/tds/encodings.h:
+	* src/tds/iconv.c src/tds/sybase_character_sets.h:
+	- support for CP437 charset
+
 Tue Feb 22 17:03:21 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c src/ctlib/ct.c src/odbc/unittests/compute.c:
 	* src/replacements/readpassphrase.c src/tds/net.c:

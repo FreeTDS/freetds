@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.117 2005-02-09 16:15:18 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.118 2005-02-26 13:08:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -366,6 +366,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 * TODO: the server hasn't reported its charset yet, so this logic can't work here.  
 	 *       not sure what to do about that yet.  
 	 */
+	tds->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
 	if (tds->env.charset) {
 		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], charset, tds->env.charset);
 		if (!fOK)
