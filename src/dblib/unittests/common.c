@@ -12,12 +12,20 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_LIBGEN_H
+#include <libgen.h>
+#endif /* HAVE_LIBGEN_H */
+
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif /* HAVE_SYS_PARAM_H */
+
 #include <sqlfront.h>
 #include <sqldb.h>
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.8 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.9 2002-12-10 03:24:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -37,6 +45,7 @@ char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+static char *DIRNAME = NULL;
 
 #if HAVE_MALLOC_OPTIONS
 extern const char *malloc_options;
@@ -57,18 +66,39 @@ set_malloc_options(void)
 #endif /* HAVE_MALLOC_OPTIONS */
 }
 
+/**
+ * pass argv[0].  Set up directory so we can find the PWD file, regardless of 
+ * where it was invoked from.
+ */
+int read_PWD(char invoked_as[])
+{
+	if (invoked_as)
+		DIRNAME = dirname(invoked_as);
+		
+	return read_login_info();
+}
+
 int
 read_login_info(void)
 {
 	FILE *in;
 	char line[512];
 	char *s1, *s2;
-
-	in = fopen("../../../PWD", "r");
+	char filename[MAXPATHLEN];
+	static const char *PWD = "../../../PWD";
+	
+	strcpy(filename, PWD);
+     	in = fopen(filename, "r");
 	if (!in) {
-		fprintf(stderr, "Can not open PWD file\n\n");
-		return 1;
+		sprintf(filename, "%s/%s", (DIRNAME)? DIRNAME : ".", PWD);
+
+     		in = fopen(filename, "r");
+		if (!in) {
+			fprintf(stderr, "Can not open %s file\n\n", filename);
+			return 1;
+		}
 	}
+	
 	while (fgets(line, 512, in)) {
 		s1 = strtok(line, "=");
 		s2 = strtok(NULL, "\n");
@@ -84,6 +114,7 @@ read_login_info(void)
 			strcpy(DATABASE, s2);
 		}
 	}
+	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
 	return 0;
 }
 

@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.5 2002-11-20 13:47:06 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.6 2002-12-10 03:24:38 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 extern char PASSWORD[512];
@@ -12,6 +12,7 @@ extern char DATABASE[512];
 
 void set_malloc_options(void);
 int read_login_info(void);
+int read_PWD(char[]);
 void check_crumbs(void);
 void add_bread_crumb(void);
 int syb_msg_handler(DBPROCESS * dbproc,

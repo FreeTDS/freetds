@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.13 2002-12-09 22:27:25 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.14 2002-12-10 03:24:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 
 	set_malloc_options();
 
-	read_login_info();
+	read_PWD(argv[0]);
 
 	fprintf(stdout, "Start\n");
 	add_bread_crumb();
@@ -57,10 +57,6 @@ main(int argc, char **argv)
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0001");
 
-	fprintf(stdout, "About to open\n");
-
-	add_bread_crumb();
-
 	if (argc > 2) {
 		strcpy(SERVER, argv[1]);
 		i = atoi(argv[2]);
@@ -70,7 +66,17 @@ main(int argc, char **argv)
 				printf("login timeout set to %s.\n", argv[2]);
 		}
 	}
+	
+	fprintf(stdout, "About to open \"%s\"\n", SERVER);
+
+	add_bread_crumb();
+
 	dbproc = dbopen(login, SERVER);
+	if( !dbproc ) {
+		fprintf(stderr, "Unable to connect to %s\n", SERVER);
+		return 1;
+	}
+
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	add_bread_crumb();
