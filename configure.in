@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.80 2003-01-13 04:52:07 vorlon Exp $
+dnl $Id: configure.in,v 1.81 2003-01-20 17:03:14 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -109,6 +109,7 @@ AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long double)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(__int64)
 
@@ -126,14 +127,16 @@ $ac_cv_sizeof_long)    tds_sysdep_int32_type=long;;
 esac
 
 case 4 in
-$ac_cv_sizeof_float)   tds_sysdep_real32_type=float;;
-$ac_cv_sizeof_double)  tds_sysdep_real32_type=double;;
+$ac_cv_sizeof_float)       tds_sysdep_real32_type=float;;
+$ac_cv_sizeof_double)      tds_sysdep_real32_type=double;;
+$ac_cv_sizeof_long_double) tds_sysdep_real32_type="long double";;
 *)                     AC_ERROR(No 32-bit real found.)
 esac
 
 case 8 in
-$ac_cv_sizeof_float)   tds_sysdep_real64_type=float;;
-$ac_cv_sizeof_double)  tds_sysdep_real64_type=double;;
+$ac_cv_sizeof_float)       tds_sysdep_real64_type=float;;
+$ac_cv_sizeof_double)      tds_sysdep_real64_type=double;;
+$ac_cv_sizeof_long_double) tds_sysdep_real64_type="long double";;
 *)                     AC_ERROR(No 64-bit real found.)
 esac
 
