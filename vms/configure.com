@@ -16,7 +16,7 @@ $! License along with this library; if not, write to the
 $! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 $! Boston, MA 02111-1307, USA.
 $!
-$! $Id: configure.com,v 1.3 2004-01-03 19:32:05 freddy77 Exp $
+$! $Id: configure.com,v 1.3.2.1 2004-01-19 09:36:52 freddy77 Exp $
 $!
 $! CONFIGURE.COM -- run from top level source directory as @[.vms]configure
 $!
@@ -39,7 +39,9 @@ $! kit has been installed, we may not have the conversions we need.  Check
 $! for their presence and use the homegrown iconv() if necessary.
 $!
 $ IF F$SEARCH("SYS$I18N_ICONV:UCS-2_ISO8859-1.ICONV") .NES. "" -
-    .AND. F$SEARCH("SYS$I18N_ICONV:ISO8859-1_UCS-2.ICONV") .NES. ""
+    .AND. F$SEARCH("SYS$I18N_ICONV:ISO8859-1_UCS-2.ICONV") .NES. "" -
+    .AND. F$SEARCH("SYS$I18N_ICONV:UTF-8_ISO8859-1.ICONV") .NES. "" -
+    .AND. F$SEARCH("SYS$I18N_ICONV:ISO8859-1_UTF-8.ICONV") .NES. ""
 $ THEN
 $   d_have_iconv = "1"
 $   SAY "Using system-supplied iconv()"

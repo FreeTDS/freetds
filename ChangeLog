@@ -1,12 +1,20 @@
+Mon Jan 19 10:33:32 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
+	* vms/configure.com:
+	- patch from Craig A. Berry for iconv detect problem
+	* configure.in:
+	- bumped version to avoid collision
+	- fix for Cygwin compile
+
 Wed Jan 14 23:59:48 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* README
+
 Wed Jan 14 23:25:37 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* README explain release 0.62.1
-	
+
 Tue Jan 13 20:51:51 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: discard EED info only
 	* configure.in release 0.62.1
-	
+
 Mon Jan 12 18:05:54 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: fix problem of last patch
 
