@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.174 2004-02-04 18:20:42 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.175 2004-03-31 18:41:24 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1286,7 +1286,7 @@ int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int text
 
 /* numeric.c */
 char *tds_money_to_string(const TDS_MONEY * money, char *s);
-char *tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s);
+TDS_INT tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s);
 
 /* getmac.c */
 void tds_getmac(int s, unsigned char mac[6]);

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.136 2004-02-10 11:33:10 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.137 2004-03-31 18:41:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -997,14 +997,16 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 
 	switch (desttype) {
 	case CASE_ALL_CHAR:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		return string_to_result(tmpstr, cr);
 		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_NUMERIC), cr);
 		break;
 	case SYBINT1:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		/* TODO what happen if numeric is too big ?? */
 		i = atoi(tmpstr);
 		if (!IS_TINYINT(i))
@@ -1013,7 +1015,8 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		i = atoi(tmpstr);
 		if (!IS_SMALLINT(i))
 			return TDS_CONVERT_OVERFLOW;
@@ -1021,7 +1024,8 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		return sizeof(TDS_SMALLINT);
 		break;
 	case SYBINT4:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		i = atoi(tmpstr);
 		if (!IS_INT(i))
 			return TDS_CONVERT_OVERFLOW;
@@ -1029,7 +1033,8 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		return 4;
 		break;
 	case SYBINT8:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		/* TODO check for overflow */
 		cr->bi = atoll(tmpstr);
 		return 8;
@@ -1050,12 +1055,14 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		return sizeof(TDS_NUMERIC);
 		break;
 	case SYBFLT8:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		cr->f = atof(tmpstr);
 		return 8;
 		break;
 	case SYBREAL:
-		tds_numeric_to_string(src, tmpstr);
+		if (tds_numeric_to_string(src, tmpstr) < 0)
+			return TDS_CONVERT_FAIL;
 		cr->r = atof(tmpstr);
 		return 4;
 		break;

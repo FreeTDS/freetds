@@ -26,13 +26,14 @@
 #endif /* HAVE_STRING_H */
 
 #include <tds.h>
+#include <tdsconvert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.25 2004-02-09 15:30:05 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.26 2004-03-31 18:41:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -223,7 +224,7 @@ array_to_string(unsigned char *array, int scale, char *s)
 }
 #endif
 
-char *
+TDS_INT
 tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 {
 	const unsigned char *number;
@@ -243,6 +244,9 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	memset(packet, 0x55, sizeof(packet));
 	memset(packet10k, 0x55, sizeof(packet10k));
 #endif
+
+	if (numeric->precision < 1 || numeric->precision > MAXPRECISION || numeric->scale > numeric->precision)
+		return TDS_CONVERT_FAIL;
 
 	/* set sign */
 	if (numeric->array[0] == 1)
@@ -270,7 +274,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 				} while (--i);
 			}
 			*s++ = 0;
-			return s;
+			return TDS_SUCCEED;
 		}
 	}
 	packet_start = pnum;
@@ -320,5 +324,5 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	}
 	*s++ = 0;
 
-	return s;
+	return TDS_SUCCEED;
 }

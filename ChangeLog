@@ -1,3 +1,9 @@
+Wed Mar 31 20:51:38 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/convert.c src/tds/numeric.c:
+	* src/tds/token.c:
+	- workaround for ASA 7 and nullable integer
+	* src/odbc/unittests/error.c: fix for Sybase
+
 Tue Mar 30 17:24:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/error.c(added):
 	- add error for error in a row

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.255 2004-03-25 05:29:01 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.256 2004-03-31 18:41:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1980,11 +1980,20 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		if (curcol->iconv) {
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
-		} else {
-			if (colsize > curcol->column_size)
-				return TDS_FAIL;
+		} else {	
+			/*
+			 * special case, some servers seem to return more data in some conditions 
+			 * (ASA 7 returning 4 byte nullable integer)
+			 */
+			int discard_len = 0;
+			if (colsize > curcol->column_size) {
+				discard_len = colsize - curcol->column_size;
+				colsize = curcol->column_size;
+			}
 			if (tds_get_n(tds, dest, colsize) == NULL)
 				return TDS_FAIL;
+			if (discard_len > 0)
+				tds_get_n(tds, NULL, discard_len);
 			curcol->column_cur_size = colsize;
 		}
 
