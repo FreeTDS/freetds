@@ -19,9 +19,9 @@
 
 #include <stdio.h>
 #include <tds.h>
+#include "common.h"
 
-
-static char  software_version[]   = "$Id: t0001.c,v 1.1 2001-10-12 23:29:03 brianb Exp $";
+static char  software_version[]   = "$Id: t0001.c,v 1.2 2002-09-16 20:28:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -1,3 +1,9 @@
+Mon Sep 16 16:26:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/unittests/common.h src/tds/unittests/t0001.c
+	  src/tds/unittests/t0003.c src/tds/unittests/t0004.c
+	  src/tds/unittests/t0005.c src/tds/unittests/t0006.c
+	- More "gcc -Wall" cleanups.
+
 Mon Sep 16 22:03:52 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am: fix for distribution and compile
 	* src/odbc/connectparams.c src/odbc/odbc.c:

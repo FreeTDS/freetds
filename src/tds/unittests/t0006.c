@@ -19,11 +19,15 @@
 
 #include <stdio.h>
 #include <tds.h>
+#include <tdsconvert.h>
+#include "common.h"
 
-static char  software_version[]   = "$Id: t0006.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.4 2002-09-16 20:28:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
+
+static TDSCONTEXT ctx;
 
 int main()
 {
@@ -37,8 +41,8 @@ int main()
    TDSCOLINFO *curcol;
    TDSRESULTINFO *resinfo;
    char *src;
-   char dest[64];
-   TDS_INT srctype, srclen, destlen;
+   CONV_RESULT cr;
+   TDS_INT srctype, srclen;
 
    int src_id;
    double src_val;
@@ -50,6 +54,8 @@ int main()
    float sybreal[5];
    int num_sybflt8 = 7;
    double sybflt8[7];
+
+   memset(&ctx, 0, sizeof(ctx));
 
    sybreal[0] = 1.1;
    sybreal[1] = 12345678;
@@ -101,8 +107,8 @@ int main()
             if (verbose) {
                srctype = curcol->column_type;
                srclen = curcol->column_size;
-               tds_convert(srctype, src, srclen, SYBCHAR, dest, 64);
-               printf("col %i is %s\n", i, dest);
+               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, 64, &cr);
+               printf("col %i is %s\n", i, cr.c);
             }
             if (i==0) {
                src_id = *(int *)src;
@@ -166,8 +172,8 @@ int main()
             if (verbose) {
                srctype = curcol->column_type;
                srclen = curcol->column_size;
-               tds_convert(srctype, src, srclen, SYBCHAR, dest, 64);
-               printf("col %i is %s\n", i, dest);
+               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, 64, &cr);
+               printf("col %i is %s\n", i, cr.c);
             }
             if (i==0) {
                src_id = *(int *)src;

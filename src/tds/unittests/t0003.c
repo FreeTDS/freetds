@@ -19,9 +19,9 @@
 
 #include <stdio.h>
 #include <tds.h>
+#include "common.h"
 
-
-static char  software_version[]   = "$Id: t0003.c,v 1.1 2001-10-12 23:29:03 brianb Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.2 2002-09-16 20:28:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -32,10 +32,7 @@ int main()
    TDSSOCKET *tds;
    int verbose = 0;
    int rc;
-   int i, marker, type;
-   char old[100], new[100]; /* WARNING: not properly allocated, possible buffer 
-			    overflow...for testing only, do not use in real 
-                            code */
+   int marker;
 
    fprintf(stdout, "%s: Testing DB change -- 'use tempdb'\n", __FILE__);
    rc = try_tds_login(&login, &tds, __FILE__, verbose);
@@ -62,7 +59,7 @@ int main()
          fprintf(stdout, "database changed to %s\n", tds->env->database);
       }
       if (strcmp(tds->env->database, "tempdb")) {
-         fprintf(stderr, "Wrong database, %s != tempdb\n", new);
+         fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env->database);
          return 1;
       }
    }
