@@ -8,26 +8,25 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.13 2002-10-27 19:59:17 freddy77 Exp $
+To Do List	$Id: TODO,v 1.14 2002-11-22 13:25:47 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
 . thorough rototilling of the code for cleanliness, I would like it to 
   build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
 For future versions:
-. test conversion from char. Does libraries append blank to reach column_size ?
-  same problem for binary (padded with zeroes) ?
-. numeric conversions.
-. move error message macro/prototype to tds.h.in; use in dblib.c. 
+. numeric conversions (optimize).
+. move error message macro/prototype to tds.h.in; use in dblib.c.
 . conversion from ucs2 to utf8, provide for 2+ bytes/character.
   (multibyte support)
 . Remove old char(30) limitations to various sysnames e.g., tables, columns, 
-  passwords.  
+  passwords (checks).
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . Array binding for ctlib not working
-. RPC stuff not implemented
+. RPC stuff not implemented (work in progress)
 . All manner of unimplemented functions
-. ct_dynamic and friends needed for DBD::Sybase placeholder support (partly done)
+. ct_dynamic and friends needed for DBD::Sybase placeholder support 
+  (work in progress)
 . Server API needs more work, especially for TDS 5.0/7.0
 . Add support for TDS 8.0 (login works)
 . TDS 7 Unicode to native charset conversion using iconv (partly done)
@@ -43,12 +42,12 @@ For future versions:
 . ODBC: get a solid corpus of unittests for ODBC, and have it become a 
   top tier API.
 . DBLIB: output params
-. placeholder support for TDS 5.0.  This is partially done but crashes
 . get connection pooling working with all protocol versions
 . Finish off the TDS dissector for ethereal
 . ODBC: dynamic query (need rewrite SQLPrepare and related)
+  (support binding parameters for all types)
 . ODBC: improve, best error report (even multiple)
-. dynamic query (even for mssql)
+. dynamic query (work in progress, lack unprepare)
 . cursor support
 . more solid. handle out of memory conditions (started, we must test all 
   allocation and all function that return allocated data and be able to 
@@ -57,5 +56,4 @@ For future versions:
 
 Tests
 - "if 0 = 1 select 1" should not fail
-- test dynamic query
 
