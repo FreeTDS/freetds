@@ -11,7 +11,7 @@ libtds_objects_la_LIBADD=
 
 lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
-libtds_la_LDFLAGS	= -version-info 1:1:0
+libtds_la_LDFLAGS	= -version-info 2:0:0
 libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
 noinst_HEADERS	= tds_willconvert.h
 
