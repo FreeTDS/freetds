@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.102 2004-04-01 18:35:11 freddy77 Exp $
+To Do List	$Id: TODO,v 1.103 2004-04-02 11:06:53 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -65,6 +65,7 @@ Started in 0.63
   * this part never worked, commented
 - SQLFetch do not return error if error on rows
 - see problems raised by sqlserver tests in DBD::ODBC (SQLPrepare)
+- fix putdata test
 
 For future versions (in priority order within library):
   All:
