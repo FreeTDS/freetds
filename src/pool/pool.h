@@ -20,16 +20,23 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Id: pool.h,v 1.9 2003-12-22 08:32:14 freddy77 Exp $";
+static char rcsid_pool_h[] = "$Id: pool.h,v 1.10 2004-04-14 00:32:00 jklowden Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
+#endif
 
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif /* HAVE_NETINET_IN_H */
+#endif
+
+/* 
+ * POSIX says fd_set type may be defined in either sys/select.h or sys/time.h. 
+ */
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include "tds.h"
 
