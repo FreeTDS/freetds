@@ -1,0 +1,68 @@
+Introduction
+------------
+
+This document is intended for people who want to help on the FreeTDS project and/or are interested in how the code works.
+
+TDS is a fairly simple request/response protocol. It comes in three major 
+flavors: 4.2, 5.0 and 7.0.  Microsoft SQL-Server versions through 6.5 still use 
+the 4.2 version as do Sybase servers before 10.0.  MS SQL 7.0 introduced TDS 7.0
+which so far is not implemented (but can still be accessed with 4.2). No version
+of MS SQL uses 5.0 and Sybase does not use 7.0, but both still support 4.2.
+TDS allows for negotiation of quite a few parameters at connection time, many of
+these are documented in the cap.txt file in this directory.
+
+Layers
+------
+
+The FreeTDS code is broken down into two layers.
+
+The TDS layer handles the bulk of the processing of the protocol and dealing with the network, etc... Any code dealing with protocol issues should reside in this directory (src/tds). A related directory src/server has routines that are used
+only for server side processes.  These two directories may eventually be merged.
+
+On top of this layer is a thin layer specific to the 'Call Level Interface' (CLI).  A CLI is an API intended to be used by client programs.  The core FreeTDS 
+has three CLIs: dblib, the original Sybase API; ctlib, the newer Sybase API; and
+ODBC, the non-database specific API.
+
+Currently dblib is the most robust CLI we have, followed by ctlib, which is 
+quite usuable none-the-less. ODBC is a late starter, but has been improved
+recently.  The ODBC CLI is built using a driver manager (either iODBC or 
+unixODBC), so you will need one of those to build it with.
+
+Outside of these there is also a JDBC driver for Java and a DBI driver for 
+Perl which do not reside atop the TDS layer. (FreeTDS/JDBC is a pure Java
+driver).  This document does not currently cover these libraries.  Those wishing
+to use Perl are also encouraged to look at DBD::Sybase which uses ctlib and works well with the FreeTDS libraries.
+
+The Nitty Gritty
+----------------
+
+The first thing a CLI does is allocate a login structure for TDS.  Such as:
+
+	TDS_LOGIN *login = tds_alloc_login();
+
+It can then call any of the tds_set_*() functions to initialize this TDS_LOGIN 
+structure.  Please refer to src/tds/login.c for a complete listing of options.
+
+Once username, password, server, and other options are set a call can be made to
+tds_connect(). This will allocate a TDS_SOCKET structure and open a socket 
+connection to the specified server (or NULL on failure). The TDS_SOCKET is then passed as an arguement to all future TDS functions.
+
+At this point the only really useful thing to do is to call tds_submit_query()
+and then process the returning rows using tds_process_results() and company.
+
+This should get us to the routines in src/tds/token.c which are responsible for
+reading the results back from the server and doing something with them.  The 
+logic in these routines should not be hard to follow.  The return stream is 
+broken up into a series of 'messages' (not to be confused with actual messages
+returned from the server). Each one starts with a marker (marker is my word for
+it, not Sybases or anyone elses).  include/tds.h defines all the markers and in
+general there will be one tds_process_*() function for each marker unless it is
+not worth looking at, in which case tds_process_default_tokens() will read past
+it. 
+
+Misc
+----
+
+Please send fixes and updates to this document to Brian Bruns (camber@ais.org)
+I realize it's a little rough right now but I wanted to at least put something
+out.

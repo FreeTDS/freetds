@@ -1,0 +1,291 @@
+TDS Library Docuemtation v0.1
+
+*********************************************************
+
+Memory Allocation Routines
+
+*********************************************************
+TDSLOGIN *tds_alloc_login()
+
+This function allocates a TDSLOGIN structure, zeros it, and set the 
+major_version and minor_version fields based on compile time defines. 
+It also sets the capabilities field with a default set of capabilities.
+
+*********************************************************
+void tds_free_login()
+
+This function frees the TDSLOGIN structure.  This should not be done until all
+open connections have been closed.
+
+*********************************************************
+TDSSOCKET *tds_alloc_socket(int buf_size)
+
+This function allocates a TDSSOCKET structure and zeros it. It then allocates a
+an outgoing buffer of size 'buf_size' (The incoming buffer is resized according
+to the data received), a TDSMSGINFO structure for messages and errors, and calls
+tds_init_write_buffer to initialize the outgoing buffer. 
+
+*********************************************************
+void tds_free_socket(TDSSOCKET *tds)
+
+This funtion frees incoming and outgoing buffers, the TDSMSGINFO structure and 
+then the TDSSOCKET structure.
+
+*********************************************************
+void tds_free_msg(TDSMSGINFO *msg_info)
+
+This function releases all variable length data related to the TDSMSGINFO 
+structure, but does NOT free the TDSMSGINFO structure itself.  TDSMSGINFO is
+released by tds_free_socket. This fuction is called by the function receiving
+the message, so that it may be reused for the next message.
+
+*********************************************************
+TDSCOMPUTEINFO *tds_alloc_results(int num_cols)
+Status: Internal
+
+This function allocates a TDSRESULTINFO structure used to stored a result set. 
+It allocates memory for 'num_cols' TDSCOLINFO structures and initializes 
+TDSCOMPUTEINFO.num_cols to that number. It also determines the number of bytes 
+to allocate for storing NULL information (1 bit per column). This value is then
+stored in TDSRESULTINO.null_info_size. TDSRESULTINFO.row_size is initialized 
+with this value as well, indicating the position within the row buffer to start
+storing data.
+
+*********************************************************
+void tds_free_results(TDSRESULTINFO *res_info)
+Status: Internal
+
+This fuctions frees a TDSRESULTINFO structure, all associated TDSCOLINFO
+structures, and the row buffer if presented.
+
+*********************************************************
+void *tds_alloc_row(TDSRESULTINFO *info)
+Status: Internal
+
+This function allocates a buffer equal to info->row_size and initializes it 
+to 0.  This row size is determined by the tds_process_result() (TDS 5.0), 
+tds_process_col_info() (TDS 4.2), or tds_process_compute_result() functions.
+Therefore one of these functions must be called prior to tds_allow_row.
+
+*********************************************************
+TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols)
+Status: Internal
+
+This function allocates a TDSCOMPUTEINFO structure used to stored a compute 
+result set. It is similar in function to the tds_alloc_results function.
+It allocates memory for 'num_cols' TDSCOLINFO structures and initializes 
+TDSCOMPUTEINFO.num_cols to that number.
+
+*********************************************************
+void tds_free_compute_results(TDSCOMPUTEINFO *comp_info)
+Status: Internal
+
+This fuctions frees a TDSCOMPUTEINFO structure and all associated TDSCOLINFO
+structures.
+
+*********************************************************
+
+Login routines
+
+*********************************************************
+void tds_set_packet(TDSLOGIN *tds_login, short packet_size)
+void tds_set_port(TDSLOGIN *tds_login, int port)
+void tds_set_passwd(TDSLOGIN *tds_login, char *password)
+void tds_set_user(TDSLOGIN *tds_login, char *username)
+void tds_set_app(TDSLOGIN *tds_login, char *application)
+void tds_set_host(TDSLOGIN *tds_login, char *hostname)
+void tds_set_library(TDSLOGIN *tds_login, char *library)
+void tds_set_server(TDSLOGIN *tds_login, char *server)
+void tds_set_charset(TDSLOGIN *tds_login, char *charset)
+void tds_set_language(TDSLOGIN *tds_login, char *language)
+void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver)
+void tds_set_capabilities(TDSLOGIN *tds_login, unsigned char *capabilities, 
+      int size)
+
+These convience functions set items in the TDSLOGIN structure to be passed to 
+the server upon login. You must call tds_alloc_login prior to using these
+routines
+
+*********************************************************
+TDSSOCKET *tds_connect(TDSLOGIN *login)
+
+This function calls tds_alloc_socket to initialize a TDSSOCKET structure which
+is returned to the calling function. It does a lookup on the servername using
+get_server_info and establishes a socket connection which is stored in 
+TDSSOCKET.s 
+
+The tds->out_flag (which is a packet type indicator) is set to 0x02 (login 
+packet) and tds_send_login is invoked.  tds_process_login_tokens is called
+to process the response from the server and if login failed a NULL is returned
+otherwise the TDSSOCKET structure is returned.
+
+*********************************************************
+int tds_send_login(TDSSOCKET tds, TDS_LOGIN *login)
+
+This function sends a login packet to the server, taking into account the 
+TDS version and hardware byte order.
+
+*********************************************************
+int tds_process_login_tokens(TDSSOCKET tds)
+
+This function process the response stream from the server after a login packet
+has been sent. It looks for a message which starts with a TDS_LOGIN_ACK_TOKEN
+(0xAD) byte. All other messages are read using the tds_process_default_tokens 
+routine.
+
+A 1 is returned on successful login and a 0 otherwise.
+
+
+*********************************************************
+
+I/O routines
+
+*********************************************************
+int tds_write_packet(TDSSOCKET *tds,unsigned char final)
+
+This function sends a packet to the server, initializing all header fields and
+computing the size. final indicates whether this is the final packet in this series. 1 means this is the final packet, 0 indicates more packet follow.
+
+*********************************************************
+int tds_flush_packet(TDSSOCKET *tds)
+
+This function writes a packet and reinitializes the outgoing buffer.
+
+*********************************************************
+int tds_init_write_buf(TDSSOCKET *tds)
+
+This function zeros the output buffer and sets the current position to 8, which
+is the first byte after the header (The header is 8 bytes long)
+
+*********************************************************
+int tds_put_n(TDSSOCKET *tds, unsigned char *buf, int n)
+
+This function will place n bytes on the output stream and send the packet if
+necessary. 
+
+*********************************************************
+int tds_put_string(TDSSOCKET *tds, unsigned char *buf, int n)
+
+This function will place a string of maximum size n on the output stream 
+followed by a 1 byte integer containing its actual size. All bytes following
+the string if any will be '\0'
+
+*********************************************************
+int tds_put_int(TDSSOCKET *tds, TDS_INT i)
+
+This function will place int (4 byte integer) on the output stream and send 
+the packet if necessary
+
+*********************************************************
+int tds_put_smallint(TDSSOCKET *tds, TDS_SMALLINT si)
+
+This function will place a smallint (2 byte integer) on the output stream and 
+send the packet if necessary.
+
+*********************************************************
+int tds_put_byte(TDSSOCKET *tds, unsigned char c)
+
+This function will place 1 byte on the output stream and send the packet
+if necessary.
+
+*********************************************************
+int tds_put_tinyint(TDSSOCKET *tds, TDS_TINYINT ti)
+
+This function will read a tinyint (1 byte integer) from the incoming stream
+and return it. 
+
+*********************************************************
+unsigned char tds_get_byte(TDSSOCKET *tds)
+
+This function will read a byte from the incoming stream
+and return it. 
+
+*********************************************************
+void tds_unget_byte(TDSSOCKET *tds)
+
+This function will unread a byte previously read from the input stream. This
+is a one time function; You may not call it twice in succession.
+
+*********************************************************
+TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds)
+
+This function will read a smallint (2 byte integer) from the incoming stream
+and return it. 
+
+*********************************************************
+char *tds_get_n(TDSSOCKET *tds, void *dest, int n)
+
+This function will copy n byte from the incoming stream to dest.  dest maybe
+passed as NULL in which case the function will junk n bytes.
+
+*********************************************************
+
+Query and Result Routines
+
+*********************************************************
+int tds_submit_query(TDSSOCKET *tds, char *query)
+
+This function sends a query to the server (packet type 0xF). 
+
+*********************************************************
+int tds_process_result_tokens(TDSSOCKET *tds)
+
+This function reads the input stream looking for TDS_RESULT_TOKEN tokens. It 
+processes the result and returns a TDS_SUCCEED on the first row received for
+that result. TDS_NO_MORE_RESULTS is returned when the stream of results has
+been exhausted.
+
+*********************************************************
+int tds_process_row_tokens(TDSSOCKET *tds)
+
+This function is called after receiving a result set.  It looks for 
+TDS_ROW_TOKEN and calls tds_process_row. It returns TDS_NO_MORE_ROWS when it
+encounters a result or end token.
+
+*********************************************************
+int tds_process_row(TDSSOCKET *tds)
+
+This function processes a row token (TDS_ROW_TOKEN), copying all columns to 
+the row buffer and setting the NULL indicator.
+
+*********************************************************
+int tds_process_default_tokens(TDSSOCKET *tds, int marker)
+
+This function is a catch all to process any unneeded or unexpected tokens.
+Several function loop looking for certain sequences of tokens, everything 
+else is junked using this routine.
+
+*********************************************************
+void tds_process_end(TDSSOCKET *tds, int marker, int *more, int *canceled)
+
+*********************************************************
+
+NULL handling routines
+
+*********************************************************
+void tds_set_null(unsigned char *current_row, int column)
+
+This function sets the status of column in the row buffer current_row to NULL.
+It is used internally by tds_process_row
+
+*********************************************************
+void tds_clr_null(unsigned char *current_row, int column)
+
+This function sets the status of column in the row buffer current_row to NOT 
+NULL.  It is used internally by tds_process_row
+
+*********************************************************
+int tds_get_null(unsigned char *current_row, int column)
+
+This function returns 1 if column in row buffer current_row is NULL, otherwise 
+it returns 0
+
+*********************************************************
+
+Message Handling Routines
+
+*********************************************************
+extern int tds_reset_msg_info(TDSSOCKET *tds)
+extern char *tds_msg_get_proc_name(TDSSOCKET *tds)
+extern void  tds_set_parent(TDSSOCKET* tds, void* the_parent)
+extern void* tds_get_parent(TDSSOCKET* tds)

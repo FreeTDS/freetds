@@ -1,0 +1,61 @@
+Documentation for TDS 7.0 login sequence
+
+Header
+------
+Bytes	Value	Desc
+1	0x10	TDS 7.0 Login Packet Type
+1	1	Final indicator
+2	0	Packet size
+4	0010	not sure...used in rpc 
+
+Payload
+-------
+Bytes	Value	Desc
+2	##	Payload size
+5	0's	unknown
+1	0x70	version number?
+7	0's	unknown
+21	0x06 0x83 0xF2 0xF8 
+	0xFF 0x00 0x00 0x00
+	0x00 0xE0 0x03 0x00
+	0x00 0x88 0xFF 0xFF
+	0xFF 0x36 0x04 0x00
+	0x00
+		unknown
+2	##	position of unknown
+2	##	length of unknown
+2	##	postion of username
+2	##	length of username
+2	##	postion of password
+2	##	length of password
+2	##	postion of app name
+2	##	length of app name
+2	##	postion of server name
+2	##	length of server name
+4	0's	unknown
+2	##	position of library name
+2	##	length of library name
+2	##	position of unknown
+2	##	length of unknown
+2	##	position of unknown
+2	##	length of unknown
+6	0x00 0x40 0x33 0x9a 
+	0x6b 0x50
+		unknown
+2	##	size of first (variable) part of payload (payload size - 48)
+1	0x30	?
+2	##	size of payload (same as first two bytes)
+2       0's	unknown
+n		user name
+n		password
+n		app name
+n		server name
+n		library name
+7	NTLMSSP	auth method?
+41	0x00 0x01 0x00 0x00 
+	0x00 0x06 0x82
+	(22 0x00's)
+	0x30 0x00 0x00 0x00
+	0x00 0x00 0x00 0x00
+	0x30 0x00 0x00 0x00
+		unknown
