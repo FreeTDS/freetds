@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: faq.html,v 1.2 2003-08-04 03:59:03 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.3 2003-08-05 01:26:36 jklowden Exp $ -->
 <head>
 <title>FreeTDS Frequently Asked Questions</title>
 </head>
@@ -38,7 +38,7 @@ This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
 since the last release, and to answer perennial questions (there are some).  </p>
 
-<div align=right><i>$Id: faq.html,v 1.2 2003-08-04 03:59:03 jklowden Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.3 2003-08-05 01:26:36 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -81,8 +81,6 @@ Implementation<ul>
 <li>
 <a href="#SYBASE">What's this SYBASE environment variable for?</a></li>
 
-<li>
-<a href="#other environment variables">What other environment variables are there?</a></li>
 
 <li>
 <a href="#RPM">How do I install the RPM?</a></li>
@@ -99,6 +97,9 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 
 <li>
 <a href="#How do I compile PHP 3 with FreeTDS">How do I compile PHP 3 with FreeTDS?</a></li>
+
+<li>
+<a href="#Which_API">How should I choose among <tt>db-lib</tt>, <tt>ct-lib</tt>, and <tt>ODBC</tt>?</a></li>
 
 <li>
 <a href="#Which Perl library should I use">Which Perl library should I use?</a></li>
@@ -400,23 +401,6 @@ directory.  For example, if <code>FreeTDS</code> is installed in
 <tt>/usr/local/freetds</tt> (meaning the libraries were installed in <tt>/usr/local/freetds/lib</tt>), then your <var>SYBASE</var> variable would be set to
 <tt>/usr/local/freetds</tt>.</p>
 
-<a name="other_environment_variables"></a>
-<h3>What other environment variables are there?</h3>
-
-<ul>
-<li>
-<var>TDSVER</var> will override the default TDS version, possible values are 4.2, 5.0,
-7.0 and 8.0</li>
-
-<li>
-<var>TDSDUMP</var> will specify a location for a log file for debugging. Beware that
-your database login passwords may be listed in this file.</li>
-
-<li>
-<var>TDSPORT</var> will override the default port for the server. Defaults are 1433
-for TDS 4.2/7.0 and 4000 for TDS 5.0</li>
-</ul>
-
 <a name="RPM"></a>
 <h3>How do I install the RPM?</h3>
 
@@ -468,6 +452,11 @@ After uncommenting this and setting it to a reasonable value (ie.
 /usr/local/freetds/interfaces),
 things started working.</p>
 </blockquote>
+
+<a name="Which_API"></a>
+<h3>How should I choose among <tt>db-lib</tt>, <tt>ct-lib</tt>, and <tt>ODBC</tt></h3>
+
+<p><tt>FreeTDS</tt> offers three client libraries and one internal one (<tt>libtds</tt>).  We generally encourage people to use one of the client libraries, and discourage writing to <tt>libtds</tt>, because the latter is evolving, more subject to change, less well documented, and harder to use.   In choosing which client API to write to, you might want to peruse our <a href="which_api.html">brief discussion</a>.  
 
 <a name="Which Perl library should I use"></a>
 <h3>Which Perl library should I use?</h3>
