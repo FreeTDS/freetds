@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.56 2002-08-27 06:43:10 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.57 2002-08-27 06:50:50 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -103,7 +103,9 @@ send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *var
 	const static char *message = "Syntax error during explicit conversion of %s value '%s' to a %s field.";
 	char buffer[4096];
 	
-	snprintf( buffer, sizeof(buffer), message, tds_prtype(from), varchar, tds_prtype(to) );
+	sprintf( buffer, message, tds_prtype(from), varchar, tds_prtype(to) );
+	
+	assert( strlen(buffer) < sizeof(buffer) );
 
 	tds_client_msg(tds->tds_ctx, tds, err, level, state, line, buffer); 
 }
