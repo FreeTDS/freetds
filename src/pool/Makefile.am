@@ -7,3 +7,5 @@ SERVERDIR		=	../server
 SERVERSOURCES	=	login.c query.c server.c
 INCLUDES	=	-I$(top_srcdir)/include -I .
 LDADD     =    ../tds/libtds.la ../server/libtdssrv.la
+EXTRA_DIST = BUGS
+
