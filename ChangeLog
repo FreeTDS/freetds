@@ -1,3 +1,9 @@
+Sun Nov 10 11:52:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/server/login.c src/tds/iconv.c src/tds/token.c:
+	- unicode2ascii and tds_get_string never terminate output strings
+	- string in row are not zero terminated. this safe a bit of unused 
+	  space
+
 Fri Nov  8 15:22:51 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt:
 	- Update status of dbcolutype() and BCP_SETL().

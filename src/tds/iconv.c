@@ -43,7 +43,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: iconv.c,v 1.29 2002-11-04 19:49:20 castellano Exp $";
+	"$Id: iconv.c,v 1.30 2002-11-10 10:55:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -103,7 +103,7 @@ TDSICONVINFO *iconv_info;
  * convert from ucs2 string to ascii.
  * @param in_string ucs2 string (not terminated) to convert to ascii
  * @param out_string buffer to store translated string. It should be large enough 
- *        to handle len + 1 bytes
+ *        to handle len bytes. string won't be zero terminated.
  * @param len length of input string in characters (2 byte)
  */
 char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out_string, int len)
@@ -150,7 +150,6 @@ size_t lquest_mark;
 	/* something went wrong fill remaining with zeroes 
 	 * avoiding returning garbage data */
 	if (out_bytes) memset(out_ptr,0,out_bytes);
-	out_string[len] = '\0';
 
      	return out_string;
 	}
@@ -163,7 +162,6 @@ size_t lquest_mark;
 		out_string[i] = 
 			in_string[i*2+1] ? '?' : in_string[i*2];
 	}
-	out_string[i]='\0';
 	return out_string;
 }
 

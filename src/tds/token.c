@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.99 2002-11-08 19:07:39 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.100 2002-11-10 10:55:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -705,11 +705,13 @@ char ci_flags[4];
 				break;
 		}
 
-		if (is_blob_type(curcol->column_type)) {
-			curcol->column_offset = info->row_size;
+		curcol->column_offset = info->row_size;
+		if (is_numeric_type(curcol->column_type)) {
+			info->row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDSBLOBINFO);
 		} else {
-			curcol->column_offset = info->row_size;
-			info->row_size += curcol->column_size + 1;
+			info->row_size += curcol->column_size;
 		}
 		remainder = info->row_size % TDS_ALIGN_SIZE; 
 		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
@@ -870,7 +872,7 @@ int             i;
 		} else if (is_blob_type(curcol->column_type)) {
 			info->row_size += sizeof(TDSBLOBINFO);
 		} else {
-			info->row_size += curcol->column_size + 1;
+			info->row_size += curcol->column_size;
 		}
 
 		/* actually this 4 should be a machine dependent #define */
@@ -968,6 +970,7 @@ int colnamelen;
 	** number of bytes...tds_get_string handles this */
 	colnamelen = tds_get_byte(tds);
 	tds_get_string(tds,curcol->column_name, colnamelen);
+	curcol->column_name[colnamelen] = 0;
 
 	return TDS_SUCCEED;
 }
@@ -1013,7 +1016,7 @@ int remainder;
 		} else if (is_blob_type(curcol->column_type)) {
 			info->row_size += sizeof(TDSBLOBINFO);
 		} else {
-			info->row_size += curcol->column_size + 1;
+			info->row_size += curcol->column_size;
 		}
 		
 		remainder = info->row_size % TDS_ALIGN_SIZE;
@@ -1119,7 +1122,7 @@ int remainder;
 		} else if (is_blob_type(curcol->column_type)) {
 			info->row_size += sizeof(TDSBLOBINFO);
 		} else {
-			info->row_size += curcol->column_size + 1;
+			info->row_size += curcol->column_size;
 		}
 
 		remainder = info->row_size % TDS_ALIGN_SIZE; 
@@ -1262,9 +1265,9 @@ TDSBLOBINFO *blob_info;
 
 		if (curcol->column_unicodedata) colsize /= 2;
 		if (blob_info->textvalue == NULL) {
-			blob_info->textvalue = malloc(colsize+1); /* FIXME +1 needed by tds_get_string */
+			blob_info->textvalue = malloc(colsize);
 		} else {
-			blob_info->textvalue = realloc(blob_info->textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
+			blob_info->textvalue = realloc(blob_info->textvalue,colsize);
 		}
 		if (blob_info->textvalue == NULL) {
 			return TDS_FAIL;
@@ -1486,13 +1489,13 @@ TDSENVINFO *env = tds->env;
 
 	/* fetch the new value */
 	size = tds_get_byte(tds);
-	newval = (char *) malloc((size+1)*2);
+	newval = (char *) malloc(size+1);
 	tds_get_string(tds,newval,size);
 	newval[size]='\0';
 
 	/* fetch the old value */
 	size = tds_get_byte(tds);
-	oldval = (char *) malloc((size+1)*2); /* may be a unicode string */
+	oldval = (char *) malloc(size+1);
 	tds_get_string(tds,oldval,size);
 	oldval[size]='\0';
 
@@ -2077,7 +2080,8 @@ struct namelist *freeptr = NULL;
       if ( namelen == 0)
          strcpy(curptr->name, "");
       else {
-		 tds_get_string(tds,curptr->name, namelen);
+			tds_get_string(tds,curptr->name, namelen);
+			curptr->name[namelen] = 0;
          remainder -= namelen;
       }
       curptr->namelen = namelen;
@@ -2243,6 +2247,7 @@ int colnamelen;
 		   /* under 7.0 lengths are number of characters not 
     		** number of bytes...tds_get_string handles this */
 		   tds_get_string(tds,curcol->column_name, colnamelen);
+			curcol->column_name[colnamelen] = 0;
            curcol->column_namelen = colnamelen;
         }
         else {
@@ -2261,7 +2266,7 @@ int colnamelen;
 		} else if (is_blob_type(curcol->column_type)) {
 			info->row_size += sizeof(TDSBLOBINFO);
 		} else {
-			info->row_size += curcol->column_size + 1;
+			info->row_size += curcol->column_size;
 		}
 		
 		remainder = info->row_size % TDS_ALIGN_SIZE;
