@@ -1,3 +1,7 @@
+Fri Sep 27 20:31:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/cspublic.h src/ctlib/cs.c:
+	- Implement cs_ctx_global().
+
 Fri Sep 27 13:20:53 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
 	- Use %ld for long argument to sprintf()

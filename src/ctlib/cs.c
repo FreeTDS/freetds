@@ -28,7 +28,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.21 2002-09-27 03:09:50 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.22 2002-09-28 00:33:31 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -138,7 +138,8 @@ char *msgstr;
 	va_end(ap);
 }
 
-CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
+CS_RETCODE
+cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 {
 TDSCONTEXT *tds_ctx;
 
@@ -153,6 +154,23 @@ TDSCONTEXT *tds_ctx;
 	}
 	return CS_SUCCEED;
 }
+
+CS_RETCODE
+cs_ctx_global(CS_INT version, CS_CONTEXT **ctx)
+{
+static CS_CONTEXT *global_cs_ctx = NULL;
+
+	if (global_cs_ctx != NULL) {
+		*ctx = global_cs_ctx;
+		return CS_SUCCEED;
+	}
+	if (cs_ctx_alloc(version, ctx) != CS_SUCCEED) {
+		return CS_FAIL;
+	}
+	global_cs_ctx = *ctx;
+	return CS_SUCCEED;
+}
+
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)
 {
 	if (ctx) {

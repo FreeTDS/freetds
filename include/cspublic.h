@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.12 2002-09-26 21:10:16 castellano Exp $";
+         "$Id: cspublic.h,v 1.13 2002-09-28 00:33:31 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -572,6 +572,7 @@ enum {
 
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen);
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx);
+CS_RETCODE cs_ctx_global(CS_INT version, CS_CONTEXT **ctx);
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx);
 CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
 CS_RETCODE cs_strbuild(CS_CONTEXT *ctx, CS_CHAR *buffer, CS_INT buflen, CS_INT *resultlen, CS_CHAR *text, CS_INT textlen, CS_CHAR *formats, CS_INT formatlen, ...);
