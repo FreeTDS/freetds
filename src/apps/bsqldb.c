@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.12 2004-11-09 09:54:39 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.13 2004-12-01 22:35:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -76,6 +76,7 @@ typedef struct _options
 		*database, 
 		*appname, 
 		 hostname[128], 
+		*colsep,
 		*input_filename, 
 		*output_filename, 
 		*error_filename; 
@@ -85,6 +86,7 @@ LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 
 /* global variables */
 OPTIONS options;
+static const char default_colsep[] = "  ";
 /* end global variables */
 
 
@@ -274,6 +276,13 @@ print_results(DBPROCESS *dbproc)
 	int i, c, ret;
 	int iresultset;
 	int ncomputeids = 0, ncols = 0;
+
+	/* 
+	 * If using default column separator, we want columns to line up vertically, 
+	 * 	so we use blank padding (STRINGBIND).  
+	 * For any other separator, we use no padding.
+	 */
+	const int bindtype = (0 == strcmp(options.colsep, default_colsep))? STRINGBIND : NTBSTRINGBIND;
 	
 	/* 
 	 * Set up each result set with dbresults()
@@ -381,7 +390,7 @@ print_results(DBPROCESS *dbproc)
 			if (width < strlen(metadata[c].name))
 				width = strlen(metadata[c].name);
 				
-			ret = set_format_string(&metadata[c], (c+1 < ncols)? "  " : "\n");
+			ret = set_format_string(&metadata[c], (c+1 < ncols)? options.colsep : "\n");
 			if (ret <= 0) {
 				fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
 				return;
@@ -401,7 +410,7 @@ print_results(DBPROCESS *dbproc)
 			data[c].buffer = calloc(1, metadata[c].size);
 			assert(data[c].buffer);
 
-			erc = dbbind(dbproc, c+1, STRINGBIND, -1, (BYTE *) data[c].buffer);
+			erc = dbbind(dbproc, c+1, bindtype, -1, (BYTE *) data[c].buffer);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
 				return;
@@ -458,7 +467,7 @@ print_results(DBPROCESS *dbproc)
 				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
 				assert(metacompute[i]->meta[c].name);
 					
-				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? "  " : "\n");
+				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? options.colsep : "\n");
 				if (ret <= 0) {
 					free(bynames);
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
@@ -476,7 +485,7 @@ print_results(DBPROCESS *dbproc)
 				assert(metacompute[i]->data[c].buffer);
 				
 				/* bind */
-				erc = dbaltbind(dbproc, i+1, c+1, STRINGBIND, -1, metacompute[i]->data[c].buffer);
+				erc = dbaltbind(dbproc, i+1, c+1, bindtype, -1, metacompute[i]->data[c].buffer);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbaltbind(), column %d failed\n", options.appname, __LINE__, c+1);
 					return;
@@ -666,14 +675,21 @@ set_format_string(struct METADATA * meta, const char separator[])
 	const char *size_and_width;
 	assert(meta);
 
-	/* right justify numbers, left justify strings */
-	size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
-	
-	width = get_printable_size(meta->type, meta->size);
-	if (width < strlen(meta->name))
-		width = strlen(meta->name);
+	if(0 == strcmp(options.colsep, default_colsep)) { 
+		/* right justify numbers, left justify strings */
+		size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
+		
+		width = get_printable_size(meta->type, meta->size);
+		if (width < strlen(meta->name))
+			width = strlen(meta->name);
 
-	ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
+		ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
+	} else {
+		/* For anything except the default two-space separator, don't justify the strings. */
+		ret = asprintf(&meta->format_string, "%%s%s", separator);
+	}
+	printf("%d long and %d strcmp\n", strlen(separator), strcmp(separator, "  "));
+	puts(meta->format_string);
 		       
 	return ret;
 }
@@ -688,6 +704,42 @@ usage(const char invoked_as[])
 			, invoked_as);
 }
 
+static void unescape(char arg[])
+{
+	char *p = arg;
+	char escaped = '1'; /* any digit will do for an initial value */
+	while ((p = strchr(p, '\\')) != NULL) {
+	
+		switch (p[1]) {
+		case '0':
+			/* FIXME we use strlen() of field/row terminators, which obviously won't work here */
+			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n", __LINE__);
+			escaped = '\0';
+			break;
+		case 't':
+			escaped = '\t';
+			break;
+		case 'r':
+			escaped = '\r';
+			break;
+		case 'n':
+			escaped = '\n';
+			break;
+		case '\\':
+			escaped = '\\';
+			break;
+		default:
+			break;
+		}
+			
+		/* Overwrite the backslash with the intended character, and shift everything down one */
+		if (!isdigit((unsigned char) escaped)) {
+			*p++ = escaped;
+			memmove(p, p+1, 1 + strlen(p+1));
+		}
+	}
+}
+
 LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
@@ -699,6 +751,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	assert(options && argv);
 	
 	options->appname = basename(argv[0]);
+	options->colsep = default_colsep; /* may be overridden by -t */
 	
 	login = dblogin();
 	
@@ -715,7 +768,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		DBSETLHOST(login, options->hostname);
 	}
 
-	while ((ch = getopt(argc, argv, "U:P:S:D:i:o:e:v")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:D:i:o:e:t:v")) != -1) {
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
@@ -737,6 +790,10 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			break;
 		case 'e':
 			options->error_filename = strdup(optarg);
+			break;
+		case 't':
+			options->colsep = strdup(optarg);
+			unescape(options->colsep);
 			break;
 		case 'v':
 			options->fverbose = 1;

@@ -1,3 +1,6 @@
+Wed Dec  1 17:34:40 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/bsqldb.c begin to support other column separators
+
 Wed Dec 01 14:10:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/odbc.c src/odbc/unittests/rebindpar.c:
 	* src/tds/Makefile.am src/tds/net.c src/tds/query.c:
