@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2002-09-07 22:46:01 $</date>
-		<releaseinfo>$Revision: 1.29 $</releaseinfo>
+		<date>$Date: 2002-09-08 03:37:48 $</date>
+		<releaseinfo>$Revision: 1.30 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -37,7 +37,7 @@
 		<title>What is <productname>FreeTDS</productname>?</title>
 
 		<para>
-<productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an OBDC library.  It allows many open source applications such as Perl and PHP (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
+<productname>FreeTDS</productname> is an open source (or free software if you prefer) programming library, a re-implementation of the Tabular Data Stream protocol.  It can be used in place of Sybase's <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> libraries.  It also includes an ODBC library.  It allows many open source applications such as Perl and PHP (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.   
 		</para>
 		<sect1 id="tdsprotocol">
 			<title>Background: The <acronym>TDS</> Protocol
@@ -201,7 +201,7 @@ You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or oth
 		<sect1>
 			<title>Status of this document</title>
 			<para>
-The document you are reading is version $Revision: 1.29 $, dated $Date: 2002-09-07 22:46:01 $.  The most recent version can be found on the <productname>FreeTDS</productname> 
+The document you are reading is version $Revision: 1.30 $, dated $Date: 2002-09-08 03:37:48 $.  The most recent version can be found on the <productname>FreeTDS</productname> 
 <ulink url="http://www.freetds.org/userguide/">web site</ulink>.  
 			</para>
 		</sect1>
@@ -976,7 +976,7 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<sect2><title><application>tsql</application></title>
 
 			<para>
-The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for toubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to if it's your dataserver that's not responding, or your configuration files that are messed up.  
+The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to if it's your dataserver that's not responding, or your configuration files that are messed up.  
 
 <cmdsynopsis label="Syntax synopsis for tsql">
   <command>tsql</command> 
@@ -1035,7 +1035,7 @@ For details on <application>tsql</application>, see the <application>tsql</appli
 			</sect2>
 			<sect2><title><application>Unit Tests</application></title>
 			<para>
-The source code directory of each <productname>FreeTDS</productname> library includes a <filename>unitests</> directory.  
+The source code directory of each <productname>FreeTDS</productname> library includes a <filename>unittests</> directory.  
 
 <screen>
 <prompt>$ </prompt><userinput>ls -d -1 src/*/unittests</userinput>
@@ -1145,7 +1145,7 @@ It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any
 		<sect1 id="domains">
 			<title>Domain Logins</title>
 			<para>
-As mentioned in the installation chapter, <productname>SQL Server</productname> includes the ablility to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
+As mentioned in the installation chapter, <productname>SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
 			</para>
 			<para>
 To use NTLM authentication, <productname>FreeTDS</productname> needs the support of an encryption library <productname>OpenSSL</productname>, and must be configured using the --with-ssl flag.
@@ -1653,7 +1653,7 @@ You can obtain the <productname>Python</productname> Sybase module <ulink url="h
 <prompt>$ </prompt><userinput>cd sybase-0.34</userinput>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
 <prompt>$ </prompt><userinput>export CFLAGS="-DHAVE_FREETDS"</userinput>
-<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBARY_PATH}</userinput>
+<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBRARY_PATH}</userinput>
 <prompt>$ </prompt><userinput>python setup.py install</userinput>
 </screen>
 Edit the example.py and fix the bottom stuff, freetds lacks the 110
@@ -1672,7 +1672,7 @@ symbols for version use 100
 First, build <productname>iODBC</productname> according to the documentation or install it via RPM, DEB or other package manager.
 			</para>
 			<para>
-Now build <productname>FreeTDS</productname> using the <parameter>--with-iodbc</parameter> flag to specify where <productname>FreeTDS</productname> can find the include files from <productname>iODBC</productname>.  For instance if <productname>iODBC</productname>'s header files are in <filename>/opt/libiodbc/include</filename> use <filename>/opt/libiobc</filename>.  By default the location will be <filename>/usr/local</filename>.
+Now build <productname>FreeTDS</productname> using the <parameter>--with-iodbc</parameter> flag to specify where <productname>FreeTDS</productname> can find the include files from <productname>iODBC</productname>.  For instance if <productname>iODBC</productname>'s header files are in <filename>/opt/libiodbc/include</filename> use <filename>/opt/libiodbc</filename>.  By default the location will be <filename>/usr/local</filename>.
 
 <screen>
 <prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds --with-iodbc=/usr/local</userinput>
@@ -2100,7 +2100,7 @@ It's important to convey your setup and configuration.
 		<sect1>
 			<title>What to include when asking for help</title>
 			<para>
-The best possible scenario is, you write a program similar to the ones in the unittest directories. It should be small and demonstrate the problem.  These are usually fixed in a jiffy.
+The best possible scenario is, you write a program similar to the ones in the unittests directories. It should be small and demonstrate the problem.  These are usually fixed in a jiffy.
 			</para>
 			<para>
 Moving down, Perl or PHP code provided it creates all the tables it needs and populates them will generally result in a quick fix.  A stand alone query that will run in <application>SQSH</application> also works well.
@@ -2173,7 +2173,7 @@ Any corrections or suggestions, be they typographical, grammatical, structural, 
 There is no independent reference manual to <productname>FreeTDS</productname>; the <acronym>API</> documents are the work of the server vendors.  Our intention is to use <productname>doxygen</productname>, which can extract documentation directly from comments in the source code.  If you'd like to participate in this effort, please join the mailing list to learn how to get started.  
 			</para>
 			<para>
-The <acronym>TDS</> protocol is partly documented, but the <acronym>API</> to <filename>tdslib</filename> is not.  
+The <acronym>TDS</> protocol is partly documented, but the <acronym>API</> to <filename>libtds</filename> is not.  
 			</para>
 		</sect2>
 		<sect2>
@@ -2427,7 +2427,7 @@ Database servers need to know what encoding standard to employ, too.  It's not o
 <acronym>ASCII</> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.  
 			</para>
 			<para>
-In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends the most prevelant <quote>8-bit <acronym>ASCII</></quote>,  <acronym>ISO-8859-1</>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO-8859-1</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.  
+In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends the most prevalent <quote>8-bit <acronym>ASCII</></quote>,  <acronym>ISO-8859-1</>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO-8859-1</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.  
 			</para>
 			<para>
 UCS-2 is the system employed by Microsoft NT-based systems.  Microsoft database servers store UCS-2 strings in <type>nchar</type> and <type>nvarchar</type> datatypes.  Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol around UCS-2: all character data are encoded according to UCS-2 on the wire.  
