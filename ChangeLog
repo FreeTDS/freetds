@@ -1,3 +1,10 @@
+Fri Jan 30 16:16:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/dblib/dblib.c:
+	* src/tds/write.c:
+	- some optimization in tds_put_string
+	- remove tds_put_bulk_data
+	- made tds_put_byte a macro
+
 Thu Jan 29 18:03:23 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/iconv.c:
 	- more names normalization

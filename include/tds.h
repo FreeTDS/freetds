@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.171 2004-01-29 17:03:15 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.172 2004-01-30 15:16:00 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1112,7 +1112,8 @@ int tds_put_string(TDSSOCKET * tds, const char *buf, int len);
 int tds_put_int(TDSSOCKET * tds, TDS_INT i);
 int tds_put_int8(TDSSOCKET * tds, TDS_INT8 i);
 int tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si);
-int tds_put_tinyint(TDSSOCKET * tds, TDS_TINYINT ti);
+/** Output a tinyint value */
+#define tds_put_tinyint(tds, ti) tds_put_byte(tds,ti)
 int tds_put_byte(TDSSOCKET * tds, unsigned char c);
 TDSRESULTINFO *tds_alloc_results(int num_cols);
 TDSCOMPUTEINFO **tds_alloc_compute_results(TDS_INT * num_comp_results, TDSCOMPUTEINFO ** ci, int num_cols, int by_cols);
@@ -1247,7 +1248,6 @@ int tds_get_conversion_type(int srctype, int colsize);
 extern const char tds_hex_digits[];
 
 /* write.c */
-int tds_put_bulk_data(TDSSOCKET * tds, const unsigned char *buf, TDS_INT bufsize);
 int tds_flush_packet(TDSSOCKET * tds);
 int tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize);
 int tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol);

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.114 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.115 2004-01-30 15:16:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2145,7 +2145,8 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		tds_put_int(tds, cmd->iodesc->total_txtlen);
 	}
 
-	tds_put_bulk_data(tds, buffer, buflen);
+	tds->out_flag = 0x07;
+	tds_put_n(tds, buffer, buflen);
 
 	return CS_SUCCEED;
 }

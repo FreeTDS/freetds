@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.59 2004-01-28 11:06:23 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.60 2004-01-30 15:16:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -116,6 +116,7 @@ tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 /**
  * Output a string to wire
  * automatic translate string to unicode if needed
+ * @return bytes written to wire
  * @param s   string to write
  * @param len length of string in characters, or -1 for null terminated
  */
@@ -125,7 +126,6 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	TDS_ENCODING *client, *server;
 	char outbuf[256], *poutbuf;
 	size_t inbytesleft, outbytesleft, bytes_out = 0;
-	int max_iconv_input;
 
 	client = &tds->iconvs[client2ucs2]->client_charset;
 	server = &tds->iconvs[client2ucs2]->server_charset;
@@ -147,26 +147,27 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 
 	assert(len >= 0);
 
-	if (!IS_TDS7_PLUS(tds))	/* valid test only if client and server share a character set.  */
-		return tds_put_n(tds, s, len);
-
-	max_iconv_input = sizeof(outbuf) * client->min_bytes_per_char / server->max_bytes_per_char;
+	/* valid test only if client and server share a character set. TODO conversions for Sybase */
+	if (!IS_TDS7_PLUS(tds))	{
+		tds_put_n(tds, s, len);
+		return len;
+	}
 
 	memset(&tds->iconvs[client2ucs2]->suppress, 0, sizeof(tds->iconvs[client2ucs2]->suppress));
-	while (len > 0) {
-		inbytesleft = (len > max_iconv_input) ? max_iconv_input : len;
-		len -= inbytesleft;
+	tds->iconvs[client2ucs2]->suppress.e2big = 1;
+	inbytesleft = len;
+	while (inbytesleft) {
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", (int) inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
-		tds->iconvs[client2ucs2]->suppress.einval = len > 0; /* EINVAL matters only on the last chunk. */
 		
 		if (-1 == tds_iconv(tds, tds->iconvs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
 		
-			if (errno == EINVAL  && tds->iconvs[client2ucs2]->suppress.einval ) {
-				tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string: tds_iconv() encountered partial sequence "
-							     "(anticipated).  %d bytes remain. Continuing.\n", 
-							     len + (int) inbytesleft);
+			if (errno == EINVAL) {
+				tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string: tds_iconv() encountered partial sequence. "
+							     "%d bytes remain.\n", (int) inbytesleft);
+				/* TODO return some sort or error ?? */
+				break;
 			} else {
 				/* It's not an incomplete multibyte sequence, or it IS, but we're not anticipating one. */
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: tds_put_string: "
@@ -181,7 +182,6 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 			}
 		}
 		
-		len += inbytesleft;
 		bytes_out += poutbuf - outbuf;
 		tds_put_n(tds, outbuf, poutbuf - outbuf);
 	}
@@ -253,12 +253,6 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 }
 
 int
-tds_put_tinyint(TDSSOCKET * tds, TDS_TINYINT ti)
-{
-	return tds_put_byte(tds, (unsigned char) ti);
-}
-
-int
 tds_put_byte(TDSSOCKET * tds, unsigned char c)
 {
 	if (tds->out_pos >= tds->env->block_size) {
@@ -269,8 +263,9 @@ tds_put_byte(TDSSOCKET * tds, unsigned char c)
 	return 0;
 }
 
-/** Write a column's data to the TDS bcp stream.  
- *  Data may be null.
+/**
+ * Write a column's data to the TDS bcp stream.  
+ * Data may be null.
  * \retval TDS_SUCCEED data written
  * \retval TDS_FAIL must not write null data non-null column
  * \remarks Most other write functions simply return zero.  
@@ -356,15 +351,9 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 }
 
 int
-tds_put_bulk_data(TDSSOCKET * tds, const unsigned char *buf, TDS_INT bufsize)
-{
-	tds->out_flag = 0x07;
-	return tds_put_n(tds, buf, bufsize);
-}
-
-int
 tds_init_write_buf(TDSSOCKET * tds)
 {
+	/* TODO needed ?? */
 	memset(tds->out_buf, '\0', tds->env->block_size);
 	tds->out_pos = 8;
 	return 0;

@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.162 2004-01-28 20:37:43 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.163 2004-01-30 15:16:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -5286,7 +5286,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 		return SUCCEED;
 	}
 
-	tds_put_bulk_data(dbproc->tds_socket, text, size);
+	tds_put_n(dbproc->tds_socket, text, size);
 	tds_flush_packet(dbproc->tds_socket);
 
 	if (dbsqlok(dbproc) == SUCCEED) {
@@ -5371,7 +5371,10 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 RETCODE
 dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 {
-	tds_put_bulk_data(dbproc->tds_socket, text, size);
+	/* TODO test dbproc value */
+	/* FIXME test wire state */
+	dbproc->tds_socket->out_flag = 0x07;
+	tds_put_n(dbproc->tds_socket, text, size);
 	dbproc->text_sent += size;
 
 	return SUCCEED;
