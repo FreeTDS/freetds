@@ -48,7 +48,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.7 2002-07-04 12:32:51 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.8 2002-07-05 13:06:42 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -56,6 +56,8 @@ static void *no_unused_var_warn[] = {software_version,
 int g_debug_lvl = 99;
 int g_append_mode = 0;
 static char *g_dump_filename;
+static int   write_dump = 0;      /* is TDS stream debug log turned on? */
+static FILE *dumpfile   = NULL;   /* file pointer for dump log          */
 
 void tds_set_parent(TDSSOCKET* tds, void* the_parent)
 {
@@ -81,12 +83,6 @@ int i;
 	}
 	return bytes;
 }
-
-static int   write_dump = 0;      /* is TDS stream debug log turned on? */
-static FILE *dumpfile   = NULL;   /* file pointer for dump log          */
-static pid_t pid;
-
-
 
 /* ============================== tdsdump_off() ==============================
  *
@@ -131,8 +127,6 @@ void tdsdump_on()
 int tdsdump_open(const char *filename)
 {
 int   result;   /* really should be a boolean, not an int */
-
-   pid = getpid();
 
    if (filename == NULL || filename[0]=='\0') {
       filename = "tdsdump.out";
@@ -190,14 +184,14 @@ int result;
  */
 void tdsdump_close()
 {
-   if (dumpfile!=NULL)
+   tdsdump_off();
+   if (dumpfile!=NULL && dumpfile != stdout && dumpfile != stderr)
    {
       fclose(dumpfile);
    }
    if (g_dump_filename) {
       free(g_dump_filename);
    }
-   tdsdump_off();
 } /* tdsdump_close()  */
 
 
@@ -295,7 +289,7 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
       va_start(ap, fmt);
       
    	 if (g_append_mode) {
-          fprintf(dumpfile, "pid: %d:", pid);
+          fprintf(dumpfile, "pid: %d:", (int)getpid() );
       }
       for(ptr = fmt; *ptr != '\0'; ptr++)
       {
@@ -331,7 +325,7 @@ void tdsdump_log(int debug_lvl, const char *fmt, ...)
                }
                case 'L': /* current local time */
                {
-                  char        buf[1024];
+                  char        buf[128];
                   struct tm  *tm;
                   time_t      t;
 
