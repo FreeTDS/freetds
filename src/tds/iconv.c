@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.63 2003-05-07 05:57:27 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.64 2003-05-07 09:57:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -57,7 +57,7 @@ static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
 static int tds_charset_name_compare(const char *name1, const char *name2);
-static int tds_iconv_info_init(TDSICONVINFO *iconv_info, const char *client_name, const char *server_name);
+static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name);
 
 /**
  * \ingroup libtds
@@ -86,9 +86,9 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 
 	TDS_ENCODING *client = &tds->iconv_info[client2ucs2].client_charset;
 	TDS_ENCODING *server = &tds->iconv_info[client2ucs2].server_charset;
-	
+
 #if !HAVE_ICONV
-	
+
 	strcpy(client->name, "ISO-8859-1");
 	strcpy(server->name, UCS_2LE);
 
@@ -100,7 +100,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	 * Client <-> UCS-2 (client2ucs2)
 	 */
 	tdsdump_log(TDS_DBG_FUNC, "iconv to convert client-side data to the \"%s\" character set\n", charset);
-	
+
 	fOK = tds_iconv_info_init(&tds->iconv_info[client2ucs2], charset, UCS_2LE);
 	if (!fOK)
 		return;
@@ -117,7 +117,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	/* 
 	 * Client <-> server single-byte charset
 	 * TODO: the server hasn't reported its charset yet, so this logic can't work here.  
-	 *  	 not sure what to do about that yet.  
+	 *       not sure what to do about that yet.  
 	 */
 	if (tds->env && tds->env->charset) {
 		name = tds_canonical_charset_name(tds->env->charset);
@@ -125,42 +125,41 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 		if (!fOK)
 			return;
 	}
-	
+
 	/* 
 	 * Ascii  <-> server meta data
 	 */
 	name = tds_canonical_charset_name("ASCII");
-	fOK = tds_iconv_info_init(&tds->iconv_info[ascii2server_metadata], name, 
-		(tds->connect_info->major_version >= 7)? UCS_2LE : name);
+	fOK = tds_iconv_info_init(&tds->iconv_info[ascii2server_metadata], name,
+				  (tds->connect_info->major_version >= 7) ? UCS_2LE : name);
 #endif
 }
 
 static int
-tds_iconv_info_init(TDSICONVINFO *iconv_info, const char *client_name, const char *server_name)
+tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name)
 {
 	TDS_ENCODING *client = &iconv_info->client_charset;
 	TDS_ENCODING *server = &iconv_info->server_charset;
-	int ratio;
-	
+
 	assert(client_name && server_name);
-	
+
 	SAFECPY(client->name, client_name);
-	ratio = bytes_per_char(client);
-	
-	iconv_info->to_wire = iconv_open(server->name, client->name);
-	if (ratio == 0 || iconv_info->to_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: ratio %d: cannot convert \"%s\"->\"%s\"\n", 
-			    ratio, client->name, server->name);
+	SAFECPY(server->name, server_name);
+
+	if (!bytes_per_char(client) || !bytes_per_char(server)) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 		return 0;
 	}
-		
-	SAFECPY(server->name, server_name);
-	ratio = bytes_per_char(server);
+
+	iconv_info->to_wire = iconv_open(server->name, client->name);
+	if (iconv_info->to_wire == (iconv_t) - 1) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
+		return 0;
+	}
 
 	iconv_info->from_wire = iconv_open(client->name, server->name);
-	if (ratio == 0 || iconv_info->from_wire == (iconv_t) - 1) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: ratio %d: cannot convert \"%s\"->\"%s\"\n", 
-			    ratio, server->name, client->name);
+	if (iconv_info->from_wire == (iconv_t) - 1) {
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 		return 0;
 	}
 
@@ -278,48 +277,49 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 	return output_size;
 #endif
 }
+
 /**
  * Read a data file, passing the data through iconv().
  * \return Count of bytes either not read, or read but not converted.  Returns zero on success.  
  */
-size_t 
-tds_iconv_fread(iconv_t cd, FILE *stream, size_t field_len, size_t term_len, char *outbuf, size_t *outbytesleft)
+size_t
+tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
 {
 	char buffer[16000];
 	ICONV_CONST char *ib;
 	size_t isize, nonreversible_conversions = 0;
-	
+
 	/*
 	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
-	 */ 
-	if (cd == (iconv_t) -1 || cd == NULL) {
+	 */
+	if (cd == (iconv_t) - 1 || cd == NULL) {
 		assert(field_len <= *outbytesleft);
 		if (1 != fread(outbuf, field_len, 1, stream)) {
 			return field_len + term_len;
 		}
-		
+
 		/* toss any terminator, set up next field */
 		if (term_len && 1 != fread(buffer, term_len, 1, stream)) {
 			return term_len;
 		}
-		
+
 		return 0;
 	}
-	
+
 	assert(HAVE_ICONV);
 #if HAVE_ICONV
-	isize = (sizeof(buffer) < field_len)? sizeof(buffer) : field_len;
-	
-	for (ib=buffer; isize && 1 == fread((char*)ib, isize, 1, stream); ) {
-		
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n"
-					, isize, field_len, *outbytesleft);
+	isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
+
+	for (ib = buffer; isize && 1 == fread((char *) ib, isize, 1, stream);) {
+
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n", isize, field_len,
+			    *outbytesleft);
 		field_len -= isize;
-		
+
 		nonreversible_conversions += iconv(cd, &ib, &isize, &outbuf, outbytesleft);
 
-		if (isize != 0) {	
-			switch(errno) {
+		if (isize != 0) {
+			switch (errno) {
 			case EINVAL:	/* incomplete multibyte sequence encountered in input */
 				memmove(buffer, buffer + sizeof(buffer) - isize, isize);
 				ib = buffer + isize;
@@ -335,7 +335,7 @@ tds_iconv_fread(iconv_t cd, FILE *stream, size_t field_len, size_t term_len, cha
 				break;
 			}
 		}
-		isize = (sizeof(buffer) < field_len)? sizeof(buffer) : field_len;
+		isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 	}
 
 	if (!feof(stream)) {
@@ -343,7 +343,6 @@ tds_iconv_fread(iconv_t cd, FILE *stream, size_t field_len, size_t term_len, cha
 			tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
 		}
 	}
-	
 #endif
 	return field_len + isize;
 }
@@ -519,11 +518,11 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
 		return charset_name;
 
 	for (i = 0; aliases[i].alias; ++i) {
-	
+
 		if (!reverse) {
 			if (0 == strcmp(charset_name, aliases[i].alias))
 				return aliases[i].name;
-		} else { /* look up first alias for canonical name */
+		} else {	/* look up first alias for canonical name */
 			if (0 == strcmp(charset_name, aliases[i].name))
 				return aliases[i].alias;
 		}
@@ -573,16 +572,16 @@ static int
 tds_charset_name_compare(const char *name1, const char *name2)
 {
 	const char *s1, *s2;
-	
-	assert (name1 && name2); 
-	
+
+	assert(name1 && name2);
+
 	s1 = tds_canonical_charset_name(name1);
 	s2 = tds_canonical_charset_name(name2);
-	
-	if (s1 && s2) 
+
+	if (s1 && s2)
 		return strcmp(s1, s2);
-		
-	return -1; /* not equal; also not accurate */
+
+	return -1;		/* not equal; also not accurate */
 }
 
 static char *
@@ -605,7 +604,7 @@ lcid2charset(int lcid)
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
-/* case 0x81a: *//* seem wrong in XP table TODO check */
+		/* case 0x81a: *//* seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
 		cp = "CP1250";
 		break;
@@ -671,7 +670,7 @@ lcid2charset(int lcid)
 	case 0x42d:
 	case 0x436:
 	case 0x438:
-/*case 0x439:  *//*??? Unicode only */
+		/*case 0x439:  *//*??? Unicode only */
 	case 0x43e:
 	case 0x440a:
 	case 0x441:

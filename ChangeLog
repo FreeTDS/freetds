@@ -1,3 +1,7 @@
+Wed May  7 11:57:15 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: reset current_statement after all rows fetched
+	* src/tds/iconv.c: fixed login, reindented
+
 Tue May  6 13:14:14 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in: start test for iconv names
 
