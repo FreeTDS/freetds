@@ -24,3 +24,5 @@
 #undef HAVE_INT64
 
 #undef HAVE_READLINE
+
+#undef HAVE_MALLOC_OPTIONS

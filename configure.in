@@ -158,6 +158,10 @@ AC_EGREP_CPP(yes,
  , AC_MSG_RESULT(no)
    AC_MSG_WARN([SQL Server 2000 "bigint" 8-byte integer will not work]))
 
+dnl ------------------------------------------------------------
+dnl Checks for library variables.
+dnl ------------------------------------------------------------
+AC_HAVE_MALLOC_OPTIONS
 
 dnl ------------------------------------------------------------
 dnl Compile time options

@@ -1,3 +1,7 @@
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -12,7 +16,7 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.6 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.7 2002-10-04 14:56:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -39,7 +43,7 @@ int main(int argc, char *argv[])
    long				numread;
    BOOL				readFirstImage;
 
-#ifdef __FreeBSD__
+#if HAVE_MALLOC_OPTIONS
    /*
     * Options for malloc   A- all warnings are fatal, J- init memory to 0xD0,
     * R- always move memory block on a realloc.

@@ -1,3 +1,22 @@
+Fri Oct  4 10:54:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* acconfig.h acinclude.m4 configure.in
+	  src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c
+	  src/dblib/unittests/t0003.c src/dblib/unittests/t0004.c
+	  src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c
+	  src/dblib/unittests/t0007.c src/dblib/unittests/t0008.c
+	  src/dblib/unittests/t0009.c src/dblib/unittests/t0010.c
+	  src/dblib/unittests/t0011.c src/dblib/unittests/t0012.c
+	  src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c
+	  src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c
+	  src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c
+	  src/dblib/unittests/t0019.c src/dblib/unittests/t0020.c
+	  src/dblib/unittests/t0021.c src/dblib/unittests/t0022.c:
+	- Add autoconf test for presence of malloc_options
+	- Include config.h from all dblib unit tests
+	- Use HAVE_MALLOC_OPTIONS to determine whether to set
+	  malloc_options in dblib unit tests, instead of
+	  checking __FreeBSD__
+
 Thu Oct  3 15:06:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/odbc/odbc_util.c src/odbc/odbc_util.h
 	  src/odbc/unittests/common.c src/odbc/unittests/common.h

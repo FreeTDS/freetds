@@ -173,7 +173,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.9 2002-09-30 09:49:49 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.10 2002-10-04 14:56:53 castellano Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -314,3 +314,17 @@ fi
 CFLAGS=$ac_save_CFLAGS
 ])
 
+AC_DEFUN(AC_HAVE_MALLOC_OPTIONS,
+ [AC_CACHE_CHECK([whether malloc_options variable is present],
+   ac_cv_have_malloc_options,
+   [AC_TRY_COMPILE([
+#include <stdlib.h>
+      ],[
+extern char *malloc_options;
+malloc_options = "AJR";
+      ],
+     ac_cv_have_malloc_options=yes,
+     ac_cv_have_malloc_options=no)])
+  if test $ac_cv_have_malloc_options = yes; then
+   AC_DEFINE(HAVE_MALLOC_OPTIONS)
+  fi])

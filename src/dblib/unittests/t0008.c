@@ -1,3 +1,7 @@
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -13,7 +17,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0008.c,v 1.4 2002-10-03 18:46:08 castellano Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.5 2002-10-04 14:56:54 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -30,7 +34,7 @@ main(int argc, char **argv)
    DBINT       testint;
    DBINT       last_read = -1;
 
-#ifdef __FreeBSD__
+#if HAVE_MALLOC_OPTIONS
    /*
     * Options for malloc   A- all warnings are fatal, J- init memory to 0xD0,
     * R- always move memory block on a realloc.
