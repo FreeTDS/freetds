@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.20 2002-09-28 12:53:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.21 2002-09-30 14:41:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -225,9 +225,13 @@ int id_len, query_len;
 		tds_put_int(tds,len*2);
 		tds_put_int(tds,len*2);
 		for (i=1;i<=n;++i) {
-			char buf[24];
-			sprintf(buf,"%s@P%d varchar(80)",(i==1?"":","),i);
+			char *buf;
+			if (asprintf(&buf, "%s@P%d varchar(80)",
+					(i == 1 ? "" : ","), i) < 0) {
+				return TDS_FAIL;
+			}
 			tds_put_string(tds,buf,-1);
+			free(buf);
 		}
 	
 		/* string with sql statement */
@@ -240,11 +244,14 @@ int id_len, query_len;
 		tds_put_int(tds,len*2);
 		s = query;
 		for(i=1;i<=n;++i) {
-			char buf[24];
+			char *buf;
 			e = tds_next_placeholders(s);
 			tds_put_string(tds,s,e?e-s:strlen(s));
-			sprintf(buf,"@P%d",i);
+			if (asprintf(&buf, "@P%d", i) < 0) {
+				return TDS_FAIL;
+			}
 			tds_put_string(tds,buf,-1);
+			free(buf);
 			if (!e) break;
 			s = e+1;
 		}

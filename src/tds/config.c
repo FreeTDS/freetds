@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.30 2002-09-27 03:09:54 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.31 2002-09-30 14:41:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -74,7 +74,7 @@ static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login );
 
 extern int g_append_mode;
 
-static char interf_file[MAXPATH];
+static char *interf_file = NULL;
 
 /*
 ** tds_get_config() will fill the tds config structure based on configuration 
@@ -168,7 +168,7 @@ tds_read_conf_file(char *server, TDSCONFIGINFO *config)
 char  *home, *path;
 int found = 0; 
 
-	if (interf_file[0]!='\0') {
+	if (interf_file) {
 		found = tds_try_conf_file(interf_file,"set programmatically", server, config);
 	}
 
@@ -184,9 +184,9 @@ int found = 0;
 		/* FIXME use getpwent for security */
 		home = getenv("HOME");
 		if (home!=NULL && home[0]!='\0') {
-			/* FIXME check buffer */
-			path = malloc(strlen(home) + 14 + 1); /* strlen("/.freetds.conf")=14 */
-			sprintf(path,"%s/.freetds.conf",home);
+			if (asprintf(&path,"%s/.freetds.conf",home) < 0) {
+				return 0;
+			}
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, config);
 			free(path);
 		}
@@ -474,15 +474,15 @@ char *s;
 static void tds_config_env_tdsdump(TDSCONFIGINFO *config)
 {
 char *s;
-char path[255];
+char *path;
 pid_t pid=0;
 
         if ((s=getenv("TDSDUMP"))) {
                 if (!strlen(s)) {
                         pid = getpid();
-                        sprintf(path,"/tmp/freetds.log.%d",pid);
 			if (config->dump_file) free(config->dump_file);
-			config->dump_file = strdup(path);
+                        asprintf(&path, "/tmp/freetds.log.%d", pid);
+			config->dump_file = path;
                 } else {
 			if (config->dump_file) free(config->dump_file);
 			config->dump_file = strdup(s);
@@ -552,12 +552,24 @@ static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config)
 		return;
 	}
 }
-int set_interfaces_file_loc(char *interf)
-{
-	if (strlen(interf)>=MAXPATH) return 0;
 
-	strcpy(interf_file,interf);
-	return 1; /* SUCCEED */
+int
+set_interfaces_file_loc(char *interf)
+{
+	/* Free it if already set */
+	if (interf_file != NULL) {
+		free(interf_file);
+		interf_file = NULL;
+	}
+	/* If no filename passed, leave it NULL */
+	if ((interf == NULL) || (interf[0] == '\0')) {
+		return TDS_SUCCEED;
+	}
+	/* Set to new value */
+	if ((interf_file = strdup(interf)) == NULL) {
+		return TDS_FAIL;
+	}
+	return TDS_SUCCEED;
 }
 
 /* ============================== lookup_host() ==============================
@@ -813,7 +825,7 @@ int get_server_info(
 	/*
 	* Look for the server in the interf_file iff interf_file has been set.
 	*/
-	if (ip_addr[0]=='\0' && interf_file[0]!='\0') {
+	if (ip_addr[0]=='\0' && interf_file) {
                 tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in interf_file %s.\n",interf_file);
                 search_interface_file("", interf_file, server, ip_addr,
                 ip_port, tds_ver);

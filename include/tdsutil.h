@@ -37,11 +37,9 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.7 2002-09-16 19:47:58 castellano Exp $";
+"$Id: tdsutil.h,v 1.8 2002-09-30 14:41:51 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
-
-#define MAXPATH 256
 
 TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
 unsigned char tds_get_byte(TDSSOCKET *tds);

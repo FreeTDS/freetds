@@ -33,7 +33,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.49 2002-09-29 20:49:43 vorlon Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.50 2002-09-30 14:41:51 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -128,7 +128,7 @@ int retval;
 time_t start, now;
 TDSCONFIGINFO *config;
 /* 13 + max string of 32bit int, 30 should cover it */
-char query[30];
+char *query;
 int connect_timeout = 0;
 TDSLOCINFO *locale = NULL;
 
@@ -254,10 +254,12 @@ TDSLOCINFO *locale = NULL;
 		}
 	} else {
         if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) <0) {
-		char message[128];
-		sprintf(message, "src/tds/login.c: tds_connect: %s:%d",
-			inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-		perror(message);
+		char *message;
+		if (asprintf(&message, "src/tds/login.c: tds_connect: %s:%d",
+				inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
+			perror(message);
+			free(message);
+		}
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
 			"Server is unavailable or does not exist.");
 		tds_free_config(config);
@@ -283,11 +285,14 @@ TDSLOCINFO *locale = NULL;
 		return TDS_FAIL;
 	}
 	if (tds && config->text_size) {
-		sprintf(query,"set textsize %d", config->text_size);
-   		retval = tds_submit_query(tds,query);
-   		if (retval == TDS_SUCCEED) {
-   			while (tds_process_result_tokens(tds)==TDS_SUCCEED);
-   		}
+		if (asprintf(&query,"set textsize %d", config->text_size) >= 0) {
+   			retval = tds_submit_query(tds, query);
+			free(query);
+   			if (retval == TDS_SUCCEED) {
+   				while (tds_process_result_tokens(tds)==TDS_SUCCEED)
+					;
+   			}
+		}
 	}
 
 	tds->config = NULL;
@@ -353,7 +358,8 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    unsigned char program_version[4];
    
    int rc;
-   char blockstr[10], passwdstr[255];
+   char *passwdstr;
+   char *blockstr;
    
    if (IS_TDS42(tds)) {
       memcpy(protocol_version,"\004\002\000\000",4);
@@ -401,13 +407,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       rc|=tds_put_login_string(tds,config->password,255);
    } else {
 	 if(config->password == NULL) {
-		sprintf(passwdstr, "%c%c%s", 0, 0, "");
-      	rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
+		asprintf(&passwdstr, "%c%c%s", 0, 0, "");
+      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
+		free(passwdstr);
 	 } else {
-      	sprintf(passwdstr,"%c%c%s",0,
+      		asprintf(&passwdstr, "%c%c%s",0,
 			(unsigned char)strlen(config->password),
 			config->password);
-      	rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(config->password)+2);
+      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(config->password)+2);
+		free(passwdstr);
 	 }
    }
    
@@ -434,8 +442,9 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    rc|=tds_put_n(tds,magic6,10);
    rc|=tds_put_login_string(tds,config->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
    rc|=tds_put_byte(tds,magic7);
-   sprintf(blockstr,"%d",config->block_size);
+   asprintf(&blockstr,"%d",config->block_size);
    rc|=tds_put_login_string(tds,blockstr,6); /* network packet size */
+   free(blockstr);
    if (IS_TDS42(tds)) {
       rc|=tds_put_n(tds,magic42,8);
    } else if (IS_TDS46(tds)) {
