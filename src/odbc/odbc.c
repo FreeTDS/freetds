@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.295 2004-02-09 16:01:35 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.296 2004-02-10 09:32:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1342,22 +1342,9 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	/* cbColNameMax can be 0 (to retrieve name length) */
 	if (szColName && cbColNameMax) {
 		/* straight copy column name up to cbColNameMax */
-		/* TODO use odbc_set_string */
-		cplen = strlen(drec->sql_desc_name);
-		if (cplen >= cbColNameMax) {
-			cplen = cbColNameMax - 1;
+		result = odbc_set_string(szColName, cbColNameMax, pcbColName, drec->sql_desc_name, -1);
+		if (result == SQL_SUCCESS_WITH_INFO)
 			odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
-			result = SQL_SUCCESS_WITH_INFO;
-		}
-		strncpy((char *) szColName, drec->sql_desc_name, cplen);
-		szColName[cplen] = '\0';
-	}
-	if (pcbColName) {
-		/*
-		 * return column name length (without terminator)
-		 * as specification return full length, not copied length
-		 */
-		*pcbColName = strlen(drec->sql_desc_name);
 	}
 	if (pfSqlType) {
 		/* TODO sure ? check documentation for date and intervals */

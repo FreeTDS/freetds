@@ -1,3 +1,6 @@
+Tue Feb 10 10:34:02 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: remove small TODO
+
 Mon Feb  9 17:52:13 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* include/sybdb.h
 	* src/dblib/bcp.c src/dblib/dblib.c
