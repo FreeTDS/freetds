@@ -1,3 +1,27 @@
+Fri Sep 20 10:37:07 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/token.c:
+	- Only invoke the client error handler with SYBESMSG per the conditions
+	  specified in Sybase documentation.  Do this regardless of whether
+	  there was a server message handler installed.
+	* src/dblib/dbutil.c:
+	- Handle INT_EXIT and INT_CANCEL returns from client error handlers
+	  appropriately.  Skeletal handling of INT_TIMEOUT and INT_CONTINUE. 
+	* include/sybdb.h:
+	- Define SYBECOFL for conversion overflows.
+	* src/dblib/dblib.c include/dblib.h:
+	- Define convenience function _dblib_client_msg() and use it to
+	  handle some conversion overflows.
+	* src/dblib/unittests/common.c:
+	- Don't exit on conversion overflows if dbproc is NULL.  
+	- Print more verbose information in the error handler.
+	* src/dblib/bcp.c:
+	- Use _dblib_client_msg() to call error handler.
+	* src/tds/convert.c:
+	- Handle conversion errors more appropriately.  The fake_socket
+	  kludge isn't needed because we have an appropriate context and
+	  don't need a socket (client-side conversions always take place
+	  outside the scope of any particular db connection).
+
 Fri Sep 20 10:14:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- support autocommit in Sybase
