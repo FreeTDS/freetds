@@ -38,11 +38,11 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.17 2003-01-03 14:37:20 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.18 2003-01-03 18:28:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
-odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
+odbc_set_stmt_query(TDS_STMT *stmt, const char *sql, int sql_len)
 {
 	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);
@@ -68,7 +68,7 @@ odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)
 
 
 int
-odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len)
+odbc_set_stmt_prepared_query(TDS_STMT *stmt, const char *sql, int sql_len)
 {
 	if (sql_len == SQL_NTS)
 		sql_len = strlen(sql);

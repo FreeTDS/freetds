@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.1 2003-01-03 14:37:22 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.2 2003-01-03 18:28:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ODBCERR(s2,s3,msg) { msg, s2, s3 }
@@ -48,7 +48,13 @@ static const struct _sql_error_struct odbc_errs[] = {
 	ODBCERR("S1001", "HY001", "Memory allocation error"),
 	/* TODO find best errors for ODBC version 2 */
 	ODBCERR("S1000", "IM007", "No data source or driver specified"),
-	ODBCERR("S1000", "08001", "Client unable to establish connection")
+	ODBCERR("S1000", "08001", "Client unable to establish connection"),
+	ODBCERR("S1002", "07009", "Invalid index"),
+	ODBCERR("S1003", "HY004", "Invalid data type"),
+	ODBCERR("S1090", "HY090", "Invalid buffer length" ),
+	ODBCERR("01004", "01004", "Data truncation"),
+	ODBCERR("S1010", "07005", "No result available"),
+	ODBCERR("S1092", "HY092", "Invalid option")
 };
 
 void

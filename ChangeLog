@@ -1,3 +1,8 @@
+Fri Jan  3 19:27:54 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c:
+	- improve error support
+
 Fri Jan  3 15:35:45 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/Makefile.am src/odbc/odbc.c:
 	* src/odbc/odbc_util.c src/odbc/error.c(added):

@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.17 2003-01-03 14:37:15 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.18 2003-01-03 18:28:40 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
@@ -65,7 +65,13 @@ enum _sql_error_types {
 	ODBCERR_NOTIMPLEMENTED, 
 	ODBCERR_MEMORY,
 	ODBCERR_NODSN,
-	ODBCERR_CONNECT
+	ODBCERR_CONNECT,
+	ODBCERR_INVALIDINDEX,
+	ODBCERR_INVALIDTYPE,
+	ODBCERR_INVALIDBUFFERLEN,
+	ODBCERR_DATATRUNCATION,
+	ODBCERR_NORESULT,
+	ODBCERR_INVALIDOPTION
 };
 
 /** reset errors */

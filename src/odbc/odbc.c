@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.110 2003-01-03 14:54:45 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.111 2003-01-03 18:28:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -420,7 +420,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 	INIT_HENV;
 	switch (Attribute) {
 	case SQL_ATTR_ODBC_VERSION:
-		switch ((SQLINTEGER)Value) {
+		switch ((SQLINTEGER) Value) {
 		case SQL_OV_ODBC3:
 			env->odbc_ver = 3;
 			return SQL_SUCCESS;
@@ -444,8 +444,10 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 
 	INIT_HSTMT;
 
-	if (ipar == 0)
+	if (ipar == 0) {
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, NULL);
 		return SQL_ERROR;
+	}
 
 	/* find available item in list */
 	cur = odbc_find_param(stmt, ipar);
@@ -469,8 +471,10 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 	cur->param_bindtype = fCType;
 	if (fCType == SQL_C_DEFAULT) {
 		cur->param_bindtype = sql_to_c_type_default(fSqlType);
-		if (cur->param_bindtype == 0)
+		if (cur->param_bindtype == 0) {
+			odbc_errs_add(&stmt->errs, ODBCERR_INVALIDTYPE, NULL);
 			return SQL_ERROR;
+		}
 	} else {
 		cur->param_bindtype = fCType;
 	}
@@ -509,7 +513,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	INIT_HENV;
 
-	dbc = (TDS_DBC*) malloc(sizeof(TDS_DBC));
+	dbc = (TDS_DBC *) malloc(sizeof(TDS_DBC));
 	if (!dbc) {
 		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
@@ -517,11 +521,16 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	memset(dbc, '\0', sizeof(TDS_DBC));
 	dbc->henv = env;
-	dbc->tds_login = (void *) tds_alloc_login();
-	*phdbc = (SQLHDBC) dbc;
+	dbc->tds_login = tds_alloc_login();
+	if (!dbc->tds_login) {
+		free(dbc);
+		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
+		return SQL_ERROR;
+	}
 	/* spinellia@acm.org
 	 * after login is enabled autocommit */
 	dbc->autocommit_state = 1;
+	*phdbc = (SQLHDBC) dbc;
 
 	return SQL_SUCCESS;
 }
@@ -593,7 +602,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 SQLRETURN SQL_API
 SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
-	odbc_errs_reset(&((TDS_DBC *) hdbc)->errs);
+	INIT_HDBC;
 	return _SQLAllocStmt(hdbc, phstmt);
 }
 
@@ -604,8 +613,10 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	struct _sql_bind_info *cur, *prev = NULL, *newitem;
 
 	INIT_HSTMT;
-	if (icol == 0)
+	if (icol <= 0) {
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, NULL);
 		return SQL_ERROR;
+	}
 
 	/* find available item in list */
 	cur = stmt->bind_head;
@@ -650,6 +661,7 @@ SQLCancel(SQLHSTMT hstmt)
 	INIT_HSTMT;
 	tds = stmt->hdbc->tds_socket;
 
+	/* TODO this can fail... */
 	tds_send_cancel(tds);
 	tds_process_cancel(tds);
 
@@ -679,6 +691,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		DSN = "DEFAULT";
 
 	if (!odbc_get_dsn_info(DSN, connect_info)) {
+		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Error getting DSN information");
 		return SQL_ERROR;
 	}
@@ -694,12 +707,18 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		tds_dstr_copy(&connect_info->password, szAuthStr);
 
 	/* DO IT */
-	if ((nRetVal = do_connect(hdbc, connect_info)) != SQL_SUCCESS)
+	if ((nRetVal = do_connect(hdbc, connect_info)) != SQL_SUCCESS) {
+		tds_free_connect(connect_info);
 		return nRetVal;
+	}
 
 	/* database */
-	if (!tds_dstr_isempty(&connect_info->database))
-		return change_database(dbc, connect_info->database);
+	if (!tds_dstr_isempty(&connect_info->database)) {
+		nRetVal = change_database(dbc, connect_info->database);
+		tds_free_connect(connect_info);
+		return nRetVal;
+	}
+
 
 	return SQL_SUCCESS;
 }
@@ -710,19 +729,19 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 {
 	TDSSOCKET *tds;
 	TDSCOLINFO *colinfo;
-	int cplen, namelen;
+	int cplen;
+	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HSTMT;
 
 	tds = stmt->hdbc->tds_socket;
-	if (icol == 0 || icol > tds->res_info->num_cols) {
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "SQLDescribeCol: Column out of range");
+	if (icol <= 0 || icol > tds->res_info->num_cols) {
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
 		return SQL_ERROR;
 	}
 	/* check name length */
 	if (cbColNameMax < 0) {
-		/* FIXME HY090 */
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "Invalid buffer length");
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDBUFFERLEN, NULL);
 		return SQL_ERROR;
 	}
 	colinfo = tds->res_info->columns[icol - 1];
@@ -730,11 +749,14 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	/* cbColNameMax can be 0 (to retrieve name length) */
 	if (szColName && cbColNameMax) {
 		/* straight copy column name up to cbColNameMax */
-		namelen = strlen(colinfo->column_name);
-		cplen = namelen >= cbColNameMax ? cbColNameMax - 1 : namelen;
+		cplen = strlen(colinfo->column_name);
+		if (cplen >= cbColNameMax) {
+			cplen = cbColNameMax - 1;
+			odbc_errs_add(&stmt->errs, ODBCERR_DATATRUNCATION, NULL);
+			result = SQL_SUCCESS_WITH_INFO;
+		}
 		strncpy(szColName, colinfo->column_name, cplen);
 		szColName[cplen] = '\0';
-		/* fprintf(stderr,"\nsetting column name to %s %s\n", colinfo->column_name, szColName); */
 	}
 	if (pcbColName) {
 		/* return column name length (without terminator) 
@@ -762,7 +784,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	if (pfNullable) {
 		*pfNullable = is_nullable_type(colinfo->column_type) ? 1 : 0;
 	}
-	return SQL_SUCCESS;
+	return result;
 }
 
 SQLRETURN SQL_API
@@ -773,6 +795,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	TDSCOLINFO *colinfo;
 	int cplen, len = 0;
 	TDS_DBC *dbc;
+	SQLRETURN result = SQL_SUCCESS;
 
 	INIT_HSTMT;
 
@@ -792,12 +815,12 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	}
 
 	if (!tds->res_info) {
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "SQLDescribeCol: Query Returned No Result Set!");
+		odbc_errs_add(&stmt->errs, ODBCERR_NORESULT, NULL);
 		return SQL_ERROR;
 	}
 
 	if (icol == 0 || icol > tds->res_info->num_cols) {
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "SQLDescribeCol: Column out of range");
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
 		return SQL_ERROR;
 	}
 	colinfo = tds->res_info->columns[icol - 1];
@@ -807,7 +830,12 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_COLUMN_NAME:
 	case SQL_COLUMN_LABEL:
 		len = strlen(colinfo->column_name);
-		cplen = len > (cbDescMax - 1) ? (cbDescMax - 1) : len;
+		cplen = len;
+		if (len >= cbDescMax) {
+			cplen = cbDescMax - 1;
+			odbc_errs_add(&stmt->errs, ODBCERR_DATATRUNCATION, NULL);
+			result = SQL_SUCCESS_WITH_INFO;
+		}
 		tdsdump_log(TDS_DBG_INFO2, "SQLColAttributes: copying %d bytes, len = %d, cbDescMax = %d\n", cplen, len, cbDescMax);
 		strncpy(rgbDesc, colinfo->column_name, cplen);
 		((char *) rgbDesc)[cplen] = '\0';
@@ -906,7 +934,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttributes: fDescType %d not catered for...\n");
 		break;
 	}
-	return SQL_SUCCESS;
+	return result;
 }
 
 
@@ -1018,7 +1046,7 @@ myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg)
 }
 
 static SQLRETURN SQL_API
-_SQLExecute(TDS_STMT *stmt)
+_SQLExecute(TDS_STMT * stmt)
 {
 	int ret;
 	TDSSOCKET *tds = stmt->hdbc->tds_socket;
@@ -1344,7 +1372,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 	/* check if option correct */
 	if (fOption != SQL_DROP && fOption != SQL_CLOSE && fOption != SQL_UNBIND && fOption != SQL_RESET_PARAMS) {
 		tdsdump_log(TDS_DBG_ERROR, "odbc:SQLFreeStmt: Unknown option %d\n", fOption);
-		/* FIXME: error HY092 */
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
 
@@ -1418,6 +1446,7 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 	if (BufferLength == SQL_IS_UINTEGER) {
 		return SQLGetStmtOption(hstmt, Attribute, Value);
 	} else {
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
 }
@@ -1447,14 +1476,6 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		 * ** generating queries such as 'drop table' */
 		*pccol = 0;
 		return SQL_SUCCESS;
-/*
-       if (tds && tds->msg_info && tds->msg_info->message)
-          odbc_LogError (tds->msg_info->message);
-           else
-          odbc_LogError ("SQLNumResultCols: resinfo is NULL");
-
-       return SQL_ERROR;
-*/
 	}
 
 	*pccol = resinfo->num_cols;
@@ -1693,7 +1714,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	locale = context->locale;
 	resinfo = tds->res_info;
 	if (icol == 0 || icol > tds->res_info->num_cols) {
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "SQLGetData: Column out of range");
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDINDEX, "Column out of range");
 		return SQL_ERROR;
 	}
 	colinfo = resinfo->columns[icol - 1];
@@ -1752,6 +1773,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	case SQL_API_ODBC3_ALL_FUNCTIONS:
 		/* This 1.0-2.0 ODBC driver, so driver managet will
 		 * map ODBC 3 functions to ODBC 2 functions */
+		/* TODO now is a 3.0 driver ... */
 		return SQL_ERROR;
 #endif
 
@@ -1955,10 +1977,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		*uiInfoValue = SQL_FILE_NOT_SUPPORTED;
 		break;
 	case SQL_ALTER_TABLE:
-		*uiInfoValue = SQL_AT_ADD_COLUMN
-			| SQL_AT_ADD_COLUMN_DEFAULT
-			| SQL_AT_ADD_COLUMN_SINGLE
-			| SQL_AT_ADD_CONSTRAINT
+		*uiInfoValue = SQL_AT_ADD_COLUMN | SQL_AT_ADD_COLUMN_DEFAULT
+			| SQL_AT_ADD_COLUMN_SINGLE | SQL_AT_ADD_CONSTRAINT
 			| SQL_AT_ADD_TABLE_CONSTRAINT | SQL_AT_CONSTRAINT_NAME_DEFINITION | SQL_AT_DROP_COLUMN_RESTRICT;
 		break;
 	case SQL_DATA_SOURCE_READ_ONLY:
@@ -1969,8 +1989,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 
 		/* TODO support for other options */
 	default:
-		/* error HYC00 */
 		tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetInfo: " "info option %d not supported\n", fInfoType);
+		odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "Option not supported");
 		return SQL_ERROR;
 	}
 
@@ -1981,7 +2001,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 			strncpy_null((char *) rgbInfoValue, p, (size_t) cbInfoValueMax);
 
 			if (len >= cbInfoValueMax) {
-				odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "The buffer was too small for the result.");
+				odbc_errs_add(&dbc->errs, ODBCERR_DATATRUNCATION, NULL);
 				return (SQL_SUCCESS_WITH_INFO);
 			}
 		}
@@ -2007,7 +2027,7 @@ SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 		break;
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetStmtOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "Statement option not implemented");
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
 
@@ -2163,6 +2183,7 @@ SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		dbc->tds_socket->connect_timeout = u_value;
 		break; */
 	}
+	odbc_errs_add(&dbc->errs, ODBCERR_INVALIDOPTION, NULL);
 	return SQL_ERROR;
 }
 
@@ -2177,7 +2198,7 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 		return SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) vParam, 0);
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetConnectOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Statement option not implemented");
+		odbc_errs_add(&dbc->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
 	return SQL_SUCCESS;
@@ -2198,7 +2219,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 		/* fall through */
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "odbc:SQLSetStmtOption: Statement option %d not implemented\n", fOption);
-		odbc_errs_add(&stmt->errs, ODBCERR_GENERIC, "Statement option not implemented");
+		odbc_errs_add(&stmt->errs, ODBCERR_INVALIDOPTION, NULL);
 		return SQL_ERROR;
 	}
 
