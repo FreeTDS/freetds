@@ -1,0 +1,347 @@
+# API status document
+#
+# This tab-delimited file is a database of the "readiness" of the various
+# APIs.  Please feel free to modify it if you notice something is missing or 
+# wrong or incomplete.  It is the our intention to have a cgi script on 
+# freetds.org that renders this database as HTML.  
+#
+# Format rules
+#
+# 1.	Fields are delimited with one or more tab characters.  
+#	Multiple consecutive tabs make hand editing easier; they 
+#	do not delimit null fields.
+# 2.	The first column must be one of: 'odbc', 'dblib', 'ctlib'.
+#	Lines starting with *anything* else are ignored.  
+# 3.	Field definitions are: 
+#	Library:	odbc, dblib, or ctlib
+#	Category:	chunk of api functionality (bcp/cursors/etc.)
+#	Name:		self-explanatory
+#	Status:		*OK	 thought to working
+#			*stub	 present but non-functional
+#			*(blank) Mentioned in vendor documentaion but
+#				 not in the FreeTDS C code.  
+#			Other statuses are acceptable if you see a need.
+#	Comments:	Whatever you'd like to say about the function
+#			(none present as of this writing)
+#
+odbc	(all)	SQLAllocConnect	OK
+odbc	(all)	SQLAllocEnv	OK
+odbc	(all)	SQLAllocHandle	OK
+odbc	(all)	SQLAllocStmt	OK
+odbc	(all)	SQLBindCol	OK
+odbc	(all)	SQLBindParam	
+odbc	(all)	SQLBindParameter	OK
+odbc	(all)	SQLBrowseConnect	stub
+odbc	(all)	SQLCancel	stub
+odbc	(all)	SQLCloseCursor	
+odbc	(all)	SQLColAttribute	
+odbc	(all)	SQLColAttributes	OK
+odbc	(all)	SQLColumnPrivileges	stub
+odbc	(all)	SQLColumns	stub
+odbc	(all)	SQLConnect	OK
+odbc	(all)	SQLCopyDesc	
+odbc	(all)	SQLDataSources	stub
+odbc	(all)	SQLDescribeCol	OK
+odbc	(all)	SQLDescribeParam	stub
+odbc	(all)	SQLDisconnect	stub
+odbc	(all)	SQLDriverConnect	OK
+odbc	(all)	SQLDrivers	stub
+odbc	(all)	SQLEndTran	
+odbc	(all)	SQLError	OK
+odbc	(all)	SQLExecDirect	OK
+odbc	(all)	SQLExecute	OK
+odbc	(all)	SQLExtendedFetch	stub
+odbc	(all)	SQLFetch	OK
+odbc	(all)	SQLFetchScroll	
+odbc	(all)	SQLForeignKeys	stub
+odbc	(all)	SQLFreeConnect	OK
+odbc	(all)	SQLFreeEnv	OK
+odbc	(all)	SQLFreeHandle	OK
+odbc	(all)	SQLFreeStmt	OK
+odbc	(all)	SQLGetConnectAttr	
+odbc	(all)	SQLGetConnectOption	stub
+odbc	(all)	SQLGetCursorName	stub
+odbc	(all)	SQLGetData	OK
+odbc	(all)	SQLGetDescField	
+odbc	(all)	SQLGetDescRec	
+odbc	(all)	SQLGetDiagField	
+odbc	(all)	SQLGetDiagRec	
+odbc	(all)	SQLGetEnvAttr	
+odbc	(all)	SQLGetFunctions	stub
+odbc	(all)	SQLGetInfo	stub
+odbc	(all)	SQLGetStmtAttr	stub
+odbc	(all)	SQLGetStmtOption	stub
+odbc	(all)	SQLGetTypeInfo	OK
+odbc	(all)	SQLMoreResults	stub
+odbc	(all)	SQLNativeSql	stub
+odbc	(all)	SQLNumParams	stub
+odbc	(all)	SQLNumResultCols	OK
+odbc	(all)	SQLParamData	stub
+odbc	(all)	SQLParamOptions	stub
+odbc	(all)	SQLPrepare	OK
+odbc	(all)	SQLPrimaryKeys	stub
+odbc	(all)	SQLProcedureColumns	stub
+odbc	(all)	SQLProcedures	stub
+odbc	(all)	SQLPutData	stub
+odbc	(all)	SQLRowCount	stub
+odbc	(all)	SQLSetConnectAttr	
+odbc	(all)	SQLSetConnectOption	stub
+odbc	(all)	SQLSetCursorName	stub
+odbc	(all)	SQLSetDescField	
+odbc	(all)	SQLSetDescRec	
+odbc	(all)	SQLSetEnvAttr	stub
+odbc	(all)	SQLSetPos	stub
+odbc	(all)	SQLSetParam	stub
+odbc	(all)	SQLSetScrollOption	
+odbc	(all)	SQLSetStmtAttr	
+odbc	(all)	SQLSetStmtOption	stub
+odbc	(all)	SQLSpecialColumns	stub
+odbc	(all)	SQLStatistics	stub
+odbc	(all)	SQLTablePrivileges	stub
+odbc	(all)	SQLTables	OK
+odbc	(all)	SQLTransact	stub
+dblib	core	dbadata	stub
+dblib	core	dbadlen	stub
+dblib	core	dbaltbind	
+dblib	core	dbaltcolid	stub
+dblib	core	dbaltlen	stub
+dblib	core	dbaltop	stub
+dblib	core	dbalttype	stub
+dblib	core	dbaltutype	stub
+dblib	core	dbanullbind	
+dblib	core	dbbind	OK
+dblib	core	dbbylist	stub
+dblib	core	dbcancel	OK
+dblib	core	dbcanquery	stub
+dblib	core	dbchange	
+dblib	core	dbclose	OK
+dblib	core	dbclrbuf	stub
+dblib	core	dbclropt	stub
+dblib	core	dbcmd	OK
+dblib	core	dbcmdrow	OK
+dblib	core	dbcolinfo	
+dblib	core	dbcollen	OK
+dblib	core	dbcolname	OK
+dblib	core	dbcoltype	OK
+dblib	core	dbcolutype	
+dblib	core	dbconvert	OK
+dblib	core	dbcount	OK
+dblib	core	dbcurcmd	stub
+dblib	core	dbcurrow	stub
+dblib	core	dbdata	OK
+dblib	core	dbdataready	
+dblib	core	dbdatecrack	OK
+dblib	core	dbdatlen	OK
+dblib	core	dbdead	OK
+dblib	core	dbenlisttrans	
+dblib	core	dbenlistxatrans	
+dblib	core	dberrhandle	
+dblib	core	dbexit	
+dblib	core	dbfcmd	OK
+dblib	core	dbfirstrow	OK
+dblib	core	dbfreebuf	
+dblib	core	dbfreelogin	
+dblib	core	dbgetchar	
+dblib	core	dbgetmaxprocs	
+dblib	core	dbgetoff	
+dblib	core	dbgetpacket	OK
+dblib	core	dbgetrow	OK
+dblib	core	dbgettime	
+dblib	core	dbgetuserdata	stub
+dblib	core	dbinit	OK
+dblib	core	dbisavail	
+dblib	core	dbiscount	
+dblib	core	dbisopt	stub
+dblib	core	dblastrow	OK
+dblib	core	dblogin	OK
+dblib	core	dbmorecmds	stub
+dblib	core	dbmsghandle	
+dblib	core	dbname	stub
+dblib	core	dbnextrow	OK
+dblib	core	dbnullbind	OK
+dblib	core	dbnumalts	stub
+dblib	core	dbnumcols	OK
+dblib	core	dbnumcompute	
+dblib	core	dbnumorders	
+dblib	core	dbopen	OK
+dblib	core	dbordercol	
+dblib	core	dbprhead	
+dblib	core	dbprocerrhandle	
+dblib	core	dbprocinfo	
+dblib	core	dbprocmsghandle	
+dblib	core	dbprrow	OK
+dblib	core	dbprtype	OK
+dblib	core	dbresults	OK
+dblib	core	dbrows	OK
+dblib	core	dbrowtype	
+dblib	core	dbserverenum	
+dblib	core	dbsetavail	
+dblib	core	dbsetlapp	OK
+dblib	core	dbsetlfallback	
+dblib	core	dbsetlhost	OK
+dblib	core	dbsetlnatlang	
+dblib	core	dbsetlogintime	stub
+dblib	core	dbsetlpacket	OK
+dblib	core	dbsetlpwd	OK
+dblib	core	dbsetlsecure	
+dblib	core	dbsetltime	
+dblib	core	dbsetluser	OK
+dblib	core	dbsetlversion	
+dblib	core	dbsetmaxprocs	stub
+dblib	core	dbsetnull	
+dblib	core	dbsetopt	OK
+dblib	core	dbsettime	stub
+dblib	core	dbsetuserdata	OK
+dblib	core	dbsqlexec	OK
+dblib	core	dbsqlok	OK
+dblib	core	dbsqlsend	OK
+dblib	core	dbstrcpy	stub
+dblib	core	dbstrlen	stub
+dblib	core	dbuse	OK
+dblib	core	dbvarylen	
+dblib	core	dbwillconvert	OK
+dblib	core	dbwinexit (Windows only)	
+dblib	cursor	dbcursor	
+dblib	cursor	dbcursorbind	
+dblib	cursor	dbcursorclose	
+dblib	cursor	dbcursorcolinfo	
+dblib	cursor	dbcursorfetch	
+dblib	cursor	dbcursorfetchex	
+dblib	cursor	dbcursorinfo	
+dblib	cursor	dbcursorinfoex	
+dblib	cursor	dbcursoropen	
+dblib	procedure	dbhasretstat	OK
+dblib	procedure	dbnumrets	stub
+dblib	procedure	dbretdata	stub
+dblib	procedure	dbretlen	stub
+dblib	procedure	dbretname	stub
+dblib	procedure	dbretstatus	OK
+dblib	procedure	dbrettype	stub
+dblib	procedure	dbrpcexec	
+dblib	procedure	dbrpcinit	stub
+dblib	procedure	dbrpcparam	OK
+dblib	procedure	dbrpcsend	stub
+dblib	text	dbmoretext	OK
+dblib	text	dbreadtext	OK
+dblib	text	dbtxptr	OK
+dblib	text	dbtxtimestamp	OK
+dblib	text	dbtxtsnewval	
+dblib	text	dbtxtsput	
+dblib	text	dbupdatetext	
+dblib	text	dbwritetext	OK
+dblib	browse	dbcolbrowse	
+dblib	browse	dbcolsource	OK
+dblib	browse	dbfreequal	
+dblib	browse	dbqual	
+dblib	browse	dbtabbrowse	
+dblib	browse	dbtabcount	
+dblib	browse	dbtabname	
+dblib	browse	dbtabsource	
+dblib	browse	dbtsnewlen	
+dblib	browse	dbtsnewval	
+dblib	browse	dbtsput	
+dblib	bcp	bcp_batch	stub
+dblib	bcp	bcp_bind	OK
+dblib	bcp	bcp_colfmt	OK
+dblib	bcp	bcp_collen	stub
+dblib	bcp	bcp_colptr	stub
+dblib	bcp	bcp_columns	OK
+dblib	bcp	bcp_control	stub
+dblib	bcp	bcp_done	stub
+dblib	bcp	bcp_exec	OK
+dblib	bcp	bcp_init	OK
+dblib	bcp	bcp_moretext	stub
+dblib	bcp	bcp_readfmt	stub
+dblib	bcp	bcp_sendrow	stub
+dblib	bcp	BCP_SETL	
+ctlib	(all)	ct_bind	OK	Bind server results to program variables.
+ctlib	(all)	ct_br_column		Retrieve information about a column generated by a browse mode select.
+ctlib	(all)	ct_br_table		Return information about browse mode tables.
+ctlib	(all)	ct_callback	OK	Install or retrieve a Client-Library callback routine.
+ctlib	(all)	ct_cancel	OK	Cancel a command or the results of a command.
+ctlib	(all)	ct_capability	OK	Set or retrieve a client/server capability.
+ctlib	(all)	ct_close	OK	Close a server connection.
+ctlib	(all)	ct_cmd_alloc	OK	Allocate a CS_COMMAND structure.
+ctlib	(all)	ct_cmd_drop	OK	Deallocate a CS_COMMAND structure.
+ctlib	(all)	ct_cmd_props	OK	Set or retrieve command structure properties. For use by applications that resend commands.
+ctlib	(all)	ct_command	OK	Initiate a language, package, RPC, message, or send-data command.
+ctlib	(all)	ct_compute_info	OK	Retrieve compute result information.
+ctlib	(all)	ct_con_alloc	OK	Allocate a CS_CONNECTION structure.
+ctlib	(all)	ct_con_drop	OK	Deallocate a CS_CONNECTION structure.
+ctlib	(all)	ct_con_props	OK	Set or retrieve connection structure properties.
+ctlib	(all)	ct_config	OK	Set or retrieve context properties.
+ctlib	(all)	ct_connect	OK	Connect to a server.
+ctlib	(all)	ct_cursor		Initiate a Client-Library cursor command.
+ctlib	(all)	ct_data_info		Define or retrieve a data I/O descriptor structure.
+ctlib	(all)	ct_debug		Manage debug library operations.
+ctlib	(all)	ct_describe	OK	Return a description of result data.
+ctlib	(all)	ct_diag		Manage inline error handling.
+ctlib	(all)	ct_ds_dropobj		Release the memory associated with a directory object.
+ctlib	(all)	ct_ds_lookup		Initiate or cancel a directory lookup operation.
+ctlib	(all)	ct_ds_objinfo		Retrieve information associated with a directory object.
+ctlib	(all)	ct_dynamic	OK	Initiate a dynamic SQL command.
+ctlib	(all)	ct_dyndesc		Perform operations on a dynamic SQL descriptor area.
+ctlib	(all)	ct_dynsqlda		Operate on a SQLDA structure.
+ctlib	(all)	ct_exit	OK	Exit Client-Library.
+ctlib	(all)	ct_fetch	OK	Fetch result data.
+ctlib	(all)	ct_get_data	OK	Read a chunk of data from the server.
+ctlib	(all)	ct_getformat		Return the server user-defined format string associated with a result column.
+ctlib	(all)	ct_getloginfo		Transfer TDS login response information from a CS_CONNECTION structure to a newly allocated CS_LOGINFO structure.
+ctlib	(all)	ct_init	OK	Initialize Client-Library for an application context.
+ctlib	(all)	ct_keydata		Specify or extract the contents of a key column.
+ctlib	(all)	ct_labels		Define a security label or clear security labels for a connection.
+ctlib	(all)	ct_options	OK	Set, retrieve, or clear the values of server query-processing options.
+ctlib	(all)	ct_param		Supply values for a server command's input parameters.
+ctlib	(all)	ct_poll		Poll connections for asynchronous operation completions and registered procedure notifications.
+ctlib	(all)	ct_recvpassthru		Receive a TDS (Tabular Data Stream) packet from a server.
+ctlib	(all)	ct_remote_pwd		Define or clear passwords to be used for server-to-server connections.
+ctlib	(all)	ct_res_info	OK	Retrieve current result set or command information.
+ctlib	(all)	ct_results	OK	Set up result data to be processed.
+ctlib	(all)	ct_send	OK	Send a command to the server.
+ctlib	(all)	ct_send_data		Send a chunk of text or image data to the server.
+ctlib	(all)	ct_sendpassthru		Send a Tabular Data Stream (TDS) packet to a server.
+ctlib	(all)	ct_setloginfo		Transfer TDS login response information from a CS_LOGINFO structure to a CS_CONNECTION structure.
+ctlib	(all)	ct_setparam		Specify source variables from which ct_send reads input parameter values for a server command.
+ctlib	(all)	ct_wakeup		Call a connection's completion callback.
+ctlib	(all)	cs_calc		Perform an arithmetic operation on two operands.
+ctlib	(all)	cs_cmp		Compare two data values.
+ctlib	(all)	cs_config	stub	Set or retrieve CS-Library properties.
+ctlib	(all)	cs_conv_mult		Retrieve the conversion multiplier for converting character data from one character set to another.
+ctlib	(all)	cs_convert	OK	Convert a data value from one datatype, locale, or format to another datatype, locale, or format.
+ctlib	(all)	cs_ctx_alloc	OK	Allocate a CS_CONTEXT structure.
+ctlib	(all)	cs_ctx_drop	OK	Deallocate a CS_CONTEXT structure.
+ctlib	(all)	cs_ctx_global		Allocate or return a CS_CONTEXT structure.
+ctlib	(all)	cs_diag		Manage inline error handling.
+ctlib	(all)	cs_dt_crack	OK	Convert a machine-readable datetime value into a user-accessible format.
+ctlib	(all)	cs_dt_info	OK	Set or retrieve language-specific datetime information.
+ctlib	(all)	cs_loc_alloc	stub	Allocate a CS_LOCALE structure.
+ctlib	(all)	cs_loc_drop	stub	Deallocate a CS_LOCALE structure.
+ctlib	(all)	cs_locale	stub	Load a CS_LOCALE structure with localization values or retrieve the locale name previously used to load a CS_LOCALE structure.
+ctlib	(all)	cs_manage_convert		Install or retrieve a user-defined character set conversion routine.
+ctlib	(all)	cs_objects		Save, retrieve, or clear objects and data associated with them.
+ctlib	(all)	cs_set_convert		Install or retrieve a user-defined conversion routine.
+ctlib	(all)	cs_setnull		Define a null substitution value to be used when binding or converting NULL data.
+ctlib	(all)	cs_strbuild		Construct native language message strings.
+ctlib	(all)	cs_strcmp		Compare two strings using a specified sort order.
+ctlib	(all)	cs_time		Retrieve the current date and time.
+ctlib	(all)	cs_will_convert		Indicate whether a specific datatype conversion is available in the Client/Server libraries.
+ctlib	(all)	blk_alloc	stub	Allocate a CS_BLKDESC structure.
+ctlib	(all)	blk_bind	stub	Bind a program variable and a database column.
+ctlib	(all)	blk_colval		Server-side routine to obtain the column value from a formatted bulk copy row.
+ctlib	(all)	blk_default		Retrieve a column's default value.
+ctlib	(all)	blk_describe		Retrieve a description of a database column.
+ctlib	(all)	blk_done	stub	Mark a complete bulk copy operation or a complete bulk copy batch.
+ctlib	(all)	blk_drop	stub	Deallocate a CS_BLKDESC structure.
+ctlib	(all)	blk_getrow		Server-side routine to retrieve and store a formatted bulk copy row.
+ctlib	(all)	blk_gettext		Server-side routine to retrieve the text, image, sensitivity, or boundary portion of an incoming bulk copy formatted row.
+ctlib	(all)	blk_init	stub	Initiate a bulk copy operation.
+ctlib	(all)	blk_props	stub	Set or retrieve bulk descriptor structure properties.
+ctlib	(all)	blk_rowalloc		Server-side routine to allocate space for a formatted bulk copy row.
+ctlib	(all)	blk_rowdrop		Server-side routine to free space previously allocated for a formatted bulk copy row.
+ctlib	(all)	blk_rowxfer	stub	Transfer one or more rows during a bulk copy operation without specifying or receiving a row count.
+ctlib	(all)	blk_rowxfer_mult		Transfer one or more rows during a bulk copy operation.
+ctlib	(all)	blk_sendrow		Server-side routine to send a formatted bulk copy row obtained from blk_getrow.
+ctlib	(all)	blk_sendtext		Server-side routine to send text, image, sensitivity, or boundary data in a formatted bulk copy row obtained from blk_sendtext.
+ctlib	(all)	blk_srvinit		Server-side routine to copy descriptions of server table columns to the client, if required.
+ctlib	(all)	blk_textxfer		Transfer a column's data in chunks during a bulk copy operation.
+
