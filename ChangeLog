@@ -1,4 +1,8 @@
-at Oct 19 14:02:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+Sat Oct 19 14:03:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tdsver.h.in:
+	- CVS Header -> CVS Id.
+
+Sat Oct 19 14:02:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tdsstring.h:
 	- Add CVS Id.
 

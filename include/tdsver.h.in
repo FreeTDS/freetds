@@ -20,10 +20,13 @@
 #ifndef _tdsver_h_
 #define _tdsver_h_
 
-#define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
+static char rcsid_tdsver_h[] =
+	"$Id: tdsver.h.in,v 1.3 2002-10-19 18:04:31 castellano Exp $";
+static void *no_unused_tdsver_h_warn[] = {
+	rcsid_tdsver_h,
+	no_unused_tdsver_h_warn
+};
 
-static char  rcsid_tdsver_h [ ] =
-         "$Header: /tmp/gitout/git/../freetds/freetds/include/tdsver.h.in,v 1.2 2002-05-25 00:33:49 brianb Exp $";
-static void *no_unused_tdsver_h_warn[]={rcsid_tdsver_h, no_unused_tdsver_h_warn};
+#define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
 
 #endif
