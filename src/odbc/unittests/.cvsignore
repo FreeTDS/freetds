@@ -22,4 +22,6 @@ params
 raiseerror
 getdata
 type
+genparams
+transaction
 
