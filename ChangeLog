@@ -1,3 +1,6 @@
+Fri May 09 10:59:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: merged fix for HP/UX 11
+
 Wed Mar 26 22:22:37 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.c: fix core if iODBC
 

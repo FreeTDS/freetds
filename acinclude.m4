@@ -171,7 +171,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.15.2.1 2003-02-19 13:02:53 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.15.2.2 2003-05-09 08:59:38 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq
@@ -324,44 +324,53 @@ malloc_options = "AJR";
   fi])
 
 dnl Check getpwuid_r parameters
+dnl There are three version of this function
+dnl   int  getpwuid_r(uid_t uid, struct passwd *result, char *buffer, int buflen);
+dnl   (hp/ux 10.20, digital unix 4)
+dnl   struct passwd *getpwuid_r(uid_t uid, struct passwd * pwd, char *buffer, int buflen);
+dnl   (SunOS 5.5, many other)
+dnl   int  getpwuid_r(uid_t uid, struct passwd *pwd, char *buffer, size_t buflen, struct passwd **result);
+dnl   (hp/ux 11, many other, posix compliant)
 
 AC_DEFUN(AC_tds_FUNC_WHICH_GETPWUID_R,
 [AC_CACHE_CHECK(for which type of getpwuid_r, ac_cv_func_which_getpwuid_r, [
-	AC_TRY_COMPILE([
-#include <unistd.h>
-#include <pwd.h>
-  	], 	[
-struct passwd *pw, bpw;
-char buf[1024];
-pw = getpwuid_r(getuid(), &bpw, buf, sizeof(buf));
-
-],ac_cv_func_which_getpwuid_r=four, 
-  [
-  AC_TRY_COMPILE([
-#include <unistd.h>
-#include <pwd.h>
-  ], [
-struct passwd *pw, bpw;
-char buf[1024];
-getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw);
-],ac_cv_func_which_getpwuid_r=five,
-ac_cv_func_which_getpwuid_r=no)
-
-]
-) 
-])
-
-if test $ac_cv_func_which_getpwuid_r = four; then
-  AC_DEFINE(HAVE_FUNC_GETPWUID_R_4, 1, [Define to 1 if your system provides the 4-parameter version of getpwuid_r().])
-  AC_TRY_COMPILE([
+AC_TRY_COMPILE([
 #include <unistd.h>
 #include <pwd.h>
   ], [
 struct passwd bpw;
 char buf[1024];
 char *dir = getpwuid_r(getuid(), &bpw, buf, sizeof(buf))->pw_dir;
-],AC_DEFINE(HAVE_FUNC_GETPWUID_R_4_PW, 1, [Define to 1 if your system getpwuid_r() have 4 parameters and return struct passwd*.]),
-[])
+],ac_cv_func_which_getpwuid_r=four_pw,
+[AC_TRY_RUN([
+#include <unistd.h>
+#include <pwd.h>
+int main() {
+struct passwd bpw;
+char buf[1024];
+getpwuid_r(getuid(), &bpw, buf, sizeof(buf));
+return 0;
+}
+],ac_cv_func_which_getpwuid_r=four, 
+  [AC_TRY_RUN([
+#include <unistd.h>
+#include <pwd.h>
+int main() {
+struct passwd *pw, bpw;
+char buf[1024];
+getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw);
+return 0;
+}
+],ac_cv_func_which_getpwuid_r=five,
+ac_cv_func_which_getpwuid_r=no)]
+)]
+)])
+
+if test $ac_cv_func_which_getpwuid_r = four_pw; then
+  AC_DEFINE(HAVE_FUNC_GETPWUID_R_4, 1, [Define to 1 if your system provides the 4-parameter version of getpwuid_r().])
+  AC_DEFINE(HAVE_FUNC_GETPWUID_R_4_PW, 1, [Define to 1 if your system getpwuid_r() have 4 parameters and return struct passwd*.])
+elif test $ac_cv_func_which_getpwuid_r = four; then
+  AC_DEFINE(HAVE_FUNC_GETPWUID_R_4, 1, [Define to 1 if your system provides the 4-parameter version of getpwuid_r().])
 elif test $ac_cv_func_which_getpwuid_r = five; then
   AC_DEFINE(HAVE_FUNC_GETPWUID_R_5, 1, [Define to 1 if your system provides the 5-parameter version of getpwuid_r().])
 fi
