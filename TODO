@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.75 2003-10-25 05:09:07 jklowden Exp $
+To Do List	$Id: TODO,v 1.76 2003-11-01 23:05:27 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -26,7 +26,6 @@ For 0.62 version:
     define EILSEQ)
   - add test for locale_charset() to configure.in.  Use it if available
     instead of nl_langinfo, because it implies we're using GNU iconv
-  - --without-libiconv to switch off iconv library
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . fix PHP problem handling empty recordsets. See messages on ML:
   Damian Kramer, September 23, "Possible bug in freeTDS"
@@ -196,4 +195,5 @@ Done in 0.62
 . ODBC: configure should detect iODBC or unixODBC automatically
 . ODBC: Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 . freebcp should understand \n as newline. Also \r and \0 (null byte).
+. --without-libiconv to switch off iconv library
 
