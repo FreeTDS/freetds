@@ -1,3 +1,6 @@
+Thu Nov 15 17:52:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: use defined constant
+
 Thu Nov 14 20:59:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: collect code to calc row size in a single function
 
