@@ -20,8 +20,8 @@ output_html () {
 $_ = join("", @a);
 s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g;
 s,\n\+2:([^\n]*),<span class="error">\1</span>,sg;
-s,^2:(.*)$,<span class="error">\1</span>,mg;
 s,\n\+3:([^\n]*),<span class="info">\1</span>,sg;
+s,^2:(.*)$,<span class="error">\1</span>,mg;
 s,^3:(.*)$,<span class="info">\1</span>,mg;
 s,^1:,,mg;
 $html = "<pre>$_</pre>";
@@ -35,20 +35,50 @@ print $a' "$DIR/tmp1.tmpl" > "$DST"
 
 # function to save output
 output_save () {
+	COMMENT=$1
+	shift
 	OUT=$1
 	shift
 	~/bin/classifier "$@" > "$DIR/$OUT.txt"
+	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
 	RES=$?
-	WARN=0
+	WARN=":-)"
 	if test `cat "$DIR/$OUT.txt" | grep '^+\?2:' | wc -l` != 0; then
-		WARN=1
+		WARN=":-("
 	fi
-	ERR=0
+	ERR=":-)"
 	if test $RES != 0; then
-		ERR=1
-		WARN=0
+		ERR=":-("
+		WARN=ignored
 	fi
-	echo RES $RES ERR $ERR WARN $WARN
+	
+	# output row information
+	out_row "$COMMENT  $ERR  $WARN  <a href=\"$OUT.html\">log</a>"
+}
+
+out_init () {
+	echo "<html>
+<body>
+" > "$DIR/out.html"
+}
+
+out_header () {
+	echo "$1" | sed 's,  \+,</th><th>,g; s,^,<table border=\"1\"><tr><th>,; s,$,</th></tr>\n,' >> "$DIR/out.html"
+}
+
+out_row () {
+	echo "$1" | sed 's,  \+,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>\n,; s,<td>:-)</td>,<td><font color="green">yes</font></td>,g; s,<td>:-(</td>,<td bgcolor="red">no</td>,g; s,<td>:(</td>,<td bgcolor="yellow">no</td>,g' >> "$DIR/out.html"
+}
+
+out_footer () {
+	echo "</table><br />" >> "$DIR/out.html"
+}
+
+out_end () {
+	echo "</body>
+</html>
+" >> "$DIR/out.html"
+
 }
 
 # delete all tests output
@@ -56,26 +86,44 @@ find . -name \*.test_output -type f -exec rm {} \;
 find "$DIR" -name \*.html -type f -exec rm {} \;
 
 # execute configure
-#output_save conf ./configure --enable-extra-checks --with-odbc-nodm=/usr
+#output_save "configuration" conf ./configure --enable-extra-checks --with-odbc-nodm=/usr
 #if test $RES != 0; then
 #	echo "errore in configure"
 #	exit 1
 #fi
 
+out_init
+out_header "Operation  Success  No warning  Log"
+
 echo Making ...
 make clean > /dev/null 2> /dev/null
-RES=0
-output_save make make
+output_save "make" make make
 if test $RES != 0; then
+	out_footer
+	out_end
 	echo "error during make"
 	exit 1
 fi
 
+echo Making tests ...
+TESTS_ENVIRONMENT=true
+export TESTS_ENVIRONMENT
+output_save "make tests" maketest make check 
+if  test $RES != 0; then
+	out_footer
+	out_end
+	echo "error during make test"
+	exit 1;
+fi
+out_footer
+
 echo Testing ...
 TESTS_ENVIRONMENT="$DIR/full-test.sh"
 export TESTS_ENVIRONMENT ORIGDIR
-output_save check make check
+make check 2> /dev/null > /dev/null
 if  test $RES != 0; then
+	out_footer
+	out_end
 	echo "error during make check"
 	exit 1;
 fi
@@ -84,9 +132,10 @@ fi
 echo Processing output ...
 
 output_html "$DIR/make.txt" "$DIR/make.html"
-output_html "$DIR/check.txt" "$DIR/check.html"
+output_html "$DIR/maketest.txt" "$DIR/maketest.html"
 
 NUM=1
+out_header "Tests  Success  No warnings  log  VG Success  VG no warnings  VG no errors  VG no leaks  VG log"
 for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL-TEST:,,g; s,:FULL-TEST.*,,g' `; do
 	echo $CUR
 	TESTLINE="$CUR"
@@ -102,7 +151,7 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	echo $TEST
 	echo $NUM
 
-	# make output
+	# patch make test page
 	OUT=""
 	if test -f "$CUR.test_output"; then
 		output_html "$CUR.test_output" "$DIR/test$NUM.html"
@@ -116,7 +165,55 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	# replace code in check.txt
 	cat "$DIR/check.html" | sed "s,FULL-TEST:$TESTLINE:FULL-TEST,$OUT,g" > "$DIR/check.tmp" && mv "$DIR/check.tmp" "$DIR/check.html"
 	
+	# make output
+	LOG1="not present"
+	WARN1=unknown
+	ERR1=unknown
+	if test -f "$CUR.test_output"; then
+		ERR1=":-)"
+		WARN1=":-)"
+		LOG1="<a href=\"test$NUM.html\">log</a>"
+		if test `cat "$CUR.test_output" | grep '^+\?2:' | wc -l` != 0; then
+			WARN1=":("
+		fi
+		if test $RES1 != 0; then
+			ERR1=":-("
+			WARN1=ignored
+		fi
+	fi
+	
+	LOG2="not present"
+	WARN2=unknown
+	ERR2=unknown
+	LEAK=unknown
+	VGERR=unknown
+	if test -f "$CUR.vg.test_output"; then
+		WARN2=":-)"
+		ERR2=":-)"
+		LEAK=":-)"
+		VGERR=":-)"
+		LOG2="<a href=\"vgtest$NUM.html\">log</a>"
+		if test `cat "$CUR.vg.test_output" | grep '^+\?2:' | wc -l` != 0; then
+			WARN2=":("
+		fi
+		if test `cat "$CUR.vg.test_output" | grep ':==.*no leaks are possible' | wc -l` == 0; then
+			LEAK=":-("
+		fi
+		if test `cat "$CUR.vg.test_output" | grep 'ERROR SUMMARY: 0 errors from 0 contexts' | wc -l` == 0; then
+			VGERR=":-("
+		fi
+		if test $RES2 != 0; then
+			ERR2=":-("
+			WARN2=ignored
+		fi
+	fi
+
+	out_row "$TEST  $ERR1  $WARN1  $LOG1  $ERR2  $WARN2  $VGERR  $LEAK  $LOG2"
+
+	
 #	rm -f "$CUR.test_output" "$CUR.vg.test_output"
 	NUM=`expr $NUM + 1`
 done
+out_footer
 
+out_end
