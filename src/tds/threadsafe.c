@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.22 2002-12-06 16:55:49 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.23 2002-12-06 21:56:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -218,8 +218,13 @@ tds_get_homedir(void)
 	struct passwd *pw, bpw;
 	char buf[1024];
 
+#ifdef HAVE_FUNC_GETPWUID_R_5
 	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw))
 		return NULL;
+#else
+	if (!(pw=getpwuid_r(getuid(), &bpw, buf, sizeof(buf))))
+		return NULL;
+#endif
 	return strdup(pw->pw_dir);
 #else
 /* if getpwuid is available use it for no reentrant (getpwuid is not reentrant) */
