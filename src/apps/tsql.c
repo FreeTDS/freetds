@@ -68,7 +68,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.59 2003-05-13 10:24:45 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.60 2003-05-13 16:17:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -287,7 +287,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	if (locale)
 		printf("locale is \"%s\"\n", locale);
 	if (charset) {
-		printf("charset is \"%s\"\n", charset);
+		printf("locale charset is \"%s\"\n", charset);
 	} else {
 		charset = CHARSET_ISO1;
 		printf("using default charset \"%s\"\n", charset);
