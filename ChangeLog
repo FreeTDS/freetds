@@ -1,3 +1,10 @@
+Sun Nov 24 15:00:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: spell fix, remove old TODO
+	* src/tds/login.c:
+	- use database field in TDS7+ login
+	- reuse tds_put_string instead of converting every time
+	- remove a buffer overflow limiting password to 128 characters
+
 Sun Nov 24 13:00:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/iconv.c src/tds/read.c src/tds/threadsafe.c:
 	* src/tds/util.c:

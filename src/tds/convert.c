@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.103 2002-11-17 10:01:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.104 2002-11-24 14:02:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -191,7 +191,6 @@ binary_to_result(const void* data,size_t len,CONV_RESULT* cr)
 	return len;
 }
 
-/*TODO many conversions to varbinary are not implemented */
 
 
 
@@ -1610,20 +1609,20 @@ TDS_UCHAR buf[37];
 
 /**
  * tds_convert
- * convert a type to another
+ * convert a type to another.
  * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision 
- * and scale of cr
- * Do not expect string to be zero terminate. Databases support zero inside
+ * and scale of cr.
+ * Do not expect string to be zero terminated. Databases support zero inside
  * string. Doing strlen on result may result on data loss or even core.
  * Use memcpy to copy destination using length returned.
  * This function do not handle NULL, srclen should be >0, if not undefinited 
  * behaviour...
- * @param tds_ctx context (used in conversion to data and to return messages)
+ * @param tds_ctx  context (used in conversion to data and to return messages)
  * @param srctype  type of source
  * @param srclen   length in bytes of source (not counting terminator or strings)
  * @param desttype type of destination
- * @param cr       structure to old result
- * @return length of result or TDS_CONVERT_* failure code on failure
+ * @param cr       structure to hold result
+ * @return length of result or TDS_CONVERT_* failure code on failure. All TDS_CONVERT_* constants are <0.
  */
 TDS_INT 
 tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
