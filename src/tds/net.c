@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.7 2005-01-21 11:38:12 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.8 2005-01-24 15:07:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -638,6 +638,98 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return retcode;
+}
+
+/**
+ * Get port of given instance
+ * @return port number or 0 if error
+ */
+int
+tds7_get_instance_port(const char *ip_addr, const char *instance)
+{
+	int num_try;
+	struct sockaddr_in sin;
+	unsigned long ioctl_blocking = 1;
+	struct timeval selecttimeout;
+	fd_set fds;
+	int len, retval;
+	TDS_SYS_SOCKET s;
+	char msg[1024];
+	size_t msg_len;
+	int port = 0;
+
+	sin.sin_addr.s_addr = inet_addr(ip_addr);
+	if (sin.sin_addr.s_addr == INADDR_NONE) {
+		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
+		return 0;
+	}
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(1434);
+
+	/* create an UDP socket */
+	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		return 0;
+	}
+
+	/* connect, so we don't accept response from other machines */	
+	if (connect(s, &sin, sizeof(sin)) < 0) {
+		CLOSESOCKET(s);
+		tdsdump_log(TDS_DBG_ERROR, "connect error: %s\n", strerror(sock_errno));
+		return 0;
+	}
+
+	len = 1;
+#if defined(TCP_NODELAY) && defined(SOL_TCP)
+	setsockopt(s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+#endif
+
+	ioctl_blocking = 1;
+	if (IOCTLSOCKET(s, FIONBIO, &ioctl_blocking) < 0) {
+		CLOSESOCKET(s);
+		return 0;
+	}
+
+	/* TODO is there a way to see if server reply with an ICMP (port not available) ?? */
+
+	/* try to get port */
+	for (num_try = 0; num_try < 16; ++num_try) {
+		/* request instance information */
+		msg[0] = 4;
+		strncpy(msg + 1, instance, sizeof(msg) - 2);
+		msg[sizeof(msg) - 1] = 0;
+		send(s, msg, strlen(msg) + 1, 0);
+
+		FD_ZERO(&fds);
+		FD_SET(s, &fds);
+		selecttimeout.tv_sec = 1;
+		selecttimeout.tv_usec = 0;
+		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
+		tdsdump_log(TDS_DBG_INFO1, "select: retval %d err %d\n", retval, sock_errno);
+		/* on interrupt ignore */
+		if (retval == 0 || (retval < 0 && sock_errno == TDSSOCK_EINTR))
+			continue;
+		if (retval < 0)
+			break;
+		/* got data, read and parse */
+		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 0) {
+			char *p;
+			long l;
+
+			msg[msg_len] = 0;
+			tdsdump_dump_buf(TDS_DBG_INFO1, "instance info", msg, msg_len);
+			p = strstr(msg + 3, ";tcp;");
+			if (!p)
+				continue;
+			l = strtol(p + 5, &p, 10);
+			if (l > 0 && l <= 0xffff && *p == ';')
+				port = l;
+			break;
+		}
+	}
+	CLOSESOCKET(s);
+	return port;
 }
 
 /** \@} */

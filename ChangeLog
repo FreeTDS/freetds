@@ -1,3 +1,9 @@
+Mon Jan 24 16:03:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: updated
+	* src/odbc/connectparams.c: check memory allocation
+	* include/tds.h src/tds/net.c:
+	- start implementing named instance for mssql2k
+
 Fri Jan 21 13:59:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/sql2tds.c:
 	- workaround for DBD::ODBC

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: connectparams.c,v 1.57 2004-12-17 10:00:08 freddy77 Exp $";
+static const char software_version[] = "$Id: connectparams.c,v 1.58 2005-01-24 15:07:23 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -132,7 +132,8 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 			tds_dstr_copy(&connection->server_name, tmp);
 			if (!address_specified) {
 				tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
-				tds_dstr_copy(&connection->ip_addr, tmp);
+				if (!tds_dstr_copy(&connection->ip_addr, tmp))
+					return 0;
 			}
 		}
 	}
