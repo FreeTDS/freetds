@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.10 2002-09-06 21:22:45 castellano Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.11 2002-09-20 14:42:30 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -44,12 +44,11 @@ int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *m
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
 	}
-	if( msg->msg_number > 0 )
-	{
-		/* now check to see if the user supplied a function, if not ignore the
-		 * problem */
-		if(g_dblib_msg_handler)
-		{
+	if (msg->msg_number > 0) {
+		/* now check to see if the user supplied a function,
+		 * if not, ignore the problem
+		 */
+		if (g_dblib_msg_handler) {
 			g_dblib_msg_handler(dbproc,
 					msg->msg_number,
 					msg->msg_state,
@@ -58,18 +57,6 @@ int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *m
 					msg->server, 
 					msg->proc_name,
 					msg->line_number);
-		}
-		else
-		{
-#if 0
-			fprintf (stderr, "INFO..No User supplied info msg handler..Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-					msg->msg_number,
-					msg->msg_level, 
-					msg->msg_state,
-					msg->server, 
-					msg->line_number,  
-					msg->message);
-#endif
 		}
 
 		/* and now clean up the structure for next time */
@@ -81,40 +68,55 @@ int dblib_handle_info_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *m
 int dblib_handle_err_message(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
 	DBPROCESS *dbproc = NULL;
+	int rc = INT_CANCEL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
 	}
-	if( msg->msg_number > 0 )
-	{
-		/* now check to see if the user supplied a function, if not ignore the
-		 * problem */
-		if(g_dblib_err_handler)
-		{
-			g_dblib_err_handler(dbproc,
+	if (msg->msg_number > 0) {
+		/* now check to see if the user supplied a function,
+		 * if not, ignore the problem
+		 */
+		if (g_dblib_err_handler) {
+			rc  = g_dblib_err_handler(dbproc,
 					msg->msg_level,
 					msg->msg_number,
 					msg->msg_state, 
 					msg->message,
 					msg->server); 
 		}
-		else
-		{
-#if 0
-			fprintf (stderr, "ERR..No User supplied err msg handler..Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-					msg->msg_number,
-					msg->msg_level, 
-					msg->msg_state,
-					msg->server, 
-					msg->line_number,  
-					msg->message);
-#endif
-		}
-
 		/* and now clean up the structure for next time */
 		tds_reset_msg_info(msg);
 	}
-        return 1;
+
+	if (((rc == INT_TIMEOUT) || (rc == INT_CONTINUE))
+	    && (msg->msg_number != SYBETIME)) {
+		rc = INT_EXIT;
+	}
+
+	switch (rc) {
+	case INT_EXIT:
+		exit(EXIT_FAILURE);
+		break;
+	case INT_CANCEL:
+		return SUCCEED;
+		break;
+	case INT_TIMEOUT:
+		/* XXX do something clever */
+		return SUCCEED;
+		break;
+	case INT_CONTINUE:
+		/* XXX do something clever */
+		return SUCCEED;
+		break;
+	default:
+		/* unknown return code from error handler */
+		return FAIL;
+		break;
+	}
+
+	/* notreached */
+        return FAIL;
 }
 
 void dblib_setTDS_version(TDSLOGIN *tds_login, DBINT version)
