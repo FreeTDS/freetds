@@ -1,3 +1,7 @@
+Thu Mar 25 00:37:43 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/tds/mem.c src/tds/token.c
+	- additional logging to trace rpc
+
 Wed Mar 24 23:58:52 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/rpc.c
 	- more generalized processing, to allow more complex tests.

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.254 2004-03-23 08:51:32 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.255 2004-03-25 05:29:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -640,6 +640,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				tds->has_status = 1;
 				tds->ret_status = tds_get_int(tds);
 				*result_type = TDS_STATUS_RESULT;
+				tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens: return status is %d\n", tds->ret_status);
 				return TDS_SUCCEED;
 			}
 			break;
@@ -1181,7 +1182,7 @@ tds_process_colinfo(TDSSOCKET * tds)
 /**
  * tds_process_param_result() processes output parameters of a stored 
  * procedure. This differs from regular row/compute results in that there
- * is no total number of parameters given, they just show up singley.
+ * is no total number of parameters given, they just show up singly.
  */
 static int
 tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
@@ -2126,7 +2127,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 	if (done_count_valid) {
 		tds->rows_affected = tds_get_int(tds);
-		tdsdump_log(TDS_DBG_FUNC, "%L                  rows_affected = %d\n", tds->rows_affected);
+		tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %d\n", tds->rows_affected);
 	} else {
 		tmp = tds_get_int(tds);	/* throw it away */
 		tds->rows_affected = TDS_NO_COUNT;
