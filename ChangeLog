@@ -1,3 +1,8 @@
+Sat Dec  6 23:50:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- make tds_skip_comment static
+	- fix parsing of "... /*" and "/* ... */* ... */"
+
 Sat Dec  6 13:08:36 PST 2003	Peter Deacon <peterd@iea-software.com>
 	* include/tds.h src/tds/query.c src/odbc/odbc.c:
 	- fixed don't look for placeholders in comments
@@ -5,10 +10,10 @@ Sat Dec  6 13:08:36 PST 2003	Peter Deacon <peterd@iea-software.com>
 	* src/tds/mem.c src/tds/token.c:
 	- disconnect on unknown marker
 
-Sat Dec  6 17:35:31CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sat Dec  6 17:35:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/genparams.c: improve
 
-Sat Dec  6 14:43:1 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sat Dec  6 14:43:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/convert.c src/tds/numeric.c:
 	* src/tds/query.c src/tds/token.c src/tds/unittests/convert.c:
 	- some optimization for money

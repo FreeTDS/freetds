@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.120 2003-12-06 20:20:20 ppeterd Exp $";
+static char software_version[] = "$Id: query.c,v 1.121 2003-12-06 22:51:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -51,6 +51,7 @@ static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
 static int tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+static const char *tds_skip_comment(const char *s);
 
 #define TDS_PUT_DATA_USE_NAME 1
 
@@ -285,33 +286,24 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 	return rc;
 }
 
-const char *
+static const char *
 tds_skip_comment(const char *s)
 {
-char end = '\0';
-const char *p = s;
-if (*p == '-' && p[1] == '-')
-	end = '\n';
-else if (*p == '/' && p[1] == '*')
-	end = '*';
-else
-	++p;
+	const char *p = s;
 
-if (end == '\n') { /* Line Comment */
-	for (;*++p != '\0';) {
-		if (*p == '\n')
-			return p;
-		}
-	}
-else if (end == '*') { /* Comment */
-	p+=2;
-	for(;*++p != '\0';)	{
-		if (*p == '*' && p[1] == '/')
-			return ++p;
-		}
-	}
+	if (*p == '-' && p[1] == '-') {
+		for (;*++p != '\0';)
+			if (*p == '\n')
+				return p;
+	} else if (*p == '/' && p[1] == '*') {
+		++p;
+		for(;*++p != '\0';)
+			if (*p == '*' && p[1] == '/')
+				return p + 2;
+	} else
+		++p;
 
-return p;
+	return p;
 }
 
 /**
