@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.350 2005-01-12 20:44:29 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.351 2005-01-13 10:08:13 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -494,6 +494,12 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	/* TODO this code is TOO similar to _SQLExecute, merge it - freddy77 */
 	/* try to go to the next recordset */
+	if (stmt->row_status == IN_COMPUTE_ROW) {
+		/* FIXME doesn't seem so fine ... - freddy77 */
+		tds_process_trailing_tokens(stmt->dbc->tds_socket);
+		stmt->row_status = IN_COMPUTE_ROW;
+		in_row = 1;
+	}
 	for (;;) {
 		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
 		case TDS_NO_MORE_RESULTS:
@@ -2628,8 +2634,6 @@ _SQLFetch(TDS_STMT * stmt)
 	TDS_DESC *ard;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
-	TDS_INT rowtype;
-	TDS_INT computeid;
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
 

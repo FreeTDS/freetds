@@ -1,3 +1,8 @@
+Thu Jan 13 11:07:27 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO src/odbc/odbc.c:
+	- updated TODO
+	- finished compute fixes
+
 Thu Jan 13  9:38:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/common.c src/odbc/unittests/compute.c:
 	- finish compute test
