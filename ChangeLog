@@ -6,6 +6,30 @@ Sat Aug 31 08:31:25 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	- enabled test 13 and 14 adding binary file and using default
 	  parameters if none
 
+Fri Aug 30 17:09:22 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h:
+	- Add prototypes for new functions dbsetlname(), dbsetlbool(),
+	  dbsetlshort(), and dbsetllong().  Use these to implement macros
+	  for DBSETL*() and BCP_SETL*().
+	* src/dblib/bcp.c:
+	- remove BCP_SETL(), it is now a macro in src/sybdb.h.
+	* src/dblib/dblib.c:
+	- implement dbsetlname(), dbsetlbool(), dbsetlshort(), and
+	  dbsetllong().  Remove old DBSETL*() functions, they are now
+	  macros in src/sybdb.h.
+
+Fri Aug 30 14:47:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- Eliminates potential buffer overrun in dbuse() (patch #602494)
+
+Fri Aug 30 14:42:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/dblib.c:
+	- add dbrowtype() stub  (patch #602452)
+	- Change tdsdump_log messages for recently renamed functions
+	* include/sybdb.h:
+	- move DBROWS() macro to after dbrows() proto  (patch #602452)
+	- add DBROWTYPE() macro (patch #602452)
+
 Fri Aug 30 23:06:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- correct return of dbsqlok
