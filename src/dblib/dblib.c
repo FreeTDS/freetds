@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.100 2002-11-07 21:41:35 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.101 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -400,12 +400,10 @@ int            destlen;
 			assert (idx >= 0);
 				/* XXX now what? */
 				
+			src = ((BYTE *)buffer_row_address(buf, idx)) + curcol->column_offset;
 			if (is_blob_type(curcol->column_type)) {
-				srclen =  curcol->column_cur_size;
-				src = (BYTE *)curcol->column_textvalue;
-			} else {
-				src = ((BYTE *)buffer_row_address(buf, idx)) 
-					+ curcol->column_offset;
+				srclen =  curcol->column_cur_size; /* TODO only for blob ?? */
+				src = ((TDSBLOBINFO *) src)->textvalue;
 			}
 			desttype = _db_get_server_type(curcol->column_bindtype);
 			srctype = tds_get_conversion_type(curcol->column_type,
@@ -1876,7 +1874,7 @@ TDS_VARBINARY *varbin;
 		return NULL;
 	}
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *)colinfo->column_textvalue;
+		return ((TDSBLOBINFO *) (resinfo->current_row+colinfo->column_offset))->textvalue;
 	} 
 	if (colinfo->column_type == SYBVARBINARY) {
 		varbin = (TDS_VARBINARY *)
@@ -2719,7 +2717,7 @@ TDS_VARBINARY  *varbin;
 #endif
 
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *)colinfo->column_textvalue;
+		return ((TDSBLOBINFO *) (info->current_row+colinfo->column_offset))->textvalue;
 	} 
 	if (colinfo->column_type == SYBVARBINARY) {
 		varbin = (TDS_VARBINARY *) &(info->current_row[colinfo->column_offset]);
@@ -3579,25 +3577,31 @@ DBBINARY *dbtxtimestamp(DBPROCESS *dbproc, int column)
 {
 TDSSOCKET *tds;
 TDSRESULTINFO * resinfo;
+TDSBLOBINFO *blob_info;
 
    tds = (TDSSOCKET *) dbproc->tds_socket;
    if (!tds->res_info) return NULL;
    resinfo = tds->res_info;
-   if (column < 1 || column > resinfo->num_cols) return NULL;
-   /* else */
-   return (DBBINARY *) resinfo->columns[column-1]->column_timestamp;
+	--column;
+	if (column < 0 || column >= resinfo->num_cols) return NULL;
+	if (!is_blob_type(resinfo->columns[column]->column_type)) return NULL;
+	blob_info = (TDSBLOBINFO *) &(resinfo->current_row[resinfo->columns[column]->column_offset]);
+	return (DBBINARY *) blob_info->timestamp;
 }
 DBBINARY *dbtxptr(DBPROCESS *dbproc,int column)
 {
 TDSSOCKET *tds;
 TDSRESULTINFO * resinfo;
+TDSBLOBINFO *blob_info;
 
    tds = (TDSSOCKET *) dbproc->tds_socket;
    if (!tds->res_info) return NULL;
    resinfo = tds->res_info;
-   if (column < 1 || column > resinfo->num_cols) return NULL;
-   /* else */
-   return (DBBINARY *) &resinfo->columns[column-1]->column_textptr;
+	--column;
+	if (column < 0 || column >= resinfo->num_cols) return NULL;
+	if (!is_blob_type(resinfo->columns[column]->column_type)) return NULL;
+	blob_info = (TDSBLOBINFO *) &(resinfo->current_row[resinfo->columns[column]->column_offset]);
+	return (DBBINARY *) blob_info->textptr;
 }
 
 RETCODE
@@ -3661,13 +3665,15 @@ TDSCOLINFO *curcol;
 int cpbytes, bytes_avail, rc;
 TDS_INT  rowtype;
 TDS_INT  computeid;
+TDSRESULTINFO *resinfo;
 
 	tds = dbproc->tds_socket;
 
 	if (!tds || !tds->res_info || !tds->res_info->columns[0])
 		return -1;
 
-	curcol = tds->res_info->columns[0];
+	resinfo = tds->res_info;
+	curcol = resinfo->columns[0];
 
 	/* if the current position is beyond the end of the text
 	** set pos to 0 and return 0 to denote the end of the 
@@ -3691,7 +3697,7 @@ TDS_INT  computeid;
 	/* find the number of bytes to return */
 	bytes_avail = curcol->column_cur_size - curcol->column_textpos;
 	cpbytes = bytes_avail > bufsize ? bufsize : bytes_avail;
-	memcpy(buf,&curcol->column_textvalue[curcol->column_textpos],cpbytes);
+	memcpy(buf,&((TDSBLOBINFO *) (resinfo->current_row + curcol->column_offset))->textvalue[curcol->column_textpos],cpbytes);
 	curcol->column_textpos += cpbytes;
 	return cpbytes;
 }

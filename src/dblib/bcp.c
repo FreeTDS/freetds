@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.39 2002-11-06 16:45:16 castellano Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.40 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -479,13 +479,12 @@ int rows_written;
 				bcpcol = dbproc->bcp_columns[i];
 				curcol = resinfo->columns[bcpcol->tab_colnum - 1];
 
+				src = &resinfo->current_row[curcol->column_offset];
 				if (is_blob_type(curcol->column_type)) {
 					/* FIX ME -- no converts supported */
-					src = curcol->column_textvalue;
+					src = ((TDSBLOBINFO *) src)->textvalue;
 					len = curcol->column_cur_size;
 				} else {
-
-					src = &resinfo->current_row[curcol->column_offset];
 
 					srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 

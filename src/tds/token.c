@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.98 2002-11-08 15:57:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.99 2002-11-08 19:07:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -865,12 +865,13 @@ int             i;
         }
 
 		curcol->column_offset = info->row_size;
-		if (!is_blob_type(curcol->column_type)) {
+		if (is_numeric_type(curcol->column_type)) {
+			info->row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDSBLOBINFO);
+		} else {
 			info->row_size += curcol->column_size + 1;
 		}
-	if (is_numeric_type(curcol->column_type)) {
-            info->row_size += sizeof(TDS_NUMERIC) + 1;
-	}
 
 		/* actually this 4 should be a machine dependent #define */
 		remainder = info->row_size % TDS_ALIGN_SIZE;
@@ -1007,11 +1008,12 @@ int remainder;
 		** stored in the row buffer because the max size can
 		** be too large (2gig) to allocate */
 		curcol->column_offset = info->row_size;
-		if (!is_blob_type(curcol->column_type)) {
-			info->row_size += curcol->column_size + 1;
-		}
 		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC) + 1;
+			info->row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDSBLOBINFO);
+		} else {
+			info->row_size += curcol->column_size + 1;
 		}
 		
 		remainder = info->row_size % TDS_ALIGN_SIZE;
@@ -1113,8 +1115,10 @@ int remainder;
 
 		curcol->column_offset = info->row_size;
 		if (is_numeric_type(curcol->column_type)) {
-			info->row_size += sizeof(TDS_NUMERIC) + 1;
-		} else if (!is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDSBLOBINFO);
+		} else {
 			info->row_size += curcol->column_size + 1;
 		}
 
@@ -1161,14 +1165,16 @@ tds_get_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i
 unsigned char *dest;
 int len,colsize;
 int fillchar;
+TDSBLOBINFO *blob_info;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 		case 4: /* Its a BLOB... */
 			len = tds_get_byte(tds);
+			blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
 			if (len == 16) { /*  Jeff's hack */
-				tds_get_n(tds,curcol->column_textptr,16);
-				tds_get_n(tds,curcol->column_timestamp,8);
+				tds_get_n(tds,blob_info->textptr,16);
+				tds_get_n(tds,blob_info->timestamp,8);
 				colsize = tds_get_int(tds);
 			} else {
 				colsize = 0;
@@ -1252,20 +1258,22 @@ int fillchar;
 			return TDS_FAIL;
 		tds_get_n(tds,varbin->array,colsize);
 	} else if (is_blob_type(curcol->column_type)) {
+		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
+
 		if (curcol->column_unicodedata) colsize /= 2;
-		if (curcol->column_textvalue == NULL) {
-			curcol->column_textvalue = malloc(colsize+1); /* FIXME +1 needed by tds_get_string */
+		if (blob_info->textvalue == NULL) {
+			blob_info->textvalue = malloc(colsize+1); /* FIXME +1 needed by tds_get_string */
 		} else {
-			curcol->column_textvalue = realloc(curcol->column_textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
+			blob_info->textvalue = realloc(blob_info->textvalue,colsize+1); /* FIXME +1 needed by tds_get_string */
 		}
-		if (curcol->column_textvalue == NULL) {
+		if (blob_info->textvalue == NULL) {
 			return TDS_FAIL;
 		}
 		curcol->column_cur_size = colsize;
 		if (curcol->column_unicodedata) {
-			tds_get_string(tds,curcol->column_textvalue,colsize);
+			tds_get_string(tds,blob_info->textvalue,colsize);
 		} else {
-			tds_get_n(tds,curcol->column_textvalue,colsize);
+			tds_get_n(tds,blob_info->textvalue,colsize);
 		}
 	} else {
 		dest = &(current_row[curcol->column_offset]);
@@ -2247,16 +2255,17 @@ int colnamelen;
 		** stored in the row buffer because the max size can
 		** be too large (2gig) to allocate */
 		curcol->column_offset = info->row_size;
-		if (!is_blob_type(curcol->column_type)) {
+		/* TODO why this code is repeated 4 time ?? */
+		if (is_numeric_type(curcol->column_type)) {
+			info->row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(curcol->column_type)) {
+			info->row_size += sizeof(TDSBLOBINFO);
+		} else {
 			info->row_size += curcol->column_size + 1;
 		}
-		if (is_numeric_type(curcol->column_type)) {
-                       info->row_size += sizeof(TDS_NUMERIC) + 1;
-		}
 		
-		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % 4;
-		if (remainder) info->row_size += (4 - remainder);
+		remainder = info->row_size % TDS_ALIGN_SIZE;
+		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */

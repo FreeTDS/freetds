@@ -40,14 +40,13 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.50 2002-11-07 21:41:36 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.51 2002-11-08 19:07:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds);
 void tds_free_env(TDSSOCKET *tds);
-static void tds_free_column(TDSCOLINFO *column);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
@@ -395,27 +394,7 @@ int i;
 }
 void tds_free_compute_result(TDSCOMPUTEINFO *comp_info)
 {
-
-int i;
-
-	if(comp_info)
-	{
-		if (comp_info->current_row) 
-			TDS_ZERO_FREE(comp_info->current_row);
-
-		if (comp_info->num_cols && comp_info->columns)
-		{
-			for (i=0;i<comp_info->num_cols;i++)
-				if(comp_info->columns[i])
-					tds_free_column(comp_info->columns[i]);
-			TDS_ZERO_FREE(comp_info->columns);
-		}
-
-		if (comp_info->by_cols) TDS_ZERO_FREE(comp_info->bycolumns);
-
-		TDS_ZERO_FREE(comp_info);
-	}
-
+	tds_free_results(comp_info);
 }
 
 void tds_free_compute_results(TDSCOMPUTEINFO **comp_info, TDS_INT num_comp)
@@ -435,23 +414,29 @@ int i;
 void tds_free_results(TDSRESULTINFO *res_info)
 {
 int i;
+TDSCOLINFO *curcol;
 
+	if(!res_info)
+		return;
 
-	if(res_info)
+	if (res_info->num_cols && res_info->columns)
 	{
-		if (res_info->current_row) 
-           TDS_ZERO_FREE(res_info->current_row);
-
 		for (i=0;i<res_info->num_cols;i++)
-		{
-			if(res_info->columns && res_info->columns[i])
-				tds_free_column(res_info->columns[i]);
-		}
-		if (res_info->num_cols) TDS_ZERO_FREE(res_info->columns);
-
-		TDS_ZERO_FREE(res_info);
+			if((curcol=res_info->columns[i]) != NULL) {
+				if (res_info->current_row && is_blob_type(curcol->column_type)) {
+					free(((TDSBLOBINFO*) (res_info->current_row+curcol->column_offset))->textvalue);
+				}
+				free(curcol);
+			}
+		free(res_info->columns);
 	}
 
+	if (res_info->current_row) 
+		free(res_info->current_row);
+
+	if (res_info->bycolumns) free(res_info->bycolumns);
+
+	free(res_info);
 }
 void tds_free_all_results(TDSSOCKET *tds)
 {
@@ -463,12 +448,7 @@ void tds_free_all_results(TDSSOCKET *tds)
 	tds->comp_info = NULL;
     tds->num_comp_info = 0;
 }
-static void 
-tds_free_column(TDSCOLINFO *column)
-{
-	if (column->column_textvalue) TDS_ZERO_FREE(column->column_textvalue);
-	TDS_ZERO_FREE(column);
-}
+
 TDSCONTEXT *tds_alloc_context(void)
 {
 TDSCONTEXT *context;

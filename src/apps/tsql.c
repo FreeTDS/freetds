@@ -54,7 +54,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char  software_version[]   = "$Id: tsql.c,v 1.40 2002-11-08 07:53:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: tsql.c,v 1.41 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 enum {
@@ -155,11 +155,9 @@ char message[128];
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
-				if (is_blob_type(col->column_type)) {
-					src = (unsigned char *)col->column_textvalue;
-				} else {
-					src = &(tds->res_info->current_row[col->column_offset]);
-				}
+				src = &(tds->res_info->current_row[col->column_offset]);
+				if (is_blob_type(col->column_type))
+					src = ((TDSBLOBINFO *) src)->textvalue;
 				srclen = col->column_cur_size;
 
 	 

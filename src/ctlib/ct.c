@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.49 2002-11-06 16:45:16 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.50 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -640,12 +640,10 @@ CS_DATAFMT srcfmt, destfmt;
 
          srctype = _ct_get_client_type(curcol->column_type, curcol->column_size);
 
-         if (is_blob_type(curcol->column_type)) {
-            src = (unsigned char *)curcol->column_textvalue;
-         } else {
-            src = &(resinfo->current_row[curcol->column_offset]);
-         }
-	 srclen = curcol->column_cur_size;
+		src = &(resinfo->current_row[curcol->column_offset]);
+		if (is_blob_type(curcol->column_type))
+			src = ((TDSBLOBINFO *) src)->textvalue;
+		srclen = curcol->column_cur_size;
 
          tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i, srclen, curcol->column_bindlen);
 

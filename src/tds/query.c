@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.38 2002-11-08 16:59:38 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.39 2002-11-08 19:07:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -385,6 +385,7 @@ tds_put_data(TDSSOCKET *tds,TDSCOLINFO *curcol,unsigned char *current_row, int i
 unsigned char *dest;
 TDS_NUMERIC *num;
 TDS_VARBINARY *varbin;
+TDSBLOBINFO *blob_info;
 int colsize;
 int is_null;
 
@@ -394,10 +395,11 @@ int is_null;
 	/* put size of data*/
 	switch (curcol->column_varint_size) {
 	case 4: /* Its a BLOB... */
+		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
 		if (!is_null) {
 			tds_put_byte(tds, 16);
-			tds_put_n(tds, curcol->column_textptr,16);
-			tds_put_n(tds, curcol->column_timestamp,8);
+			tds_put_n(tds, blob_info->textptr,16);
+			tds_put_n(tds, blob_info->timestamp,8);
 			tds_put_int(tds, colsize);
 		} else {
 			tds_put_byte(tds, 0);
@@ -429,7 +431,8 @@ int is_null;
 		varbin = (TDS_VARBINARY *) &(current_row[curcol->column_offset]);
 		tds_put_n(tds,varbin->array,colsize);
 	} else if (is_blob_type(curcol->column_type)) {
-		tds_put_n(tds,curcol->column_textvalue,colsize);
+		blob_info = (TDSBLOBINFO *) &(current_row[curcol->column_offset]);
+		tds_put_n(tds, blob_info->textvalue, colsize);
 	} else {
 		/* FIXME problem with big endia, swap data */
 		dest = &(current_row[curcol->column_offset]);

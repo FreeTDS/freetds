@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.45 2002-11-08 16:59:38 freddy77 Exp $";
+	"$Id: tds.h,v 1.46 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -459,6 +459,15 @@ typedef struct tds_loc_info {
         char *date_fmt;
 } TDSLOCINFO;
 
+/** structure that hold information about blobs (like text or image).
+ * current_row contain this structure.
+ */
+typedef struct tds_blob_info {
+	TDS_CHAR *textvalue;
+	TDS_CHAR textptr[16];
+	TDS_CHAR timestamp[8];
+} TDSBLOBINFO;
+
 /** structure for storing data about regular and compute rows */ 
 typedef struct tds_column_info {
 	/** type of data, this type can be different from wire type because 
@@ -496,10 +505,6 @@ typedef struct tds_column_info {
 	/* FIXME this is data related, not column */
 	/** size written in variable (ie: char, text, binary) */
 	TDS_INT column_cur_size;
-	/* FIXME those 3 fields are data related, not column related */
-	TDS_CHAR column_textptr[16];
-	TDS_CHAR column_timestamp[8];
-	TDS_CHAR *column_textvalue;
 
 	/* related to binding or info stored by client libraries */
 	/* FIXME find a best place to store these data, some are unused */

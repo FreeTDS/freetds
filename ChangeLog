@@ -1,3 +1,10 @@
+Fri Nov  8 20:06:36 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/odbc.c:
+	* src/tds/mem.c src/tds/query.c src/tds/token.c:
+	- put blob related fields in a new TDSBLOBINFO structure and
+	  put this structure in current_row.
+
 Fri Nov  8 17:56:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/convert_tds2sql.c src/tds/convert.c:
 	* src/tds/query.c src/tds/unittests/t0008.c:

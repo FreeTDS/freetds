@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.85 2002-11-08 07:53:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.86 2002-11-08 19:07:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1422,14 +1422,9 @@ SQLRETURN SQL_API SQLFetch(
         colinfo->column_text_sqlgetdatapos = 0;
         if (colinfo->column_varaddr && !tds_get_null(resinfo->current_row, i))
         {
-            if (is_blob_type(colinfo->column_type))
-            {
-                src = colinfo->column_textvalue;
-            }
-            else
-            {
-                src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
-            }
+			src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
+			if (is_blob_type(colinfo->column_type))
+				src = ((TDSBLOBINFO *) src)->textvalue;
             srclen = colinfo->column_cur_size;
             len = convert_tds2sql(context, 
                                   tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
@@ -1937,16 +1932,16 @@ SQLRETURN SQL_API SQLGetData(
     }
     else
     {
+		src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
         if (is_blob_type(colinfo->column_type))
         {
             if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
                 return SQL_NO_DATA_FOUND;
-            src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
+            src = ((TDSBLOBINFO*) src)->textvalue + colinfo->column_text_sqlgetdatapos;
             srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
         }
         else
         {
-            src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
             srclen = colinfo->column_cur_size;
         }
         nSybType = tds_get_conversion_type( colinfo->column_type, colinfo->column_size );
