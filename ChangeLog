@@ -1,6 +1,7 @@
 Mon Sep 23 19:01:48 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/apps/tsql.c src/dblib/dbutil.c
-	  src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	  src/odbc/odbc.c src/tds/mem.c src/tds/token.c
+	  src/ctlib/ctutil.c:
 	- Do away with tds_reset_msg_info.  Move the important
 	  parts into tds_free_msg.
 	- Relocate call to tds_free_msg() in tds_process_msg() so that

@@ -24,7 +24,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.10 2002-08-29 21:56:42 jklowden Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.11 2002-09-23 23:24:01 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -86,6 +86,5 @@ int ret = (int) CS_FAIL;
 	else if (con->ctx->_servermsg_cb)
 		ret = con->ctx->_servermsg_cb(con->ctx,con,&errmsg);
 	
-	tds_reset_msg_info(msg);
 	return ret;
 }
