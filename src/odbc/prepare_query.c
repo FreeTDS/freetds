@@ -42,15 +42,15 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.32 2003-08-29 15:47:56 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.33 2003-08-29 20:37:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
-_get_sql_textsize(struct _sql_param_info *param, SQLINTEGER sql_len)
+_get_sql_textsize(struct _drecord *drec_ipd, SQLINTEGER sql_len)
 {
 	int len;
 
-	switch (param->ipd_sql_desc_type) {
+	switch (drec_ipd->sql_desc_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
@@ -105,19 +105,14 @@ _get_sql_textsize(struct _sql_param_info *param, SQLINTEGER sql_len)
 
 
 static int
-_get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
+_get_param_textsize(TDS_STMT * stmt, struct _drecord *drec_ipd, struct _drecord *drec_apd)
 {
 	int len = 0;
-	SQLINTEGER sql_len = 0;
-
-	if (param->apd_sql_desc_indicator_ptr && *param->apd_sql_desc_indicator_ptr == SQL_NULL_DATA)
-		sql_len = SQL_NULL_DATA;
-	else if (param->apd_sql_desc_octet_length_ptr)
-		sql_len = *param->apd_sql_desc_octet_length_ptr;
+	SQLINTEGER sql_len = odbc_get_param_len(drec_apd);
 
 	switch (sql_len) {
 	case SQL_NTS:
-		len = strlen(param->apd_sql_desc_data_ptr) + 1;
+		len = strlen(drec_apd->sql_desc_data_ptr) + 1;
 		break;
 	case SQL_NULL_DATA:
 		len = 4;
@@ -132,8 +127,7 @@ _get_param_textsize(TDS_STMT * stmt, struct _sql_param_info *param)
 		len = sql_len;
 		if (0 > len)
 			len = SQL_LEN_DATA_AT_EXEC(len);
-		else
-			len = _get_sql_textsize(param, sql_len);
+		len = _get_sql_textsize(drec_ipd, len);
 	}
 
 	return len;
@@ -145,13 +139,11 @@ _calculate_params_size(TDS_STMT * stmt)
 	int i;
 	int len = 0;
 	int l;
-	struct _sql_param_info *param;
 
 	for (i = stmt->param_count; i > 0; --i) {
-		param = odbc_find_param(stmt, i);
-		if (!param)
+		if (i > stmt->apd->header.sql_desc_count || i > stmt->ipd->header.sql_desc_count)
 			return -1;
-		l = _get_param_textsize(stmt, param);
+		l = _get_param_textsize(stmt, &stmt->ipd->records[i - 1], &stmt->apd->records[i - 1]);
 		if (l < 0)
 			return -1;
 		len += l;
@@ -161,12 +153,12 @@ _calculate_params_size(TDS_STMT * stmt)
 }
 
 static int
-_need_comma(struct _sql_param_info *param)
+_need_comma(struct _drecord *drec_ipd)
 {
-	if (SQL_NULL_DATA == param->ipd_sql_desc_parameter_type)
+	if (SQL_NULL_DATA == drec_ipd->sql_desc_parameter_type)
 		return 0;
 
-	switch (param->ipd_sql_desc_type) {
+	switch (drec_ipd->sql_desc_type) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
@@ -252,7 +244,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 {
 	char *s, *d;
 	int param_num;
-	struct _sql_param_info *param;
+	struct _drecord *drec_ipd, *drec_apd;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	int len;
@@ -286,28 +278,24 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 		if (*s == '?') {
 			param_num++;
 
-			param = odbc_find_param(stmt, param_num);
-			if (!param)
+			if (param_num > stmt->apd->header.sql_desc_count || param_num > stmt->ipd->header.sql_desc_count)
 				return SQL_ERROR;
+			drec_ipd = &stmt->ipd->records[param_num - 1];
+			drec_apd = &stmt->apd->records[param_num - 1];
 
-			need_comma = _need_comma(param);
+			need_comma = _need_comma(drec_ipd);
 			/* printf("ctype is %d %d %d\n",param->ipd_sql_desc_parameter_type, 
 			 * param->apd_sql_desc_type, param->ipd_sql_desc_type); */
 
 			if (need_comma)
 				*d++ = comma;
 
-			if (param->apd_sql_desc_type == SQL_C_BINARY) {
+			if (drec_apd->sql_desc_type == SQL_C_BINARY) {
 				memcpy(d, "0x", 2);
 				d += 2;
 			}
 
-			sql_len = 0;
-			if (param->apd_sql_desc_indicator_ptr && *param->apd_sql_desc_indicator_ptr == SQL_NULL_DATA)
-				sql_len = SQL_NULL_DATA;
-			else if (param->apd_sql_desc_octet_length_ptr)
-				sql_len = *param->apd_sql_desc_octet_length_ptr;
-
+			sql_len = odbc_get_param_len(drec_apd);
 			if (_get_len_data_at_exec(sql_len) > 0) {
 				/* save prepared_query parameters to stmt */
 				stmt->prepared_query_s = s;
@@ -319,7 +307,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 				return SQL_NEED_DATA;
 			}
 
-			len = convert_sql2string(context, param->apd_sql_desc_type, param->apd_sql_desc_data_ptr, sql_len, d, -1);
+			len = convert_sql2string(context, drec_apd->sql_desc_type, drec_apd->sql_desc_data_ptr, sql_len, d, -1);
 			if (TDS_FAIL == len)
 				return SQL_ERROR;
 
@@ -372,7 +360,7 @@ int
 continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGER StrLen_or_Ind)
 {
 	char *d;
-	struct _sql_param_info *param;
+	struct _drecord *drec_apd, *drec_ipd;
 	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	int len;
@@ -389,9 +377,11 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 
 	context = stmt->hdbc->henv->tds_ctx;
 	locale = context->locale;
-	param = odbc_find_param(stmt, stmt->prepared_query_param_num);
-	if (!param)
+	if (stmt->prepared_query_param_num > stmt->apd->header.sql_desc_count
+	    || stmt->prepared_query_param_num > stmt->ipd->header.sql_desc_count)
 		return SQL_ERROR;
+	drec_apd = &stmt->apd->records[stmt->prepared_query_param_num - 1];
+	drec_ipd = &stmt->ipd->records[stmt->prepared_query_param_num - 1];
 
 	/* load prepared_query parameters from stmt */
 	d = stmt->prepared_query_d;
@@ -407,11 +397,11 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		StrLen_or_Ind = need_bytes;
 
 	/* put parameter into query */
-	len = convert_sql2string(context, param->apd_sql_desc_type, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
+	len = convert_sql2string(context, drec_apd->sql_desc_type, (const TDS_CHAR *) DataPtr, StrLen_or_Ind, d, -1);
 	if (TDS_FAIL == len)
 		return SQL_ERROR;
 
-	if (_need_comma(param))
+	if (_need_comma(drec_ipd))
 		len = _fix_commas(d, len);
 
 	d += len;
@@ -427,7 +417,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 	}
 
 	/* continue parse prepared query */
-	if (_need_comma(param))
+	if (_need_comma(drec_ipd))
 		*d++ = comma;
 
 	/* set prepared_query parameters in stmt */

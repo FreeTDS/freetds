@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.232 2003-08-29 15:47:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.233 2003-08-29 20:37:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -767,7 +767,9 @@ static SQLRETURN
 _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 		  SQLUINTEGER cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER cbValueMax, SQLINTEGER FAR * pcbValue)
 {
-	struct _sql_param_info *cur, *newitem;
+	TDS_DESC *apd, *ipd;
+	struct _drecord *drec;
+	SQLSMALLINT orig_apd_size;
 
 	INIT_HSTMT;
 
@@ -793,63 +795,48 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 #endif
 
 	/* Check parameter number */
-	if (ipar < 1) {
-		odbc_errs_add(&stmt->errs, "HY093", NULL, NULL);
+	if (ipar <= 0 || ipar > 4000) {
+		odbc_errs_add(&stmt->errs, "07009", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	/* find available item in list */
-	cur = odbc_find_param(stmt, ipar);
-
-	if (!cur) {
-		/* didn't find it create a new one */
-		newitem = (struct _sql_param_info *)
-			malloc(sizeof(struct _sql_param_info));
-		if (!newitem) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
-		}
-		memset(newitem, 0, sizeof(struct _sql_param_info));
-		newitem->param_number = ipar;
-		cur = newitem;
-		cur->next = stmt->param_head;
-		stmt->param_head = cur;
+	/* fill APD related fields */
+	apd = stmt->apd;
+	orig_apd_size = apd->header.sql_desc_count;
+	if (ipar > apd->header.sql_desc_count && desc_alloc_records(apd, ipar) != SQL_SUCCESS) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+	drec = &apd->records[ipar - 1];
 
-	cur->ipd_sql_desc_parameter_type = fParamType;
-	cur->apd_sql_desc_type = fCType;
+	drec->sql_desc_type = fCType;
 	if (fCType == SQL_C_DEFAULT) {
-		cur->apd_sql_desc_type = odbc_sql_to_c_type_default(fSqlType);
-		if (cur->apd_sql_desc_type == 0) {
+		drec->sql_desc_type = odbc_sql_to_c_type_default(fSqlType);
+		if (drec->sql_desc_type == 0) {
+			desc_alloc_records(apd, orig_apd_size);
 			odbc_errs_add(&stmt->errs, "HY004", NULL, NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	} else {
-		cur->apd_sql_desc_type = fCType;
+		drec->sql_desc_type = fCType;
 	}
-	cur->ipd_sql_desc_type = fSqlType;
-	if (cur->apd_sql_desc_type == SQL_C_CHAR)
-		cur->apd_sql_desc_octet_length = cbValueMax;
-	if (!pcbValue) {
-		/* FIXME check when we'll use descriptor... descriptors can be relocated !!! */
-		cur->param_inlen = 0;
-		cur->apd_sql_desc_indicator_ptr = NULL;
-		cur->apd_sql_desc_octet_length_ptr = &cur->param_inlen;
-		/* TODO add XML if defined */
-		if (cur->apd_sql_desc_type == SQL_C_CHAR || cur->apd_sql_desc_type == SQL_C_BINARY) {
-			cur->param_inlen = SQL_NTS;
-		} else {
-			/* FIXME check what happen to DATE/TIME types */
-			int size = tds_get_size_by_type(odbc_get_server_type(cur->apd_sql_desc_type));
+	if (drec->sql_desc_type == SQL_C_CHAR)
+		drec->sql_desc_octet_length = cbValueMax;
+	drec->sql_desc_indicator_ptr = pcbValue;
+	drec->sql_desc_octet_length_ptr = pcbValue;
+	drec->sql_desc_data_ptr = (char *) rgbValue;
 
-			if (size > 0)
-				cur->param_inlen = size;
-		}
-	} else {
-		cur->apd_sql_desc_indicator_ptr = pcbValue;
-		cur->apd_sql_desc_octet_length_ptr = pcbValue;
+	/* field IPD related fields */
+	ipd = stmt->ipd;
+	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS) {
+		desc_alloc_records(apd, orig_apd_size);
+		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	cur->apd_sql_desc_data_ptr = (char *) rgbValue;
+	drec = &ipd->records[ipar - 1];
+
+	drec->sql_desc_parameter_type = fParamType;
+	drec->sql_desc_type = fSqlType;
 
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
@@ -2425,7 +2412,6 @@ SQLExecute(SQLHSTMT hstmt)
 #ifdef ENABLE_DEVELOPING
 	TDSSOCKET *tds;
 	TDSDYNAMIC *dyn;
-	struct _sql_param_info *param;
 	TDS_INT result_type;
 	int ret, done, done_flags;
 	SQLRETURN result = SQL_NO_DATA;
@@ -2447,8 +2433,7 @@ SQLExecute(SQLHSTMT hstmt)
 	tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
 	for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
 		/* find binded parameter */
-		param = odbc_find_param(stmt, i);
-		if (!param) {
+		if (i > stmt->apd->header.sql_desc_count || i > stmt->ipd->header.sql_desc_count) {
 			tds_free_param_results(params);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
@@ -2463,7 +2448,7 @@ SQLExecute(SQLHSTMT hstmt)
 
 		/* add another type and copy data */
 		/* TODO handle incomplete parameters */
-		if (sql2tds(stmt->hdbc, param, params, nparam) < 0) {
+		if (sql2tds(stmt->hdbc, &stmt->ipd->records[i - 1], &stmt->apd->records[i - 1], params, nparam) < 0) {
 			tds_free_param_results(params);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
@@ -2758,17 +2743,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 
 	/* do the same for bound parameters */
 	if (fOption == SQL_DROP || fOption == SQL_RESET_PARAMS) {
-		struct _sql_param_info *cur, *tmp;
-
-		if (stmt->param_head) {
-			cur = stmt->param_head;
-			while (cur) {
-				tmp = cur->next;
-				free(cur);
-				cur = tmp;
-			}
-			stmt->param_head = NULL;
-		}
+		desc_free_records(stmt->apd);
+		desc_free_records(stmt->ipd);
 	}
 
 	/* close statement */
@@ -4490,16 +4466,13 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 SQLRETURN SQL_API
 SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
-	struct _sql_param_info *param;
-
 	INIT_HSTMT;
 
 	if (stmt->prepared_query_need_bytes) {
-		param = odbc_find_param(stmt, stmt->prepared_query_param_num);
-		if (!param)
+		if (stmt->prepared_query_param_num <= 0 || stmt->prepared_query_param_num > stmt->apd->header.sql_desc_count)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
-		*prgbValue = param->apd_sql_desc_data_ptr;
+		*prgbValue = stmt->apd->records[stmt->prepared_query_param_num - 1].sql_desc_data_ptr;
 		ODBC_RETURN(stmt, SQL_NEED_DATA);
 	}
 
@@ -4511,7 +4484,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 {
 	INIT_HSTMT;
 
-	if (stmt->prepared_query && stmt->param_head) {
+	if (stmt->prepared_query) {
 		SQLRETURN res = continue_parse_prepared_query(stmt, rgbValue, cbValue);
 
 		if (SQL_NEED_DATA == res)

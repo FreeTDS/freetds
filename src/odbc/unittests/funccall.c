@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.5 2003-07-02 20:33:21 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.6 2003-08-29 20:37:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -130,6 +130,8 @@ main(int argc, char *argv[])
 	}
 
 	if (output != 987 || ind3 <= 0 || ind4 <= 0 || out1 != 6789 || strcmp(out2, "test foo") != 0) {
+		printf("ouput = %d ind3 = %d ind4 = %d out1 = %d out2 = %s\n", (int) output, (int) ind3, (int) ind4, (int) out1,
+		       out2);
 		printf("Invalid result\n");
 		exit(1);
 	}

@@ -35,12 +35,13 @@
 #include "tdsodbc.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
+#include "convert_sql2string.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.42 2003-08-29 15:47:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.43 2003-08-29 20:37:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -119,20 +120,20 @@ odbc_set_return_status(struct _hstmt *stmt)
 #endif
 
 	if (stmt->prepared_query_is_func && tds->has_status) {
-		struct _sql_param_info *param;
+		struct _drecord *drec;
+		int len;
 
-		param = odbc_find_param(stmt, 1);
-		if (param) {
-			int len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-						  param->apd_sql_desc_type, param->apd_sql_desc_data_ptr,
-						  param->apd_sql_desc_octet_length);
+		if (stmt->apd->header.sql_desc_count < 1)
+			return;
+		drec = &stmt->apd->records[0];
 
-			if (TDS_FAIL == len)
-				return /* SQL_ERROR */ ;
-			if (param->apd_sql_desc_indicator_ptr)
-				*param->apd_sql_desc_indicator_ptr = 0;
-			*param->apd_sql_desc_octet_length_ptr = len;
-		}
+		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT), drec->sql_desc_type,
+				      drec->sql_desc_data_ptr, drec->sql_desc_octet_length);
+		if (TDS_FAIL == len)
+			return /* SQL_ERROR */ ;
+		if (drec->sql_desc_indicator_ptr)
+			*drec->sql_desc_indicator_ptr = 0;
+		*drec->sql_desc_octet_length_ptr = len;
 	}
 
 }
@@ -144,7 +145,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 	TDSPARAMINFO *info = tds->curr_resinfo;
 	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
 
-	int i_begin = stmt->prepared_query_is_func ? 2 : 1;
+	int i_begin = stmt->prepared_query_is_func ? 1 : 0;
 	int i;
 	int nparam = i_begin;
 
@@ -154,7 +155,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 		return;
 
 	for (i = 0; i < info->num_cols; ++i) {
-		struct _sql_param_info *param;
+		struct _drecord *drec_apd;
 		TDSCOLINFO *colinfo = info->columns[i];
 		TDS_CHAR *src;
 		int srclen;
@@ -162,19 +163,20 @@ odbc_set_return_params(struct _hstmt *stmt)
 
 		/* find next output parameter */
 		for (;;) {
-			param = odbc_find_param(stmt, nparam++);
-			if (param && param->ipd_sql_desc_parameter_type != SQL_PARAM_INPUT)
-				break;
+			drec_apd = NULL;
 			/* TODO best way to stop */
-			if (!param)
+			if (nparam >= stmt->apd->header.sql_desc_count || nparam >= stmt->ipd->header.sql_desc_count)
 				return;
+			drec_apd = &stmt->apd->records[nparam];
+			if (stmt->ipd->records[nparam++].sql_desc_parameter_type != SQL_PARAM_INPUT)
+				break;
 		}
 
 		/* null parameter ? */
 		if (tds_get_null(info->current_row, i)) {
 			/* FIXME error if NULL */
-			if (param->apd_sql_desc_indicator_ptr)
-				*param->apd_sql_desc_indicator_ptr = SQL_NULL_DATA;
+			if (drec_apd->sql_desc_indicator_ptr)
+				*drec_apd->sql_desc_indicator_ptr = SQL_NULL_DATA;
 			continue;
 		}
 
@@ -183,31 +185,15 @@ odbc_set_return_params(struct _hstmt *stmt)
 			src = ((TDSBLOBINFO *) src)->textvalue;
 		srclen = colinfo->column_cur_size;
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
-				      param->apd_sql_desc_type, param->apd_sql_desc_data_ptr, param->apd_sql_desc_octet_length);
+				      drec_apd->sql_desc_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length);
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
-		if (param->apd_sql_desc_indicator_ptr)
-			*param->apd_sql_desc_indicator_ptr = 0;
-		*param->apd_sql_desc_octet_length_ptr = len;
+		if (drec_apd->sql_desc_indicator_ptr)
+			*drec_apd->sql_desc_indicator_ptr = 0;
+		*drec_apd->sql_desc_octet_length_ptr = len;
 	}
 }
-
-struct _sql_param_info *
-odbc_find_param(struct _hstmt *stmt, int param_num)
-{
-	struct _sql_param_info *cur;
-
-	/* find parameter number n */
-	cur = stmt->param_head;
-	while (cur) {
-		if (cur->param_number == param_num)
-			return cur;
-		cur = cur->next;
-	}
-	return NULL;
-}
-
 
 int
 odbc_get_string_size(int size, SQLCHAR * str)
@@ -629,6 +615,32 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 {
 	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((tds->product_version & 0x7F000000) >> 24),
 		(int) ((tds->product_version & 0x00FF0000) >> 16), (int) (tds->product_version & 0x0000FFFF));
+}
+
+/** Return length of parameter from parameter information */
+SQLINTEGER
+odbc_get_param_len(struct _drecord *drec)
+{
+	SQLINTEGER len;
+	int size;
+
+	if (drec->sql_desc_indicator_ptr && *drec->sql_desc_indicator_ptr == SQL_NULL_DATA)
+		len = SQL_NULL_DATA;
+	else if (drec->sql_desc_octet_length_ptr)
+		len = *drec->sql_desc_octet_length_ptr;
+	else {
+		len = 0;
+		/* TODO add XML if defined */
+		if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY) {
+			len = SQL_NTS;
+		} else {
+			/* FIXME check what happen to DATE/TIME types */
+			size = tds_get_size_by_type(odbc_get_server_type(drec->sql_desc_type));
+			if (size > 0)
+				len = size;
+		}
+	}
+	return len;
 }
 
 /** \@} */

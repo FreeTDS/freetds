@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.18 2003-08-29 15:47:56 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.19 2003-08-29 20:37:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -102,7 +102,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  * return same result of tds_convert
  */
 int
-sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int nparam)
+sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam)
 {
 	int dest_type, src_type, res;
 	CONV_RESULT ores;
@@ -115,24 +115,20 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 	SQLINTEGER sql_len;
 
 	/* TODO procedure, macro ?? see prepare_query */
-	sql_len = 0;
-	if (param->apd_sql_desc_indicator_ptr && *param->apd_sql_desc_indicator_ptr == SQL_NULL_DATA)
-		sql_len = SQL_NULL_DATA;
-	else if (param->apd_sql_desc_octet_length_ptr)
-		sql_len = *param->apd_sql_desc_octet_length_ptr;
+	sql_len = odbc_get_param_len(drec_apd);
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
-	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, param->ipd_sql_desc_type);
+	tdsdump_log(TDS_DBG_INFO2, "%s:%d type=%d\n", __FILE__, __LINE__, drec_ipd->sql_desc_type);
 
 	/* what type to convert ? */
-	dest_type = odbc_sql_to_server_type(dbc->tds_socket, param->ipd_sql_desc_type);
+	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_type);
 	if (dest_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 	/* TODO what happen for unicode types ?? */
 	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
 	len = curcol->column_size;
-	if (param->ipd_sql_desc_parameter_type != SQL_PARAM_INPUT)
+	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;
 	if (curcol->column_varint_size != 0) {
 		switch (sql_len) {
@@ -140,7 +136,7 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 			len = 0;
 			break;
 		case SQL_NTS:
-			len = strlen(param->apd_sql_desc_data_ptr);
+			len = strlen(drec_apd->sql_desc_data_ptr);
 			break;
 		case SQL_DEFAULT_PARAM:
 		case SQL_DATA_AT_EXEC:
@@ -156,8 +152,8 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 
 		}
 		curcol->column_cur_size = curcol->column_size = len;
-		if (param->ipd_sql_desc_parameter_type != SQL_PARAM_INPUT)
-			curcol->column_size = param->apd_sql_desc_octet_length;
+		if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
+			curcol->column_size = drec_apd->sql_desc_octet_length;
 	} else {
 		/* TODO only a trick... */
 		if (curcol->column_varint_size == 0)
@@ -172,27 +168,27 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 
 	/* TODO what happen to data ?? */
 	/* convert parameters */
-	src = param->apd_sql_desc_data_ptr;
-	switch (param->apd_sql_desc_type) {
+	src = drec_apd->sql_desc_data_ptr;
+	switch (drec_apd->sql_desc_type) {
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_DATE:
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
-		convert_datetime2server(param->apd_sql_desc_type, src, &dt);
+		convert_datetime2server(drec_apd->sql_desc_type, src, &dt);
 		src = (char *) &dt;
 		src_type = SYBDATETIME;
 		break;
 	default:
-		src_type = odbc_get_server_type(param->apd_sql_desc_type);
+		src_type = odbc_get_server_type(drec_apd->sql_desc_type);
 		break;
 	}
 	if (src_type == TDS_FAIL)
 		return TDS_CONVERT_FAIL;
 
 	/* set null */
-	if (sql_len == SQL_NULL_DATA || param->ipd_sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
+	if (sql_len == SQL_NULL_DATA || drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
 		curcol->column_cur_size = 0;
 		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;

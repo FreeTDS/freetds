@@ -1,3 +1,11 @@
+Fri Aug 29 22:35:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/odbc_util.h src/odbc/prepare_query.c:
+	* src/odbc/sql2tds.c src/odbc/sql2tds.h src/odbc/unittests/funccall.c:
+	- remove _sql_param_info structure and update cascading
+	- remove buffer overflow compiling without --enable-developing and
+	  using SQLPutData
+
 Fri Aug 29 17:46:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
