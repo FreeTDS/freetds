@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.6 2003-01-12 20:28:34 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.7 2003-03-23 10:09:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -102,21 +102,23 @@ prepare_call(struct _hstmt *stmt)
 		if (quoted) {
 			*d++ = *s++;
 		} else if (*s == '{') {
-	char *pcall = strstr(s, "call ");
+			char *pcall = NULL;
+
+			if (strncasecmp(s + 1, "call ", 5) == 0)
+				pcall = s + 1;
+			else if (strncasecmp(s + 1, "?=call ", 7) == 0)
+				pcall = s + 3;
 
 			++nest_syntax;
 			is_calls <<= 1;
-			if (!pcall || ((pcall - s) != 1 && (pcall - s) != 3)) {
+			if (!pcall) {
 				/* syntax is always in the form {type ...} */
 				p = strchr(s, ' ');
 				if (!p)
 					break;
 				s = p + 1;
 			} else {
-	int len;
-
 				s++;
-				len = pcall - s;
 				if (*s == '?')
 					stmt->prepared_query_is_func = 1;
 				memcpy(d, "exec ", 5);

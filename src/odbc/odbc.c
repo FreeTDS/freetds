@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.138 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.139 2003-03-23 10:09:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -283,8 +283,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
 				/* Skipping current result set's rows to access next resultset or proc's retval */
-				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
-					;
+				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
 				if (tdsret == TDS_FAIL)
 					return SQL_ERROR;
 				break;
@@ -1646,7 +1645,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 SQLRETURN SQL_API
 SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
 {
-	switch(handleType) {
+	switch (handleType) {
 	case SQL_HANDLE_ENV:
 		return SQLTransact(handle, NULL, completionType);
 	case SQL_HANDLE_DBC:
@@ -2169,7 +2168,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	switch (fInfoType) {
 		/* TODO dbms name and version can be safed from login... */
 	case SQL_DBMS_NAME:
-		p = "SQL Server";
+		if (TDS_IS_MSSQL(dbc->tds_socket))
+			p = "Microsoft SQL Server";
+		else
+			p = "SQL Server";
 		break;
 	case SQL_DBMS_VER:
 		p = "unknown version";

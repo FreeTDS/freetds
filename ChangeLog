@@ -1,3 +1,9 @@
+Sun Mar 23 11:06:37 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c src/odbc/odbc.c:
+	- return "Microsoft SQL Server" for mssql
+	- handle CALL odbc escape (ignore case)
+	- fix wrong escape detection (like {xxcall ...)
+
 Thu Mar 20 10:58:38 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/ct.c src/dblib/bcp.c
 	- patch #706953 from Bill Thompson
