@@ -24,7 +24,7 @@
 #include <time.h>
 #include <assert.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.3 2001-10-24 23:19:44 brianb Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.4 2001-11-07 20:46:19 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -210,6 +210,7 @@ TDS_VARBINARY *varbin;
          memcpy(varbin->array, src, cplen);
 	 return sizeof(TDS_VARBINARY);
    }
+   return TDS_FAIL;
 }
 
 TDS_INT tds_convert_char(int srctype,unsigned char *src,
@@ -495,6 +496,7 @@ char *s;
 			dmoney = (TDS_FLOAT)high * 65536 * 65536 + (TDS_FLOAT)low;
 			dmoney = dmoney / 10000;
 			*(TDS_FLOAT *)dest = dmoney;
+			return sizeof(TDS_FLOAT); /* was returning FAIL below (mlilback, 11/7/01) */
 			break;
 		case SYBMONEY:
 			memcpy(dest, src, sizeof(TDS_MONEY));
