@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.6 2004-02-20 12:22:19 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.7 2004-09-23 11:25:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_get_cardinal_type(int datatype);
@@ -82,9 +82,14 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 	}
 	tds_set_column_type(curcol, type);
 
+	if (is_collate_type(type)) {
+		curcol->char_conv = tds->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
+		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
+	}
+
 	/* special case, GUID, varint != 0 but only a size */
 	/* TODO VARIANT, when supported */
-	switch(type) {
+	switch (type) {
 	case SYBUNIQUE:
 		curcol->column_size = sizeof(TDS_UNIQUE);
 		break;

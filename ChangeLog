@@ -1,3 +1,7 @@
+Thu Sep 23 13:24:09 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/data.c:
+	- convert data using input parameters
+
 Thu Sep 23 13:08:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c:
 	- fix mimor portability issues
