@@ -30,11 +30,13 @@
 #include "dblib.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.7 2002-11-21 22:40:46 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.8 2002-11-23 06:36:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 
 /**
@@ -44,6 +46,7 @@ static void param_clear(DBREMOTE_PROC_PARAM * pparam);
  * which causes the stored procedure to be recompiled before executing.
  * FIXME: I don't know the value for DBRPCRECOMPILE and have not added it to sybdb.h
  */
+ 
 RETCODE
 dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 {
@@ -52,22 +55,37 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	/* sanity */
 	if (dbproc == NULL || rpcname == NULL) return FAIL;
 	
-	if (dbproc->rpc) return FAIL;  /* dbrpcsend should free pointer */
+	switch (options) {
+	case DBRPCRECOMPILE:
+		break;
+	case DBRPCRESET:
+		rpc_clear(dbproc->rpc);
+		return SUCCEED;
+		break; /* OK */
+	default:
+		return FAIL;  
+	}
 	
+	/* to allocate, first find a free node */
+	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
+		/* check existing nodes for name match (there shouldn't be one) */
+		if (!rpc->name)	return FAIL;
+		if (strcmp(rpc->name, rpcname) == 0)
+			return FAIL 	/* dbrpcsend should free pointer */;	
+	}
+		
 	/* allocate */
 	rpc = (DBREMOTE_PROC*) malloc(sizeof(DBREMOTE_PROC));
 	if (rpc == NULL) return FAIL;
 	
 	rpc->name = (char*) malloc(1 + strlen(rpcname));
-	if (rpc->name == NULL) return FAIL;
+	if (rpc->name == NULL) return FAIL; 	
 	
 	/* store */
 	strcpy(rpc->name, rpcname);
 	rpc->options = options;
 	rpc->param_list = (DBREMOTE_PROC_PARAM*) NULL;
 
-	dbproc->rpc = rpc;
-	
 	/* completed */
 	tdsdump_log(TDS_DBG_INFO1, "%L dbrpcinit() added rpcname \"%s\"\n",rpcname);
 		
@@ -81,11 +99,13 @@ RETCODE
 dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
 {
 	char *name = NULL;
+	DBREMOTE_PROC *rpc;
 	DBREMOTE_PROC_PARAM *p;
 	DBREMOTE_PROC_PARAM *pparam;
 	
 	/* sanity */
 	if (dbproc == NULL || value == NULL) return FAIL;
+	if (dbproc->rpc == NULL ) return FAIL;
 	
 	/* allocate */
 	pparam = (DBREMOTE_PROC_PARAM*) malloc(sizeof(DBREMOTE_PROC_PARAM));
@@ -109,7 +129,9 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	/*
 	 * traverse the parameter linked list until the end (using the "next" member)
 	 */
-	for (p = dbproc->rpc->param_list; p != NULL; p = p->next)
+	for (rpc = dbproc->rpc; rpc->next != NULL; rpc = rpc->next) /* find "current" procedure */
+		;
+	for (p = rpc->param_list; p != NULL; p = p->next)
 		;
 		
 	/* add to the end of the list */
@@ -138,15 +160,30 @@ dbrpcsend(DBPROCESS * dbproc)
 
 
 	/* free up the memory */
-	param_clear(dbproc->rpc->param_list);
-	
-	free(dbproc->rpc->name);
-	free(dbproc->rpc);
+	rpc_clear(dbproc->rpc);
 
-	/* mark it freed */	
-	dbproc->rpc = (DBREMOTE_PROC*) NULL;
-	
 	return SUCCEED;
+}
+
+/**
+ * recursively erase the procedure list
+ */
+static void
+rpc_clear(DBREMOTE_PROC * rpc)
+{
+	if (rpc == NULL) return;
+	
+	if (rpc->next) {
+		rpc_clear(rpc->next);
+	}
+	
+	param_clear(rpc->param_list);
+	
+	assert(rpc->name);
+	free(rpc->name);
+	
+	free(rpc);
+	rpc = (DBREMOTE_PROC*) NULL;
 }
 
 /**
@@ -161,7 +198,8 @@ param_clear(DBREMOTE_PROC_PARAM * pparam)
 		param_clear(pparam->next);
 	}
 	
-	free(pparam->next);
-	pparam->next = (DBREMOTE_PROC_PARAM*) NULL;
+	/* free self after clearing children */
+	free(pparam);
+	pparam = (DBREMOTE_PROC_PARAM*) NULL;
 }
 

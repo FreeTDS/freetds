@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.36 2002-11-21 22:40:46 jklowden Exp $";
+"$Id: sybdb.h,v 1.37 2002-11-23 06:36:35 jklowden Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -278,8 +278,11 @@ typedef struct _DBREMOTE_PROC_PARAM
 	BYTE		*value;
 }  DBREMOTE_PROC_PARAM;
 
-typedef struct 
+typedef struct _DBREMOTE_PROC
 {
+	struct _DBREMOTE_PROC
+			*next;
+			
 	char *name;
 	DBSMALLINT options;
 	DBREMOTE_PROC_PARAM *param_list;
@@ -400,6 +403,10 @@ typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int se
 #define DBSINGLE 0
 #define DBDOUBLE 1
 #define DBBOTH   2
+
+/* remote procedure call (rpc) options */
+#define DBRPCRECOMPILE ((DBSMALLINT) 0x0001)
+#define DBRPCRESET ((DBSMALLINT) 0x0002)
 
 DBBOOL db12hour(DBPROCESS *dbprocess, char *language);
 BYTE *dbadata(DBPROCESS *dbproc, int computeid, int column);

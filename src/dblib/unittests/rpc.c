@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.1 2002-11-22 22:53:39 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.2 2002-11-23 06:36:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
