@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.142 2003-02-04 13:28:29 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.143 2003-02-09 01:20:48 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1023,7 +1023,6 @@ int i;
 static int
 tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
-TDS_SMALLINT tabnamelen;
 int colnamelen;
 
 	/*  User defined data type of the column */
@@ -1155,7 +1154,6 @@ tds_set_column_type(TDSCOLINFO * curcol, int type)
 static int
 tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
-int colnamelen;
 
 	curcol->column_namelen = tds_get_byte(tds);
 	tds_get_string(tds, curcol->column_name, curcol->column_namelen);
