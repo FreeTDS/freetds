@@ -20,12 +20,15 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.7 2003-03-23 20:13:51 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.8 2003-04-03 08:59:16 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
 extern "C"
 {
+#if 0
+}
+#endif
 #endif
 
 #ifdef __INCvxWorksh
@@ -58,7 +61,7 @@ typedef DWORD pid_t;
 #define WIN32 1
 #endif
 
-#endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef sock_errno
 #define sock_errno errno
@@ -66,22 +69,25 @@ typedef DWORD pid_t;
 
 #ifndef READSOCKET
 #define READSOCKET(a,b,c)	read((a), (b), (c))
-#endif				/* !READSOCKET */
+#endif /* !READSOCKET */
 
 #ifndef WRITESOCKET
 #define WRITESOCKET(a,b,c)	write((a), (b), (c))
-#endif				/* !WRITESOCKET */
+#endif /* !WRITESOCKET */
 
 #ifndef CLOSESOCKET
 #define CLOSESOCKET(a)		close((a))
-#endif				/* !CLOSESOCKET */
+#endif /* !CLOSESOCKET */
 
 #ifndef IOCTLSOCKET
 #define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
-#endif				/* !IOCTLSOCKET */
+#endif /* !IOCTLSOCKET */
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 
-#endif				/* _tds_sysdep_private_h_ */
+#endif /* _tds_sysdep_private_h_ */

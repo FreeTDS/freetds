@@ -39,19 +39,25 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.24 2003-03-23 21:03:39 freddy77 Exp $";
-static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.25 2003-04-03 08:59:16 freddy77 Exp $";
+static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 /* this is usually a const struct that store all errors */
 struct _sql_error_struct
 {
-	const char *msg; /**< default message */
-	char state2[6];  /**< state for ODBC2 */
-	char state3[6];  /**< state for ODBC3 */
+	const char *msg;
+			 /**< default message */
+	char state2[6];
+			 /**< state for ODBC2 */
+	char state3[6];
+			 /**< state for ODBC3 */
 };
 
 struct _sql_error
@@ -71,9 +77,10 @@ struct _sql_errors
 	struct _sql_error *errs;
 };
 
-enum _sql_error_types {
+enum _sql_error_types
+{
 	ODBCERR_GENERIC,
-	ODBCERR_NOTIMPLEMENTED, 
+	ODBCERR_NOTIMPLEMENTED,
 	ODBCERR_MEMORY,
 	ODBCERR_NODSN,
 	ODBCERR_CONNECT,
@@ -87,53 +94,59 @@ enum _sql_error_types {
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
+
 /** add an error to list */
 void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg);
-/** Add an error to list. This functions is for error that came from server */
-void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate, 
-	int msgnum, unsigned short linenum, int msgstate);
 
-struct _henv {
+/** Add an error to list. This functions is for error that came from server */
+void odbc_errs_add_rdbms(struct _sql_errors *errs, enum _sql_error_types err_type, char *msg, char *sqlstate,
+			 int msgnum, unsigned short linenum, int msgstate);
+
+struct _henv
+{
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
 	unsigned char odbc_ver;
 };
 
 struct _hstmt;
-struct _hdbc {
+struct _hdbc
+{
 	struct _henv *henv;
 	TDSSOCKET *tds_socket;
 	/** statement executing */
 	struct _hstmt *current_statement;
 	/* spinellia@acm.org */
 	/** 0 = OFF, 1 = ON, -1 = UNKNOWN */
-	int	autocommit_state;
+	int autocommit_state;
 	struct _sql_errors errs;
 };
 
-struct _hstmt {
+struct _hstmt
+{
 	struct _hdbc *hdbc;
 	char *query;
 	/* begin prepared query stuff */
 	char *prepared_query;
 	char *prepared_query_s;
 	char *prepared_query_d;
-	int  prepared_query_need_bytes;
-	int  prepared_query_param_num;
-	int  prepared_query_quoted;
+	int prepared_query_need_bytes;
+	int prepared_query_param_num;
+	int prepared_query_quoted;
 	char prepared_query_quote_char;
-        int  prepared_query_is_func;
+	int prepared_query_is_func;
 	/* end prepared query stuff */
 	struct _sql_bind_info *bind_head;
 	struct _sql_param_info *param_head;
 	unsigned int param_count;
 	int row;
-	TDSDYNAMIC *dyn; /* FIXME check if freed */
+	TDSDYNAMIC *dyn;	/* FIXME check if freed */
 	struct _sql_errors errs;
 	char ard, ird, apd, ipd;
 };
 
-struct _sql_param_info {
+struct _sql_param_info
+{
 	int param_number;
 	int param_type;
 	int param_bindtype;
@@ -144,7 +157,8 @@ struct _sql_param_info {
 	struct _sql_param_info *next;
 };
 
-struct _sql_bind_info {
+struct _sql_bind_info
+{
 	int column_number;
 	int column_bindtype;
 	int column_bindlen;
@@ -153,11 +167,14 @@ struct _sql_bind_info {
 	struct _sql_bind_info *next;
 };
 
-typedef struct _henv  TDS_ENV;
-typedef struct _hdbc  TDS_DBC;
+typedef struct _henv TDS_ENV;
+typedef struct _hdbc TDS_DBC;
 typedef struct _hstmt TDS_STMT;
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

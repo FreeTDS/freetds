@@ -21,12 +21,15 @@
 #define _dblib_h_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.12 2003-03-11 20:31:10 jklowden Exp $";
-static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
+static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.13 2003-04-03 08:59:15 freddy77 Exp $";
+static void *no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 
 #define DBLIB_INFO_MSG_TYPE 0
@@ -35,24 +38,27 @@ static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 /*
 ** internal prototypes
 */
-int dblib_handle_info_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
-int dblib_handle_err_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
-int _dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, const char *dberrstr);
-void dblib_setTDS_version(TDSLOGIN *tds_login, DBINT version);
+int dblib_handle_info_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
+int dblib_handle_err_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
+int _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr);
+void dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
 
-DBINT _convert_char(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
-DBINT _convert_intn(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
+DBINT _convert_char(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);
+DBINT _convert_intn(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);
 
-RETCODE _bcp_clear_storage(DBPROCESS *dbproc);
-RETCODE _bcp_get_term_var(BYTE *dataptr, BYTE *term, int term_len);
-RETCODE _bcp_get_prog_data(DBPROCESS *dbproc);
-int _bcp_readfmt_colinfo(DBPROCESS *dbproc, char *buf, BCP_HOSTCOLINFO *ci);
-RETCODE _bcp_read_hostfile(DBPROCESS *dbproc, FILE *hostfile, FILE *errfile, int *row_error);
+RETCODE _bcp_clear_storage(DBPROCESS * dbproc);
+RETCODE _bcp_get_term_var(BYTE * dataptr, BYTE * term, int term_len);
+RETCODE _bcp_get_prog_data(DBPROCESS * dbproc);
+int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
+RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error);
 
 extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

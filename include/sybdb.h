@@ -23,12 +23,15 @@
 #include "tds.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
+#if 0
+}
+#endif
 #endif
 
-static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.45 2003-03-18 06:19:56 jklowden Exp $";
-static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.46 2003-04-03 08:59:15 freddy77 Exp $";
+static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
  * @file sybdb.h
@@ -75,15 +78,15 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
  * The integer values of the constants are poorly chosen.  
  */
 #define DBTDS_UNKNOWN           0
-#define DBTDS_2_0               1       /* pre 4.0 SQL Server */
-#define DBTDS_3_4               2       /* Microsoft SQL Server (3.0) */
-#define DBTDS_4_0               3       /* 4.0 SQL Server */
-#define DBTDS_4_2               4       /* 4.2 SQL Server */
-#define DBTDS_4_6               5       /* 2.0 OpenServer and 4.6 SQL Server. */
-#define DBTDS_4_9_5             6       /* 4.9.5 (NCR) SQL Server */
-#define DBTDS_5_0               7       /* 5.0 SQL Server */
-#define DBTDS_7_0               8       /* Microsoft SQL Server 7.0 */
-#define DBTDS_8_0               9       /* Microsoft SQL Server 2000 */
+#define DBTDS_2_0               1	/* pre 4.0 SQL Server */
+#define DBTDS_3_4               2	/* Microsoft SQL Server (3.0) */
+#define DBTDS_4_0               3	/* 4.0 SQL Server */
+#define DBTDS_4_2               4	/* 4.2 SQL Server */
+#define DBTDS_4_6               5	/* 2.0 OpenServer and 4.6 SQL Server. */
+#define DBTDS_4_9_5             6	/* 4.9.5 (NCR) SQL Server */
+#define DBTDS_5_0               7	/* 5.0 SQL Server */
+#define DBTDS_7_0               8	/* Microsoft SQL Server 7.0 */
+#define DBTDS_8_0               9	/* Microsoft SQL Server 2000 */
 
 #define DBTXPLEN 16
 
@@ -103,21 +106,21 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define DBRESSUCC 1
 #define DBRESDONE 2
 
-typedef int	 RETCODE;
+typedef int RETCODE;
 
-typedef void	 DBCURSOR;
-typedef void	 DBXLATE;
-typedef void	 DBSORTORDER;
-typedef void	 DBLOGINFO;
-typedef void	*DBVOIDPTR;
-typedef short	 SHORT;
-typedef unsigned short	USHORT;
-typedef int	(*INTFUNCPTR)(void *, ...);
-typedef int	(*DBWAITFUNC)(void);
-typedef DBWAITFUNC	(*DB_DBBUSY_FUNC)(void *dbproc);
-typedef void	(*DB_DBIDLE_FUNC)(DBWAITFUNC dfunc, void *dbproc);
-typedef int	(*DB_DBCHKINTR_FUNC)(void *dbproc);
-typedef int	(*DB_DBHNDLINTR_FUNC)(void *dbproc);
+typedef void DBCURSOR;
+typedef void DBXLATE;
+typedef void DBSORTORDER;
+typedef void DBLOGINFO;
+typedef void *DBVOIDPTR;
+typedef short SHORT;
+typedef unsigned short USHORT;
+typedef int (*INTFUNCPTR) (void *, ...);
+typedef int (*DBWAITFUNC) (void);
+typedef DBWAITFUNC(*DB_DBBUSY_FUNC) (void *dbproc);
+typedef void (*DB_DBIDLE_FUNC) (DBWAITFUNC dfunc, void *dbproc);
+typedef int (*DB_DBCHKINTR_FUNC) (void *dbproc);
+typedef int (*DB_DBHNDLINTR_FUNC) (void *dbproc);
 
 #ifndef __INCvxWorksh
 /* VxWorks already defines STATUS and BOOL. Compiler gets mad if you 
@@ -131,89 +134,92 @@ typedef int	(*DB_DBHNDLINTR_FUNC)(void *dbproc);
 #undef STATUS
 #endif
 typedef int STATUS;
-typedef unsigned char BOOL ;
+typedef unsigned char BOOL;
 #endif
 
-typedef unsigned char DBBOOL ;
-typedef TDS_CHAR DBCHAR ;
-typedef unsigned char DBTINYINT ;
-typedef TDS_SMALLINT DBSMALLINT ;
-typedef TDS_INT DBINT	;
-typedef unsigned char DBBINARY ;
-typedef TDS_REAL DBREAL ;
-typedef TDS_FLOAT DBFLT8  ;
-typedef unsigned short DBUSMALLINT ;
-typedef TDS_NUMERIC DBNUMERIC ;
-typedef TDS_MONEY DBMONEY ;
-typedef TDS_MONEY4 DBMONEY4 ;
-typedef TDS_DATETIME DBDATETIME ;
-typedef TDS_DATETIME4 DBDATETIME4 ;
+typedef unsigned char DBBOOL;
+typedef TDS_CHAR DBCHAR;
+typedef unsigned char DBTINYINT;
+typedef TDS_SMALLINT DBSMALLINT;
+typedef TDS_INT DBINT;
+typedef unsigned char DBBINARY;
+typedef TDS_REAL DBREAL;
+typedef TDS_FLOAT DBFLT8;
+typedef unsigned short DBUSMALLINT;
+typedef TDS_NUMERIC DBNUMERIC;
+typedef TDS_MONEY DBMONEY;
+typedef TDS_MONEY4 DBMONEY4;
+typedef TDS_DATETIME DBDATETIME;
+typedef TDS_DATETIME4 DBDATETIME4;
 
 #ifdef MSDBLIB
 #define SQLCHAR SYBCHAR
 #endif
 
-typedef struct {
+typedef struct
+{
 	TDSLOGIN *tds_login;
 } LOGINREC;
 
 typedef unsigned char BYTE;
 
-typedef struct  dbtypeinfo
+typedef struct dbtypeinfo
 {
-        DBINT   precision;
-        DBINT   scale;
+	DBINT precision;
+	DBINT scale;
 } DBTYPEINFO;
 
 typedef struct tag_DBPROC_ROWBUF
 {
-   int      buffering_on;    /* (boolean) is row buffering turned on?     */
-   int      first_in_buf;    /* result set row number of first row in buf */
-   int      next_row;        /* result set row number of next row         */
-   int      newest;          /* index of most recent item in queue        */
-   int      oldest;          /* index of least recent item in queue       */
-   int      elcount;         /* max element count that buffer can hold    */
-   int      element_size;    /* size in bytes of each element in queue    */
-   int      rows_in_buf;     /* # of rows currently in buffer             */
-   void    *rows;            /* pointer to the row storage                */
+	int buffering_on;	/* (boolean) is row buffering turned on?     */
+	int first_in_buf;	/* result set row number of first row in buf */
+	int next_row;		/* result set row number of next row         */
+	int newest;		/* index of most recent item in queue        */
+	int oldest;		/* index of least recent item in queue       */
+	int elcount;		/* max element count that buffer can hold    */
+	int element_size;	/* size in bytes of each element in queue    */
+	int rows_in_buf;	/* # of rows currently in buffer             */
+	void *rows;		/* pointer to the row storage                */
 } DBPROC_ROWBUF;
 
-typedef struct {
-	int	    host_column;
-    void    *host_var;
-	int	    datatype;
-	int	    prefix_len;
-	DBINT   column_len;
-	BYTE	*terminator;
-	int	    term_len;
-    int     tab_colnum;
-    int     column_error;
+typedef struct
+{
+	int host_column;
+	void *host_var;
+	int datatype;
+	int prefix_len;
+	DBINT column_len;
+	BYTE *terminator;
+	int term_len;
+	int tab_colnum;
+	int column_error;
 } BCP_HOSTCOLINFO;
 
-typedef struct {
-	int	         tab_colnum;
-	char	     db_name[256]; /* column name */
+typedef struct
+{
+	int tab_colnum;
+	char db_name[256];	/* column name */
 	TDS_SMALLINT db_minlen;
 	TDS_SMALLINT db_maxlen;
-	TDS_SMALLINT db_colcnt; /* I dont know what this does */
-	TDS_TINYINT	 db_type;
-	TDS_TINYINT	 db_type_save;
+	TDS_SMALLINT db_colcnt;	/* I dont know what this does */
+	TDS_TINYINT db_type;
+	TDS_TINYINT db_type_save;
 	TDS_SMALLINT db_usertype;
-	TDS_TINYINT	 db_varint_size;
-	TDS_INT		 db_length; /* size of field according to database */
-	TDS_TINYINT	 db_nullable;
-	TDS_TINYINT	 db_status;
+	TDS_TINYINT db_varint_size;
+	TDS_INT db_length;	/* size of field according to database */
+	TDS_TINYINT db_nullable;
+	TDS_TINYINT db_status;
 	TDS_SMALLINT db_offset;
-	TDS_TINYINT  db_default;
-	TDS_TINYINT  db_prec;
-	TDS_TINYINT  db_scale;
-    TDS_SMALLINT db_flags;
-	TDS_INT		 db_size; 
-	TDS_TINYINT  db_unicodedata;
-    char         db_collate[5];
-	long	data_size;
-	BYTE	*data;
-	int	    txptr_offset;
+	TDS_TINYINT db_default;
+	TDS_TINYINT db_prec;
+	TDS_TINYINT db_scale;
+	TDS_SMALLINT db_flags;
+	TDS_INT db_size;
+	TDS_TINYINT db_unicodedata;
+	char db_collate[5];
+	long data_size;
+	BYTE *data;
+	int txptr_offset;
 } BCP_COLINFO;
 
 struct dbstring
@@ -285,16 +291,15 @@ typedef struct dboption DBOPTION;
 
 typedef struct _DBREMOTE_PROC_PARAM
 {
-	struct _DBREMOTE_PROC_PARAM 
-			*next;
-			
-	char		*name;
-	BYTE		status;
-	int		type;
-	DBINT		maxlen;
-	DBINT		datalen;
-	BYTE		*value;
-}  DBREMOTE_PROC_PARAM;
+	struct _DBREMOTE_PROC_PARAM *next;
+
+	char *name;
+	BYTE status;
+	int type;
+	DBINT maxlen;
+	DBINT datalen;
+	BYTE *value;
+} DBREMOTE_PROC_PARAM;
 
 /*
  * TODO: DBPROCESS has an implicit substructure of bcp-related
@@ -308,109 +313,111 @@ typedef struct _DBREMOTE_PROC_PARAM
  */
 
 #define MOVED_ALL_REFERENCES_FROM_DBPROCESS 1
-typedef struct {
+typedef struct
+{
 #	if MOVED_ALL_REFERENCES_FROM_DBPROCESS
-	char 		*hint;
+	char *hint;
 #else
 	/* The members below still need work, see TODO, above.  */
-	TDS_CHAR	*hostfile;
-	TDS_CHAR	*errorfile;
-	TDS_CHAR	*tablename;
-	TDS_CHAR	*insert_stmt;
-	TDS_INT		direction;
-	TDS_INT		colcount;
-	TDS_INT		host_colcount;
-	BCP_COLINFO	**columns;
-	BCP_HOSTCOLINFO	**host_columns;
-	TDS_INT		firstrow;
-	TDS_INT		lastrow;
-	TDS_INT		maxerrs;
-	TDS_INT		batch;
+	TDS_CHAR *hostfile;
+	TDS_CHAR *errorfile;
+	TDS_CHAR *tablename;
+	TDS_CHAR *insert_stmt;
+	TDS_INT direction;
+	TDS_INT colcount;
+	TDS_INT host_colcount;
+	BCP_COLINFO **columns;
+	BCP_HOSTCOLINFO **host_columns;
+	TDS_INT firstrow;
+	TDS_INT lastrow;
+	TDS_INT maxerrs;
+	TDS_INT batch;
 #	endif
 } DBBULKCOPY;
 
 typedef struct _DBREMOTE_PROC
 {
-	struct _DBREMOTE_PROC
-			*next;
-			
+	struct _DBREMOTE_PROC *next;
+
 	char *name;
 	DBSMALLINT options;
 	DBREMOTE_PROC_PARAM *param_list;
 } DBREMOTE_PROC;
 
-typedef struct {
-   TDSSOCKET	  *tds_socket ;
-   
-   DBPROC_ROWBUF   row_buf;
-   
-   int             noautofree;
-   int             more_results; /* boolean.  Are we expecting results? */
-   int             dbresults_state; 
-   BYTE           *user_data;   /* see dbsetuserdata() and dbgetuserdata() */
-   unsigned char  *dbbuf; /* is dynamic!                   */
-   int             dbbufsz;
-   int             command_state;
-   TDS_INT         text_size;   
-   TDS_INT         text_sent;
-   TDS_CHAR        *bcp_hostfile;
-   TDS_CHAR        *bcp_errorfile;
-   FILE            *bcp_errfileptr;
-   TDS_CHAR        *bcp_tablename;
-   TDS_CHAR        *bcp_insert_stmt;
-   TDS_INT         bcp_direction;
-   TDS_INT         bcp_colcount;
-   TDS_INT         host_colcount;
-   BCP_COLINFO     **bcp_columns;
-   BCP_HOSTCOLINFO **host_columns;
-   TDS_INT         firstrow;
-   TDS_INT         lastrow;
-   TDS_INT         maxerrs;
-   TDS_INT         bcpbatch;
-   TDS_INT         sendrow_init;
-   TDS_INT         var_cols;
-   DBTYPEINFO      typeinfo;
-   unsigned char   avail_flag;
-   DBOPTION        *dbopts;
-   DBSTRING        *dboptcmd;
-   DBBULKCOPY	   bcp;	/* see TODO, above */
-   DBREMOTE_PROC   *rpc;	
-   DBUSMALLINT     envchange_rcv;
-   char            dbcurdb[DBMAXNAME + 1];
-   char            servcharset[DBMAXNAME + 1];
-   FILE            *ftos;
+typedef struct
+{
+	TDSSOCKET *tds_socket;
+
+	DBPROC_ROWBUF row_buf;
+
+	int noautofree;
+	int more_results;	/* boolean.  Are we expecting results? */
+	int dbresults_state;
+	BYTE *user_data;	/* see dbsetuserdata() and dbgetuserdata() */
+	unsigned char *dbbuf;	/* is dynamic!                   */
+	int dbbufsz;
+	int command_state;
+	TDS_INT text_size;
+	TDS_INT text_sent;
+	TDS_CHAR *bcp_hostfile;
+	TDS_CHAR *bcp_errorfile;
+	FILE *bcp_errfileptr;
+	TDS_CHAR *bcp_tablename;
+	TDS_CHAR *bcp_insert_stmt;
+	TDS_INT bcp_direction;
+	TDS_INT bcp_colcount;
+	TDS_INT host_colcount;
+	BCP_COLINFO **bcp_columns;
+	BCP_HOSTCOLINFO **host_columns;
+	TDS_INT firstrow;
+	TDS_INT lastrow;
+	TDS_INT maxerrs;
+	TDS_INT bcpbatch;
+	TDS_INT sendrow_init;
+	TDS_INT var_cols;
+	DBTYPEINFO typeinfo;
+	unsigned char avail_flag;
+	DBOPTION *dbopts;
+	DBSTRING *dboptcmd;
+	DBBULKCOPY bcp;		/* see TODO, above */
+	DBREMOTE_PROC *rpc;
+	DBUSMALLINT envchange_rcv;
+	char dbcurdb[DBMAXNAME + 1];
+	char servcharset[DBMAXNAME + 1];
+	FILE *ftos;
 } DBPROCESS;
 
 typedef struct dbdaterec
 {
 #ifndef MSDBLIB
-	DBINT	dateyear;
-	DBINT	datemonth;
-	DBINT	datedmonth;
-	DBINT	datedyear;
-	DBINT	datedweek;
-	DBINT	datehour;
-	DBINT	dateminute;
-	DBINT	datesecond;
-	DBINT	datemsecond;
-	DBINT	datetzone;
+	DBINT dateyear;
+	DBINT datemonth;
+	DBINT datedmonth;
+	DBINT datedyear;
+	DBINT datedweek;
+	DBINT datehour;
+	DBINT dateminute;
+	DBINT datesecond;
+	DBINT datemsecond;
+	DBINT datetzone;
 #else
-	DBINT	year;
-	DBINT	month;
-	DBINT	day;
-	DBINT	dayofyear;
-	DBINT	weekday;
-	DBINT	hour;
-	DBINT	minute;
-	DBINT	second;
-	DBINT	millisecond;
-	DBINT	tzone;
+	DBINT year;
+	DBINT month;
+	DBINT day;
+	DBINT dayofyear;
+	DBINT weekday;
+	DBINT hour;
+	DBINT minute;
+	DBINT second;
+	DBINT millisecond;
+	DBINT tzone;
 #endif
 } DBDATEREC;
 
-typedef int (*EHANDLEFUNC) (DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+typedef int (*EHANDLEFUNC) (DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *proc, int line);
+typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname,
+			    char *proc, int line);
 
 /* dbpoll() result codes, sybtcl needs DBRESULT */
 #define DBRESULT       1
@@ -463,221 +470,238 @@ typedef int (*MHANDLEFUNC) (DBPROCESS *dbproc, DBINT msgno, int msgstate, int se
 #define DBRPCRECOMPILE ((DBSMALLINT) 0x0001)
 #define DBRPCRESET ((DBSMALLINT) 0x0002)
 
-DBBOOL db12hour(DBPROCESS *dbprocess, char *language);
-BYTE *dbadata(DBPROCESS *dbproc, int computeid, int column);
-DBINT dbadlen(DBPROCESS *dbproc, int computeid, int column);
-RETCODE dbaltbind(DBPROCESS *dbprocess, int computeid, int column, int vartype, DBINT varlen, BYTE *varaddr);
-RETCODE dbaltbind_ps(DBPROCESS *dbprocess, int computeid, int column, int vartype, DBINT varlen, BYTE *varaddr, DBTYPEINFO *typeinfo);
-int dbaltcolid(DBPROCESS *dbproc, int computeid, int column);
-RETCODE dbaltlen(DBPROCESS *dbproc, int computeid, int column);
-int dbaltop(DBPROCESS *dbproc, int computeid, int column);
-int dbalttype(DBPROCESS *dbproc, int computeid, int column);
-RETCODE dbaltutype(DBPROCESS *dbproc, int computeid, int column);
-RETCODE dbanullbind(DBPROCESS *dbprocess, int computeid, int column, DBINT *indicator);
-RETCODE dbbind(DBPROCESS *dbproc, int column, int vartype, DBINT varlen, BYTE *varaddr);
-RETCODE dbbind_ps(DBPROCESS *dbprocess, int column, int vartype, DBINT varlen, BYTE *varaddr, DBTYPEINFO *typeinfo);
-int dbbufsize(DBPROCESS *dbprocess);
-BYTE *dbbylist(DBPROCESS *dbproc, int computeid, int *size);
-RETCODE dbcancel(DBPROCESS *dbproc);
-RETCODE dbcanquery(DBPROCESS *dbproc);
-char *dbchange(DBPROCESS *dbprocess);
-DBBOOL dbcharsetconv(DBPROCESS *dbprocess);
-void dbclose(DBPROCESS *dbproc);
-void dbclrbuf(DBPROCESS *dbproc, DBINT n);
-RETCODE dbclropt(DBPROCESS *dbproc, int option, char *param);
-RETCODE dbcmd(DBPROCESS *dbproc, const char *cmdstring);
-RETCODE dbcmdrow(DBPROCESS *dbproc);
+DBBOOL db12hour(DBPROCESS * dbprocess, char *language);
+BYTE *dbadata(DBPROCESS * dbproc, int computeid, int column);
+DBINT dbadlen(DBPROCESS * dbproc, int computeid, int column);
+RETCODE dbaltbind(DBPROCESS * dbprocess, int computeid, int column, int vartype, DBINT varlen, BYTE * varaddr);
+RETCODE dbaltbind_ps(DBPROCESS * dbprocess, int computeid, int column, int vartype, DBINT varlen, BYTE * varaddr,
+		     DBTYPEINFO * typeinfo);
+int dbaltcolid(DBPROCESS * dbproc, int computeid, int column);
+RETCODE dbaltlen(DBPROCESS * dbproc, int computeid, int column);
+int dbaltop(DBPROCESS * dbproc, int computeid, int column);
+int dbalttype(DBPROCESS * dbproc, int computeid, int column);
+RETCODE dbaltutype(DBPROCESS * dbproc, int computeid, int column);
+RETCODE dbanullbind(DBPROCESS * dbprocess, int computeid, int column, DBINT * indicator);
+RETCODE dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr);
+RETCODE dbbind_ps(DBPROCESS * dbprocess, int column, int vartype, DBINT varlen, BYTE * varaddr, DBTYPEINFO * typeinfo);
+int dbbufsize(DBPROCESS * dbprocess);
+BYTE *dbbylist(DBPROCESS * dbproc, int computeid, int *size);
+RETCODE dbcancel(DBPROCESS * dbproc);
+RETCODE dbcanquery(DBPROCESS * dbproc);
+char *dbchange(DBPROCESS * dbprocess);
+DBBOOL dbcharsetconv(DBPROCESS * dbprocess);
+void dbclose(DBPROCESS * dbproc);
+void dbclrbuf(DBPROCESS * dbproc, DBINT n);
+RETCODE dbclropt(DBPROCESS * dbproc, int option, char *param);
+RETCODE dbcmd(DBPROCESS * dbproc, const char *cmdstring);
+RETCODE dbcmdrow(DBPROCESS * dbproc);
+
 #define DBCMDROW(x) dbcmdrow((x))
-DBBOOL dbcolbrowse(DBPROCESS *dbprocess, int colnum);
-DBINT dbcollen(DBPROCESS *dbproc, int column);
-char *dbcolname(DBPROCESS *dbproc, int column);
-char *dbcolsource(DBPROCESS *dbproc, int colnum);
-int dbcoltype(DBPROCESS *dbproc, int column);
-DBTYPEINFO *dbcoltypeinfo(DBPROCESS *dbproc, int column);
-DBINT dbcolutype(DBPROCESS *dbprocess, int column);
-DBINT dbconvert(DBPROCESS *dbproc, int srctype, const BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen);
-DBINT dbconvert_ps(DBPROCESS *dbprocess, int srctype, BYTE *src, DBINT srclen, int desttype, BYTE *dest, DBINT destlen, DBTYPEINFO *typeinfo);
-DBINT dbcount(DBPROCESS *dbproc);
+DBBOOL dbcolbrowse(DBPROCESS * dbprocess, int colnum);
+DBINT dbcollen(DBPROCESS * dbproc, int column);
+char *dbcolname(DBPROCESS * dbproc, int column);
+char *dbcolsource(DBPROCESS * dbproc, int colnum);
+int dbcoltype(DBPROCESS * dbproc, int column);
+DBTYPEINFO *dbcoltypeinfo(DBPROCESS * dbproc, int column);
+DBINT dbcolutype(DBPROCESS * dbprocess, int column);
+DBINT dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen);
+DBINT dbconvert_ps(DBPROCESS * dbprocess, int srctype, BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen,
+		   DBTYPEINFO * typeinfo);
+DBINT dbcount(DBPROCESS * dbproc);
+
 #define DBCOUNT(x) dbcount((x))
-int dbcurcmd(DBPROCESS *dbproc);
+int dbcurcmd(DBPROCESS * dbproc);
+
 #define DBCURCMD(x) dbcurcmd((x))
-DBINT dbcurrow(DBPROCESS *dbproc);
+DBINT dbcurrow(DBPROCESS * dbproc);
+
 #define DBCURROW(x) dbcurrow((x))
-RETCODE dbcursor(DBCURSOR *hc, DBINT optype, DBINT bufno, BYTE *table, BYTE *values);
-RETCODE dbcursorbind(DBCURSOR *hc, int col, int vartype, DBINT varlen, DBINT *poutlen, BYTE *pvaraddr, DBTYPEINFO *typeinfo);
-void dbcursorclose(DBCURSOR *hc);
-RETCODE dbcursorcolinfo(DBCURSOR *hc, DBINT column, DBCHAR *colname, DBINT *coltype, DBINT *collen, DBINT *usertype);
-RETCODE dbcursorfetch(DBCURSOR *hc, DBINT fetchtype, DBINT rownum);
-RETCODE dbcursorinfo(DBCURSOR *hc, DBINT *ncols, DBINT *nrows);
-DBCURSOR *dbcursoropen(DBPROCESS *dbprocess, BYTE *stmt, SHORT scollopt, SHORT concuropt, USHORT nrows, DBINT *pstatus);
-BYTE *dbdata(DBPROCESS *dbproc, int column);
-int dbdate4cmp(DBPROCESS *dbprocess, DBDATETIME4 *d1, DBDATETIME4 *d2);
-RETCODE dbdate4zero(DBPROCESS *dbprocess, DBDATETIME4 *d1);
-RETCODE dbdatechar(DBPROCESS *dbprocess, char *buf, int datepart, int value);
-RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2);
-RETCODE dbdatecrack(DBPROCESS *dbproc, DBDATEREC *di, DBDATETIME *dt);
-int dbdatename(DBPROCESS *dbprocess, char *buf, int date, DBDATETIME *datetime);
-char *dateorder(DBPROCESS *dbprocess, char *language);
-DBINT dbdatepart(DBPROCESS *dbprocess, int datepart, DBDATETIME *datetime);
-RETCODE dbdatezero(DBPROCESS *dbprocess, DBDATETIME *d1);
-DBINT dbdatlen(DBPROCESS *dbproc, int column);
-char *dbdayname(DBPROCESS *dbprocess, char *language, int daynum);
-DBBOOL dbdead(DBPROCESS *dbproc);
+RETCODE dbcursor(DBCURSOR * hc, DBINT optype, DBINT bufno, BYTE * table, BYTE * values);
+RETCODE dbcursorbind(DBCURSOR * hc, int col, int vartype, DBINT varlen, DBINT * poutlen, BYTE * pvaraddr, DBTYPEINFO * typeinfo);
+void dbcursorclose(DBCURSOR * hc);
+RETCODE dbcursorcolinfo(DBCURSOR * hc, DBINT column, DBCHAR * colname, DBINT * coltype, DBINT * collen, DBINT * usertype);
+RETCODE dbcursorfetch(DBCURSOR * hc, DBINT fetchtype, DBINT rownum);
+RETCODE dbcursorinfo(DBCURSOR * hc, DBINT * ncols, DBINT * nrows);
+DBCURSOR *dbcursoropen(DBPROCESS * dbprocess, BYTE * stmt, SHORT scollopt, SHORT concuropt, USHORT nrows, DBINT * pstatus);
+BYTE *dbdata(DBPROCESS * dbproc, int column);
+int dbdate4cmp(DBPROCESS * dbprocess, DBDATETIME4 * d1, DBDATETIME4 * d2);
+RETCODE dbdate4zero(DBPROCESS * dbprocess, DBDATETIME4 * d1);
+RETCODE dbdatechar(DBPROCESS * dbprocess, char *buf, int datepart, int value);
+RETCODE dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2);
+RETCODE dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * dt);
+int dbdatename(DBPROCESS * dbprocess, char *buf, int date, DBDATETIME * datetime);
+char *dateorder(DBPROCESS * dbprocess, char *language);
+DBINT dbdatepart(DBPROCESS * dbprocess, int datepart, DBDATETIME * datetime);
+RETCODE dbdatezero(DBPROCESS * dbprocess, DBDATETIME * d1);
+DBINT dbdatlen(DBPROCESS * dbproc, int column);
+char *dbdayname(DBPROCESS * dbprocess, char *language, int daynum);
+DBBOOL dbdead(DBPROCESS * dbproc);
+
 #define DBDEAD(x) dbdead((x))
 EHANDLEFUNC dberrhandle(EHANDLEFUNC handler);
 void dbexit(void);
-RETCODE dbfcmd(DBPROCESS *dbproc, const char *fmt, ...);
-DBINT dbfirstrow(DBPROCESS *dbproc);
+RETCODE dbfcmd(DBPROCESS * dbproc, const char *fmt, ...);
+DBINT dbfirstrow(DBPROCESS * dbproc);
+
 #define DBFIRSTROW(x) dbfirstrow((x))
-RETCODE dbfree_xlate(DBPROCESS *dbprocess, DBXLATE *xlt_tosrv, DBXLATE *clt_todisp);
-void dbfreebuf(DBPROCESS *dbproc);
+RETCODE dbfree_xlate(DBPROCESS * dbprocess, DBXLATE * xlt_tosrv, DBXLATE * clt_todisp);
+void dbfreebuf(DBPROCESS * dbproc);
 void dbfreequal(char *qualptr);
-RETCODE dbfreesort(DBPROCESS *dbprocess, DBSORTORDER *sortorder);
-char *dbgetchar(DBPROCESS *dbprocess, int n);
-char *dbgetcharset(DBPROCESS *dbprocess);
-RETCODE dbgetloginfo(DBPROCESS *dbprocess, DBLOGINFO **loginfo);
-int dbgetlusername(LOGINREC *login, BYTE *name_buffer, int buffer_len);
+RETCODE dbfreesort(DBPROCESS * dbprocess, DBSORTORDER * sortorder);
+char *dbgetchar(DBPROCESS * dbprocess, int n);
+char *dbgetcharset(DBPROCESS * dbprocess);
+RETCODE dbgetloginfo(DBPROCESS * dbprocess, DBLOGINFO ** loginfo);
+int dbgetlusername(LOGINREC * login, BYTE * name_buffer, int buffer_len);
 int dbgetmaxprocs(void);
-char *dbgetnatlanf(DBPROCESS *dbprocess);
-int dbgetoff(DBPROCESS *dbprocess, DBUSMALLINT offtype, int startfrom);
-int dbgetpacket(DBPROCESS *dbproc);
-RETCODE dbgetrow(DBPROCESS *dbproc, DBINT row);
+char *dbgetnatlanf(DBPROCESS * dbprocess);
+int dbgetoff(DBPROCESS * dbprocess, DBUSMALLINT offtype, int startfrom);
+int dbgetpacket(DBPROCESS * dbproc);
+RETCODE dbgetrow(DBPROCESS * dbproc, DBINT row);
 int DBGETTIME(void);
-BYTE *dbgetuserdata(DBPROCESS *dbproc);
-DBBOOL dbhasretstat(DBPROCESS *dbproc);
+BYTE *dbgetuserdata(DBPROCESS * dbproc);
+DBBOOL dbhasretstat(DBPROCESS * dbproc);
 RETCODE dbinit(void);
-int dbiordesc(DBPROCESS *dbproc);
+int dbiordesc(DBPROCESS * dbproc);
+
 #define DBIORDESC(x) dbiordesc((x))
-int dbiowdesc(DBPROCESS *dbproc);
+int dbiowdesc(DBPROCESS * dbproc);
+
 #define DBIOWDESC(x) dbiowdesc((x))
-DBBOOL dbisavail(DBPROCESS *dbprocess);
+DBBOOL dbisavail(DBPROCESS * dbprocess);
+
 #define DBISAVAIL(x) dbisavail((x))
-DBBOOL dbisopt(DBPROCESS *dbproc, int option, char *param);
-DBINT dblastrow(DBPROCESS *dbproc);
+DBBOOL dbisopt(DBPROCESS * dbproc, int option, char *param);
+DBINT dblastrow(DBPROCESS * dbproc);
+
 #define DBLASTROW(x) dblastrow((x))
-RETCODE dbload_xlate(DBPROCESS *dbprocess, char *srv_charset, char *clt_name, DBXLATE **xlt_tosrv, DBXLATE **xlt_todisp);
-DBSORTORDER *dbloadsort(DBPROCESS *dbprocess);
+RETCODE dbload_xlate(DBPROCESS * dbprocess, char *srv_charset, char *clt_name, DBXLATE ** xlt_tosrv, DBXLATE ** xlt_todisp);
+DBSORTORDER *dbloadsort(DBPROCESS * dbprocess);
 LOGINREC *dblogin(void);
-void dbloginfree(LOGINREC *login);
-RETCODE dbmny4add(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *sum);
-int dbmny4cmp(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2);
-RETCODE dbmny4copy(DBPROCESS *dbprocess, DBMONEY4 *m1, DBMONEY4 *m2);
-RETCODE dbmny4divide(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *quotient);
-RETCODE dbmny4minus(DBPROCESS *dbproc, DBMONEY4 *src, DBMONEY4 *dest);
-RETCODE dbmny4mul(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *prod);
-RETCODE dbmny4sub(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *diff);
-RETCODE dbmny4zero(DBPROCESS *dbproc, DBMONEY4 *dest);
-RETCODE dbmnyadd(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *sum);
-int dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2);
-RETCODE dbmnycopy(DBPROCESS *dbproc, DBMONEY *src, DBMONEY *dest);
-RETCODE dbmnydec(DBPROCESS *dbproc, DBMONEY *mnyptr);
-RETCODE dbmnydivide(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *quotient);
-RETCODE dbmnydown(DBPROCESS *dbproc, DBMONEY *mnyptr, int divisor, int *remainder);
-RETCODE dbmnyinc(DBPROCESS *dbproc, DBMONEY *mnyptr);
-RETCODE dbmnyinit(DBPROCESS *dbproc, DBMONEY *mnyptr, int trim, DBBOOL *negative);
-RETCODE dbmnymaxneg(DBPROCESS *dbproc, DBMONEY *dest);
-RETCODE dbmnyndigit(DBPROCESS *dbproc, DBMONEY *mnyptr, DBCHAR *value, DBBOOL *zero);
-RETCODE dbmnymaxpos(DBPROCESS *dbproc, DBMONEY *dest);
-RETCODE dbmnyminus(DBPROCESS *dbproc, DBMONEY *src, DBMONEY *dest);
-RETCODE dbmnymul(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *prod);
-RETCODE dbmnydigit(DBPROCESS *dbprocess, DBMONEY *m1, DBCHAR *value, DBBOOL *zero);
-RETCODE dbmnyscale(DBPROCESS *dbproc, DBMONEY *dest, int multiplier, int addend);
-RETCODE dbmnysub(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *diff);
-RETCODE dbmnyzero(DBPROCESS *dbproc, DBMONEY *dest);
-const char *dbmonthname(DBPROCESS *dbproc, char *language, int monthnum, DBBOOL shortform);
-RETCODE dbmorecmds(DBPROCESS *dbproc);
+void dbloginfree(LOGINREC * login);
+RETCODE dbmny4add(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * sum);
+int dbmny4cmp(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2);
+RETCODE dbmny4copy(DBPROCESS * dbprocess, DBMONEY4 * m1, DBMONEY4 * m2);
+RETCODE dbmny4divide(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * quotient);
+RETCODE dbmny4minus(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest);
+RETCODE dbmny4mul(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * prod);
+RETCODE dbmny4sub(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * diff);
+RETCODE dbmny4zero(DBPROCESS * dbproc, DBMONEY4 * dest);
+RETCODE dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum);
+int dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2);
+RETCODE dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest);
+RETCODE dbmnydec(DBPROCESS * dbproc, DBMONEY * mnyptr);
+RETCODE dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient);
+RETCODE dbmnydown(DBPROCESS * dbproc, DBMONEY * mnyptr, int divisor, int *remainder);
+RETCODE dbmnyinc(DBPROCESS * dbproc, DBMONEY * mnyptr);
+RETCODE dbmnyinit(DBPROCESS * dbproc, DBMONEY * mnyptr, int trim, DBBOOL * negative);
+RETCODE dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * dest);
+RETCODE dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * value, DBBOOL * zero);
+RETCODE dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * dest);
+RETCODE dbmnyminus(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest);
+RETCODE dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod);
+RETCODE dbmnydigit(DBPROCESS * dbprocess, DBMONEY * m1, DBCHAR * value, DBBOOL * zero);
+RETCODE dbmnyscale(DBPROCESS * dbproc, DBMONEY * dest, int multiplier, int addend);
+RETCODE dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * diff);
+RETCODE dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest);
+const char *dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform);
+RETCODE dbmorecmds(DBPROCESS * dbproc);
+
 #define DBMORECMDS(x) dbmorecmds((x))
-RETCODE dbmoretext(DBPROCESS *dbproc, DBINT size, BYTE *text);
+RETCODE dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text);
 MHANDLEFUNC dbmsghandle(MHANDLEFUNC handler);
-char *dbname(DBPROCESS *dbproc);
-RETCODE dbnextrow(DBPROCESS *dbproc);
-RETCODE dbnpcreate(DBPROCESS *dbprocess);
-RETCODE dbnpdefine(DBPROCESS *dbprocess, DBCHAR *procedure_name, DBSMALLINT namelen);
-RETCODE dbnullbind(DBPROCESS *dbproc, int column, DBINT *indicator);
-int dbnumalts(DBPROCESS *dbproc, int computeid);
-int dbnumcols(DBPROCESS *dbproc);
-int dbnumcompute(DBPROCESS *dbprocess);
-int DBNUMORDERS(DBPROCESS *dbprocess);
-int dbnumrets(DBPROCESS *dbproc);
-DBPROCESS *tdsdbopen(LOGINREC *login, char *server);
-DBPROCESS *dbopen(LOGINREC *login, char *server);
+char *dbname(DBPROCESS * dbproc);
+RETCODE dbnextrow(DBPROCESS * dbproc);
+RETCODE dbnpcreate(DBPROCESS * dbprocess);
+RETCODE dbnpdefine(DBPROCESS * dbprocess, DBCHAR * procedure_name, DBSMALLINT namelen);
+RETCODE dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator);
+int dbnumalts(DBPROCESS * dbproc, int computeid);
+int dbnumcols(DBPROCESS * dbproc);
+int dbnumcompute(DBPROCESS * dbprocess);
+int DBNUMORDERS(DBPROCESS * dbprocess);
+int dbnumrets(DBPROCESS * dbproc);
+DBPROCESS *tdsdbopen(LOGINREC * login, char *server);
+DBPROCESS *dbopen(LOGINREC * login, char *server);
+
 #define   dbopen(x,y) tdsdbopen((x),(y))
-int dbordercol(DBPROCESS *dbprocess, int order);
-RETCODE dbpoll(DBPROCESS *dbproc, long milliseconds, DBPROCESS **ready_dbproc, int *return_reason);
-void dbprhead(DBPROCESS *dbproc);
-RETCODE dbprrow(DBPROCESS *dbproc);
+int dbordercol(DBPROCESS * dbprocess, int order);
+RETCODE dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason);
+void dbprhead(DBPROCESS * dbproc);
+RETCODE dbprrow(DBPROCESS * dbproc);
 const char *dbprtype(int token);
-char *dbqual(DBPROCESS *dbprocess, int tabnum, char *tabname);
-DBBOOL DRBUF(DBPROCESS *dbprocess);
-DBINT dbreadpage(DBPROCESS *dbprocess, char *p_dbname, DBINT pageno, BYTE *buf);
-STATUS dbreadtext(DBPROCESS *dbproc, void *buf, DBINT bufsize);
+char *dbqual(DBPROCESS * dbprocess, int tabnum, char *tabname);
+DBBOOL DRBUF(DBPROCESS * dbprocess);
+DBINT dbreadpage(DBPROCESS * dbprocess, char *p_dbname, DBINT pageno, BYTE * buf);
+STATUS dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize);
 void dbrecftos(char *filename);
-RETCODE dbrecvpassthru(DBPROCESS *dbprocess, DBVOIDPTR *bufp);
-RETCODE dbregdrop(DBPROCESS *dbprocess, DBCHAR *procnm, DBSMALLINT namelen);
-RETCODE dbregexec(DBPROCESS *dbproc, DBUSMALLINT options);
-RETCODE dbreghandle(DBPROCESS *dbprocess, DBCHAR *procnm, DBSMALLINT namelen, INTFUNCPTR handler);
-RETCODE dbreginit(DBPROCESS *dbproc, DBCHAR *procedure_name, DBSMALLINT namelen);
-RETCODE dbreglist(DBPROCESS *dbproc);
-RETCODE dbregnowatch(DBPROCESS *dbprocess, DBCHAR *procnm, DBSMALLINT namelen);
-RETCODE dbregparam(DBPROCESS *dbproc, char *param_name, int type, DBINT datalen, BYTE *data);
-RETCODE dbregwatch(DBPROCESS *dbprocess, DBCHAR *procnm, DBSMALLINT namelen, DBUSMALLINT options);
-RETCODE dbregwatchlist(DBPROCESS *dbprocess);
-RETCODE dbresults(DBPROCESS *dbproc);
-RETCODE dbresults_r(DBPROCESS *dbproc, int recursive);
-BYTE *dbretdata(DBPROCESS *dbproc, int retnum);
-int dbretlen(DBPROCESS *dbproc, int retnum);
-char *dbretname(DBPROCESS *dbproc, int retnum);
-DBINT dbretstatus(DBPROCESS *dbproc);
-int dbrettype(DBPROCESS *dbproc, int retnum);
-RETCODE dbrows(DBPROCESS *dbproc);
+RETCODE dbrecvpassthru(DBPROCESS * dbprocess, DBVOIDPTR * bufp);
+RETCODE dbregdrop(DBPROCESS * dbprocess, DBCHAR * procnm, DBSMALLINT namelen);
+RETCODE dbregexec(DBPROCESS * dbproc, DBUSMALLINT options);
+RETCODE dbreghandle(DBPROCESS * dbprocess, DBCHAR * procnm, DBSMALLINT namelen, INTFUNCPTR handler);
+RETCODE dbreginit(DBPROCESS * dbproc, DBCHAR * procedure_name, DBSMALLINT namelen);
+RETCODE dbreglist(DBPROCESS * dbproc);
+RETCODE dbregnowatch(DBPROCESS * dbprocess, DBCHAR * procnm, DBSMALLINT namelen);
+RETCODE dbregparam(DBPROCESS * dbproc, char *param_name, int type, DBINT datalen, BYTE * data);
+RETCODE dbregwatch(DBPROCESS * dbprocess, DBCHAR * procnm, DBSMALLINT namelen, DBUSMALLINT options);
+RETCODE dbregwatchlist(DBPROCESS * dbprocess);
+RETCODE dbresults(DBPROCESS * dbproc);
+RETCODE dbresults_r(DBPROCESS * dbproc, int recursive);
+BYTE *dbretdata(DBPROCESS * dbproc, int retnum);
+int dbretlen(DBPROCESS * dbproc, int retnum);
+char *dbretname(DBPROCESS * dbproc, int retnum);
+DBINT dbretstatus(DBPROCESS * dbproc);
+int dbrettype(DBPROCESS * dbproc, int retnum);
+RETCODE dbrows(DBPROCESS * dbproc);
+
 #define DBROWS(x) dbrows((x))
-STATUS dbrowtype(DBPROCESS *dbprocess);
+STATUS dbrowtype(DBPROCESS * dbprocess);
+
 #define DBROWTYPE(x) dbrowtype((x))
-RETCODE dbrpcinit(DBPROCESS *dbproc, char *rpcname, DBSMALLINT options);
-RETCODE dbrpcparam(DBPROCESS *dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE *value);
-RETCODE dbrpcsend(DBPROCESS *dbproc);
-void dbrpwclr(LOGINREC *login);
-RETCODE dbrpwset(LOGINREC *login, char *srvname, char *password, int pwlen);
-RETCODE dbsafestr(DBPROCESS *dbproc, const char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype);
+RETCODE dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options);
+RETCODE dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value);
+RETCODE dbrpcsend(DBPROCESS * dbproc);
+void dbrpwclr(LOGINREC * login);
+RETCODE dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen);
+RETCODE dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype);
 RETCODE *dbsechandle(DBINT type, INTFUNCPTR handler);
-RETCODE dbsendpassthru(DBPROCESS *dbprocess, DBVOIDPTR bufp);
-char *dbservcharset(DBPROCESS *dbprocess);
-void dbsetavail(DBPROCESS *dbprocess);
-void dbsetbusy(DBPROCESS *dbprocess, DB_DBBUSY_FUNC busyfunc);
+RETCODE dbsendpassthru(DBPROCESS * dbprocess, DBVOIDPTR bufp);
+char *dbservcharset(DBPROCESS * dbprocess);
+void dbsetavail(DBPROCESS * dbprocess);
+void dbsetbusy(DBPROCESS * dbprocess, DB_DBBUSY_FUNC busyfunc);
 RETCODE dbsetdefcharset(char *charset);
 RETCODE dbsetdeflang(char *language);
-void dbsetidle(DBPROCESS *dbprocess, DB_DBIDLE_FUNC idlefunc);
+void dbsetidle(DBPROCESS * dbprocess, DB_DBIDLE_FUNC idlefunc);
 void dbsetifile(char *filename);
-void dbsetinterrupt(DBPROCESS *dbproc, DB_DBCHKINTR_FUNC ckintr, DB_DBHNDLINTR_FUNC hndlintr);
-RETCODE dbsetloginfo(LOGINREC *loginrec, DBLOGINFO *loginfo);
+void dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC ckintr, DB_DBHNDLINTR_FUNC hndlintr);
+RETCODE dbsetloginfo(LOGINREC * loginrec, DBLOGINFO * loginfo);
 RETCODE dbsetlogintime(int seconds);
 RETCODE dbsetmaxprocs(int maxprocs);
-RETCODE dbsetnull(DBPROCESS *dbprocess, int bindtype, int bindlen, BYTE *bindval);
-RETCODE dbsetopt(DBPROCESS *dbproc, int option, const char *char_param, int int_param);
-STATUS dbsetrow(DBPROCESS *dbprocess, DBINT row);
+RETCODE dbsetnull(DBPROCESS * dbprocess, int bindtype, int bindlen, BYTE * bindval);
+RETCODE dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param);
+STATUS dbsetrow(DBPROCESS * dbprocess, DBINT row);
 RETCODE dbsettime(int seconds);
-void dbsetuserdata(DBPROCESS *dbproc, BYTE *ptr);
+void dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr);
 RETCODE dbsetversion(DBINT version);
+
 	/* we don't define a version per login; we set the global default instead */
 #define DBSETLVERSION(login, version) dbsetversion((version))
-int dbspid(DBPROCESS *dbproc);
-RETCODE dbspr1row(DBPROCESS *dbproc, char *buffer, DBINT buf_len);
-DBINT dbspr1rowlen(DBPROCESS *dbproc);
-RETCODE dbsprhead(DBPROCESS *dbproc, char *buffer, DBINT buf_len);
-RETCODE dbsprline(DBPROCESS *dbproc, char *buffer, DBINT buf_len, DBCHAR line_char);
-RETCODE dbsqlexec(DBPROCESS *dbproc);
-RETCODE dbsqlok(DBPROCESS *dbproc);
-RETCODE dbsqlsend(DBPROCESS *dbproc);
-int dbstrbuild(DBPROCESS *dbproc, char *charbuf, int bufsize, char *text, char *formats, ...);
-int dbstrcmp(DBPROCESS *dbprocess, char *s1, int l1, char *s2, int l2, DBSORTORDER *sort);
-RETCODE dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest);
-int dbstrlen(DBPROCESS *dbproc);
-int dbstrsort(DBPROCESS *dbprocess, char *s1, int l1, char *s2, int l2, DBSORTORDER *sort);
-DBBOOL dbtabbrowse(DBPROCESS *dbprocess, int tabnum);
-int dbtabcount(DBPROCESS *dbprocess);
-char *dbtabname(DBPROCESS *dbprocess, int tabnum);
-char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
-DBINT dbvarylen(DBPROCESS *dbproc, int column);
+int dbspid(DBPROCESS * dbproc);
+RETCODE dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len);
+DBINT dbspr1rowlen(DBPROCESS * dbproc);
+RETCODE dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len);
+RETCODE dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char);
+RETCODE dbsqlexec(DBPROCESS * dbproc);
+RETCODE dbsqlok(DBPROCESS * dbproc);
+RETCODE dbsqlsend(DBPROCESS * dbproc);
+int dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *formats, ...);
+int dbstrcmp(DBPROCESS * dbprocess, char *s1, int l1, char *s2, int l2, DBSORTORDER * sort);
+RETCODE dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest);
+int dbstrlen(DBPROCESS * dbproc);
+int dbstrsort(DBPROCESS * dbprocess, char *s1, int l1, char *s2, int l2, DBSORTORDER * sort);
+DBBOOL dbtabbrowse(DBPROCESS * dbprocess, int tabnum);
+int dbtabcount(DBPROCESS * dbprocess);
+char *dbtabname(DBPROCESS * dbprocess, int tabnum);
+char *dbtabsoruce(DBPROCESS * dbprocess, int colnum, int *tabnum);
+DBINT dbvarylen(DBPROCESS * dbproc, int column);
 
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */
@@ -839,13 +863,13 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBEXTSN        20158	/* Warning:  the xlt_tosrv parameter to dbfree_xlate() was NULL.  The space associated with the xlt_todisp parameter has been freed. */
 #define SYBENUM         20159	/* Incorrect number of arguments given  to DB-Library.  */
 #define SYBETYPE        20160	/* Invalid argument type given to DB-Library. */
-#define SYBEGENOS       20161	/* General Operating System Error.*/
+#define SYBEGENOS       20161	/* General Operating System Error. */
 #define SYBEPAGE        20162	/* wrong resource type or length given for  dbpage() operation.  */
-#define SYBEOPTNO       20163	/* Option is not allowed or is unreconized*/
+#define SYBEOPTNO       20163	/* Option is not allowed or is unreconized */
 #define SYBEETD         20164	/*"Failure to send the expected amount of  TEXT or IMAGE data via dbmoretext(). */
 #define SYBERTYPE       20165	/* Invalid resource type given to DB-Library. */
 #define SYBERFILE       20166	/* "Can not open resource file." */
-#define SYBEFMODE       20167	/* Read/Write/Append mode denied on file.*/
+#define SYBEFMODE       20167	/* Read/Write/Append mode denied on file. */
 #define SYBESLCT        20168	/* Could not select or copy field specified */
 #define SYBEZTXT        20169	/* Attempt to send zero length TEXT or  IMAGE to dataserver via dbwritetext(). */
 #define SYBENTST        20170	/* The file being opened must be a stream_lf. */
@@ -876,32 +900,32 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBEMOV         20195	/* Money arithmetic resulted in overflow in function %1!. */
 #define SYBEDIVZ        20196	/* Attempt to divide by $0.00 in function %1!. */
 #define SYBEASTL        20197	/* Synchronous I/O attempted at AST level. */
-#define SYBESEFA        20198	/* DBSETNOTIFS cannot be called if connections are present. */ 
-#define SYBEPOLL 20199	/* Only one dbpoll() can be active at a time. */
-#define SYBENOEV 20200	/* dbpoll() cannot be called if registered procedure notifications have been disabled. */
-#define SYBEBADPK 20201	/* Packet size of %1! not supported. -- size of %2! used instead. */
+#define SYBESEFA        20198	/* DBSETNOTIFS cannot be called if connections are present. */
+#define SYBEPOLL 20199		/* Only one dbpoll() can be active at a time. */
+#define SYBENOEV 20200		/* dbpoll() cannot be called if registered procedure notifications have been disabled. */
+#define SYBEBADPK 20201		/* Packet size of %1! not supported. -- size of %2! used instead. */
 #define SYBESECURE 20202	/* Secure Server function not supported in this version. */
-#define SYBECAP 20203	/* DB-Library capabilities not accepted by the Server. */
-#define SYBEFUNC 20204	/* Functionality not supported at the specified version level. */
-#define SYBERESP 20205	/* Response function address passed to dbresponse() must be non-NULL. */
+#define SYBECAP 20203		/* DB-Library capabilities not accepted by the Server. */
+#define SYBEFUNC 20204		/* Functionality not supported at the specified version level. */
+#define SYBERESP 20205		/* Response function address passed to dbresponse() must be non-NULL. */
 #define SYBEIVERS       20206	/* Illegal version level specified. */
-#define SYBEONCE 20207	/* Function can be called only once. */
+#define SYBEONCE 20207		/* Function can be called only once. */
 #define SYBERPNULL 20208	/* value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0 */
 #define SYBERPTXTIM 20209	/* RPC parameters cannot be of type Text/Image. */
-#define SYBENEG 20210	/* Negotiated login attempt failed. */
-#define SYBELBLEN 20211	/* Security labels should be less than 256 characters long. */
-#define SYBEUMSG 20212	/* Unknown message-id in MSG datastream. */
+#define SYBENEG 20210		/* Negotiated login attempt failed. */
+#define SYBELBLEN 20211		/* Security labels should be less than 256 characters long. */
+#define SYBEUMSG 20212		/* Unknown message-id in MSG datastream. */
 #define SYBECAPTYP 20213	/* Unexpected capability type in CAPABILITY datastream. */
-#define SYBEBNUM 20214	/* Bad numbytes parameter passed to dbstrcpy() */
-#define SYBEBBL 20215	/* Bad bindlen parameter passed to dbsetnull() */
-#define SYBEBPREC 20216	/* Illegal precision specified */
+#define SYBEBNUM 20214		/* Bad numbytes parameter passed to dbstrcpy() */
+#define SYBEBBL 20215		/* Bad bindlen parameter passed to dbsetnull() */
+#define SYBEBPREC 20216		/* Illegal precision specified */
 #define SYBEBSCALE 20217	/* Illegal scale specified */
 #define SYBECDOMAIN 20218	/* Source field value is not within the domain of legal values. */
 #define SYBECINTERNAL 20219	/* Internal Conversion error. */
 #define SYBEBTYPSRV 20220	/* Datatype is not supported by the server. */
-#define SYBEBCSET 20221	/* Unknown character-set encountered." */
-#define SYBEFENC 20222	/* Password Encryption failed." */
-#define SYBEFRES 20223	/* Challenge-Response function failed.", */
+#define SYBEBCSET 20221		/* Unknown character-set encountered." */
+#define SYBEFENC 20222		/* Password Encryption failed." */
+#define SYBEFRES 20223		/* Challenge-Response function failed.", */
 #define SYBEISRVPREC 20224	/* Illegal precision value returned by the server. */
 #define SYBEISRVSCL 20225	/* Illegal scale value returned by the server. */
 #define SYBEINUMCL 20226	/* Invalid numeric column length returned by the server. */
@@ -947,7 +971,7 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBECRSBROL 20266	/* Backward scrolling cannot be used in a  forward scrolling cursor. */
 #define SYBECRSFROWN 20267	/* Row number to be fetched is outside valid  range. */
 #define SYBECRSBSKEY 20268	/* Keyset cannot be scrolled backward in mixed  cursors with a previous fetch type. */
-#define SYBECRSRO 20269	/* Data locking or modifications cannot be  made in a READONLY cursor. */
+#define SYBECRSRO 20269		/* Data locking or modifications cannot be  made in a READONLY cursor. */
 #define SYBECRSNOCOUNT 20270	/* The DBNOCOUNT option should not be  turned on when doing updates or deletes with  dbcursor(). */
 #define SYBECRSTAB 20271	/* Table name must be determined in operations  involving data locking or modifications. */
 #define SYBECRSUPDNB 20272	/* Update or insert operations cannot use bind  variables when binding type is NOBIND. */
@@ -956,59 +980,63 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBECRSUPDTAB 20275	/* Update or insert operations using bind  variables require single table cursors. */
 #define SYBECRSNOUPD 20276	/* Update or delete operation did not affect  any rows. */
 #define SYBECRSINV 20277	/* Invalid cursor statement. */
-#define SYBECRSNOKEYS 20278	/* The entire keyset must be defined for KEYSET cursors.*/
+#define SYBECRSNOKEYS 20278	/* The entire keyset must be defined for KEYSET cursors. */
 #define SYBECRSNOBIND  20279	/* Cursor bind must be called prior to updating cursor */
-#define SYBECRSFTYPE    20280	/* Unknown fetch type.*/
-#define SYBECRSINVALID  20281	/* The cursor handle is invalid.*/
-#define SYBECRSMROWS  20282	/* Multiple rows are returned, only one is expected.*/
-#define SYBECRSNROWS 20283	/* No rows returned, at least one is expected.*/
-#define SYBECRSNOLEN  20284	/* No unique index found.*/
-#define SYBECRSNOPTCC 20285	/* No OPTCC was found.*/
-#define SYBECRSNORDER  20286	/* The order of clauses must be from, where, and order by.*/ 
-#define SYBECRSNOTABLE  20287	/* Table name is NULL.*/
-#define SYBECRSNUNIQUE  20288	/* No unique keys associated with this view.*/
-#define SYBECRSVAR  20289	/* There is no valid address associated with this bind.*/
+#define SYBECRSFTYPE    20280	/* Unknown fetch type. */
+#define SYBECRSINVALID  20281	/* The cursor handle is invalid. */
+#define SYBECRSMROWS  20282	/* Multiple rows are returned, only one is expected. */
+#define SYBECRSNROWS 20283	/* No rows returned, at least one is expected. */
+#define SYBECRSNOLEN  20284	/* No unique index found. */
+#define SYBECRSNOPTCC 20285	/* No OPTCC was found. */
+#define SYBECRSNORDER  20286	/* The order of clauses must be from, where, and order by. */
+#define SYBECRSNOTABLE  20287	/* Table name is NULL. */
+#define SYBECRSNUNIQUE  20288	/* No unique keys associated with this view. */
+#define SYBECRSVAR  20289	/* There is no valid address associated with this bind. */
 #define SYBENOVALUE  20290	/* Security labels require both a name and a value */
 #define SYBEVOIDRET 20291	/* Parameter of type SYBVOID cannot  be a return parameter. */
 #define SYBECLOSEIN 20292	/* Unable to close interface file. */
-#define SYBEBOOL 20293	/* Boolean parameters must be TRUE or FALSE. */
+#define SYBEBOOL 20293		/* Boolean parameters must be TRUE or FALSE. */
 #define SYBEBCPOPT 20294	/* The %s option cannot be called while a bulk copy operation is progress. */
 #define SYBEERRLABEL 20295	/* An illegal value was returned from the security label handler. */
 #define SYBEATTNACK 20296	/* Timed out waiting for server to acknowledge attention." */
-#define SYBEBBFL 20297	/* -001- Batch failed in bulk-copy to SQL Server */
-#define SYBEDCL 20298	/* -004- DCL Error */
-#define SYBECS 20299	/* -004- cs context Error */
+#define SYBEBBFL 20297		/* -001- Batch failed in bulk-copy to SQL Server */
+#define SYBEDCL 20298		/* -004- DCL Error */
+#define SYBECS 20299		/* -004- cs context Error */
 
-int dbtds(DBPROCESS *dbprocess);
+int dbtds(DBPROCESS * dbprocess);
+
 #define DBTDS(a)                dbtds(a)
-DBINT dbtextsize(DBPROCESS *dbprocess);
-int dbtsnewlen(DBPROCESS *dbprocess);
-DBBINARY *dbtsnewval(DBPROCESS *dbprocess);
-RETCODE dbtsput(DBPROCESS *dbprocess, DBBINARY *newts, int newtslen, int tabnum, char *tabname);
-DBBINARY *dbtxptr(DBPROCESS *dbproc, int column);
-DBBINARY *dbtxtimestamp(DBPROCESS *dbproc, int column);
-DBBINARY *dbtxtsnewval(DBPROCESS *dbprocess);
-RETCODE dbtxtsput(DBPROCESS *dbprocess, DBBINARY newtxts, int colnum);
-RETCODE dbuse(DBPROCESS *dbproc, char *name);
-DBBOOL dbcarylen(DBPROCESS *dbprocess, int column);
+DBINT dbtextsize(DBPROCESS * dbprocess);
+int dbtsnewlen(DBPROCESS * dbprocess);
+DBBINARY *dbtsnewval(DBPROCESS * dbprocess);
+RETCODE dbtsput(DBPROCESS * dbprocess, DBBINARY * newts, int newtslen, int tabnum, char *tabname);
+DBBINARY *dbtxptr(DBPROCESS * dbproc, int column);
+DBBINARY *dbtxtimestamp(DBPROCESS * dbproc, int column);
+DBBINARY *dbtxtsnewval(DBPROCESS * dbprocess);
+RETCODE dbtxtsput(DBPROCESS * dbprocess, DBBINARY newtxts, int colnum);
+RETCODE dbuse(DBPROCESS * dbproc, char *name);
+DBBOOL dbcarylen(DBPROCESS * dbprocess, int column);
 const char *dbversion(void);
 DBBOOL dbwillconvert(int srctype, int desttype);
-RETCODE dbwritepage(DBPROCESS *dbprocess, char *p_dbname, DBINT pageno, DBINT size, BYTE *buf);
-RETCODE dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textptrlen, DBBINARY *timestamp, DBBOOL log, DBINT size, BYTE *text);
-int dbxlate(DBPROCESS *dbprocess, char *src, int srclen, char *dest, int destlen, DBXLATE *xlt, int *srcbytes_used, DBBOOL srcend, int status);
+RETCODE dbwritepage(DBPROCESS * dbprocess, char *p_dbname, DBINT pageno, DBINT size, BYTE * buf);
+RETCODE dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT textptrlen, DBBINARY * timestamp,
+		    DBBOOL log, DBINT size, BYTE * text);
+int dbxlate(DBPROCESS * dbprocess, char *src, int srclen, char *dest, int destlen, DBXLATE * xlt, int *srcbytes_used,
+	    DBBOOL srcend, int status);
 
 /* LOGINREC manipulation */
-RETCODE dbsetlname(LOGINREC *login, const char *value, int which);
-RETCODE dbsetlbool(LOGINREC *login, int value, int which);
-RETCODE dbsetlshort(LOGINREC *login, int value, int which);
-RETCODE dbsetllong(LOGINREC* login, long value, int which);
+RETCODE dbsetlname(LOGINREC * login, const char *value, int which);
+RETCODE dbsetlbool(LOGINREC * login, int value, int which);
+RETCODE dbsetlshort(LOGINREC * login, int value, int which);
+RETCODE dbsetllong(LOGINREC * login, long value, int which);
+
 #define DBSETHOST		1
 #define DBSETLHOST(x,y)		dbsetlname((x), (y), DBSETHOST)
 #define DBSETUSER		2
 #define DBSETLUSER(x,y)		dbsetlname((x), (y), DBSETUSER)
 #define DBSETPWD		3
 #define DBSETLPWD(x,y)		dbsetlname((x), (y), DBSETPWD)
-#define DBSETHID		4 /* not implemented */
+#define DBSETHID		4	/* not implemented */
 #define DBSETLHID(x,y)		dbsetlname((x), (y), DBSETHID)
 #define DBSETAPP		5
 #define DBSETLAPP(x,y)		dbsetlname((x), (y), DBSETAPP)
@@ -1016,9 +1044,9 @@ RETCODE dbsetllong(LOGINREC* login, long value, int which);
 #define BCP_SETL(x,y)		dbsetlbool((x), (y), DBSETBCP)
 #define DBSETNATLANG		7
 #define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
-#define DBSETNOSHORT		8 /* not implemented */
+#define DBSETNOSHORT		8	/* not implemented */
 #define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
-#define DBSETHIER		9 /* not implemented */
+#define DBSETHIER		9	/* not implemented */
 #define DBSETLHIER(x,y)		dbsetlshort((x), (y), DBSETHIER)
 #define DBSETCHARSET		10
 #define DBSETLCHARSET(x,y)	dbsetlname((x), (y), DBSETCHARSET)
@@ -1030,34 +1058,37 @@ RETCODE dbsetllong(LOGINREC* login, long value, int which);
 #define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 
-RETCODE bcp_init(DBPROCESS *dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
-RETCODE bcp_done(DBPROCESS *dbproc);
+RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
+RETCODE bcp_done(DBPROCESS * dbproc);
 
-RETCODE bcp_batch(DBPROCESS *dbproc);
-RETCODE bcp_bind(DBPROCESS *dbproc, BYTE *varaddr, int prefixlen, DBINT varlen, BYTE *terminator, int termlen, int type, int table_column);
-RETCODE bcp_collen(DBPROCESS *dbproc, DBINT varlen, int table_column);
-RETCODE bcp_columns(DBPROCESS *dbproc, int host_colcount);
-RETCODE bcp_colfmt(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, const BYTE *host_term, int host_termlen, int colnum);
-RETCODE bcp_colfmt_ps(DBPROCESS *dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen, BYTE *host_term, int host_termlen, int colnum, DBTYPEINFO *typeinfo);
-RETCODE bcp_colptr(DBPROCESS *dbproc, BYTE *colptr, int table_column);
-RETCODE bcp_control(DBPROCESS *dbproc, int field, DBINT value);
-RETCODE bcp_exec(DBPROCESS *dbproc, DBINT *rows_copied);
-DBBOOL  bcp_getl(LOGINREC *login);
-RETCODE bcp_moretext(DBPROCESS *dbproc, DBINT size, BYTE *text);
-RETCODE bcp_options(DBPROCESS *dbproc, int option, BYTE *value, int valuelen);
-RETCODE bcp_readfmt(DBPROCESS *dbproc, char *filename);
-RETCODE bcp_sendrow(DBPROCESS *dbproc);
-RETCODE bcp_writefmt(DBPROCESS *dbproc, char *filename);
+RETCODE bcp_batch(DBPROCESS * dbproc);
+RETCODE bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen, BYTE * terminator, int termlen, int type,
+		 int table_column);
+RETCODE bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column);
+RETCODE bcp_columns(DBPROCESS * dbproc, int host_colcount);
+RETCODE bcp_colfmt(DBPROCESS * dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen,
+		   const BYTE * host_term, int host_termlen, int colnum);
+RETCODE bcp_colfmt_ps(DBPROCESS * dbproc, int host_column, int host_type, int host_prefixlen, DBINT host_collen,
+		      BYTE * host_term, int host_termlen, int colnum, DBTYPEINFO * typeinfo);
+RETCODE bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column);
+RETCODE bcp_control(DBPROCESS * dbproc, int field, DBINT value);
+RETCODE bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied);
+DBBOOL bcp_getl(LOGINREC * login);
+RETCODE bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text);
+RETCODE bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen);
+RETCODE bcp_readfmt(DBPROCESS * dbproc, char *filename);
+RETCODE bcp_sendrow(DBPROCESS * dbproc);
+RETCODE bcp_writefmt(DBPROCESS * dbproc, char *filename);
 
 void build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result);
-RETCODE remove_xact(DBPROCESS *connect, DBINT commid, int n);
-RETCODE abort_xact(DBPROCESS *connect, DBINT commid);
-void close_commit(DBPROCESS *connect);
-RETCODE commit_xact(DBPROCESS *connect, DBINT commid);
-DBPROCESS *open_commit(LOGINREC *login, char *servername);
-RETCODE scan_xact(DBPROCESS *connect, DBINT commid);
-DBINT start_xact(DBPROCESS *connect, char *application_name, char *xact_name, int site_count);
-DBINT stat_xact(DBPROCESS *connect, DBINT commid);
+RETCODE remove_xact(DBPROCESS * connect, DBINT commid, int n);
+RETCODE abort_xact(DBPROCESS * connect, DBINT commid);
+void close_commit(DBPROCESS * connect);
+RETCODE commit_xact(DBPROCESS * connect, DBINT commid);
+DBPROCESS *open_commit(LOGINREC * login, char *servername);
+RETCODE scan_xact(DBPROCESS * connect, DBINT commid);
+DBINT start_xact(DBPROCESS * connect, char *application_name, char *xact_name, int site_count);
+DBINT stat_xact(DBPROCESS * connect, DBINT commid);
 
 #ifdef __cplusplus
 #if 0

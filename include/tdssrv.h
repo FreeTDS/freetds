@@ -22,40 +22,39 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 #if 0
 }
 #endif
 
-static char rcsid_tdssrv_h[] =
-	"$Id: tdssrv.h,v 1.4 2002-11-04 19:49:17 castellano Exp $";
-static void *no_unused_tdssrv_h_warn[] = {
-	rcsid_tdssrv_h,
-	no_unused_tdssrv_h_warn};
+static char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.5 2003-04-03 08:59:16 freddy77 Exp $";
+static void *no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
-unsigned char *tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsigned char *clear_pass);
+unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass);
 TDSSOCKET *tds_listen(int ip_port);
-void tds_read_login(TDSSOCKET *tds, TDSLOGIN *login);
-int tds7_read_login(TDSSOCKET *tds,TDSLOGIN *login);
+void tds_read_login(TDSSOCKET * tds, TDSLOGIN * login);
+int tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 /* query.c */
-char *tds_get_query(TDSSOCKET *tds);
+char *tds_get_query(TDSSOCKET * tds);
 
 /* server.c */
-void tds_env_change(TDSSOCKET *tds, int type, const char *oldvalue, const char *newvalue);
-void tds_send_msg(TDSSOCKET *tds,int msgno, int msgstate, int severity, const char *msgtext, const char *srvname, const char *procname, int line);
-void tds_send_login_ack(TDSSOCKET *tds, const char *progname);
-void tds_send_eed(TDSSOCKET *tds,int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
-void tds_send_err(TDSSOCKET *tds,int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-void tds_send_capabilities_token(TDSSOCKET *tds);
-void tds_send_253_token(TDSSOCKET *tds, TDS_TINYINT flags, TDS_INT numrows);
-void tds_send_174_token(TDSSOCKET *tds, TDS_SMALLINT numcols);
-void tds_send_col_name(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
-void tds_send_col_info(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
-void tds_send_result(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
-void tds_send_row(TDSSOCKET *tds, TDSRESULTINFO *resinfo);
+void tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue);
+void tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
+		  const char *procname, int line);
+void tds_send_login_ack(TDSSOCKET * tds, const char *progname);
+void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
+void tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+void tds_send_capabilities_token(TDSSOCKET * tds);
+void tds_send_253_token(TDSSOCKET * tds, TDS_TINYINT flags, TDS_INT numrows);
+void tds_send_174_token(TDSSOCKET * tds, TDS_SMALLINT numcols);
+void tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+void tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+void tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+void tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 
 #if 0
 {
