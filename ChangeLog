@@ -1,3 +1,6 @@
+Thu Sep 12 16:08:51 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/threadsafe.c: fix for tru64 reentrancy
+
 Wed Sep 11 08:01:37 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	* Retag following files, make HEAD today also R0_60
 	* Makefile.am
