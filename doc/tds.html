@@ -304,8 +304,8 @@ Tokens encountered thus far:
 0x81   129   <a href="#129">7.0 Result</a>			7.0 only
 0xA0   160   <a href="#160">Column Name</a>		4.2 only
 0xA1   161   <a href="#161">Column Info --- Row Result</a>	4.2 only
-0xA4   164   <a href="#164">"tabname" ?</a>
-0xA5   165   <a href="#165">"col_info" ?</a>
+0xA4   164   <a href="#164">Table names</a>		name of tables in a FOR BROWSE select
+0xA5   165   <a href="#165">Column info</a>		column information in a FOR BROWSE select
 0xA7   167   <a href="#167">compute related ?  Also "control" ?</a>
 0xA8   168   <a href="#168">Column Info --- Compute Result</a>
 0xA9   169   <a href="#169">Order By</a>
@@ -317,10 +317,10 @@ Tokens encountered thus far:
 0xD1   209   <a href="#209">Data --- Row Result</a>
 0xD3   211   <a href="#211">Data --- Compute Result</a>
 0xD7   215   <a href="#215">"param packet" ?</a> **bdw**
-0xE2   226   <a href="#226">"capability packet" ?</a>
+0xE2   226   <a href="#226">Capability packet</a>		information on server
 0xE3   227   <a href="#227">Environment Change</a> (database change, packet size, etc...)
 0xE5   229   <a href="#229">Extended Error Message</a>
-0xE6   230   <a href="#230">"DBRPC" ?</a> **bdw**
+0xE6   230   <a href="#230">"DBRPC" ?</a>		5.0 only RPC calls
 0xEC   236   <a href="#236">"param format packet" ?</a>
 0xEE   238   <a href="#238">Result Set</a>
 0xFD   253   <a href="#253">Result Set Done</a> 
@@ -380,12 +380,17 @@ Presumably the process ID number for an executing stored procedure.
 The TDS 7.0 column_info is formatted as follows for each column:
 
 <pre>
- INT16  INT16  INT8   varies  varies     INT8[5]      INT8          UCS2LE[n]
-+------+------+------+-------+----------+------------+-------------+---------+
-| 0?   | 1?   | type | size  | optional | collate    | name length | name    | 
-|      |      |      | (opt) | (opt)    | info(TDS8) |             |         |
-+------+------+------+-------+----------+------------+-------------+---------+
+ INT16      INT16   INT8   varies  varies     INT8[5]      INT8          UCS2LE[n]
++----------+-------+------+-------+----------+------------+-------------+---------+
+| usertype | flags | type | size  | optional | collate    | name length | name    | 
+|          |       |      | (opt) | (opt)    | info(TDS8) |             |         |
++----------+-------+------+-------+----------+------------+-------------+---------+
 
+usertype	type modifier
+flags		bit flags
+		0x1  can be NULL
+		0x8  can be written (it's not an expression)
+		0x10 identity 
 type		data type, values >128 indicate a large type
 size		none for fixed size types
 		4 bytes for blob and text
@@ -572,19 +577,21 @@ a fixed size datatype.
 <p>
 
 <pre>
- INT16    INT8    4 bytes   INT8       CHAR[n]  variable
+ INT16    INT8    4 bytes   INT8       CHAR[n]   4 bytes
 +--------+-------+---------+----------+--------+----------+
-| length |  ack  | version | t length |  text  |  magic   |
+| length |  ack  | version | t length |  text  | ser_ver  |
 +--------+-------+---------+----------+--------+----------+
 
 length		length of packet
 ack		0x01 success	4.2
 		0x05 success	5.0
 		0x06 failure	5.0
-version		4 bytes:  major.minor.?.?
+version		TDS version 4 bytes:  major.minor.?.?
 t length	length of text
-text		server name?  'Microsoft SQL Server'
-magic		?
+text		server name (ie 'Microsoft SQL Server')
+		For TDS7+ this is in ucs2 format
+ser_ver		Server version
+		(with strange encoding, differring from TDS version)
 </pre>
 
 <a name="209">&nbsp;</a>
@@ -654,9 +661,17 @@ capabilities	Server capabilities?  Related to login magic?
 
 env code	Code for what part of environment changed
 	0x01  database context
+	0x02  language
 	0x03  character set
-text1		?Old value
-text2		?New value
+	0x04  packet size
+	0x05  TDS7+ LCID
+	0x06  TDS7+ ??? (sort method? sql server encoding?)
+	0x07  Collation info
+text1		Old value
+text2		New value
+
+text1 and text2 are text information (coded in ucs2 in TDS7+) except 
+collation info that's a structure (see collation structure)
 </pre>
 
 <a name="230">&nbsp;</a> <hr>
