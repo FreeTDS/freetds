@@ -16,20 +16,23 @@
 # 3.	Field definitions are: 
 #	Library:	odbc, dblib, or ctlib
 #	Category:	chunk of api functionality (bcp/cursors/etc.)
-#	Name:		self-explanatory
+#	Name[1,2]:	self-explanatory
+#			For db-lib, there are two names:
+#			Name 1: Microsoft's name
+#			Name 2: Sybase's name
 #	Status:		*OK	 thought to be working
 #			*stub	 present but non-functional
 #			*partial parts thought to be working
 #			*(blank) Mentioned in vendor documentation but
 #				 not in the FreeTDS C code.  
 #			Other statuses are acceptable if you see a need.
-#	Comments:	Whatever you'd like to say about the function
-#			(none present as of this writing)
+#	Comments:	Whatever you'd like to say about the function.
 #
 
 # This little bit of perl will product a data file suitable for uploading into a table thus:
 # create table api
-#	( name	char(15)	NOT NULL
+#	( vendor char(15)	NOT NULL
+#	, name	char(15)	NOT NULL
 #	, section char(15) 	    NULL
 #	, function varchar(30)	NOT NULL
 #	, status char(10)	    NULL
@@ -40,13 +43,35 @@ while( <DATA> ) {
 	next if /^\s*$/;	#skip blank lines
 	@row = split /\t/, $_;
 	$row[1] =~ s/\(all\)//;	#nullify "all"
+
+	if( $row[0] eq 'dblib' ) {
+		@row = split /\t+/, $_;
+		my @ms = ('Microsoft', @row[0,1,2,  4,5]);
+		my @sy = ('Sybase',    @row[0,1,  3,4,5]);
+		
+		$sy[3] = $ms[3] if $sy[3] eq '(same)';
+		Print( @ms ) unless $ms[3] eq 'n/a';
+		Print( @sy ) unless $sy[3] eq 'n/a';
+		next;
+	}
+
 	if( $row[0] eq 'ctlib' && @row < 5 ) {
 		if( length($row[-1]) > 10 ) { 	# missing status
 			pop @row;
 			push @row, ("", $_);
 		}
 	}
-	while( @row < 5 ) {
+
+	unshift @row, 'Microsoft' if $row[0] eq 'odbc';
+	unshift @row, 'Sybase'    if $row[0] eq 'ctlib';
+
+	Print( @row );
+}
+
+sub Print() {
+	my @row = @_;
+
+	while( @row < 6 ) {
 		push @row, "";
 	}
 	print join ("\t", @row), $/;
