@@ -1,3 +1,13 @@
+Sat Dec 28 12:33:05 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO:
+	- update
+	* include/tds.h:
+	- update doc
+	* src/ctlib/ct.c:
+	- fix crash with CS_SEND_DATA_MSG
+	* src/ctlib/unittests/t0009.c:
+	- improve
+
 Thu Dec 26 17:48:41 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: add small troubeshooting section
 	* include/tds.h src/tds/token.c:

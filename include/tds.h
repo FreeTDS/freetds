@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.72 2002-12-26 16:50:04 freddy77 Exp $";
+	"$Id: tds.h,v 1.73 2002-12-28 11:33:53 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -39,6 +39,11 @@ static void *no_unused_tds_h_warn[] = {
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
+/**
+ * @file tds.h
+ * Main include file for libtds
+ */
 
 /* 
 ** I've tried to change all references to data that goes to 
@@ -844,15 +849,18 @@ void tds_answer_challenge(const char *passwd, const unsigned char *challenge,TDS
 
 #define IS_TDSDEAD(x) (((x) == NULL) || ((x)->s < 0))
 
-/** Is DB product Sybase ? */
+/** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDS_SOCKET*. */
 #define TDS_IS_SYBASE(x) (!(x->product_version & 0x80000000u))
-/** Is product Microsoft SQL Server ? */
+/** Check if product is Microsft SQL Server. x should be a TDS_SOCKET*. */
 #define TDS_IS_MSSQL(x) ((x->product_version & 0x80000000u)!=0)
 
-/** Get version number for ms sql*/
+/** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).
+ * For test for a range of version you can use check like
+ * if (tds->product_version >= TDS_MS_VER(7,0,0) && tds->product_version < TDS_MS_VER(8,0,0)) */
 #define TDS_MS_VER(maj,min,x) (0x80000000u|((maj)<<24)|((min)<<16)|(x))
+
 /* TODO test if not similar to ms one*/
-/** Get version number for Sybase*/
+/** Calc a version number for Sybase. */
 #define TDS_SYB_VER(maj,min,x) (((maj)<<24)|((min)<<16)|(x)<<8)
 
 #ifdef __cplusplus

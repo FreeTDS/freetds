@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.24 2002-12-28 08:42:22 freddy77 Exp $
+To Do List	$Id: TODO,v 1.25 2002-12-28 11:33:53 freddy77 Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
@@ -53,6 +53,8 @@ For future versions (in priority order within library):
 . bcp support to ctlib
 . support all type of bind in ct_bind (CS_VARBINARY_TYPE and other)
   search "site:.sybase.com CS_VARBINARY ct_bind" on google for more info
+. support ct_command/CS_SEND_DATA_CMD, now crash
+  (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
 
   odbc
 . Someone broke early binding in ODBC

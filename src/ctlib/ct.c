@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.61 2002-12-17 18:11:27 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.62 2002-12-28 11:33:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -377,6 +377,7 @@ int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
 
+	/* TODO some type require different handling, save type and use it */
 	switch (type) {
 	case CS_LANG_CMD:
 		switch (option) {
@@ -431,6 +432,12 @@ int query_len;
 	}
 	if (cmd->query)
 		free(cmd->query);
+	/* small fix for no crash */
+	if (query_len == CS_UNUSED) {
+		cmd->query = NULL;
+		return CS_FAIL;
+	}
+	/* TODO some type pass NULL or INT values... */
 	cmd->query = (char *) malloc(query_len + 1);
 	strncpy(cmd->query, (const char *) buffer, query_len);
 	cmd->query[query_len] = '\0';
