@@ -1,3 +1,8 @@
+Thu Oct 24 14:19:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml src/odbc/odbc.c:
+	- use language param for dsn configuration
+	- updated doc
+
 Thu Oct 24 12:31:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/connectparams.c src/odbc/odbc.c:
 	* src/tds/config.c:

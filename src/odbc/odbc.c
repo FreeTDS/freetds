@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.73 2002-10-24 10:31:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.74 2002-10-24 12:20:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -236,7 +236,7 @@ TDSCONNECTINFO *connect_info;
 
 	if ( tds_dstr_isempty(&connect_info->server_name) )
 	{
-		odbc_LogError( "Could not find Servername parameter" );
+		odbc_LogError( "Could not find Servername or server parameter" );
 		return SQL_ERROR;
 	}
 
@@ -787,6 +787,11 @@ int	freetds_conf_less = 1;
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString( DSN, "TDS_Version", TO_STRING(TDS_DEF_MAJOR) "." TO_STRING(TDS_DEF_MINOR), tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		tds_config_verstr(tmp,connect_info);
+	}
+
+	tmp[0] = '\0';
+	if (SQLGetPrivateProfileString( DSN, "Language", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+		tds_dstr_copy(&connect_info->language,tmp);
 	}
 
 	/* TODO support other options, some code should be putted in connectparams.c */
