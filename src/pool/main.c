@@ -46,10 +46,18 @@
 #include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
 
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
 #include "pool.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: main.c,v 1.11 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: main.c,v 1.12 2002-10-31 18:55:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* this will go away...starting with just 1 global pool */

@@ -1,3 +1,8 @@
+Thu Oct 31 13:54:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in src/pool/main.c src/pool/member.c:
+	- Unconditionally define _XOPEN_SOURCE_EXTENDED and _POSIX_C_SOURCE.
+	- Extra includes for htons() and ntohs() on hpux.
+
 Thu Oct 31 11:55:25 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* configure.in:
 	- Put libd4r in LIBS instead of NETWORK_LIBS.

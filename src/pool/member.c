@@ -37,7 +37,15 @@
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
-#endif
+#endif /* HAVE_SYS_PARAM_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
 #include "tdsutil.h"
@@ -46,7 +54,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char  software_version[]   = "$Id: member.c,v 1.15 2002-10-19 03:02:35 jklowden Exp $";
+static char  software_version[]   = "$Id: member.c,v 1.16 2002-10-31 18:55:59 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static int pool_packet_read(TDS_POOL_MEMBER *pmbr);
