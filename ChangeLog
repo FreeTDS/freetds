@@ -1,3 +1,7 @@
+Wed Jan 23 17:31:53 EST 2002	Brian Bruns	<camber@ais.org>
+
+	* src/tds/token.c: Remove swap of message number on big endian machines
+
 Tue Jan 22 22:33:17 2002	Brian Bruns	<camber@ais.org>
 
 	* configure.in: Added check for nsl(gethostbyname) for Solaris (Nick Gorham)

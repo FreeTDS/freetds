@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.11 2002-01-22 03:28:17 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.12 2002-01-23 22:35:24 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1140,9 +1140,6 @@ int len_sqlstate;
 	/* message number */
 		/* swap bytes on bigendian systems (mlilback, 11/7/01) */
 	rc = tds_get_int(tds);
-#ifdef WORDS_BIGENDIAN
-	tds_swap_bytes(&rc, 4);
-#endif
 	tds->msg_info->msg_number = rc;
 
 	/* msg state */
