@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.29 2004-11-28 20:44:18 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.30 2004-12-11 13:32:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -101,8 +101,10 @@ pool_mbr_login(TDS_POOL * pool)
 		return NULL;
 	}
 	tds_free_connection(connection);
-	/* FIX ME -- tds_connect no longer preallocates the in_buf need to 
-	 * ** do something like what tds_read_packet does */
+	/*
+	 * FIXME -- tds_connect no longer preallocates the in_buf need to 
+	 * do something like what tds_read_packet does
+	 */
 	tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
 	memset(tds->in_buf, 0, BLOCKSIZ);
 
@@ -168,10 +170,10 @@ pool_mbr_init(TDS_POOL * pool)
 }
 
 /* 
-** pool_process_members
-** check the fd_set for members returning data to the client, lookup the 
-** client holding this member and forward the results.
-*/
+ * pool_process_members
+ * check the fd_set for members returning data to the client, lookup the 
+ * client holding this member and forward the results.
+ */
 int
 pool_process_members(TDS_POOL * pool, fd_set * fds)
 {
@@ -244,9 +246,11 @@ pool_find_idle_member(TDS_POOL * pool)
 		if (pmbr->tds) {
 			active_members++;
 			if (pmbr->state == TDS_IDLE) {
-				/* make sure member wasn't idle more that the timeout 
-				 * ** otherwise it'll send the query and close leaving a
-				 * ** hung client */
+				/*
+				 * make sure member wasn't idle more that the timeout 
+				 * otherwise it'll send the query and close leaving a
+				 * hung client
+				 */
 				pmbr->last_used_tm = time(NULL);
 				return pmbr;
 			}

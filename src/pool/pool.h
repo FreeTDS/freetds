@@ -20,7 +20,7 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Id: pool.h,v 1.10 2004-04-14 00:32:00 jklowden Exp $";
+static char rcsid_pool_h[] = "$Id: pool.h,v 1.11 2004-12-11 13:32:42 freddy77 Exp $";
 static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
 
 #if HAVE_SYS_TYPES_H
@@ -72,8 +72,8 @@ typedef struct tds_pool_member
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 	/* 
-	 * ** these variables are used for tracking the state of the TDS protocol 
-	 * ** so we know when to return the state to TDS_IDLE.
+	 * these variables are used for tracking the state of the TDS protocol 
+	 * so we know when to return the state to TDS_IDLE.
 	 */
 	int num_bytes_left;
 	unsigned char fragment[PGSIZ];

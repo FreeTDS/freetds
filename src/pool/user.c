@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.19 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: user.c,v 1.20 2004-12-11 13:32:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -64,9 +64,9 @@ pool_user_init(TDS_POOL * pool)
 
 
 /*
-** pool_user_create
-** accepts a client connection and adds it to the users list and returns it
-*/
+ * pool_user_create
+ * accepts a client connection and adds it to the users list and returns it
+ */
 TDS_POOL_USER *
 pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 {
@@ -152,16 +152,16 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 }
 
 /*
-** pool_user_login
-** Reads clients login packet and forges a login acknowledgement sequence 
-*/
+ * pool_user_login
+ * Reads clients login packet and forges a login acknowledgement sequence 
+ */
 int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
 	TDSLOGIN *login = tds_alloc_login();
 
-/* FIX ME */
+	/* FIXME */
 	char msg[256];
 
 	tds = puser->tds;
@@ -195,10 +195,10 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 }
 
 /*
-** pool_user_read
-** checks the packet type of data coming from the client and allocates a 
-** pool member if necessary.
-*/
+ * pool_user_read
+ * checks the packet type of data coming from the client and allocates a 
+ * pool member if necessary.
+ */
 void
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
@@ -235,8 +235,8 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	pmbr = pool_find_idle_member(pool);
 	if (!pmbr) {
 		/* 
-		 * ** put into wait state 
-		 * ** check when member is deallocated
+		 * put into wait state 
+		 * check when member is deallocated
 		 */
 		fprintf(stderr, "Not enough free members...placing user in WAIT\n");
 		puser->user_state = TDS_SRV_WAIT;

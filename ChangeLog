@@ -1,3 +1,8 @@
+Sat Dec 11 14:32:31 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/pool/main.c src/pool/member.c src/pool/pool.h:
+	* src/pool/user.c:
+	- update style
+
 Sat Dec 11 14:26:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: use current_results, not res_info
 	* src/dblib/unittests/rpc.c: backported improved test

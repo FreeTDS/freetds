@@ -18,10 +18,10 @@
  */
 
 /*
-** Note on terminology: a pool member is a connection to the database,
-** a pool user is a client connection that is temporarily assigned to a
-** pool member.
-*/
+ * Note on terminology: a pool member is a connection to the database,
+ * a pool user is a client connection that is temporarily assigned to a
+ * pool member.
+ */
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.16 2003-04-30 18:51:38 freddy77 Exp $";
+static char software_version[] = "$Id: main.c,v 1.17 2004-12-11 13:32:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this will go away...starting with just 1 global pool */
@@ -80,8 +80,8 @@ term_handler(int sig)
 }
 
 /*
-** pool_init creates a named pool and opens connections to the database
-*/
+ * pool_init creates a named pool and opens connections to the database
+ */
 TDS_POOL *
 pool_init(char *name)
 {
@@ -140,10 +140,10 @@ pool_schedule_waiters(TDS_POOL * pool)
 }
 
 /* 
-** pool_main_loop
-** Accept new connections from clients, and handle all input from clients and
-** pool members.
-*/
+ * pool_main_loop
+ * Accept new connections from clients, and handle all input from clients and
+ * pool members.
+ */
 void
 pool_main_loop(TDS_POOL * pool)
 {
@@ -183,7 +183,7 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* process the sockets */
 		if (FD_ISSET(s, &rfds)) {
-			puser = pool_user_create(pool, s, &sin);
+			pool_user_create(pool, s, &sin);
 		}
 		pool_process_users(pool, &rfds);
 		pool_process_members(pool, &rfds);
