@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.117 2004-11-04 13:11:32 jklowden Exp $
+To Do List	$Id: TODO,v 1.118 2004-11-28 20:44:11 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -17,7 +17,7 @@ Broken:
   Cf. ML 08 Jan 2004 "New BUG: update/delete returns -1 instead of correct
       affected rows".  
 
-Postponed to 0.63 version
+Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
 . ct_dynamic and friends needed for DBD::Sybase placeholder support
  (work in progress)
@@ -65,7 +65,7 @@ For future versions (in priority order within library):
 . more solid. handle out of memory conditions (started, we must test all 
   allocation and all function that return allocated data and be able to 
   rollback to a safe state)
-. optimize numeric conversions (partial)
+. optimize numeric conversions (partial, handle numeric->int and similar directly)
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
   In token.c getting row should write data even to client
@@ -74,8 +74,6 @@ For future versions (in priority order within library):
 . review the way parameters are packed 
   (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
 . cursor support (limited support on ctlib)
-. tds_connect free tds structure on failure. This cause in some condition
-  a pointer to garbage in some library (workaround written, best to change)
 . support for named instances under mssql2k
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type (requested one time, 2003-8-1)
@@ -86,7 +84,6 @@ For future versions (in priority order within library):
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
 . support encrypted connections
 . read on partial packet, do not wait entire one
-. net.c file with all network stuff
 . detect if realloc/free accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
 . optimization: add -Wl,-Bsymbolic or similar to libraries
@@ -113,7 +110,7 @@ For future versions (in priority order within library):
   same login.
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
-. autoinstall for RPM
+. autoinstall for RPM (register driver in odbcinst.ini)
 . constants parameters in call syntax (ie {?=func(10,?)} )
 . SQLDescribeParam (Sybase seems to require it)
 . change ODBC_RETURN to return errs.lastrc (not to set) and use errs.lastrc
@@ -135,8 +132,8 @@ For future versions (in priority order within library):
   - no bind and sqlgetdata
   - before first fetch
   - after last fetch
-. bind offset + tests
-. PARAMSET_SIZE and related
+. test: bind offset + tests
+. test: PARAMSET_SIZE and related
 
 
   pool

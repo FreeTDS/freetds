@@ -1,3 +1,11 @@
+Sun Nov 28 21:41:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: updated
+	* configure.in: fix for rc versions and win rc version
+	* src/apps/tsql.c src/ctlib/ct.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/pool/member.c src/tds/login.c:
+	* src/tds/unittests/common.c:
+	- do not free TDSSOCKET structure in tds_connect if failure
+
 Sun Nov 28 15:27:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/login.c src/tds/net.c:
 	* src/tds/read.c src/tds/write.c:

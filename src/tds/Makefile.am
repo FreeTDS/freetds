@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.36 2004-06-15 11:46:48 freddy77 Exp $
+# $Id: Makefile.am,v 1.37 2004-11-28 20:44:18 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -13,7 +13,8 @@ libtds_objects_la_LIBADD=
 
 lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
-libtds_la_LDFLAGS	= -version-info 3:0:0
+# changed for 0.64
+libtds_la_LDFLAGS	= -version-info 4:0:0
 libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la $(FREETDS_LIBGCC)
 noinst_HEADERS		= tds_willconvert.h character_sets.h \
 			  alternative_character_sets.h sybase_character_sets.h \

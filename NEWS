@@ -1,4 +1,9 @@
-$Id: NEWS,v 1.6 2004-11-27 22:01:32 jklowden Exp $
+$Id: NEWS,v 1.7 2004-11-28 20:44:11 freddy77 Exp $
+* 0.64
+- reduce network bandwidth use on Linux and *BSD
+- do not free TDSSOCKET in tds_connect
+- moved network stuff in net.c
+
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information
 - header privatizations (removing tds.h dependency).  This is quite 

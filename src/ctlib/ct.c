@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.129 2004-11-02 15:18:21 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.130 2004-11-28 20:44:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -540,6 +540,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		return CS_FAIL;
 	}
 	if (tds_connect(con->tds_socket, connection) == TDS_FAIL) {
+		tds_free_socket(con->tds_socket);
 		con->tds_socket = NULL;
 		tds_free_connection(connection);
 		if (needfree)

@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.28 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: member.c,v 1.29 2004-11-28 20:44:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -94,6 +94,7 @@ pool_mbr_login(TDS_POOL * pool)
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(NULL, login, context->locale);
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
+		tds_free_socket(tds);
 		tds_free_connection(connection);
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n", pool->server);

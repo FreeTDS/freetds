@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.188 2004-11-28 09:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.189 2004-11-28 20:44:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -973,6 +973,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	dbproc->tds_socket->hndlintr = dblib_hndlintr;
 
 	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
+		tds_free_socket(dbproc->tds_socket);
 		dbproc->tds_socket = NULL;
 		tds_free_connection(connection);
 		return NULL;

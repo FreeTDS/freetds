@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.23 2004-09-08 12:51:25 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.24 2004-11-28 20:44:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -95,6 +95,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	connection = tds_read_config_info(NULL, *login, test_context->locale);
 	if (!connection || tds_connect(*tds, connection) == TDS_FAIL) {
 		if (connection) {
+			tds_free_socket(*tds);
 			*tds = NULL;
 			tds_free_connection(connection);
 		}

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.127 2004-11-28 14:28:20 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.128 2004-11-28 20:44:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -208,7 +208,6 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
-		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 
@@ -218,10 +217,8 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (!retval)
 		version[0] = '\0';
 
-	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED) {
-		tds_free_socket(tds);
+	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED)
 		return TDS_FAIL;
-	}
 
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag = 0x10;
@@ -234,16 +231,14 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (!tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, "Login incorrect.");
-		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 
 	if (connection->text_size || (!db_selected && !tds_dstr_isempty(&connection->database))) {
 		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connection->database),-1);
-		if ((str = (char *) malloc(len)) == NULL) {
-			tds_free_socket(tds);
+		if ((str = (char *) malloc(len)) == NULL)
 			return TDS_FAIL;
-		}
+
 		str[0] = 0;
 		if (connection->text_size) {
 			sprintf(str, "set textsize %d ", connection->text_size);
@@ -254,15 +249,11 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		}
 		retval = tds_submit_query(tds, str);
 		free(str);
-		if (retval != TDS_SUCCEED) {
-			tds_free_socket(tds);
+		if (retval != TDS_SUCCEED)
 			return TDS_FAIL;
-		}
 
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-			tds_free_socket(tds);
+		if (tds_process_simple_query(tds) != TDS_SUCCEED)
 			return TDS_FAIL;
-		}
 	}
 
 	tds->connection = NULL;
