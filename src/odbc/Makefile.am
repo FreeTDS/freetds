@@ -5,11 +5,11 @@ lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c convert_sql2string.c prepare_query.c odbc_util.c
 if UNIXODBC
-libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lglib -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
+libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
 else
-libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lglib $(NETWORK_LIBS)
+libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) $(NETWORK_LIBS)
 endif
-INCLUDES	=	-I$(top_srcdir)/include `glib-config --cflags glib` -I$(ODBC_INC)
+INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)
