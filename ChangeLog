@@ -1,4 +1,9 @@
-Fri Jan  4 14:05:55 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sun Jan  5 11:27:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/error.c src/odbc/odbc.c:
+	- more SQLError to error.c file
+	- added SQLGetDiagRec function (error.c)
+
+Sat Jan  4 14:05:55 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h src/ctlib/cs.c src/ctlib/ct.c:
 	* src/dblib/bcp.c src/odbc/connectparams.c:
 	* src/odbc/odbc_util.c src/odbc/prepare_query.c:
@@ -10,12 +15,12 @@ Fri Jan  4 14:05:55 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	- fix reading of some possibly not terminated string
 	- fix a possible buffer overflow in SQLError
 
-Fri Jan  4 11:34:49 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sat Jan  4 11:34:49 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/ctlib/unittests/t0002.c:
 	- set also curr_resinfo for STATUS_RESULT
 	- more check for sp_who call
 
-Fri Jan  4 10:52:09 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sat Jan  4 10:52:09 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: cleanup
 
 Fri Jan  3 18:29:27 EST 2003	JK Lowden <jklowden@schemamania.org>

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.112 2003-01-04 13:06:57 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.113 2003-01-05 10:28:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -957,57 +957,6 @@ SQLDisconnect(SQLHDBC hdbc)
 	/* TODO free all associated statements (done by DM??) f77 */
 
 	return SQL_SUCCESS;
-}
-
-SQLRETURN SQL_API
-SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, SQLINTEGER FAR * pfNativeError,
-	 SQLCHAR FAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
-{
-	SQLRETURN result = SQL_NO_DATA_FOUND;
-	struct _sql_errors *errs = NULL;
-	const char *msg;
-	unsigned char odbc_ver = 2;
-	int cplen;
-
-	if (hstmt) {
-		odbc_ver = ((TDS_STMT *) hstmt)->hdbc->henv->odbc_ver;
-		errs = &((TDS_STMT *) hstmt)->errs;
-	} else if (hdbc) {
-		odbc_ver = ((TDS_DBC *) hdbc)->henv->odbc_ver;
-		errs = &((TDS_DBC *) hstmt)->errs;
-	} else if (henv) {
-		odbc_ver = ((TDS_ENV *) henv)->odbc_ver;
-		errs = &((TDS_ENV *) hstmt)->errs;
-	}
-
-	if (errs && errs->num_errors) {
-		result = SQL_SUCCESS;
-		if (odbc_ver == 3)
-			strcpy((char *) szSqlState, errs->errs[0].err->state3);
-		else
-			strcpy((char *) szSqlState, errs->errs[0].err->state2);
-		msg = errs->errs[0].msg;
-		if (!msg)
-			msg = errs->errs[0].err->msg;
-		cplen = strlen(msg);
-		if (pcbErrorMsg)
-			*pcbErrorMsg = cplen;
-		if (cplen >= cbErrorMsgMax) {
-			cplen = cbErrorMsgMax - 1;
-			result = SQL_SUCCESS_WITH_INFO;
-		}
-		if (szErrorMsg && cplen >= 0) {
-			strncpy((char *) szErrorMsg, msg, cplen);
-			((char *) szErrorMsg)[cplen] = 0;
-		}
-		if (pfNativeError)
-			*pfNativeError = 1;
-
-		/* FIXME here ?? */
-		odbc_errs_reset(errs);
-	}
-
-	return result;
 }
 
 static int
