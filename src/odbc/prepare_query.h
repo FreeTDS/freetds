@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2004, 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -33,7 +34,7 @@
 #endif
 
 
-/* $Id: prepare_query.h,v 1.11 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: prepare_query.h,v 1.12 2005-02-08 12:14:14 freddy77 Exp $ */
 
 
 SQLRETURN prepare_call(struct _hstmt *stmt);

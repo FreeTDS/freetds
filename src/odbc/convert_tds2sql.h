@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2004 Frediano Ziglio
+ * Copyright (C) 2004, 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,7 +21,7 @@
 #ifndef CONVERT_TDS2SQL_h
 #define CONVERT_TDS2SQL_h
 
-/* $Id: convert_tds2sql.h,v 1.6 2004-12-08 20:30:05 freddy77 Exp $ */
+/* $Id: convert_tds2sql.h,v 1.7 2005-02-08 12:14:14 freddy77 Exp $ */
 
 
 TDS_INT convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest,

@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2004, 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef CONNECTPARAMS_H
 #define CONNECTPARAMS_H
 
-/* $Id: connectparams.h,v 1.15 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: connectparams.h,v 1.16 2005-02-08 12:14:14 freddy77 Exp $ */
 
 /**
  * Parses a connection string for SQLDriverConnect().

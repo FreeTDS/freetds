@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-2002  Brian Bruns
+ * Copyright (C) 2004, 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef ODBC_CHECKS_H
 #define ODBC_CHECKS_H
 
-/* $Id: odbc_checks.h,v 1.4 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: odbc_checks.h,v 1.5 2005-02-08 12:14:14 freddy77 Exp $ */
 
 #if ENABLE_EXTRA_CHECKS
 /* macro */
