@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.74 2003-04-14 13:32:53 jklowden Exp $";
+static char software_version[] = "$Id: mem.c,v 1.75 2003-04-15 15:03:26 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -496,8 +496,7 @@ tds_alloc_context(void)
 void
 tds_free_context(TDSCONTEXT * context)
 {
-	if (context && context->locale)
-		tds_free_locale(context->locale);
+	tds_free_locale(context->locale);
 	TDS_ZERO_FREE(context);
 }
 

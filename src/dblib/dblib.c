@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.139 2003-04-04 20:30:25 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.140 2003-04-15 15:03:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1182,16 +1182,25 @@ dbexit()
 	int i;
 	const int list_size = g_dblib_ctx.connection_list_size;
 
+
 	/* FIX ME -- this breaks if ctlib/dblib used in same process */
 	for (i = 0; i < list_size; i++) {
 		tds = g_dblib_ctx.connection_list[i];
 		if (tds) {
 			dbproc = (DBPROCESS *) tds->parent;
-			dbclose(dbproc);
+			if (dbproc) {
+				dbclose(dbproc);
+			}
 		}
 	}
-	free(g_dblib_ctx.connection_list);
-	tds_free_context(g_dblib_ctx.tds_ctx);
+	if (g_dblib_ctx.connection_list) {
+		TDS_ZERO_FREE(g_dblib_ctx.connection_list);
+		g_dblib_ctx.connection_list_size = 0;
+	}
+	if (g_dblib_ctx.tds_ctx) {
+		tds_free_context(g_dblib_ctx.tds_ctx);
+		g_dblib_ctx.tds_ctx = NULL;
+	}
 }
 
 /** \internal
@@ -5763,6 +5772,9 @@ _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen)
 		break;
 	case SYBREAL:
 		memset(varaddr, '\0', 4);
+		break;
+	case SYBDATETIME:
+		memset(varaddr, '\0', 8);
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:

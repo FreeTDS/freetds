@@ -1,3 +1,7 @@
+Tue Apr 15 10:58:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c src/tds/mem.c
+	- Applied Bill Thompson's suggestions. 
+
 Tue Apr 15 01:19:53 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/alternative_character_sets.h
 	* src/tds/sybase_character_sets.h.pl
