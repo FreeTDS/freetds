@@ -1,3 +1,7 @@
+Wed Jan  8 10:57:32 EST 2003    JK Lowden <jklowden@schemamania.org>
+	* src/odbc/odbc.c added logging function for unimplemented options
+	* src/tds/iconv.c added log of character set in iconv
+
 Wed Jan  8 11:30:12 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- cleanup
