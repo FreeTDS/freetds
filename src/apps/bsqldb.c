@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.13 2004-12-01 22:35:36 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.14 2004-12-01 22:40:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -688,8 +688,6 @@ set_format_string(struct METADATA * meta, const char separator[])
 		/* For anything except the default two-space separator, don't justify the strings. */
 		ret = asprintf(&meta->format_string, "%%s%s", separator);
 	}
-	printf("%d long and %d strcmp\n", strlen(separator), strcmp(separator, "  "));
-	puts(meta->format_string);
 		       
 	return ret;
 }
