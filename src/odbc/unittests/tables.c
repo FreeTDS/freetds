@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.4 2003-11-06 17:26:32 jklowden Exp $";
+static char software_version[] = "$Id: tables.c,v 1.5 2004-03-28 18:34:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER cnamesize;
@@ -14,6 +14,36 @@ ReadCol(int i)
 		CheckReturn();
 		exit(1);
 	}
+}
+
+static void
+TestName(int index, const char *expected_name)
+{
+	char name[128];
+	char buf[256];
+	SQLSMALLINT len, type;
+	SQLRETURN rc;
+
+#define NAME_TEST \
+	do { \
+		if (rc != SQL_SUCCESS) \
+			ODBC_REPORT_ERROR("SQLDescribeCol failed"); \
+		if (strcmp(name, expected_name) != 0) \
+		{ \
+			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, name); \
+			ODBC_REPORT_ERROR(buf); \
+		} \
+	} while(0)
+
+	/* retrieve with SQLDescribeCol */
+	rc = SQLDescribeCol(Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL);
+	NAME_TEST;
+
+	/* retrieve with SQLColAttribute */
+	rc = SQLColAttribute(Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL);
+	NAME_TEST;
+	rc = SQLColAttribute(Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL);
+	NAME_TEST;
 }
 
 static void
@@ -33,6 +63,13 @@ DoTest(const char *type, int row_returned)
 		CheckReturn();
 		exit(1);
 	}
+
+	/* test column name (for DBD::ODBC) */
+	TestName(1, use_odbc_version3 ? "TABLE_CAT" : "TABLE_QUALIFIER");
+	TestName(2, use_odbc_version3 ? "TABLE_SCHEM" : "TABLE_OWNER");
+	TestName(3, "TABLE_NAME");
+	TestName(4, "TABLE_TYPE");
+	TestName(5, "REMARKS");
 
 	if (row_returned) {
 		if (!SQL_SUCCEEDED(SQLFetch(Statement))) {
@@ -76,6 +113,7 @@ DoTest(const char *type, int row_returned)
 int
 main(int argc, char *argv[])
 {
+	use_odbc_version3 = 0;
 	Connect();
 
 	DoTest("", 1);
@@ -86,6 +124,13 @@ main(int argc, char *argv[])
 	DoTest("TABLE,VIEW", 0);
 	DoTest("SYSTEM TABLE,'TABLE'", 1);
 	DoTest("TABLE,'SYSTEM TABLE'", 1);
+
+	Disconnect();
+
+	use_odbc_version3 = 1;
+	Connect();
+
+	DoTest("'SYSTEM TABLE'", 1);
 
 	Disconnect();
 
