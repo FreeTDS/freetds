@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.106 2004-12-17 10:00:06 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.107 2004-12-22 20:10:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1062,10 +1062,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 					case SYBLONGBINARY:	/* Reallocate enough space for the data from the file. */
 						bcpcol->column_size = 8 + collen;	/* room to breathe */
 						bcpcol->bcp_column_data->data = (BYTE *) realloc(bcpcol->bcp_column_data->data, bcpcol->column_size);
-						assert(bcpcol->bcp_column_data->data);
 						if (!bcpcol->bcp_column_data->data) {
 							_bcp_err_handler(dbproc, SYBEMEM);
 							free(oldbuffer);
+							free(coldata);
 							return FAIL;
 						}
 						break;
@@ -1078,8 +1078,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				bcpcol->bcp_column_data->datalen =
 					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype,
 						  bcpcol->bcp_column_data->data, bcpcol->column_size);
-
-				free(coldata);
 
 				if (bcpcol->bcp_column_data->datalen == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
@@ -1106,6 +1104,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				}
 			}
 		}
+		free(coldata);
 	}
 	return SUCCEED;
 }

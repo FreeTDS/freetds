@@ -1,3 +1,6 @@
+Wed Dec 22 21:09:47 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: fix memory leak reported by Brad Rittenhouse
+
 Fri Dec 17 10:54:25 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/connectparams.c:
 	* src/replacements/iconv.c src/tds/config.c:
