@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS	=	1.5.3
 
-include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctlib.h ctpublic.h \
+include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctpublic.h \
 			dblib.h \
 			sqldb.h sqlfront.h \
 			sybdb.h sybfront.h \
@@ -16,7 +16,8 @@ noinst_HEADERS	=	tds_configs.h \
 			replacements.h \
 			tdsstring.h \
 			tdsodbc.h \
-			tdsiconv.h
+			tdsiconv.h \
+			ctlib.h
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 

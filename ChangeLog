@@ -1,3 +1,6 @@
+Sat Dec 20 00:07:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/Makefile.am: do not install private header
+
 Fri Dec 19 11:28:53 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h: avoid constants change
 	* include/replacements.h include/tdsodbc.h: indent(1)
