@@ -1,3 +1,6 @@
+Tue Dec 10 20:58:29 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c: fix connection timeout handling
+
 Tue Dec 10 17:58:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/challenge.c src/tds/config.c:
 	* src/tds/convert.c src/tds/iconv.c src/tds/locale.c:

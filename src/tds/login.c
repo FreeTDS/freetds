@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.73 2002-12-10 17:01:22 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.74 2002-12-10 19:58:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -303,13 +303,13 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 			FD_SET(tds->s, &fds);
 			selecttimeout.tv_sec = connect_timeout - (now - start);
 			selecttimeout.tv_usec = 0;
-			retval = select(tds->s, NULL, &fds, NULL, &selecttimeout);
+			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
 			if (retval < 0 && errno == EINTR)
 				retval = 0;
 			now = time(NULL);
 		}
 
-		if ((now - start) > connect_timeout) {
+		if ((now - start) >= connect_timeout) {
 			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
 			tds_free_socket(tds);
 			return TDS_FAIL;
