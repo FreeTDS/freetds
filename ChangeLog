@@ -1,3 +1,9 @@
+Sun Nov 24 11:42:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/login.c:
+	- make tds_send_login and tds7_send_login static
+	- update comment using new style
+	- use result of tds_flush_packet for write checking
+
 Sun Nov 24 11:20:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c src/tds/write.c:
 	- make tds_write_packet static

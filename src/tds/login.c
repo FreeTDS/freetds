@@ -77,10 +77,11 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.63 2002-11-22 10:09:56 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char  software_version[]   = "$Id: login.c,v 1.64 2002-11-24 10:43:29 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
+static int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 
 void tds_set_version(TDSLOGIN *tds_login, short major_ver, short minor_ver)
 {
@@ -178,8 +179,8 @@ int result_type;
 	FD_ZERO(&fds);
 
 	/*
-	** If a dump file has been specified, start logging
-	*/
+	 * If a dump file has been specified, start logging
+	 */
 	if (connect_info->dump_file) {
 		tdsdump_open(connect_info->dump_file);
 	}
@@ -323,17 +324,17 @@ int result_type;
 	return TDS_SUCCEED;
 }
 
-static int tds_put_login_string(TDSSOCKET *tds, const char *buf, int n)
+static int 
+tds_put_login_string(TDSSOCKET *tds, const char *buf, int n)
 {
 int buf_len = ( buf ? strlen(buf) : 0);
 
 	return tds_put_buf(tds,(const unsigned char *)buf,n,buf_len);
 }
 
-int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
-{	
-/*   char *tmpbuf;
-   int tmplen;*/
+static int 
+tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
+{
 #ifdef WORDS_BIGENDIAN
    static const unsigned char be1[]= {0x02,0x00,0x06,0x04,0x08,0x01};
 #endif
@@ -349,12 +350,12 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 #endif
    static const unsigned char le2[]= {0x00,13,17};
    
-   /* 
-   ** the former byte 0 of magic5 causes the language token and message to be 
-   ** absent from the login acknowledgement if set to 1. There must be a way 
-   ** of setting this in the client layer, but I am not aware of any thing of
-   ** the sort -- bsb 01/17/99
-   */
+	/* 
+	 * the former byte 0 of magic5 causes the language token and message to be 
+	 * absent from the login acknowledgement if set to 1. There must be a way 
+	 * of setting this in the client layer, but I am not aware of any thing of
+	 * the sort -- bsb 01/17/99
+	 */
    static const unsigned char magic5[]= {0x00,0x00};
    static const unsigned char magic6[]= 
    	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -363,26 +364,25 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
    static const unsigned char magic42[]= 
    	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
    static const unsigned char magic50[]= {0x00,0x00,0x00,0x00};
-/*
-** capabilities are now part of the tds structure.
-   unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
-*/
-/*
-** This is the original capabilities packet we were working with (sqsh)
-   unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
-** original with 4.x messages
-   unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x0D};
-** This is isql 11.0.3
-   unsigned char capabilities[]= {0x01,0x07,0x00,96, 129,207, 0xFF,0xFE,62,  0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x0D};
-** like isql but with 5.0 messages
-   unsigned char capabilities[]= {0x01,0x07,0x00,96, 129,207, 0xFF,0xFE,62,  0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x00};
-**
-*/
+	/*
+	 * capabilities are now part of the tds structure.
+	 * unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
+	*/
+	/*
+	 * This is the original capabilities packet we were working with (sqsh)
+	 * unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};
+	 * original with 4.x messages
+	 * unsigned char capabilities[]= {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x0D};
+	 * This is isql 11.0.3
+	 * unsigned char capabilities[]= {0x01,0x07,0x00,96, 129,207, 0xFF,0xFE,62,  0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x0D};
+	 * like isql but with 5.0 messages
+	 * unsigned char capabilities[]= {0x01,0x07,0x00,96, 129,207, 0xFF,0xFE,62,  0x02,0x07,0x00,0x00,0x00,120,192,0x00,0x00};
+	 */
    
    unsigned char protocol_version[4];
    unsigned char program_version[4];
-   
-	int rc, len;
+
+	int len;
 	char blockstr[16];
    
    if (IS_TDS42(tds)) {
@@ -398,110 +398,96 @@ int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
       tdsdump_log(TDS_DBG_SEVERE,"Unknown protocol version!\n");
       exit(1);
    }
-   /*
-   ** the following code is adapted from  Arno Pedusaar's 
-   ** (psaar@fenar.ee) MS-SQL Client. His was a much better way to
-   ** do this, (well...mine was a kludge actually) so here's mostly his
-   */
-   
-	rc=tds_put_login_string(tds,connect_info->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
-	rc|=tds_put_login_string(tds,connect_info->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
-	rc|=tds_put_login_string(tds,connect_info->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
-	rc|=tds_put_login_string(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
+	/*
+	 * the following code is adapted from  Arno Pedusaar's 
+	 * (psaar@fenar.ee) MS-SQL Client. His was a much better way to
+	 * do this, (well...mine was a kludge actually) so here's mostly his
+	 */
+
+	tds_put_login_string(tds,connect_info->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
+	tds_put_login_string(tds,connect_info->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
+	tds_put_login_string(tds,connect_info->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
+	tds_put_login_string(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
 #ifdef WORDS_BIGENDIAN
-   if (tds->emul_little_endian) {
-      rc|=tds_put_n(tds,le1,6);
-   } else {
-      rc|=tds_put_n(tds,be1,6);
-   }
+	if (tds->emul_little_endian) {
+		tds_put_n(tds,le1,6);
+	} else {
+		tds_put_n(tds,be1,6);
+	}
 #else
-   rc|=tds_put_n(tds,le1,6);
+	tds_put_n(tds,le1,6);
 #endif
-	rc|=tds_put_byte(tds,connect_info->bulk_copy);
-   rc|=tds_put_n(tds,magic2,2);
-   if (IS_TDS42(tds)) {
-      rc|=tds_put_int(tds,512);
-   } else {
-      rc|=tds_put_int(tds,0);
-   }
-   rc|=tds_put_n(tds,magic3,3);
-	rc|=tds_put_login_string(tds,connect_info->app_name,TDS_MAX_LOGIN_STR_SZ);
-	rc|=tds_put_login_string(tds,connect_info->server_name,TDS_MAX_LOGIN_STR_SZ);
-   if (IS_TDS42(tds)) {
-		rc|=tds_put_login_string(tds,connect_info->password,255);
-   } else {
+	tds_put_byte(tds,connect_info->bulk_copy);
+	tds_put_n(tds,magic2,2);
+	if (IS_TDS42(tds)) {
+		tds_put_int(tds,512);
+	} else {
+		tds_put_int(tds,0);
+	}
+	tds_put_n(tds,magic3,3);
+	tds_put_login_string(tds,connect_info->app_name,TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds,connect_info->server_name,TDS_MAX_LOGIN_STR_SZ);
+	if (IS_TDS42(tds)) {
+		tds_put_login_string(tds,connect_info->password,255);
+	} else {
 		len = strlen(connect_info->password);
 		if (len > 253) 
 			len = 0;
-		rc |= tds_put_byte(tds, 0);
-		rc |= tds_put_byte(tds, len);
-		rc |= tds_put_n(tds, connect_info->password, len);
-		rc |= tds_put_n(tds, NULL, 253 - len);
-		rc |= tds_put_byte(tds, len + 2);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, len);
+		tds_put_n(tds, connect_info->password, len);
+		tds_put_n(tds, NULL, 253 - len);
+		tds_put_byte(tds, len + 2);
 	}
-   
-   rc|=tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
-	rc|=tds_put_login_string(tds,connect_info->library,10);  /* client program name */
-   if (IS_TDS42(tds)) { 
-      rc|=tds_put_int(tds,0);
-   } else {
-      rc|=tds_put_n(tds,program_version,4); /* program version ? */
-   }
+
+	tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
+	tds_put_login_string(tds,connect_info->library,10);  /* client program name */
+	if (IS_TDS42(tds)) { 
+		tds_put_int(tds,0);
+	} else {
+		tds_put_n(tds,program_version,4); /* program version ? */
+	}
 #ifdef WORDS_BIGENDIAN
-   if (tds->emul_little_endian) {
-      rc|=tds_put_n(tds,le2,3);
-   } else {
-      rc|=tds_put_n(tds,be2,3);
-   }
+	if (tds->emul_little_endian) {
+		tds_put_n(tds,le2,3);
+	} else {
+		tds_put_n(tds,be2,3);
+	}
 #else
-   rc|=tds_put_n(tds,le2,3);
+	tds_put_n(tds,le2,3);
 #endif
-	rc|=tds_put_login_string(tds,connect_info->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
-	rc|=tds_put_byte(tds,connect_info->suppress_language);
-	rc|=tds_put_n(tds,magic5,2);
-	rc|=tds_put_byte(tds,connect_info->encrypted);
-	rc|=tds_put_n(tds,magic6,10);
-	rc|=tds_put_login_string(tds,connect_info->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
-   rc|=tds_put_byte(tds,magic7);
+	tds_put_login_string(tds,connect_info->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
+	tds_put_byte(tds,connect_info->suppress_language);
+	tds_put_n(tds,magic5,2);
+	tds_put_byte(tds,connect_info->encrypted);
+	tds_put_n(tds,magic6,10);
+	tds_put_login_string(tds,connect_info->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
+	tds_put_byte(tds,magic7);
 
 	/* network packet size */
 	if (connect_info->block_size < 1000000)
 		sprintf(blockstr, "%d", connect_info->block_size);
 	else
 		strcpy(blockstr,"512");
-	rc |= tds_put_login_string(tds,blockstr, 6);
+	tds_put_login_string(tds,blockstr, 6);
 
-   if (IS_TDS42(tds)) {
-      rc|=tds_put_n(tds,magic42,8);
-   } else if (IS_TDS46(tds)) {
-      rc|=tds_put_n(tds,magic42,4);
-   } else if (IS_TDS50(tds)) {
-      rc|=tds_put_n(tds,magic50,4);
-      rc|=tds_put_byte(tds, TDS_CAP_TOKEN);
-      rc|=tds_put_smallint(tds, 18);
-      rc|=tds_put_n(tds,tds->capabilities,TDS_MAX_CAPABILITY);
-   }
-   
-/*
-   tmpbuf = malloc(tds->out_pos);
-   tmplen = tds->out_pos;
-   memcpy(tmpbuf, tds->out_buf, tmplen);
-   tdsdump_off();
-*/
-   rc|=tds_flush_packet(tds);
-/*
-   tdsdump_on();
-   tdsdump_log(TDS_DBG_NETWORK, "Sending packet (passwords supressed)@ %L\n%D\n", tmpbuf, tmplen);
-   free(tmpbuf);
-*/
-   /* get_incoming(tds->s); */
-	return 0;
+	if (IS_TDS42(tds)) {
+		tds_put_n(tds,magic42,8);
+	} else if (IS_TDS46(tds)) {
+		tds_put_n(tds,magic42,4);
+	} else if (IS_TDS50(tds)) {
+		tds_put_n(tds,magic50,4);
+		tds_put_byte(tds, TDS_CAP_TOKEN);
+		tds_put_smallint(tds, 18);
+		tds_put_n(tds,tds->capabilities,TDS_MAX_CAPABILITY);
+	}
+
+	return tds_flush_packet(tds);
 }
 
 
 int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge)
 {
-int rc;
 int current_pos;
 TDSANSWER answer;
 
@@ -596,16 +582,16 @@ TDSCONNECTINFO *connect_info = tds->connect_info;
 	/* for security reason clear structure */
 	memset(&answer,0,sizeof(TDSANSWER));
 
-	rc=tds_flush_packet(tds);
-
-	return rc;
+	return tds_flush_packet(tds);
 }
-/*
-** tds7_send_login() -- Send a TDS 7.0 login packet
-** TDS 7.0 login packet is vastly different and so gets its own function
-*/
-int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
-{	
+
+/**
+ * tds7_send_login() -- Send a TDS 7.0 login packet
+ * TDS 7.0 login packet is vastly different and so gets its own function
+ */
+static int 
+tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
+{
 int rc;
 static const unsigned char magic1_domain[] =
 	{6,0x7d,0x0f,0xfd,
@@ -804,11 +790,11 @@ int auth_len = 0;
 	return rc;
 }
 
-/*
-** tds7_crypt_pass() -- 'encrypt' TDS 7.0 style passwords.
-** the calling function is responsible for ensuring crypt_pass is at least 
-** 'len' characters
-*/
+/**
+ * tds7_crypt_pass() -- 'encrypt' TDS 7.0 style passwords.
+ * the calling function is responsible for ensuring crypt_pass is at least 
+ * 'len' characters
+ */
 unsigned char *
 tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass)
 {

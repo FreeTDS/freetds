@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.59 2002-11-24 10:22:36 freddy77 Exp $";
+	"$Id: tds.h,v 1.60 2002-11-24 10:43:29 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -728,7 +728,6 @@ int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, i
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
-int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 const char *tds_prtype(int token);
@@ -757,7 +756,6 @@ unsigned char *tds_alloc_param_row(TDSPARAMINFO *info,TDSCOLINFO *curparam);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge);
-int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 
 /* query.c */
 int tds_submit_prepare(TDSSOCKET *tds, const char *query, const char *id, TDSDYNAMIC **dyn_out);
