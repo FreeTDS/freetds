@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.131 2003-12-30 14:45:03 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.132 2004-01-07 13:50:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -189,8 +189,10 @@ tds_get_conversion_type(int srctype, int colsize)
 			return SYBMONEY4;
 		}
 		break;
-		/* altough tds_conmvert handle SYBBITN other routine use this 
-		 * function to retrieve not variant type */
+		/*
+		 * altough tds_convert handle SYBBITN other routine use this
+		 * function to retrieve not variant type
+		 */
 	case SYBBITN:
 		return SYBBIT;
 		break;
