@@ -1,6 +1,7 @@
 Tue Jul 16 01:16:29 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ src/tds/tds_willconvert.h added, to support dbwillconvert
 	+ src/tds/convert.c slightly modified to insert comments in tds_willconvert.h
+	+ src/ctlib/ctutil.c, rename call to tds_reset_msg to tds_reset_msg_info
 
 Mon Jul 15 03:29:58 EDT 2002	Brian Bruns <camber@ais.org>
 	implemented TDSCONTEXT changes for message handling, affecting:

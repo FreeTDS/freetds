@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.25 2002-07-16 05:32:12 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.26 2002-07-16 05:55:31 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1986,7 +1986,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const struct tds_tm 
 	return length;
 }
 
-/*
+#ifdef DONT_TRY_TO_COMPILE_THIS
 	Try this: "perl -x convert.c > tds_willconvert.h"
 	(Perl will generate useful C from the data below.)  
 #!perl
@@ -2046,7 +2046,7 @@ DATETIME    T   T    T      T     F   F    F    F    F   F       F       F   F  
 DATETIME4   T   T    T      T     F   F    F    F    F   F       F       F   F    F      T        T         F       F
 BOUNDARY    T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         T       F
 SENSITIVITY T   T    F      F     F   F    F    F    F   F       F       F   F    F      F        F         F       T
-*/
+#endif
 unsigned char
 tds_willconvert(int srctype, int desttype)
 {
