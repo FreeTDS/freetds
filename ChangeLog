@@ -1,3 +1,7 @@
+Fri Aug 30 22:29:30 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c src/tds/read.c src/tds/write.c:
+	- rewritten select stuff (patch #565838)
+
 Fri Aug 30 22:00:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/login.c:
 	- add one char to library name to store tds-library

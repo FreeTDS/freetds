@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.11 2002-08-22 19:12:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.12 2002-08-30 20:33:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -131,14 +131,11 @@ fd_set fds;
 	/* Jeffs hack *** START OF NEW CODE */
 	start = time(NULL);
 	FD_ZERO (&fds);
-	selecttimeout.tv_sec = 0;
-	selecttimeout.tv_usec = 0;
-	now = time(NULL);
+	now = start;
  
 	while ((retcode == 0) && ((now-start) < tds->timeout)) {
-		tds_msleep(1);
 		FD_SET (tds->s, &fds);
-		selecttimeout.tv_sec = 0;
+		selecttimeout.tv_sec = tds->timeout - (now-start);
 		selecttimeout.tv_usec = 0;
 		retcode = select (tds->s + 1, NULL, &fds, NULL, &selecttimeout);
 		if (retcode < 0 && errno == EINTR) {
@@ -147,6 +144,7 @@ fd_set fds;
 
 		now = time (NULL);
 	}
+ 
 	return retcode;
 	/* Jeffs hack *** END OF NEW CODE */
 }

@@ -34,7 +34,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.12 2002-08-28 19:22:53 freddy77 Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.13 2002-08-30 20:33:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -54,32 +54,28 @@ struct timeval selecttimeout;
 
 	if (tds->timeout) {
 		start = time(NULL);
-		now = time(NULL);
+		now = start;
 
 		/* FIXME return even if not finished read if timeout */
 		while ((buflen > 0) && ((now-start) < tds->timeout)) {
+			int timeleft = tds->timeout;
 			len = 0;
 			retcode = 0;
 
 			FD_ZERO (&fds);
-			selecttimeout.tv_sec = 0;
-			selecttimeout.tv_usec = 0;
 
-			now = time(NULL);
-
-			FD_SET (tds->s, &fds);
-			retcode = select (tds->s + 1, &fds, NULL, NULL, &selecttimeout);
-
-			while ((retcode == 0) && ((now-start) < tds->timeout)) {
-				tds_msleep(1);
-
+			do {
 				FD_SET (tds->s, &fds);
-				selecttimeout.tv_sec = 0;
+				selecttimeout.tv_sec = timeleft;
 				selecttimeout.tv_usec = 0;
 				retcode = select (tds->s + 1, &fds, NULL, NULL, &selecttimeout);
+				/* ignore EINTR errors */
+				if (retcode < 0 && errno == EINTR)
+					retcode = 0;
 
 				now = time (NULL);
-			}
+				timeleft = tds->timeout - (now-start);
+			} while((retcode == 0) && timeleft > 0);
 			len = READ(tds->s, buf+got, buflen);
 			if (len <= 0) {
 				if (len < 0 && errno == EINTR) len = 0;

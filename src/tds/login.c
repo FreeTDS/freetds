@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.36 2002-08-30 20:23:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.37 2002-08-30 20:33:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -244,24 +244,14 @@ FD_ZERO (&fds);
 			return NULL;
 		}
           /* Select on writeability for connect_timeout */
-		selecttimeout.tv_sec = 0;
-		selecttimeout.tv_usec = 0;
-
-		FD_SET (tds->s, &fds);
-		retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-		/* patch from Kostya Ivanov <kostya@warmcat.excom.spb.su> */
-		if (retval < 0 && errno == EINTR)
-			retval = 0;
-		/* end patch */
-
-		now = time (NULL);
-
+		now = start;
 		while ((retval == 0) && ((now-start) < connect_timeout)) {
-			tds_msleep(1);
 			FD_SET (tds->s, &fds);
-			selecttimeout.tv_sec = 0;
+			selecttimeout.tv_sec = connect_timeout - (now-start);
 			selecttimeout.tv_usec = 0;
 			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
+			if (retval < 0 && errno == EINTR)
+				retval = 0;
 			now = time (NULL);
     		}
 
