@@ -1,3 +1,9 @@
+Fri Feb 14 14:18:10 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/norowset.c:
+	- fix problem with store procedures not returning a rowset
+	- add a test to test problem
+
 Thu Feb 13 22:21:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/dblib/dblib.c src/tds/threadsafe.c:
 	* src/tds/token.c src/tds/write.c:

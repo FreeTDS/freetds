@@ -10,4 +10,5 @@ tdsdump.out
 connect
 print
 date
+norowset
 
