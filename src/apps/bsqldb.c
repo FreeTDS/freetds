@@ -44,10 +44,14 @@
 #include <libgen.h>
 #endif
 
+#if HAVE_REGEX_H
+#include <regex.h>
+#endif
+
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: bsqldb.c,v 1.3 2004-04-13 09:07:42 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.4 2004-05-01 19:18:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -178,7 +182,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s:%d: dbsqlsend() failed\n", options.appname, __LINE__);
 			exit(1);
 		}
-		fprintf(options.verbose, "%s:%d: dbsqlsend() OK:\n", options.appname, __LINE__);
+		fprintf(options.verbose, "%s:%d: dbsqlsend(): OK\n", options.appname, __LINE__);
 		
 		/* Wait for it to execute */
 		erc = dbsqlok(dbproc);
@@ -186,7 +190,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s:%d: dbsqlok() failed\n", options.appname, __LINE__);
 			exit(1);
 		}
-		fprintf(options.verbose, "%s:%d: dbsqlok() OK:\n", options.appname, __LINE__);
+		fprintf(options.verbose, "%s:%d: dbsqlok(): OK\n", options.appname, __LINE__);
 
 		/* Write the output */
 		print_results(dbproc);
@@ -198,7 +202,12 @@ main(int argc, char *argv[])
 int
 next_query(DBPROCESS *dbproc)
 {
+#if HAVE_REGEX_H
+	regex_t reg;
+	const int reg_flags = REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE;
+#else
 	static const char go[] = "go\n";
+#endif
 	char query_line[4096];
 	RETCODE erc;
 	
@@ -207,10 +216,27 @@ next_query(DBPROCESS *dbproc)
 			
 	fprintf(options.verbose, "%s:%d: Query:\n", options.appname, __LINE__);
 	
+	/* Normally, a call to dbcmd() clears the buffer the first time it's 
+	 * invoked after a call to dbsqlexec() or dbsqlsend().  If fgets(3) 
+	 * returns 0 below, however, we'd indicate "success" without calling
+	 * dbcmd().  This would leave the prior query in the buffer, which 
+	 * our caller would re-send.  To avoid such nonsense, we invoke
+	 * dbfreebuf() as a precaution.
+	 */
+	 
+	dbfreebuf(dbproc); 
+	
 	while (fgets(query_line, sizeof(query_line), stdin)) {
 		/* 'go' or 'GO' separates command batches */
+#if HAVE_REGEX_H
+		erc = regcomp(&reg, "^go[[:space:]]*$", reg_flags);
+		assert(erc == 0);
+		if( 0 == regexec(&reg, query_line, 0, NULL, 0))
+			return 1;
+#else
 		if (0 == strcasecmp(query_line, go))
 			return 1;
+#endif
 			
 		fprintf(options.verbose, "\t%s", query_line);
 		
@@ -223,7 +249,7 @@ next_query(DBPROCESS *dbproc)
 	}
 	
 	if (feof(stdin))
-		return 0;
+		return dbstrlen(dbproc) > 0? 0 : -1;
 			
 	if (ferror(stdin)) {
 		fprintf(stderr, "%s:%d: next_query() failed\n", options.appname, __LINE__);
@@ -259,7 +285,7 @@ print_results(DBPROCESS *dbproc)
 	 * Set up each result set with dbresults()
 	 * This is more commonly implemented as a while() loop, but we're counting the result sets. 
 	 */
-	fprintf(options.verbose, "%s:%d: calling dbresults OK:\n", options.appname, __LINE__);
+	fprintf(options.verbose, "%s:%d: calling dbresults: OK\n", options.appname, __LINE__);
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
@@ -334,7 +360,7 @@ print_results(DBPROCESS *dbproc)
 		 */
 
 		fprintf(options.verbose, "Metadata\n");
-		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varys");
+		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varies");
 		fprintf(options.verbose, "%.6s  %.30s  %.30s  %.15s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
 			int width;
@@ -550,6 +576,8 @@ print_results(DBPROCESS *dbproc)
 		 */
 		if (DBCOUNT(dbproc) > -1)
 			fprintf(stderr, "%d rows affected\n", DBCOUNT(dbproc));
+		else 
+			fprintf(stderr, "@@rowcount not available\n", DBCOUNT(dbproc));
 			
 
 		/* 
