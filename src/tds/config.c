@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.62 2002-12-10 17:00:41 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.63 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -111,7 +111,7 @@ static char *interf_file = NULL;
  * integration with various Linux and *BSD distributions.
  */
 TDSCONNECTINFO *
-tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCINFO * locale)
+tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 {
 TDSCONNECTINFO *connect_info;
 char *s;

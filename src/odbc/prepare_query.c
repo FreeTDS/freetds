@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.16 2002-12-18 14:06:34 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.17 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -240,7 +240,7 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 	char *s, *d;
 	int param_num;
 	struct _sql_param_info *param;
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	char quote_char;
 	int quoted;
@@ -349,7 +349,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 {
 	char *d;
 	struct _sql_param_info *param;
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	int len;
 	int need_bytes;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: locale.c,v 1.16 2002-12-10 17:01:20 freddy77 Exp $";
+static char software_version[] = "$Id: locale.c,v 1.17 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -48,10 +48,10 @@ static void tds_parse_locale(const char *option, const char *value, void *param)
  * Get locale information. 
  * @return allocated structure with all information or NULL if error
  */
-TDSLOCINFO *
+TDSLOCALE *
 tds_get_locale(void)
 {
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	char *s;
 	int i;
 	FILE *in;
@@ -83,7 +83,7 @@ tds_get_locale(void)
 static void
 tds_parse_locale(const char *option, const char *value, void *param)
 {
-	TDSLOCINFO *locale = (TDSLOCINFO *) param;
+	TDSLOCALE *locale = (TDSLOCALE *) param;
 
 	if (!strcmp(option, TDS_STR_CHARSET)) {
 		if (locale->char_set)

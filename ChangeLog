@@ -1,3 +1,10 @@
+Sat Dec 28 20:50:11 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/tds/config.c src/tds/locale.c:
+	* src/tds/mem.c:
+	- rename TDSLOCINFO with TDSLOCALE
+	* src/apps/tsql.c: remove old FIXME
+
 Sat Dec 28 12:33:05 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO:
 	- update

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.73 2002-12-28 11:33:53 freddy77 Exp $";
+	"$Id: tds.h,v 1.74 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -466,11 +466,11 @@ typedef struct tds_connect_info {
 	int emul_little_endian;
 } TDSCONNECTINFO;
 
-typedef struct tds_loc_info {
+typedef struct tds_locale {
         char *language;
         char *char_set;
         char *date_fmt;
-} TDSLOCINFO;
+} TDSLOCALE;
 
 /** structure that hold information about blobs (like text or image).
  * current_row contain this structure.
@@ -615,7 +615,7 @@ typedef struct tds_context TDSCONTEXT;
 typedef struct tds_socket  TDSSOCKET;
 
 struct tds_context {
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	void *parent;
 	/* handler */
 	int (*msg_handler)(TDSCONTEXT*, TDSSOCKET*, TDSMSGINFO*);
@@ -701,22 +701,22 @@ TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
 typedef void (*TDSCONFPARSE)(const char* option, const char* value, void *param);
 int tds_read_conf_section(FILE *in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
 int tds_read_conf_file(TDSCONNECTINFO *connect_info,const char *server);
-TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
+TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCALE *locale);
 void tds_fix_connect(TDSCONNECTINFO *connect_info);
 void tds_config_verstr(const char *tdsver, TDSCONNECTINFO *connect_info);
 void tds_lookup_host(const char *servername, const char *portname, char *ip, char *port);
 int tds_set_interfaces_file_loc(char *interfloc);
 
-TDSLOCINFO *tds_get_locale(void);
+TDSLOCALE *tds_get_locale(void);
 unsigned char *tds_alloc_row(TDSRESULTINFO *res_info);
 unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO *res_info);
 char *tds_alloc_get_string(TDSSOCKET *tds, int len);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id);
 void tds_free_login(TDSLOGIN *login);
-TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale);
-TDSLOCINFO *tds_alloc_locale(void);
-void tds_free_locale(TDSLOCINFO *locale);
+TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE *locale);
+TDSLOCALE *tds_alloc_locale(void);
+void tds_free_locale(TDSLOCALE *locale);
 int tds_connect(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 void tds_set_packet(TDSLOGIN *tds_login, int packet_size);
 void tds_set_port(TDSLOGIN *tds_login, int port);

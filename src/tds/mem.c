@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.57 2002-12-14 14:13:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.58 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -454,7 +454,7 @@ tds_free_all_results(TDSSOCKET *tds)
 TDSCONTEXT *tds_alloc_context(void)
 {
 TDSCONTEXT *context;
-TDSLOCINFO *locale;
+TDSLOCALE *locale;
 
 	locale = tds_get_locale();
 	if (!locale) return NULL;
@@ -474,13 +474,13 @@ void tds_free_context(TDSCONTEXT *context)
 	if (context->locale) tds_free_locale(context->locale);
 	TDS_ZERO_FREE(context);
 }
-TDSLOCINFO *tds_alloc_locale(void)
+TDSLOCALE *tds_alloc_locale(void)
 {
-TDSLOCINFO *locale;
+TDSLOCALE *locale;
 
-	locale = (TDSLOCINFO *) malloc(sizeof(TDSLOCINFO));
+	locale = (TDSLOCALE *) malloc(sizeof(TDSLOCALE));
 	if (!locale) return NULL;
-	memset(locale, '\0', sizeof(TDSLOCINFO));
+	memset(locale, '\0', sizeof(TDSLOCALE));
 
 	return locale;
 }
@@ -492,7 +492,7 @@ static const unsigned char defaultcaps[] =
  * @param locale locale information (copied to configuration information)
  * @result allocated structure or NULL if out of memory
  */
-TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale)
+TDSCONNECTINFO *tds_alloc_connect(TDSLOCALE *locale)
 {
 TDSCONNECTINFO *connect_info;
 char hostname[30];
@@ -658,7 +658,7 @@ TDSICONVINFO *iconv_info;
 		TDS_ZERO_FREE(tds);
 	}
 }
-void tds_free_locale(TDSLOCINFO *locale)
+void tds_free_locale(TDSLOCALE *locale)
 {
 	if (locale->language) free(locale->language);
 	if (locale->char_set) free(locale->char_set);

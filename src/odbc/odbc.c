@@ -72,7 +72,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.105 2002-12-19 07:05:12 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.106 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1191,7 +1191,7 @@ SQLFetch(SQLHSTMT hstmt)
 	TDS_CHAR *src;
 	int srclen;
 	struct _sql_bind_info *cur;
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	TDS_INT rowtype;
 	TDS_INT computeid;
@@ -1670,7 +1670,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	struct _hstmt *stmt;
 	TDS_CHAR *src;
 	int srclen;
-	TDSLOCINFO *locale;
+	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	SQLINTEGER dummy_cb;
 	int nSybType;

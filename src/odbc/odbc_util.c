@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.13 2002-12-18 14:06:33 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.14 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -125,7 +125,7 @@ odbc_set_return_status(struct _hstmt *stmt)
 	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
 
 #if 0
-	TDSLOCINFO *locale = context->locale;
+	TDSLOCALE *locale = context->locale;
 #endif
 
 	if (stmt->prepared_query_is_func && tds->has_status) {

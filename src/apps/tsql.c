@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.45 2002-12-20 21:51:38 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.46 2002-12-28 19:50:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -422,7 +422,6 @@ main(int argc, char **argv)
 	connect_info = tds_read_config_info(NULL, login, context->locale);
 	if (!connect_info || tds_connect(tds, connect_info) == TDS_FAIL) {
 		tds_free_connect(connect_info);
-		/* FIX ME -- need to hook up message/error handlers */
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
