@@ -49,10 +49,13 @@ cd fakebin
 echo "#!/bin/sh
 exit 1" > openjade
 cp openjade doxygen
-chmod +x openjade doxygen
+# gawk it's used by txt2man
+cp openjade gawk
+chmod +x openjade doxygen gawk
 cd ..
 if ! openjade --help; then true; else echo 'succedeed ?'; false; fi
 if ! doxygen --help; then true; else echo 'succeeded ?'; false; fi
+if ! gawk --help; then true; else echo 'succeeded ?'; false; fi
 echo "fakebin ok" >> "$LOG"
 
 # direct make install (without make all)
@@ -60,7 +63,8 @@ mkdir install
 INSTALLDIR="$PWD/install"
 mkdir build
 cd build
-../configure --prefix="$INSTALLDIR"
+# --enable-msdblib --enable-sybase-compat can cause also problems, try to compile with both
+../configure --prefix="$INSTALLDIR" --enable-msdblib --enable-sybase-compat
 # make clean should not cause problems here
 make clean
 make install

@@ -48,7 +48,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#define MSDBLIB 0
+#define SYBDBLIB 1
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187 2004-11-05 09:06:46 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.188 2004-11-28 09:27:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);

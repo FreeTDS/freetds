@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.16 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.17 2004-11-28 09:27:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 		dbdatecrack(dbproc, &dateinfo, &mydatetime);
 
 		/* Print the parts of the creation date */
-#if MSDBLIB
+#ifdef MSDBLIB
 		printf("\tYear = %d.\n", dateinfo.year);
 		printf("\tMonth = %d.\n", dateinfo.month);
 		printf("\tDay of month = %d.\n", dateinfo.day);

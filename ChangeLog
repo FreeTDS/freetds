@@ -1,19 +1,26 @@
+Sun Nov 28 10:24:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/sybdb.h include/tds_sysdep_public.h.in:
+	* src/dblib/dblib.c src/dblib/dbopen.c:
+	* src/dblib/unittests/t0012.c:
+	- fix compile for PHP and others, added a new SYBDBLIB define
+	* misc/test-dist.sh: improved
+
 Sat Nov 27 17:58:08 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/news.html announce 0.63RC1
-	
+
 Sat Nov 27 17:20:02 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/README.releasing branching instructions
-	
+
 Sat Nov 27 17:05:00 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* INSTALL.CVS updated toolchain versions.
-	
+
 Sat Nov 27 16:57:12 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml NEWS README updated for 0.63 release
-	
+
 Wed Nov 17 13:44:25 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c Fix null handling and don't close closed errfile.
 	* src/apps/freebcp.c dump username to stderr if FREEBCP envar set
-	
+
 Tue Nov  9 10:53:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c:
 	- fix possible compile error including both regex.h and libgen.h

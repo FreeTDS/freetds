@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-static char software_version[] = "$Id: dbopen.c,v 1.6 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: dbopen.c,v 1.7 2004-11-28 09:27:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_CONFIG_H
@@ -37,5 +37,10 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 DBPROCESS *
 dbopen(LOGINREC * login, char *server)
 {
-	return tdsdbopen(login, server);
+	/* default it's platform specific */
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+	return tdsdbopen(login, server, 1);
+#else
+	return tdsdbopen(login, server, 0);
+#endif
 }

@@ -22,10 +22,6 @@
 
 #include "tds_sysdep_public.h"
 
-#ifndef MSDBLIB
-#define MSDBLIB 0
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -34,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.64 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.65 2004-11-28 09:27:13 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -265,7 +261,7 @@ typedef struct
 	DBUSMALLINT minutes;
 } DBDATETIME4;
 
-#if MSDBLIB
+#ifdef MSDBLIB
 #define SQLCHAR SYBCHAR
 #endif
 
@@ -378,7 +374,7 @@ typedef struct tds_dblib_dbprocess DBPROCESS;
 
 typedef struct dbdaterec
 {
-#if MSDBLIB
+#ifdef MSDBLIB
 	DBINT year;
 	DBINT month;
 	DBINT day;
@@ -613,7 +609,7 @@ int dbnumrets(DBPROCESS * dbproc);
 DBPROCESS *tdsdbopen(LOGINREC * login, char *server, int msdblib);
 DBPROCESS *dbopen(LOGINREC * login, char *server);
 
-#if MSDBLIB
+#ifdef MSDBLIB
 #define   dbopen(x,y) tdsdbopen((x),(y), 1)
 #else
 #define   dbopen(x,y) tdsdbopen((x),(y), 0)
