@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.34 2003-07-28 12:30:10 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.35 2003-07-28 13:46:34 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -127,6 +127,7 @@ struct _hdbc
 	SQLSMALLINT htype;      /* do not reorder this field */
 	struct _henv *henv;
 	TDSSOCKET *tds_socket;
+	DSTR dsn;
 	DSTR server;	/* aka Instance */
 	/** statement executing */
 	struct _hstmt *current_statement;

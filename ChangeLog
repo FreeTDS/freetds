@@ -1,3 +1,8 @@
+Mon Jul 28 15:45:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- continue merge from Steve patch:
+	 - merge dsn stuff (save and SQLGetInfo)
+
 Mon Jul 28 14:28:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/prepare_query.c:

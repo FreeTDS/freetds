@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.193 2003-07-28 12:30:10 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.194 2003-07-28 13:46:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -770,6 +770,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->htype = SQL_HANDLE_DBC;
 	dbc->henv = env;
 	tds_dstr_init(&dbc->server);
+	tds_dstr_init(&dbc->dsn);
 
 	dbc->attr.attr_access_mode = SQL_MODE_READ_WRITE;
 	dbc->attr.attr_async_enable = SQL_ASYNC_ENABLE_OFF;
@@ -786,9 +787,10 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.attr_odbc_cursors = SQL_CUR_USE_IF_NEEDED;
 	dbc->attr.attr_packet_size = 0;
 	dbc->attr.attr_quite_mode = NULL;	/* We don't support GUI dialogs yet */
-	/* DM only
-	 * dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
-	 * dbc->attr.attr_tracefile = NULL; */
+#ifdef TDS_NO_DM
+	dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
+	dbc->attr.attr_tracefile = NULL;
+#endif
 	tds_dstr_init(&dbc->attr.attr_translate_lib);
 	dbc->attr.attr_translate_option = 0;
 	dbc->attr.attr_txn_isolation = SQL_TXN_READ_COMMITTED;
@@ -944,11 +946,27 @@ SQLRETURN SQL_API
 SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * szUID, SQLSMALLINT cbUID, SQLCHAR FAR * szAuthStr,
 	   SQLSMALLINT cbAuthStr)
 {
-	const char *DSN;
 	SQLRETURN result;
 	TDSCONNECTINFO *connect_info;
 
 	INIT_HDBC;
+
+#ifdef TDS_NO_DM
+	if (szDSN && !IS_VALID_LEN(cbDSN)) {
+		odbc_errs_add(&dbc->errs, 0, "HY090", "Invalid DSN buffer length", NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
+	if (szUID && !IS_VALID_LEN(cbUID)) {
+		odbc_errs_add(&dbc->errs, 0, "HY090", "Invalid UID buffer length", NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
+	if (szAuthStr && !IS_VALID_LEN(cbAuthStr)) {
+		odbc_errs_add(&dbc->errs, 0, "HY090", "Invalid PWD buffer length", NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+#endif
 
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
@@ -957,13 +975,13 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	/* data source name */
-	/* FIXME DSN can be no-null terminated */
 	if (szDSN || (*szDSN))
-		DSN = (char *) szDSN;
+		tds_dstr_copyn(&dbc->dsn, szDSN, odbc_get_string_size(cbDSN, szDSN));
 	else
-		DSN = "DEFAULT";
+		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
-	if (!odbc_get_dsn_info(DSN, connect_info)) {
+
+	if (!odbc_get_dsn_info(tds_dstr_cstr(&dbc->dsn), connect_info)) {
 		tds_free_connect(connect_info);
 		odbc_errs_add(&dbc->errs, 0, "IM007", "Error getting DSN information", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -1682,6 +1700,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	tds_dstr_free(&dbc->attr.attr_translate_lib);
 
 	tds_dstr_free(&dbc->server);
+	tds_dstr_free(&dbc->dsn);
 
 	odbc_errs_reset(&dbc->errs);
 
@@ -2144,16 +2163,15 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 		*((SQLHWND *) Value) = dbc->attr.attr_quite_mode;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
-		/* DM only */
-		/*
-		 * case SQL_ATTR_TRACE:
-		 * *((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
-		 * ODBC_RETURN(dbc, SQL_SUCCESS);
-		 * break;
-		 * case SQL_ATTR_TRACEFILE:
-		 * p = dbc->attr.attr_tracefile;
-		 * break;
-		 */
+#ifdef TDS_NO_DM
+	case SQL_ATTR_TRACE:
+		*((SQLUINTEGER *) Value) = dbc->attr.attr_trace;
+		ODBC_RETURN(dbc, SQL_SUCCESS);
+		break;
+	case SQL_ATTR_TRACEFILE:
+		p = tds_dstr_cstr(&dbc->attr.attr_tracefile);
+		break;
+#endif
 	case SQL_ATTR_TXN_ISOLATION:
 		*((SQLUINTEGER *) Value) = dbc->attr.attr_txn_isolation;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -2622,6 +2640,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_DATABASE_NAME:
 		p = tds_dstr_cstr(&dbc->attr.attr_current_catalog);
 		break;
+	case SQL_DATA_SOURCE_NAME:
+		p = tds_dstr_cstr(&dbc->dsn);
+		break;
 	case SQL_DATA_SOURCE_READ_ONLY:
 		/* TODO: determine the right answer from connection 
 		 * attribute SQL_ATTR_ACCESS_MODE */
@@ -2928,7 +2949,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		dbc->attr.attr_quite_mode = (SQLHWND) u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
 		break;
-#if 0				/* DM only */
+#ifdef TDS_NO_DM
 	case SQL_ATTR_TRACE:
 		dbc->attr.attr_trace = u_value;
 		ODBC_RETURN(dbc, SQL_SUCCESS);
