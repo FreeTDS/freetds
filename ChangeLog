@@ -1,3 +1,8 @@
+Tue Apr 08 17:03:29 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c:
+	- small patch from Bill Thompson
+	 - reset tds result state freeing results
+
 Tue Apr 08 13:08:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/iconv.c src/tds/login.c:
 	- fix some comments
