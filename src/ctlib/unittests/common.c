@@ -3,13 +3,16 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.4 2002-09-23 23:45:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+
+int clientmsg_cb_invoked = 0;
+int servermsg_cb_invoked = 0;
 
 CS_RETCODE read_login_info()
 {
@@ -170,4 +173,45 @@ CS_RETCODE run_command(CS_COMMAND *cmd, char *sql)
    }
 
    return CS_SUCCEED;
+}
+
+CS_RETCODE
+clientmsg_cb(CS_CONTEXT *context, CS_CONNECTION *connection, CS_CLIENTMSG *errmsg)
+{
+	clientmsg_cb_invoked++;
+	fprintf(stderr, "\nOpen Client Message:\n");
+	fprintf(stderr, "number %d layer %d origin %d severity %d number %d\n",
+		errmsg->msgnumber,
+		CS_LAYER(errmsg->msgnumber),
+		CS_ORIGIN(errmsg->msgnumber),
+		CS_SEVERITY(errmsg->msgnumber),
+		CS_NUMBER(errmsg->msgnumber));
+	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
+	fprintf(stderr, "osstring: %s\n",
+			(errmsg->osstringlen > 0)
+				? errmsg->osstring
+				: "(null)");
+	return CS_SUCCEED;
+}
+
+CS_RETCODE
+servermsg_cb(CS_CONNECTION *connection, CS_COMMAND *cmd, CS_SERVERMSG *srvmsg)
+{
+	servermsg_cb_invoked++;
+	fprintf(stderr, "\nServer Message:\n");
+	fprintf(stderr, "number %d severity %d state %d line %d\n",
+		srvmsg->msgnumber,
+		srvmsg->severity,
+		srvmsg->state,
+		srvmsg->line);
+	fprintf(stderr, "server: %s\n",
+			(srvmsg->svrnlen > 0)
+				? srvmsg->svrname
+				: "(null)");
+	fprintf(stderr, "proc: %s\n",
+			(srvmsg->proclen > 0)
+				? srvmsg->proc
+				: "(null)");
+	fprintf(stderr, "text: %s\n", srvmsg->text);
+	return CS_SUCCEED;
 }

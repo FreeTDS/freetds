@@ -24,39 +24,49 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.11 2002-09-23 23:24:01 castellano Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.12 2002-09-23 23:45:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-/* all this was copied directly from the dblib functions */
-int ctlib_handle_info_message(TDSCONTEXT *ctx,TDSSOCKET *tds, TDSMSGINFO *msg)
+/* error handler */
+int
+ctlib_handle_client_message(TDSCONTEXT *ctx_tds, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
-/* CS_CONNECTION *con = (CS_CONNECTION *)bStruct;
-TDSSOCKET* tds = (TDSSOCKET *tds) con->tds_socket; 
-CS_CLIENTMSG errmsg; */
+CS_CLIENTMSG errmsg;
+CS_CONNECTION *con = NULL;
+CS_CONTEXT *ctx = NULL;
+int ret = (int) CS_SUCCEED;
 
-	return ctlib_handle_err_message(ctx, tds, msg);
-/*
+	if (tds && tds->parent) {
+		con = (CS_CONNECTION *)tds->parent;
+	}
+
 	memset(&errmsg,'\0',sizeof(errmsg));
-	errmsg.msgnumber=tds->msg_info->msg_number;
-	strcpy(errmsg.msgstring,tds->msg_info->message);
-	errmsg.msgstringlen=strlen(tds->msg_info->message);
-	errmsg.osnumber=0;
-	errmsg.osstring[0]='\0';
-	errmsg.osstringlen=0;
-	if (con->_clientmsg_cb)
-		con->_clientmsg_cb(con->ctx,con,&errmsg);
+	errmsg.msgnumber = msg->msg_number;
+	strcpy(errmsg.msgstring, msg->message);
+	errmsg.msgstringlen=strlen(msg->message);
+	errmsg.osstring[0] = '\0';
+	errmsg.osstringlen = 0;
+	/* if there is no connection, attempt to call the context handler */
+	if (!con) {
+		ctx = (CS_CONTEXT *) ctx_tds->parent;
+		if (ctx->_clientmsg_cb) 
+			ret = ctx->_clientmsg_cb(ctx, con, &errmsg);
+	} else if (con->_clientmsg_cb)
+		ret = con->_clientmsg_cb(con->ctx, con, &errmsg);
 	else if (con->ctx->_clientmsg_cb)
-		con->ctx->_clientmsg_cb(con->ctx,con,&errmsg);
-*/
+		ret = con->ctx->_clientmsg_cb(con->ctx, con, &errmsg);
+	return ret;
 }
 
-int ctlib_handle_err_message(TDSCONTEXT *ctx_tds, TDSSOCKET *tds, TDSMSGINFO *msg)
+/* message handler */
+int
+ctlib_handle_server_message(TDSCONTEXT *ctx_tds, TDSSOCKET *tds, TDSMSGINFO *msg)
 {
 CS_SERVERMSG errmsg;
 CS_CONNECTION *con = NULL;
 CS_CONTEXT *ctx = NULL;
-int ret = (int) CS_FAIL;
+int ret = (int) CS_SUCCEED;
 
 	if (tds && tds->parent) {
 		con = (CS_CONNECTION *)tds->parent;
@@ -80,11 +90,11 @@ int ret = (int) CS_FAIL;
 	if (!con) {
 		ctx = (CS_CONTEXT *) ctx_tds->parent;
 		if (ctx->_servermsg_cb) 
-			ret = ctx->_servermsg_cb(con->ctx,con,&errmsg);
-	} else if (con->_servermsg_cb)
-		ret = con->_servermsg_cb(con->ctx,con,&errmsg);
-	else if (con->ctx->_servermsg_cb)
-		ret = con->ctx->_servermsg_cb(con->ctx,con,&errmsg);
-	
+			ret = ctx->_servermsg_cb(ctx, con, &errmsg);
+	} else if (con->_servermsg_cb) {
+		ret = con->_servermsg_cb(con->ctx, con, &errmsg);
+	} else if (con->ctx->_servermsg_cb) {
+		ret = con->ctx->_servermsg_cb(con->ctx, con, &errmsg);
+	}
 	return ret;
 }

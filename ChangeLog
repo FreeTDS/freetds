@@ -1,3 +1,14 @@
+Mon Sep 23 19:46:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/ctlib.h include/ctpublic.h src/ctlib/ct.c
+	  src/ctlib/ctutil.c src/ctlib/unittests/.cvsignore
+	  src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
+	  src/ctlib/unittests/common.h
+	  src/ctlib/unittests/t0008.c (added):
+	- Distinguish between server and client message callbacks in ctlib,
+	  and handle each approriately.
+	- Return CS_SUCCEED by default when ctlib callbacks aren't installed.
+	- Add a new unit test to check callback functionality.
+
 Mon Sep 23 19:01:48 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/apps/tsql.c src/dblib/dbutil.c
 	  src/odbc/odbc.c src/tds/mem.c src/tds/token.c

@@ -27,13 +27,10 @@ extern "C" {
 #endif
 
 static char  rcsid_ctlib_h [ ] =
-         "$Id: ctlib.h,v 1.4 2002-08-16 21:01:25 freddy77 Exp $";
+         "$Id: ctlib.h,v 1.5 2002-09-23 23:45:29 castellano Exp $";
 static void *no_unused_ctlib_h_warn[]={rcsid_ctlib_h, no_unused_ctlib_h_warn};
 
 #include <tds.h>
-
-#define DBLIB_INFO_MSG_TYPE 0
-#define DBLIB_ERROR_MSG_TYPE 1
 
 /*
 ** internal typedefs
@@ -46,8 +43,8 @@ typedef struct ctcolinfo
 /*
 ** internal prototypes
 */
-int ctlib_handle_info_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
-int ctlib_handle_err_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
+int ctlib_handle_server_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
+int ctlib_handle_client_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
 int _ct_get_server_type(int datatype);
 
 #ifdef __cplusplus

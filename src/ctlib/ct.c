@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.30 2002-09-16 19:48:00 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.31 2002-09-23 23:45:29 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -47,8 +47,8 @@ CS_RETCODE ct_init(CS_CONTEXT *ctx, CS_INT version)
 	/* uncomment the next line to get pre-login trace */
 	/* tdsdump_open("/tmp/tds2.log"); */
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_init()\n");
-	ctx->tds_ctx->msg_handler = ctlib_handle_info_message;
-	ctx->tds_ctx->err_handler = ctlib_handle_err_message;
+	ctx->tds_ctx->msg_handler = ctlib_handle_server_message;
+	ctx->tds_ctx->err_handler = ctlib_handle_client_message;
 	return CS_SUCCEED;
 }
 CS_RETCODE ct_con_alloc(CS_CONTEXT *ctx, CS_CONNECTION **con)
