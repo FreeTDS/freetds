@@ -1,3 +1,6 @@
+Mon Apr 19 14:17:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix problem is NO-DM
+
 Sat Apr 17 11:59:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	- use lastrc to store and collect error

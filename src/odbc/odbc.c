@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.317 2004-04-17 10:02:24 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.318 2004-04-19 12:19:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1179,6 +1179,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	SQLRETURN rc = SQL_SUCCESS;
 	TDS_DESC *ard;
 	struct _drecord *drec;
+	SQLSMALLINT orig_ard_size;
 
 	INIT_HSTMT;
 
@@ -1196,23 +1197,6 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			rc = SQL_ERROR;
 		}
 		break;
-	case SQL_C_BIT:
-	case SQL_C_DOUBLE:
-	case SQL_C_FLOAT:
-	case SQL_C_LONG:
-	case SQL_C_NUMERIC:
-	case SQL_C_SBIGINT:
-	case SQL_C_SHORT:
-	case SQL_C_TYPE_DATE:
-	case SQL_C_TYPE_TIME:
-	case SQL_C_TYPE_TIMESTAMP:
-	case SQL_C_TINYINT:
-	case SQL_C_UBIGINT:
-		break;
-	default:
-		odbc_errs_add(&stmt->errs, "HY003", NULL, NULL);
-		rc = SQL_ERROR;
-		break;
 	}
 #endif
 
@@ -1226,6 +1210,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	}
 
 	ard = stmt->ard;
+	orig_ard_size = ard->header.sql_desc_count;
 	if (icol > ard->header.sql_desc_count && desc_alloc_records(ard, icol) != SQL_SUCCESS) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -1233,8 +1218,11 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	drec = &ard->records[icol - 1];
 
-	/* TODO test error */
-	odbc_set_concise_c_type(fCType, drec, 0);
+	if (odbc_set_concise_c_type(fCType, drec, 0) != SQL_SUCCESS) {
+		desc_alloc_records(ard, orig_ard_size);
+		odbc_errs_add(&stmt->errs, "HY003", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 	drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_indicator_ptr = pcbValue;
