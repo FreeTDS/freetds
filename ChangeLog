@@ -1,3 +1,8 @@
+Tue Oct 15 15:04:11 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/Makefile.am:
+	- Use noinst_HEADERS instead of EXTRA_DIST to specify our
+	  private headers.
+
 Tue Oct 15 14:52:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* Makefile.am src/pool/Makefile.am:
 	- Use automake dist_sysconf_DATA to install our configuration
