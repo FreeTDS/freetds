@@ -1,3 +1,6 @@
+Tue Feb 18 10:54:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/replacements/asprintf.c: add some include for portability
+
 Fri Feb 14 14:18:10 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/norowset.c:

@@ -8,10 +8,16 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <stdarg.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "replacements.h"
 
-static char software_version[] = "$Id: asprintf.c,v 1.4 2002-11-17 11:28:12 freddy77 Exp $";
+static char software_version[] = "$Id: asprintf.c,v 1.5 2003-02-18 09:54:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
