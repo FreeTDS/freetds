@@ -1,3 +1,8 @@
+Sun Aug 10 22:28:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c:
+	- remove warnings
+	- cleanup
+
 Sun Aug 10 22:18:43 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c: remove a warning
 

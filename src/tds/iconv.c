@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.81 2003-08-04 12:45:19 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.82 2003-08-10 20:29:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -56,10 +56,11 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #define SAFECPY(d, s) 	strncpy((d), (s), sizeof(d)); (d)[sizeof(d) - 1] = '\0'
 
 
+#if !HAVE_ICONV_ALWAYS
 static int bytes_per_char(TDS_ENCODING * charset);
+#endif
 static const char *lcid2charset(int lcid);
-static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
-static int tds_charset_name_compare(const char *name1, const char *name2);
+static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name);
 static int tds_iconv_init(void);
 static int tds_canonical_charset(const char *charset_name);
@@ -462,10 +463,10 @@ tds_iconv_close(TDSSOCKET * tds)
  * \todo Support alternative to '?' for the replacement character.  
  */
 size_t
-tds_iconv(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
-	  const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
+	  const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft)
 {
-	static const iconv_t invalid = (iconv_t) -1;
+	static const iconv_t invalid = (iconv_t) - 1;
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 
@@ -491,16 +492,16 @@ tds_iconv(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io
 		break;
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv: unable to determine if %d means in or out.  \n", io);
-		assert(io==to_server || io==to_client);
+		assert(io == to_server || io == to_client);
 		break;
 	}
-	
+
 	assert(inbuf && inbytesleft && outbuf && outbytesleft);
 
 	if (cd == invalid) {
 		/* "convert" like to like */
 		cd = iconv_open(input_charset->name, input_charset->name);
-		irreversible =  iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
+		irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
 		iconv_close(cd);
 		return irreversible;
 	}
@@ -509,7 +510,7 @@ tds_iconv(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io
 	 * Call iconv() as many times as necessary, until we reach the end of input or exhaust output.  
 	 */
 	errno = 0;
-	while ((irreversible = iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft)) == (size_t) -1) {
+	while ((irreversible = iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft)) == (size_t) - 1) {
 		if (errno != EILSEQ || io != to_client)
 			break;
 		/* 
@@ -532,56 +533,55 @@ tds_iconv(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io
 				break;	/* what to do? */
 			}
 		}
-		
+
 		lquest_mark = 1;
 		pquest_mark = quest_mark;
 
 		irreversible = iconv(error_cd, &pquest_mark, &lquest_mark, outbuf, outbytesleft);
 
-		if (irreversible == (size_t) -1) {
+		if (irreversible == (size_t) - 1) {
 			break;
 		}
 
 		*inbuf += one_character;
 		*inbytesleft -= one_character;
 	}
-	
+
 	switch (errno) {
-	case EILSEQ:	/* invalid multibyte input sequence encountered */
+	case EILSEQ:		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
-			if (irreversible == (size_t) -1) {
-				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0, 
-						"WARNING! Some character(s) could not be converted into client's character set. ");
+			if (irreversible == (size_t) - 1) {
+				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0,
+					       "WARNING! Some character(s) could not be converted into client's character set. ");
 			} else {
-				tds_client_msg(tds->tds_ctx, tds, 2403, 16, 0, 0, 
-						"WARNING! Some character(s) could not be converted into client's character set. " 
-						"Unconverted bytes were changed to question marks ('?').");
+				tds_client_msg(tds->tds_ctx, tds, 2403, 16, 0, 0,
+					       "WARNING! Some character(s) could not be converted into client's character set. "
+					       "Unconverted bytes were changed to question marks ('?').");
 				errno = 0;
 			}
-		} else { 
-			tds_client_msg(tds->tds_ctx, tds, 2402, 16, 0, 0, 
-					"Error converting client characters into server's character set. "
-					"Some character(s) could not be converted." );
+		} else {
+			tds_client_msg(tds->tds_ctx, tds, 2402, 16, 0, 0,
+				       "Error converting client characters into server's character set. "
+				       "Some character(s) could not be converted.");
 		}
 		break;
-	case EINVAL:	/* incomplete multibyte sequence is encountered */
-		tds_client_msg(tds->tds_ctx, tds, 2401, 16, *inbytesleft, 0, 
-				"iconv EINVAL: Error converting between character sets. "
-				"Conversion abandoned at offset indicated by the \"state\" value of this message." );
+	case EINVAL:		/* incomplete multibyte sequence is encountered */
+		tds_client_msg(tds->tds_ctx, tds, 2401, 16, *inbytesleft, 0,
+			       "iconv EINVAL: Error converting between character sets. "
+			       "Conversion abandoned at offset indicated by the \"state\" value of this message.");
 		break;
-	case E2BIG:	/* output buffer has no more room */
-		tds_client_msg(tds->tds_ctx, tds, 2400, 16, *inbytesleft, 0, 
-				"iconv E2BIG: Error converting between character sets. "
-				"Output buffer exhausted." );
+	case E2BIG:		/* output buffer has no more room */
+		tds_client_msg(tds->tds_ctx, tds, 2400, 16, *inbytesleft, 0,
+			       "iconv E2BIG: Error converting between character sets. " "Output buffer exhausted.");
 		break;
 	default:
 		break;
 	}
-	
+
 	if (error_cd != invalid) {
 		iconv_close(error_cd);
 	}
-	
+
 	return irreversible;
 }
 
@@ -623,7 +623,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 			    *outbytesleft);
 		field_len -= isize;
 
-		nonreversible_conversions += iconv(cd, (const char **) &ib, &isize, &outbuf, outbytesleft);
+		nonreversible_conversions += iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
 
 		if (isize != 0) {
 			switch (errno) {
@@ -676,6 +676,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 #endif
 }
 
+#if !HAVE_ICONV_ALWAYS
 /**
  * Determine byte/char for an iconv character set.  
  * \retval 0 failed, no such charset.
@@ -703,6 +704,7 @@ bytes_per_char(TDS_ENCODING * charset)
 
 	return 0;
 }
+#endif
 
 /**
  * Move the input sequence pointer to the next valid position.
@@ -711,7 +713,7 @@ bytes_per_char(TDS_ENCODING * charset)
  */
 /* FIXME possible buffer reading overflow ?? */
 static int
-skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size)
+skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size)
 {
 	int charsize = CHARSIZE(charset);
 	char ib[16];
@@ -869,27 +871,6 @@ tds_sybase_charset_name(const char *charset_name)
 	}
 
 	return NULL;
-}
-
-/**
- * Compare noncanonical iconv character set names, by looking up their canonical counterparts.  
- * \returns strcmp(3) of the canonical names.
- * \remarks If either name cannot be looked up, there is no way to return an error.  
- */
-static int
-tds_charset_name_compare(const char *name1, const char *name2)
-{
-	const char *s1, *s2;
-
-	assert(name1 && name2);
-
-	s1 = tds_canonical_charset_name(name1);
-	s2 = tds_canonical_charset_name(name2);
-
-	if (s1 && s2)
-		return strcmp(s1, s2);
-
-	return -1;		/* not equal; also not accurate */
 }
 
 static const char *
