@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.31 2002-09-30 14:41:51 castellano Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.32 2002-09-30 15:31:58 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -554,7 +554,7 @@ static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config)
 }
 
 int
-set_interfaces_file_loc(char *interf)
+tds_set_interfaces_file_loc(char *interf)
 {
 	/* Free it if already set */
 	if (interf_file != NULL) {

@@ -1,3 +1,9 @@
+Mon Sep 30 11:30:29 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tdsutil.h src/apps/tsql.c src/dblib/dblib.c
+	  src/tds/config.c:
+	- Namespace cleanup, rename set_interfaces_file_loc() to
+	  tds_set_interfaces_file_loc().
+
 Mon Sep 30 11:07:51 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/Makefile.am src/dblib/Makefile.am
 	  src/odbc/Makefile.am src/tds/Makefile.am:

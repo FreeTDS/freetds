@@ -40,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.68 2002-09-27 03:09:50 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.69 2002-09-30 15:31:58 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1352,10 +1352,12 @@ RETCODE dbbind(
 	return okay ? SUCCEED : FAIL;
 } /* dbbind()  */
 
-void dbsetifile(char *filename)
+void
+dbsetifile(char *filename)
 {
-	set_interfaces_file_loc(filename);
+	tds_set_interfaces_file_loc(filename);
 }
+
 RETCODE dbnullbind(DBPROCESS *dbproc, int column, DBINT *indicator)
 {
 TDSCOLINFO * colinfo;

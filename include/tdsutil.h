@@ -37,7 +37,7 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.8 2002-09-30 14:41:51 castellano Exp $";
+"$Id: tdsutil.h,v 1.9 2002-09-30 15:31:58 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
 
@@ -47,7 +47,7 @@ unsigned char tds_peek(TDSSOCKET *tds);
 void tds_unget_byte(TDSSOCKET *tds);
 char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 int tds_read_packet (TDSSOCKET *tds);
-int set_interfaces_file_loc(char *interfloc);
+int tds_set_interfaces_file_loc(char *interfloc);
 int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
 int get_size_by_type(int servertype);
 int tds_flush_packet(TDSSOCKET *tds);

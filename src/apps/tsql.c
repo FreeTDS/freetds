@@ -273,7 +273,7 @@ int  opt;
 		tds_set_packet(login, 512);
 		tds_set_passwd(login, password);
 		if (confile) {
-			set_interfaces_file_loc(confile);
+			tds_set_interfaces_file_loc(confile);
 		}
 	/* else we specified hostname/port */
 	} else {
