@@ -22,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <ctype.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -39,11 +40,12 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.24 2003-05-26 14:06:23 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.25 2003-10-25 05:09:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
 int process_parameters(int, char **, struct pd *);
+static void unescape(char arg[]);
 int login_to_database(struct pd *, DBPROCESS **);
 
 int file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
@@ -113,6 +115,42 @@ main(int argc, char **argv)
 	return 0;
 }
 
+
+static void unescape(char arg[])
+{
+	char *p = arg;
+	char escaped = '1'; /* any digit will do for an initial value */
+	while ((p = strchr(p, '\\')) != NULL) {
+	
+		switch (p[1]) {
+		case '0':
+			/* FIXME we use strlen() of field/row terminators, which obviously won't work here */
+			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n");
+			escaped = '\0';
+			break;
+		case 't':
+			escaped = '\t';
+			break;
+		case 'r':
+			escaped = '\r';
+			break;
+		case 'n':
+			escaped = '\n';
+			break;
+		case '\\':
+			escaped = '\\';
+			break;
+		default:
+			break;
+		}
+			
+		/* Overwrite the backslash with the intended character, and shift everything down one */
+		if (!isdigit(escaped)) {
+			*p++ = escaped;
+			memmove(p, p+1, 1 + strlen(p+1));
+		}
+	}
+}
 
 int
 process_parameters(int argc, char **argv, PARAMDATA * pdata)
@@ -240,6 +278,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				if (strlen(arg) > 2) {
 					pdata->fieldterm = (char *) malloc(strlen(arg));
 					strcpy(pdata->fieldterm, &arg[2]);
+					unescape(pdata->fieldterm);
 				} else
 					state = GET_FIELDTERM;
 				break;
@@ -248,6 +287,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				if (strlen(arg) > 2) {
 					pdata->rowterm = (char *) malloc(strlen(arg));
 					strcpy(pdata->rowterm, &arg[2]);
+					unescape(pdata->rowterm);
 				} else
 					state = GET_ROWTERM;
 				break;

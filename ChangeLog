@@ -1,17 +1,23 @@
+Sat Oct 25 00:57:00 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO src/apps/freebcp.c src/dblib/bcp.c
+	- support \\, \t, \r, and \n terminators.  Parse but don't honor \0.
+	* src/tds/iconv.c
+	- make tds_iconv_fread understand zero-length data fields. 
+	
 Fri Oct 24 12:05:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c src/odbc/sql2tds.c:
 	- fixed binding
 
 Thu Oct 23 12:23:37 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
-	* freetds62/TODO: updates
-	* freetds62/acinclude.m4: fix wrong detection on Mac OS X
-	* freetds62/include/tds.h freetds62/include/tds_sysdep_private.h:
-	* freetds62/include/tds_sysdep_public.h.in:
-	* freetds62/src/odbc/odbc.c freetds62/src/pool/user.c:
-	* freetds62/src/server/login.c freetds62/src/tds/convert.c:
-	* freetds62/src/tds/read.c freetds62/win32/tds_sysdep_public.h:
+	* TODO: updates
+	* acinclude.m4: fix wrong detection on Mac OS X
+	* include/tds.h include/tds_sysdep_private.h:
+	* include/tds_sysdep_public.h.in:
+	* src/odbc/odbc.c src/pool/user.c:
+	* src/server/login.c src/tds/convert.c:
+	* src/tds/read.c win32/tds_sysdep_public.h:
 	- remove some warnings compiled under Forte
-	* freetds62/src/tds/iconv.c:
+	* src/tds/iconv.c:
 	- update for no-GNU iconv
 
 Tue Oct 21 22:50:37 PDT 2003	Peter Deacon <peterd@iea-software.com>
