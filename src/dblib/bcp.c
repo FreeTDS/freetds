@@ -53,7 +53,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.43 2002-11-23 17:10:58 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.44 2002-11-23 20:48:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2573,7 +2573,7 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 		if (p && erc != -1) {
 			erc = _dblib_client_msg(dbproc, bcp_errno, EXRESOURCE, p);
 			free (p);
-			return;
+			return erc;
 		}
 		/* try to print silly message if unable to allocate memory */
 		errmsg = "Unable to open error file.";
