@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.68 2003-08-08 15:55:18 freddy77 Exp $
+To Do List	$Id: TODO,v 1.69 2003-08-08 15:58:42 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -82,7 +82,9 @@ For future versions (in priority order within library):
 
   odbc
 . XXX test NUMERIC parameter XXX
-. dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
+. dynamic query (work in progress)
+  - SQLPutData do not work
+  - Sybase and blobs do not work
 . cursor support
 . Star Office complains that these TypeInfo constants are not implemented in SQLGetInfo:
 	47      SQL_USER_NAME
@@ -97,7 +99,7 @@ For future versions (in priority order within library):
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
 . autoinstall for RPM
-. test all binding types
+. test: all binding types (input and output)
 
   pool
 . get connection pooling working with all protocol versions
