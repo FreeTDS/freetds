@@ -1,3 +1,7 @@
+Sun Jan 30 11:09:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: updates
+	* src/tds/net.c: small improve and comments
+
 Sat Jan 29 09:11:11 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: just comment
 

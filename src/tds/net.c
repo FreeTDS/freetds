@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.9 2005-01-24 20:26:21 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.10 2005-01-30 10:09:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -673,6 +673,8 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		return 0;
 	}
 
+	/* TODO check what happen on Cluster env, different ip do not filter with connect */
+
 	/* connect, so we don't accept response from other machines */	
 	if (connect(s, &sin, sizeof(sin)) < 0) {
 		CLOSESOCKET(s);
@@ -712,8 +714,11 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 			continue;
 		if (retval < 0)
 			break;
+
+		/* TODO pass also connection and set instance/servername ?? */
+
 		/* got data, read and parse */
-		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3) {
+		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
 			char *p;
 			long l;
 

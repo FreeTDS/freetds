@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.129 2005-01-24 15:07:18 freddy77 Exp $
+To Do List	$Id: TODO,v 1.130 2005-01-30 10:09:38 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -67,6 +67,7 @@ For future versions (in priority order within library):
 . NTLMv2 domain login support.  Cf. ML 5 Aug 2003 12:20:21 -0700 (PDT) 
   from bradleyb@u.washington.edu re: "Domain Login Support, connecting to MSSQL issue"
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
+  (see http://linux-cifs.samba.org/ for LGPL implementation)
 . support encrypted connections
 . read on partial packet, do not wait entire one
 . detect if realloc/free accepts NULL pointers (in configure.in)

@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.16 2005-01-20 16:18:44 freddy77 Exp $
+$Id: NEWS,v 1.17 2005-01-30 10:09:38 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -6,6 +6,8 @@ $Id: NEWS,v 1.16 2005-01-20 16:18:44 freddy77 Exp $
 - fixed conversion NUMERIC->NUMERIC changing precision/scale
 - fixed compute handling in ODBC
 - more dblib functions
+- add named instance support (mssql2k)
+- fixed cancel and timeout
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure
@@ -32,6 +34,8 @@ libTDS API changes
  - renamed longquery_func to query_timeout_func
  - renamed longquery_param to query_timeout_param
  - queryStarttime to query_start_time
+- add a DSTR instance_name to TDSCONNECTION
+- add tds7_get_instance_port
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information
