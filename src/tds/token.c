@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.261 2004-07-29 10:22:42 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.262 2004-08-01 19:05:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -345,8 +345,10 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 16;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 8;
 			product_version |= tds_get_byte(tds);
-			/* MSSQL 6.5 and 7.0 seem to return strange values for this 
-			 * using TDS 4.2, something like 5F 06 32 FF for 6.50 */
+			/*
+			 * MSSQL 6.5 and 7.0 seem to return strange values for this
+			 * using TDS 4.2, something like 5F 06 32 FF for 6.50
+			 */
 			if (major_ver == 4 && minor_ver == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
 				product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 			tds->product_version = product_version;
@@ -359,9 +361,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 				}
 */
 #endif
-			/* TDS 5.0 reports 5 on success 6 on failure
+			/*
+			 * TDS 5.0 reports 5 on success 6 on failure
 			 * TDS 4.2 reports 1 on success and is not
-			 * present on failure */
+			 * present on failure
+			 */
 			if (ack == 5 || ack == 1)
 				succeed = TDS_SUCCEED;
 			break;
@@ -508,9 +512,11 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 		case TDS7_RESULT_TOKEN:
 			rc = tds7_process_result(tds);
 
-			/* If we're processing the results of a cursor fetch */
-			/* from sql server we don't want to pass back the    */
-			/* TDS_ROWFMT_RESULT to the calling API              */
+			/*
+			 * If we're processing the results of a cursor fetch
+			 * from sql server we don't want to pass back the
+			 * TDS_ROWFMT_RESULT to the calling API
+			 */
 
 			if (tds->internal_sp_called == TDS_SP_CURSORFETCH) {
 				marker = tds_get_byte(tds);
@@ -528,8 +534,10 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 				}
 			} else {
 				*result_type = TDS_ROWFMT_RESULT;
-				/* handle browse information (if presents) */
-				/* TODO copied from below, function or put in results process */
+				/*
+				 * handle browse information (if presents)
+				 * TODO copied from below, function or put in results process 
+				 */
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
@@ -750,16 +758,20 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 int
 tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
-	/* call internal function, with last parameter 1 */
-	/* meaning read & process the end token          */
+	/*
+	 * call internal function, with last parameter 1
+	 * meaning read & process the end token
+	 */
 
 	return _tds_process_row_tokens(tds, rowtype, computeid, 1);
 }
 int
 tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
-	/* call internal function, with last parameter 0 */
-	/* meaning DON'T read & process the end token    */
+	/*
+	 * call internal function, with last parameter 0
+	 * meaning DON'T read & process the end token
+	 */
 
 	return _tds_process_row_tokens(tds, rowtype, computeid, 0);
 }
@@ -985,13 +997,17 @@ tds_process_col_name(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
-	/* this is a little messy...TDS 5.0 gives the number of columns
+	/*
+	 * this is a little messy...TDS 5.0 gives the number of columns
 	 * upfront, while in TDS 4.2, you're expected to figure it out
 	 * by the size of the message. So, I use a link list to get the
 	 * colum names and then allocate the result structure, copy
-	 * and delete the linked list */
-	/* TODO: reallocate columns
-	 * TODO code similar below, function to reuse */
+	 * and delete the linked list
+	 */
+	/*
+	 * TODO reallocate columns
+	 * TODO code similar below, function to reuse
+	 */
 	while (len < hdrsize) {
 		prev = cur;
 		cur = (struct tmp_col_struct *)
@@ -1057,7 +1073,8 @@ tds_process_col_name(TDSSOCKET * tds)
 void
 tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol)
 {
-	/* the column_offset is the offset into the row buffer
+	/*
+	 * the column_offset is the offset into the row buffer
 	 * where this column begins, text types are no longer
 	 * stored in the row buffer because the max size can
 	 * be too large (2gig) to allocate 
@@ -1286,17 +1303,21 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
-	/* compute statement id which this relates */
-	/* to. You can have more than one compute  */
-	/* statement in a SQL statement            */
+	/*
+	 * compute statement id which this relates
+	 * to. You can have more than one compute
+	 * statement in a SQL statement
+	 */
 
 	compute_id = tds_get_smallint(tds);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. compute_id = %d\n", compute_id);
 
-	/* number of compute columns returned - so */
-	/* COMPUTE SUM(x), AVG(x)... would return  */
-	/* num_cols = 2                            */
+	/*
+	 * number of compute columns returned - so
+	 * COMPUTE SUM(x), AVG(x)... would return
+	 * num_cols = 2
+	 */
 
 	num_cols = tds_get_byte(tds);
 
@@ -1318,8 +1339,10 @@ tds_process_compute_result(TDSSOCKET * tds)
 		curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand = tds_get_byte(tds);
 
-		/* if no name has been defined for the compute column, */
-		/* put in "max", "avg" etc.                            */
+		/*
+		 * if no name has been defined for the compute column,
+		 * put in "max", "avg" etc.
+		 */
 
 		if (curcol->column_namelen == 0) {
 			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
@@ -1429,9 +1452,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
 		/* based on true type as sent by server */
-		/* first 2 bytes are windows code (such as 0x409 for english)
+		/*
+		 * first 2 bytes are windows code (such as 0x409 for english)
 		 * other 2 bytes ???
-		 * last bytes is id in syscharsets */
+		 * last bytes is id in syscharsets
+		 */
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
@@ -1444,8 +1469,10 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
 	}
 
-	/* under 7.0 lengths are number of characters not 
-	 * number of bytes...tds_get_string handles this */
+	/*
+	 * under 7.0 lengths are number of characters not
+	 * number of bytes...tds_get_string handles this
+	 */
 	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 	curcol->column_name[colnamelen] = 0;
 	curcol->column_namelen = colnamelen;
@@ -1614,8 +1641,10 @@ tds_process_result(TDSSOCKET * tds)
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
 
-	/* loop through the columns populating COLINFO struct from
-	 * server response */
+	/*
+	 * loop through the columns populating COLINFO struct from
+	 * server response
+	 */
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
@@ -1849,12 +1878,14 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	tdsdump_log(TDS_DBG_INFO1, "processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
-		/* TODO finish 
+		/*
+		 * TODO finish 
 		 * This strange type has following structure 
 		 * 0 len (int32) -- NULL 
 		 * len (int32), type (int8), data -- ints, date, etc
-		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbianry 
-		 * BLOBS (text/image) not supported */
+		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
+		 * BLOBS (text/image) not supported
+		 */
 		if (curcol->column_type == SYBVARIANT) {
 			colsize = tds_get_int(tds);
 			tds_get_n(tds, NULL, colsize);
@@ -1862,7 +1893,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			return TDS_SUCCEED;
 		}
 		
-		/* LONGBINARY
+		/*
+		 * LONGBINARY
 		 * This type just stores a 4-byte length
 		 */
 		if (curcol->column_type == SYBLONGBINARY) {
@@ -2034,8 +2066,9 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	}
 
 #ifdef WORDS_BIGENDIAN
-	/* MS SQL Server 7.0 has broken date types from big endian 
-	 * machines, this swaps the low and high halves of the 
+	/*
+	 * MS SQL Server 7.0 has broken date types from big endian
+	 * machines, this swaps the low and high halves of the
 	 * affected datatypes
 	 *
 	 * Thought - this might be because we don't have the
@@ -2049,8 +2082,10 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	     curcol->column_type == SYBDATETIMN ||
 	     curcol->column_type == SYBMONEY ||
 	     curcol->column_type == SYBMONEY4 || (curcol->column_type == SYBMONEYN && curcol->column_size > 4)))
-		/* above line changed -- don't want this for 4 byte SYBMONEYN 
-		 * values (mlilback, 11/7/01) */
+		/*
+		 * above line changed -- don't want this for 4 byte SYBMONEYN
+		 * values (mlilback, 11/7/01)
+		 */
 	{
 		unsigned char temp_buf[8];
 
@@ -2138,8 +2173,10 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 
-	/* rows affected is in the tds struct because a query may affect rows but
-	 * have no result set. */
+	/*
+	 * rows affected is in the tds struct because a query may affect rows but
+	 * have no result set.
+	 */
 
 	if (done_count_valid) {
 		tds->rows_affected = tds_get_int(tds);
@@ -2199,13 +2236,16 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 		 *  	Else treat as INT_CANCEL. 
 		 */
 #else
-		/* This was bogus afaict.  
-		   Definitely, it's a mistake to set the state to TDS_DEAD for information messages when the handler  
-		   returns INT_CANCEL, at least according to Microsoft's documentation.  
-		  --jkl
+		/*
+		 * This was bogus afaict.  
+		 * Definitely, it's a mistake to set the state to TDS_DEAD for information messages when the handler  
+		 * returns INT_CANCEL, at least according to Microsoft's documentation.  
+		 * --jkl
 		 */  
-		/* message handler returned FAIL/CS_FAIL
-		 * mark socket as dead */
+		/*
+		 * message handler returned FAIL/CS_FAIL
+		 * mark socket as dead
+		 */
 		if (ret && tds) {
 			/* TODO close socket too ?? */
 			tds->state = TDS_DEAD;
@@ -2237,7 +2277,8 @@ tds_process_env_chg(TDSSOCKET * tds)
 	int memrc = 0;
 
 	size = tds_get_smallint(tds);
-	/* this came in a patch, apparently someone saw an env message
+	/*
+	 * this came in a patch, apparently someone saw an env message
 	 * that was different from what we are handling? -- brian
 	 * changed back because it won't handle multibyte chars -- 7.0
 	 */
@@ -2245,8 +2286,10 @@ tds_process_env_chg(TDSSOCKET * tds)
 
 	type = tds_get_byte(tds);
 
-	/* handle collate default change (if you change db or during login) 
-	 * this environment is not a string so need different handles */
+	/*
+	 * handle collate default change (if you change db or during login)
+	 * this environment is not a string so need different handles
+	 */
 	if (type == TDS_ENV_SQLCOLLATION) {
 		/* save new collation */
 		size = tds_get_byte(tds);
@@ -2406,10 +2449,12 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	/* line number in the sql statement where the problem occured */
 	msg.line_number = tds_get_smallint(tds);
 
-	/* If the server doesen't provide an sqlstate, map one via server native errors
+	/*
+	 * If the server doesen't provide an sqlstate, map one via server native errors
 	 * I'm assuming there is not a protocol I'm missing to fetch these from the server?
 	 * I know sybase has an sqlstate column in it's sysmessages table, mssql doesn't and
-	 * TDS_EED_TOKEN is not being called for me. */
+	 * TDS_EED_TOKEN is not being called for me.
+	 */
 	if (msg.sql_state == NULL)
 		msg.sql_state = tds_alloc_lookup_sqlstate(tds, msg.msg_number);
 
@@ -2431,8 +2476,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		tds_unget_byte(tds);
 	}
 
-	/* call the msg_handler that was set by an upper layer 
-	 * (dblib, ctlib or some other one).  Call it with the pointer to 
+	/*
+	 * call the msg_handler that was set by an upper layer
+	 * (dblib, ctlib or some other one).  Call it with the pointer to
 	 * the "parent" structure.
 	 */
 
@@ -2820,8 +2866,10 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 		tds_swap_bytes(buf, 2);
 		tds_swap_bytes(&buf[2], 2);
 		break;
-		/* should we place numeric conversion in another place ??
-		 * this is not used for big/little-endian conversion... */
+		/*
+		 * should we place numeric conversion in another place ??
+		 * this is not used for big/little-endian conversion...
+		 */
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		num = (TDS_NUMERIC *) buf;
@@ -2917,9 +2965,11 @@ tds_process_compute_names(TDSSOCKET * tds)
 	remainder = hdrsize;
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
 
-	/* compute statement id which this relates */
-	/* to. You can have more than one compute  */
-	/* statement in a SQL statement            */
+	/*
+	 * compute statement id which this relates
+	 * to. You can have more than one compute
+	 * statement in a SQL statement  
+	 */
 
 	compute_id = tds_get_smallint(tds);
 	remainder -= 2;
@@ -3005,24 +3055,30 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSCOMPUTEINFO *info;
 
-	/* number of compute columns returned - so */
-	/* COMPUTE SUM(x), AVG(x)... would return  */
-	/* num_cols = 2                            */
+	/*
+	 * number of compute columns returned - so
+	 * COMPUTE SUM(x), AVG(x)... would return
+	 * num_cols = 2
+	 */
 
 	num_cols = tds_get_smallint(tds);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_cols = %d\n", num_cols);
 
-	/* compute statement id which this relates */
-	/* to. You can have more than one compute  */
-	/* statement in a SQL statement            */
+	/*
+	 * compute statement id which this relates
+	 * to. You can have more than one compute
+	 * statement in a SQL statement
+	 */
 
 	compute_id = tds_get_smallint(tds);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. compute_id = %d\n", compute_id);
-	/* number of "by" columns in compute - so  */
-	/* COMPUTE SUM(x) BY a, b, c would return  */
-	/* by_cols = 3                             */
+	/*
+	 * number of "by" columns in compute - so
+	 * COMPUTE SUM(x) BY a, b, c would return
+	 * by_cols = 3
+	 */
 
 	by_cols = tds_get_byte(tds);
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. by_cols = %d\n", by_cols);
@@ -3039,8 +3095,10 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 	info->computeid = compute_id;
 
-	/* the by columns are a list of the column */
-	/* numbers in the select statement         */
+	/*
+	 * the by columns are a list of the column
+	 * numbers in the select statement
+	 */
 
 	cur_by_col = info->bycolumns;
 	for (col = 0; col < by_cols; col++) {

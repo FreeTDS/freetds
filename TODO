@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.113 2004-07-30 14:29:43 freddy77 Exp $
+To Do List	$Id: TODO,v 1.114 2004-08-01 19:05:12 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -41,8 +41,6 @@ Started in 0.63
 - rationalize libtds structure and *_alloc functions 
   (ML 5 December 2002, sb:"names")
   (remove INFO and others)
-  BCPCOLINFO rename ? I think this structure should be removed
-  (in a future version ?)
 - cancel. We added a test, analyzed the problem but no code... 
   We have two options: comment test or start coding.
   * test commented (document in README ??)

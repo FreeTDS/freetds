@@ -1,3 +1,7 @@
+Sun Aug  1 21:05:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO src/tds/query.c src/tds/token.c:
+	- comment style and updates
+
 Fri Jul 30 16:28:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/odbc.c:
 	- support for binding offset retrieving data

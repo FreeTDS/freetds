@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.137 2004-07-29 10:22:41 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.138 2004-08-01 19:05:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -2033,6 +2033,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
+		/* TODO use an ISO context */
 	case SYBUNIQUE:
 		quote = 1;
 	default:
