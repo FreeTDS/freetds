@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.111 2002-11-17 11:13:35 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.112 2002-11-20 16:37:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -51,6 +51,7 @@ static int tds_process_row(TDSSOCKET *tds);
 static int tds_process_param_result(TDSSOCKET *tds);
 static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
+static int tds_process_params_result_token(TDSSOCKET *tds);
 static void tds_process_dyn_result(TDSSOCKET *tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET *tds);
 static int tds_process_auth(TDSSOCKET *tds);
@@ -161,6 +162,7 @@ int done_flags;
          break;
       case TDS5_DYN_TOKEN:
       case TDS5_PARAMFMT_TOKEN:
+      /* FIXME this token can't be handled in such way */
       case TDS5_PARAMS_TOKEN:
 	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
          tds_get_n(tds, NULL, tds_get_smallint(tds));
@@ -435,7 +437,7 @@ int done_flags;
 					*result_type = TDS_ROWFMT_RESULT;
 					return TDS_SUCCEED;
 					break;
-           case TDS_PARAM_TOKEN: 
+			case TDS_PARAM_TOKEN: 
 				tds_unget_byte(tds);
 				tds_process_param_result_tokens(tds);
 				*result_type = TDS_PARAM_RESULT;
@@ -483,7 +485,11 @@ int done_flags;
 				*result_type = TDS_DESCRIBE_RESULT;
 				return TDS_SUCCEED;
 				break;
-			/* TODO handle TDS5_PARAMS_TOKEN, very similar to tds_process_row but write in parameters */
+			case TDS5_PARAMS_TOKEN:
+				tds_process_params_result_token(tds);
+				*result_type = TDS_PARAM_RESULT;
+				return TDS_SUCCEED;
+				break;
 			case TDS_DONE_TOKEN:
 			case TDS_DONEPROC_TOKEN:
 			case TDS_DONEINPROC_TOKEN:
@@ -759,7 +765,8 @@ char ci_flags[4];
  * procedure. This differs from regular row/compute results in that there
  * is no total number of parameters given, they just show up singley.
  */
-static int tds_process_param_result(TDSSOCKET *tds)
+static int 
+tds_process_param_result(TDSSOCKET *tds)
 {
 int hdrsize;
 TDSCOLINFO *curparam;
@@ -787,7 +794,9 @@ int i;
 	}
 	return i;
 }
-static int tds_process_param_result_tokens(TDSSOCKET *tds)
+
+static int 
+tds_process_param_result_tokens(TDSSOCKET *tds)
 {
 int marker;
 
@@ -797,6 +806,29 @@ int marker;
 	tds_unget_byte(tds);
 	return TDS_SUCCEED;
 }
+
+/**
+ * tds_process_params_result_token() processes params on TDS5.
+ */
+static int 
+tds_process_params_result_token(TDSSOCKET *tds)
+{
+int i;
+TDSCOLINFO *curcol;
+TDSPARAMINFO *info;
+
+	info = tds->param_info;
+	if (!info)
+		return TDS_FAIL;
+
+	for (i=0;i<info->num_cols;i++) {
+		curcol = info->columns[i];
+		if (tds_get_data(tds,curcol,info->current_row,i) != TDS_SUCCEED)
+			return TDS_FAIL;
+	}
+	return TDS_SUCCEED;
+}
+
 /**
  * tds_process_compute_result() processes compute result sets.  These functions
  * need work but since they get little use, nobody has complained!
@@ -1801,6 +1833,7 @@ TDSDYNAMIC *dyn;
 	hdrsize = tds_get_smallint(tds);
 	num_cols = tds_get_smallint(tds);
 
+	/* FIXME output params are always written to param_info, never to cur_dyn or res_info */
 	if (tds->cur_dyn) {
 		dyn = tds->cur_dyn;
 		tds_free_results(dyn->res_info);
@@ -1808,6 +1841,7 @@ TDSDYNAMIC *dyn;
 		dyn->res_info = tds_alloc_results(num_cols);
 		info = dyn->res_info;
 	} else {
+		/* FIXME should write on param_info, not res_info */
 		tds_free_results(tds->res_info);
 		tds->res_info = tds_alloc_results(num_cols);
 		info = tds->res_info;
