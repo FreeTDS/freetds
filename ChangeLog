@@ -1,3 +1,11 @@
+Thu Nov 21 21:48:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- cleanup old unused functions
+	- reuse code
+	- added some TODO/FIXME
+	* src/tds/query.c:
+	- use symbolic constant
+
 Thu Nov 21 15:18:57 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: workaround for old Sybase and SQLGetTypeInfo
 

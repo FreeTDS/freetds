@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.112 2002-11-20 16:37:00 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.113 2002-11-21 20:48:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -85,7 +85,6 @@ extern const int tds_numeric_bytes_per_prec[];
  */
 int tds_process_default_tokens(TDSSOCKET *tds, int marker)
 {
-int order_len;
 int tok_size;
 int done_flags;
 
@@ -97,27 +96,23 @@ int done_flags;
 	return TDS_FAIL;
    }
 
-   switch(marker) {
+	switch(marker) {
 	case TDS_AUTH_TOKEN:
 		tds_process_auth(tds);
 		break;
 	case TDS_ENV_CHG_TOKEN:
-      {
-         tds_process_env_chg(tds);
-         break;
-      }
-      case TDS_DONE_TOKEN:
-      case TDS_DONEPROC_TOKEN:
-      case TDS_DONEINPROC_TOKEN:
-      {
+		tds_process_env_chg(tds);
+		break;
+	case TDS_DONE_TOKEN:
+	case TDS_DONEPROC_TOKEN:
+	case TDS_DONEINPROC_TOKEN:
 		tds_process_end(tds, marker, &done_flags);
 		if (!(done_flags & TDS_DONE_MORE_RESULTS)) {
-            tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() setting state to COMPLETED\n");
-            tds->state=TDS_COMPLETED;
-         }
-         break;
-      }
-      case TDS_124_TOKEN:
+			tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() setting state to COMPLETED\n");
+			tds->state=TDS_COMPLETED;
+		}
+		break;
+	case TDS_PROCID_TOKEN:
          tds_get_n(tds,NULL,8);
          break;
       case TDS_RET_STAT_TOKEN:
@@ -129,25 +124,16 @@ int done_flags;
       case TDS_EED_TOKEN:
          tds_process_msg(tds,marker);
          break;
-      case TDS_CAP_TOKEN:
-	 tok_size = tds_get_smallint(tds);
-         tds_get_n(tds,tds->capabilities,tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
-         break;
-      case TDS_LOGIN_ACK_TOKEN:
-         tds_get_n(tds,NULL,tds_get_smallint(tds));
-         break;
-      case TDS_ORDER_BY_TOKEN:
-         order_len = tds_get_smallint(tds);
-         tds_get_n(tds, NULL, order_len);
-         break;
+	case TDS_CAP_TOKEN:
+		/* TODO split two part of capability and use it */
+		tok_size = tds_get_smallint(tds);
+		tds_get_n(tds,tds->capabilities,tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
+		break;
 	/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp */
 	case TDS_PARAM_TOKEN:
 		tds_unget_byte(tds);
 		tds_process_param_result_tokens(tds);
 		break;
-      case TDS_CONTROL_TOKEN: 
-         tds_get_n(tds, NULL, tds_get_smallint(tds));
-         break;
       case TDS7_RESULT_TOKEN:
          tds7_process_result(tds); 
          break;
@@ -160,19 +146,23 @@ int done_flags;
       case TDS_ROW_TOKEN:
          tds_process_row(tds); 
          break;
-      case TDS5_DYN_TOKEN:
-      case TDS5_PARAMFMT_TOKEN:
-      /* FIXME this token can't be handled in such way */
-      case TDS5_PARAMS_TOKEN:
-	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
-         tds_get_n(tds, NULL, tds_get_smallint(tds));
-         break;
-      default:
-	 tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n",marker,(unsigned char)marker); 
-         return TDS_FAIL;
-   }	
-   return TDS_SUCCEED;
-}	
+	/* FIXME TDS5_PARAMS_TOKEN can't be handled in such way */
+	case TDS5_PARAMS_TOKEN:
+	case TDS5_PARAMFMT_TOKEN:
+	case TDS5_DYN_TOKEN:
+	case TDS_LOGIN_ACK_TOKEN:
+	case TDS_ORDER_BY_TOKEN:
+	case TDS_CONTROL_TOKEN: 
+		tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
+		tds_get_n(tds, NULL, tds_get_smallint(tds));
+		break;
+	default:
+		/* TODO perhaps is best to close this connection... */
+		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n",marker,(unsigned char)marker); 
+		return TDS_FAIL;
+	}
+	return TDS_SUCCEED;
+}
 
 static int
 tds_set_spid(TDSSOCKET *tds)
@@ -221,9 +211,6 @@ int len, product_name_len;
 unsigned char major_ver, minor_ver;
 unsigned char ack;
 TDS_UINT product_version;
-#ifdef WORDS_BIGENDIAN
-char *tmpbuf;
-#endif
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_login_tokens()\n");
 	/* get_incoming(tds->s); */
@@ -569,9 +556,10 @@ int i;
 
             case TDS_CMP_ROW_TOKEN:
 
-                *rowtype = TDS_COMP_ROW;
-                compute_id = tds_get_smallint(tds);
-            
+			*rowtype = TDS_COMP_ROW;
+			/* TODO put this code inside tds_process_compute ?? */
+			compute_id = tds_get_smallint(tds);
+
                 for ( i = 0;  ; ++i ) {
                     if (i >= tds->num_comp_info)
                        return TDS_FAIL;
@@ -624,10 +612,10 @@ TDSRESULTINFO *info;
 	hdrsize = tds_get_smallint(tds);
 
 	/* this is a little messy...TDS 5.0 gives the number of columns
-	** upfront, while in TDS 4.2, you're expected to figure it out
-	** by the size of the message. So, I use a link list to get the
-	** colum names and then allocate the result structure, copy
-	** and delete the linked list */
+	 * upfront, while in TDS 4.2, you're expected to figure it out
+	 * by the size of the message. So, I use a link list to get the
+	 * colum names and then allocate the result structure, copy
+	 * and delete the linked list */
 	while (len<hdrsize) {
 		prev = cur;
 		cur = (struct tmp_col_struct *) 
@@ -1670,74 +1658,7 @@ int marker, done_flags=0;
 
 	return 0;
 }
-/**
- * Does the next token in stream signify a result row?
- * @return trueif stream is positioned at a row, false otherwise
- */
-int tds_is_result_row(TDSSOCKET *tds)
-{
-	return (tds_peek(tds) == TDS_ROW_TOKEN);
-} /* tds_is_result_row()  */
 
-
-int tds_is_result_set(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = (marker==TDS_COL_NAME_TOKEN 
-             || marker==TDS_COL_INFO_TOKEN 
-             || marker==TDS_RESULT_TOKEN
-             || marker==TDS7_RESULT_TOKEN);
-   return result;
-} /* tds_is_result_set()  */
-
-
-int tds_is_end_of_results(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = marker==TDS_DONE_TOKEN || marker==TDS_DONEPROC_TOKEN;
-   return result;
-} /* tds_is_end_of_results()  */
-
-
-int tds_is_doneinproc(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = marker==TDS_DONEINPROC_TOKEN;
-   return result;
-} /* tds_is_end_of_results()  */
-
-
-int tds_is_error(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = marker==TDS_ERR_TOKEN;
-   return result;
-} /* tds_is_error()  */
-
-int tds_is_message(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = marker==TDS_MSG_TOKEN;
-   return result;
-} /* tds_is_message()  */
-int tds_is_control(TDSSOCKET *tds)
-{
-   const int  marker = tds_peek(tds);
-   int        result = 0;
-
-   result = (marker==TDS_CONTROL_TOKEN);
-   return result;
-}
 /**
  * set the null bit for the given column in the row buffer
  */
@@ -1858,25 +1779,6 @@ TDSDYNAMIC *dyn;
 }
 
 /**
- * tds_is_fixed_token()
- * some tokens are fixed length while others are variable.  This function is 
- * used by tds_process_cancel() to determine how to read past a token
- */
-int 
-tds_is_fixed_token(int marker)
-{
-	switch (marker) {
-		case TDS_DONE_TOKEN:
-		case TDS_DONEPROC_TOKEN:
-		case TDS_DONEINPROC_TOKEN:
-		case TDS_RET_STAT_TOKEN:
-			return 1;
-		default:
-			return 0;	
-	}
-}
-
-/**
  * tds_get_token_size() returns the size of a fixed length token
  * used by tds_process_cancel() to determine how to read past a token
  */
@@ -1890,12 +1792,13 @@ tds_get_token_size(int marker)
 			return 8;
 		case TDS_RET_STAT_TOKEN:
 			return 4;
-		case TDS_124_TOKEN:
+		case TDS_PROCID_TOKEN:
 			return 8;
 		default:
 			return 0;
 	}
 }
+
 void tds_swap_datatype(int coltype, unsigned char *buf)
 {
 TDS_NUMERIC *num;
@@ -1938,16 +1841,19 @@ TDS_NUMERIC *num;
 
 	}
 }
+
 /*
 ** tds_get_varint_size() returns the size of a variable length integer
 ** returned in a TDS 7.0 result string
 */
-static int tds_get_varint_size(int datatype)
+static int 
+tds_get_varint_size(int datatype)
 {
 	switch(datatype) {
 		case SYBTEXT:
 		case SYBNTEXT:
 		case SYBIMAGE:
+		/* TODO support this strange type */
 		case SYBVARIANT:
 			return 4;
 		case SYBVOID:

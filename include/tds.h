@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.52 2002-11-18 20:09:20 freddy77 Exp $";
+	"$Id: tds.h,v 1.53 2002-11-21 20:48:43 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -138,7 +138,7 @@ typedef struct tdsdaterec
 #define TDS_REG_ROW          -1
 #define TDS_NO_MORE_ROWS     -2
 #define TDS_COMP_ROW         -3
-                                                             
+
 #define TDS_ROW_RESULT        4040
 #define TDS_PARAM_RESULT      4042
 #define TDS_STATUS_RESULT     4043
@@ -173,7 +173,7 @@ enum tds_end {
 #define TDS_LANG_TOKEN       33  /* 0x21    TDS 5.0 only              */
 #define TDS_CLOSE_TOKEN     113  /* 0x71    TDS 5.0 only? ct_close()  */
 #define TDS_RET_STAT_TOKEN  121  /* 0x79                              */
-#define TDS_124_TOKEN       124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
+#define TDS_PROCID_TOKEN    124  /* 0x7C    TDS 4.2 only - TDS_PROCID */
 #define TDS7_RESULT_TOKEN   129  /* 0x81    TDS 7.0 only              */
 #define TDS7_COMPUTE_RESULT_TOKEN   136  /* 0x88    TDS 7.0 only              */
 #define TDS_COL_NAME_TOKEN  160  /* 0xA0    TDS 4.2 only              */
@@ -769,15 +769,7 @@ int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 int tds_process_cancel(TDSSOCKET *tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
-int tds_is_fixed_token(int marker);
 int tds_process_login_tokens(TDSSOCKET *tds);
-int tds_is_result_row(TDSSOCKET *tds);
-int tds_is_result_set(TDSSOCKET *tds);
-int tds_is_end_of_results(TDSSOCKET *tds);
-int tds_is_error(TDSSOCKET *tds);
-int tds_is_message(TDSSOCKET *tds);
-int tds_is_doneinproc(TDSSOCKET *tds);
-int tds_is_control(TDSSOCKET *tds);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);
