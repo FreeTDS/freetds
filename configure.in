@@ -124,10 +124,6 @@ dnl ------------------------------------------------------------
 dnl Checks for library functions.
 dnl ------------------------------------------------------------
 
-AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
-AC_raf_FUNC_WHICH_GETSERVBYNAME_R
-AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
-
 AC_CHECK_FUNCS(vasprintf)
 
 AC_CHECK_FUNCS(atoll)
@@ -190,6 +186,10 @@ if test "$enable_msdblib" = "yes" ; then
 	CFLAGS="$CFLAGS -DMSDBLIB"
 fi
 
+AC_ARG_ENABLE(sybase-compat,
+  [  --enable-sybase-compat  enable increased Open Client binary compatibility])
+AM_CONDITIONAL(SYBASE_COMPAT, test x$enable_sybase_compat = xyes)
+
 AC_MSG_CHECKING(threadsafety)
 dnl Enable or disable thread safetiness
 dnl This option is not enabled for default because some 
@@ -199,6 +199,11 @@ AC_ARG_ENABLE(threadsafe,
 if test "$enable_threadsafe" = "yes" ; then
 	CFLAGS="$CFLAGS -D_REENTRANT -D_THREAD_SAFE"
 fi
+
+AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
+AC_raf_FUNC_WHICH_GETSERVBYNAME_R
+AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
+
 AC_MSG_RESULT(done)
 dnl ------------------------------------------------------------
 dnl Final output
