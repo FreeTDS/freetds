@@ -1,3 +1,10 @@
+Thu Nov  7 10:49:46 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/odbc/odbc.c:
+	- If we aren't freetds_conf_less, retain the network port
+	  information from freetds.conf.  Otherwise it is set to
+	  0 and we can't connect without redundantly specifying
+	  the port in odbc.ini.
+
 Thu Nov  7 14:21:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c: start to implement native_sql function
 

@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.83 2002-11-06 12:40:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.84 2002-11-07 15:52:32 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -801,7 +801,7 @@ int	freetds_conf_less = 1;
 	}
 
 	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString( DSN, "Port", TO_STRING(TDS_DEF_PORT), tmp, FILENAME_MAX, "odbc.ini") > 0) {
+	if (freetds_conf_less && SQLGetPrivateProfileString( DSN, "Port", TO_STRING(TDS_DEF_PORT), tmp, FILENAME_MAX, "odbc.ini") > 0) {
 		connect_info->port = atoi(tmp);
 	}
 
