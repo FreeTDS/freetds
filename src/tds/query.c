@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.87 2003-04-30 18:51:53 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.88 2003-05-08 03:14:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -862,7 +862,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	int id_len;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_execute()\n");
 
 	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
@@ -994,7 +994,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (!dyn)
 		return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n", dyn->id);
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_submit_unprepare() %s\n", dyn->id);
 
 	if (tds->state != TDS_IDLE) {
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,

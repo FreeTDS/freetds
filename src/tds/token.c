@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.188 2003-05-05 00:12:52 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.189 2003-05-08 03:14:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -96,7 +96,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	int tok_size;
 	int done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_default_tokens() connection dead\n");
@@ -116,7 +116,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_DONEINPROC_TOKEN:
 		tds_process_end(tds, marker, &done_flags);
 		if (!(done_flags & TDS_DONE_MORE_RESULTS)) {
-			tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_default_tokens() setting state to COMPLETED\n");
+			tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens() setting state to COMPLETED\n");
 			tds->state = TDS_IDLE;
 		}
 		break;
@@ -279,7 +279,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	unsigned char ack;
 	TDS_UINT product_version;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_login_tokens()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_login_tokens()\n");
 	/* get_incoming(tds->s); */
 	do {
 		marker = tds_get_byte(tds);
@@ -466,7 +466,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 	int done_flags;
 
 	if (tds->state == TDS_IDLE) {
-		tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_result_tokens() state is COMPLETED\n");
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens() state is COMPLETED\n");
 		*result_type = TDS_CMD_DONE;
 		return TDS_NO_MORE_RESULTS;
 	}
@@ -637,7 +637,7 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 
 	if (tds->state == TDS_IDLE) {
 		*rowtype = TDS_NO_MORE_ROWS;
-		tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_row_tokens() state is COMPLETED\n");
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_row_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_ROWS;
 	}
 
@@ -710,7 +710,7 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 	int marker;
 	int done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_trailing_tokens() \n");
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_trailing_tokens() \n");
 
 	while (tds->state != TDS_IDLE) {
 
@@ -1872,7 +1872,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	done_count_valid = (tmp & TDS_DONE_COUNT) != 0;
 
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_end() more_results = %d, was_cancelled = %d \n",
+	tdsdump_log(TDS_DBG_FUNC, "%L tds_process_end() more_results = %d, was_cancelled = %d \n",
 		    more_results, was_cancelled);
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;

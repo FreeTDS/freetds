@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.27 2003-02-19 11:38:07 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.28 2003-05-08 03:14:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -97,7 +97,8 @@ tds_timestamp_str(char *str, int maxlen)
 	tm = localtime(&t);
 #endif
 
-	strftime(str, maxlen - 6, "%Y-%m-%d %H:%M:%S", tm);
+/**	strftime(str, maxlen - 6, "%Y-%m-%d %H:%M:%S", tm); **/
+	strftime(str, maxlen - 6, "%H:%M:%S", tm);
 
 #if HAVE_GETTIMEOFDAY
 	sprintf(usecs, ".%06lu", (long) tv.tv_usec);

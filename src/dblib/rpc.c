@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.19 2003-05-03 18:46:29 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.20 2003-05-08 03:14:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -192,7 +192,7 @@ dbrpcsend(DBPROCESS * dbproc)
 	dbproc->dbresults_state = DBRESINIT;
 
 	/* FIXME do stuff */
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbrpcsend()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbrpcsend()\n");
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;

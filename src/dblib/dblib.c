@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.141 2003-05-05 00:12:52 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.142 2003-05-08 03:14:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -998,7 +998,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 
 	dbproc->avail_flag = FALSE;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbcmd() bufsz = %d\n", dbproc->dbbufsz);
+	tdsdump_log(TDS_DBG_FUNC, "%L dbcmd() bufsz = %d\n", dbproc->dbbufsz);
 	if (dbproc->command_state == DBCMDSENT ) {
 		if (!dbproc->noautofree) {
 			dbfreebuf(dbproc);
@@ -1080,7 +1080,7 @@ dbsqlexec(DBPROCESS * dbproc)
 RETCODE
 dbuse(DBPROCESS * dbproc, char *name)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbuse()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbuse()\n");
 	/* FIXME quote name if needed */
 	if ((dbproc == NULL)
 	    || (dbfcmd(dbproc, "use %s", name) == FAIL)
@@ -1221,7 +1221,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 	int result_type;
 	int done;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbresults_r()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r()\n");
 	if (dbproc == NULL)
 		return FAIL;
 	buffer_clear(&(dbproc->row_buf));
@@ -1238,7 +1238,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 	}
 
 	while (!done && (retcode = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
-		tdsdump_log(TDS_DBG_FUNC, "%L inside dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
+		tdsdump_log(TDS_DBG_FUNC, "%L dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			dbproc->dbresults_state = DBRESINIT;
@@ -1316,7 +1316,7 @@ dbresults(DBPROCESS * dbproc)
 {
 	RETCODE rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbresults()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbresults()\n");
 	if (dbproc == NULL)
 		return FAIL;
 
@@ -1431,7 +1431,7 @@ dbnextrow(DBPROCESS * dbproc)
 	TDS_INT computeid;
 	TDS_INT ret;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbnextrow()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbnextrow()\n");
 
 	if (dbproc == NULL)
 		return FAIL;
@@ -1602,7 +1602,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	int len;
 	DBNUMERIC *num;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() srctype = %d desttype = %d\n", srctype, desttype);
+	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() srctype = %d desttype = %d\n", srctype, desttype);
 
 	if (dbproc) {
 		tds = (TDSSOCKET *) dbproc->tds_socket;
@@ -1630,7 +1630,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	if (srctype == desttype) {
 
-		tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() srctype == desttype\n");
+		tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() srctype == desttype\n");
 		switch (desttype) {
 
 		case SYBBINARY:
@@ -1737,10 +1737,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			dres.n.scale = num->scale;
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
+	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() calling tds_convert\n");
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() called tds_convert returned %d\n", len);
+	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() called tds_convert returned %d\n", len);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -1836,7 +1836,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
-		tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() outputting %d bytes character data destlen = %d \n", 
+		tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() outputting %d bytes character data destlen = %d \n", 
 			    len, destlen);
 
 		if (destlen < -2)
@@ -4879,7 +4879,7 @@ dbmorecmds(DBPROCESS * dbproc)
 {
 	RETCODE rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "%L inside dbmorecmds()\n");
+	tdsdump_log(TDS_DBG_FUNC, "%L dbmorecmds()\n");
 
 	/*
  	 * Call dbresults, stow its return code and mark its state as "already called".  
