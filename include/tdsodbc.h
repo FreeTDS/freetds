@@ -22,12 +22,21 @@
 
 #include <tds.h>
 
+#ifdef UNIXODBC
+#include <sql.h>
+#include <sqlext.h>
+#include <odbcinst.h>
+#else
+#include "isql.h"
+#include "isqlext.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.14 2002-11-29 22:11:04 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.15 2003-01-02 20:04:19 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 struct _henv {
@@ -71,7 +80,7 @@ struct _sql_param_info {
 	int param_sqltype;
 	char *varaddr;
 	int param_bindlen;
-	char *param_lenbind;
+	SQLINTEGER *param_lenbind;
 	struct _sql_param_info *next;
 };
 struct _sql_bind_info {

@@ -47,16 +47,6 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
-
-#ifdef UNIXODBC
-#include <sql.h>
-#include <sqlext.h>
-#include <odbcinst.h>
-#else
-#include "isql.h"
-#include "isqlext.h"
-#endif
-
 #include "tdsodbc.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
@@ -72,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.106 2002-12-28 19:50:58 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.107 2003-01-02 20:04:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -485,7 +475,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 	cur->param_sqltype = fSqlType;
 	if (cur->param_bindtype == SQL_C_CHAR)
 		cur->param_bindlen = cbValueMax;
-	cur->param_lenbind = (char *) pcbValue;
+	cur->param_lenbind = pcbValue;
 	cur->varaddr = (char *) rgbValue;
 
 	return SQL_SUCCESS;

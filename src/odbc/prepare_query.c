@@ -32,13 +32,12 @@
 #include "prepare_query.h"
 #include "convert_sql2string.h"
 #include "odbc_util.h"
-#include <sqlext.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.17 2002-12-28 19:50:58 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.18 2003-01-02 20:04:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -102,7 +101,7 @@ _get_param_textsize(struct _sql_param_info *param)
 {
 	int len = 0;
 
-	switch (*(SQLINTEGER *) param->param_lenbind) {
+	switch (*param->param_lenbind) {
 	case SQL_NTS:
 		len = strlen(param->varaddr) + 1;
 		break;
@@ -116,7 +115,7 @@ _get_param_textsize(struct _sql_param_info *param)
 		len = -1;
 		break;
 	default:
-		len = *(SQLINTEGER *) param->param_lenbind;
+		len = *param->param_lenbind;
 		if (0 > len)
 			len = SQL_LEN_DATA_AT_EXEC(len);
 		else
@@ -171,7 +170,7 @@ _get_len_data_at_exec(struct _sql_param_info *param)
 {
 	int len = 0;
 
-	switch (*(SQLINTEGER *) param->param_lenbind) {
+	switch (*param->param_lenbind) {
 	case SQL_NTS:
 	case SQL_NULL_DATA:
 	case SQL_DEFAULT_PARAM:
@@ -179,7 +178,7 @@ _get_len_data_at_exec(struct _sql_param_info *param)
 		len = -1;
 		break;
 	default:
-		len = *(SQLINTEGER *) param->param_lenbind;
+		len = *param->param_lenbind;
 		if (0 > len)
 			len = SQL_LEN_DATA_AT_EXEC(len);
 		else

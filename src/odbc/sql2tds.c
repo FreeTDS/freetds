@@ -36,13 +36,12 @@
 #include "tdsconvert.h"
 #include "sql2tds.h"
 #include "convert_sql2string.h"
-#include <sqlext.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.2 2002-12-18 14:06:34 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.3 2003-01-02 20:04:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -65,7 +64,7 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 	/* TODO what happen for unicode types ?? */
 	tds_set_column_type(curcol, dest_type);
 	if (curcol->column_varint_size != 0)
-		curcol->column_cur_size = curcol->column_size = *(SQLINTEGER *) param->param_lenbind;
+		curcol->column_cur_size = curcol->column_size = *param->param_lenbind;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
 	/* allocate given space */
@@ -80,7 +79,7 @@ sql2tds(TDSCONTEXT * context, struct _sql_param_info *param, TDSPARAMINFO * info
 		return TDS_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
-	res = tds_convert(context, src_type, param->varaddr, *(SQLINTEGER *) param->param_lenbind, dest_type, &ores);
+	res = tds_convert(context, src_type, param->varaddr, *param->param_lenbind, dest_type, &ores);
 	if (res < 0)
 		return TDS_FAIL;
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);

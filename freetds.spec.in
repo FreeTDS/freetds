@@ -29,7 +29,7 @@ Requires: freetds = %{version}, unixODBC >= 2.0.0
 
 %package doc
 Group: Documentation
-Summary: Documentation for FreeTDS
+Summary: User documentation for FreeTDS
  
 %description devel
 The freetds-devel package contains the files necessary for development with 
