@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.133 2002-12-31 15:12:19 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.134 2003-01-02 01:59:18 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -414,6 +414,7 @@ int done_flags;
 
 	if (tds->state == TDS_COMPLETED) {
 		tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_result_tokens() state is COMPLETED\n");
+		*result_type = TDS_CMD_DONE;
 		return TDS_NO_MORE_RESULTS;
 	}
 
