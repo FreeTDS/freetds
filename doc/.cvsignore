@@ -3,6 +3,8 @@ Makefile.in
 freebcp.1
 html
 tsql.1
+bsqldb.1
+defncopy.1
 libtds
 reference
 userguide.dsl
