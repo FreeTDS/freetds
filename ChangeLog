@@ -1,3 +1,6 @@
+Sun Mar 13 09:16:17 PST 2005	Peter Deacon <peterd@iea-software.com>
+	* src/odbc/error.c: rank did not clear trans status
+
 Sun Mar 13 11:21:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c:
 	- make rank_errors static

@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: error.c,v 1.37 2005-03-13 10:21:01 freddy77 Exp $";
+static const char software_version[] = "$Id: error.c,v 1.38 2005-03-13 17:22:29 ppeterd Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -256,8 +256,8 @@ rank_errors(struct _sql_errors *errs)
 		/* Find the highest of all unranked errors until there are none left */
 		for (settled = 0; settled < errs->num_errors; settled++) {
 			best = -1;
-			istrans = 0;
 			for (current = settled; current < errs->num_errors; current++) {
+				istrans = 0;
 				switch (errs->errs[current].native) {
 				case 1205:
 				case 1211:
