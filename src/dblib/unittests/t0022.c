@@ -12,7 +12,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0022.c,v 1.2 2002-09-13 12:55:50 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0022.c,v 1.3 2002-09-13 14:46:03 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -84,7 +84,11 @@ fprintf(stdout, "About to open\n");
    fprintf(stdout, "creating proc\n");
    dbcmd(dbproc,
          "create proc #t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
-   dbsqlexec(dbproc);
+   if (dbsqlexec(dbproc) == FAIL) {
+      add_bread_crumb();
+      fprintf(stdout, "Failed to create proc #t0022.\n");
+      exit(1);
+   }
    while (dbresults(dbproc)!=NO_MORE_RESULTS)
    {
       /* nop */
@@ -100,7 +104,7 @@ fprintf(stdout, "About to open\n");
    if (dbresults(dbproc)==FAIL) 
    {
       add_bread_crumb();
-      fprintf(stdout, "Was expecting a result set.");
+      fprintf(stdout, "Was expecting a result set.\n");
       exit(1);
    }
    add_bread_crumb();
