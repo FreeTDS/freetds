@@ -1,3 +1,6 @@
+Tue Feb  1 08:37:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: Bill Thompson patch for ct_get_data
+
 Fri Jan 21 10:10:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: backport column quoting
 

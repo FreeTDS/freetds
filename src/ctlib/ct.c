@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.129 2004-11-02 15:18:21 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.129.2.1 2005-02-01 07:38:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2090,7 +2090,10 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		if (is_blob_type(curcol->column_type))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
-		srclen = curcol->column_cur_size;
+		if (tds_get_null(resinfo->current_row, (item - 1)))
+			srclen = 0;
+		else
+			srclen = curcol->column_cur_size;
 
 		/* now populate the io_desc structure for this data item */
 
