@@ -104,6 +104,10 @@ SOURCE=..\..\src\odbc\convert_tds2sql.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\odbc\descriptor.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\odbc\error.c
 # End Source File
 # Begin Source File
@@ -121,6 +125,14 @@ SOURCE=..\..\src\odbc\native.c
 # Begin Source File
 
 SOURCE=..\..\src\odbc\odbc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\odbc\odbc_checks.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\odbc\odbc_checks.h
 # End Source File
 # Begin Source File
 

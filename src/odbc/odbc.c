@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.243 2003-09-03 19:04:14 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.244 2003-09-11 14:50:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1027,12 +1027,16 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	stmt->htype = SQL_HANDLE_STMT;
 	stmt->hdbc = dbc;
-	asprintf(&pstr, "C%lx", (unsigned long) stmt);
-	if (!tds_dstr_set(&stmt->cursor_name, pstr)) {
+	pstr = NULL;
+	if (asprintf(&pstr, "C%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
 		free(stmt);
+		if (pstr != NULL)
+			free(pstr);
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+	/* do not free pstr tds_dstr_set do it if necessary */
+
 #ifdef TDS_NO_DM
 	stmt->cursor_state = TDS_CURSOR_CLOSED;
 #endif
@@ -1043,6 +1047,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
 	stmt->apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
 	if (!stmt->ird || !stmt->ard || !stmt->ipd || !stmt->apd) {
+		tds_dstr_free(&stmt->cursor_name);
 		if (stmt->ird)
 			desc_free(stmt->ird);
 		if (stmt->ard)

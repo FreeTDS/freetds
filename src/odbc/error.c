@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.27 2003-08-27 13:07:52 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.28 2003-09-11 14:50:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -283,8 +283,9 @@ odbc_errs_reset(struct _sql_errors *errs)
 		}
 		free(errs->errs);
 		errs->errs = NULL;
+		errs->num_errors = 0;
 	}
-	errs->num_errors = 0;
+	assert(errs->num_errors == 0);
 }
 
 /** Remove first element */
@@ -325,7 +326,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, c
 		return;
 	errs->errs = p;
 
-	memset(p, 0, sizeof(*p));
+	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = 0;
 	strncpy(errs->errs[n].state3, sqlstate, 5);
 	errs->errs[n].state3[5] = '\0';
@@ -353,7 +354,7 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 		return;
 	errs->errs = p;
 
-	memset(p, 0, sizeof(*p));
+	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = native;
 	if (sqlstate) {
 		strncpy(errs->errs[n].state2, sqlstate, 5);
