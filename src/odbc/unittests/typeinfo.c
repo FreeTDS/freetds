@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.1 2004-08-02 08:50:37 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.2 2004-08-06 17:20:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -42,12 +42,14 @@ FlushStatement(void)
 	if (retcode != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLFetch failed");
 
-	if (SQLMoreResults(Statement) != SQL_NO_DATA)
+	/* Sybase store procedure seems to return extra empty results */
+	while ((retcode = SQLMoreResults(Statement)) == SQL_SUCCESS);
+	if (retcode != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults failed");
 }
 
 static void
-CheckType(SQLSMALLINT type, SQLSMALLINT expected)
+CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type)
 {
 	SQLSMALLINT out_type;
 	SQLINTEGER ind;
@@ -59,17 +61,17 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected)
 	switch (SQLFetch(Statement)) {
 	case SQL_SUCCESS:
 		if (expected == SQL_UNKNOWN_TYPE) {
-			fprintf(stderr, "Data not expected (type %d)\n", type);
+			fprintf(stderr, "Data not expected (type %d - %s)\n", type, string_type);
 			exit(1);
 		}
 		if (expected != out_type) {
-			fprintf(stderr, "Got type %d expected %d\n", out_type, SQL_DATE);
+			fprintf(stderr, "Got type %d expected %d. Input type %d - %s\n", out_type, expected, type, string_type);
 			exit(1);
 		}
 		break;
 	case SQL_NO_DATA:
 		if (expected != SQL_UNKNOWN_TYPE) {
-			fprintf(stderr, "Data expected\n");
+			fprintf(stderr, "Data expected. Inpute type %d - %s\n", type, string_type);
 			exit(1);
 		}
 		break;
@@ -119,13 +121,16 @@ DoTest(int version3)
 
 	FlushStatement();
 
+	/* TODO test if SQL_ALL_TYPES returns right numeric type for timestamp */
+
 	/* numeric type for data */
-	CheckType(SQL_DATE, SQL_UNKNOWN_TYPE);
-	CheckType(SQL_TIME, SQL_UNKNOWN_TYPE);
-	CheckType(SQL_TYPE_DATE, SQL_UNKNOWN_TYPE);
-	CheckType(SQL_TYPE_TIME, SQL_UNKNOWN_TYPE);
-	CheckType(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
-	CheckType(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
+#define CHECK_TYPE(in,out) CheckType(in, out, #in)
+	CHECK_TYPE(SQL_DATE, SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TIME, SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TYPE_DATE, SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TYPE_TIME, SQL_UNKNOWN_TYPE);
+	CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
+	CHECK_TYPE(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
 
 	/* TODO implement this part of test */
 	/* varchar/nvarchar before sysname */
