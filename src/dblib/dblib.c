@@ -36,7 +36,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.65 2002-09-23 02:13:53 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.66 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1126,10 +1126,34 @@ DBNUMERIC   *num;
 
 	len = tds_convert(g_dblib_ctx->tds_ctx,
 		srctype, (TDS_CHAR *)src, srclen, 
-		desttype, destlen, &dres);
-				   
-	if( len == TDS_FAIL )
-		return 0;
+		desttype, &dres);
+
+	switch (len) {
+	case TDS_CONVERT_NOAVAIL:
+		_dblib_client_msg(NULL, SYBERDCN, EXCONVERSION, "Requested data-conversion does not exist.");
+		return -1;
+		break;
+	case TDS_CONVERT_SYNTAX:
+		_dblib_client_msg(NULL, SYBECSYN, EXCONVERSION, "Attempt to convert data stopped by syntax error in source field.");
+		return -1;
+		break;
+	case TDS_CONVERT_NOMEM:
+		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		return -1;
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data conversion resulted in overflow.");
+		return -1;
+		break;
+	case TDS_CONVERT_FAIL:
+		return -1;
+		break;
+	default:
+		if (len < 0) {
+			return -1;
+		}
+		break;
+	}
 
     switch (desttype) {
         case SYBBINARY:

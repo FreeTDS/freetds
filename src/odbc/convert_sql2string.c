@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.8 2002-09-15 16:08:24 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.9 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -206,9 +206,9 @@ convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srcl
 
 	res = tds_convert(context, 
 		_odbc_get_server_ctype(srctype), src, srclen, 
-		SYBVARCHAR, destlen, &ores);
+		SYBVARCHAR, &ores);
 
-	if (TDS_FAIL==res) {
+	if (res < 0) {
 		fprintf(stderr,"convert_sql2string(): Attempting to convert unknown "
 			       "source type %d (size %d) into string\n",
 			       srctype,srclen);

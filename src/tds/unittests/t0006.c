@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0006.c,v 1.4 2002-09-16 20:28:02 castellano Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.5 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int run_query(TDSSOCKET *tds, char *query);
@@ -107,7 +107,7 @@ int main()
             if (verbose) {
                srctype = curcol->column_type;
                srclen = curcol->column_size;
-               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, 64, &cr);
+               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, &cr);
                printf("col %i is %s\n", i, cr.c);
             }
             if (i==0) {
@@ -172,7 +172,7 @@ int main()
             if (verbose) {
                srctype = curcol->column_type;
                srclen = curcol->column_size;
-               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, 64, &cr);
+               tds_convert(&ctx, srctype, src, srclen, SYBCHAR, &cr);
                printf("col %i is %s\n", i, cr.c);
             }
             if (i==0) {

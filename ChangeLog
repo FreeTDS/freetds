@@ -1,3 +1,17 @@
+Tue Sep 24 21:05:11 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h include/tdsconvert.h src/apps/tsql.c
+	  src/ctlib/cs.c src/ctlib/unittests/t0008.c src/dblib/dblib.c
+	  src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c
+	  src/tds/convert.c src/tds/unittests/t0006.c
+	  src/tds/unittests/t0007.c src/tds/unittests/t0008.c:
+	- Remove unused "destlen" from tds_convert() and friends.
+	- Change tds_convert() so it never calls tds_client_msg().
+	  Instead, error conditions are passed up to the caller as
+	  negative return codes.
+	- Call _dblib_client_msg() based on return codes from tds_convert().
+	- Enable test in src/ctlib/unittests/t0008.c that now behaves
+	  properly after the above changes.
+
 Tue Sep 24 15:38:39 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/token.c:
 	- garbage-collect a comment that no longer makes sense in the current

@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.11 2002-09-22 00:53:40 vorlon Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.12 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -114,7 +114,7 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
 
         if ( nDestSybType != TDS_FAIL )
         {
-            nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, destlen, &ores);
+            nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
         }
         
 	/* FIXME if tds_convert fail we not return failure but continue... */

@@ -105,8 +105,7 @@ TDS_INT srclen;
 					src,
  					srclen,
 					SYBVARCHAR,
-					255,
-					&dres) == TDS_FAIL)
+					&dres) < 0)
 			    continue;
 				fprintf(stdout,"%s\t",dres.c);
 				free(dres.c);

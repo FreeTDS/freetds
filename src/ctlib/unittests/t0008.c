@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.2 2002-09-24 17:04:34 castellano Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.3 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -55,11 +55,7 @@ CS_INT result_type;
 	}
 	if (clientmsg_cb_invoked != 0) {
 		fprintf(stderr, "clientmsg_cb was invoked!\n");
-#ifdef notyet
 		return 1;
-#else
-		fprintf(stderr, "FAILURE IGNORED\n");
-#endif
 	}
 	if (ct_exit(ctx, CS_UNUSED) != CS_SUCCEED) {
 		fprintf(stderr, "ct_exit() failed\n");

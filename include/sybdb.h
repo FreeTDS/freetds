@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.21 2002-09-20 14:43:54 castellano Exp $";
+"$Id: sybdb.h,v 1.22 2002-09-25 01:12:01 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -564,10 +564,13 @@ DBBOOL dbtabbrowse(DBPROCESS *dbprocess, int tabnum);
 int dbtabcount(DBPROCESS *dbprocess);
 char *dbtabname(DBPROCESS *dbprocess, int tabnum);
 char *dbtabsoruce(DBPROCESS *dbprocess, int colnum, int *tabnum);
+#define SYBEMEM		20010	/* Unable to allocate sufficient memory. */
 #define SYBESMSG        20018   
 #define SYBERPND        20019  
 #define SYBETIME        20003   /* SQL Server connection timed out. */
 #define SYBECOFL	20049	/* Data-conversion resulted in overflow. */
+#define SYBECSYN	20050	/* Attempt to convert data stopped by syntax error in source field. */
+#define SYBERDCN	20053	/* Requested data-conversion does not exist. */
 #define SYBECLOS        20056   /* Error in closing network connection. */
 
 #define SYBETTS          20066

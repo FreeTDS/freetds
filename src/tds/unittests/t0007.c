@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <string.h>
 
-static char  software_version[]   = "$Id: t0007.c,v 1.4 2002-09-01 07:45:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.5 2002-09-25 01:12:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 static TDSCONTEXT ctx;
@@ -33,8 +33,8 @@ void test0(const char* test, int len, int dsttype, const char* result)
 	char buf[256];
 	CONV_RESULT cr;
 
-	res = tds_convert(&ctx,SYBVARCHAR,test,len,dsttype,0,&cr);
-	if (res == TDS_FAIL)
+	res = tds_convert(&ctx,SYBVARCHAR,test,len,dsttype,&cr);
+	if (res < 0)
 		strcpy(buf,"error");
 	else
 	{
