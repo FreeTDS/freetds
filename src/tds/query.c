@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.97 2003-07-21 09:55:24 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.98 2003-08-11 11:59:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -122,8 +122,14 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		tds_put_smallint(tds, 13);
-		tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, 10);
+		} else {
+			tds_put_smallint(tds, 13);
+			/* sp_executesql */
+			tds_put_n(tds, "s\0p\0_\0e\0x\0e\0c\0u\0t\0e\0s\0q\0l", 26);
+		}
 		tds_put_smallint(tds, 0);
 
 		/* string with sql statement */
@@ -455,6 +461,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 		/* FIXME ICONV just to add some incompatibility with charset... see above */
 		i = strlen(param_definition);
 		tds_put_int(tds, i * 2);
+		if (IS_TDS80(tds))
+			tds_put_n(tds, tds->collation, 5);
 		tds_put_int(tds, i * 2);
 		tds_put_string(tds, param_definition, i);
 	}
@@ -555,8 +563,14 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		tds_put_smallint(tds, 10);
-		tds_put_n(tds, "s\0p\0_\0p\0r\0e\0p\0a\0r\0e", 20);
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, 11);
+		} else {
+			tds_put_smallint(tds, 10);
+			/* sp_prepare */
+			tds_put_n(tds, "s\0p\0_\0p\0r\0e\0p\0a\0r\0e", 20);
+		}
 		tds_put_smallint(tds, 0);
 
 		/* return param handle (int) */
@@ -1037,7 +1051,6 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		/* procedure name */
 		if (IS_TDS80(tds)) {
 			/* save some byte for mssql2k */
-			/* TODO use similar method even above */
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, 15);
 		} else {

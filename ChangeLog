@@ -1,3 +1,8 @@
+Mon Aug 11 13:58:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c:
+	- fix crash of mssql2k in some condition
+	- some optimization for mssql2k
+
 Mon Aug 11 11:50:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds.html: small update
 
