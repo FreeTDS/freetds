@@ -1,3 +1,6 @@
+Mon Nov 29  9:41:30 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt: merge
+
 Sun Nov 28 21:41:18 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: updated
 	* configure.in: fix for rc versions and win rc version
