@@ -1,3 +1,6 @@
+Mon Feb 24 22:17:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.spec.in: increment sub version to not clash in future
+
 Sun Feb 23 15:40:51 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml updated for 0.61rc4.
 	
