@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.152 2003-11-03 16:46:01 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.153 2003-11-04 19:01:38 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -430,6 +430,15 @@ typedef enum
 #define SYBAOPAVGU 0x50
 #define SYBAOPMIN  0x51
 #define SYBAOPMAX  0x52
+
+/* mssql2k compute operator */
+#define SYBAOPCHECKSUM_AGG 0x72
+#define SYBAOPCNT_BIG 0x09
+#define SYBAOPSTDEV 0x30
+#define SYBAOPSTDEVP 0x31
+#define SYBAOPVAR 0x32
+#define SYBAOPVARP 0x33
+
 
 /** 
  * options that can be sent with a TDS_OPTIONCMD token

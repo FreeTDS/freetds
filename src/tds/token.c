@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.221 2003-11-01 23:02:21 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.222 2003-11-04 19:01:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -73,6 +73,7 @@ static int determine_adjusted_size(const TDSICONVINFO * iconv_info, int size);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
 static int _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid, TDS_INT read_end_token);
+static const char *tds_pr_op(int op);
 
 
 /**
@@ -1295,7 +1296,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		/* put in "max", "avg" etc.                            */
 
 		if (curcol->column_namelen == 0) {
-			strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
+			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
 			curcol->column_namelen = strlen(curcol->column_name);
 		}
 
@@ -2940,7 +2941,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 		tds7_get_data_info(tds, curcol);
 
 		if (!curcol->column_namelen) {
-			strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
+			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
 			curcol->column_namelen = strlen(curcol->column_name);
 		}
 
@@ -3091,10 +3092,35 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 
 }
 
+static const char *
+tds_pr_op(int op)
+{
+#define TYPE(con, s) case con: return s; break
+	switch (op) {
+		TYPE(SYBAOPAVG, "avg");
+		TYPE(SYBAOPAVGU, "avg");
+		TYPE(SYBAOPCNT, "count");
+		TYPE(SYBAOPCNTU, "count");
+		TYPE(SYBAOPMAX, "max");
+		TYPE(SYBAOPMIN, "min");
+		TYPE(SYBAOPSUM, "sum");
+		TYPE(SYBAOPSUMU, "sum");
+		TYPE(SYBAOPCHECKSUM_AGG, "checksum_agg");
+		TYPE(SYBAOPCNT_BIG, "count");
+		TYPE(SYBAOPSTDEV, "stdevp");
+		TYPE(SYBAOPSTDEVP, "stdevp");
+		TYPE(SYBAOPVAR, "var");
+		TYPE(SYBAOPVARP, "varp");
+	default:
+		break;
+	}
+	return "";
+#undef TYPE
+}
+
 const char *
 tds_prtype(int token)
 {
-
 #define TYPE(con, s) case con: return s; break
 	switch (token) {
 		TYPE(SYBAOPAVG, "avg");
@@ -3102,6 +3128,7 @@ tds_prtype(int token)
 		TYPE(SYBAOPMAX, "max");
 		TYPE(SYBAOPMIN, "min");
 		TYPE(SYBAOPSUM, "sum");
+
 		TYPE(SYBBINARY, "binary");
 		TYPE(SYBBIT, "bit");
 		TYPE(SYBBITN, "bit-null");
