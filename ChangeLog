@@ -1,3 +1,6 @@
+Tue Feb 24 20:50:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* doc/userguide.sgml: merged change from HEAD
+
 Mon Feb 24 22:17:28 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in: increment sub version to not clash in future
 
