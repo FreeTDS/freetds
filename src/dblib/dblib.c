@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.109 2002-12-10 22:10:40 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.110 2002-12-20 21:51:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -483,7 +483,7 @@ dbinit(void)
 
 	if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M:%S:%z%p");
+		g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M:%S:%z%p");
 	}
 
 	return SUCCEED;
@@ -1966,7 +1966,7 @@ int c;
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 				memset(&when, 0, sizeof(when));
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-				len = tds_strftime(buffer, buf_len, "%b %e %Y %l:%M%p", &when);
+				len = tds_strftime(buffer, buf_len, "%b %e %Y %I:%M%p", &when);
 			} else {
 				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), -1, desttype, (BYTE *) buffer, buf_len);
 			}
@@ -2060,7 +2060,7 @@ TDS_SMALLINT *col_printlens = NULL;
 					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 						memset(&when, 0, sizeof(when));
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-						len = tds_strftime(dest, sizeof(dest), "%b %e %Y %l:%M%p", &when);
+						len = tds_strftime(dest, sizeof(dest), "%b %e %Y %I:%M%p", &when);
 					} else {
 						len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), -1, desttype,
 								(BYTE *) dest, sizeof(dest));
@@ -2188,7 +2188,7 @@ TDS_SMALLINT *col_printlens = NULL;
 				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 					memset(&when, 0, sizeof(when));
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
-					len = tds_strftime(dest, sizeof(dest), "%b %e %Y %l:%M%p", &when);
+					len = tds_strftime(dest, sizeof(dest), "%b %e %Y %I:%M%p", &when);
 				} else {
 					len = dbconvert(dbproc, srctype, dbadata(dbproc, computeid, col), -1, desttype,
 							(BYTE *) dest, sizeof(dest));

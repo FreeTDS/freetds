@@ -58,7 +58,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.44 2002-12-14 14:39:52 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.45 2002-12-20 21:51:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -407,7 +407,7 @@ main(int argc, char **argv)
 	context = tds_alloc_context();
 	if (context->locale && !context->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		context->locale->date_fmt = strdup("%b %e %Y %l:%M%p");
+		context->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
 	}
 
 	context->msg_handler = tsql_handle_message;

@@ -1,3 +1,7 @@
+Fri Dec 20 22:51:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c src/ctlib/cs.c src/dblib/dblib.c:
+	- use %I instead of %l for strftime (portability problem)
+
 Fri Dec 20 22:43:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: 
 	- do not use uninitialized variables

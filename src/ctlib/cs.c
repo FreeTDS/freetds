@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.31 2002-11-20 13:30:15 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.32 2002-12-20 21:51:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *
@@ -163,7 +163,7 @@ TDSCONTEXT *tds_ctx;
 	(*ctx)->tds_ctx = tds_ctx;
 	if (tds_ctx->locale && !tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		tds_ctx->locale->date_fmt = strdup("%b %e %Y %l:%M%p");
+		tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
 	}
 	return CS_SUCCEED;
 }
