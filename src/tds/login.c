@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.123 2004-04-07 07:47:20 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.124 2004-06-01 05:49:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -174,15 +174,6 @@ void
 tds_set_language(TDSLOGIN * tds_login, const char *language)
 {
 	tds_dstr_copy(&tds_login->language, language);
-}
-
-/* Jeffs' hack to support timeouts */
-void
-tds_set_timeouts(TDSLOGIN * tds_login, int connect_timeout, int query_timeout, int longquery_timeout)
-{
-	tds_login->connect_timeout = connect_timeout;
-	tds_login->query_timeout = query_timeout;
-	tds_login->longquery_timeout = longquery_timeout;
 }
 
 void

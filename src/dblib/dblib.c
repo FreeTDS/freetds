@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.176 2004-05-30 21:12:04 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.177 2004-06-01 05:48:56 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -127,6 +127,7 @@ DBVERSION_80;
 #endif
 
 static int g_dblib_login_timeout = -1;	/* not used unless positive */
+static int g_dblib_query_timeout = -1;	/* not used unless positive */
 
 static int
 dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
@@ -975,8 +976,14 @@ tdsdbopen(LOGINREC * login, char *server)
 	if (!connection)
 		return NULL;
 
+	/* override connection timeout if dbsetlogintime() was called */
 	if (g_dblib_login_timeout >= 0) {
 		connection->connect_timeout = g_dblib_login_timeout;
+	}
+
+	/* override query timeout if dbsettime() was called */
+	if (g_dblib_query_timeout >= 0) {
+		connection->timeout = g_dblib_query_timeout;
 	}
 
 	dbproc->dbchkintr = NULL;
@@ -3300,6 +3307,7 @@ RETCODE
 dbsettime(int seconds)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsettime()\n");
+	g_dblib_query_timeout = seconds;
 	return SUCCEED;
 }
 
