@@ -62,7 +62,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.76 2003-10-27 08:57:56 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.77 2003-10-29 15:30:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -919,7 +919,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 			if (file_bytes_left != 0) {
 				tdsdump_log(TDS_DBG_FUNC, "Error in %s, col %d: %d of %d bytes unread\n", 
-							__func__, (i+1), file_bytes_left, collen);
+							__FILE__, (i+1), file_bytes_left, collen);
 				*row_error = TRUE;
 				free(coldata);
 				return FAIL;

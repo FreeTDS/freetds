@@ -1,3 +1,10 @@
+Wed Oct 29 10:18:29 EST 2003	 JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c 
+	- s/__func__/__FILE__/ for now
+	- fix a memory violation in freebcp 
+	* src/odbc/odbc.c 
+	- --enable-developing not required for prepared statements
+ 
 Tue Oct 28 19:28:14 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c src/tds/token.c: be consistent
 
