@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char  software_version[]   = "$Id: t0006.c,v 1.3 2002-08-30 20:11:23 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0006.c,v 1.4 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 CS_CONTEXT *ctx; 
@@ -129,7 +129,7 @@ int main()
 	   CS_INT_TYPE,sizeof(test2)*2,
 	   CS_SUCCEED,&test2,sizeof(test2));
 	 /* FIXME: correct ?? */
-   DO_TEST(CS_INT test = 12345; CS_INT test2 = 12345,
+   DO_TEST(CS_INT test = 12345,
 	   CS_INT_TYPE,&test,sizeof(test),
 	   CS_INT_TYPE,sizeof(CS_SMALLINT),
 	   CS_FAIL,NULL,0);

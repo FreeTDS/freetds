@@ -15,7 +15,7 @@
 
 #include "common.h"
 
-static failure = 0;
+static int failure = 0;
 
 static const char *cur_result = "";
 static const char *cur_test = "";

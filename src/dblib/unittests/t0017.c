@@ -10,8 +10,9 @@
 #include <sqldb.h>
 
 #include "common.h"
+#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0017.c,v 1.4 2002-08-31 07:08:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0017.c,v 1.5 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -19,17 +20,13 @@ int failed = 0;
 
 int main(int argc, char *argv[])
 {
-   const int   rows_to_add = 3;
    LOGINREC   *login;
    DBPROCESS   *dbproc;
    int         i;
-   char        teststr[1024];
-   DBINT       testint;
-   char				sqlCmd[256];
-   char				datestring[256];
-   DBDATEREC	dateinfo;
    RETCODE      ret;
+#if 0
    char         *out_file = "t0017.out";
+#endif
    char         *in_file = "t0017.in";
    char         *err_file = "t0017.err";
    DBINT        rows_copied;

@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.4 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.5 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -16,7 +16,7 @@ int main()
    CS_RETCODE ret;
    CS_RETCODE results_ret;
    CS_INT result_type;
-   CS_INT col, num_cols;
+   CS_INT num_cols;
 
    CS_DATAFMT datafmt;
    CS_INT datalength;

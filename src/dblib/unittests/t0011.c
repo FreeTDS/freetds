@@ -17,7 +17,7 @@
  */
 
 
-static char  software_version[]   = "$Id: t0011.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0011.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -28,13 +28,12 @@ const char long_column[] = "This is a really long column to ensure that the next
 const char short_column[] = "Short column";
 
 void insert_row(DBPROCESS *dbproc, char *cmd);
+int select_rows(DBPROCESS *dbproc, int bind_type);
 
 int main()
 {
-   const int   rows_to_add = 50;
    LOGINREC   *login;
    DBPROCESS   *dbproc;
-   int         i;
    char   cmd[2048];
 
    read_login_info();
@@ -143,7 +142,7 @@ int select_rows(DBPROCESS *dbproc, int bind_type)
       if (testint != i)
       {
          fprintf(stdout, "Failed.  Expected i to be |%d|, was |%d|\n",
-                 testint);
+                 testint, i);
          return 1;
       }
       printf("c:  %s$\n",teststr);

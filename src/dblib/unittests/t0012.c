@@ -10,11 +10,9 @@
 #include <sqldb.h>
 
 #include "common.h"
+#include "tdsutil.h"
 
-
-
-
-static char  software_version[]   = "$Id: t0012.c,v 1.5 2002-09-01 06:15:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0012.c,v 1.6 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -22,13 +20,9 @@ int failed = 0;
 
 int main(int argc, char *argv[])
 {
-   const int   rows_to_add = 3;
    LOGINREC   *login;
    DBPROCESS   *dbproc;
-   int         i;
    char        cmd[512];
-   char        teststr[1024];
-   DBINT       testint;
    char				sqlCmd[256];
    char				datestring[256];
    DBDATEREC	dateinfo;

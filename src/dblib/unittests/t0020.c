@@ -13,8 +13,9 @@
 #include <sqldb.h>
 
 #include "common.h"
+#include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0020.c,v 1.1 2001-10-12 23:29:13 brianb Exp $";
+static char  software_version[]   = "$Id: t0020.c,v 1.2 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -27,7 +28,6 @@ int main()
 {
 LOGINREC   *login;
 DBPROCESS   *dbproc;
-int         i;
 RETCODE ret;
 
 #ifdef __FreeBSD__

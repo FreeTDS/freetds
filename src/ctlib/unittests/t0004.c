@@ -2,11 +2,12 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.3 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.4 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* protos */
 int do_fetch(CS_COMMAND *cmd);
+CS_RETCODE do_results(CS_COMMAND *cmd, CS_INT *results);
 
 /* defines */
 #define NUMROWS 5
@@ -21,17 +22,11 @@ int main()
 
    CS_RETCODE ret;
    CS_RETCODE results_ret;
-   CS_INT result_type;
-   CS_INT col, num_cols;
 
-   CS_DATAFMT datafmt;
-   CS_INT datalength;
-   CS_SMALLINT ind;
    char query[1024];
    CS_INT insert_results[] = {CS_CMD_SUCCEED, CS_CMD_DONE};
    CS_INT update_results[] = {CS_CMD_SUCCEED, CS_CMD_DONE};
    CS_INT select_results[] = {CS_ROW_RESULT, CS_CMD_DONE};
-   int result_num = 0;
    
    fprintf(stdout, "%s: Check ordering of returns from cs_results()\n", __FILE__);
    if (verbose)         { fprintf(stdout, "Trying login\n"); }

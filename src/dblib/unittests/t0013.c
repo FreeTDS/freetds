@@ -10,11 +10,9 @@
 #include <sqldb.h>
 
 #include "common.h"
+#include "tdsutil.h"
 
-
-
-
-static char  software_version[]   = "$Id: t0013.c,v 1.4 2002-08-31 06:32:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0013.c,v 1.5 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -25,11 +23,9 @@ char *testargs[] = { "", "data.bin", "t0013.out" };
 
 int main(int argc, char *argv[])
 {
-   const int   rows_to_add = 3;
    LOGINREC   *login;
    DBPROCESS   *dbproc;
    int         i;
-   char        teststr[1024];
    DBINT       testint;
    FILE				*fp;
    long				result, isiz;
@@ -38,7 +34,7 @@ int main(int argc, char *argv[])
    char				objname[256];
    char				sqlCmd[256];
    char				rbuf[BLOB_BLOCK_SIZE];
-   long				numread, numwritten, numtowrite;
+   long				numread;
    BOOL				readFirstImage;
    char   cmd[1024];
 
@@ -248,7 +244,7 @@ int main(int argc, char *argv[])
    result = fwrite((void *)rblob, numread, 1, fp);
    fclose (fp);
 
-   printf("Read blob data row %d --> %s %d byte comparison\n", 
+   printf("Read blob data row %d --> %s %ld byte comparison\n", 
 	(int)testint, (memcmp(blob, rblob, numread)) ? "failed" 
         : "PASSED", numread);
    free(rblob);
@@ -267,8 +263,3 @@ int main(int argc, char *argv[])
            __FILE__);
    return failed ? 1 : 0; 
 }
-
-
-
-
-

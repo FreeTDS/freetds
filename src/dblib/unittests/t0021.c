@@ -12,7 +12,7 @@
 #include <sqlfront.h>
 #include <sqldb.h>
 
-static char  software_version[]   = "$Id: t0021.c,v 1.2 2002-09-13 20:13:16 castellano Exp $";
+static char  software_version[]   = "$Id: t0021.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -26,9 +26,7 @@ char safestr[100];
 
 int main()
 {
-LOGINREC   *login;
-DBPROCESS   *dbproc;
-int         i, len;
+int         len;
 RETCODE ret;
 
 #ifdef __FreeBSD__

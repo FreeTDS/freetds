@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0007.c,v 1.1 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0007.c,v 1.2 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -11,12 +11,12 @@ int main()
    CS_CONTEXT *ctx; 
    CS_CONNECTION *conn; 
    CS_COMMAND *cmd; 
-   int i, verbose = 0;
+   int verbose = 0;
 
    CS_RETCODE ret;
    CS_RETCODE results_ret;
    CS_INT result_type;
-   CS_INT col, num_cols;
+   CS_INT num_cols;
 
    CS_DATAFMT datafmt;
    CS_INT datalength;
@@ -24,7 +24,6 @@ int main()
    CS_INT count, row_count = 0;
  
    CS_CHAR name[1024];
-   char temp[11];
    name[0] = 0;
    
    fprintf(stdout, "%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);

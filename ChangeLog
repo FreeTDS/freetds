@@ -1,3 +1,22 @@
+Tue Sep 17 12:47:08 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/unittests/common.c src/ctlib/unittests/t0001.c
+	  src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c
+	  src/ctlib/unittests/t0006.c src/ctlib/unittests/t0007.c
+	  src/dblib/unittests/Makefile.am src/dblib/unittests/common.c
+	  src/dblib/unittests/common.h
+	  src/dblib/unittests/pwd.c (removed)
+	  src/dblib/unittests/t0001.c src/dblib/unittests/t0004.c
+	  src/dblib/unittests/t0005.c src/dblib/unittests/t0007.c
+	  src/dblib/unittests/t0008.c src/dblib/unittests/t0009.c
+	  src/dblib/unittests/t0010.c src/dblib/unittests/t0011.c
+	  src/dblib/unittests/t0012.c src/dblib/unittests/t0013.c
+	  src/dblib/unittests/t0014.c src/dblib/unittests/t0015.c
+	  src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c
+	  src/dblib/unittests/t0018.c src/dblib/unittests/t0019.c
+	  src/dblib/unittests/t0020.c src/dblib/unittests/t0021.c
+	  src/dblib/unittests/t0022.c:
+	- More "gcc -Wall" cleanups.
+
 Mon Sep 16 22:39:10 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/freetds.c:
 	- Fix a bug I introduced earlier today -- properly set the

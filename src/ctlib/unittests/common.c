@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctpublic.h>
+#include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.2 2002-08-29 05:46:44 jklowden Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];

@@ -21,7 +21,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0010.c,v 1.2 2002-08-29 09:54:54 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0010.c,v 1.3 2002-09-17 16:49:42 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -29,14 +29,11 @@ static void *no_unused_var_warn[] = {software_version,
 
 int main()
 {
-   RETCODE     rc;
-   const int   rows_to_add = 50;
    LOGINREC   *login;
    DBPROCESS   *dbproc;
    int         i;
    char        teststr[1024];
    DBINT       testint;
-   DBINT       last_read = -1;
 
 #ifdef __FreeBSD__
    /*
