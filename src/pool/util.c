@@ -31,7 +31,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: util.c,v 1.9 2003-03-24 23:08:20 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.10 2003-04-03 09:10:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -40,7 +40,7 @@ dump_buf(const void *buf, int length)
 	int i;
 	int j;
 	const int bytesPerLine = 16;
-	const unsigned char *data = (const unsigned char*) buf;
+	const unsigned char *data = (const unsigned char *) buf;
 
 	for (i = 0; i < length; i += bytesPerLine) {
 		fprintf(stderr, "%04x  ", i);

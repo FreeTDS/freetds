@@ -30,7 +30,7 @@
 #include <tdsconvert.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0006.c,v 1.15 2003-03-06 23:58:45 mlilback Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.16 2003-04-03 09:14:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 						if (verbose) {
 							srctype = curcol->column_type;
 							srclen = curcol->column_size;
-							tds_convert(&ctx, srctype, (TDS_CHAR*) src, srclen, SYBCHAR, &cr);
+							tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
 							printf("col %i is %s\n", i, cr.c);
 						}
 						if (i == 0) {
@@ -204,7 +204,7 @@ main(int argc, char **argv)
 						if (verbose) {
 							srctype = curcol->column_type;
 							srclen = curcol->column_size;
-							tds_convert(&ctx, srctype, (TDS_CHAR*) src, srclen, SYBCHAR, &cr);
+							tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
 							printf("col %i is %s\n", i, cr.c);
 						}
 						if (i == 0) {

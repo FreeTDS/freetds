@@ -34,7 +34,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.5 2002-11-23 13:47:34 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.6 2003-04-03 09:14:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -156,8 +156,8 @@ main(int argc, char **argv)
 static int
 discard_result(TDSSOCKET * tds)
 {
-int rc;
-int result_type;
+	int rc;
+	int result_type;
 
 	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 

@@ -44,7 +44,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.4 2003-03-04 10:46:34 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.5 2003-04-03 09:14:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -54,56 +54,61 @@ int
 main(int argc, char **argv)
 {
 	/* the conversion pair matrix */
-	typedef struct { int srctype; int desttype; int yn; } ANSWER;
+	typedef struct
+	{
+		int srctype;
+		int desttype;
+		int yn;
+	} ANSWER;
 	const static ANSWER answers[] = {
-	#	include "../tds_willconvert.h"
+#	include "../tds_willconvert.h"
 	};
-	
+
 	/* some default inputs */
 	static const int bit_input = 1;
 
-	/* timing variables to compute performance */	
+	/* timing variables to compute performance */
 	struct timeval start, end;
 	struct timezone tzp;
 	double starttime, endtime;
 
-	int i, j, iterations=0, result;
+	int i, j, iterations = 0, result;
 
 	TDS_CHAR *src = NULL;
 	TDS_UINT srclen;
 	CONV_RESULT cr;
-	
-	TDS_NUMERIC	numeric;
-	TDS_MONEY	money;
-	TDS_MONEY4	money4;
-	TDS_DATETIME	datetime;
-	TDS_DATETIME4	datetime4;
 
-	TDS_TINYINT	tds_tinyint;  
-	TDS_SMALLINT	tds_smallint; 
-	TDS_INT		tds_int;      
-	TDS_INT8	tds_int8;
-	
-	TDS_REAL	tds_real;
-	TDS_FLOAT	tds_float;
-	
+	TDS_NUMERIC numeric;
+	TDS_MONEY money;
+	TDS_MONEY4 money4;
+	TDS_DATETIME datetime;
+	TDS_DATETIME4 datetime4;
+
+	TDS_TINYINT tds_tinyint;
+	TDS_SMALLINT tds_smallint;
+	TDS_INT tds_int;
+	TDS_INT8 tds_int8;
+
+	TDS_REAL tds_real;
+	TDS_FLOAT tds_float;
+
 	if (argc > 1) {
 		iterations = atoi(argv[1]);
 		printf("Computing %d iterations\n", iterations);
 	}
-	
-	assert( ctx = tds_alloc_context() );
+
+	assert(ctx = tds_alloc_context());
 	if (ctx->locale && !ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
 	}
 
-	
+
 	/*
 	 * Test every possible conversion pair
 	 */
-	for (i=0; i < sizeof(answers)/sizeof(ANSWER); i++) {
-		if (! answers[i].yn)	
+	for (i = 0; i < sizeof(answers) / sizeof(ANSWER); i++) {
+		if (!answers[i].yn)
 			continue;	/* don't attempt nonconvertible types */
 
 		if (answers[i].srctype == answers[i].desttype)
@@ -115,23 +120,23 @@ main(int argc, char **argv)
 		case SYBTEXT:
 		case SYBBINARY:
 		case SYBIMAGE:
-			switch (answers[i].desttype) { 
+			switch (answers[i].desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
-			case SYBDATETIME: 
-			case SYBDATETIME4: 
-				src = "Jan  1, 1999"; 
+			case SYBDATETIME:
+			case SYBDATETIME4:
+				src = "Jan  1, 1999";
 				break;
 			case SYBBINARY:
 			case SYBIMAGE:
-				src = "0xbeef"; 
+				src = "0xbeef";
 				break;
 			case SYBINT1:
 			case SYBINT2:
 			case SYBINT4:
 			case SYBINT8:
-				src = "255"; 
+				src = "255";
 				break;
 			case SYBFLT8:
 			case SYBREAL:
@@ -139,65 +144,65 @@ main(int argc, char **argv)
 			case SYBDECIMAL:
 			case SYBMONEY:
 			case SYBMONEY4:
-				src = "1999.25"; 
+				src = "1999.25";
 				cr.n.precision = 8;
 				cr.n.scale = 2;
 				break;
 			case SYBBIT:
 			default:
-				src = "1"; 
+				src = "1";
 				break;
 			}
 			assert(src);
 			srclen = strlen(src);
 			break;
 		case SYBINT1:
-			src =  (char*) &tds_tinyint;  
+			src = (char *) &tds_tinyint;
 			srclen = sizeof(tds_tinyint);
 			break;
 		case SYBINT2:
-			src =  (char*) &tds_smallint; 
+			src = (char *) &tds_smallint;
 			srclen = sizeof(tds_smallint);
 			break;
 		case SYBINT4:
-			src =  (char*) &tds_int;      
+			src = (char *) &tds_int;
 			srclen = sizeof(tds_int);
 			break;
 		case SYBINT8:
-			src =  (char*) &tds_int8;     
+			src = (char *) &tds_int8;
 			srclen = sizeof(tds_int8);
 			break;
 		case SYBFLT8:
-			src =  (char*) &tds_float; 
+			src = (char *) &tds_float;
 			srclen = sizeof(tds_float);
 			break;
 		case SYBREAL:
-			src =  (char*) &tds_real; 
+			src = (char *) &tds_real;
 			srclen = sizeof(tds_real);
 			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			src =  (char*) &numeric; 
+			src = (char *) &numeric;
 			srclen = sizeof(numeric);
 			break;
 		case SYBMONEY:
-			src =  (char*) &money; 
+			src = (char *) &money;
 			srclen = sizeof(money);
 			break;
 		case SYBMONEY4:
-			src =  (char*) &money4; 
+			src = (char *) &money4;
 			srclen = sizeof(money4);
 			break;
 		case SYBBIT:
-			src =  (char*) &bit_input; 
+			src = (char *) &bit_input;
 			srclen = sizeof(bit_input);
 			break;
 		case SYBDATETIME:
-			src =  (char*) &datetime;
+			src = (char *) &datetime;
 			srclen = sizeof(datetime);
 			break;
 		case SYBDATETIME4:
-			src =  (char*) &datetime4;
+			src = (char *) &datetime4;
 			srclen = sizeof(datetime4);
 			break;
 		/*****  not defined yet
@@ -208,7 +213,7 @@ main(int argc, char **argv)
 				break;
 		*****/
 		default:
-			fprintf(stderr, "no such type %d\n", answers[i].srctype );
+			fprintf(stderr, "no such type %d\n", answers[i].srctype);
 			return -1;
 		}
 
@@ -217,23 +222,23 @@ main(int argc, char **argv)
 		 */
 
 		result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
-		
-		if (result < 0 ) {
-			if (result == TDS_CONVERT_NOAVAIL) /* tds_willconvert returned true, but it lied. */
+
+		if (result < 0) {
+			if (result == TDS_CONVERT_NOAVAIL)	/* tds_willconvert returned true, but it lied. */
 				fprintf(stderr, "Conversion not yet implemented:\n\t");
-			
-			fprintf(stderr, "failed (%d) to convert %d (%s, %d bytes) : %d (%s).\n", 
-				result, 
-				answers[i].srctype,  tds_prtype(answers[i].srctype), srclen, 
+
+			fprintf(stderr, "failed (%d) to convert %d (%s, %d bytes) : %d (%s).\n",
+				result,
+				answers[i].srctype, tds_prtype(answers[i].srctype), srclen,
 				answers[i].desttype, tds_prtype(answers[i].desttype));
-			
-			if (result != TDS_CONVERT_NOAVAIL) 
+
+			if (result != TDS_CONVERT_NOAVAIL)
 				return result;
 		}
-		
-		printf("converted %d (%s, %d bytes) : %d (%s, %d bytes).\n", 
-			answers[i].srctype, tds_prtype(answers[i].srctype), srclen, 
-			answers[i].desttype, tds_prtype(answers[i].desttype), result);
+
+		printf("converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
+		       answers[i].srctype, tds_prtype(answers[i].srctype), srclen,
+		       answers[i].desttype, tds_prtype(answers[i].desttype), result);
 
 		/* 
 		 * In the first iteration, start with varchar -> others.  
@@ -258,16 +263,16 @@ main(int argc, char **argv)
 			datetime4 = cr.dt4;
 			break;
 		case SYBINT1:
-			tds_tinyint = cr.ti;  
+			tds_tinyint = cr.ti;
 			break;
 		case SYBINT2:
-			tds_smallint = cr.si; 
+			tds_smallint = cr.si;
 			break;
 		case SYBINT4:
-			tds_int = cr.i;      
+			tds_int = cr.i;
 			break;
 		case SYBINT8:
-			tds_int8 = cr.bi;     
+			tds_int8 = cr.bi;
 			break;
 		case SYBFLT8:
 			tds_real = cr.f;
@@ -278,7 +283,7 @@ main(int argc, char **argv)
 		default:
 			break;
 		}
-		
+
 		/*
 		 * If an iteration count was passed on the command line (not by "make check")
 		 * run the conversion N times and print the conversions per second.
@@ -286,18 +291,17 @@ main(int argc, char **argv)
 		result = gettimeofday(&start, &tzp);
 		starttime = (float) start.tv_sec + (float) start.tv_usec * 0.000001;
 
-		for (j=0; result >= 0 && j < iterations; j++) {
+		for (j = 0; result >= 0 && j < iterations; j++) {
 			result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
 
 		}
 
 		result = gettimeofday(&end, &tzp);
 		endtime = (float) end.tv_sec + (float) end.tv_usec * 0.000001;
-		
-		printf("%8.0f iterations/second converting %13s => %s.\n", 
-			j / (endtime - starttime), 
-			tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
-		
+
+		printf("%8.0f iterations/second converting %13s => %s.\n",
+		       j / (endtime - starttime), tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
+
 	}
 
 	return g_result;

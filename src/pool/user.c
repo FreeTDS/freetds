@@ -42,7 +42,7 @@
 #include "pool.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: user.c,v 1.12 2002-11-17 11:25:41 freddy77 Exp $";
+static char software_version[] = "$Id: user.c,v 1.13 2003-04-03 09:10:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 extern int waiters;
@@ -112,9 +112,9 @@ pool_free_user(TDS_POOL_USER * puser)
 int
 pool_process_users(TDS_POOL * pool, fd_set * fds)
 {
-TDS_POOL_USER *puser;
-int i;
-int cnt = 0;
+	TDS_POOL_USER *puser;
+	int i;
+	int cnt = 0;
 
 	for (i = 0; i < pool->max_users; i++) {
 
@@ -153,11 +153,11 @@ int cnt = 0;
 int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-TDSSOCKET *tds;
-TDSLOGIN login;
+	TDSSOCKET *tds;
+	TDSLOGIN login;
 
 /* FIX ME */
-char msg[256];
+	char msg[256];
 
 	tds = puser->tds;
 	tds_read_login(tds, &login);
@@ -195,7 +195,7 @@ char msg[256];
 void
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-TDSSOCKET *tds;
+	TDSSOCKET *tds;
 
 	tds = puser->tds;
 	tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ);
@@ -221,7 +221,7 @@ TDSSOCKET *tds;
 void
 pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-TDS_POOL_MEMBER *pmbr;
+	TDS_POOL_MEMBER *pmbr;
 
 	puser->user_state = TDS_SRV_QUERY;
 	pmbr = pool_find_idle_member(pool);

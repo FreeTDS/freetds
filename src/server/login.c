@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.24 2003-03-29 18:58:48 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.25 2003-04-03 09:13:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -68,11 +68,11 @@ tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear
 TDSSOCKET *
 tds_listen(int ip_port)
 {
-TDSCONTEXT *context;
-TDSSOCKET *tds;
-struct sockaddr_in sin;
-int fd, s;
-size_t len;
+	TDSCONTEXT *context;
+	TDSSOCKET *tds;
+	struct sockaddr_in sin;
+	int fd, s;
+	size_t len;
 
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons((short) ip_port);
@@ -104,7 +104,7 @@ static char *tds_read_string(TDSSOCKET * tds, char **s, int size);
 void
 tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
-char *blockstr;
+	char *blockstr;
 
 /*
 	while (len = tds_read_packet(tds)) {
@@ -156,11 +156,11 @@ tds7_read_string(TDSSOCKET * tds, int len)
 int
 tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
-int a;
-int host_name_len, user_name_len, password_len, app_name_len, server_name_len;
-int library_name_len, language_name_len;
-char *unicode_string;
-char *buf;
+	int a;
+	int host_name_len, user_name_len, password_len, app_name_len, server_name_len;
+	int library_name_len, language_name_len;
+	char *unicode_string;
+	char *buf;
 
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_n(tds, NULL, 5);
@@ -200,7 +200,7 @@ char *buf;
 	unicode_string = (char *) malloc(password_len * 2);
 	buf = (char *) malloc(password_len + 1);
 	tds_get_n(tds, unicode_string, password_len * 2);
-	tds7_decrypt_pass((unsigned char*) unicode_string, password_len * 2, (unsigned char*)unicode_string);
+	tds7_decrypt_pass((unsigned char *) unicode_string, password_len * 2, (unsigned char *) unicode_string);
 	password_len = tds7_unicode2ascii(tds, unicode_string, password_len, buf, password_len);
 	buf[password_len] = 0;
 	tds_dstr_set(&login->password, buf);

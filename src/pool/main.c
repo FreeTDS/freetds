@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.14 2002-11-17 11:25:41 freddy77 Exp $";
+static char software_version[] = "$Id: main.c,v 1.15 2003-04-03 09:10:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this will go away...starting with just 1 global pool */
@@ -111,9 +111,9 @@ pool_init(char *name)
 static void
 pool_schedule_waiters(TDS_POOL * pool)
 {
-TDS_POOL_USER *puser;
-TDS_POOL_MEMBER *pmbr;
-int i, free_mbrs;
+	TDS_POOL_USER *puser;
+	TDS_POOL_MEMBER *pmbr;
+	int i, free_mbrs;
 
 	/* first see if there are free members to do the request */
 	free_mbrs = 0;
@@ -147,12 +147,12 @@ int i, free_mbrs;
 void
 pool_main_loop(TDS_POOL * pool)
 {
-TDS_POOL_USER *puser;
-TDS_POOL_MEMBER *pmbr;
-struct sockaddr_in sin;
-int s, maxfd, i;
-int retval;
-fd_set rfds;
+	TDS_POOL_USER *puser;
+	TDS_POOL_MEMBER *pmbr;
+	struct sockaddr_in sin;
+	int s, maxfd, i;
+	int retval;
+	fd_set rfds;
 
 /* fix me -- read the interfaces file and bind accordingly */
 	sin.sin_addr.s_addr = INADDR_ANY;

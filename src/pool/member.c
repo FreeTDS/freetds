@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.21 2003-03-24 22:44:27 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.22 2003-04-03 09:10:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -66,13 +66,13 @@ static void pool_free_member(TDS_POOL_MEMBER * pmbr);
 TDSSOCKET *
 pool_mbr_login(TDS_POOL * pool)
 {
-TDSCONTEXT *context;
-TDSLOGIN *login;
-TDSSOCKET *tds;
-TDSCONNECTINFO *connect_info;
-int rc, marker;
-char *query;
-char hostname[MAXHOSTNAMELEN];
+	TDSCONTEXT *context;
+	TDSLOGIN *login;
+	TDSSOCKET *tds;
+	TDSCONNECTINFO *connect_info;
+	int rc, marker;
+	char *query;
+	char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login();
 	tds_set_passwd(login, pool->password);
@@ -143,8 +143,8 @@ pool_free_member(TDS_POOL_MEMBER * pmbr)
 void
 pool_mbr_init(TDS_POOL * pool)
 {
-TDS_POOL_MEMBER *pmbr;
-int i;
+	TDS_POOL_MEMBER *pmbr;
+	int i;
 
 	/* allocate room for pool members */
 
@@ -176,13 +176,13 @@ int i;
 int
 pool_process_members(TDS_POOL * pool, fd_set * fds)
 {
-TDS_POOL_MEMBER *pmbr;
-TDS_POOL_USER *puser;
-TDSSOCKET *tds;
-int i, age;
-int cnt = 0;
-unsigned char *buf;
-time_t time_now;
+	TDS_POOL_MEMBER *pmbr;
+	TDS_POOL_USER *puser;
+	TDSSOCKET *tds;
+	int i, age;
+	int cnt = 0;
+	unsigned char *buf;
+	time_t time_now;
 
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
@@ -236,8 +236,8 @@ time_t time_now;
 TDS_POOL_MEMBER *
 pool_find_idle_member(TDS_POOL * pool)
 {
-int i, active_members;
-TDS_POOL_MEMBER *pmbr;
+	int i, active_members;
+	TDS_POOL_MEMBER *pmbr;
 
 	active_members = 0;
 	for (i = 0; i < pool->num_members; i++) {
@@ -275,8 +275,8 @@ TDS_POOL_MEMBER *pmbr;
 static int
 pool_packet_read(TDS_POOL_MEMBER * pmbr)
 {
-TDSSOCKET *tds;
-int packet_len;
+	TDSSOCKET *tds;
+	int packet_len;
 
 	tds = pmbr->tds;
 

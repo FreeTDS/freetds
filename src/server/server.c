@@ -28,7 +28,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.14 2002-12-25 11:19:32 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.15 2003-04-03 09:13:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -199,7 +199,7 @@ tds_send_253_token(TDSSOCKET * tds, TDS_TINYINT flags, TDS_INT numrows)
 void
 tds_send_174_token(TDSSOCKET * tds, TDS_SMALLINT numcols)
 {
-int i;
+	int i;
 
 	tds_put_byte(tds, 174);
 	tds_put_smallint(tds, numcols);
@@ -210,8 +210,8 @@ int i;
 void
 tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-int col, hdrsize = 0;
-TDSCOLINFO *curcol;
+	int col, hdrsize = 0;
+	TDSCOLINFO *curcol;
 
 	tds_put_byte(tds, TDS_COLNAME_TOKEN);
 	for (col = 0; col < resinfo->num_cols; col++) {
@@ -230,8 +230,8 @@ TDSCOLINFO *curcol;
 void
 tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-int col, hdrsize = 0;
-TDSCOLINFO *curcol;
+	int col, hdrsize = 0;
+	TDSCOLINFO *curcol;
 
 	tds_put_byte(tds, TDS_COLFMT_TOKEN);
 
@@ -257,8 +257,8 @@ TDSCOLINFO *curcol;
 void
 tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-TDSCOLINFO *curcol;
-int i, totlen;
+	TDSCOLINFO *curcol;
+	int i, totlen;
 
 	tds_put_byte(tds, TDS_RESULT_TOKEN);
 	totlen = 2;
@@ -290,8 +290,8 @@ int i, totlen;
 void
 tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-TDSCOLINFO *curcol;
-int colsize, i;
+	TDSCOLINFO *curcol;
+	int colsize, i;
 
 	tds_put_byte(tds, TDS_ROW_TOKEN);
 	for (i = 0; i < resinfo->num_cols; i++) {

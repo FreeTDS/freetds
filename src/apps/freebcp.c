@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.22 2003-03-19 17:05:11 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.23 2003-04-03 09:05:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -199,8 +199,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				if (strlen(arg) > 2) {
 					pdata->errorfile = (char *) malloc(strlen(arg));
 					strcpy(pdata->errorfile, &arg[2]);
-				}
-				else
+				} else
 					state = GET_ERRORFILE;
 				break;
 			case 'F':
@@ -393,11 +392,11 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 	if (pdata->cflag) {
 		/* Fill in some default values */
 
-		if (!pdata->tflag || !pdata->fieldterm) {       /* field terminator not specified */
+		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
 			pdata->fieldterm = (char *) malloc(2);
 			strcpy(pdata->fieldterm, "\t");
 		}
-		if (!pdata->rflag || !pdata->rowterm) {	 /* row terminator not specified */
+		if (!pdata->rflag || !pdata->rowterm) {	/* row terminator not specified */
 			pdata->rowterm = (char *) malloc(2);
 			strcpy(pdata->rowterm, "\n");
 		}
@@ -410,7 +409,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 int
 login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
 {
-LOGINREC *login;
+	LOGINREC *login;
 
 	/* Initialize DB-Library. */
 
@@ -460,7 +459,7 @@ LOGINREC *login;
 
 	/* set hint if any */
 	if (pdata->hint) {
-int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hint));
+		int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hint));
 
 		if (erc != SUCCEED)
 			fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
@@ -474,9 +473,9 @@ int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hi
 int
 file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
-DBINT li_rowsread = 0;
-int i;
-int li_numcols = 0;
+	DBINT li_rowsread = 0;
+	int i;
+	int li_numcols = 0;
 
 	if (dbfcmd(dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL) {
 		printf("dbfcmd failed\n");
@@ -505,15 +504,15 @@ int li_numcols = 0;
 		}
 
 		for (i = 1; i <= li_numcols - 1; i++) {
-			if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm, 
-					strlen(pdata->fieldterm), i) == FAIL) {
+			if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
+				       strlen(pdata->fieldterm), i) == FAIL) {
 				printf("Error in bcp_colfmt col %d\n", i);
 				return FALSE;
 			}
 		}
 
-		if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm, 
-	                        strlen(pdata->rowterm), li_numcols) == FAIL) {
+		if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
+			       strlen(pdata->rowterm), li_numcols) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", li_numcols);
 			return FALSE;
 		}
@@ -536,11 +535,11 @@ int li_numcols = 0;
 int
 file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
-DBINT li_rowsread = 0;
-int i;
-int li_numcols = 0;
-int li_coltype;
-int li_collen;
+	DBINT li_rowsread = 0;
+	int i;
+	int li_numcols = 0;
+	int li_coltype;
+	int li_collen;
 
 	if (dbfcmd(dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL) {
 		printf("dbfcmd failed\n");
@@ -597,7 +596,7 @@ int
 file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
 
-int li_rowsread;
+	int li_rowsread;
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
