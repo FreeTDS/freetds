@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.299 2004-02-11 16:13:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.300 2004-02-11 16:45:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2979,9 +2979,9 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 
 #ifdef ENABLE_DEVELOPING
 	/* try to prepare query */
-	/* TODO support getting information even if parameters */
 	/* TODO try to prepare only getting informations (faster and optimizable) */
-	if (!stmt->prepared_query_is_rpc && !stmt->param_count) {
+	/* TODO support getting info for RPC */
+	if (!stmt->prepared_query_is_rpc) {
 		TDSDYNAMIC *dyn;
 
 		TDS_INT result_type;
@@ -2991,10 +2991,13 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 		/* TODO needed ?? */
-		if (stmt->dyn)
+		if (stmt->dyn) {
 			tds_free_dynamic(tds, stmt->dyn);
+			stmt->dyn = NULL;
+		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
+		/* TODO use current parameter informations */
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, NULL) == TDS_FAIL) {
 			/* TODO ?? tds_free_param_results(params); */
 			ODBC_RETURN(stmt, SQL_ERROR);
