@@ -85,11 +85,11 @@ include_HEADERS = cspublic.h ctpublic.h sybdb.h sybfront.h          			tdsutil.h
 EXTRA_DIST = tds_configs.h.in
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =  tdsver.h tds.h tds_configs.h
+CONFIG_CLEAN_FILES =  tdsver.h tds.h
 HEADERS =  $(include_HEADERS)
 
 DIST_COMMON =  README ./stamp-h.in Makefile.am Makefile.in config.h.in \
-tds.h.in tds_configs.h.in tdsver.h.in
+tds.h.in tdsver.h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -136,8 +136,6 @@ maintainer-clean-hdr:
 tdsver.h: $(top_builddir)/config.status tdsver.h.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 tds.h: $(top_builddir)/config.status tds.h.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-tds_configs.h: $(top_builddir)/config.status tds_configs.h.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 install-includeHEADERS: $(include_HEADERS)
