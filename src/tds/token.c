@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.178 2003-04-28 19:35:24 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.179 2003-04-28 21:35:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -50,6 +50,7 @@ static int tds7_process_compute_result(TDSSOCKET * tds);
 static int tds_process_result(TDSSOCKET * tds);
 static int tds_process_col_name(TDSSOCKET * tds);
 static int tds_process_col_fmt(TDSSOCKET * tds);
+static int tds_process_colinfo(TDSSOCKET * tds);
 static int tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
 static int tds_process_row(TDSSOCKET * tds);
 static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
@@ -203,9 +204,11 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
-	case TDS_COLINFO_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
+		break;
+	case TDS_COLINFO_TOKEN:
+		tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
@@ -496,6 +499,19 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 		case TDS_COLFMT_TOKEN:
 			tds_process_col_fmt(tds);
 			*result_type = TDS_ROWFMT_RESULT;
+			/* handle browse information (if presents) */
+			marker = tds_get_byte(tds);
+			if (marker != TDS_TABNAME_TOKEN) {
+				tds_unget_byte(tds);
+				return TDS_SUCCEED;
+			}
+			tds_process_default_tokens(tds, marker);
+			marker = tds_get_byte(tds);
+			if (marker != TDS_COLINFO_TOKEN) {
+				tds_unget_byte(tds);
+				return TDS_SUCCEED;
+			}
+			tds_process_default_tokens(tds, marker);
 			return TDS_SUCCEED;
 			break;
 		case TDS_PARAM_TOKEN:
@@ -902,6 +918,8 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
 		 * the data in them. (mlilback, 11/7/01) */
 		tds_get_n(tds, ci_flags, 4);
+		/* TODO my experience seem different... why ?? freddy77 2003-4-28 
+		 * in TDS4.2 and Sybase first 2 bytes are usertype, other 2 zero */
 		curcol->column_nullable = ci_flags[3] & 0x01;
 		curcol->column_writeable = (ci_flags[3] & 0x08) > 0;
 		curcol->column_identity = (ci_flags[3] & 0x10) > 0;
@@ -939,6 +957,40 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	}
 
 	info->current_row = tds_alloc_row(info);
+
+	return TDS_SUCCEED;
+}
+
+static int
+tds_process_colinfo(TDSSOCKET * tds)
+{
+	int hdrsize;
+	TDSCOLINFO *curcol;
+	TDSRESULTINFO *info;
+	int bytes_read = 0;
+	unsigned char col_info[3], l;
+
+	hdrsize = tds_get_smallint(tds);
+
+	/* TODO use curr_resinfo instead of res_info ?? */
+	info = tds->res_info;
+	while (bytes_read < hdrsize) {
+
+		tds_get_n(tds, col_info, 3);
+		bytes_read += 3;
+		if (info && col_info[0] > 0 && col_info[0] <= info->num_cols) {
+			curcol = info->columns[col_info[0] - 1];
+			curcol->column_key = (col_info[2] & 0x8) > 0;
+			curcol->column_hidden = (col_info[2] & 0x10) > 0;
+		}
+		/* skip real name */
+		/* TODO keep it */
+		if (col_info[2] & 0x20) {
+			l = tds_get_byte(tds);
+			tds_get_n(tds, NULL, l);
+			bytes_read += l + 1;
+		}
+	}
 
 	return TDS_SUCCEED;
 }
