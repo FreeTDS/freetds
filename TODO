@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.108 2004-04-25 08:54:51 freddy77 Exp $
+To Do List	$Id: TODO,v 1.109 2004-05-06 14:13:05 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -62,6 +62,9 @@ Started in 0.63
   NUMERIC ->NUMERIC changing precision/scale
   * this part never worked, commented
 - fix putdata test
+- limit data sended via input parameters/bulk copy
+  (ie SYBCHAR to 255, XSYBCHAR to 8000)
+  test behavior of proprietary library (warning or not)
 
 For future versions (in priority order within library):
   All:
