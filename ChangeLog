@@ -1,3 +1,13 @@
+Wed Nov 13 22:09:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- removed tds_process_column_row (unused and ancien)
+	- terminate column name in TDS7
+	- optimize a bit tds_get_null
+	- reuse tds7_get_data_info in tds7_process_compute_result
+	* src/dblib/bcp.c src/odbc/convert_tds2sql.c src/tds/convert.c:
+	* src/tds/numeric.c:
+	- renamed g__numeric_bytes_per_prec in tds_numeric_bytes_per_prec
+
 Tue Nov 12 17:54:49 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/dblib/dblib.c:
 	- More dbsetopt() fixes.

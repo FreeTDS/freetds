@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.101 2002-11-10 16:18:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.102 2002-11-13 21:14:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -118,7 +118,7 @@ static const char *tds_prtype(int token);
 #endif
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
-extern const int g__numeric_bytes_per_prec[];
+extern const int tds_numeric_bytes_per_prec[];
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
@@ -1003,7 +1003,7 @@ long i;
 		case SYBBIT:
 		case SYBBITN:
 			cr->ti = 0;
-			for(i=g__numeric_bytes_per_prec[src->precision]; --i > 0;)
+			for(i=tds_numeric_bytes_per_prec[src->precision]; --i > 0;)
 				if (src->array[i] != 0) {
 					cr->ti = 1;
 					break;
@@ -2060,7 +2060,7 @@ short int bytes, places, point_found, sign, digits;
 
 	memset(cr->n.array,0,sizeof(cr->n.array));
 	cr->n.array[0] =  sign;
-	bytes = g__numeric_bytes_per_prec[cr->n.precision];
+	bytes = tds_numeric_bytes_per_prec[cr->n.precision];
 
 	while (not_zero)
 	{

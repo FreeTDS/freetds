@@ -36,11 +36,11 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.22 2002-11-08 16:59:38 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.23 2002-11-13 21:14:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
-extern const int g__numeric_bytes_per_prec[];
+extern const int tds_numeric_bytes_per_prec[];
 
 /*
  * Pass this an SQL_* type and get a SYB* type which most closely corresponds
@@ -264,7 +264,7 @@ int i, cplen;
 		num->scale = ores.n.scale;
 		num->sign = ores.n.array[0] ^ 1;
 		/* FIXME can i be greater than SQL_MAX_NUMERIC_LEN ?? */
-		i = g__numeric_bytes_per_prec[ores.n.precision];
+		i = tds_numeric_bytes_per_prec[ores.n.precision];
 		memcpy(num->val, ores.n.array + 1, i);
 		tds_swap_bytes(num->val, i);
 		if (i < SQL_MAX_NUMERIC_LEN)

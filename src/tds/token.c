@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.102 2002-11-10 16:18:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.103 2002-11-13 21:14:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -64,7 +64,7 @@ static int tds_get_data_info(TDSSOCKET *tds,TDSCOLINFO *curcol);
 ** tell us the number of bytes required to store the specified
 ** precision.
 */
-extern const int g__numeric_bytes_per_prec[];
+extern const int tds_numeric_bytes_per_prec[];
 
 /**
  * \defgroup token Token processing
@@ -971,6 +971,7 @@ int colnamelen;
 	colnamelen = tds_get_byte(tds);
 	tds_get_string(tds,curcol->column_name, colnamelen);
 	curcol->column_name[colnamelen] = 0;
+	curcol->column_namelen = colnamelen;
 
 	return TDS_SUCCEED;
 }
@@ -1525,43 +1526,6 @@ TDSENVINFO *env = tds->env;
 	return TDS_SUCCEED;
 }
 
-int tds_process_column_row(TDSSOCKET *tds)
-{
-int colsize, i;
-TDSCOLINFO *curcol;
-TDSRESULTINFO *info;
-unsigned char *dest;
-
-
-      info = tds->res_info;
-      info->row_count++;
-
-      for (i=0;i<(info->num_cols -1);i++)
-      {
-              curcol = info->columns[i];
-              if (!is_fixed_type(curcol->column_type)) {
-                      colsize = tds_get_byte(tds);
-              } else {
-                      colsize = tds_get_size_by_type(curcol->column_type);
-              }
-		dest = &(info->current_row[curcol->column_offset]);
-		tds_get_n(tds,dest,colsize);
-		dest[colsize]='\0';
-              /* printf("%s\n",curcol->column_value); */
-	}
-
-	/* now skip over some stuff and get the rest of the columns */
-	tds_get_n(tds,NULL,25);
-	colsize = tds_get_byte(tds);
-	tds_get_n(tds,NULL,3);
-	curcol = info->columns[i];
-	dest = &(info->current_row[curcol->column_offset]);
-	tds_get_n(tds,dest,colsize);
-	dest[colsize]='\0';
-
-	return TDS_SUCCEED;
-}
-
 /*
 ** tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
 ** for calling the CLI's message handling routine
@@ -1807,10 +1771,9 @@ unsigned char mask = ~(1 << bit);
 int tds_get_null(unsigned char *current_row, int column)
 {
 int bytenum = column  / 8;
-int bit = column % 8;
-unsigned char mask = 1 << bit;
+int bit = ((unsigned int) column) % 8u;
 
-	return (current_row[bytenum] & mask) ? 1 : 0;
+	return (current_row[bytenum] >> bit) & 1;
 }
 
 int tds_lookup_dynamic(TDSSOCKET *tds, char *id)
@@ -1967,7 +1930,7 @@ TDS_NUMERIC *num;
             num->array[0] = (num->array[0] == 0) ? 1 : 0;
             /* swap the data */
             tds_swap_bytes(&(num->array[1]),
-                           g__numeric_bytes_per_prec[num->precision] - 1); break;
+                           tds_numeric_bytes_per_prec[num->precision] - 1); break;
 
         case SYBUNIQUE:
 			tds_swap_bytes(buf,4);
@@ -2132,9 +2095,6 @@ TDS_SMALLINT compute_id;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
 int remainder;
-TDS_SMALLINT collate_type;
-TDS_SMALLINT tabnamelen;
-int colnamelen;
 
     /* number of compute columns returned - so */
     /* COMPUTE SUM(x), AVG(x)... would return  */
@@ -2188,74 +2148,12 @@ int colnamelen;
         curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand  = tds_get_smallint(tds);  
 
-		/*  User defined data type of the column */
-		curcol->column_usertype = tds_get_smallint(tds);  
+		tds7_get_data_info(tds, curcol);
 
-        curcol->column_flags = tds_get_smallint(tds);     /*  Flags */
-
-        curcol->column_nullable  =  curcol->column_flags & 0x01;
-        curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
-		curcol->column_identity  = (curcol->column_flags & 0x10) > 0;
-
-		curcol->column_type = tds_get_byte(tds); 
-		
-        curcol->column_type_save = curcol->column_type;
-		collate_type = is_collate_type(curcol->column_type);
-		curcol->column_varint_size  = tds_get_varint_size(curcol->column_type);
-
-		switch(curcol->column_varint_size) {
-			case 4: 
-				curcol->column_size = tds_get_int(tds);
-				break;
-			case 2: 
-				curcol->column_size = tds_get_smallint(tds);
-				break;
-			case 1: 
-				curcol->column_size = tds_get_byte(tds);
-				break;
-			case 0: 
-				curcol->column_size = tds_get_size_by_type(curcol->column_type);
-				break;
+		if (!curcol->column_namelen) {
+			strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
+			curcol->column_namelen = strlen(curcol->column_name);
 		}
-
-        tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 3\n");
-		curcol->column_unicodedata = 0;
-
-		if (is_unicode(curcol->column_type))
-			curcol->column_unicodedata = 1;
-
-		curcol->column_type = tds_get_cardinal_type(curcol->column_type);
-
-		/* numeric and decimal have extra info */
-		if (is_numeric_type(curcol->column_type)) {
-			curcol->column_prec = tds_get_byte(tds); /* precision */
-			curcol->column_scale = tds_get_byte(tds); /* scale */
-		}
-
-		if (IS_TDS80(tds)) {
-			if (collate_type) 
-				tds_get_n(tds, curcol->column_collation, 5);
-		}
-
-		if (is_blob_type(curcol->column_type)) {
-			tabnamelen = tds_get_smallint(tds);
-			tds_get_string(tds, NULL, tabnamelen);
-		}
-
-		colnamelen = tds_get_byte(tds);
-        tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 4 namelen = %d\n", colnamelen);
-
-        if (colnamelen) {
-		   /* under 7.0 lengths are number of characters not 
-    		** number of bytes...tds_get_string handles this */
-		   tds_get_string(tds,curcol->column_name, colnamelen);
-			curcol->column_name[colnamelen] = 0;
-           curcol->column_namelen = colnamelen;
-        }
-        else {
-           strcpy(curcol->column_name, tds_prtype(curcol->column_operator));
-           curcol->column_namelen = strlen(curcol->column_name);
-        }
 
 		/* the column_offset is the offset into the row buffer
 		** where this column begins, text types are no longer

@@ -32,7 +32,7 @@
 #endif
 
 static char software_version[] =
-	"$Id: numeric.c,v 1.13 2002-11-04 19:49:20 castellano Exp $";
+	"$Id: numeric.c,v 1.14 2002-11-13 21:14:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -55,7 +55,7 @@ static char *array_to_string(unsigned char *array, int scale, char *s);
 ** precision (with the sign).
 ** Support precision up to 77 digits
 */
-const int g__numeric_bytes_per_prec[] =
+const int tds_numeric_bytes_per_prec[] =
 {
  -1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 
   6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
@@ -171,7 +171,7 @@ int pos;
 	memset(product,0,MAXPRECISION);
 	multiplier[0]=1;
 	number = numeric->array;
-	num_bytes = g__numeric_bytes_per_prec[numeric->precision];
+	num_bytes = tds_numeric_bytes_per_prec[numeric->precision];
 
 	if (numeric->array[0] == 1)
 		*s++ = '-';

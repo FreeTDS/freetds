@@ -51,9 +51,9 @@
 #define ROWBUF_SIZE 32768
 #endif
 
-extern const int g__numeric_bytes_per_prec[];
+extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.40 2002-11-08 19:07:38 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.41 2002-11-13 21:14:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -914,7 +914,7 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 
 			if (is_numeric_type(bcpcol->db_type)) {
 				num = (TDS_NUMERIC *) bcpcol->data;
-				cpbytes = g__numeric_bytes_per_prec[num->precision];
+				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
 				cpbytes = bcpcol->data_size > bcpcol->db_length ? bcpcol->db_length : bcpcol->data_size;
@@ -974,7 +974,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 				bcpcol->txptr_offset = row_pos;
 			} else if (is_numeric_type(bcpcol->db_type)) {
 				num = (TDS_NUMERIC *) bcpcol->data;
-				cpbytes = g__numeric_bytes_per_prec[num->precision];
+				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
 				/* compute the length to copy to the row ** buffer */
@@ -1121,7 +1121,7 @@ unsigned char row_token = 0xd1;
 						break;
 					case 1:
 						if (is_numeric_type(bcpcol->db_type)) {
-							numeric_size = g__numeric_bytes_per_prec[bcpcol->db_prec];
+							numeric_size = tds_numeric_bytes_per_prec[bcpcol->db_prec];
 							tds_put_byte(tds, numeric_size);
 						} else
 							tds_put_byte(tds, bcpcol->data_size);
@@ -1135,7 +1135,7 @@ unsigned char row_token = 0xd1;
 
 					if (is_numeric_type(bcpcol->db_type)) {
 						num = (TDS_NUMERIC *) bcpcol->data;
-						tds_put_n(tds, num->array, g__numeric_bytes_per_prec[num->precision]);
+						tds_put_n(tds, num->array, tds_numeric_bytes_per_prec[num->precision]);
 					} else
 						tds_put_n(tds, bcpcol->data, bcpcol->data_size);
 				}
@@ -1296,7 +1296,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 							break;
 						case 1:
 							if (is_numeric_type(bcpcol->db_type)) {
-								numeric_size = g__numeric_bytes_per_prec[bcpcol->db_prec];
+								numeric_size = tds_numeric_bytes_per_prec[bcpcol->db_prec];
 								tds_put_byte(tds, numeric_size);
 							} else
 								tds_put_byte(tds, bcpcol->data_size);
@@ -1320,7 +1320,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 						if (is_numeric_type(bcpcol->db_type)) {
 							num = (TDS_NUMERIC *) bcpcol->data;
-							tds_put_n(tds, num->array, g__numeric_bytes_per_prec[num->precision]);
+							tds_put_n(tds, num->array, tds_numeric_bytes_per_prec[num->precision]);
 						} else
 							tds_put_n(tds, bcpcol->data, bcpcol->data_size);
 					}
