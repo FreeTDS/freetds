@@ -1,3 +1,6 @@
+Mon Oct  9 10:35:35 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: fix problem compiling with odbc and relative directory
+
 Tue Oct  8 21:10:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* samples/odbc.ini:
 	- Update sample odbc.ini with new installation path.

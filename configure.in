@@ -198,6 +198,9 @@ fi
 AC_ARG_WITH(iodbc,
 [  --with-iodbc=DIR        build odbc driver against iODBC in DIR])
 if test "$with_iodbc"; then
+	if echo "$with_iodbc" | grep -v '^/'; then
+		with_iodbc="$PWD/$with_iodbc"
+	fi
 	CFLAGS="$CFLAGS -DIODBC";
 	ODBC_INC=$with_iodbc/include;
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
@@ -207,6 +210,9 @@ fi
 AC_ARG_WITH(unixodbc,
 [  --with-unixodbc=DIR     build odbc driver against unixODBC in DIR])
 if test "$with_unixodbc"; then
+	if echo "$with_unixodbc" | grep -v '^/'; then
+		with_unixodbc="$PWD/$with_unixodbc"
+	fi
 	CFLAGS="$CFLAGS -DUNIXODBC"
 	ODBC_INC=$with_unixodbc/include
 	LDFLAGS="$LDFLAGS -L$with_unixodbc/lib"
