@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.31 2002-06-27 21:55:37 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.32 2002-06-29 23:41:58 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1483,7 +1483,6 @@ SQLRETURN SQL_API SQLGetData(
     {
         if (is_blob_type(colinfo->column_type))
         {
-fprintf( stderr, "[PAH][%s][%d]\n", __FILE__, __LINE__ );
             if (colinfo->column_text_sqlgetdatapos >= colinfo->column_textsize)
                 return SQL_NO_DATA_FOUND;
             src = colinfo->column_textvalue + colinfo->column_text_sqlgetdatapos;
@@ -1491,12 +1490,10 @@ fprintf( stderr, "[PAH][%s][%d]\n", __FILE__, __LINE__ );
         }
         else
         {
-fprintf( stderr, "[PAH][%s][%d]\n", __FILE__, __LINE__ );
             src = (TDS_CHAR*)&resinfo->current_row[colinfo->column_offset];
             srclen = -1;
         }
         nSybType = tds_get_conversion_type( colinfo->column_type, colinfo->column_size );
-fprintf( stderr, "[PAH][%s][%d] column_type=%d nSybType=%d\n", __FILE__, __LINE__, colinfo->column_type, nSybType );
         *pcbValue=convert_tds2sql(locale, 
                                   nSybType,
                                   src,

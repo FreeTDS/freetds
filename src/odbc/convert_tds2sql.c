@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.2 2002-06-27 21:55:37 peteralexharvey Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.3 2002-06-29 23:41:58 peteralexharvey Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -119,7 +119,6 @@ convert_tds2sql(TDSLOCINFO *locale, int srctype, TDS_CHAR *src, TDS_UINT srclen,
          * own conversion.
          */
         nDestSybType = _odbc_get_server_type( desttype );
-fprintf( stderr, "[PAH][%s][%d] srctype(SYB)=%d srclen=%d destype(SQL)=%d destlen=%d nDestSybType=%d\n", __FILE__, __LINE__, srctype, srclen, desttype, destlen, nDestSybType );
         if ( nDestSybType != TDS_FAIL )
         {
             nRetVal = tds_convert(locale, 
@@ -129,14 +128,9 @@ fprintf( stderr, "[PAH][%s][%d] srctype(SYB)=%d srclen=%d destype(SQL)=%d destle
 		nDestSybType, 
 		dest, 
 		destlen);
-            if ( nRetVal == TDS_FAIL )
-fprintf( stderr, "[PAH][%s][%d] %d %d\n", __FILE__, __LINE__, srctype, nDestSybType );
-            else
-fprintf( stderr, "[PAH][%s][%d] %s\n", __FILE__, __LINE__, dest );
             return nRetVal;
         }
         
-fprintf( stderr, "[PAH][%s][%d]\n", __FILE__, __LINE__ );
 	switch(srctype) {
 //		case SYBCHAR:
 //		case SYBVARCHAR:
