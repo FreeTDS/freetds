@@ -1,3 +1,8 @@
+Sun Dec 22 12:32:17 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am configure.in win32/Makefile.am (added):
+	* win32/msvc6/Makefile.am (added):
+	- add win32 project to distribution
+
 Sat Dec 21 15:08:08 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: updated a bit
 

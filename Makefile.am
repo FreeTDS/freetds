@@ -1,5 +1,5 @@
-# version $Id: Makefile.am,v 1.26 2002-11-16 15:21:12 freddy77 Exp $
-SUBDIRS		=	include src doc samples
+# version $Id: Makefile.am,v 1.27 2002-12-22 11:33:06 freddy77 Exp $
+SUBDIRS		=	include src doc samples win32
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \

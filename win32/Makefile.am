@@ -1,0 +1,1 @@
+SUBDIRS	= msvc6
