@@ -91,7 +91,7 @@ Various bug fixes, dbcanquery() and odbc version checks.
 Geoff Winkless <geoff@farmline.com>
 Lost connection stuff
 
-Special thanks to Michael Pepper <mpeppler@peppler.org>, 
+Special thanks to Michael Peppler <mpeppler@peppler.org>, 
 author of the DBD::Sybase Perl module. 
 
 Thanks go to the folks at A2i, Inc. (http://www.a2i.com) for funding the 
