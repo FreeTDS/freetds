@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.45 2004-05-29 17:40:18 freddy77 Exp $s
+# $Id: api_status.txt,v 1.46 2004-05-30 21:12:19 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -226,7 +226,7 @@ dblib	bcp      	bcp_exec			(same)		OK
 dblib	bcp      	n/a				bcp_getl	OK
 dblib	bcp      	bcp_init			(same)		OK
 dblib	bcp      	bcp_moretext			(same)		stub
-dblib	bcp      	n/a				bcp_options	
+dblib	bcp      	n/a				bcp_options	partial
 dblib	bcp      	bcp_readfmt			n/a		OK
 dblib	bcp      	bcp_sendrow			n/a		OK
 dblib	bcp      	BCP_SETL			n/a		OK
@@ -338,7 +338,7 @@ dblib	core     	dbprrow				(same)		OK
 dblib	core     	dbprtype			(same)		OK
 dblib	core     	dbresults			(same)		OK
 dblib	core     	dbrows				DBROWS		OK
-dblib	core     	dbrowtype			DBROWTYPE	stub
+dblib	core     	dbrowtype			DBROWTYPE	OK
 dblib	core     	dbservcharset			(same)		OK
 dblib	core     	dbserverenum			n/a		
 dblib	core     	dbsetavail			(same)		OK
@@ -352,7 +352,7 @@ dblib	core     	dbsetlpwd			DBSETLPWD	OK
 dblib	core     	dbsetlsecure			n/a		
 dblib	core     	dbsetltime			n/a		
 dblib	core     	dbsetluser			DBSETLUSER	OK
-dblib	core     	dbsetlversion			n/a		
+dblib	core     	dbsetlversion			n/a		OK
 dblib	core     	dbsetmaxprocs			(same)		OK
 dblib	core     	dbsetnull			(same)		
 dblib	core     	dbsetopt			(same)		partial
@@ -367,7 +367,7 @@ dblib	core     	dbstrcpy			(same)		OK
 dblib	core     	dbstrlen			(same)		OK
 dblib	core     	dbtds				DBTDS		OK
 dblib	core     	dbuse				(same)		OK
-dblib	core     	dbvarylen			(same)		
+dblib	core     	dbvarylen			(same)		OK
 dblib	core     	dbversion			(same)		OK
 dblib	core     	dbwillconvert			(same)		OK
 dblib	core     	dbwinexit (Windows only)	n/a		
@@ -389,7 +389,7 @@ dblib	datetime 	n/a				dbdateorder
 dblib	datetime 	n/a				dbdatepart	
 dblib	datetime 	n/a				dbdatezero	
 dblib	datetime 	n/a				dbdayname	
-dblib	datetime 	n/a				dbmonthname	
+dblib	datetime 	n/a				dbmonthname	OK
 dblib	procedure	dbhasretstat			(same)		OK
 dblib	procedure	dbnumrets			(same)		OK
 dblib	procedure	dbretdata			(same)		OK
