@@ -1,3 +1,7 @@
+Sun Jul 18 19:27:42 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: small fix
+	* src/tds/login.c: remove SO_LINGER setting
+
 Thu Jul 15 09:17:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c:
 	- fix RPC with no parameters (thanks to Liam Widdowson)

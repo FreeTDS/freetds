@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.22.2.2 2004-07-15 07:25:00 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.22.2.3 2004-07-18 17:27:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -261,7 +261,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 			fprintf(stderr, "out of rpc memory!");
 			return NULL;
 		}
-		new_params = params;
+		params = new_params;
 
 		pcol = params->columns[i];
 
