@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.2 2004-12-14 10:09:04 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.3 2004-12-14 16:14:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 	/* select * from #tmp1 order by c compute sum(i) by c */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command(Statement, "select * from #tmp1 order by c, i compute sum(i) by c");
+	Command(Statement, "select * from #tmp1 order by c, i compute sum(i) by c compute max(i)");
 	CheckFetch("pippo", "12");
 	CheckFetch("pippo", "34");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
@@ -108,6 +108,15 @@ main(int argc, char *argv[])
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	strcpy(col2, "%");
 	CheckFetch("6", "%");
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Still data ??");
+	if (SQLMoreResults(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Still data ??");
+
+	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	strcpy(col2, "&");
+	CheckFetch("34", "&");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
