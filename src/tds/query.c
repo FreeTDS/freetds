@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.56 2002-11-29 16:03:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.57 2002-11-30 08:22:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET *tds, TDSPARAMINFO *info, int flags);
@@ -562,8 +562,28 @@ static volatile int inc_num = 1;
 int
 tds_get_dynid(TDSSOCKET *tds,char **id)
 {
+	unsigned long n;
+	int i;
+	char *p;
+	char c;
+
 	inc_num = (inc_num+1) & 0xffff;
-	if (asprintf(id,"dyn%lx_%d",(long)tds,inc_num)<0) return TDS_FAIL;
+	/* some version of Sybase require length <= 10, so we code id */
+	n = (unsigned long)tds;
+	if (!(p = (char*)malloc(16)))
+		return TDS_FAIL;
+	*id = p;
+	*p++ = 'a' + (n%26u);
+	n /= 26u;
+	for(i = 0; i < 9; ++i) {
+		c = '0' + (n%36u);
+		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
+		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
+		n /= 36u;
+		if (i == 4)
+			n += 3u * inc_num;
+	}
+	*p++ = 0;
 	return TDS_SUCCEED;
 }
 

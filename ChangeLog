@@ -1,3 +1,8 @@
+Sat Nov 30 09:21:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c:
+	- fix dynamic name generation for old Sybase server (like public
+	  one) that require id length <= 10
+
 Fri Nov 29 23:08:00 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/t0004.c: fix fail for security
 	* include/tdsodbc.h: removed unused param fields
