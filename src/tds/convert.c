@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.107 2002-12-10 17:00:55 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.108 2002-12-11 21:44:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1450,12 +1450,14 @@ TDS_INT8 mymoney;
 			break;
 
 		case SYBMONEY:
+			/* TODO check overflow */
 			mymoney = the_value * 10000;
 			memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY));
 			return sizeof(TDS_MONEY);
 			break;
 
 		case SYBMONEY4:
+			/* TODO check overflow */
 			mymoney4 = the_value * 10000;
 			memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
 			return sizeof(TDS_MONEY4);
@@ -1528,10 +1530,12 @@ char      tmp_str[25];
 			break;
 
       case SYBMONEY:
+			/* TODO check overflow */
             cr->m.mny = (TDS_INT8)the_value * 10000.0;
             return sizeof(TDS_MONEY);
             break;
       case SYBMONEY4:
+			/* TODO check overflow */
             cr->m4.mny4 = the_value * 10000.0;
             return sizeof(TDS_MONEY4);
             break;

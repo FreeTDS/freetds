@@ -1,3 +1,6 @@
+Wed Dec 11 22:43:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: add some TODO for overflow check
+
 Wed Dec 11 14:52:32 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* include/cspublic.h src/ctlib/ct.c added framework for ct_options
 
