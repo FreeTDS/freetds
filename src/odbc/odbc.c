@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.262 2003-11-05 17:31:31 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.263 2003-11-06 17:26:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4929,14 +4929,76 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	  SQLSMALLINT cbTableType)
 {
 	int retcode;
+	char *type = NULL;
+
 
 	INIT_HSTMT;
+
+	/* fix type if needed quoting it */
+	if (szTableType) {
+		int len = odbc_get_string_size(cbTableType, szTableType);
+		int to_fix = 0;
+		int elements = 0;
+		char *p = (char *) szTableType;
+		char *const end = p + len;
+
+		for (;;) {
+			char *begin = p;
+
+			p = memchr(p, ',', end - p);
+			if (!p)
+				p = end;
+			++elements;
+			if ((p - begin) < 2 || begin[0] != '\'' || p[-1] != '\'')
+				to_fix = 1;
+			if (p >= end)
+				break;
+			++p;
+		}
+		/* fix it */
+		tdsdump_log(TDS_DBG_INFO1, "len %d to_fix %d elements %d\n", len, to_fix, elements);
+		if (len && to_fix) {
+			char *dst;
+
+			tdsdump_log(TDS_DBG_INFO1, "fixing type elements\n");
+			type = (char *) malloc(len + elements * 2);
+			if (!type) {
+				odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			p = szTableType;
+			dst = type;
+			for (;;) {
+				char *begin = p;
+
+				p = memchr(p, ',', end - p);
+				if (!p)
+					p = end;
+				if ((p - begin) < 2 || begin[0] != '\'' || p[-1] != '\'') {
+					*dst++ = '\'';
+					memcpy(dst, begin, p - begin);
+					dst += p - begin;
+					*dst++ = '\'';
+				} else {
+					memcpy(dst, begin, p - begin);
+					dst += p - begin;
+				}
+				if (p >= end)
+					break;
+				*dst++ = *p++;
+			}
+			cbTableType = dst - type;
+			szTableType = (SQLCHAR *) type;
+		}
+	}
 
 	retcode =
 		odbc_stat_execute(stmt, "sp_tables ", 4,
 				  "@table_name", szTableName, cbTableName,
 				  "@table_owner", szSchemaName, cbSchemaName,
 				  "@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType, cbTableType);
+	if (type)
+		free(type);
 	if (SQL_SUCCEEDED(retcode) && stmt->hdbc->henv->attr.attr_odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");

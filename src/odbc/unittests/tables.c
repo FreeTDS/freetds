@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.3 2003-06-03 06:26:21 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.4 2003-11-06 17:26:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER cnamesize;
@@ -81,6 +81,11 @@ main(int argc, char *argv[])
 	DoTest("", 1);
 	DoTest("'SYSTEM TABLE'", 1);
 	DoTest("'TABLE'", 0);
+	DoTest("SYSTEM TABLE", 1);
+	DoTest("TABLE", 0);
+	DoTest("TABLE,VIEW", 0);
+	DoTest("SYSTEM TABLE,'TABLE'", 1);
+	DoTest("TABLE,'SYSTEM TABLE'", 1);
 
 	Disconnect();
 
