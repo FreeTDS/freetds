@@ -1,8 +1,13 @@
-Sat Sep 27 14:52:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Sun Sep 29 02:42:13 CDT 2002	Steve Langasek <vorlon@netexpress.net>
+	* src/tds/md4.c src/tds/Makefile.am include/md4.h:
+	- include MD4 routines in libtds, so we can begin weaning
+	  ourselves off of OpenSSL
+
+Sat Sep 28 14:52:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c src/tds/token.c:
 	- some fixes to dynamic query
 
-Sat Sep 27 14:37:50 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Sat Sep 28 14:37:50 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* Makefile.am configure.in src/tds/Makefile.am src/tds/challenge.c:
 	* src/tds/tds.dox:
 	- generate documentation with make doxy from main directory
