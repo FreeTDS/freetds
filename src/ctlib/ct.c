@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.70 2003-01-05 14:29:34 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.71 2003-01-12 10:05:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -337,10 +337,16 @@ TDSCONNECTINFO *connect_info;
 	}
 	tds_set_server(con->tds_login, server);
 	ctx = con->ctx;
-	con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512);
+	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
+		return CS_FAIL;
 	tds_set_parent(con->tds_socket, (void *) con);
-	connect_info = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale);
-	if (!connect_info || tds_connect(con->tds_socket, connect_info) == TDS_FAIL) {
+	if (!(connect_info = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale))) {
+		tds_free_socket(con->tds_socket);
+		con->tds_socket = NULL;
+		return CS_FAIL;
+	}
+	if (tds_connect(con->tds_socket, connect_info) == TDS_FAIL) {
+		con->tds_socket = NULL;
 		tds_free_connect(connect_info);
 		if (needfree)
 			free(server);
@@ -787,6 +793,7 @@ ct_close(CS_CONNECTION * con, CS_INT option)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_close()\n");
 	tds_free_socket(con->tds_socket);
+	con->tds_socket = NULL;
 	return CS_SUCCEED;
 }
 

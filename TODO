@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.29 2003-01-10 20:23:15 freddy77 Exp $
+To Do List	$Id: TODO,v 1.30 2003-01-12 10:05:02 freddy77 Exp $
 ------------
 Broken:
 . tds_connect free tds structure on failure. This cause in some condition
@@ -63,6 +63,8 @@ For future versions (in priority order within library):
 . get a solid corpus of unittests for ODBC, and have it become a top tier API.
 . improve, best error report (finish and test, see error.c FIXME and TODO)
 . cursor support
+. how work mssql driver using SQLMoreResults/SQLRowCount and batch like 
+  SELECT INSERT INSERT SELECT ?
 
   pool
 . get connection pooling working with all protocol versions
