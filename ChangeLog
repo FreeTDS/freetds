@@ -1,3 +1,7 @@
+Sat Nov 23 15:41:34 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/rpc.c more attempted mating of dblib rpc to tds layer.
+	* src/dblib/dblib.c fixed a warning, return erc.  
+
 Sat Nov 23 18:10:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/unittests/rpc.c:
 	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
