@@ -1,25 +1,31 @@
 Basic Installation
 ==================
 
----------
+   Note to FreeBSD users - You must use 'gmake' to build this package.
 
-   Until these instructions are more specific, try the following:
+   For complete instructions, see the FreeTDS Users Guide.
+   http://www.freetds.org/userguide/book1.htm
 
-   $ ./configure [--prefix=<install dir>] [--with-tdsver=<tds version>] [--enable-msdblib] [--enable-dbmfix]
-        the default prefix is /usr/local/freetds
+   Or try this:
+
+   $ ./configure [--prefix=<install dir>] [--with-tdsver=<tds version>]
+
+        The default prefix is /usr/local/freetds
         The default TDS version is 5.0, use 4.2 for MS-SQL or Sybase < 10.0
 	Use 7.0 to get support for unicode and large varchars under SQL 
 	Server 7.0 
+
    $ gmake 
    $ gmake install
 
    Now set the SYBASE environment variable to the install directory and then 
 add $SYBASE/lib to your LD_LIBRARY_PATH or LIBPATH depending on your system:
-   for sh/ksh/bash:
 
+   for sh/ksh/bash:
    $ SYBASE=/usr/local/freetds
    $ LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$SYBASE/lib
    $ export SYBASE LD_LIBRARY_PATH
+
    for csh:
    $ setenv SYBASE /usr/local/freetds
    $ setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:$SYBASE/lib
@@ -28,30 +34,34 @@ add $SYBASE/lib to your LD_LIBRARY_PATH or LIBPATH depending on your system:
 
    SetEnv SYBASE /usr/local/freetds
 
-   Edit the $SYBASE/interfaces file to add your servers. If you are not familiar
-with the Sybase interfaces file, copy one of the examples and change the IP 
-address and port number to that of your server.
+   Edit the $SYBASE/interfaces file to add your servers. If you are
+not familiar with the Sybase interfaces file, copy one of the examples
+and change the IP address and port number to that of your server.
 
-   To compile DB-Lib programs link with the libsybdb.a library exactly as you 
-would with the OpenClient(tm) libraries.
+   To compile DB-Lib programs link with the libsybdb.a library exactly
+as you would with the OpenClient(tm) libraries.
 
-   To compile CT-Lib programs link with the libct.a library. Note: This is
-different than OpenClient(tm) libraries, which require several libraries in 
-addition to -lct.  This will probably stay this way as some of the library
-names clash with other libraries (tcl for instance).
+   To compile CT-Lib programs link with the libct.a library. Note:
+This is different than OpenClient(tm) libraries, which require several
+libraries in addition to -lct.  This will probably stay this way as
+some of the library names clash with other libraries (tcl for
+instance).
 
-   The --enable-msdblib flag will force freetds to use the Microsoft style API 
-for dblib (the two diverge in some areas). This is helpful when porting dblib
-code coming from a Windows environment. In general do not use if you are using
-Sybase derived tools to connect to SQL Server (PHP, DBD::Sybase, etc...)
+   The --enable-msdblib flag will force freetds to use the Microsoft
+style API for dblib (the two diverge in some areas). This is helpful
+when porting dblib code coming from a Windows environment. In general
+do not use if you are using Sybase derived tools to connect to SQL
+Server (PHP, DBD::Sybase, etc...)
 
-   The --enable-dbmfix flag will rename dbopen() to tdsdbopen() to allow the 
-dblib library to be linked into the same executable with dbm.  However, this 
-means references to 'dbopen' must be changed in the client application.  Check
-the FreeTDS website (http://www.freetds.org) for patches for PHP 4.
+   The --enable-dbmfix flag will rename dbopen() to tdsdbopen() to
+allow the dblib library to be linked into the same executable with
+dbm.  However, this means references to 'dbopen' must be changed in
+the client application.  Check the FreeTDS website
+(http://www.freetds.org) for patches for PHP 4.
 
 To run the test programs, edit the file "PWD" and run 'make check'.
 Note that some test programs mail may fail even though TDS is fine.
+
   dblib/unittests/t0009 - equality check incorrect?
   dblib/unittests/t0013 - expects arguments
   dblib/unittests/t0014 - expects arguments
