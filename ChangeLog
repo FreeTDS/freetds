@@ -1,3 +1,6 @@
+Fri Jun 25 21:41:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: fix -Bsymbolic option detect
+
 Fri Jun 25 17:42:40 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: fix problem linking in HP-UX and Mac OS X
 
