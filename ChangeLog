@@ -1,3 +1,6 @@
+Tue Jan 28 11:45:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h: add defines for Python
+
 Tue Jan 28 07:57:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/t0007.c: fixed test for TDS4.x and TDS5
 
