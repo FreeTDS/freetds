@@ -1,6 +1,6 @@
 /*
  * This file produced from ./encodings.pl
- * $Id: encodings.h,v 1.1 2003-06-07 18:55:26 freddy77 Exp $
+ * $Id: encodings.h,v 1.2 2003-06-08 09:11:56 freddy77 Exp $
  */
 static const TDS_ENCODING canonic_charsets[] = {
 	{"ISO-8859-1",	1, 1},
@@ -109,7 +109,7 @@ static const TDS_ENCODING canonic_charsets[] = {
 	{"",	0, 0}
 };
 
-static const CHARACTER_SET_ALIAS conv_aliases[] = {
+static const CHARACTER_SET_ALIAS iconv_aliases[] = {
 	{"646",	94},
 	{"850",	24},
 	{"862",	25},
@@ -528,4 +528,3 @@ static const CHARACTER_SET_ALIAS sybase_aliases[] = {
 	{"utf8",	1},
 	{NULL,	0}
 };
-

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.75 2003-06-05 17:14:50 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.76 2003-06-08 09:11:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -59,6 +59,7 @@ static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICO
 static int tds_charset_name_compare(const char *name1, const char *name2);
 static int tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const char *server_name);
 static int tds_iconv_init(void);
+static int tds_canonical_charset(const char *charset_name);
 
 
 /**
@@ -67,20 +68,15 @@ static int tds_iconv_init(void);
  * Convert between different charsets
  */
 
-static const CHARACTER_SET_ALIAS iconv_aliases[] = {
-#include "alternative_character_sets.h"
-	, {NULL, NULL}
-};
 
-static const TDS_ENCODING canonic_charsets[] = {
-#include "character_sets.h"
-};
+#include "encodings.h"
 
 /* this will contain real iconv names */
 static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charsets[0])];
 static int iconv_initialized = 0;
 
-enum { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
+enum
+{ POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
@@ -106,13 +102,13 @@ tds_iconv_init(void)
 	} else {
 
 		/* search names for ISO8859-1 and UTF-8 */
-		for (i = 0; iconv_aliases[i].name; ++i) {
+		for (i = 0; iconv_aliases[i].alias; ++i) {
 			int j;
 
-			if (strcmp(iconv_aliases[i].name, "ISO-8859-1") != 0)
+			if (iconv_aliases[i].canonic != POS_ISO1)
 				continue;
-			for (j = 0; iconv_aliases[j].name; ++j) {
-				if (strcmp(iconv_aliases[j].name, "UTF-8") != 0)
+			for (j = 0; iconv_aliases[j].alias; ++j) {
+				if (iconv_aliases[j].canonic != POS_UTF8)
 					continue;
 
 				cd = iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
@@ -145,11 +141,11 @@ tds_iconv_init(void)
 
 	/* long search needed ?? */
 	if (!iconv_names[POS_UCS2LE] || !iconv_names[POS_UCS2BE]) {
-		for (i = 0; iconv_aliases[i].name; ++i) {
-			if (strncmp(iconv_aliases[i].name, "UCS-2", 5) != 0)
+		for (i = 0; iconv_aliases[i].alias; ++i) {
+			if (strncmp(canonic_charsets[iconv_aliases[i].canonic].name, "UCS-2", 5) != 0)
 				continue;
 
-			cd = iconv_open(iconv_aliases[i].alias, iconv_names[0]);
+			cd = iconv_open(iconv_aliases[i].alias, iconv_names[POS_ISO1]);
 			if (cd != (iconv_t) - 1) {
 				char ib[1];
 				char ob[4];
@@ -172,7 +168,7 @@ tds_iconv_init(void)
 						byte_sequence = 1;
 						/* TODO save somewhere */
 					}
-					
+
 					/* save name without sequence (if present) */
 					if (ob[0])
 						il = POS_UCS2LE;
@@ -189,13 +185,66 @@ tds_iconv_init(void)
 	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE])
 		return 1;
 
-	for (i= 0; i < 4; ++i)
-		tdsdump_log(TDS_DBG_INFO1, "names for %s: %s\n", canonic_charsets[i].name, iconv_names[i] ? iconv_names[i] : "(null)");
+	for (i = 0; i < 4; ++i)
+		tdsdump_log(TDS_DBG_INFO1, "names for %s: %s\n", canonic_charsets[i].name,
+			    iconv_names[i] ? iconv_names[i] : "(null)");
 
 	/* success (it should always occurs) */
 	return 0;
 }
 
+/**
+ * Get iconv name given canonic
+ */
+static void
+tds_get_iconv_name(int charset)
+{
+	int i;
+	iconv_t cd;
+	const char *ucs2name;
+
+	/* get UCS2 name */
+	ucs2name = iconv_names[POS_UCS2BE];
+	if (!ucs2name)
+		ucs2name = iconv_names[POS_UCS2LE];
+
+	/* try using canonic name and UTF-8 and UCS2 */
+	cd = iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
+	if (cd != (iconv_t) - 1) {
+		iconv_names[charset] = canonic_charsets[charset].name;
+		iconv_close(cd);
+		return;
+	}
+	cd = iconv_open(ucs2name, canonic_charsets[charset].name);
+	if (cd != (iconv_t) - 1) {
+		iconv_names[charset] = canonic_charsets[charset].name;
+		iconv_close(cd);
+		return;
+	}
+
+	/* try all alternatives */
+	for (i = 0; iconv_aliases[i].alias; ++i) {
+		if (iconv_aliases[i].canonic != charset)
+			continue;
+
+		cd = iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
+		if (cd != (iconv_t) - 1) {
+			iconv_names[charset] = iconv_aliases[i].alias;
+			iconv_close(cd);
+			return;
+		}
+
+		cd = iconv_open(ucs2name, iconv_aliases[i].alias);
+		if (cd != (iconv_t) - 1) {
+			iconv_names[charset] = iconv_aliases[i].alias;
+			iconv_close(cd);
+			return;
+		}
+	}
+
+	/* charset not found, use memcpy */
+	iconv_names[charset] = "";
+}
 
 /**
  * \addtogroup conv
@@ -292,43 +341,50 @@ tds_iconv_info_init(TDSICONVINFO * iconv_info, const char *client_name, const ch
 	TDS_ENCODING *client = &iconv_info->client_charset;
 	TDS_ENCODING *server = &iconv_info->server_charset;
 
-	const char *server_canonical, *client_canonical;
+	int server_canonical, client_canonical;
 
 	assert(client_name && server_name);
 
-	client_canonical = tds_canonical_charset_name(client_name);
-	server_canonical = tds_canonical_charset_name(server_name);
+	client_canonical = tds_canonical_charset(client_name);
+	server_canonical = tds_canonical_charset(server_name);
 
-	if (!client_canonical) {
+	if (client_canonical < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
-	if (!server_canonical) {
+	if (server_canonical < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" unrecognized\n", client->name);
 		return 0;
 	}
 
-	SAFECPY(client->name, client_canonical);
-	SAFECPY(server->name, server_canonical);
+	*client = canonic_charsets[client_canonical];
+	*server = canonic_charsets[server_canonical];
 
-	if (!bytes_per_char(client)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: client charset name \"%s\" size unknown\n", client->name);
+	/* get iconv names */
+	if (!iconv_names[client_canonical])
+		tds_get_iconv_name(client_canonical);
+	if (!iconv_names[server_canonical])
+		tds_get_iconv_name(server_canonical);
+
+	/* names available ?? */
+	if (!iconv_names[client_canonical][0] || !iconv_names[server_canonical][0]) {
+		iconv_info->to_wire = (iconv_t) - 1;
+		iconv_info->from_wire = (iconv_t) - 1;
+		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: use memcpy to convert \"%s\"->\"%s\"\n", client->name,
+			    server->name);
 		return 0;
 	}
 
-	if (!bytes_per_char(server)) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: server charset name \"%s\" size unknown\n", server->name);
-		return 0;
-	}
+	/* TODO use indirect conversions */
 
-	iconv_info->to_wire = iconv_open(server->name, client->name);
+	iconv_info->to_wire = iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
 	if (iconv_info->to_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 		return 0;
 	}
 
-	iconv_info->from_wire = iconv_open(client->name, server->name);
+	iconv_info->from_wire = iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
 	if (iconv_info->from_wire == (iconv_t) - 1) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 		return 0;
@@ -536,10 +592,9 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 {
 #if HAVE_ICONV
 	int ret;
+	TDSICONVINFO *iconv_info = tds->iconv_info;
 
 	const char *charset = lcid2charset(lcid);
-
-	strcpy(tds->iconv_info->server_charset.name, charset);
 
 	/* 
 	 * Close any previously opened iconv descriptors. 
@@ -550,20 +605,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	if (tds->iconv_info->from_wire != (iconv_t) - 1)
 		iconv_close(tds->iconv_info->from_wire);
 
-	/* TODO test before ? - f77 */
-	/* look up the size of the server's new character set */
-	ret = bytes_per_char(&tds->iconv_info->server_charset);
-	if (!ret) {
-		tdsdump_log(TDS_DBG_FUNC, "%L tds7_srv_charset_changed: cannot convert to \"%s\"\n", charset);
-		tds->iconv_info->to_wire = (iconv_t) - 1;
-		tds->iconv_info->from_wire = (iconv_t) - 1;
-		return;
-	}
-
-
-	tds->iconv_info->to_wire = iconv_open(tds->iconv_info->server_charset.name, tds->iconv_info->client_charset.name);
-
-	tds->iconv_info->from_wire = iconv_open(tds->iconv_info->client_charset.name, tds->iconv_info->server_charset.name);
+	tds_iconv_info_init(iconv_info, iconv_info->client_charset.name, charset);
 #endif
 }
 
@@ -689,26 +731,36 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST ch
 	return l;
 }
 
-static const char *
-lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_name, int reverse)
+static int
+lookup_canonic(const CHARACTER_SET_ALIAS aliases[], const char *charset_name)
 {
 	int i;
 
-	if (!charset_name || *charset_name == '\0')
-		return charset_name;
-
 	for (i = 0; aliases[i].alias; ++i) {
-
-		if (!reverse) {
-			if (0 == strcmp(charset_name, aliases[i].alias))
-				return aliases[i].name;
-		} else {	/* look up first alias for canonical name */
-			if (0 == strcmp(charset_name, aliases[i].name))
-				return aliases[i].alias;
-		}
+		if (0 == strcmp(charset_name, aliases[i].alias))
+			return aliases[i].canonic;
 	}
 
-	return NULL;
+	return -1;
+}
+
+/**
+ * Determine canonical iconv character set.
+ * \returns canonical position, or -1 if lookup failed.
+ * \remarks Returned name can be used in bytes_per_char(), above.
+ */
+static int
+tds_canonical_charset(const char *charset_name)
+{
+	int res;
+
+	/* search in alternative */
+	res = lookup_canonic(iconv_aliases, charset_name);
+	if (res >= 0)
+		return res;
+
+	/* search in sybase */
+	return lookup_canonic(sybase_aliases, charset_name);
 }
 
 /**
@@ -719,15 +771,14 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
 const char *
 tds_canonical_charset_name(const char *charset_name)
 {
-	static const CHARACTER_SET_ALIAS aliases[] = {
-#		include "sybase_character_sets.h"
-	};
+	int res;
 
-	const char *res = lookup_charset_name(iconv_aliases, charset_name, 0);
+	/* get numeric pos */
+	res = tds_canonical_charset(charset_name);
+	if (res >= 0)
+		return canonic_charsets[res].name;
 
-	if (res)
-		return res;
-	return lookup_charset_name(aliases, charset_name, 0);
+	return NULL;
 }
 
 /**
@@ -738,11 +789,19 @@ tds_canonical_charset_name(const char *charset_name)
 const char *
 tds_sybase_charset_name(const char *charset_name)
 {
-	static const CHARACTER_SET_ALIAS aliases[] = {
-#		include "sybase_character_sets.h"
-	};
+	int res, i;
 
-	return lookup_charset_name(aliases, charset_name, 1);
+	/* search in sybase */
+	res = lookup_canonic(iconv_aliases, charset_name);
+	if (res < 0)
+		return NULL;
+
+	for (i = 0; sybase_aliases[i].alias; ++i) {
+		if (sybase_aliases[i].canonic == res)
+			return sybase_aliases[i].alias;
+	}
+
+	return NULL;
 }
 
 /**

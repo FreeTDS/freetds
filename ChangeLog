@@ -1,3 +1,8 @@
+Sun Jun 08 11:11:01 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsiconv.h src/tds/encodings.h src/tds/encodings.pl:
+	* src/tds/iconv.c:
+	- use search iconv names and cache
+
 Sat Jun 07 20:23:51 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/sybase_character_sets.h:
 	* src/tds/sybase_character_sets.h.pl:

@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.14 2003-05-03 19:57:03 jklowden Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.15 2003-06-08 09:11:56 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -41,8 +41,8 @@ typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
 
 typedef struct _character_set_alias
 {
-	const char *name;
 	const char *alias;
+	int canonic;
 } CHARACTER_SET_ALIAS;
 
 /* we use ICONV_CONST for tds_iconv(), even if we don't have iconv() */

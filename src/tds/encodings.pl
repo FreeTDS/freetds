@@ -2,7 +2,7 @@
 
 print "/*\n";
 print " * This file produced from $0\n";
-print ' * $Id: encodings.pl,v 1.1 2003-06-07 18:54:52 freddy77 Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.2 2003-06-08 09:11:56 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();
@@ -63,7 +63,7 @@ print "\t{\"\",\t0, 0}\n";
 print "};\n\n";
 
 # output all alias
-print "static const CHARACTER_SET_ALIAS conv_aliases[] = {\n";
+print "static const CHARACTER_SET_ALIAS iconv_aliases[] = {\n";
 foreach $n (sort keys %alternates)
 {
 	$a = $index{$alternates{$n}};
