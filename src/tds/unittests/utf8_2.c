@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.9 2004-10-15 08:47:54 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.10 2005-03-29 15:19:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -44,7 +44,7 @@ test(int n, int type)
 	TDS_INT row_type;
 	char buf[1024], tmp[1024];
 	TDSCOLUMN *curcol;
-	unsigned char *src;
+	char *src;
 	int done_flags;
 	int i;
 	char prefix[32], suffix[32];
@@ -106,12 +106,12 @@ test(int n, int type)
 	}
 
 	curcol = tds->current_results->columns[0];
-	src = tds->current_results->current_row + curcol->column_offset;
+	src = (char*) tds->current_results->current_row + curcol->column_offset;
 
 	if (is_blob_type(curcol->column_type)) {
 		TDSBLOB *blob = (TDSBLOB *) src;
 
-		src = (unsigned char *) blob->textvalue;
+		src = blob->textvalue;
 	}
 
 	prefix[0] = 0;
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 			g_result = 1;
 			break;
 		}
-		if (eilseq_count < 1 && (char) invalid_char == '?') {
+		if (eilseq_count < 1 && invalid_char == '?') {
 			fprintf(stderr, "No warning returned in %s\n", test_name);
 			g_result = 1;
 		}

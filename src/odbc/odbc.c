@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.360 2005-02-18 12:56:43 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.361 2005-03-29 15:19:34 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1477,7 +1477,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ird = stmt->ird;
 
-#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? (SQLCHAR*)src : (SQLCHAR*)"", -1);
+#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? (char *)src : (char *)"", -1);
 #define SOUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, tds_dstr_cstr(&src), -1);
 
 /* SQLColAttribute returns always attributes using SQLINTEGER */
@@ -1497,7 +1497,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_COLUMN_COUNT:
 #endif
 	case SQL_DESC_COUNT:
-		IOUT(SQLUSMALLINT, ird->header.sql_desc_count);
+		IOUT(SQLSMALLINT, ird->header.sql_desc_count);
 		ODBC_RETURN(stmt, SQL_SUCCESS);
 		break;
 	}
@@ -1517,7 +1517,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
-		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
+		IOUT(SQLUINTEGER, drec->sql_desc_auto_unique_value);
 		break;
 	case SQL_DESC_BASE_COLUMN_NAME:
 		SOUT(drec->sql_desc_base_column_name);
@@ -1574,7 +1574,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		/* FIXME special cases for SQL_COLUMN_LENGTH */
 	case SQL_COLUMN_LENGTH:
 	case SQL_DESC_LENGTH:
-		IOUT(SQLLEN, drec->sql_desc_length);
+		IOUT(SQLULEN, drec->sql_desc_length);
 		break;
 	case SQL_DESC_LITERAL_PREFIX:
 		COUT(drec->sql_desc_literal_prefix);
@@ -1607,7 +1607,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_COLUMN_PRECISION:
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
-			IOUT(SQLUSMALLINT, drec->sql_desc_precision);
+			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
 		break;
@@ -1615,7 +1615,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_COLUMN_SCALE:
 	case SQL_DESC_SCALE:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
-			IOUT(SQLUSMALLINT, drec->sql_desc_scale);
+			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*pfDesc = 0;
 		break;
@@ -1924,7 +1924,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
-		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
+		IOUT(SQLUINTEGER, drec->sql_desc_auto_unique_value);
 		break;
 	case SQL_DESC_BASE_COLUMN_NAME:
 		SOUT(drec->sql_desc_base_column_name);
@@ -1963,7 +1963,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		SOUT(drec->sql_desc_label);
 		break;
 	case SQL_DESC_LENGTH:
-		IOUT(SQLLEN, drec->sql_desc_length);
+		IOUT(SQLULEN, drec->sql_desc_length);
 		break;
 	case SQL_DESC_LITERAL_PREFIX:
 		COUT(drec->sql_desc_literal_prefix);
@@ -2092,7 +2092,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 			ODBC_RETURN(desc, SQL_SUCCESS_WITH_INFO);
 		}
 #endif
-		IIN(SQLLEN, desc->header.sql_desc_array_size);
+		IIN(SQLULEN, desc->header.sql_desc_array_size);
 		ODBC_RETURN_(desc);
 		break;
 	case SQL_DESC_ARRAY_STATUS_PTR:
@@ -2173,7 +2173,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	case SQL_DESC_LENGTH:
 		DESC_SET_NEED_REPREPARE;
-		IIN(SQLLEN, drec->sql_desc_length);
+		IIN(SQLULEN, drec->sql_desc_length);
 		break;
 	case SQL_DESC_LITERAL_PREFIX:
 	case SQL_DESC_LITERAL_SUFFIX:
@@ -5513,7 +5513,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 				odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
-			p = szTableType;
+			p = (char *) szTableType;
 			dst = type;
 			for (;;) {
 				char *begin = p;

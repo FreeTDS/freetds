@@ -3,7 +3,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.10 2004-12-08 20:30:06 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.11 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -31,7 +31,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
 	/* call store procedure */
-	if (SQLExecDirect(Statement, "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
+	if (SQLExecDirect(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to execute store statement");
 
 	/* test results */
@@ -92,7 +92,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* insert data using prepared statements */
 	sprintf(sbuf, "INSERT INTO #tmp_insert VALUES(?)");
-	if (SQLPrepare(Statement, sbuf, SQL_NTS) != SQL_SUCCESS)
+	if (SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLPrepare() failure!");
 
 	out_len = 1;

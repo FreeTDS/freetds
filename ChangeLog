@@ -1,3 +1,14 @@
+Tue Mar 29 17:18:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/blk.c src/dblib/unittests/bcp.c:
+	* src/odbc/odbc.c src/odbc/unittests/genparams.c:
+	* src/odbc/unittests/insert_speed.c src/odbc/unittests/params.c:
+	* src/odbc/unittests/prepare_results.c src/odbc/unittests/preperror.c:
+	* src/odbc/unittests/raiserror.c src/odbc/unittests/t0003.c:
+	* src/odbc/unittests/tables.c src/odbc/unittests/timeout.c:
+	* src/odbc/unittests/transaction.c src/tds/query.c:
+	* src/tds/unittests/utf8_1.c src/tds/unittests/utf8_2.c:
+	- remove some warnings
+
 Tue Mar 29 11:57:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/server/query.c src/ctlib/blk.c:
 	- remove some warnings

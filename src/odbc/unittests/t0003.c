@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.15 2004-03-08 10:33:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.16 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -14,7 +14,7 @@ DoTest(int prepared)
 	if (!prepared) {
 		Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		if (SQLPrepare(Statement, "select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
+		if (SQLPrepare(Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLPrepare return failure");
 		if (SQLExecute(Statement) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLExecure return failure");
@@ -38,7 +38,7 @@ DoTest(int prepared)
 	if (!prepared) {
 		Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		if (SQLPrepare(Statement, "select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
+		if (SQLPrepare(Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLPrepare return failure");
 		if (SQLExecute(Statement) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLExecure return failure");

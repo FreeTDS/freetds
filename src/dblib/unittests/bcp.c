@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.6 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.7 2005-03-29 15:19:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -223,7 +223,7 @@ main(int argc, char **argv)
 	/* set up and send the bcp */
 	sprintf(cmd, "%s..%s", DATABASE, table_name);
 	fprintf(stdout, "preparing to insert into %s ... ", cmd);
-	if (bcp_init(dbproc, cmd, (BYTE *)NULL, (BYTE *)NULL, DB_IN) == FAIL) {
+	if (bcp_init(dbproc, cmd, NULL, NULL, DB_IN) == FAIL) {
 		fprintf(stdout, "failed\n");
     		exit(1);
 	}

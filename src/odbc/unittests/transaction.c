@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.10 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -135,7 +135,7 @@ Test(int discard_test)
 		goto cleanup;
 	}
 
-	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL);
 	if (result != SQL_SUCCESS && result != SQL_SUCCESS_WITH_INFO) {
 		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
 		retcode = 1;

@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.27 2005-03-29 09:57:57 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.28 2005-03-29 15:19:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -1011,7 +1011,7 @@ _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 	}
 
 	if (clause->cb < strlen(clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 2 : 4)) {
-		unsigned char *temp = malloc(2 * clause->cb);
+		char *temp = malloc(2 * clause->cb);
 
 		if (!temp)
 			return CS_FAIL;

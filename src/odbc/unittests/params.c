@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.7 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -26,7 +26,7 @@ Test(int bind_before)
 	SQLSMALLINT ReturnCode = 0;
 	SQLSMALLINT InParam = 5;
 	SQLSMALLINT OutParam = 1;
-	SQLCHAR OutString[OUTSTRING_LEN];
+	char OutString[OUTSTRING_LEN];
 	SQLLEN cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
 	SQLLEN cbOutString = SQL_NTS;
 
@@ -65,7 +65,7 @@ Test(int bind_before)
 	}
 
 	OutString[0] = '\0';
-	strcpy((char *) OutString, "Test");	/* Comment this line and we get an error!  Why? */
+	strcpy(OutString, "Test");	/* Comment this line and we get an error!  Why? */
 	if (SQLBindParameter
 	    (Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 	     &cbOutString) != SQL_SUCCESS) {
@@ -91,7 +91,7 @@ Test(int bind_before)
 	printf("   Return Code = %d\n", (int) ReturnCode);
 	printf("   InParam = %d\n", (int) InParam);
 	printf("   OutParam = %d\n", (int) OutParam);
-	printf("   OutString = %s\n", (char *) OutString);
+	printf("   OutString = %s\n", OutString);
 
 	if (InParam != OutParam) {
 		fprintf(stderr, "InParam != OutParam\n");

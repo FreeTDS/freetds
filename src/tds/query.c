@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.165 2005-03-12 11:47:23 ppeterd Exp $";
+static char software_version[] = "$Id: query.c,v 1.166 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1109,13 +1109,13 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: not null param varint_size = %d\n",
 			    curcol->column_varint_size);
 
+		s = (char *) src;
 		if (is_blob_type(curcol->column_type)) {
 			blob = (TDSBLOB *) src;
-			src = blob->textvalue;
+			s = blob->textvalue;
 		}
 
 		/* convert string if needed */
-		s = src;
 		if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
 #if 0
 			/* TODO this case should be optimized */
@@ -1128,7 +1128,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 #endif
 			/* we need to convert data before */
 			/* TODO this can be a waste of memory... */
-			s = tds_convert_string(tds, curcol->char_conv, src, colsize, &colsize);
+			s = tds_convert_string(tds, curcol->char_conv, s, colsize, &colsize);
 			if (!s) {
 				/* FIXME this is a bad place to return error... */
 				/* TODO on memory failure we should compute comverted size and use chunks */
@@ -2089,7 +2089,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	TDSCOLUMN *curcol = params->columns[n];
 	CONV_RESULT cr;
 	TDS_INT res;
-	TDS_CHAR *src = &params->current_row[curcol->column_offset];
+	TDS_CHAR *src = (TDS_CHAR *) &params->current_row[curcol->column_offset];
 	int src_len = curcol->column_cur_size;
 	
 	int i;

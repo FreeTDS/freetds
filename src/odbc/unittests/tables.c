@@ -1,10 +1,10 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.7 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLLEN cnamesize;
-static SQLCHAR output[256];
+static char output[256];
 
 static void
 ReadCol(int i)
@@ -58,7 +58,7 @@ DoTest(const char *type, int row_returned)
 	}
 
 	printf("Test type '%s' %s row\n", type, row_returned ? "with" : "without");
-	if (!SQL_SUCCEEDED(SQLTables(Statement, NULL, 0, NULL, 0, "syscommentsgarbage", 11, (char *) p, len))) {
+	if (!SQL_SUCCEEDED(SQLTables(Statement, NULL, 0, NULL, 0, (SQLCHAR *)"syscommentsgarbage", 11, (SQLCHAR *) p, len))) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);

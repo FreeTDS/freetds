@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.3 2005-01-09 17:24:42 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.4 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -34,7 +34,7 @@ insert_test_auto(void)
 	}
 
 
-	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, query, SQL_NTS))) {
+	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, (SQLCHAR *) query, SQL_NTS))) {
 		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 		return (-1);
 	}
@@ -87,7 +87,7 @@ insert_test_man(void)
 	}
 
 
-	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, query, SQL_NTS))) {
+	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, (SQLCHAR *) query, SQL_NTS))) {
 		SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) commit_on, SQL_IS_INTEGER);
 		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 		fprintf(stderr, "Unable to prepare statement\n");

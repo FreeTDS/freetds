@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.5 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -17,7 +17,7 @@ main(int argc, char *argv[])
 	Command(Statement, "create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
 
 	/* test query returns column information */
-	if (SQLPrepare(Statement, "select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS) {
+	if (SQLPrepare(Statement, (SQLCHAR *) "select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS) {
 		printf("SQLPrepare return failure\n");
 		exit(1);
 	}
@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLDescribeCol(Statement, 1, name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
+	if (SQLDescribeCol(Statement, 1, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
 		printf("SQLDescribeCol failure for column 1\n");
 		exit(1);
 	}
@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLDescribeCol(Statement, 2, name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
+	if (SQLDescribeCol(Statement, 2, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
 		printf("SQLDescribeCol failure for column 2\n");
 		exit(1);
 	}
@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLDescribeCol(Statement, 3, name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
+	if (SQLDescribeCol(Statement, 3, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable) != SQL_SUCCESS) {
 		printf("SQLDescribeCol failure for column 3\n");
 		exit(1);
 	}

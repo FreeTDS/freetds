@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.5 2005-03-05 10:43:44 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.6 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -27,7 +27,7 @@ TestResult(SQLRETURN result, int level, const char *func)
 {
 	SQLCHAR SqlState[6];
 	SQLINTEGER NativeError;
-	SQLCHAR MessageText[1000];
+	char MessageText[1000];
 	SQLSMALLINT TextLength;
 
 	if ((level <= 10 && result != SQL_SUCCESS_WITH_INFO) || (level > 10 && result != SQL_ERROR) || ReturnCode != 0) {
@@ -39,7 +39,7 @@ TestResult(SQLRETURN result, int level, const char *func)
 	MessageText[0] = 0;
 	NativeError = 0;
 	/* result = SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, Statement, SqlState, &NativeError, MessageText, 1000, &TextLength); */
-	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, MessageText, 1000, &TextLength);
+	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *)MessageText, sizeof(MessageText), &TextLength);
 	printf("Result=%d DIAG REC 1: State=%s Error=%d: %s\n", (int) result, SqlState, (int) NativeError, MessageText);
 	if (!SQL_SUCCEEDED(result)) {
 		fprintf(stderr, "SQLGetDiagRec error!\n");

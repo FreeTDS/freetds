@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.4 2005-02-17 21:27:37 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.5 2005-03-29 15:19:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 	if (ret != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLBindParameter failure");
 
-	if (SQLPrepare(Statement, "update test_timeout set t = 'bad' where n = ?", SQL_NTS) != SQL_SUCCESS)
+	if (SQLPrepare(Statement, (SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLPrepare failure");
 	ret = SQLExecute(Statement);
 	if (ret != SQL_ERROR)
