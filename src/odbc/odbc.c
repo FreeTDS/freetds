@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.236 2003-08-30 13:31:44 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.237 2003-08-30 16:18:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2058,6 +2058,21 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	ODBC_RETURN(desc, result);
 }
 
+SQLRETURN SQL_API
+SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
+{
+	TDS_DESC *target;
+
+	INIT_HDESC;
+
+	if (SQL_NULL_HDESC == htarget || !IS_HDESC(htarget))
+		return SQL_INVALID_HANDLE;
+	target = (TDS_DESC *) htarget;
+	CHECK_DESC_EXTRA(target);
+
+	ODBC_RETURN(desc, desc_copy(target, desc));
+}
+
 /* TODO remove this ugly functions */
 static char *
 odbc_strndup(const char *s, size_t n)
@@ -2502,6 +2517,9 @@ SQLFetch(SQLHSTMT hstmt)
 
 	stmt->row++;
 
+	if (stmt->ird->header.sql_desc_array_status_ptr)
+		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_NOROW;
+
 	switch (tds_process_row_tokens(stmt->hdbc->tds_socket, &rowtype, &computeid)) {
 	case TDS_NO_MORE_ROWS:
 		odbc_populate_ird(stmt);
@@ -2509,6 +2527,8 @@ SQLFetch(SQLHSTMT hstmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 		break;
 	case TDS_FAIL:
+		if (stmt->ird->header.sql_desc_array_status_ptr)
+			stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
 		ODBC_RETURN(stmt, SQL_ERROR);
 		break;
 	}
@@ -2530,6 +2550,8 @@ SQLFetch(SQLHSTMT hstmt)
 				*drec->sql_desc_indicator_ptr = SQL_NULL_DATA;
 			continue;
 		}
+		/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
+		len = 0;
 		if (drec->sql_desc_data_ptr) {
 			src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
 			if (is_blob_type(colinfo->column_type))
@@ -2540,12 +2562,21 @@ SQLFetch(SQLHSTMT hstmt)
 					      src,
 					      srclen, drec->sql_desc_concise_type, drec->sql_desc_data_ptr,
 					      drec->sql_desc_octet_length);
-			if (len < 0)
+			if (len < 0) {
+				if (stmt->ird->header.sql_desc_array_status_ptr)
+					stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_ERROR;
 				ODBC_RETURN(stmt, SQL_ERROR);
+			}
 		}
 		if (drec->sql_desc_octet_length_ptr)
 			*drec->sql_desc_octet_length_ptr = len;
 	}
+	if (stmt->ird->header.sql_desc_rows_processed_ptr) {
+		++(*(stmt->ird->header.sql_desc_rows_processed_ptr));
+		tdsdump_log(TDS_DBG_INFO1, "Got row (%d)\n", (int) *(stmt->ird->header.sql_desc_rows_processed_ptr));
+	}
+	if (stmt->ird->header.sql_desc_array_status_ptr)
+		stmt->ird->header.sql_desc_array_status_ptr[0] = SQL_ROW_SUCCESS;
 	ODBC_RETURN(stmt, SQL_SUCCESS);
 }
 
@@ -3312,7 +3343,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
-		API3_(SQL_API_SQLCOPYDESC);
+		API3X(SQL_API_SQLCOPYDESC);
 		API_X(SQL_API_SQLDESCRIBECOL);
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);
@@ -3404,7 +3435,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
-		API3_(SQL_API_SQLCOPYDESC);
+		API3X(SQL_API_SQLCOPYDESC);
 		API_X(SQL_API_SQLDESCRIBECOL);
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);
@@ -3489,14 +3520,14 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLCANCEL);
 		API3_(SQL_API_SQLCLOSECURSOR);
 		API3X(SQL_API_SQLCOLATTRIBUTE);
-	/* TODO strange... */
+		/* TODO strange... */
 #if SQL_API_SQLCOLATTRIBUTE != SQL_API_SQLCOLATTRIBUTES
 		API_X(SQL_API_SQLCOLATTRIBUTES);
 #endif
 		API_X(SQL_API_SQLCOLUMNPRIVILEGES);
 		API_X(SQL_API_SQLCOLUMNS);
 		API_X(SQL_API_SQLCONNECT);
-		API3_(SQL_API_SQLCOPYDESC);
+		API3X(SQL_API_SQLCOPYDESC);
 		API_X(SQL_API_SQLDESCRIBECOL);
 		API__(SQL_API_SQLDESCRIBEPARAM);
 		API_X(SQL_API_SQLDISCONNECT);

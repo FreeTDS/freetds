@@ -1,4 +1,10 @@
 Sat Aug 30 15:31:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt: updated
+	* include/tdsodbc.h src/odbc/descriptor.c src/odbc/odbc.c:
+	- implemented SQLCopyDesc
+	- applied partially Alex Hornby patch
+
+Sat Aug 30 15:31:28 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c vms/odbc_driver_axp.opt win32/FreeTDS.def:
 	- SQLColAttribute
 

@@ -150,6 +150,47 @@ desc_free_records(TDS_DESC * desc)
 }
 
 SQLRETURN
+desc_copy(TDS_DESC * dest, TDS_DESC * src)
+{
+	int i;
+
+	if (desc_alloc_records(dest, src->header.sql_desc_count) != SQL_SUCCESS)
+		return SQL_ERROR;
+	dest->header.sql_desc_bind_type = src->header.sql_desc_bind_type;
+	dest->header.sql_desc_array_size = src->header.sql_desc_array_size;
+	dest->header.sql_desc_array_status_ptr = src->header.sql_desc_array_status_ptr;
+	dest->header.sql_desc_rows_processed_ptr = src->header.sql_desc_rows_processed_ptr;
+	dest->header.sql_desc_bind_offset_ptr = src->header.sql_desc_bind_offset_ptr;
+	if (!src->header.sql_desc_count)
+		return SQL_SUCCESS;
+
+	for (i = 0; i < src->header.sql_desc_count; ++i) {
+		struct _drecord *src_rec = &src->records[i];
+		struct _drecord *dest_rec = &dest->records[i];
+
+		/* copy all integer in one time ! */
+		desc_free_record(dest_rec);
+		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
+
+		/* copy strings */
+#define CCOPY(name) if (!(dest_rec->name=strdup(src_rec->name))) return SQL_ERROR;
+		CCOPY(sql_desc_base_column_name);
+		CCOPY(sql_desc_base_table_name);
+		CCOPY(sql_desc_catalog_name);
+		CCOPY(sql_desc_label);
+		CCOPY(sql_desc_literal_prefix);
+		CCOPY(sql_desc_literal_suffix);
+		CCOPY(sql_desc_local_type_name);
+		CCOPY(sql_desc_name);
+		CCOPY(sql_desc_schema_name);
+		CCOPY(sql_desc_table_name);
+		CCOPY(sql_desc_type_name);
+#undef CCOPY
+	}
+	return SQL_SUCCESS;
+}
+
+SQLRETURN
 desc_free(TDS_DESC * desc)
 {
 	if (desc) {

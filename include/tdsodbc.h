@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.51 2003-08-29 20:37:47 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.52 2003-08-30 16:18:00 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -296,6 +296,7 @@ typedef struct _hchk TDS_CHK;
 TDS_DESC *desc_alloc(SQLHDESC parent, int desc_type, int alloc_type);
 SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
+SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
 SQLRETURN desc_free_records(TDS_DESC * desc);
 
 #ifdef __cplusplus

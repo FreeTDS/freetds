@@ -13,6 +13,7 @@ EXPORTS
 	SQLColumnPrivileges
 	SQLColumns
 	SQLConnect
+	SQLCopyDesc
 	SQLDescribeCol
 ;	SQLDescribeParam
 	SQLDisconnect

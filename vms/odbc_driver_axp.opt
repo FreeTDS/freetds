@@ -31,6 +31,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLColumnPrivileges=PROCEDURE,-
 		SQLColumns=PROCEDURE,-
 		SQLConnect=PROCEDURE,-
+		SQLCopyDesc=PROCEDURE,-
 		SQLDescribeCol=PROCEDURE,-
 		SQLDisconnect=PROCEDURE,-
 		SQLDriverConnect=PROCEDURE,-
