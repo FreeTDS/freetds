@@ -1,3 +1,9 @@
+Thu Dec 12 11:24:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/des.h src/tds/des.c:
+	- fix compiler with a C++ compiler
+	* src/tds/login.c:
+	- use domain login if user is like 'DOMAIN\user'
+
 Thu Dec 12 11:01:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: fix switches
 

@@ -44,7 +44,7 @@
 #include "des.h"
 
 static char software_version[] =
-	"$Id: des.c,v 1.7 2002-10-14 13:36:54 castellano Exp $";
+	"$Id: des.c,v 1.8 2002-12-12 10:26:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -55,7 +55,7 @@ static void permute_fp(des_cblock inblock, DES_KEY *key, des_cblock outblock);
 static void perminit_ip(DES_KEY *key);
 static void spinit(DES_KEY *key);
 static void perminit_fp(DES_KEY *key);
-static TDS_UINT f(DES_KEY *key, register TDS_UINT r, register char *subkey);
+static TDS_UINT f(DES_KEY *key, register TDS_UINT r, register unsigned char *subkey);
 
 void des_set_odd_parity(des_cblock key) {
 
@@ -286,7 +286,7 @@ int des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 void des_encrypt(DES_KEY * key, des_cblock block)
 {
 	register TDS_UINT left, right;
-	register char *knp;
+	register unsigned char *knp;
 	TDS_UINT work[2];		/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
@@ -351,10 +351,10 @@ void des_encrypt(DES_KEY * key, des_cblock block)
  * image of encryption; exactly the same steps are taken, but in
  * reverse order
  */
-void _mcrypt_decrypt(DES_KEY * key, char *block)
+void _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 {
 	register TDS_UINT left, right;
-	register char *knp;
+	register unsigned char *knp;
 	TDS_UINT work[2];		/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial permutation */
@@ -419,7 +419,7 @@ void _mcrypt_decrypt(DES_KEY * key, char *block)
 static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
 	register unsigned char *ib, *ob;	/* ptr to input or output block */
-	register char *p, *q;
+	register unsigned char *p, *q;
 	register int j;
 
 	/* Clear output block */
@@ -445,8 +445,8 @@ static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 /* Permute inblock with perm */
 static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
-	register char *ib, *ob;	/* ptr to input or output block */
-	register char *p, *q;
+	register unsigned char *ib, *ob;	/* ptr to input or output block */
+	register unsigned char *p, *q;
 	register int j;
 
 	/* Clear output block */
@@ -470,7 +470,7 @@ static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 }
 
 /* The nonlinear function f(r,k), the heart of DES */
-static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register char *subkey)
+static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
 {
 	register TDS_UINT *spp;
 	register TDS_UINT rval, rt;
@@ -612,7 +612,7 @@ static void spinit(DES_KEY * key)
 int des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock output)
 {
 	int j;
-	const unsigned char *plain = plaintext;
+	const unsigned char *plain = (const unsigned char *) plaintext;
 
 	for (j = 0; j < len / 8; j++) {
 		memcpy(&output[j*8], &plain[j*8], 8);
