@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.5 2002-02-17 20:23:37 brianb Exp $";
+         "$Id: cspublic.h,v 1.6 2002-06-26 01:44:27 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -501,6 +501,7 @@ enum {
 #define CS_BOUNDARY_TYPE	24
 #define CS_VOID_TYPE	25
 #define CS_USHORT_TYPE	26
+#define CS_UNIQUE_TYPE	27
 
 /* cs_dt_info type values */
 enum {

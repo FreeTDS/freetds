@@ -23,8 +23,9 @@
 #include "tdsconvert.h"
 #include <time.h>
 #include <assert.h>
+#include <errno.h>
 
-static char  software_version[]   = "$Id: convert.c,v 1.15 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.16 2002-06-26 01:44:27 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -40,6 +41,7 @@ typedef union dbany {
 	TDS_DATETIME	dt;
 	TDS_DATETIME4	dt4;
 	TDS_NUMERIC	n;
+    TDS_UNIQUE  u;
 } DBANY; 
 
 struct diglist {
@@ -240,7 +242,8 @@ tds_convert_char(int srctype,TDS_CHAR *src, TDS_UINT srclen,
 	int desttype,TDS_CHAR *dest,TDS_INT destlen)
 {
 DBANY any;
-int    ret;
+int   ret;
+int   i;
 
    
    switch(desttype) {
@@ -263,7 +266,7 @@ int    ret;
          any.si = atoi(src);
          break;
       case SYBINT4:
-         any.i = atol(src);
+         any.i = atoi(src);
          break;
       case SYBFLT8:
          any.f = atof(src);
@@ -280,10 +283,12 @@ int    ret;
       case SYBMONEY4:
          break;
       case SYBDATETIME:
-		string_to_datetime(src, SYBDATETIME, &any);
+		if (!string_to_datetime(src, SYBDATETIME, &any))
+           return TDS_FAIL;
 		break;
       case SYBDATETIME4:
-		string_to_datetime(src, SYBDATETIME4, &any);
+		if (!string_to_datetime(src, SYBDATETIME4, &any))
+           return TDS_FAIL;
 		break;
       case SYBNUMERIC:
       case SYBDECIMAL:
@@ -832,6 +837,34 @@ TDS_FLOAT the_value;
    }
    return TDS_FAIL;
 }
+tds_convert_unique(int srctype,TDS_CHAR *src, TDS_INT srclen,
+	int desttype,TDS_CHAR *dest,TDS_INT destlen)
+{
+
+TDS_UCHAR buf[16];
+DBANY any;
+
+    memcpy(buf, src, 16);
+
+	switch(desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+            any.c = malloc(37);
+			sprintf(any.c,"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+                    buf[0], buf[1], buf[2], buf[3],
+                    buf[4], buf[5],
+                    buf[6], buf[7],
+                    buf[8], buf[9],
+                    buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
+			break;
+		case SYBUNIQUE:
+            memcpy (&(any.u), src, sizeof(TDS_UNIQUE));
+			break;
+		default:
+			return TDS_FAIL;
+	}
+	return tds_convert_any(dest, desttype, destlen, &any);
+}
 
 TDS_INT 
 tds_convert_any(unsigned char *dest, TDS_INT dtype, TDS_INT dlen, DBANY *any)
@@ -918,7 +951,12 @@ int ret = TDS_FAIL;
 		case SYBSENSITIVITY:
 			break;
 */
+		case SYBUNIQUE:
+			memcpy(dest,&(any->u), sizeof(TDS_UNIQUE));
+			ret = sizeof(TDS_UNIQUE);
+			break;
 	}
+	tdsdump_log(TDS_DBG_INFO1, "%L tds_convert_any returning %d\n", ret);
 	return (ret);
 }
 
@@ -997,6 +1035,10 @@ TDS_VARBINARY *varbin;
 			break;
 		case SYBNTEXT:
 			return tds_convert_ntext(srctype,src,srclen,
+				desttype,dest,destlen);
+			break;
+		case SYBUNIQUE:
+			return tds_convert_unique(srctype,src,srclen,
 				desttype,dest,destlen);
 			break;
 		default:

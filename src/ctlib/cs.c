@@ -21,7 +21,7 @@
 #include <cspublic.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.6 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.7 2002-06-26 01:44:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -67,6 +67,9 @@ unsigned char *dest;
 	len = tds_convert(ctx->locale, src_type, srcdata, 
 		srcfmt ? srcfmt->maxlength : 0, desttype, dest, 
 		destlen);
+
+    tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert srctype = %d desttype = %d destlen = %d, len = %d format = %d\n",
+                src_type, desttype, destlen, len, destfmt->format);
 
      switch (destfmt->format) {
             case CS_FMT_NULLTERM:

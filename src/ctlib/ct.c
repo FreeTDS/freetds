@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.16 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.17 2002-06-26 01:44:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -629,7 +629,8 @@ CS_RETCODE ct_con_drop(CS_CONNECTION *con)
 
 int _ct_get_client_type(int datatype, int size)
 {
-   tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_get_client_type()\n");
+   tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_get_client_type(type %d, size %d)\n",
+                             datatype, size);
    switch (datatype) {
          case SYBBIT:
          case SYBBITN:
@@ -721,11 +722,14 @@ int _ct_get_client_type(int datatype, int size)
          case SYBTEXT:
       		return CS_TEXT_TYPE;
 		break;
+         case SYBUNIQUE:
+      		return CS_UNIQUE_TYPE;
+		break;
    }
 }
 int _ct_get_server_type(int datatype)
 {
-   tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_get_server_type()\n");
+   tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_get_server_type(%d)\n", datatype);
    switch (datatype) {
       case CS_IMAGE_TYPE:
 	 return SYBIMAGE;
@@ -777,6 +781,9 @@ int _ct_get_server_type(int datatype)
 	 break;
       case CS_TEXT_TYPE:
          return SYBTEXT;
+	 break;
+      case CS_UNIQUE_TYPE:
+         return SYBUNIQUE;
 	 break;
       default:
          return -1;

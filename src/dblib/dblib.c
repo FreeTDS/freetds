@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.17 2002-06-10 02:23:26 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.18 2002-06-26 01:44:26 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -378,7 +378,7 @@ RETCODE dbinit()
 	g_tds_context->locale = tds_get_locale(g_tds_context->locale);
 	if( g_tds_context->locale && !g_tds_context->locale->date_fmt ) {
 		/* set default in case there's no locale file */
-		g_tds_context->locale->date_fmt = "%b %d %Y %I:%M%p"; 
+		g_tds_context->locale->date_fmt = "%b %e %Y %l:%M:%S:%z%p"; 
 	}
 
 	return SUCCEED;
