@@ -40,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.72 2002-09-30 16:38:56 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.73 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1950,7 +1950,7 @@ RETCODE dbsetopt(DBPROCESS *dbproc, int option, char *char_param, int int_param)
 }
 
 void
-dbsetinterrupt(DBPROCESS *dbproc, int (*ckintr)(),int (*hndlintr)())
+dbsetinterrupt(DBPROCESS *dbproc, DB_DBCHKINTR_FUNC ckintr, DB_DBHNDLINTR_FUNC hndlintr)
 {
 	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetinterrupt()\n");
 }

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.61 2002-09-30 15:48:43 castellano Exp $";
+	 "$Id: tds.h.in,v 1.62 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -652,18 +652,18 @@ char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
 char *tds_get_ntstring(TDSSOCKET *tds, char *dest, int n);
 TDSRESULTINFO *tds_alloc_results(int num_cols);
 TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
-TDSCONTEXT *tds_alloc_context();
+TDSCONTEXT *tds_alloc_context(void);
 void tds_free_context(TDSCONTEXT *locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
 TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
-TDSLOCINFO *tds_get_locale();
+TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
 char *tds_msg_get_proc_name(TDSSOCKET *tds);
-TDSLOGIN *tds_alloc_login();
+TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id);
 void tds_free_login(TDSLOGIN *login);
 TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
-TDSLOCINFO *tds_alloc_locale();
+TDSLOCINFO *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCINFO *locale);
 int tds_connect(TDSSOCKET *tds, TDSLOGIN *login);
 TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
@@ -712,6 +712,9 @@ int tds_version(TDSSOCKET *tds_socket, char *pversion_string);
 
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param);
+void tds_free_input_params(TDSDYNAMIC *dyn);
+void tds_free_dynamic(TDSSOCKET *tds);
+TDSSOCKET *tds_realloc_socket(int bufsize);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge);
@@ -720,11 +723,16 @@ int tds7_send_auth(TDSSOCKET *tds, unsigned char *challenge);
 int tds_submit_prepare(TDSSOCKET *tds, char *query, char *id);
 int tds_submit_execute(TDSSOCKET *tds, char *id);
 int tds_send_cancel(TDSSOCKET *tds);
+const char *tds_next_placeholders(const char *start);
+int tds_get_dynid(TDSSOCKET *tds, char **id);
+int tds_submit_unprepare(TDSSOCKET *tds, char *id);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET *tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
+int tds_process_column_row(TDSSOCKET *tds);
+int tds_is_fixed_token(int marker);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);
@@ -738,6 +746,10 @@ int tds_get_size_by_type(int servertype);
 
 /* vstrbuild.c */
 int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, char *formats, int formatlen, va_list ap);
+
+/* numeric.c */
+char *tds_money_to_string(TDS_MONEY *money, char *s);
+char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
 
 typedef struct tds_answer
 {

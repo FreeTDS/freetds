@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 static char  rcsid_dblib_h [ ] =
-         "$Id: dblib.h,v 1.7 2002-09-30 16:36:12 castellano Exp $";
+         "$Id: dblib.h,v 1.8 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 
 
@@ -38,6 +38,7 @@ static void *no_unused_dblib_h_warn[]={rcsid_dblib_h, no_unused_dblib_h_warn};
 int dblib_handle_info_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
 int dblib_handle_err_message(TDSCONTEXT *ctxptr, TDSSOCKET *tdsptr, TDSMSGINFO *msgptr);
 int _dblib_client_msg(DBPROCESS *dbproc, int dberr, int severity, char *dberrstr);
+void dblib_setTDS_version(TDSLOGIN *tds_login, DBINT version);
 
 DBINT _convert_char(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
 DBINT _convert_intn(int srctype,BYTE *src,int destype,BYTE *dest,DBINT destlen);
@@ -47,6 +48,7 @@ RETCODE _bcp_get_term_data(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, BYTE *colda
 RETCODE _bcp_get_term_var(BYTE *dataptr, BYTE *term, int term_len, BYTE *coldata);
 RETCODE _bcp_get_prog_data(DBPROCESS *dbproc);
 int _bcp_readfmt_colinfo(DBPROCESS *dbproc, char *buf, BCP_HOSTCOLINFO *ci);
+RETCODE _bcp_read_hostfile(DBPROCESS *dbproc, FILE *hostfile);
 
 extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;

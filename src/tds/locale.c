@@ -51,14 +51,14 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: locale.c,v 1.5 2002-09-27 03:09:54 castellano Exp $";
+static char  software_version[]   = "$Id: locale.c,v 1.6 2002-10-01 15:43:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 static int tds_read_locale_section(FILE *in, char *section, TDSLOCINFO *config);
 
-TDSLOCINFO *tds_get_locale()
+TDSLOCINFO *tds_get_locale(void)
 {
 TDSLOCINFO *locale;
 char *s;

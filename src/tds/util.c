@@ -52,7 +52,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.17 2002-09-27 03:09:55 castellano Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.18 2002-10-01 15:43:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -134,7 +134,8 @@ int iversion = 0;
  *
  * ===========================================================================
  */
-void tdsdump_off()
+void
+tdsdump_off(void)
 {
    write_dump = 0;
 } /* tdsdump_off()  */
@@ -149,7 +150,8 @@ void tdsdump_off()
  *
  * ===========================================================================
  */
-void tdsdump_on()
+void
+tdsdump_on(void)
 {
 	write_dump = 1;
 } /* tdsdump_on()  */
@@ -194,7 +196,7 @@ int   result;   /* really should be a boolean, not an int */
    return result;
 } /* tdsdump_open()  */
 
-int tdsdump_append()
+int tdsdump_append(void)
 {
 int result;
 
@@ -225,7 +227,8 @@ int result;
  *
  * ===========================================================================
  */
-void tdsdump_close()
+void
+tdsdump_close(void)
 {
    tdsdump_off();
    if (dumpfile!=NULL && dumpfile != stdout && dumpfile != stderr)

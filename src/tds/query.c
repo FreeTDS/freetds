@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.22 2002-10-01 00:53:51 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.23 2002-10-01 15:43:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -290,7 +290,6 @@ TDSDYNAMIC *dyn;
 TDSINPUTPARAM *param;
 int elem, id_len;
 int i;
-int one = 1;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute() %s\n",id);
 

@@ -21,7 +21,7 @@
 #define _bkpublic_h_
 
 static char  rcsid_bkpublic_h [ ] =
-         "$Id: bkpublic.h,v 1.1 2001-10-12 23:28:56 brianb Exp $";
+         "$Id: bkpublic.h,v 1.2 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_bkpublic_h_warn[]={rcsid_bkpublic_h, no_unused_bkpublic_h_warn};
 
 /* seperate this stuff out later */
@@ -34,6 +34,14 @@ extern "C" {
 
 /* buld properties start with 1 i guess */
 #define BLK_IDENTITY 1
+
+CS_RETCODE blk_init(CS_BLKDESC *blkdesc, CS_INT direction, CS_CHAR *tablename, CS_INT tnamelen);
+CS_RETCODE blk_alloc(CS_CONNECTION *conn, CS_INT version, CS_BLKDESC **blkptr);
+CS_RETCODE blk_props(CS_BLKDESC *blkdesc, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
+CS_RETCODE blk_done(CS_BLKDESC *blkdesc, CS_INT type, CS_INT *outrow);
+CS_RETCODE blk_bind(CS_BLKDESC *blkdesc, CS_INT colnum, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT *datalen, CS_SMALLINT *indicator);
+CS_RETCODE blk_rowxfer(CS_BLKDESC *blkdesc);
+CS_RETCODE blk_drop(CS_BLKDESC *blkdesc);
 
 #ifdef __cplusplus
 }

@@ -37,9 +37,13 @@ extern "C" {
 
 
 static char  rcsid_tdsutil_h [ ] =
-"$Id: tdsutil.h,v 1.11 2002-09-30 16:03:02 castellano Exp $";
+"$Id: tdsutil.h,v 1.12 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_tdsutil_h_warn[]={rcsid_tdsutil_h, no_unused_tdsutil_h_warn};
 
+void tds_set_parent(TDSSOCKET *tds, void *the_parent);
+void *tds_get_parent(TDSSOCKET *tds);
+void tds_ctx_set_parent(TDSCONTEXT *ctx, void *the_parent);
+void *tds_ctx_get_parent(TDSCONTEXT *ctx);
 
 TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds);
 unsigned char tds_get_byte(TDSSOCKET *tds);
@@ -56,12 +60,12 @@ int tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, int dsize, int ssize);
 void tds_free_compute_results(TDSCOMPUTEINFO *comp_info);
 
 int  tdsdump_open(const char *filename);
-void tdsdump_off();
-void tdsdump_on();
-void tdsdump_close();
+void tdsdump_off(void);
+void tdsdump_on(void);
+void tdsdump_close(void);
+int tdsdump_append(void);
 void tdsdump_log(int dbg_lvl, const char *fmt, ...);
 void tdsdump_dump_buf(const void *buf, int length);
-		      
 
 int  tds_is_result_row(TDSSOCKET *tds);
 int  tds_is_result_set(TDSSOCKET *tds);
@@ -77,7 +81,6 @@ TDS_INT tds_get_int(TDSSOCKET *tds);
 
 int tds_close_socket(TDSSOCKET *tds);
 int tds_swap_bytes(unsigned char *buf, int bytes);
-void tds_ctx_set_parent(TDSCONTEXT *ctx, void *the_parent);
 
 #ifdef __cplusplus
 #if 0

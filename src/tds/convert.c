@@ -32,15 +32,13 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.85 2002-09-30 15:48:44 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.86 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 typedef unsigned short utf16_t;
 
 static TDS_INT tds_convert_int1(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
-extern char *tds_numeric_to_string(TDS_NUMERIC *numeric, char *s);
-extern char *tds_money_to_string(TDS_MONEY *money, char *s);
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
 /**
  * convert a number in string to a TDSNUMERIC

@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.28 2002-09-28 17:21:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.29 2002-10-01 15:43:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -360,7 +360,7 @@ void tds_free_column(TDSCOLINFO *column)
 	if (column->column_textvalue) TDS_ZERO_FREE(column->column_textvalue);
 	TDS_ZERO_FREE(column);
 }
-TDSCONTEXT *tds_alloc_context()
+TDSCONTEXT *tds_alloc_context(void)
 {
 TDSCONTEXT *context;
 
@@ -376,7 +376,7 @@ void tds_free_context(TDSCONTEXT *context)
 	if (context->locale) tds_free_locale(context->locale);
 	TDS_ZERO_FREE(context);
 }
-TDSLOCINFO *tds_alloc_locale()
+TDSLOCINFO *tds_alloc_locale(void)
 {
 TDSLOCINFO *locale;
 
@@ -430,7 +430,7 @@ Cleanup:
 	tds_free_config(config);
 	return NULL;
 }
-TDSLOGIN *tds_alloc_login()
+TDSLOGIN *tds_alloc_login(void)
 {
 TDSLOGIN *tds_login;
 static const unsigned char defaultcaps[] = {0x01,0x07,0x03,109,127,0xFF,0xFF,0xFF,0xFE,0x02,0x07,0x00,0x00,0x0A,104,0x00,0x00,0x00};

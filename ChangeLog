@@ -1,3 +1,11 @@
+Tue Oct  1 11:38:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/bkpublic.h include/cspublic.h include/ctpublic.h
+	  include/dblib.h include/sybdb.h include/tds.h.in include/tdssrv.h
+	  include/tdsutil.h src/dblib/dblib.c src/server/login.c
+	  src/server/query.c src/tds/convert.c src/tds/locale.c src/tds/mem.c
+	  src/tds/query.c src/tds/util.c:
+	- Correct existing prototypes, add missing prototypes.
+
 Mon Sep 30 20:50:26 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/query.c:
 	- Revert to revision 1.20 (undo earlier cleanup of statically

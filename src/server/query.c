@@ -20,17 +20,17 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
 #include "tds.h"
 #include "tdsutil.h"
-#include <unistd.h>
+#include "tdssrv.h"
 
-static char  software_version[]   = "$Id: query.c,v 1.4 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.5 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-
-
-char *tds_get_query(TDSSOCKET *tds) 
+char *
+tds_get_query(TDSSOCKET *tds) 
 {
 static unsigned char query[BUFSIZ];
 int len;

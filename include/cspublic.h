@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.13 2002-09-28 00:33:31 castellano Exp $";
+         "$Id: cspublic.h,v 1.14 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -576,6 +576,11 @@ CS_RETCODE cs_ctx_global(CS_INT version, CS_CONTEXT **ctx);
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx);
 CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
 CS_RETCODE cs_strbuild(CS_CONTEXT *ctx, CS_CHAR *buffer, CS_INT buflen, CS_INT *resultlen, CS_CHAR *text, CS_INT textlen, CS_CHAR *formats, CS_INT formatlen, ...);
+CS_RETCODE cs_dt_crack(CS_CONTEXT *ctx, CS_INT datetype, CS_VOID *dateval, CS_DATEREC *daterec);
+CS_RETCODE cs_loc_alloc(CS_CONTEXT *ctx, CS_LOCALE **locptr);
+CS_RETCODE cs_loc_drop(CS_CONTEXT *ctx, CS_LOCALE *locale);
+CS_RETCODE cs_locale(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
+CS_RETCODE cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_INT item, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
 
 #ifdef __cplusplus
 }

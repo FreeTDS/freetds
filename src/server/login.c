@@ -26,11 +26,9 @@
 #include "tdsutil.h"
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: login.c,v 1.10 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.11 2002-10-01 15:43:15 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
-
-int tds_read_string(TDSSOCKET *tds, char *dest, int size);
 
 unsigned char *
 tds7_decrypt_pass (const unsigned char *crypt_pass, int len,unsigned char *clear_pass) 
