@@ -8,12 +8,13 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.18 2002-12-02 13:39:11 freddy77 Exp $
+To Do List	$Id: TODO,v 1.19 2002-12-04 21:48:39 castellano Exp $
 ------------
 Broken:
+. Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken.
+
 For 0.61 version:
-. thorough rototilling of the code for cleanliness, I would like it to 
-  build with (at least) -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror
+
 For future versions:
 . numeric conversions (optimize).
 . move error message macro/prototype to tds.h.in; use in dblib.c.
