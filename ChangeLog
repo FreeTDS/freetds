@@ -1,3 +1,8 @@
+Sat Aug 23 12:55:38 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - SQLGetInfo (fixed and commented)
+
 Mon Aug 18 20:42:37 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: small DATE fix
 
