@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-08-06 03:46:14 $</date>
-		<releaseinfo>$Revision: 1.62 $</releaseinfo>
+		<date>$Date: 2003-08-06 06:15:37 $</date>
+		<releaseinfo>$Revision: 1.63 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.62 $</>
-<member>$Date: 2003-08-06 03:46:14 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.62 2003-08-06 03:46:14 jklowden Exp $.</>
+<member>$Revision: 1.63 $</>
+<member>$Date: 2003-08-06 06:15:37 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.63 2003-08-06 06:15:37 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -1451,7 +1451,7 @@ Reason: Not associated with a trusted SQL Server connection.
 The telltale sign being <literal>user '(null)'</>.  
 			</para>
 			<para>
-If you suspect a problem along these lines, you could ask your friendly system administrator to check the following registry setting:
+If you suspect a problem along these lines, you could ask your friendly system administrator to check the following setting:
 
 <programlisting>
 Computer Configuration
