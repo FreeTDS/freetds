@@ -52,12 +52,15 @@ cp openjade doxygen
 # gawk it's used by txt2man
 cp openjade gawk
 cp openjade autoheader
-chmod +x openjade doxygen gawk autoheader
+# perl is used by some perl rules
+cp openjade perl
+chmod +x openjade doxygen gawk autoheader perl
 cd ..
 if ! openjade --help; then true; else echo 'succedeed ?'; false; fi
 if ! doxygen --help; then true; else echo 'succeeded ?'; false; fi
 if ! gawk --help; then true; else echo 'succeeded ?'; false; fi
 if ! autoheader --help; then true; else echo 'succeeded ?'; false; fi
+if ! perl --help; then true; else echo 'succeeded ?'; false; fi
 echo "fakebin ok" >> "$LOG"
 
 # direct make install (without make all)
