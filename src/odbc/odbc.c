@@ -34,7 +34,7 @@
 
 #include "connectparams.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.5 2001-11-26 00:17:37 vorlon Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.6 2001-11-30 23:51:43 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -169,7 +169,7 @@ SQLRETURN SQL_API SQLDriverConnect(
 
       if (!(server = GetConnectParam (params, "Servername")))
       {
-	 LogError ("Could not find Database parameter");
+	 LogError ("Could not find Servername parameter");
 	 return SQL_ERROR;
       }
       else if (!(uid = GetConnectParam (params, "UID")))
@@ -543,7 +543,7 @@ SQLRETURN SQL_API SQLConnect(
    }
    else if (!(server = GetConnectParam (params, "Servername")))
    {
-      LogError ("Could not find Database parameter");
+      LogError ("Could not find Servername parameter");
       return SQL_ERROR;
    }
    if (!szUID || !strlen(szUID)) {
@@ -1143,6 +1143,17 @@ SQLRETURN SQL_API SQLGetFunctions(
     SQLUSMALLINT       fFunction,
     SQLUSMALLINT FAR  *pfExists)
 {
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: fFunction is %d\n", fFunction);
+	switch (fFunction) {
+		case SQL_API_ODBC3_ALL_FUNCTIONS:
+			*pfExists = SQL_FALSE;
+			return SQL_SUCCESS;
+			break;
+		default:
+			*pfExists = SQL_TRUE;
+			return SQL_SUCCESS;
+			break;
+	}
 	return SQL_SUCCESS;
 }
 
