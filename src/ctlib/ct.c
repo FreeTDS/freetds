@@ -23,7 +23,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.4 2001-10-26 11:16:26 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.5 2001-10-30 19:07:35 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -413,6 +413,17 @@ int ret;
 			}
 			return CS_SUCCEED;
 		case TDS_NO_MORE_RESULTS:
+			if (! tds->res_info) {
+				if (cmd->empty_res_hack) {
+					cmd->empty_res_hack=0;
+					*result_type = CS_CMD_DONE;
+					return CS_SUCCEED;
+				} else {
+					cmd->empty_res_hack=1;
+					*result_type = CS_CMD_SUCCEED;
+					return CS_SUCCEED;
+				}
+			}	
 			if (tds->res_info && !tds->res_info->rows_exist) {
 				if (cmd->empty_res_hack) {
 					cmd->empty_res_hack=0;
@@ -846,7 +857,11 @@ CS_INT int_val;
 	}
 	switch(type) {
 		case CS_NUMDATA:
-			int_val = resinfo->num_cols;
+			if (!resinfo) {
+				int_val = 0;
+			} else {
+				int_val = resinfo->num_cols;
+			}
 			memcpy(buffer, &int_val, sizeof(CS_INT));
 			break;
 		case CS_ROW_COUNT:

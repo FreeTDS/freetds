@@ -1,3 +1,8 @@
+Tue Oct 30 14:04:57 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/ctlib/ct.c(ct_results): Add special handling of querys with no 
+	result sets (set rowcount/set textsize).
+
 Tue Oct 30 13:23:27 2001  James Cameron  <quozl@us.netrek.org>
 
 	* include/Makefile.am (maintainer-clean-local): clean up after

@@ -82,7 +82,7 @@ smallint = @smallint@
 include_HEADERS = cspublic.h ctpublic.h sybdb.h sybfront.h          			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h 			ctlib.h sqldb.h sqlfront.h                        			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h
 
 
-EXTRA_DIST = tds_configs.h.in
+EXTRA_DIST = tds_configs.h.in tds_configs.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  tdsver.h tds.h
@@ -255,7 +255,8 @@ distclean-am:  distclean-hdr distclean-tags distclean-generic clean-am
 distclean: distclean-am
 
 maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-tags \
-		maintainer-clean-generic distclean-am
+		maintainer-clean-generic distclean-am \
+		maintainer-clean-local
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -281,6 +282,9 @@ tds_configs.h: tds_configs.h.in Makefile
 		-e 's;%SYSCONFDIR%;$(sysconfdir);' \
 		tds_configs.h.in >> $@; \
 	chmod 444 $@
+
+maintainer-clean-local:
+	$(RM) tds_configs.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

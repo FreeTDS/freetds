@@ -1,4 +1,4 @@
-/* Generated from tds_configs.h.in on Mon Oct 29 19:33:06 EST 2001 */
+/* Generated from tds_configs.h.in on Mon Oct 29 21:25:22 EST 2001 */
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
  *
@@ -22,7 +22,7 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h,v 1.8 2001-10-30 00:38:24 brianb Exp $";
+	 "$Id: tds_configs.h,v 1.9 2001-10-30 19:07:35 brianb Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus
