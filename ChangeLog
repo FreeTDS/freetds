@@ -1,3 +1,10 @@
+Thu Nov  7 12:10:39 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/dblib.c:
+	- Bug fix:  Don't stop dbresults after TDS_CMD_DONE result
+	  from tds_process_result_tokens().
+	- Bug fix:  Trap out-of-range column numbers in dbbind().
+	  Trap attempt to bind with no results, instead of crashing.
+
 Thu Nov  7 10:49:46 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/odbc/odbc.c:
 	- If we aren't freetds_conf_less, retain the network port

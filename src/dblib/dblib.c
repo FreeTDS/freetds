@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.98 2002-11-06 16:45:17 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.99 2002-11-07 17:13:07 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -965,11 +965,11 @@ int        done;
         case  TDS_ROW_RESULT        :
    	          retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
         case  TDS_PARAM_RESULT      :
-        case  TDS_CMD_DONE          :
         case  TDS_CMD_FAIL          :
               done = 1;
               break;
 
+        case  TDS_CMD_DONE          :
         case  TDS_COMPUTEFMT_RESULT :
         case  TDS_MSG_RESULT        :
         case  TDS_ROWFMT_RESULT     :
@@ -1556,6 +1556,7 @@ RETCODE dbbind(
    int            srctype = -1;   
    int            desttype = -1;   
    int            okay    = TRUE; /* so far, so good */
+   TDS_SMALLINT	  num_cols = 0;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L dbbind() column = %d %d %d\n",column, vartype, varlen);
 	dbproc->avail_flag = FALSE;
@@ -1574,8 +1575,15 @@ RETCODE dbbind(
 		tds = (TDSSOCKET *) dbproc->tds_socket;
 		resinfo = tds->res_info;
 	}
-   
-	okay = okay && ((column >= 1) && (column <= resinfo->num_cols));
+ 
+	if (resinfo) {
+		num_cols = resinfo->num_cols;
+	} 
+	okay = okay && ((column >= 1) && (column <= num_cols));
+	if (!okay) {
+		_dblib_client_msg(dbproc, SYBEABNC, EXPROGRAM, "Attempt to bind to a non-existent column.");
+		return FAIL;
+	}
 
 	if (okay) {
 		colinfo  = resinfo->columns[column-1];
