@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.29 2003-12-22 10:03:17 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.30 2003-12-22 16:06:06 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -23,10 +23,10 @@ freebcp.1: freebcp.txt
 tsql.1: tsql.txt
 	- $(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >tsql.1
 
-nobase_dist_data_DATA	= $(DOCDIR)/userguide/* $(DOCDIR)/reference/*
+nobase_dist_data_DATA	= $(DOCDIR)/userguide/index.htm $(DOCDIR)/userguide/* $(DOCDIR)/reference/index.html $(DOCDIR)/reference/*
 
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
-$(DOCDIR)/userguide/*: $(DOCDIR)/userguide/index.htm
+$(DOCDIR)/userguide/*:
 
 $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl
 	test -e doc || mkdir doc
@@ -49,7 +49,7 @@ userguide.dsl: $(srcdir)/userguide.dsl.in
 	mv .userguide.dsl userguide.dsl
 	
 # below is a trick to be sure reference is up-to-date
-$(DOCDIR)/reference/*: $(DOCDIR)/reference/index.html
+$(DOCDIR)/reference/*:
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	cd .. && $(MAKE) doxy
