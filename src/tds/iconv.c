@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.43 2003-03-29 18:58:48 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.44 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -69,7 +69,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 #if HAVE_ICONV
 	iconv_info->bytes_per_char = 1;
 	strncpy(iconv_info->client_charset, strdup(charset), sizeof(iconv_info->client_charset));
-	iconv_info->client_charset[sizeof(iconv_info->client_charset)-1] = '\0';
+	iconv_info->client_charset[sizeof(iconv_info->client_charset) - 1] = '\0';
 	tdsdump_log(TDS_DBG_FUNC, "iconv will convert client-side data to the \"%s\" character set\n", charset);
 	iconv_info->cdto_ucs2 = iconv_open("UCS-2LE", charset);
 	if (iconv_info->cdto_ucs2 == (iconv_t) - 1) {
@@ -97,7 +97,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 void
 tds_iconv_close(TDSSOCKET * tds)
 {
-TDSICONVINFO *iconv_info;
+	TDSICONVINFO *iconv_info;
 
 	iconv_info = (TDSICONVINFO *) tds->iconv_info;
 
@@ -139,7 +139,7 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
-	/* case 0x81a: */ /* seem wrong in XP table TODO check */
+/* case 0x81a: *//* seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
 		cp = "CP1250";
 		break;
@@ -295,15 +295,15 @@ tds7_srv_charset_changed(TDSSOCKET * tds, int lcid)
 	}
 
 	tmp_cd = iconv_open(cp, iconv_info->client_charset);
-	if (tmp_cd != (iconv_t) -1) {
-		if (iconv_info->cdto_srv != (iconv_t) -1)
+	if (tmp_cd != (iconv_t) - 1) {
+		if (iconv_info->cdto_srv != (iconv_t) - 1)
 			iconv_close(iconv_info->cdto_srv);
 		iconv_info->cdto_srv = tmp_cd;
 	}
 
 	tmp_cd = iconv_open(iconv_info->client_charset, cp);
-	if (tmp_cd != (iconv_t) -1) {
-		if (iconv_info->cdfrom_srv != (iconv_t) -1)
+	if (tmp_cd != (iconv_t) - 1) {
+		if (iconv_info->cdfrom_srv != (iconv_t) - 1)
 			iconv_close(iconv_info->cdfrom_srv);
 		iconv_info->cdfrom_srv = tmp_cd;
 	}

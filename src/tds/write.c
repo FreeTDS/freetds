@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.32 2003-02-13 21:25:13 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.33 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -138,6 +138,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 {
 #if WORDS_BIGENDIAN
 	TDS_UINT h;
+
 	if (tds->emul_little_endian) {
 		h = (TDS_UINT) i;
 		tds_put_byte(tds, h & 0x000000FF);
@@ -220,10 +221,10 @@ tds_init_write_buf(TDSSOCKET * tds)
 static int
 tds_check_socket_write(TDSSOCKET * tds)
 {
-int retcode = 0;
-struct timeval selecttimeout;
-time_t start, now;
-fd_set fds;
+	int retcode = 0;
+	struct timeval selecttimeout;
+	time_t start, now;
+	fd_set fds;
 
 	/* Jeffs hack *** START OF NEW CODE */
 	FD_ZERO(&fds);
@@ -265,10 +266,10 @@ fd_set fds;
 static int
 goodwrite(TDSSOCKET * tds)
 {
-int left;
-unsigned char *p;
-int result = TDS_SUCCEED;
-int retval;
+	int left;
+	unsigned char *p;
+	int result = TDS_SUCCEED;
+	int retval;
 
 	left = tds->out_pos;
 	p = tds->out_buf;
@@ -342,7 +343,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 int
 tds_flush_packet(TDSSOCKET * tds)
 {
-int result = TDS_FAIL;
+	int result = TDS_FAIL;
 
 	/* GW added check for tds->s */
 	if (!IS_TDSDEAD(tds)) {

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.77 2003-03-25 04:31:25 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.78 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -297,7 +297,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 	/* allocate a structure for this thing */
 	if (!id) {
-	char *tmp_id = NULL;
+		char *tmp_id = NULL;
 
 		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
 			return TDS_FAIL;
@@ -528,7 +528,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 			/* put real data */
 			if (is_numeric_type(curcol->column_type)) {
-	TDS_NUMERIC buf;
+				TDS_NUMERIC buf;
 
 				num = (TDS_NUMERIC *) src;
 				memcpy(&buf, num, sizeof(buf));
@@ -541,7 +541,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_n(tds, blob_info->textvalue, colsize);
 			} else {
 #ifdef WORDS_BIGENDIAN
-	unsigned char buf[64];
+				unsigned char buf[64];
 
 				if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
 					tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
@@ -593,7 +593,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
-	TDS_NUMERIC buf;
+			TDS_NUMERIC buf;
 
 			num = (TDS_NUMERIC *) src;
 			if (IS_TDS7_PLUS(tds)) {
@@ -608,7 +608,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_put_n(tds, blob_info->textvalue, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
-	unsigned char buf[64];
+			unsigned char buf[64];
 
 			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "%L swapping coltype %d\n",
@@ -633,10 +633,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 int
 tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
-TDSCOLINFO *param;
-TDSPARAMINFO *info;
-int id_len;
-int i;
+	TDSCOLINFO *param;
+	TDSPARAMINFO *info;
+	int id_len;
+	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_execute()\n");
 
@@ -765,7 +765,7 @@ tds_get_dynid(TDSSOCKET * tds, char **id)
 int
 tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
-int id_len;
+	int id_len;
 
 	if (!dyn)
 		return TDS_FAIL;

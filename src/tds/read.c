@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.40 2003-03-29 18:58:48 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.41 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -94,7 +94,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 		/* FIXME return even if not finished read if timeout */
 		while ((buflen > 0) && ((now - start) < tds->timeout)) {
-	int timeleft = tds->timeout;
+			int timeleft = tds->timeout;
 
 			len = 0;
 			retcode = 0;
@@ -155,7 +155,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 unsigned char
 tds_get_byte(TDSSOCKET * tds)
 {
-int rc;
+	int rc;
 
 	if (tds->in_pos >= tds->in_len) {
 		do {
@@ -182,7 +182,7 @@ tds_unget_byte(TDSSOCKET * tds)
 unsigned char
 tds_peek(TDSSOCKET * tds)
 {
-unsigned char result = tds_get_byte(tds);
+	unsigned char result = tds_get_byte(tds);
 
 	tds_unget_byte(tds);
 	return result;
@@ -195,7 +195,7 @@ unsigned char result = tds_get_byte(tds);
 TDS_SMALLINT
 tds_get_smallint(TDSSOCKET * tds)
 {
-unsigned char bytes[2];
+	unsigned char bytes[2];
 
 	tds_get_n(tds, bytes, 2);
 #if WORDS_BIGENDIAN
@@ -213,7 +213,7 @@ unsigned char bytes[2];
 TDS_INT
 tds_get_int(TDSSOCKET * tds)
 {
-unsigned char bytes[4];
+	unsigned char bytes[4];
 
 	tds_get_n(tds, bytes, 4);
 #if WORDS_BIGENDIAN
@@ -368,9 +368,9 @@ tds_get_size_by_type(int servertype)
 int
 tds_read_packet(TDSSOCKET * tds)
 {
-unsigned char header[8];
-int len;
-int x = 0, have, need;
+	unsigned char header[8];
+	int len;
+	int x = 0, have, need;
 
 
 	/* Read in the packet header.  We use this to figure out our packet 
@@ -425,7 +425,7 @@ int x = 0, have, need;
 	/* If this packet size is the largest we have gotten allocate 
 	 * space for it */
 	if (len > tds->in_buf_max) {
-unsigned char *p;
+		unsigned char *p;
 
 		if (!tds->in_buf) {
 			p = (unsigned char *) malloc(len);

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.70 2003-03-26 16:20:49 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.71 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -115,11 +115,11 @@ static char *interf_file = NULL;
 TDSCONNECTINFO *
 tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 {
-TDSCONNECTINFO *connect_info;
-char *s;
-char *path;
-pid_t pid;
-int opened = 0;
+	TDSCONNECTINFO *connect_info;
+	char *s;
+	char *path;
+	pid_t pid;
+	int opened = 0;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connect_info = tds_alloc_connect(locale);
@@ -540,7 +540,7 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 static void
 tds_config_env_dsquery(TDSCONNECTINFO * connect_info)
 {
-char *s;
+	char *s;
 
 	if ((s = getenv("TDSQUERY"))) {
 		if (s && strlen(s)) {
@@ -559,9 +559,9 @@ char *s;
 static void
 tds_config_env_tdsdump(TDSCONNECTINFO * connect_info)
 {
-char *s;
-char *path;
-pid_t pid = 0;
+	char *s;
+	char *path;
+	pid_t pid = 0;
 
 	if ((s = getenv("TDSDUMP"))) {
 		if (!strlen(s)) {
@@ -577,7 +577,7 @@ pid_t pid = 0;
 static void
 tds_config_env_tdsport(TDSCONNECTINFO * connect_info)
 {
-char *s;
+	char *s;
 
 	if ((s = getenv("TDSPORT"))) {
 		connect_info->port = atoi(s);
@@ -588,7 +588,7 @@ char *s;
 static void
 tds_config_env_tdsver(TDSCONNECTINFO * connect_info)
 {
-char *tdsver;
+	char *tdsver;
 
 	if ((tdsver = getenv("TDSVER"))) {
 		tds_config_verstr(tdsver, connect_info);
@@ -602,8 +602,8 @@ char *tdsver;
 static void
 tds_config_env_tdshost(TDSCONNECTINFO * connect_info)
 {
-char *tdshost;
-char tmp[256];
+	char *tdshost;
+	char tmp[256];
 
 	if ((tdshost = getenv("TDSHOST"))) {
 		tds_lookup_host(tdshost, NULL, tmp, NULL);
@@ -706,8 +706,8 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 #ifndef NOREVERSELOOKUPS
 /* froy@singleentry.com 12/21/2000 */
 	if (host == NULL) {
-	char addr[4];
-	int a0, a1, a2, a3;
+		char addr[4];
+		int a0, a1, a2, a3;
 
 		sscanf(servername, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
 		addr[0] = a0;
@@ -725,7 +725,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 		else
 			ip[0] = '\0';
 	} else {
-	struct in_addr *ptr = (struct in_addr *) host->h_addr;
+		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
 		strncpy(ip, inet_ntoa(*ptr), 17);
 	}
@@ -928,7 +928,7 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 	 * * if we haven't found the server yet then look for a $HOME/.interfaces file
 	 */
 	if (ip_addr[0] == '\0') {
-	char *path = tds_get_home_file(".interfaces");
+		char *path = tds_get_home_file(".interfaces");
 
 		if (path) {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s.\n", path);
@@ -941,7 +941,7 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 	 * * if we haven't found the server yet then look in $SYBBASE/interfaces file
 	 */
 	if (ip_addr[0] == '\0') {
-	char *sybase = getenv("SYBASE");
+		char *sybase = getenv("SYBASE");
 
 		if (sybase != NULL && sybase[0] != '\0') {
 			tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
@@ -957,7 +957,7 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 	 * * typed an actual server name.
 	 */
 	if (ip_addr[0] == '\0') {
-	const char *tmp_port, *env_port;
+		const char *tmp_port, *env_port;
 
 		/*
 		 * * Make a guess about the port number
@@ -993,7 +993,7 @@ get_server_info(const char *server,	/* (I) logical or physical server name      
 static int
 parse_server_name_for_port(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 {
-char *pSep, *pEnd;
+	char *pSep, *pEnd;
 
 	if (!login->server_name)
 		return 0;	/* FALSE */
@@ -1014,7 +1014,7 @@ char *pSep, *pEnd;
 
 		/* connect_info->ip_addr needed */
 		{
-char tmp[256];
+			char tmp[256];
 
 			tds_lookup_host(connect_info->server_name, NULL, tmp, NULL);
 			tds_dstr_copy(&connect_info->ip_addr, tmp);
@@ -1030,57 +1030,57 @@ char tmp[256];
  * Return a structure capturing the compile-time settings provided to the
  * configure script.  
  */
- 
-const TDS_COMPILETIME_SETTINGS* tds_get_compiletime_settings(void)
+
+const TDS_COMPILETIME_SETTINGS *
+tds_get_compiletime_settings(void)
 {
 	static TDS_COMPILETIME_SETTINGS settings = {
-		  TDS_VERSION_NO
-		, "unknown"	/* need fancy script in makefile */
+		TDS_VERSION_NO, "unknown"	/* need fancy script in makefile */
 #		ifdef MSDBLIB
-		, 1
+			, 1
 #		else
-		, 0
+			, 0
 #		endif
-		, -1 /* unknown: sybase_compat only a makefile setting, so far. */
+			, -1	/* unknown: sybase_compat only a makefile setting, so far. */
 #		ifdef THREAD_SAFE
-		, 1
+			, 1
 #		else
-		, 0
+			, 0
 #		endif
 #		ifdef HAVE_ICONV
-		, 1
+			, 1
 #		else
-		, 0
+			, 0
 #		endif
 #		ifdef TDS42
-		, "4.2"
+			, "4.2"
 #		endif
 #		ifdef TDS46
-		, "4.6"
+			, "4.6"
 #		endif
 #		ifdef TDS50
-		, "5.0"
+			, "5.0"
 #		endif
 #		ifdef TDS70
-		, "7.0"
+			, "7.0"
 #		endif
 #		ifdef TDS80
-		, "8.0"
+			, "8.0"
 #		endif
 #		ifdef IODBC
-		, 1
+			, 1
 #		else
-		, 0
+			, 0
 #		endif
 #		ifdef UNIXODBC
-		, 1
+			, 1
 #		else
-		, 0
+			, 0
 #		endif
-		};
-			
+	};
+
 	assert(settings.tdsver);
-	
+
 	return &settings;
 }
 

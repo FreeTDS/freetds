@@ -31,7 +31,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.18 2003-03-05 09:46:35 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.19 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -251,7 +251,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 
 	unsigned int packet[sizeof(numeric->array) / 2];
 	unsigned int *pnum, *packet_start;
-	unsigned int * const packet_end = packet + TDS_VECTOR_SIZE(packet);
+	unsigned int *const packet_end = packet + TDS_VECTOR_SIZE(packet);
 
 	unsigned int packet10k[(MAXPRECISION + 3) / 4];
 	unsigned int *p;

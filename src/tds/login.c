@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.87 2003-03-24 23:08:21 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.88 2003-03-30 07:59:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -282,8 +282,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	if (!retval)
 		version[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr),
-		    ntohs(sin.sin_port), version);
+	tdsdump_log(TDS_DBG_INFO1, "%L Connecting to %s port %d, TDS %s.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), version);
 	if ((tds->s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket");
 		tds_free_socket(tds);
@@ -353,7 +352,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	if (connect_info->text_size || (!db_selected && !tds_dstr_isempty(&connect_info->database))) {
 		len = 64 + tds_quote_id(tds, NULL, connect_info->database);
-		str = (char*) malloc(len);
+		str = (char *) malloc(len);
 		str[0] = 0;
 		if (connect_info->text_size) {
 			sprintf(str, "set textsize %d ", connect_info->text_size);
@@ -413,6 +412,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	 */
 	static const unsigned char magic5[] = { 0x00, 0x00 };
 	static const unsigned char magic6[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 	/* this is a flag, mean that server should use character set provided by client */
 	static const unsigned char magic7 = 0x01;
 
@@ -649,8 +649,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		/* the 0x80 in the third byte controls whether this is a domain login 
 		 * or not  0x80 = yes, 0x00 = no */
 		0x0, 0xe0, 0x83, 0x0,	/* Connection ID of the Primary Server (?) */
-		0x0,			/* Option Flags 1 */
-		0x68,			/* Option Flags 2 */
+		0x0,		/* Option Flags 1 */
+		0x68,		/* Option Flags 2 */
 		0x01,
 		0x00,
 		0x00, 0x09, 0x04, 0x00,
@@ -659,10 +659,10 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	static const unsigned char magic1_server[] = { 6, 0x83, 0xf2, 0xf8,	/* Client Program version */
 		0xff, 0x0, 0x0, 0x0,	/* Client PID */
 		0x0, 0xe0, 0x03, 0x0,	/* Connection ID of the Primary Server (?) */
-		0x0,			/* Option Flags 1 */
-		0x88,			/* Option Flags 2 */
-		0xff,			/* Type Flags     */
-		0xff,			/* reserved Flags */
+		0x0,		/* Option Flags 1 */
+		0x88,		/* Option Flags 2 */
+		0xff,		/* Type Flags     */
+		0xff,		/* reserved Flags */
 		0xff, 0x36, 0x04, 0x00,
 		0x00
 	};
