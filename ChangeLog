@@ -1,3 +1,7 @@
+Mon Oct 21 21:39:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: 
+	- fix compilation problem on SonOS (from Bill patch)
+
 Sun Oct 20 01:22:46 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/tds.h src/dblib/dblib.c src/tds/token.c:
 	- Implement dbspid().

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.29 2002-10-14 15:41:04 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.30 2002-10-21 19:40:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -167,6 +167,7 @@ tds_next_placeholders(const char* start)
 		case '?':
 			if (!quote) return p;
 		default:
+			break;
 		}
 	}
 	return NULL;
