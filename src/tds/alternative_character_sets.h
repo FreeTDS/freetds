@@ -27,7 +27,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 #if 0
-static char software_version[] = "$Id: alternative_character_sets.h,v 1.4 2003-05-13 08:33:57 freddy77 Exp $";
+static char software_version[] = "$Id: alternative_character_sets.h,v 1.5 2003-05-13 16:17:26 jklowden Exp $";
 /*
 To regenerate this file, do:
 $ perl -x alternative_character_sets.h >/tmp/alternative_character_sets.h \
@@ -176,7 +176,6 @@ __END__
 	, {           "HEBREW", "ISO_8859-8"             }
 	, {           "HEBREW", "ISO_8859-8:1988"        }
 	, {           "HEBREW", "CSISOLATINHEBREW"       }
-	, {       "ISO-8859-7", "ISO-8859-7"             }
 	, {       "ISO-8859-9", "ISO-8859-9"             }
 	, {       "ISO-8859-9", "ISO-IR-148"             }
 	, {       "ISO-8859-9", "ISO_8859-9"             }
