@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# This script test that Makefiles are able to produre a good 
+# distribution
+#
+# It create a test-dist.log file in the mail directory, you
+# can tail this file to see the progress
+
 # stop on errors
 set -e
 
