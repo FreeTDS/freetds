@@ -21,10 +21,12 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	"$Id: tds_configs.h,v 1.15 2002-10-17 20:45:43 freddy77 Exp $";
+	"$Id: tds_configs.h,v 1.16 2002-10-18 17:27:46 castellano Exp $";
 static void *no_unused_tds_configs_h_warn[] = {
 	rcsid_tds_configs_h,
 	no_unused_tds_configs_h_warn};
+
+#include "freetds_sysconfdir.h"
 
 #ifdef __cplusplus
 extern "C" {

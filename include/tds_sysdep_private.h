@@ -21,12 +21,10 @@
 #define _tds_sysdep_private_h_
 
 static char rcsid_tds_sysdep_private_h[]=
-	"$Id: tds_sysdep_private.h,v 1.1 2002-10-18 17:20:12 castellano Exp $";
+	"$Id: tds_sysdep_private.h,v 1.2 2002-10-18 17:27:46 castellano Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = {
 	rcsid_tds_sysdep_private_h,
 	no_unused_tds_sysdep_private_h_warn};
-
-#include "freetds_sysconfdir.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +41,6 @@ extern "C" {
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
-#define FREETDS_SYSCONFDIR	"c:\\windows\\system32\\drivers\\etc\\"
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef READSOCKET
