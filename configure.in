@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.107 2003-10-07 20:07:06 freddy77 Exp $
+dnl $Id: configure.in,v 1.108 2003-10-08 19:24:29 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -88,7 +88,7 @@ dnl Checks for header files.
 dnl ------------------------------------------------------------
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_CHECK_HEADERS(errno.h sys/time.h malloc.h sys/types.h sys/socket.h)
+AC_CHECK_HEADERS(errno.h wchar.h sys/time.h malloc.h sys/types.h sys/socket.h)
 AC_CHECK_HEADERS(arpa/inet.h netdb.h netinet/in.h langinfo.h paths.h)
 AC_CHECK_HEADERS(sys/ioctl.h libgen.h sys/param.h locale.h odbcss.h)
 AC_CHECK_HEADERS(sys/select.h)
@@ -356,7 +356,7 @@ AC_SUBST(LTLIBOBJS)
 
 # enable some warning for gcc
 if test "$ac_compiler_gnu" = "yes" ; then
-	CPPFLAGS="$CPPFLAGS -Wall -Wstrict-prototypes -Wmissing-prototypes -ansi -Wno-long-long"
+	CPPFLAGS="$CPPFLAGS -Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long"
 fi
 
 AC_MSG_RESULT(done)

@@ -1,3 +1,11 @@
+Wed Oct 08 21:23:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in:
+	- test for wchar.h (some systems define EILSEQ here)
+	- remove -ansi flag (enabling some required definitions)
+	* include/tdsiconv.h: define EILSEQ if not like GNU-iconv
+	* src/tds/read.c src/tds/token.c src/tds/write.c:
+	- explicitly threat tds->iconv_info like an array
+
 Tue Oct 07 22:05:48 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: avoid wrong dependency under Linux
 	* freetds.spec.in doc/Makefile.am: fixes for RH9

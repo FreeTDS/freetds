@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.46 2003-07-24 09:38:32 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.47 2003-10-08 19:24:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -123,8 +123,8 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	unsigned int inbytesleft, outbytesleft, bytes_out = 0;
 	int max_iconv_input;
 
-	client = &tds->iconv_info->client_charset;
-	server = &tds->iconv_info->server_charset;
+	client = &tds->iconv_info[client2ucs2].client_charset;
+	server = &tds->iconv_info[client2ucs2].server_charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
@@ -158,7 +158,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
-		if (-1 == tds_iconv(tds, tds->iconv_info, to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))
+		if (-1 == tds_iconv(tds, &tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))
 			break;
 		len += inbytesleft;
 		bytes_out += poutbuf - outbuf;

@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.64 2003-09-28 23:26:15 ppeterd Exp $";
+static char software_version[] = "$Id: read.c,v 1.65 2003-10-08 19:24:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -273,7 +273,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, int dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->iconv_info, to_client, &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, &tds->iconv_info[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= string_len);
@@ -347,7 +347,8 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, tds->iconv_info, to_client, &wire_size, &dest, &in_left);
+		curcol->column_cur_size =
+			read_and_convert(tds, &tds->iconv_info[client2ucs2], to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			return TDS_FAIL;
 		}
@@ -608,7 +609,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 
 		/* convert chunk, write to dest */
 		ptemp = temp;
-		if (-1 == tds_iconv(tds, tds->iconv_info, to_client, &ptemp, &templeft, outbuf, outbytesleft)) {
+		if (-1 == tds_iconv(tds, &tds->iconv_info[client2ucs2], to_client, &ptemp, &templeft, outbuf, outbytesleft)) {
 			/* FIXME do not use errno, thread problems */
 			if (errno != EINVAL)
 				break;

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.217 2003-10-05 16:47:18 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.218 2003-10-08 19:24:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3099,9 +3099,9 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 	/* FIXME: and sybase ?? and single char to utf8 ??? */
 	if (is_unicode_type(curcol->on_server.column_type)) {
 		curcol->on_server.column_size = curcol->column_size;
-		curcol->column_size = determine_adjusted_size(tds->iconv_info, curcol->column_size);
+		curcol->column_size = determine_adjusted_size(&tds->iconv_info[client2ucs2], curcol->column_size);
 
-		curcol->iconv_info = tds->iconv_info;
+		curcol->iconv_info = &tds->iconv_info[client2ucs2];
 	}
 }
 

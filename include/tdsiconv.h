@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.22 2003-09-17 07:31:14 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.23 2003-10-08 19:24:30 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -29,15 +29,23 @@ static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_i
 /* Define iconv_t for src/replacements/iconv.c. */
 #undef iconv_t
 typedef void *iconv_t;
+#endif /* HAVE_ICONV */
+
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#if HAVE_WCHAR_H
+#include <wchar.h>
+#endif
 
 /* The following EILSEQ advice is borrowed verbatim from GNU iconv.  */
 /* Some systems, like SunOS 4, don't have EILSEQ. Some systems, like BSD/OS,
    have EILSEQ in a different header.  On these systems, define EILSEQ
    ourselves. */
 #ifndef EILSEQ
-# define EILSEQ
+# define EILSEQ ENOENT
 #endif
-#endif /* HAVE_ICONV */
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
