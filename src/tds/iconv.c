@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.101 2003-12-23 21:14:19 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.102 2003-12-28 17:53:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -799,7 +799,7 @@ end_loop:
 	case EINVAL:		/* incomplete multibyte sequence is encountered */
 		if (suppress->einval)
 			break;
-		/* FIXME in chunk conversion this can mean we end a chunk inside a character */
+		/* in chunk conversion this can mean we end a chunk inside a character */
 		tds_client_msg(tds->tds_ctx, tds, 2401, 16, *inbytesleft, 0,
 			       "iconv EINVAL: Error converting between character sets. "
 			       "Conversion abandoned at offset indicated by the \"state\" value of this message.");

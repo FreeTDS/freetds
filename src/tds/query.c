@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.123 2003-12-07 13:20:20 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.124 2003-12-28 17:53:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1606,24 +1606,31 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
 int
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 {
-	int need_quote;
+	int i;
 
 	if (idlen < 0)
 		idlen = strlen(id);
 
 	/* need quote ?? */
-	/* FIXME strcspn require terminated string, buffer reading overflow */
-	need_quote = (strcspn(id, "\"\' ()[]{}") < idlen);
-
-	if (!need_quote) {
-		if (buffer) {
-			memcpy(buffer, id, idlen);
-			buffer[idlen] = '\0';
+	for (i = 0; i < idlen; ++i)
+		switch(id[i]) {
+		case '\"':
+		case '\'':
+		case ' ':
+		case '(':
+		case ')':
+		case '[':
+		case ']':
+		case '{':
+		case '}':
+			return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, idlen);
 		}
-		return idlen;
-	}
 
-	return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, idlen);
+	if (buffer) {
+		memcpy(buffer, id, idlen);
+		buffer[idlen] = '\0';
+	}
+	return idlen;
 }
 
 /**

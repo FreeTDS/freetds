@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.241 2003-12-18 20:05:48 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.242 2003-12-28 17:53:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -3351,7 +3351,6 @@ _tds_token_name(unsigned char marker)
 static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
-	/* FIXME: and sybase ?? and single char to utf8 ??? */
 	if (is_unicode_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2ucs2];
 
@@ -3364,6 +3363,7 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 		curcol->iconv_info = tds->iconv_info[client2ucs2];
 	}
 
+	/* FIXME: and sybase ?? */
 	if (!curcol->iconv_info && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
 		curcol->iconv_info = tds->iconv_info[client2server_chardata];
 
