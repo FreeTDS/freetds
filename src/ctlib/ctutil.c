@@ -25,13 +25,13 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "ctlib.h"
 #include "cspublic.h"
+#include "ctlib.h"
 #include "tds.h"
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.16 2003-04-03 09:06:50 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.17 2003-12-19 23:25:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* error handler */

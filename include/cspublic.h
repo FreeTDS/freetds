@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.45 2003-12-19 10:29:24 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.46 2003-12-19 23:25:59 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -43,12 +43,15 @@ typedef TDS_SMALLINT CS_SMALLINT;
 typedef TDS_TINYINT CS_TINYINT;
 typedef TDS_CHAR CS_CHAR;
 typedef TDS_UCHAR CS_BYTE;
+/* XX defined */
 typedef TDS_NUMERIC CS_NUMERIC;
 typedef float CS_REAL;
 typedef double CS_FLOAT;
 typedef char CS_BOOL;
 typedef void CS_VOID;
+/* XX defined, error, int instead of short... */
 typedef TDS_VARBINARY CS_VARBINARY;
+/* XX defined */
 typedef TDS_NUMERIC CS_DECIMAL;
 typedef TDS_UCHAR CS_IMAGE;
 typedef TDS_UCHAR CS_TEXT;
@@ -69,7 +72,7 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
 #define CS_NUMBER(x)   ((x) & 0xFF)
 
-#define CS_OBJ_NAME 132		/* ? */
+#define CS_OBJ_NAME 400		/* full name length */
 #define CS_TP_SIZE  16		/* text pointer */
 #define CS_TS_SIZE  8		/* length of timestamp */
 
@@ -79,10 +82,10 @@ typedef struct cs_config
 } CS_CONFIG;
 
 /* forward declarations */
-typedef struct cs_context CS_CONTEXT;
+typedef struct _cs_context CS_CONTEXT;
 typedef struct cs_clientmsg CS_CLIENTMSG;
 typedef struct cs_connection CS_CONNECTION;
-typedef struct cs_servermsg CS_SERVERMSG;
+typedef struct _cs_servermsg CS_SERVERMSG;
 typedef CS_RETCODE(*CS_CSLIBMSG_FUNC) (CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
@@ -146,35 +149,6 @@ struct cs_diag_msg
 	struct cs_diag_msg *next;
 };
 
-struct cs_context
-{
-	CS_INT date_convert_fmt;
-	CS_INT cs_errhandletype;
-	CS_INT cs_diag_msglimit;
-
-	/* added for storing the maximum messages limit CT_DIAG */
-	/* code changes starts here - CT_DIAG - 02 */
-
-	CS_INT cs_diag_msglimit_client;
-	CS_INT cs_diag_msglimit_server;
-	CS_INT cs_diag_msglimit_total;
-	struct cs_diag_msg_client *clientstore;
-	struct cs_diag_msg_svr *svrstore;
-
-	/* code changes ends here - CT_DIAG - 02 */
-
-	struct cs_diag_msg *msgstore;
-	CS_CSLIBMSG_FUNC _cslibmsg_cb;
-	CS_CLIENTMSG_FUNC _clientmsg_cb;
-	CS_SERVERMSG_FUNC _servermsg_cb;
-/* code changes start here - CS_CONFIG - 01*/
-	void *userdata;
-	int userdata_len;
-/* code changes end here - CS_CONFIG - 01*/
-	TDSCONTEXT *tds_ctx;
-	CS_CONFIG config;
-};
-
 typedef struct cs_locale
 {
 	char *language;
@@ -198,7 +172,8 @@ struct cs_connection
 
 #define CS_IODATA          (CS_INT)1600
 
-typedef struct cs_iodesc
+/* XX defined */
+typedef struct _cs_iodesc
 {
 	CS_INT iotype;
 	CS_INT datatype;
@@ -209,10 +184,10 @@ typedef struct cs_iodesc
 	CS_BOOL log_on_update;
 	CS_CHAR name[CS_OBJ_NAME];
 	CS_INT namelen;
-	CS_BYTE textptr[CS_TP_SIZE];
-	CS_INT textptrlen;
 	CS_BYTE timestamp[CS_TS_SIZE];
 	CS_INT timestamplen;
+	CS_BYTE textptr[CS_TP_SIZE];
+	CS_INT textptrlen;
 } CS_IODESC;
 
 
@@ -273,30 +248,34 @@ typedef struct cs_datafmt
 	int usertype;
 } CS_DATAFMT;
 
+/* XX defined */
 typedef TDS_MONEY CS_MONEY;
+/* XX defined */
 typedef TDS_MONEY4 CS_MONEY4;
 
+/* XX defined */
 typedef TDS_DATETIME CS_DATETIME;
 
+/* XX defined */
 typedef TDS_DATETIME4 CS_DATETIME4;
 
-typedef struct cs_daterec
+typedef struct _cs_daterec
 {
-	CS_INT datesecond;
-	CS_INT dateminute;
-	CS_INT datehour;
+	CS_INT dateyear;
+	CS_INT datemonth;
 	CS_INT datedmonth;
 	CS_INT datedyear;
-	CS_INT datemonth;
-	CS_INT dateyear;
-	CS_INT dateweek;
 	CS_INT datedweek;
+	CS_INT datehour;
+	CS_INT dateminute;
+	CS_INT datesecond;
 	CS_INT datemsecond;
 	CS_INT datetzone;
 } CS_DATEREC;
 
 typedef TDS_INT CS_MSGNUM;
 
+/* XX defined */
 struct cs_clientmsg
 {
 	CS_INT severity;
@@ -311,27 +290,28 @@ struct cs_clientmsg
 	CS_INT sqlstatelen;
 };
 
-struct cs_servermsg
+/* XX defined */
+struct _cs_servermsg
 {
-	int severity;
-	int msgnumber;
-	int state;
-	int line;
-	int svrnlen;
-	char svrname[CS_MAX_NAME];
-	int proclen;
-	char proc[CS_MAX_NAME];
-	char text[CS_MAX_MSG];
-	int status;
+	CS_MSGNUM msgnumber;
+	CS_INT state;
+	CS_INT severity;
+	CS_CHAR text[CS_MAX_MSG];
+	CS_INT textlen; /* XX added */
+	CS_CHAR svrname[CS_MAX_NAME];
+	CS_INT svrnlen;
+	CS_CHAR proc[CS_MAX_NAME];
+	CS_INT proclen;
+	CS_INT line;
+	CS_INT status;
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE]; /* XX added */
+	CS_INT sqlstatelen; /* XX added */
 };
 
 /* status bits for CS_SERVERMSG */
 #define CS_HASEED 0x01
 
-typedef struct cs_blkdesc
-{
-	int dummy;
-} CS_BLKDESC;
+typedef struct _cs_blkdesc CS_BLKDESC;
 
 /* CS_CAP_REQUEST values */
 #define CS_REQ_LANG	1
@@ -871,7 +851,7 @@ enum
 #define CS_TRUE	1
 
 #define SRV_PROC	CS_VOID
-#define CS_BLK_ROW	CS_VOID
+typedef struct _cs_blk_row CS_BLK_ROW;
 
 /* constants required for ct_diag (not jet implemented) */
 #define CS_INIT 36

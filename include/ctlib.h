@@ -30,14 +30,50 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.6 2002-11-21 16:53:43 freddy77 Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.7 2003-12-19 23:25:59 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
+/*
+ * internal types
+ */
+struct _cs_context
+{
+	CS_INT date_convert_fmt;
+	CS_INT cs_errhandletype;
+	CS_INT cs_diag_msglimit;
+
+	/* added for storing the maximum messages limit CT_DIAG */
+	/* code changes starts here - CT_DIAG - 02 */
+
+	CS_INT cs_diag_msglimit_client;
+	CS_INT cs_diag_msglimit_server;
+	CS_INT cs_diag_msglimit_total;
+	struct cs_diag_msg_client *clientstore;
+	struct cs_diag_msg_svr *svrstore;
+
+	/* code changes ends here - CT_DIAG - 02 */
+
+	struct cs_diag_msg *msgstore;
+	CS_CSLIBMSG_FUNC _cslibmsg_cb;
+	CS_CLIENTMSG_FUNC _clientmsg_cb;
+	CS_SERVERMSG_FUNC _servermsg_cb;
+/* code changes start here - CS_CONFIG - 01*/
+	void *userdata;
+	int userdata_len;
+/* code changes end here - CS_CONFIG - 01*/
+	TDSCONTEXT *tds_ctx;
+	CS_CONFIG config;
+};
+
+struct _cs_blkdesc
+{
+	int dummy;
+};
 
 /*
-** internal typedefs
-*/
+ * internal typedefs
+ */
 typedef struct ctcolinfo
 {
 	TDS_SMALLINT *indicator;
@@ -45,8 +81,8 @@ typedef struct ctcolinfo
 CT_COLINFO;
 
 /*
-** internal prototypes
-*/
+ * internal prototypes
+ */
 int ctlib_handle_server_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
 int ctlib_handle_client_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMSGINFO * msgptr);
 int _ct_get_server_type(int datatype);
