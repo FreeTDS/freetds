@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <tds.h>
 
-static char software_version[] = "$Id: unittest.c,v 1.6 2002-11-17 11:30:57 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.7 2003-03-24 23:08:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void dump_login(TDSLOGIN * login);
@@ -83,6 +83,6 @@ dump_login(TDSLOGIN * login)
 	printf("vers %d.%d\n", login->major_version, login->minor_version);
 	printf("lib  %s\n", login->library);
 	printf("lang %s\n", login->language);
-	printf("char %s\n", login->char_set);
+	printf("char %s\n", login->server_charset);
 	printf("bsiz %d\n", login->block_size);
 }

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.96 2003-03-24 22:44:25 freddy77 Exp $";
+	"$Id: tds.h,v 1.97 2003-03-24 23:08:20 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -522,7 +522,7 @@ typedef struct tds_login {
 	TDS_TINYINT  minor_version; /* TDS version */
 	int block_size; 
 	char *language; /* ie us-english */
-	char *char_set; /*  ie iso_1 */
+	char *server_charset; /*  ie iso_1 */
 	TDS_INT connect_timeout;
 	char *host_name;
 	char *app_name;
@@ -550,7 +550,7 @@ typedef struct tds_connect_info {
 	TDS_TINYINT minor_version;
 	int block_size;
 	char *language;
-	char *char_set;    /**< charset of server */
+	char *server_charset;    /**< charset of server */
 	TDS_INT connect_timeout;
 	char *host_name;     /**< client hostname */
 	char *app_name;

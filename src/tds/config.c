@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.66 2003-03-24 22:45:57 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.67 2003-03-24 23:08:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -434,7 +434,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			connect_info->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
-		tds_dstr_copy(&connect_info->char_set, value);
+		tds_dstr_copy(&connect_info->server_charset, value);
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
 		tds_dstr_copy(&connect_info->client_charset, value);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
@@ -477,8 +477,8 @@ tds_config_login(TDSCONNECTINFO * connect_info, TDSLOGIN * login)
 	if (!tds_dstr_isempty(&login->language)) {
 		tds_dstr_copy(&connect_info->language, login->language);
 	}
-	if (!tds_dstr_isempty(&login->char_set)) {
-		tds_dstr_copy(&connect_info->char_set, login->char_set);
+	if (!tds_dstr_isempty(&login->server_charset)) {
+		tds_dstr_copy(&connect_info->server_charset, login->server_charset);
 	}
 	if (!tds_dstr_isempty(&login->client_charset)) {
 		tds_dstr_copy(&connect_info->client_charset, login->client_charset);

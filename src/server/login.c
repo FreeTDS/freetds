@@ -47,7 +47,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.20 2003-02-26 04:26:03 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.21 2003-03-24 23:08:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -131,7 +131,7 @@ char *blockstr;
 	tds_get_n(tds, NULL, 3);	/* magic */
 	tds_read_string(tds, &login->language, 30);
 	tds_get_n(tds, NULL, 14);	/* magic */
-	tds_read_string(tds, &login->char_set, 30);
+	tds_read_string(tds, &login->server_charset, 30);
 	tds_get_n(tds, NULL, 1);	/* magic */
 	tds_read_string(tds, &blockstr, 6);
 	printf("block size %s\n", blockstr);
@@ -221,7 +221,7 @@ char *buf;
 	tds_get_n(tds, NULL, 7);
 	a = tds_get_byte(tds);	/*0x30 */
 	tds_get_n(tds, NULL, 3);
-	tds_dstr_copy(&login->char_set, "");	/*empty char_set for TDS 7.0 */
+	tds_dstr_copy(&login->server_charset, "");	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
 	login->encrypted = 1;
 	return (0);

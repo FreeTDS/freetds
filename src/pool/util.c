@@ -31,7 +31,7 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: util.c,v 1.8 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.9 2003-03-24 23:08:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -74,7 +74,7 @@ dump_login(TDSLOGIN * login)
 	fprintf(stderr, "vers %d.%d\n", login->major_version, login->minor_version);
 	fprintf(stderr, "lib  %s\n", login->library);
 	fprintf(stderr, "lang %s\n", login->language);
-	fprintf(stderr, "char %s\n", login->char_set);
+	fprintf(stderr, "char %s\n", login->server_charset);
 	fprintf(stderr, "bsiz %d\n", login->block_size);
 }
 

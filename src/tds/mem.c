@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.63 2003-03-24 22:45:59 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.64 2003-03-24 23:08:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -502,7 +502,7 @@ char hostname[30];
 	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
 	tds_dstr_init(&connect_info->server_name);
 	tds_dstr_init(&connect_info->language);
-	tds_dstr_init(&connect_info->char_set);
+	tds_dstr_init(&connect_info->server_charset);
 	tds_dstr_init(&connect_info->host_name);
 	tds_dstr_init(&connect_info->app_name);
 	tds_dstr_init(&connect_info->user_name);
@@ -526,15 +526,15 @@ char hostname[30];
 			if (!tds_dstr_copy(&connect_info->language,locale->language))
 				goto Cleanup;
 		if (locale->char_set) 
-			if (!tds_dstr_copy(&connect_info->char_set,locale->char_set))
+			if (!tds_dstr_copy(&connect_info->server_charset,locale->char_set))
 				goto Cleanup;
 	}
 	if (tds_dstr_isempty(&connect_info->language)) {
 		if (!tds_dstr_copy(&connect_info->language,TDS_DEF_LANG))
 			goto Cleanup;
 	}
-	if (tds_dstr_isempty(&connect_info->char_set)) {
-		if (!tds_dstr_copy(&connect_info->char_set,TDS_DEF_CHARSET))
+	if (tds_dstr_isempty(&connect_info->server_charset)) {
+		if (!tds_dstr_copy(&connect_info->server_charset,TDS_DEF_CHARSET))
 			goto Cleanup;
 	}
 	connect_info->try_server_login = 1;
@@ -560,7 +560,7 @@ char *tdsver;
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
 	tds_dstr_init(&tds_login->server_name);
 	tds_dstr_init(&tds_login->language);
-	tds_dstr_init(&tds_login->char_set);
+	tds_dstr_init(&tds_login->server_charset);
 	tds_dstr_init(&tds_login->host_name);
 	tds_dstr_init(&tds_login->app_name);
 	tds_dstr_init(&tds_login->user_name);
@@ -597,7 +597,7 @@ void tds_free_login(TDSLOGIN *login)
 		tds_dstr_free(&login->password);
 		tds_dstr_free(&login->server_name);
 		tds_dstr_free(&login->language);
-		tds_dstr_free(&login->char_set);
+		tds_dstr_free(&login->server_charset);
 		tds_dstr_free(&login->host_name);
 		tds_dstr_free(&login->app_name);
 		tds_dstr_free(&login->user_name);
@@ -673,7 +673,7 @@ void tds_free_connect(TDSCONNECTINFO *connect_info)
 	tds_dstr_free(&connect_info->server_name);
 	tds_dstr_free(&connect_info->host_name);
 	tds_dstr_free(&connect_info->language);
-	tds_dstr_free(&connect_info->char_set);
+	tds_dstr_free(&connect_info->server_charset);
 	tds_dstr_free(&connect_info->ip_addr);
 	tds_dstr_free(&connect_info->database);
 	tds_dstr_free(&connect_info->dump_file);

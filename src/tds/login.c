@@ -79,7 +79,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.86 2003-03-24 22:45:58 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.87 2003-03-24 23:08:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -516,7 +516,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_n(tds, magic5, 2);
 	tds_put_byte(tds, connect_info->encrypted);
 	tds_put_n(tds, magic6, 10);
-	tds_put_login_string(tds, connect_info->char_set, TDS_MAX_LOGIN_STR_SZ);	/* charset */
+	tds_put_login_string(tds, connect_info->server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
 	tds_put_byte(tds, magic7);
 
 	/* network packet size */
