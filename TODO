@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.31 2003-01-14 17:36:21 jklowden Exp $
+To Do List	$Id: TODO,v 1.32 2003-01-14 22:14:21 freddy77 Exp $
 ------------
 Broken:
 . tds_connect free tds structure on failure. This cause in some condition
@@ -75,12 +75,8 @@ For future versions (in priority order within library):
 	93      SQL_QUOTED_IDENTIFIER_CASE
 	94      SQL_SPECIAL_CHARACTERS
 	111     SQL_NEED_LONG_DATA_LEN
-	146     SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1
-	147     SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2
 	150     SQL_KEYSET_CURSOR_ATTRIBUTES1
 	151     SQL_KEYSET_CURSOR_ATTRIBUTES2
-	167     SQL_STATIC_CURSOR_ATTRIBUTES1
-	168     SQL_STATIC_CURSOR_ATTRIBUTES2
 	10000   SQL_XOPEN_CLI_YEAR
 . Star Office complains "Statement option 109" is not implemented in SQLGetConnectOption.
 
