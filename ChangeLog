@@ -1,7 +1,18 @@
+Sat Jan 12 21:46:41 2002  James Cameron  <quozl@us.netrek.org>
+
+	* src/tds/login.c (tds_connect): verify that config->ip_addr is
+	not NULL, since passing NULL to inet_addr() causes a segmentation
+	violation on OpenVMS.  Ruslan had the error say "server IP address
+	cannot be resolved" but I felt it was not the responsibility of
+	tds_connect() to make such an assumption.  The failure to resolve
+	the name is the responsibility of config.c.  From "Ruslan
+	R. Laishev" <laishev@mail.dls.net>
+	
 Sun Dec 16 10:32:57 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/ctlib/ct.c: Add stubs for ct_send_data and ct_data_info per 
 	Michael Peppler for DBD::Sybase 0.94
+	
 Thu Dec  6 11:53:04 2001  James Cameron  <quozl@us.netrek.org>
 
 	* doc/userguide.sgml: complete instructions for Microsoft SQL

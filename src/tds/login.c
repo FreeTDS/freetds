@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.10 2001-11-25 19:11:39 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.11 2002-01-12 11:02:11 quozl Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -164,7 +164,12 @@ FD_ZERO (&fds);
         tds->longquery_param = login->longquery_param;
 	/* end */
 
-
+        /* verify that ip_addr is not NULL */
+        if (!config->ip_addr) {
+                tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
+                tds_free_config(config);
+                return NULL;
+        }
         sin.sin_addr.s_addr = inet_addr(config->ip_addr);
         if (sin.sin_addr.s_addr == -1) {
 		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
