@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.74 2002-12-28 19:50:58 freddy77 Exp $";
+	"$Id: tds.h,v 1.75 2002-12-31 15:11:34 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -532,6 +532,7 @@ typedef struct tds_column_info {
 	TDS_INT column_text_sqlgetdatapos;
 } TDSCOLINFO;
 
+/** Hold information for any results */
 typedef struct tds_result_info {
 	/* TODO those fields can became a struct */
 	TDS_SMALLINT  num_cols;

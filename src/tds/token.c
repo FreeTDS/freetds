@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.132 2002-12-31 11:12:43 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.133 2002-12-31 15:12:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -662,9 +662,8 @@ TDSRESULTINFO *info;
 	/* free results/computes/params etc... */
 	tds_free_all_results(tds);
 
-	tds->res_info = tds_alloc_results(num_cols);
-	info = tds->res_info;
-	tds->curr_resinfo = tds->res_info;
+	info = tds_alloc_results(num_cols);
+	tds->curr_resinfo = tds->res_info = info;
 	/* tell the upper layers we are processing results */
 	tds->state = TDS_PENDING;
 	cur = head;

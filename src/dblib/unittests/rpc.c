@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.8 2002-11-29 19:52:28 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.9 2002-12-31 15:12:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -129,7 +129,7 @@ main(int argc, char **argv)
 	erc = dbrpcsend(dbproc);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcsend\n");
-		failed = 1;
+		exit(1);
 	}
 
 	/* wait for it to execute */

@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.15 2002-12-17 13:26:41 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.16 2002-12-31 15:12:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -185,7 +185,7 @@ dbrpcsend(DBPROCESS * dbproc)
 	}
 
 	/* FIXME do stuff */
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpcsend()\n");
+        tdsdump_log (TDS_DBG_FUNC, "%L inside dbrpcsend()\n");
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;

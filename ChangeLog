@@ -1,3 +1,9 @@
+Tue Dec 31 16:07:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: add TDSRESULTINFO to Doxygen
+	* src/dblib/rpc.c: update log note
+	* src/dblib/unittests/rpc.c: exit if dbrpcsend failed
+	* src/tds/token.c: small optimization
+
 Tue Dec 31 12:11:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- rename tds_process_col_info to tds_process_col_fmt
