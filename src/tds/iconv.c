@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.57 2003-05-02 05:56:55 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.58 2003-05-04 19:30:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -52,7 +52,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
-static int skip_one_input_sequence(const TDS_ENCODING * charset, ICONV_CONST char **input);
+static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
 static const char *tds_canonical_charset_name(const char *charset_name);
 static const char *tds_sybase_charset_name(const char *charset_name);
 
@@ -192,8 +192,8 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 			break;
 
 		/* skip one input sequence, adjusting input pointer */
-		one_character = skip_one_input_sequence(input_charset, &input_p);
-		input_size -= one_character;
+		one_character = skip_one_input_sequence(cd, input_charset, &input_p, input_size);
+		*input_size -= one_character;
 
 		if (!one_character)
 			break;	/* Unknown charset, what to do?  I prefer "assert(one_charset)" --jkl */
@@ -205,15 +205,18 @@ tds_iconv(TDS_ICONV_DIRECTION io, const TDSICONVINFO * iconv_info, const char *i
 		 */
 		if (error_cd == (iconv_t) - 1) {
 			/* TODO is ascii extension just copy (always ascii extension??) */
-			error_cd = iconv_open(output_charset_name, "ISO-8859-1");
+			/* FIXME use iconv name for UTF-8 (some platform use different names) */
+			/* traslation to every charset is handled in UTF-8 and UCS-2 */
+			error_cd = iconv_open(output_charset_name, "UTF-8");
 			if (error_cd == (iconv_t) - 1)
 				break;	/* what to do? */
 		}
-		lquest_mark = sizeof(quest_mark) - 1;
+		lquest_mark = 1;
 		pquest_mark = quest_mark;
 
 		iconv(error_cd, &pquest_mark, &lquest_mark, &output, &output_size);
 
+		/* FIXME this can happen if output buffer is too small... */
 		if (output_size == 0)
 			break;
 	}
@@ -307,12 +310,20 @@ bytes_per_char(TDS_ENCODING * charset)
  */
 /* FIXME possible buffer reading overflow ?? */
 static int
-skip_one_input_sequence(const TDS_ENCODING * charset, ICONV_CONST char **input)
+skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size)
 {
 	int charsize = CHARSIZE(charset);
+	char ib[16];
+	char ob[16];
+	char *pib, *pob;
+	size_t il, ol, l;
+	iconv_t cd2;
 
+
+	/* usually fixed size and UTF-8 do not have state, so do not reset it */
 	if (charsize) {
 		*input += charsize;
+		*input_size -= charsize;
 		return charsize;
 	}
 
@@ -331,11 +342,56 @@ skip_one_input_sequence(const TDS_ENCODING * charset, ICONV_CONST char **input)
 			++charsize;
 		} while ((c <<= 1) & 0x80);
 		*input += charsize;
+		*input_size += charsize;
 		return charsize;
 	}
 
-	/* FIXME this do not work for many charset like UTF16, BIG5... */
-	return 0;
+	/* handle state encoding */
+
+	/* extract state from iconv */
+	pob = ib;
+	ol = sizeof(ib);
+	iconv(cd, NULL, NULL, &pob, &ol);
+
+	/* init destination conversion */
+	cd2 = iconv_open("UTF-8", charset->name);
+	if (cd2 == (iconv_t) - 1)
+		return 0;
+
+	/* add part of input */
+	il = ol;
+	if (il > *input_size)
+		il = *input_size;
+	l = sizeof(ib) - ol;
+	memcpy(ib + l, *input, il);
+	il += l;
+
+	/* translate a characters */
+	pib = ib;
+	pob = ob;
+	ol = sizeof(ob);
+	iconv(cd2, &pib, &il, &pob, &ol);
+
+	/* adjust input */
+	l = (pib - ib) - sl;
+	*input += l;
+	*input_size -= l;
+
+	/* extract state */
+	pob = ib;
+	ol = sizeof(ib);
+	iconv(cd, NULL, NULL, &pob, &ol);
+
+	/* set input state */
+	pib = ib;
+	ib = sizeof(ib) - ol;
+	pob = ob;
+	ol = sizeof(ob);
+	iconv(cd, &pib, &il, &pob, &ol);
+
+	iconv_close(cd2);
+
+	return l;
 }
 
 static const char *
