@@ -40,7 +40,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.27 2003-11-01 23:02:09 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.28 2003-12-09 10:19:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -145,7 +145,7 @@ static void unescape(char arg[])
 		}
 			
 		/* Overwrite the backslash with the intended character, and shift everything down one */
-		if (!isdigit(escaped)) {
+		if (!isdigit((unsigned char) escaped)) {
 			*p++ = escaped;
 			memmove(p, p+1, 1 + strlen(p+1));
 		}

@@ -35,9 +35,10 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char software_version[] = "$Id: config.c,v 1.10 2003-07-30 16:11:41 jklowden Exp $";
+static char software_version[] = "$Id: config.c,v 1.11 2003-12-09 10:19:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"
@@ -77,7 +78,7 @@ pool_read_conf_sections(FILE * in, char *poolname, TDS_POOL * pool)
 	rewind(in);
 	section = strdup(poolname);
 	for (i = 0; i < strlen(section); i++)
-		section[i] = tolower(section[i]);
+		section[i] = tolower((unsigned char) section[i]);
 	found = pool_read_conf_section(in, section, pool);
 	free(section);
 
@@ -110,7 +111,7 @@ pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 		s = line;
 
 		/* skip leading whitespace */
-		while (*s && isspace(*s))
+		while (*s && TDS_ISSPACE(*s))
 			s++;
 
 		/* skip it if it's a comment line */
@@ -121,10 +122,10 @@ pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 		p = 0;
 		i = 0;
 		while (*s && *s != '=') {
-			if (!isspace(*s) && isspace(p))
+			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
 				option[i++] = ' ';
-			if (!isspace(*s))
-				option[i++] = tolower(*s);
+			if (!TDS_ISSPACE(*s))
+				option[i++] = tolower((unsigned char) *s);
 			p = *s;
 			s++;
 		}
@@ -135,16 +136,16 @@ pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
 			s++;
 
 		/* skip leading whitespace */
-		while (*s && isspace(*s))
+		while (*s && TDS_ISSPACE(*s))
 			s++;
 
 		/* read up to a # ; or null ignoring duplicate spaces */
 		p = 0;
 		i = 0;
 		while (*s && *s != ';' && *s != '#') {
-			if (!isspace(*s) && isspace(p))
+			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
 				value[i++] = ' ';
-			if (!isspace(*s))
+			if (!TDS_ISSPACE(*s))
 				value[i++] = *s;
 			p = *s++;
 		}

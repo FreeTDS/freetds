@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.87 2003-12-03 10:02:18 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.88 2003-12-09 10:19:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -85,6 +85,8 @@ static int tds_lookup_port(const char *portname);
 extern int tds_g_append_mode;
 
 static char *interf_file = NULL;
+
+#define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
 /**
  * \ingroup libtds
@@ -316,7 +318,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 		s = line;
 
 		/* skip leading whitespace */
-		while (*s && isspace(*s))
+		while (*s && TDS_ISSPACE(*s))
 			s++;
 
 		/* skip it if it's a comment line */
@@ -327,10 +329,10 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 		p = 0;
 		i = 0;
 		while (*s && *s != '=') {
-			if (!isspace(*s) && isspace(p))
+			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
 				option[i++] = ' ';
-			if (!isspace(*s))
-				option[i++] = tolower(*s);
+			if (!TDS_ISSPACE(*s))
+				option[i++] = tolower((unsigned char) *s);
 			p = *s;
 			s++;
 		}
@@ -341,16 +343,16 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			s++;
 
 		/* skip leading whitespace */
-		while (*s && isspace(*s))
+		while (*s && TDS_ISSPACE(*s))
 			s++;
 
 		/* read up to a # ; or null ignoring duplicate spaces */
 		p = 0;
 		i = 0;
 		while (*s && *s != ';' && *s != '#') {
-			if (!isspace(*s) && isspace(p))
+			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
 				value[i++] = ' ';
-			if (!isspace(*s))
+			if (!TDS_ISSPACE(*s))
 				value[i++] = *s;
 			p = *s;
 			s++;
@@ -365,7 +367,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			while (*s) {
 				if (*s == ']')
 					*s = '\0';
-				*s = tolower(*s);
+				*s = tolower((unsigned char) *s);
 				s++;
 			}
 			tdsdump_log(TDS_DBG_INFO1, "%L ... Found section %s.\n", &option[1]);
@@ -807,14 +809,14 @@ search_interface_file(TDSCONNECTINFO * connect_info, const char *dir,	/* (I) Nam
 		if (line[0] == '#')
 			continue;	/* comment */
 
-		if (!isspace(line[0])) {
+		if (!TDS_ISSPACE(line[0])) {
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (!strcmp(field, host)) {
 				found = 1;
 				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n", host);
 			} else
 				found = 0;
-		} else if (found && isspace(line[0])) {
+		} else if (found && TDS_ISSPACE(line[0])) {
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (field != NULL && !strcmp(field, "query")) {
 				field = strtok_r(NULL, "\n\t ", &lasts);	/* tcp or tli */

@@ -20,7 +20,7 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-static char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.9 2003-08-18 09:16:44 freddy77 Exp $";
+static char rcsid_tdsstring_h[] = "$Id: tdsstring.h,v 1.10 2003-12-09 10:19:16 freddy77 Exp $";
 static void *no_unused_tdsstring_h_warn[] = { rcsid_tdsstring_h, no_unused_tdsstring_h_warn };
 
 extern char tds_str_empty[];
@@ -39,7 +39,7 @@ size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
-	{ *((char**)s) = tds_str_empty; }
+	{ *s = (DSTR) &tds_str_empty[0]; }
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \

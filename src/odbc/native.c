@@ -36,10 +36,10 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.14 2003-09-08 17:29:05 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version,
-	no_unused_var_warn
-};
+static char software_version[] = "$Id: native.c,v 1.15 2003-12-09 10:19:16 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
+
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 /*
  * Function transformation (from ODBC to Sybase)
@@ -99,13 +99,13 @@ to_native(struct _hstmt *stmt, char *buf)
 		if (*s == '{') {
 			char *pcall;
 
-			while (isspace(*++s));
+			while (TDS_ISSPACE(*++s));
 			pcall = s;
 			if (*pcall == '?') {
 				/* skip spaces after ? */
-				while (isspace(*++pcall));
+				while (TDS_ISSPACE(*++pcall));
 				if (*pcall == '=') {
-					while (isspace(*++pcall));
+					while (TDS_ISSPACE(*++pcall));
 				} else {
 					/* avoid {?call ... syntax */
 					pcall = s;
@@ -174,17 +174,17 @@ prepare_call(struct _hstmt * stmt)
 	/* now detect RPC */
 	stmt->prepared_query_is_rpc = 0;
 	s = buf;
-	while (isspace(*s))
+	while (TDS_ISSPACE(*s))
 		++s;
 	if (strncasecmp(s, "exec", 4) == 0) {
-		if (isspace(s[4]))
+		if (TDS_ISSPACE(s[4]))
 			s += 5;
-		else if (strncasecmp(s, "execute", 7) == 0 && isspace(s[7]))
+		else if (strncasecmp(s, "execute", 7) == 0 && TDS_ISSPACE(s[7]))
 			s += 8;
 		else
 			return SQL_SUCCESS;
 	}
-	while (isspace(*s))
+	while (TDS_ISSPACE(*s))
 		++s;
 	p = s;
 	if (*s == '[') {
@@ -192,18 +192,18 @@ prepare_call(struct _hstmt * stmt)
 		s = (char *) tds_skip_quoted(s);
 	} else {
 		/* FIXME: stop at other characters ??? */
-		while (*s && !isspace(*s))
+		while (*s && !TDS_ISSPACE(*s))
 			++s;
 	}
 	--s;			/* trick, now s point to no blank */
 	/* TODO support constant and empty parameters */
 	for (;;) {
-		while (isspace(*++s));
+		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
 		if (*s != '?')
 			return SQL_SUCCESS;
-		while (isspace(*++s));
+		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
 		if (*s != ',')
