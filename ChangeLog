@@ -1,3 +1,8 @@
+Mon Nov 20 23:07:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c:
+	- rewrite tds_query_submit using new functions
+	- added some comment
+
 Mon Nov 20 17:36:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: continue parameters code
 

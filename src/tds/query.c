@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.42 2002-11-17 12:38:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.43 2002-11-20 22:08:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -64,9 +64,7 @@ static void *no_unused_var_warn[] = {software_version,
  */
 int tds_submit_query(TDSSOCKET *tds, const char *query)
 {
-unsigned char *buf;
-int	bufsize;
-TDS_INT bufsize2;
+int	query_len;
 
 	if (!query) return TDS_FAIL;
 
@@ -83,37 +81,19 @@ TDS_INT bufsize2;
 
 	tds->rows_affected = 0;
 	tds->state = TDS_QUERYING;
+
+	query_len = strlen(query);
 	if (IS_TDS50(tds)) {
-		bufsize = strlen(query)+6;
-		buf = (unsigned char *) malloc(bufsize);
-		if (!buf) return TDS_FAIL;
-		memset(buf,'\0',bufsize);
-		buf[0]=TDS_LANG_TOKEN; 
-
-		bufsize2 = strlen(query) + 1;
-		memcpy(buf+1, (void *)&bufsize2, 4);
-
-		memcpy(&buf[6],query,strlen(query));
-		tds->out_flag=0x0F;
-	} else if (IS_TDS70(tds) || IS_TDS80(tds)) {
-		bufsize = strlen(query)*2;
-		buf = (unsigned char *) malloc(bufsize);
-		if (!buf) return TDS_FAIL;
-		memset(buf,'\0',bufsize);
-		tds7_ascii2unicode(tds,query, buf, bufsize);
-		tds->out_flag=0x01;
-	} else { /* 4.2 */
-		bufsize = strlen(query);
-		buf = (unsigned char *) malloc(bufsize);
-		if (!buf) return TDS_FAIL;
-		memset(buf,'\0',bufsize);
-		memcpy(&buf[0],query,strlen(query));
-		tds->out_flag=0x01;
+		tds->out_flag = 0x0F;
+		tds_put_byte(tds, TDS_LANG_TOKEN);
+		tds_put_int(tds, query_len+1);
+		tds_put_byte(tds, 0);
+		tds_put_n(tds, query, query_len);
+	} else {
+		tds->out_flag = 0x01;
+		tds_put_string(tds, query, query_len);
 	}
-	tds_put_n(tds, buf, bufsize);
 	tds_flush_packet(tds);
-	
-	free(buf);
 
 	return TDS_SUCCEED;
 }
@@ -266,7 +246,7 @@ TDSDYNAMIC *dyn;
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBNTEXT); /* must be Ntype */
 		/* TODO build true param string from parameters */
-		/* for now we use all "@PX varchar(80)," for parameters */
+		/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
 		n = tds_count_placeholders(query);
 		len = n * 16 -1;
 		/* adjust for the length of X */
@@ -300,7 +280,7 @@ TDSDYNAMIC *dyn;
 			s = e+1;
 		}
 
-		/* 1 param ?? why ? */
+		/* 1 param ?? why ? flags ?? */
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,SYBINT4);
@@ -308,7 +288,6 @@ TDSDYNAMIC *dyn;
 		
 		tds_flush_packet(tds);
 
-		tds->out_flag = 0xf; /* default */
 		return TDS_SUCCEED;
 	}
 
@@ -342,6 +321,7 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 {
 	/* TODO output parameter name */
 	tds_put_byte(tds,0x00); /* param name len*/
+	/* TODO store and use flags (output/use defaul null)*/
 	tds_put_byte(tds,0x00); /* status (input) */
 	if (!IS_TDS7_PLUS(tds)) tds_put_int(tds,curcol->column_usertype); /* usertype */
 	/* TODO use type directly and varint should be updated */
@@ -363,7 +343,9 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 		tds_put_int(tds, curcol->column_cur_size);
 		break;
 	}
-	if (!IS_TDS7_PLUS(tds)) tds_put_byte(tds,0x00); /* locale info length */
+	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
+	if (!IS_TDS7_PLUS(tds))
+		tds_put_byte(tds,0x00); /* locale info length */
 	return TDS_SUCCEED;
 }
 
@@ -495,10 +477,8 @@ int i, len;
 			tds_put_data_info(tds, param);
 			tds_put_data(tds, param, info->current_row, i);
 		}
-		
-		tds_flush_packet(tds);
 
-		tds->out_flag = 0xf; /* default */
+		tds_flush_packet(tds);
 		return TDS_SUCCEED;
 	}
 
@@ -569,11 +549,22 @@ int tds_submit_unprepare(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 	return TDS_FAIL;
 }
 
+#if 0
+int 
+tds_submit_rpc(TDSSOCKET *tds, TDSPARAMINFO *params)
+{
+	/* distinguish from dynamic query  */
+	tds->cur_dyn = NULL;
+	
+	/* TODO continue */
+	return TDS_FAIL;
+}
+#endif
 
-/*
-** tds_send_cancel() sends an empty packet (8 byte header only)
-** tds_process_cancel should be called directly after this.
-*/
+/**
+ * tds_send_cancel() sends an empty packet (8 byte header only)
+ * tds_process_cancel should be called directly after this.
+ */
 int tds_send_cancel(TDSSOCKET *tds)
 {
 	/* TODO discard any partial packet here */
