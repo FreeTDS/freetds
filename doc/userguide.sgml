@@ -612,6 +612,12 @@ In this example the default tds version for all dataservers is set to 4.2.  It i
 	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for TDS 7.0 on big end hosts</entry>
 	<entry>yes/no</entry>
 	</row>
+	<row>
+	<entry>client charset</entry>
+	<entry>strip upper byte</entry>
+	<entry>A TDS 7.0 only option. Client charset forces FreeTDS to convert to and from UCS-2 (SQL Servers' on the wire character set) from the specified character set.  Use to convert TDS 7.0 results to non-western languages.</entry>
+	<entry>any valid iconv character set</entry>
+	</row>
 </tbody>
 </tgroup>
 </table>

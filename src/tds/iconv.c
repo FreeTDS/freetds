@@ -42,9 +42,9 @@ void tds_iconv_open(TDSSOCKET *tds, char *charset)
 		tds->use_iconv = 0;
 		return;
 	}
-	/* tds->use_iconv = 1; */
+	tds->use_iconv = 1; 
 	/* temporarily disable */
-	tds->use_iconv = 0;
+	/* tds->use_iconv = 0; */
 #else 
 	tds->use_iconv = 0;
 #endif

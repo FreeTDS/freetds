@@ -15,13 +15,25 @@ CS_DATAFMT datafmt[10];
    ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
    ret = ct_init(ctx, CS_VERSION_100);
    ret = ct_con_alloc(ctx, &conn);
-   ret = ct_con_props(conn, CS_SET, CS_USERNAME, "brian", CS_NULLTERM, NULL);
-   ret = ct_con_props(conn, CS_SET, CS_PASSWORD, "btester", CS_NULLTERM, NULL);
+   ret = ct_con_props(conn, CS_SET, CS_USERNAME, "guest", CS_NULLTERM, NULL);
+   ret = ct_con_props(conn, CS_SET, CS_PASSWORD, "sybase", CS_NULLTERM, NULL);
    /* ret = ct_con_props(conn, CS_SET, CS_IFILE, "/devl/t3624bb/myinterf", CS_NULLTERM, NULL); */
-   ret = ct_connect(conn, "btest", CS_NULLTERM);
+   ret = ct_connect(conn, "JDBC", CS_NULLTERM);
    ret = ct_cmd_alloc(conn, &cmd);
 
-   ret = ct_command(cmd, CS_LANG_CMD, "create table tempdb..prepare_bug (c1 char, c2 char, p1 float, p2 float) ", CS_NULLTERM, CS_UNUSED);
+   ret = ct_command(cmd, CS_LANG_CMD, "drop table tempdb..prepare_bug ", CS_NULLTERM, CS_UNUSED);
+   if (ret != CS_SUCCEED) {
+     fprintf(stderr, "ct_command() failed\n");
+     exit(1);
+   }
+   ret = ct_send(cmd);
+   if (ret != CS_SUCCEED) {
+     fprintf(stderr, "ct_send() failed\n");
+     exit(1);
+   }
+
+	while(ct_results(cmd, &restype) == CS_SUCCEED) ;
+   ret = ct_command(cmd, CS_LANG_CMD, "create table tempdb..prepare_bug (c1 char(20), c2 varchar(255), p1 float, p2 real) ", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {
      fprintf(stderr, "ct_command() failed\n");
      exit(1);

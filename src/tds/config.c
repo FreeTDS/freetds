@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.6 2001-11-10 17:50:02 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.7 2001-11-25 19:11:39 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -283,6 +283,9 @@ int found = 0;
 			} else if (!strcmp(option,TDS_STR_CHARSET)) {
 				if (config->char_set) free(config->char_set);
 				config->char_set = strdup(value);
+			} else if (!strcmp(option,TDS_STR_CLCHARSET)) {
+				if (config->client_charset) free(config->client_charset);
+				config->client_charset = strdup(value);
 			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
 				if (config->language) free(config->language);
 				config->language = strdup(value);

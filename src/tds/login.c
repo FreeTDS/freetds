@@ -27,7 +27,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.9 2001-11-10 02:12:27 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.10 2001-11-25 19:11:39 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -151,6 +151,11 @@ FD_ZERO (&fds);
 		tds->emul_little_endian=1;
 	}
 #endif
+
+	/* set up iconv */
+	if (config->client_charset) {
+		tds_iconv_open(tds, config->client_charset);
+	}
 
 	/* Jeff's hack - begin */
         tds->timeout = (login->connect_timeout) ? login->query_timeout : 0;        

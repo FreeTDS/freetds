@@ -1,3 +1,16 @@
+Sun Nov 25 13:45:45 EST 2001	Brian Bruns <camber@ais.org>
+
+	* include/tds.h.in: add TDS_STR_CLCHARSET define and all client_charset to
+	the TDSCONFIG structure.
+	* src/tds/mem.c(tds_free_config): free client_charset 
+	* src/tds/mem.c(tds_free_socket): call tds_iconv_close()
+	* src/tds/config.c: check for 'client charset' in freetds.conf
+	* src/tds/iconv.c: set tds->use_iconv on successful loading of iconv 
+	routines
+	* src/tds/login.c(tds_connect): call tds_iconv_open() if client_charset is
+	* doc/userguide.sgml: add 'client charset' description to freetds.conf 
+	table
+
 Thu Nov 22 18:26:34 EST 2001	Brian Bruns <camber@ais.org>
 
 	* src/dblib/dblib.c: modify DBROWS to check for validity of resinfo
