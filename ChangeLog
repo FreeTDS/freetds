@@ -1,3 +1,7 @@
+Sat Apr 12 18:18:25 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* Makefile.am	distribute VMS-specific files
+	* include/tdsiconv.h define ICONV_CONST even in absence of iconv.
+	
 Thu Apr 10 15:09:24 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsiconv.h src/tds/iconv.c src/tds/mem.c:
 	- fix compile under win32

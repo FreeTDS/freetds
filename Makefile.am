@@ -1,9 +1,13 @@
-# version $Id: Makefile.am,v 1.28 2003-03-18 06:19:40 jklowden Exp $
+# version $Id: Makefile.am,v 1.29 2003-04-13 14:07:11 jklowden Exp $
+
+## SUBDIRS determines in which directories automake will generate a Makefile
+## See also AC_OUTPUT in configure.in
+
 SUBDIRS		=	include src doc samples win32
 
 EXTRA_DIST	=	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
-		autogen.sh freetds.spec.in freetds.spec
+		autogen.sh freetds.spec.in freetds.spec vms
 
 ETC            =       $(DESTDIR)$(sysconfdir)
 
@@ -20,7 +24,7 @@ install-data-local:
 DISTCHECK_CONFIGURE_FLAGS	=	\
 	--enable-distcheck-build --enable-extra-checks
 
-# for default we do not uninstall configuration (they can be changed)
+# do not uninstall configuration files (they may have been changed)
 if DISTCHECK_BUILD
 uninstall-local:
 	$(RM) $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
