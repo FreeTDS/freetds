@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.76 2003-02-12 06:15:35 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.77 2003-02-12 21:01:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2030,7 +2030,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_OPTION_CMD tds_command = 0;
 	TDS_OPTION tds_option = 0;
 	TDS_OPTION_ARG tds_argument;
-	TDS_INT  tds_argsize;
+	TDS_INT  tds_argsize = 0;
 
 	char * action_string = NULL;
 	int i;

@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.84 2003-02-12 06:15:34 jklowden Exp $";
+	"$Id: tds.h,v 1.85 2003-02-12 21:01:32 jklowden Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -183,6 +183,7 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_DESCRIBE_RESULT   4051
 
 enum tds_end {
+	TDS_DONE_FINAL = 0,
 	TDS_DONE_MORE_RESULTS = 1,
 	TDS_DONE_ERROR = 2,
 	TDS_DONE_COUNT = 16,
@@ -918,7 +919,7 @@ int tds_process_login_tokens(TDSSOCKET *tds);
 void tds_set_column_type(TDSCOLINFO *curcol, int type);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
-int tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG tds_argument, TDS_INT tds_argsize);
+int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG *tds_argument, TDS_INT *tds_argsize);
 
 /* tds_convert.c */
 TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC *dr);

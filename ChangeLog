@@ -1,5 +1,10 @@
+Wed Feb 12 15:57:52 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h  src/ctlib/ct.c  src/tds/token.c
+	- more untested support for optioncmd
+
 Wed Feb 12 11:02:30 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/unittests/ct_options.c test of unfinished ct_options()
+
 Wed Feb 12 01:10:25 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c removed unused variable
 	* include/cspublic.h include/tds.h src/tds/token.c src/ctlib/ct.c

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.144 2003-02-12 06:15:35 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.145 2003-02-12 21:01:34 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -135,6 +135,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS7_RESULT_TOKEN:
 		tds7_process_result(tds);
+		break;
+	case TDS_OPTIONCMD_TOKEN:
+		tdsdump_log(TDS_DBG_FUNC, "%L option command token encountered\n");
 		break;
 	case TDS_RESULT_TOKEN:
 		tds_process_result(tds);
@@ -609,11 +612,11 @@ int i;
 
 /**
  * Process results for simple query as "SET TEXTSIZE" or "USE dbname"
- * If you issue a statement that return some results all results are
- * discarded.
- * This function was written for avoiding calls to tds_process_default_tokens
- * directly (causing some problem like query error ignoring or other)
- * All results are readed until idle state or severe failure (do not stop for 
+ * If the statement returns results, beware they are discarded.
+ *
+ * This function was written to avoid direct calls to tds_process_default_tokens
+ * (which caused problems such as ignoring query errors).
+ * Results are read until idle state or severe failure (do not stop for 
  * statement failure).
  * @param result_type hold results type
  *        (only TDS_CMD_SUCCEED or TDS_CMD_FAIL should return)
@@ -2185,19 +2188,23 @@ TDSCOMPUTEINFO *info;
 }
 
 int 
-tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG tds_argument, TDS_INT tds_argsize)
+tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG *ptds_argument, TDS_INT *ptds_argsize)
 {
 	static const TDS_TINYINT token = TDS_OPTIONCMD_TOKEN;
+	TDS_TINYINT expected_acknowledgement;
 	
-	int ret;
+	int ret, marker, status;
 	
-	const TDS_TINYINT command = tds_command;
-	const TDS_TINYINT option = tds_option;
-	const TDS_TINYINT argsize = (tds_argsize == TDS_NULLTERM)? 1 + strlen(tds_argument.c) : tds_argsize;
+	TDS_TINYINT command = tds_command;
+	TDS_TINYINT option = tds_option;
+	TDS_TINYINT argsize = (*ptds_argsize == TDS_NULLTERM)? 1 + strlen(ptds_argument->c) : *ptds_argsize;
 
-	const TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
+	TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
 	
 	tdsdump_log(TDS_DBG_INFO1, "%L entering %s::tds_send_optioncmd() \n", __FILE__);
+
+	assert(IS_TDS50(tds));
+	assert(ptds_argument);
 	
 	ret = tds_put_tinyint(tds, token);
 	ret = tds_put_smallint(tds, length);
@@ -2205,18 +2212,18 @@ tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_o
 	ret = tds_put_tinyint(tds, option);
 	ret = tds_put_tinyint(tds, argsize);
 	
-	switch (tds_argsize) {
+	switch (*ptds_argsize) {
 	case 1:
-		ret = tds_put_tinyint(tds, tds_argument.ti);
+		ret = tds_put_tinyint(tds, ptds_argument->ti);
 		break;
 	case 4:
-		ret = tds_put_int(tds, tds_argument.i);
+		ret = tds_put_int(tds, ptds_argument->i);
 		break;
 	case TDS_NULLTERM:
-		ret = tds_put_string(tds, tds_argument.c, argsize);
+		ret = tds_put_string(tds, ptds_argument->c, argsize);
 		break;
 	default: 
-		tdsdump_log(TDS_DBG_INFO1, "%L tds_send_optioncmd: failed: argsize is %d.\n", tds_argsize);
+		tdsdump_log(TDS_DBG_INFO1, "%L tds_send_optioncmd: failed: argsize is %d.\n", *ptds_argsize);
 		return -1;
 	}
 	
@@ -2224,7 +2231,58 @@ tds_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_o
 	
 	/* TODO: read the server's response.  Don't use this function yet. */
 
-	return TDS_SUCCEED;
+	switch (command) {
+	case TDS_OPT_SET:
+	case TDS_OPT_DEFAULT:
+		expected_acknowledgement = TDS_DONE_TOKEN;
+		break;
+	case TDS_OPT_LIST:
+		expected_acknowledgement = TDS_OPTIONCMD_TOKEN; /* with TDS_OPT_INFO */
+		break;
+	}
+	while ((marker = tds_get_byte(tds)) != expected_acknowledgement) {
+		ret = tds_process_default_tokens(tds, marker);
+	}
+	
+	if (marker == TDS_DONE_TOKEN) {
+		ret = tds_process_end(tds, marker, &status);
+		return (TDS_DONE_FINAL == status | TDS_DONE_FINAL)? TDS_SUCCEED : TDS_FAIL;
+	}
+
+        length = tds_get_smallint(tds);
+        command = tds_get_byte(tds);
+        option = tds_get_byte(tds);
+        argsize = tds_get_byte(tds);
+
+	if( argsize > *ptds_argsize) {
+		/* return oversize length to caller, copying only as many bytes as caller provided. */
+		TDS_INT was = *ptds_argsize;
+		*ptds_argsize = argsize;
+		argsize = was;
+	}
+
+        switch (argsize) {
+        case 0:
+		break;
+        case 1:
+                ptds_argument->ti = tds_get_byte(tds);
+                break;
+        case 4:
+                ptds_argument->i = tds_get_int(tds);
+                break;
+        default:
+                ptds_argument->c = tds_get_string(tds, ptds_argument->c, argsize);
+                break;
+        }
+
+
+        while ((marker = tds_get_byte(tds)) != TDS_DONE_TOKEN) {
+                ret = tds_process_default_tokens(tds, marker);
+        }
+
+        ret = tds_process_end(tds, marker, &status);
+        return (TDS_DONE_FINAL == status | TDS_DONE_FINAL)? TDS_SUCCEED : TDS_FAIL;
+
 }
 
 const char *
