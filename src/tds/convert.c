@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.137 2004-03-31 18:41:24 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.138 2004-04-15 19:27:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1943,7 +1943,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	if (desttype == SYBDATETIME) {
 		cr->dt.dtdays = dt_days;
 		dt_time = (t->tm_hour * 60 + t->tm_min) * 60 + t->tm_sec;
-		cr->dt.dttime = dt_time * 300 + (t->tm_ms * 300 / 1000);
+		cr->dt.dttime = dt_time * 300 + (t->tm_ms * 300 + 150) / 1000;
 		return sizeof(TDS_DATETIME);
 	} else {
 		/* SYBDATETIME4 */
@@ -2941,7 +2941,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	if (datetype == SYBDATETIME) {
 		dt = (const TDS_DATETIME *) di;
 		dt_time = dt->dttime;
-		ms = ((dt_time % 300) * 1000) / 300;
+		ms = ((dt_time % 300) * 1000 + 150) / 300;
 		dt_time = dt_time / 300;
 		secs = dt_time % 60;
 		dt_time = dt_time / 60;

@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.6 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.7 2004-04-15 19:27:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -44,7 +44,7 @@ DoTest(int n)
 			CheckReturn();
 			exit(1);
 		}
-		sprintf((char *) output, "%04d-%02d-%02d %02d:%02d:%02d", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second);
+		sprintf((char *) output, "%04d-%02d-%02d %02d:%02d:%02d.000", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second);
 	} else {
 		if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &dataSize) != SQL_SUCCESS) {
 			printf("Unable to get data col %d\n", 1);
@@ -54,7 +54,7 @@ DoTest(int n)
 	}
 
 	printf("Date returned: %s\n", output);
-	if (strcmp((char *) output, "2002-12-27 18:43:21") != 0) {
+	if (strcmp((char *) output, "2002-12-27 18:43:21.000") != 0) {
 		printf("Invalid returned date\n");
 		exit(1);
 	}

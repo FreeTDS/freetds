@@ -1,3 +1,7 @@
+Thu Apr 15 21:25:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix date format
+	* src/tds/convert.c: fix date approximation
+
 Wed Apr 14 09:52:53 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* misc/test-other.sh: get correct user account
 	* src/server/Makefile.am src/server/unittest.c:

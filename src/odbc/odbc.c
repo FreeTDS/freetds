@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.315 2004-04-12 17:07:49 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.316 2004-04-15 19:27:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1029,7 +1029,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	/* ODBC has its own format */
 	if (ctx->locale->date_fmt)
 		free(ctx->locale->date_fmt);
-	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S");
+	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 
 	*phenv = (SQLHENV) env;
 
