@@ -19,7 +19,7 @@
 
 
 
-static char software_version[] = "$Id: t0005.c,v 1.12 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.13 2003-03-07 15:04:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -105,7 +105,7 @@ main(int argc, char **argv)
 	}
 
 
-	sprintf(cmd, "select * from #dblib0005 where i<50 order by i");
+	sprintf(cmd, "select * from #dblib0005 where i < 5 order by i");
 	fprintf(stdout, "%s\n", cmd);
 	dbcmd(dbproc, cmd);
 	dbsqlexec(dbproc);
@@ -133,7 +133,7 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
-	for (i = 1; i < 50; i++) {
+	for (i = 1; i < 5; i++) {
 	char expected[1024];
 
 		sprintf(expected, "row %04d", i);
@@ -161,18 +161,74 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-#if 0
+	fprintf(stdout, "This query should succeeded as we have fetched exactly the.\n");
+	fprintf(stdout, "number of rows in the result set\n");
+
+	sprintf(cmd, "select * from #dblib0005 where i < 6 order by i");
+	fprintf(stdout, "%s\n", cmd);
+	if (SUCCEED != dbcmd(dbproc, cmd)) {
+		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+	if (SUCCEED != dbsqlexec(dbproc)) {
+		fprintf(stderr, "%s:%d: dbsqlexec should have succeeded but didn't\n", __FILE__, __LINE__);
+		failed = 1;
+	}
 	add_bread_crumb();
-	rc = dbnextrow(dbproc);
-	if (rc != NO_MORE_ROWS) {
-		fprintf(stderr, "Was expecting no more rows.  (rc=%d)\n", rc);
+
+	if (dbresults(dbproc) != SUCCEED) {
+		add_bread_crumb();
+		fprintf(stdout, "Was expecting a result set.");
 		exit(1);
 	}
 	add_bread_crumb();
-#endif
 
-	fprintf(stdout, "Next query should fail.\n");
-	sprintf(cmd, "select * from #dblib0005 where i>950 order by i");
+	for (i = 1; i <= dbnumcols(dbproc); i++) {
+		add_bread_crumb();
+		printf("col %d is %s\n", i, dbcolname(dbproc, i));
+		add_bread_crumb();
+	}
+
+	add_bread_crumb();
+	dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint);
+	add_bread_crumb();
+	dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
+	add_bread_crumb();
+
+	add_bread_crumb();
+
+	for (i = 1; i < 5; i++) {
+	char expected[1024];
+
+		sprintf(expected, "row %04d", i);
+
+		add_bread_crumb();
+
+
+		testint = -1;
+		strcpy(teststr, "bogus");
+
+		add_bread_crumb();
+		if (REG_ROW != dbnextrow(dbproc)) {
+			fprintf(stderr, "Failed.  Expected a row\n");
+			exit(1);
+		}
+		add_bread_crumb();
+		if (testint != i) {
+			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
+			abort();
+		}
+		if (0 != strncmp(teststr, expected, strlen(expected))) {
+			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			abort();
+		}
+		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
+	}
+
+	fprintf(stdout, "This query should fail as we have not fetched all the\n");
+	fprintf(stdout, "rows in the result set\n");
+
+	sprintf(cmd, "select * from #dblib0005 where i > 950 order by i");
 	fprintf(stdout, "%s\n", cmd);
 	if (SUCCEED != dbcmd(dbproc, cmd)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
@@ -182,7 +238,113 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s:%d: dbsqlexec should have failed but didn't\n", __FILE__, __LINE__);
 		failed = 1;
 	}
+
+
+	fprintf(stdout, "calling dbcancel to flush results\n");
+	dbcancel(dbproc);
+
+	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
+	sprintf(cmd, "drop procedure t0005_proc");
+	dbcmd(dbproc, cmd);
+	add_bread_crumb();
+	dbsqlexec(dbproc);
+	add_bread_crumb();
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+	add_bread_crumb();
+
+	fprintf(stdout, "creating proc\n");
+	sprintf(cmd, "create proc t0005_proc (@b int out) as\nbegin\n"
+		"select * from #dblib0005 where i < 6 order by i\n" "select @b = 42\n" "end\n");
+
+	fprintf(stdout, "%s\n", cmd);
+
+	dbcmd(dbproc, cmd);
+	if (dbsqlexec(dbproc) == FAIL) {
+		add_bread_crumb();
+		fprintf(stderr, "%s:%d: failed to create procedure\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+
+	fprintf(stdout, "calling proc\n");
+	sprintf(cmd, "declare @myout int exec t0005_proc @b = @myout output");
+	fprintf(stdout, "%s\n", cmd);
+
+	dbcmd(dbproc, cmd);
+	if (dbsqlexec(dbproc) == FAIL) {
+		add_bread_crumb();
+		fprintf(stderr, "%s:%d: failed to call procedure\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+	if (dbresults(dbproc) != SUCCEED) {
+		add_bread_crumb();
+		fprintf(stdout, "Was expecting a result set.");
+		exit(1);
+	}
+	add_bread_crumb();
+
+	for (i = 1; i <= dbnumcols(dbproc); i++) {
+		add_bread_crumb();
+		printf("col %d is %s\n", i, dbcolname(dbproc, i));
+		add_bread_crumb();
+	}
+
+	add_bread_crumb();
+	dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint);
+	add_bread_crumb();
+	dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
+	add_bread_crumb();
+
+	for (i = 1; i < 6; i++) {
+	char expected[1024];
+
+		sprintf(expected, "row %04d", i);
+
+		add_bread_crumb();
+
+
+		testint = -1;
+		strcpy(teststr, "bogus");
+
+		add_bread_crumb();
+		if (REG_ROW != dbnextrow(dbproc)) {
+			fprintf(stderr, "Failed.  Expected a row\n");
+			exit(1);
+		}
+		add_bread_crumb();
+		if (testint != i) {
+			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
+			abort();
+		}
+		if (0 != strncmp(teststr, expected, strlen(expected))) {
+			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			abort();
+		}
+		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
+	}
+	add_bread_crumb();
+
+	fprintf(stdout, "This next command should succeed as we have fetched exactly the.\n");
+	fprintf(stdout, "number of rows in the result set\n");
+
+	sprintf(cmd, "select getdate()");
+	fprintf(stdout, "%s\n", cmd);
+	if (SUCCEED != dbcmd(dbproc, cmd)) {
+		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+	if (SUCCEED != dbsqlexec(dbproc)) {
+		fprintf(stderr, "%s:%d: dbsqlexec should have succeeded but didn't\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+	add_bread_crumb();
+
+	dbcancel(dbproc);
 
 	dbexit();
 	add_bread_crumb();

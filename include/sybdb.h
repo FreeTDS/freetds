@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.42 2003-02-13 16:58:05 jklowden Exp $";
+"$Id: sybdb.h,v 1.43 2003-03-07 15:04:34 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -376,6 +376,7 @@ typedef struct {
    DBUSMALLINT     envchange_rcv;
    char            dbcurdb[DBMAXNAME + 1];
    char            servcharset[DBMAXNAME + 1];
+   FILE            *ftos;
 } DBPROCESS;
 
 typedef struct dbdaterec

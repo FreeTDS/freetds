@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.151 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: token.c,v 1.152 2003-03-07 15:04:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -543,7 +543,6 @@ int
 tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
 int marker;
-int nextmarker;
 TDS_SMALLINT compute_id;
 TDSRESULTINFO *info;
 int i;
@@ -572,12 +571,6 @@ int i;
 			tds_process_row(tds);
 			*rowtype = TDS_REG_ROW;
 			tds->curr_resinfo = tds->res_info;
-			nextmarker = tds_peek(tds);
-			tdsdump_log(TDS_DBG_INFO1, "%L reading ahead...marker is  %x(%s)\n", nextmarker, _tds_token_name(nextmarker));
-			if (is_end_token(nextmarker)) {
-				tdsdump_log(TDS_DBG_INFO1, "%L reading ahead...marker is an end token\n");
-				tds->state = TDS_LASTROW;
-			}
 
 			return TDS_SUCCEED;
 
@@ -600,10 +593,6 @@ int i;
 			if (computeid)
 				*computeid = compute_id;
 
-			nextmarker = tds_peek(tds);
-			if (is_end_token(nextmarker))
-				tds->state = TDS_LASTROW;
-
 			return TDS_SUCCEED;
 
 		case TDS_DONE_TOKEN:
@@ -623,6 +612,65 @@ int i;
 	return TDS_SUCCEED;
 }
 
+/**
+ * tds_process_trailing_tokens() is called to discard messages that may
+ * be left unprocessed at the end of a result "batch". In dblibrary, it is 
+ * valid to process all the data rows that a command may have returned but 
+ * to leave end tokens etc. unprocessed (at least explicitly)
+ * This function is called to discard such tokens. If it comes across a token
+ * that does not fall into the category of valid "trailing" tokens, it will 
+ * return TDS_FAIL, allowing the calling dblibrary function to return a 
+ * "results pending" message. 
+ * The valid "trailing" tokens are :
+ *
+ * TDS_DONE_TOKEN
+ * TDS_DONEPROC_TOKEN
+ * TDS_DONEINPROC_TOKEN
+ * TDS_RETURNSTATUS_TOKEN
+ * TDS_PARAM_TOKEN
+ * TDS5_PARAMFMT_TOKEN
+ * TDS5_PARAMS_TOKEN
+ */
+int
+tds_process_trailing_tokens(TDSSOCKET * tds)
+{
+int marker;
+int done_flags;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_trailing_tokens() \n");
+
+	while(tds->state != TDS_COMPLETED) {
+
+		marker = tds_get_byte(tds);
+		tdsdump_log(TDS_DBG_INFO1, "%L processing trailing tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
+		switch (marker) {
+			case TDS_DONE_TOKEN:
+			case TDS_DONEPROC_TOKEN:
+			case TDS_DONEINPROC_TOKEN:
+				tds_process_end(tds, marker, &done_flags);
+				break;
+			case TDS_RETURNSTATUS_TOKEN:
+				tds->has_status = 1;
+				tds->ret_status = tds_get_int(tds);
+				break;
+			case TDS_PARAM_TOKEN:
+				tds_unget_byte(tds);
+				tds_process_param_result_tokens(tds);
+				break;
+			case TDS5_PARAMFMT_TOKEN:
+				tds_process_dyn_result(tds);
+				break;
+			case TDS5_PARAMS_TOKEN:
+				tds_process_params_result_token(tds);
+				break;
+			default:
+				tds_unget_byte(tds);
+				return TDS_FAIL;
+
+		}
+	}
+	return TDS_SUCCEED;
+}
 /**
  * Process results for simple query as "SET TEXTSIZE" or "USE dbname"
  * If the statement returns results, beware they are discarded.

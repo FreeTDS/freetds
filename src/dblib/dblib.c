@@ -56,11 +56,12 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.122 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.123 2003-03-07 15:04:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO * colinfo);
+static char *_dbprdate();
 
 static void _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen);
 
@@ -74,30 +75,31 @@ typedef struct dblib_context
 	TDSSOCKET **connection_list;
 	int connection_list_size;
 	int connection_list_size_represented;
+	char *recftos_filename;
+	int recftos_filenum;
 }
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
 
-static int g_dblib_version = 
-
+static int g_dblib_version =
 #ifdef TDS42
-		DBVERSION_42;
+	DBVERSION_42;
 #endif
 #ifdef TDS50
-		DBVERSION_100;
+	DBVERSION_100;
 #endif
 #ifdef TDS46
-		DBVERSION_46;
+	DBVERSION_46;
 #endif
 #ifdef TDS70
-		DBVERSION_70;
+	DBVERSION_70;
 #endif
 #ifdef TDS80
-		DBVERSION_80;
+	DBVERSION_80;
 #endif
 
-static int g_dblib_login_timeout = -1;  	/* not used unless positive */
+static int g_dblib_login_timeout = -1;	/* not used unless positive */
 
 static int
 dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
@@ -120,7 +122,7 @@ static void
 dblib_del_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 {
 	int i = 0;
-        const int list_size = ctx->connection_list_size;
+	const int list_size = ctx->connection_list_size;
 
 	while (i < list_size && ctx->connection_list[i] != tds)
 		i++;
@@ -415,9 +417,9 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 					break;
 				default:
 					if (curcol->column_bindlen == 0)
-					destlen = -1;
-				else
-					destlen = curcol->column_bindlen;
+						destlen = -1;
+					else
+						destlen = curcol->column_bindlen;
 					break;
 				}
 
@@ -469,11 +471,11 @@ dbinit(void)
 	 */
 	memset(&g_dblib_ctx, '\0', sizeof(DBLIBCONTEXT));
 
-        g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET*));
+	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET*));
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "%L dbinit: out of memory\n");
 		return FAIL;
-        }
+	}
 	g_dblib_ctx.connection_list_size = TDS_MAX_CONN;
 	g_dblib_ctx.connection_list_size_represented = TDS_MAX_CONN;
 
@@ -773,6 +775,7 @@ tdsdbopen(LOGINREC * login, char *server)
 {
 DBPROCESS *dbproc;
 TDSCONNECTINFO *connect_info;
+char temp_filename[256];
 
 	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
 	if (dbproc == NULL) {
@@ -802,11 +805,12 @@ TDSCONNECTINFO *connect_info;
 	dbproc->servcharset[0] = '\0';
 
 	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
-	if (!connect_info) return NULL;
+	if (!connect_info)
+		return NULL;
 
-        if (g_dblib_login_timeout >= 0) {
-                connect_info->connect_timeout = g_dblib_login_timeout;
-        }
+	if (g_dblib_login_timeout >= 0) {
+		connect_info->connect_timeout = g_dblib_login_timeout;
+	}
 
 	if (tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
 		dbproc->tds_socket = NULL;
@@ -828,6 +832,15 @@ TDSCONNECTINFO *connect_info;
 
 	buffer_init(&(dbproc->row_buf));
 
+	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
+		sprintf(temp_filename, "%s.%d", g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
+		dbproc->ftos = fopen(temp_filename, "w");
+		if (dbproc->ftos != (FILE *) NULL) {
+			fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate());
+			fflush(dbproc->ftos);
+			g_dblib_ctx.recftos_filenum++;
+		}
+	}
 	return dbproc;
 }
 
@@ -956,6 +969,12 @@ int i;
 		buffer_free(&(dbproc->row_buf));
 		tds_free_socket(tds);
 	}
+
+	if (dbproc->ftos != (FILE *) NULL) {
+		fprintf(dbproc->ftos, "/* dbclose() at %s */\n", _dbprdate());
+		fclose(dbproc->ftos);
+	}
+
 	if (dbproc->bcp_tablename)
 		free(dbproc->bcp_tablename);
 	if (dbproc->bcp_hostfile)
@@ -1036,18 +1055,31 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 	while (!done && (retcode = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
 		tdsdump_log(TDS_DBG_FUNC, "%L inside dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
 		switch (result_type) {
-		case TDS_COMPUTE_RESULT:
-		case TDS_ROW_RESULT:
+		case TDS_ROWFMT_RESULT:
+			dbproc->dbresults_state = DBRESINIT;
 			retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
+		case TDS_COMPUTEFMT_RESULT:
+			break;
+
+		case TDS_ROW_RESULT:
+		case TDS_COMPUTE_RESULT:
+
+			if (dbproc->dbresults_state != DBRESINIT) {
+				_dblib_client_msg(dbproc, 20019, 7,
+						  "Attempt to initiate a new SQL Server operation with results pending.");
+				retcode = TDS_FAIL;
+			}
 			done = 1;
 			break;
 
 		case TDS_CMD_SUCCEED:
 		case TDS_CMD_DONE:
+			if (dbproc->dbresults_state == DBRESINIT) {
+				done = 1;
+				break;
+			}
 		case TDS_CMD_FAIL:
-		case TDS_COMPUTEFMT_RESULT:
 		case TDS_MSG_RESULT:
-		case TDS_ROWFMT_RESULT:
 		case TDS_DESCRIBE_RESULT:
 		case TDS_STATUS_RESULT:
 		case TDS_PARAM_RESULT:
@@ -1062,7 +1094,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 		return SUCCEED;
 		break;
 
-	
+
 	case TDS_NO_MORE_RESULTS:
 		if (dbproc->dbresults_state == DBRESINIT) {
 			dbproc->dbresults_state = DBRESSUCC;
@@ -1943,18 +1975,9 @@ TDSSOCKET *tds;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
-	while (tds->state != TDS_COMPLETED ) {
-	
-		marker = tds_get_byte(tds);
-
-		tdsdump_log(TDS_DBG_INFO1, "%L dbcancel() discarding results. marker is %x\n", marker);
-	
-		if (tds_process_default_tokens(tds, marker) == TDS_FAIL) 
-			return TDS_FAIL;
-	}
-
 	tds_send_cancel(dbproc->tds_socket);
 	tds_process_cancel(dbproc->tds_socket);
+
 	return SUCCEED;
 }
 
@@ -2536,7 +2559,7 @@ dbsetmaxprocs(int maxprocs)
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNTESTED dbsetmaxprocs()\n");
 	/*
- 	 * Don't reallocate less memory.  
+	 * Don't reallocate less memory.  
 	 * If maxprocs is less than was initially allocated, just reduce the represented list size.  
 	 * If larger, reallocate and copy.
 	 * We probably should check for valid connections beyond the new max.
@@ -2552,14 +2575,14 @@ dbsetmaxprocs(int maxprocs)
 		g_dblib_ctx.connection_list = old_list;
 		return FAIL;
 	}
-	
+
 	for (i=0; i < g_dblib_ctx.connection_list_size; i++) {
 		g_dblib_ctx.connection_list[i] = old_list[i];
 	}
 
 	g_dblib_ctx.connection_list_size = maxprocs;
 	g_dblib_ctx.connection_list_size_represented = maxprocs;
-		
+
 	return SUCCEED;
 }
 
@@ -3651,8 +3674,7 @@ dbstrlen(DBPROCESS * dbproc)
 char *
 dbgetchar(DBPROCESS * dbproc, int pos)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L in dbgetchar() bufsz = %d, pos = %d\n",
-				dbproc->dbbufsz, pos);
+	tdsdump_log(TDS_DBG_FUNC, "%L in dbgetchar() bufsz = %d, pos = %d\n", dbproc->dbbufsz, pos);
 	if (dbproc->dbbufsz > 0) {
 		if (pos >= 0 && pos < dbproc->dbbufsz)
 			return (char *) &dbproc->dbbuf[pos];
@@ -3896,7 +3918,11 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 void
 dbrecftos(char *filename)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrecftos()\n");
+	g_dblib_ctx.recftos_filename = malloc(strlen(filename) + 1);
+	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
+		strcpy(g_dblib_ctx.recftos_filename, filename);
+		g_dblib_ctx.recftos_filenum = 0;
+	}
 }
 
 /**
@@ -4029,73 +4055,43 @@ int pending_error = 0;
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 
 	if (tds->state == TDS_PENDING) {
-		_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
-		return FAIL;
-	}
 
-	if (tds->state == TDS_LASTROW) {
-
-		while(tds->state != TDS_COMPLETED && !pending_error) {
-		
-			marker = tds_get_byte(tds);
-
-			tdsdump_log(TDS_DBG_INFO1, "%L dbsqlsend state = lastrow marker is  %x\n", marker);
-			switch (marker) {
-				case TDS_DONE_TOKEN:
-				case TDS_DONEPROC_TOKEN:
-				case TDS_DONEINPROC_TOKEN:
-					tds_process_end(tds, marker, &done_flags);
-					break;
-				case TDS_RETURNSTATUS_TOKEN:
-					tds->has_status = 1;
-					tds->ret_status = tds_get_int(tds);
-					break;
-				case TDS_PARAM_TOKEN:
-					tds_unget_byte(tds);
-					tds_process_param_result_tokens(tds);
-					break;
-				case TDS5_PARAMFMT_TOKEN:
-					tds_process_dyn_result(tds);
-					break;
-				case TDS5_PARAMS_TOKEN:
-					tds_process_params_result_token(tds);
-					break;
-				default:
-					_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
-					pending_error = 1;
-	
-			}
-		}
-	}
-
-	if (pending_error) {
-		dbproc->command_state = DBCMDSENT;
-		result = FAIL;
-	} else {
-		if (dbproc->dboptcmd) {
-			if ((cmdstr = dbstring_get(dbproc->dboptcmd)) == NULL) {
-				return FAIL;
-			}
-			rc = tds_submit_query(dbproc->tds_socket, cmdstr, NULL);
-			free(cmdstr);
-			dbstring_free(&(dbproc->dboptcmd));
-			if (rc != TDS_SUCCEED) {
-				return FAIL;
-			}
-			while ((rc = tds_process_result_tokens(tds, &result_type))
-			       == TDS_SUCCEED);
-			if (rc != TDS_NO_MORE_RESULTS) {
-				return FAIL;
-			}
-		}
-		dbproc->more_results = TRUE;
-		if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf, NULL) != TDS_SUCCEED) {
+		if (tds_process_trailing_tokens(tds) != TDS_SUCCEED) {
+			_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+			dbproc->command_state = DBCMDSENT;
 			return FAIL;
 		}
-		dbproc->command_state = DBCMDSENT;
-		result = SUCCEED;
 	}
-	return result;
+
+	if (dbproc->dboptcmd) {
+		if ((cmdstr = dbstring_get(dbproc->dboptcmd)) == NULL) {
+			return FAIL;
+		}
+		rc = tds_submit_query(dbproc->tds_socket, cmdstr, NULL);
+		free(cmdstr);
+		dbstring_free(&(dbproc->dboptcmd));
+		if (rc != TDS_SUCCEED) {
+			return FAIL;
+		}
+		while ((rc = tds_process_result_tokens(tds, &result_type))
+		       == TDS_SUCCEED);
+		if (rc != TDS_NO_MORE_RESULTS) {
+			return FAIL;
+		}
+	}
+	dbproc->more_results = TRUE;
+
+	if (dbproc->ftos != (FILE *) NULL) {
+		fprintf(dbproc->ftos, "%s\n", dbproc->dbbuf);
+		fprintf(dbproc->ftos, "go /* %s */\n", _dbprdate());
+		fflush(dbproc->ftos);
+	}
+
+	if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf, NULL) != TDS_SUCCEED) {
+		return FAIL;
+	}
+	dbproc->command_state = DBCMDSENT;
+	return SUCCEED;
 }
 
 DBINT
@@ -4274,4 +4270,18 @@ _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberr
 	if (dbproc)
 		tds = dbproc->tds_socket;
 	return tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
+}
+static char *
+_dbprdate()
+{
+
+time_t currtime;
+char timestr[256];
+
+	currtime = time((time_t *) NULL);
+
+	strcpy(timestr, asctime(gmtime(&currtime)));
+	timestr[strlen(timestr) - 1] = '\0';	/* remove newline */
+	return timestr;
+
 }

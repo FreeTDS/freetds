@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0004.c,v 1.8 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.9 2003-03-07 15:04:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -123,7 +123,7 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
-	for (i = 1; i <= 25; i++) {
+	for (i = 1; i <= 24; i++) {
 	char expected[1024];
 
 		sprintf(expected, "row %04d", i);
