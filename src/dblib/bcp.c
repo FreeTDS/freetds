@@ -74,7 +74,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.110 2005-01-12 14:34:54 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.111 2005-01-12 19:42:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -88,9 +88,6 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static int rtrim(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
 static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
-
-/* might be temporary */
-int tds_do_until_done(TDSSOCKET * tds);
 
 
 RETCODE

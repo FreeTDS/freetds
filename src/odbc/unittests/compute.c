@@ -9,28 +9,39 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.3 2004-12-14 16:14:26 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.4 2005-01-12 19:42:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
 static SQLLEN ind1, ind2;
 
+static int main_line;
+
 static void
 CheckFetch(const char *c1, const char *c2)
 {
+	int error = 0;
+
 	if (SQLFetch(Statement) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("error fetching");
 
 	if (strlen(c1) != ind1 || strcmp(c1, col1) != 0) {
-		fprintf(stderr, "Column 1 error '%s' (%d) expected '%s' (%d)\n", col1, (int) ind1, c1, strlen(c1));
-		exit(1);
+		fprintf(stderr, "%s:%d: Column 1 error '%s' (%d) expected '%s' (%d)\n", __FILE__, main_line, col1, (int) ind1, c1,
+			strlen(c1));
+		error = 1;
 	}
 
 	if (strlen(c2) != ind2 || strcmp(c2, col2) != 0) {
-		fprintf(stderr, "Column 2 error '%s' (%d) expected '%s' (%d)\n", col2, (int) ind2, c2, strlen(c2));
-		exit(1);
+		fprintf(stderr, "%s:%d: Column 2 error '%s' (%d) expected '%s' (%d)\n", __FILE__, main_line, col2, (int) ind2, c2,
+			strlen(c2));
+		error = 1;
 	}
+
+	if (error)
+		exit(1);
 }
+
+#define CheckFetch main_line = __LINE__; CheckFetch
 
 int
 main(int argc, char *argv[])
@@ -59,7 +70,7 @@ main(int argc, char *argv[])
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
+		ODBC_REPORT_ERROR("No more data ??");
 
 	/* why I need to rebind ?? ms bug of feature ?? */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
@@ -83,7 +94,7 @@ main(int argc, char *argv[])
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
+		ODBC_REPORT_ERROR("No more data ??");
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -92,7 +103,7 @@ main(int argc, char *argv[])
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
+		ODBC_REPORT_ERROR("No more data ??");
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -124,6 +135,8 @@ main(int argc, char *argv[])
 
 
 
+	/* TODO test skip recordset with computed rows */
+	/* TODO test metadata too (column names) */
 
 	Disconnect();
 	return 0;

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.277 2005-01-12 08:46:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.278 2005-01-12 19:42:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -832,7 +832,8 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 	if (tds->state == TDS_IDLE) {
-		*rowtype = TDS_NO_MORE_ROWS;
+		if (rowtype)
+			*rowtype = TDS_NO_MORE_ROWS;
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_row_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_ROWS;
 	}
@@ -848,7 +849,8 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 		case TDS7_RESULT_TOKEN:
 
 			tds_unget_byte(tds);
-			*rowtype = TDS_NO_MORE_ROWS;
+			if (rowtype)
+				*rowtype = TDS_NO_MORE_ROWS;
 			return TDS_NO_MORE_ROWS;
 
 		case TDS_ROW_TOKEN:
@@ -865,12 +867,16 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 			if (tds_process_row(tds) == TDS_FAIL)
 				return TDS_FAIL;
 
-			*rowtype = TDS_REG_ROW;
+			if (rowtype)
+				*rowtype = TDS_REG_ROW;
 
 			return TDS_SUCCEED;
 
 		case TDS_CMP_ROW_TOKEN:
-
+			if (!rowtype) {
+				tds_unget_byte(tds);
+				return TDS_NO_MORE_ROWS;
+			}
 			*rowtype = TDS_COMP_ROW;
 			return tds_process_compute(tds, computeid);
 
@@ -883,7 +889,8 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 			} else {
 				tds_unget_byte(tds);
 			}
-			*rowtype = TDS_NO_MORE_ROWS;
+			if (rowtype)
+				*rowtype = TDS_NO_MORE_ROWS;
 			return TDS_NO_MORE_ROWS;
 
 		default:
@@ -1011,30 +1018,6 @@ tds_process_simple_query(TDSSOCKET * tds)
 	}
 
 	return TDS_SUCCEED;
-}
-
-/** 
- * simple flush function.  maybe be superseded soon.
- */
-int
-tds_do_until_done(TDSSOCKET * tds)
-{
-	int marker, rows_affected = 0;
-
-	CHECK_TDS_EXTRA(tds);
-
-	do {
-		marker = tds_get_byte(tds);
-		if (marker == TDS_DONE_TOKEN) {
-			tds_process_end(tds, marker, NULL);
-			rows_affected = tds->rows_affected;
-		} else {
-			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-				return TDS_FAIL;
-		}
-	} while (marker != TDS_DONE_TOKEN);
-
-	return rows_affected;
 }
 
 /**

@@ -1,3 +1,10 @@
+Wed Jan 12 20:40:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS include/tds.h include/tdsodbc.h src/dblib/bcp.c:
+	* src/odbc/odbc.c src/odbc/unittests/compute.c:
+	* src/tds/mem.c src/tds/token.c:
+	- removed tds_do_until_done (not used)
+	- handle correctly COMPUTE in ODBC
+
 Wed Jan 12  9:43:34 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO doc/api_status.txt include/tds.h src/ctlib/cs.c:
 	* src/dblib/dblib.c src/tds/login.c src/tds/mem.c:

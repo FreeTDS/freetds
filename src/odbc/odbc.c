@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
- * Copyright (C) 2002, 2003, 2004  Frediano Ziglio
+ * Copyright (C) 2002, 2003, 2004, 2005  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.348 2004-12-08 20:30:05 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.349 2005-01-12 19:42:05 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -511,13 +511,37 @@ SQLMoreResults(SQLHSTMT hstmt)
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_COMPUTE_RESULT:
+				switch (stmt->row_status) {
+				/* in normal row, put in compute status */
+				case AFTER_COMPUTE_ROW:
+				case IN_NORMAL_ROW:
+					stmt->row_status = IN_COMPUTE_ROW;
+					if (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_FAIL)
+						ODBC_RETURN(stmt, SQL_ERROR);
+					odbc_populate_ird(stmt);
+					ODBC_RETURN_(stmt);
+				/* skip this recordset */
+				case IN_COMPUTE_ROW:
+					stmt->row_status = AFTER_COMPUTE_ROW;
+					/* TODO here we should set current_results to normal results */
+					in_row = 1;
+					/* FIXME here we should set IRD but we can't... TODO */
+					break;
+				case NOT_IN_ROW:
+					/* this should never happen */
+					ODBC_RETURN(stmt, SQL_ERROR);
+					break;
+				}
+				break;
 			case TDS_ROW_RESULT:
-				if (in_row) {
+				if (in_row || stmt->row_status != IN_NORMAL_ROW) {
+					stmt->row_status = IN_NORMAL_ROW;
 					odbc_populate_ird(stmt);
 					ODBC_RETURN_(stmt);
 				}
 				/* Skipping current result set's rows to access next resultset or proc's retval */
-				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
+				/* FIXME do not skip compute rows !!! */
+				while ((tdsret = tds_process_row_tokens(tds, NULL, NULL)) == TDS_SUCCEED);
 				/* TODO should we set in_row ?? */
 				if (tdsret == TDS_FAIL)
 					ODBC_RETURN(stmt, SQL_ERROR);
@@ -569,7 +593,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 				break;
 
 				/* do not stop at metadata, an error can follow... */
-			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
 				if (in_row) {
 					odbc_populate_ird(stmt);
@@ -577,8 +600,12 @@ SQLMoreResults(SQLHSTMT hstmt)
 				}
 				stmt->row = 0;
 				stmt->row_count = TDS_NO_COUNT;
+				/* we expect a row */
+				stmt->row_status = IN_NORMAL_ROW;
 				in_row = 1;
 				break;
+
+			case TDS_COMPUTEFMT_RESULT:
 			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
 				break;
@@ -1170,6 +1197,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
 
 	stmt->row_count = TDS_NO_COUNT;
+	stmt->row_status = NOT_IN_ROW;
 
 	/* insert into list */
 	stmt->next = dbc->stmt_list;
@@ -2481,7 +2509,6 @@ _SQLExecute(TDS_STMT * stmt)
 			break;
 
 			/* ignore metadata, stop at done or row */
-		case TDS_COMPUTEFMT_RESULT:
 		case TDS_ROWFMT_RESULT:
 			if (in_row) {
 				done = 1;
@@ -2489,9 +2516,11 @@ _SQLExecute(TDS_STMT * stmt)
 			}
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
+			stmt->row_status = IN_NORMAL_ROW;
 			in_row = 1;
 			break;
 
+		case TDS_COMPUTEFMT_RESULT:
 		case TDS_MSG_RESULT:
 		case TDS_DESCRIBE_RESULT:
 			break;
@@ -2647,20 +2676,38 @@ _SQLFetch(TDS_STMT * stmt)
 	do {
 		row_status = SQL_ROW_SUCCESS;
 
-		/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
-		switch (tds_process_row_tokens(stmt->dbc->tds_socket, &rowtype, &computeid)) {
-		case TDS_NO_MORE_ROWS:
-			stmt->row_count = tds->rows_affected;
-			odbc_populate_ird(stmt);
-			tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
+		/* do not get compute row if we are not expecting a compute row */
+		/* TODO I don't like this way of libTDS using but works -- freddy77 */
+		switch (stmt->row_status) {
+		case AFTER_COMPUTE_ROW:
+			/* handle done if needed */
+			/* FIXME doesn't seem so fine ... - freddy77 */
+			tds_process_trailing_tokens(stmt->dbc->tds_socket);
 			goto all_done;
+
+		case IN_COMPUTE_ROW:
+			/* compute recorset contains only a row */
+			/* we already fetched compute row in SQLMoreResults so do not fetch another one */
+			num_rows = 1;
+			stmt->row_status = AFTER_COMPUTE_ROW;
 			break;
-		case TDS_FAIL:
-			ODBC_RETURN(stmt, SQL_ERROR);
-			break;
+
+		default:
+			/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
+			switch (tds_process_row_tokens(stmt->dbc->tds_socket, NULL, NULL)) {
+			case TDS_NO_MORE_ROWS:
+				stmt->row_count = tds->rows_affected;
+				odbc_populate_ird(stmt);
+				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
+				goto all_done;
+				break;
+			case TDS_FAIL:
+				ODBC_RETURN(stmt, SQL_ERROR);
+				break;
+			}
 		}
 
-		resinfo = tds->res_info;
+		resinfo = tds->current_results;
 		if (!resinfo) {
 			tdsdump_log(TDS_DBG_INFO1, "SQLFetch: !resinfo\n");
 			break;

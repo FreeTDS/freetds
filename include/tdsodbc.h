@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.75 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.76 2005-01-12 19:42:04 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -283,6 +283,14 @@ struct _hsattr
 /*	TDS_DESC *imp_param_desc; */
 };
 
+typedef enum
+{
+	NOT_IN_ROW,
+	IN_NORMAL_ROW,
+	IN_COMPUTE_ROW,
+	AFTER_COMPUTE_ROW
+} TDS_ODBC_ROW_STATUS;
+
 struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
@@ -313,6 +321,8 @@ struct _hstmt
 	int row;
 	/** row count to return */
 	int row_count;
+	/** status of row, it can happen that this flag mark that we are still parsing row, this it's normal */
+	TDS_ODBC_ROW_STATUS row_status;
 	/* do NOT free dynamic, free from socket or attach to connection */
 	TDSDYNAMIC *dyn;
 	struct _sql_errors errs;

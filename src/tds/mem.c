@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.126 2005-01-12 08:46:53 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.127 2005-01-12 19:42:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -368,6 +368,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 		return NULL;
 	}
 
+	tds->comp_info = comp_info;
 	comp_info[n] = cur_comp_info;
 	tds->num_comp_info = n + 1;
 
@@ -379,8 +380,6 @@ tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 TDSRESULTINFO *
 tds_alloc_results(int num_cols)
 {
-/*TDSCOLUMN *curcol;
- */
 	TDSRESULTINFO *res_info;
 	int col;
 	int null_sz;

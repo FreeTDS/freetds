@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.202 2005-01-12 08:46:51 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.203 2005-01-12 19:42:04 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1248,7 +1248,6 @@ int tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * compute
 int tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET * tds);
 int tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message);
-int tds_do_until_done(TDSSOCKET * tds);
 
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
