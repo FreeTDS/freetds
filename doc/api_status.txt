@@ -197,8 +197,10 @@ dblib	core	dbsqlok	OK
 dblib	core	dbsqlsend	OK
 dblib	core	dbstrcpy	stub
 dblib	core	dbstrlen	stub
+dblib	core	dbtds	OK
 dblib	core	dbuse	OK
 dblib	core	dbvarylen	
+dblib	core	dbversion	OK
 dblib	core	dbwillconvert	OK
 dblib	core	dbwinexit (Windows only)	
 dblib	cursor	dbcursor	
