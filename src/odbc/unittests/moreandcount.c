@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.5 2003-05-28 09:04:02 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.6 2004-02-14 08:53:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -97,7 +97,7 @@ DoTest(int prepare)
 				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
 				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
 				  "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
-			printf("Unable to execure direct statement\n");
+			printf("Unable to execute direct statement\n");
 			exit(1);
 		}
 	}
