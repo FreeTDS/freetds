@@ -32,7 +32,7 @@ Wed Nov  6 11:43:51 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	  src/dblib/dblib.c:
 	- More constification, including public API's.
 
-Fri Nov  6 13:38:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Wed Nov  6 13:38:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/tds.h include/tdsodbc.h:
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/odbc/odbc.c src/tds/token.c src/tds/unittests/t0004.c:
@@ -41,21 +41,21 @@ Fri Nov  6 13:38:22 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	- tds_process_end set a variable that hold TDS_DONE_* flags
 	- update ODBC according (all this stuff started here)
 
-Fri Nov  5 20:47:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Tue Nov  5 20:47:24 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: pad CHAR and BINARY to proper value
 
-Fri Nov  5 17:08:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Tue Nov  5 17:08:02 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c:
 	- cleanup
 
-Fri Nov  5 14:10:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Tue Nov  5 14:10:28 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h: 
 	- fix some configuration string and cleanup
 
-Fri Nov  5 09:16:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Tue Nov  5 09:16:18 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: enable some more warnings for gcc compiler
 
-Fri Nov  5 09:05:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+Tue Nov  5 09:05:13 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- renamed ALIGN_SIZE to TDS_ALIGN_SIZE and moved to tds.h
 	- tds_align_struct is now only a type name not a variable
