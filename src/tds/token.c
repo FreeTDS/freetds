@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.103 2002-11-13 21:14:48 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.104 2002-11-14 15:46:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -783,7 +783,6 @@ int col, num_cols;
 TDS_TINYINT by_cols = 0;
 TDS_TINYINT *cur_by_col;
 TDS_SMALLINT compute_id = 0;
-TDS_SMALLINT localelen = 0;
 TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
 int remainder;
@@ -860,11 +859,8 @@ int             i;
 
 		curcol->column_type = tds_get_cardinal_type(curcol->column_type);
 
-		localelen = tds_get_byte(tds);
-
-        if (localelen > 0 ) {
-			tds_get_n(tds, NULL, localelen);
-        }
+		/* skip locale */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
 
 		curcol->column_offset = info->row_size;
 		if (is_numeric_type(curcol->column_type)) {
@@ -1117,7 +1113,7 @@ int remainder;
 		
 		/* skip locale information */
 		/* NOTE do not put into tds_get_data_info, param do not have locale information */
-		tds_get_byte(tds);
+		tds_get_n(tds, NULL, tds_get_byte(tds));
 
 		curcol->column_offset = info->row_size;
 		if (is_numeric_type(curcol->column_type)) {
@@ -1821,7 +1817,8 @@ int drain = 0;
 	return tds_lookup_dynamic(tds,id);
 }
 
-static void tds_process_dyn_result(TDSSOCKET *tds)
+static void 
+tds_process_dyn_result(TDSSOCKET *tds)
 {
 int hdrsize;
 int col, num_cols;
@@ -1846,17 +1843,11 @@ TDSDYNAMIC *dyn;
 
 	for (col=0;col<info->num_cols;col++) {
 		curcol=info->columns[col];
-		tds_get_n(tds,NULL,6);
-		/* column type */
-		curcol->column_type = tds_get_byte(tds);
-		/* column size */
-		if (!is_fixed_type(curcol->column_type)) {
-			curcol->column_size = tds_get_byte(tds);
-		} else { 
-			curcol->column_size = tds_get_size_by_type(curcol->column_type);
-		}
-		tds_get_byte(tds);
-		/* fprintf(stderr,"elem %d coltype %d size %d\n",tds->cur_dyn_elem, curcol->column_type, curcol->column_size); */
+
+		tds_get_data_info(tds, curcol);
+
+		/* skip locale information */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
 	}
 }
 
