@@ -8,23 +8,18 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.92 2004-01-06 09:29:24 freddy77 Exp $
+To Do List	$Id: TODO,v 1.93 2004-01-09 05:00:20 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
-
-For 0.62 version:
-. log and call error handler on problems with tds_iconv_init().
-. ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
-. FAQ
-  - multiple statemets question
-  - PHP workaround with multiple connections (see ML)
-. userguide
-  - update table of working configurations
-    server (vendor, version, platform) - client (freetds version, platform) 
-    - protocol - charsets - date
+. Passing invalid character set names to server with tsql?
+. Update involving triggers may not set rows_affected correctly
+  Cf. ML 08 Jan 2004 "New BUG: update/delete returns -1 instead of correct
+      affected rows".  
 
 Postponed to 0.63 version
+. log and call error handler on problems with tds_iconv_init().
+. ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . iconv
   - support string conversions for Sybase
   - input name "ASCII" must always have a canonical form (needed ??)
@@ -41,6 +36,13 @@ Postponed to 0.63 version
 . be able to disable iconv for BCP (see Sybase documentation)
 . UTF-8 unit tests (libTDS)
   - very large column name (128 on mssql), no-english to UTF-8 client
+. userguide
+  - update table of working configurations
+    server (vendor, version, platform) - client (freetds version, platform) 
+    - protocol - charsets - date
+. FAQ
+  - multiple statemets question
+  - PHP workaround with multiple connections (see ML)
 
 For future versions (in priority order within library):
   All:
