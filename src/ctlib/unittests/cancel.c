@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.1 2004-01-26 10:32:49 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.2 2004-03-12 18:10:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -46,6 +46,8 @@ main(int argc, char **argv)
 
 	struct itimerval timer;
 	char query[1024];
+
+#ifdef ENABLE_DEVELOPING
 
 	fprintf(stdout, "%s: Check asynchronous called ct_cancel()\n", __FILE__);
 	if (verbose) {
@@ -171,6 +173,8 @@ main(int argc, char **argv)
 	}
 
 	printf("%s: asynchronous cancel test: PASSED\n", __FILE__);
+
+#endif	/* ENABLE_DEVELOPING */
 	return 0;
 }
 

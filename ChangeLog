@@ -1,3 +1,7 @@
+Fri Mar 12 19:18:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/cancel.c:
+	- use define to comment test
+
 Fri Mar 12 17:28:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/preperror.c: copied test from DBD::ODBC
 	* src/tds/token.c: catch error on tds_process_simple_query
