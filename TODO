@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.49 2003-05-01 12:39:52 freddy77 Exp $
+To Do List	$Id: TODO,v 1.50 2003-05-04 19:40:45 freddy77 Exp $
 ------------
 Broken:
 
@@ -30,8 +30,6 @@ For future versions (in priority order within library):
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character
   (work in progress)
-. Autodetect TDS protocol when connecting (and cache somewhere?)
-. support for VARIANT type
 . tdsping program for testing purposes
 . Finish off the TDS dissector for ethereal
 . more solid. handle out of memory conditions (started, we must test all allocation and all function that return allocated data and be able to rollback to a safe state)
@@ -46,6 +44,8 @@ For future versions (in priority order within library):
 . portability: Tru64 64bit (reported core)
 . dynamic query: port code for string building from ODBC to libtds
   (required for some test working using tds4.2)
+. Autodetect TDS protocol when connecting (and cache somewhere?)
+. support for VARIANT type (never requested, only for completeness)
 
   ct-lib
 . cs_calc and cs_cmp, for sybperl
