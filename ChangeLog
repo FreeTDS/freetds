@@ -1,3 +1,7 @@
+Thu Jan  6 22:18:38 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* configure.in src/dblib/unittests/rpc.c
+	- 0.63RC7: correct rpc unittest
+	
 Wed Jan  5 20:42:50 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in include/dblib.h src/dblib/dblib.c 
 	* src/dblib/dbutil.c src/dblib/rpc.c
