@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.200 2004-12-07 22:39:21 jklowden Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.201 2004-12-13 13:21:25 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -903,13 +903,13 @@ typedef enum _TDS_STATE
 	TDS_DEAD
 } TDS_STATE;
 
-#define TDS_DBG_FUNC    7
-#define TDS_DBG_INFO2   6
-#define TDS_DBG_INFO1   5
-#define TDS_DBG_NETWORK 4
-#define TDS_DBG_WARN    3
-#define TDS_DBG_ERROR   2
-#define TDS_DBG_SEVERE  1
+#define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) | 7)
+#define TDS_DBG_INFO2   __FILE__, ((__LINE__ << 4) | 6)
+#define TDS_DBG_INFO1   __FILE__, ((__LINE__ << 4) | 5)
+#define TDS_DBG_NETWORK __FILE__, ((__LINE__ << 4) | 4)
+#define TDS_DBG_WARN    __FILE__, ((__LINE__ << 4) | 3)
+#define TDS_DBG_ERROR   __FILE__, ((__LINE__ << 4) | 2)
+#define TDS_DBG_SEVERE  __FILE__, ((__LINE__ << 4) | 1)
 
 /**
  * An attempt at better logging.
@@ -1289,10 +1289,10 @@ void tdsdump_on(void);
 int tdsdump_open(const char *filename);
 int tdsdump_append(void);
 void tdsdump_close(void);
-void tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length);
-void tdsdump_log(int dbg_lvl, const char *fmt, ...) 
+void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length);
+void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...) 
 #if defined(__GNUC__) && __GNUC__ >= 2
-	__attribute__ ((__format__ (__printf__, 2, 3)))
+	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
 

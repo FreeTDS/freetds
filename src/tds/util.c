@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.51 2004-12-07 22:39:21 jklowden Exp $";
+static char software_version[] = "$Id: util.c,v 1.52 2004-12-13 13:21:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -250,7 +250,7 @@ tdsdump_open(const char *filename)
 
 		tdsdump_on();
 		strftime(today, sizeof(today), "%Y-%m-%d %H:%M:%S", tm);
-		tdsdump_log(tds_g_debug_lvl, "Starting log file for FreeTDS %s\n"
+		tdsdump_log(NULL, tds_g_debug_lvl, "Starting log file for FreeTDS %s\n"
 			    "\ton %s with debug level %d.\n", VERSION, today, tds_g_debug_lvl);
 	}
 	return result;
@@ -296,16 +296,26 @@ tdsdump_close(void)
 }				/* tdsdump_close()  */
 
 static void
-tdsdump_start(FILE *file)
+tdsdump_start(FILE *file, const char *fname, int line)
 {
 	char buf[128];
-
-	if (tds_g_append_mode)
-		fprintf(dumpfile, "pid: %d:", (int) getpid());
 
 	/* write always time before log */
 	fputs(tds_timestamp_str(buf, 127), dumpfile);
 	fputc(' ', dumpfile);
+
+	if (fname && line) {
+		const char *p;
+		p = strrchr(fname, '/');
+		if (p)
+			fname = p + 1;
+		p = strrchr(fname, '\\');
+		if (p)
+			fname = p + 1;
+		fprintf(dumpfile, "%d (%s:%d):", (int) getpid(), fname, line);
+	} else {
+		fprintf(dumpfile, "%d:", (int) getpid());
+	}
 }
 
 /**
@@ -315,12 +325,14 @@ tdsdump_start(FILE *file)
  * \param length   number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
+tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length)
 {
 	int i;
 	int j;
 	const int bytesPerLine = 16;
 	const unsigned char *data = (const unsigned char *) buf;
+	const int debug_lvl = level_line & 15;
+	const int line = level_line >> 4;
 
 	if (debug_lvl > tds_g_debug_lvl || !write_dump)
 		return;
@@ -331,7 +343,7 @@ tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
 	if (dumpfile == NULL)
 		return;
 
-	tdsdump_start(dumpfile);
+	tdsdump_start(dumpfile, file, line);
 
 	fprintf(dumpfile, "%s\n", msg);
 
@@ -386,8 +398,10 @@ tdsdump_dump_buf(int debug_lvl, const char *msg, const void *buf, int length)
  * \param fmt       printf-like format string
  */
 void
-tdsdump_log(int debug_lvl, const char *fmt, ...)
+tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 {
+	const int debug_lvl = level_line & 15;
+	const int line = level_line >> 4;
 	va_list ap;
 
 	if (debug_lvl > tds_g_debug_lvl || !write_dump)
@@ -399,7 +413,7 @@ tdsdump_log(int debug_lvl, const char *fmt, ...)
 	if (dumpfile == NULL)
 		return;
 
-	tdsdump_start(dumpfile);
+	tdsdump_start(dumpfile, file, line);
 
 	va_start(ap, fmt);
 

@@ -1,3 +1,8 @@
+Mon Dec 13 14:20:14 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: merged with trunk 0.63
+	* include/tds.h src/tds/util.c:
+	- improve logging (not finished)
+
 Mon Dec 13 11:57:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 autogen.sh configure.in misc/test-dist.sh:
 	* src/apps/Makefile.am src/ctlib/Makefile.am:
