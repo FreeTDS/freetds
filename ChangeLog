@@ -1,3 +1,28 @@
+Tue Feb 04 10:27:39 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	great patch from Bill Thompson
+	* include/cspublic.h:
+	- changed cs_command structure as follows:
+	 - removed cmd_done, userdata, userdata_len (redundant)
+	 - added command_type
+	 - added CS_IODESC structure
+	 - added get_data_item, get_data_bytes_returned, send_data_started 
+	- added #define CS_END_ITEM
+	* include/sybdb.h:
+	- added flag column_error to HOST_COLINFO
+	- added bcp_errfileptr to DBPROCESS
+	* src/apps/freebcp.c src/apps/freebcp.h:
+	- support -T option
+	- support error file
+	* include/dblib.h src/dblib/bcp.c:
+	- support error file
+	- improve char and text type support
+	* src/ctlib/ct.c:
+	- improve ct_command to support multiple command types
+	- improve ct_send to support multiple command types
+	- add code for ct_fetch, ct_send_data, ct_get_data and ct_data_info
+	* include/tds.h src/tds/token.c:
+	- store table name and legth correctly
+
 Mon Feb  3 19:44:28 EST 2003	JK Lowden <jklowden@schemamania.org>
 	- Release 0.61rc1
 	

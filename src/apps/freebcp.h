@@ -1,4 +1,4 @@
-static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.4 2002-12-02 21:56:43 jklowden Exp $";
+static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.5 2003-02-04 13:28:28 freddy77 Exp $";
 static void *no_unused_freebcp_h_warn[] = { rcsid_freebcp_h, no_unused_freebcp_h_warn };
 
 enum states
@@ -21,7 +21,7 @@ enum states
 	GET_LANGUAGE,
 	GET_PACKETSIZE,
 	GET_CLIENTCHARSET,
-	GET_TESTSIZE,
+	GET_TEXTSIZE,
 	GET_SYBASEDIR,
 	GET_FROMLABEL,
 	GET_TOLABEL,
@@ -40,6 +40,7 @@ typedef struct pd
 	int lastrow;
 	int batchsize;
 	int maxerrors;
+	int textsize;
 	char *fieldterm;
 	char *rowterm;
 	char *user;
@@ -60,5 +61,6 @@ typedef struct pd
 	int Iflag;
 	int Sflag;
 	int Pflag;
+	int Tflag;
 }
 PARAMDATA;

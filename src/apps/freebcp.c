@@ -36,7 +36,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.17 2003-01-26 10:27:35 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.18 2003-02-04 13:28:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -61,6 +61,10 @@ main(int argc, char **argv)
 
 	memset(&params, '\0', sizeof(PARAMDATA));
 
+	/* our default text size is 4K */
+
+	params.textsize = 4096;
+
 	if (process_parameters(argc, argv, &params) == FALSE) {
 		exit(1);
 	}
@@ -71,12 +75,25 @@ main(int argc, char **argv)
 
 	dbproc->firstrow = params.firstrow;
 	dbproc->lastrow = params.lastrow;
+	dbproc->maxerrs = params.maxerrors;
 
 	if (strcmp(params.dbdirection, "in") == 0) {
 		direction = DB_IN;
 	} else {
 		direction = DB_OUT;
 	}
+
+	if (dbfcmd(dbproc, "set textsize %d", params.textsize) == FAIL) {
+		printf("dbfcmd failed\n");
+		return FALSE;
+	}
+
+	if (dbsqlexec(dbproc) == FAIL) {
+		printf("dbsqlexec failed\n");
+		return FALSE;
+	}
+
+	while (NO_MORE_RESULTS != dbresults(dbproc));
 
 	if (params.cflag) {	/* character format file */
 		ok = file_character(&params, dbproc, direction);
@@ -127,7 +144,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 	/* argument 1 - the database object */
 
 	pdata->dbobject = (char *) malloc(strlen(argv[1]) + 1);
-	if (pdata->dbobject != NULL)
+	if (pdata->dbobject != (char *) NULL)
 		strcpy(pdata->dbobject, argv[1]);
 
 	strcpy(pdata->dbdirection, argv[2]);
@@ -267,7 +284,13 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 					strcpy(pdata->hint, &arg[2]);
 				} else
 					state = GET_HINT;
-
+				break;
+			case 'T':
+				pdata->Tflag++;
+				if (strlen(arg) > 2)
+					pdata->textsize = atoi(&arg[2]);
+				else
+					state = GET_TEXTSIZE;
 				break;
 			default:
 				fprintf(stderr, "Unknown option '%c'.\n", arg[1]);
@@ -326,6 +349,10 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 		case GET_SERVER:
 			pdata->server = (char *) malloc(strlen(arg) + 1);
 			strcpy(pdata->server, arg);
+			state = GET_NEXTARG;
+			break;
+		case GET_TEXTSIZE:
+			pdata->textsize = atoi(arg);
 			state = GET_NEXTARG;
 			break;
 
@@ -408,7 +435,7 @@ LOGINREC *login;
 
 	/* set hint if any */
 	if (pdata->hint) {
-int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE*) pdata->hint, strlen(pdata->hint));
+int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hint));
 
 		if (erc != SUCCEED)
 			fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
@@ -444,7 +471,7 @@ int li_numcols = 0;
 			return FALSE;
 		}
 
-		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, (char *) NULL, dir))
+		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 			return FALSE;
 
 		if (bcp_columns(dbproc, li_numcols) == FAIL) {
@@ -506,7 +533,7 @@ int li_collen;
 			return FALSE;
 		}
 
-		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, (char *) NULL, dir))
+		if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 			return FALSE;
 
 		if (bcp_columns(dbproc, li_numcols) == FAIL) {
@@ -545,7 +572,7 @@ file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 int li_rowsread;
 
-	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, (char *) NULL, dir))
+	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
 
 	if (FAIL == bcp_readfmt(dbproc, pdata->formatfile))
@@ -580,7 +607,7 @@ pusage(void)
 }
 
 int
-err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char* dberrstr, char* oserrstr)
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 
 	if (dberr) {
@@ -597,7 +624,7 @@ err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char* dberrst
 }
 
 int
-msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char* msgtext, char* srvname, char* procname, int line)
+msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
 	/*
 	 * ** If it's a database change message, we'll ignore it.

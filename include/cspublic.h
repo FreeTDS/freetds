@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.28 2003-01-28 14:28:52 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.29 2003-02-04 13:28:26 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -64,6 +64,10 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_ORIGIN(x)   (((x) >> 16) & 0xFF)
 #define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
 #define CS_NUMBER(x)   ((x) & 0xFF)
+
+#define CS_OBJ_NAME 132 /* ? */
+#define CS_TP_SIZE  16  /* text pointer */
+#define CS_TS_SIZE  8   /* length of timestamp */
 
 typedef struct cs_config
 {
@@ -108,26 +112,45 @@ struct cs_connection
 	CS_LOCALE *locale;
 };
 
+
+#define CS_IODATA          (CS_INT)1600
+
+typedef struct cs_iodesc {
+	CS_INT	iotype;
+	CS_INT	datatype;
+	CS_LOCALE	*locale;
+	CS_INT	usertype;
+	CS_INT	total_txtlen;
+	CS_INT	offset;
+	CS_BOOL	log_on_update;
+	CS_CHAR	name[CS_OBJ_NAME];
+	CS_INT	namelen;
+	CS_BYTE textptr[CS_TP_SIZE];
+	CS_INT	textptrlen;
+	CS_BYTE timestamp[CS_TS_SIZE];
+	CS_INT	timestamplen;
+} CS_IODESC;
+
+
 typedef struct cs_command
 {
 	CS_CHAR *query;
-	int cmd_done;
+	CS_INT   command_type;
 	CS_CONNECTION *con;
-	void *userdata;
-	int userdata_len;
 	short dynamic_cmd;
 	char  *dyn_id; 
     int   row_prefetched;
     int   curr_result_type;
+	int   get_data_item;
+	int   get_data_bytes_returned;
+	CS_IODESC *iodesc;
+	CS_INT send_data_started;
 } CS_COMMAND;
 
 #define CS_MAX_MSG 1024
 #define CS_MAX_NAME 132
 #define CS_MAX_SCALE 77
 #define CS_MAX_PREC 77  /* used by php */
-#define CS_OBJ_NAME 132 /* ? */
-#define CS_TP_SIZE  16  /* text pointer */
-#define CS_TS_SIZE  8   /* length of timestamp */
 #define CS_SQLSTATE_SIZE 8
 
 
@@ -202,22 +225,6 @@ struct cs_servermsg {
 typedef struct cs_blkdesc {
 	int dummy;	
 } CS_BLKDESC;
-
-typedef struct cs_iodesc {
-	CS_INT	iotype;
-	CS_INT	datatype;
-	CS_LOCALE	*locale;
-	CS_INT	usertype;
-	CS_INT	total_txtlen;
-	CS_INT	offset;
-	CS_BOOL	log_on_update;
-	CS_CHAR	name[CS_OBJ_NAME];
-	CS_INT	namelen;
-	CS_BYTE textptr[CS_TP_SIZE];
-	CS_INT	textptrlen;
-	CS_BYTE timestamp[CS_TS_SIZE];
-	CS_INT	timestamplen;
-} CS_IODESC;
 
 /* CS_CAP_REQUEST values */
 #define CS_REQ_LANG	1
@@ -471,6 +478,7 @@ enum {
 #define CS_LANG_CMD	7
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
+#define CS_END_ITEM 11
 #define CS_CMD_SUCCEED	TDS_CMD_SUCCEED
 #define CS_CMD_FAIL	TDS_CMD_FAIL
 #define CS_CMD_DONE	TDS_CMD_DONE

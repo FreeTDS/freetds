@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.81 2003-01-26 10:27:35 freddy77 Exp $";
+	"$Id: tds.h,v 1.82 2003-02-04 13:28:28 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -523,6 +523,9 @@ typedef struct tds_column_info {
 	TDS_TINYINT column_scale;
 	/** length of column name */
 	TDS_TINYINT column_namelen;
+	TDS_TINYINT table_namelen;
+	/** table name */
+	TDS_CHAR table_name[256];
 	/* FIXME why 256. bigger limit is 128 ucs2 character ....*/
 	/** column name */
 	TDS_CHAR column_name[256];

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.72 2003-01-24 15:31:02 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.73 2003-02-04 13:28:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -48,7 +48,7 @@ static void *no_unused_var_warn[] = { software_version,
  */
 static int _ct_bind_data(CS_COMMAND * cmd);
 static int _ct_get_client_type(int datatype, int size);
-static int _ct_fetchable_results(CS_COMMAND *cmd);
+static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
 
@@ -391,6 +391,23 @@ int query_len;
 		case CS_MORE:	/* The text in buffer is only part of the language command to be executed. */
 		case CS_END:	/* The text in buffer is the last part of the language command to be executed. */
 		case CS_UNUSED:	/* Equivalent to CS_END. */
+			if (buflen == CS_NULLTERM) {
+				query_len = strlen((const char *) buffer);
+			} else {
+				query_len = buflen;
+			}
+			if (cmd->query)
+				free(cmd->query);
+			/* small fix for no crash */
+			if (query_len == CS_UNUSED) {
+				cmd->query = NULL;
+				return CS_FAIL;
+			}
+			/* TODO some type pass NULL or INT values... */
+			cmd->query = (char *) malloc(query_len + 1);
+			strncpy(cmd->query, (const char *) buffer, query_len);
+			cmd->query[query_len] = '\0';
+
 			break;
 		default:
 			return CS_FAIL;
@@ -411,6 +428,7 @@ int query_len;
 	case CS_SEND_DATA_CMD:
 		switch (option) {
 		case CS_COLUMN_DATA:	/* The data will be used for a text or image column update. */
+			cmd->send_data_started = 0;
 			break;
 		case CS_BULK_DATA:	/* For internal Sybase use only. The data will be used for a bulk copy operation. */
 		default:
@@ -431,23 +449,8 @@ int query_len;
 		return CS_FAIL;
 	}
 
-	/* FIX ME -- will only work for type CS_LANG_CMD */
-	if (buflen == CS_NULLTERM) {
-		query_len = strlen((const char *) buffer);
-	} else {
-		query_len = buflen;
-	}
-	if (cmd->query)
-		free(cmd->query);
-	/* small fix for no crash */
-	if (query_len == CS_UNUSED) {
-		cmd->query = NULL;
-		return CS_FAIL;
-	}
-	/* TODO some type pass NULL or INT values... */
-	cmd->query = (char *) malloc(query_len + 1);
-	strncpy(cmd->query, (const char *) buffer, query_len);
-	cmd->query[query_len] = '\0';
+	cmd->command_type = type;
+
 
 	return CS_SUCCEED;
 }
@@ -477,16 +480,24 @@ TDSDYNAMIC *dyn;
 CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
+TDSSOCKET *tds;
+
+	tds = cmd->con->tds_socket;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send()\n");
 	if (cmd->dynamic_cmd)
 		return ct_send_dyn(cmd);
 
-	if (tds_submit_query(cmd->con->tds_socket, cmd->query) == TDS_FAIL) {
-		tdsdump_log(TDS_DBG_WARN, "%L ct_send() failed\n");
-		return CS_FAIL;
-	} else {
-		tdsdump_log(TDS_DBG_INFO2, "%L ct_send() succeeded\n");
-		return CS_SUCCEED;
+	if (cmd->command_type == CS_LANG_CMD) {
+		if (tds_submit_query(tds, cmd->query) == TDS_FAIL) {
+			tdsdump_log(TDS_DBG_WARN, "%L ct_send() failed\n");
+			return CS_FAIL;
+		} else {
+			tdsdump_log(TDS_DBG_INFO2, "%L ct_send() succeeded\n");
+			return CS_SUCCEED;
+		}
+	}
+	if (cmd->command_type == CS_SEND_DATA_CMD) {
+		tds_flush_packet(tds);
 	}
 }
 
@@ -668,6 +679,8 @@ TDS_INT marker;
 
 	if (cmd->row_prefetched) {
 		cmd->row_prefetched = 0;
+		cmd->get_data_item = 0;
+		cmd->get_data_bytes_returned = 0;
 		if (_ct_bind_data(cmd))
 			return CS_ROW_FAIL;
 		if (rows_read)
@@ -690,6 +703,10 @@ TDS_INT marker;
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch() process_row_tokens returned %d\n", ret);
 
 	if (ret == TDS_SUCCEED) {
+
+		cmd->get_data_item = 0;
+		cmd->get_data_bytes_returned = 0;
+
 		if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
 			if (_ct_bind_data(cmd))
 				return CS_ROW_FAIL;
@@ -742,7 +759,7 @@ CS_DATAFMT srcfmt, destfmt;
 
 			src = &(resinfo->current_row[curcol->column_offset]);
 			if (is_blob_type(curcol->column_type))
-				src = (unsigned char*) ((TDSBLOBINFO *) src)->textvalue;
+				src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
 			srclen = curcol->column_cur_size;
 
 			tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() setting source length for %d = %d destlen = %d\n", i,
@@ -1046,13 +1063,13 @@ TDSCOLINFO *curcol;
 	datafmt->usertype = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
-	
+
 	/* FIX ME -- TDS 5.0 has status information in the results 
 	 ** however, this will work for 4.2 as well */
 	datafmt->status = 0;
 	if (is_nullable_type(curcol->column_type))
 		datafmt->status |= CS_CANBENULL;
-		
+
 	datafmt->count = 1;
 	datafmt->locale = NULL;
 
@@ -1249,21 +1266,254 @@ int i;
 CS_RETCODE
 ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_get_data()\n");
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+TDSCOLINFO *curcol;
+TDSBLOBINFO *blob_info;
+unsigned char *src;
+TDS_INT srclen;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_get_data() item = %d buflen = %d\n", item, buflen);
+
+	/* basic validations... */
+
+	if (item < 1 || item > resinfo->num_cols)
+		return CS_FAIL;
+	if (buffer == NULL)
+		return CS_FAIL;
+	if (buflen == CS_UNUSED)
+		return CS_FAIL;
+
+	/* This is a new column we are being asked to return */
+
+	if (item != cmd->get_data_item) {
+		/* reset these values */
+		cmd->get_data_item = item;
+		cmd->get_data_bytes_returned = 0;
+
+		/* get at the source data and length */
+		curcol = resinfo->columns[item - 1];
+
+		src = &(resinfo->current_row[curcol->column_offset]);
+		if (is_blob_type(curcol->column_type))
+			src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+
+		srclen = curcol->column_cur_size;
+
+		/* now populate the io_desc structure for this data item */
+
+		if (cmd->iodesc)
+			free(cmd->iodesc);
+		cmd->iodesc = malloc(sizeof(CS_IODESC));
+
+		cmd->iodesc->iotype = CS_IODATA;
+		cmd->iodesc->datatype = curcol->column_type;
+		cmd->iodesc->locale = cmd->con->locale;
+		cmd->iodesc->usertype = curcol->column_usertype;
+		cmd->iodesc->total_txtlen = curcol->column_cur_size;
+		cmd->iodesc->offset = curcol->column_offset;
+		cmd->iodesc->log_on_update = CS_FALSE;
+
+		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
+			curcol->table_namelen, curcol->table_namelen, curcol->table_name,
+			curcol->column_namelen, curcol->column_namelen, curcol->column_name);
+
+		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
+
+		blob_info = (TDSBLOBINFO *) & (resinfo->current_row[curcol->column_offset]);
+		memcpy(cmd->iodesc->timestamp, blob_info->timestamp, CS_TS_SIZE);
+		cmd->iodesc->timestamplen = CS_TS_SIZE;
+		memcpy(cmd->iodesc->textptr, blob_info->textptr, CS_TP_SIZE);
+		cmd->iodesc->textptrlen = CS_TP_SIZE;
+
+		/* if we have enough buffer to cope with all the data */
+		if (buflen >= srclen) {
+			memcpy(buffer, src, srclen);
+			cmd->get_data_bytes_returned = srclen;
+			if (outlen)
+				*outlen = srclen;
+			if (item < resinfo->num_cols)
+				return CS_END_ITEM;
+			else
+				return CS_END_DATA;
+		} else {
+			memcpy(buffer, src, buflen);
+			cmd->get_data_bytes_returned = buflen;
+			if (outlen)
+				*outlen = buflen;
+			return CS_SUCCEED;
+		}
+	} else {
+		/* get at the source data */
+		curcol = resinfo->columns[item - 1];
+		src = &(resinfo->current_row[curcol->column_offset]);
+		if (is_blob_type(curcol->column_type))
+			src = (unsigned char *) ((TDSBLOBINFO *) src)->textvalue;
+
+		/* and adjust the data and length based on */
+		/* what we may have already returned       */
+
+		src += cmd->get_data_bytes_returned;
+		srclen = curcol->column_cur_size - cmd->get_data_bytes_returned;
+
+		if (buflen >= srclen) {
+			memcpy(buffer, src, srclen);
+			cmd->get_data_bytes_returned += srclen;
+			if (outlen)
+				*outlen = srclen;
+			if (item < resinfo->num_cols)
+				return CS_END_ITEM;
+			else
+				return CS_END_DATA;
+		} else {
+			memcpy(buffer, src, buflen);
+			cmd->get_data_bytes_returned += buflen;
+			if (outlen)
+				*outlen = buflen;
+			return CS_SUCCEED;
+		}
+	}
+
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
+TDSSOCKET *tds = cmd->con->tds_socket;
+char writetext_cmd[512];
+unsigned char marker;
+
+char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
+char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
+char *c;
+int s;
+char hex2[3];
+
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_send_data()\n");
+
+	/* basic validations */
+
+	if (cmd->command_type != CS_SEND_DATA_CMD)
+		return CS_FAIL;
+
+	if (!cmd->iodesc)
+		return CS_FAIL;
+
+	/* first ct_send_data for this column */
+
+	if (!cmd->send_data_started) {
+
+		/* turn the timestamp and textptr into character format */
+
+		c = textptr_string;
+
+		for (s = 0; s < cmd->iodesc->textptrlen; s++) {
+			sprintf(hex2, "%02x", cmd->iodesc->textptr[s]);
+			*c++ = hex2[0];
+			*c++ = hex2[1];
+		}
+		*c = '\0';
+
+		c = timestamp_string;
+
+		for (s = 0; s < cmd->iodesc->timestamplen; s++) {
+			sprintf(hex2, "%02x", cmd->iodesc->timestamp[s]);
+			*c++ = hex2[0];
+			*c++ = hex2[1];
+		}
+		*c = '\0';
+
+		/* submit the "writetext bulk" command */
+
+		sprintf(writetext_cmd, "writetext bulk %s 0x%s timestamp = 0x%s %s",
+			cmd->iodesc->name,
+			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? "with log" : "")
+			);
+
+		if (tds_submit_query(tds, writetext_cmd) != TDS_SUCCEED) {
+			return CS_FAIL;
+		}
+
+		/* read the end token */
+		marker = tds_get_byte(tds);
+
+		if (marker != TDS_DONE_TOKEN) {
+			return CS_FAIL;
+		}
+
+		if (tds_process_end(tds, marker, NULL) != TDS_SUCCEED) {
+			return CS_FAIL;
+		}
+
+		cmd->send_data_started = 1;
+	}
+
+	tds->out_flag = 0x07;
+	tds_put_int(tds, buflen);
+	tds_put_bulk_data(tds, buffer, buflen);
+
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_data_info()\n");
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+TDSBLOBINFO *blob_info;
+TDSCOLINFO *curcol;
+
+	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_data_info() colnum %d\n", colnum);
+
+	switch (action) {
+	case CS_SET:
+
+		if (cmd->iodesc)
+			free(cmd->iodesc);
+		cmd->iodesc = malloc(sizeof(CS_IODESC));
+
+		cmd->iodesc->iotype = CS_IODATA;
+		cmd->iodesc->datatype = iodesc->datatype;
+		cmd->iodesc->locale = cmd->con->locale;
+		cmd->iodesc->usertype = iodesc->usertype;
+		cmd->iodesc->total_txtlen = iodesc->total_txtlen;
+		cmd->iodesc->offset = iodesc->offset;
+		cmd->iodesc->log_on_update = iodesc->log_on_update;
+		strcpy(cmd->iodesc->name, iodesc->name);
+		cmd->iodesc->namelen = iodesc->namelen;
+		memcpy(cmd->iodesc->timestamp, iodesc->timestamp, CS_TS_SIZE);
+		cmd->iodesc->timestamplen = CS_TS_SIZE;
+		memcpy(cmd->iodesc->textptr, iodesc->textptr, CS_TP_SIZE);
+		cmd->iodesc->textptrlen = CS_TP_SIZE;
+		break;
+
+	case CS_GET:
+
+		if (colnum < 1 || colnum > resinfo->num_cols)
+			return CS_FAIL;
+		if (colnum != cmd->get_data_item)
+			return CS_FAIL;
+
+		iodesc->iotype = cmd->iodesc->iotype;
+		iodesc->datatype = cmd->iodesc->datatype;
+		iodesc->locale = cmd->iodesc->locale;
+		iodesc->usertype = cmd->iodesc->usertype;
+		iodesc->total_txtlen = cmd->iodesc->total_txtlen;
+		iodesc->offset = cmd->iodesc->offset;
+		iodesc->log_on_update = CS_FALSE;
+		strcpy(iodesc->name, cmd->iodesc->name);
+		iodesc->namelen = cmd->iodesc->namelen;
+		memcpy(iodesc->timestamp, cmd->iodesc->timestamp, cmd->iodesc->timestamplen);
+		iodesc->timestamplen = cmd->iodesc->timestamplen;
+		memcpy(iodesc->textptr, cmd->iodesc->textptr, cmd->iodesc->textptrlen);
+		iodesc->textptrlen = cmd->iodesc->textptrlen;
+		break;
+
+	default:
+		return CS_FAIL;
+	}
+
 	return CS_SUCCEED;
 }
 
@@ -1979,16 +2229,16 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	return CS_FAIL;
 }
 
-static int 
-_ct_fetchable_results(CS_COMMAND *cmd)
+static int
+_ct_fetchable_results(CS_COMMAND * cmd)
 {
 	switch (cmd->curr_result_type) {
-		case CS_COMPUTE_RESULT:
-		case CS_CURSOR_RESULT:
-		case CS_PARAM_RESULT:
-		case CS_ROW_RESULT:
-		case CS_STATUS_RESULT:
-			return 1;
+	case CS_COMPUTE_RESULT:
+	case CS_CURSOR_RESULT:
+	case CS_PARAM_RESULT:
+	case CS_ROW_RESULT:
+	case CS_STATUS_RESULT:
+		return 1;
 	}
 	return 0;
 }
@@ -1999,7 +2249,8 @@ _ct_process_return_status(TDSSOCKET * tds)
 TDSRESULTINFO *info;
 TDSCOLINFO *curcol;
 
-	enum {num_cols = 1};
+enum
+{ num_cols = 1 };
 
 	assert(tds);
 	tds_free_all_results(tds);
@@ -2007,7 +2258,7 @@ TDSCOLINFO *curcol;
 	/* allocate the columns structure */
 	tds->curr_resinfo = tds->res_info = tds_alloc_results(num_cols);
 
-	if (!tds->res_info) 
+	if (!tds->res_info)
 		return TDS_FAIL;
 
 	info = tds->res_info;
@@ -2023,13 +2274,12 @@ TDSCOLINFO *curcol;
 
 	info->current_row = tds_alloc_row(info);
 
-	if (!info->current_row) 
+	if (!info->current_row)
 		return TDS_FAIL;
 
 	assert(0 <= curcol->column_offset && curcol->column_offset < info->row_size);
 
-	*(TDS_INT*) (info->current_row + curcol->column_offset) = tds->ret_status;
+	*(TDS_INT *) (info->current_row + curcol->column_offset) = tds->ret_status;
 
 	return TDS_SUCCEED;
 }
-

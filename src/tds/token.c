@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.141 2003-01-26 10:27:36 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.142 2003-02-04 13:28:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -63,7 +63,8 @@ static int tds_get_cardinal_type(int datatype);
 static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int tds_process_env_chg(TDSSOCKET * tds);
-static const char * _tds_token_name(unsigned char marker); 
+static const char *_tds_token_name(unsigned char marker);
+
 
 /**
  * \defgroup token Results processing
@@ -628,15 +629,14 @@ int tdsret;
 
 	*result_type = TDS_CMD_FAIL;
 	for (;;) {
-		switch (tdsret=tds_process_result_tokens(tds, &res_type)) {
+		switch (tdsret = tds_process_result_tokens(tds, &res_type)) {
 		case TDS_SUCCEED:
 			switch (res_type) {
 			case TDS_ROW_RESULT:
 			case TDS_COMPUTE_RESULT:
 				/* discard all this information */
-				while ((tdsret=tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED)
-					;
-				
+				while ((tdsret = tds_process_row_tokens(tds, &rowtype, NULL)) == TDS_SUCCEED);
+
 				if (tdsret == TDS_FAIL)
 					return TDS_FAIL;
 
@@ -645,13 +645,13 @@ int tdsret;
 			case TDS_CMD_DONE:
 				break;
 
-			/* some command went wrong */
+				/* some command went wrong */
 			case TDS_CMD_FAIL:
 				result = TDS_CMD_FAIL;
 				break;
 
 
-			/* ignore */
+				/* ignore */
 			case TDS_COMPUTEFMT_RESULT:
 			case TDS_ROWFMT_RESULT:
 			case TDS_DESCRIBE_RESULT:
@@ -1065,8 +1065,8 @@ int colnamelen;
 		tds_get_n(tds, curcol->column_collation, 5);
 
 	if (is_blob_type(curcol->column_type)) {
-		tabnamelen = tds_get_smallint(tds);
-		tds_get_string(tds, NULL, tabnamelen);
+		curcol->table_namelen = tds_get_smallint(tds);
+		tds_get_string(tds, curcol->table_name, curcol->table_namelen);
 	}
 
 	/* under 7.0 lengths are number of characters not 
@@ -1157,9 +1157,9 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 {
 int colnamelen;
 
-	colnamelen = tds_get_byte(tds);
-	tds_get_string(tds, curcol->column_name, colnamelen);
-	curcol->column_name[colnamelen] = '\0';
+	curcol->column_namelen = tds_get_byte(tds);
+	tds_get_string(tds, curcol->column_name, curcol->column_namelen);
+	curcol->column_name[curcol->column_namelen] = '\0';
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	/* TODO check if all flags are the same for all TDS versions */
@@ -1175,8 +1175,8 @@ int colnamelen;
 	switch (curcol->column_varint_size) {
 	case 4:
 		curcol->column_size = tds_get_int(tds);
-		/* junk the table name -- for now */
-		tds_get_n(tds, NULL, tds_get_smallint(tds));
+		curcol->table_namelen = tds_get_smallint(tds);
+		tds_get_string(tds, curcol->table_name, curcol->table_namelen);
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
@@ -2242,47 +2242,83 @@ tds_prtype(int token)
 /** \@} */
 
 static const char *
- _tds_token_name(unsigned char marker) 
+_tds_token_name(unsigned char marker)
 {
 	switch (marker) {
 
-	case 0x20: return "TDS5_PARAMFMT2";
-	case 0x22: return "ORDERBY2";
-	case 0x61: return "ROWFMT2";
-	case 0x71: return "LOGOUT";
-	case 0x79: return "RETURNSTATUS";
-	case 0x7C: return "PROCID";
-	case 0x81: return "TDS7_RESULT";
-	case 0x88: return "TDS7_COMPUTE_RESULT";
-	case 0xA0: return "COLNAME";
-	case 0xA1: return "COLFMT";
-	case 0xA3: return "DYNAMIC2";
-	case 0xA4: return "TABNAME";
-	case 0xA5: return "COLINFO";
-	case 0xA7: return "COMPUTE_NAMES";
-	case 0xA8: return "COMPUTE_RESULT";
-	case 0xA9: return "ORDERBY";
-	case 0xAA: return "ERROR";
-	case 0xAB: return "INFO";
-	case 0xAC: return "PARAM";
-	case 0xAD: return "LOGINACK";
-	case 0xAE: return "CONTROL";
-	case 0xD1: return "ROW";
-	case 0xD3: return "CMP_ROW";
-	case 0xD7: return "TDS5_PARAMS";
-	case 0xE2: return "CAPABILITY";
-	case 0xE3: return "ENVCHANGE";
-	case 0xE5: return "EED";
-	case 0xE6: return "DBRPC";
-	case 0xE7: return "TDS5_DYNAMIC";
-	case 0xEC: return "TDS5_PARAMFMT";
-	case 0xED: return "AUTH";
-	case 0xEE: return "RESULT";
-	case 0xFD: return "DONE";
-	case 0xFE: return "DONEPROC";
-	case 0xFF: return "DONEINPROC";
+	case 0x20:
+		return "TDS5_PARAMFMT2";
+	case 0x22:
+		return "ORDERBY2";
+	case 0x61:
+		return "ROWFMT2";
+	case 0x71:
+		return "LOGOUT";
+	case 0x79:
+		return "RETURNSTATUS";
+	case 0x7C:
+		return "PROCID";
+	case 0x81:
+		return "TDS7_RESULT";
+	case 0x88:
+		return "TDS7_COMPUTE_RESULT";
+	case 0xA0:
+		return "COLNAME";
+	case 0xA1:
+		return "COLFMT";
+	case 0xA3:
+		return "DYNAMIC2";
+	case 0xA4:
+		return "TABNAME";
+	case 0xA5:
+		return "COLINFO";
+	case 0xA7:
+		return "COMPUTE_NAMES";
+	case 0xA8:
+		return "COMPUTE_RESULT";
+	case 0xA9:
+		return "ORDERBY";
+	case 0xAA:
+		return "ERROR";
+	case 0xAB:
+		return "INFO";
+	case 0xAC:
+		return "PARAM";
+	case 0xAD:
+		return "LOGINACK";
+	case 0xAE:
+		return "CONTROL";
+	case 0xD1:
+		return "ROW";
+	case 0xD3:
+		return "CMP_ROW";
+	case 0xD7:
+		return "TDS5_PARAMS";
+	case 0xE2:
+		return "CAPABILITY";
+	case 0xE3:
+		return "ENVCHANGE";
+	case 0xE5:
+		return "EED";
+	case 0xE6:
+		return "DBRPC";
+	case 0xE7:
+		return "TDS5_DYNAMIC";
+	case 0xEC:
+		return "TDS5_PARAMFMT";
+	case 0xED:
+		return "AUTH";
+	case 0xEE:
+		return "RESULT";
+	case 0xFD:
+		return "DONE";
+	case 0xFE:
+		return "DONEPROC";
+	case 0xFF:
+		return "DONEINPROC";
 
-	default: break;
+	default:
+		break;
 	}
 
 	return "";

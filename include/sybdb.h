@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.39 2002-12-10 22:10:39 jklowden Exp $";
+"$Id: sybdb.h,v 1.40 2003-02-04 13:28:28 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -177,6 +177,7 @@ typedef struct {
 	BYTE	*terminator;
 	int	    term_len;
     int     tab_colnum;
+    int     column_error;
 } BCP_HOSTCOLINFO;
 
 typedef struct {
@@ -343,6 +344,7 @@ typedef struct {
    TDS_INT         text_sent;
    TDS_CHAR        *bcp_hostfile;
    TDS_CHAR        *bcp_errorfile;
+   FILE            *bcp_errfileptr;
    TDS_CHAR        *bcp_tablename;
    TDS_CHAR        *bcp_insert_stmt;
    TDS_INT         bcp_direction;
