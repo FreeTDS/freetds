@@ -1,8 +1,9 @@
 #include "common.h"
+#include <assert.h>
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.3 2003-12-06 16:35:17 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.4 2004-02-22 11:36:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -45,6 +46,15 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 		for (; i >= 0; --i)
 			sprintf(strchr(sbuf, 0), "%02X", num->val[i]);
 		break;
+	case SQL_C_BINARY:
+		assert(out_len >= 0);
+		for (i = 0; i < out_len; ++i)
+			sprintf(strchr(sbuf, 0), "%02X", (int) out_buf[i]);
+		break;
+	default:
+		/* not supported */
+		assert(0);
+		break;
 	}
 
 	if (strcmp(sbuf, expected) != 0) {
@@ -67,7 +77,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	/* execute a select to get data as wire */
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s')", type, value_to_convert);
 	Command(Statement, sbuf);
-	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(SQLINTEGER), &out_len);
+	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	if (SQLFetch(Statement) != SQL_SUCCESS) {
 		fprintf(stderr, "Expected row\n");
 		exit(1);
@@ -138,6 +148,7 @@ main(int argc, char *argv[])
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
+	Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
 
 	Disconnect();
 

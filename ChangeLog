@@ -1,3 +1,7 @@
+Sun Feb 22 12:42:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/genparams.c:
+	- improve test (varchar to binary)
+
 Fri Feb 20 13:26:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/data.c: remove warnings compiling
 
