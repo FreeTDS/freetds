@@ -1,3 +1,19 @@
+Wed Nov  5 12:19:23 EST 2003
+	- Applied Frediano's patch:
+	* src/odbc/connectparams.h src/odbc/connectparams.c
+	* src/odbc/convert_sql2string.c
+	* src/odbc/convert_tds2sql.c src/odbc/odbc.c
+	* src/odbc/odbc_checks.h src/odbc/odbc_checks.c
+	* src/odbc/odbc_util.c src/odbc/prepare_query.c
+	* src/odbc/unittests/putdata.c
+	- fixed SQL_DESC_ROWS_PROCESSED_PTR handling (thanks to Alex Hornby)
+	- comment style updates
+	- return correct result converting to string
+	- more internal checks
+	- removed some TODO
+	- fixed wrong error setting concise type
+	- fixed problem with ODBC3 types in prepared code (thanks to Steven Reynolds)
+
 Tue Nov  4 13:42:08 EST 2003	JK Lowden <jklowden@schemamania.org>
 	- Applied Frediano's patch:
 	* include/tds.h src/tds/token.c
