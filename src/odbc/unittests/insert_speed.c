@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.1 2004-12-09 10:16:19 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.2 2004-12-15 19:53:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -28,7 +28,7 @@ insert_test_auto(void)
 	if (!SQL_SUCCEEDED(SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts))
 	    ||
 	    !SQL_SUCCEEDED(SQLBindParameter
-			   (hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, strlen(string) + 1, 0, string, 0, &sql_nts))) {
+			   (hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts))) {
 		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
 		return (-1);
 	}
