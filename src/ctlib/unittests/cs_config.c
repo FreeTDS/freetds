@@ -3,11 +3,16 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #include <cspublic.h>
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_config.c,v 1.2 2003-11-01 23:02:16 jklowden Exp $";
+static char software_version[] = "$Id: cs_config.c,v 1.3 2003-12-29 21:44:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -18,8 +23,7 @@ main(int argc, char **argv)
 
     CS_CHAR string_in[16], string_out[16];
     CS_INT  int_in,        int_out;
-	CS_INT len, len1, ret_len, ret_len2;
-	CS_CHAR return_name[16], return_name2[16], return_name_1[16], return_name_2[16], return_name_3[16];
+	CS_INT ret_len;
 
 	if (verbose) {
 		fprintf(stdout, "Trying cs_config with CS_USERDATA\n\n");

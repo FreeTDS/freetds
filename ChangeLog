@@ -1,3 +1,7 @@
+Mon Dec 29 22:44:33 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/cs_config.c src/odbc/unittests/transaction.c:
+	- remove warnings compiling unittests
+
 Mon Dec 29 18:04:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in doc/README.releasing:
 	- updates for rpm

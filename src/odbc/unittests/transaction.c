@@ -1,12 +1,11 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.1 2003-10-19 17:05:43 jklowden Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.2 2003-12-29 21:44:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	char buf[16];
 	int result = 0;
 	int retcode = 0;
 	char *createProcedure = ""
