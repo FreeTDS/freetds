@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.110 2002-11-17 10:01:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.111 2002-11-17 11:13:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -766,7 +766,7 @@ TDSCOLINFO *curparam;
 TDSPARAMINFO *info;
 int i;
 
-	/* TODO limited to 64K, try to return bigger data (like TEXT) from mssql */
+	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
 	hdrsize = tds_get_smallint(tds);
 	info = tds_alloc_param_result(tds->param_info);
 	tds->param_info = info;
@@ -1171,7 +1171,6 @@ TDSBLOBINFO *blob_info;
 			break;
 		case 2: 
 			colsize = tds_get_smallint(tds);
-			/* TODO check what happen in convert routine... */
 			/* handle empty no-NULL string*/
 			if (colsize == 0) {
 				tds_clr_null(current_row, i);

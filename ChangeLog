@@ -1,3 +1,6 @@
+Sun Nov 17 12:13:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: remove some TODO
+
 Sun Nov 17 10:58:33 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsconvert.h src/tds/convert.c src/tds/token.c:
 	- VARBINARY are stored in the same way of BINARY and IMAGE (an 
