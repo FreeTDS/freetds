@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.197 2003-07-29 06:02:17 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.199 2003-07-29 19:26:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -473,16 +473,38 @@ SQLMoreResults(SQLHSTMT hstmt)
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
-#if 0
 SQLRETURN SQL_API
 SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStrMax,
 	     SQLINTEGER FAR * pcbSqlStr)
 {
+	SQLRETURN ret = SQL_SUCCESS;
+	DSTR query;
+
 	INIT_HDBC;
-	odbc_errs_add(&dbc->errs, 0, "HYC00", "SQLNativeSql: function not implemented", NULL);
-	ODBC_RETURN(dbc, SQL_ERROR);
-}
+
+	tds_dstr_init(&query);
+
+#ifdef TDS_NO_DM
+	if (!szSqlStrIn || !IS_VALID_LEN(cbSqlStrIn)) {
+		odbc_errs_add(&dbc->errs, 0, "HY009", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
 #endif
+
+	if (!tds_dstr_copyn(&query, szSqlStrIn, odbc_get_string_size(cbSqlStrIn, szSqlStrIn))) {
+		odbc_errs_add(&dbc->errs, 0, "HY001", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
+	/* TODO support not null terminated */
+	native_sql(tds_dstr_cstr(&query));
+
+	ret = odbc_set_string_i(szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
+
+	tds_dstr_free(&query);
+
+	ODBC_RETURN(dbc, ret);
+}
 
 SQLRETURN SQL_API
 SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
@@ -2154,7 +2176,6 @@ static SQLRETURN SQL_API
 _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	char *p = NULL;
-	SQLSMALLINT len;
 	SQLRETURN rc;
 
 	INIT_HDBC;
@@ -2217,10 +2238,7 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 
 	assert(p);
 
-	/* TODO possible integer overflow ?? (I don't think database name have more than 65k characters -- freddy77) */
-	rc = odbc_set_string(Value, BufferLength, &len, p, -1);
-	if (StringLength)
-		*StringLength = len;
+	rc = odbc_set_string_i(Value, BufferLength, StringLength, p, -1);
 	ODBC_RETURN(dbc, rc);
 }
 
@@ -2411,7 +2429,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);
@@ -2503,7 +2521,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);
@@ -2592,7 +2610,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);

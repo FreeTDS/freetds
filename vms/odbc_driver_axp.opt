@@ -55,6 +55,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLGetStmtOption=PROCEDURE,-
 		SQLGetTypeInfo=PROCEDURE,-
 		SQLMoreResults=PROCEDURE,-
+		SQLNativeSql=PROCEDURE,-
 		SQLNumParams=PROCEDURE,-
 		SQLNumResultCols=PROCEDURE,-
 		SQLParamData=PROCEDURE,-
@@ -79,7 +80,6 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 !		SQLDescribeParam=PROCEDURE,-
 !		SQLExtendedFetch=PROCEDURE,-
 !		SQLGetCursorName=PROCEDURE,-
-!		SQLNativeSql=PROCEDURE,-
 !		SQLParamOptions=PROCEDURE,-
 !		SQLSetCursorName=PROCEDURE,-
 !		SQLSetPos=PROCEDURE,-

@@ -40,7 +40,7 @@ EXPORTS
 	SQLGetStmtOption
 	SQLGetTypeInfo
 	SQLMoreResults
-;	SQLNativeSql
+	SQLNativeSql
 	SQLNumParams
 	SQLNumResultCols
 	SQLParamData

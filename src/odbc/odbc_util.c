@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.31 2003-07-27 12:08:58 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.32 2003-07-29 19:25:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -425,6 +425,27 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
  */
 SQLRETURN
 odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len)
+{
+	SQLRETURN result = SQL_SUCCESS;
+
+	if (len < 0)
+		len = strlen(s);
+
+	if (pcbBuffer)
+		*pcbBuffer = len;
+	if (len >= cbBuffer) {
+		len = cbBuffer - 1;
+		result = SQL_SUCCESS_WITH_INFO;
+	}
+	if (buffer && len >= 0) {
+		strncpy((char *) buffer, s, len);
+		((char *) buffer)[len] = 0;
+	}
+	return result;
+}
+
+SQLRETURN
+odbc_set_string_i(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len)
 {
 	SQLRETURN result = SQL_SUCCESS;
 
