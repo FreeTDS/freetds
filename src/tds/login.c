@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.124 2004-06-01 05:49:02 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.125 2004-07-18 17:30:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -213,10 +213,6 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	char *str;
 	int len;
 
-#ifdef SO_LINGER
-	struct linger linger_opt;
-#endif
-
 	FD_ZERO(&fds);
 
 	/*
@@ -292,11 +288,6 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-#ifdef SO_LINGER
-	linger_opt.l_onoff = 1;
-	linger_opt.l_linger = 0;
-	setsockopt(tds->s, SOL_SOCKET, SO_LINGER, (char *) &linger_opt, sizeof(linger_opt));
-#endif
 
 #ifdef SO_KEEPALIVE
 	len = 1;
