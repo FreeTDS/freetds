@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.43 2003-03-29 17:59:32 freddy77 Exp $
+To Do List	$Id: TODO,v 1.44 2003-03-30 05:11:07 jklowden Exp $
 ------------
 Broken:
 
@@ -16,9 +16,6 @@ For 0.62 version:
 . Move website docs (not UG) to doc/htdoc, put in CVS
 . add doc/htdoc/Makefile with "publish" target to commit cvs and update freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
-. Add doxygen to the nightly build
-. "make install" should put the UG in PREFIX/share/doc/freetds/userguide
-. "make install" should put doxygen html in PREFIX/share/doc/freetds/reference
 . Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . Rationalize libtds structure and *_alloc functions (ML 5 December, sb:"names")
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
@@ -103,6 +100,9 @@ Tests
 - "if 0 = 1 select 1" should not fail
 
 Done (removed from above):
+. Add doxygen to the nightly build
+. "make install" should put the UG in PREFIX/share/doc/freetds/userguide
+. "make install" should put doxygen html in PREFIX/share/doc/freetds/reference
 . Add bcp support to tds/dblib/ctlib. (started in dblib)
 . RPC stuff not implemented (work in progress, libtds ok)
 . Add support for TDS 8.0 (login works)
