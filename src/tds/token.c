@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.134 2003-01-02 01:59:18 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.135 2003-01-02 17:28:42 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1598,7 +1598,8 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	msg_info.msg_level = tds_get_byte(tds);
 
 	/* determine if msg or error */
-	if (marker == TDS_EED_TOKEN) {
+	switch (marker) {
+	case TDS_EED_TOKEN: 
 		if (msg_info.msg_level <= 10)
 			msg_info.priv_msg_type = 0;
 		else
@@ -1616,12 +1617,15 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
 		tds->cur_dyn = NULL;
-	} else if (marker == TDS_INFO_TOKEN) {
+		break;
+	case TDS_INFO_TOKEN:
 		msg_info.priv_msg_type = 0;
-	} else if (marker == TDS_ERROR_TOKEN) {
+		break;
+	case TDS_ERROR_TOKEN:
 		msg_info.priv_msg_type = 1;
-	} else {
-		tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() called with unknown marker!\n");
+		break;
+	default:
+		tdsdump_log(TDS_DBG_ERROR, "__FILE__:__LINE__: tds_process_msg() called with unknown marker '%d'!\n", (int)marker);
 		return TDS_FAIL;
 	}
 
