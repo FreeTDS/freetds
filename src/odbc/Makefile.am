@@ -3,9 +3,9 @@ TDSDIR		=	../tds
 TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c locale.c
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
-libtdsodbc_la_SOURCES=	odbc.c connectparams.c
+libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c convert_sql2string.c prepare_query.c odbc_util.c
 if UNIXODBC
-libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lglib -lodbcinst $(NETWORK_LIBS)
+libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lglib -lodbcinst $(NETWORK_LIBS) $(LIBICONV)
 else
 libtdsodbc_la_LIBADD=	$(patsubst %, $(TDSDIR)/%, $(patsubst %.c, %.lo, $(TDSSOURCES))) -lglib $(NETWORK_LIBS)
 endif

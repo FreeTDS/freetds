@@ -48,17 +48,14 @@
 #include <stdio.h>
 
 #include "connectparams.h"
+#include "odbc_util.h"
+#include "convert_tds2sql.h"
+#include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.24 2002-05-25 01:20:52 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.25 2002-05-27 20:12:43 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
-static SQLSMALLINT _odbc_get_client_type(int col_type, int col_size);
-static int _odbc_fix_literals(struct _hstmt *stmt);
-static int _odbc_fixup_sql(struct _hstmt *stmt);
-static int _odbc_get_server_type(int clt_type);
-static int _odbc_get_server_ctype(int c_type);
-static int _odbc_get_string_size(int size, char *str);
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR *phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR *phenv);
 static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR *phstmt);
@@ -440,7 +437,6 @@ SQLRETURN SQL_API SQLSetEnvAttr (
     SQLINTEGER StringLength)
 {
 	CHECK_HENV;
-	LogError ("SQLDrivers: function not implemented");
 	LogError ("SQLSetEnvAttr: function not implemented");
 	return SQL_ERROR;
 }
@@ -1035,7 +1031,11 @@ int ret;
 	CHECK_HSTMT;
 
 	stmt->param_count = 0;
-	strcpy(stmt->query, szSqlStr);
+	if (SQL_SUCCESS!=odbc_set_stmt_query(stmt, szSqlStr, cbSqlStr))
+		return SQL_ERROR;
+	if (SQL_SUCCESS!=odbc_fix_literals(stmt))
+		return SQL_ERROR;
+
 
 	return _SQLExecute(hstmt);
 }
@@ -1936,262 +1936,3 @@ struct _hstmt *stmt;
 		return SQL_ERROR;
 	return _SQLExecute(hstmt);
 }
-
-
-static struct _sql_param_info * 
-_odbc_find_param(struct _hstmt *stmt, int param_num)
-{
-struct _sql_param_info *cur;
-
-	/* find parameter number n */
-	cur = stmt->param_head;
-	while (cur) {
-		if (cur->param_number==param_num) 
-			return cur;
-		cur = cur->next;
-	}
-	return NULL;
-}
-static int 
-_odbc_fixup_sql(struct _hstmt *stmt)
-{
-/* FIXME do not overflow */
-char tmp[4096];
-char *s, *d, *p;
-int param_num = 0;
-struct _sql_param_info *param;
-int len;
-
-	s=stmt->query;
-	d=tmp;
-	while (*s) {
-		/* FIXME ? can be inside string */
-		if (*s=='?') {
-			param_num++;
-			if (param = _odbc_find_param(stmt, param_num)) {
-				printf("ctype is %d %d %d\n",param->param_type, param->param_bindtype, param->param_sqltype);
-				len = tds_convert(
-					_odbc_get_server_ctype(param->param_bindtype), 
-					param->varaddr, -1, 
-         				SYBVARCHAR, d, -1);
-			}
-			d+=len;
-			s++;	
-		} else {
-			*d++=*s++;	
-		}
-	}
-	*d='\0';
-	/* FIXME a SQLPrepare can be follwer by many SQLExecute, do not overwrite query */
-	strcpy(stmt->query,tmp);
-}
-
-static int 
-_odbc_fix_literals(struct _hstmt *stmt)
-{
-/* FIXME do not overflow*/
-char tmp[4096],begin_tag[11];
-char *s, *d, *p;
-int i, quoted = 0, find_end = 0;
-char quote_char;
-
-        s=stmt->query;
-        d=tmp;
-        while (*s) {
-		if (!quoted && (*s=='"' || *s=='\'')) {
-			quoted = 1;
-			quote_char = *s;
-		} else if (quoted && *s==quote_char) {
-			quoted = 0;
-		}
-		if (!quoted && find_end && *s=='}') {
-			s++; /* ignore the end of tag */
-		} else if (!quoted && *s=='{') {
-			for (p=s,i=0;*p && *p!=' ';p++) i++;
-			if (i>10) {
-				/* garbage */
-				*d++=*s++;
-			} else {
-				strncpy(begin_tag, s, i);
-				begin_tag[i] = '\0';
-				/* printf("begin tag %s\n", begin_tag); */
-				s += i;
-				find_end = 1;
-			}
-		} else {
-			*d++=*s++;	
-		}
-        }
-	*d='\0';
-	strcpy(stmt->query,tmp);
-}
-
-static int _odbc_get_string_size(int size, char *str)
-{
-	if (!str) {
-		return 0;
-	}
-	if (size==SQL_NTS) {
-		return strlen(str);
-	} else {
-		return size;
-	}
-}
-static int _odbc_get_server_ctype(int c_type)
-{
-	switch (c_type) {
-		case SQL_C_BINARY:
-			return SYBBINARY;
-		case SQL_C_CHAR:
-			return SYBCHAR;
-		case SQL_C_FLOAT:
-			return SYBREAL;
-		case SQL_C_DOUBLE:
-			return SYBFLT8;
-		case SQL_C_NUMERIC:
-			return SYBNUMERIC;
-		case SQL_C_BIT:
-			return SYBBIT;
-		case SQL_C_SBIGINT:
-		case SQL_C_UBIGINT:
-			return SYBINT8;
-		case SQL_C_LONG:
-		case SQL_C_SLONG:
-		case SQL_C_ULONG:
-			return SYBINT4;
-		case SQL_C_SHORT:
-		case SQL_C_SSHORT:
-		case SQL_C_USHORT:
-			return SYBINT2;
-		case SQL_C_TINYINT:
-		case SQL_C_STINYINT:
-		case SQL_C_UTINYINT:
-			return SYBINT1;
-		case SQL_C_GUID:
-			return SYBUNIQUE;
-		/* FIXME this types should be converted with another method, convert to string and then append to query */
-		case SQL_C_DATE:
-		case SQL_C_TIME:
-		case SQL_C_TIMESTAMP:
-		case SQL_C_TYPE_DATE:
-		case SQL_C_TYPE_TIME:
-		case SQL_C_TYPE_TIMESTAMP:
-		case SQL_C_INTERVAL_YEAR:
-		case SQL_C_INTERVAL_MONTH:
-		case SQL_C_INTERVAL_DAY:
-		case SQL_C_INTERVAL_HOUR:
-		case SQL_C_INTERVAL_MINUTE:
-		case SQL_C_INTERVAL_SECOND:
-		case SQL_C_INTERVAL_YEAR_TO_MONTH:
-		case SQL_C_INTERVAL_DAY_TO_HOUR:
-		case SQL_C_INTERVAL_DAY_TO_MINUTE:
-		case SQL_C_INTERVAL_DAY_TO_SECOND:
-		case SQL_C_INTERVAL_HOUR_TO_MINUTE:
-		case SQL_C_INTERVAL_HOUR_TO_SECOND:
-		case SQL_C_INTERVAL_MINUTE_TO_SECOND:
-			break;
-	}
-	/* FIXME what to do if type not supported ??? */
-}
-static int _odbc_get_server_type(int clt_type)
-{
-	switch (clt_type) {
-	case SQL_CHAR:
-	case SQL_VARCHAR:
-		return SYBCHAR;
-	case SQL_BIT:
-		return SYBBIT;
-	case SQL_TINYINT:
-		return SYBINT1;
-	case SQL_SMALLINT:
-		return SYBINT2;
-	case SQL_INTEGER:
-		return SYBINT4;
-	case SQL_DOUBLE:
-		return SYBFLT8;
-	case SQL_DECIMAL:
-		return SYBDECIMAL;
-	case SQL_NUMERIC:
-		return SYBNUMERIC;
-	case SQL_FLOAT:
-		return SYBREAL;
-	}
-}
-static SQLSMALLINT _odbc_get_client_type(int col_type, int col_size)
-{
-	/* FIXME finish*/
-	switch (col_type) {
-	case SYBCHAR:
-		return SQL_CHAR;
-	case SYBVARCHAR:
-		return SQL_VARCHAR;
-	case SYBTEXT:
-		return SQL_LONGVARCHAR;
-	case SYBBIT:
-		return SQL_BIT;
-	case SYBBITN:
-		/* FIXME correct ?*/
-		return SQL_BIT;
-	case SYBINT8:
-		break;
-	case SYBINT4:
-		return SQL_INTEGER;
-	case SYBINT2:
-		return SQL_SMALLINT;
-	case SYBINT1:
-		return SQL_TINYINT;
-	case SYBINTN:
-		switch(col_size) {
-			case 1: return SQL_TINYINT;
-			case 2: return SQL_SMALLINT;
-			case 4: return SQL_INTEGER;
-		}
-		break;
-	case SYBREAL:
-		return SQL_FLOAT;
-	case SYBFLT8:
-		return SQL_DOUBLE;
-	case SYBFLTN:
-		switch(col_size) {
-			case 4: return SQL_FLOAT;
-			case 8: return SQL_DOUBLE;
-		}
-		break;
-	case SYBMONEY:
-		break;
-	case SYBMONEY4:
-		break;
-	case SYBMONEYN:
-		break;
-	case SYBDATETIME:
-		return SQL_DATE;
-	case SYBDATETIME4:
-		return SQL_DATE;
-	case SYBDATETIMN:
-		return SQL_DATE;
-	case SYBBINARY:
-		return SQL_BINARY;
-	case SYBIMAGE:
-		/* FIXME correct ? */
-		return SQL_LONGVARBINARY;
-	case SYBVARBINARY:
-		return SQL_VARBINARY;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		break;
-	case SYBNTEXT:
-	case SYBVOID:
-	case SYBNVARCHAR:
-	case XSYBCHAR:
-	case XSYBVARCHAR:
-	case XSYBNVARCHAR:
-	case XSYBNCHAR:
-		break;
-	case SYBUNIQUE:
-		break;
-	case SYBVARIANT:
-		break;
-	}
-	return SQL_UNKNOWN_TYPE;
-}
-
