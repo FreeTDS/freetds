@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: faq.html,v 1.5 2004-05-21 17:53:58 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.6 2004-05-29 09:12:31 jklowden Exp $ -->
 <head>
 <title>FreeTDS Frequently Asked Questions</title>
 </head>
@@ -38,7 +38,7 @@ This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
 since the last release, and to answer perennial questions (there are some).  </p>
 
-<div align=right><i>$Id: faq.html,v 1.5 2004-05-21 17:53:58 jklowden Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.6 2004-05-29 09:12:31 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -132,7 +132,7 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 Problems Building<ul>
 
 <li>
-<a href="#How to I access the CVS">How to I access the CVS?</a></li>
+<a href="#How do I access the CVS">How do I access the CVS?</a></li>
 
 <li>
 <a href="#build_macosx">Getting it to work on MAC OS X</a></li>
@@ -507,6 +507,14 @@ less interaction with the server, which is almost always faster.
 	different functions.  A TDS server issues its results a row at a time, which the client library dutifully makes
 	available to the application on arrival.  It's up to the application -- or a higher-level library -- to form a 
 	"rowset" of some kind if desired.  
+<h4>PHP note</h4>
+If you use PHP, you will still run into this problem even if you create
+a new connection. The reason is that PHP is so nice that it will re-use
+the first connection if you connect again with the same parameters. 
+
+You my wish to refer to 
+<a href="http://lists.ibiblio.org/pipermail/freetds/2003q3/013915.html">this post</a> by Daniel Fazekas in the mailing list archives.
+
 
 <a name="thread_safe"></a>
 <h3>Is FreeTDS thread safe?</h3>
@@ -582,7 +590,7 @@ But, <tt>libtdssrv</tt> will do the trick for some applications.</p>
 
 <h2>Problems Building</h2>
 
-<a name="How to I access the CVS"></a>
+<a name="How do I access the CVS"></a>
 <h3>How do I access the CVS Repository?</h3>
 
 <p>The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">SourceForge</a></p>
