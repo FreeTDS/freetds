@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.102 2003-09-22 20:12:49 freddy77 Exp $
+dnl $Id: configure.in,v 1.103 2003-09-24 19:15:56 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -221,6 +221,7 @@ if test "$with_iodbc"; then
 	CPPFLAGS="$CPPFLAGS -DIODBC"
 	ODBC_INC=$with_iodbc/include
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
+	ODBCLIB="-liodbc"
 	odbc=true
 fi
 
@@ -233,6 +234,7 @@ if test "$with_unixodbc"; then
 	CPPFLAGS="$CPPFLAGS -DUNIXODBC"
 	ODBC_INC=$with_unixodbc/include
 	LDFLAGS="$LDFLAGS -L$with_unixodbc/lib"
+	ODBCLIB="-lodbc"
 	odbc=true
 	unixodbc=true
 fi
@@ -240,26 +242,28 @@ fi
 # odbc not specified, try to detect it
 if test x$odbc != xtrue; then
 	AC_CHECK_LIB(iodbc, SQLConnect, [odbc=true
-CPPFLAGS="$CPPFLAGS -DIODBC"], 
+CPPFLAGS="$CPPFLAGS -DIODBC"
+ODBCLIB="-liodbc"], 
 	AC_CHECK_LIB(odbc, SQLConnect, [odbc=true
 unixodbc=true
-CPPFLAGS="$CPPFLAGS -DUNIXODBC"]))
+CPPFLAGS="$CPPFLAGS -DUNIXODBC"
+ODBCLIB="-lodbc"]))
 fi
 if test x$odbc = xtrue; then
-	save_LIBS="$LIBS"
 	if test x$unixodbc = xtrue; then
-		LIBS="$LIBS -lodbcinst"
+		AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -lodbcinst"
+AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
 	else
-		LIBS="$LIBS -liodbcinst"
+		AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCLIB="$ODBCLIB -liodbcinst"
+AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])])
 	fi
-	AC_CHECK_FUNCS(SQLGetPrivateProfileString)
-	LIBS="$save_LIBS"
 fi
 
 AM_CONDITIONAL(ODBC, test x$odbc = xtrue)
 AM_CONDITIONAL(UNIXODBC, test x$unixodbc = xtrue)
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
+AC_SUBST(ODBCLIB)
 
 AC_ARG_ENABLE(apps,
 	AC_HELP_STRING([--disable-apps], [skip build of src/apps (including tsql)]))

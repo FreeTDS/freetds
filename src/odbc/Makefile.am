@@ -9,11 +9,7 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	sql2tds.c sql2tds.h error.c \
 	odbc_checks.c odbc_checks.h
 EXTRA_DIST = tables.sql
-if UNIXODBC
-libtdsodbc_la_LIBADD=	../tds/libtds_objects.la -lodbcinst $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
-else
-libtdsodbc_la_LIBADD=	../tds/libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
-endif
+libtdsodbc_la_LIBADD=	../tds/libtds_objects.la $(ODBCLIB) $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
 libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*' -Wl,-Bsymbolic
 

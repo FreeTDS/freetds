@@ -8,11 +8,12 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.71 2003-09-01 19:45:17 freddy77 Exp $
+To Do List	$Id: TODO,v 1.72 2003-09-24 19:15:56 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
 . Write functions to append to and search the TDSSOCKET::iconv_info array.  
+  (for mssql2k, every columns can have a different charset)
 
 For 0.62 version:
 . borrow GNU's libiconv m4 macro to test/provide EILSEQ.  
