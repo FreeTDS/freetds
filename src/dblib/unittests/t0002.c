@@ -20,7 +20,7 @@
 
 
 
-static char  software_version[]   = "$Id: t0002.c,v 1.5 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0002.c,v 1.6 2002-11-06 17:00:27 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -63,15 +63,7 @@ main(int argc, char **argv)
    DBINT       testint;
    STATUS      rc;
 
-#if HAVE_MALLOC_OPTIONS
-   /*
-    * Options for malloc   A- all warnings are fatal, J- init memory to 0xD0,
-    * R- always move memory block on a realloc.
-    */
-   extern char *malloc_options;
-   malloc_options = "AJR";
-#endif
-
+   set_malloc_options();
 
    read_login_info();
 

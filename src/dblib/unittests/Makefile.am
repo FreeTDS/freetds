@@ -25,7 +25,7 @@ t0017_SOURCES	=	t0017.c common.c common.h
 t0018_SOURCES	=	t0018.c common.c common.h
 t0019_SOURCES	=	t0019.c common.c common.h
 t0020_SOURCES	=	t0020.c common.c common.h
-t0021_SOURCES	=	t0021.c 
+t0021_SOURCES	=	t0021.c common.c common.h
 t0022_SOURCES	=	t0022.c common.c common.h
 t0023_SOURCES	=	t0023.c common.c common.h
 

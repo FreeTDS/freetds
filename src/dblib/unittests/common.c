@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.7 2002-11-06 17:00:24 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -38,8 +38,27 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 
+#if HAVE_MALLOC_OPTIONS
+extern const char *malloc_options;
+#endif /* HAVE_MALLOC_OPTIONS */
+
+void
+set_malloc_options(void)
+{
+
+#if HAVE_MALLOC_OPTIONS
+	/*
+	 * Options for malloc
+	 * A- all warnings are fatal
+	 * J- init memory to 0xD0
+	 * R- always move memory block on a realloc
+	 */
+	malloc_options = "AJR";
+#endif /* HAVE_MALLOC_OPTIONS */
+}
+
 int
-read_login_info()
+read_login_info(void)
 {
 FILE *in;
 char line[512];

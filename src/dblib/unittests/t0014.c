@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0014.c,v 1.13 2002-11-04 19:49:19 castellano Exp $";
+static char  software_version[]   = "$Id: t0014.c,v 1.14 2002-11-06 17:00:32 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 #define BLOB_BLOCK_SIZE 4096
@@ -44,14 +44,7 @@ int main(int argc, char *argv[])
    long				numread;
    BOOL				readFirstImage;
 
-#if HAVE_MALLOC_OPTIONS
-   /*
-    * Options for malloc   A- all warnings are fatal, J- init memory to 0xD0,
-    * R- always move memory block on a realloc.
-    */
-   extern char *malloc_options;
-   malloc_options = "AJR";
-#endif
+   set_malloc_options();
 
    tdsdump_open(NULL);
 

@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0001.c,v 1.8 2002-11-01 20:55:48 castellano Exp $";
+static char  software_version[]   = "$Id: t0001.c,v 1.9 2002-11-06 17:00:26 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -36,14 +36,7 @@ main(int argc, char **argv)
    char        teststr[1024];
    DBINT       testint;
 
-#if HAVE_MALLOC_OPTIONS
-   /*
-    * Options for malloc   A- all warnings are fatal, J- init memory to 0xD0,
-    * R- always move memory block on a realloc.
-    */
-   extern char *malloc_options;
-   malloc_options = "AJR";
-#endif
+   set_malloc_options();
 
    read_login_info();
 
