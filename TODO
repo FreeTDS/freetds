@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.136 2005-02-15 13:04:24 freddy77 Exp $
+To Do List	$Id: TODO,v 1.137 2005-02-16 06:18:39 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -117,6 +117,8 @@ For future versions (in priority order within library):
 . use odbc_config if available
 . *W functions support (wide version, ODBC 3.51)
 . handle async flags ??
+. it seems that if statement it's wrong and we issue SQLPrepare on SQLExecute
+  it try to send unprepared dynamic... state on dynamic??
 
 . test and fix: hidden fields (FOR BROWSE select, see flag test on tds)
 . test: all binding types (input and output)
