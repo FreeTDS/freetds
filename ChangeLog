@@ -1,3 +1,6 @@
+Thu Sep  5  10:19:56 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c: print NULL for null, do not call tds_convert
+
 Thu Sep  5  07:21:44 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/t0001.c:
 	- fixed odbc test linking to odbc, not to tdsodbc driver

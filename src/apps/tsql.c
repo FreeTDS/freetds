@@ -78,6 +78,10 @@ TDS_INT len;
 				continue;
 
 			for (i=0; i<tds->res_info->num_cols; i++) {
+				if (tds_get_null(tds->res_info->current_row, i)) {
+					fprintf(stdout,"NULL\t");
+					continue;
+				}
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
 

@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.43 2002-09-04 20:18:28 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.44 2002-09-05 08:20:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -682,6 +682,7 @@ SQLRETURN SQL_API SQLConnect(
     else
         strcpy( szDataSourceName, "DEFAULT" );
 
+    /* FIXME username/password are never saved to ini file... */
     /* user id */
     if ( szUID && (*szUID) )
         strcpy( szUser, szUID );
