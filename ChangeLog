@@ -1,3 +1,7 @@
+Wed Sep  4 20:46:47 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c:
+	- return CS_ROW_FAIL if error converting
+
 Wed Sep  4 05:43:26 EDT 20002 Brian Bruns <camber@ais.org>
 	* src/tds/read.c: return -1 from tds_read_packet to be unambigious
 

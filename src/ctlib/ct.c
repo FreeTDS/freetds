@@ -24,12 +24,16 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.24 2002-08-23 19:36:21 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.25 2002-09-04 18:47:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-static void _ct_bind_data(CS_COMMAND *cmd);
+/**
+ * Read a row of data
+ * @return 0 on success
+ */
+static int _ct_bind_data(CS_COMMAND *cmd);
 static int _ct_get_client_type(int datatype, int size);
 
 
@@ -495,22 +499,22 @@ CS_RETCODE ct_fetch(CS_COMMAND *cmd, CS_INT type, CS_INT offset, CS_INT option, 
 {
    tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()\n");
 
+   if (rows_read) *rows_read = 0;
    switch (tds_process_row_tokens(cmd->con->tds_socket)) {
       case TDS_SUCCEED:
+	if (_ct_bind_data(cmd))
+		return CS_ROW_FAIL;
       	if (rows_read) *rows_read = 1;
-      	_ct_bind_data(cmd);
       	return TDS_SUCCEED;
       case TDS_NO_MORE_ROWS:
-      	if (rows_read) *rows_read = 0;
       	return CS_END_DATA;
       default:
-      	if (rows_read) *rows_read = 0;
       	return CS_FAIL;
    }
    return CS_SUCCEED;
 }
 
-static void _ct_bind_data(CS_COMMAND *cmd)
+static int _ct_bind_data(CS_COMMAND *cmd)
 {
 int i;
 TDSCOLINFO *curcol;
@@ -518,6 +522,7 @@ TDSSOCKET *tds = cmd->con->tds_socket;
 TDSRESULTINFO *resinfo = tds->res_info;
 unsigned char *src;
 unsigned char *dest;
+int result = 0;
 TDS_INT srctype, srclen, desttype, destlen, len;
 CS_CONTEXT *ctx = cmd->con->ctx;
 
@@ -564,8 +569,11 @@ CS_DATAFMT srcfmt, destfmt;
          destfmt.locale    = cmd->con->locale;
          destfmt.format    = curcol->column_bindfmt;
 
-	 /* FIXME if convert return FAIL no action taken ?? */
-         cs_convert(ctx, &srcfmt, (CS_VOID *)src, &destfmt, (CS_VOID *)dest, &len);
+	 /* if convert return FAIL mark error but process other columns */
+         if (cs_convert(ctx, &srcfmt, (CS_VOID *)src, &destfmt, (CS_VOID *)dest, &len) != CS_SUCCEED) {
+		 result = 1;
+		 len = 0;
+	 }
 
          if (curcol->column_lenbind) {
             tdsdump_log(TDS_DBG_INFO1, "%L inside _ct_bind_data() length binding len = %d\n", len);
@@ -574,6 +582,7 @@ CS_DATAFMT srcfmt, destfmt;
 
       }
    }
+   return result;
 }
 
 CS_RETCODE ct_cmd_drop(CS_COMMAND *cmd)
