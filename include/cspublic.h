@@ -23,16 +23,19 @@
 #include <tds.h>
 
 #ifdef __cplusplus
-extern "C" {
-#endif 
+extern "C"
+{
+#if 0
+}
+#endif
+#endif
 
-static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.40 2003-06-11 20:10:36 freddy77 Exp $";
-static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.41 2003-08-18 09:35:45 freddy77 Exp $";
+static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
-typedef int CS_RETCODE ;
+typedef int CS_RETCODE;
 
-#define CS_PUBLIC 
+#define CS_PUBLIC
 #define CS_STATIC static
 
 typedef TDS_INT CS_INT;
@@ -66,13 +69,13 @@ typedef TDS_UCHAR CS_BIT;
 #define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
 #define CS_NUMBER(x)   ((x) & 0xFF)
 
-#define CS_OBJ_NAME 132 /* ? */
-#define CS_TP_SIZE  16  /* text pointer */
-#define CS_TS_SIZE  8   /* length of timestamp */
+#define CS_OBJ_NAME 132		/* ? */
+#define CS_TP_SIZE  16		/* text pointer */
+#define CS_TS_SIZE  8		/* length of timestamp */
 
 typedef struct cs_config
 {
-    short cs_expose_formats;
+	short cs_expose_formats;
 } CS_CONFIG;
 
 /* forward declarations */
@@ -80,9 +83,9 @@ typedef struct cs_context CS_CONTEXT;
 typedef struct cs_clientmsg CS_CLIENTMSG;
 typedef struct cs_connection CS_CONNECTION;
 typedef struct cs_servermsg CS_SERVERMSG;
-typedef CS_RETCODE (*CS_CSLIBMSG_FUNC)(CS_CONTEXT *, CS_CLIENTMSG *);
-typedef CS_RETCODE (*CS_CLIENTMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
-typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
+typedef CS_RETCODE(*CS_CSLIBMSG_FUNC) (CS_CONTEXT *, CS_CLIENTMSG *);
+typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
+typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
 /* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
 	places, too. */
@@ -90,14 +93,14 @@ typedef CS_RETCODE (*CS_SERVERMSG_FUNC)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVER
 typedef struct _CS_PARAM
 {
 	struct _CS_PARAM *next;
-	char    *name;
-	int      status;
-	int      type;
-	CS_INT   maxlen;
-	CS_INT  *datalen;
-	CS_SMALLINT  *ind;
+	char *name;
+	int status;
+	int type;
+	CS_INT maxlen;
+	CS_INT *datalen;
+	CS_SMALLINT *ind;
 	CS_BYTE *value;
-	int      param_by_value;
+	int param_by_value;
 } CS_PARAM;
 
 
@@ -123,21 +126,24 @@ typedef struct _CSREMOTE_PROC
 
 /* This structure is used in CT_DIAG */
 
-struct cs_diag_msg_client {
+struct cs_diag_msg_client
+{
 	CS_CLIENTMSG *clientmsg;
 	struct cs_diag_msg_client *next;
 };
 
-struct cs_diag_msg_svr {
+struct cs_diag_msg_svr
+{
 	CS_SERVERMSG *servermsg;
 	struct cs_diag_msg_svr *next;
 };
 
 /* Code changes ends here - CT_DIAG - 01 */
 
-struct cs_diag_msg {
-CS_CLIENTMSG *msg;
-struct cs_diag_msg *next;
+struct cs_diag_msg
+{
+	CS_CLIENTMSG *msg;
+	struct cs_diag_msg *next;
 };
 
 struct cs_context
@@ -147,18 +153,18 @@ struct cs_context
 	CS_INT cs_diag_msglimit;
 
 	/* added for storing the maximum messages limit CT_DIAG */
-	/* code changes starts here - CT_DIAG - 02*/
+	/* code changes starts here - CT_DIAG - 02 */
 
-        CS_INT cs_diag_msglimit_client;
-        CS_INT cs_diag_msglimit_server;
-        CS_INT cs_diag_msglimit_total;
-        struct cs_diag_msg_client *clientstore;
-        struct cs_diag_msg_svr *svrstore;
+	CS_INT cs_diag_msglimit_client;
+	CS_INT cs_diag_msglimit_server;
+	CS_INT cs_diag_msglimit_total;
+	struct cs_diag_msg_client *clientstore;
+	struct cs_diag_msg_svr *svrstore;
 
-	/* code changes ends here - CT_DIAG - 02*/
+	/* code changes ends here - CT_DIAG - 02 */
 
 	struct cs_diag_msg *msgstore;
-   	CS_CSLIBMSG_FUNC _cslibmsg_cb;
+	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
 /* code changes start here - CS_CONFIG - 01*/
@@ -166,10 +172,11 @@ struct cs_context
 	int userdata_len;
 /* code changes end here - CS_CONFIG - 01*/
 	TDSCONTEXT *tds_ctx;
-    CS_CONFIG config;
+	CS_CONFIG config;
 };
 
-typedef struct cs_locale {
+typedef struct cs_locale
+{
 	char *language;
 	char *charset;
 	char *time;
@@ -191,20 +198,21 @@ struct cs_connection
 
 #define CS_IODATA          (CS_INT)1600
 
-typedef struct cs_iodesc {
-	CS_INT	iotype;
-	CS_INT	datatype;
-	CS_LOCALE	*locale;
-	CS_INT	usertype;
-	CS_INT	total_txtlen;
-	CS_INT	offset;
-	CS_BOOL	log_on_update;
-	CS_CHAR	name[CS_OBJ_NAME];
-	CS_INT	namelen;
+typedef struct cs_iodesc
+{
+	CS_INT iotype;
+	CS_INT datatype;
+	CS_LOCALE *locale;
+	CS_INT usertype;
+	CS_INT total_txtlen;
+	CS_INT offset;
+	CS_BOOL log_on_update;
+	CS_CHAR name[CS_OBJ_NAME];
+	CS_INT namelen;
 	CS_BYTE textptr[CS_TP_SIZE];
-	CS_INT	textptrlen;
+	CS_INT textptrlen;
 	CS_BYTE timestamp[CS_TS_SIZE];
-	CS_INT	timestamplen;
+	CS_INT timestamplen;
 } CS_IODESC;
 
 
@@ -214,34 +222,35 @@ typedef struct cs_iodesc {
 typedef struct cs_command
 {
 	CS_CHAR *query;
-	CS_INT   command_type;
+	CS_INT command_type;
 	CS_CONNECTION *con;
 	short dynamic_cmd;
-	char  *dyn_id; 
-	int   row_prefetched;
-	int   empty_result;
-	int   curr_result_type;
+	char *dyn_id;
+	int row_prefetched;
+	int empty_result;
+	int curr_result_type;
 	/* Array Binding Code changes start here */
-	int   bind_count; 
-	/* Array Binding Code changes end here */  
-	int   get_data_item;
-	int   get_data_bytes_returned;
+	int bind_count;
+	/* Array Binding Code changes end here */
+	int get_data_item;
+	int get_data_bytes_returned;
 	CS_IODESC *iodesc;
 	CS_INT send_data_started;
 	CSREMOTE_PROC *rpc;
-	CS_PARAM	*input_params;
+	CS_PARAM *input_params;
 } CS_COMMAND;
 
 #define CS_MAX_MSG 1024
 #define CS_MAX_NAME 132
 #define CS_MAX_SCALE 77
-#define CS_MAX_PREC 77  /* used by php */
+#define CS_MAX_PREC 77		/* used by php */
 #define CS_SQLSTATE_SIZE 8
 
 
 #define CS_SRC_VALUE   -2562
 
-typedef struct cs_datafmt {
+typedef struct cs_datafmt
+{
 	int datatype;
 	int format;
 	int maxlength;
@@ -255,14 +264,15 @@ typedef struct cs_datafmt {
 	int usertype;
 } CS_DATAFMT;
 
-typedef TDS_MONEY  CS_MONEY;
+typedef TDS_MONEY CS_MONEY;
 typedef TDS_MONEY4 CS_MONEY4;
 
 typedef TDS_DATETIME CS_DATETIME;
 
 typedef TDS_DATETIME4 CS_DATETIME4;
 
-typedef struct cs_daterec {
+typedef struct cs_daterec
+{
 	CS_INT datesecond;
 	CS_INT dateminute;
 	CS_INT datehour;
@@ -278,20 +288,22 @@ typedef struct cs_daterec {
 
 typedef TDS_INT CS_MSGNUM;
 
-struct cs_clientmsg {
+struct cs_clientmsg
+{
 	CS_INT severity;
 	CS_MSGNUM msgnumber;
 	CS_CHAR msgstring[CS_MAX_MSG];
 	CS_INT msgstringlen;
 	CS_INT osnumber;
-	CS_CHAR osstring[CS_MAX_MSG]; 
+	CS_CHAR osstring[CS_MAX_MSG];
 	CS_INT osstringlen;
 	CS_INT status;
 	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
 	CS_INT sqlstatelen;
 };
 
-struct cs_servermsg {
+struct cs_servermsg
+{
 	int severity;
 	int msgnumber;
 	int state;
@@ -307,8 +319,9 @@ struct cs_servermsg {
 /* status bits for CS_SERVERMSG */
 #define CS_HASEED 0x01
 
-typedef struct cs_blkdesc {
-	int dummy;	
+typedef struct cs_blkdesc
+{
+	int dummy;
 } CS_BLKDESC;
 
 /* CS_CAP_REQUEST values */
@@ -404,7 +417,8 @@ typedef struct cs_blkdesc {
 #define CS_DATA_NOINT8	35
 
 /* Properties */
-enum {
+enum
+{
 	CS_USERNAME = 1,
 /* These defines looks weird but programs can test support for defines, 
    compiler can check enum and there are no define side effecs */
@@ -446,14 +460,16 @@ enum {
 };
 
 /* Arbitrary precision math operators */
-enum {
+enum
+{
 	CS_ADD = 1,
 	CS_SUB,
 	CS_MULT,
 	CS_DIV
 };
 
-enum {
+enum
+{
 	CS_TDS_40 = 1,
 	CS_TDS_42,
 	CS_TDS_46,
@@ -516,22 +532,24 @@ enum {
 #define CS_OPT_TRUNCIGNORE	31
 
 /* options accepted by ct_command() */
-enum ct_command_options {
-	CS_MORE, 
-	CS_END, 
-	CS_UNUSED, 
-	CS_RECOMPILE, 
-	CS_NO_RECOMPILE, 
-	CS_COLUMN_DATA, 
-	CS_BULK_DATA, 
-	CS_BULK_INIT, 
+enum ct_command_options
+{
+	CS_MORE,
+	CS_END,
+	CS_UNUSED,
+	CS_RECOMPILE,
+	CS_NO_RECOMPILE,
+	CS_COLUMN_DATA,
+	CS_BULK_DATA,
+	CS_BULK_INIT,
 	CS_BULK_CONT
 };
 
 
 /* bind formats, should be mapped to TDS types 
  * can be a combination of bit */
-enum {
+enum
+{
 	CS_FMT_UNUSED = 0,
 #define CS_FMT_UNUSED CS_FMT_UNUSED
 	CS_FMT_NULLTERM = 1,
@@ -690,7 +708,8 @@ enum {
 #define CS_UNIQUE_TYPE	27
 
 /* cs_dt_info type values */
-enum {
+enum
+{
 	CS_MONTH = 1,
 #define CS_MONTH CS_MONTH
 	CS_SHORTMONTH,
@@ -706,7 +725,8 @@ enum {
 };
 
 /* DT_CONVFMT types */
-enum {
+enum
+{
 	CS_DATES_HMS = 1,
 #define CS_DATES_HMS CS_DATES_HMS
 	CS_DATES_SHORT,
@@ -761,9 +781,11 @@ enum {
 #define CS_DATES_YMD3_YYYY CS_DATES_YMD3_YYYY
 };
 
-typedef CS_RETCODE (*CS_CONV_FUNC)(CS_CONTEXT *context, CS_DATAFMT *srcfmt, CS_VOID *src, CS_DATAFMT *detsfmt, CS_VOID *dest, CS_INT *destlen);
+typedef CS_RETCODE(*CS_CONV_FUNC) (CS_CONTEXT * context, CS_DATAFMT * srcfmt, CS_VOID * src, CS_DATAFMT * detsfmt, CS_VOID * dest,
+				   CS_INT * destlen);
 
-typedef struct _cs_objname {
+typedef struct _cs_objname
+{
 	CS_BOOL thinkexists;
 	CS_INT object_type;
 	CS_CHAR last_name[CS_MAX_NAME];
@@ -776,7 +798,8 @@ typedef struct _cs_objname {
 	CS_INT threadlen;
 } CS_OBJNAME;
 
-typedef struct _cs_objdata {
+typedef struct _cs_objdata
+{
 	CS_BOOL actuallyexists;
 	CS_CONNECTION *connection;
 	CS_COMMAND *command;
@@ -785,16 +808,18 @@ typedef struct _cs_objdata {
 } CS_OBJDATA;
 
 /* Eventually, these should be in terms of TDS values */
-enum {
-        CS_OPT_SUNDAY,
-        CS_OPT_MONDAY,
-        CS_OPT_TUESDAY,
-        CS_OPT_WEDNESDAY,
-        CS_OPT_THURSDAY,
-        CS_OPT_FRIDAY,
-        CS_OPT_SATURDAY
+enum
+{
+	CS_OPT_SUNDAY,
+	CS_OPT_MONDAY,
+	CS_OPT_TUESDAY,
+	CS_OPT_WEDNESDAY,
+	CS_OPT_THURSDAY,
+	CS_OPT_FRIDAY,
+	CS_OPT_SATURDAY
 };
-enum {
+enum
+{
 	CS_OPT_FMTMDY,
 	CS_OPT_FMTDMY,
 	CS_OPT_FMTYMD,
@@ -802,7 +827,8 @@ enum {
 	CS_OPT_FMTMYD,
 	CS_OPT_FMTDYM
 };
-enum {
+enum
+{
 	CS_OPT_LEVEL0,
 	CS_OPT_LEVEL1,
 	CS_OPT_LEVEL3
@@ -823,32 +849,41 @@ enum {
 #define CS_SERVERMSG_TYPE 4701
 #define CS_ALLMSG_TYPE 4702
 
-CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen);
-CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx);
-CS_RETCODE cs_ctx_global(CS_INT version, CS_CONTEXT **ctx);
-CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx);
-CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
-CS_RETCODE cs_strbuild(CS_CONTEXT *ctx, CS_CHAR *buffer, CS_INT buflen, CS_INT *resultlen, CS_CHAR *text, CS_INT textlen, CS_CHAR *formats, CS_INT formatlen, ...);
-CS_RETCODE cs_dt_crack(CS_CONTEXT *ctx, CS_INT datetype, CS_VOID *dateval, CS_DATEREC *daterec);
-CS_RETCODE cs_loc_alloc(CS_CONTEXT *ctx, CS_LOCALE **locptr);
-CS_RETCODE cs_loc_drop(CS_CONTEXT *ctx, CS_LOCALE *locale);
-CS_RETCODE cs_locale(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
-CS_RETCODE cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_INT item, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
+CS_RETCODE cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata,
+		      CS_INT * resultlen);
+CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx);
+CS_RETCODE cs_ctx_global(CS_INT version, CS_CONTEXT ** ctx);
+CS_RETCODE cs_ctx_drop(CS_CONTEXT * ctx);
+CS_RETCODE cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen);
+CS_RETCODE cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT * resultlen, CS_CHAR * text, CS_INT textlen,
+		       CS_CHAR * formats, CS_INT formatlen, ...);
+CS_RETCODE cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec);
+CS_RETCODE cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr);
+CS_RETCODE cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale);
+CS_RETCODE cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen,
+		     CS_INT * outlen);
+CS_RETCODE cs_dt_info(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_INT item, CS_VOID * buffer,
+		      CS_INT buflen, CS_INT * outlen);
 
-CS_RETCODE cs_calc(CS_CONTEXT *ctx, CS_INT op, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_VOID *dest);
-CS_RETCODE cs_cmp(CS_CONTEXT *ctx, CS_INT datatype, CS_VOID *var1, CS_VOID *var2, CS_INT *result);
-CS_RETCODE cs_conv_mult(CS_CONTEXT *ctx, CS_LOCALE *srcloc, CS_LOCALE *destloc, CS_INT *conv_multiplier);
-CS_RETCODE cs_diag(CS_CONTEXT *ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID *buffer);
-CS_RETCODE cs_manage_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_CHAR *srcname, CS_INT srcnamelen, CS_INT desttype, CS_CHAR *destname, CS_INT destnamelen, CS_INT *conv_multiplier, CS_CONV_FUNC *func);
-CS_RETCODE cs_objects(CS_CONTEXT *ctx, CS_INT action, CS_OBJNAME *objname, CS_OBJDATA *objdata);
-CS_RETCODE cs_set_convert(CS_CONTEXT *ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC *func);
-CS_RETCODE cs_setnull(CS_CONTEXT *ctx, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT buflen);
-CS_RETCODE cs_strcmp(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_INT type, CS_CHAR *str1, CS_INT len1, CS_CHAR *str2, CS_INT len2, CS_INT *result);
-CS_RETCODE cs_time(CS_CONTEXT *ctx, CS_LOCALE *locale, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen, CS_DATEREC *daterec);
-CS_RETCODE cs_will_convert(CS_CONTEXT *ctx, CS_INT srctype, CS_INT desttype, CS_BOOL *result);
+CS_RETCODE cs_calc(CS_CONTEXT * ctx, CS_INT op, CS_INT datatype, CS_VOID * var1, CS_VOID * var2, CS_VOID * dest);
+CS_RETCODE cs_cmp(CS_CONTEXT * ctx, CS_INT datatype, CS_VOID * var1, CS_VOID * var2, CS_INT * result);
+CS_RETCODE cs_conv_mult(CS_CONTEXT * ctx, CS_LOCALE * srcloc, CS_LOCALE * destloc, CS_INT * conv_multiplier);
+CS_RETCODE cs_diag(CS_CONTEXT * ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer);
+CS_RETCODE cs_manage_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_CHAR * srcname, CS_INT srcnamelen, CS_INT desttype,
+			     CS_CHAR * destname, CS_INT destnamelen, CS_INT * conv_multiplier, CS_CONV_FUNC * func);
+CS_RETCODE cs_objects(CS_CONTEXT * ctx, CS_INT action, CS_OBJNAME * objname, CS_OBJDATA * objdata);
+CS_RETCODE cs_set_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC * func);
+CS_RETCODE cs_setnull(CS_CONTEXT * ctx, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT buflen);
+CS_RETCODE cs_strcmp(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_INT type, CS_CHAR * str1, CS_INT len1, CS_CHAR * str2, CS_INT len2,
+		     CS_INT * result);
+CS_RETCODE cs_time(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen, CS_DATEREC * daterec);
+CS_RETCODE cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * result);
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
-#endif 
+#endif
 
 #endif

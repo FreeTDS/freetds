@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.20 2003-08-02 17:50:43 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.21 2003-08-18 09:35:45 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -28,14 +28,14 @@ static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_i
 #else
 /* Define iconv_t for src/replacements/iconv.c. */
 #undef iconv_t
-typedef void* iconv_t;
+typedef void *iconv_t;
 
 /* The following EILSEQ advice is borrowed verbatim from GNU iconv.  */
 /* Some systems, like SunOS 4, don't have EILSEQ. Some systems, like BSD/OS,
    have EILSEQ in a different header.  On these systems, define EILSEQ
    ourselves. */
 #ifndef EILSEQ
-# define EILSEQ 
+# define EILSEQ
 #endif
 #endif /* HAVE_ICONV */
 
@@ -46,40 +46,40 @@ typedef void* iconv_t;
 #ifdef __cplusplus
 extern "C"
 {
+#if 0
+}
+#endif
 #endif
 
 #if ! HAVE_ICONV
 
 	/* FYI, the first 4 entries look like this:
-	 * 	{"ISO-8859-1",	1, 1}, -> 0
-	 * 	{"US-ASCII",	1, 4}, -> 1
-	 * 	{"UCS-2LE",	2, 2}, -> 2
-	 * 	{"UCS-2BE",	2, 2}, -> 3
+	 *      {"ISO-8859-1",  1, 1}, -> 0
+	 *      {"US-ASCII",    1, 4}, -> 1
+	 *      {"UCS-2LE",     2, 2}, -> 2
+	 *      {"UCS-2BE",     2, 2}, -> 3
 	 *
 	 * These conversions are supplied by src/replacements/iconv.c for the sake of those who don't 
 	 * have or otherwise need an iconv.
 	 */
-	enum ICONV_CD_VALUE {
-		  Like_to_Like  = 0x100
-		, Latin1_ASCII  = 0x01
-		, ASCII_Latin1  = 0x10
-		, Latin1_UCS2LE = 0x02
-		, UCS2LE_Latin1 = 0x20
-		, ASCII_UCS2LE  = 0x12
-		, UCS2LE_ASCII  = 0x21
+enum ICONV_CD_VALUE
+{
+	Like_to_Like = 0x100, Latin1_ASCII = 0x01, ASCII_Latin1 = 0x10, Latin1_UCS2LE = 0x02, UCS2LE_Latin1 = 0x20, ASCII_UCS2LE =
+		0x12, UCS2LE_ASCII = 0x21
 		/* these aren't needed 
-			, Latin1_UCS2BE = 0x03
-			, UCS2BE_Latin1 = 0x30
-		*/
-	};
+		 * , Latin1_UCS2BE = 0x03
+		 * , UCS2BE_Latin1 = 0x30
+		 */
+};
 
-	iconv_t iconv_open (const char* tocode, const char* fromcode);
-	size_t iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
-	int iconv_close (iconv_t cd);
+iconv_t iconv_open(const char *tocode, const char *fromcode);
+size_t iconv(iconv_t cd, const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
+int iconv_close(iconv_t cd);
 #endif /* !HAVE_ICONV */
 
 
-typedef enum { to_server, to_client } TDS_ICONV_DIRECTION;
+typedef enum
+{ to_server, to_client } TDS_ICONV_DIRECTION;
 
 typedef struct _character_set_alias
 {
@@ -91,8 +91,8 @@ struct tdsiconvinfo
 {
 	TDS_ENCODING client_charset;
 	TDS_ENCODING server_charset;
-	iconv_t to_wire;   /* conversion from client charset to server's format */
-	iconv_t from_wire; /* conversion from server's format to client charset */
+	iconv_t to_wire;	/* conversion from client charset to server's format */
+	iconv_t from_wire;	/* conversion from server's format to client charset */
 #define TDS_ENCODING_INDIRECT 1
 	/* ^^^ As of June 2003, no reference to this macro 
 	 * It's just a TODO... freddy77 */
@@ -104,13 +104,16 @@ struct tdsiconvinfo
 # define ICONV_CONST const
 #endif
 
-size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t *outbytesleft);
-size_t tds_iconv (TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
-		  const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
-const char * tds_canonical_charset_name(const char *charset_name);
-const char * tds_sybase_charset_name(const char *charset_name);
+size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
+size_t tds_iconv(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
+		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
+const char *tds_canonical_charset_name(const char *charset_name);
+const char *tds_sybase_charset_name(const char *charset_name);
 
 #ifdef __cplusplus
+#if 0
+{
+#endif
 }
 #endif
 

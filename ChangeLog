@@ -1,3 +1,8 @@
+Mon Aug 18 11:34:03 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/ctpublic.h  include/tds.h:
+	* include/tdsiconv.h:
+	- indent(1)
+
 Fri Aug 15 10:14:57 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/mem.c: fix severe BUG using NUMERIC/BLOB parameters
 
