@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.33 2004-03-30 15:14:12 freddy77 Exp $
+# $Id: Makefile.am,v 1.34 2004-04-08 12:03:47 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -7,7 +7,7 @@ TESTS		=	\
 			transaction \
 			type genparams preperror \
 			prepare_results testodbc \
-			data error
+			data error rebindpar
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -37,6 +37,7 @@ prepare_results_SOURCES = prepare_results.c common.c common.h
 testodbc_SOURCES	= testodbc.c common.c common.h
 data_SOURCES	= data.c common.c common.h
 error_SOURCES	= error.c common.c common.h
+rebindpar_SOURCES	= rebindpar.c common.c common.h
 
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)

@@ -1,3 +1,8 @@
+Thu Apr 08 14:15:44 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/rebindpar.c(added):
+	- added a test (from DBD::ODBC)
+
 Thu Apr 08 12:11:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/raiseerror.c: improved
 
