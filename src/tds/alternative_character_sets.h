@@ -24,7 +24,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 /*
- * $Id: alternative_character_sets.h,v 1.9 2003-05-15 13:32:08 freddy77 Exp $
+ * $Id: alternative_character_sets.h,v 1.9.4.1 2005-02-26 13:14:02 freddy77 Exp $
  */
  
 /* 
@@ -168,6 +168,9 @@
 	, {            "CP949", "CP949"                  }
 	, {            "CP949", "UHC"                    }
 	, {            "CP950", "CP950"                  }
+	, {            "CP437", "CP437"                  }
+	, {            "CP437", "cp437"                  }
+	, {            "CP437", "IBM437"                 }
 	, {           "EUC-JP", "EUC-JP"                 }
 	, {           "EUC-JP", "CSEUCPKDFMTJAPANESE"    }
 	, {           "EUC-JP", "EUCJP"                  }

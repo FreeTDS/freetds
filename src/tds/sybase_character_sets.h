@@ -1,6 +1,6 @@
 /*
  * This file produced from sybase_character_sets.h.pl
- * $Id: sybase_character_sets.h,v 1.3 2003-12-03 07:13:00 freddy77 Exp $
+ * $Id: sybase_character_sets.h,v 1.3.4.1 2005-02-26 13:14:03 freddy77 Exp $
  */
 	  {        "ISO-8859-1", "ascii_8"       }
 	, {             "BIG-5", "big5"          }
@@ -35,7 +35,7 @@
 	 /*                  "", "cp297"         */
 	 /*                  "", "cp420"         */
 	 /*                  "", "cp424"         */
-	 /*                  "", "cp437"         */
+	, {             "CP437", "cp437"         }
 	 /*                  "", "cp500"         */
 	 /*                  "", "cp5026"        */
 	 /*                  "", "cp5026yen"     */
