@@ -17,7 +17,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.14 2002-12-10 03:24:38 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.15 2002-12-14 14:47:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -66,13 +66,13 @@ main(int argc, char **argv)
 				printf("login timeout set to %s.\n", argv[2]);
 		}
 	}
-	
+
 	fprintf(stdout, "About to open \"%s\"\n", SERVER);
 
 	add_bread_crumb();
 
 	dbproc = dbopen(login, SERVER);
-	if( !dbproc ) {
+	if (!dbproc) {
 		fprintf(stderr, "Unable to connect to %s\n", SERVER);
 		return 1;
 	}

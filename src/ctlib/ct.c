@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.59 2002-12-12 20:06:13 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.60 2002-12-14 14:44:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -316,10 +316,10 @@ char *set_buffer = NULL;
 CS_RETCODE
 ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 {
-	char *server;
-	int needfree = 0;
-	CS_CONTEXT *ctx;
-	TDSCONNECTINFO *connect_info;
+char *server;
+int needfree = 0;
+CS_CONTEXT *ctx;
+TDSCONNECTINFO *connect_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_connect() servername = %s\n", servername);
 
@@ -372,7 +372,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 CS_RETCODE
 ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen, CS_INT option)
 {
-	int query_len;
+int query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_command()\n");
 
@@ -440,7 +440,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 CS_RETCODE
 ct_send_dyn(CS_COMMAND * cmd)
 {
-	TDSDYNAMIC *dyn;
+TDSDYNAMIC *dyn;
 
 	if (cmd->dynamic_cmd == CS_PREPARE) {
 		cmd->dynamic_cmd = 0;
@@ -474,11 +474,12 @@ ct_send(CS_COMMAND * cmd)
 		return CS_SUCCEED;
 	}
 }
+
 CS_RETCODE
 ct_results_dyn(CS_COMMAND * cmd, CS_INT * result_type)
 {
-	TDSSOCKET *tds;
-	TDSDYNAMIC *dyn;
+TDSSOCKET *tds;
+TDSDYNAMIC *dyn;
 
 	tds = cmd->con->tds_socket;
 
@@ -499,13 +500,13 @@ ct_results_dyn(CS_COMMAND * cmd, CS_INT * result_type)
 CS_RETCODE
 ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 {
-	TDSSOCKET *tds;
-	CS_CONTEXT *context;
+TDSSOCKET *tds;
+CS_CONTEXT *context;
 
-	int tdsret;
-	int rowtype;
-	int computeid;
-	CS_INT res_type;
+int tdsret;
+int rowtype;
+int computeid;
+CS_INT res_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_results()\n");
 
@@ -604,9 +605,9 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 CS_RETCODE
 ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * copied, CS_SMALLINT * indicator)
 {
-	TDSCOLINFO *colinfo;
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
+TDSCOLINFO *colinfo;
+TDSRESULTINFO *resinfo;
+TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_bind()\n");
 
@@ -634,10 +635,10 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 CS_RETCODE
 ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read)
 {
-	TDS_INT rowtype;
-	TDS_INT computeid;
-	TDS_INT ret;
-	TDS_INT marker;
+TDS_INT rowtype;
+TDS_INT computeid;
+TDS_INT ret;
+TDS_INT marker;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_fetch()\n");
 
@@ -684,17 +685,17 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 static int
 _ct_bind_data(CS_COMMAND * cmd)
 {
-	int i;
-	TDSCOLINFO *curcol;
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	unsigned char *src;
-	unsigned char *dest;
-	int result = 0;
-	TDS_INT srctype, srclen, desttype, len;
-	CS_CONTEXT *ctx = cmd->con->ctx;
+int i;
+TDSCOLINFO *curcol;
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+unsigned char *src;
+unsigned char *dest;
+int result = 0;
+TDS_INT srctype, srclen, desttype, len;
+CS_CONTEXT *ctx = cmd->con->ctx;
 
-	CS_DATAFMT srcfmt, destfmt;
+CS_DATAFMT srcfmt, destfmt;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside _ct_bind_data()\n");
 
@@ -957,7 +958,7 @@ _ct_get_server_type(int datatype)
 CS_RETCODE
 ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 {
-	CS_RETCODE ret;
+CS_RETCODE ret;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_cancel()\n");
 	if (type == CS_CANCEL_CURRENT) {
@@ -990,9 +991,9 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 CS_RETCODE
 ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 {
-	TDSSOCKET *tds;
-	TDSRESULTINFO *resinfo;
-	TDSCOLINFO *curcol;
+TDSSOCKET *tds;
+TDSRESULTINFO *resinfo;
+TDSCOLINFO *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_describe()\n");
 	tds = cmd->con->tds_socket;
@@ -1029,9 +1030,9 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 CS_RETCODE
 ct_res_info_dyn(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSDYNAMIC *dyn;
-	CS_INT int_val;
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSDYNAMIC *dyn;
+CS_INT int_val;
 
 	switch (type) {
 	case CS_NUMDATA:
@@ -1049,9 +1050,9 @@ ct_res_info_dyn(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, 
 CS_RETCODE
 ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	CS_INT int_val;
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+CS_INT int_val;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_res_info()\n");
 	if (cmd->dynamic_cmd) {
@@ -1086,8 +1087,8 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 CS_RETCODE
 ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	CS_RETCODE ret = CS_SUCCEED;
-	CS_INT *buf = (CS_INT *) buffer;
+CS_RETCODE ret = CS_SUCCEED;
+CS_INT *buf = (CS_INT *) buffer;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_config() action = %s property = %d\n",
 		    CS_GET ? "CS_GET" : CS_SET ? "CS_SET" : CS_SUPPORTED ? "CS_SUPPORTED" : "CS_CLEAR", property);
@@ -1135,13 +1136,13 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 CS_RETCODE
 ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->curr_resinfo;
-	TDSCOLINFO *curcol;
-	CS_INT int_val;
-	CS_SMALLINT *dest_by_col_ptr;
-	CS_TINYINT *src_by_col_ptr;
-	int i;
+TDSSOCKET *tds = cmd->con->tds_socket;
+TDSRESULTINFO *resinfo = tds->curr_resinfo;
+TDSCOLINFO *curcol;
+CS_INT int_val;
+CS_SMALLINT *dest_by_col_ptr;
+CS_TINYINT *src_by_col_ptr;
+int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_compute_info() type = %d, colnum = %d\n", type, colnum);
 
@@ -1236,9 +1237,9 @@ CS_RETCODE
 ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability, CS_VOID * value)
 {
 TDSLOGIN *login;
-	int index = 0;
-	unsigned char bitmask = 0;
-	unsigned char *mask;
+int index = 0;
+unsigned char bitmask = 0;
+unsigned char *mask;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_capability()\n");
 	login = (TDSLOGIN *) con->tds_login;
@@ -1246,157 +1247,157 @@ TDSLOGIN *login;
 
 	switch (capability) {
 	case CS_DATA_NOBOUNDARY:
-		index = 13; 
+		index = 13;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOTDSDEBUG:
-		index = 13; 
+		index = 13;
 		bitmask = 0x02;
 		break;
 	case CS_RES_NOSTRIPBLANKS:
-		index = 13; 
+		index = 13;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOINT8:
-		index = 13; 
+		index = 13;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOINTN:
-		index = 14; 
+		index = 14;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NODATETIMEN:
-		index = 14; 
+		index = 14;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NOMONEYN:
-		index = 14; 
+		index = 14;
 		bitmask = 0x04;
 		break;
 	case CS_CON_NOOOB:
-		index = 14; 
+		index = 14;
 		bitmask = 0x08;
 		break;
 	case CS_CON_NOINBAND:
-		index = 14; 
+		index = 14;
 		bitmask = 0x10;
 		break;
 	case CS_PROTO_NOTEXT:
-		index = 14; 
+		index = 14;
 		bitmask = 0x20;
 		break;
 	case CS_PROTO_NOBULK:
-		index = 14; 
+		index = 14;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOSENSITIVITY:
-		index = 14; 
+		index = 14;
 		bitmask = 0x80;
 		break;
 	case CS_DATA_NOFLT4:
-		index = 15; 
+		index = 15;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOFLT8:
-		index = 15; 
+		index = 15;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NONUM:
-		index = 15; 
+		index = 15;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOTEXT:
-		index = 15; 
+		index = 15;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOIMAGE:
-		index = 15; 
+		index = 15;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NODEC:
-		index = 15; 
+		index = 15;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NOLCHAR:
-		index = 15; 
+		index = 15;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOLBIN:
-		index = 15; 
+		index = 15;
 		bitmask = 0x80;
 		break;
 	case CS_DATA_NOCHAR:
-		index = 16; 
+		index = 16;
 		bitmask = 0x01;
 		break;
 	case CS_DATA_NOVCHAR:
-		index = 16; 
+		index = 16;
 		bitmask = 0x02;
 		break;
 	case CS_DATA_NOBIN:
-		index = 16; 
+		index = 16;
 		bitmask = 0x04;
 		break;
 	case CS_DATA_NOVBIN:
-		index = 16; 
+		index = 16;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOMNY8:
-		index = 16; 
+		index = 16;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NOMNY4:
-		index = 16; 
+		index = 16;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NODATE8:
-		index = 16; 
+		index = 16;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NODATE4:
-		index = 16; 
+		index = 16;
 		bitmask = 0x80;
 		break;
 	case CS_RES_NOMSG:
-		index = 17; 
+		index = 17;
 		bitmask = 0x02;
 		break;
 	case CS_RES_NOEED:
-		index = 17; 
+		index = 17;
 		bitmask = 0x04;
 		break;
 	case CS_RES_NOPARAM:
-		index = 17; 
+		index = 17;
 		bitmask = 0x08;
 		break;
 	case CS_DATA_NOINT1:
-		index = 17; 
+		index = 17;
 		bitmask = 0x10;
 		break;
 	case CS_DATA_NOINT2:
-		index = 17; 
+		index = 17;
 		bitmask = 0x20;
 		break;
 	case CS_DATA_NOINT4:
-		index = 17; 
+		index = 17;
 		bitmask = 0x40;
 		break;
 	case CS_DATA_NOBIT:
-		index = 17; 
+		index = 17;
 		bitmask = 0x80;
 		break;
 	default:
 		return CS_FAIL;
-	} /* end capability */
+	}			/* end capability */
 
 	assert(13 <= index && index <= 17);
 	assert(bitmask);
 
-	if (type == CS_CAP_RESPONSE ) {
+	if (type == CS_CAP_RESPONSE) {
 		switch (action) {
 		case CS_SET:
 			/* Having established the offset and the bitmask, we can now turn the capability on or off */
-			switch (*(CS_BOOL*) value) {
+			switch (*(CS_BOOL *) value) {
 			case CS_TRUE:
 				mask[index] |= bitmask;
 				break;
@@ -1408,7 +1409,7 @@ TDSLOGIN *login;
 			}
 			break;
 		case CS_GET:
-			*(CS_BOOL*) value = (mask[index] & bitmask)? CS_TRUE : CS_FALSE;
+			*(CS_BOOL *) value = (mask[index] & bitmask) ? CS_TRUE : CS_FALSE;
 			break;
 		default:
 			return CS_FAIL;
@@ -1425,167 +1426,167 @@ TDSLOGIN *login;
 	 */
 	switch (capability) {
 	case CS_PROTO_DYNPROC:
-		*(CS_BOOL*) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_FLTN:
-		*(CS_BOOL*) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_BITN:
-		*(CS_BOOL*) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_INT8:
-		*(CS_BOOL*) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_VOID:
-		*(CS_BOOL*) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CON_INBAND:
-		*(CS_BOOL*) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CON_LOGICAL:
-		*(CS_BOOL*) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_PROTO_TEXT:
-		*(CS_BOOL*) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_PROTO_BULK:
-		*(CS_BOOL*) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_URGNOTIF:
-		*(CS_BOOL*) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_SENSITIVITY:
-		*(CS_BOOL*) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_BOUNDARY:
-		*(CS_BOOL*) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_PROTO_DYNAMIC:
-		*(CS_BOOL*) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_MONEYN:
-		*(CS_BOOL*) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_PREV:
-		*(CS_BOOL*) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_FIRST:
-		*(CS_BOOL*) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_LAST:
-		*(CS_BOOL*) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_ABS:
-		*(CS_BOOL*) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_REL:
-		*(CS_BOOL*) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CSR_MULTI:
-		*(CS_BOOL*) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_CON_OOB:
-		*(CS_BOOL*) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_NUM:
-		*(CS_BOOL*) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_TEXT:
-		*(CS_BOOL*) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_IMAGE:
-		*(CS_BOOL*) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_DEC:
-		*(CS_BOOL*) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_LCHAR:
-		*(CS_BOOL*) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_LBIN:
-		*(CS_BOOL*) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_INTN:
-		*(CS_BOOL*) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_DATETIMEN:
-		*(CS_BOOL*) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_BIN:
-		*(CS_BOOL*) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_VBIN:
-		*(CS_BOOL*) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_MNY8:
-		*(CS_BOOL*) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_MNY4:
-		*(CS_BOOL*) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_DATE8:
-		*(CS_BOOL*) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_DATE4:
-		*(CS_BOOL*) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_FLT4:
-		*(CS_BOOL*) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_FLT8:
-		*(CS_BOOL*) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_MSG:
-		*(CS_BOOL*) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_PARAM:
-		*(CS_BOOL*) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_INT1:
-		*(CS_BOOL*) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_INT2:
-		*(CS_BOOL*) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_INT4:
-		*(CS_BOOL*) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_BIT:
-		*(CS_BOOL*) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_CHAR:
-		*(CS_BOOL*) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_DATA_VCHAR:
-		*(CS_BOOL*) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_LANG:
-		*(CS_BOOL*) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_RPC:
-		*(CS_BOOL*) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_NOTIF:
-		*(CS_BOOL*) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_MSTMT:
-		*(CS_BOOL*) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_BCP:
-		*(CS_BOOL*) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_CURSOR:
-		*(CS_BOOL*) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;
 		break;
 	case CS_REQ_DYN:
-		*(CS_BOOL*) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;
+		*(CS_BOOL *) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;
 		break;
 	default:
 		return CS_FAIL;
 		break;
-	}	/* end capability */
+	}			/* end capability */
 
-	assert(*(CS_BOOL*) value);
+	assert(*(CS_BOOL *) value);
 
 	/* CS_CAP_RESPONSE is read-only */
 	if (type == CS_CAP_RESPONSE && action == CS_GET) {
@@ -1593,14 +1594,14 @@ TDSLOGIN *login;
 	}
 
 	return CS_FAIL;
-} /* end ct_capability(*/
+}				/* end ct_capability( */
 
 CS_RETCODE
 ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * buffer, CS_INT buflen)
 {
-	int query_len, id_len;
-	TDSDYNAMIC *dyn;
-	TDSSOCKET *tds;
+int query_len, id_len;
+TDSDYNAMIC *dyn;
+TDSSOCKET *tds;
 
 	cmd->dynamic_cmd = type;
 	switch (type) {
@@ -1659,8 +1660,8 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 CS_RETCODE
 ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen, CS_SMALLINT indicator)
 {
-	TDSSOCKET *tds;
-	TDSDYNAMIC *dyn;
+TDSSOCKET *tds;
+TDSDYNAMIC *dyn;
 
 /* TDSINPUTPARAM param; */
 

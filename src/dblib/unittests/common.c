@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.9 2002-12-10 03:24:38 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.10 2002-12-14 14:47:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -70,11 +70,12 @@ set_malloc_options(void)
  * pass argv[0].  Set up directory so we can find the PWD file, regardless of 
  * where it was invoked from.
  */
-int read_PWD(char invoked_as[])
+int
+read_PWD(char invoked_as[])
 {
 	if (invoked_as)
 		DIRNAME = dirname(invoked_as);
-		
+
 	return read_login_info();
 }
 
@@ -86,19 +87,19 @@ read_login_info(void)
 	char *s1, *s2;
 	char filename[MAXPATHLEN];
 	static const char *PWD = "../../../PWD";
-	
-	strcpy(filename, PWD);
-     	in = fopen(filename, "r");
-	if (!in) {
-		sprintf(filename, "%s/%s", (DIRNAME)? DIRNAME : ".", PWD);
 
-     		in = fopen(filename, "r");
+	strcpy(filename, PWD);
+	in = fopen(filename, "r");
+	if (!in) {
+		sprintf(filename, "%s/%s", (DIRNAME) ? DIRNAME : ".", PWD);
+
+		in = fopen(filename, "r");
 		if (!in) {
 			fprintf(stderr, "Can not open %s file\n\n", filename);
 			return 1;
 		}
 	}
-	
+
 	while (fgets(line, 512, in)) {
 		s1 = strtok(line, "=");
 		s2 = strtok(NULL, "\n");

@@ -14,7 +14,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.10 2002-11-23 17:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.11 2002-12-14 14:52:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -135,7 +135,7 @@ int
 Disconnect(void)
 {
 	if (Statement) {
-		SQLFreeStmt(Statement,SQL_DROP);
+		SQLFreeStmt(Statement, SQL_DROP);
 		Statement = SQL_NULL_HSTMT;
 	}
 
