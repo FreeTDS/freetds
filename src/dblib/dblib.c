@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.12 2002-04-05 01:48:38 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.13 2002-04-05 01:49:53 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -315,7 +315,7 @@ TDS_NUMERIC	numeric;
 				*((DBINT *)curcol->column_nullbind)=0;
 			}
 		}
-		if (curcol->varaddr && !tds_get_null(resinfo->current_row,i)) {
+		if (curcol->varaddr) {
 			int   index = buffer_index_of_resultset_row(buf, row_num);
          
 			if (index<0) {
