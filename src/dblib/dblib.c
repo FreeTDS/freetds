@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.33 2002-08-18 09:19:42 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.34 2002-08-18 12:50:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1008,14 +1008,16 @@ int         len;
                else if (destlen == -1) { /* rtrim and null terminate */
                   memcpy(dest,src,srclen);
                   dest[srclen] = '\0';
-                  for (i = srclen; dest[i] == ' ' || dest[i] == '\0'; i--)
+                  for (i = srclen; i>=0 && (dest[i] == ' ' || dest[i] == '\0'); i--) {
                       dest[i]='\0';
-                  ret = strlen(dest);
+		      srclen = i;
+		  } 
+                  ret = srclen;
                }
                else if (destlen == -2) { /* just null terminate */
                   memcpy(dest,src,srclen);
                   dest[srclen] = '\0';
-                  ret = strlen(dest);
+                  ret = srclen;
                }
                else { /* destlen is > 0 */
                   if (srclen > destlen) {
@@ -1044,8 +1046,8 @@ int         len;
           case SYBDATETIME:
           case SYBDATETIME4:
           case SYBUNIQUE:
-               memcpy(dest, src, get_size_by_type(desttype));
                ret = get_size_by_type(desttype);
+               memcpy(dest, src, ret);
                break;
 
           case SYBNUMERIC:
@@ -1063,8 +1065,8 @@ int         len;
 	len = tds_convert (g_dblib_ctx->tds_ctx, srctype, (TDS_CHAR *)src, srclen, 
                        desttype, destlen, &dres);
 				   
-	if( len == 0 )
-		return len;
+	if( len == TDS_FAIL )
+		return 0;
 
     switch (desttype) {
         case SYBBINARY:
@@ -1137,23 +1139,27 @@ int         len;
                 ret = FAIL;
              }
              else if (destlen == -1) { /* rtrim and null terminate */
-                strcpy(dest, dres.c);
-                for (i = strlen(dest); dest[i] == ' ' || dest[i] == '\0'; i--)
+                memcpy(dest, dres.c, len);
+		dest[len] = 0;
+                for (i = len; i>=0 && (dest[i] == ' ' || dest[i] == '\0'); i--) {
                     dest[i]='\0';
-                ret = strlen(dest);
+		    len = i;
+		}
+                ret = len;
              }
              else if (destlen == -2) { /* just null terminate */
-                strcpy(dest,dres.c);
-                ret = strlen(dest);
+                memcpy(dest,dres.c,len);
+		dest[len] = 0;
+                ret = len;
              }
              else { /* destlen is > 0 */
-                if (strlen(dres.c) > destlen) {
+                if (len > destlen) {
                    fprintf(stderr,"error_handler Data-conversion resulted in overflow.\n");
                    ret = -1;
                 }
                 else
-                   memcpy(dest, dres.c, strlen(dres.c));
-                   for (i = strlen(dres.c); i < destlen; i++ )
+                   memcpy(dest, dres.c, len);
+                   for (i = len; i < destlen; i++ )
                        dest[i] = ' ';
                    ret = destlen;
              }

@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.13 2002-08-17 10:00:51 freddy77 Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.14 2002-08-18 12:50:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -242,6 +242,9 @@ CS_RETCODE ret;
                 ret = CS_SUCCEED;
              }
              break;
+        case SYBBIT:
+        case SYBBITN:
+	     /* fall trough, act same way of TINYINT */
         case SYBINT1:
              memcpy(dest,&(cres.ti),1);
              if (resultlen != (CS_INT *)NULL ) *resultlen = 1;
@@ -265,12 +268,6 @@ CS_RETCODE ret;
         case SYBREAL:
              memcpy(dest,&(cres.r),4);
              if (resultlen != (CS_INT *)NULL ) *resultlen = 4;
-             ret = CS_SUCCEED;
-             break;
-        case SYBBIT:
-        case SYBBITN:
-             memcpy(dest,&(cres.ti),1);
-             if (resultlen != (CS_INT *)NULL ) *resultlen = 1;
              ret = CS_SUCCEED;
              break;
         case SYBMONEY:
@@ -327,8 +324,9 @@ CS_RETCODE ret;
                            
                     case CS_FMT_PADBLANK:
                         tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() FMT_PADBLANK\n");
-                        strcpy(dest, cres.c);
-                        for ( i = strlen(cres.c); i < destlen; i++)
+			/* strcpy here can lead to a small buffer overflow */
+                        memcpy(dest, cres.c, len);
+                        for ( i = len; i < destlen; i++)
                             dest[i] = ' ';
                         if (resultlen != (CS_INT *)NULL ) *resultlen = destlen;
                         ret = CS_SUCCEED;
@@ -336,16 +334,17 @@ CS_RETCODE ret;
 
                     case CS_FMT_PADNULL:
                         tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() FMT_PADNULL\n");
-                        strcpy(dest, cres.c);
-                        for ( i = strlen(cres.c); i < destlen; i++)
+			/* strcpy here can lead to a small buffer overflow */
+                        memcpy(dest, cres.c, len);
+                        for ( i = len; i < destlen; i++)
                             dest[i] = '\0';
                         if (resultlen != (CS_INT *)NULL ) *resultlen = destlen;
                         ret = CS_SUCCEED;
                         break;
                     case CS_FMT_UNUSED:
                         tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() FMT_UNUSED\n");
-                        memcpy(dest, cres.c, strlen(cres.c));
-                        if (resultlen != (CS_INT *)NULL ) *resultlen = strlen(cres.c);
+                        memcpy(dest, cres.c, len);
+                        if (resultlen != (CS_INT *)NULL ) *resultlen = len;
                         ret = CS_SUCCEED;
                         break;
                     default:

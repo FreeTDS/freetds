@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.5 2002-08-04 13:43:11 brianb Exp $";
+static char  software_version[]   = "$Id: convert_tds2sql.c,v 1.6 2002-08-18 12:50:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -107,17 +107,22 @@ convert_tds2sql(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_UINT srclen
             nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, destlen, &ores);
         }
         
+	/* FIXME if tds_convert fail we not return failure but continue... */
 	    switch(desttype) {
 
            case SQL_C_CHAR:
              tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
 
              if (destlen > 0) {
+		     /* FIXME odbc always terminate but do not overwrite 
+		      * destination buffer more than needed */
                 memset(dest, '\0', destlen);  
                 if (strlen(ores.c) >= destlen) {
+			/* FIXME ??? strange buffer overflow */
                    memcpy(dest, ores.c, strlen(ores.c) - 1);  
                 }
                 else {
+			/* FIXME must be terminated */
                    memcpy(dest, ores.c, strlen(ores.c));
 /*                 for (i = strlen(ores.c); i < destlen; i++ )
                        dest[i] = ' ';

@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <sqlext.h>
 
-static char  software_version[]   = "$Id: convert_sql2string.c,v 1.5 2002-08-04 13:43:11 brianb Exp $";
+static char  software_version[]   = "$Id: convert_sql2string.c,v 1.6 2002-08-18 12:50:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -213,8 +213,9 @@ convert_sql2string(TDSCONTEXT *context, int srctype, TDS_CHAR *src, TDS_INT srcl
 			       "source type %d (size %d) into string\n",
 			       srctype,srclen);
 	} else {
-		strcpy(dest, ores.c);
-		res = strlen(ores.c);
+		memcpy(dest, ores.c, res);
+		dest[res] = 0;
+		res = res;
 		free(ores.c);
 	}
 
