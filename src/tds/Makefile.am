@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.48 2005-04-03 09:22:29 freddy77 Exp $
+# $Id: Makefile.am,v 1.49 2005-04-05 11:41:57 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -45,10 +45,10 @@ charset:
 	perl encodings.pl > encodings.h
 
 ## We have to build num_limits.h because automake can't infer the
-## dependency (on numeric.pl).  
+## dependency (on num_limits.pl).  
 
 if HAVE_NUMERIC_PL
-num_limits.h: numeric.pl
-	perl $(srcdir)/numeric.pl > .$@ 
+num_limits.h: num_limits.pl
+	perl $(srcdir)/num_limits.pl > .$@ 
 	mv .$@ $@
 endif

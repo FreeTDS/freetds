@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# $Id: numeric.pl,v 1.2 2005-03-24 14:44:09 freddy77 Exp $
+# $Id: num_limits.pl,v 1.1 2005-04-05 11:41:57 freddy77 Exp $
 # Compute limits table to check numeric typs
 #
 

@@ -1,3 +1,8 @@
+Tue Apr  5 13:41:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/tds/Makefile.am src/tds/numeric.pl(removed):
+	* src/tds/num_limits.pl(added):
+	- moved src/tds/numeric.pl to src/tds/num_limits.pl
+
 Tue Apr  5 11:15:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: updates
 	* freetds.spec.in:
