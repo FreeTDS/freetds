@@ -23,12 +23,11 @@
 
 #include "bkpublic.h"
 
-static char  software_version[]   = "$Id: blk.c,v 1.5 2002-11-01 20:55:47 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: blk.c,v 1.6 2002-11-20 13:30:15 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE
-blk_alloc(CS_CONNECTION *connection, CS_INT version, CS_BLKDESC **blk_pointer)
+blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_alloc()\n");
@@ -36,7 +35,7 @@ blk_alloc(CS_CONNECTION *connection, CS_INT version, CS_BLKDESC **blk_pointer)
 }
 
 CS_RETCODE
-blk_bind(CS_BLKDESC *blkdesc, CS_INT colnum, CS_DATAFMT *datafmt, CS_VOID *buffer, CS_INT *datalen, CS_SMALLINT *indicator)
+blk_bind(CS_BLKDESC * blkdesc, CS_INT colnum, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen, CS_SMALLINT * indicator)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_bind()\n");
@@ -44,7 +43,8 @@ blk_bind(CS_BLKDESC *blkdesc, CS_INT colnum, CS_DATAFMT *datafmt, CS_VOID *buffe
 }
 
 CS_RETCODE
-blk_colval(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp, CS_INT colnum, CS_VOID *valuep, CS_INT valuelen, CS_INT *outlenp)
+blk_colval(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT colnum, CS_VOID * valuep, CS_INT valuelen,
+	   CS_INT * outlenp)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_colval()\n");
@@ -52,7 +52,7 @@ blk_colval(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp, CS_INT col
 }
 
 CS_RETCODE
-blk_default(CS_BLKDESC *blkdesc, CS_INT colnum, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
+blk_default(CS_BLKDESC * blkdesc, CS_INT colnum, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_default()\n");
@@ -60,7 +60,7 @@ blk_default(CS_BLKDESC *blkdesc, CS_INT colnum, CS_VOID *buffer, CS_INT buflen, 
 }
 
 CS_RETCODE
-blk_describe(CS_BLKDESC *blkdesc, CS_INT colnum, CS_DATAFMT *datafmt)
+blk_describe(CS_BLKDESC * blkdesc, CS_INT colnum, CS_DATAFMT * datafmt)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_describe()\n");
@@ -68,7 +68,7 @@ blk_describe(CS_BLKDESC *blkdesc, CS_INT colnum, CS_DATAFMT *datafmt)
 }
 
 CS_RETCODE
-blk_done(CS_BLKDESC *blkdesc, CS_INT type, CS_INT *outrow)
+blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_done()\n");
@@ -76,7 +76,7 @@ blk_done(CS_BLKDESC *blkdesc, CS_INT type, CS_INT *outrow)
 }
 
 CS_RETCODE
-blk_drop(CS_BLKDESC *blkdesc)
+blk_drop(CS_BLKDESC * blkdesc)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_drop()\n");
@@ -84,7 +84,7 @@ blk_drop(CS_BLKDESC *blkdesc)
 }
 
 CS_RETCODE
-blk_getrow(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp)
+blk_getrow(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_getrow()\n");
@@ -92,7 +92,7 @@ blk_getrow(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp)
 }
 
 CS_RETCODE
-blk_gettext(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp, CS_INT bufsize, CS_INT *outlenp)
+blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT bufsize, CS_INT * outlenp)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_gettext()\n");
@@ -100,7 +100,7 @@ blk_gettext(SRV_PROC *srvproc, CS_BLKDESC *blkdescp, CS_BLK_ROW *rowp, CS_INT bu
 }
 
 CS_RETCODE
-blk_init(CS_BLKDESC *blkdesc, CS_INT direction, CS_CHAR *tablename, CS_INT tnamelen)
+blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tnamelen)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_init()\n");
@@ -108,7 +108,7 @@ blk_init(CS_BLKDESC *blkdesc, CS_INT direction, CS_CHAR *tablename, CS_INT tname
 }
 
 CS_RETCODE
-blk_props(CS_BLKDESC *blkdesc, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
+blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_props()\n");
@@ -116,7 +116,7 @@ blk_props(CS_BLKDESC *blkdesc, CS_INT action, CS_INT property, CS_VOID *buffer, 
 }
 
 CS_RETCODE
-blk_rowalloc(SRV_PROC *srvproc, CS_BLK_ROW **row)
+blk_rowalloc(SRV_PROC * srvproc, CS_BLK_ROW ** row)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowalloc()\n");
@@ -124,7 +124,7 @@ blk_rowalloc(SRV_PROC *srvproc, CS_BLK_ROW **row)
 }
 
 CS_RETCODE
-blk_rowdrop(SRV_PROC *srvproc, CS_BLK_ROW *row)
+blk_rowdrop(SRV_PROC * srvproc, CS_BLK_ROW * row)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowdrop()\n");
@@ -132,7 +132,7 @@ blk_rowdrop(SRV_PROC *srvproc, CS_BLK_ROW *row)
 }
 
 CS_RETCODE
-blk_rowxfer(CS_BLKDESC *blkdesc)
+blk_rowxfer(CS_BLKDESC * blkdesc)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowxfer()\n");
@@ -140,7 +140,7 @@ blk_rowxfer(CS_BLKDESC *blkdesc)
 }
 
 CS_RETCODE
-blk_rowxfer_mult(CS_BLKDESC *blkdesc, CS_INT *row_count)
+blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_rowxfer_mult()\n");
@@ -148,7 +148,7 @@ blk_rowxfer_mult(CS_BLKDESC *blkdesc, CS_INT *row_count)
 }
 
 CS_RETCODE
-blk_sendrow(CS_BLKDESC *blkdesc, CS_BLK_ROW *row)
+blk_sendrow(CS_BLKDESC * blkdesc, CS_BLK_ROW * row)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_sendrow()\n");
@@ -156,7 +156,7 @@ blk_sendrow(CS_BLKDESC *blkdesc, CS_BLK_ROW *row)
 }
 
 CS_RETCODE
-blk_sendtext(CS_BLKDESC *blkdesc, CS_BLK_ROW *row, CS_BYTE *buffer, CS_INT buflen)
+blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT buflen)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_sendtext()\n");
@@ -164,7 +164,7 @@ blk_sendtext(CS_BLKDESC *blkdesc, CS_BLK_ROW *row, CS_BYTE *buffer, CS_INT bufle
 }
 
 CS_RETCODE
-blk_srvinit(SRV_PROC *srvproc, CS_BLKDESC *blkdescp)
+blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_srvinit()\n");
@@ -172,7 +172,7 @@ blk_srvinit(SRV_PROC *srvproc, CS_BLKDESC *blkdescp)
 }
 
 CS_RETCODE
-blk_textxfer(CS_BLKDESC *blkdesc, CS_BYTE *buffer, CS_INT buflen, CS_INT *outlen)
+blk_textxfer(CS_BLKDESC * blkdesc, CS_BYTE * buffer, CS_INT buflen, CS_INT * outlen)
 {
 
 	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED blk_textxfer()\n");

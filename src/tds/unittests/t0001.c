@@ -25,25 +25,24 @@
 #include <tds.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0001.c,v 1.4 2002-10-13 23:28:13 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: t0001.c,v 1.5 2002-11-20 13:34:49 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char **argv)
 {
-   TDSLOGIN *login;
-   TDSSOCKET *tds;
-   int ret;
-   int verbose = 0;
+	TDSLOGIN *login;
+	TDSSOCKET *tds;
+	int ret;
+	int verbose = 0;
 
-   fprintf(stdout, "%s: Testing login, logout\n", __FILE__);
-   ret = try_tds_login(&login, &tds, __FILE__, verbose);
-   if (ret != TDS_SUCCEED) {
-      fprintf(stderr, "try_tds_login() failed\n");
-      return 1;
-   }
+	fprintf(stdout, "%s: Testing login, logout\n", __FILE__);
+	ret = try_tds_login(&login, &tds, __FILE__, verbose);
+	if (ret != TDS_SUCCEED) {
+		fprintf(stderr, "try_tds_login() failed\n");
+		return 1;
+	}
 
-   try_tds_logout(login, tds, verbose);
-   return 0;
+	try_tds_logout(login, tds, verbose);
+	return 0;
 }

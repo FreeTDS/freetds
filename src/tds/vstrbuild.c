@@ -35,11 +35,11 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.9 2002-11-04 19:49:21 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: vstrbuild.c,v 1.10 2002-11-20 13:30:15 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-struct string_linked_list {
+struct string_linked_list
+{
 	char *str;
 	struct string_linked_list *next;
 };
@@ -52,9 +52,9 @@ struct string_linked_list {
 static char *
 norm_fmt(const char *fmt, int fmtlen)
 {
-char *newfmt;
-char *cp;
-char skip = 0;
+	char *newfmt;
+	char *cp;
+	char skip = 0;
 
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
@@ -84,22 +84,22 @@ char skip = 0;
 int
 tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen, va_list ap)
 {
-char *newformat;
-char *params;
-char *token;
-const char *sep = "\377";
-char *lasts;
-int tokcount = 0;
-struct string_linked_list *head = NULL;
-struct string_linked_list *item = NULL;
-struct string_linked_list **tail = &head;
-int i;
-int state;
-char **string_array = NULL;
-int pnum = 0;
-int pdigit;
-char *paramp = NULL;
-int rc = TDS_FAIL;
+	char *newformat;
+	char *params;
+	char *token;
+	const char *sep = "\377";
+	char *lasts;
+	int tokcount = 0;
+	struct string_linked_list *head = NULL;
+	struct string_linked_list *item = NULL;
+	struct string_linked_list **tail = &head;
+	int i;
+	int state;
+	char **string_array = NULL;
+	int pnum = 0;
+	int pdigit;
+	char *paramp = NULL;
+	int rc = TDS_FAIL;
 
 	*resultlen = 0;
 	if (textlen == TDS_NULLTERM) {
@@ -113,9 +113,7 @@ int rc = TDS_FAIL;
 		return TDS_FAIL;
 	}
 	free(newformat);
-	for (token = strtok_r(params, sep, &lasts);
-			token != NULL;
-			token = strtok_r(NULL, sep, &lasts)) {
+	for (token = strtok_r(params, sep, &lasts); token != NULL; token = strtok_r(NULL, sep, &lasts)) {
 		if ((*tail = malloc(sizeof(struct string_linked_list))) == NULL) {
 			goto out;
 		}
@@ -195,13 +193,13 @@ int rc = TDS_FAIL;
 			/* unknown state */
 			goto out;
 			break;
-				
+
 		}
 	}
 
 	rc = TDS_SUCCEED;
 
-out:
+      out:
 	if (string_array != NULL) {
 		free(string_array);
 	}
