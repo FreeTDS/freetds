@@ -66,8 +66,9 @@
 
 #include "tds.h"
 #include "tdsconvert.h"
+#include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.72 2004-12-11 13:27:55 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.73 2004-12-13 19:13:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -388,10 +389,8 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		exit(1);
 	}
 	if (!password) {
-		/* TODO some platoforms accept only short password (ie. 8 chars in HP/UX 10.20) */
-		char *tmp = getpass("Password: ");
-
-		password = strdup(tmp);
+		password = (char*) malloc(128);
+		readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
 	}
 
 	/* all validated, let's do it */
