@@ -1,3 +1,7 @@
+Tue Mar 18 21:13:38 EST 2003	Mark Lilback <mark@lilback.com>
+	* src/ctlib/ct.c: ct_describe correctly sets the status flag 
+	-   for identity and nullable columns.
+
 Tue Mar 18 01:13:28 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* Makefile.am tds.dox create doxygen output and targets
 	* include/sybdb.h src/dblib/dblib.c add doxygen comments, reindent.

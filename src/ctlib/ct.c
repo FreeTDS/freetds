@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.83 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.84 2003-03-19 02:13:43 mlilback Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1282,11 +1282,13 @@ TDSCOLINFO *curcol;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
 
-	/* FIX ME -- TDS 5.0 has status information in the results 
-	 ** however, this will work for 4.2 as well */
+	/* There are other options that can be returned, but these are the
+	 ** only two being noted via the TDS layer. */
 	datafmt->status = 0;
-	if (is_nullable_type(curcol->column_type))
+	if (curcol->column_nullable)
 		datafmt->status |= CS_CANBENULL;
+	if (curcol->column_identity)
+		datafmt->status |= CS_IDENTITY;
 
 	datafmt->count = 1;
 	datafmt->locale = NULL;
