@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.86 2003-02-13 21:25:02 freddy77 Exp $";
+	"$Id: tds.h,v 1.87 2003-03-04 16:51:50 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -687,6 +687,7 @@ typedef struct tds_result_info {
 enum {
 	TDS_QUERYING,
 	TDS_PENDING,
+	TDS_LASTROW,
 	TDS_COMPLETED,
 	TDS_CANCELED,
 	TDS_DEAD
@@ -873,6 +874,9 @@ int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
+int tds_process_param_result_tokens(TDSSOCKET * tds);
+int tds_process_params_result_token(TDSSOCKET * tds);
+int tds_process_dyn_result(TDSSOCKET * tds);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);

@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.69 2003-01-26 10:27:36 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.70 2003-03-04 16:51:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -69,6 +69,9 @@ int
 tds_submit_query(TDSSOCKET * tds, const char *query)
 {
 	int query_len;
+	unsigned char marker;
+	int done_flags;
+
 
 	if (!query)
 		return TDS_FAIL;
@@ -77,6 +80,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 	tds->queryStarttime = time(NULL);
 
 	if (tds->state == TDS_PENDING) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
 		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
 			       "Attempt to initiate a new SQL Server operation with results pending.");
 		return TDS_FAIL;

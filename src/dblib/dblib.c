@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.119 2003-02-13 21:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.120 2003-03-04 16:51:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -908,11 +908,6 @@ TDSSOCKET *tds;
 	if (IS_TDSDEAD(tds))
 		return FAIL;
 
-	if (tds->res_info && tds->res_info->more_results) {
-		while(dbresults(dbproc) == SUCCEED)
-		;
-	}
-
 	if (SUCCEED == (rc = dbsqlsend(dbproc))) {
 		/* 
 		 * XXX We need to observe the timeout value and abort 
@@ -1067,6 +1062,7 @@ dbresults_r(DBPROCESS * dbproc, int recursive)
 		return SUCCEED;
 		break;
 
+	
 	case TDS_NO_MORE_RESULTS:
 		if (dbproc->dbresults_state == DBRESINIT) {
 			dbproc->dbresults_state = DBRESSUCC;
@@ -1452,6 +1448,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() calling tds_convert\n");
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+	tdsdump_log(TDS_DBG_INFO1, "%L inside dbconvert() called tds_convert returned %d\n", len);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -1941,6 +1938,22 @@ TDSSOCKET *tds;
 RETCODE
 dbcancel(DBPROCESS * dbproc)
 {
+int marker;
+int done_flags;
+TDSSOCKET *tds;
+
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+
+	while (tds->state != TDS_COMPLETED ) {
+	
+		marker = tds_get_byte(tds);
+
+		tdsdump_log(TDS_DBG_INFO1, "%L dbcancel() discarding results. marker is %x\n", marker);
+	
+		if (tds_process_default_tokens(tds, marker) == TDS_FAIL) 
+			return TDS_FAIL;
+	}
+
 	tds_send_cancel(dbproc->tds_socket);
 	tds_process_cancel(dbproc->tds_socket);
 	return SUCCEED;
@@ -3786,6 +3799,8 @@ int marker;
 	dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen, SYBCHAR, (BYTE*) textptr_string, -1);
 	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE*) timestamp_string, -1);
 
+	dbproc->dbresults_state = DBRESINIT;
+
 	if (tds_submit_queryf(dbproc->tds_socket,
 			      "writetext bulk %s 0x%s timestamp = 0x%s %s",
 			      objname, textptr_string, timestamp_string, ((log == TRUE) ? "with log" : ""))
@@ -4003,6 +4018,9 @@ TDSSOCKET *tds;
 char *cmdstr;
 int rc;
 TDS_INT result_type;
+unsigned char marker;
+int done_flags;
+int pending_error = 0;
 
 	dbproc->avail_flag = FALSE;
 	dbproc->envchange_rcv = 0;
@@ -4010,22 +4028,48 @@ TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L in dbsqlsend()\n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;
-	if (tds->res_info && tds->res_info->more_results) {
-		/* 
-		 * XXX If I read the documentation correctly it gets a
-		 * bit more complicated than this.
-		 *
-		 * You see if the person did a query and retrieved all 
-		 * the rows but didn't call dbresults() and if the query 
-		 * didn't return multiple results then this routine should
-		 * just end the TDS_DONE_TOKEN packet and be done with it.
-		 *
-		 * Unfortunately the only way we can know that is by peeking 
-		 * ahead to the next byte.  Peeking could block and this is supposed
-		 * to be a non-blocking call.  
-		 *
-		 */
 
+	if (tds->state == TDS_PENDING) {
+		_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+		return FAIL;
+	}
+
+	if (tds->state == TDS_LASTROW) {
+
+		while(tds->state != TDS_COMPLETED && !pending_error) {
+		
+			marker = tds_get_byte(tds);
+
+			tdsdump_log(TDS_DBG_INFO1, "%L dbsqlsend state = lastrow marker is  %x\n", marker);
+			switch (marker) {
+				case TDS_DONE_TOKEN:
+				case TDS_DONEPROC_TOKEN:
+				case TDS_DONEINPROC_TOKEN:
+					tds_process_end(tds, marker, &done_flags);
+					break;
+				case TDS_RETURNSTATUS_TOKEN:
+					tds->has_status = 1;
+					tds->ret_status = tds_get_int(tds);
+					break;
+				case TDS_PARAM_TOKEN:
+					tds_unget_byte(tds);
+					tds_process_param_result_tokens(tds);
+					break;
+				case TDS5_PARAMFMT_TOKEN:
+					tds_process_dyn_result(tds);
+					break;
+				case TDS5_PARAMS_TOKEN:
+					tds_process_params_result_token(tds);
+					break;
+				default:
+					_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+					pending_error = 1;
+	
+			}
+		}
+	}
+
+	if (pending_error) {
 		dbproc->command_state = DBCMDSENT;
 		result = FAIL;
 	} else {

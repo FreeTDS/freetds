@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.111 2003-03-04 16:46:39 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.112 2003-03-04 16:51:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1757,6 +1757,8 @@ int current_state;
 	current_state = GOING_IN_BLIND;
 
 	while (tok != (char *) NULL) {
+		
+        tdsdump_log(TDS_DBG_INFO1,"string_to_datetime: current_state = %d\n", current_state);
 		switch (current_state) {
 			case GOING_IN_BLIND :
 				/* If we have no idea of current context, then if we have */
@@ -1764,6 +1766,7 @@ int current_state;
 				/* alphabetic month name or prefix...                     */
 
 				if (is_alphabetic(tok)) {
+        			tdsdump_log(TDS_DBG_INFO1,"string_to_datetime: is_alphabetic\n");
 					if (is_monthname(tok)) {
 						store_monthname(tok, t);
 						monthdone++;
@@ -1777,6 +1780,7 @@ int current_state;
               /* things...                                              */
 
               else if (is_numeric(tok)) {
+        			tdsdump_log(TDS_DBG_INFO1,"string_to_datetime: is_numeric\n");
                       switch(strlen(tok)) {
                          /* in this context a 4 character numeric can   */
                          /* ONLY be the year part of an alphabetic date */
@@ -1819,6 +1823,9 @@ int current_state;
 
                    else if (is_numeric_dateformat(tok)) {
                             store_numeric_date(tok, t);
+                            current_state = GOING_IN_BLIND;
+                   } else if (is_dd_mon_yyyy(tok)) {
+							store_dd_mon_yyy_date(tok, t);
                             current_state = GOING_IN_BLIND;
                    } else if (is_timeformat(tok)) {
                                 store_time(tok, t);
@@ -1935,11 +1942,15 @@ int current_state;
         tok = strtok_r((char *)NULL, " ,", &lasts);
     }
 
-	i = (t->tm_mon - 13) / 12;
-	dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
-		(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
-		(3 * ( ( t->tm_year + 400 + i ) / 100 ) ) / 4 +
-		t->tm_mday - 109544;
+	if (t->tm_year == 0 && t->tm_mon == 0 && t->tm_mday == 0) {
+		dt_days = 0;
+	} else {
+		i = (t->tm_mon - 13) / 12;
+		dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
+			(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
+			(3 * ( ( t->tm_year + 400 + i ) / 100 ) ) / 4 +
+			t->tm_mday - 109544;
+	}
 
 	free(in);
 
@@ -2149,6 +2160,61 @@ int   digits   = 0;
 
 }
 
+static int is_dd_mon_yyyy(char *t)
+{
+char *instr ;
+int   ret   = 1;
+char  month[4];
+
+	instr = t;
+
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+	instr++;
+
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+	instr++;
+
+	if (*instr != '-')
+		return(0);
+
+	instr++;
+
+	strncpy(month, instr, 3);
+    month[3] = '\0';
+
+	if (!is_monthname(month))
+		return(0);
+
+	instr += 3;
+
+	if (*instr != '-')
+		return(0);
+
+	instr++;
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+	instr++;
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+	instr++;
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+	instr++;
+	if (!isdigit((unsigned char) *instr))
+		return(0);
+
+
+    return(1);
+
+}
+
 static int is_monthname(char *datestr)
 {
 
@@ -2340,10 +2406,40 @@ int  month = 0, year = 0, mday = 0;
 
 }
 
+static int store_dd_mon_yyy_date(char *datestr , struct tds_time *t)
+{
+
+char dd[3];
+int  mday;
+char mon[4];
+char yyyy[5];
+int  year;
+
+	strncpy(dd, datestr, 2);
+	dd[2] = '\0';
+	mday = atoi(dd);
+
+    if ( mday > 0 && mday < 32 )
+       t->tm_mday = mday;
+    else
+       return 0; 
+	strncpy(mon, &datestr[3], 3);
+	mon[3] = '\0';
+
+	if (!store_monthname(mon, t))
+       return 0; 
+
+	strncpy(yyyy, &datestr[7], 4);
+	yyyy[4] = '\0';
+	year = atoi(yyyy);
+
+    return store_year(year, t);
+
+}
 static int store_monthname(char *datestr , struct tds_time *t)
 {
 
-int ret = 0;
+int ret = 1;
 
     if (strlen(datestr) == 3)
     {

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.149 2003-03-04 16:46:40 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.150 2003-03-04 16:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -53,9 +53,6 @@ static int tds_process_compute(TDSSOCKET * tds);
 static int tds_process_row(TDSSOCKET * tds);
 static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
-static int tds_process_param_result_tokens(TDSSOCKET * tds);
-static int tds_process_params_result_token(TDSSOCKET * tds);
-static int tds_process_dyn_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
 static int tds_process_auth(TDSSOCKET * tds);
 static int tds_get_varint_size(int datatype);
@@ -545,6 +542,7 @@ int
 tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 {
 int marker;
+int nextmarker;
 TDS_SMALLINT compute_id;
 TDSRESULTINFO *info;
 int i;
@@ -573,6 +571,13 @@ int i;
 			tds_process_row(tds);
 			*rowtype = TDS_REG_ROW;
 			tds->curr_resinfo = tds->res_info;
+			nextmarker = tds_peek(tds);
+			tdsdump_log(TDS_DBG_INFO1, "%L reading ahead...marker is  %x(%s)\n", nextmarker, _tds_token_name(nextmarker));
+			if (is_end_token(nextmarker)) {
+				tdsdump_log(TDS_DBG_INFO1, "%L reading ahead...marker is an end token\n");
+				tds->state = TDS_LASTROW;
+			}
+
 			return TDS_SUCCEED;
 
 		case TDS_CMP_ROW_TOKEN:
@@ -593,6 +598,11 @@ int i;
 			tds_process_compute(tds);
 			if (computeid)
 				*computeid = compute_id;
+
+			nextmarker = tds_peek(tds);
+			if (is_end_token(nextmarker))
+				tds->state = TDS_LASTROW;
+
 			return TDS_SUCCEED;
 
 		case TDS_DONE_TOKEN:
@@ -871,7 +881,7 @@ int i;
 	return i;
 }
 
-static int
+int
 tds_process_param_result_tokens(TDSSOCKET * tds)
 {
 int marker;
@@ -893,7 +903,7 @@ TDSPARAMINFO **pinfo;
 /**
  * tds_process_params_result_token() processes params on TDS5.
  */
-static int
+int
 tds_process_params_result_token(TDSSOCKET * tds)
 {
 int i;
@@ -1856,7 +1866,7 @@ int drain = 0;
 	return tds_lookup_dynamic(tds, id);
 }
 
-static int
+int
 tds_process_dyn_result(TDSSOCKET * tds)
 {
 int hdrsize;
