@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.5 2001-11-10 02:12:27 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.6 2001-11-10 17:50:02 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -336,10 +336,15 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
         if (login->host_name && strlen(login->host_name)) {
 		if (config->host_name) free(config->host_name);
 		config->host_name = strdup(login->host_name);
+		/* DBSETLHOST and it's equivilants are commentary fields
+		** they don't affect config->ip_addr (the server) but they show
+		** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
 		/* should work with IP (mlilback, 11/7/01) */
+		/*
 		if (config->ip_addr) free(config->ip_addr);
 		config->ip_addr = calloc(sizeof(char),18);
 		lookup_host(config->host_name, NULL, config->ip_addr, NULL);
+		*/
 	}
         if (login->app_name && strlen(login->app_name)) {
 		if (config->app_name) free(config->app_name);
