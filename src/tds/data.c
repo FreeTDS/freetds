@@ -23,12 +23,16 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.7 2004-09-23 11:25:54 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.8 2004-09-23 11:33:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_get_cardinal_type(int datatype);
