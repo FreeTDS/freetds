@@ -36,15 +36,15 @@ extern "C" {
 #endif
 
 static char  rcsid_sql_h [ ] =
-         "$Id: tdsodbc.h,v 1.16 2003-01-03 12:00:36 freddy77 Exp $";
+         "$Id: tdsodbc.h,v 1.17 2003-01-03 14:37:15 freddy77 Exp $";
 static void *no_unused_sql_h_warn[]={rcsid_sql_h, no_unused_sql_h_warn};
 
 /* this is usually a const struct that store all errors */
 struct _sql_error_struct
 {
+	const char *msg; /**< default message */
 	char state2[6];  /**< state for ODBC2 */
 	char state3[6];  /**< state for ODBC3 */
-	const char *msg; /**< default message */
 };
 
 struct _sql_error
@@ -60,20 +60,23 @@ struct _sql_errors
 	struct _sql_error *errs;
 };
 
+enum _sql_error_types {
+	ODBCERR_GENERIC,
+	ODBCERR_NOTIMPLEMENTED, 
+	ODBCERR_MEMORY,
+	ODBCERR_NODSN,
+	ODBCERR_CONNECT
+};
+
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
 /** add an error to list */
-void odbc_errs_add(struct _sql_errors *errs, const struct _sql_error_struct *err, const char *msg);
-
-extern const struct _sql_error_struct odbc_err_noimpl;
-#define ODBCERR_NOTIMPLEMENTED &odbc_err_noimpl
-extern const struct _sql_error_struct odbc_err_generic;
-#define ODBCERR_GENERIC &odbc_err_generic
-
+void odbc_errs_add(struct _sql_errors *errs, enum _sql_error_types err_type, const char *msg);
 
 struct _henv {
 	TDSCONTEXT *tds_ctx;
 	struct _sql_errors errs;
+	unsigned char odbc_ver;
 };
 
 struct _hstmt;

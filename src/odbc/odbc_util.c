@@ -38,46 +38,8 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.16 2003-01-03 12:00:37 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.17 2003-01-03 14:37:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-void odbc_errs_reset(struct _sql_errors *errs)
-{
-	int i;
-	
-	for( i = 0; i < errs->num_errors; ++i) {
-		if (errs->errs[i].msg)
-			free(errs->errs[i].msg);
-	}
-	free(errs->errs);
-
-	errs->errs = NULL;
-	errs->num_errors = 0;
-}
-
-void odbc_errs_add(struct _sql_errors *errs, const struct _sql_error_struct *err, const char *msg)
-{
-	struct _sql_error *p;
-	int n = errs->num_errors;
-
-	if (errs->errs)
-		p = (struct _sql_error*) realloc(errs->errs, sizeof(struct _sql_error) * (n+1) );
-	else
-		p = (struct _sql_error*) malloc(sizeof(struct _sql_error));
-	if (!p) return;
-
-	errs->errs = p;
-	errs->errs[n].err = err;
-	errs->errs[n].msg = msg ? strdup(msg) : NULL;
-	++errs->num_errors;
-}
-
-const struct _sql_error_struct odbc_err_noimpl = 
-{ "S1C00","HYC00","Optional feature not implemented" };
-
-const struct _sql_error_struct odbc_err_generic =
-{ "S1000","HY000","General driver error" };
-
 
 int
 odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len)

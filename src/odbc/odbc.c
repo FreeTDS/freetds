@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.108 2003-01-03 12:00:37 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.109 2003-01-03 14:37:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -87,6 +87,16 @@ static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 	CHECK_HSTMT; \
 	odbc_errs_reset(&stmt->errs); \
 
+#define INIT_HDBC \
+	TDS_DBC *dbc = (TDS_DBC*)hdbc; \
+	CHECK_HDBC; \
+	odbc_errs_reset(&dbc->errs); \
+
+#define INIT_HENV \
+	TDS_ENV *env = (TDS_ENV*)henv; \
+	CHECK_HENV; \
+	odbc_errs_reset(&env->errs); \
+
 /*
 **
 ** Note: I *HATE* hungarian notation, it has to be the most idiotic thing
@@ -107,8 +117,10 @@ change_database(TDS_DBC * dbc, SQLCHAR * database)
 	/* FIXME quote dbname if needed */
 	tds = dbc->tds_socket;
 	query = (char *) malloc(strlen(database) + 5);
-	if (!query)
+	if (!query) {
+		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
+	}
 	sprintf(query, "use %s", database);
 	ret = tds_submit_query(tds, query);
 	free(query);
@@ -169,8 +181,10 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 	TDS_ENV *env = dbc->henv;
 
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
-	if (!dbc->tds_socket)
+	if (!dbc->tds_socket) {
+		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
+	}
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 	tds_fix_connect(connect_info);
 
@@ -185,7 +199,7 @@ do_connect(TDS_DBC * dbc, TDSCONNECTINFO * connect_info)
 		connect_info->try_server_login = 1;
 
 	if (tds_connect(dbc->tds_socket, connect_info) == TDS_FAIL) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "tds_connect failed");
+		odbc_errs_add(&dbc->errs, ODBCERR_CONNECT, NULL);
 		return SQL_ERROR;
 	}
 	return SQL_SUCCESS;
@@ -196,28 +210,25 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut, SQLUSMALLINT fDriverCompletion)
 {
 	SQLRETURN ret;
-	TDS_DBC *dbc = (TDS_DBC *) hdbc;
 	TDSCONNECTINFO *connect_info;
 
-	CHECK_HDBC;
-
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Out of memory");
+		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
 	}
 
 	tdoParseConnectString(szConnStrIn, connect_info);
 
 	if (tds_dstr_isempty(&connect_info->server_name)) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not find Servername or server parameter");
+		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find Servername or server parameter");
 		return SQL_ERROR;
 	}
 
 	if (tds_dstr_isempty(&connect_info->user_name)) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Could not find UID parameter");
+		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Could not find UID parameter");
 		return SQL_ERROR;
 	}
 
@@ -238,9 +249,7 @@ SQLRETURN SQL_API
 SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut)
 {
-	TDS_DBC *dbc = (TDS_DBC *) hdbc;
-
-	CHECK_HDBC;
+	INIT_HDBC;
 	odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "SQLBrowseConnect: function not implemented");
 	return SQL_ERROR;
 }
@@ -250,9 +259,8 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLColumnPrivileges: function not implemented");
-	/* FIXME: error HYC00, Driver not capable */
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLColumnPrivileges: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -260,16 +268,16 @@ SQLRETURN SQL_API
 SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType, SQLUINTEGER FAR * pcbParamDef,
 		 SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLDescribeParam: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLDescribeParam: function not implemented");
 	return SQL_ERROR;
 }
 
 SQLRETURN SQL_API
 SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUINTEGER FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLExtendedFetch: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLExtendedFetch: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -279,8 +287,8 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	       SQLSMALLINT cbFkCatalogName, SQLCHAR FAR * szFkSchemaName, SQLSMALLINT cbFkSchemaName, SQLCHAR FAR * szFkTableName,
 	       SQLSMALLINT cbFkTableName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLForeignKeys: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLForeignKeys: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -337,8 +345,8 @@ SQLRETURN SQL_API
 SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStrMax,
 	     SQLINTEGER FAR * pcbSqlStr)
 {
-	CHECK_HDBC;
-	odbc_LogError("SQLNativeSql: function not implemented");
+	INIT_HDBC;
+	odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "SQLNativeSql: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -355,8 +363,8 @@ SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 SQLRETURN SQL_API
 SQLParamOptions(SQLHSTMT hstmt, SQLUINTEGER crow, SQLUINTEGER FAR * pirow)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLParamOptions: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLParamOptions: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -364,8 +372,8 @@ SQLRETURN SQL_API
 SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	       SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLPrimaryKeys: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLPrimaryKeys: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -374,8 +382,8 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLProcedureColumns: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLProcedureColumns: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -383,16 +391,16 @@ SQLRETURN SQL_API
 SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLProcedures: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLProcedures: function not implemented");
 	return SQL_ERROR;
 }
 
 SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLSetPos: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetPos: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -400,24 +408,32 @@ SQLRETURN SQL_API
 SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLTablePrivileges: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLTablePrivileges: function not implemented");
 	return SQL_ERROR;
 }
-
+#endif
 
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
-	CHECK_HENV;
-/*	switch (Attribute) {
+	INIT_HENV;
+	switch (Attribute) {
 	case SQL_ATTR_ODBC_VERSION:
-		return SQL_SUCCESS;
-	} */
-	odbc_LogError("SQLSetEnvAttr: function not implemented");
+		switch ((SQLINTEGER)Value) {
+		case SQL_OV_ODBC3:
+			env->odbc_ver = 3;
+			return SQL_SUCCESS;
+		case SQL_OV_ODBC2:
+			env->odbc_ver = 2;
+			return SQL_SUCCESS;
+		}
+		break;
+	}
+	odbc_errs_add(&env->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetEnvAttr: function not implemented");
 	return SQL_ERROR;
 }
-#endif
+
 
 
 SQLRETURN SQL_API
@@ -438,8 +454,10 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 		/* didn't find it create a new one */
 		newitem = (struct _sql_param_info *)
 			malloc(sizeof(struct _sql_param_info));
-		if (!newitem)
+		if (!newitem) {
+			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
 			return SQL_ERROR;
+		}
 		memset(newitem, 0, sizeof(struct _sql_param_info));
 		newitem->param_number = ipar;
 		cur = newitem;
@@ -487,15 +505,15 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 static SQLRETURN SQL_API
 _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 {
-	struct _henv *env;
 	struct _hdbc *dbc;
 
-	CHECK_HENV;
+	INIT_HENV;
 
-	env = (struct _henv *) henv;
 	dbc = (struct _hdbc *) malloc(sizeof(struct _hdbc));
-	if (!dbc)
+	if (!dbc) {
+		odbc_errs_add(&env->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
+	}
 
 	memset(dbc, '\0', sizeof(struct _hdbc));
 	dbc->henv = env;
@@ -526,6 +544,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 		return SQL_ERROR;
 
 	memset(env, '\0', sizeof(TDS_ENV));
+	env->odbc_ver = 2;
 	ctx = tds_alloc_context();
 	if (!ctx) {
 		free(env);
@@ -555,16 +574,15 @@ SQLAllocEnv(SQLHENV FAR * phenv)
 static SQLRETURN SQL_API
 _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
-	struct _hdbc *dbc;
 	struct _hstmt *stmt;
 
-	CHECK_HDBC;
-
-	dbc = (struct _hdbc *) hdbc;
+	INIT_HDBC;
 
 	stmt = (struct _hstmt *) malloc(sizeof(struct _hstmt));
-	if (!stmt)
+	if (!stmt) {
+		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
+	}
 	memset(stmt, '\0', sizeof(struct _hstmt));
 	stmt->hdbc = dbc;
 	*phstmt = (SQLHSTMT) stmt;
@@ -601,8 +619,10 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (!cur) {
 		/* didn't find it create a new one */
 		newitem = (struct _sql_bind_info *) malloc(sizeof(struct _sql_bind_info));
-		if (!newitem)
+		if (!newitem) {
+			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
 			return SQL_ERROR;
+		}
 		memset(newitem, 0, sizeof(struct _sql_bind_info));
 		newitem->column_number = icol;
 		/* if there's no head yet */
@@ -642,16 +662,13 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 {
 	const char *DSN;
 	SQLRETURN nRetVal;
-	struct _hdbc *dbc = (struct _hdbc *) hdbc;
 	TDSCONNECTINFO *connect_info;
 
-	CHECK_HDBC;
-
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Out of memory");
+		odbc_errs_add(&dbc->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
 	}
 
@@ -662,7 +679,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		DSN = "DEFAULT";
 
 	if (!odbc_get_dsn_info(DSN, connect_info)) {
-		odbc_errs_add(&dbc->errs, ODBCERR_GENERIC, "Error getting DSN information");
+		odbc_errs_add(&dbc->errs, ODBCERR_NODSN, "Error getting DSN information");
 		return SQL_ERROR;
 	}
 
@@ -896,12 +913,8 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)
 {
-	struct _hdbc *dbc;
+	INIT_HDBC;
 
-	CHECK_HDBC;
-
-	dbc = (struct _hdbc *) hdbc;
-	odbc_errs_reset(&dbc->errs);
 	tds_free_socket(dbc->tds_socket);
 	dbc->tds_socket = NULL;
 
@@ -917,18 +930,25 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	SQLRETURN result = SQL_NO_DATA_FOUND;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
+	unsigned char odbc_ver = 2;
 
 	if (hstmt) {
+		odbc_ver = ((TDS_STMT *) hstmt)->hdbc->henv->odbc_ver;
 		errs = &((TDS_STMT *) hstmt)->errs;
 	} else if (hdbc) {
+		odbc_ver = ((TDS_DBC *) hdbc)->henv->odbc_ver;
 		errs = &((TDS_DBC *) hstmt)->errs;
 	} else if (henv) {
+		odbc_ver = ((TDS_ENV *) henv)->odbc_ver;
 		errs = &((TDS_ENV *) hstmt)->errs;
 	}
 
 	if (errs && errs->num_errors) {
 		/* change all error handling, error should be different.. */
-		strcpy(szSqlState, errs->errs[0].err->state2);
+		if (odbc_ver == 3)
+			strcpy(szSqlState, errs->errs[0].err->state3);
+		else
+			strcpy(szSqlState, errs->errs[0].err->state2);
 		msg = errs->errs[0].msg;
 		if (!msg)
 			msg = errs->errs[0].err->msg;
@@ -1117,8 +1137,10 @@ SQLExecute(SQLHSTMT hstmt)
 				param = odbc_find_param(stmt, i + 1);
 				if (!param)
 					return SQL_ERROR;
-				if (!(params = tds_alloc_param_result(dyn->params)))
+				if (!(params = tds_alloc_param_result(dyn->params))) {
+					odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
 					return SQL_ERROR;
+				}
 				dyn->params = params;
 				/* add another type and copy data */
 				curcol = params->columns[i];
@@ -1287,11 +1309,8 @@ SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 static SQLRETURN SQL_API
 _SQLFreeConnect(SQLHDBC hdbc)
 {
-	struct _hdbc *dbc = (struct _hdbc *) hdbc;
+	INIT_HDBC;
 
-	CHECK_HDBC;
-
-	odbc_errs_reset(&dbc->errs);
 	free(dbc);
 
 	return SQL_SUCCESS;
@@ -1307,7 +1326,8 @@ SQLFreeConnect(SQLHDBC hdbc)
 static SQLRETURN SQL_API
 _SQLFreeEnv(SQLHENV henv)
 {
-	CHECK_HENV;
+	INIT_HENV;
+	/* TODO why don't free anything ??? */
 	return SQL_SUCCESS;
 }
 
@@ -1410,8 +1430,8 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 SQLRETURN SQL_API
 SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax, SQLSMALLINT FAR * pcbCursor)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLGetCursorName: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLGetCursorName: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -1493,8 +1513,8 @@ SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow)
 SQLRETURN SQL_API
 SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLSetCursorName: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetCursorName: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -1538,8 +1558,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	/* I may live without a HENV */
 	/*     CHECK_HENV; */
 	/* ..but not without a HDBC! */
-	CHECK_HDBC;
-	odbc_errs_reset(&((TDS_DBC *) hdbc)->errs);
+	INIT_HDBC;
 
 	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%x,0x%x,%d)\n", henv, hdbc, fType);
 	return change_transaction(hdbc, op);
@@ -1552,8 +1571,8 @@ SQLRETURN SQL_API
 SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLUINTEGER cbParamDef,
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER FAR * pcbValue)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLSetParam: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSetParam: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -1634,13 +1653,10 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 SQLRETURN SQL_API
 SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 {
-	struct _hdbc *dbc = (struct _hdbc *) hdbc;
-
 	/* TODO implement more options
 	 * AUTOCOMMIT required by DBD::ODBC
 	 */
-	CHECK_HDBC;
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	switch (fOption) {
 	case SQL_AUTOCOMMIT:
@@ -1732,8 +1748,7 @@ _set_func_exists(SQLUSMALLINT FAR * pfExists, SQLUSMALLINT fFunction)
 SQLRETURN SQL_API
 SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExists)
 {
-
-	CHECK_HDBC;
+	INIT_HDBC;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: fFunction is %d\n", fFunction);
 	switch (fFunction) {
@@ -1902,12 +1917,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	   SQLSMALLINT FAR * pcbInfoValue)
 {
 	const char *p = NULL;
-	TDS_DBC *dbc = (TDS_DBC *) hdbc;
 	SQLSMALLINT *siInfoValue = (SQLSMALLINT *) rgbInfoValue;
 	SQLUINTEGER *uiInfoValue = (SQLUINTEGER *) rgbInfoValue;
 
-	CHECK_HDBC;
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	switch (fInfoType) {
 		/* TODO dbms name and version can be safed from login... */
@@ -1924,7 +1937,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "libtdsodbc.so";
 		break;
 	case SQL_DRIVER_ODBC_VER:
-		p = "02.00";
+		p = "03.00";
 		break;
 	case SQL_ACTIVE_STATEMENTS:
 		*siInfoValue = 1;
@@ -2139,11 +2152,9 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLINTEGER cbValue)
 SQLRETURN SQL_API
 SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	TDS_DBC *dbc = (TDS_DBC *) hdbc;
 	SQLUINTEGER u_value = (SQLUINTEGER) ValuePtr;
 
-	CHECK_HDBC;
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	switch (Attribute) {
 	case SQL_ATTR_AUTOCOMMIT:
@@ -2162,10 +2173,7 @@ SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 SQLRETURN SQL_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 {
-	TDS_DBC *dbc = (TDS_DBC *) hdbc;
-
-	CHECK_HDBC;
-	odbc_errs_reset(&dbc->errs);
+	INIT_HDBC;
 
 	switch (fOption) {
 	case SQL_AUTOCOMMIT:
@@ -2207,8 +2215,8 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		  SQLCHAR FAR * szSchemaName, SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName,
 		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLSpecialColumns: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLSpecialColumns: function not implemented");
 	return SQL_ERROR;
 }
 
@@ -2217,8 +2225,8 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLUSMALLINT fUnique,
 	      SQLUSMALLINT fAccuracy)
 {
-	CHECK_HSTMT;
-	odbc_LogError("SQLStatistics: function not implemented");
+	INIT_HSTMT;
+	odbc_errs_add(&stmt->errs, ODBCERR_NOTIMPLEMENTED, "SQLStatistics: function not implemented");
 	return SQL_ERROR;
 }
 #endif
@@ -2243,8 +2251,10 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 
 	querylen = strlen(sptables) + clen + slen + tlen + ttlen + 40;	/* a little padding for quotes and commas */
 	query = (char *) malloc(querylen);
-	if (!query)
+	if (!query) {
+		odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
 		return SQL_ERROR;
+	}
 	p = query;
 
 	strcpy(p, sptables);

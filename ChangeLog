@@ -1,3 +1,12 @@
+Fri Jan  3 15:35:45 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/Makefile.am src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/odbc/error.c(added):
+	- added INIT_HDBC and INIT_HENV macros
+	- use numeric errors for ODBC
+	- split error code from utils into error.c
+	- updated all error code adding some more codes
+	- add support for ODBC 3 driver
+
 Fri Jan  3 12:57:00 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am:
 	- do not install tdsodbc.h
