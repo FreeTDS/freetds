@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.122 2003-12-07 10:38:25 ppeterd Exp $";
+static char software_version[] = "$Id: query.c,v 1.123 2003-12-07 13:20:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1600,6 +1600,7 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
  * \param buffer buffer to store quoted id. If NULL do not write anything 
  *        (useful to compute quote length)
  * \param id     id to quote
+ * \param idlen  id length
  * \result written chars (not including needed terminator)
  */
 int
@@ -1607,8 +1608,12 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 {
 	int need_quote;
 
+	if (idlen < 0)
+		idlen = strlen(id);
+
 	/* need quote ?? */
-	need_quote = (strcspn(id, "\"\' ()[]{}") != idlen);
+	/* FIXME strcspn require terminated string, buffer reading overflow */
+	need_quote = (strcspn(id, "\"\' ()[]{}") < idlen);
 
 	if (!need_quote) {
 		if (buffer) {

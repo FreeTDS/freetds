@@ -1,3 +1,10 @@
+Sun Dec  7 14:19:12 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/descriptor.c: small optimization
+	* src/odbc/odbc.c src/odbc/sql2tds.c:
+	- comments and a workaround
+	* src/tds/login.c src/tds/query.c:
+	- let tds_quote_id accept -1 as length (zero terminated)
+
 Sun Dec  7 02:32:19 PST 2003	Peter Deacon <peterd@iea-software.com>
 	* include/tds.h src/odbc/descriptor.c src/odbc/odbc.c:
 	* src/tds/login.c src/tds/query.c:

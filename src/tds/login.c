@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.116 2003-12-07 10:39:03 ppeterd Exp $";
+static char software_version[] = "$Id: login.c,v 1.117 2003-12-07 13:20:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -383,7 +383,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	}
 
 	if (connect_info->text_size || (!db_selected && !tds_dstr_isempty(&connect_info->database))) {
-		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connect_info->database),strlen(tds_dstr_cstr(&connect_info->database)));
+		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connect_info->database),-1);
 		if ((str = (char *) malloc(len)) == NULL) {
 			tds_free_socket(tds);
 			return TDS_FAIL;
@@ -394,7 +394,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 		}
 		if (!db_selected && !tds_dstr_isempty(&connect_info->database)) {
 			strcat(str, "use ");
-			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&connect_info->database), strlen(tds_dstr_cstr(&connect_info->database)));
+			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&connect_info->database), -1);
 		}
 		retval = tds_submit_query(tds, str);
 		free(str);

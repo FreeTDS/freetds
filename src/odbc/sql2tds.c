@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.27 2003-11-22 17:22:25 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.28 2003-12-07 13:20:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -135,6 +135,7 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		curcol->column_scale = drec_ipd->sql_desc_scale;
 	}
 
+	/* FIXME len is source len while column refers to destination !!! */
 	len = curcol->column_size;
 	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;

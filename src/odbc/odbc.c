@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.274 2003-12-07 10:34:40 ppeterd Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.275 2003-12-07 13:20:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2195,6 +2195,7 @@ odbc_ird_check(TDS_STMT * stmt)
 }
 #endif
 
+/* FIXME check result !!! */
 static SQLRETURN
 odbc_populate_ird(TDS_STMT * stmt)
 {
@@ -4013,6 +4014,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_IDENTIFIER_QUOTE_CHAR:
 		p = "\"";
+		/* TODO workaround for Sybase, use SET QUOTED_IDENTIFIER ON and fix unwanted quote */
+		if (!is_ms)
+			p = "";
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_INDEX_KEYWORDS:

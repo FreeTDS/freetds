@@ -174,7 +174,8 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 
 		/* copy strings */
 		/* TODO avoid all this conversions */
-#define CCOPY(name) if (src_rec->name == NULL) dest_rec->name = NULL; else if (!(dest_rec->name=(SQLCHAR*)strdup((char*) src_rec->name))) return SQL_ERROR;
+		/* FIXME on memory error free allocated strings */
+#define CCOPY(name) if (src_rec->name) if (!(dest_rec->name=(SQLCHAR*)strdup((char*) src_rec->name))) return SQL_ERROR;
 		CCOPY(sql_desc_base_column_name);
 		CCOPY(sql_desc_base_table_name);
 		CCOPY(sql_desc_catalog_name);
