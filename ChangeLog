@@ -1,3 +1,9 @@
+Sun Jan 12 23:14:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
+	* src/apps/tsql.c:
+	- fix locale handling, which is currently a no-op on glibc
+	  systems: calling nl_langinfo(CODESET) without first calling
+	  setlocale(LC_ALL, "") will always give you ASCII.
+
 Sun Jan 12 23:03:00 CST 2003	Steve Langasek <vorlon@netexpress.net>
 	* include/Makefile.am:
 	- make sure freetds_sysconfdir.h is built as part of 'make all'.
