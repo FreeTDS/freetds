@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.21 2003-08-18 09:35:45 freddy77 Exp $";
+static char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.22 2003-09-17 07:31:14 freddy77 Exp $";
 static void *no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
 
 #if HAVE_ICONV
@@ -93,7 +93,12 @@ struct tdsiconvinfo
 	TDS_ENCODING server_charset;
 	iconv_t to_wire;	/* conversion from client charset to server's format */
 	iconv_t from_wire;	/* conversion from server's format to client charset */
+	
+	iconv_t to_wire2;	/* conversion from client charset to server's format - indirect */
+	iconv_t from_wire2;	/* conversion from server's format to client charset - indirect */
 #define TDS_ENCODING_INDIRECT 1
+#define TDS_ENCODING_SWAPBYTE 2
+#define TDS_ENCODING_MEMCPY   4
 	/* ^^^ As of June 2003, no reference to this macro 
 	 * It's just a TODO... freddy77 */
 	unsigned int flags;

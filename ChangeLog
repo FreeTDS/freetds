@@ -1,3 +1,18 @@
+Wed Sep 17 09:22:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- fix memory leak
+	- return SQL_SUCCESS_WITH_INFO on 01S02 (Option value changed)
+	* src/odbc/unittests/type.c: improve
+	* include/tdsiconv.h:
+	* include/tds.h src/tds/encodings.h src/tds/encodings.pl:
+	* src/tds/iconv.c src/tds/login.c src/tds/mem.c:
+	* src/tds/query.c src/tds/token.c:
+	- use UTF8 as one of required charset (to fix some problems)
+	- fix many issues in query.c related to iconv stuff
+	- more compatibility for strange iconv implementation (big endian)
+	- use memcpy for same charset conversions
+	- use nearest conversion for Sybase
+
 Thu Sep 11 16:50:31 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c src/odbc/odbc.c src/odbc/odbc_checks.c:
 	* win32/msvc6/FreeTDS.dsp:

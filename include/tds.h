@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.140 2003-08-28 05:47:55 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.141 2003-09-17 07:31:14 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -918,7 +918,7 @@ struct tds_context
 };
 
 enum TDS_ICONV_INFO_ENTRY
-{ client2ucs2, client2server_chardata, ascii2server_metadata,
+{ client2ucs2, client2server_chardata, iso2server_metadata,
 	initial_iconv_info_count	/* keep last */
 };
 
@@ -1034,6 +1034,7 @@ const char *tds_prtype(int token);
 /* iconv.c */
 void tds_iconv_open(TDSSOCKET * tds, char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
+void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
 
 /* threadsafe.c */

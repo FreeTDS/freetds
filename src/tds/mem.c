@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.94 2003-08-28 05:47:55 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.95 2003-09-17 07:31:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -604,10 +604,6 @@ tds_alloc_connect(TDSLOCALE * locale)
 		if (!tds_dstr_copy(&connect_info->language, TDS_DEF_LANG))
 			goto Cleanup;
 	}
-	if (tds_dstr_isempty(&connect_info->server_charset)) {
-		if (!tds_dstr_copy(&connect_info->server_charset, TDS_DEF_CHARSET))
-			goto Cleanup;
-	}
 	connect_info->try_server_login = 1;
 	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
@@ -688,7 +684,9 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	/* an iconv conversion descriptor of -1 means we don't use iconv. */
 	for (i = 0; i < initial_iconv_info_count; ++i) {
 		iconv_info[i].to_wire = (iconv_t) - 1;
+		iconv_info[i].to_wire2 = (iconv_t) - 1;
 		iconv_info[i].from_wire = (iconv_t) - 1;
+		iconv_info[i].from_wire2 = (iconv_t) - 1;
 	}
 
 	/* Jeff's hack, init to no timeout */

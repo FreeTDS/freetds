@@ -32,6 +32,7 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include "tdsconvert.h"
 #include "replacements.h"
 #ifdef DMALLOC
@@ -40,11 +41,12 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.99 2003-08-14 21:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.100 2003-09-17 07:31:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
-static void tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_definition);
+static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const char *param_definition,
+				  int param_length);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len);
@@ -86,6 +88,60 @@ tds_to_quering(TDSSOCKET * tds)
 }
 
 /**
+ * Convert a string in an allocated buffer
+ * \param tds        state information for the socket and the TDS protocol
+ * \param iconv_info information about the encodings involved
+ * \param s          input string
+ * \param len        input string length (in bytes), -1 for null terminated
+ * \param out_len    returned output length (in bytes)
+ * \return string allocated (or input pointer if no conversion required)
+ */
+static const char *
+tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char *s, int len, int *out_len)
+{
+	char *buf;
+
+	const char *ib;
+	char *ob;
+	size_t il, ol;
+
+	if (len < 0)
+		len = strlen(s);
+	if (iconv_info->flags == TDS_ENCODING_MEMCPY) {
+		*out_len = len;
+		return s;
+	}
+
+	/* allocate needed buffer (+1 is to exclude 0 case) */
+	ol = len * iconv_info->server_charset.max_bytes_per_char / iconv_info->client_charset.min_bytes_per_char + 1;
+	buf = (char *) malloc(ol);
+	if (!buf)
+		return NULL;
+
+	ib = s;
+	il = len;
+	ob = buf;
+	if (tds_iconv(tds, iconv_info, to_server, &ib, &il, &ob, &ol) == (size_t) - 1) {
+		free(buf);
+		return NULL;
+	}
+	*out_len = ob - buf;
+	return buf;
+}
+
+#ifdef ENABLE_EXTRA_CHECKS
+static void
+tds_convert_string_free(const char *original, const char *converted)
+{
+	if (original != converted)
+		free((char *) converted);
+}
+#else
+#define tds_convert_string_free(original, converted) \
+	do { if (original != converted) free((char*) converted); } while(0)
+#endif
+
+/**
  * tds_submit_query() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
@@ -117,7 +173,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	if (IS_TDS50(tds)) {
 		tds->out_flag = 0x0F;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
-		/* FIXME ICONV use converted size, not input size and convert string */
+		/* TODO ICONV use converted size, not input size and convert string */
 		tds_put_int(tds, query_len + 1);
 		tds_put_byte(tds, params ? 1 : 0);	/* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
@@ -131,10 +187,18 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	} else {
 		int definition_len;
 		char *param_definition = tds_build_params_definition(tds, params, &definition_len);
+		int converted_query_len;
+		const char *converted_query;
 
 		/* out of memory or invalid parameters ?? */
 		if (!param_definition)
 			return TDS_FAIL;
+
+		converted_query = tds_convert_string(tds, &tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		if (!converted_query) {
+			free(param_definition);
+			return TDS_FAIL;
+		}
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
@@ -152,25 +216,23 @@ tds_submit_query(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-		/* FIXME ICONV use converted size */
-		tds_put_int(tds, query_len * 2);
+		tds_put_int(tds, converted_query_len);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
-		/* FIXME ICONV use converted size */
-		tds_put_int(tds, query_len * 2);
-		tds_put_string(tds, query, query_len);
+		tds_put_int(tds, converted_query_len);
+		tds_put_n(tds, converted_query, converted_query_len);
+		tds_convert_string_free(query, converted_query);
 
 		/* params definitions */
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-		/* FIXME ICONV someone should change results from tds_build_params_definition to ucs2 and use provided length */
-		tds_put_int(tds, definition_len * 2);
+		tds_put_int(tds, definition_len);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
-		/* FIXME ICONV see above */
-		tds_put_int(tds, definition_len * 2);
-		tds_put_string(tds, param_definition, definition_len);
+		tds_put_int(tds, definition_len);
+		tds_put_n(tds, param_definition, definition_len);
+		free(param_definition);
 
 		for (i = 0; i < params->num_cols; i++) {
 			param = params->columns[i];
@@ -262,6 +324,64 @@ tds_count_placeholders(const char *query)
 
 	for (;; ++count) {
 		if (!(p = tds_next_placeholders(p + 1)))
+			return count;
+	}
+}
+
+static const char *
+tds_skip_quoted_ucs2le(const char *s, const char *end)
+{
+	const char *p = s;
+	char quote = (*s == '[') ? ']' : *s;
+
+	assert(s[1] == 0 && s < end && (end - s) % 2 == 0);
+
+	for (; (p += 2) != end;) {
+		if (p[0] == quote && !p[1]) {
+			p += 2;
+			if (p[0] != quote || p[1])
+				return p;
+		}
+	}
+	return p;
+}
+
+static const char *
+tds_next_placeholders_ucs2le(const char *start, const char *end)
+{
+	const char *p = start;
+
+	assert(p && start <= end && (end - start) % 2 == 0);
+
+	for (; p != end;) {
+		if (p[1]) {
+			p += 2;
+			continue;
+		}
+		switch (p[0]) {
+		case '\'':
+		case '\"':
+		case '[':
+			p = tds_skip_quoted_ucs2le(p, end);
+			break;
+		case '?':
+			return p;
+		default:
+			p += 2;
+			break;
+		}
+	}
+	return end;
+}
+
+static int
+tds_count_placeholders_ucs2le(const char *query, const char *query_end)
+{
+	const char *p = query - 2;
+	int count = 0;
+
+	for (;; ++count) {
+		if ((p = tds_next_placeholders_ucs2le(p + 2, query_end)) == query_end)
 			return count;
 	}
 }
@@ -373,11 +493,11 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLINFO * curcol, char *out)
 }
 
 /**
- * Return string with parameters definition
+ * Return string with parameters definition, useful for TDS7+
  * \param tds     state information for the socket and the TDS protocol
  * \param params  parameters to build declaration
- * \param out_len length in buffer
- * \return allocated and filled string or NULL on failure
+ * \param out_len length output buffer in bytes
+ * \return allocated and filled string or NULL on failure (coded in ucs2le charset )
  */
 static char *
 tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len)
@@ -387,59 +507,81 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 	/* TODO check out of memory */
 	char *param_str = (char *) malloc(512);
 	char *p;
+	char declaration[24];
 	int l = 0, i;
 
-	/* FIXME ICONV return ucs2, see above */
-
 	assert(IS_TDS7_PLUS(tds));
+	assert(out_len);
 
 	if (!param_str)
 		return NULL;
 	param_str[0] = 0;
 	for (i = 0; i < params->num_cols; ++i) {
-		if (l > 0)
+		const char *ib;
+		char *ob;
+		size_t il, ol;
+
+		if (l > 0) {
 			param_str[l++] = ',';
+			param_str[l++] = 0;
+		}
 
 		/* FIXME why ??? */
 		params->columns[i]->column_namelen = strlen(params->columns[i]->column_name);
 
 		/* realloc on insufficient space */
-		while ((l + 24 + params->columns[i]->column_namelen) > size) {
+		while ((l + (2 * 26) + 2 * params->columns[i]->column_namelen) > size) {
 			p = (char *) realloc(param_str, size += 512);
-			if (!p) {
-				free(param_str);
-				return NULL;
-			}
+			if (!p)
+				goto Cleanup;
 			param_str = p;
 		}
 
-		/* FIXME ICONV this part of buffer can be not-ascii compatible, use all ucs2... */
-		memcpy(param_str + l, params->columns[i]->column_name, params->columns[i]->column_namelen);
-		l += params->columns[i]->column_namelen;
+		/* this part of buffer can be not-ascii compatible, use all ucs2... */
+		ib = params->columns[i]->column_name;
+		il = params->columns[i]->column_namelen;
+		ob = param_str + l;
+		ol = size - l;
+		if (tds_iconv(tds, &tds->iconv_info[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+			goto Cleanup;
+		l = size - ol;
 		param_str[l++] = ' ';
+		param_str[l++] = 0;
 
-		/* append this parameter */
-		/* FIXME ICONV convert to ucs2... */
-		tds_get_column_declaration(tds, params->columns[i], param_str + l);
-		if (!param_str[l]) {
-			free(param_str);
-			return NULL;
-		}
-		l += strlen(param_str + l);
+		/* get this parameter declaration */
+		tds_get_column_declaration(tds, params->columns[i], declaration);
+		if (!declaration[0])
+			goto Cleanup;
+
+		/* convert it to ucs2 and append */
+		ib = declaration;
+		il = strlen(declaration);
+		ob = param_str + l;
+		ol = size - l;
+		if (tds_iconv(tds, &tds->iconv_info[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+			goto Cleanup;
+		l = size - ol;
 	}
 	*out_len = l;
 	return param_str;
+
+      Cleanup:
+	free(param_str);
+	return NULL;
 }
 
 /**
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
+ * \param query     query (in ucs2le codings)
+ * \param query_len query length in bytes
  */
 static void
-tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_definition)
+tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len, const char *param_definition, int param_length)
 {
-	int len, i, n;
+	int len, i, num_placeholders;
 	const char *s, *e;
 	char buf[24];
+	const char *const query_end = query + query_len;
 
 	assert(IS_TDS7_PLUS(tds));
 
@@ -450,20 +592,20 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 	/* for now we use all "@PX varchar(80)," for parameters (same behavior of mssql2k) */
-	n = tds_count_placeholders(query);
-	len = n * 16 - 1;
+	num_placeholders = tds_count_placeholders_ucs2le(query, query_end);
+	len = num_placeholders * 16 - 1;
 	/* adjust for the length of X */
-	for (i = 10; i <= n; i *= 10) {
-		len += n - i + 1;
+	for (i = 10; i <= num_placeholders; i *= 10) {
+		len += num_placeholders - i + 1;
 	}
 	if (!param_definition) {
 		/* TODO put this code in caller and pass param_definition */
-		if (n) {
+		if (num_placeholders) {
 			tds_put_int(tds, len * 2);
 			if (IS_TDS80(tds))
 				tds_put_n(tds, tds->collation, 5);
 			tds_put_int(tds, len * 2);
-			for (i = 1; i <= n; ++i) {
+			for (i = 1; i <= num_placeholders; ++i) {
 				sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
 				tds_put_string(tds, buf, -1);
 			}
@@ -474,13 +616,11 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 			tds_put_int(tds, 0);
 		}
 	} else {
-		/* FIXME ICONV just to add some incompatibility with charset... see above */
-		i = strlen(param_definition);
-		tds_put_int(tds, i * 2);
+		tds_put_int(tds, param_length);
 		if (IS_TDS80(tds))
 			tds_put_n(tds, tds->collation, 5);
-		tds_put_int(tds, i * 2);
-		tds_put_string(tds, param_definition, i);
+		tds_put_int(tds, param_length);
+		tds_put_n(tds, param_definition, param_length);
 	}
 
 	/* string with sql statement */
@@ -488,22 +628,22 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-	len = (len + 1 - 14 * n) + strlen(query);
-	/* FIXME ICONV use converted size. Perhaps we should construct entire string ? */
-	tds_put_int(tds, len * 2);
+	len = 2 * (len + 1 - 14 * num_placeholders) + query_len;
+	tds_put_int(tds, query_len);
 	if (IS_TDS80(tds))
 		tds_put_n(tds, tds->collation, 5);
-	tds_put_int(tds, len * 2);
+	tds_put_int(tds, query_len);
 	s = query;
 	/* TODO do a test with "...?" and "...?)" */
 	for (i = 1;; ++i) {
-		e = tds_next_placeholders(s);
-		tds_put_string(tds, s, e ? e - s : strlen(s));
-		if (!e)
+		e = tds_next_placeholders_ucs2le(s, query_end);
+		assert(e && query <= e && e <= query_end);
+		tds_put_n(tds, s, e - s);
+		if (e == query_end)
 			break;
 		sprintf(buf, "@P%d", i);
 		tds_put_string(tds, buf, -1);
-		s = e + 1;
+		s = e + 2;
 	}
 }
 
@@ -561,8 +701,10 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
-		int definition_len, i;
+		int definition_len = 0, i;
 		char *param_definition = NULL;
+		int converted_query_len;
+		const char *converted_query;
 
 		if (params) {
 			/* place dummy parameters */
@@ -573,6 +715,12 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 			param_definition = tds_build_params_definition(tds, params, &definition_len);
 			if (!param_definition)
 				return TDS_FAIL;
+		}
+
+		converted_query = tds_convert_string(tds, &tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		if (!converted_query) {
+			free(param_definition);
+			return TDS_FAIL;
 		}
 
 		tds->out_flag = 3;	/* RPC */
@@ -594,7 +742,10 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
 
-		tds7_put_query_params(tds, query, param_definition);
+		tds7_put_query_params(tds, converted_query, converted_query_len, param_definition, definition_len);
+		tds_convert_string_free(query, converted_query);
+		if (param_definition)
+			free(param_definition);
 
 		/* 1 param ?? why ? flags ?? */
 		tds_put_byte(tds, 0);
@@ -614,7 +765,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	tds_put_byte(tds, 0x00);
 	tds_put_byte(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);
-	/* FIXME ICONV use converted size */
+	/* TODO ICONV convert string, do not put with tds_put_n */
 	/* TODO how to pass parameters type? like store procedures ? */
 	tds_put_smallint(tds, query_len + id_len + 16);
 	tds_put_n(tds, "create proc ", 12);
@@ -736,11 +887,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 
 	is_null = tds_get_null(current_row, i);
 	colsize = curcol->column_cur_size;
-/*	if (colsize == 0)
-		is_null = 1;
-	else
-		is_null = 0;
-*/
 
 	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
 
@@ -1118,11 +1264,19 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 	rpc_name_len = strlen(rpc_name);
 	if (IS_TDS7_PLUS(tds)) {
+		const char *converted_name;
+		int converted_name_len;
+
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		/* FIXME ICONV use converted size */
-		tds_put_smallint(tds, rpc_name_len);
-		tds_put_string(tds, rpc_name, rpc_name_len);
+		converted_name =
+			tds_convert_string(tds, &tds->iconv_info[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
+		if (!converted_name)
+			return TDS_FAIL;
+		tds_put_smallint(tds, converted_name_len / 2);
+		tds_put_n(tds, converted_name, converted_name_len);
+		tds_convert_string_free(rpc_name, converted_name);
+
 		/* TODO support flags
 		 * bit 0 (1 as flag) in TDS7/TDS5 is "recompile"
 		 * bit 1 (2 as flag) in TDS7+ is "no metadata" bit 
@@ -1143,10 +1297,10 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		/* DBRPC */
 		tds_put_byte(tds, TDS_DBRPC_TOKEN);
-		/* FIXME ICONV use converted size */
+		/* TODO ICONV convert rpc name */
 		tds_put_smallint(tds, rpc_name_len + 3);
 		tds_put_byte(tds, rpc_name_len);
-		tds_put_string(tds, rpc_name, rpc_name_len);
+		tds_put_n(tds, rpc_name, rpc_name_len);
 		/* TODO flags */
 		tds_put_smallint(tds, num_params ? 2 : 0);
 

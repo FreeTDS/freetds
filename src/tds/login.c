@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.105 2003-07-20 01:39:47 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.106 2003-09-17 07:31:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -432,9 +432,6 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	static const unsigned char magic5[] = { 0x00, 0x00 };
 	static const unsigned char magic6[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-	/* this is a flag, mean that server should use character set provided by client */
-	static const unsigned char magic7 = 0x01;
-
 	static const unsigned char magic42[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 	static const unsigned char magic50[] = { 0x00, 0x00, 0x00, 0x00 };
 
@@ -455,6 +452,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	unsigned char protocol_version[4];
 	unsigned char program_version[4];
+	const char *server_charset;
 
 	int len;
 	char blockstr[16];
@@ -535,9 +533,19 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 	tds_put_n(tds, magic5, 2);
 	tds_put_byte(tds, connect_info->encrypted);
 	tds_put_n(tds, magic6, 10);
-	/* FIXME ICONV use charset nearest to client or nothing */
-	tds_put_login_string(tds, tds_dstr_cstr(&connect_info->server_charset), TDS_MAX_LOGIN_STR_SZ);	/* charset */
-	tds_put_byte(tds, magic7);
+
+	/* use charset nearest to client or nothing */
+	server_charset = NULL;
+	if (!tds_dstr_isempty(&connect_info->server_charset))
+		server_charset = tds_dstr_cstr(&connect_info->server_charset);
+	else
+		server_charset = tds_sybase_charset_name(tds_dstr_cstr(&connect_info->client_charset));
+	if (!server_charset)
+		server_charset = "";
+	tds_put_login_string(tds, server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
+	/* this is a flag, mean that server should use character set provided by client */
+	/* TODO notify charset change ?? what's correct meaning ?? -- freddy77 */
+	tds_put_byte(tds, 1);
 
 	/* network packet size */
 	if (connect_info->block_size < 1000000 && connect_info->block_size)

@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.2 2003-09-04 08:57:12 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.3 2003-09-17 07:31:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -16,21 +16,23 @@ struct type
 
 #define TYPE_C(s) {s, #s, FLAG_C }
 #define TYPE_SQL(s) {s, #s, FLAG_SQL }
-#define TYPE_BOTH(s) {s, #s, FLAG_SQL|FLAG_C }
+#define TYPE_BOTH(s,s2) {s, #s, FLAG_SQL|FLAG_C }
+/* Same define with test for constants
+ *  #define TYPE_BOTH(s,s2) {s, #s, (FLAG_SQL|FLAG_C)+((1/!(s-s2))-1) } */
 static const struct type types[] = {
-	TYPE_BOTH(SQL_C_CHAR),
-	TYPE_BOTH(SQL_C_LONG),
-	TYPE_BOTH(SQL_C_SHORT),
-	TYPE_BOTH(SQL_C_FLOAT),
-	TYPE_BOTH(SQL_C_DOUBLE),
-	TYPE_BOTH(SQL_C_NUMERIC),
+	TYPE_BOTH(SQL_C_CHAR, SQL_CHAR),
+	TYPE_BOTH(SQL_C_LONG, SQL_INTEGER),
+	TYPE_BOTH(SQL_C_SHORT, SQL_SMALLINT),
+	TYPE_BOTH(SQL_C_FLOAT, SQL_REAL),
+	TYPE_BOTH(SQL_C_DOUBLE, SQL_DOUBLE),
+	TYPE_BOTH(SQL_C_NUMERIC, SQL_NUMERIC),
 	TYPE_C(SQL_C_DEFAULT),
 	TYPE_C(SQL_C_DATE),
 	TYPE_C(SQL_C_TIME),
 	TYPE_C(SQL_C_TIMESTAMP),
 	TYPE_C(SQL_C_TYPE_DATE),
 	TYPE_C(SQL_C_TYPE_TIME),
-	TYPE_BOTH(SQL_C_TYPE_TIMESTAMP),
+	TYPE_BOTH(SQL_C_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP),
 	TYPE_C(SQL_C_INTERVAL_YEAR),
 	TYPE_C(SQL_C_INTERVAL_MONTH),
 	TYPE_C(SQL_C_INTERVAL_DAY),
@@ -44,18 +46,18 @@ static const struct type types[] = {
 	TYPE_C(SQL_C_INTERVAL_HOUR_TO_MINUTE),
 	TYPE_C(SQL_C_INTERVAL_HOUR_TO_SECOND),
 	TYPE_C(SQL_C_INTERVAL_MINUTE_TO_SECOND),
-	TYPE_BOTH(SQL_C_BINARY),
-	TYPE_BOTH(SQL_C_BIT),
+	TYPE_BOTH(SQL_C_BINARY, SQL_BINARY),
+	TYPE_BOTH(SQL_C_BIT, SQL_BIT),
 	TYPE_C(SQL_C_SBIGINT),
 	TYPE_C(SQL_C_UBIGINT),
-	TYPE_BOTH(SQL_C_TINYINT),
+	TYPE_BOTH(SQL_C_TINYINT, SQL_TINYINT),
 	TYPE_C(SQL_C_SLONG),
 	TYPE_C(SQL_C_SSHORT),
 	TYPE_C(SQL_C_STINYINT),
 	TYPE_C(SQL_C_ULONG),
 	TYPE_C(SQL_C_USHORT),
 	TYPE_C(SQL_C_UTINYINT),
-	TYPE_BOTH(SQL_C_GUID),
+	TYPE_BOTH(SQL_C_GUID, SQL_GUID),
 
 	TYPE_SQL(SQL_BIGINT),
 	TYPE_SQL(SQL_VARBINARY),

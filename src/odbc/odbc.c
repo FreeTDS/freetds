@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.244 2003-09-11 14:50:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.245 2003-09-17 07:31:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2756,6 +2756,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 		odbc_errs_reset(&stmt->errs);
 		if (stmt->hdbc->current_statement == stmt)
 			stmt->hdbc->current_statement = NULL;
+		tds_dstr_free(&stmt->cursor_name);
 		desc_free(stmt->ird);
 		desc_free(stmt->ipd);
 		desc_free(stmt->orig_ard);
@@ -4619,7 +4620,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_CONCURRENCY:
 		if (stmt->attr.attr_concurrency != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_concurrency = ui;
 		break;
@@ -4640,7 +4641,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_CURSOR_TYPE:
 		if (stmt->attr.attr_cursor_type != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_cursor_type = ui;
 		break;
@@ -4667,7 +4668,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_MAX_LENGTH:
 		if (stmt->attr.attr_max_length != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_max_length = ui;
 		break;
@@ -4675,7 +4676,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_MAX_ROWS:
 		if (stmt->attr.attr_max_rows != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_max_rows = ui;
 		break;
@@ -4711,7 +4712,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_RETRIEVE_DATA:
 		if (stmt->attr.attr_retrieve_data != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_retrieve_data = ui;
 		break;
@@ -4719,7 +4720,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		assert(stmt->ard->header.sql_desc_array_size == 1);
 		if (stmt->ard->header.sql_desc_array_size != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->ard->header.sql_desc_array_size = ui;
 		break;
@@ -4745,7 +4746,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_SIMULATE_CURSOR:
 		if (stmt->attr.attr_simulate_cursor != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
+			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 		stmt->attr.attr_simulate_cursor = ui;
 		break;

@@ -2,7 +2,7 @@
 
 print "/*\n";
 print " * This file produced from $0\n";
-print ' * $Id: encodings.pl,v 1.3 2003-07-01 05:33:07 jklowden Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.4 2003-09-17 07:31:15 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();
@@ -44,10 +44,10 @@ close(IN);
 %index = ();
 $i = 0;
 $index{"ISO-8859-1"} = $i++;
-$index{"US-ASCII"} = $i++;
+$index{"UTF-8"} = $i++;
 $index{"UCS-2LE"} = $i++;
 $index{"UCS-2BE"} = $i++;
-foreach $n (sort grep(!/^(ISO-8859-1|US-ASCII|UCS-2LE|UCS-2BE)$/,keys %charsets))
+foreach $n (sort grep(!/^(ISO-8859-1|UTF-8|UCS-2LE|UCS-2BE)$/,keys %charsets))
 {
 	$index{$n} = $i++;
 }
@@ -83,5 +83,3 @@ foreach $n (sort keys %sybase)
 }
 print "\t{NULL,\t0}\n";
 print "};\n\n";
-
-
