@@ -8,16 +8,7 @@ AM_INIT_AUTOMAKE(freetds, 0.60)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREFIX_DEFAULT(/usr/local)
 
-dnl change configuration directory
-dnl if in test mode use prefix
-if echo $prefix | grep -q '=inst'; then
-	sysconfdir='${prefix}/etc/freetds'
-else
-	dnl only if not modified default to /etc/freetds
-	if test "x$sysconfdir" = 'x${prefix}/etc'; then
-		sysconfdir='/etc/freetds'
-	fi
-fi
+dnl configuration directory will be /usr/local/etc
 
 dnl ------------------------------------------------------------
 dnl Checks for programs.
