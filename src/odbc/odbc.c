@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.324 2004-05-12 19:12:54 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.325 2004-05-16 15:33:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -77,7 +77,7 @@ static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
 static SQLRETURN SQL_API _SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
 static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
-static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption);
+static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
 static SQLRETURN SQL_API _SQLFreeDesc(SQLHDESC hdesc);
 static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
@@ -1106,14 +1106,10 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
 	if (!stmt->ird || !stmt->ard || !stmt->ipd || !stmt->apd) {
 		tds_dstr_free(&stmt->cursor_name);
-		if (stmt->ird)
-			desc_free(stmt->ird);
-		if (stmt->ard)
-			desc_free(stmt->ard);
-		if (stmt->ipd)
-			desc_free(stmt->ipd);
-		if (stmt->apd)
-			desc_free(stmt->apd);
+		desc_free(stmt->ird);
+		desc_free(stmt->ard);
+		desc_free(stmt->ipd);
+		desc_free(stmt->apd);
 		free(stmt);
 		odbc_errs_add(&dbc->errs, "HY001", NULL, NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
@@ -1164,6 +1160,12 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
 
 	stmt->row_count = TDS_NO_COUNT;
+
+	/* insert into list */
+	stmt->next = dbc->stmt_list;
+	if (dbc->stmt_list)
+		dbc->stmt_list->prev = stmt;
+	dbc->stmt_list = stmt;
 
 	*phstmt = (SQLHSTMT) stmt;
 
@@ -1605,12 +1607,23 @@ SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)
 {
+	int i;
 	INIT_HDBC;
+
+	/* free all associated statements */
+	while(dbc->stmt_list)
+		_SQLFreeStmt(dbc->stmt_list, SQL_DROP, 1);
+
+	/* free all associated descriptors */
+	for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
+		if (dbc->uad[i]) {
+			desc_free(dbc->uad[i]);
+			dbc->uad[i] = NULL;
+		}
+	}
 
 	tds_free_socket(dbc->tds_socket);
 	dbc->tds_socket = NULL;
-
-	/* TODO free all associated statements (done by DM??) f77 */
 
 	ODBC_RETURN_(dbc);
 }
@@ -2671,7 +2684,7 @@ SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:
-		return _SQLFreeStmt(Handle, SQL_DROP);
+		return _SQLFreeStmt(Handle, SQL_DROP, 0);
 		break;
 	case SQL_HANDLE_DBC:
 		return _SQLFreeConnect(Handle);
@@ -2693,6 +2706,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 
 	INIT_HDBC;
 
+	/* TODO if connected return error */
 	tds_free_socket(dbc->tds_socket);
 
 	/* free attributes */
@@ -2740,7 +2754,7 @@ SQLFreeEnv(SQLHENV henv)
 }
 
 static SQLRETURN SQL_API
-_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
+_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 {
 	TDSSOCKET *tds;
 
@@ -2780,12 +2794,20 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 
 		/* close prepared statement or add to connection */
 		retcode = odbc_free_dynamic(stmt);
-		if (retcode != SQL_SUCCESS)
+		if (!force && retcode != SQL_SUCCESS)
 			return retcode;
 	}
 
 	/* free it */
 	if (fOption == SQL_DROP) {
+		/* detatch from list */
+		if (stmt->next)
+			stmt->next->prev = stmt->prev;
+		if (stmt->prev)
+			stmt->prev->next = stmt->next;
+		if (stmt->dbc->stmt_list == stmt)
+			stmt->dbc->stmt_list = stmt->next;
+
 		if (stmt->query)
 			free(stmt->query);
 		if (stmt->prepared_query)
@@ -2810,7 +2832,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 SQLRETURN SQL_API
 SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 {
-	return _SQLFreeStmt(hstmt, fOption);
+	return _SQLFreeStmt(hstmt, fOption, 0);
 }
 
 SQLRETURN SQL_API
@@ -2825,7 +2847,7 @@ SQLCloseCursor(SQLHSTMT hstmt)
 	 */
 	/* TODO remember to close cursors really when get implemented */
 	/* TODO read all results and discard them or use cancellation ?? test behaviour */
-	return _SQLFreeStmt(hstmt, SQL_CLOSE);
+	return _SQLFreeStmt(hstmt, SQL_CLOSE, 0);
 }
 
 static SQLRETURN SQL_API
@@ -2852,6 +2874,9 @@ _SQLFreeDesc(SQLHDESC hdesc)
 			}
 		}
 	}
+
+	/* FIXME freeing descriptors associated to statements should revert state of statements !!! */
+
 	return SQL_SUCCESS;
 }
 

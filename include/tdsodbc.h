@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.71 2004-04-17 10:02:23 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.72 2004-05-16 15:33:13 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -222,8 +222,11 @@ struct _hdbc
 	DSTR server;		/* aka Instance */
 	/** statement executing */
 	struct _hstmt *current_statement;
+	/** list of all statements allocated from this connection */
+	struct _hstmt *stmt_list;
 	struct _sql_errors errs;
 	struct _hcattr attr;
+	/** descriptors associated to connection */
 	TDS_DESC *uad[TDS_MAX_APP_DESC];
 };
 
@@ -282,7 +285,14 @@ struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _hdbc *dbc;
+	/** query to execute */
 	char *query;
+
+	/** next in list */
+	struct _hstmt *next;
+	/** previous in list */
+	struct _hstmt *prev;
+
 	/* begin prepared query stuff */
 	char *prepared_query;
 	unsigned prepared_query_is_func:1;

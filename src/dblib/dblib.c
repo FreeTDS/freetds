@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.172 2004-04-26 23:49:58 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.173 2004-05-16 15:33:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);

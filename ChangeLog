@@ -1,3 +1,8 @@
+Sun May 16 17:31:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_checks.c:
+	- fix some memory leaks (SQLDisconnect didn't free statements)
+	* src/dblib/dblib.c: converted to unix format
+
 Fri May 14 19:17:38 EDT 2004	JK Lowden <jklowden@schemamania.org>
 	* samples/mssql.php added, courtesy of Sven Goldt
 
