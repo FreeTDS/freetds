@@ -1,3 +1,7 @@
+Wed Jan 07 22:51:08 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/unittests/Makefile.am:
+	- disable flags test
+
 Wed Jan  7 13:03:38 EST 2004	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/unittests/common.c:
 	- Force default date format so we can meaningfully compare
@@ -14,8 +18,8 @@ Wed Jan  7 11:58:40 EST 2004	nsc <Nicholas_Castellano@acml.com>
 
 Wed Jan  7 09:57:30 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in new candidate 0.62rc4
-	
-Wed Jan 07 11:35:40 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+
+Wed Jan 07 11:35:40 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: fix results of SQL_DESC_TYPE_NAME
 
 Tue Jan  6 20:28:21 EST 2004	nsc <Nicholas_Castellano@acml.com>
@@ -27,7 +31,7 @@ Tue Jan  6 20:13:21 EST 2004	nsc <Nicholas_Castellano@acml.com>
 	* src/tds/unittests/convert.c:
 	- Don't divide by zero if test takes less than a millisecond.
 	
-Tue Jan 06 10:29:25 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Tue Jan 06 10:29:25 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* include/cspublic.h: fix for C++ compile
 
@@ -50,21 +54,21 @@ Mon Jan  5 00:45:00 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c src/tds/write.c
 	- completed patch from Christos for native bcp null handling
 
-Sat Jan 03 20:31:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Sat Jan 03 20:31:52 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
 	- applied Craig A. Berry patch for VMS
 
-Fri Jan 02 11:16:59 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Fri Jan 02 11:16:59 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* win32/config.h:
 	- removed developing define
 	- updates some define
 
-Fri Jan 02 10:49:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Fri Jan 02 10:49:35 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* src/pool/Makefile.am:
 	- fixed double inclusion of symbols (Mac OS X should now compile
 	  without patch, tested 10.2 version)
 
-Fri Jan 02 09:21:49 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+Fri Jan 02 09:21:49 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: optimize a bit
 	* doc/Makefile.am: use $(MAKE) to call make
 	* src/tds/unittests/Makefile.am src/tds/unittests/convert.c:
