@@ -1,3 +1,16 @@
+Sun Oct 13 19:57:09 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0005.c
+	  src/dblib/unittests/t0006.c src/dblib/unittests/t0012.c
+	  src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c
+	  src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c
+	  src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c
+	  src/dblib/unittests/t0020.c:
+	- Remove bogus "#ifndef _WIN32"'s around calls to
+	  tdsdump_open() in the dblib unittests.  I can't see any
+	  sensible reason for doing this.  If tdsdump_open() does
+	  not work on WIN32 for some reason, this isn't the right
+	  way to fix it.
+
 Sun Oct 13 19:50:13 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds_sysdep_private.h.in src/tds/threadsafe.c:
 	- Migrate system-dependent SOCK_REENTRANT selection code

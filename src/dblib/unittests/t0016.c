@@ -18,7 +18,7 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0016.c,v 1.8 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0016.c,v 1.9 2002-10-14 00:00:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 int failed = 0;
@@ -46,9 +46,7 @@ int main(int argc, char *argv[])
    malloc_options = "AJR";
 #endif
 
-#ifndef _WIN32
    tdsdump_open(NULL);
-#endif
 
    read_login_info();
    fprintf(stdout, "Start\n");

@@ -18,7 +18,7 @@
 #include "common.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: t0001.c,v 1.6 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0001.c,v 1.7 2002-10-14 00:00:33 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,9 +48,7 @@ main(int argc, char **argv)
 
    read_login_info();
 
-#ifndef _WIN32
    tdsdump_open(NULL);
-#endif
 
    fprintf(stdout, "Start\n");
    add_bread_crumb();
