@@ -1,3 +1,9 @@
+Thu Oct 17 14:54:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/t0022.c:
+	- If no output parameters are received and TDS 7 or TDS 8
+	  is being used, print a warning and exit with success.
+	  Temporary workaround for a bug introduced in SQL 7.0 SP3.
+
 Thu Oct 17 11:08:33 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* freetds.conf:
 	- Set a reasonable default text size for now, until someone

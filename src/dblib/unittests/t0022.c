@@ -18,7 +18,7 @@
 #include "common.h"
 
 
-static char  software_version[]   = "$Id: t0022.c,v 1.10 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0022.c,v 1.11 2002-10-17 19:17:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -113,6 +113,15 @@ fprintf(stdout, "About to open\n");
    }
    add_bread_crumb();
 
+   if ((dbnumrets(dbproc) == 0)
+       && ((DBTDS(dbproc) == DBTDS_7_0)
+           || (DBTDS(dbproc) == DBTDS_8_0))) {
+      fprintf(stdout, "WARNING:  Received no return parameters from server!\n");
+      fprintf(stdout, "WARNING:  This is likely due to a bug in Microsoft\n");
+      fprintf(stdout, "WARNING:  SQL Server 7.0 SP3 and later.\n");
+      fprintf(stdout, "WARNING:  Please try again using TDS protocol 4.2.\n");
+      exit(0);
+   }
    for (i=1;i<=dbnumrets(dbproc);i++)
    {
       add_bread_crumb();
