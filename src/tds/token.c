@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.253 2004-03-15 16:37:30 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.254 2004-03-23 08:51:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -387,7 +387,7 @@ tds_process_auth(TDSSOCKET * tds)
 	unsigned char nonce[8];
 
 /* char domain[30]; */
-	int where = 0;
+	int where;
 
 #if ENABLE_EXTRA_CHECKS
 	if (!IS_TDS7_PLUS(tds))
@@ -396,25 +396,22 @@ tds_process_auth(TDSSOCKET * tds)
 
 	pdu_size = tds_get_smallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
+	
+	/* at least 32 bytes (till context) */
+	if (pdu_size < 32)
+		return TDS_FAIL;
 
 	/* TODO check first 2 values */
 	tds_get_n(tds, NULL, 8);	/* NTLMSSP\0 */
-	where += 8;
 	tds_get_int(tds);	/* sequence -> 2 */
-	where += 4;
 	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
-	where += 4;
 	tds_get_int(tds);	/* domain offset */
-	where += 4;
 	/* TODO use them */
 	tds_get_n(tds, NULL, 4);	/* flags */
-	where += 4;
 	tds_get_n(tds, nonce, 8);
-	where += 8;
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce\n");
 	tdsdump_dump_buf(nonce, 8);
-	tds_get_n(tds, NULL, 8);	/* ?? */
-	where += 8;
+	where = 32;
 
 	/*
 	 * tds_get_string(tds, domain, domain_len); 
@@ -424,6 +421,7 @@ tds_process_auth(TDSSOCKET * tds)
 
 	if (pdu_size < where)
 		return TDS_FAIL;
+	/* discard context, target and data informations */
 	tds_get_n(tds, NULL, pdu_size - where);
 	tdsdump_log(TDS_DBG_INFO1, "%L Draining %d bytes\n", pdu_size - where);
 

@@ -31,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.21 2004-03-22 20:41:07 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.22 2004-03-23 08:51:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -132,7 +132,15 @@ _ct_handle_server_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * ms
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msg_number;
-	strcpy(errmsg.text, msg->message);
+	strncpy(errmsg.text, msg->message, sizeof(errmsg.text));
+	errmsg.text[sizeof(errmsg.text)-1] = 0;
+	errmsg.textlen = strlen(errmsg.text);
+	errmsg.sqlstate[0] = 0;
+	if (msg->sql_state) {
+		strncpy(errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
+		errmsg.sqlstate[sizeof(errmsg.sqlstate)-1] = 0;
+	}
+	errmsg.sqlstatelen = strlen(errmsg.sqlstate);
 	errmsg.state = msg->msg_state;
 	errmsg.severity = msg->msg_level;
 	errmsg.line = msg->line_number;

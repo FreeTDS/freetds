@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.50 2004-03-22 20:41:07 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.51 2004-03-23 08:51:32 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -209,15 +209,15 @@ struct _cs_servermsg
 	CS_INT state;
 	CS_INT severity;
 	CS_CHAR text[CS_MAX_MSG];
-	CS_INT textlen; /* XX added */
+	CS_INT textlen;
 	CS_CHAR svrname[CS_MAX_NAME];
 	CS_INT svrnlen;
 	CS_CHAR proc[CS_MAX_NAME];
 	CS_INT proclen;
 	CS_INT line;
 	CS_INT status;
-	CS_BYTE sqlstate[CS_SQLSTATE_SIZE]; /* XX added */
-	CS_INT sqlstatelen; /* XX added */
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
+	CS_INT sqlstatelen;
 };
 
 /* status bits for CS_SERVERMSG */
