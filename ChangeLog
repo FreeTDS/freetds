@@ -1,3 +1,7 @@
+Thu Feb  3 09:24:25 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c:
+	- applied patch from Craig A. Berry, fix an overflow using utf8
+
 Wed Feb  2 20:08:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.conf include/tds.h src/odbc/connectparams.c:
 	* src/odbc/odbc.c src/tds/config.c src/tds/login.c:
