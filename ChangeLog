@@ -1,3 +1,6 @@
+Fri Jan 24 21:33:25 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/config.c applied 1-line patch from Craig A. Berry
+
 Fri Jan 24 17:43:26 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h: add some macro required for Python
 

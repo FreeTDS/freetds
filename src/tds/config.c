@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.63 2002-12-28 19:50:58 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.64 2003-01-25 02:36:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -835,7 +835,7 @@ search_interface_file(const char *dir,	/* (I) Name of base directory for interfa
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (!strcmp(field, host)) {
 				found = 1;
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n,host");
+				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n", host);
 			} else
 				found = 0;
 		} else if (found && isspace(line[0])) {
