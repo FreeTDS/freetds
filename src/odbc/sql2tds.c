@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.32 2004-02-03 19:28:11 jklowden Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.33 2004-02-19 15:34:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -144,10 +144,13 @@ sql2tds(TDS_DBC * dbc, struct _drecord *drec_ipd, struct _drecord *drec_apd, TDS
 		 * we should fill destination length after conversion keeping 
 		 * attention to fill correctly blob/fixed type/variable type
 		 */
-		curcol->column_cur_size = 0;
-		curcol->column_size = drec_ipd->sql_desc_length;
-		if (curcol->column_size < 0)
-			curcol->column_size = 0x7FFFFFFFl;
+		/* TODO location of this test is correct here ?? */
+		if (dest_type != SYBUNIQUE) {
+			curcol->column_cur_size = 0;
+			curcol->column_size = drec_ipd->sql_desc_length;
+			if (curcol->column_size < 0)
+				curcol->column_size = 0x7FFFFFFFl;
+		}
 	} else {
 		/* TODO only a trick... */
 		if (curcol->column_varint_size == 0)

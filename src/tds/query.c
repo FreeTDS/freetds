@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.129 2004-02-12 16:55:29 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.130 2004-02-19 15:34:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -493,6 +493,13 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		sprintf(out, fmt, curcol->column_prec, curcol->column_scale);
 		return TDS_SUCCEED;
 		break;
+	case SYBUNIQUE:
+		if (IS_TDS7_PLUS(tds)) {
+			fmt = "UNIQUEIDENTIFIER";
+			break;
+		}
+		out[0] = 0;
+		return TDS_FAIL;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
@@ -510,7 +517,6 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBUINT2:
 	case SYBUINT4:
 	case SYBUINT8:
-	case SYBUNIQUE:
 	case SYBVARIANT:
 		out[0] = 0;
 		return TDS_FAIL;
