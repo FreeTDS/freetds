@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.8 2004-10-13 11:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.9 2004-10-15 08:47:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -144,8 +144,8 @@ test(int n, int type)
 			l = 1000;
 		strncpy(tmp, src, l);
 		tmp[l] = 0;
-		fprintf(stderr, "Wrong result in %s\n Got: '%s' len %d\n Expected: '%s' len %d\n", test_name, tmp,
-			curcol->column_cur_size, buf, strlen(buf));
+		fprintf(stderr, "Wrong result in %s\n Got: '%s' len %d\n Expected: '%s' len %u\n", test_name, tmp,
+			curcol->column_cur_size, buf, (unsigned int) strlen(buf));
 		exit(1);
 	}
 

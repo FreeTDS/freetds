@@ -1,3 +1,8 @@
+Fri Oct 15 10:45:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/cs_config.c src/tds/unittests/utf8_1.c:
+	* src/tds/unittests/utf8_2.c:
+	- remove some warnings
+
 Thu Oct 14 20:26:24 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c src/tds/query.c src/tds/token.c:
 	- fix core if cursor it's not found

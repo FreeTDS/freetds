@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.7 2004-10-13 11:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.8 2004-10-15 08:47:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -180,8 +180,8 @@ test(const char *type, const char *test_name)
 				l = 200;
 			strncpy(tmp, src, l);
 			tmp[l] = 0;
-			fprintf(stderr, "Wrong result in test %s\n Got: '%s' len %d\n Expected: '%s' len %d\n", test_name, tmp,
-				curcol->column_cur_size, buf, strlen(buf));
+			fprintf(stderr, "Wrong result in test %s\n Got: '%s' len %d\n Expected: '%s' len %u\n", test_name, tmp,
+				curcol->column_cur_size, buf, (unsigned int) strlen(buf));
 			exit(1);
 		}
 		++i;

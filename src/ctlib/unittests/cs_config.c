@@ -12,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_config.c,v 1.4 2004-09-08 12:51:24 freddy77 Exp $";
+static char software_version[] = "$Id: cs_config.c,v 1.5 2004-10-15 08:47:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 		return 1;
 	}
     if (ret_len != (strlen(string_in) + 1)) {
-		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, (strlen(string_in) + 1));
+		fprintf(stdout, "returned length >%d< not as expected >%u<\n", ret_len, (unsigned int) (strlen(string_in) + 1));
 		return 1;
 	}
 
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 		return 1;
 	}
     if (ret_len != (strlen(string_in) + 1)) {
-		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, (strlen(string_in) + 1));
+		fprintf(stdout, "returned length >%d< not as expected >%u<\n", ret_len, (unsigned int) (strlen(string_in) + 1));
 		return 1;
 	}
 
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 	if (ret_len != (sizeof(int))) {
-		fprintf(stdout, "returned length >%d< not as expected >%d<\n", ret_len, sizeof(int));
+		fprintf(stdout, "returned length >%d< not as expected >%u<\n", ret_len, (unsigned int) sizeof(int));
 		return 1;
 	}
 
