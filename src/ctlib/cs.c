@@ -22,7 +22,7 @@
 #include <tdsconvert.h>
 #include <time.h>
 
-static char  software_version[]   = "$Id: cs.c,v 1.15 2002-08-30 20:11:21 freddy77 Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.16 2002-09-01 09:56:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -222,9 +222,9 @@ CS_RETCODE ret;
 	if (is_numeric_type(desttype)) {
 		cres.n.precision = destfmt->precision;
 		cres.n.scale     = destfmt->scale;
-		if (cres.n.precision == CS_SRC_VALUE)
+		if (destfmt->precision == CS_SRC_VALUE)
 			cres.n.precision = srcfmt->precision;
-		if (cres.n.scale == CS_SRC_VALUE)
+		if (destfmt->scale == CS_SRC_VALUE)
 			cres.n.scale = srcfmt->scale;
 	}
     

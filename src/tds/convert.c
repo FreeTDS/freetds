@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.66 2002-09-01 07:45:29 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.67 2002-09-01 09:56:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -162,8 +162,19 @@ int len = strlen(s);
 	return len;
 }
 
+/**
+ * Copy binary data to to result and return len or TDS_FAIL
+ */
+static TDS_INT
+binary_to_result(const void* data,size_t len,CONV_RESULT* cr)
+{
+	cr->ib = malloc(len);
+	test_alloc(cr->ib);
+	memcpy(cr->ib, data, len);
+	return len;
+}
 
-/*TODO many conversions to binary are not implemented */
+/*TODO many conversions to varbinary are not implemented */
 
 
 
@@ -213,10 +224,7 @@ char hex2[3];
          break;
       case SYBIMAGE:
       case SYBBINARY:
-         cr->ib = malloc(srclen);
-		test_alloc(cr->ib);
-         memcpy(cr->ib, src, srclen);
-         return srclen;
+	 return binary_to_result(src, srclen, cr);
          break;
       case SYBVARBINARY:
          cplen = srclen > 256 ? 256 : srclen;
@@ -224,11 +232,32 @@ char hex2[3];
          memcpy(cr->vb.array, src, cplen);
          return cplen;
          break;
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBMONEY4:
+	case SYBMONEY:
+	case SYBREAL:
+	case SYBFLT8:
+		cplen = get_size_by_type(desttype);
+		if (cplen <= srclen)
+			return binary_to_result(src, cplen, cr);
+		cr->ib = malloc(cplen);
+		test_alloc(cr->ib);
+		memcpy(cr->ib, src, srclen);
+		memset(cr->ib+srclen, 0, cplen-srclen);
+		return cplen;
+		break;
 	 /* conversion not allowed */
       case SYBDATETIME4:
       case SYBDATETIME:
       case SYBDATETIMN:
 	 break;
+	/* TODO should we do some test for these types or work as ints ?? */
+	case SYBDECIMAL:
+	case SYBNUMERIC:
+	case SYBBIT:
+	case SYBBITN:
       default:
 	 LOG_CONVERT();
          return TDS_FAIL;
@@ -537,10 +566,7 @@ tds_convert_bit(int srctype,TDS_CHAR *src,
 			break;
 		case SYBBINARY:
 		case SYBIMAGE:
-			cr->ib =malloc(1);
-			test_alloc(cr->ib);
-			cr->ib[0] = src[0];
-			return 1;
+			return binary_to_result(src,1,cr);
 			break;
 		case SYBINT1:
 			cr->ti = canonic;
@@ -603,6 +629,10 @@ TDS_CHAR tmp_str[5];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
 			return string_to_result(tmp_str,cr);
+			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,1,cr);
 			break;
 		case SYBINT1:
 			cr->ti = buf;
@@ -668,6 +698,10 @@ TDS_CHAR tmp_str[16];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
 			return string_to_result(tmp_str,cr);
+			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,2,cr);
 			break;
 		case SYBINT1:
 			if (!IS_TINYINT(buf))
@@ -735,6 +769,10 @@ TDS_CHAR tmp_str[16];
 		case SYBVARCHAR:
 			sprintf(tmp_str,"%d",buf);
 			return string_to_result(tmp_str,cr);
+			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,4,cr);
 			break;
 		case SYBINT1:
 			if (!IS_TINYINT(buf))
@@ -805,6 +843,10 @@ char tmpstr[MAXPRECISION];
 			tds_numeric_to_string(src,tmpstr);
 			return string_to_result(tmpstr,cr);
 			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_NUMERIC),cr);
+			break;
 		case SYBNUMERIC:
 		case SYBDECIMAL:
             memcpy(&(cr->n), src, sizeof(TDS_NUMERIC));
@@ -857,6 +899,10 @@ char tmp_str[33];
 			if (fraction < 0)	{ fraction = -fraction; }
 			sprintf(tmp_str,"%ld.%02lu",dollars,fraction/100);
 			return string_to_result(tmp_str,cr);
+			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_MONEY4),cr);
 			break;
 		case SYBINT1:
 			dollars  = mny.mny4 / 10000;
@@ -982,6 +1028,10 @@ int i;
 #endif	/* UseBillsMoney */
             break;
 
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_MONEY),cr);
+			break;
 		case SYBINT1:
 			dollars  = mymoney / 10000;
 			if (!IS_TINYINT(dollars))
@@ -1131,6 +1181,10 @@ struct tds_tm when;
 				return string_to_result(whole_date_string,cr);
 			}
 			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_DATETIME),cr);
+			break;
 		case SYBDATETIME:
 			memcpy(&dt_days, src, 4);
 			memcpy(&dt_time, src + 4, 4);
@@ -1237,6 +1291,10 @@ struct tds_tm when;
 				return string_to_result(whole_date_string,cr);
 			}
 			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_DATETIME4),cr);
+			break;
 		case SYBDATETIME:
 			memcpy(&dt_days, src, 2);
 			memcpy(&dt_mins, src + 2, 2);
@@ -1291,6 +1349,10 @@ TDS_INT8 mymoney;
 	    return string_to_result(tmp_str,cr);
             break;
 
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_REAL),cr);
+			break;
 		case SYBINT1:
 			if (!IS_TINYINT(the_value))
 				return TDS_FAIL;
@@ -1370,6 +1432,10 @@ char      tmp_str[25];
 	    return string_to_result(tmp_str,cr);
             break;
 
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_FLOAT),cr);
+			break;
 		case SYBINT1:
 			if (!IS_TINYINT(the_value))
 				return TDS_FAIL;
@@ -1450,6 +1516,10 @@ TDS_UCHAR buf[37];
         			u->Data4[5], u->Data4[6], u->Data4[7]);
 			return string_to_result(buf,cr);
    			break;
+		case SYBBINARY:
+		case SYBIMAGE:
+			return binary_to_result(src,sizeof(TDS_UNIQUE),cr);
+			break;
    		case SYBUNIQUE:
 			/* Here we can copy raw to structure because we adjust
 			   byte order in tds_swap_datatype */
@@ -1470,7 +1540,6 @@ TDS_UCHAR buf[37];
 		case SYBREAL:
 		case SYBFLT8:
 			break;
-		case SYBBINARY:
 		default:
 			LOG_CONVERT();
 			return TDS_FAIL;

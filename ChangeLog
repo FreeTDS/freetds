@@ -1,3 +1,9 @@
+Sun Sep  1 11:53:01 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/cs.c:
+	- fixed small problem for previous implicit conversion
+	* src/tds/convert.c:
+	- added conversion from and to binary/image
+
 Sun Sep  1 09:10:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c src/dblib/unittests/t0019.c:
 	- return and trimming compatible with sybase (test added)
