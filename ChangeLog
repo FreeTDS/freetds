@@ -1,3 +1,7 @@
+Sat Feb 22 10:19:00 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- applied a patch for ASA 5.5 (spid as INT4) from Brian Bruns
+
 Thu Feb 20 21:13:12 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/apps/tsql.c:
 	- merged Steve Langasek patch for portability issue
