@@ -1,3 +1,9 @@
+Wed Mar 27 16:00:00 CST 2002    Steve Langasek <vorlon@netexpress.net>
+
+	* src/tds/read.c: commit a fix for goodread() that I've been
+      sitting on.  EINTR handling still needs improvement in the common 
+      case, but killing one out of two bugs is still progress.
+
 Sun Mar 24 09:19:19 EST 2002	Brian Bruns	<camber@ais.org>
 
 	* acinclude.m4: modified SSL check to use config.h

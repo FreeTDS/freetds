@@ -31,7 +31,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.5 2002-01-31 02:21:44 brianb Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.6 2002-03-27 22:04:46 vorlon Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -75,7 +75,8 @@ struct timeval selecttimeout;
 			}
 			len = READ(tds->s, buf+got, buflen);
 
-			if (len < 0) {
+			/* FIXME: we should do proper handling of EINTR here as well. */
+			if (len <= 0) {
 				return (-1); /* SOCKET_ERROR); */
 			}
 
@@ -92,7 +93,11 @@ struct timeval selecttimeout;
 	} else {
 		/* got = READ(tds->s, buf, buflen); */
 		while (got < buflen) {
-			got += READ(tds->s, buf + got, buflen - got);
+			int len = READ(tds->s, buf + got, buflen - got);
+			if (len <= 0 && errno != EINTR) {
+				return (-1); /* SOCKET_ERROR); */
+			}  
+			got += len;
 		}
 
 	}
