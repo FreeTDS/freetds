@@ -57,7 +57,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.28 2003-05-08 03:14:57 jklowden Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.29 2003-09-30 16:47:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -127,22 +127,19 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 #else
 
 #if defined(HAVE_FUNC_GETHOSTBYNAME_R_6)
-	struct hostent result_buf;
+	if (gethostbyname_r(servername, result, buffer, buflen, &result, h_errnop))
+		return NULL;
 
-	gethostbyname_r(servername, &result_buf, buffer, buflen, &result, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_5)
-	gethostbyname_r(servername, result, buffer, buflen, h_errnop);
+	result = gethostbyname_r(servername, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
-	struct hostent_data data;
+	struct hostent_data *data = (struct hostent_data *) buffer;
 
-	memset(&data, 0, sizeof(data));
-#ifdef HAVE_SETHOSTENT_R
-	sethostent_r(0, &data);
-#endif
-	gethostbyname_r(servername, result, &data);
-#ifdef HAVE_ENDHOSTENT_R
-	endhostent_r(&data);
-#endif
+	memset(buffer, 0, buflen);
+	if (gethostbyname_r(servername, result, data)) {
+		*h_errnop = 0;
+		result = NULL;
+	}
 #elif defined(_REENTRANT)
 #error gethostbyname_r style unknown
 #endif
@@ -161,22 +158,18 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 #else
 
 #if defined(HAVE_FUNC_GETHOSTBYADDR_R_8)
-	struct hostent result_buf;
-
-	gethostbyaddr_r(addr, len, type, &result_buf, buffer, buflen, &result, h_errnop);
+	if (gethostbyaddr_r(addr, len, type, result, buffer, buflen, &result, h_errnop))
+		return NULL;
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_7)
-	gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
+	result = gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_5)
-	struct hostent_data data;
+	struct hostent_data *data = (struct hostent_data *) buffer;
 
-	memset(&data, 0, sizeof(data));
-#ifdef HAVE_SETHOSTENT_R
-	sethostent_r(0, &data);
-#endif
-	gethostbyaddr_r(addr, len, type, result, &data);
-#ifdef HAVE_ENDHOSTENT_R
-	endhostent_r(&data);
-#endif
+	memset(buffer, 0, buflen);
+	if (gethostbyaddr_r(addr, len, type, result, data)) {
+		*h_errnop = 0;
+		result = NULL;
+	}
 #else
 #error gethostbyaddr_r style unknown
 #endif
