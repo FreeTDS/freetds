@@ -43,21 +43,22 @@
 #include "tds.h"
 #include "des.h"
 
-static char software_version[] =
-	"$Id: des.c,v 1.9 2002-12-18 03:33:58 jklowden Exp $";
+static char software_version[] = "$Id: des.c,v 1.10 2003-04-06 09:56:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
 };
 
-static void permute_ip(des_cblock inblock, DES_KEY *key, des_cblock outblock);
-static void permute_fp(des_cblock inblock, DES_KEY *key, des_cblock outblock);
-static void perminit_ip(DES_KEY *key);
-static void spinit(DES_KEY *key);
-static void perminit_fp(DES_KEY *key);
-static TDS_UINT f(DES_KEY *key, register TDS_UINT r, register unsigned char *subkey);
+static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock);
+static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);
+static void perminit_ip(DES_KEY * key);
+static void spinit(DES_KEY * key);
+static void perminit_fp(DES_KEY * key);
+static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey);
 
-void des_set_odd_parity(des_cblock key) {
+void
+des_set_odd_parity(des_cblock key)
+{
 
 	int i;
 	unsigned char parity;
@@ -65,9 +66,9 @@ void des_set_odd_parity(des_cblock key) {
 	for (i = 0; i < 8; i++) {
 		parity = key[i];
 
-		parity ^= parity >>4;
-		parity ^= parity >>2;
-		parity ^= parity >>1;
+		parity ^= parity >> 4;
+		parity ^= parity >> 2;
+		parity ^= parity >> 1;
 
 		key[i] = (key[i] & 0xfe) | (parity & 1);
 	}
@@ -231,7 +232,8 @@ static int nibblebit[] = {
 /* Allocate space and initialize DES lookup arrays
  * mode == 0: standard Data Encryption Algorithm
  */
-static int des_init(DES_KEY * key)
+static int
+des_init(DES_KEY * key)
 {
 
 	spinit(key);
@@ -243,7 +245,8 @@ static int des_init(DES_KEY * key)
 
 
 /* Set key (initialize key schedule array) */
-int des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
+int
+des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 {
 	char pc1m[56];		/* place to modify pc1 into */
 	char pcr[56];		/* place to rotate pc1 into */
@@ -261,14 +264,12 @@ int des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 		m = l & 07;	/* find bit              */
 		pc1m[j] = (user_key[l >> 3] &	/* find which key byte l is in */
 			   bytebit[m])	/* and which bit of that byte */
-		    ? 1 : 0;	/* and store 1-bit result */
+			? 1 : 0;	/* and store 1-bit result */
 
 	}
 	for (i = 0; i < 16; i++) {	/* key chunk for each iteration */
 		for (j = 0; j < 56; j++)	/* rotate pc1 the right amount */
-			pcr[j] =
-			    pc1m[(l = j + totrot[i]) <
-				 (j < 28 ? 28 : 56) ? l : l - 28];
+			pcr[j] = pc1m[(l = j + totrot[i]) < (j < 28 ? 28 : 56) ? l : l - 28];
 		/* rotate left and right halves independently */
 		for (j = 0; j < 48; j++) {	/* select bits individually */
 			/* check bit that goes to kn[j] */
@@ -283,11 +284,12 @@ int des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
 }
 
 /* In-place encryption of 64-bit block */
-void des_encrypt(DES_KEY * key, des_cblock block)
+void
+des_encrypt(DES_KEY * key, des_cblock block)
 {
 	register TDS_UINT left, right;
 	register unsigned char *knp;
-	TDS_UINT work[2];		/* Working data storage */
+	TDS_UINT work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
 #ifndef	WORDS_BIGENDIAN
@@ -351,11 +353,12 @@ void des_encrypt(DES_KEY * key, des_cblock block)
  * image of encryption; exactly the same steps are taken, but in
  * reverse order
  */
-void _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
+void
+_mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 {
 	register TDS_UINT left, right;
 	register unsigned char *knp;
-	TDS_UINT work[2];		/* Working data storage */
+	TDS_UINT work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial permutation */
 
@@ -416,7 +419,8 @@ void _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 }
 
 /* Permute inblock with perm */
-static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
+static void
+permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
 	register unsigned char *ib, *ob;	/* ptr to input or output block */
 	register unsigned char *p, *q;
@@ -443,7 +447,8 @@ static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 }
 
 /* Permute inblock with perm */
-static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
+static void
+permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 {
 	register unsigned char *ib, *ob;	/* ptr to input or output block */
 	register unsigned char *p, *q;
@@ -470,7 +475,8 @@ static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 }
 
 /* The nonlinear function f(r,k), the heart of DES */
-static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
+static TDS_UINT
+f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
 {
 	register TDS_UINT *spp;
 	register TDS_UINT rval, rt;
@@ -478,9 +484,7 @@ static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *su
 
 #ifdef	TRACE
 	printf("f(%08lx, %02x %02x %02x %02x %02x %02x %02x %02x) = ",
-	       r,
-	       subkey[0], subkey[1], subkey[2],
-	       subkey[3], subkey[4], subkey[5], subkey[6], subkey[7]);
+	       r, subkey[0], subkey[1], subkey[2], subkey[3], subkey[4], subkey[5], subkey[6], subkey[7]);
 #endif
 	/* Run E(R) ^ K through the combined S & P boxes.
 	 * This code takes advantage of a convenient regularity in
@@ -522,7 +526,8 @@ static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *su
 }
 
 /* initialize a perm array */
-static void perminit_ip(DES_KEY * key)
+static void
+perminit_ip(DES_KEY * key)
 {
 	register int l, j, k;
 	int i, m;
@@ -543,7 +548,8 @@ static void perminit_ip(DES_KEY * key)
 			}
 }
 
-static void perminit_fp(DES_KEY * key)
+static void
+perminit_fp(DES_KEY * key)
 {
 	register int l, j, k;
 	int i, m;
@@ -565,7 +571,8 @@ static void perminit_fp(DES_KEY * key)
 }
 
 /* Initialize the lookup table for the combined S and P boxes */
-static void spinit(DES_KEY * key)
+static void
+spinit(DES_KEY * key)
 {
 	char pbox[32];
 	int p, i, s, j, rowcol;
@@ -588,20 +595,16 @@ static void spinit(DES_KEY * key)
 			/* The row number is formed from the first and last
 			 * bits; the column number is from the middle 4
 			 */
-			rowcol =
-			    (i & 32) | ((i & 1) ? 16 : 0) | ((i >> 1) &
-							     0xf);
+			rowcol = (i & 32) | ((i & 1) ? 16 : 0) | ((i >> 1) & 0xf);
 			for (j = 0; j < 4; j++) {	/* For each output bit */
 				if (si[s][rowcol] & (8 >> j)) {
-					val |=
-					    1L << (31 - pbox[4 * s + j]);
+					val |= 1L << (31 - pbox[4 * s + j]);
 				}
 			}
 			key->sp[s][i] = val;
 
 #ifdef DEBUG
-			printf("sp[%d][%2d] = %08lx\n", s, i,
-			       key->sp[s][i]);
+			printf("sp[%d][%2d] = %08lx\n", s, i, key->sp[s][i]);
 #endif
 		}
 	}
@@ -609,18 +612,17 @@ static void spinit(DES_KEY * key)
 
 /* ECB MODE */
 
-int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY *akey, des_cblock output)
+int
+tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, des_cblock output)
 {
 	int j;
 	const unsigned char *plain = (const unsigned char *) plaintext;
 
 	for (j = 0; j < len / 8; j++) {
-		memcpy(&output[j*8], &plain[j*8], 8);
+		memcpy(&output[j * 8], &plain[j * 8], 8);
 		des_encrypt(akey, &output[j * 8]);
 	}
-	if (j==0 && len!=0) return -1; /* no blocks were encrypted */
+	if (j == 0 && len != 0)
+		return -1;	/* no blocks were encrypted */
 	return 0;
 }
-
-
-
