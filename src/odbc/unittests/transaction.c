@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.6 2004-03-11 10:29:08 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.7 2004-03-15 19:39:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -111,6 +111,10 @@ Test(int discard_test)
 		retcode = 1;
 		goto cleanup;
 	}
+
+	/* FIXME this code work but is shouldn't, fix it */
+	exit(1);
+
 	do {
 		while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
 			printf("\t%ld\n", out_buf);
