@@ -1,3 +1,7 @@
+Thu May 22 14:31:29 EDT 2003	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h include/tdsconvert.h:
+	- Remove redundant declarations.
+
 Tue May 20 17:31:07 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_sql2string.c src/odbc/odbc.c:
 	* src/odbc/sql2tds.c src/odbc/sql2tds.h src/tds/convert.c:

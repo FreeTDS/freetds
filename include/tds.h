@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.125 2003-05-19 17:49:06 castellano Exp $";
+	"$Id: tds.h,v 1.126 2003-05-22 18:32:44 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -1053,14 +1053,13 @@ int tds_process_cancel(TDSSOCKET *tds);
 void tds_swap_datatype(int coltype, unsigned char *buf);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET *tds);
-int tds_process_trailing_tokens(TDSSOCKET * tds);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds, TDS_INT * result_type);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG *tds_argument, TDS_INT *tds_argsize);
 int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_default_tokens(TDSSOCKET *tds, int marker);
-int tds_process_trailing_tokens(TDSSOCKET * tds);
+int tds_process_trailing_tokens(TDSSOCKET *tds);
 TDS_INT tds_process_end(TDSSOCKET *tds, int marker, int *flags);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);
 
