@@ -1,3 +1,6 @@
+Thu Dec  9 08:00:54 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* src/apps/Makefile.am reformatted
+
 Thu Dec 09 09:42:05 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: rc4
 	* misc/test-dist.sh: add check for --disable-libiconv
