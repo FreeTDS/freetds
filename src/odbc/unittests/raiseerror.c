@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiseerror.c,v 1.5 2004-04-06 08:30:10 freddy77 Exp $";
+static char software_version[] = "$Id: raiseerror.c,v 1.6 2004-04-08 09:59:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -29,7 +29,7 @@ TestResult(SQLRETURN result, int level, const char *func)
 	SQLCHAR MessageText[1000];
 	SQLSMALLINT TextLength;
 
-	if ((level <= 10 && !SQL_SUCCEEDED(result)) || (level > 10 && result != SQL_ERROR) || ReturnCode != 0) {
+	if ((level <= 10 && result != SQL_SUCCESS_WITH_INFO) || (level > 10 && result != SQL_ERROR) || ReturnCode != 0) {
 		fprintf(stderr, "%s failed!\n", func);
 		exit(1);
 	}
