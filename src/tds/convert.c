@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.31 2002-08-06 04:32:01 jklowden Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.32 2002-08-06 04:38:24 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -715,13 +715,20 @@ int i;
 
     tdsdump_log(TDS_DBG_FUNC, "%L inside tds_convert_money()\n");
     memcpy(&mymoney, src, sizeof(TDS_INT8)); 
+#	if HAVE_ATOLL
     tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %lld\n", mymoney);
-
+#	else
+    tdsdump_log(TDS_DBG_FUNC, "%L mymoney = %ld\n", mymoney);
+#	endif
 	switch(desttype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 
+#		if HAVE_ATOLL
             sprintf(rawlong,"%lld", mymoney);
+#		else
+            sprintf(rawlong,"%ld", mymoney);
+#		endif
             rawlen = strlen(rawlong);
 
             strncpy(tmpstr, rawlong, rawlen - 4);
