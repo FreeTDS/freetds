@@ -58,7 +58,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.41 2003-11-22 16:50:05 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.42 2003-12-16 11:05:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -132,13 +132,8 @@ tds_version(TDSSOCKET * tds_socket, char *pversion_string)
 	return iversion;
 }
 
-/* ============================== tdsdump_off() ==============================
- *
- * Def:  temporarily turn off logging.  Note- 
- *
- * Ret:  void
- *
- * ===========================================================================
+/**
+ * Temporarily turn off logging.
  */
 void
 tdsdump_off(void)
@@ -147,14 +142,8 @@ tdsdump_off(void)
 }				/* tdsdump_off()  */
 
 
-/* ============================== tdsdump_on() ===============================
- *
- * Def:  turn logging back on.  Note-  You must call tdsdump_open() before 
- *       calling this routine.
- *
- * Ret:  void
- *
- * ===========================================================================
+/**
+ * Turn logging back on.  You must call tdsdump_open() before calling this routine.
  */
 void
 tdsdump_on(void)
@@ -163,16 +152,13 @@ tdsdump_on(void)
 }				/* tdsdump_on()  */
 
 
-/* ============================= tdsdump_open() ==============================
+/**
+ * This creates and truncates a human readable dump file for the TDS
+ * traffic.  The name of the file is specified by the filename
+ * parameter.  If that is given as NULL or an empty string,
+ * any existing log file will be closed.
  *
- * Def:  This creates and truncates a human readable dump file for the TDS
- *       traffic.  The name of the file is specified by the filename
- *       parameter.  If that is given as NULL or an empty string,
- *       any existing log file will be closed.
- *
- * Ret:  true iff the file was opened, false if it couldn't be opened.
- *
- * ===========================================================================
+ * \return  true if the file was opened, false if it couldn't be opened.
  */
 int
 tdsdump_open(const char *filename)
@@ -237,13 +223,8 @@ tdsdump_append(void)
 }
 
 
-/* ============================= tdsdump_close() =============================
- *
- * Def:  Close the TDS dump log file.
- *
- * Ret:  void
- *
- * ===========================================================================
+/**
+ * Close the TDS dump log file.
  */
 void
 tdsdump_close(void)
@@ -260,14 +241,8 @@ tdsdump_close(void)
 }				/* tdsdump_close()  */
 
 
-/* =========================== tdsdump_dump_buf() ============================
- *
- * Def:  Dump the contents of data into the log file in a human readable
- *       format.
- *
- * Ret:  void
- *
- * ===========================================================================
+/**
+ * Dump the contents of data into the log file in a human readable format.
  */
 void
 tdsdump_dump_buf(const void *buf,	/* (I) buffer to dump                      */

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.280 2003-12-12 15:21:22 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.281 2003-12-16 11:05:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1400,13 +1400,14 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 #define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? src : (SQLCHAR*)"", -1);
 
+/* SQLColAttribute returns always attributes using SQLINTEGER */
 #if ENABLE_EXTRA_CHECKS
 #define IOUT(type, src) do { \
 	/* trick warning if type wrong */ \
 	type *p_test = &src; p_test = p_test; \
-	*((type *)pfDesc) = src; } while(0)
+	*((SQLINTEGER *)pfDesc) = src; } while(0)
 #else
-#define IOUT(type, src) *((type *)pfDesc) = src
+#define IOUT(type, src) *((SQLINTEGER *)pfDesc) = src
 #endif
 
 

@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.98 2003-12-10 14:36:08 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.99 2003-12-16 11:05:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -277,6 +277,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 
 	for (i = 0; i < initial_iconv_info_count; ++i) {
 		tds->iconv_info[i] = &iconv_info[i];
+		iconv_info[i].server_charset.name = iconv_info[i].client_charset.name = "";
 		iconv_info[i].to_wire = (iconv_t) - 1;
 		iconv_info[i].to_wire2 = (iconv_t) - 1;
 		iconv_info[i].from_wire = (iconv_t) - 1;
@@ -910,6 +911,7 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 		memset(infos, 0, sizeof(TDSICONVINFO) * CHUNK_ALLOC);
 		for (i = 0; i < CHUNK_ALLOC; ++i) {
 			tds->iconv_info[i + tds->iconv_info_count] = &infos[i];
+			infos[i].server_charset.name = infos[i].client_charset.name = "";
 			infos[i].to_wire = (iconv_t) - 1;
 			infos[i].to_wire2 = (iconv_t) - 1;
 			infos[i].from_wire = (iconv_t) - 1;
