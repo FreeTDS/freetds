@@ -1,3 +1,6 @@
+Mon May 12 22:52:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/iconv.c better logging of initialization failures
+
 Mon May 12 20:57:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c:
 	- fixed a bug that cause wire not readed converting from
