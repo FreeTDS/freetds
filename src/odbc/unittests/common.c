@@ -6,9 +6,13 @@
 
 #include <ctype.h>
 
+#ifndef WIN32
 #include "tds_sysdep_private.h"
+#else
+#define TDS_SDIR_SEPARATOR "\\"
+#endif
 
-static char software_version[] = "$Id: common.c,v 1.33 2004-05-04 07:45:26 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.34 2005-01-13 08:39:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -58,8 +62,10 @@ read_login_info(void)
 	FILE *in;
 	char line[512];
 	char *s1, *s2;
+#ifndef WIN32
 	char path[1024];
 	int len;
+#endif
 
 	in = fopen(".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR "PWD", "r");
 	if (!in)

@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.5 2005-01-12 20:44:33 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.6 2005-01-13 08:39:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -18,7 +18,7 @@ static SQLLEN ind1, ind2;
 static int main_line;
 
 static void
-TestName(int index, const char *expected_name)
+TestName(SQLSMALLINT index, const char *expected_name)
 {
 	char name[128];
 	char buf[256];
@@ -173,22 +173,27 @@ main(int argc, char *argv[])
 	/* select * from #tmp1 where i = 2 compute min(i) */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command(Statement, "select * from #tmp1 where i = 2 order by c, i compute min(i)");
+	Command(Statement, "select * from #tmp1 where i = 2 or i = 34 order by c, i compute min(i) by c");
+	CheckFetch("c", "pippo", "34");
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Still data ??");
+	if (SQLMoreResults(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("No more data ??");
+
+	/* here just skip results, before a row */
+	if (SQLMoreResults(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Still data ??");
+
+
+	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	CheckFetch("c", "pluto", "2");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 	if (SQLMoreResults(Statement) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("No more data ??");
 
-	/* here just skip results */
-/*
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	strcpy(col2, "!");
-	CheckFetch("min", "2", "!");
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Still data ??");
-*/
+	/* here just skip results, before done */
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
 
@@ -196,4 +201,3 @@ main(int argc, char *argv[])
 	Disconnect();
 	return 0;
 }
-

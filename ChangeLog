@@ -1,3 +1,8 @@
+Thu Jan 13  9:38:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c src/odbc/unittests/compute.c:
+	- finish compute test
+	- allow compile of tests under win32
+
 Wed Jan 12 21:42:47 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/compute.c:
 	- fix metadata handling in compute
