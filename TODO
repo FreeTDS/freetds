@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.27 2003-01-05 22:16:10 freddy77 Exp $
+To Do List	$Id: TODO,v 1.28 2003-01-06 21:48:51 freddy77 Exp $
 ------------
 Broken:
 . Fetching of CS_STATUS_RESULT result types in ctlib appears to be broken
@@ -63,7 +63,7 @@ For future versions (in priority order within library):
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types)
 . dynamic query (work in progress, lack unprepare)
 . get a solid corpus of unittests for ODBC, and have it become a top tier API.
-. improve, best error report (lack SQLGetDiagField, other stuff ok)
+. improve, best error report (finish and test, see error.c FIXME and TODO)
 . cursor support
 
   pool
