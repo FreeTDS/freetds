@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.133 2004-03-11 19:40:56 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.134 2004-03-12 15:38:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1052,6 +1052,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	if (is_null) {
 		tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
 		switch (curcol->column_varint_size) {
+		case 4:
+			tds_put_int(tds, -1);
+			break;
 		case 2:
 			tds_put_smallint(tds, -1);
 			break;

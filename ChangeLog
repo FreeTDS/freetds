@@ -1,3 +1,6 @@
+Fri Mar 12 16:45:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: fix mssql2k core using null TEXTs
+
 Fri Mar 12 13:49:00 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/testodbc.c:
 	- fix portability (big endian)
