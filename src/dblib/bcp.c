@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.55 2003-03-06 23:58:44 mlilback Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.56 2003-03-11 20:31:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -67,6 +67,7 @@ static RETCODE _bcp_start_new_batch(DBPROCESS *);
 static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static int _bcp_rtrim_varchar(char *, int);
 static int _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno);
+static int _bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data);
 
 
 RETCODE
@@ -77,8 +78,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	BCP_COLINFO *bcpcol;
 	TDSRESULTINFO *resinfo;
 	TDS_INT result_type;
-	int i;
-	int rc;
+	int i, rc, colsize;
 
 	/* free allocated storage in dbproc & initialise flags, etc. */
 
@@ -156,6 +156,14 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			bcpcol->db_length = resinfo->columns[i]->column_size;
 			bcpcol->db_nullable = resinfo->columns[i]->column_nullable;
 
+			/* curiosity test for text columns */
+			colsize = tds_get_size_by_type(resinfo->columns[i]->column_type);
+			if (colsize != resinfo->columns[i]->column_size && colsize != -1) {
+				tdsdump_log(TDS_DBG_FUNC, "Hmm.  For column %d datatype %d, "
+							      "server says size is %d and we'd expect %d bytes.\n", 
+							      i+1, bcpcol->db_type, resinfo->columns[i]->column_size, colsize);
+			}
+			
 			if (is_numeric_type(bcpcol->db_type)) {
 				bcpcol->data = (BYTE *) malloc(sizeof(TDS_NUMERIC));
 				((TDS_NUMERIC *) bcpcol->data)->precision = resinfo->columns[i]->column_prec;
@@ -163,7 +171,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			} else {
 				bcpcol->data = (BYTE *) malloc(bcpcol->db_length);
 				if (bcpcol->data == (BYTE *) NULL) {
-					printf("could not allocate %d bytes of memory\n", bcpcol->db_length);
+					fprintf( stderr, "Could not allocate %d bytes of memory\n", bcpcol->db_length);
+					return FAIL;
 				}
 			}
 
@@ -765,32 +774,33 @@ int rows_written;
 	return SUCCEED;
 }
 
-
+enum {nbuffers_term_data = 1000, buffer_size_term_data = 1 << 20, 
+	max_field_size_term_data = nbuffers_term_data * buffer_size_term_data};
 
 RETCODE
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error)
 {
-BCP_COLINFO *bcpcol;
-BCP_HOSTCOLINFO *hostcol;
+	static unsigned char *coldata_buffers[nbuffers_term_data] = {0};
 
-int i;
-TDS_TINYINT ti;
-TDS_SMALLINT si;
-TDS_INT li;
-int collen;
-int data_is_null;
-int bytes_read;
-int converted_data_size;
-TDS_INT desttype;
+	BCP_COLINFO *bcpcol;
+	BCP_HOSTCOLINFO *hostcol;
+
+	int i;
+	TDS_TINYINT ti;
+	TDS_SMALLINT si;
+	TDS_INT li;
+	int collen;
+	int data_is_null;
+	int bytes_read;
+	int converted_data_size;
+	TDS_INT desttype;
+	BYTE *coldata;
 
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
 	for (i = 0; i < dbproc->host_colcount; i++) {
-BYTE coldata[4096];
-
 		tdsdump_log(TDS_DBG_FUNC, "%L parsing host column %d\n", i + 1);
-
 		hostcol = dbproc->host_columns[i];
 
 		data_is_null = 0;
@@ -856,7 +866,6 @@ BYTE coldata[4096];
 			collen = tds_get_size_by_type(hostcol->datatype);
 		}
 
-
 		/* if this host file column contains table data,   */
 		/* find the right element in the table/column list */
 
@@ -867,12 +876,17 @@ BYTE coldata[4096];
 			}
 		}
 
-		/* a terminated field is specified - get the data into temporary space... */
+		/* permanently allocate the first buffer of many we might need to hold incoming data from the file */
+		if (coldata_buffers[0] == NULL)
+			coldata_buffers[0] = (BYTE*) calloc(1, buffer_size_term_data);
 
-		memset(coldata, '\0', sizeof(coldata));
+		assert(coldata_buffers[0]);
+		coldata = coldata_buffers[0];
 
 		if (hostcol->term_len > 0) {
-			bytes_read = _bcp_get_term_data(hostfile, hostcol, coldata);
+			/* a terminated field is specified - get the data into temporary space... */
+
+			bytes_read = _bcp_get_term_data(hostfile, hostcol, coldata_buffers);
 
 			if (bytes_read == -1)
 				return FAIL;
@@ -885,7 +899,24 @@ BYTE coldata[4096];
 			if (collen == 0)
 				data_is_null = 1;
 
-		} else {
+			if (collen > buffer_size_term_data) { 
+				/* several elements of coldata were read; reallocate single buffer */
+				coldata = (BYTE*) malloc(collen);
+				for (i=0; i < 1 + collen / buffer_size_term_data; i++) {
+					if (coldata)
+						memcpy(coldata + i * buffer_size_term_data, coldata_buffers[i], buffer_size_term_data);
+					if (i) { /* retain first buffer; no sense in reallocating every time */
+						free(coldata_buffers[i]);
+						coldata_buffers[i] = NULL;
+					}
+				}
+				if (coldata == NULL) {
+					_bcp_err_handler(dbproc, SYBEMEM);
+					return (FAIL);
+				}
+			}
+
+		} else { /* unterminated field */
 			if (collen) {
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					_bcp_err_handler(dbproc, SYBEBCRE);
@@ -894,11 +925,38 @@ BYTE coldata[4096];
 			}
 		}
 
+		/* 
+		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
+		 */
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
 				bcpcol->data_size = 0;
 			} else {
 				desttype = tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length);
+
+				/* special hack for text columns */
+				if (bcpcol->db_length == 4096 && collen > bcpcol->db_length) { /* "4096" might not really matter */
+					switch(desttype) {
+					case SYBTEXT:
+					case SYBNTEXT:
+					case SYBIMAGE:
+					case SYBVARBINARY:
+					case XSYBVARBINARY:
+					case SYBLONGBINARY:	/* Reallocate enough space for the data from the file. */
+						bcpcol->db_length = 8+collen; /* room to breath */
+						free(bcpcol->data);
+						bcpcol->data = (BYTE *) malloc(bcpcol->db_length);
+						assert(bcpcol->data);
+						if (!bcpcol->data) {
+							_bcp_err_handler(dbproc, SYBEMEM);
+							return FAIL;
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				/* end special hack for text columns */
 
 				converted_data_size =
 					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype,
@@ -924,69 +982,94 @@ BYTE coldata[4096];
 				}
 			}
 		}
-
 	}
 	return SUCCEED;
 }
 
-
-/* read a terminated variable from a hostfile */
-
-RETCODE
-_bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, BYTE * coldata)
+/**
+ * Read a terminated variable from a hostfile 
+ */
+static int
+_bcp_get_term_data(FILE * hostfile, BCP_HOSTCOLINFO * hostcol, unsigned char **data)
 {
-
-int j = 0;
-int termfound = 1;
-char x;
-char *tester = NULL;
-int bufpos = 0;
-int found = 0;
-
+	int i = 0, ibuffer=0;
+	int termfound = 1;
+	char x;
+	char *tester = NULL;
+	int bufpos = 0;
+	int found = 0;
+	unsigned char *pdata;
 
 	if (hostcol->term_len > 1)
 		tester = (char *) malloc(hostcol->term_len);
 
+	/* data[0] must be allocated by the caller; we never free it */
 
-	while (!found && (x = getc(hostfile)) != EOF) {
+	assert (data);
+	if (data == NULL || data[0] == NULL)
+		return -1;
+
+	while (data[ibuffer] && !found && (x = getc(hostfile)) != EOF) {
+		pdata = data[ibuffer] + bufpos - (ibuffer * buffer_size_term_data);
 		if (x != *hostcol->terminator) {
-			*(coldata + bufpos) = x;
+			*pdata = x;
 			bufpos++;
+			if (0 == bufpos % buffer_size_term_data) {
+				if (bufpos >= max_field_size_term_data)	/* no more room: give up */
+					data[++ibuffer] = 0;
+				else
+					data[++ibuffer] = (char*) malloc(buffer_size_term_data);
+			}
 		} else {
 			if (hostcol->term_len == 1) {
-				*(coldata + bufpos) = '\0';
+				*pdata = '\0';
 				found = 1;
 			} else {
 				ungetc(x, hostfile);
 				fread(tester, hostcol->term_len, 1, hostfile);
 				termfound = 1;
-				for (j = 0; j < hostcol->term_len; j++)
-					if (*(tester + j) != *(hostcol->terminator + j))
+				for (i=0; i < hostcol->term_len; i++) {
+					if (*(tester + i) != *(hostcol->terminator + i))
 						termfound = 0;
+				}
 				if (termfound) {
-					*(coldata + bufpos) = '\0';
+					*pdata = '\0';
 					found = 1;
 				} else {
-					for (j = 0; j < hostcol->term_len; j++) {
-						*(coldata + bufpos) = *(tester + j);
-						bufpos++;
+					for (i = 0; i < hostcol->term_len; i++, pdata++) {
+						*pdata = *(tester + i);
+						if (0 == buffer_size_term_data % ++bufpos) {
+							if (bufpos >= max_field_size_term_data)	/* no more room: give up */
+								data[++ibuffer] = 0;
+							else
+								data[++ibuffer] = (char*) malloc(buffer_size_term_data);
+						}
+						if (data[ibuffer] == NULL) 
+							break; /* should drop out of loop, free buffers, and return -1 */
+
+						pdata = data[ibuffer] + bufpos - (ibuffer * buffer_size_term_data);
 					}
 				}
 			}
 		}
 	}
-	if (found) {
+
+	if (found) 
 		return (bufpos);
-	} else {
-		return (-1);
+
+	/* free the memory, because we're not going to return a size the caller can use to free it. */
+	for (i=1; i <= ibuffer; i++) {
+		free(data[i]);
+		data[i] = NULL;
 	}
+
+	return (-1);
 
 }
 
-/*
-** Add fixed size columns to the row
-*/
-
+/**
+ * Add fixed size columns to the row
+ */
 static int
 _bcp_add_fixed_columns(DBPROCESS * dbproc, BYTE * rowbuffer, int start)
 {
@@ -2647,6 +2730,12 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 	int erc;
 
 	switch (bcp_errno) {
+
+ 
+	case SYBEMEM:
+		errmsg = "Unable to allocate sufficient memory.";
+		severity = EXRESOURCE;
+		break;
 
 	case SYBETTS:
 		errmsg = "The table which bulk-copy is attempting to copy to a "
