@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.142 2004-10-13 18:06:58 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.143 2004-10-14 08:16:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1631,7 +1631,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 		/* length of the data stream that follows */
 		tds_put_smallint(tds, (6 + strlen(cursor->cursor_name) + strlen(cursor->query)));
 
-		tdsdump_log(TDS_DBG_ERROR, "size = %d\n", (6 + strlen(cursor->cursor_name) + strlen(cursor->query)));
+		tdsdump_log(TDS_DBG_ERROR, "size = %u\n", (unsigned int) (6u + strlen(cursor->cursor_name) + strlen(cursor->query)));
 
 		tds_put_tinyint(tds, strlen(cursor->cursor_name));
 		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));

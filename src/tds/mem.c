@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.119 2004-10-13 12:57:05 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.120 2004-10-14 08:16:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -727,6 +727,8 @@ tds_free_cursor(TDSSOCKET *tds, TDS_INT client_cursor_id)
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor results\n");
+	if (victim->res_info == tds->current_results)
+		tds->current_results = NULL;
 	tds_free_results(victim->res_info);
 
 	free(victim);
@@ -840,6 +842,8 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		tds_free_all_dynamic(tds);
+		while (tds->cursor)
+			tds_free_cursor(tds, tds->cursor->client_cursor_id);
 		if (tds->in_buf)
 			free(tds->in_buf);
 		if (tds->out_buf)

@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.52 2004-10-13 11:06:07 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.53 2004-10-14 08:16:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -573,7 +573,7 @@ CS_RETCODE ret;
 		break;
 	case SYBMONEY:
 
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() copying %d bytes to src\n", sizeof(TDS_MONEY));
+		tdsdump_log(TDS_DBG_FUNC, "cs_convert() copying %d bytes to src\n", (int) sizeof(TDS_MONEY));
 		memcpy(dest, &(cres.m), sizeof(TDS_MONEY));
 		if (resultlen != (CS_INT *) NULL)
 			*resultlen = sizeof(TDS_MONEY);

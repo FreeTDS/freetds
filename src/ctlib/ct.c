@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.126 2004-10-13 12:57:05 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.127 2004-10-14 08:16:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -3149,21 +3149,20 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 		cursor = tds_alloc_cursor(tds, name, namelen == CS_NULLTERM ? strlen(name) + 1 : namelen,
 						text, tlen == CS_NULLTERM ? strlen(text) + 1 : tlen);
-		if (cursor) {
-	  		cursor->cursor_rows = 1;
-	   		cursor->options = option;
-			cursor->status.declare    = _CS_CURS_TYPE_REQUESTED;
-			cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
-			cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
-			cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
-			cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
-			cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
-
-			cmd->client_cursor_id = cursor->client_cursor_id;
-			return CS_SUCCEED;
-		} else {
+		if (!cursor)
 			return CS_FAIL;
-		}
+
+  		cursor->cursor_rows = 1;
+   		cursor->options = option;
+		cursor->status.declare    = _CS_CURS_TYPE_REQUESTED;
+		cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
+		cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
+		cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
+		cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
+		cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
+
+		cmd->client_cursor_id = cursor->client_cursor_id;
+		return CS_SUCCEED;
 		break;
 		
  	case CS_CURSOR_ROWS:
@@ -3610,7 +3609,8 @@ _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * 
 
 				if (*(param->datalen) && data) {
 					if (*(param->datalen) == CS_NULLTERM) {
-						tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() about to strdup string %d bytes long\n", strlen(data));
+						tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() about to strdup string %u bytes long\n",
+							    (unsigned int) strlen(data));
 						if ((param->value = strdup(data)) == NULL)
 							return CS_FAIL;
 						*(param->datalen) = strlen(data);

@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.90 2004-09-20 08:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.91 2004-10-14 08:16:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -326,7 +326,8 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 
 	wire_bytes = IS_TDS7_PLUS(tds) ? string_len * 2 : string_len;
 
-	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: reading %d from wire to give %d to client.\n", wire_bytes, string_len);
+	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: reading %u from wire to give %d to client.\n", (unsigned int) wire_bytes,
+		    string_len);
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
@@ -393,14 +394,15 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
-			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 
-							 wire_size, curcol->column_cur_size);
+			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n", 
+							 (unsigned int) wire_size, curcol->column_cur_size);
 			return TDS_FAIL;
 		}
 	} else {
 		curcol->column_cur_size = wire_size;
 		if (tds_get_n(tds, dest, wire_size) == NULL) {
-			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %d from wire. \n", wire_size);
+			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %u from wire. \n",
+				    (unsigned int) wire_size);
 			return TDS_FAIL;
 		}
 	}
@@ -688,12 +690,14 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTIO
 			tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: tds_iconv returned errno %d\n", errno);
 			if (errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: "
-							     "Gave up converting %d bytes due to error %d.\n", bufleft, errno);
+							     "Gave up converting %u bytes due to error %d.\n",
+							     (unsigned int) bufleft, errno);
 				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes:", bufp, bufleft);
 			}
 
 			if (bufp == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
-				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: draining remaining %d bytes.\n", *wire_size);
+				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: draining remaining %u bytes.\n",
+							     (unsigned int) *wire_size);
 				tds_get_n(tds, NULL, *wire_size); /* perhaps we should read unconverted data into outbuf? */
 				*wire_size = 0;
 				break;

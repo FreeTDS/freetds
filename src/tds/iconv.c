@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.113 2004-09-20 08:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.114 2004-10-14 08:16:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -869,8 +869,8 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 
 	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
 
-		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: read %d of %d bytes; outbuf has %d left.\n", isize, field_len,
-			    *outbytesleft);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: read %u of %u bytes; outbuf has %u left.\n", (unsigned int) isize,
+			    (unsigned int) field_len, (unsigned int) *outbytesleft);
 		field_len -= isize;
 
 		nonreversible_conversions += tds_sys_iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
@@ -902,7 +902,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 		if (term_len && 1 == fread(buffer, term_len, 1, stream)) {
 			isize -= term_len;
 		} else {
-			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: cannot read %d-byte terminator\n", term_len);
+			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: cannot read %u-byte terminator\n", (unsigned int) term_len);
 		}
 	}
 

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.138 2004-06-25 19:42:01 freddy77 Exp $
+dnl $Id: configure.in,v 1.139 2004-10-14 08:16:41 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -12,7 +12,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.138 $)
+AC_REVISION($Revision: 1.139 $)
 
 define(TDSDATE, esyscmd(echo -n $(date +"%Y%m%d")))
 AM_INIT_AUTOMAKE(freetds, 0.63.dev.TDSDATE)
@@ -105,7 +105,7 @@ OLDLIBS="$LIBS"
 LIBS=""
 AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
 AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
-  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])] )
+  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])], [LIBS=""] )
 READLINE_LIBS="$LIBS"
 AC_SUBST(READLINE_LIBS)
 LIBS="$OLDLIBS"
@@ -429,9 +429,12 @@ else
 	AC_MSG_RESULT(disabled)
 fi
 
-AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
-AC_raf_FUNC_WHICH_GETSERVBYNAME_R
-AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
+# we don't need to check netdb functions if they are already threadsafe
+if test $netdb_reentrant != yes; then
+	AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
+	AC_raf_FUNC_WHICH_GETSERVBYNAME_R
+	AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
+fi
 AC_tds_FUNC_WHICH_GETPWUID_R
 AC_tds_FUNC_WHICH_LOCALTIME_R
 

@@ -1,3 +1,12 @@
+Thu Oct 14 10:14:21 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c: fix memory leak in TDSSOCKET
+	* configure.in:
+	- do not include cursor if readline not available
+	- small optimization
+	* src/ctlib/cs.c src/ctlib/ct.c src/tds/iconv.c:
+	* src/tds/query.c src/tds/read.c:
+	- remove warnings
+
 Wed Oct 13 20:28:53 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/ct_cursor.c(added):
 	* src/ctlib/unittests/ct_cursors.c(added):
