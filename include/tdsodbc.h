@@ -46,7 +46,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.35 2003-07-28 13:46:34 freddy77 Exp $";
+static char rcsid_sql_h[] = "$Id: tdsodbc.h,v 1.36 2003-07-30 05:57:09 freddy77 Exp $";
 static void *no_unused_sql_h_warn[] = { rcsid_sql_h, no_unused_sql_h_warn };
 
 struct _sql_error
@@ -113,9 +113,10 @@ struct _hcattr
 	SQLUINTEGER attr_odbc_cursors;
 	SQLUINTEGER attr_packet_size;
 	SQLHWND attr_quite_mode;
-	/* DM only */
-	/* SQLUINTEGER attr_trace;
-	 * SQLCHAR *attr_tracefile; */
+#ifdef TDS_NO_DM
+	SQLUINTEGER attr_trace;
+	DSTR attr_tracefile;
+#endif
 	DSTR attr_translate_lib;
 	SQLUINTEGER attr_translate_option;
 	SQLUINTEGER attr_txn_isolation;

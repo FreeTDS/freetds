@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.198 2003-07-29 19:25:40 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.200 2003-07-30 05:57:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -196,6 +196,7 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 	 */
 	if (tds) {
 		/* build query */
+		/* FIXME quote id, not quote string */
 		char *query = (char *) malloc(6 + tds_quote_string(tds, NULL, database, database_len));
 
 		if (!query) {
@@ -827,7 +828,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.attr_quite_mode = NULL;	/* We don't support GUI dialogs yet */
 #ifdef TDS_NO_DM
 	dbc->attr.attr_trace = SQL_OPT_TRACE_OFF;
-	dbc->attr.attr_tracefile = NULL;
+	tds_dstr_init(&dbc->attr.attr_tracefile);
 #endif
 	tds_dstr_init(&dbc->attr.attr_translate_lib);
 	dbc->attr.attr_translate_option = 0;
@@ -2429,7 +2430,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);
@@ -2521,7 +2522,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);
@@ -2610,7 +2611,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLGETSTMTOPTION);
 		API_X(SQL_API_SQLGETTYPEINFO);
 		API_X(SQL_API_SQLMORERESULTS);
-		API__(SQL_API_SQLNATIVESQL);
+		API_X(SQL_API_SQLNATIVESQL);
 		API_X(SQL_API_SQLNUMPARAMS);
 		API_X(SQL_API_SQLNUMRESULTCOLS);
 		API_X(SQL_API_SQLPARAMDATA);
@@ -2658,6 +2659,8 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 {
 	const char *p = NULL;
 	TDSSOCKET *tds;
+	int is_ms;
+	unsigned int smajor;
 
 	SQLSMALLINT *siInfoValue = (SQLSMALLINT *) rgbInfoValue;
 	SQLUSMALLINT *usiInfoValue = (SQLUSMALLINT *) rgbInfoValue;
@@ -2666,6 +2669,9 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	INIT_HDBC;
 
 	tds = dbc->tds_socket;
+
+	is_ms = TDS_IS_MSSQL(tds);
+	smajor = (tds->product_version >> 24) & 0x7F;
 
 	switch (fInfoType) {
 	case SQL_ACCESSIBLE_PROCEDURES:
@@ -2736,7 +2742,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_COLUMN_ALIAS:
 		p = "Y";
 		break;
-		/* TODO continue check here... -- freddy77 */
+	case SQL_CONCAT_NULL_BEHAVIOR:
+		/* TODO a bit more complicate for mssql2k.. */
+		*siInfoValue = (!is_ms || smajor < 7) ? SQL_CB_NON_NULL : SQL_CB_NULL;
+		break;
+		/* TODO continue merge here ... freddy77 */
 	case SQL_CURSOR_COMMIT_BEHAVIOR:
 		/* currently cursors are not supported however sql server close automaticly cursors on commit */
 		*usiInfoValue = SQL_CB_CLOSE;
@@ -3318,10 +3328,6 @@ log_unimplemented_type(const char function_name[], int fType)
 #endif
 	case SQL_COLLATION_SEQ:
 		name = "SQL_COLLATION_SEQ";
-		category = "Data Source Information";
-		break;
-	case SQL_CONCAT_NULL_BEHAVIOR:
-		name = "SQL_CONCAT_NULL_BEHAVIOR";
 		category = "Data Source Information";
 		break;
 	case SQL_CONVERT_BIGINT:
