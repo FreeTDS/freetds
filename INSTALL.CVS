@@ -10,6 +10,15 @@ James Cameron <james.cameron@compaq.com>
 	libtool		(GNU Libtool, library creation support scripts)
 	make		(GNU Make, appears on some systems as gmake)
 	gcc		(GNU Compiler Collection, for C code compilation)
+	
+	Autotool versions that work:
+	$ (autoconf --version; automake --version; libtool --version) |grep GNU
+	autoconf (GNU Autoconf) 2.57
+	automake (GNU automake) 1.7.3
+	ltmain.sh (GNU libtool) 1.4a (1.641.2.255 2001/05/22 10:39:30)
+	
+	The above are used to generate the distributions.  
+	You may get away with older versions, as far back as 2.53 for autoconf.
 
 2) execute autogen.sh to run automake, autoconf and configure,
 
@@ -30,3 +39,4 @@ James Cameron <james.cameron@compaq.com>
 	make install
 
 --
+$Id: INSTALL.CVS,v 1.2 2003-04-13 15:11:09 jklowden Exp $
