@@ -56,7 +56,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.9 2004-10-28 12:42:12 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.10 2004-11-05 09:06:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -435,7 +435,7 @@ print_results(DBPROCESS *dbproc)
 				struct METADATA *meta = &metacompute[i]->meta[c];
 				int nbylist, ibylist;
 				BYTE *bylist;
-				char *colname, bynames[256] = "by (";
+				char *colname, *bynames;
 				int altcolid = dbaltcolid(dbproc, i+1, c+1);
 				
 				metacompute[i]->meta[c].type = dbalttype(dbproc, i+1, c+1);
@@ -447,17 +447,17 @@ print_results(DBPROCESS *dbproc)
 				 */
 				bylist = dbbylist(dbproc, c+1, &nbylist);
 
+				bynames = strdup("by (");
 				for (ibylist=0; ibylist < nbylist; ibylist++) {
-					int ret;
-					char *s = strchr(bynames, '\0'); 
-					int remaining = bynames + sizeof(bynames) - s;
-					assert(remaining > 0);
-					ret = snprintf(s, remaining, "%s%s", dbcolname(dbproc, bylist[ibylist]), 
+					char *s = NULL; 
+					int ret = asprintf(&s, "%s%s%s", bynames, dbcolname(dbproc, bylist[ibylist]), 
 										(ibylist+1 < nbylist)? ", " : ")");
-					if (ret <= 0) {
+					if (ret < 0) {
 						fprintf(options.verbose, "Insufficient room to create name for column %d:\n", 1+c);
 						break;
 					}
+					free(bynames);
+					bynames = s;
 				}
 				
 				if( altcolid == -1 ) {
@@ -471,6 +471,7 @@ print_results(DBPROCESS *dbproc)
 					
 				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? "  " : "\n");
 				if (ret <= 0) {
+					free(bynames);
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
 					return;
 				}
@@ -478,6 +479,7 @@ print_results(DBPROCESS *dbproc)
 				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
 					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type), metacompute[i]->meta[c].size, 
 					(nbylist > 0)? bynames : "");
+				free(bynames);
 	
 				/* allocate buffer */
 				assert(metacompute[i]->data);

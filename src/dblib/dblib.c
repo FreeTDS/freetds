@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.186 2004-10-19 11:15:02 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187 2004-11-05 09:06:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -923,7 +923,6 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 {
 	DBPROCESS *dbproc;
 	TDSCONNECTION *connection;
-	char temp_filename[256];
 
 	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
 	if (dbproc == NULL) {
@@ -994,18 +993,17 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	buffer_init(&(dbproc->row_buf));
 
 	if (g_dblib_ctx.recftos_filename != (char *) NULL) {
-		const int len = snprintf(temp_filename, sizeof(temp_filename), "%s.%d", 
+		char *temp_filename = NULL;
+		const int len = asprintf(&temp_filename, "%s.%d", 
 					 g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
-		if (len == sizeof(temp_filename) - 1) {
-			tdsdump_log(TDS_DBG_FUNC, "dbopen(): filename '%s' truncated to '%s'\n", 
-				    temp_filename, g_dblib_ctx.recftos_filename);
-		}
-		assert(len != 0);
-		dbproc->ftos = fopen(temp_filename, "w");
-		if (dbproc->ftos != (FILE *) NULL) {
-			fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
-			fflush(dbproc->ftos);
-			g_dblib_ctx.recftos_filenum++;
+		if (len >= 0) {
+			dbproc->ftos = fopen(temp_filename, "w");
+			if (dbproc->ftos != (FILE *) NULL) {
+				fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
+				fflush(dbproc->ftos);
+				g_dblib_ctx.recftos_filenum++;
+			}
+			free(temp_filename);
 		}
 	}
 	return dbproc;

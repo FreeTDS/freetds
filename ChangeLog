@@ -1,6 +1,10 @@
+Fri Nov  5 10:05:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c src/apps/defncopy.c src/dblib/dblib.c:
+	- remove use of snprintf
+
 Thu Nov  4 08:10:45 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* TODO updated ct-lib items
-	
+
 Tue Nov  2 09:46:31 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/ct.c support CS_VER_STRING (ML: 2 November 2004)
 	* locales.conf added Brazil
