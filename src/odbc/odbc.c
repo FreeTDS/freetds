@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.230 2003-08-29 14:20:09 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.231 2003-08-29 15:07:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3355,9 +3355,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 				ODBC_RETURN(stmt, SQL_NO_DATA_FOUND);
 
-			/* FIXME why this became < 0 ??? */
-			if (colinfo->column_text_sqlgetdatapos <= 0)
-				colinfo->column_text_sqlgetdatapos = 0;
+			/* 2003-8-29 check for an old bug -- freddy77 */
+			assert(colinfo->column_text_sqlgetdatapos >= 0);
 			src = ((TDSBLOBINFO *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
@@ -3375,8 +3374,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 			/* FIXME char is not always terminated... */
 			/* FIXME test on destination char ??? */
-			/* FIXME what happen if readed == 0 here ?? */
-			if (nSybType == SYBTEXT)
+			if (nSybType == SYBTEXT && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;

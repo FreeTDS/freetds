@@ -1,7 +1,7 @@
 TESTS		=	t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
 			binary_test moreandcount earlybind \
-			putdata params raiseerror
+			putdata params raiseerror getdata
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -21,6 +21,7 @@ earlybind_SOURCES	= earlybind.c common.c common.h
 putdata_SOURCES	= putdata.c common.c common.h
 params_SOURCES	= params.c common.c common.h
 raiseerror_SOURCES	= raiseerror.c common.c common.h
+getdata_SOURCES	= getdata.c common.c common.h
 
 LIBS		=	-lodbc @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include -I$(ODBC_INC)
