@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.78 2003-12-29 16:08:35 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.79 2004-01-11 21:45:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -164,6 +164,13 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			buflen -= len;
 			got += len;
 		} 
+
+		/* When we get a timeout on select(), return 0. Don't return -1, because
+		 * that would lead to a disconnect 
+		 * OTOH, do not let this pass to prevent an infinite loop when there is
+		 * no data on the wire */
+		if (retcode == 0)
+			return 0;
 		
 		OK_TIMEOUT:
 		now = time(NULL);
