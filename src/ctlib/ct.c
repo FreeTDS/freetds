@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.136 2004-12-07 22:39:22 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.137 2005-01-17 19:13:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2054,10 +2054,8 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 CS_RETCODE
 ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->current_results;
+	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
-	TDSBLOB *blob;
 	unsigned char *src;
 	TDS_INT srclen;
 
@@ -2065,6 +2063,8 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 	/* basic validations... */
 
+	if (!cmd || !cmd->con || !cmd->con->tds_socket || !(resinfo = cmd->con->tds_socket->current_results))
+		return CS_FAIL;
 	if (item < 1 || item > resinfo->num_cols)
 		return CS_FAIL;
 	if (buffer == NULL)
@@ -2075,6 +2075,16 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	/* This is a new column we are being asked to return */
 
 	if (item != cmd->get_data_item) {
+		TDSBLOB *blob = NULL;
+		size_t table_namelen, column_namelen;
+
+		/* allocare needed descriptor if needed */
+		if (cmd->iodesc)
+			free(cmd->iodesc);
+		cmd->iodesc = calloc(1, sizeof(CS_IODESC));
+		if (!cmd->iodesc)
+			return CS_FAIL;
+
 		/* reset these values */
 		cmd->get_data_item = item;
 		cmd->get_data_bytes_returned = 0;
@@ -2083,16 +2093,12 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		curcol = resinfo->columns[item - 1];
 
 		src = &(resinfo->current_row[curcol->column_offset]);
-		if (is_blob_type(curcol->column_type))
-			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
-
-		srclen = curcol->column_cur_size;
+		if (is_blob_type(curcol->column_type)) {
+			blob = (TDSBLOB *) src;
+			src = (unsigned char *) blob->textvalue;
+		}
 
 		/* now populate the io_desc structure for this data item */
-
-		if (cmd->iodesc)
-			free(cmd->iodesc);
-		cmd->iodesc = malloc(sizeof(CS_IODESC));
 
 		cmd->iodesc->iotype = CS_IODATA;
 		cmd->iodesc->datatype = curcol->column_type;
@@ -2102,34 +2108,25 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		cmd->iodesc->offset = curcol->column_offset;
 		cmd->iodesc->log_on_update = CS_FALSE;
 
+		/* TODO quote needed ?? */
+		/* avoid possible buffer overflow */
+		table_namelen = curcol->table_namelen;
+		if (table_namelen + 2 > sizeof(cmd->iodesc->name))
+			table_namelen = sizeof(cmd->iodesc->name) - 2;
+		column_namelen = curcol->column_namelen;
+		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
+			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			curcol->table_namelen, curcol->table_namelen, curcol->table_name,
-			curcol->column_namelen, curcol->column_namelen, curcol->column_name);
+			table_namelen, table_namelen, curcol->table_name,
+			column_namelen, column_namelen, curcol->column_name);
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
 
-		blob = (TDSBLOB *) & (resinfo->current_row[curcol->column_offset]);
-		memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
-		cmd->iodesc->timestamplen = CS_TS_SIZE;
-		memcpy(cmd->iodesc->textptr, blob->textptr, CS_TP_SIZE);
-		cmd->iodesc->textptrlen = CS_TP_SIZE;
-
-		/* if we have enough buffer to cope with all the data */
-		if (buflen >= srclen) {
-			memcpy(buffer, src, srclen);
-			cmd->get_data_bytes_returned = srclen;
-			if (outlen)
-				*outlen = srclen;
-			if (item < resinfo->num_cols)
-				return CS_END_ITEM;
-			else
-				return CS_END_DATA;
-		} else {
-			memcpy(buffer, src, buflen);
-			cmd->get_data_bytes_returned = buflen;
-			if (outlen)
-				*outlen = buflen;
-			return CS_SUCCEED;
+		if (blob) {
+			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
+			cmd->iodesc->timestamplen = CS_TS_SIZE;
+			memcpy(cmd->iodesc->textptr, blob->textptr, CS_TP_SIZE);
+			cmd->iodesc->textptrlen = CS_TP_SIZE;
 		}
 	} else {
 		/* get at the source data */
@@ -2137,31 +2134,33 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		src = &(resinfo->current_row[curcol->column_offset]);
 		if (is_blob_type(curcol->column_type))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
-
-		/* and adjust the data and length based on */
-		/* what we may have already returned       */
-
-		src += cmd->get_data_bytes_returned;
-		srclen = curcol->column_cur_size - cmd->get_data_bytes_returned;
-
-		if (buflen >= srclen) {
-			memcpy(buffer, src, srclen);
-			cmd->get_data_bytes_returned += srclen;
-			if (outlen)
-				*outlen = srclen;
-			if (item < resinfo->num_cols)
-				return CS_END_ITEM;
-			else
-				return CS_END_DATA;
-		} else {
-			memcpy(buffer, src, buflen);
-			cmd->get_data_bytes_returned += buflen;
-			if (outlen)
-				*outlen = buflen;
-			return CS_SUCCEED;
-		}
 	}
 
+	/*
+	 * and adjust the data and length based on
+	 * what we may have already returned
+	 */
+	srclen = curcol->column_cur_size;
+	if (tds_get_null(resinfo->current_row, item - 1))
+		srclen = 0;
+	src += cmd->get_data_bytes_returned;
+	srclen -= cmd->get_data_bytes_returned;
+
+	/* if we have enough buffer to cope with all the data */
+	if (buflen >= srclen) {
+		memcpy(buffer, src, srclen);
+		cmd->get_data_bytes_returned += srclen;
+		if (outlen)
+			*outlen = srclen;
+		if (item < resinfo->num_cols)
+			return CS_END_ITEM;
+		return CS_END_DATA;
+	}
+
+	memcpy(buffer, src, buflen);
+	cmd->get_data_bytes_returned += buflen;
+	if (outlen)
+		*outlen = buflen;
 	return CS_SUCCEED;
 }
 

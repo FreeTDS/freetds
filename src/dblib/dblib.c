@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.200 2005-01-14 08:06:28 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.201 2005-01-17 19:13:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4166,12 +4166,9 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 {
 	TDSSOCKET *tds = dbproc->tds_socket;
 	TDSCOMPUTEINFO *info;
-	TDS_SMALLINT compute_id;
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "in dbbylist() \n");
-
-	compute_id = computeid;
 
 	for (i = 0;; ++i) {
 		if (i >= tds->num_comp_info) {
@@ -4180,7 +4177,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 			return (BYTE *) NULL;
 		}
 		info = tds->comp_info[i];
-		if (info->computeid == compute_id)
+		if (info->computeid == computeid)
 			break;
 	}
 

@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.48 2005-01-12 08:46:42 freddy77 Exp $s
+# $Id: api_status.txt,v 1.49 2005-01-17 19:13:06 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -105,9 +105,9 @@ odbc	(all)	SQLEndTran	OK
 odbc	(all)	SQLError	OK
 odbc	(all)	SQLExecDirect	OK
 odbc	(all)	SQLExecute	OK
-odbc	(all)	SQLExtendedFetch	
+odbc	(all)	SQLExtendedFetch	OK (no cursor)
 odbc	(all)	SQLFetch	OK
-odbc	(all)	SQLFetchScroll	stub (with error)
+odbc	(all)	SQLFetchScroll	OK (no cursor)
 odbc	(all)	SQLForeignKeys	OK
 odbc	(all)	SQLFreeConnect	OK
 odbc	(all)	SQLFreeEnv	OK

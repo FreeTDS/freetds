@@ -40,6 +40,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLError=PROCEDURE,-
 		SQLExecDirect=PROCEDURE,-
 		SQLExecute=PROCEDURE,-
+		SQLExtendedFetch=PROCEDURE,-
 		SQLFetch=PROCEDURE,-
 		SQLFetchScroll=PROCEDURE,-
 		SQLForeignKeys=PROCEDURE,-
@@ -90,9 +91,5 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 !
 !		SQLBrowseConnect=PROCEDURE,-
 !		SQLDescribeParam=PROCEDURE,-
-!		SQLExtendedFetch=PROCEDURE,-
-!		SQLGetCursorName=PROCEDURE,-
-!		SQLParamOptions=PROCEDURE,-
-!		SQLSetCursorName=PROCEDURE,-
 !		SQLSetPos=PROCEDURE,-
 !		SQLSetScrollOptions=PROCEDURE,-

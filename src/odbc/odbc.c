@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.351 2005-01-13 10:08:13 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.352 2005-01-17 19:13:37 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -89,6 +89,7 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
+static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
 static void longquery_cancel(void *param);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
@@ -437,15 +438,46 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 	odbc_errs_add(&stmt->errs, "HYC00", "SQLDescribeParam: function not implemented", NULL);
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
+#endif
 
 SQLRETURN SQL_API
-SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUINTEGER FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
+SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLULEN FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
+	SQLRETURN ret;
+	SQLULEN * tmp_rows;
+	SQLUSMALLINT * tmp_status;
+	SQLULEN tmp_size;
+	SQLLEN * tmp_offset;
 	INIT_HSTMT;
-	odbc_errs_add(&stmt->errs, "HYC00", "SQLExtendedFetch: function not implemented", NULL);
-	ODBC_RETURN(stmt, SQL_ERROR);
+
+	/* still we do not support cursors and scrolling */
+	/* TODO cursors */
+	if (fFetchType != SQL_FETCH_NEXT) {
+		odbc_errs_add(&stmt->errs, "HY106", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* save and change IRD/ARD state */
+	tmp_rows = stmt->ird->header.sql_desc_rows_processed_ptr;
+	stmt->ird->header.sql_desc_rows_processed_ptr = pcrow;
+	tmp_status = stmt->ird->header.sql_desc_array_status_ptr;
+	stmt->ird->header.sql_desc_array_status_ptr = rgfRowStatus;
+	tmp_size = stmt->ard->header.sql_desc_array_size;
+	stmt->ard->header.sql_desc_array_size = stmt->sql_rowset_size;
+	tmp_offset = stmt->ard->header.sql_desc_bind_offset_ptr;
+	stmt->ard->header.sql_desc_bind_offset_ptr = NULL;
+
+	/* TODO errors are sligthly different ... perhaps it's better to leave DM do this job ?? */
+	ret = _SQLFetch(stmt);
+
+	/* restore IRD/ARD */
+	stmt->ird->header.sql_desc_rows_processed_ptr = tmp_rows;
+	stmt->ird->header.sql_desc_array_status_ptr = tmp_status;
+	stmt->ard->header.sql_desc_array_size = tmp_size;
+	stmt->ard->header.sql_desc_bind_offset_ptr = tmp_offset;
+
+	ODBC_RETURN(stmt, ret);
 }
-#endif
 
 SQLRETURN SQL_API
 SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCatalogName, SQLCHAR FAR * szPkSchemaName,
@@ -2406,6 +2438,7 @@ _SQLExecute(TDS_STMT * stmt)
 	if (stmt->prepared_query_is_rpc) {
 		/* get rpc name */
 		/* TODO change method */
+		/* TODO cursor change way of calling */
 		char *name = stmt->query;
 		char *end, tmp;
 
@@ -2424,6 +2457,7 @@ _SQLExecute(TDS_STMT * stmt)
 		if (ret != TDS_SUCCEED)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	} else if (stmt->query) {
+		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
 		if (!stmt->params) {
 			if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
@@ -2433,6 +2467,7 @@ _SQLExecute(TDS_STMT * stmt)
 				ODBC_RETURN(stmt, SQL_ERROR);
 		}
 	} else {
+		/* TODO cursor change way of calling */
 		/* SQLPrepare */
 		TDSDYNAMIC *dyn;
 
@@ -3774,7 +3809,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);
-		API__(SQL_API_SQLEXTENDEDFETCH);
+		API_X(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
 		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);
@@ -3866,7 +3901,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);
-		API__(SQL_API_SQLEXTENDEDFETCH);
+		API_X(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
 		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);
@@ -3957,7 +3992,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLERROR);
 		API_X(SQL_API_SQLEXECDIRECT);
 		API_X(SQL_API_SQLEXECUTE);
-		API__(SQL_API_SQLEXTENDEDFETCH);
+		API_X(SQL_API_SQLEXTENDEDFETCH);
 		API_X(SQL_API_SQLFETCH);
 		API3X(SQL_API_SQLFETCHSCROLL);
 		API_X(SQL_API_SQLFOREIGNKEYS);

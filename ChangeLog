@@ -1,3 +1,13 @@
+Mon Jan 17 20:10:41 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/api_status.txt src/odbc/odbc.c vms/odbc_driver_axp.opt:
+	* win32/FreeTDS.def:
+	- implemented SQLExtendedFetch
+	* src/ctlib/ct.c:
+	- ct_get_data
+	 - fix null column
+	 - fix a possible buffer overflow
+	* src/dblib/dblib.c: small update
+
 Sun Jan 16 10:45:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c:
 	- better quote
