@@ -1,3 +1,8 @@
+Thu Sep  5 23:23:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt:
+	- bring some entries up to date
+	- change dbfreelogin to dbloginfree
+
 Thu Sep  5 22:42:50 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/CodingStyle doc/faq.html doc/getting_started.txt:
 	* doc/userguide.sgml:

@@ -135,12 +135,11 @@ dblib	core	dbdatlen	OK
 dblib	core	dbdead	OK
 dblib	core	dbenlisttrans	
 dblib	core	dbenlistxatrans	
-dblib	core	dberrhandle	
-dblib	core	dbexit	
+dblib	core	dberrhandle	OK
+dblib	core	dbexit	OK
 dblib	core	dbfcmd	OK
 dblib	core	dbfirstrow	OK
-dblib	core	dbfreebuf	
-dblib	core	dbfreelogin	
+dblib	core	dbfreebuf	OK
 dblib	core	dbgetchar	
 dblib	core	dbgetmaxprocs	
 dblib	core	dbgetoff	
@@ -154,8 +153,9 @@ dblib	core	dbiscount
 dblib	core	dbisopt	stub
 dblib	core	dblastrow	OK
 dblib	core	dblogin	OK
+dblib	core	dbloginfree	OK
 dblib	core	dbmorecmds	stub
-dblib	core	dbmsghandle	
+dblib	core	dbmsghandle	OK
 dblib	core	dbname	stub
 dblib	core	dbnextrow	OK
 dblib	core	dbnullbind	OK
@@ -165,7 +165,7 @@ dblib	core	dbnumcompute
 dblib	core	dbnumorders	
 dblib	core	dbopen	OK
 dblib	core	dbordercol	
-dblib	core	dbprhead	
+dblib	core	dbprhead	OK
 dblib	core	dbprocerrhandle	
 dblib	core	dbprocinfo	
 dblib	core	dbprocmsghandle	
@@ -173,13 +173,13 @@ dblib	core	dbprrow	OK
 dblib	core	dbprtype	OK
 dblib	core	dbresults	OK
 dblib	core	dbrows	OK
-dblib	core	dbrowtype	
+dblib	core	dbrowtype	stub
 dblib	core	dbserverenum	
-dblib	core	dbsetavail	
+dblib	core	dbsetavail	OK
 dblib	core	dbsetlapp	OK
 dblib	core	dbsetlfallback	
 dblib	core	dbsetlhost	OK
-dblib	core	dbsetlnatlang	
+dblib	core	dbsetlnatlang	OK
 dblib	core	dbsetlogintime	stub
 dblib	core	dbsetlpacket	OK
 dblib	core	dbsetlpwd	OK
