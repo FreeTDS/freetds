@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.65 2003-01-02 20:28:35 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.66 2003-01-03 23:34:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -49,6 +49,7 @@ static void *no_unused_var_warn[] = { software_version,
 static int _ct_bind_data(CS_COMMAND * cmd);
 static int _ct_get_client_type(int datatype, int size);
 static int _ct_fetchable_results(CS_COMMAND *cmd);
+static int _ct_process_return_status(TDSSOCKET * tds);
 
 
 CS_RETCODE
@@ -593,6 +594,7 @@ CS_INT res_type;
 
 
 			case CS_STATUS_RESULT:
+				_ct_process_return_status(tds);
 				cmd->row_prefetched = 1;
 				/* fall through */
 			default:
@@ -1979,3 +1981,50 @@ _ct_fetchable_results(CS_COMMAND *cmd)
 	}
 	return 0;
 }
+
+static int
+_ct_process_return_status(TDSSOCKET * tds)
+{
+TDSRESULTINFO *info;
+TDSCOLINFO *curcol;
+
+	enum {num_cols = 1};
+
+	assert(tds);
+	tds_free_all_results(tds);
+
+	/* allocate the columns structure */
+	tds->res_info = tds_alloc_results(num_cols);
+
+	if (!tds->res_info) 
+		return TDS_FAIL;
+
+	info = tds->res_info;
+
+	curcol = info->columns[0];
+
+	curcol->column_nullable = 0;
+	curcol->column_writeable = 0;
+	curcol->column_identity = 0;
+
+	tds_set_column_type(curcol, SYBINT4);
+
+	tdsdump_log(TDS_DBG_INFO1, "%L generating return status row. type = %d(%s), varint_size %d\n",
+		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
+
+	curcol->column_size = sizeof(TDS_INT);
+
+	tds_add_row_column_size(info, curcol);
+
+	info->current_row = tds_alloc_row(info);
+
+	if (!info->current_row) 
+		return TDS_FAIL;
+
+	assert(0 <= curcol->column_offset && curcol->column_offset < info->row_size);
+
+	*(TDS_INT*) (info->current_row + curcol->column_offset) = tds->ret_status;
+
+	return TDS_SUCCEED;
+}
+

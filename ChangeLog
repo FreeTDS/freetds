@@ -1,3 +1,7 @@
+Fri Jan  3 18:29:27 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/ctlib/ct.c src/tds/token.c
+	- moved ctlib return status row support from libtds to libctl
+
 Fri Jan  3 19:27:54 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/odbc_util.c:

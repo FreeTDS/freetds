@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.136 2003-01-02 20:28:35 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.137 2003-01-03 23:34:08 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -63,7 +63,6 @@ static int tds_get_cardinal_type(int datatype);
 static int tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, int i);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol);
 static int tds_process_env_chg(TDSSOCKET * tds);
-static int tds_process_return_status(TDSSOCKET * tds);
 
 /*
  * The following little table is indexed by precision and will
@@ -486,7 +485,6 @@ int done_flags;
 		case TDS_RETURNSTATUS_TOKEN:
 			tds->has_status = 1;
 			tds->ret_status = tds_get_int(tds);
-			tds_process_return_status(tds);
 			*result_type = TDS_STATUS_RESULT;
 			return TDS_SUCCEED;
 			break;
@@ -689,7 +687,7 @@ TDSRESULTINFO *info;
  * @param info   result where to add column
  * @param curcol column to add
  */
-static void
+void
 tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol)
 {
 	/* the column_offset is the offset into the row buffer
@@ -2128,52 +2126,6 @@ TDSCOMPUTEINFO *info;
 	/* all done now allocate a row for tds_process_row to use */
 	tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. point 5 \n");
 	info->current_row = tds_alloc_compute_row(info);
-
-	return TDS_SUCCEED;
-}
-
-static int
-tds_process_return_status(TDSSOCKET * tds)
-{
-TDSRESULTINFO *info;
-TDSCOLINFO *curcol;
-
-	enum {num_cols = 1};
-
-	assert(tds);
-	tds_free_all_results(tds);
-
-	/* allocate the columns structure */
-	tds->res_info = tds_alloc_results(num_cols);
-
-	if (!tds->res_info) 
-		return TDS_FAIL;
-
-	info = tds->res_info;
-
-	curcol = info->columns[0];
-
-	curcol->column_nullable = 0;
-	curcol->column_writeable = 0;
-	curcol->column_identity = 0;
-
-	tds_set_column_type(curcol, SYBINT4);
-
-	tdsdump_log(TDS_DBG_INFO1, "%L generating return status row. type = %d(%s), varint_size %d\n",
-		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
-
-	curcol->column_size = sizeof(TDS_INT);
-
-	tds_add_row_column_size(info, curcol);
-
-	info->current_row = tds_alloc_row(info);
-
-	if (!info->current_row) 
-		return TDS_FAIL;
-
-	assert(0 <= curcol->column_offset && curcol->column_offset < info->row_size);
-
-	*(TDS_INT*) (info->current_row + curcol->column_offset) = tds->ret_status;
 
 	return TDS_SUCCEED;
 }
