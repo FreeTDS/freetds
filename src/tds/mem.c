@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.34 2002-10-17 19:46:13 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.35 2002-10-17 20:45:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -411,43 +411,43 @@ TDSLOCINFO *locale;
  * @param locale locale information (copied to configuration information)
  * @result allocated structure or NULL if out of memory
  */
-TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale)
+TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale)
 {
-TDSCONFIGINFO *config;
+TDSCONNECTINFO *connect_info;
 char hostname[30];
 	
-	TEST_MALLOC(config,TDSCONFIGINFO);
-	memset(config, '\0', sizeof(TDSCONFIGINFO));
+	TEST_MALLOC(connect_info,TDSCONNECTINFO);
+	memset(connect_info, '\0', sizeof(TDSCONNECTINFO));
 
 	/* fill in all hardcoded defaults */
-	TEST_STRDUP(config->server_name,TDS_DEF_SERVER);
-	config->major_version = TDS_DEF_MAJOR;
-	config->minor_version = TDS_DEF_MINOR;
-	config->port = TDS_DEF_PORT;
-	config->block_size = TDS_DEF_BLKSZ;
-	config->language = NULL;
-	config->char_set = NULL;
+	TEST_STRDUP(connect_info->server_name,TDS_DEF_SERVER);
+	connect_info->major_version = TDS_DEF_MAJOR;
+	connect_info->minor_version = TDS_DEF_MINOR;
+	connect_info->port = TDS_DEF_PORT;
+	connect_info->block_size = TDS_DEF_BLKSZ;
+	connect_info->language = NULL;
+	connect_info->char_set = NULL;
 	if (locale) {
 		if (locale->language) 
-        		TEST_STRDUP(config->language,locale->language);
+        		TEST_STRDUP(connect_info->language,locale->language);
 		if (locale->char_set) 
-        		TEST_STRDUP(config->char_set,locale->char_set);
+        		TEST_STRDUP(connect_info->char_set,locale->char_set);
 	}
-	if (config->language == NULL) {
-		TEST_STRDUP(config->language,TDS_DEF_LANG);
+	if (connect_info->language == NULL) {
+		TEST_STRDUP(connect_info->language,TDS_DEF_LANG);
 	}
-	if (config->char_set == NULL) {
-		TEST_STRDUP(config->char_set,TDS_DEF_CHARSET);
+	if (connect_info->char_set == NULL) {
+		TEST_STRDUP(connect_info->char_set,TDS_DEF_CHARSET);
 	}
-	config->try_server_login = 1;
+	connect_info->try_server_login = 1;
 	memset(hostname,'\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
 	hostname[sizeof(hostname)-1]='\0'; /* make sure it's truncated */
-	TEST_STRDUP(config->host_name,hostname);
+	TEST_STRDUP(connect_info->host_name,hostname);
 	
-	return config;
+	return connect_info;
 Cleanup:
-	tds_free_config(config);
+	tds_free_connect(connect_info);
 	return NULL;
 }
 TDSLOGIN *tds_alloc_login(void)
@@ -567,28 +567,28 @@ void tds_free_locale(TDSLOCINFO *locale)
 	if (locale->date_fmt) free(locale->date_fmt);
 	TDS_ZERO_FREE(locale);
 }
-void tds_free_config(TDSCONFIGINFO *config)
+void tds_free_connect(TDSCONNECTINFO *connect_info)
 {
-	if (config->server_name) free(config->server_name);
-	if (config->host_name) free(config->host_name);
-	if (config->ip_addr) free(config->ip_addr);
-	if (config->language) free(config->language);
-	if (config->char_set) free(config->char_set);
-	if (config->database) free(config->database);
-	if (config->dump_file) free(config->dump_file);
-	if (config->default_domain) free(config->default_domain);
-	if (config->client_charset) free(config->client_charset);
+	if (connect_info->server_name) free(connect_info->server_name);
+	if (connect_info->host_name) free(connect_info->host_name);
+	if (connect_info->ip_addr) free(connect_info->ip_addr);
+	if (connect_info->language) free(connect_info->language);
+	if (connect_info->char_set) free(connect_info->char_set);
+	if (connect_info->database) free(connect_info->database);
+	if (connect_info->dump_file) free(connect_info->dump_file);
+	if (connect_info->default_domain) free(connect_info->default_domain);
+	if (connect_info->client_charset) free(connect_info->client_charset);
 	/* dnr */
-	if (config->app_name) free(config->app_name);
-	if (config->user_name) free(config->user_name);
-	if (config->password) {
+	if (connect_info->app_name) free(connect_info->app_name);
+	if (connect_info->user_name) free(connect_info->user_name);
+	if (connect_info->password) {
 		/* for security reason clear memory */
-		memset(config->password,0,strlen(config->password));
-		free(config->password);
+		memset(connect_info->password,0,strlen(connect_info->password));
+		free(connect_info->password);
 	}
-	if (config->library) free(config->library);
+	if (connect_info->library) free(connect_info->library);
 	/* !dnr */
-	TDS_ZERO_FREE(config);
+	TDS_ZERO_FREE(connect_info);
 }
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)
 {

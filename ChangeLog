@@ -1,3 +1,8 @@
+Thu Oct 17 22:44:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tds_configs.h include/tdsutil.h:
+	* src/tds/config.c src/tds/login.c src/tds/mem.c:
+	- renamed TDSCONFIGINFO to TDSCONNECTINFO
+
 Thu Oct 17 16:31:56 EDT 2002    nsc <Nicholas_Castellano@acml.com>
 	* doc/faq.html:
 	- Small grammar fix.

@@ -74,7 +74,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.55 2002-10-17 19:46:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.56 2002-10-17 20:45:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -168,7 +168,7 @@ struct timeval selecttimeout;
 fd_set fds;                                          
 int retval;                                         
 time_t start, now;
-TDSCONFIGINFO *config;
+TDSCONNECTINFO *connect_info;
 /* 13 + max string of 32bit int, 30 should cover it */
 int connect_timeout = 0;
 TDSLOCINFO *locale = NULL;
@@ -178,20 +178,20 @@ TDSLOCINFO *locale = NULL;
 	if (tds->tds_ctx) {
 		locale = tds->tds_ctx->locale;
 	}
-	config = tds_get_config(NULL, login, locale);
+	connect_info = tds_read_config_info(NULL, login, locale);
 
 	/*
 	** If a dump file has been specified, start logging
 	*/
-	if (config->dump_file) {
-   		tdsdump_open(config->dump_file);
+	if (connect_info->dump_file) {
+		tdsdump_open(connect_info->dump_file);
 	}
 
-	tds->config = config;
+	tds->connect_info = connect_info;
 
-	tds->major_version=config->major_version;
-	tds->minor_version=config->minor_version;
-	tds->emul_little_endian=config->emul_little_endian;
+	tds->major_version=connect_info->major_version;
+	tds->minor_version=connect_info->minor_version;
+	tds->emul_little_endian=connect_info->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
 	if (IS_TDS70(tds) || IS_TDS80(tds)) {
 		/* TDS 7/8 only supports little endian */
@@ -200,20 +200,20 @@ TDSLOCINFO *locale = NULL;
 #endif
 
 	/* set up iconv */
-	if (config->client_charset) {
-		tds_iconv_open(tds, config->client_charset);
+	if (connect_info->client_charset) {
+		tds_iconv_open(tds, connect_info->client_charset);
 	}
 
 	/* specified a date format? */
 	/*
-	if (config->date_fmt) {
-		tds->date_fmt=strdup(config->date_fmt);
+	if (connect_info->date_fmt) {
+		tds->date_fmt=strdup(connect_info->date_fmt);
 	}
 	*/
 	if (login->connect_timeout) {
 		connect_timeout = login->connect_timeout;
-	} else if (config->connect_timeout) {
-		connect_timeout = config->connect_timeout;
+	} else if (connect_info->connect_timeout) {
+		connect_timeout = connect_info->connect_timeout;
 	}
 
 	/* Jeff's hack - begin */
@@ -224,35 +224,35 @@ TDSLOCINFO *locale = NULL;
 	/* end */
 
 	/* verify that ip_addr is not NULL */
-	if (!config->ip_addr) {
+	if (!connect_info->ip_addr) {
 		tdsdump_log(TDS_DBG_ERROR, "%L IP address pointer is NULL\n");
-		if (config->server_name) {
+		if (connect_info->server_name) {
 			tdsdump_log(TDS_DBG_ERROR, "%L Server %s not found!\n",
-				config->server_name);
+				connect_info->server_name);
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "%L No server specified!\n");
 		}
-		tds_free_config(config);
+		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-	sin.sin_addr.s_addr = inet_addr(config->ip_addr);
+	sin.sin_addr.s_addr = inet_addr(connect_info->ip_addr);
 	if (sin.sin_addr.s_addr == -1) {
-		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", config->ip_addr);
-		tds_free_config(config);
+		tdsdump_log(TDS_DBG_ERROR, "%L inet_addr() failed, IP = %s\n", connect_info->ip_addr);
+		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 
-       	sin.sin_family = AF_INET;
-       	sin.sin_port = htons(config->port);
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(connect_info->port);
 
 	memcpy(tds->capabilities,login->capabilities,TDS_MAX_CAPABILITY);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Connecting addr %s port %d\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-        if ((tds->s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-                perror ("socket");
-		tds_free_config(config);
+	if ((tds->s = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror ("socket");
+		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
         }
@@ -262,7 +262,7 @@ TDSLOCINFO *locale = NULL;
 		start = time (NULL);
 		ioctl_blocking = 1; /* ~0; //TRUE; */
 		if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
-			tds_free_config(config);
+			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -270,7 +270,7 @@ TDSLOCINFO *locale = NULL;
 		if (retval < 0 && errno == EINPROGRESS) retval = 0;
 		if (retval < 0) {
 			perror("src/tds/login.c: tds_connect (timed)");
-			tds_free_config(config);
+			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -289,7 +289,7 @@ TDSLOCINFO *locale = NULL;
 		if ((now-start) > connect_timeout) {
 			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
 				"Server is unavailable or does not exist.");
-			tds_free_config(config);
+			tds_free_connect(connect_info);
 			tds_free_socket(tds);
 			return TDS_FAIL;
 		}
@@ -303,7 +303,7 @@ TDSLOCINFO *locale = NULL;
 		}
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, 
 			"Server is unavailable or does not exist.");
-		tds_free_config(config);
+		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
         }
@@ -312,30 +312,30 @@ TDSLOCINFO *locale = NULL;
 
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag=0x10;
-		tds7_send_login(tds,config);	
+		tds7_send_login(tds,connect_info);	
 	} else {
 		tds->out_flag=0x02;
-		tds_send_login(tds,config);	
+		tds_send_login(tds,connect_info);	
 	}
 	if (!tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, 
 			"Login incorrect.");
-		tds_free_config(config);
+		tds_free_connect(connect_info);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
-	if (tds && config->text_size) {
+	if (tds && connect_info->text_size) {
    		retval = tds_submit_queryf(tds, "set textsize %d",
-						config->text_size);
+						connect_info->text_size);
    		if (retval == TDS_SUCCEED) {
    			while (tds_process_result_tokens(tds) == TDS_SUCCEED)
 				;
    		}
 	}
 
-	tds->config = NULL;
-	tds_free_config(config);
+	tds->connect_info = NULL;
+	tds_free_connect(connect_info);
 	return TDS_SUCCEED;
 }
 
@@ -346,7 +346,7 @@ int buf_len = ( buf ? strlen(buf) : 0);
 	return tds_put_buf(tds,(const unsigned char *)buf,n,buf_len);
 }
 
-int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
+int tds_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 {	
 /*   char *tmpbuf;
    int tmplen;*/
@@ -421,10 +421,10 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    ** do this, (well...mine was a kludge actually) so here's mostly his
    */
    
-   rc=tds_put_login_string(tds,config->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
-   rc|=tds_put_login_string(tds,config->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
-   rc|=tds_put_login_string(tds,config->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
-   rc|=tds_put_login_string(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
+	rc=tds_put_login_string(tds,connect_info->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
+	rc|=tds_put_login_string(tds,connect_info->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
+	rc|=tds_put_login_string(tds,connect_info->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
+	rc|=tds_put_login_string(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
 #ifdef WORDS_BIGENDIAN
    if (tds->emul_little_endian) {
       rc|=tds_put_n(tds,le1,6);
@@ -434,7 +434,7 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 #else
    rc|=tds_put_n(tds,le1,6);
 #endif
-   rc|=tds_put_byte(tds,config->bulk_copy);
+	rc|=tds_put_byte(tds,connect_info->bulk_copy);
    rc|=tds_put_n(tds,magic2,2);
    if (IS_TDS42(tds)) {
       rc|=tds_put_int(tds,512);
@@ -442,12 +442,12 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       rc|=tds_put_int(tds,0);
    }
    rc|=tds_put_n(tds,magic3,3);
-   rc|=tds_put_login_string(tds,config->app_name,TDS_MAX_LOGIN_STR_SZ);
-   rc|=tds_put_login_string(tds,config->server_name,TDS_MAX_LOGIN_STR_SZ);
+	rc|=tds_put_login_string(tds,connect_info->app_name,TDS_MAX_LOGIN_STR_SZ);
+	rc|=tds_put_login_string(tds,connect_info->server_name,TDS_MAX_LOGIN_STR_SZ);
    if (IS_TDS42(tds)) {
-      rc|=tds_put_login_string(tds,config->password,255);
+		rc|=tds_put_login_string(tds,connect_info->password,255);
    } else {
-	 if(config->password == NULL) {
+		if(connect_info->password == NULL) {
 		/* FIXME check out of memory */
 		asprintf(&passwdstr, "%c%c%s", 0, 0, "");
       		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
@@ -455,15 +455,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 	 } else {
 		/* FIXME check out of memory */
       		asprintf(&passwdstr, "%c%c%s",0,
-			(unsigned char)strlen(config->password),
-			config->password);
-      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(config->password)+2);
+			(unsigned char)strlen(connect_info->password),
+			connect_info->password);
+      		rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(connect_info->password)+2);
 		free(passwdstr);
 	 }
    }
    
    rc|=tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
-   rc|=tds_put_login_string(tds,config->library,10);  /* client program name */
+	rc|=tds_put_login_string(tds,connect_info->library,10);  /* client program name */
    if (IS_TDS42(tds)) { 
       rc|=tds_put_int(tds,0);
    } else {
@@ -478,15 +478,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 #else
    rc|=tds_put_n(tds,le2,3);
 #endif
-   rc|=tds_put_login_string(tds,config->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
-   rc|=tds_put_byte(tds,config->suppress_language);
-   rc|=tds_put_n(tds,magic5,2);
-   rc|=tds_put_byte(tds,config->encrypted);
-   rc|=tds_put_n(tds,magic6,10);
-   rc|=tds_put_login_string(tds,config->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
+	rc|=tds_put_login_string(tds,connect_info->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
+	rc|=tds_put_byte(tds,connect_info->suppress_language);
+	rc|=tds_put_n(tds,magic5,2);
+	rc|=tds_put_byte(tds,connect_info->encrypted);
+	rc|=tds_put_n(tds,magic6,10);
+	rc|=tds_put_login_string(tds,connect_info->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
    rc|=tds_put_byte(tds,magic7);
    /* FIXME check out of memory */
-   asprintf(&blockstr,"%d",config->block_size);
+	asprintf(&blockstr,"%d",connect_info->block_size);
    rc|=tds_put_login_string(tds,blockstr,6); /* network packet size */
    free(blockstr);
    if (IS_TDS42(tds)) {
@@ -533,18 +533,18 @@ int password_len;
 int domain_len;
 unsigned char unicode_string[256];
 
-TDSCONFIGINFO *config = tds->config;
+TDSCONNECTINFO *connect_info = tds->connect_info;
 
-	/* check config */
-	if (!config)
+	/* check connect_info */
+	if (!connect_info)
 		return TDS_FAIL;
 
 	/* parse a bit of config */
-	domain = config->default_domain;
-	user_name = config->user_name;
+	domain = connect_info->default_domain;
+	user_name = connect_info->user_name;
 	user_name_len = user_name ? strlen(user_name) : 0;
-	host_name_len = config->host_name ? strlen(config->host_name) : 0;
-	password_len = config->password ? strlen(config->password) : 0;
+	host_name_len = connect_info->host_name ? strlen(connect_info->host_name) : 0;
+	password_len = connect_info->password ? strlen(connect_info->password) : 0;
 	domain_len = domain ? strlen(domain) : 0;
 	
 	/* check override of domain */
@@ -604,10 +604,10 @@ TDSCONFIGINFO *config = tds->config;
    	tds_put_n(tds,unicode_string,domain_len * 2);
    	tds7_ascii2unicode(tds,user_name, unicode_string, 256);
    	tds_put_n(tds,unicode_string,user_name_len * 2);
-   	tds7_ascii2unicode(tds,config->host_name, unicode_string, 256);
+   	tds7_ascii2unicode(tds,connect_info->host_name, unicode_string, 256);
    	tds_put_n(tds,unicode_string,host_name_len * 2);
 
-	tds_answer_challenge(config->password, challenge, &answer);
+	tds_answer_challenge(connect_info->password, challenge, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
 	tds_put_n(tds, answer.nt_resp, 24);
 	
@@ -622,7 +622,7 @@ TDSCONFIGINFO *config = tds->config;
 ** tds7_send_login() -- Send a TDS 7.0 login packet
 ** TDS 7.0 login packet is vastly different and so gets its own function
 */
-int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
+int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info)
 {	
 int rc;
 static const unsigned char magic1_domain[] =
@@ -667,18 +667,18 @@ unsigned char unicode_string[255];
 int packet_size;
 int current_pos;
 static const unsigned char ntlm_id[] = "NTLMSSP";
-int domain_login = config->try_domain_login ? 1 : 0;
+int domain_login = connect_info->try_domain_login ? 1 : 0;
 
-const char* domain = config->default_domain;
-const char* user_name = config->user_name;
+const char* domain = connect_info->default_domain;
+const char* user_name = connect_info->user_name;
 const char* p;
 int user_name_len = user_name ? strlen(user_name) : 0;
-int host_name_len = config->host_name ? strlen(config->host_name) : 0;
-int app_name_len = config->app_name ? strlen(config->app_name) : 0;
-int password_len = config->password ? strlen(config->password) : 0;
-int server_name_len = config->server_name ? strlen(config->server_name) : 0;
-int library_len = config->library ? strlen(config->library) : 0;
-int language_len = config->language ? strlen(config->language) : 0;
+int host_name_len = connect_info->host_name ? strlen(connect_info->host_name) : 0;
+int app_name_len = connect_info->app_name ? strlen(connect_info->app_name) : 0;
+int password_len = connect_info->password ? strlen(connect_info->password) : 0;
+int server_name_len = connect_info->server_name ? strlen(connect_info->server_name) : 0;
+int library_len = connect_info->library ? strlen(connect_info->library) : 0;
+int language_len = connect_info->language ? strlen(connect_info->language) : 0;
 int domain_len = domain ? strlen(domain) : 0;
 int auth_len = 0;
 
@@ -774,22 +774,22 @@ int auth_len = 0;
    tds_put_smallint(tds, current_pos);
    tds_put_smallint(tds, 0); 
 
-   tds7_ascii2unicode(tds,config->host_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,connect_info->host_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,host_name_len * 2);
    if (!domain_login) {
-   	tds7_ascii2unicode(tds,config->user_name, unicode_string, 255);
+   	tds7_ascii2unicode(tds,connect_info->user_name, unicode_string, 255);
    	tds_put_n(tds,unicode_string,user_name_len * 2);
-   	tds7_ascii2unicode(tds,config->password, unicode_string, 255);
+   	tds7_ascii2unicode(tds,connect_info->password, unicode_string, 255);
    	tds7_crypt_pass(unicode_string, password_len * 2, unicode_string);
    	tds_put_n(tds,unicode_string,password_len * 2);
    }
-   tds7_ascii2unicode(tds,config->app_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,connect_info->app_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,app_name_len * 2);
-   tds7_ascii2unicode(tds,config->server_name, unicode_string, 255);
+   tds7_ascii2unicode(tds,connect_info->server_name, unicode_string, 255);
    tds_put_n(tds,unicode_string,server_name_len * 2);
-   tds7_ascii2unicode(tds,config->library, unicode_string, 255);
+   tds7_ascii2unicode(tds,connect_info->library, unicode_string, 255);
    tds_put_n(tds,unicode_string,library_len * 2);
-   tds7_ascii2unicode(tds,config->language, unicode_string, 255);
+   tds7_ascii2unicode(tds,connect_info->language, unicode_string, 255);
    tds_put_n(tds,unicode_string,language_len * 2);
 
    if (domain_login) {
@@ -811,7 +811,7 @@ int auth_len = 0;
 	tds_put_int(tds,32);
 
 	/* hostname and domain */
-	tds_put_n(tds,config->host_name,host_name_len);
+	tds_put_n(tds,connect_info->host_name,host_name_len);
 	tds_put_n(tds,domain,domain_len);
    }
    

@@ -65,25 +65,25 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.44 2002-10-17 19:46:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.45 2002-10-17 20:45:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
-static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login);
-static void tds_config_env_dsquery(TDSCONFIGINFO *config);
-static void tds_config_env_tdsdump(TDSCONFIGINFO *config);
-static void tds_config_env_tdsver(TDSCONFIGINFO *config);
-static void tds_config_env_tdsport(TDSCONFIGINFO *config);
-static void tds_config_env_tdshost(TDSCONFIGINFO *config);
-static int tds_read_conf_file(char *server, TDSCONFIGINFO *config);
-static int tds_read_conf_sections(FILE *in, char *server, TDSCONFIGINFO *config);
-static int tds_read_conf_section(FILE *in, char *section, TDSCONFIGINFO *config);
-static void tds_read_interfaces(char *server, TDSCONFIGINFO *config);
-static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config);
+static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login);
+static void tds_config_env_dsquery(TDSCONNECTINFO *connect_info);
+static void tds_config_env_tdsdump(TDSCONNECTINFO *connect_info);
+static void tds_config_env_tdsver(TDSCONNECTINFO *connect_info);
+static void tds_config_env_tdsport(TDSCONNECTINFO *connect_info);
+static void tds_config_env_tdshost(TDSCONNECTINFO *connect_info);
+static int tds_read_conf_file(char *server, TDSCONNECTINFO *connect_info);
+static int tds_read_conf_sections(FILE *in, char *server, TDSCONNECTINFO *connect_info);
+static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info);
+static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info);
+static void tds_config_verstr(char *tdsver, TDSCONNECTINFO *connect_info);
 static int tds_config_boolean(char *value);
 static void lookup_host(const char *servername, const char *portname, char *ip, char *port);
-static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login );
+static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login );
 static int get_server_info(char *server, char *ip_addr, char *ip_port, char *tds_ver);
 
 extern int g_append_mode;
@@ -91,7 +91,7 @@ extern int g_append_mode;
 static char *interf_file = NULL;
 
 /*
-** tds_get_config() will fill the tds config structure based on configuration 
+** tds_read_config_info() will fill the tds connect_info structure based on configuration 
 ** information gathered in the following order:
 ** 1) Program specified in TDSLOGIN structure
 ** 2) The environment variables TDSVER, TDSDUMP, TDSPORT, TDSQUERY, TDSHOST
@@ -106,17 +106,17 @@ static char *interf_file = NULL;
 ** .tdsrc and freetds.conf have been added to make the package easier to 
 ** integration with various Linux and *BSD distributions.
 */ 
-TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale)
+TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale)
 {
-TDSCONFIGINFO *config;
+TDSCONNECTINFO *connect_info;
 char *s;
 char *path;
 pid_t pid;
 int opened = 0;
 
 	/* allocate a new structure with hard coded and build-time defaults */
-	config = tds_alloc_config(locale);
-	if (!config)
+	connect_info = tds_alloc_connect(locale);
+	if (!connect_info)
 		return NULL;
 
 	s = getenv("TDSDUMPCONFIG");
@@ -135,33 +135,33 @@ int opened = 0;
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
-	if (! tds_read_conf_file(login->server_name, config)) {
+	if (! tds_read_conf_file(login->server_name, connect_info)) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "%L Failed in reading conf file.  Trying interface files.\n");
-		tds_read_interfaces(login->server_name, config);
+		tds_read_interfaces(login->server_name, connect_info);
 	}
 
-	if( parse_server_name_for_port( config, login ) ) {
-		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", config->server_name, login->port);
+	if( parse_server_name_for_port( connect_info, login ) ) {
+		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", connect_info->server_name, login->port);
 	}
 	
 	/* Now check the environment variables */
-	tds_config_env_tdsver(config);
-	tds_config_env_tdsdump(config);
-	tds_config_env_tdsport(config);
-	tds_config_env_dsquery(config);
-	tds_config_env_tdshost(config);
+	tds_config_env_tdsver(connect_info);
+	tds_config_env_tdsdump(connect_info);
+	tds_config_env_tdsport(connect_info);
+	tds_config_env_dsquery(connect_info);
+	tds_config_env_tdshost(connect_info);
 	
 	/* And finally the login structure */
-	tds_config_login(config, login);
+	tds_config_login(connect_info, login);
 
         if (opened) {
 		tdsdump_close();
 	}
-	return config;
+	return connect_info;
 }        
 
-static int tds_try_conf_file(char *path, char *how, char *server, TDSCONFIGINFO *config)
+static int tds_try_conf_file(char *path, char *how, char *server, TDSCONNECTINFO *connect_info)
 {
 int found = 0;
 FILE *in;
@@ -170,7 +170,7 @@ FILE *in;
 		tdsdump_log(TDS_DBG_INFO1, 
 			"%L Found conf file '%s' %s. Reading section '%s'.\n",
 			path, how, server);
-		found = tds_read_conf_sections (in, server, config);
+		found = tds_read_conf_sections (in, server, connect_info);
 		
 		if(found) {
 			tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
@@ -184,20 +184,20 @@ FILE *in;
 }
 
 static int
-tds_read_conf_file(char *server, TDSCONFIGINFO *config)
+tds_read_conf_file(char *server, TDSCONNECTINFO *connect_info)
 {
 char  *home, *path = NULL;
 int found = 0; 
 
 	if (interf_file) {
-		found = tds_try_conf_file(interf_file,"set programmatically", server, config);
+		found = tds_try_conf_file(interf_file,"set programmatically", server, connect_info);
 	}
 
 	/* FREETDSCONF env var, pkleef@openlinksw.com 01/21/02 */
 	if (!found) {
 		path = getenv ("FREETDSCONF");
 		if (path) {
-			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, config);
+			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, connect_info);
 		} else {
 			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDSCONF not set.  Trying $HOME.\n");
 		}
@@ -213,29 +213,29 @@ int found = 0;
 				fprintf(stderr, "config.c (line %d): no memory\n", __LINE__);
 				return 0;
 			}
-			found = tds_try_conf_file(path, "(.freetds.conf)", server, config);
+			found = tds_try_conf_file(path, "(.freetds.conf)", server, connect_info);
 		} else {
 			tdsdump_log(TDS_DBG_INFO2, "%L ...$HOME not set.  Trying %s.\n", FREETDS_SYSCONFFILE);
 		}
 	}
 
 	if (!found) {
-		found = tds_try_conf_file(FREETDS_SYSCONFFILE, "(default)", server, config);
+		found = tds_try_conf_file(FREETDS_SYSCONFFILE, "(default)", server, connect_info);
 	} 
 
 	return found;
 }
-static int tds_read_conf_sections(FILE *in, char *server, TDSCONFIGINFO *config)
+static int tds_read_conf_sections(FILE *in, char *server, TDSCONNECTINFO *connect_info)
 {
 unsigned char *section;
 int i, found = 0;
 
-	tds_read_conf_section(in, "global", config);
+	tds_read_conf_section(in, "global", connect_info);
 	rewind(in);
 	section = strdup(server);
 	for (i = 0; i < strlen(section); i++)
 		section[i] = tolower(section[i]);
-	found = tds_read_conf_section(in, section, config);
+	found = tds_read_conf_section(in, section, connect_info);
 	free(section);
 
 	return found;
@@ -254,7 +254,7 @@ static int tds_config_boolean(char *value)
 	}
 }
 
-static int tds_read_conf_section(FILE *in, char *section, TDSCONFIGINFO *config)
+static int tds_read_conf_section(FILE *in, char *section, TDSCONNECTINFO *connect_info)
 {
 char line[256], option[256], value[256];
 unsigned char *s;
@@ -327,58 +327,58 @@ int found = 0;
                     /* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
                         tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
 			if (!strcmp(option,TDS_STR_VERSION)) {
-				tds_config_verstr(value, config);
+				tds_config_verstr(value, connect_info);
 			} else if (!strcmp(option,TDS_STR_BLKSZ)) {
 				if (atoi(value)) 
-					config->block_size = atoi(value);
+					connect_info->block_size = atoi(value);
 			} else if (!strcmp(option,TDS_STR_SWAPDT)) {
-				config->broken_dates = tds_config_boolean(value);
+				connect_info->broken_dates = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_SWAPMNY)) {
-				config->broken_money = tds_config_boolean(value);
+				connect_info->broken_money = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_TRYSVR)) {
-				config->try_server_login = tds_config_boolean(value);
+				connect_info->try_server_login = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_TRYDOM)) {
-				config->try_domain_login = tds_config_boolean(value);
+				connect_info->try_domain_login = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_DOMAIN)) {
-				if (config->default_domain) free(config->default_domain);
-				config->default_domain = strdup(value);
+				if (connect_info->default_domain) free(connect_info->default_domain);
+				connect_info->default_domain = strdup(value);
 			} else if (!strcmp(option,TDS_STR_XDOMAUTH)) {
-				config->xdomain_auth = tds_config_boolean(value);
+				connect_info->xdomain_auth = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_DUMPFILE)) {
-				if (config->dump_file) free(config->dump_file);
-				config->dump_file = strdup(value);
+				if (connect_info->dump_file) free(connect_info->dump_file);
+				connect_info->dump_file = strdup(value);
 			} else if (!strcmp(option,TDS_STR_DEBUGLVL)) {
 				if (atoi(value)) 
-					config->debug_level = atoi(value);
+					connect_info->debug_level = atoi(value);
 			} else if (!strcmp(option,TDS_STR_TIMEOUT )) {
 				if (atoi(value)) 
-					config->timeout = atoi(value);
+					connect_info->timeout = atoi(value);
 			} else if (!strcmp(option,TDS_STR_CONNTMOUT)) {
 				if (atoi(value)) 
-					config->connect_timeout = atoi(value);
+					connect_info->connect_timeout = atoi(value);
 			} else if (!strcmp(option,TDS_STR_HOST)) {
 				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
    				lookup_host(value, NULL, tmp, NULL);
-				if (config->ip_addr) free(config->ip_addr);
-				config->ip_addr = strdup(tmp);
-				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",config->ip_addr);
+				if (connect_info->ip_addr) free(connect_info->ip_addr);
+				connect_info->ip_addr = strdup(tmp);
+				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",connect_info->ip_addr);
 			} else if (!strcmp(option,TDS_STR_PORT)) {
 				if (atoi(value)) 
-					config->port = atoi(value);
+					connect_info->port = atoi(value);
 			} else if (!strcmp(option,TDS_STR_EMUL_LE)) {
-				config->emul_little_endian = tds_config_boolean(value);
+				connect_info->emul_little_endian = tds_config_boolean(value);
 			} else if (!strcmp(option,TDS_STR_TEXTSZ)) {
 				if (atoi(value)) 
-					config->text_size = atoi(value);
+					connect_info->text_size = atoi(value);
 			} else if (!strcmp(option,TDS_STR_CHARSET)) {
-				if (config->char_set) free(config->char_set);
-				config->char_set = strdup(value);
+				if (connect_info->char_set) free(connect_info->char_set);
+				connect_info->char_set = strdup(value);
 			} else if (!strcmp(option,TDS_STR_CLCHARSET)) {
-				if (config->client_charset) free(config->client_charset);
-				config->client_charset = strdup(value);
+				if (connect_info->client_charset) free(connect_info->client_charset);
+				connect_info->client_charset = strdup(value);
 			} else if (!strcmp(option,TDS_STR_LANGUAGE)) {
-				if (config->language) free(config->language);
-				config->language = strdup(value);
+				if (connect_info->language) free(connect_info->language);
+				connect_info->language = strdup(value);
 			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
 				g_append_mode = tds_config_boolean(value);
 			}
@@ -389,7 +389,7 @@ int found = 0;
 	return found;
 }
 
-static void tds_read_interfaces(char *server, TDSCONFIGINFO *config)
+static void tds_read_interfaces(char *server, TDSCONNECTINFO *connect_info)
 {
 char ip_addr[255], ip_port[255], tds_ver[255];
 
@@ -397,110 +397,110 @@ char ip_addr[255], ip_port[255], tds_ver[255];
 	/* This needs to be cleaned up */
 	get_server_info(server, ip_addr, ip_port, tds_ver);
 	if (strlen(ip_addr)) {
-		if (config->ip_addr) free(config->ip_addr);
+		if (connect_info->ip_addr) free(connect_info->ip_addr);
 		/* FIXME check result, use strdup */
-		config->ip_addr = (char *) malloc(strlen(ip_addr)+1);
-		strcpy(config->ip_addr, ip_addr);
+		connect_info->ip_addr = (char *) malloc(strlen(ip_addr)+1);
+		strcpy(connect_info->ip_addr, ip_addr);
 	}
 	if (atoi(ip_port)) {
-		config->port = atoi(ip_port);
+		connect_info->port = atoi(ip_port);
 	}
 	if (strlen(tds_ver)) {
-		tds_config_verstr(tds_ver, config);
+		tds_config_verstr(tds_ver, connect_info);
 		/* if it doesn't match a known version do nothing with it */
 	}	
 }
-static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
+static void tds_config_login(TDSCONNECTINFO *connect_info, TDSLOGIN *login)
 {
 	if (!tds_dstr_isempty(&login->server_name)) {
-		if (config->server_name) free(config->server_name);
-		config->server_name = strdup(login->server_name);
+		if (connect_info->server_name) free(connect_info->server_name);
+		connect_info->server_name = strdup(login->server_name);
 	}	
 	if (login->major_version || login->minor_version) {
-		config->major_version = login->major_version;
-		config->minor_version = login->minor_version;
+		connect_info->major_version = login->major_version;
+		connect_info->minor_version = login->minor_version;
 	}
 	if (!tds_dstr_isempty(&login->language)) {
-		if (config->language) free(config->language);
-		config->language = strdup(login->language);
+		if (connect_info->language) free(connect_info->language);
+		connect_info->language = strdup(login->language);
 	}
 	if (!tds_dstr_isempty(&login->char_set)) {
-		if (config->char_set) free(config->char_set);
-		config->char_set = strdup(login->char_set);
+		if (connect_info->char_set) free(connect_info->char_set);
+		connect_info->char_set = strdup(login->char_set);
 	}
 	if (!tds_dstr_isempty(&login->host_name)) {
-		if (config->host_name) free(config->host_name);
-		config->host_name = strdup(login->host_name);
+		if (connect_info->host_name) free(connect_info->host_name);
+		connect_info->host_name = strdup(login->host_name);
 		/* DBSETLHOST and it's equivilants are commentary fields
-		** they don't affect config->ip_addr (the server) but they show
+		** they don't affect connect_info->ip_addr (the server) but they show
 		** up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
 		*/
 		/* should work with IP (mlilback, 11/7/01) */
 		/*
-		if (config->ip_addr) free(config->ip_addr);
-		config->ip_addr = calloc(sizeof(char),18);
-		lookup_host(config->host_name, NULL, config->ip_addr, NULL);
+		if (connect_info->ip_addr) free(connect_info->ip_addr);
+		connect_info->ip_addr = calloc(sizeof(char),18);
+		lookup_host(connect_info->host_name, NULL, connect_info->ip_addr, NULL);
 		*/
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
-		if (config->app_name) free(config->app_name);
-		config->app_name = strdup(login->app_name);
+		if (connect_info->app_name) free(connect_info->app_name);
+		connect_info->app_name = strdup(login->app_name);
 	}
 	if (!tds_dstr_isempty(&login->user_name)) {
-		if (config->user_name) free(config->user_name);
-		config->user_name = strdup(login->user_name);
+		if (connect_info->user_name) free(connect_info->user_name);
+		connect_info->user_name = strdup(login->user_name);
 	}
 	if (!tds_dstr_isempty(&login->password)) {
-		if (config->password) {
+		if (connect_info->password) {
 			/* for security reason clear memory */
-			memset(config->password,0,strlen(config->password));
-			free(config->password);
+			memset(connect_info->password,0,strlen(connect_info->password));
+			free(connect_info->password);
 		}
-		config->password = strdup(login->password);
+		connect_info->password = strdup(login->password);
 	}
 	if (!tds_dstr_isempty(&login->library)) {
-		if (config->library) free(config->library);
-		config->library = strdup(login->library);
+		if (connect_info->library) free(connect_info->library);
+		connect_info->library = strdup(login->library);
 	}
 	if (login->encrypted) {
-		config->encrypted = 1;
+		connect_info->encrypted = 1;
 	}
 	if (login->suppress_language) {
-		config->suppress_language = 1;
+		connect_info->suppress_language = 1;
 	}
 	if (login->bulk_copy) {
-		config->bulk_copy = 1;
+		connect_info->bulk_copy = 1;
 	}
 	if (login->block_size) {
-		config->block_size = login->block_size;
+		connect_info->block_size = login->block_size;
 	}
 	if (login->port) {
-		config->port = login->port;
+		connect_info->port = login->port;
 	}
 
 }
 
-static void tds_config_env_dsquery(TDSCONFIGINFO *config)
+static void tds_config_env_dsquery(TDSCONNECTINFO *connect_info)
 {
 char *s;
 
 	if ((s=getenv("TDSQUERY"))) {
 		if (s && strlen(s)) {
-			if (config->server_name) free(config->server_name);
-			config->server_name = strdup(s);
+			if (connect_info->server_name) free(connect_info->server_name);
+			connect_info->server_name = strdup(s);
 			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n",s);
 		} 
 		return;
 	}
 	if ((s=getenv("DSQUERY"))) {
 		if (s && strlen(s)) {
-			if (config->server_name) free(config->server_name);
-			config->server_name = strdup(s);
+			if (connect_info->server_name) free(connect_info->server_name);
+			connect_info->server_name = strdup(s);
 			tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $DSQUERY.\n",s);
 		} 
 	}
 }
-static void tds_config_env_tdsdump(TDSCONFIGINFO *config)
+static void tds_config_env_tdsdump(TDSCONNECTINFO *connect_info)
 {
 char *s;
 char *path;
@@ -509,76 +509,76 @@ pid_t pid=0;
         if ((s=getenv("TDSDUMP"))) {
                 if (!strlen(s)) {
                         pid = getpid();
-			if (config->dump_file) free(config->dump_file);
+			if (connect_info->dump_file) free(connect_info->dump_file);
 			/* FIXME check out of memory */
-                        asprintf(&path, "/tmp/freetds.log.%d", pid);
-			config->dump_file = path;
-                } else {
-			if (config->dump_file) free(config->dump_file);
-			config->dump_file = strdup(s);
-                }
-                tdsdump_log(TDS_DBG_INFO1, "%L Setting 'dump_file' to '%s' from $TDSDUMP.\n",config->dump_file);
-        }
+			asprintf(&path, "/tmp/freetds.log.%d", pid);
+			connect_info->dump_file = path;
+		} else {
+			if (connect_info->dump_file) free(connect_info->dump_file);
+			connect_info->dump_file = strdup(s);
+		}
+		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'dump_file' to '%s' from $TDSDUMP.\n",connect_info->dump_file);
+	}
 }
-static void tds_config_env_tdsport(TDSCONFIGINFO *config)
+static void tds_config_env_tdsport(TDSCONNECTINFO *connect_info)
 {
 char *s;
 
 	if ((s=getenv("TDSPORT"))) {
-            config->port=atoi(s);
-            tdsdump_log(TDS_DBG_INFO1, "%L Setting 'port' to %s from $TDSPORT.\n",s);
+		connect_info->port=atoi(s);
+		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'port' to %s from $TDSPORT.\n",s);
 	}
 	return;
 }
-static void tds_config_env_tdsver(TDSCONFIGINFO *config)
+static void tds_config_env_tdsver(TDSCONNECTINFO *connect_info)
 {
 char *tdsver;
 
 	if ((tdsver=getenv("TDSVER"))) {
-            tds_config_verstr(tdsver, config);
-            tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tdsver' to %s from $TDSVER.\n",tdsver);
+		tds_config_verstr(tdsver, connect_info);
+		tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tdsver' to %s from $TDSVER.\n",tdsver);
 
 	}
 	return;
 }
 /* TDSHOST env var, pkleef@openlinksw.com 01/21/02 */
-static void tds_config_env_tdshost(TDSCONFIGINFO *config)
+static void tds_config_env_tdshost(TDSCONNECTINFO *connect_info)
 {
 char *tdshost;
 char tmp[256];
 
 	if ((tdshost=getenv("TDSHOST"))) {
 		lookup_host (tdshost, NULL, tmp, NULL);
-		if (config->ip_addr)
-			free (config->ip_addr);
-		config->ip_addr = strdup (tmp);
+		if (connect_info->ip_addr)
+			free (connect_info->ip_addr);
+		connect_info->ip_addr = strdup (tmp);
                 tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n",tmp, tdshost);
 
 	}
 	return;
 }
 
-static void tds_config_verstr(char *tdsver, TDSCONFIGINFO *config)
+static void tds_config_verstr(char *tdsver, TDSCONNECTINFO *connect_info)
 {
 	if (!strcmp(tdsver,"42") || !strcmp(tdsver,"4.2")) {
-		config->major_version=4;
-		config->minor_version=2;
+		connect_info->major_version=4;
+		connect_info->minor_version=2;
 		return;
 	} else if (!strcmp(tdsver,"46") || !strcmp(tdsver,"4.6")) {
-		config->major_version=4;
-		config->minor_version=6;
+		connect_info->major_version=4;
+		connect_info->minor_version=6;
 		return;
 	} else if (!strcmp(tdsver,"50") || !strcmp(tdsver,"5.0")) {
-		config->major_version=5;
-		config->minor_version=0;
+		connect_info->major_version=5;
+		connect_info->minor_version=0;
 		return;
 	} else if (!strcmp(tdsver,"70") || !strcmp(tdsver,"7.0")) {
-		config->major_version=7;
-		config->minor_version=0;
+		connect_info->major_version=7;
+		connect_info->minor_version=0;
 		return;
 	} else if (!strcmp(tdsver,"80") || !strcmp(tdsver,"8.0")) {
-		config->major_version=8;
-		config->minor_version=0;
+		connect_info->major_version=8;
+		connect_info->minor_version=0;
 		return;
 	}
 }
@@ -927,9 +927,9 @@ int get_server_info(
 /**
  * Check the server name to find port info first
  * return 1 when found, else 0
- * Warning: config-> & login-> are all modified when needed
+ * Warning: connect_info-> & login-> are all modified when needed
  */
-static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login )
+static int parse_server_name_for_port( TDSCONNECTINFO *connect_info, TDSLOGIN *login )
 {
     char *pSep, *pEnd;
         
@@ -943,22 +943,22 @@ static int parse_server_name_for_port( TDSCONFIGINFO *config, TDSLOGIN *login )
     
     if(( pSep < pEnd )&&( pSep != login->server_name ))/* yes, i found it! */
     {
-        if( config->server_name ) free( config->server_name );
-        config->server_name = strdup( login->server_name );
-        
-        /* modify config-> && login->server_name & ->port */
-        login->port = config->port = atoi( pSep + 1 );
-        config->server_name[pSep - login->server_name] = 0;/* end the server_name before the ':' */
+		if( connect_info->server_name ) free( connect_info->server_name );
+		connect_info->server_name = strdup( login->server_name );
+
+		/* modify connect_info-> && login->server_name & ->port */
+		login->port = connect_info->port = atoi( pSep + 1 );
+		connect_info->server_name[pSep - login->server_name] = 0;/* end the server_name before the ':' */
         *pSep = 0;
 
-        /* config->ip_addr needed */
+		/* connect_info->ip_addr needed */
         {
             char tmp[256];
 
-            lookup_host (config->server_name, NULL, tmp, NULL);
-            if (config->ip_addr)
-                    free (config->ip_addr);
-            config->ip_addr = strdup (tmp);
+		lookup_host (connect_info->server_name, NULL, tmp, NULL);
+		if (connect_info->ip_addr)
+			free (connect_info->ip_addr);
+		connect_info->ip_addr = strdup (tmp);
         }
 
         return 1;/* TRUE */

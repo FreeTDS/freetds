@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.20 2002-10-17 19:46:10 freddy77 Exp $";
+	"$Id: tds.h,v 1.21 2002-10-17 20:45:43 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -373,22 +373,38 @@ typedef struct tds_login {
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 } TDSLOGIN;
 
-typedef struct tds_config_info {
+typedef struct tds_connect_info {
+	/* first part of structure is the same of login one */
 	char *server_name; /**< server name (in freetds.conf) */
-	char *ip_addr;     /**< ip of server */
 	int port;          /**< port of database service */
-	TDS_SMALLINT major_version;
-	TDS_SMALLINT minor_version;
+	TDS_TINYINT major_version;
+	TDS_TINYINT minor_version;
 	int block_size;
 	char *language;
 	char *char_set;    /**< charset of server */
+	TDS_INT connect_timeout;
+	char *host_name;     /**< client hostname */
+	char *app_name;
+	char *user_name;     /**< account for login */
+	char *password;      /**< password of account login */
+	char *library;
+	TDS_TINYINT bulk_copy;
+	TDS_TINYINT suppress_language;
+	TDS_TINYINT encrypted;
+
+	TDS_INT query_timeout;
+	TDS_INT longquery_timeout;
+	void (*longquery_func)(long lHint);
+	long longquery_param;
+	unsigned char capabilities[TDS_MAX_CAPABILITY];
+
+
+	char *ip_addr;     /**< ip of server */
 	char *database;
 	char *dump_file;
 	int broken_dates;
 	int broken_money;
 	int timeout;
-	int connect_timeout;
-	char *host_name;     /**< client hostname */
 	char *default_domain;
 	int try_server_login;
 	int try_domain_login;
@@ -396,21 +412,8 @@ typedef struct tds_config_info {
 	int debug_level;
 	int emul_little_endian;
 	int text_size;
-	char *app_name;
-	char *user_name;     /**< account for login */
-	char *password;      /**< password of account login */
-	char *library;
-	int bulk_copy;
-	int suppress_language;
-	int encrypted;
 	char *client_charset;
-
-/*	TDS_INT query_timeout;
-	TDS_INT longquery_timeout;
-	void (*longquery_func)(long lHint);
-	long longquery_param;
-	unsigned char capabilities[TDS_MAX_CAPABILITY]; */
-} TDSCONFIGINFO;
+} TDSCONNECTINFO;
 
 typedef struct tds_loc_info {
         char *language;
@@ -594,7 +597,7 @@ struct tds_socket {
 	void *iconv_info;
 
 	/** config for login stuff. After login this field is NULL */
-	TDSCONFIGINFO *config;
+	TDSCONNECTINFO *connect_info;
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);
@@ -603,7 +606,7 @@ int tds_write_packet(TDSSOCKET *tds,unsigned char final);
 int tds_init_write_buf(TDSSOCKET *tds);
 void tds_free_result_info(TDSRESULTINFO *info);
 void tds_free_socket(TDSSOCKET *tds);
-void tds_free_config(TDSCONFIGINFO *config);
+void tds_free_connect(TDSCONNECTINFO *connect_info);
 void tds_free_all_results(TDSSOCKET *tds);
 void tds_free_results(TDSRESULTINFO *res_info);
 void tds_free_param_results(TDSPARAMINFO *param_info);
@@ -627,14 +630,14 @@ TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
 TDSCONTEXT *tds_alloc_context(void);
 void tds_free_context(TDSCONTEXT *locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
-TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
+TDSCONNECTINFO *tds_read_config_info(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
 TDSLOCINFO *tds_get_locale(void);
 void *tds_alloc_row(TDSRESULTINFO *res_info);
 char *tds_msg_get_proc_name(TDSSOCKET *tds);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, char *id);
 void tds_free_login(TDSLOGIN *login);
-TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
+TDSCONNECTINFO *tds_alloc_connect(TDSLOCINFO *locale);
 TDSLOCINFO *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCINFO *locale);
 int tds_connect(TDSSOCKET *tds, TDSLOGIN *login);
@@ -665,7 +668,7 @@ void* tds_get_parent(TDSSOCKET* tds);
 void tds_set_null(unsigned char *current_row, int column);
 void tds_clr_null(unsigned char *current_row, int column);
 int tds_get_null(unsigned char *current_row, int column);
-int tds7_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config);
+int tds7_send_login(TDSSOCKET *tds, TDSCONNECTINFO *connect_info);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 int tds_lookup_dynamic(TDSSOCKET *tds, char *id);
 
