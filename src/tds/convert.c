@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.132 2004-01-07 13:50:37 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.133 2004-01-07 17:01:50 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -891,7 +891,11 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case CASE_ALL_CHAR:
 		/* TODO: fix for all platform. Search for lltoa/_i64toa */
 #ifndef WIN32
+# if SIZEOF_LONG < 8
 		sprintf(tmp_str, "%lld", buf);
+# else
+		sprintf(tmp_str, "%ld", buf);
+# endif
 #else
 		_i64toa(buf, tmp_str, 10);
 #endif
@@ -950,7 +954,11 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBDECIMAL:
 		/* TODO portability problem. See above */
 #ifndef WIN32
+# if SIZEOF_LONG < 8
 		sprintf(tmp_str, "%lld", buf);
+# else
+		sprintf(tmp_str, "%ld", buf);
+# endif
 #else
 		_i64toa(buf, tmp_str, 10);
 #endif

@@ -31,9 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#include <signal.h>
-
-static char software_version[] = "$Id: convert.c,v 1.14 2004-01-07 01:32:24 castellano Exp $";
+static char software_version[] = "$Id: convert.c,v 1.15 2004-01-07 17:01:50 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -80,8 +78,6 @@ main(int argc, char **argv)
 
 	TDS_REAL tds_real;
 	TDS_FLOAT tds_float;
-
-	signal(SIGFPE, SIG_IGN);
 
 	if (argc > 1) {
 		iterations = atoi(argv[1]);
@@ -168,10 +164,12 @@ main(int argc, char **argv)
 			srclen = sizeof(tds_int8);
 			break;
 		case SYBFLT8:
+			tds_float = 3.14159;
 			src = (char *) &tds_float;
 			srclen = sizeof(tds_float);
 			break;
 		case SYBREAL:
+			tds_real = 3.14159;
 			src = (char *) &tds_real;
 			srclen = sizeof(tds_real);
 			break;
@@ -268,12 +266,6 @@ main(int argc, char **argv)
 			break;
 		case SYBINT8:
 			tds_int8 = cr.bi;
-			break;
-		case SYBFLT8:
-			tds_real = cr.f;
-			break;
-		case SYBREAL:
-			tds_float = cr.r;
 			break;
 		default:
 			break;

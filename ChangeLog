@@ -1,3 +1,12 @@
+Wed Jan  7 11:58:40 EST 2004	nsc <Nicholas_Castellano@acml.com>
+	* src/tds/unittests/convert.c:
+	- Avoid assignments involving potentially bogus floating point
+	  values, which might trigger SIGFPE.  Remove yesterday's
+	  hack to ignore SIGFPE.
+	* src/tds/convert.c:
+	- Fix conversions from TDS_INT8 to TDS_NUMERIC and TDS_DECIMAL on
+	  Tru64.
+
 Wed Jan  7 09:57:30 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in new candidate 0.62rc4
 	
