@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.11 2002-09-16 21:00:56 castellano Exp $";
+         "$Id: cspublic.h,v 1.12 2002-09-26 21:10:16 castellano Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -51,19 +51,25 @@ typedef TDS_VARBINARY CS_VARBINARY;
 #define CS_SUCCEED TDS_SUCCEED
 #define CS_SIZEOF(x) sizeof(x)
 
-/* FIX ME */
-#define CS_NUMBER(x)   (x & 0xFF)
-#define CS_ORIGIN(x)   ((x >>  8) & 0xFF)
-#define CS_LAYER(x)    ((x >> 16) & 0xFF)
-#define CS_SEVERITY(x) ((x >> 24) & 0xFF)
+#define CS_LAYER(x)    (((x) >> 24) & 0xFF)
+#define CS_ORIGIN(x)   (((x) >> 16) & 0xFF)
+#define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
+#define CS_NUMBER(x)   ((x) & 0xFF)
 
-typedef struct cs_context
+/* forward declarations */
+typedef struct cs_context CS_CONTEXT;
+typedef struct cs_clientmsg CS_CLIENTMSG;
+typedef struct cs_connection CS_CONNECTION;
+typedef struct cs_servermsg CS_SERVERMSG;
+
+struct cs_context
 {
 	CS_INT date_convert_fmt;
-	int (*_clientmsg_cb)(void*, void*, void*);
-	int (*_servermsg_cb)(void*, void*, void*);
+	CS_RETCODE (*_cslibmsg_cb)(CS_CONTEXT *, CS_CLIENTMSG *);
+	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
+	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 	TDSCONTEXT *tds_ctx;
-} CS_CONTEXT;
+};
 
 typedef struct cs_locale {
 	char *language;
@@ -72,17 +78,17 @@ typedef struct cs_locale {
 	char *collate;
 } CS_LOCALE;
 
-typedef struct cs_connection
+struct cs_connection
 {
 	CS_CONTEXT *ctx;
 	void *tds_login;
 	TDSSOCKET *tds_socket;
-	int (*_clientmsg_cb)(void*, void*, void*);
-	int (*_servermsg_cb)(void*, void*, void*);
+	CS_RETCODE (*_clientmsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
+	CS_RETCODE (*_servermsg_cb)(CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;
-} CS_CONNECTION;
+};
 
 typedef struct cs_command
 {
@@ -102,6 +108,7 @@ typedef struct cs_command
 #define CS_OBJ_NAME 132 /* ? */
 #define CS_TP_SIZE  16  /* ? */
 #define CS_TS_SIZE  16  /* ? */
+#define CS_SQLSTATE_SIZE 8
 
 
 #define CS_SRC_VALUE   -999
@@ -141,17 +148,22 @@ typedef struct cs_daterec {
 	CS_INT datetzone;
 } CS_DATEREC;
 
-typedef struct cs_clientmsg {
-	int severity;
-	int msgnumber;
-	char msgstring[CS_MAX_MSG];
-	int msgstringlen;
-	long osnumber;
-	int osstringlen;
-	char osstring[CS_MAX_MSG]; 
-} CS_CLIENTMSG;
+typedef TDS_INT CS_MSGNUM;
 
-typedef struct cs_servermsg {
+struct cs_clientmsg {
+	CS_INT severity;
+	CS_MSGNUM msgnumber;
+	CS_CHAR msgstring[CS_MAX_MSG];
+	CS_INT msgstringlen;
+	CS_INT osnumber;
+	CS_CHAR osstring[CS_MAX_MSG]; 
+	CS_INT osstringlen;
+	CS_INT status;
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
+	CS_INT sqlstatelen;
+};
+
+struct cs_servermsg {
 	int severity;
 	int msgnumber;
 	int state;
@@ -162,7 +174,7 @@ typedef struct cs_servermsg {
 	char proc[CS_MAX_NAME];
 	char text[CS_MAX_MSG];
 	int status;
-} CS_SERVERMSG;
+};
 
 /* status bits for CS_SERVERMSG */
 #define CS_HASEED 0x01
@@ -375,10 +387,26 @@ enum {
 	CS_FMT_PADNULL
 };
 
+/* callbacks */
+#define CS_COMPLETION_CB	1
+#define CS_SERVERMSG_CB		2
+#define CS_CLIENTMSG_CB		3
+#define CS_NOTIF_CB		4
+#define CS_ENCRYPT_CB		5
+#define CS_CHALLENGE_CB		6
+#define CS_DS_LOOKUP_CB		7
+#define CS_SECSESSION_CB	8
+#define CS_SIGNAL_CB		100
+#define CS_MESSAGE_CB		9119
+
+/* string types */
+#define CS_NULLTERM	TDS_NULLTERM
+#define CS_WILDCARD	-99
+#define CS_NO_LIMIT	-9999
+#define CS_UNUSED	-99999
+
 /* other */
-#define CS_NULLTERM	2
 #define CS_SET		4
-#define CS_UNUSED	5
 #define CS_LANG_CMD	7
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
@@ -388,10 +416,6 @@ enum {
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
-#define CS_MESSAGE_CB	18
-#define CS_CLIENTMSG_CB 19
-#define CS_SERVERMSG_CB 20
-#define CS_NOTIF_CB	21
 #define CS_GET		25
 #define CS_CON_STATUS 26
 #define CS_FORCE_CLOSE 27
@@ -425,7 +449,6 @@ enum {
 #define CS_OP_COUNT	64
 #define CS_CANCEL_CURRENT	67
 #define CS_CAPREQUEST	73
-#define CS_NO_LIMIT	74
 #define CS_EED_CMD	77
 #define CS_LOGIN_TIMEOUT	78
 #define CS_CAP_REQUEST	79
@@ -460,6 +483,8 @@ enum {
 #define CS_NO_RECOMPILE	117
 #define CS_COLUMN_DATA	118
 #define CS_SEND_DATA_CMD	119
+#define CS_VERSION	9114
+#define CS_EXTRA_INF	9121
 
 /* result_types */
 #define CS_COMPUTE_RESULT	1
@@ -548,6 +573,8 @@ enum {
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen);
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx);
 CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx);
+CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen);
+CS_RETCODE cs_strbuild(CS_CONTEXT *ctx, CS_CHAR *buffer, CS_INT buflen, CS_INT *resultlen, CS_CHAR *text, CS_INT textlen, CS_CHAR *formats, CS_INT formatlen, ...);
 
 #ifdef __cplusplus
 }

@@ -21,13 +21,119 @@
 #include <cspublic.h>
 #include <tdsconvert.h>
 #include <time.h>
+#include <stdarg.h>
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: cs.c,v 1.19 2002-09-25 01:12:01 castellano Exp $";
+static char  software_version[]   = "$Id: cs.c,v 1.20 2002-09-26 21:10:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+static char *
+_cs_get_layer(int layer)
+{
+	switch (layer) {
+	case 2:
+		return "cslib user api layer";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized layer";
+}
+
+static char *
+_cs_get_origin(int origin)
+{
+	switch (origin) {
+	case 1:
+		return "external error";
+		break;
+	case 2:
+		return "internal CS-Library error";
+		break;
+	case 4:
+		return "common library error";
+		break;
+	case 5:
+		return "intl library error";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized origin";
+}
+
+static char *
+_cs_get_user_api_layer_error(int error)
+{
+	switch (error) {
+	case 3:
+		return "Memory allocation failure.";
+		break;
+	case 16:
+		return "Conversion between %1! and %2! datatypes is not supported.";
+		break;
+	case 20:
+		return "The conversion/operation resulted in overflow.";
+		break;
+	case 24:
+		return "The conversion/operation was stopped due to a syntax error in the source field.";
+		break;
+	default:
+		break;
+	}
+	return "unrecognized error";
+}
+
+static char *
+_cs_get_msgstr(char *funcname, int layer, int origin, int severity, int number)
+{
+char *m;
+
+	if (asprintf(&m, "%s: %s: %s: %s",
+		funcname, 
+		_cs_get_layer(layer),
+		_cs_get_origin(origin),
+		(layer == 2)
+			? _cs_get_user_api_layer_error(number)
+			: "unrecognized error") < 0) {
+		return NULL;
+	}
+	return m;
+}
+
+static void
+_csclient_msg(CS_CONTEXT *ctx, char *funcname, int layer, int origin, int severity, int number, char *fmt, ...)
+{
+va_list ap;
+CS_CLIENTMSG cm;
+char *msgstr;
+
+	va_start(ap, fmt);
+
+	if (ctx->_cslibmsg_cb) {
+		cm.severity = severity;
+		cm.msgnumber = (((layer << 24) & 0xFF000000)
+				| ((origin << 16) & 0x00FF0000)
+				| ((severity << 8) & 0x0000FF00)
+				| ((number) & 0x000000FF));
+		msgstr = _cs_get_msgstr(funcname, layer, origin, severity, number);
+		tds_vstrbuild(cm.msgstring, CS_MAX_MSG, &(cm.msgstringlen),
+			msgstr, CS_NULLTERM, fmt, CS_NULLTERM, ap);
+		cm.msgstring[cm.msgstringlen] = '\0';
+		free(msgstr);
+		cm.osnumber = 0;
+		cm.osstring[0] = '\0';
+		cm.osstringlen = 0;
+		cm.status = 0;
+		/* cm.sqlstate */
+		cm.sqlstatelen = 0;
+		ctx->_cslibmsg_cb(ctx, &cm);
+	}
+
+	va_end(ap);
+}
 
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx)
 {
@@ -53,9 +159,38 @@ CS_RETCODE cs_ctx_drop(CS_CONTEXT *ctx)
 	}
 	return CS_SUCCEED;
 }
-CS_RETCODE cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
+CS_RETCODE
+cs_config(CS_CONTEXT *ctx, CS_INT action, CS_INT property, CS_VOID *buffer, CS_INT buflen, CS_INT *outlen)
 {
-	return CS_SUCCEED;
+	if (action == CS_GET) {
+		if (buffer == NULL) {
+			return CS_SUCCEED;
+		}
+		switch (property) {
+		case CS_MESSAGE_CB:
+			*(void **)buffer = ctx->_cslibmsg_cb;
+			return CS_SUCCEED;
+		case CS_EXTRA_INF:
+		case CS_LOC_PROP:
+		case CS_USERDATA:
+		case CS_VERSION:
+			return CS_FAIL;
+			break;
+		}
+	}
+	/* CS_SET */
+	switch (property) {
+		case CS_MESSAGE_CB:
+			ctx->_cslibmsg_cb = (void *) buffer;
+			return CS_SUCCEED;
+		case CS_EXTRA_INF:
+		case CS_LOC_PROP:
+		case CS_USERDATA:
+		case CS_VERSION:
+			return CS_FAIL;
+			break;
+	}
+	return CS_FAIL;
 }
 
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, 
@@ -233,9 +368,35 @@ CS_RETCODE ret;
     tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() calling tds_convert\n");
     len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, &cres);
 
-    if (len < 0)
-       return CS_FAIL;
     tdsdump_log(TDS_DBG_FUNC, "%L inside cs_convert() tds_convert returned %d\n", len);
+
+    switch (len) {
+    case TDS_CONVERT_NOAVAIL:
+        _csclient_msg(ctx, "cs_convert", 2, 1, 1, 16,
+			"%d, %d", src_type, desttype);
+        return CS_FAIL;
+        break; 
+    case TDS_CONVERT_SYNTAX:
+        _csclient_msg(ctx, "cs_convert", 2, 4, 1, 24, "");
+        return CS_FAIL;
+        break; 
+    case TDS_CONVERT_NOMEM:
+        _csclient_msg(ctx, "cs_convert", 2, 4, 1, 3, "");
+        return CS_FAIL;
+        break;
+    case TDS_CONVERT_OVERFLOW:
+        _csclient_msg(ctx, "cs_convert", 2, 4, 1, 20, "");
+        return CS_FAIL;
+        break;
+    case TDS_CONVERT_FAIL:
+        return CS_FAIL;
+        break;
+    default:
+        if (len < 0) {
+            return CS_FAIL;
+        }
+        break;
+    }      
 
     switch (desttype) {
         case SYBBINARY:
@@ -425,4 +586,17 @@ CS_RETCODE cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT 
 		}
 	}
 	return CS_SUCCEED;
+}
+
+CS_RETCODE
+cs_strbuild(CS_CONTEXT *ctx, CS_CHAR *buffer, CS_INT buflen, CS_INT *resultlen, CS_CHAR *text, CS_INT textlen, CS_CHAR *formats, CS_INT formatlen, ...)
+{
+va_list ap;
+CS_RETCODE rc;
+
+	va_start(ap, formatlen);
+	rc = tds_vstrbuild(buffer, buflen, resultlen, text, textlen,
+				formats, formatlen, ap);
+	va_end(ap);
+	return rc;
 }

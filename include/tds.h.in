@@ -21,10 +21,12 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.56 2002-09-26 14:45:27 freddy77 Exp $";
+	 "$Id: tds.h.in,v 1.57 2002-09-26 21:10:17 castellano Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
+
+#include <stdarg.h>
 
 #ifndef WIN32
 #include <sys/types.h>
@@ -214,6 +216,9 @@ typedef struct tdsdaterec
 #define TDS_ENV_DATABASE  1
 #define TDS_ENV_CHARSET   3
 #define TDS_ENV_BLOCKSIZE 4
+
+/* string types */
+#define TDS_NULLTERM -9
 
 /* 
 <rant> Sybase does an awful job of this stuff, non null ints of size 1 2 
@@ -731,6 +736,9 @@ int tds_flush_packet(TDSSOCKET *tds);
 
 /* read.c */
 int get_size_by_type(int servertype);
+
+/* vstrbuild.c */
+int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, char *formats, int formatlen, va_list ap);
 
 typedef struct tds_answer
 {

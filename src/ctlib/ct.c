@@ -24,7 +24,7 @@
 #include <ctlib.h>
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.32 2002-09-25 19:37:50 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.33 2002-09-26 21:10:17 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -95,15 +95,15 @@ CS_RETCODE ct_callback(CS_CONTEXT *ctx, CS_CONNECTION *con, CS_INT action, CS_IN
 	switch(type) {
 		case CS_CLIENTMSG_CB:
 			if (con) 
-				con->_clientmsg_cb = funcptr;
+				con->_clientmsg_cb = (void *) funcptr;
 			else 
-				ctx->_clientmsg_cb = funcptr;
+				ctx->_clientmsg_cb = (void *) funcptr;
 			break;
 		case CS_SERVERMSG_CB:
 			if (con) 
-				con->_servermsg_cb = funcptr;
+				con->_servermsg_cb = (void *) funcptr;
 			else 
-				ctx->_servermsg_cb = funcptr;
+				ctx->_servermsg_cb = (void *) funcptr;
 			break;
 	}
 	return CS_SUCCEED;

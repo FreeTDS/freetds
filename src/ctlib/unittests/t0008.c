@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.4 2002-09-25 17:57:24 castellano Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.5 2002-09-26 21:10:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /*
@@ -28,7 +28,11 @@ CS_SMALLINT dst;
 	srcfmt.datatype = CS_INT_TYPE;
 	srcfmt.maxlength = sizeof(CS_INT);
 	srcfmt.locale = NULL;
+#if 0
 	dstfmt.datatype = CS_SMALLINT_TYPE;
+#else
+	dstfmt.datatype = CS_DATETIME_TYPE;
+#endif
 	dstfmt.maxlength = sizeof(CS_SMALLINT);
 	dstfmt.locale = NULL;
 
@@ -56,6 +60,25 @@ CS_SMALLINT dst;
 		fprintf(stderr, "clientmsg_cb was invoked!\n");
 		return 1;
 	}
+
+	if (verbose) {
+		fprintf(stdout, "Trying cslibmsg_cb\n");
+	}
+	if (cs_config(ctx, CS_SET, CS_MESSAGE_CB, cslibmsg_cb, CS_UNUSED, NULL)
+		!= CS_SUCCEED) {
+		fprintf(stderr, "cs_config() failed\n");
+		return 1;
+	}
+	cslibmsg_cb_invoked = 0;
+	if (cs_convert(ctx, &srcfmt, &src, &dstfmt, &dst, NULL) == CS_SUCCEED) {
+		fprintf(stderr, "cs_convert() succeeded when failure was expected\n");
+		return 1;
+	}
+	if (cslibmsg_cb_invoked == 0) {
+		fprintf(stderr, "cslibmsg_cb was not invoked!\n");
+		return 1;
+	}
+
 	if (ct_exit(ctx, CS_UNUSED) != CS_SUCCEED) {
 		fprintf(stderr, "ct_exit() failed\n");
 	}

@@ -3,7 +3,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: common.c,v 1.4 2002-09-23 23:45:29 castellano Exp $";
+static char  software_version[]   = "$Id: common.c,v 1.5 2002-09-26 21:10:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 char USER[512];
@@ -11,6 +11,7 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 
+int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
 
@@ -174,6 +175,27 @@ CS_RETCODE run_command(CS_COMMAND *cmd, char *sql)
 
    return CS_SUCCEED;
 }
+
+CS_INT
+cslibmsg_cb(CS_CONTEXT *context, CS_CLIENTMSG *errmsg)
+{
+	cslibmsg_cb_invoked++;
+	fprintf(stderr, "\nCS-Library Message:\n");
+	fprintf(stderr, "number %d layer %d origin %d severity %d number %d\n",
+		errmsg->msgnumber,
+		CS_LAYER(errmsg->msgnumber),
+		CS_ORIGIN(errmsg->msgnumber),
+		CS_SEVERITY(errmsg->msgnumber),
+		CS_NUMBER(errmsg->msgnumber));
+	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
+	fprintf(stderr, "osstring: %s\n",
+			(errmsg->osstringlen > 0)
+				? errmsg->osstring
+				: "(null)");
+	return CS_SUCCEED;
+}
+
+
 
 CS_RETCODE
 clientmsg_cb(CS_CONTEXT *context, CS_CONNECTION *connection, CS_CLIENTMSG *errmsg)

@@ -36,7 +36,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.66 2002-09-25 01:12:02 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.67 2002-09-26 21:10:18 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2831,6 +2831,21 @@ DBBOOL dbisavail(DBPROCESS *dbproc)
 void dbsetavail(DBPROCESS *dbproc)
 {
 	dbproc->avail_flag = TRUE;
+}
+
+int
+dbstrbuild(DBPROCESS *dbproc, char *charbuf, int bufsize, char *text, char *formats, ...)
+{
+va_list ap;
+int rc;
+int resultlen;
+
+	va_start(ap, formats);
+	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM,
+				formats, TDS_NULLTERM, ap);
+	charbuf[resultlen] = '\0';
+	va_end(ap);
+	return rc;
 }
 
 int

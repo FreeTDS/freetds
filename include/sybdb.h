@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.22 2002-09-25 01:12:01 castellano Exp $";
+"$Id: sybdb.h,v 1.23 2002-09-26 21:10:16 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -555,7 +555,7 @@ RETCODE dbsprline(DBPROCESS *dbproc, char *buffer, DBINT buf_len, DBCHAR line_ch
 RETCODE dbsqlexec(DBPROCESS *dbproc);
 RETCODE dbsqlok(DBPROCESS *dbproc);
 RETCODE dbsqlsend(DBPROCESS *dbproc);
-int dbstrbuild(DBPROCESS *dbprocess, char *buf, int size, char *text, char *fmt, ...);
+int dbstrbuild(DBPROCESS *dbproc, char *charbuf, int bufsize, char *text, char *formats, ...);
 int dbstrcmp(DBPROCESS *dbprocess, char *s1, int l1, char *s2, int l2, DBSORTORDER *sort);
 RETCODE dbstrcpy(DBPROCESS *dbproc, int start, int numbytes, char *dest);
 int dbstrlen(DBPROCESS *dbproc);

@@ -1,3 +1,22 @@
+Thu Sep 26 17:02:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/cspublic.h include/sybdb.h include/tds.h.in
+	  src/ctlib/cs.c src/ctlib/ct.c src/ctlib/unittests/common.c
+	  src/ctlib/unittests/common.h src/ctlib/unittests/t0008.c
+	  src/dblib/dblib.c src/tds/Makefile.am
+	  src/tds/vstrbuild.c (added):
+	- Implement tds_vstrbuild(), to handle Sybase message formatting.
+	- Implement cs_strbuild() based on above, needed this to implement
+	  cslib client callback framework.
+	- Implement dbstrbuild() for the heck of it, since tds_strbuild()
+	  can do all the hard parts.
+	- Implement minimal csconfig() that can set CS-Library message
+	  callbacks.
+	- Implement basic framework for generating CS-Library messages, and
+	  use that framework to implement a couple of messages in cs_convert().
+	- Add test for cslib client callbacks.
+	- Fix a couple of CS-Library constants and datatypes.
+	- Hi Bill! ;-)
+
 Thu Sep 26 16:44:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/query.c src/tds/write.c:
 	- completed and tested submit prepare statement using tds7+
