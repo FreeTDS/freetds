@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.206 2003-08-06 09:15:32 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.207 2003-08-06 12:34:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -288,8 +288,29 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 {
 	SQLRETURN ret;
 	TDSCONNECTINFO *connect_info;
+	int conlen;
 
 	INIT_HDBC;
+
+#ifdef TDS_NO_DM
+	/* Check string length */
+	if (!IS_VALID_LEN(conlen) || conlen == 0) {
+		odbc_errs_add(&dbc->errs, "HY090", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
+	/* Check completion param */
+	switch (fDriverCompletion) {
+	case SQL_DRIVER_NOPROMPT:
+	case SQL_DRIVER_COMPLETE:
+	case SQL_DRIVER_PROMPT:
+	case SQL_DRIVER_COMPLETE_REQUIRED:
+		break;
+	default:
+		odbc_errs_add(&dbc->errs, "HY110", NULL, NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+#endif
 
 	connect_info = tds_alloc_connect(dbc->henv->tds_ctx->locale);
 	if (!connect_info) {
@@ -297,8 +318,16 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	/* FIXME szConnStrIn can be no-null terminated */
-	tdoParseConnectString((char *) szConnStrIn, connect_info);
+	/* we dont support a dialog box */
+	if (hwnd)
+		odbc_errs_add(&dbc->errs, "HYC00", NULL, NULL);
+
+	conlen = odbc_get_string_size(cbConnStrIn, szConnStrIn);
+	tdoParseConnectString(szConnStrIn, szConnStrIn + odbc_get_string_size(cbConnStrIn, szConnStrIn), connect_info);
+
+	/* TODO what should be correct behavior for output string?? -- freddy77 */
+	if (szConnStrOut)
+		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, szConnStrIn, conlen);
 
 	if (tds_dstr_isempty(&connect_info->server_name)) {
 		tds_free_connect(connect_info);
@@ -317,18 +346,6 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		ODBC_RETURN(dbc, ret);
 	}
 
-	/* TODO what should be correct behavior for output string?? -- freddy77 */
-	if (cbConnStrIn == SQL_NTS)
-		cbConnStrIn = strlen(szConnStrIn);
-	if (szConnStrOut != NULL && cbConnStrOutMax >= 0 && cbConnStrOutMax > cbConnStrIn) {
-		memcpy(szConnStrOut, szConnStrIn, cbConnStrIn);
-		szConnStrOut[cbConnStrIn] = '\0';
-		if (pcbConnStrOut)
-			*pcbConnStrOut = cbConnStrIn;
-	} else if (pcbConnStrOut)
-		*pcbConnStrOut = 0;
-
-	/* use the default database */
 	tds_free_connect(connect_info);
 	if (dbc->errs.num_errors != 0)
 		ODBC_RETURN(dbc, SQL_SUCCESS_WITH_INFO);

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.47 2003-08-03 14:05:42 freddy77 Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.48 2003-08-06 12:34:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -160,11 +160,12 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTINFO * connect_info)
 
 /** 
  * Parse connection string and fill connect_info according
- * @param pszConnectString connect string
- * @param connect_info     where to store connection info
+ * @param connect_string     connect string
+ * @param connect_string_end connect string end (pointer to char past last)
+ * @param connect_info       where to store connection info
  * @return 1 if success 0 otherwhise */
 int
-tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_info)
+tdoParseConnectString(const char *connect_string, const char *connect_string_end, TDSCONNECTINFO * connect_info)
 {
 	const char *p, *end;
 	DSTR *dest_s, value;
@@ -173,11 +174,11 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 	char tmp[256];
 
 	tds_dstr_init(&value);
-	for (p = pszConnectString; p && *p;) {
+	for (p = connect_string; p && *p;) {
 		dest_s = NULL;
 
 		/* parse option */
-		end = strchr(p, '=');
+		end = (const char *) memchr(p, '=', connect_string_end - p);
 		if (!end)
 			break;
 
@@ -188,7 +189,7 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 		if ((end - p) >= (int) sizeof(option))
 			option[0] = 0;
 		else {
-			strncpy(option, p, end - p);
+			memcpy(option, p, end - p);
 			option[end - p] = 0;
 		}
 
@@ -196,12 +197,18 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 		p = end + 1;
 		if (*p == '{') {
 			++p;
-			end = strstr(p, "};");
+			/* search "};" */
+			end = p;
+			while ((end = (const char *) memchr(end, '}', connect_string_end - end)) != NULL) {
+				if ((end + 1) != connect_string_end && end[1] == ';')
+					break;
+				++end;
+			}
 		} else {
-			end = strchr(p, ';');
+			end = (const char *) memchr(p, ';', connect_string_end - p);
 		}
 		if (!end)
-			end = strchr(p, 0);
+			end = connect_string_end;
 
 		if (!tds_dstr_copyn(&value, p, end - p))
 			return 0;
@@ -220,14 +227,14 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 			if (!reparse) {
 				tds_read_conf_file(connect_info, tds_dstr_cstr(&value));
 				reparse = 1;
-				p = pszConnectString;
+				p = connect_string;
 				continue;
 			}
 		} else if (strcasecmp(option, "DSN") == 0) {
 			if (!reparse) {
 				odbc_get_dsn_info(tds_dstr_cstr(&value), connect_info);
 				reparse = 1;
-				p = pszConnectString;
+				p = connect_string;
 				continue;
 			}
 		} else if (strcasecmp(option, "DATABASE") == 0) {
@@ -263,7 +270,7 @@ tdoParseConnectString(const char *pszConnectString, TDSCONNECTINFO * connect_inf
 
 		p = end;
 		/* handle "" ";.." "};.." cases */
-		if (!*p)
+		if (p >= connect_string_end)
 			break;
 		if (*p == '}')
 			++p;
