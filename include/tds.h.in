@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.21 2002-07-15 03:29:58 brianb Exp $";
+	 "$Id: tds.h.in,v 1.22 2002-07-16 04:01:00 brianb Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -529,10 +529,10 @@ typedef struct tds_dynamic {
 
 typedef struct tds_context {
 	TDSLOCINFO *locale;
-	TDSMSGINFO *msg_info;
+	void *parent;
 	/* handler */
-	int (*msg_handler)(void *, void*);
-	int (*err_handler)(void *, void*);
+	int (*msg_handler)(void *, void *, void *);
+	int (*err_handler)(void *, void *, void *);
 } TDSCONTEXT;
 
 typedef struct tds_socket {
@@ -609,6 +609,8 @@ extern char *tds_get_n(TDSSOCKET *tds, void *dest, int n);
 extern char *tds_get_string(TDSSOCKET *tds, void *dest, int n);
 extern TDSRESULTINFO *tds_alloc_results(int num_cols);
 extern TDSCOMPUTEINFO *tds_alloc_compute_results(int num_cols);
+extern TDSCONTEXT *tds_alloc_context();
+extern void tds_free_context(TDSCONTEXT *locale);
 extern TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize);
 extern TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale);
 extern TDSLOCINFO *tds_get_locale();
@@ -618,6 +620,7 @@ extern TDSLOGIN *tds_alloc_login();
 extern void tds_free_login(TDSLOGIN *login);
 extern TDSCONFIGINFO *tds_alloc_config(TDSLOCINFO *locale);
 extern TDSLOCINFO *tds_alloc_locale();
+extern void tds_free_locale(TDSLOCINFO *locale);
 extern TDSSOCKET *tds_connect(TDSLOGIN *login, TDSCONTEXT *context, void *parent);
 extern TDSINPUTPARAM *tds_add_input_param(TDSDYNAMIC *dyn);
 extern void tds_set_packet(TDSLOGIN *tds_login, short packet_size);

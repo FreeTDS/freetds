@@ -190,21 +190,22 @@ int  opt;
 	if (password) free(password);
 	if (servername) free(servername);
 }
-int tsql_handle_message(void *ctxptr, void *tdsptr)
+int tsql_handle_message(void *ctxptr, void *tdsptr, void *msgptr)
 {
 	TDSCONTEXT *context = (TDSCONTEXT *) tdsptr;
 	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
+	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 
-     if( tds->msg_info->msg_number > 0  && tds->msg_info->msg_number != 5701) {
+     if( msg->msg_number > 0  && msg->msg_number != 5701) {
 		fprintf (stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-                         tds->msg_info->msg_number,
-                         tds->msg_info->msg_level,
-                         tds->msg_info->msg_state,
-                         tds->msg_info->server,
-                         tds->msg_info->line_number,
-                         tds->msg_info->message);
+                         msg->msg_number,
+                         msg->msg_level,
+                         msg->msg_state,
+                         msg->server,
+                         msg->line_number,
+                         msg->message);
 	}
-	tds_reset_msg_info(tds->msg_info);
+	tds_reset_msg_info(msg);
 
 	return 1;
 }

@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.28 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.29 2002-07-16 04:01:22 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1029,14 +1029,16 @@ int tmp = tds_get_smallint(tds);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, char *message)
 {
 int ret;
+TDSMSGINFO msg_info;
+
         if(tds_ctx->err_handler) {
-		tds->msg_info->msg_number=msgnum;
-        	tds->msg_info->msg_level=level; /* severity? */
-        	tds->msg_info->msg_state=state;
-        	tds->msg_info->server=strdup("OpenClient");
-        	tds->msg_info->line_number=line;
-        	tds->msg_info->message=strdup(message);
-        	ret = tds_ctx->err_handler(tds_ctx, tds);
+		msg_info.msg_number=msgnum;
+        	msg_info.msg_level=level; /* severity? */
+        	msg_info.msg_state=state;
+        	msg_info.server=strdup("OpenClient");
+        	msg_info.line_number=line;
+        	msg_info.message=strdup(message);
+        	ret = tds_ctx->err_handler(tds_ctx, tds, &msg_info);
 		/* message handler returned FAIL/CS_FAIL
 		** mark socket as dead */
 		if (ret) {
@@ -1238,9 +1240,9 @@ int len_sqlstate;
 	if(tds->msg_info->priv_msg_type
 	                   ? tds->tds_ctx->err_handler : tds->tds_ctx->msg_handler) {
 		if (tds->msg_info->priv_msg_type)
-			tds->tds_ctx->err_handler(tds->tds_ctx, tds);
+			tds->tds_ctx->err_handler(tds->tds_ctx, tds, tds->msg_info);
 		else
-			tds->tds_ctx->msg_handler(tds->tds_ctx, tds);
+			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, tds->msg_info);
 	} else {
 		if(tds->msg_info->msg_number)
 			tdsdump_log(TDS_DBG_WARN,

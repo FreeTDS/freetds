@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 static char  rcsid_ctlib_h [ ] =
-         "$Id: ctlib.h,v 1.2 2002-07-15 03:29:58 brianb Exp $";
+         "$Id: ctlib.h,v 1.3 2002-07-16 04:00:58 brianb Exp $";
 static void *no_unused_ctlib_h_warn[]={rcsid_ctlib_h, no_unused_ctlib_h_warn};
 
 #include <tds.h>
@@ -46,8 +46,8 @@ typedef struct ctcolinfo
 /*
 ** internal prototypes
 */
-int ctlib_handle_info_message(void *aStruct, void *bStruct);
-int ctlib_handle_err_message(void *aStruct, void *bStruct);
+int ctlib_handle_info_message(void *ctxptr, void *tdsptr, void *msgptr);
+int ctlib_handle_err_message(void *ctxptr, void *tdsptr, void *msgptr);
 int _ct_get_server_type(int datatype);
 
 #ifdef __cplusplus

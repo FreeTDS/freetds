@@ -23,7 +23,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: dbutil.c,v 1.6 2002-07-15 03:29:58 brianb Exp $";
+static char  software_version[]   = "$Id: dbutil.c,v 1.7 2002-07-16 04:01:21 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -37,87 +37,87 @@ extern int (*g_dblib_err_handler)(DBPROCESS*,TDS_SMALLINT,TDS_SMALLINT,TDS_SMALL
  * recieves an informational message from the server that it can be dealt with
  * immediately (or so). It takes a pointer to a DBPROCESS, its just that the
  * TDS layer didn't what it really was */
-int dblib_handle_info_message(void *aStruct, void *bStruct)
+int dblib_handle_info_message(void *ctxptr, void *tdsptr, void *msgptr)
 {
-	TDSCONTEXT *tds_ctx = (TDSSOCKET *) aStruct;
-	TDSSOCKET *tds = (TDSSOCKET *) bStruct;
+	TDSCONTEXT *tds_ctx = (TDSCONTEXT *) ctxptr;
+	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
+	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
 	}
-	if( tds->msg_info->msg_number > 0 )
+	if( msg->msg_number > 0 )
 	{
 		/* now check to see if the user supplied a function, if not ignore the
 		 * problem */
 		if(g_dblib_msg_handler)
 		{
 			g_dblib_msg_handler(dbproc,
-					tds->msg_info->msg_number,
-					tds->msg_info->msg_state,
-					tds->msg_info->msg_level, 
-					tds->msg_info->message,
-					tds->msg_info->server, 
-					tds->msg_info->proc_name);
+					msg->msg_number,
+					msg->msg_state,
+					msg->msg_level, 
+					msg->message,
+					msg->server, 
+					msg->proc_name);
 		}
 		else
 		{
 #if 0
 			fprintf (stderr, "INFO..No User supplied info msg handler..Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-					tds->msg_info->msg_number,
-					tds->msg_info->msg_level, 
-					tds->msg_info->msg_state,
-					tds->msg_info->server, 
-					tds->msg_info->line_number,  
-					tds->msg_info->message);
+					msg->msg_number,
+					msg->msg_level, 
+					msg->msg_state,
+					msg->server, 
+					msg->line_number,  
+					msg->message);
 #endif
 		}
 
 		/* and now clean up the structure for next time */
-		if (tds)
-			tds_reset_msg_info(tds->msg_info);
+		tds_reset_msg_info(msg);
 	}
         return 1;
 }
 
-int dblib_handle_err_message(void *aStruct, void *bStruct)
+int dblib_handle_err_message(void *ctxptr, void *tdsptr, void *msgptr)
 {
-	TDSCONTEXT *tds_ctx = (TDSSOCKET *) aStruct;
-	TDSSOCKET *tds = (TDSSOCKET *) bStruct;
+	TDSCONTEXT *tds_ctx = (TDSSOCKET *) ctxptr;
+	TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
+	TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 	DBPROCESS *dbproc = NULL;
 
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS*)tds->parent;
 	}
-	if( tds->msg_info->msg_number > 0 )
+	if( msg->msg_number > 0 )
 	{
 		/* now check to see if the user supplied a function, if not ignore the
 		 * problem */
 		if(g_dblib_err_handler)
 		{
 			g_dblib_err_handler(dbproc,
-					tds->msg_info->msg_level,
-					tds->msg_info->msg_number,
-					tds->msg_info->msg_state, 
-					tds->msg_info->message,
-					tds->msg_info->server); 
+					msg->msg_level,
+					msg->msg_number,
+					msg->msg_state, 
+					msg->message,
+					msg->server); 
 		}
 		else
 		{
 #if 0
 			fprintf (stderr, "ERR..No User supplied err msg handler..Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-					tds->msg_info->msg_number,
-					tds->msg_info->msg_level, 
-					tds->msg_info->msg_state,
-					tds->msg_info->server, 
-					tds->msg_info->line_number,  
-					tds->msg_info->message);
+					msg->msg_number,
+					msg->msg_level, 
+					msg->msg_state,
+					msg->server, 
+					msg->line_number,  
+					msg->message);
 #endif
 		}
 
 		/* and now clean up the structure for next time */
-		if (dbproc && dbproc->tds_socket)
-			tds_reset_msg_info(dbproc->tds_socket->msg_info);
+		tds_reset_msg_info(msg);
 	}
         return 1;
 }
