@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.134 2003-02-14 13:19:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.135 2003-02-27 15:23:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -205,6 +205,8 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 
 	/* use the default database */
 	tds_free_connect(connect_info);
+	if (dbc->errs.num_errors != 0)
+		return SQL_SUCCESS_WITH_INFO;
 	return SQL_SUCCESS;
 }
 
@@ -694,6 +696,8 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	tds_free_connect(connect_info);
+	if (dbc->errs.num_errors != 0)
+		return SQL_SUCCESS_WITH_INFO;
 	return SQL_SUCCESS;
 }
 

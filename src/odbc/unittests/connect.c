@@ -11,7 +11,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.4 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.5 2003-02-27 15:23:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR*) tmp, SQL_NTS, (SQLCHAR*) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (res != SQL_SUCCESS) {
+	if (!SQL_SUCCEEDED(res)) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
 		exit(1);
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	init_connect();
 	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR*) tmp, SQL_NTS, (SQLCHAR*) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (res != SQL_SUCCESS) {
+	if (!SQL_SUCCEEDED(res)) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
 		exit(1);
