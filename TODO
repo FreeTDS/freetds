@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.64 2003-08-05 04:01:56 jklowden Exp $
+To Do List	$Id: TODO,v 1.65 2003-08-06 03:45:41 jklowden Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -57,7 +57,9 @@ For future versions (in priority order within library):
 . support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested many time ago for mssql6.5 server, only
   for completeness)
-
+. NTLMv2 domain login support.  Cf. ML 5 Aug 2003 12:20:21 -0700 (PDT) 
+  from bradleyb@u.washington.edu re: "Domain Login Support, connecting to MSSQL issue"
+  and http://davenport.sourceforge.net/ntlm.html.  For now, document.
 
   db-lib
 . Returning INT_CANCEL from an error handler doesn't always engender FAIL. 

@@ -1,3 +1,9 @@
+Tue Aug  5 23:41:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* TODO added NTLMv2 note
+	* doc/tds.html completed one little TODO
+	* doc/userguide.sgml domain login discussion and tsql update
+	* src/ctlib/ct.c reformatting in ct_options
+	
 Tue Aug 05 15:27:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/userguide.sgml: some updates
 
