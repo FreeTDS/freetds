@@ -26,12 +26,11 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdio.h>
 #include <tds.h>
 #include <tdsconvert.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0006.c,v 1.12 2002-11-22 12:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.13 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -53,7 +52,7 @@ main(int argc, char **argv)
 	CONV_RESULT cr;
 	TDS_INT srctype, srclen;
 
-	int src_id;
+	int src_id = 0;
 	double src_val;
 	double src_err;
 	double tolerance = 0.000001;

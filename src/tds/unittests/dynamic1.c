@@ -23,6 +23,10 @@
 
 #include <stdio.h>
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -30,7 +34,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.1 2002-11-22 12:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.2 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -86,7 +90,6 @@ main(int argc, char **argv)
 	int verbose = 0;
 	TDSDYNAMIC *dyn;
 	int rc;
-	TDS_INT n;
 
 	fprintf(stdout, "%s: Test dynamic queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);

@@ -23,6 +23,10 @@
 
 #include <stdio.h>
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -30,7 +34,7 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.9 2002-11-20 13:34:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.10 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;

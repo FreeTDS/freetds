@@ -30,7 +30,7 @@
 #include <tds.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.10 2002-11-22 12:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.11 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -56,7 +56,6 @@ main(int argc, char **argv)
 	TDSSOCKET *tds;
 	int verbose = 0;
 	int rc;
-	int i;
 
 	int result_type;
 	int row_type;
@@ -110,7 +109,7 @@ main(int argc, char **argv)
 		case TDS_ROW_RESULT:
 			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
 				if (verbose) {
-					printf("col %i is %s\n", i, varchar_as_string(tds, 0));
+					printf("col 0 is %s\n", varchar_as_string(tds, 0));
 				}
 			}
 			if (rc == TDS_FAIL) {

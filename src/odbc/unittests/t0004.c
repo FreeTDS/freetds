@@ -8,11 +8,15 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "common.h"
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.6 2002-11-20 14:00:43 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.7 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int

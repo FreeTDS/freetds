@@ -1,3 +1,11 @@
+Fri Nov 22 16:39:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c src/odbc/unittests/connect.c:
+	* src/odbc/unittests/t0001.c src/odbc/unittests/t0004.c:
+	* src/tds/unittests/dynamic1.c src/tds/unittests/t0003.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0006.c:
+	* src/tds/unittests/t0007.c:
+	- remove some warning
+
 Fri Nov 22 14:18:32 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- implement RPC on TDS7+

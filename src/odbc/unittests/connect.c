@@ -11,11 +11,11 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.1 2002-11-21 10:49:03 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.2 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
-init_connect()
+init_connect(void)
 {
 	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
 		printf("Unable to allocate env\n");

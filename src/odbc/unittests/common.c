@@ -4,13 +4,17 @@
 
 #include <stdio.h>
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.8 2002-11-21 10:49:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.9 2002-11-22 15:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -61,10 +65,10 @@ CheckReturn(void)
 	unsigned char msg[256];
 
 
-	if (Statement != NULL) {
+	if (Statement) {
 		handletype = SQL_HANDLE_STMT;
 		handle = Statement;
-	} else if (Connection != NULL) {
+	} else if (Connection) {
 		handletype = SQL_HANDLE_DBC;
 		handle = Connection;
 	} else {
@@ -74,7 +78,6 @@ CheckReturn(void)
 	SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	printf("SQL error %s -- %s\n", sqlstate, msg);
 	exit(1);
-
 }
 
 
