@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc_util.c,v 1.29 2003-05-17 18:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: odbc_util.c,v 1.30 2003-07-03 19:28:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -111,7 +111,7 @@ odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 void
 odbc_set_return_status(struct _hstmt *stmt)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) stmt->hdbc->tds_socket;
+	TDSSOCKET *tds = stmt->hdbc->tds_socket;
 	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
 
 #if 0
@@ -139,6 +139,53 @@ odbc_set_return_status(struct _hstmt *stmt)
 
 }
 
+void
+odbc_set_return_params(struct _hstmt *stmt)
+{
+	TDSSOCKET *tds = stmt->hdbc->tds_socket;
+	TDSPARAMINFO *info = tds->curr_resinfo;
+	TDSCONTEXT *context = stmt->hdbc->henv->tds_ctx;
+
+	int i_begin = stmt->prepared_query_is_func ? 2 : 1;
+	int i;
+	int nparam = i_begin;
+
+	for (i = 0; i < info->num_cols; ++i) {
+		struct _sql_param_info *param;
+		TDSCOLINFO *colinfo = info->columns[i];
+		TDS_CHAR *src;
+		int srclen;
+		SQLINTEGER len;
+
+		/* find next output parameter */
+		for (;;) {
+			param = odbc_find_param(stmt, nparam++);
+			if (param && param->param_type != SQL_PARAM_INPUT)
+				break;
+			/* TODO best way to stop */
+			if (!param)
+				return;
+		}
+
+		/* null parameter ? */
+		if (tds_get_null(info->current_row, i)) {
+			*param->param_lenbind = SQL_NULL_DATA;
+			continue;
+		}
+
+		src = (TDS_CHAR *) & info->current_row[colinfo->column_offset];
+		if (is_blob_type(colinfo->column_type))
+			src = ((TDSBLOBINFO *) src)->textvalue;
+		srclen = colinfo->column_cur_size;
+		len = convert_tds2sql(context,
+				      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+				      src, srclen, param->param_bindtype, param->varaddr, param->param_bindlen);
+		/* TODO error handling */
+		if (len < 0)
+			return /* SQL_ERROR */ ;
+		*param->param_lenbind = len;
+	}
+}
 
 struct _sql_param_info *
 odbc_find_param(struct _hstmt *stmt, int param_num)

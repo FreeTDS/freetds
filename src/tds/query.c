@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.94 2003-05-29 19:06:07 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.95 2003-07-03 19:28:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -702,16 +702,13 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
 	static const unsigned char GEN_NULL = 0x00;
 
-/* I don't think this is working as tds_set_null is not being called prior to this...
-   I can't figure out how where I should call tds_set_null() anyway....
-
 	is_null = tds_get_null(current_row, i);
-*/
 	colsize = curcol->column_cur_size;
-	if (colsize == 0)
+/*	if (colsize == 0)
 		is_null = 1;
 	else
 		is_null = 0;
+*/
 
 	tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: is_null = %d, colsize = %d\n", is_null, colsize);
 

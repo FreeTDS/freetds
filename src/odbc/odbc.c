@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.183 2003-07-01 20:23:46 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.184 2003-07-03 19:28:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -371,6 +371,9 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case TDS_STATUS_RESULT:
 				odbc_set_return_status(stmt);
 				break;
+			case TDS_PARAM_RESULT:
+				odbc_set_return_params(stmt);
+				break;
 
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
@@ -388,7 +391,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 				tds->rows_affected = TDS_NO_COUNT;
 				stmt->row = 0;
 				return SQL_SUCCESS;
-			case TDS_PARAM_RESULT:
 			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
 				break;
@@ -1168,12 +1170,14 @@ _SQLExecute(TDS_STMT * stmt)
 	while ((ret = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_COMPUTE_RESULT:
-		case TDS_PARAM_RESULT:
 		case TDS_ROW_RESULT:
 			done = 1;
 			break;
 		case TDS_STATUS_RESULT:
 			odbc_set_return_status(stmt);
+			break;
+		case TDS_PARAM_RESULT:
+			odbc_set_return_params(stmt);
 			break;
 
 		case TDS_DONE_RESULT:
@@ -1360,8 +1364,10 @@ SQLExecute(SQLHSTMT hstmt)
 			result = SQL_SUCCESS;
 			odbc_set_return_status(stmt);
 			break;
-
 		case TDS_PARAM_RESULT:
+			odbc_set_return_params(stmt);
+			break;
+
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_MSG_RESULT:
 		case TDS_ROWFMT_RESULT:

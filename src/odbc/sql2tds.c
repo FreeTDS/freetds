@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: sql2tds.c,v 1.13 2003-07-02 20:33:21 freddy77 Exp $";
+static char software_version[] = "$Id: sql2tds.c,v 1.14 2003-07-03 19:28:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -96,6 +96,10 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 		curcol->column_cur_size = curcol->column_size = len;
 		if (param->param_type != SQL_PARAM_INPUT)
 			curcol->column_size = param->param_bindlen;
+	} else {
+		/* TODO only a trick... */
+		if (curcol->column_varint_size == 0)
+			tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
 	}
 	tdsdump_log(TDS_DBG_INFO2, "%s:%d\n", __FILE__, __LINE__);
 
@@ -111,7 +115,8 @@ sql2tds(TDS_DBC * dbc, struct _sql_param_info *param, TDSPARAMINFO * info, int n
 		return TDS_CONVERT_FAIL;
 
 	/* set null */
-	if (*param->param_lenbind == SQL_NULL_DATA) {
+	if (*param->param_lenbind == SQL_NULL_DATA || param->param_type == SQL_PARAM_OUTPUT) {
+		curcol->column_cur_size = 0;
 		tds_set_null(info->current_row, nparam);
 		return TDS_SUCCEED;
 	}
