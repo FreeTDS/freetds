@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.66 2003-01-03 23:34:08 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.67 2003-01-04 09:52:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2003,16 +2003,10 @@ TDSCOLINFO *curcol;
 
 	curcol = info->columns[0];
 
-	curcol->column_nullable = 0;
-	curcol->column_writeable = 0;
-	curcol->column_identity = 0;
-
 	tds_set_column_type(curcol, SYBINT4);
 
 	tdsdump_log(TDS_DBG_INFO1, "%L generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
-
-	curcol->column_size = sizeof(TDS_INT);
 
 	tds_add_row_column_size(info, curcol);
 
