@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.13 2003-07-29 09:00:08 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.14 2003-09-08 17:29:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -196,6 +196,7 @@ prepare_call(struct _hstmt * stmt)
 			++s;
 	}
 	--s;			/* trick, now s point to no blank */
+	/* TODO support constant and empty parameters */
 	for (;;) {
 		while (isspace(*++s));
 		if (!*s)
