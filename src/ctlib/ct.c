@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.56 2002-12-11 22:11:41 jklowden Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.57 2002-12-12 10:01:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -364,6 +364,7 @@ int query_len;
 		default:
 			return CS_FAIL;
 		}
+		break;
 
 	case CS_RPC_CMD: 
 		switch (option) {
@@ -374,6 +375,7 @@ int query_len;
 		default:
 			return CS_FAIL;
 		}
+		break;
 
 	case CS_SEND_DATA_CMD:
 		switch (option) {
@@ -383,6 +385,7 @@ int query_len;
 		default:
 			return CS_FAIL;
 		}
+		break;
 
 	case CS_SEND_BULK_CMD: 
 		switch (option) {
@@ -391,6 +394,7 @@ int query_len;
 		default:
 			return CS_FAIL;
 		}
+		break;
 
 	default:
 		return CS_FAIL;

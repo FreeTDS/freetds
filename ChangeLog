@@ -1,3 +1,6 @@
+Thu Dec 12 11:01:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: fix switches
+
 Wed Dec 11 22:43:59 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: add some TODO for overflow check
 
