@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.64 2002-10-05 14:49:12 freddy77 Exp $";
+	 "$Id: tds.h,v 1.15 2002-10-11 19:58:18 freddy77 Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -69,30 +69,6 @@ static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 #ifdef __cplusplus
 extern "C" {
 #endif 
-
-/* 
-** this is where platform specific changes need to be made.
-** I've tried to change all references to data that goes to 
-** or comes off the wire to use these typedefs.  I've probably 
-** missed a bunch, but the idea is we can do an ifdef here 
-** to set the appropriately sized native type.
-**
-** If you have problems on 64-bit machines and the code is 
-** using a native datatype, please change the code to use
-** these. (In the TDS layer only, the API layers have their
-** own typedefs which equate to these).
-*/
-typedef char				TDS_CHAR;      /*  8 bit char     */
-typedef unsigned char		TDS_UCHAR;     /*  8 bit uchar    */
-typedef unsigned char		TDS_TINYINT;   /*  8 bit int      */
-typedef @smallint@            TDS_SMALLINT;  /* 16 bit int      */
-typedef unsigned @smallint@  	TDS_USMALLINT; /* 16 bit unsigned */
-typedef @int@                 TDS_INT;       /* 32 bit int      */
-typedef unsigned @int@       	TDS_UINT;      /* 32 bit unsigned */
-typedef @real@                TDS_REAL;      /* 32 bit float    */
-typedef @float@               TDS_FLOAT;     /* 64 bit float    */
-typedef @int64@			TDS_INT8;     	/* 64 bit integer  */
-typedef unsigned @int64@	TDS_UINT8;     	/* 64 bit integer  */
 
 typedef struct tdsnumeric
 {

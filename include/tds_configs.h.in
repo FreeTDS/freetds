@@ -21,20 +21,45 @@
 #define _tds_configs_h_
 
 static char rcsid_tds_configs_h[]=
-	 "$Id: tds_configs.h.in,v 1.3 2002-02-17 20:23:37 brianb Exp $";
+	 "$Id: tds_configs.h.in,v 1.4 2002-10-11 19:58:19 freddy77 Exp $";
 static void *no_unused_tds_configs_h_warn[]={rcsid_tds_configs_h, no_unused_tds_configs_h_warn};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FREETDS_SYSCONFDIR "%SYSCONFDIR%"
-#define FREETDS_SYSCONFFILE "%SYSCONFDIR%/freetds.conf"
-#define FREETDS_POOLCONFFILE "%SYSCONFDIR%/pool.conf"
-#define FREETDS_LOCALECONFFILE "%SYSCONFDIR%/locales.conf"
+/* 
+** this is where platform specific changes need to be made.
+** I've tried to change all references to data that goes to 
+** or comes off the wire to use these typedefs.  I've probably 
+** missed a bunch, but the idea is we can do an ifdef here 
+** to set the appropriately sized native type.
+**
+** If you have problems on 64-bit machines and the code is 
+** using a native datatype, please change the code to use
+** these. (In the TDS layer only, the API layers have their
+** own typedefs which equate to these).
+*/
+typedef char                 TDS_CHAR;      /*  8 bit char     */
+typedef unsigned char        TDS_UCHAR;     /*  8 bit uchar    */
+typedef unsigned char        TDS_TINYINT;   /*  8 bit int      */
+typedef @smallint@           TDS_SMALLINT;  /* 16 bit int      */
+typedef unsigned @smallint@  TDS_USMALLINT; /* 16 bit unsigned */
+typedef @int@                TDS_INT;       /* 32 bit int      */
+typedef unsigned @int@       TDS_UINT;      /* 32 bit unsigned */
+typedef @real@               TDS_REAL;      /* 32 bit float    */
+typedef @float@              TDS_FLOAT;     /* 64 bit float    */
+typedef @int64@              TDS_INT8;      /* 64 bit integer  */
+typedef unsigned @int64@     TDS_UINT8;     /* 64 bit integer  */
+
+#define FREETDS_SYSCONFDIR "@sysconfdir@"
+#define FREETDS_SYSCONFFILE "@sysconfdir@/freetds.conf"
+#define FREETDS_POOLCONFFILE "@sysconfdir@/pool.conf"
+#define FREETDS_LOCALECONFFILE "@sysconfdir@/locales.conf"
 
 #ifdef __cplusplus
 }
 #endif 
 
 #endif /* _tds_configs_h_ */
+

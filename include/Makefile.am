@@ -9,14 +9,5 @@ EXTRA_DIST     =    tds_configs.h.in tds_configs.h \
 
 all-local: tds_configs.h 
 
-tds_configs.h: tds_configs.h.in Makefile
-	@rm -f $@
-	@echo "Making $@"
-	@echo "/* Generated from tds_configs.h.in on `date` */" > $@;  \
-	sed \
-		-e 's;%SYSCONFDIR%;$(sysconfdir);' \
-		$(srcdir)/tds_configs.h.in >> $@; \
-	chmod 444 $@
-
 maintainer-clean-local:
 	rm -f tds_configs.h
