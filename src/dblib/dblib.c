@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.189 2004-11-28 20:44:15 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.190 2004-12-01 03:55:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1266,129 +1266,159 @@ dbexit()
 	}
 }
 
-/** \internal
- * \ingroup dblib_internal
- * \brief Recursively do what dbresults does, purportedly.
- * 
+/**
+ * \ingroup dblib_api
+ * \brief Return number of regular columns in a result set.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param recursive Not used. 
- * \remarks Is this really an internal process and, if not, where is it documented?
- * \sa 
+ * \sa dbcollen(), dbcolname(), dbnumalts().
  */
+
 RETCODE
-dbresults_r(DBPROCESS * dbproc, int recursive)
+dbresults(DBPROCESS * dbproc)
 {
 	RETCODE retcode = FAIL;
 	TDSSOCKET *tds;
 	int result_type;
-	int done, done_flags;
+	int done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbresults_r()\n");
+	tdsdump_log(TDS_DBG_FUNC, "dbresults()\n");
+
 	if (dbproc == NULL)
 		return FAIL;
+
 	buffer_clear(&(dbproc->row_buf));
 
 	tds = dbproc->tds_socket;
+
 	if (IS_TDSDEAD(tds))
 		return FAIL;
 
-	done = 0;
+	switch ( dbproc->dbresults_state ) {
 
-	if (dbproc->dbresults_state & DBRESCMDS) {
-		dbproc->dbresults_state &= ~DBRESCMDS;
-		tdsdump_log(TDS_DBG_FUNC, "dbresults_r: cleared DBRESCMDS; dbproc->dbresults_state=%d \n",
-			    dbproc->dbresults_state);
-		return dbproc->dbresults_retcode;
-	}
-
-	while (!done && (retcode = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
-		tdsdump_log(TDS_DBG_FUNC, "dbresults_r() result_type = %d retcode = %d\n", result_type, retcode);
-		switch (result_type) {
-		case TDS_ROWFMT_RESULT:
-			dbproc->dbresults_state = DBRESINIT;
-			retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
-		case TDS_COMPUTEFMT_RESULT:
-			break;
-
-		case TDS_ROW_RESULT:
-		case TDS_COMPUTE_RESULT:
-
-			if (dbproc->dbresults_state != DBRESINIT) {
-				_dblib_client_msg(dbproc, 20019, 7,
-						  "Attempt to initiate a new SQL Server operation with results pending.");
-				retcode = TDS_FAIL;
-			}
-			done = 1;
-			break;
-
-		case TDS_DONE_RESULT:
-		case TDS_DONEPROC_RESULT:
-			if (!(done_flags & TDS_DONE_ERROR)) {
-				if (dbproc->dbresults_state == DBRESINIT) {
-					done = 1;
-					break;
-				}
-			}
-		case TDS_MSG_RESULT:
-		case TDS_DESCRIBE_RESULT:
-		case TDS_STATUS_RESULT:
-		case TDS_PARAM_RESULT:
-		default:
-			break;
-		}
-	}
-
-	switch (retcode) {
-	case TDS_SUCCEED:
-		dbproc->dbresults_state = DBRESSUCC;
-		return SUCCEED;
+	case _DB_RES_RESULTSET_ROWS:
+		/* dbresults called while rows outstanding.... */
+		_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+		return FAIL;
 		break;
-
-
-	case TDS_NO_MORE_RESULTS:
-		if (dbproc->dbresults_state == DBRESINIT) {
-			dbproc->dbresults_state = DBRESSUCC;
-			return SUCCEED;
-		} else {
-			if (dbproc->dbresults_state == DBRESSUCC) {
-				dbproc->dbresults_state = DBRESDONE;
-				return NO_MORE_RESULTS;
-			}
-		}
+	case _DB_RES_NO_MORE_RESULTS:
+		dbproc->dbresults_state = _DB_RES_INIT;
+		return NO_MORE_RESULTS;
 		break;
-
-	case TDS_FAIL:
 	default:
 		break;
 	}
 
-	return FAIL;
-}
+	for (;;) {
 
-/**
- * \ingroup dblib_api
- * \brief Ascertain the results of a query.
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \retval SUCCEED results pending; fetch with dbnextrow().
- * \retval FAIL typically due to a runtime error.
- * \retval NO_MORE_RESULTS commands in the buffer have already been processed. 
- * \retval NO_MORE_RPC_RESULTS \no futher results from dbrpcsend().
- * \sa dbbind(), dbcancel(), dbnextrow(), dbpoll(), DBRBUF(), dbretstatus(), DBROWS(), dbrpcsend(), dbsqlexec(), dbsqlok().
- */
-RETCODE
-dbresults(DBPROCESS * dbproc)
-{
-	RETCODE rc;
+		retcode = tds_process_result_tokens(tds, &result_type, &done_flags);
 
-	tdsdump_log(TDS_DBG_FUNC, "dbresults()\n");
-	if (dbproc == NULL)
-		return FAIL;
+		tdsdump_log(TDS_DBG_FUNC, "dbresults() process_result_tokens returned result_type = %d retcode = %d\n", 
+								  result_type, retcode);
 
-	rc = dbresults_r(dbproc, 0);
-	tdsdump_log(TDS_DBG_FUNC, "leaving dbresults() returning %d\n", rc);
-	return rc;
+		switch (retcode) {
+
+		case TDS_SUCCEED:
+
+			switch (result_type) {
+	
+			case TDS_ROWFMT_RESULT:
+				retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
+				dbproc->dbresults_state = _DB_RES_RESULTSET_EMPTY;
+				break;
+	
+			case TDS_COMPUTEFMT_RESULT:
+				break;
+	
+			case TDS_ROW_RESULT:
+			case TDS_COMPUTE_RESULT:
+	
+				dbproc->dbresults_state = _DB_RES_RESULTSET_ROWS;
+				return SUCCEED;
+				break;
+	
+			case TDS_DONE_RESULT:
+
+				/* A done token signifies the end of a logical command.
+				 * There are three possibilities:
+				 * 1. Simple command with no result set, i.e. update, delete, insert
+				 * 2. Command with result set but no rows
+				 * 3. Command with result set and rows
+				 */
+
+				switch (dbproc->dbresults_state) {
+
+				case _DB_RES_INIT:
+				case _DB_RES_NEXT_RESULT:
+					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+					if (done_flags & TDS_DONE_ERROR)
+						return FAIL;
+					else
+						return SUCCEED;
+					break;
+
+				case _DB_RES_RESULTSET_EMPTY:
+				case _DB_RES_RESULTSET_ROWS:
+					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+					return SUCCEED;
+					break;
+				default:
+					assert(0);
+					break;
+				}
+				
+
+			case TDS_DONEPROC_RESULT:
+			case TDS_DONEINPROC_RESULT:
+
+				/* We should only return SUCCEED on a command within a */
+				/* stored procedure, if the command returned a result */
+				/* set...                                             */
+
+				switch (dbproc->dbresults_state) {
+
+				case _DB_RES_INIT :  
+				case _DB_RES_NEXT_RESULT : 
+					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+					break;
+
+				case _DB_RES_RESULTSET_EMPTY :
+				case _DB_RES_RESULTSET_ROWS : 
+					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+					return SUCCEED;
+					break;
+				}
+				break;
+
+			case TDS_MSG_RESULT:
+			case TDS_DESCRIBE_RESULT:
+			case TDS_STATUS_RESULT:
+			case TDS_PARAM_RESULT:
+			default:
+				break;
+			}
+
+			break;
+
+		case TDS_NO_MORE_RESULTS:
+			switch(dbproc->dbresults_state) {
+			case _DB_RES_INIT:  /* dbsqlok has eaten our end token */
+				dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
+				return SUCCEED;
+				break;
+			default:
+				dbproc->dbresults_state = _DB_RES_INIT;
+				return NO_MORE_RESULTS;
+				break;
+			}
+			break;
+
+		case TDS_FAIL:
+			dbproc->dbresults_state = _DB_RES_INIT;
+			return FAIL;
+			break;
+		}
+	}
 }
 
 
@@ -1511,7 +1541,12 @@ dbnextrow(DBPROCESS * dbproc)
 	}
 
 	resinfo = tds->res_info;
-	if (!resinfo) {
+
+	/* no result set or result set empty (no rows) */
+
+	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d\n", dbproc->dbresults_state);
+
+	if (!resinfo || dbproc->dbresults_state != _DB_RES_RESULTSET_ROWS) {
 		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", NO_MORE_ROWS);
 		return dbproc->row_type = NO_MORE_ROWS;
 	}
@@ -1550,6 +1585,7 @@ dbnextrow(DBPROCESS * dbproc)
 					break;
 				}
 			} else if (ret == TDS_NO_MORE_ROWS) {
+				dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 				result = NO_MORE_ROWS;
 			} else
 				result = FAIL;
@@ -5025,28 +5061,22 @@ dbcurcmd(DBPROCESS * dbproc)
 RETCODE
 dbmorecmds(DBPROCESS * dbproc)
 {
-	RETCODE rc;
+	tdsdump_log(TDS_DBG_FUNC, "dbmorecmds: ");
+	
+	if (dbproc->tds_socket->res_info == NULL) {
+		return FAIL;
+	} 
 
-	if (dbproc->tds_socket->res_info == NULL || dbproc->tds_socket->res_info->more_results == 0) {
-		tdsdump_log(TDS_DBG_FUNC, "dbmorecmds: more_results == 0; returns FAIL\n");
+	if (dbproc->tds_socket->res_info->more_results == 0) {
+		tdsdump_log(TDS_DBG_FUNC, "more_results == 0; returns FAIL\n");
 		return FAIL;
 	}
-	/*
-	 * Call dbresults, stow its return code and mark its state as "already called".  
-	 * Then return an interpretation of the return code. 
-	 * When the caller follows up with dbresults(), it will return the saved return code immediately.  
-	 */
-
-	rc = dbresults_r(dbproc, 0);
-
-	dbproc->dbresults_state |= DBRESCMDS;
-	dbproc->dbresults_retcode = rc;
-
-	tdsdump_log(TDS_DBG_FUNC, "dbmorecmds: dbresults_state=%x, dbresults_retcode=%d\n", dbproc->dbresults_state,
-		    dbproc->dbresults_retcode);
-	tdsdump_log(TDS_DBG_FUNC, "dbmorecmds() returns %s\n", (rc == SUCCEED) ? "SUCCEED" : "FAIL");
-
-	return (rc == SUCCEED) ? SUCCEED : FAIL;
+	
+	assert(dbproc->tds_socket->res_info->more_results == 1);
+	
+	tdsdump_log(TDS_DBG_FUNC, "more_results == 1; returns SUCCEED\n");
+	
+	return SUCCEED;
 }
 
 /**
@@ -5322,7 +5352,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen, SYBCHAR, (BYTE *) textptr_string, -1);
 	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE *) timestamp_string, -1);
 
-	dbproc->dbresults_state = DBRESINIT;
+	dbproc->dbresults_state = _DB_RES_INIT;
 
     if (dbproc->tds_socket->state == TDS_PENDING) {
 
@@ -5691,7 +5721,7 @@ dbsqlsend(DBPROCESS * dbproc)
 
 	dbproc->avail_flag = FALSE;
 	dbproc->envchange_rcv = 0;
-	dbproc->dbresults_state = DBRESINIT;
+	dbproc->dbresults_state = _DB_RES_INIT;
 
 	tdsdump_log(TDS_DBG_FUNC, "in dbsqlsend()\n");
 	tds = (TDSSOCKET *) dbproc->tds_socket;

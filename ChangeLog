@@ -1,3 +1,9 @@
+Tue Nov 30 22:54:06 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h include/sybdb.h
+	* src/dblib/dblib.c src/dblib/rpc.c
+	* src/dblib/unittests/dbmorecmds.c
+	- handle empty results sets in dbresults
+
 Mon Nov 29 20:18:16 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml document MSDBLIB and SYBDBLIB defines.  
 

@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.7 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.8 2004-12-01 03:55:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -141,12 +141,13 @@ main(int argc, char **argv)
 
 	nresults = 0;
 
-	if (dbresults(dbproc) == SUCCEED) {
-		do {
+	do {
+		if (dbresults(dbproc) == SUCCEED) {
 			while (dbnextrow(dbproc) != NO_MORE_ROWS);
 			nresults++;
-		} while (dbmorecmds(dbproc) == SUCCEED);
-	}
+		}
+	} while (dbmorecmds(dbproc) == SUCCEED);
+
 
 	/* dbmorecmds should return success 2 times for select 2 */
 	if (nresults != 2) {	/* two results sets plus a return code */
