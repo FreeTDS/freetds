@@ -1,6 +1,5 @@
 bin_PROGRAMS = tdspool
-tdspool_SOURCES=	config.c  main.c  member.c  stream.c  user.c  util.c	
-include_HEADERS = pool.h
+tdspool_SOURCES	= config.c main.c member.c stream.c user.c util.c pool.h
 TDSDIR		=	../tds
 TDSSOURCES	=	mem.c token.c util.c login.c read.c write.c convert.c numeric.c config.c query.c iconv.c
 SERVERDIR		=	../server

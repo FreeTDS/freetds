@@ -7,19 +7,14 @@ EXTRA_DIST	=	interfaces samples/debug.c PWD.in BUGS \
 		freetds.conf locales.conf acconfig.h \
 		autogen.sh freetds.spec.in freetds.spec
 
-DEFDIR		=	$(prefix)
-ETC		=	$(sysconfdir)
+ETC            =       $(DESTDIR)/$(sysconfdir)
 
 install-data-local:
-	$(mkinstalldirs) $(DEFDIR) $(ETC)
-	if [ -f $(ETC)/freetds.conf ]; \
-	then :; \
-	else \
+	$(mkinstalldirs) $(ETC)
+	if test ! -f $(ETC)/freetds.conf; then \
 		$(INSTALL_DATA) $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
 	fi
-	if [ -f $(ETC)/locales.conf ]; \
-	then :; \
-	else \
+	if test ! -f $(ETC)/locales.conf; then \
 		$(INSTALL_DATA) $(srcdir)/locales.conf $(ETC)/locales.conf; \
 	fi
 

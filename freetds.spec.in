@@ -26,30 +26,13 @@ The freetds-devel package contains the files necessary for development with with
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --sysconfdir=/etc/freetds
+%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS" 
  
 %install 
-rm -rf $RPM_BUILD_ROOT 
-mkdir -p $RPM_BUILD_ROOT%{_libdir} 
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/freetds 
-mkdir -p $RPM_BUILD_ROOT%{_includedir}/freetds 
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir} 
+rm -rf "$RPM_BUILD_ROOT"
+make DESTDIR="$RPM_BUILD_ROOT" install
 
-install -c -m 644 freetds.conf $RPM_BUILD_ROOT%{_sysconfdir}
-
-libtool --mode=install /usr/bin/install -c -m 755 src/tds/libtds.la $RPM_BUILD_ROOT%{_libdir}/$p 
-libtool --mode=install /usr/bin/install -c -m 755 src/dblib/libsybdb.la $RPM_BUILD_ROOT%{_libdir}/$p 
-libtool --mode=install /usr/bin/install -c -m 755 src/ctlib/libct.la $RPM_BUILD_ROOT%{_libdir}/$p 
-libtool --mode=install /usr/bin/install -c -m 755 src/odbc/libtdsodbc.la $RPM_BUILD_ROOT%{_libdir}/$p 
-
-# devel 
-list="bkpublic cstypes cspublic ctlib ctpublic dblib sqldb sqlfront" 
-list="$list sybdb syberror sybfront tds tdsver tdsconvert tdsutil tds_configs" 
-for p in $list; do 
-	install -c -m 644 include/$p.h $RPM_BUILD_ROOT%{_includedir}/freetds 
-done 
- 
 %post 
 /sbin/ldconfig 
  
@@ -67,26 +50,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libtds.so*
 %{_libdir}/libtdsodbc.a
 %{_libdir}/libtdsodbc.so*
-%config %{_sysconfdir}/freetds.conf
+%config %{_sysconfdir}/*
  
 %files devel 
 %defattr (-,root,root) 
-%{_includedir}/freetds/bkpublic.h 
-%{_includedir}/freetds/cstypes.h 
-%{_includedir}/freetds/cspublic.h 
-%{_includedir}/freetds/ctlib.h 
-%{_includedir}/freetds/ctpublic.h 
-%{_includedir}/freetds/dblib.h 
-%{_includedir}/freetds/sqldb.h 
-%{_includedir}/freetds/sqlfront.h 
-%{_includedir}/freetds/sybdb.h 
-%{_includedir}/freetds/syberror.h 
-%{_includedir}/freetds/sybfront.h 
-%{_includedir}/freetds/tds.h 
-%{_includedir}/freetds/tdsver.h 
-%{_includedir}/freetds/tdsconvert.h 
-%{_includedir}/freetds/tdsutil.h 
-%{_includedir}/freetds/tds_configs.h 
+%{_includedir}/*
  
 %changelog 
 * Thu Dec 20 2001 Brian Bruns <camber@ais.org> 

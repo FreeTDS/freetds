@@ -1,4 +1,4 @@
-include_HEADERS	=	cspublic.h ctpublic.h sybdb.h sybfront.h          \
+include_HEADERS	=	cspublic.h ctpublic.h sybdb.h sybfront.h  \
 			tdsutil.h bkpublic.h cstypes.h dblib.h syberror.h \
 			ctlib.h sqldb.h sqlfront.h                        \
 			tds.h tdsver.h tdsconvert.h tds_configs.h tdsodbc.h

@@ -1,3 +1,13 @@
+Fri Sep 13  8:24:54 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am freetds.spec.in include/Makefile.am:
+	* src/apps/Makefile.am src/ctlib/unittests/Makefile.am:
+	* src/dblib/unittests/Makefile.am src/odbc/Makefile.am:
+	* src/odbc/unittests/Makefile.am src/pool/Makefile.am:
+	* src/tds/unittests/Makefile.am:
+	- do not install unneeded include file
+	- cleanup spec file
+	- fix build from different directory
+
 Thu Sep 12 19:28:07 EDT 2002
 	* src/dblib/unittests/t0022.c: test output params
 	* src/dblib/unittests/Makefile.am: add t0022
