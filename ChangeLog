@@ -1,3 +1,6 @@
+Wed Dec 15 09:23:55 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/tds_checks.c: improved
+
 Tue Dec 14 11:07:19 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/compute.c:
 	- finished test (not working)

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.5 2004-12-03 20:15:41 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.6 2004-12-15 08:23:47 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -119,7 +119,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	}
 	assert(found || tds->cur_cursor == NULL);
 
-	/* test num_dyms, cur_dyn, dyns*/
+	/* test num_dyms, cur_dyn, dyns */
 	found = 0;
 	for (cur_dyn = tds->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next) {
 		if (cur_dyn == tds->cur_dyn)
@@ -130,17 +130,17 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	}
 	assert(found || tds->cur_dyn == NULL);
 
-	/* test tds_ctx*/
+	/* test tds_ctx */
 	tds_check_context_extra(tds->tds_ctx);
 
 	/* TODO test char_conv_count, char_convs */
 
 	/* current_results should be one of res_info, comp_info, param_info or dynamic */
 	assert(result_found || tds->current_results == NULL);
-	
+
 	/* we can't have compute and no results */
 	assert(tds->num_comp_info == 0 || tds->res_info != NULL);
-	
+
 	/* we can't have normal and parameters results */
 	/* TODO too strict ?? */
 /*	assert(tds->param_info == NULL || tds->res_info == NULL); */
@@ -178,7 +178,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	assert(strlen(column->table_name) < sizeof(column->table_name));
 	assert(strlen(column->column_name) < sizeof(column->column_name));
-	
+
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */
 	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type);
 	assert(tds_get_varint_size(column->on_server.column_type) == column->column_varint_size);
@@ -200,11 +200,12 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
 		assert(size == column->column_size);
-		assert(column->column_size == column->column_cur_size || (column->column_type == SYBUNIQUE && column->column_cur_size == 0));
+		assert(column->column_size == column->column_cur_size
+		       || (column->column_type == SYBUNIQUE && column->column_cur_size == 0));
 		/* check same type and size on server */
 		assert(column->column_type == column->on_server.column_type);
 		assert(column->column_size == column->on_server.column_size);
-		
+
 		assert(column->column_varint_size == 0 || (column->column_type == SYBUNIQUE && column->column_varint_size == 1));
 	} else {
 		assert(!is_fixed_type(column->column_type));
@@ -229,14 +230,23 @@ void
 tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 {
 	int i;
+
 	assert(res_info);
 	assert(res_info->num_cols >= 0);
 	for (i = 0; i < res_info->num_cols; ++i) {
+		int offset_check;
+
 		assert(res_info->columns);
 		tds_check_column_extra(res_info->columns[i]);
-		assert(res_info->columns[i]->column_offset < res_info->row_size 
-			|| (i==0 && res_info->columns[i]->column_offset == 0) 
-			|| (res_info->columns[i]->column_offset == res_info->row_size && res_info->columns[i]->column_size == 0));
+		offset_check = res_info->columns[i]->column_offset < res_info->row_size
+			|| (i == (res_info->num_cols - 1) && res_info->columns[i]->column_offset == 0)
+			|| (res_info->columns[i]->column_offset == res_info->row_size && res_info->columns[i]->column_size == 0);
+		if (!offset_check) {
+			fprintf(stderr, "offset %d row size %d i %d num cols %d column_size %d\n",
+				(int) res_info->columns[i]->column_offset, (int) res_info->row_size, (int) i,
+				(int) res_info->num_cols, (int) res_info->columns[i]->column_size);
+		}
+		assert(offset_check);
 	}
 
 	/* TODO check that column_offset are sequential, check size of current_row and column_offset[i+1]-column_offset[i] == size */
@@ -244,7 +254,8 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 	assert(res_info->row_size >= 0);
 	assert(res_info->null_info_size <= res_info->row_size);
 	/* space for parameters can be computed later */
-	assert((res_info->num_cols + 7)/8 <= res_info->null_info_size || (res_info->null_info_size == 0 && !res_info->current_row));
+	assert((res_info->num_cols + 7) / 8 <= res_info->null_info_size
+	       || (res_info->null_info_size == 0 && !res_info->current_row));
 
 	assert(res_info->computeid >= 0);
 
