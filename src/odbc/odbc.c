@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.221 2003-08-26 16:23:56 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.222 2003-08-27 09:53:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -83,6 +83,8 @@ static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
 static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
+static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
+					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLINTEGER FAR * pcrow);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
@@ -1226,6 +1228,200 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	ODBC_RETURN(stmt, result);
 }
 
+/* TODO use these 3 functions when we'll populate IRD 
+ * TODO update SQLGetFunctions */
+#if 0
+static SQLRETURN SQL_API
+_SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
+		 SQLSMALLINT FAR * pcbDesc, SQLPOINTER pfDesc)
+{
+	TDS_DESC *ird;
+	struct _drecord *drec;
+	SQLRETURN result = SQL_SUCCESS;
+
+	INIT_HSTMT;
+
+	ird = stmt->ird;
+
+#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src, -1);
+
+#if ENABLE_EXTRA_CHECKS
+#define IOUT(type, src) do { \
+	/* trick warning if type wrong */ \
+	type *p_test = &src; p_test = p_test; \
+	*((type *)pfDesc) = src; } while(0)
+#else
+#define IOUT(type, src) *((type *)pfDesc) = src
+#endif
+
+
+	/* dont check column index for these */
+	switch (fDescType) {
+	case SQL_DESC_COUNT:
+		IOUT(SQLUSMALLINT, ird->header.sql_desc_count);
+		ODBC_RETURN(stmt, SQL_SUCCESS);
+		break;
+	}
+
+	if (!ird->header.sql_desc_count) {
+		odbc_errs_add(&stmt->errs, "07005", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	if (icol <= 0 || icol > ird->header.sql_desc_count) {
+		odbc_errs_add(&stmt->errs, "07009", "Column out of range", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+	drec = &ird->records[icol - 1];
+
+	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLColAttribute: fDescType is %d\n", fDescType);
+
+	switch (fDescType) {
+	case SQL_DESC_AUTO_UNIQUE_VALUE:
+		IOUT(SQLINTEGER, drec->sql_desc_auto_unique_value);
+		break;
+	case SQL_DESC_BASE_COLUMN_NAME:
+		COUT(drec->sql_desc_base_column_name);
+		break;
+	case SQL_DESC_BASE_TABLE_NAME:
+		COUT(drec->sql_desc_base_table_name);
+		break;
+	case SQL_DESC_CASE_SENSITIVE:
+		IOUT(SQLINTEGER, drec->sql_desc_case_sensitive);
+		break;
+	case SQL_DESC_CATALOG_NAME:
+		COUT(drec->sql_desc_catalog_name);
+		break;
+	case SQL_DESC_CONCISE_TYPE:
+		IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
+		break;
+	case SQL_DESC_DISPLAY_SIZE:
+		IOUT(SQLINTEGER, drec->sql_desc_display_size);
+		break;
+	case SQL_DESC_FIXED_PREC_SCALE:
+		IOUT(SQLSMALLINT, drec->sql_desc_fixed_prec_scale);
+		break;
+	case SQL_DESC_LABEL:
+		COUT(drec->sql_desc_label);
+		break;
+	case SQL_DESC_LENGTH:
+		IOUT(SQLINTEGER, drec->sql_desc_length);
+		break;
+	case SQL_DESC_LITERAL_PREFIX:
+		COUT(drec->sql_desc_literal_prefix);
+		break;
+	case SQL_DESC_LITERAL_SUFFIX:
+		COUT(drec->sql_desc_literal_suffix);
+		break;
+	case SQL_DESC_LOCAL_TYPE_NAME:
+		COUT(drec->sql_desc_literal_suffix);
+		break;
+	case SQL_DESC_NAME:
+		COUT(drec->sql_desc_name);
+		break;
+	case SQL_DESC_NULLABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_nullable);
+		break;
+	case SQL_DESC_NUM_PREC_RADIX:
+		IOUT(SQLINTEGER, drec->sql_desc_num_prec_radix);
+		break;
+	case SQL_DESC_OCTET_LENGTH:
+		IOUT(SQLINTEGER, drec->sql_desc_octet_length);
+		break;
+	case SQL_DESC_PRECISION:	/* this section may be wrong */
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+			IOUT(SQLUSMALLINT, drec->sql_desc_precision);
+		else
+			*((SQLUSMALLINT *) pfDesc) = drec->sql_desc_length;
+		break;
+	case SQL_DESC_SCALE:	/* this section may be wrong */
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+			IOUT(SQLUSMALLINT, drec->sql_desc_scale);
+		else
+			*((SQLUSMALLINT *) pfDesc) = 0;
+		break;
+	case SQL_DESC_SCHEMA_NAME:
+		COUT(drec->sql_desc_schema_name);
+		break;
+	case SQL_DESC_SEARCHABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_searchable);
+		break;
+	case SQL_DESC_TABLE_NAME:
+		COUT(drec->sql_desc_table_name);
+		break;
+	case SQL_DESC_TYPE:
+		IOUT(SQLSMALLINT, drec->sql_desc_type);
+		break;
+	case SQL_DESC_TYPE_NAME:
+		COUT(drec->sql_desc_type_name);
+		break;
+	case SQL_DESC_UNNAMED:
+		IOUT(SQLSMALLINT, drec->sql_desc_unnamed);
+		break;
+	case SQL_DESC_UNSIGNED:
+		IOUT(SQLSMALLINT, drec->sql_desc_unsigned);
+		break;
+	case SQL_DESC_UPDATABLE:
+		IOUT(SQLSMALLINT, drec->sql_desc_updatable);
+		break;
+	default:
+		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttribute: fDescType %d not catered for...\n");
+		odbc_errs_add(&stmt->errs, "HY091", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+		break;
+	}
+
+	if (result == SQL_SUCCESS_WITH_INFO)
+		odbc_errs_add(&stmt->errs, "01004", NULL, NULL);
+
+	ODBC_RETURN(stmt, result);
+
+#undef COUT
+#undef IOUT
+}
+
+SQLRETURN SQL_API
+SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
+		 SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
+{
+	switch (fDescType) {
+	case SQL_COLUMN_TYPE:
+		/* FIXME special case, get ODBC 2 type, not ODBC 3 SQL_DESC_TYPE (different for datetime) */
+		fDescType = SQL_DESC_TYPE;
+		break;
+	case SQL_COLUMN_NAME:
+		fDescType = SQL_DESC_NAME;
+		break;
+	case SQL_COLUMN_NULLABLE:
+		fDescType = SQL_DESC_NULLABLE;
+		break;
+	case SQL_COLUMN_COUNT:
+		fDescType = SQL_DESC_COUNT;
+		break;
+		/* FIXME special cases even for SQL_COLUMN_LENGTH, SQL_COLUMN_PRECISION and SQL_COLUMN_SCALE */
+	case SQL_COLUMN_PRECISION:
+		fDescType = SQL_DESC_PRECISION;
+		break;
+	case SQL_COLUMN_SCALE:
+		fDescType = SQL_DESC_SCALE;
+		break;
+	case SQL_COLUMN_LENGTH:
+		fDescType = SQL_DESC_LENGTH;
+		break;
+	}
+	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
+}
+
+#if (ODBCVER >= 0x0300)
+SQLRETURN SQL_API
+SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
+		SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT * pcbDesc, SQLPOINTER pfDesc)
+{
+	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, (SQLINTEGER FAR *) pfDesc);
+}
+#endif
+#endif /* 0 */
+
 SQLRETURN SQL_API
 SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
 		 SQLSMALLINT FAR * pcbDesc, SQLINTEGER FAR * pfDesc)
@@ -1330,7 +1526,6 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ODBC_RETURN(stmt, result);
 }
-
 
 SQLRETURN SQL_API
 SQLDisconnect(SQLHDBC hdbc)

@@ -1,3 +1,8 @@
+Wed Aug 27 11:53:15 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- continue merging Steve Murphree patch
+	 - SQLColAttribute(s) (fixed)
+
 Tue Aug 26 18:23:45 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix silly memory leak
 
