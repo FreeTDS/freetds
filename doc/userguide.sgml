@@ -2,8 +2,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-08-05 13:28:18 $</date>
-		<releaseinfo>$Revision: 1.61 $</releaseinfo>
+		<date>$Date: 2003-08-06 03:46:14 $</date>
+		<releaseinfo>$Revision: 1.62 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +48,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.61 $</>
-<member>$Date: 2003-08-05 13:28:18 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.61 2003-08-05 13:28:18 freddy77 Exp $.</>
+<member>$Revision: 1.62 $</>
+<member>$Date: 2003-08-06 03:46:14 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.62 2003-08-06 03:46:14 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -1217,7 +1217,7 @@ If you have a working configuration not listed here, please send it to <ulink ur
 			<sect2><title><application>tsql</application></title>
 
 			<para>
-The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to if it's your dataserver that's not responding, or your configuration files that are messed up.  
+The <application><firstterm>tsql</></application> utility is provided as part of FreeTDS expressly for troubleshooting.  <application>tsql</application> is superficially similar to an <application>isql</application>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <application>tsql</application> can also use or bypass the configuration files, allowing you to see if it's your dataserver that's not responding, or your configuration files that are messed up.  
 
 <cmdsynopsis label="Syntax synopsis for tsql">
   <command>tsql</command> 
@@ -1247,7 +1247,7 @@ There was a problem connecting to the server
 </example>
 
 <example>
-<title>Connect with tsql using a servername in <filename>freetds.conf</></title>
+<title>Connect with <application>tsql</application> using a servername in <filename>freetds.conf</></title>
 <screen>
 <prompt>$ </prompt><userinput>tsql -S sandbox -U sa</userinput>
 <prompt>Password: </prompt>
@@ -1258,7 +1258,7 @@ There was a problem connecting to the server
 </example>
 
 <example>
-<title>Connect with tsql using a hostname and port number</title>
+<title>Connect with <application>tsql</application> using a hostname and port number</title>
 <screen>
 <prompt>$ </prompt><userinput>tsql -H hillary -p 4100 -U sa</userinput>
 <prompt>Password: </prompt>
@@ -1268,7 +1268,28 @@ There was a problem connecting to the server
 </screen>
 </example>
 
+Another handy diagnostic feature of <application>tsql</application> is that it can show you the compile-time settings of the installed version of <productname>FreeTDS</productname>:  </para><para>
 
+<example>
+<title>Show compile-time settings with <application>tsql</application></title>
+<screen>
+<prompt>$ </prompt><userinput>tsql -H hillary -p 4100 -U sa -C </userinput>
+<prompt>Password: </prompt>
+<computeroutput>
+locale is "C"
+locale charset is "646"
+Compile-time settings (established with the "configure" script):
+                           Version: freetds v0.62.dev.20030804
+    MS db-lib source compatibility: no
+       Sybase binary compatibility: unknown
+                     Thread safety: no
+                     iconv library: no
+                       TDS version: 7.0
+                             iODBC: no
+                          unixodbc: no
+</computeroutput>
+</screen>
+</example>
 
 For details on <application>tsql</application>, see the <application>tsql</application> man page.  
  
@@ -1386,14 +1407,68 @@ It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any
 		</sect1>
 		<sect1 id="domains">
 			<title>Domain Logins</title>
+<Note><para>Domain logins can be used only with TDS protocol versions 7.0 and 8.0.</para></Note>
 			<para>
-As mentioned in the installation chapter, <productname>SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol (for more information search the net for NTLMSSP authentication).
+As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol.
 <productname>FreeTDS</productname> began supporting domain logins in version 0.60.
 			</para>
 			<para>
-To use domain logins use <literal>DOMAIN\user</> syntax for user and use domain password.
+To use domain logins, use the <literal>'DOMAIN\username'</> syntax for the username and use the domain password.  
 			</para>
-<Note><para>Domain logins can be used only with versions 7.0 and 8.0 or protocol.</para></Note>
+<example><title>Logging in with a domain login</title>
+<screen>
+<computeroutput>$ </computeroutput><userinput>tsql -S camelot -U 'NOTTINGHAM\lancelot' -P roundtable</userinput>
+locale is "C"
+locale charset is "646"
+Msg 5703, Level 0, State 1, Server CPRO200, Line 0
+Changed language setting to middle_english.
+1> 
+</screen>
+</example>
+
+			<para>
+When <productname>FreeTDS</productname> sees the <quote><literal>\</></quote> character, it automatically chooses a domain login.
+  			</para>
+<Note><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for address resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).  
+  			</para><para>
+The SQL Server machine may belong to an NT domain.  <productname>FreeTDS</productname> provides an encrypted password -- a domain password, known to the domain controller -- that the server will ask the domain controller to verify.  </para></Note>
+
+		<sect2 id="domaindetails">
+			<title>Implementation details</title>
+			<para>
+Support for domain logins in <productname>FreeTDS</productname> is limited to the TCP/IP network protocol stack.   <productname>FreeTDS</productname> does not currently implement support for Named Pipe-based SQL connections -- that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licences projects such as <productname>FreeTDS</productname> . 
+			</para>
+			<para>
+Your domain controller must allow authentication over TCP/IP, or you will be unable to log in.  One symptom of a server that requires Named Pipes for authentication is an error message such as:
+			</para>
+			<para>
+<informalexample><screen><computeroutput>
+Login failed for user '(null)'. 
+Reason: Not associated with a trusted SQL Server connection.
+</computeroutput></screen></informalexample>
+			</para>
+			<para>
+The telltale sign being <literal>user '(null)'</>.  
+			</para>
+			<para>
+If you suspect a problem along these lines, you could ask your friendly system administrator to check the following registry setting:
+
+<programlisting>
+Computer Configuration
+ 	\Windows Settings
+		\Security Settings
+			\Local Policies
+				\Security Options
+					\LAN Manager Authentication Level
+</programlisting>
+The setting should be <quote><literal>Send LM & NTLM responses</></quote>.  
+  			</para>
+
+<para>
+For a technical description of the protocol used for domain logins, see 
+<ulink url="http://davenport.sourceforge.net/ntlm.html">http://davenport.sourceforge.net/ntlm.html</ulink>
+</para>
+		</sect2>
 		</sect1>
 		<sect1 id="appendmode">
 			<title>Appending Dump Files</title>
@@ -1420,6 +1495,8 @@ Because there will be one log file being opened and closed more or less continuo
 <para>
 As an alternative to <productname>FreeTDS</productname> logging, you might also consider using <application>tcpdump</application> or <application>ethereal</application> to log network packets.  While not as useful as a <acronym>TDS</> log, it can also help to identify problems.
 </para>
+
+
 		</sect1>
 		<sect1 id="tdspool">
 		<title>TDS Connection Pooling</title>
@@ -2482,7 +2559,7 @@ On the plus side, the list includes people with a variety of backgrounds, who fr
 		<sect1>
 			<title>Mailing list archive</title>
 			<para>
-The <productname>FreeTDS</productname> mailing list <ulink url="http://franklin.oit.unc.edu/cgi-bin/lyris.pl?visit=freetds">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.  
+The <productname>FreeTDS</productname> mailing list <ulink url="http://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.  
 			</para>
 		</sect1>
 		<sect1 id="mailinglist">
