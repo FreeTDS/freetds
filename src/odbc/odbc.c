@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.120 2003-01-08 10:32:18 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.121 2003-01-08 18:01:10 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -75,6 +75,7 @@ static char *strncpy_null(char *dst, const char *src, int len);
 static int sql_to_c_type_default(int sql_type);
 static int mymessagehandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
 static int myerrorhandler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMSGINFO * msg);
+static void log_unimplemented_type(const char function_name[], int fType);
 
 
 /* utils to check handles */
@@ -2076,7 +2077,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 
 		/* TODO support for other options */
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetInfo: " "info option %d not supported\n", fInfoType);
+		log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, ODBCERR_NOTIMPLEMENTED, "Option not supported");
 		return SQL_ERROR;
 	}
@@ -2451,4 +2452,700 @@ sql_to_c_type_default(int sql_type)
 	default:
 		return 0;
 	}
+}
+
+/** 
+ * Log a useful message about unimplemented options
+ * Defying belief, Microsoft defines mutually exclusive options that
+ * some ODBC implementations #define as duplicate values (meaning, of course, 
+ * that they couldn't be implemented in the same function because they're 
+ * indistinguishable.  
+ * 
+ * Those duplicates are commented out below.
+ */
+static void
+log_unimplemented_type(const char function_name[], int fType)
+{
+	const char *name, *category;
+
+	switch (fType) {
+	case SQL_ACCESSIBLE_PROCEDURES:
+		name="SQL_ACCESSIBLE_PROCEDURES";
+		category="Data Source Information";
+		break;
+	case SQL_ACCESSIBLE_TABLES:
+		name="SQL_ACCESSIBLE_TABLES";
+		category="Data Source Information";
+		break;
+	case SQL_ACTIVE_CONNECTIONS:
+		name="SQL_MAX_DRIVER_CONNECTIONS/SQL_ACTIVE_CONNECTIONS";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_ACTIVE_ENVIRONMENTS:
+		name="SQL_ACTIVE_ENVIRONMENTS";
+		category="Driver Information";
+		break;
+	case SQL_ACTIVE_STATEMENTS:
+		name="SQL_MAX_CONCURRENT_ACTIVITIES/SQL_ACTIVE_STATEMENTS";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_AGGREGATE_FUNCTIONS:
+		name="SQL_AGGREGATE_FUNCTIONS";
+		category="Supported SQL";
+		break;
+	case SQL_ALTER_DOMAIN:
+		name="SQL_ALTER_DOMAIN";
+		category="Supported SQL";
+		break;
+#	ifdef SQL_ALTER_SCHEMA
+	case SQL_ALTER_SCHEMA:
+		name="SQL_ALTER_SCHEMA";
+		category="Supported SQL";
+		break;
+#	endif
+	case SQL_ALTER_TABLE:
+		name="SQL_ALTER_TABLE";
+		category="Supported SQL";
+		break;
+#	ifdef SQL_ANSI_SQL_DATETIME_LITERALS
+	case SQL_ANSI_SQL_DATETIME_LITERALS:
+		name="SQL_ANSI_SQL_DATETIME_LITERALS";
+		category="Supported SQL";
+		break;
+#endif
+	case SQL_ASYNC_MODE:
+		name="SQL_ASYNC_MODE";
+		category="Driver Information";
+		break;
+	case SQL_BATCH_ROW_COUNT:
+		name="SQL_BATCH_ROW_COUNT";
+		category="Driver Information";
+		break;
+	case SQL_BATCH_SUPPORT:
+		name="SQL_BATCH_SUPPORT";
+		category="Driver Information";
+		break;
+	case SQL_BOOKMARK_PERSISTENCE:
+		name="SQL_BOOKMARK_PERSISTENCE";
+		category="Data Source Information";
+		break;
+	case SQL_CATALOG_NAME:
+		name="SQL_CATALOG_NAME";
+		category="Supported SQL";
+		break;
+	case SQL_COLLATION_SEQ:
+		name="SQL_COLLATION_SEQ";
+		category="Data Source Information";
+		break;
+	case SQL_COLUMN_ALIAS:
+		name="SQL_COLUMN_ALIAS";
+		category="Supported SQL";
+		break;
+	case SQL_CONCAT_NULL_BEHAVIOR:
+		name="SQL_CONCAT_NULL_BEHAVIOR";
+		category="Data Source Information";
+		break;
+	case SQL_CONVERT_BIGINT:
+		name="SQL_CONVERT_BIGINT";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_BINARY:
+		name="SQL_CONVERT_BINARY";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_BIT:
+		name="SQL_CONVERT_BIT";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_CHAR:
+		name="SQL_CONVERT_CHAR";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_DATE:
+		name="SQL_CONVERT_DATE";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_DECIMAL:
+		name="SQL_CONVERT_DECIMAL";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_DOUBLE:
+		name="SQL_CONVERT_DOUBLE";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_FLOAT:
+		name="SQL_CONVERT_FLOAT";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_FUNCTIONS:
+		name="SQL_CONVERT_FUNCTIONS";
+		category="Scalar Function Information";
+		break;
+	case SQL_CONVERT_INTEGER:
+		name="SQL_CONVERT_INTEGER";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_INTERVAL_DAY_TIME:
+		name="SQL_CONVERT_INTERVAL_DAY_TIME";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_INTERVAL_YEAR_MONTH:
+		name="SQL_CONVERT_INTERVAL_YEAR_MONTH";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_LONGVARBINARY:
+		name="SQL_CONVERT_LONGVARBINARY";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_LONGVARCHAR:
+		name="SQL_CONVERT_LONGVARCHAR";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_NUMERIC:
+		name="SQL_CONVERT_NUMERIC";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_REAL:
+		name="SQL_CONVERT_REAL";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_SMALLINT:
+		name="SQL_CONVERT_SMALLINT";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_TIME:
+		name="SQL_CONVERT_TIME";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_TIMESTAMP:
+		name="SQL_CONVERT_TIMESTAMP";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_TINYINT:
+		name="SQL_CONVERT_TINYINT";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_VARBINARY:
+		name="SQL_CONVERT_VARBINARY";
+		category="Conversion Information";
+		break;
+	case SQL_CONVERT_VARCHAR:
+		name="SQL_CONVERT_VARCHAR";
+		category="Conversion Information";
+		break;
+	case SQL_CORRELATION_NAME:
+		name="SQL_CORRELATION_NAME";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_ASSERTION:
+		name="SQL_CREATE_ASSERTION";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_CHARACTER_SET:
+		name="SQL_CREATE_CHARACTER_SET";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_COLLATION:
+		name="SQL_CREATE_COLLATION";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_DOMAIN:
+		name="SQL_CREATE_DOMAIN";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_SCHEMA:
+		name="SQL_CREATE_SCHEMA";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_TABLE:
+		name="SQL_CREATE_TABLE";
+		category="Supported SQL";
+		break;
+	case SQL_CREATE_TRANSLATION:
+		name="SQL_CREATE_TRANSLATION";
+		category="Supported SQL";
+		break;
+	case SQL_CURSOR_COMMIT_BEHAVIOR:
+		name="SQL_CURSOR_COMMIT_BEHAVIOR";
+		category="Data Source Information";
+		break;
+	case SQL_CURSOR_ROLLBACK_BEHAVIOR:
+		name="SQL_CURSOR_ROLLBACK_BEHAVIOR";
+		category="Data Source Information";
+		break;
+	case SQL_CURSOR_SENSITIVITY:
+		name="SQL_CURSOR_SENSITIVITY";
+		category="Data Source Information";
+		break;
+	case SQL_DATABASE_NAME:
+		name="SQL_DATABASE_NAME";
+		category="DBMS Product Information";
+		break;
+	case SQL_DATA_SOURCE_NAME:
+		name="SQL_DATA_SOURCE_NAME";
+		category="Driver Information";
+		break;
+	case SQL_DATA_SOURCE_READ_ONLY:
+		name="SQL_DATA_SOURCE_READ_ONLY";
+		category="Data Source Information";
+		break;
+	case SQL_DBMS_NAME:
+		name="SQL_DBMS_NAME";
+		category="DBMS Product Information";
+		break;
+	case SQL_DBMS_VER:
+		name="SQL_DBMS_VER";
+		category="DBMS Product Information";
+		break;
+	case SQL_DDL_INDEX:
+		name="SQL_DDL_INDEX";
+		category="Supported SQL";
+		break;
+	case SQL_DEFAULT_TXN_ISOLATION:
+		name="SQL_DEFAULT_TXN_ISOLATION";
+		category="Data Source Information";
+		break;
+	case SQL_DESCRIBE_PARAMETER:
+		name="SQL_DESCRIBE_PARAMETER";
+		category="Data Source Information";
+		break;
+	case SQL_DM_VER:
+		name="SQL_DM_VER";
+		category="Added for ODBC 3.x";
+		break;
+	case SQL_DRIVER_HDBC:
+		name="SQL_DRIVER_HDBC";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_HDESC:
+		name="SQL_DRIVER_HDESC";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_HENV:
+		name="SQL_DRIVER_HENV";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_HLIB:
+		name="SQL_DRIVER_HLIB";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_HSTMT:
+		name="SQL_DRIVER_HSTMT";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_NAME:
+		name="SQL_DRIVER_NAME";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_ODBC_VER:
+		name="SQL_DRIVER_ODBC_VER";
+		category="Driver Information";
+		break;
+	case SQL_DRIVER_VER:
+		name="SQL_DRIVER_VER";
+		category="Driver Information";
+		break;
+	case SQL_DROP_ASSERTION:
+		name="SQL_DROP_ASSERTION";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_CHARACTER_SET:
+		name="SQL_DROP_CHARACTER_SET";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_COLLATION:
+		name="SQL_DROP_COLLATION";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_DOMAIN:
+		name="SQL_DROP_DOMAIN";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_SCHEMA:
+		name="SQL_DROP_SCHEMA";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_TABLE:
+		name="SQL_DROP_TABLE";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_TRANSLATION:
+		name="SQL_DROP_TRANSLATION";
+		category="Supported SQL";
+		break;
+	case SQL_DROP_VIEW:
+		name="SQL_DROP_VIEW";
+		category="Supported SQL";
+		break;
+	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
+		name="SQL_DYNAMIC_CURSOR_ATTRIBUTES1";
+		category="Driver Information";
+		break;
+	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
+		name="SQL_DYNAMIC_CURSOR_ATTRIBUTES2";
+		category="Driver Information";
+		break;
+	case SQL_EXPRESSIONS_IN_ORDERBY:
+		name="SQL_EXPRESSIONS_IN_ORDERBY";
+		category="Supported SQL";
+		break;
+	case SQL_FETCH_DIRECTION:
+		name="SQL_FETCH_DIRECTION";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_FILE_USAGE:
+		name="SQL_FILE_USAGE";
+		category="Driver Information";
+		break;
+	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
+		name="SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1";
+		category="Driver Information";
+		break;
+	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
+		name="SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2";
+		category="Driver Information";
+		break;
+	case SQL_GETDATA_EXTENSIONS:
+		name="SQL_GETDATA_EXTENSIONS";
+		category="Driver Information";
+		break;
+	case SQL_GROUP_BY:
+		name="SQL_GROUP_BY";
+		category="Supported SQL";
+		break;
+	case SQL_IDENTIFIER_CASE:
+		name="SQL_IDENTIFIER_CASE";
+		category="Supported SQL";
+		break;
+	case SQL_IDENTIFIER_QUOTE_CHAR:
+		name="SQL_IDENTIFIER_QUOTE_CHAR";
+		category="Supported SQL";
+		break;
+	case SQL_INDEX_KEYWORDS:
+		name="SQL_INDEX_KEYWORDS";
+		category="Supported SQL";
+		break;
+	case SQL_INFO_SCHEMA_VIEWS:
+		name="SQL_INFO_SCHEMA_VIEWS";
+		category="Driver Information";
+		break;
+	case SQL_INSERT_STATEMENT:
+		name="SQL_INSERT_STATEMENT";
+		category="Supported SQL";
+		break;
+	case SQL_KEYSET_CURSOR_ATTRIBUTES1:
+		name="SQL_KEYSET_CURSOR_ATTRIBUTES1";
+		category="Driver Information";
+		break;
+	case SQL_KEYSET_CURSOR_ATTRIBUTES2:
+		name="SQL_KEYSET_CURSOR_ATTRIBUTES2";
+		category="Driver Information";
+		break;
+	case SQL_KEYWORDS:
+		name="SQL_KEYWORDS";
+		category="Supported SQL";
+		break;
+	case SQL_LIKE_ESCAPE_CLAUSE:
+		name="SQL_LIKE_ESCAPE_CLAUSE";
+		category="Supported SQL";
+		break;
+	case SQL_LOCK_TYPES:
+		name="SQL_LOCK_TYPES";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_MAX_ASYNC_CONCURRENT_STATEMENTS:
+		name="SQL_MAX_ASYNC_CONCURRENT_STATEMENTS";
+		category="Driver Information";
+		break;
+	case SQL_MAX_BINARY_LITERAL_LEN:
+		name="SQL_MAX_BINARY_LITERAL_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_CHAR_LITERAL_LEN:
+		name="SQL_MAX_CHAR_LITERAL_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMNS_IN_GROUP_BY:
+		name="SQL_MAX_COLUMNS_IN_GROUP_BY";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMNS_IN_INDEX:
+		name="SQL_MAX_COLUMNS_IN_INDEX";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMNS_IN_ORDER_BY:
+		name="SQL_MAX_COLUMNS_IN_ORDER_BY";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMNS_IN_SELECT:
+		name="SQL_MAX_COLUMNS_IN_SELECT";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMNS_IN_TABLE:
+		name="SQL_MAX_COLUMNS_IN_TABLE";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_COLUMN_NAME_LEN:
+		name="SQL_MAX_COLUMN_NAME_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_CURSOR_NAME_LEN:
+		name="SQL_MAX_CURSOR_NAME_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_IDENTIFIER_LEN:
+		name="SQL_MAX_IDENTIFIER_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_INDEX_SIZE:
+		name="SQL_MAX_INDEX_SIZE";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_OWNER_NAME_LEN:
+		name="SQL_MAX_SCHEMA_NAME_LEN/SQL_MAX_OWNER_NAME_LEN";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_MAX_PROCEDURE_NAME_LEN:
+		name="SQL_MAX_PROCEDURE_NAME_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_QUALIFIER_NAME_LEN:
+		name="SQL_MAX_CATALOG_NAME_LEN/SQL_MAX_QUALIFIER_NAME_LEN";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_MAX_ROW_SIZE:
+		name="SQL_MAX_ROW_SIZE";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_ROW_SIZE_INCLUDES_LONG:
+		name="SQL_MAX_ROW_SIZE_INCLUDES_LONG";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_STATEMENT_LEN:
+		name="SQL_MAX_STATEMENT_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_TABLES_IN_SELECT:
+		name="SQL_MAX_TABLES_IN_SELECT";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_TABLE_NAME_LEN:
+		name="SQL_MAX_TABLE_NAME_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MAX_USER_NAME_LEN:
+		name="SQL_MAX_USER_NAME_LEN";
+		category="SQL Limits";
+		break;
+	case SQL_MULTIPLE_ACTIVE_TXN:
+		name="SQL_MULTIPLE_ACTIVE_TXN";
+		category="Data Source Information";
+		break;
+	case SQL_MULT_RESULT_SETS:
+		name="SQL_MULT_RESULT_SETS";
+		category="Data Source Information";
+		break;
+	case SQL_NEED_LONG_DATA_LEN:
+		name="SQL_NEED_LONG_DATA_LEN";
+		category="Data Source Information";
+		break;
+	case SQL_NON_NULLABLE_COLUMNS:
+		name="SQL_NON_NULLABLE_COLUMNS";
+		category="Supported SQL";
+		break;
+	case SQL_NULL_COLLATION:
+		name="SQL_NULL_COLLATION";
+		category="Data Source Information";
+		break;
+	case SQL_NUMERIC_FUNCTIONS:
+		name="SQL_NUMERIC_FUNCTIONS";
+		category="Scalar Function Information";
+		break;
+	case SQL_ODBC_API_CONFORMANCE:
+		name="SQL_ODBC_API_CONFORMANCE";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_ODBC_INTERFACE_CONFORMANCE:
+		name="SQL_ODBC_INTERFACE_CONFORMANCE";
+		category="Driver Information";
+		break;
+	case SQL_ODBC_SQL_CONFORMANCE:
+		name="SQL_ODBC_SQL_CONFORMANCE";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_ODBC_SQL_OPT_IEF:
+		name="SQL_INTEGRITY/SQL_ODBC_SQL_OPT_IEF";
+		category="Renamed for ODBC 3.x";
+		break;
+#	ifdef SQL_ODBC_STANDARD_CLI_CONFORMANCE
+	case SQL_ODBC_STANDARD_CLI_CONFORMANCE:
+		name="SQL_ODBC_STANDARD_CLI_CONFORMANCE";
+		category="Driver Information";
+		break;
+#	endif
+	case SQL_ODBC_VER:
+		name="SQL_ODBC_VER";
+		category="Driver Information";
+		break;
+	case SQL_OJ_CAPABILITIES:
+		name="SQL_OJ_CAPABILITIES";
+		category="Supported SQL";
+		break;
+	case SQL_ORDER_BY_COLUMNS_IN_SELECT:
+		name="SQL_ORDER_BY_COLUMNS_IN_SELECT";
+		category="Supported SQL";
+		break;
+	case SQL_OUTER_JOINS:
+		name="SQL_OUTER_JOINS";
+		category="Supported SQL";
+		break;
+	case SQL_OWNER_TERM:
+		name="SQL_SCHEMA_TERM/SQL_OWNER_TERM";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_OWNER_USAGE:
+		name="SQL_SCHEMA_USAGE/SQL_OWNER_USAGE";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_PARAM_ARRAY_ROW_COUNTS:
+		name="SQL_PARAM_ARRAY_ROW_COUNTS";
+		category="Driver Information";
+		break;
+	case SQL_PARAM_ARRAY_SELECTS:
+		name="SQL_PARAM_ARRAY_SELECTS";
+		category="Driver Information";
+		break;
+	case SQL_POSITIONED_STATEMENTS:
+		name="SQL_POSITIONED_STATEMENTS";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_POS_OPERATIONS:
+		name="SQL_POS_OPERATIONS";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_PROCEDURES:
+		name="SQL_PROCEDURES";
+		category="Supported SQL";
+		break;
+	case SQL_PROCEDURE_TERM:
+		name="SQL_PROCEDURE_TERM";
+		category="Data Source Information";
+		break;
+	case SQL_QUALIFIER_LOCATION:
+		name="SQL_CATALOG_LOCATION/SQL_QUALIFIER_LOCATION";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_QUALIFIER_NAME_SEPARATOR:
+		name="SQL_CATALOG_NAME_SEPARATOR/SQL_QUALIFIER_NAME_SEPARATOR";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_QUALIFIER_TERM:
+		name="SQL_CATALOG_TERM/SQL_QUALIFIER_TERM";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_QUALIFIER_USAGE:
+		name="SQL_CATALOG_USAGE/SQL_QUALIFIER_USAGE";
+		category="Renamed for ODBC 3.x";
+		break;
+	case SQL_QUOTED_IDENTIFIER_CASE:
+		name="SQL_QUOTED_IDENTIFIER_CASE";
+		category="Supported SQL";
+		break;
+	case SQL_ROW_UPDATES:
+		name="SQL_ROW_UPDATES";
+		category="Driver Information";
+		break;
+	case SQL_SCROLL_CONCURRENCY:
+		name="SQL_SCROLL_CONCURRENCY";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_SCROLL_OPTIONS:
+		name="SQL_SCROLL_OPTIONS";
+		category="Data Source Information";
+		break;
+	case SQL_SEARCH_PATTERN_ESCAPE:
+		name="SQL_SEARCH_PATTERN_ESCAPE";
+		category="Driver Information";
+		break;
+	case SQL_SERVER_NAME:
+		name="SQL_SERVER_NAME";
+		category="Driver Information";
+		break;
+	case SQL_SPECIAL_CHARACTERS:
+		name="SQL_SPECIAL_CHARACTERS";
+		category="Supported SQL";
+		break;
+	case SQL_SQL_CONFORMANCE:
+		name="SQL_SQL_CONFORMANCE";
+		category="Supported SQL";
+		break;
+	case SQL_STATIC_CURSOR_ATTRIBUTES1:
+		name="SQL_STATIC_CURSOR_ATTRIBUTES1";
+		category="Driver Information";
+		break;
+	case SQL_STATIC_CURSOR_ATTRIBUTES2:
+		name="SQL_STATIC_CURSOR_ATTRIBUTES2";
+		category="Driver Information";
+		break;
+	case SQL_STATIC_SENSITIVITY:
+		name="SQL_STATIC_SENSITIVITY";
+		category="Deprecated in ODBC 3.x";
+		break;
+	case SQL_STRING_FUNCTIONS:
+		name="SQL_STRING_FUNCTIONS";
+		category="Scalar Function Information";
+		break;
+	case SQL_SUBQUERIES:
+		name="SQL_SUBQUERIES";
+		category="Supported SQL";
+		break;
+	case SQL_SYSTEM_FUNCTIONS:
+		name="SQL_SYSTEM_FUNCTIONS";
+		category="Scalar Function Information";
+		break;
+	case SQL_TABLE_TERM:
+		name="SQL_TABLE_TERM";
+		category="Data Source Information";
+		break;
+	case SQL_TIMEDATE_ADD_INTERVALS:
+		name="SQL_TIMEDATE_ADD_INTERVALS";
+		category="Scalar Function Information";
+		break;
+	case SQL_TIMEDATE_DIFF_INTERVALS:
+		name="SQL_TIMEDATE_DIFF_INTERVALS";
+		category="Scalar Function Information";
+		break;
+	case SQL_TIMEDATE_FUNCTIONS:
+		name="SQL_TIMEDATE_FUNCTIONS";
+		category="Scalar Function Information";
+		break;
+	case SQL_TXN_CAPABLE:
+		name="SQL_TXN_CAPABLE";
+		category="Data Source Information";
+		break;
+	case SQL_TXN_ISOLATION_OPTION:
+		name="SQL_TXN_ISOLATION_OPTION";
+		category="Data Source Information";
+		break;
+	case SQL_UNION:
+		name="SQL_UNION";
+		category="Supported SQL";
+		break;
+	case SQL_USER_NAME:
+		name="SQL_USER_NAME";
+		category="Data Source Information";
+		break;
+	case SQL_XOPEN_CLI_YEAR:
+		name="SQL_XOPEN_CLI_YEAR";
+		category="Added for ODBC 3.x";
+		break;
+	default:
+		name="unknown";
+		category="unknown";
+		break;
+	}
+
+	tdsdump_log(TDS_DBG_INFO1, "odbc: not implemented: %s: option/type %d(%s) [category %s]\n", function_name, fType, name, category);
+	
+	return;
 }
