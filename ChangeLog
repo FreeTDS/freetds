@@ -1,3 +1,8 @@
+Sun Jan 11 16:43:03 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* README reflect 0.62 status
+	* doc/api_status.txt added some missing functions
+	* src/tds/read.c Alex Kiesel patch: cancel processing.
+	
 Sun Jan 11 14:22:45 CET 2004	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: 0.63... start new fun :)
 
