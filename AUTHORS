@@ -52,6 +52,12 @@ implementation of dbstrlen and dbstrcpy
 John F. Dumas <jdumas@locutus.kingwoodcable.com>
 patch to fix memory leaks.
 
+James K. Lowden <jklowden@speakeasy.org>
+Documentor extraordinaire, and interfaces to perl conversion script.
+
+Lothar Krauss <lkrauss@wbs-blank.de>
+ODBC fixes
+
 Thanks go to the folks at A2i, Inc. (http://www.a2i.com) for funding the 
 development of dblib host file bulk copy and writetext support, and to Dave 
 Poyourow there for helping with the debugging.

@@ -22,7 +22,7 @@
 #include <ctpublic.h>
 #include <ctlib.h>
 
-static char  software_version[]   = "$Id: ct.c,v 1.1 2001-10-12 23:29:05 brianb Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.2 2001-10-16 21:57:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -149,7 +149,7 @@ char *set_buffer = NULL;
 				tds_set_app(tds_login, set_buffer);
 				break;
 			case CS_HOSTNAME:
-				tds_set_app(tds_login, set_buffer);
+				tds_set_host(tds_login, set_buffer);
 				break;
 			case CS_LOC_PROP:
 				con->locale = (CS_LOCALE *)buffer;

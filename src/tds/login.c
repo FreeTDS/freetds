@@ -26,7 +26,7 @@
 #define IOCTL(a,b,c) ioctl(a, b, c)
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.1 2001-10-12 23:29:00 brianb Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.2 2001-10-16 21:57:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -330,8 +330,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    if (IS_TDS42(tds)) {
       rc|=tds_put_string(tds,config->password,255);
    } else {
-      sprintf(passwdstr,"%c%c%s",0,(unsigned char) strlen(config->password),config->password);
-      rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(config->password)+2);
+	 if(config->password == NULL) {
+		sprintf(passwdstr, "%c%c%s", 0, 0, "");
+      	rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)2);
+	 } else {
+      	sprintf(passwdstr,"%c%c%s",0,
+			(unsigned char)strlen(config->password),
+			config->password);
+      	rc|=tds_put_buf(tds,passwdstr,255,(unsigned char)strlen(config->password)+2);
+	 }
    }
    
    rc|=tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
