@@ -42,7 +42,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.33 2004-11-17 18:49:07 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.34 2004-11-19 15:42:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
