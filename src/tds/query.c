@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.62 2002-12-14 15:16:05 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.63 2002-12-18 10:29:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -541,8 +541,7 @@ int i;
 	tds_put_byte(tds, 0x01);
 	tds_put_byte(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);
-	tds_put_byte(tds, 0x00);
-	tds_put_byte(tds, 0x00);
+	tds_put_smallint(tds, 0);
 
 	tds_put_params(tds, dyn->params, 0);
 
@@ -612,18 +611,65 @@ tds_get_dynid(TDSSOCKET * tds, char **id)
 }
 
 /**
- * Free given prepared query
+ * Send a unprepare request for a prepared query
+ * @param tds db connection
+ * @param dyn dynamic query
+ * @result TDS_SUCCEED or TDS_FAIL
  */
 int
 tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
+int id_len;
+
 	if (!dyn)
 		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside tds_submit_unprepare() %s\n", dyn->id);
 
-	/* TODO continue ... reset dynamic, free structure, unprepare to server */
-	return TDS_FAIL;
+	if (tds->state == TDS_PENDING) {
+		tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
+			       "Attempt to initiate a new SQL Server operation with results pending.");
+		return TDS_FAIL;
+	}
+
+	/* TODO check this code, copied from tds_submit_prepare */
+	tds_free_all_results(tds);
+	tds->rows_affected = 0;
+	tds->state = TDS_QUERYING;
+
+	tds->cur_dyn = dyn;
+
+	if (IS_TDS7_PLUS(tds)) {
+		/* RPC on sp_execute */
+		tds->out_flag = 3;	/* RPC */
+		/* procedure name */
+		tds_put_smallint(tds, 12);
+		tds_put_n(tds, "s\0p\0_\0u\0n\0p\0r\0e\0p\0a\0r\0e", 24);
+		tds_put_smallint(tds, 0);	/* flags */
+
+		/* id of prepared statement */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, SYBINT4);
+		tds_put_int(tds, dyn->num_id);
+
+		return tds_flush_packet(tds);
+	}
+
+	tds->out_flag = 0x0F;
+	/* dynamic id */
+	id_len = strlen(dyn->id);
+
+	tds_put_byte(tds, TDS5_DYN_TOKEN);
+	tds_put_smallint(tds, id_len + 5);
+	tds_put_byte(tds, 0x04);
+	tds_put_byte(tds, 0x00);
+	tds_put_byte(tds, id_len);
+	tds_put_n(tds, dyn->id, id_len);
+	tds_put_smallint(tds, 0);
+
+	/* send it */
+	return tds_flush_packet(tds);
 }
 
 /**
