@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.91 2004-02-04 18:20:43 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.92 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -134,7 +134,11 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			opened = tdsdump_open(s);
 		} else {
 			pid = getpid();
+#ifndef WIN32
 			if (asprintf(&path, "/tmp/tdsconfig.log.%d", pid) >= 0) {
+#else
+			if (asprintf(&path, "c:\\tdsconfig.log.%d", pid) >= 0) {
+#endif
 				if (*path) {
 					opened = tdsdump_open(path);
 				}
@@ -214,7 +218,7 @@ tds_get_home_file(const char *file)
 	home = tds_get_homedir();
 	if (!home)
 		return NULL;
-	if (asprintf(&path, "%s/%s", home, file) < 0)
+	if (asprintf(&path, "%s" TDS_SDIR_SEPARATOR "%s", home, file) < 0)
 		path = NULL;
 	free(home);
 	return path;
@@ -252,8 +256,13 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 	if (!found) {
 		eptr = getenv("FREETDS");
 		if (eptr) {
+#ifndef WIN32
 			asprintf(&path, "%s/etc/freetds.conf", eptr);
 			found = tds_try_conf_file(path, "(from $FREETDS/etc)", server, connection);
+#else
+			asprintf(&path, "%s\\freetds.conf", eptr);
+			found = tds_try_conf_file(path, "(from $FREETDS)", server, connection);
+#endif
 		} else {
 			tdsdump_log(TDS_DBG_INFO2, "%L ...$FREETDS not set.  Trying $HOME.\n");
 		}
@@ -552,7 +561,11 @@ tds_config_env_tdsdump(TDSCONNECTION * connection)
 	if ((s = getenv("TDSDUMP"))) {
 		if (!strlen(s)) {
 			pid = getpid();
+#ifndef WIN32
 			if (asprintf(&path, "/tmp/freetds.log.%d", pid) >= 0)
+#else
+			if (asprintf(&path, "c:\\freetds.log.%d", pid) >= 0)
+#endif
 				tds_dstr_set(&connection->dump_file, path);
 		} else {
 			tds_dstr_copy(&connection->dump_file, s);
@@ -789,7 +802,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
 			pathname[0] = '\0';
 		} else {
 			strcpy(pathname, dir);
-			strcat(pathname, "/");
+			strcat(pathname, TDS_SDIR_SEPARATOR);
 		}
 		strcat(pathname, file);
 	}
@@ -915,7 +928,11 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		const char *sybase = getenv("SYBASE");
 
 		if (!sybase || !sybase[0])
+#ifndef WIN32
 			sybase = "/etc/freetds";
+#else
+			sybase = "c:\\";
+#endif
 		tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
 		founded = search_interface_file(connection, sybase, "interfaces", server);
 	}

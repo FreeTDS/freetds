@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: connectparams.c,v 1.53 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: connectparams.c,v 1.54 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
@@ -318,6 +318,10 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 }
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
+
+#ifdef WIN32
+#  error There is something wrong  in configuration...
+#endif
 
 typedef struct
 {

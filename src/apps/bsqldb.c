@@ -51,7 +51,7 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
-static char software_version[] = "$Id: bsqldb.c,v 1.4 2004-05-01 19:18:17 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.5 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -577,7 +577,7 @@ print_results(DBPROCESS *dbproc)
 		if (DBCOUNT(dbproc) > -1)
 			fprintf(stderr, "%d rows affected\n", DBCOUNT(dbproc));
 		else 
-			fprintf(stderr, "@@rowcount not available\n", DBCOUNT(dbproc));
+			fprintf(stderr, "@@rowcount not available\n");
 			
 
 		/* 

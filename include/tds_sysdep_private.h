@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.12 2004-02-03 19:28:10 jklowden Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.13 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -59,6 +59,8 @@ typedef DWORD pid_t;
 #define WIN32 1
 #endif
 
+#define TDS_SDIR_SEPARATOR "\\"
+
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef sock_errno
@@ -88,6 +90,10 @@ typedef DWORD pid_t;
 #ifndef IOCTLSOCKET
 #define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
 #endif /* !IOCTLSOCKET */
+
+#ifndef TDS_SDIR_SEPARATOR
+#define TDS_SDIR_SEPARATOR "/"
+#endif /* !TDS_SDIR_SEPARATOR */
 
 #ifdef __cplusplus
 #if 0

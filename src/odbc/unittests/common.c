@@ -6,7 +6,7 @@
 
 #include <ctype.h>
 
-static char software_version[] = "$Id: common.c,v 1.31 2004-04-25 08:55:36 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.32 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -59,7 +59,7 @@ read_login_info(void)
 	char path[1024];
 	int len;
 
-	in = fopen("../../../PWD", "r");
+	in = fopen(".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR "PWD", "r");
 	if (!in)
 		in = fopen("PWD", "r");
 
@@ -84,6 +84,7 @@ read_login_info(void)
 	}
 	fclose(in);
 
+#ifndef WIN32
 	/* find our driver */
 	if (!getcwd(path, sizeof(path)))
 		return 0;
@@ -105,6 +106,7 @@ read_login_info(void)
 		setenv("ODBCINI", "./odbc.ini", 1);
 		setenv("SYSODBCINI", "./odbc.ini", 1);
 	}
+#endif
 	return 0;
 }
 

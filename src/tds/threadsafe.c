@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.33 2004-02-03 19:28:12 jklowden Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.34 2004-05-02 07:30:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -359,6 +359,7 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 char *
 tds_get_homedir(void)
 {
+#ifndef WIN32
 /* if is available getpwuid_r use it */
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID_R)
 	struct passwd *pw, bpw;
@@ -394,5 +395,8 @@ tds_get_homedir(void)
 	if (!home || !home[0])
 		return NULL;
 	return strdup(home);
+#endif
+#else /* WIN32 */
+#error Finish!!! Get Application Data
 #endif
 }
