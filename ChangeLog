@@ -1,3 +1,9 @@
+Tue Sep 24 09:26:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/README (removed)
+	- Remove obsolete include/README which only referred to four
+	  header files which do not (any longer?) seem to be part of our
+	  repository.
+
 Mon Sep 23 20:20:44 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/Makefile.am src/pool/user.c src/server/Makefile.am
 	  src/server/login.c src/server/server.c

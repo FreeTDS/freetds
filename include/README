@@ -1,4 +1,0 @@
-The files isql.h, isqlext.h, odbc_funcs.h, and odbc_types.h come from iODBC
-and/or FreeODBC (I got them from the FreeODBC driver stub, which in turn got
-them from iODBC?).
-
