@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.76 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.77 2002-10-14 15:41:03 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2547,7 +2547,6 @@ TDSRESULTINFO * resinfo;
 RETCODE
 dbwritetext(DBPROCESS *dbproc, char *objname, DBBINARY *textptr, DBTINYINT textptrlen, DBBINARY *timestamp, DBBOOL log, DBINT size, BYTE *text)
 {
-char query[1024];
 char textptr_string[35]; /* 16 * 2 + 2 (0x) + 1 */
 char timestamp_string[19]; /* 8 * 2 + 2 (0x) + 1 */
 int marker;
@@ -2555,11 +2554,9 @@ int marker;
     if (textptrlen > DBTXPLEN) return FAIL;
     dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)textptr, textptrlen, SYBCHAR, textptr_string, -1);
     dbconvert(dbproc, SYBBINARY, (TDS_CHAR *)timestamp, 8, SYBCHAR, timestamp_string, -1);
-    
 
-	sprintf(query, "writetext bulk %s 0x%s timestamp = 0x%s",
-		objname, textptr_string, timestamp_string); 
-	if (tds_submit_query(dbproc->tds_socket, query)!=TDS_SUCCEED) {
+        if (tds_submit_queryf(dbproc->tds_socket, "writetext bulk %s 0x%s timestamp = 0x%s", objname, textptr_string, timestamp_string)
+	    != TDS_SUCCEED) {
 		return FAIL;
 	}
 	

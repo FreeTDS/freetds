@@ -1,3 +1,15 @@
+Mon Oct 14 11:35:37 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h src/dblib/bcp.c src/dblib/dblib.c src/tds/query.c:
+	- Implement a convenience function tds_submit_queryf() to
+	  format a query and send to the dataserver.
+	- Use tds_submit_queryf() in a few places to avoid static
+	  buffer overruns.
+	- Check return codes from query submission in dblib bcp functions.
+	- Above change revealed that src/dblib/unittests/t0016.c has been
+	  silently failing for some time.  Fully process result set from
+	  table column inquiry query, so that the next query doesn't fail
+	  (starting new query with results pending).
+
 Mon Oct 14 09:35:35 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/des.h include/md4.h src/tds/challenge.c src/tds/des.c
 	  src/tds/iconv.c src/tds/md4.c src/tds/numeric.c src/tds/write.c:

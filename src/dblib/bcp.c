@@ -53,7 +53,7 @@
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.25 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.26 2002-10-14 15:41:03 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -65,16 +65,14 @@ static int     _bcp_rtrim_varchar(char *, int );
 static int     _bcp_err_handler(DBPROCESS *dbproc, int bcp_errno);
 
 
-RETCODE bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
+RETCODE
+bcp_init(DBPROCESS *dbproc, char *tblname, char *hfile, char *errfile, int direction)
 {
-
 TDSSOCKET *tds = dbproc->tds_socket;
 BCP_COLINFO     *bcpcol;
 TDSRESULTINFO   *resinfo;
-
-int  i;
-
-char query[256];
+int i;
+int rc;
 
     /* free allocated storage in dbproc & initialise flags, etc. */
 
@@ -130,11 +128,19 @@ char query[256];
 
     if (dbproc->bcp_direction == DB_IN )
     {
-       sprintf(query,"select * from %s where 0 = 1", dbproc->bcp_tablename);
-       tds_submit_query(tds,query);
+       if (tds_submit_queryf(tds, "select * from %s where 0 = 1", dbproc->bcp_tablename) == TDS_FAIL) {
+	  return FAIL;
+       }
    
-       if (tds_process_result_tokens(tds) == TDS_FAIL) {
-           return FAIL;
+       while ((rc = tds_process_result_tokens(tds)) == TDS_SUCCEED) {
+          while ((rc = tds_process_row_tokens(tds)) == TDS_SUCCEED) {
+          }
+          if (rc == TDS_FAIL) {
+             return FAIL;
+          }
+       }
+       if (rc == TDS_FAIL) {
+          return FAIL;
        }
 
        if (!tds->res_info) {
@@ -417,7 +423,6 @@ long          len;
 int           buflen;
 int           destlen;
 BYTE          *outbuf;
-char          query[256];
 
 TDS_TINYINT   ti;
 TDS_SMALLINT  si;
@@ -435,9 +440,10 @@ int           rows_written;
         return FAIL;
     }
 
-    sprintf(query,"select * from %s", dbproc->bcp_tablename);
-
-    tds_submit_query(tds, query);
+    if (tds_submit_queryf(tds, "select * from %s", dbproc->bcp_tablename)
+	== TDS_FAIL) {
+        return FAIL;
+    }
 
     if (tds_process_result_tokens(tds) == TDS_FAIL) {
         fclose(hostfile);

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.28 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.29 2002-10-14 15:41:04 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -117,6 +117,22 @@ TDS_INT bufsize2;
 	free(buf);
 
 	return TDS_SUCCEED;
+}
+
+int
+tds_submit_queryf(TDSSOCKET *tds, char *queryf, ...)
+{
+va_list ap;
+char *query = NULL;
+int rc = TDS_FAIL;
+
+	va_start(ap, queryf);
+	if (vasprintf(&query, queryf, ap) >= 0) {
+		rc = tds_submit_query(tds, query);
+		free(query);
+	}
+	va_end(ap);
+	return rc;
 }
 
 /**
