@@ -30,14 +30,13 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.19 2002-07-05 13:18:21 brianb Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.20 2002-07-06 18:31:25 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO *colinfo);
-static int days_this_year (int years);
 
 static void _set_null_value(DBPROCESS *dbproc, BYTE *varaddr, int datatype, int maxlen);
 
@@ -1938,17 +1937,6 @@ int i;
 #endif
 }
 
-static int days_this_year (int years)
-{
-
-int year;
-
-	year = 1900 + years;
-	if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
-		return 366;
-	else
-		return 365;
-}
 void dbrpwclr(LOGINREC *login)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwclr()\n");
