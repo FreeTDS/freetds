@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.46 2002-11-05 05:32:15 castellano Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.47 2002-11-05 08:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -59,10 +59,6 @@ void tds_free_env(TDSSOCKET *tds);
 #undef TEST_STRDUP
 #define TEST_STRDUP(dest,str) \
 	{if (!(dest = strdup(str))) goto Cleanup;}
-
-/* TODO do a best check for alignment than this, duplicate from token.c */
-static union { void *p; int i; } align_struct;
-#define ALIGN_SIZE sizeof(align_struct)
 
 /**
  * \defgroup mem Memory allocation
@@ -259,16 +255,16 @@ int null_size, remainder, i;
 TDS_INT row_size;
 unsigned char *row;
 
-	null_size = (unsigned)(info->num_cols+(8*ALIGN_SIZE-1)) / 8u;
-	null_size = null_size - null_size % ALIGN_SIZE;
+	null_size = (unsigned)(info->num_cols+(8*TDS_ALIGN_SIZE-1)) / 8u;
+	null_size = null_size - null_size % TDS_ALIGN_SIZE;
 	null_size -= info->null_info_size;
 	if (null_size < 0) null_size = 0;
 
 	curparam->column_offset = info->row_size;
 	/* the +1 are needed for terminater... still required (freddy77) */
 	row_size = info->row_size + curparam->column_size + 1 + null_size;
-	remainder = row_size % ALIGN_SIZE; 
-	if (remainder) row_size += (ALIGN_SIZE - remainder);
+	remainder = row_size % TDS_ALIGN_SIZE; 
+	if (remainder) row_size += (TDS_ALIGN_SIZE - remainder);
 
 	/* make sure the row buffer is big enough */
 	if (info->current_row) {
@@ -381,7 +377,7 @@ int null_sz;
 	}
 	res_info->num_cols = num_cols;
 	null_sz = (num_cols/8) + 1;
-	if (null_sz % ALIGN_SIZE) null_sz = ((null_sz/ALIGN_SIZE)+1)*ALIGN_SIZE;
+	if (null_sz % TDS_ALIGN_SIZE) null_sz = ((null_sz/TDS_ALIGN_SIZE)+1)*TDS_ALIGN_SIZE;
 	res_info->null_info_size = null_sz;
 	/* set the initial row size to the size of the null info */
 	res_info->row_size = res_info->null_info_size;

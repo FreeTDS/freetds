@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.93 2002-11-05 05:32:15 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.94 2002-11-05 08:06:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -72,9 +72,6 @@ extern const int g__numeric_bytes_per_prec[];
  * (like result description, rows, data, errors and many other).
  */
 
-/* TODO do a best check for alignment than this */
-static union { void *p; int i; } align_struct;
-#define ALIGN_SIZE sizeof(align_struct)
 
 /** \addtogroup token
  *  \@{ 
@@ -717,8 +714,8 @@ char ci_flags[4];
 			curcol->column_offset = info->row_size;
 			info->row_size += curcol->column_size + 1;
 		}
-		remainder = info->row_size % ALIGN_SIZE; 
-		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
+		remainder = info->row_size % TDS_ALIGN_SIZE; 
+		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
 	}
 
 	/* get the rest of the bytes */
@@ -879,8 +876,8 @@ int             i;
 	}
 
 		/* actually this 4 should be a machine dependent #define */
-		remainder = info->row_size % ALIGN_SIZE;
-		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
+		remainder = info->row_size % TDS_ALIGN_SIZE;
+		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
 	}
 
     by_cols = tds_get_byte(tds);       
@@ -1020,8 +1017,8 @@ int remainder;
 			info->row_size += sizeof(TDS_NUMERIC) + 1;
 		}
 		
-		remainder = info->row_size % ALIGN_SIZE;
-		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
+		remainder = info->row_size % TDS_ALIGN_SIZE;
+		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
 		
 	}
 
@@ -1124,8 +1121,8 @@ int remainder;
 			info->row_size += curcol->column_size + 1;
 		}
 
-		remainder = info->row_size % ALIGN_SIZE; 
-		if (remainder) info->row_size += (ALIGN_SIZE - remainder);
+		remainder = info->row_size % TDS_ALIGN_SIZE; 
+		if (remainder) info->row_size += (TDS_ALIGN_SIZE - remainder);
 	}
 	info->current_row = tds_alloc_row(info);
 

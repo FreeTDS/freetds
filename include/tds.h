@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.37 2002-11-04 19:49:17 castellano Exp $";
+	"$Id: tds.h,v 1.38 2002-11-05 08:06:57 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -369,6 +369,10 @@ sheesh! </rant>
 #define TDS_STR_LANGUAGE	"language"
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
+
+/* TODO do a best check for alignment than this */
+typedef union { void *p; int i; } tds_align_struct;
+#define TDS_ALIGN_SIZE sizeof(tds_align_struct)
 
 #define TDS_MAX_LOGIN_STR_SZ 30
 #define TDS_MAX_LIBRARY_STR_SZ 11
