@@ -45,14 +45,13 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.10 2002-11-23 20:49:10 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.11 2002-11-24 18:01:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 
 static TDSPARAMINFO* param_info_alloc(DBREMOTE_PROC * rpc);
-static void 	     param_info_free(TDSPARAMINFO * pparam_info);
 
 /**
  * Initialize a remote procedure call. 
@@ -177,11 +176,15 @@ dbrpcsend(DBPROCESS * dbproc)
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpcsend()\n");
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
+		int erc;
 		TDSPARAMINFO* pparam_info = param_info_alloc(rpc);
-		/* FIXME do stuff */
-		param_info_free(pparam_info);
+		
+		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
+			;
+		if (erc == TDS_FAIL) {
+			return FAIL;
+		}
 	}
-
 
 	/* free up the memory */
 	rpc_clear(dbproc->rpc);
@@ -189,90 +192,67 @@ dbrpcsend(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/** 
+ * Tell the TDSPARAMINFO structure where the data go.  This is a kind of "bind" operation.
+ */
+static const unsigned char *
+param_row_alloc(TDSPARAMINFO *params, TDSCOLINFO *curcol, void *value, int size)
+{
+	const unsigned char *row = tds_alloc_param_row(params, curcol);
+	memcpy(&params->current_row[curcol->column_offset], value, size);
+	
+	return row;
+}
+
+/** 
+ * Allocate memory and copy the rpc information into a TDSPARAMINFO structure.
+ */
 static TDSPARAMINFO*
 param_info_alloc(DBREMOTE_PROC * rpc)
 {
-	int i, ncols;
+	int i;
 	DBREMOTE_PROC_PARAM *p;
-	TDSCOLINFO *pcolumns;
-	TDSPARAMINFO *param_info;
-	
+	TDSCOLINFO *pcol;
+	TDSPARAMINFO *params=NULL;
+
 	/* sanity */
 	if (rpc == NULL) return NULL;
 	
-	/* how many? */
-	for (ncols=0, p = rpc->param_list; p != NULL; p = p->next) {
-		++ncols;
-	}
+	/* see v 1.10 2002/11/23 for first broken attempt */
 	
-	/* allocate */
-	param_info = (TDSPARAMINFO*) malloc(sizeof(TDSPARAMINFO));
-	memset (param_info, 0, sizeof(TDSPARAMINFO));
-	
-	/* initialize */
-	param_info->num_cols = ncols;
-	/* param_info->columns, see loop below */
-#	if 0
-	TDS_INT       row_size;
-	int           null_info_size;
-	unsigned char *current_row;
-
-	TDS_SMALLINT  rows_exist;
-	TDS_INT       row_count;
-	TDS_SMALLINT  computeid;
-	TDS_TINYINT   more_results;
-	TDS_TINYINT   *bycolumns;
-	TDS_SMALLINT  by_cols;
-#	endif
-	
-	if (ncols) {
-		/* allocate an array of column pointers */
-		param_info->columns  = (TDSCOLINFO**) malloc(ncols * sizeof(TDSCOLINFO*));
-
-		/* allocate all columns at one time */
-		pcolumns  = (TDSCOLINFO*) malloc(ncols * sizeof(TDSCOLINFO));
-		memset (pcolumns, 0, sizeof(ncols * sizeof(TDSCOLINFO)));
-
-		/* 
-		 * For each "column" copy its type, size, and location, and assign its address 
-		 * to the succeeding member of param_info->columns. 
-		 * Note,  pcolumns is still pointing to the start of the allocated block
-		 * We don't allocate memory to copy the value data; we just copy 
-		 * the pointer expect that the tds layer will *not* free it.  
-		 */
-		for (i=0, p = rpc->param_list; p != NULL && i < ncols; p = p->next) {
+	for (i=0, p = rpc->param_list; p != NULL; p = p->next, i++) {
+		const unsigned char * prow;
 		
-			/* meta data */
-			if (p->name) 
-				strncpy (pcolumns->column_name, p->name, sizeof(pcolumns->column_name));
-			pcolumns->column_type		= p->type;
-			pcolumns->column_size		= p->maxlen;
-			
-			pcolumns->column_writeable	= p->status;	/* FIXME not sure what to do here */
-			
-			/* actual data */
-			pcolumns->column_cur_size	= p->datalen;
-			pcolumns->column_varaddr	= p->value;
-			
-			param_info->columns[i++] = pcolumns++;
+		if (!(params = tds_alloc_param_result(params))) {
+			fprintf(stderr, "out of rpc memory!");
+			return 0;
 		}
+		
+		pcol = params->columns[i];
+		
+		/* meta data */
+		if (p->name) 
+			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
+		pcol->column_type		= p->type;
+		pcol->column_size		= p->maxlen;
+		pcol->column_varint_size	= 1;
+		pcol->column_writeable		= p->status;	/* FIXME not sure what to do here */
+
+		/* actual data */
+		pcol->column_cur_size	= p->datalen;
+		prow = param_row_alloc(params, pcol, p->value, p->datalen);
+		
+		if (!prow) {
+			fprintf(stderr, "out of memory for rpc row!");
+			return 0;
+		}
+		
 	}
 	
-	return 	param_info;
+	return params;
+	
 }
 
-static void 
-param_info_free(TDSPARAMINFO * pparam_info)
-{
-	if (pparam_info == NULL) return;
-	
-	if (pparam_info->columns) {
-		free(pparam_info->columns[0]); 	/* frees all columns */
-		free(pparam_info->columns); 	/* frees all column pointers */
-	}
-	
-	free(pparam_info);
-}
 /**
  * recursively erase the procedure list
  */

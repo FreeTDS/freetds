@@ -1,3 +1,6 @@
+Sun Nov 24 13:00:08 EST 2002	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/rpc.c  first plausible implementation.  Not tested.  
+
 Sun Nov 24 15:00:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: spell fix, remove old TODO
 	* src/tds/login.c:
