@@ -1,3 +1,7 @@
+Sun Oct 20 01:22:46 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt include/tds.h src/dblib/dblib.c src/tds/token.c:
+	- Implement dbspid().
+
 Sat Oct 19 14:03:40 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tdsver.h.in:
 	- CVS Header -> CVS Id.

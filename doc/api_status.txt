@@ -193,6 +193,7 @@ dblib	core	dbsetnull
 dblib	core	dbsetopt	partial
 dblib	core	dbsettime	stub
 dblib	core	dbsetuserdata	OK
+dblib	core	dbspid	OK
 dblib	core	dbsqlexec	OK
 dblib	core	dbsqlok	OK
 dblib	core	dbsqlsend	OK

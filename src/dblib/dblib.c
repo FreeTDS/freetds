@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.79 2002-10-17 21:21:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.80 2002-10-20 05:24:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2293,11 +2293,21 @@ RETCODE dbrpwset(LOGINREC *login, char *srvname, char *password, int pwlen)
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbrpwset()\n");
 	return SUCCEED;
 }
-int dbspid(DBPROCESS *dbproc)
+
+int
+dbspid(DBPROCESS *dbproc)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbspid()\n");
-	return 0;
+	TDSSOCKET *tds;
+
+	if (dbproc == NULL)
+		return FAIL;
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	if (IS_TDSDEAD(tds))
+		return FAIL;
+
+	return tds->spid;
 }
+
 void
 dbsetuserdata(DBPROCESS *dbproc, BYTE *ptr)
 {

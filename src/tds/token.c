@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.74 2002-10-18 18:26:12 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.75 2002-10-20 05:24:16 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -185,6 +185,36 @@ int   cancelled;
    return TDS_SUCCEED;
 }	
 
+static int
+tds_set_spid(TDSSOCKET *tds)
+{
+
+   if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
+      return TDS_FAIL;
+   }
+   if (tds_process_result_tokens(tds) != TDS_SUCCEED) {
+      return TDS_FAIL;
+   }
+   if (tds->res_info->num_cols != 1) {
+      return TDS_FAIL;
+   }
+   if (tds->res_info->columns[0]->column_type != SYBINT2) {
+      return TDS_FAIL;
+   }
+   if (tds_process_row_tokens(tds) != TDS_SUCCEED) {
+      return TDS_FAIL;
+   }
+   tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row
+                                    + tds->res_info->columns[0]->column_offset));
+   if (tds_process_row_tokens(tds) != TDS_NO_MORE_ROWS) {
+      return TDS_FAIL;
+   }
+   if (tds_process_result_tokens(tds) != TDS_NO_MORE_RESULTS) {
+      return TDS_FAIL;
+   }
+   return TDS_SUCCEED;
+}
+
 /**
  * tds_process_login_tokens() is called after sending the login packet 
  * to the server.  It returns the success or failure of the login 
@@ -269,6 +299,12 @@ char *tmpbuf;
 				break;
 		}
 	} while (marker!=TDS_DONE_TOKEN);
+	tds->spid = tds->rows_affected;
+	if (tds->spid == 0) {
+		if (tds_set_spid(tds) != TDS_SUCCEED) {
+			tdsdump_log(TDS_DBG_ERROR, "%L tds_set_spid() failed\n");
+		}
+	}
 	tdsdump_log(TDS_DBG_FUNC, "%L leaving tds_process_login_tokens() returning %d\n",succeed);
 	return succeed;
 }
