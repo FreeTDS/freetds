@@ -1,3 +1,10 @@
+Sun Sep 28 16:55:58 PDT 2003	Peter Deacon <peterd@iea-software.com>
+	* src/tds/config.c src/tds/login.c src/tds/token.c:
+	* src/odbc/odbc.c include/tds.h src/tds/read.c:
+	- fix unchecked memory allocation
+	- replace bad assert
+	- add missing TDS_IS_SOCKET_INVALID macro
+
 Fri Sep 25 23:10:36 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: update from ML and other
 	* src/apps/tsql.c: fix problem reading system charset

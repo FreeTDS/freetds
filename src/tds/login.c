@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.110 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.111 2003-09-28 23:26:04 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -371,7 +371,10 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 
 	if (connect_info->text_size || (!db_selected && !tds_dstr_isempty(&connect_info->database))) {
 		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connect_info->database));
-		str = (char *) malloc(len);
+		if ((str = (char *) malloc(len)) == NULL) {
+			tds_free_socket(tds);
+			return TDS_FAIL;
+		}
 		str[0] = 0;
 		if (connect_info->text_size) {
 			sprintf(str, "set textsize %d ", connect_info->text_size);
