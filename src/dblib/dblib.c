@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.81 2002-10-23 02:21:23 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.82 2002-10-23 04:06:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -2057,13 +2057,16 @@ TDSSOCKET * tds;
 	if (resinfo && resinfo->rows_exist) return SUCCEED;
 	else return FAIL;
 }
-/* STUBS */
-RETCODE dbsetdeflang(char *language)
+
+RETCODE
+dbsetdeflang(char *language)
 {
 	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetdeflang()\n");
 	return SUCCEED;
 }
-int dbgetpacket(DBPROCESS *dbproc)
+
+int
+dbgetpacket(DBPROCESS *dbproc)
 {
 TDSSOCKET *tds = dbproc->tds_socket;
 
@@ -2073,11 +2076,21 @@ TDSSOCKET *tds = dbproc->tds_socket;
 		return tds->env->block_size;
 	}
 }
-RETCODE dbsetmaxprocs(int maxprocs)
+
+RETCODE
+dbsetmaxprocs(int maxprocs)
 {
 	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsetmaxprocs()\n");
 	return SUCCEED;
 }
+
+int
+dbgetmaxprocs(void)
+{
+
+	return TDS_MAX_CONN;
+}
+
 RETCODE dbsettime(int seconds)
 {
 	tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbsettime()\n");

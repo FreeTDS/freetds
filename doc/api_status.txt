@@ -142,7 +142,7 @@ dblib	core	dbfcmd	OK
 dblib	core	dbfirstrow	OK
 dblib	core	dbfreebuf	OK
 dblib	core	dbgetchar	OK
-dblib	core	dbgetmaxprocs	
+dblib	core	dbgetmaxprocs	OK
 dblib	core	dbgetoff	
 dblib	core	dbgetpacket	OK
 dblib	core	dbgetrow	OK

@@ -1,4 +1,8 @@
-Tue Oct 22 22:15:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+Wed Oct 23 00:05:30 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt src/dblib/dblib.c:
+	- Implement dbgetmaxprocs().
+
+Tu Oct 22 22:15:52 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/cspublic.h include/sybdb.h include/tds.h
 	  include/tdsutil.h src/apps/tsql.c src/ctlib/ct.c
 	  src/ctlib/unittests/Makefile.am src/ctlib/unittests/t0004.c
