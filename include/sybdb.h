@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.27 2002-10-25 04:45:42 castellano Exp $";
+"$Id: sybdb.h,v 1.28 2002-10-25 23:12:01 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -614,6 +614,7 @@ DBINT dbvarylen(DBPROCESS *dbproc, int column);
 #define SYBEBCBPREF      20236
 #define SYBEVDPT         20079
 #define SYBEUNOP	 20115	/* Unknown option passed to dbsetopt(). */
+#define SYBESPID	 20154	/* Called dbspid() with a NULL dbproc. */
 #define SYBEBCPCTYP      20233
 #define SYBEBCHLEN       20235
 #define SYBEBCPREF       20237

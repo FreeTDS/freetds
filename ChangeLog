@@ -1,3 +1,7 @@
+Fri Oct 25 19:10:18 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/sybdb.h src/dblib/dblib.c:
+	- Generate SYBESPID error.
+
 Fri Oct 25 18:51:32 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/ctpublic.h src/ctlib/ct.c:
 	- Add stub for ct_poll().

@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.85 2002-10-25 04:45:42 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.86 2002-10-25 23:12:06 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -3251,8 +3251,10 @@ dbspid(DBPROCESS *dbproc)
 {
 	TDSSOCKET *tds;
 
-	if (dbproc == NULL)
+	if (dbproc == NULL) {
+		_dblib_client_msg(dbproc, SYBESPID, EXPROGRAM, "Called dbspid() with a NULL dbproc.");
 		return FAIL;
+	}
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (IS_TDSDEAD(tds))
 		return FAIL;
