@@ -1,3 +1,6 @@
+Tue May 13 21:20:26 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: update environment info
+
 Tue May 13 12:09:42 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c
 	- look up canonical charset before initializing iconv

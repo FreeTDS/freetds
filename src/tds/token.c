@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.191 2003-05-12 18:57:07 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.192 2003-05-13 19:19:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1936,6 +1936,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	int size, type;
 	char *oldval = NULL;
 	char *newval = NULL;
+	char **dest;
 	int new_block_size;
 	int lcid;
 
@@ -1975,6 +1976,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	/* fetch the old value */
 	oldval = tds_alloc_get_string(tds, tds_get_byte(tds));
 
+	dest = NULL;
 	switch (type) {
 	case TDS_ENV_PACKSIZE:
 		new_block_size = atoi(newval);
@@ -1989,6 +1991,15 @@ tds_process_env_chg(TDSSOCKET * tds)
 			tds_realloc_socket(tds, new_block_size);
 		}
 		break;
+	case TDS_ENV_DATABASE:
+		dest = &tds->env->database;
+		break;
+	case TDS_ENV_LANG:
+		dest = &tds->env->language;
+		break;
+	case TDS_ENV_CHARSET:
+		dest = &tds->env->charset;
+		break;
 	}
 	if (tds->env_chg_func) {
 		(*(tds->env_chg_func)) (tds, type, oldval, newval);
@@ -1996,8 +2007,14 @@ tds_process_env_chg(TDSSOCKET * tds)
 
 	if (oldval)
 		free(oldval);
-	if (newval)
-		free(newval);
+	if (newval) {
+		if (dest) {
+			if (*dest)
+				free(*dest);
+			*dest = newval;
+		} else
+			free(newval);
+	}
 
 	return TDS_SUCCEED;
 }
