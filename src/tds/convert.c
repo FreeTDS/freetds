@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.115 2003-03-05 19:36:47 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.116 2003-03-06 11:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1756,7 +1756,7 @@ int          i;
 int current_state;
 
 	memset(&mytime, '\0', sizeof(struct tds_time));
-	t->tm_mday == 1;
+	mytime.tm_mday = 1;
 	t = &mytime;
 
 	in = (char *)malloc(strlen(instr)+1);

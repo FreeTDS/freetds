@@ -1,3 +1,8 @@
+Thu Mar 06 12:26:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: cleanup
+	* src/tds/convert.c: 
+	- fix of yesterday fix (I shouldn't code so late...)
+
 Wed Mar 05 20:36:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- revert data compute and add fix for '' -> Jan 01 1900

@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.80 2003-03-05 14:16:47 mlilback Exp $";
+static char software_version[] = "$Id: ct.c,v 1.81 2003-03-06 11:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2153,7 +2153,6 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 {
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
-char *name = NULL;
 
 /* Code changed for RPC functionality - SUHA*/
 /* RPC code changes starts here */
@@ -2321,13 +2320,9 @@ int  param_is_null = 0;
 CS_RETCODE
 ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT *datalen, CS_SMALLINT *indicator)
 {
-TDSSOCKET *tds;
-TDSDYNAMIC *dyn;
-char *name = NULL;
 CSREMOTE_PROC *rpc;
 CSREMOTE_PROC_PARAM **pparam;
 CSREMOTE_PROC_PARAM *param;
-int  param_is_null = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_setparam()\n");
 
