@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.5 2004-07-21 19:28:01 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.6 2004-08-16 09:59:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -181,6 +181,15 @@ main(int argc, char *argv[])
 				
 				/* we catch error, good */
 				result = 0;
+			} else {
+				fprintf(stderr, "ct_bind() succeeded while it shouldn't\n");
+				return 1;
+			}
+			datafmt.count = 2;
+			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, &ind);
+			if (ret != CS_SUCCEED) {
+				fprintf(stderr, "ct_bind() failed\n");
+				return 1;
 			}
 			count = 0;
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)

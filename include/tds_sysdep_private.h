@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.13 2004-05-02 07:30:40 freddy77 Exp $";
+static char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.14 2004-08-16 09:59:04 freddy77 Exp $";
 static void *no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
 
 #ifdef __cplusplus
@@ -44,7 +44,7 @@ extern "C"
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
 #define TDSSOCK_EINTR WSAEINTR
-#define TDSSOCK_EINPROGRESS WSAEINPROGRESS
+#define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
 #define getpid() GetCurrentThreadId()
 #define sock_errno WSAGetLastError()
 #ifndef __MINGW32__
