@@ -1,3 +1,7 @@
+Mon Dec 01 08:34:27 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/tables.sql src/odbc/Makefile.am:
+	- removed tables.sql
+
 Sun Nov 30 14:23:10 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/preperror.c(added):
