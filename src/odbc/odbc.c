@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.87 2002-11-16 15:21:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.88 2002-11-16 15:55:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1266,7 +1266,8 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 			{
 				marker=tds_get_byte(tds);
 				tds_process_default_tokens(tds,marker);
-			} while (marker!=TDS_DONE_TOKEN);
+			/* FIXME is DEAD loop do not end... */
+			} while (tds->state != TDS_COMPLETED);
 
 			stmt->dyn = tds->cur_dyn;
 		}

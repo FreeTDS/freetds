@@ -12,7 +12,7 @@
 
 /* Test for SQLMoreResults */
 
-static char  software_version[]   = "$Id: t0004.c,v 1.4 2002-10-19 03:02:34 jklowden Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.5 2002-11-16 15:55:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 int main( int argc, char * argv[] ) 
@@ -20,8 +20,6 @@ int main( int argc, char * argv[] )
 char       buf[128];
 SQLINTEGER ind;
 	
-	setenv("TDSDUMP","",1);
-
 	Connect();
 
 	strcpy(buf,"I don't exist");
