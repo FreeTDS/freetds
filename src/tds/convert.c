@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.92 2002-10-12 18:42:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.93 2002-10-13 15:02:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -82,7 +82,7 @@ static int store_monthname(char *, struct tds_time *);
 static int store_numeric_date(char *, struct tds_time *);
 static int store_mday(char *, struct tds_time *);
 static int store_year(int,  struct tds_time *);
-static int days_this_year (int years);
+/* static int days_this_year (int years); */
 static int is_timeformat(char *);
 static int is_numeric(char *);
 static int is_alphabetic(char *);
@@ -1272,6 +1272,8 @@ TDSDATEREC when;
 	return TDS_CONVERT_FAIL;
 }
 
+
+/*
 static int days_this_year (int years)
 {
 int year;
@@ -1282,6 +1284,7 @@ int year;
    else
       return 365;
 }
+*/
 
 static TDS_INT 
 tds_convert_datetime4(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
@@ -1694,10 +1697,9 @@ int   mdaydone  = 0;
 struct tds_time mytime;
 struct tds_time *t;
 
-unsigned int dt_days, dt_time;
-int          dim[12]   = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-int          dty, i;
-int          conv_ms;
+unsigned int dt_time;
+TDS_INT      dt_days;
+int          i;
 
 int current_state;
 
@@ -1891,56 +1893,13 @@ int current_state;
         tok = strtok_r((char *)NULL, " ,", &lasts);
     }
 
-/* TODO test and replace code below */
-#if 0
 	i = (t->tm_mon - 13) / 12;
 	dt_days = 1461 * ( t->tm_year + 300 + i ) / 4 +
 		(367 * ( t->tm_mon - 1 - 12*i ) ) / 12 -
-		(3 * ( ( y + 400 + i ) / 100 ) ) / 4 +
+		(3 * ( ( t->tm_year + 400 + i ) / 100 ) ) / 4 +
 		t->tm_mday - 109544;
-#endif
-    
-    /* 1900 or after */ 
-    if (t->tm_year >= 0) {
-       dt_days = 0;
-       for (i = 0; i < t->tm_year ; i++) {
-           dty = days_this_year(i);
-           dt_days += dty;
-       }
 
-       dty = days_this_year(i);
-       if (dty == 366 )
-           dim[1] = 29;
-       else
-           dim[1] = 28;
-       for (i = 0; i < t->tm_mon ; i++) {
-           dt_days += dim[i];
-       }
-
-       dt_days += (t->tm_mday - 1);
-
-    } else {
- 	   dt_days = 0xffffffff;
-       /* dt_days = 4294967295U;  0xffffffff */
-       for (i = -1; i > t->tm_year ; i--) {
-           dty = days_this_year(i);
-           dt_days -= dty;
-       }
-       dty = days_this_year(i);
-       if (dty == 366 )
-           dim[1] = 29;
-       else
-           dim[1] = 28;
-
-       for (i = 11; i > t->tm_mon ; i--) {
-           dt_days -= dim[i];
-       }
-
-       dt_days -= dim[i] - t->tm_mday;
-
-    }
-
-    free(in);
+	free(in);
 
 	/* TODO check for overflow */
 	if ( desttype == SYBDATETIME ) {
@@ -2733,13 +2692,11 @@ TDS_INT tds_datecrack( TDS_INT datetype, const void *di, TDSDATEREC *dr )
 TDS_DATETIME  *dt;
 TDS_DATETIME4 *dt4;
 
-unsigned int dt_days;
+int dt_days;
 unsigned int dt_time;
 
-
-int dim[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
+int years, months, days, ydays, wday, hours, mins, secs, ms;
+int l,n,i,j;
 
 	if ( datetype == SYBDATETIME ) {
 		dt = (TDS_DATETIME *)di;
@@ -2759,68 +2716,29 @@ int dty, years, months, days, ydays, wday, hours, mins, secs, ms;
 	} 
 	else
 		return TDS_FAIL;
-          
 
 	/* -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 
 	 * 2958463 is maximun (9999-12-31) */
-	if (dt_days > 2958463) /* its a date before 1900 */ {
-		dt_days = 0xffffffff - dt_days; 
-
-		wday = 7 - ( dt_days % 7); 
-		years = -1;
-		dty = days_this_year(years);
-
-        
-		while ( dt_days >= dty ) {
-			years--; 
-			dt_days -= dty;
-			dty = days_this_year(years);
-		}
-		if (dty == 366 )
-			dim[1] = 29;
-		else
-			dim[1] = 28;
-
-		ydays = dty - dt_days;
-		months = 11;
- 
-		while (dt_days > dim[months] ) {
-			dt_days -= dim[months];
-			months--;
-		}
-
-		days = dim[months] - dt_days;
-	} else {
-		wday = ( dt_days + 1 ) % 7; /* 'cos Jan 1 1900 was Monday */
-
-		dt_days++;
-		years = 0;
-		dty = days_this_year(years);
-		while ( dt_days > dty ) {
-			years++; 
-			dt_days -= dty;
-			dty = days_this_year(years);
-		}
-
-		if (dty == 366 )
-			dim[1] = 29;
-		else
-			dim[1] = 28;
-
-		ydays = dt_days;
-		months = 0;
-		while (dt_days > dim[months] ) {
-			dt_days -= dim[months];
-			months++;
-		}
-
-		days = dt_days;
-	}
+	l = dt_days + 146038;
+	wday = ( l + 4 ) % 7;
+	n = (4 * l ) / 146097; /* n century */
+	l = l - ( 146097 * n + 3 ) / 4; /* days from xx00-02-28 (y-m-d) */
+	i = ( 4000 * ( l + 1 ) ) / 1461001; /* years from xx00-02-28 */
+	l = l - ( 1461 * i ) / 4; /* year days from xx00-02-28 */
+	ydays = l >= 306 ? l - 305 : l + 60;
+	l += 31;
+	j = ( 80 * l ) / 2447;
+	days = l - ( 2447 * j ) / 80;
+	l = j / 11;
+	months = j + 1 - 12 * l;
+	years = 100 * ( n + 15 ) + i + l;
+	if ( l == 0 && (years & 3) == 0 && (years % 100 != 0 || years % 400 == 0) ) 
+		++ydays;
 
 	hours = dt_time / 60;
 	mins  = dt_time % 60;
 
-	dr->year        = 1900 + years;
+	dr->year        = years;
 	dr->month       = months;
 	dr->day         = days;
 	dr->dayofyear   = ydays;

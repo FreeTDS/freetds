@@ -1,3 +1,9 @@
+Sun Oct 13 17:00:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c:
+	- improve date conversions performance
+	- fixing some error converting date before 1900 (day 0 and sunday 
+	  as 7 instead of 0).
+
 Sat Oct 12 20:40:53 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c:
 	- improve data conversions
