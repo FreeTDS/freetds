@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-<!-- $Id: faq.html,v 1.8 2004-11-02 15:18:32 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.9 2005-04-05 15:46:19 jklowden Exp $ -->
 <head>
 <title>FreeTDS Frequently Asked Questions</title>
 </head>
@@ -38,7 +38,7 @@ This list of frequently asked questions and answers about
 FreeTDS is updated between releases to cover problems
 since the last release, and to answer perennial questions (there are some).  </p>
 
-<div align=right><i>$Id: faq.html,v 1.8 2004-11-02 15:18:32 jklowden Exp $</i></div>
+<div align=right><i>$Id: faq.html,v 1.9 2005-04-05 15:46:19 jklowden Exp $</i></div>
 
 </font> </p>
 
@@ -53,7 +53,7 @@ General Questions<ul>
 <a href="#Where_do_I_get_FreeTDS">Where do I get FreeTDS?</a></li>
 
 <li>
-<a href="#Does FreeTDS support MSSQL">Does FreeTDS support MSSQL?</a></li>
+<a href="#Does FreeTDS support Microsoft servers">Does FreeTDS support Microsoft servers?</a></li>
 
 <li>
 <a href="#How can I get help">How can I get help (or support)?</a></li>
@@ -121,25 +121,10 @@ Programming:  C++, Sybperl, SQSH, &amp; PHP<ul>
 <li>
 <a href="#Are there plans to implement the OpenServer protocol/library">Are there plans to implement the OpenServer protocol/library?</a></li>
 
-<li>
-<a href="#jdbc test">How can I test my FreeTDS JDBC Driver?</a></li>
-<li>
-<a href="basic_jdbc_question.html">What information do I need to supply 
-	when asking about failures with the FreeTDS JDBC Driver?</a></li>
 </ul>
 
 <li>
-Problems Building<ul>
 
-<li>
-<a href="#How do I access the CVS">How do I access the CVS?</a></li>
-
-<li>
-<a href="#build_macosx">Getting it to work on MAC OS X</a></li>
-
-</ul>
-
-<li>
 Problems Running<ul>
 
 <li>
@@ -170,10 +155,10 @@ Problems Running<ul>
 <a name="What is FreeTDS"></a>
 <h3> What is FreeTDS?</h3>
 
-<p>FreeTDS is a free re-implementation of the TDS (Tabular Data Stream) protocol
+<p>FreeTDS is a free implementation of the TDS (Tabular Data Stream) protocol
 that is used by Sybase and Microsoft for their database products. It currently
 implements TDS 4.2, 5.0, 7.0 and 8.0, and can communicate with
-any Sybase product as well as Microsoft SQL Server.</p>
+any Sybase or Microsoft SQL Server.</p>
 
 <p>FreeTDS comes with a low level library (the TDS layer) along with a
 number of APIs (Application Programming Interfaces). The current APIs are DB-Lib,
@@ -187,12 +172,13 @@ libraries.</p>
 <a name="Where_do_I_get_FreeTDS"></a>
 <h3>Where do I get FreeTDS?</h3>
 
-<p>You can get the latest FreeTDS from Metalab or its mirrors. See 
-"Quick Links" on the <a href="http://www.freetds.org/">FreeTDS</a> home page.  You may also 
-use CVS (on sourceforge.net); see the User Guide for details.  </p>
-
-<p>If your firewall prevents FTP access, you can download the JDBC 
-<a href="http://www.rksystems.com/freetds_jdbc.jar">jar file</a> via http.  </p>
+<p>You can get the latest FreeTDS from 
+<a href="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-stable.tgz">Ibiblio</a>
+or its mirrors. See  "Quick Links" on the <a
+href="http://www.freetds.org/">FreeTDS</a> home page.  You may also 
+use the <a href="http://sourceforge.net/cvs/?group_id=33106" >CVS repository</a> 
+(on sourceforge.net); see the <a href="http://www.freetds.org/userguide/">User Guide</a>
+for details.  </p>
 
 <p>Your favorite operating system may have a package of some kind
 available.  You might want to check there.  Occasionally someone
@@ -200,11 +186,12 @@ contributes a package here, which we keep around.  Post a message to
 the list if you're looking for one and don't find one in the usual
 places. </p>
 
-<a name="Does FreeTDS support MSSQL"></a>
-<h3>Does FreeTDS support MSSQL?</h3>
+<a name="Does FreeTDS support Microsoft servers?"></a>
+<h3>Does FreeTDS support Microsoft servers?</h3>
 
-<p>Yes, as long as you configure the libraries with the 4.2, 7.0 or 8.0 protocol
-version. See the <a href="http://www.freetds.org/userguide/">User Guide</a> for details. </p>
+<p>Yes.  Microsoft servers don't usually accept TDS 5.0 connections.  Use one of versions 
+4.2, 7.0 or 8.0 of the protocol. 
+See the <a href="http://www.freetds.org/userguide/choosingtdsprotocol.htm">User Guide</a> for details. </p>
 
 
 <a name="How can I get help"></a>
@@ -492,7 +479,7 @@ unless it needs to (say, to execute an <tt>ORDER BY</tt> clause).  Instead, it s
 selected/formed, in real time (if you will).  Likewise, the client libraries do <i>not</i> read all the rows 
 from the server before making them available to the client application.  
 
-	<P>As you can see, for the purposes of the connection, the client library is tightly coupled to the server;
+	<P>The client library is tightly coupled to the server;
 they are synchronized, share state information.  The server requires the client either to read all the results from 
 a query, or to indicate that no further rows are desired i.e., to issue a cancellation.  Until one of those two 
 things happens, the server will not accept new queries on that connection.  It will complain about "pending results".  
@@ -522,11 +509,9 @@ You my wish to refer to
 <a name="thread_safe"></a>
 <h3>Is FreeTDS thread safe?</h3>
 
-<p>
-FreeTDS is designed to be thread safe in the following manner. Different threads
-may all use separate connections without interfering with each other.
-Threads may not share a DBPROCESS or CS_CONNECTION without controlling
-access via a mutex however.</p>
+<p> Different threads may all use separate connections without
+interfering with each other. Threads may not share a DBPROCESS or
+CS_CONNECTION without controlling access via a mutex.</p>
 
 <a name="Are there plans to implement the OpenServer protocol/library"></a>
 <h3>Are there plans to implement the OpenServer protocol/library?</h3>
@@ -534,149 +519,6 @@ access via a mutex however.</p>
 <p>Not at this point, there is still much work to do on the client protocol.
 But, <tt>libtdssrv</tt> will do the trick for some applications.</p>
 
-<a name="jdbc_test"></a>
-<h3>How can I test my FreeTDS JDBC Driver?</h3>
-<p>
-           <a href="mailto:Seth.Rajkumar@GNI.co.uk">Rajkumar Seth</a> offers the following:
-<pre>
-  static void ftdsjdbc () {
-    try {
-    	// use your hostname and port number here
-      String url = "jdbc:freetds:sqlserver://nt1:1433/master"; 
-      String login = "sa"; // use your login here
-      String password = "secret"; // use your password here
-
-      if (false) { //Sybase 
-        url = "jdbc:freetds:sybase://unix1:4100/master";
-        login = "sa"; // use your login here
-        password = "secret"; // use your password here
-      }
-
-      Class.forName("com.internetcds.jdbc.tds.Driver"); 
-      
-      //open a connection to the database
-      Connection connection 
-      	  = DriverManager.getConnection(url, login, password);
-      //to get the driver version
-      DatabaseMetaData conMD = connection.getMetaData();
-      System.out.println("Driver Name:\t" + conMD.getDriverName());
-      System.out.println("Driver Version:\t" + conMD.getDriverVersion());
-      //create a statement
-      Statement st = connection.createStatement();
-      
-      //execute a query
-      ResultSet rs 
-      	  = st.executeQuery("SELECT * FROM master.dbo.sysprocesses");
-
-      // read the data and put it to the console
-      while (rs.next()) {
-        for (int j = 1; j &lt;= rs.getMetaData().getColumnCount(); j++) {
-          System.out.print(rs.getObject(j) + "\t");
-        }
-
-        System.out.println();
-      }
-
-      //close the objects
-      st.close();
-      connection.close();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-</pre></p>
-
-<hr>
-		<!-- BUILDING -->
-
-<h2>Problems Building</h2>
-
-<a name="How do I access the CVS"></a>
-<h3>How do I access the CVS Repository?</h3>
-
-<p>The CVS repository is maintained in two separate projects on <a href="http://www.sourceforge.net">SourceForge</a></p>
-
-<ul>
-
-<li>The TDS, dblib, ctlib, and ODBC libraries are in the <a
-href="http://sourceforge.net/cvs/?group_id=33106">FreeTDS</a> project.
-(The root for anonymous access is
-<tt>:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds</tt>,
-the password is empty, and the module name is <tt>freetds</tt>)</li>
-
-<!-- :pserver:anon-cvs@freetds.internetcds.com:/Repository -->
-<li>The JDBC library is in the <a
-href="http://sourceforge.net/cvs/?group_id=33291">JTDS</a> project.
-(The root for anonymous access is
-<tt>:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jtds</tt>,
-the password is empty, and the module name is <tt>jtds</tt>)</li>
-
-</ul>
-<p>Read-only access requires no password.  For the right to commit
-changes, contact the Project Admins listed on the SourceForge project
-summary pages.</p>
-<p>To obtain the current CVS copy of FreeTDS</p>
-<pre><small>cvs \
--d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds \
-login
-
-cvs -z3 \
--d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds \
-checkout freetds</small></pre>
-
-<p>Building from CVS is described in the file INSTALL.CVS, and
-involves running the <tt>autogen.sh</tt> script to generate and run
-<tt>configure</tt> then <tt>make</tt> and <tt>make install</tt>.</p>
-
-<a name="build_macosx"></a>
-<h3>Getting it to work on MAC OS X.</h3>
-
-
-<p><font size="-1"><em>Wed 16 October 2002</em></font></p>
-
-
-<p>Mark J. Lilback rolled up his sleeves and solved this.  It's not baby simple, because you have to use bleeding edge tools.  The latest stable release of libtool, which FreeTDS uses to generate its configure script, doesn't do what you need.  But, as a dynalib builder, you're used to that, eh?   </p>
-
-<p>To get started, obtain a current CVS version of FreeTDS.  Then follow Mark's instructions:</p>
-
-<p>Here's the final process that allows compiling out of CVS. I've 
-tested it on a clean install (after mucking around with many 
-solutions on my system) and it should work for anyone on 10.2.</p>
-
-<p>The steps seem kinda stupid in some places, but that's because most 
-users don't have a <tt>/usr/local/bin</tt> and it isn't in the path by 
-default. I also avoided giving shell commands because the default 
-shell is <tt>tcsh</tt> and I refuse to deal with anything other than <tt>bash</tt>.</p>
-
-<ol>
-<li>If you don't have <tt>/usr/local/bin</tt>, create it.</li>
-
-<li>Run the command <kbd><em>ln -s /usr/bin/glibtoolize /usr/local/bin/libtoolize</em></kbd></li>
-
-<li>Add <tt>/usr/local/bin</tt> to your path if not there.</li>
-
-<li>Download and install <tt>autoconf-2.54</tt>, making sure it is in your 
-path. I installed it in <tt>/usr/local/autoconf-2.54</tt> and added 
-<tt>/usr/local/autoconf-2.54/bin</tt> to my path just for getting FreeTDS to 
-work, but I'm paranoid about updating Apple-supplied software.</li>
-
-<li>Apply <a href="http://www.lilback.com/misc/ltmain.diff">the patch</a> to 
-<tt>/usr/share/libtool/ltmain.sh</tt>. This modifies the installed <tt>libtool</tt> 
-with a <tt>libtool</tt> patch that is in CVS but has not made it into a public 
-release.</li>
-
-<li>Follow the normal instructions for compiling FreeTDS from CVS.</li>
-</ol>
-
-<p>After this, they compile and the unit tests work up to <tt>dblib0013</tt>, 
-which hung for 10 minutes or so until I cancelled it.</p>
-
-<p>There were a couple of other issues I want to clean up at some point 
-(like the fact that iODBC is installed on the system by default, so 
-there is no need to specify a directory), but it works with the above 
-steps.</p>
 
 <hr>
 		<!-- RUNNING -->
@@ -686,14 +528,7 @@ steps.</p>
 <a name="syb_result_type"></a>
 <h3>With <tt>DBD::Sybase</tt>, why do I sometimes get an unexpected 1-column result set?</h3>
 
-<p>Beginning with SQL Server 7.0, Microsoft servers send <tt>DONE</tt> packets when completing various processes
-e.g., triggers, replication processes, internal stored procedures to support cursors.  At one time, FreeTDS ignored some
-of these <tt>DONE</tt> packets, but as more types of result sets where handled -- particularly <em>compute rows</em> --
-they became exposed through the <tt>ct-lib</tt> interface, which is what <tt>DBD::Sybase</tt> uses.  </p>
-
-<p>The workaround in FreeTDS 0.62.x is to have your result-processing loop test <var>syb_result_type</var> for <code>CS_STATUS_RESULT</code>.  Consult <kbd><strong>perldoc DBD::Sybase</strong></kbd> for more information.  
-
-<p>It is expected that this will be fixed when version 0.63 is released.  Fixes have already been applied to CVS.  You are encouraged to try the nightly snapshot and provide feedback and/or patches.  </p>
+<p>Use a more recent release of FreeTDS.  This problem was corrected with version 0.63.  </p>
 
 <a name="unknownmarker"></a>
 <h3>What does this <tt>unknown marker</tt> message mean?</h3>
@@ -723,43 +558,21 @@ by vendor &amp; version).<br>&nbsp;</li>
 	<li><p>Try <kbd>tsql -S &lt;servername&gt; -p &lt;port&gt; -U &lt;username&gt; -P &lt;password&gt; </kbd></p>
 	<p>That will connect to the server using freetds.conf.  This allows you to isolate freetds.conf mistakes.  <kbd>man tsql</kbd> for more.  </p> </li>
 
-	<li>Check your ./configure and environment variables. The <tt>--with-tdsver</tt> determines what flavor of the TDS protocol your runs by default; the $TDSVER variable overrides that default.  The following combinations are reasonable:</li>
-
+	<li>Check your ./configure and environment variables. The <tt>--with-tdsver</tt> determines what flavor of the TDS protocol your runs by default; the $TDSVER variable overrides that default.  The following combinations are reasonable; see the <a href="http://www.freetds.org/userguide/">User Guide</a> for details:</li>
 
 <table>
 <tr>
-<td><b>Vendor</b></td>
-
-<td><b>Version</b></td>
-
-<td><b>TDS Version</b></td>
-
+  <td><b>Vendor</b></td> <td><b>Version</b></td> <td><b>TDS Version</b></td>
 </tr>
-
 <tr>
-<td>Sybase</td>
-
-<td>4.92+&nbsp;</td>
-
-<td>5.0</td>
+  <td>Sybase</td> <td>4.92+&nbsp;</td> <td>5.0</td>
 </tr>
-
 <tr>
-<td>Microsoft</td>
-
-<td>6.0, 6.5</td>
-
-<td>4.2</td>
+  <td>Microsoft</td> <td>6.0, 6.5</td> <td>4.2</td> 
 </tr>
-
 <tr>
-<td>Microsoft</td>
-
-<td>7.0/2000</td>
-
-<td>7.0</td>
+  <td>Microsoft</td> <td>7.0/2000</td> <td>7.0</td>
 </tr>
-<tr><td>&nbsp;</td></tr>
 </table>
 
 	<li><p>Edit the <b><tt>PWD</tt></b> file and try <tt>make check</tt>.  It will call unittests for libtds, ctlib, dblib and odbc in that order</p></li>
@@ -774,39 +587,19 @@ with <tt>sqsh</tt>, you don't have a FreeTDS problem.</p></li>
 <h3>The Microsoft SQL Server is listening, my configuration and environment
 are set up per question 6.1, but logins still fail.</h3>
 
-<p>Yeah, make sure you're not relying on integrated security.  Microsoft
-supports two security models in three permutations:</p>
+<p>Microsoft supports two security models in three permutations:</p>
 
 <ol>
-<li>
-Windows NT Authentication Mode (Windows NT Authentication)</li>
-
-<li>
-Standard Mode (SQL Server Authentication)</li>
-
-<li>
-Mixed Mode (Windows NT Authentication and SQL Server Authentication)</li>
+	<li>Windows NT Authentication Mode (Windows NT Authentication)</li>
+	<li>Standard Mode (SQL Server Authentication)</li>
+	<li>Mixed Mode (Windows NT Authentication and SQL Server Authentication)</li>
 </ol>
-<p>You need either Standard or Mixed mode. </p>
-<p>"Windows NT Authentication", often called "integrated security", relies
-on Microsoft's trusted connections and is not supported by FreeTDS. In
-it, user's network security attributes are established at network login
-time. When connecting to the database server, SQL Server uses Windows NT
-facilities to determine the validated network username. SQL Server then
-permits or denies login access based on that network username alone, without
-requiring a separate login name and password.</p>
 
-<p>FreeTDS supports the traditional database security model, which Microsoft
-terms "SQL Server Authentication" but is frequently known as "standard
-security". Username+Password pairs have to be passed to the server explicitly.</p>
+<p>"Windows NT Authentication", often called "integrated security", relies on Microsoft's domain logins, which establish a user's network security attributes at network login time. When connecting to the database server, SQL Server accepts an encrypted password in the login packet, and uses Windows NT facilities authenticate it, usually via the Primary Domain Controller (PDC). The server then permits or denies login access based on the response.</p>
 
-<p>Mixed Mode allows users to connect using either authentication method.
-Users who connect through a Windows NT account can make use of trusted
-connections in either Windows NT Authentication Mode or Mixed Mode. After
-successful connection to SQL Server, the security mechanism is the same
-for both modes.</p>
+<p>With traditional "Standard Mode" authentication, usernames and passwords are stored within SQL Server.  They are passed in the login packet as plaintext, and connection requests are authenticated without consulting the operating system.  </p>
 
-<p>Update: support for "Windows NT Authentication" was added in 0.60. This code is quite new, hasn't seen much use and might work.  ;)</p>
+<p>FreeTDS supports both security models.  Domain logins are recognized by the presence of a backslash (\) character in the username.  See the <a href="http://www.freetds.org/userguide/domains.htm">User Guide</a> for details.  
 
 <A name=textdata></a>
 <h3>My <tt>text</tt> data are being truncated or are causing my client to 
@@ -837,18 +630,16 @@ make different choices, and your driver has chosen a representation for you.
 </p>Microsoft's ODBC driver (which is used by among other things the Query 
 Analyzer tool) converts <tt>datetime</tt> to an ISO format. That format has the 
 advantages of being all numeric: sortable, unambiguous, and 
-locale-independent. <code>db-lib</code> and <code>ct-lib</code>, in contrast, 
-as well as the FreeTDS <code>ODBC</code> 
-driver, use the <code>MMM DD YYYY hh:mm</code> format (fixed in CVS, October 2002). 
+locale-independent. The vendors' <code>db-lib</code> and <code>ct-lib</code>, in contrast, 
+use the <code>MMM DD YYYY hh:mm</code> format. 
 <p>If you want to be sure your queries always return dates in a particular 
 format, don't leave the formatting up to the driver!  Use the <code>Convert</code> 
 function. For example:  </p>
 
 <!-- example convert  -->
 <pre class="screen"><tt class="userinput">
-
-1&gt; select convert( varchar(30), getdate(), 120 ) as Now
-2&gt; go
+1&gt; <b>select convert( varchar(30), getdate(), 120 ) as Now</b>
+2&gt; <b>go</b>
  Now
  ------------------------------
  2002-07-02 12:36:31
@@ -856,15 +647,10 @@ function. For example:  </p>
 
 <p>As of version 0.60, the default datetime-&gt;string conversion is controlled by the <code>locale.conf</code> file.  See the User Guide for details.  
 
-<p>There are two other date issues.  
-<ol>
-	<li>FreeTDS dates were restricted to the range supported by the standard C library, approximately from 1970 to 2038.  This restriction was lifted with version 0.60.</li>
-	<li>Big endian clients experience difficulty with Microsoft servers.  See <em>Known Issues</em> in the <a href="http://www.freetds.org/userguide/">User Guide</a>.  </li>
-</ol>
 </p>
 
 		<!-- footer -->
-<hr size="1"><font size="-1">Updates and comments <a href="mailto:jklowden@speakeasy.org">FreeTDS FAQ Master</a></font>
+<hr size="1"><font size="-1">Updates and comments <a href="mailto:jklowden@freetds.org">FreeTDS FAQ Master</a></font>
 
 </body>
 </html>

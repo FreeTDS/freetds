@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-04-05 08:36:56 $</date>
-		<releaseinfo>$Revision: 1.91 $</releaseinfo>
+		<date>$Date: 2005-04-05 15:46:18 $</date>
+		<releaseinfo>$Revision: 1.92 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.91 $</>
-<member>$Date: 2005-04-05 08:36:56 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.91 2005-04-05 08:36:56 freddy77 Exp $.</>
+<member>$Revision: 1.92 $</>
+<member>$Date: 2005-04-05 15:46:18 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.92 2005-04-05 15:46:18 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -279,7 +279,7 @@ If the following nevertheless reads like gibberish, you might very well want to 
 			</para>
 		</sect1>
 		<sect1 id="packages">
-    			<title>What to build: Packages, Tarballs, and the <productname>CVS</productname></title>
+    			<title>What to build: Packages, Tarballs, and the <productname>CVS</productname> repository</title>
 			<para>
 The latest <productname>FreeTDS</productname> package is always available from 
 	<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-release.tgz">
@@ -287,14 +287,23 @@ The latest <productname>FreeTDS</productname> package is always available from
 and its mirrors.
 			</para>
 			<para>
-Code changes by the developers are immediately available in the <productname>CVS</productname> repository.  If you've run into a problem, you may want to check out from <productname>CVS</productname> to see if it's fixed there. Please check the FAQ for instructions on using <productname>CVS</productname>.
+Code changes by the developers are immediately available in the <productname>CVS</productname> repository.  If you've run into a problem, you may want to check out from <productname>CVS</productname> to see if it's fixed there. 
+			</para>
+			<para>
+No password is needed to obtain the current CVS copy of FreeTDS; you need only have a CVS client installed on your machine.  Then:
+<screen>
+<prompt>$ </prompt><userinput>cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds login</userinput>
+<prompt>$ </prompt><userinput>cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds checkout freetds</userinput>
+<prompt>Password: </prompt>
+<prompt>$ </prompt><userinput>make install</userinput>
+</screen>
 			</para>
 			<para>
 For those behind firewalls or otherwise unable to access <productname>CVS</productname>, nightly snapshots of <productname>CVS</productname> are rolled up into tarballs for your convenience.  They can be downloaded from  
 	<ulink url="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/freetds-current.tgz">ibiblio.org</ulink>.  Tarballs are generated around 3am EST (GMT-5).
 			</para>
 			<para>
-In general, the <productname>CVS</productname> version works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>CVS</productname>.
+In general, the <productname>CVS</productname> version works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>CVS</productname>.  
   			</para>
 			<tip><para>
 As with any project of this sort, if you want to use the <productname>CVS</productname> version, it's a good idea to join the mailing list.  
@@ -316,6 +325,11 @@ If you've built other <acronym>GNU</> projects, building <productname>FreeTDS</p
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
+
+			<para>
+Building from CVS is described in the file INSTALL.CVS.  
+			</para>
+
 			</sect2>
 			<sect2 id="Everyone"><title>For Everyone Else </title>
 				<TITLEABBREV>(<productname>FreeTDS</productname> for Dummies?)</TITLEABBREV>
@@ -537,7 +551,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-04-05 08:36:56 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-04-05 15:46:18 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>

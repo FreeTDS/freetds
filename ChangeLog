@@ -1,3 +1,7 @@
+Tue Apr  5 11:44:48 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml doc/htdoc/faq.html 
+	- updated, moved CVS instructions
+
 Tue Apr  5 16:53:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/tds/encodings.h(removed):
 	* src/tds/sybase_character_sets.h(removed):
