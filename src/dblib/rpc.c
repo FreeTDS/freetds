@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.14 2002-11-29 11:35:46 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.15 2002-12-17 13:26:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -240,7 +240,7 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		
 		if (!(params = tds_alloc_param_result(params))) {
 			fprintf(stderr, "out of rpc memory!");
-			return 0;
+			return NULL;
 		}
 		
 		pcol = params->columns[i];
@@ -249,7 +249,11 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		if (p->name) 
 			strncpy (pcol->column_name, p->name, sizeof(pcol->column_name));
 		tds_set_column_type(pcol, p->type);
-		pcol->column_size	= p->maxlen;
+		if (pcol->column_varint_size) {
+			if (p->maxlen < 0)
+				return NULL;
+			pcol->column_size	= p->maxlen;
+		}
 		pcol->column_output	= p->status;
 
 		/* actual data */
@@ -258,7 +262,7 @@ param_info_alloc(DBREMOTE_PROC * rpc)
 		
 		if (!prow) {
 			fprintf(stderr, "out of memory for rpc row!");
-			return 0;
+			return NULL;
 		}
 		
 	}
