@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.96 2002-11-06 12:40:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.97 2002-11-07 21:41:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1489,7 +1489,7 @@ TDSENVINFO *env = tds->env;
 	oldval[size]='\0';
 
 	switch (type) {
-		case TDS_ENV_BLOCKSIZE:
+		case TDS_ENV_PACKSIZE:
 			new_block_size = atoi(newval);
 			if (new_block_size > env->block_size) {
 				tdsdump_log(TDS_DBG_INFO1, "%L increasing block size from %s to %d\n", oldval, new_block_size);
@@ -1502,6 +1502,9 @@ TDSENVINFO *env = tds->env;
 				env->block_size = new_block_size;
 			}
 			break;
+	}
+	if (tds->env_chg_func) {
+		(*(tds->env_chg_func))(tds, type, oldval, newval);
 	}
 	free(oldval);
 	free(newval);

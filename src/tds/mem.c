@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.49 2002-11-07 10:02:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.50 2002-11-07 21:41:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -645,6 +645,7 @@ TDSICONVINFO *iconv_info;
 	tds_socket->timeout = 0;                
 	tds_init_write_buf(tds_socket);
 	tds_socket->s = -1;
+	tds_socket->env_chg_func = NULL;
 	return tds_socket;
 Cleanup:
 	tds_free_socket(tds_socket);

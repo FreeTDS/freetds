@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.42 2002-11-07 10:02:27 freddy77 Exp $";
+	"$Id: tds.h,v 1.43 2002-11-07 21:41:35 castellano Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -207,8 +207,9 @@ enum tds_end {
 
 /* environment type field */
 #define TDS_ENV_DATABASE  1
+#define TDS_ENV_LANG      2
 #define TDS_ENV_CHARSET   3
-#define TDS_ENV_BLOCKSIZE 4
+#define TDS_ENV_PACKSIZE  4
 
 /* string types */
 #define TDS_NULLTERM -9
@@ -647,6 +648,7 @@ struct tds_socket {
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTINFO *connect_info;
 	int spid;
+	void (*env_chg_func)(TDSSOCKET *tds, int type, char *oldval, char *newval);
 };
 
 void tds_set_longquery_handler(TDSLOGIN * tds_login, void (* longquery_func)(long), long longquery_param);

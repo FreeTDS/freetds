@@ -114,7 +114,7 @@ dblib	core	dbbind	OK
 dblib	core	dbbylist	OK
 dblib	core	dbcancel	OK
 dblib	core	dbcanquery	stub
-dblib	core	dbchange	
+dblib	core	dbchange	OK
 dblib	core	dbclose	OK
 dblib	core	dbclrbuf	stub
 dblib	core	dbclropt	partial
@@ -181,7 +181,7 @@ dblib	core	dbmnyndigit	stub
 dblib	core	dbmnyscale	stub
 dblib	core	dbmnysub	stub
 dblib	core	dbmnyzero	OK
-dblib	core	dbname	stub
+dblib	core	dbname	OK
 dblib	core	dbnextrow	OK
 dblib	core	dbnullbind	OK
 dblib	core	dbnumalts	OK
@@ -200,6 +200,7 @@ dblib	core	dbresults	OK
 dblib	core	dbrows	OK
 dblib	core	dbrowtype	stub
 dblib	core	dbserverenum	
+dblib	core	dbservcharset	OK
 dblib	core	dbsetavail	OK
 dblib	core	dbsetlapp	OK
 dblib	core	dbsetlfallback	

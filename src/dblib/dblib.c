@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.99 2002-11-07 17:13:07 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.100 2002-11-07 21:41:35 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -438,6 +438,34 @@ int            destlen;
 	}
 } /* buffer_transfer_bound_data()  */
 
+static void
+db_env_chg(TDSSOCKET *tds, int type, char *oldval, char *newval)
+{
+	DBPROCESS *dbproc;
+
+	if (tds == NULL) {
+		return;
+	}
+	dbproc = (DBPROCESS *) tds->parent;
+	if (dbproc == NULL) {
+		return;
+	}
+	dbproc->envchange_rcv |= (1 << (type - 1));
+	switch (type) {
+		case TDS_ENV_DATABASE:
+			strncpy(dbproc->dbcurdb, newval, DBMAXNAME);
+			dbproc->dbcurdb[DBMAXNAME] = '\0';
+			break;
+		case TDS_ENV_CHARSET:
+			strncpy(dbproc->servcharset, newval, DBMAXNAME);
+			dbproc->servcharset[DBMAXNAME] = '\0';
+			break;
+		default:
+			break;
+	}
+	return;
+}
+
 RETCODE dbinit()
 {
 	/* DBLIBCONTEXT stores a list of current connections so they may be closed
@@ -747,6 +775,10 @@ TDSCONNECTINFO *connect_info;
   	 
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx->tds_ctx, 512);
 	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
+	dbproc->tds_socket->env_chg_func = db_env_chg;
+	dbproc->envchange_rcv = 0;
+	dbproc->dbcurdb[0] = '\0';
+	dbproc->servcharset[0] = '\0';
 	connect_info = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx->tds_ctx->locale);
 	if (!connect_info || tds_connect(dbproc->tds_socket, connect_info) == TDS_FAIL) {
 		tds_free_connect(connect_info);
@@ -2343,6 +2375,9 @@ int c;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
+	if (resinfo == NULL) {
+		return;
+	}
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
@@ -3747,9 +3782,28 @@ static const char *longmon[] = {"January","February","March","April","May","June
 		return longmon[monthnum-1];
 }
 
-char      *dbname(DBPROCESS *dbproc)
+char *
+dbchange(DBPROCESS *dbproc)
 {
+
+	if (dbproc->envchange_rcv & (1 << (TDS_ENV_DATABASE - 1))) {
+		return dbproc->dbcurdb;
+	}
 	return NULL;
+}
+
+char *
+dbname(DBPROCESS *dbproc)
+{
+
+	return dbproc->dbcurdb;
+}
+
+char *
+dbservcharset(DBPROCESS *dbproc)
+{
+
+	return dbproc->servcharset;
 }
 
 RETCODE 
@@ -3762,6 +3816,7 @@ int rc;
 TDS_INT result_type;
 
 	dbproc->avail_flag = FALSE;
+	dbproc->envchange_rcv = 0;
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	if (tds->res_info && tds->res_info->more_results) {

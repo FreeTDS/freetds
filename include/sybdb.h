@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 static char  rcsid_sybdb_h [ ] =
-"$Id: sybdb.h,v 1.33 2002-11-07 17:13:07 castellano Exp $";
+"$Id: sybdb.h,v 1.34 2002-11-07 21:41:35 castellano Exp $";
 static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 
 #ifdef FALSE
@@ -52,7 +52,7 @@ static void *no_unused_sybdb_h_warn[]={rcsid_sybdb_h, no_unused_sybdb_h_warn};
 #define INT_TIMEOUT 3
 
 #define DBMAXNUMLEN 33
-#define MAXNAME     30
+#define DBMAXNAME   30
 
 /**
  * DBVERSION_xxx are used with dbsetversion()
@@ -295,6 +295,9 @@ typedef struct {
    unsigned char   avail_flag;
    DBOPTION        *dbopts;
    DBSTRING        *dboptcmd;
+   DBUSMALLINT     envchange_rcv;
+   char            dbcurdb[DBMAXNAME + 1];
+   char            servcharset[DBMAXNAME + 1];
 } DBPROCESS;
 
 typedef struct dbdaterec
