@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.83 2003-12-26 18:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.84 2003-12-29 15:53:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -976,6 +976,18 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 			 *      because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
 			 */
 		} else {	/* unterminated field */
+			bcpcol = dbproc->bcp.db_columns[hostcol->tab_colnum - 1];
+			if (collen == 0 && (is_nullable_type(bcpcol->db_type)
+					    || bcpcol->db_nullable)) {
+				TDS_SMALLINT len;
+
+				if (fread(&len, sizeof(len), 1, hostfile) != 1) {
+					if (i != 0)
+						_bcp_err_handler(dbproc, SYBEBCRE);
+					return (FAIL);
+				}
+				collen = len;
+			}
 			coldata = (BYTE *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
