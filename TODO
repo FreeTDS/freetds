@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.55 2003-05-11 07:26:58 freddy77 Exp $
+To Do List	$Id: TODO,v 1.56 2003-05-11 08:33:48 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -90,8 +90,6 @@ For future versions (in priority order within library):
 . complete sqlstate and other field in message (for Python)
 
   odbc
-. Someone broke early binding in ODBC 
-  (fixed, add check for early bind, and multiple recordset)
 . dynamic query (need rewrite SQLPrepare and related) (support binding parameters for all types) (work in progress)
 . Add test for SQLPutData/SQLGetData
 . cursor support
@@ -105,10 +103,6 @@ For future versions (in priority order within library):
 . SQLNativeSql and fill SQLGetInfo according
 . configure should detect iODBC or unixODBC automatically
 . autoinstall for RPM
-. test: what happen on:
-  - "select id,name from sysobjects where name = 'sysobjects'"
-  - SQLMoreResults
-  - SQLMoreResults 
 
   pool
 . get connection pooling working with all protocol versions
@@ -142,4 +136,10 @@ Done in 0.62
   (SQLMoreResults skip row counts for INSERT?)
 . ODBC: Check (and fix if needed) call to {?=store(?)} does it bind correctly?
   seem not replace first parameters
+. ODBC test: what happen on:
+  - "select id,name from sysobjects where name = 'sysobjects'"
+  - SQLMoreResults
+  - SQLMoreResults 
+. Someone broke early binding in ODBC 
+  (fixed, add check for early bind, and multiple recordset)
 

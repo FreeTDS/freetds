@@ -1,3 +1,10 @@
+Sun May 11 10:34:07 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	*  src/odbc/unittests/earlybind.c(added):
+	- improve ODBC
+	- added test for early binding
+
 Sun May 11 09:27:24 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/odbc/odbc.c: return CLI year
 
