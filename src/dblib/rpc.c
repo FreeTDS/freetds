@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.29 2004-07-12 08:35:29 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.30 2004-07-12 09:07:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -337,41 +337,37 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 }
 
 /**
- * recursively erase the procedure list
+ * erase the procedure list
  */
 static void
 rpc_clear(DBREMOTE_PROC * rpc)
 {
-	if (rpc == NULL)
-		return;
+	DBREMOTE_PROC * next;
 
-	if (rpc->next) {
-		rpc_clear(rpc->next);
+	while (rpc) {
+		next = rpc->next;
+		param_clear(rpc->param_list);
+		if (rpc->name);
+			free(rpc->name);
+		free(rpc);
+		rpc = next;
 	}
-
-	param_clear(rpc->param_list);
-
-	assert(rpc->name);
-	free(rpc->name);
-
-	free(rpc);
 }
 
 /**
- * recursively erase the parameter list
+ * erase the parameter list
  */
 static void
 param_clear(DBREMOTE_PROC_PARAM * pparam)
 {
-	if (pparam == NULL)
-		return;
+	DBREMOTE_PROC_PARAM * next;
 
-	if (pparam->next) {
-		param_clear(pparam->next);
+	while (pparam) {
+		next = pparam->next;
+		if (pparam->name)
+			free(pparam->name);
+		/* free self */
+		free(pparam);
+		pparam = next;
 	}
-
-	/* free self after clearing children */
-	if (pparam->name)
-		free(pparam->name);
-	free(pparam);
 }

@@ -1,3 +1,7 @@
+Mon Jul 12 11:05:03 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h: fix problem with tests and dblib
+	* src/dblib/rpc.c: avoid recursion
+
 Mon Jul 12 10:34:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: another memory leak fix
 
