@@ -1,3 +1,6 @@
+Tue Apr  5 18:08:50 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* samples/odbc_rpc.pl new example of RPC use
+	
 Tue Apr  5 11:44:48 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml doc/htdoc/faq.html 
 	- updated, moved CVS instructions
