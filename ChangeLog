@@ -1,3 +1,6 @@
+Sat Nov 27 16:57:12 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml NEWS README updated for 0.63 release
+	
 Wed Nov 17 13:44:25 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c Fix null handling and don't close closed errfile.
 	* src/apps/freebcp.c dump username to stderr if FREEBCP envar set

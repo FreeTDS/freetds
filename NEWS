@@ -1,11 +1,18 @@
+$Id: NEWS,v 1.6 2004-11-27 22:01:32 jklowden Exp $
 * 0.63
-- ODBC: use tds_dstr* functions to store descriptor infos
-- header privatizations (removing tds.h dependency)  this is quite 
+- ODBC: use tds_dstr* functions to store descriptor information
+- header privatizations (removing tds.h dependency).  This is quite 
   important for future binary compatibility.
 - ODBC: SQLFetch returns error correctly
 - ODBC: fix problem rebinding parameters
 - ODBC: ability to fetch data types after prepare (needed for Oracle
   bindings and OTL library).
+- Builds cleanly under OS X.
+- Improved BCP support for NULL fields and native file format.
+- ct-lib: ct_blk support (bcp for ct-lib).
+- ct-lib: Cursors!
+- apps: added bsqldb and defncopy.
+- iconv: better collation support, e.g. SQL_Scandinavian_CP850_CI_AS
 
 * 0.62
 - ct-lib: cursor support

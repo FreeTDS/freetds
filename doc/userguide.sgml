@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2004-10-28 12:42:11 $</date>
-		<releaseinfo>$Revision: 1.85 $</releaseinfo>
+		<date>$Date: 2004-11-27 22:01:35 $</date>
+		<releaseinfo>$Revision: 1.86 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -52,9 +52,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.85 $</>
-<member>$Date: 2004-10-28 12:42:11 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.85 2004-10-28 12:42:11 freddy77 Exp $.</>
+<member>$Revision: 1.86 $</>
+<member>$Date: 2004-11-27 22:01:35 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.86 2004-11-27 22:01:35 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -188,7 +188,9 @@ There have been many other contributions.  Please see the <filename>AUTHORS</> i
 The <productname>FreeTDS</productname> C libraries support three separate <acronym>API</>s: <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and <systemitem class="library">ODBC</systemitem>.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.  
 			</para></listitem>
 			<listitem><para>
-If Java is your game, we refer you to the <productname>jTDS</productname> project on <ulink url="http://sourceforge.net/projects/jtds/">SourceForge</ulink>.  It is a fork of the 
+If Java is your game, we refer you to the 
+<ulink url="http://sourceforge.net/projects/jtds/">jTDS</ulink>
+project on SourceForge.  It is a fork of the 
 <productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</> driver.  
 			</para></listitem>
 			</itemizedlist>
@@ -204,10 +206,10 @@ In addition to the core <systemitem class="library">db-lib</systemitem> <acronym
 			<para>
 The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  
 The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and 0.61 began to comply with the ODBC 3.0 specification.
-0.62 should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+The current version should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 			</para>
 			<para>
-Basic <acronym>API</> coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink> (that file is also shipped with the source distribution).  Detailed information about the extent of the <acronym>API</> coverage is being prepared. 			
+Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
 			</para> 
 			<para>How big is it?  <productname>FreeTDS</productname> has almost 50,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
 			</para>
@@ -533,29 +535,11 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2004-10-28 12:42:11 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2004-11-27 22:01:35 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
-<figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
-<programlisting>
---- libtool-orig Thu Nov  6 15:34:53 2003
-+++ libtool Thu Nov  6 15:38:45 2003
-@@ -202,7 +202,7 @@
- old_archive_from_expsyms_cmds=""
-
- # Commands used to build and install a shared archive.
--archive_cmds="\$CC \$(if test .\$module = .yes; then echo -bundle; else echo -dynamiclib; fi) \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$linkopts -install_name\$rpath/\$soname \$verstring"
-+archive_cmds="\$CC \$(if test .\$module = .yes; then echo -bundle; else echo -dynamiclib; fi) \$allow_undefined_flag -o \$lib \$libobjs           \$linkopts -install_name\$rpath/\$soname \$verstring"
- archive_expsym_cmds=""
- postinstall_cmds=""
- postuninstall_cmds=""
-</programlisting>  
-</figure>
-			<para>This patch was contributed by <email><ulink url="mailto:fdsubs@axelero.hu">Daniel Fazekas</ulink></email>, and has been used successfully by three people that we know of.  As you can see, the only effect is to remove \$deplibs from  line 202.  </para>
-			<para>OS X includes ODBC header files, which <command>configure</> will detect, causing the <productname>FreeTDS</> ODBC driver to be built.  You may with to use the <option>--disable-odbc</> option if you don't plan to use ODBC.  </para>
-			
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
-			<para>On  11 March 2004, <email><ulink url="mailto:dimo@angelhill.net">Dmitri Fedortchenko</ulink></email> offered the following approach, using an updated <command>libtool</>.  </para>
+			<para>On  11 March 2004, <email><ulink url="mailto:dimo@angelhill.net">Dmitri Fedortchenko</ulink></email> offered the following approach, using a local <command>libtool</>.  It is included here as a source of clues, in case you encounter trouble.  </para>
 
 <procedure id="OSX.new.libtool">
 	<title>Installing with libtool 1.5.2</title>
@@ -615,7 +599,13 @@ For lack of a better term, this chapter describes installing the <emphasis>produ
 		<sect1 id="LocalEnvironment">
 		<title>The local environment</title>
 			<para>
-After <productname>FreeTDS</productname> has been built and installed, it still doesn't know where your servers are or what particular version of Sybase or Microsoft software each one is using.  The purpose of this section is to explain how to describe your dataservers to <productname>FreeTDS</productname>.  <productname>FreeTDS</productname> has not one but two ways to do this, in <filename>freetds.conf</filename> and <filename>interfaces</filename>, described below.  It also can use environment variables to override settings in those configuration files.  One of the more important (and arcane) settings is the <acronym>TDS</> protocol version, described next.  
+After <productname>FreeTDS</productname> has been built and installed, it still doesn't know where your servers are or what particular version of Sybase or Microsoft software each one is using.  
+			</para>
+			<para>
+The purpose of this section is to explain how to describe your dataservers to <productname>FreeTDS</productname>.  <productname>FreeTDS</productname> looks up your server's attributes in <filename>freetds.conf</filename>.  Some of the attributes can be overridden by environment variables.  
+			</para>
+			<para>
+One of the more important (and arcane) settings is the <acronym>TDS</> protocol version, described next.  
 			</para>
 		</sect1>
 		<sect1 id="ChoosingTdsProtocol">
@@ -876,7 +866,7 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<entry id="clientcharset">client charset</entry>
 	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
 	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0.
-As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characthers server supports.</entry>
+As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 	<entry>any valid iconv character set</entry>
 	</row>
 	<row>
@@ -885,11 +875,26 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
 	<entry>0 to 4,294,967,295</entry>
 	</row>
+</tbody>
+</tgroup>
+</table>
+	<para>As of version 0.62 the following options are deprecated and supported only for backward compatibility.</para>
+<table id="tab.freetds.conf.deprecated">
+<title>Deprecated <filename>freetds.conf</filename> settings</title>
+<tgroup cols="4">
+<thead>
+	<row>
+	<entry>Name</entry>
+	<entry>Default</entry>
+	<entry>Meaning</entry>
+	<entry>Possible Values</entry>
+	</row>
+</thead>
+<tbody>
 	<row>
 	<entry>try server login</entry>
 	<entry>yes</entry>
 	<entry>Disable use of server logins when domain logins are in use. 
-		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
 	</entry>
 	<entry>yes/no</entry>
 	</row>
@@ -899,8 +904,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>Attempt a domain login.  
 		<emphasis> Setting try domain login has the effect 
 				of disallowing server logins!</emphasis>
-		To configure a dataserver for both server logins and domain login disable this option and use <link linkend="domains">DOMAIN\username</> for login.
-		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
+		To configure a dataserver for both server logins and domain login, disable this option and use <link linkend="domains">DOMAIN\username</> for login.
 	</entry>
 	<entry>yes/no</entry>
 	</row>
@@ -908,7 +912,6 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>nt domain</entry>
 	<entry>none</entry>
 	<entry>Specify an explicit domain.
-		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
 	</entry>
 	<entry>any</entry>
 	</row>
@@ -916,7 +919,6 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>cross domain login</entry>
 	<entry>no</entry>
 	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.
-		<emphasis>From 0.62 this option is deprecated and supported only for back compatibility.</emphasis>
 	</entry>
 	<entry>yes/no</entry>
 	</row>
@@ -936,7 +938,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 For an English-speaking American, not much.  <productname>FreeTDS</productname>  originated in the United States, and uses U.S. conventions if no <filename>locales.conf</filename> is present.  The <filename>locales.conf</filename> provided with the installation also reflects these conventions.  
 			</para>
 <important>
-	<para><filename>locales.conf</> will probably be dropped from <productname>FreeTDS</> in the near future.  Its only real purpose now is to control the format of date strings.  The Right Way&trade; to deduce the appropriate default date format is from the application's locale settings, while allowing an override in <filename>freetds.conf</>.  That's the direction we're headed.  </para>
+	<para><filename>locales.conf</> will probably be dropped from <productname>FreeTDS</> one day.  Its only real purpose now is to control the format of date strings.  The Right Way&trade; to deduce the appropriate default date format is from the application's locale settings, while allowing an override in <filename>freetds.conf</>.  That's the direction we're headed.  </para>
 	<para>If your purpose is to affect the client charset description, use <filename>freetds.conf</> instead.  </para>
 </important>
 			<para>
@@ -1466,7 +1468,7 @@ The <filename>PWD</> provided by <productname>FreeTDS</productname> includes use
 		<title>Preparing ODBC</title>
 		<sect1 id="OdbcBackground"><title>Background and Terminology</title>
 			<para>
-To connect to a database, a library such as <productname>FreeTDS</> needs some information about the connection.  Which server, and by <emphasis>server</>, which IP address and port is do you mean?  What user is requesting the connection, and what authentication does he offer?  Every database library needs a way to capture and convey that information.  
+To connect to a database, a library such as <productname>FreeTDS</> needs some information about the connection.  Which server, and by <emphasis>server</>, which IP address and port is do you mean?  Which user is requesting the connection, and what authentication does he offer?  Every database library needs a way to capture and convey that information.  
 			</para>
 			<para>
 ODBC was conceived as a general interface definition, not tied to any particular database or access library.  For that reason, ODBC also needs to know which driver to use with a given server.  
@@ -2842,7 +2844,7 @@ still fail.  It also helps to report the version numbers of PHP, and
 
 <itemizedlist mark='bullet'>
 	<listitem>
-		<para>Logging.  If everything seems a bit sluggish, check to make sure logging is turned off <envar>TDSDUMP</> should not be defined, and there should be no <literal>dump file</>  mentioned in <filename>freetds.conf</>.  You can double-check by setting <envar>TDSDUMPCONFIG</> temporarily, which will log only the startup process. </para>
+		<para>Logging.  If everything seems a bit sluggish, check to make sure logging is turned off. <envar>TDSDUMP</> should not be defined, and there should be no <literal>dump file</>  mentioned in <filename>freetds.conf</>.  You can double-check by setting <envar>TDSDUMPCONFIG</> temporarily, which will log only the startup process. </para>
 	</listitem>
 	<listitem>
 		<para>DNS.  If connecting to the server takes 30 seconds or 1 minute, you could do worse than to check your <filename>resolv.conf</>.  Use <command>host</> or <command>nslookup</> to confirm that <productname>FreeTDS</productname> can actually resolve the name/address you provided in <filename>freetds.conf</>.  Give particular attention to reverse DNS lookups, if you were forced (or thought you were forced) to identify the server by number, instead of by name, as Vint intended.  You can defeat <productname>FreeTDS</productname>'s automatic reverse-DNS lookup feature by inserting
@@ -3053,7 +3055,7 @@ The <ulink url="../reference/index.html">reference manual</ulink> is installed a
 The reference manual is a work in progress: only the db-lib library is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.  
 			</para>
 			<para>
-Basic <ulink url="http://www.freetds.org/api_status.txt">API coverage</ulink> information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we included that file in the following sections.  In each table, we note for the function
+Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 	<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same 	function.  It is the intention of the <option>--enable-msdblib</> option to align
 	<productname>FreeTDS</> with one or the other's convention.</para></footnote>
 the extent to which it is implemented.  The <emphasis>Status</> field may be:
