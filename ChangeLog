@@ -1,3 +1,8 @@
+Wed Mar 30 12:57:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c:
+	- remove warning
+	- check datalen >= 0
+
 Tue Mar 29 17:18:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/blk.c src/dblib/unittests/bcp.c:
 	* src/odbc/odbc.c src/odbc/unittests/genparams.c:

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.145 2005-02-22 16:04:35 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.146 2005-03-30 10:58:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -3966,7 +3966,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 
 	if ((size == CS_NULLTERM || size > 0) && value) {
 		if (size == CS_NULLTERM)
-			strncpy(&params->current_row[curcol->column_offset], value, params->row_size);
+			strncpy((char *) &params->current_row[curcol->column_offset], value, params->row_size);
 		else
 			memcpy(&params->current_row[curcol->column_offset], value, size);
 	} else {
@@ -4242,16 +4242,14 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID 
 					if (*(param->datalen) == CS_NULLTERM) {
 						tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() about to strdup string %u bytes long\n",
 							    (unsigned int) strlen(data));
-						if ((param->value = strdup(data)) == NULL)
-							return CS_FAIL;
 						*(param->datalen) = strlen(data);
-						tdsdump_log(TDS_DBG_INFO1, "_ct_fill_param() strdup'ed string: %s\n", (char *) data);
-					} else {
-						param->value = malloc(*(param->datalen));
-						if (param->value == NULL)
-							return CS_FAIL;
-						memcpy(param->value, data, *(param->datalen));
+					} else if (*(param->datalen) < 0) {
+						return CS_FAIL;
 					}
+					param->value = malloc(*(param->datalen));
+					if (param->value == NULL)
+						return CS_FAIL;
+					memcpy(param->value, data, *(param->datalen));
 					param->param_by_value = 1;
 				} else {
 					param->value = NULL;
