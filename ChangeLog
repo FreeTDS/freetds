@@ -1,3 +1,8 @@
+Fri Apr 25 19:04:52 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c:
+	* src/odbc/prepare_query.c:
+	- applied patch #727555 for binary data
+
 Fri Apr 25 14:12:46 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/unittests/t0003.c:
 	- fix test (broken...)

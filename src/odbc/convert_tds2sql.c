@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.30 2003-01-11 16:40:30 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.31 2003-04-25 17:05:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -88,6 +88,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	case SQL_C_CHAR:
 		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %d \n", destlen);
 
+		ret = nRetVal;
 		if (destlen > 0) {
 			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
 			assert(cplen >= 0);
@@ -95,17 +96,13 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 			 * destination buffer more than needed */
 			memcpy(dest, ores.c, cplen);
 			dest[cplen] = 0;
-			ret = nRetVal;
 		} else {
 			/* if destlen == 0 we return only length */
-			if (destlen == 0)
-				ret = nRetVal;
-			else
+			if (destlen != 0)
 				ret = TDS_FAIL;
 		}
 
 		free(ores.c);
-
 		break;
 
 	case SQL_C_TYPE_DATE:
@@ -235,13 +232,28 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		break;
 #endif
 
-		/* TODO BINARY */
 	case SQL_C_BINARY:
+		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %d \n", destlen);
+
+		ret = nRetVal;
+		if (destlen > 0) {
+			cplen = (destlen > nRetVal) ? nRetVal : destlen;
+			assert(cplen >= 0);
+			/* do not NULL terminate binary buffer */
+			memcpy(dest, ores.ib, cplen);
+		} else {
+			/* if destlen == 0 we return only length */
+			if (destlen != 0)
+				ret = TDS_FAIL;
+		}
+
+		free(ores.ib);
+		break;
+
 	default:
 		break;
 
 	}
 
 	return ret;
-
 }

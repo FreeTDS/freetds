@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.29 2003-03-27 10:00:55 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.30 2003-04-25 17:05:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -202,6 +202,36 @@ convert_text2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS_I
 	return srclen;
 }
 
+/* convert binary byte buffer into hex-encoded string prefixed with "0x" */
+static TDS_INT
+convert_binary2string(const TDS_CHAR * src, TDS_INT srclen, TDS_CHAR * dest, TDS_INT destlen)
+{
+	int i;
+	static const char *hexdigit = "0123456789abcdef";
+
+	/* 2 chars per byte + prefix + terminator */
+	const int deststrlen = 2 * srclen + 2 + 1;
+
+	if (srclen < 0)
+		return TDS_FAIL;
+
+
+	if (destlen >= 0 && destlen < deststrlen)
+		return TDS_FAIL;
+
+	/* prefix with "0x" */
+	*dest++ = '0';
+	*dest++ = 'x';
+	/* hex-encode (base16) binary buffer */
+	for (i = 0; i < srclen; i++) {
+		*dest++ = hexdigit[(src[i] >> 4) & 0x0f];
+		*dest++ = hexdigit[src[i] & 0x0f];
+	}
+	/* terminate string */
+	*dest++ = 0;
+	/* omit terminating NULL from length */
+	return deststrlen - 1;
+}
 
 TDS_INT
 convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_INT srclen,
@@ -229,6 +259,9 @@ convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_
 		break;
 	case SQL_C_CHAR:
 		return convert_text2string(src, srclen, dest, destlen);
+		break;
+	case SQL_C_BINARY:
+		return convert_binary2string(src, param_lenbind, dest, destlen);
 		break;
 /*		case SQL_C_INTERVAL_YEAR:
 		case SQL_C_INTERVAL_MONTH:

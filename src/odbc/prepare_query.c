@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.22 2003-03-05 09:46:32 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.23 2003-04-25 17:05:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -53,10 +53,13 @@ _get_sql_textsize(struct _sql_param_info *param)
 	switch (param->param_sqltype) {
 	case SQL_CHAR:
 	case SQL_VARCHAR:
-	case SQL_BINARY:
-	case SQL_VARBINARY:
 	case SQL_BIT:
 		len = *param->param_lenbind;
+		break;
+	case SQL_BINARY:
+	case SQL_VARBINARY:
+		/* allocate space for hex encoding "0x" prefix and terminating NULL */
+		len = 2 * (*param->param_lenbind) + 3;
 		break;
 	case SQL_DATE:
 		len = 15;
