@@ -1,3 +1,8 @@
+Tue Oct 15 14:52:55 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* Makefile.am src/pool/Makefile.am:
+	- Use automake dist_sysconf_DATA to install our configuration
+	  files, instead of rolling our own.
+
 Tue Oct 15 20:37:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: fix compile on big endian machine
 
