@@ -1,3 +1,10 @@
+Wed Dec 01 14:10:10 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/odbc/odbc.c src/odbc/unittests/rebindpar.c:
+	* src/tds/Makefile.am src/tds/net.c src/tds/query.c:
+	* src/tds/token.c:
+	* src/tds/tds_checks.c(added) src/tds/tds_checks.h(added):
+	- improve internal structure test to detect more problems
+
 Wed Dec 01 07:21:15 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am: bumped version
 

@@ -34,6 +34,7 @@
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsconvert.h"
+#include "tds_checks.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -41,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.144 2004-10-14 18:26:53 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.145 2004-12-01 13:11:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -76,6 +77,8 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 static int
 tds_to_quering(TDSSOCKET * tds)
 {
+	CHECK_TDS_EXTRA(tds);
+
 	if (tds->state == TDS_DEAD) {
 		tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
 		return TDS_FAIL;
@@ -113,7 +116,9 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONV * char_conv, const char *s, i
 	const char *ib;
 	char *ob;
 	size_t il, ol;
-	
+
+	CHECK_TDS_EXTRA(tds);
+
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress;
 
@@ -185,6 +190,10 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 	TDSCOLUMN *param;
 	int query_len, i;
 
+	CHECK_TDS_EXTRA(tds);
+	if (params)
+		CHECK_PARAMINFO_EXTRA(params);
+
 	if (!query)
 		return TDS_FAIL;
 
@@ -254,6 +263,8 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 	va_list ap;
 	char *query = NULL;
 	int rc = TDS_FAIL;
+
+	CHECK_TDS_EXTRA(tds);
 
 	va_start(ap, queryf);
 	if (vasprintf(&query, queryf, ap) >= 0) {
@@ -426,6 +437,9 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
 	switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
@@ -549,6 +563,10 @@ tds_build_params_definition(TDSSOCKET * tds, const char* query, size_t query_len
 	assert(IS_TDS7_PLUS(tds));
 	assert(out_len);
 
+	CHECK_TDS_EXTRA(tds);
+	if (params)
+		CHECK_PARAMINFO_EXTRA(params);
+
 	*converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, converted_query_len);
 	if (!*converted_query)
 		return NULL;
@@ -619,6 +637,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len)
 	char buf[24];
 	const char *const query_end = query + query_len;
 
+	CHECK_TDS_EXTRA(tds);
+
 	assert(IS_TDS7_PLUS(tds));
 
 	/* we use all "@PX" for parameters */
@@ -656,6 +676,8 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len)
 static void
 tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length)
 {
+	CHECK_TDS_EXTRA(tds);
+
 	/* string with parameters types */
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 0);
@@ -686,6 +708,10 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 {
 	int id_len, query_len;
 	TDSDYNAMIC *dyn;
+
+	CHECK_TDS_EXTRA(tds);
+	if (params)
+		CHECK_PARAMINFO_EXTRA(params);
 
 	if (!query)
 		return TDS_FAIL;
@@ -808,6 +834,9 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	TDSDYNAMIC *dyn;
 	int id_len;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_PARAMINFO_EXTRA(params);
+
 	if (!query)
 		return TDS_FAIL;
 	query_len = strlen(query);
@@ -929,6 +958,9 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
 	if (flags & TDS_PUT_DATA_USE_NAME) {
 		len = curcol->column_namelen;
 		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting param_name \n");
@@ -1009,6 +1041,9 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len = 8;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
 #if ENABLE_EXTRA_CHECKS
 	if (IS_TDS7_PLUS(tds))
 		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info_length called with TDS7+\n");
@@ -1038,6 +1073,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	TDSBLOB *blob = NULL;
 	int colsize;
 	int is_null;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
 
 	is_null = tds_get_null(current_row, i);
 	colsize = curcol->column_cur_size;
@@ -1220,6 +1258,10 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	int id_len;
 	int i;
 
+	CHECK_TDS_EXTRA(tds);
+	/* TODO this dynamic should be in tds */
+	CHECK_DYNAMIC_EXTRA(dyn);
+
 	tdsdump_log(TDS_DBG_FUNC, "tds_submit_execute()\n");
 
 	if (tds_to_quering(tds) == TDS_FAIL)
@@ -1288,6 +1330,9 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 {
 	int i, len;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_PARAMINFO_EXTRA(info);
+
 	/* column descriptions */
 	tds_put_byte(tds, TDS5_PARAMFMT_TOKEN);
 	/* size */
@@ -1325,6 +1370,8 @@ tds_get_dynid(TDSSOCKET * tds, char **id)
 	char *p;
 	char c;
 
+	CHECK_TDS_EXTRA(tds);
+
 	inc_num = (inc_num + 1) & 0xffff;
 	/* some version of Sybase require length <= 10, so we code id */
 	n = (unsigned long) tds;
@@ -1355,6 +1402,10 @@ int
 tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
 	int id_len;
+
+	CHECK_TDS_EXTRA(tds);
+	/* TODO test dyn in tds */
+	CHECK_DYNAMIC_EXTRA(dyn);
 
 	if (!dyn)
 		return TDS_FAIL;
@@ -1427,6 +1478,10 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 	int rpc_name_len, i;
 	int num_params = params ? params->num_cols : 0;
 
+	CHECK_TDS_EXTRA(tds);
+	if (params)
+		CHECK_PARAMINFO_EXTRA(params);
+
 	assert(tds);
 	assert(rpc_name);
 
@@ -1497,6 +1552,8 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 int
 tds_send_cancel(TDSSOCKET * tds)
 {
+	CHECK_TDS_EXTRA(tds);
+
 	/* TODO discard any partial packet here */
 	/* tds_init_write_buf(tds); */
 
@@ -1513,6 +1570,8 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
 	int i;
 	const char *src, *pend;
 	char *dst;
+
+	CHECK_TDS_EXTRA(tds);
 
 	pend = id + len;
 
@@ -1551,6 +1610,8 @@ int
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 {
 	int i;
+
+	CHECK_TDS_EXTRA(tds);
 
 	if (idlen < 0)
 		idlen = strlen(id);
@@ -1595,8 +1656,9 @@ tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 int
 tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
 {
-
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare() client cursor id = %d\n", client_cursor_id);
 
@@ -1651,6 +1713,8 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 	int converted_query_len;
 	const char *converted_query;
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open() client cursor id = %d\n", client_cursor_id);
 
@@ -1750,8 +1814,9 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 int
 tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
 {
-
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() client cursor id = %d\n", client_cursor_id);
 
@@ -1812,6 +1877,8 @@ int
 tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 {
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() client cursor id = %d\n", client_cursor_id);
 
@@ -1917,8 +1984,9 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 int
 tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 {
-
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() client cursor id = %d\n", client_cursor_id);
 
@@ -1997,6 +2065,8 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
 	int res = TDS_SUCCEED;
 	TDSCURSOR *cursor;
 
+	CHECK_TDS_EXTRA(tds);
+
 	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_dealloc ():\n");
 
 	cursor = tds->cursor; 
@@ -2042,6 +2112,8 @@ tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
 {
 	char buf[256];
 	int i;
+
+	CHECK_TDS_EXTRA(tds);
 	
 	for (i = 0; s != end; ++s) {
 		buf[i++] = *s;
@@ -2067,6 +2139,9 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	int i;
 	char buf[256];
 	int quote = 0;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_PARAMINFO_EXTRA(params);
 	
 	if (is_blob_type(curcol->column_type))
 		src = ((TDSBLOB *)src)->textvalue;
@@ -2122,8 +2197,10 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	int num_placeholders, i;
 	const char *query = dyn->query, *s, *e;
 
-	assert(query && !IS_TDS7_PLUS(tds));
+	CHECK_TDS_EXTRA(tds);
+	CHECK_DYNAMIC_EXTRA(dyn);
 
+	assert(query && !IS_TDS7_PLUS(tds));
 
 	num_placeholders = tds_count_placeholders(query);
 	if (num_placeholders && num_placeholders > dyn->params->num_cols)

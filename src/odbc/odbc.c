@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.346 2004-11-28 20:44:16 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.347 2004-12-01 13:11:33 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2906,7 +2906,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		 * FIXME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
-		if (tds->state != TDS_IDLE && stmt->dbc->current_statement == stmt) {
+		if (tds->state != TDS_IDLE && tds->state != TDS_DEAD && stmt->dbc->current_statement == stmt) {
 			if (tds_send_cancel(tds) == TDS_SUCCEED)
 				tds_process_cancel(tds);
 		}

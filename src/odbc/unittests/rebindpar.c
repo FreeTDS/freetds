@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.6 2004-12-01 13:11:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -54,6 +54,7 @@ Test(int prebind)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
 	/* try to insert al empty string, should not fail */
+	/* NOTE this is currently the only test for insert a empty string using rpc */
 	if (db_is_microsoft())
 		TestInsert(stmt, "");
 	TestInsert(stmt, "a");

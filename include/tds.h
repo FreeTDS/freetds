@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.193 2004-11-28 14:28:20 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.194 2004-12-01 13:11:32 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1057,7 +1057,8 @@ struct tds_socket
 	unsigned in_pos;
 	unsigned out_pos;
 	unsigned in_len;
-	unsigned out_len;
+	/* TODO remove blocksize from env and use out_len ?? */
+/*	unsigned out_len; */
 	unsigned char in_flag;
 	unsigned char out_flag;
 	unsigned char last_packet;

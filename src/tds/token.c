@@ -34,11 +34,12 @@
 #include "tds.h"
 #include "tdsconvert.h"
 #include "tdsiconv.h"
+#include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.268 2004-10-19 09:17:49 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.269 2004-12-01 13:11:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -98,6 +99,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	int tok_size;
 	int done_flags;
 	TDS_INT ret_status;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
 
@@ -246,6 +249,8 @@ tds_set_spid(TDSSOCKET * tds)
 	TDS_INT rc;
 	TDSCOLUMN *curcol;
 
+	CHECK_TDS_EXTRA(tds);
+
 	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
@@ -305,6 +310,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	unsigned char major_ver, minor_ver;
 	unsigned char ack;
 	TDS_UINT product_version;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
 	/* get_incoming(tds->s); */
@@ -397,6 +404,8 @@ tds_process_auth(TDSSOCKET * tds)
 
 /* char domain[30]; */
 	int where;
+
+	CHECK_TDS_EXTRA(tds);
 
 #if ENABLE_EXTRA_CHECKS
 	if (!IS_TDS7_PLUS(tds))
@@ -496,6 +505,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 	int rc;
 	int saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
+
+	CHECK_TDS_EXTRA(tds);
 
 	if (tds->state == TDS_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() state is COMPLETED\n");
@@ -811,6 +822,7 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 	 * call internal function, with last parameter 1
 	 * meaning read & process the end token
 	 */
+	CHECK_TDS_EXTRA(tds);
 
 	return _tds_process_row_tokens(tds, rowtype, computeid, 1);
 }
@@ -821,6 +833,7 @@ tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computei
 	 * call internal function, with last parameter 0
 	 * meaning DON'T read & process the end token
 	 */
+	CHECK_TDS_EXTRA(tds);
 
 	return _tds_process_row_tokens(tds, rowtype, computeid, 0);
 }
@@ -830,6 +843,8 @@ _tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid,
 {
 	int marker;
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
@@ -928,6 +943,8 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
 	int marker;
 	int done_flags;
 
+	CHECK_TDS_EXTRA(tds);
+
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_trailing_tokens() \n");
 
 	while (tds->state != TDS_IDLE) {
@@ -984,6 +1001,8 @@ tds_process_simple_query(TDSSOCKET * tds)
 	TDS_INT row_type;
 	int     rc;
 
+	CHECK_TDS_EXTRA(tds);
+
 	while ((rc = tds_process_result_tokens(tds, &res_type, &done_flags)) == TDS_SUCCEED) {
 		switch (res_type) {
 
@@ -1024,6 +1043,8 @@ tds_do_until_done(TDSSOCKET * tds)
 {
 	int marker, rows_affected = 0;
 
+	CHECK_TDS_EXTRA(tds);
+
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
@@ -1059,6 +1080,8 @@ tds_process_col_name(TDSSOCKET * tds)
 	struct tmp_col_struct *head = NULL, *cur = NULL, *prev;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
+
+	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -1139,6 +1162,9 @@ tds_process_col_name(TDSSOCKET * tds)
 void
 tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol)
 {
+	CHECK_RESULTINFO_EXTRA(info);
+	CHECK_COLUMN_EXTRA(curcol);
+
 	/*
 	 * the column_offset is the offset into the row buffer
 	 * where this column begins, text types are no longer
@@ -1173,6 +1199,8 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	int bytes_read = 0;
 	int rest;
 	TDS_SMALLINT flags;
+
+	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -1242,6 +1270,8 @@ tds_process_colinfo(TDSSOCKET * tds)
 	int bytes_read = 0;
 	unsigned char col_info[3], l;
 
+	CHECK_TDS_EXTRA(tds);
+
 	hdrsize = tds_get_smallint(tds);
 
 	info = tds->current_results;
@@ -1283,6 +1313,10 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	TDSPARAMINFO *info;
 	int i;
 
+	CHECK_TDS_EXTRA(tds);
+	if (*pinfo)
+		CHECK_PARAMINFO_EXTRA(*pinfo);
+
 	/* TODO check if current_results is a param result */
 
 	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
@@ -1293,8 +1327,10 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	*pinfo = info;
 	curparam = info->columns[info->num_cols - 1];
 
-	/* FIXME check support for tds7+ (seem to use same format of tds5 for data...)
-	 * perhaps varint_size can be 2 or collation can be specified ?? */
+	/*
+	 * FIXME check support for tds7+ (seem to use same format of tds5 for data...)
+	 * perhaps varint_size can be 2 or collation can be specified ??
+	 */
 	tds_get_data_info(tds, curparam, 1);
 
 	curparam->column_cur_size = curparam->column_size;	/* needed ?? */
@@ -1312,6 +1348,8 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 {
 	int marker;
 	TDSPARAMINFO **pinfo;
+
+	CHECK_TDS_EXTRA(tds);
 
 	if (tds->cur_dyn)
 		pinfo = &(tds->cur_dyn->res_info);
@@ -1335,6 +1373,8 @@ tds_process_params_result_token(TDSSOCKET * tds)
 	int i;
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
+
+	CHECK_TDS_EXTRA(tds);
 
 	/* TODO check if current_results is a param result */
 	info = tds->current_results;
@@ -1366,6 +1406,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	TDSCOMPUTEINFO *info;
 	int i;
 
+	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -1480,6 +1521,9 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colnamelen;
 
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
 	/*  User defined data type of the column */
 	curcol->column_usertype = tds_get_smallint(tds);
 
@@ -1574,6 +1618,8 @@ tds7_process_result(TDSSOCKET * tds)
 	TDSRESULTINFO *info;
 	TDSCURSOR *cursor;
 
+	CHECK_TDS_EXTRA(tds);
+
 	/* read number of columns and allocate the columns structure */
 
 	num_cols = tds_get_smallint(tds);
@@ -1638,6 +1684,8 @@ tds7_process_result(TDSSOCKET * tds)
 static int
 tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 {
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
 
 	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 	curcol->column_name[curcol->column_namelen] = '\0';
@@ -1714,6 +1762,8 @@ tds_process_result(TDSSOCKET * tds)
 	TDSRESULTINFO *info;
 	TDSCURSOR *cursor;
 
+	CHECK_TDS_EXTRA(tds);
+
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
@@ -1776,6 +1826,8 @@ static int
 tds5_process_result(TDSSOCKET * tds)
 {
 	int hdrsize;
+
+	CHECK_TDS_EXTRA(tds);
 
 	/* int colnamelen; */
 	int col, num_cols;
@@ -1960,6 +2012,8 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 	TDSCOMPUTEINFO *info;
 	TDS_INT compute_id;
 
+	CHECK_TDS_EXTRA(tds);
+
 	compute_id = tds_get_smallint(tds);
 
 	for (i = 0;; ++i) {
@@ -1996,6 +2050,9 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	int len, colsize;
 	int fillchar;
 	TDSBLOB *blob = NULL;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
@@ -2233,6 +2290,8 @@ tds_process_row(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
+	CHECK_TDS_EXTRA(tds);
+
 	info = tds->current_results;
 	if (!info)
 		return TDS_FAIL;
@@ -2258,6 +2317,8 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
 	int more_results, was_cancelled, error, done_count_valid;
 	int tmp, state;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tmp = tds_get_smallint(tds);
 
@@ -2331,6 +2392,10 @@ tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int
 	int ret;
 	TDSMESSAGE msg;
 
+	CHECK_CONTEXT_EXTRA(tds_ctx);
+	if (tds)
+		CHECK_TDS_EXTRA(tds);
+
 	if (tds_ctx->err_handler) {
 		memset(&msg, 0, sizeof(TDSMESSAGE));
 		msg.msg_number = msgnum;
@@ -2394,6 +2459,8 @@ tds_process_env_chg(TDSSOCKET * tds)
 	int new_block_size;
 	int lcid;
 	int memrc = 0;
+
+	CHECK_TDS_EXTRA(tds);
 
 	size = tds_get_smallint(tds);
 	/*
@@ -2497,6 +2564,8 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	int len_sqlstate;
 	int has_eed = 0;
 	TDSMESSAGE msg;
+
+	CHECK_TDS_EXTRA(tds);
 
 	/* make sure message has been freed */
 	memset(&msg, 0, sizeof(TDSMESSAGE));
@@ -2638,6 +2707,8 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 	char *s;
 	int out_len;
 
+	CHECK_TDS_EXTRA(tds);
+
 	if (len < 0) {
 		*string = NULL;
 		return 0;
@@ -2666,6 +2737,8 @@ tds_process_cancel(TDSSOCKET * tds)
 {
 	int marker, done_flags = 0;
 	int retcode = TDS_SUCCEED;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tds->queryStarttime = 0;
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
@@ -2743,6 +2816,8 @@ tds_lookup_dynamic(TDSSOCKET * tds, char *id)
 {
 	int i;
 
+	CHECK_TDS_EXTRA(tds);
+
 	for (i = 0; i < tds->num_dyns; i++) {
 		if (!strcmp(tds->dyns[i]->id, id)) {
 			return tds->dyns[i];
@@ -2763,6 +2838,8 @@ tds_process_dynamic(TDSSOCKET * tds)
 	int id_len;
 	char id[TDS_MAX_DYNID_LEN + 1];
 	int drain = 0;
+
+	CHECK_TDS_EXTRA(tds);
 
 	token_sz = tds_get_smallint(tds);
 	type = tds_get_byte(tds);
@@ -2794,6 +2871,8 @@ tds_process_dyn_result(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
 	TDSDYNAMIC *dyn;
+
+	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_smallint(tds);
 	num_cols = tds_get_smallint(tds);
@@ -2841,6 +2920,8 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
 	TDSDYNAMIC *dyn;
+
+	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_int(tds);
 	num_cols = tds_get_smallint(tds);
@@ -3080,6 +3161,8 @@ tds_process_compute_names(TDSSOCKET * tds)
 	struct namelist *curptr = NULL;
 	struct namelist *freeptr = NULL;
 
+	CHECK_TDS_EXTRA(tds);
+
 	hdrsize = tds_get_smallint(tds);
 	remainder = hdrsize;
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
@@ -3174,6 +3257,8 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSCOMPUTEINFO *info;
 
+	CHECK_TDS_EXTRA(tds);
+
 	/*
 	 * number of compute columns returned - so
 	 * COMPUTE SUM(x), AVG(x)... would return
@@ -3263,6 +3348,8 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	unsigned char cursor_cmd;
 	TDS_SMALLINT cursor_status;
 	TDSCURSOR *cursor;
+
+	CHECK_TDS_EXTRA(tds);
 	
 	hdrsize  = tds_get_smallint(tds);
 	cursor_id = tds_get_int(tds);
@@ -3310,6 +3397,8 @@ tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_
 	TDS_TINYINT argsize = (*ptds_argsize == TDS_NULLTERM) ? 1 + strlen(ptds_argument->c) : *ptds_argsize;
 
 	TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
+
+	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_INFO1, "entering %s::tds_send_optioncmd() \n", __FILE__);
 
@@ -3571,6 +3660,9 @@ _tds_token_name(unsigned char marker)
 static void
 adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
 	if (is_unicode_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->char_convs[client2ucs2];
 
