@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: error.c,v 1.11 2003-03-24 10:03:01 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.12 2003-03-24 14:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void sqlstate2to3(char *state);
@@ -209,26 +209,24 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 		stmt = (TDS_STMT *) handle;
 		dbc = stmt->hdbc;
 		env = dbc->henv;
-		odbc_ver = env->odbc_ver;
 		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
 		env = dbc->henv;
-		odbc_ver = env->odbc_ver;
 		errs = &dbc->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
 		env = ((TDS_ENV *) handle);
-		odbc_ver = env->odbc_ver;
 		errs = &env->errs;
 		break;
 
 	default:
 		return SQL_INVALID_HANDLE;
 	}
+	odbc_ver = env->odbc_ver;
 
 	if (numRecord > errs->num_errors)
 		return SQL_NO_DATA_FOUND;
