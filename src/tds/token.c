@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.79 2002-10-24 20:35:49 castellano Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.80 2002-10-26 06:37:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -161,6 +161,8 @@ int   cancelled;
       case TDS5_DYN_TOKEN:
       case TDS5_DYNRES_TOKEN:
       case TDS5_DYN3_TOKEN:
+	/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp we ignore it because we don't use it */
+	case TDS_PARAM_TOKEN: 
 	 tdsdump_log(TDS_DBG_WARN, "eating token %d\n",marker);
          tds_get_n(tds, NULL, tds_get_smallint(tds));
          break;

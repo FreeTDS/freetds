@@ -55,7 +55,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: util.c,v 1.23 2002-10-24 19:38:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.24 2002-10-26 06:37:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -293,8 +293,8 @@ void tdsdump_dump_buf(
           */
          for(j=i; j<length && (j-i)<bytesPerLine; j++)
          {
-            fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
             if (j-i == bytesPerLine/2) fprintf(dumpfile, " ");
+            fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
          }
          fprintf(dumpfile, "|\n");
       }

@@ -1,3 +1,8 @@
+Sat Oct 26 08:37:12 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: 
+	- skip PARAM_TOKEN processing default (fix problem inserting text)
+	* src/tds/util.c: correct space position in dump
+
 Fri Oct 25 19:36:38 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/sybdb.h src/dblib/dblib.c:
 	- Bug fix, correctly support numbytes == -1 in dbstrcpy().
