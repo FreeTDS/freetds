@@ -1,3 +1,8 @@
+Mon Jan 26 11:32:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/Makefile.am:
+	* src/ctlib/unittests/cancel.c(added):
+	- added test for cancel inside signal
+
 Mon Jan 26 09:44:56 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: updated comments
 
