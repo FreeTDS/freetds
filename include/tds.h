@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.167.2.1 2004-07-14 09:09:39 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.167.2.2 2004-09-16 11:31:47 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1149,10 +1149,10 @@ const char *tds_prtype(int token);
 void tds_iconv_open(TDSSOCKET * tds, const char *charset);
 void tds_iconv_close(TDSSOCKET * tds);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
-void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
+void tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid);
 int tds_iconv_alloc(TDSSOCKET * tds);
 void tds_iconv_free(TDSSOCKET * tds);
-TDSICONVINFO *tds_iconv_from_lcid(TDSSOCKET * tds, int lcid);
+TDSICONVINFO *tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);

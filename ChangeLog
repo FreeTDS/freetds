@@ -1,3 +1,9 @@
+Thu Sep 15 13:28:04 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/iconv.c src/tds/token.c:
+	- fix for some sql collation with a codepage not corresponding 
+	  with lcid (like SQL_Scandinavian_CP850_CI_AS).
+	  Reported by Hannu Niemi
+
 Thu Aug 12 10:49:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: backported fix for prepare
 
