@@ -19,9 +19,11 @@
 
 #ifndef _ctlib_h_
 #define _ctlib_h_
+
 /*
-** Internal (not part of the exposed API) prototypes and such.
-*/
+ * Internal (not part of the exposed API) prototypes and such.
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -30,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.11 2004-03-22 20:41:07 freddy77 Exp $";
+static char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.12 2004-03-23 12:05:30 freddy77 Exp $";
 static void *no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -88,10 +90,10 @@ struct _cs_context
 	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
-/* code changes start here - CS_CONFIG - 01*/
+	/* code changes start here - CS_CONFIG - 01*/
 	void *userdata;
 	int userdata_len;
-/* code changes end here - CS_CONFIG - 01*/
+	/* code changes end here - CS_CONFIG - 01*/
 	TDSCONTEXT *tds_ctx;
 	CS_CONFIG config;
 };
@@ -104,13 +106,13 @@ struct _cs_blkdesc
 /*
  * internal typedefs
  */
-typedef struct ctcolinfo
+typedef struct _ct_colinfo
 {
 	TDS_SMALLINT *indicator;
 }
 CT_COLINFO;
 
-struct cs_connection
+struct _cs_connection
 {
 	CS_CONTEXT *ctx;
 	TDSLOGIN *tds_login;
@@ -122,12 +124,14 @@ struct cs_connection
 	CS_LOCALE *locale;
 };
 
-/* 	Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
-	places, too. */
+/*
+ * Formerly CSREMOTE_PROC_PARAM, this structure can be used in other
+ * places, too.
+ */
 
-typedef struct _CS_PARAM
+typedef struct _cs_param
 {
-	struct _CS_PARAM *next;
+	struct _cs_param *next;
 	char *name;
 	int status;
 	int type;
@@ -138,20 +142,33 @@ typedef struct _CS_PARAM
 	int param_by_value;
 } CS_PARAM;
 
- /* Code added for RPC functionality - SUHA */
- /* RPC Code changes starts here */
+/*
+ * Code added for RPC functionality - SUHA
+ * RPC Code changes starts here
+ */
 
 typedef CS_PARAM CSREMOTE_PROC_PARAM;
 
-typedef struct _CSREMOTE_PROC
+typedef struct _csremote_proc
 {
 	char *name;
 	CS_SMALLINT options;
 	CSREMOTE_PROC_PARAM *param_list;
 } CSREMOTE_PROC;
 
-/* Structure CS_COMMAND changed for RPC functionality -SUHA */
-/* Added CSREMOTE_PROC *rpc to CS_COMMAND structure */
+/*
+ * Structure CS_COMMAND changed for RPC functionality -SUHA
+ * Added CSREMOTE_PROC *rpc to CS_COMMAND structure
+ */
+
+/* values for cs_command.results_state */
+
+#define _CS_RES_INIT            0
+#define _CS_RES_RESULTSET_EMPTY 1
+#define _CS_RES_RESULTSET_ROWS  2
+#define _CS_RES_STATUS          3
+#define _CS_RES_CMD_DONE        4
+#define _CS_RES_CMD_SUCCEED     5
 
 struct _cs_command
 {
@@ -186,6 +203,12 @@ struct _cs_locale
 	char *time;
 	char *collate;
 };
+
+/* internal defines for cursor processing */
+
+#define _CS_CURS_TYPE_UNACTIONED 0
+#define _CS_CURS_TYPE_REQUESTED  1
+#define _CS_CURS_TYPE_SENT       2
 
 /*
  * internal prototypes

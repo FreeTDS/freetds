@@ -1,3 +1,9 @@
+Tue Mar 23 13:14:29 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/ctlib.h:
+	- complete privatization (internal constants)
+	- cleanup
+	- style comments update
+
 Tue Mar 23 09:59:07 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h src/ctlib/ctutil.c:
 	- use textlen and sqlstate/sqlstatelen fields of CS_SERVERMSG

@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.51 2004-03-23 08:51:32 freddy77 Exp $";
+static char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.52 2004-03-23 12:05:30 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 typedef int CS_RETCODE;
@@ -69,7 +69,6 @@ typedef unsigned char CS_BINARY;
 typedef unsigned tds_sysdep_int16_type CS_USHORT;
 typedef unsigned char CS_BIT;
 
-/* TODO check */
 #define CS_FAIL	   0
 #define CS_SUCCEED 1
 #define CS_SIZEOF(x) sizeof(x)
@@ -88,13 +87,14 @@ typedef unsigned char CS_BIT;
 typedef struct _cs_config CS_CONFIG;
 typedef struct _cs_context CS_CONTEXT;
 typedef struct _cs_clientmsg CS_CLIENTMSG;
-typedef struct cs_connection CS_CONNECTION;
+typedef struct _cs_connection CS_CONNECTION;
 typedef struct _cs_servermsg CS_SERVERMSG;
+typedef struct _cs_locale CS_LOCALE;
+typedef struct _cs_command CS_COMMAND;
 typedef CS_RETCODE(*CS_CSLIBMSG_FUNC) (CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
-typedef struct _cs_locale CS_LOCALE;
 
 #define CS_IODATA          (CS_INT)1600
 
@@ -114,17 +114,6 @@ typedef struct _cs_iodesc
 	CS_BYTE textptr[CS_TP_SIZE];
 	CS_INT textptrlen;
 } CS_IODESC;
-
-typedef struct _cs_command CS_COMMAND;
-
-/* values for cs_command.results_state */
-
-#define _CS_RES_INIT            0
-#define _CS_RES_RESULTSET_EMPTY 1
-#define _CS_RES_RESULTSET_ROWS  2
-#define _CS_RES_STATUS          3
-#define _CS_RES_CMD_DONE        4
-#define _CS_RES_CMD_SUCCEED     5
 
 #define CS_MAX_MSG 1024
 #define CS_MAX_NAME 132
@@ -321,8 +310,10 @@ typedef struct _cs_blkdesc CS_BLKDESC;
 enum
 {
 	CS_USERNAME = 1,
-/* These defines looks weird but programs can test support for defines, 
-   compiler can check enum and there are no define side effecs */
+/*
+ * These defines looks weird but programs can test support for defines,
+ * compiler can check enum and there are no define side effecs
+ */
 #define CS_USERNAME CS_USERNAME
 	CS_PASSWORD,
 #define CS_PASSWORD CS_PASSWORD
@@ -393,17 +384,20 @@ enum
 #define CS_UPDATECOL   (1 << 7)
 #define CS_RETURN      (1 << 8)
 
-/* DBD::Sybase compares indicator to CS_NULLDATA so this is -1
-** (the documentation states -1) */
+/*
+ * DBD::Sybase compares indicator to CS_NULLDATA so this is -1
+ * (the documentation states -1)
+ */
 #define CS_NULLDATA	(-1)
 
 /* CS_CON_STATUS read-only property bit mask values */
 #define CS_CONSTAT_CONNECTED	0x01
 #define CS_CONSTAT_DEAD 	0x02
 
-/* Code added for CURSOR support */
-/* types accepted by ct_cursor */
-
+/*
+ * Code added for CURSOR support
+ * types accepted by ct_cursor 
+ */
 #define CS_CURSOR_DECLARE  1
 #define CS_CURSOR_OPEN     2
 #define CS_CURSOR_ROWS     3
@@ -413,12 +407,6 @@ enum
 #define CS_CURSOR_DEALLOC  7
 #define CS_IMPLICIT_CURSOR 8
 #define CS_CURSOR_CLOSE    9
-
-/* internal defines for cursor processing */
-
-#define _CS_CURS_TYPE_UNACTIONED 0
-#define _CS_CURS_TYPE_REQUESTED  1
-#define _CS_CURS_TYPE_SENT       2
 
 /* options accepted by ct_options() */
 #define CS_OPT_ANSINULL		1
@@ -468,8 +456,10 @@ enum ct_command_options
 };
 
 
-/* bind formats, should be mapped to TDS types 
- * can be a combination of bit */
+/*
+ * bind formats, should be mapped to TDS types
+ * can be a combination of bit
+ */
 enum
 {
 	CS_FMT_UNUSED = 0,
@@ -758,7 +748,6 @@ enum
 	CS_OPT_LEVEL3
 };
 
-/* */
 #define CS_FALSE	0
 #define CS_TRUE	1
 
