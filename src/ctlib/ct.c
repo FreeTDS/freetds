@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.97 2003-05-28 14:51:52 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.98 2003-06-04 16:37:45 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2416,7 +2416,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_OPTION_ARG tds_argument;
 	TDS_INT tds_argsize = 0;
 
-	char *action_string = NULL;
+	const char *action_string = NULL;
 	int i;
 
 	/* boolean options can all be treated the same way */
