@@ -15,13 +15,14 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: print.c,v 1.4 2003-03-27 10:01:00 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.5 2003-03-27 20:05:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
+static void ReadError(void);
 
 static void
-ReadError()
+ReadError(void)
 {
 	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {
 		printf("SQLGetDiagRec should not fail\n");

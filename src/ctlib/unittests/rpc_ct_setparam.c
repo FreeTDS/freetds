@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.2 2003-03-27 16:19:47 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.3 2003-03-27 20:05:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_INT);
-	nullind = CS_UNUSED;
+	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & intvar, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(int) failed");
@@ -190,7 +190,7 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_SMALLINT);
-	nullind = CS_UNUSED;
+	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & smallintvar, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(smallint) failed");
@@ -205,7 +205,7 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_FLOAT);
-	nullind = CS_UNUSED;
+	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & floatvar, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(float) failed");
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_MONEY);
-	nullind = CS_UNUSED;
+	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & moneyvar, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(money) failed");
@@ -275,7 +275,7 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_BINARY);
-	nullind = CS_UNUSED;
+	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & binaryvar, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(binary) failed");

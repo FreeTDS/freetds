@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.2 2003-03-27 09:38:42 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.3 2003-03-27 20:05:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 	datafmt.status = CS_INPUTVALUE;
 	datafmt.locale = NULL;
 
-	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & intvar, CS_SIZEOF(CS_INT), CS_UNUSED)) != CS_SUCCEED) {
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & intvar, CS_SIZEOF(CS_INT), -1)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(int) failed");
 		return 1;
 	}
@@ -192,7 +192,7 @@ main(int argc, char *argv[])
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
 
-	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & smallintvar, CS_SIZEOF(CS_SMALLINT), CS_UNUSED)) != CS_SUCCEED) {
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & smallintvar, CS_SIZEOF(CS_SMALLINT), -1)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(smallint) failed");
 		return 1;
 	}
@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
 
-	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & floatvar, CS_SIZEOF(CS_FLOAT), CS_UNUSED)) != CS_SUCCEED) {
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & floatvar, CS_SIZEOF(CS_FLOAT), -1)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(float) failed");
 		return 1;
 	}
@@ -217,7 +217,7 @@ main(int argc, char *argv[])
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
 
-	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & moneyvar, CS_SIZEOF(CS_MONEY), CS_UNUSED)) != CS_SUCCEED) {
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & moneyvar, CS_SIZEOF(CS_MONEY), -1)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(money) failed");
 		return 1;
 	}
@@ -260,7 +260,7 @@ main(int argc, char *argv[])
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
 
-	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & binaryvar, CS_SIZEOF(CS_BINARY), CS_UNUSED)) != CS_SUCCEED) {
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & binaryvar, CS_SIZEOF(CS_BINARY), -1)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(binary) failed");
 		return 1;
 	}
