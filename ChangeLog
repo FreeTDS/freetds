@@ -1,3 +1,8 @@
+Tue Oct 29 16:23:23 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt include/sybdb.h src/dblib/dblib.c:
+	- Implement dbmny4minus(), dbmny4zero(), dbmny4add(), dbmny4sub(),
+	  dbmny4cmp(), dbmny4copy() (all untested).
+
 Tue Oct 29 11:44:00 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/apps/tsql.c:
 	- Fix processing of result sets (fallout from Bill's patch).

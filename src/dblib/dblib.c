@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.89 2002-10-27 19:59:17 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.90 2002-10-29 21:24:11 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -3041,7 +3041,7 @@ RETCODE dbmnydivide(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2, DBMONEY *quotie
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
-RETCODE dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2)
+int dbmnycmp(DBPROCESS *dbproc, DBMONEY *m1, DBMONEY *m2)
 {
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnycmp()\n");
 	return SUCCEED;
@@ -3096,41 +3096,107 @@ RETCODE dbmnyminus(DBPROCESS *dbproc,DBMONEY *src, DBMONEY *dest)
         tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmnyminus()\n");
 	return SUCCEED;
 }
-RETCODE dbmny4minus(DBPROCESS *dbproc, DBMONEY4 *src, DBMONEY4 *dest)
+
+RETCODE
+dbmny4minus(DBPROCESS *dbproc, DBMONEY4 *src, DBMONEY4 *dest)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4minus()\n");
+DBMONEY4 zero;
+
+	dbmny4zero(dbproc, &zero);
+	return(dbmny4sub(dbproc, &zero, src, dest));
+}
+
+RETCODE
+dbmny4zero(DBPROCESS *dbproc, DBMONEY4 *dest)
+{
+
+	if (dest == NULL) {
+		return FAIL;
+	}
+	dest->mny4 = 0;
 	return SUCCEED;
 }
-RETCODE dbmny4zero(DBPROCESS *dbproc, DBMONEY4 *dest)
+
+RETCODE
+dbmny4add(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *sum)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4zero()\n");
+
+	if ((m1 == NULL) || (m2 == NULL) || (sum == NULL)) {
+		return FAIL;
+	}
+	sum->mny4 = m1->mny4 + m2->mny4;
+	if (((m1->mny4 < 0) && (m2->mny4 < 0) && (sum->mny4 >= 0))
+	    || ((m1->mny4 > 0) && (m2->mny4 > 0) && (sum->mny4 <= 0))) {
+		/* overflow */
+		sum->mny4 = 0;
+		return FAIL;
+	}
 	return SUCCEED;
 }
-RETCODE dbmny4add(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *sum)
+
+RETCODE
+dbmny4sub(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *diff)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4add()\n");
+
+	if ((m1 == NULL) || (m2 == NULL) || (diff == NULL)) {
+		return FAIL;
+	}
+	diff->mny4 = m1->mny4 - m2->mny4;
+	if (((m1->mny4 <= 0) && (m2->mny4 > 0) && (diff->mny4 > 0))
+	    || ((m1->mny4 >= 0) && (m2->mny4 < 0) && (diff->mny4 < 0))) {
+		/* overflow */
+		diff->mny4 = 0;
+		return FAIL;
+	}
 	return SUCCEED;
 }
-RETCODE dbmny4sub(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *diff)
+
+RETCODE
+dbmny4mul(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *prod)
 {
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4sub()\n");
+
+	if ((m1 == NULL) || (m2 == NULL) || (prod == NULL)) {
+		return FAIL;
+	}
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4mul()\n");
+	return FAIL;
+}
+
+RETCODE
+dbmny4divide(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *quotient)
+{
+
+	if ((m1 == NULL) || (m2 == NULL) || (quotient == NULL)) {
+		return FAIL;
+	}
+	tdsdump_log(TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4divide()\n");
+	return FAIL;
+}
+
+int
+dbmny4cmp(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2)
+{
+
+	if (m1->mny4 < m2->mny4) {
+		return -1;
+	}
+	if (m1->mny4 > m2->mny4) {
+		return 1;
+	}
+	return 0;
+}
+
+RETCODE
+dbmny4copy(DBPROCESS *dbproc, DBMONEY4 *src, DBMONEY4 *dest)
+{
+
+	if ((src == NULL) || (dest == NULL)) {
+		return FAIL;
+	}
+	dest->mny4 = src->mny4;
 	return SUCCEED;
 }
-RETCODE dbmny4mul(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *prod)
-{
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4mul()\n");
-	return SUCCEED;
-}
-RETCODE dbmny4divide(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2, DBMONEY4 *quotient)
-{
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4divide()\n");
-	return SUCCEED;
-}
-RETCODE dbmny4cmp(DBPROCESS *dbproc, DBMONEY4 *m1, DBMONEY4 *m2)
-{
-        tdsdump_log (TDS_DBG_FUNC, "%L UNIMPLEMENTED dbmny4cmp()\n");
-	return SUCCEED;
-}
+
 RETCODE dbdatecmp(DBPROCESS *dbproc, DBDATETIME *d1, DBDATETIME *d2)
 {
 	if (d1->dtdays == d2->dtdays ) {
