@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.152 2003-04-22 18:55:41 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.153 2003-04-23 17:24:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2286,7 +2286,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 			p = "SQL Server";
 		break;
 	case SQL_DBMS_VER:
-		p = "unknown version";
+		if (rgbInfoValue && cbInfoValueMax > 5) 
+			tds_version(dbc->tds_socket, (char *) rgbInfoValue);
+		else 
+			p = "unknown version";
 		break;
 	case SQL_DEFAULT_TXN_ISOLATION:
 		*uiInfoValue = SQL_TXN_READ_COMMITTED;
