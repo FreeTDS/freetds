@@ -1,3 +1,6 @@
+Wed Apr 30 08:07:54 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: temporary workaround for tds8
+
 Tue Apr 29 22:01:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/sql2tds.c: fix core
 
