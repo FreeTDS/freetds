@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.176 2003-04-25 18:48:53 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.177 2003-04-28 10:06:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -133,13 +133,31 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		/* TODO split two part of capability and use it */
+		tok_size = tds_get_smallint(tds);
 		/* vicm */
 		/* Sybase 11.0 servers return the wrong length in the capability packet, causing use to read
-		 * past the done packet. Return fail, so that we quit reading the tds buffer. 
-		 * TODO fix it parsing internal capability
+		 * past the done packet.
 		 */
-		tok_size = tds_get_smallint(tds);
-		tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
+		if (!TDS_IS_MSSQL(tds) && tds->product_version < TDS_SYB_VER(12, 0, 0)) {
+			unsigned char type, size, *p, *pend;
+
+			p = tds->capabilities;
+			pend = tds->capabilities + TDS_MAX_CAPABILITY;
+
+			do {
+				type = tds_get_byte(tds);
+				size = tds_get_byte(tds);
+				if ((p + 2) > pend)
+					break;
+				*p++ = type;
+				*p++ = size;
+				if ((p + size) > pend)
+					break;
+				tds_get_n(tds, p, size);
+			} while (type != 2);
+		} else {
+			tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size);
+		}
 		break;
 		/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp */
 	case TDS_PARAM_TOKEN:

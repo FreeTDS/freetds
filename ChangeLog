@@ -1,14 +1,17 @@
-Fri Apr 27 20:34:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+Mon Apr 28 12:05:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: workaround for buggy sybase server
+
+Sun Apr 27 20:34:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
 	- cleanup
 
-Fri Apr 27 19:57:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+Sun Apr 27 19:57:21 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/config.c: cleanup
 
-Fri Apr 27 16:47:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+Sun Apr 27 16:47:18 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix problem with RPC returning result
 
-Fri Apr 27 13:16:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+Sun Apr 27 13:16:50 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4: fix for HP/UX 11 getpwuid_r detect
 	* src/tds/convert.c: portability and a comment
 
