@@ -1,3 +1,7 @@
+Tue May 20 12:53:01 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.spec.in: avoid clash in version
+	* src/tds/locale.c: remove warning
+
 Tue May 20 12:47:30 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- fix bug binding parameters with NULL indicator
