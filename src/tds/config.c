@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.39 2002-10-08 01:33:26 jklowden Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.40 2002-10-10 15:36:22 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -192,7 +192,7 @@ int found = 0;
 			if (asprintf(&path,"%s/.freetds.conf",home) < 0) {
 				/* out of memory condition; don't attempt a log message */
 				/* should we try the OS log? */
-				printf (stderr, "config.c (line %d): no memory\n", __LINE__);
+				fprintf(stderr, "config.c (line %d): no memory\n", __LINE__);
 				return 0;
 			}
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, config);
