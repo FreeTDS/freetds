@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
  * Copyright (C) 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: sql2tds.c,v 1.41 2005-02-08 12:14:14 freddy77 Exp $";
+static const char software_version[] = "$Id: sql2tds.c,v 1.42 2005-02-09 16:15:16 jklowden Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT

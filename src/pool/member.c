@@ -1,5 +1,5 @@
 /* TDSPool - Connection pooling for TDS based databases
- * Copyright (C) 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2001, 2002, 2003, 2004, 2005  Brian Bruns
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.35 2005-01-12 19:32:34 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.36 2005-02-09 16:15:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);

@@ -1,3 +1,15 @@
+Wed Feb 9 11:08:02 EST 2005   JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h include/tds.h include/tdsodbc.h src/apps/bsqldb.c
+	* src/apps/freebcp.c src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c
+	* src/odbc/connectparams.c src/odbc/connectparams.h src/odbc/odbc_util.c
+	* src/odbc/odbc_util.h src/odbc/sql2tds.c src/pool/member.c
+	* src/pool/stream.c src/pool/user.c src/tds/config.c src/tds/convert.c
+	* src/tds/data.c src/tds/iconv.c src/tds/login.c src/tds/mem.c
+	* src/tds/query.c src/tds/tds_checks.c src/tds/token.c src/tds/util.c
+	* src/tds/unittests/flags.c src/tds/unittests/utf8_3.c
+	- updated copyright
+
 Wed Feb  9 15:55:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: updated
 	* configure.in src/tds/login.c:

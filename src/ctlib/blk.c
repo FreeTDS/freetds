@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-2004  Brian Bruns, Bill Thompson
+ * Copyright (C) 1998-2004, 2005  Brian Bruns, Bill Thompson
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.24 2005-02-08 13:51:17 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.25 2005-02-09 16:15:12 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
