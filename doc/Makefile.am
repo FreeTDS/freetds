@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.17 2003-03-30 15:39:57 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.18 2003-04-01 21:43:01 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 RELEASE = 0.61
@@ -50,10 +50,12 @@ reference.tgz: reference
 	tar czf reference.tgz reference
 	
 install-data-local: 
-	$(mkinstalldirs) $(DESTDIR)$(datadir)/doc/freetds; \
-	ln -s `pwd`/*.tgz $(DESTDIR)$(datadir)/doc/freetds; \
-	cd $(DESTDIR)$(datadir)/doc/freetds; \
-	tar xzf reference.tgz; \
-	tar xzf userguide.tgz; \
-	rm userguide.tgz reference.tgz
-
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/doc/freetds
+	ln -s `pwd`/reference.tgz $(DESTDIR)$(datadir)/doc/freetds \
+		|| touch $(DESTDIR)$(datadir)/doc/freetds/reference.tgz
+	ln -s `pwd`/userguide.tgz $(DESTDIR)$(datadir)/doc/freetds \
+		|| touch $(DESTDIR)$(datadir)/doc/freetds/userguide.tgz
+	cd $(DESTDIR)$(datadir)/doc/freetds || pwd # 'cd' can return spurious errors?
+	tar xzf reference.tgz || echo No reference manual installed
+	tar xzf userguide.tgz || echo No user guide installed
+	rm reference.tgz userguide.tgz
