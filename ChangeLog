@@ -1,3 +1,7 @@
+Tue Aug 05 14:22:56 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/print.c:
+	- add a test for raiseerror
+
 Tue Aug 05 10:57:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/odbc_util.h:
 	- applied Peter Daecon patch (present also in Steve Murphree one)
