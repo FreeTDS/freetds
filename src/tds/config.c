@@ -45,7 +45,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: config.c,v 1.12 2002-03-06 01:39:07 mlilback Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.13 2002-05-20 01:11:43 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -68,13 +68,15 @@ extern int g_append_mode;
 
 static char interf_file[MAXPATH];
 
-#define DEBUG_CONFIG 0
-
 /*
 ** tds_get_config() will fill the tds config structure based on configuration 
 ** information gathered in the following order:
 ** 1) Program specified in TDSLOGIN structure
-** 2) The environment variables TDSVER, TDSDUMP, TDSPORT
+** 2) The environment variables TDSVER, TDSDUMP, TDSPORT, TDSQUERY, TDSHOST
+** 3) A config file with the following search order:
+**    a) a readable file specified by environment variable FREETDSCONF
+**    b) a readable file in ~/.freetds.conf
+**    c) a readable file in $prefix/etc/freetds.conf
 ** 3) ~/.interfaces if exists
 ** 4) $SYBASE/interfaces if exists
 ** 5) TDS_DEF_* default values
@@ -85,18 +87,28 @@ static char interf_file[MAXPATH];
 TDSCONFIGINFO *tds_get_config(TDSSOCKET *tds, TDSLOGIN *login, TDSLOCINFO *locale)
 {
 TDSCONFIGINFO *config;
-
-
+char *s;
+char path[MAXPATHLEN];
+pid_t pid;
 	/* allocate a new structure with hard coded and build-time defaults */
 	config = tds_alloc_config(locale);
 
-#if DEBUG_CONFIG
-	tdsdump_open("/tmp/tdsconfig.log");
-#endif
-	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf file\n");
+        s=getenv("TDSDUMPCONFIG");
+        if (s)
+        {
+            if ( !*s)
+            {
+                pid = getpid();
+                sprintf(path,"/tmp/tdsconfig.log.%d",pid);
+                s = path;
+            }
+            tdsdump_open(s);
+        }
+
+	tdsdump_log(TDS_DBG_INFO1, "%L Attempting to read conf files.\n");
 	if (! tds_read_conf_file(login->server_name, config)) {
 		/* fallback to interfaces file */
-		tdsdump_log(TDS_DBG_INFO1, "%L Failed reading conf file.  Trying interfaces\n");
+		tdsdump_log(TDS_DBG_INFO1, "%L Failed in reading conf file.  Trying interface files.\n");
 		tds_read_interfaces(login->server_name, config);
 	}
 
@@ -110,10 +122,7 @@ TDSCONFIGINFO *config;
 	/* And finally the login structure */
 	tds_config_login(config, login);
 
-#if DEBUG_CONFIG
-	tdsdump_close();
-#endif
-
+        if ( s && *s) tdsdump_close();
 	return config;
 }
 static int tds_read_conf_file(char *server, TDSCONFIGINFO *config)
@@ -122,20 +131,14 @@ FILE *in;
 char  *home, *path;
 int found = 0; 
 
-	in = fopen(FREETDS_SYSCONFFILE, "r");
-	if (in) {
-		tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s reading sections\n",FREETDS_SYSCONFFILE);
-		found = tds_read_conf_sections(in, server, config);
-		fclose(in);
-	}
-	
 	/* FREETDSCONF env var, pkleef@openlinksw.com 01/21/02 */
 	path = getenv ("FREETDSCONF");
-	if (!found && path) {
+	if (path) {
 		if ((in = fopen (path, "r")) != NULL) {
 			tdsdump_log(TDS_DBG_INFO1, 
-				"%L Found conf file in %s reading sections\n",path);
+				"%L Found conf file in %s (from $FREETDSCONF) Reading section %s.\n",path,server);
 			found = tds_read_conf_sections (in, server, config);
+                        if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
 			fclose (in);
 		}
 	}
@@ -147,13 +150,24 @@ int found = 0;
 			sprintf(path,"%s/.freetds.conf",home);
 			in = fopen(path, "r");
 			if (in) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s/.freetds.conf reading sections\n",home);
+				tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s  Reading section %s.\n",path,server);
 				found = tds_read_conf_sections(in, server, config);
+                                if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
 				fclose(in);
 			}
 			free(path);
 		}
 	}
+
+        if (!found) {
+            in = fopen(FREETDS_SYSCONFFILE, "r");
+            if (in) {
+                tdsdump_log(TDS_DBG_INFO1, "%L Found conf file in %s Reading section %s.\n",FREETDS_SYSCONFFILE,server);
+                found = tds_read_conf_sections(in, server, config);
+                if(found) tdsdump_log(TDS_DBG_INFO1, "%L ...Success.\n");
+                fclose(in);
+            }
+        }
 
 	return found;
 }
@@ -177,9 +191,11 @@ static int tds_config_boolean(char *value)
 		!strcmp(value, "on") ||
 		!strcmp(value, "true") ||
 		!strcmp(value, "1")) {
-		return 1;
+                tdsdump_log(TDS_DBG_INFO1, "%L %s is a 'yes/on/true'.\n",value);
+                return 1;
 	} else {
-		return 0;
+                tdsdump_log(TDS_DBG_INFO1, "%L %s is a 'no/off/false'.\n",value);
+                return 0;
 	}
 }
 
@@ -192,6 +208,7 @@ int insection = 0;
 char tmp[256];
 int found = 0;
 
+        tdsdump_log(TDS_DBG_INFO1, "%L Looking for section %s.\n", section);
 	while (fgets(line, 256, in)) {
 		s = line;
 
@@ -237,18 +254,22 @@ int found = 0;
 		if (option[0]=='[') {
 			s = &option[1];
 			while (*s) {
-				if (*s==']') *s='\0';
+                                if (*s==']') *s='\0';
+                                *s = tolower(*s);
 				s++;
 			}
+                        tdsdump_log(TDS_DBG_INFO1, "%L ... Found section %s.\n", &option[1]);
+
 			if (!strcmp(section, &option[1])) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching section\n");
+				tdsdump_log(TDS_DBG_INFO1, "%L Got a match.\n");
 				insection=1;
 				found=1;
 			} else {
 				insection=0;
 			}
 		} else if (insection) {
-			/* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
+                    /* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
+                        tdsdump_log(TDS_DBG_INFO1, "%L option = '%s' value = '%s'.\n", option, value);
 			if (!strcmp(option,TDS_STR_VERSION)) {
 				tds_config_verstr(value, config);
 			} else if (!strcmp(option,TDS_STR_BLKSZ)) {
@@ -280,11 +301,11 @@ int found = 0;
 				if (atoi(value)) 
 					config->connect_timeout = atoi(value);
 			} else if (!strcmp(option,TDS_STR_HOST)) {
-				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s\n",value);
+				tdsdump_log(TDS_DBG_INFO1, "%L Found host entry %s.\n",value);
    				lookup_host(value, NULL, tmp, NULL);
 				if (config->ip_addr) free(config->ip_addr);
 				config->ip_addr = strdup(tmp);
-				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s\n",config->ip_addr);
+				tdsdump_log(TDS_DBG_INFO1, "%L IP addr is %s.\n",config->ip_addr);
 			} else if (!strcmp(option,TDS_STR_PORT)) {
 				if (atoi(value)) 
 					config->port = atoi(value);
@@ -305,6 +326,7 @@ int found = 0;
 			} else if (!strcmp(option,TDS_STR_APPENDMODE)) {
 				g_append_mode = tds_config_boolean(value);
 			}
+                        else tdsdump_log(TDS_DBG_INFO1, "%L UNRECOGNIZED option '%s'...ignoring.\n", option);
 		}
 
 	}
@@ -401,10 +423,12 @@ static void tds_config_env_dsquery(TDSCONFIGINFO *config)
 {
 char *s;
 
-        if ((s=getenv("DSQUERY"))) {
+        if ((s=getenv("TDSQUERY"))) {
 		if (s && strlen(s)) {
 			if (config->server_name) free(config->server_name);
 			config->server_name = strdup(s);
+                        tdsdump_log(TDS_DBG_INFO1, "%L Setting 'server_name' to '%s' from $TDSQUERY.\n",s);
+
 		}
 	}
 }
@@ -424,6 +448,7 @@ pid_t pid=0;
 			if (config->dump_file) free(config->dump_file);
 			config->dump_file = strdup(s);
                 }
+                tdsdump_log(TDS_DBG_INFO1, "%L Setting 'dump_file' to '%s' from $TDSDUMP.\n",config->dump_file);
         }
 }
 static void tds_config_env_tdsport(TDSCONFIGINFO *config)
@@ -431,7 +456,8 @@ static void tds_config_env_tdsport(TDSCONFIGINFO *config)
 char *s;
 
 	if ((s=getenv("TDSPORT"))) {
-		config->port=atoi(s);
+            config->port=atoi(s);
+            tdsdump_log(TDS_DBG_INFO1, "%L Setting 'port' to %s from $TDSPORT.\n",s);
 	}
 	return;
 }
@@ -440,7 +466,9 @@ static void tds_config_env_tdsver(TDSCONFIGINFO *config)
 char *tdsver;
 
 	if ((tdsver=getenv("TDSVER"))) {
-		tds_config_verstr(tdsver, config);
+            tds_config_verstr(tdsver, config);
+            tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tdsver' to %s from $TDSVER.\n",tdsver);
+
 	}
 	return;
 }
@@ -455,6 +483,8 @@ char tmp[256];
 		if (config->ip_addr)
 			free (config->ip_addr);
 		config->ip_addr = strdup (tmp);
+                tdsdump_log(TDS_DBG_INFO1, "%L Setting 'ip_addr' to %s (%s) from $TDSHOST.\n",tmp, tdshost);
+
 	}
 	return;
 }
@@ -614,7 +644,7 @@ int   found=0;
 	tmp_port[0] = '\0';
 	tmp_ver[0]  = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s\n",dir,file);
+	tdsdump_log(TDS_DBG_INFO1, "%L Searching interfaces file %s/%s.\n",dir,file);
 	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
    
 	/*
@@ -637,10 +667,11 @@ int   found=0;
 	*  parse the interfaces file and find the server and port
 	*/
 	if ((in = fopen(pathname,"r"))==NULL) {
-		free(pathname);
+                tdsdump_log(TDS_DBG_INFO1, "%L Couldn't open %s.\n", pathname);
+                free(pathname);
 		return;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "%L Interfaces file opened\n");
+	tdsdump_log(TDS_DBG_INFO1, "%L Interfaces file %s opened.\n", pathname);
 
 	while (fgets(line,sizeof(line)-1,in)) {
 		if (line[0]=='#') continue; /* comment */
@@ -649,7 +680,7 @@ int   found=0;
 			field = strtok(line,"\n\t ");
 			if (!strcmp(field,host)) {
 				found=1;
-				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry.\n");
+				tdsdump_log(TDS_DBG_INFO1, "%L Found matching entry for host %s.\n,host");
 			}
 			else found=0;
 		} else if (found && isspace(line[0])) {
@@ -667,13 +698,14 @@ int   found=0;
 						sprintf(tmp_ip,"%d.%d.%d.%d", hex2num(&field[10]),
 							hex2num(&field[12]), hex2num(&field[14]),
 							hex2num(&field[16]));
+					        tdsdump_log(TDS_DBG_INFO1, "%L tmp_port = %d.mtp_ip = %s.\n", tmp_port, tmp_ip);
 					}
 				} else {
 					field = strtok(NULL,"\n\t "); /* ether */
 					strcpy(tmp_ver,field);
 					field = strtok(NULL,"\n\t "); /* host */
 					strcpy(tmp_ip,field);
-					tdsdump_log(TDS_DBG_INFO1, "%L host field %s\n",tmp_ip);
+					tdsdump_log(TDS_DBG_INFO1, "%L host field %s.\n",tmp_ip);
 					field = strtok(NULL,"\n\t "); /* port */
 					strcpy(tmp_port,field);
 				} /* else */
@@ -688,7 +720,7 @@ free(pathname);
     * Look up the host and service
     */
    lookup_host(tmp_ip, tmp_port, ip_addr, ip_port);
-   tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP %s\n",ip_addr);
+   tdsdump_log(TDS_DBG_INFO1, "%L Resolved IP as '%s'.\n",ip_addr);
    strcpy(tds_ver,tmp_ver);
 } /* search_interface_file()  */
 
@@ -718,19 +750,23 @@ int get_server_info(
 	ip_port[0] = '\0';
 	tds_ver[0] = '\0';
 
+        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server....\n");
 	if (!server || strlen(server) == 0) {
-		server = getenv("DSQUERY");
+		server = getenv("TDSQUERY");
 		if(!server || strlen(server) == 0) {
 			server = "SYBASE";
 		}
+                tdsdump_log(TDS_DBG_INFO1, "%L Setting server to %s from $TDSQUERY.\n",server);
+
 	}
 
 	/*
 	* Look for the server in the interf_file iff interf_file has been set.
 	*/
 	if (ip_addr[0]=='\0' && interf_file[0]!='\0') {
-		search_interface_file("", interf_file, server, ip_addr, 
-			ip_port, tds_ver);
+                tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in interf_file %s.\n",interf_file);
+                search_interface_file("", interf_file, server, ip_addr,
+                ip_port, tds_ver);
 	}
 
 	/*
@@ -739,7 +775,8 @@ int get_server_info(
 	if (ip_addr[0]=='\0') {
 		char  *home = getenv("HOME");
 		if (home!=NULL && home[0]!='\0') {
-			search_interface_file(home, ".interfaces", server, ip_addr, 
+                        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/.interfaces.\n", home);
+			search_interface_file(home, ".interfaces", server, ip_addr,
 				ip_port, tds_ver);
 		}
 	}
@@ -750,10 +787,12 @@ int get_server_info(
 	if (ip_addr[0]=='\0') {
 		char  *sybase = getenv("SYBASE");
 		if (sybase!=NULL && sybase[0]!='\0') {
-			search_interface_file(sybase, "interfaces", server, ip_addr, 
+                        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in %s/interfaces.\n", sybase);
+			search_interface_file(sybase, "interfaces", server, ip_addr,
 				ip_port, tds_ver);
 		} else {
-			search_interface_file("/etc/freetds", "interfaces", server, 
+                        tdsdump_log(TDS_DBG_INFO1, "%L Looking for server in /etc/freetds/interfaces.\n");
+			search_interface_file("/etc/freetds", "interfaces", server,
 				ip_addr, ip_port, tds_ver);
 		}
 	}
@@ -777,7 +816,10 @@ int get_server_info(
 		/* FIX ME -- Need a symbolic constant for the environment variable */
 		if (getenv("TDSPORT")!=NULL) {
 			tmp_port = getenv("TDSPORT");
+                        tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s from $TDSPORT.\n",tmp_port);
 		}
+                else tdsdump_log(TDS_DBG_INFO1, "%L Setting 'tmp_port' to %s as a guess.\n",tmp_port);
+
 
 		/*
 		* lookup the host and service
