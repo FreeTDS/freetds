@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.78 2003-03-30 07:59:36 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.79 2003-04-03 19:38:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -903,6 +903,37 @@ tds_send_cancel(TDSSOCKET * tds)
 	return tds_flush_packet(tds);
 }
 
+static int
+tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
+{
+	int i;
+	const char *src, *pend;
+	char *dst;
+
+	pend = id + len;
+
+	/* quote */
+	src = id;
+	if (!buffer) {
+		i = 2 + len;
+		for (; src != pend; ++src)
+			if (*src == quoting)
+				++i;
+		return i;
+	}
+
+	dst = buffer;
+	*dst++ = (quoting == ']') ? '[' : quoting;
+	for (; src != pend; ++src) {
+		if (*src == quoting)
+			*dst++ = quoting;
+		*dst++ = *src;
+	}
+	*dst++ = quoting;
+	*dst = 0;
+	return dst - buffer;
+}
+
 /**
  * Quote an id
  * @param buffer buffer to store quoted id. If NULL do not write anything 
@@ -913,12 +944,8 @@ tds_send_cancel(TDSSOCKET * tds)
 int
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id)
 {
-	int need_quote, len, i;
-	char quoting;
-	const char *src;
-	char *dst;
-
-	len = strlen(id);
+	int need_quote;
+	int len = strlen(id);
 
 	/* need quote ?? */
 	need_quote = (strcspn(id, "\"\' ()[]{}") != len);
@@ -929,30 +956,21 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id)
 		return len;
 	}
 
-	/* quote */
-	quoting = '\"';
-	if (TDS_IS_MSSQL(tds))
-		quoting = ']';
+	return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, len);
+}
 
-	src = id;
-	if (!buffer) {
-		i = 2 + len;
-		for (; *src; ++src)
-			if (*src == quoting)
-				++i;
-		return i;
-	}
-
-	dst = buffer;
-	*dst++ = (quoting == ']') ? '[' : quoting;
-	for (; *src; ++src) {
-		if (*src == quoting)
-			*dst++ = quoting;
-		*dst++ = *src;
-	}
-	*dst++ = quoting;
-	*dst = 0;
-	return dst - buffer;
+/**
+ * Quote a string
+ * @param buffer buffer to store quoted id. If NULL do not write anything 
+ *        (useful to compute quote length)
+ * @param str    string to quote (not necessary null-terminated)
+ * @param len    length of string (-1 for null terminated)
+ * @result written chars (not including needed terminator)
+ */
+int
+tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
+{
+	return tds_quote(tds, buffer, '\'', str, len < 0 ? strlen(str) : len);
 }
 
 /** \@} */

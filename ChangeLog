@@ -1,3 +1,9 @@
+Thu Apr 03 21:36:58 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- add tds_quote_string function
+	* src/odbc/odbc.c:
+	- rewritten many similar functions, quoting string if needed
+
 Thu Apr 03 14:43:08 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/tables.c:
 	- add a test for SQLTables
