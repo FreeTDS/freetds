@@ -24,16 +24,27 @@
 
 #include <stdio.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include <assert.h>
+
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
 #include "dblib.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <assert.h>
 
 
-static char software_version[] = "$Id: rpc.c,v 1.8 2002-11-23 06:36:35 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.9 2002-11-23 13:54:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
