@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.15 2003-06-11 20:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.16 2003-07-23 18:34:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -48,6 +48,7 @@ main(int argc, char **argv)
 	int result_type;
 	int row_type;
 	int compute_id;
+	int rows_returned = 0;
 
 	const char *len200 =
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
@@ -96,6 +97,7 @@ main(int argc, char **argv)
 			break;
 		case TDS_ROW_RESULT:
 			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
+				++rows_returned;
 				if (verbose) {
 					printf("col 0 is %s\n", varchar_as_string(tds, 0));
 				}
@@ -117,6 +119,11 @@ main(int argc, char **argv)
 		return 1;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
 		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+	}
+
+	if (rows_returned != 1) {
+		fprintf(stderr, "%d rows returned, 1 expected\n", rows_returned);
+		return 1;
 	}
 
 	/* do not check error here, if TABLE is not create this give error */

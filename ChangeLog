@@ -1,3 +1,7 @@
+Wed Jul 23 14:31:27 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/write.c src/tds/unittests/t0004.c
+	- fix tds_put_string to handle > 128 character inputs.  
+
 Tue Jul 22 12:56:18 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds.html: other small updates
 
