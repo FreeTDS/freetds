@@ -16,4 +16,5 @@ so_locations
 freetds.spec
 PWD
 doxyfile
+test-dist.log
 

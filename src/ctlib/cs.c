@@ -47,7 +47,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.44 2003-11-30 12:02:04 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.45 2003-12-26 18:11:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -68,6 +68,8 @@ _cs_datatype_length(int dtype)
 			return 2;
 		case SYBINT4:
 			return 4;
+		case SYBINT8:
+			return 8;
 		case SYBFLT8:
 			return 8;
 		case SYBREAL:
@@ -428,6 +430,7 @@ CS_RETCODE ret;
 		case SYBINT1:
 		case SYBINT2:
 		case SYBINT4:
+		case SYBINT8:
 		case SYBFLT8:
 		case SYBREAL:
 		case SYBBIT:
@@ -545,6 +548,12 @@ CS_RETCODE ret;
 		memcpy(dest, &(cres.i), 4);
 		if (resultlen != (CS_INT *) NULL)
 			*resultlen = 4;
+		ret = CS_SUCCEED;
+		break;
+	case SYBINT8:
+		memcpy(dest, &(cres.bi), 8);
+		if (resultlen != (CS_INT *) NULL)
+			*resultlen = 8;
 		ret = CS_SUCCEED;
 		break;
 	case SYBFLT8:

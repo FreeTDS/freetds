@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.34 2003-12-24 11:22:03 jklowden Exp $
+# version: $Id: Makefile.am,v 1.35 2003-12-26 18:10:56 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -71,7 +71,7 @@ DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl 
 	$(mkinstalldirs) $(DOCDIR)/userguide
 	touch $(DOCDIR)/userguide/t.htm
-	rm    $(DOCDIR)/userguide/*.htm
+	rm -f $(DOCDIR)/userguide/*
 # if we're not using jade, try linking to the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
 		if test -e $(DISTRIBUTED_UG_DIR) -a ! -e $(DOCDIR)/userguide ; then \

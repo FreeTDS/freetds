@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.37 2003-12-24 11:22:02 jklowden Exp $
+# version $Id: Makefile.am,v 1.38 2003-12-26 18:10:55 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -28,7 +28,7 @@ DISTCHECK_CONFIGURE_FLAGS	=	\
 # do not uninstall configuration files (they may have been changed)
 if DISTCHECK_BUILD
 uninstall-local:
-	rm $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
+	rm -f $(ETC)/freetds.conf $(ETC)/locales.conf $(ETC)/pool.conf PWD
 endif
 
 test:

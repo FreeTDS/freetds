@@ -56,7 +56,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.159 2003-12-21 08:06:34 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.160 2003-12-26 18:11:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3444,7 +3444,9 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 		else if (colinfo->column_size == 4)
 			return SYBREAL;
 	case SYBINTN:
-		if (colinfo->column_size == 4)
+		if (colinfo->column_size == 8)
+			return SYBINT8;
+		else if (colinfo->column_size == 4)
 			return SYBINT4;
 		else if (colinfo->column_size == 2)
 			return SYBINT2;

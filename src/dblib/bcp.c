@@ -63,7 +63,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.82 2003-12-22 21:54:53 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.83 2003-12-26 18:11:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
@@ -629,6 +629,9 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				case SYBINT4:
 					buflen = destlen = 4;
 					break;
+				case SYBINT8:
+					buflen = destlen = 8;
+					break;
 				case SYBREAL:
 					buflen = destlen = 4;
 					break;
@@ -681,6 +684,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 						break;
 					case SYBINT4:
 						buflen = 11 + 1;	/* -2147483648  */
+						destlen = -1;
+						break;
+					case SYBINT8:
+						buflen = 20 + 1;	/* -9223372036854775808  */
 						destlen = -1;
 						break;
 					case SYBNUMERIC:
@@ -1810,6 +1817,9 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, BCP_COLINFO * bcpcol, int first)
 	case SYBINT4:
 		column_type = "int";
 		break;
+	case SYBINT8:
+		column_type = "bigint";
+		break;
 	case SYBDATETIME:
 		column_type = "datetime";
 		break;
@@ -1827,9 +1837,6 @@ _bcp_build_bulk_insert_stmt(TDS_PBCB * clause, BCP_COLINFO * bcpcol, int first)
 		break;
 	case SYBFLT8:
 		column_type = "float";
-		break;
-	case SYBINT8:
-		column_type = "bigint";
 		break;
 
 	case SYBINTN:
@@ -2176,6 +2183,8 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 				ci->datatype = SYBINT2;
 			else if (strcmp(tok, "SYBINT4") == 0)
 				ci->datatype = SYBINT4;
+			else if (strcmp(tok, "SYBINT8") == 0)
+				ci->datatype = SYBINT8;
 			else if (strcmp(tok, "SYBFLT8") == 0)
 				ci->datatype = SYBFLT8;
 			else if (strcmp(tok, "SYBREAL") == 0)

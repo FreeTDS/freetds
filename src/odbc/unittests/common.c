@@ -4,7 +4,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: common.c,v 1.23 2003-12-23 21:14:19 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.24 2003-12-26 18:11:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -35,7 +35,7 @@ check_lib(char *path, const char *file)
 
 /* some platforms do not have setenv, define a replacement */
 #if !HAVE_SETENV
-static void
+void
 odbc_setenv(const char* name, const char *value, int overwrite)
 {
 #if HAVE_PUTENV

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.111 2003-12-11 11:25:45 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.112 2003-12-26 18:11:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1489,6 +1489,9 @@ _ct_get_client_type(int datatype, int usertype, int size)
 	case SYBVARCHAR:
 		return CS_CHAR_TYPE;
 		break;
+	case SYBINT8:
+		return CS_LONG_TYPE;
+		break;
 	case SYBINT4:
 		return CS_INT_TYPE;
 		break;
@@ -1499,13 +1502,16 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_TINYINT_TYPE;
 		break;
 	case SYBINTN:
-		if (size == 4) {
+		switch (size) {
+		case 8:
+			return CS_LONG_TYPE;
+		case 4:
 			return CS_INT_TYPE;
-		} else if (size == 2) {
+		case 2:
 			return CS_SMALLINT_TYPE;
-		} else if (size == 1) {
+		case 1:
 			return CS_TINYINT_TYPE;
-		} else {
+		default:
 			fprintf(stderr, "Unknown size %d for SYBINTN\n", size);
 		}
 		break;
@@ -1599,6 +1605,9 @@ _ct_get_server_type(int datatype)
 		break;
 	case CS_CHAR_TYPE:
 		return SYBCHAR;
+		break;
+	case CS_LONG_TYPE:
+		return SYBINT8;
 		break;
 	case CS_INT_TYPE:
 		return SYBINT4;
@@ -3273,6 +3282,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 				case SYBINT1:
 				case SYBINT2:
 				case SYBINT4:
+				/* TODO check if supported ?? */
+				case SYBINT8:
 					temp_type = SYBINTN;
 					break;
 				case SYBDATETIME:
@@ -3471,6 +3482,8 @@ _ct_fill_param(CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * 
 			case SYBINT1:
 			case SYBINT2:
 			case SYBINT4:
+			/* TODO check if supported ?? */
+			case SYBINT8:
 				param->type = SYBINTN;
 				break;
 			case SYBDATETIME:

@@ -1,3 +1,12 @@
+Fri Dec 26 19:09:41 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* .cvsignore: ignore generated test log
+	* Makefile.am doc/Makefile.am: fix problem with RH9
+	* src/apps/tsql.c: comment
+	* src/ctlib/cs.c src/ctlib/ct.c src/dblib/bcp.c:
+	* src/dblib/dblib.c:
+	- updates for 64bit ints support
+	* src/odbc/unittests/common.c: make odbc_setenv no static
+
 Wed Dec 24 06:19:50 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* Makefile.am doc/Makefile.am s/RM/rm/g because RM not always defined.
 
