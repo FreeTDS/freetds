@@ -1,5 +1,5 @@
 Wed Apr 02 22:57:54 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
-	* src/odbc/odbc.c: applied Peter Daecon patch on SQLColumns
+	* src/odbc/odbc.c: applied Peter Deacon patch on SQLColumns
 
 Wed Apr 02 21:48:15 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: small SQLStatistics fix
@@ -9,7 +9,7 @@ Wed Apr 02 15:07:02 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 
 Wed Apr 02 14:57:44 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c win32/FreeTDS.def:
-	- applied Peter Daecon patch
+	- applied Peter Deacon patch
 	 - SQLColumnPrivileges
 	 - SQLForeignKeys
 	 - SQLPrimaryKeys
@@ -26,7 +26,7 @@ Wed Apr 02 10:20:12 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in:
 	- applied Chad Wagner patch for RPM documentation
 	* src/odbc/odbc.c:
-	- applied Peter Daecon patch for _SQLExecute
+	- applied Peter Deacon patch for _SQLExecute
 	- remove a warning
 
 Tue Apr  1 16:32:59 EST 2003	JK Lowden <jklowden@schemamania.org>	
