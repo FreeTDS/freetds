@@ -27,7 +27,7 @@
 #define _ALTERNATIVE_CHARACTER_SETS_H_
 
 #if 0
-static char software_version[] = "$Id: alternative_character_sets.h,v 1.5 2003-05-13 16:17:26 jklowden Exp $";
+static char software_version[] = "$Id: alternative_character_sets.h,v 1.6 2003-05-14 09:15:06 freddy77 Exp $";
 /*
 To regenerate this file, do:
 $ perl -x alternative_character_sets.h >/tmp/alternative_character_sets.h \
@@ -76,56 +76,67 @@ __END__
 #endif
 
 /* ** BEGIN ICONV ** */
-	  {   "ANSI_X3.4-1968", "ANSI_X3.4-1968"         }
-	, {   "ANSI_X3.4-1968", "ANSI_X3.4-1986"         }
-	, {   "ANSI_X3.4-1968", "ASCII"                  }
-	, {   "ANSI_X3.4-1968", "CP367"                  }
-	, {   "ANSI_X3.4-1968", "IBM367"                 }
-	, {   "ANSI_X3.4-1968", "ISO-IR-6"               }
-	, {   "ANSI_X3.4-1968", "ISO646-US"              }
-	, {   "ANSI_X3.4-1968", "ISO_646.IRV:1991"       }
-	, {   "ANSI_X3.4-1968", "US"                     }
-	, {   "ANSI_X3.4-1968", "US-ASCII"               }
-	, {   "ANSI_X3.4-1968", "CSASCII"                }
+	  {         "US-ASCII", "US-ASCII"               }
+	, {         "US-ASCII", "ANSI_X3.4-1968"         }
+	, {         "US-ASCII", "ANSI_X3.4-1986"         }
+	, {         "US-ASCII", "ASCII"                  }
+	, {         "US-ASCII", "CP367"                  }
+	, {         "US-ASCII", "IBM367"                 }
+	, {         "US-ASCII", "ISO-IR-6"               }
+	, {         "US-ASCII", "ISO646-US"              }
+	, {         "US-ASCII", "ISO_646.IRV:1991"       }
+	, {         "US-ASCII", "US"                     }
+	, {         "US-ASCII", "CSASCII"                }
 	, {            "UTF-8", "UTF-8"                  }
-	, {  "ISO-10646-UCS-2", "ISO-10646-UCS-2"        }
-	, {  "ISO-10646-UCS-2", "UCS-2"                  }
-	, {  "ISO-10646-UCS-2", "CSUNICODE"              }
+	, {            "UTF-8", "UTF8"                   }
+	, {            "UTF-8", "utf8"                   }
+	, {            "UCS-2", "UCS-2"                  }
+	, {            "UCS-2", "UCS2"                   }
+	, {            "UCS-2", "ucs2"                   }
+	, {            "UCS-2", "ISO-10646-UCS-2"        }
+	, {            "UCS-2", "CSUNICODE"              }
+	, {            "UCS-2", "ucs2"                   }
 	, {          "UCS-2BE", "UCS-2BE"                }
 	, {          "UCS-2BE", "UNICODE-1-1"            }
 	, {          "UCS-2BE", "UNICODEBIG"             }
 	, {          "UCS-2BE", "CSUNICODE11"            }
 	, {          "UCS-2LE", "UCS-2LE"                }
 	, {          "UCS-2LE", "UNICODELITTLE"          }
-	, {  "ISO-10646-UCS-4", "ISO-10646-UCS-4"        }
-	, {  "ISO-10646-UCS-4", "UCS-4"                  }
-	, {  "ISO-10646-UCS-4", "CSUCS4"                 }
+	, {            "UCS-4", "UCS-4"                  }
+	, {            "UCS-4", "UCS4"                   }
+	, {            "UCS-4", "ISO-10646-UCS-4"        }
+	, {            "UCS-4", "CSUCS4"                 }
+	, {            "UCS-4", "ucs4"                   }
 	, {          "UCS-4BE", "UCS-4BE"                }
 	, {          "UCS-4LE", "UCS-4LE"                }
 	, {           "UTF-16", "UTF-16"                 }
+	, {           "UTF-16", "UTF16"                  }
 	, {         "UTF-16BE", "UTF-16BE"               }
 	, {         "UTF-16LE", "UTF-16LE"               }
 	, {           "UTF-32", "UTF-32"                 }
 	, {         "UTF-32BE", "UTF-32BE"               }
 	, {         "UTF-32LE", "UTF-32LE"               }
-	, {"UNICODE-1-1-UTF-7", "UNICODE-1-1-UTF-7"      }
-	, {"UNICODE-1-1-UTF-7", "UTF-7"                  }
-	, {"UNICODE-1-1-UTF-7", "CSUNICODE11UTF7"        }
+	, {            "UTF-7", "UTF-7"                  }
+	, {            "UTF-7", "UTF7"                   }
+	, {            "UTF-7", "UNICODE-1-1-UTF-7"      }
+	, {            "UTF-7", "CSUNICODE11UTF7"        }
 	, {   "UCS-2-INTERNAL", "UCS-2-INTERNAL"         }
 	, {    "UCS-2-SWAPPED", "UCS-2-SWAPPED"          }
 	, {   "UCS-4-INTERNAL", "UCS-4-INTERNAL"         }
 	, {    "UCS-4-SWAPPED", "UCS-4-SWAPPED"          }
 	, {              "C99", "C99"                    }
 	, {             "JAVA", "JAVA"                   }
-	, {            "CP819", "CP819"                  }
-	, {            "CP819", "IBM819"                 }
-	, {            "CP819", "ISO-8859-1"             }
-	, {            "CP819", "ISO-IR-100"             }
-	, {            "CP819", "ISO_8859-1"             }
-	, {            "CP819", "ISO_8859-1:1987"        }
-	, {            "CP819", "L1"                     }
-	, {            "CP819", "LATIN1"                 }
-	, {            "CP819", "CSISOLATIN1"            }
+	, {       "ISO-8859-1", "ISO-8859-1"             }
+	, {       "ISO-8859-1", "ISO8859-1"              }
+	, {       "ISO-8859-1", "CP819"                  }
+	, {       "ISO-8859-1", "IBM819"                 }
+	, {       "ISO-8859-1", "ISO-IR-100"             }
+	, {       "ISO-8859-1", "ISO_8859-1"             }
+	, {       "ISO-8859-1", "ISO_8859-1:1987"        }
+	, {       "ISO-8859-1", "L1"                     }
+	, {       "ISO-8859-1", "LATIN1"                 }
+	, {       "ISO-8859-1", "CSISOLATIN1"            }
+	, {       "ISO-8859-1", "iso81"                  }
 	, {       "ISO-8859-2", "ISO-8859-2"             }
 	, {       "ISO-8859-2", "ISO-IR-101"             }
 	, {       "ISO-8859-2", "ISO_8859-2"             }
@@ -133,6 +144,7 @@ __END__
 	, {       "ISO-8859-2", "L2"                     }
 	, {       "ISO-8859-2", "LATIN2"                 }
 	, {       "ISO-8859-2", "CSISOLATIN2"            }
+	, {       "ISO-8859-2", "iso82"                  }
 	, {       "ISO-8859-3", "ISO-8859-3"             }
 	, {       "ISO-8859-3", "ISO-IR-109"             }
 	, {       "ISO-8859-3", "ISO_8859-3"             }
@@ -140,6 +152,7 @@ __END__
 	, {       "ISO-8859-3", "L3"                     }
 	, {       "ISO-8859-3", "LATIN3"                 }
 	, {       "ISO-8859-3", "CSISOLATIN3"            }
+	, {       "ISO-8859-3", "iso83"                  }
 	, {       "ISO-8859-4", "ISO-8859-4"             }
 	, {       "ISO-8859-4", "ISO-IR-110"             }
 	, {       "ISO-8859-4", "ISO_8859-4"             }
@@ -147,43 +160,55 @@ __END__
 	, {       "ISO-8859-4", "L4"                     }
 	, {       "ISO-8859-4", "LATIN4"                 }
 	, {       "ISO-8859-4", "CSISOLATIN4"            }
-	, {         "CYRILLIC", "CYRILLIC"               }
-	, {         "CYRILLIC", "ISO-8859-5"             }
-	, {         "CYRILLIC", "ISO-IR-144"             }
-	, {         "CYRILLIC", "ISO_8859-5"             }
-	, {         "CYRILLIC", "ISO_8859-5:1988"        }
-	, {         "CYRILLIC", "CSISOLATINCYRILLIC"     }
-	, {           "ARABIC", "ARABIC"                 }
-	, {           "ARABIC", "ASMO-708"               }
-	, {           "ARABIC", "ECMA-114"               }
-	, {           "ARABIC", "ISO-8859-6"             }
-	, {           "ARABIC", "ISO-IR-127"             }
-	, {           "ARABIC", "ISO_8859-6"             }
-	, {           "ARABIC", "ISO_8859-6:1987"        }
-	, {           "ARABIC", "CSISOLATINARABIC"       }
-	, {         "ECMA-118", "ECMA-118"               }
-	, {         "ECMA-118", "ELOT_928"               }
-	, {         "ECMA-118", "GREEK"                  }
-	, {         "ECMA-118", "GREEK8"                 }
-	, {         "ECMA-118", "ISO-8859-7"             }
-	, {         "ECMA-118", "ISO-IR-126"             }
-	, {         "ECMA-118", "ISO_8859-7"             }
-	, {         "ECMA-118", "ISO_8859-7:1987"        }
-	, {         "ECMA-118", "CSISOLATINGREEK"        }
-	, {           "HEBREW", "HEBREW"                 }
-	, {           "HEBREW", "ISO-8859-8"             }
-	, {           "HEBREW", "ISO-IR-138"             }
-	, {           "HEBREW", "ISO_8859-8"             }
-	, {           "HEBREW", "ISO_8859-8:1988"        }
-	, {           "HEBREW", "CSISOLATINHEBREW"       }
+	, {       "ISO-8859-4", "iso84"                  }
+	, {       "ISO-8859-5", "ISO-8859-5"             }
+	, {       "ISO-8859-5", "ISO8859-5"              }
+	, {       "ISO-8859-5", "CYRILLIC"               }
+	, {       "ISO-8859-5", "ISO-IR-144"             }
+	, {       "ISO-8859-5", "ISO_8859-5"             }
+	, {       "ISO-8859-5", "ISO_8859-5:1988"        }
+	, {       "ISO-8859-5", "CSISOLATINCYRILLIC"     }
+	, {       "ISO-8859-5", "iso85"                  }
+	, {       "ISO-8859-6", "ISO-8859-6"             }
+	, {       "ISO-8859-6", "ISO8859-6"              }
+	, {       "ISO-8859-6", "ARABIC"                 }
+	, {       "ISO-8859-6", "ASMO-708"               }
+	, {       "ISO-8859-6", "ECMA-114"               }
+	, {       "ISO-8859-6", "ISO-IR-127"             }
+	, {       "ISO-8859-6", "ISO_8859-6"             }
+	, {       "ISO-8859-6", "ISO_8859-6:1987"        }
+	, {       "ISO-8859-6", "CSISOLATINARABIC"       }
+	, {       "ISO-8859-6", "iso86"                  }
+	, {       "ISO-8859-7", "ISO-8859-7"             }
+	, {       "ISO-8859-7", "ISO8859-7"              }
+	, {       "ISO-8859-7", "ECMA-118"               }
+	, {       "ISO-8859-7", "ELOT_928"               }
+	, {       "ISO-8859-7", "GREEK"                  }
+	, {       "ISO-8859-7", "GREEK8"                 }
+	, {       "ISO-8859-7", "ISO-IR-126"             }
+	, {       "ISO-8859-7", "ISO_8859-7"             }
+	, {       "ISO-8859-7", "ISO_8859-7:1987"        }
+	, {       "ISO-8859-7", "CSISOLATINGREEK"        }
+	, {       "ISO-8859-7", "iso87"                  }
+	, {       "ISO-8859-8", "ISO-8859-8"             }
+	, {       "ISO-8859-8", "ISO8859-8"              }
+	, {       "ISO-8859-8", "HEBREW"                 }
+	, {       "ISO-8859-8", "ISO-IR-138"             }
+	, {       "ISO-8859-8", "ISO_8859-8"             }
+	, {       "ISO-8859-8", "ISO_8859-8:1988"        }
+	, {       "ISO-8859-8", "CSISOLATINHEBREW"       }
+	, {       "ISO-8859-8", "iso88"                  }
 	, {       "ISO-8859-9", "ISO-8859-9"             }
+	, {       "ISO-8859-9", "ISO8859-9"              }
 	, {       "ISO-8859-9", "ISO-IR-148"             }
 	, {       "ISO-8859-9", "ISO_8859-9"             }
 	, {       "ISO-8859-9", "ISO_8859-9:1989"        }
 	, {       "ISO-8859-9", "L5"                     }
 	, {       "ISO-8859-9", "LATIN5"                 }
 	, {       "ISO-8859-9", "CSISOLATIN5"            }
+	, {       "ISO-8859-9", "iso89"                  }
 	, {      "ISO-8859-10", "ISO-8859-10"            }
+	, {      "ISO-8859-10", "ISO8859-10"             }
 	, {      "ISO-8859-10", "ISO-IR-157"             }
 	, {      "ISO-8859-10", "ISO_8859-10"            }
 	, {      "ISO-8859-10", "ISO_8859-10:1992"       }
@@ -206,6 +231,7 @@ __END__
 	, {      "ISO-8859-15", "ISO-IR-203"             }
 	, {      "ISO-8859-15", "ISO_8859-15"            }
 	, {      "ISO-8859-15", "ISO_8859-15:1998"       }
+	, {      "ISO-8859-15", "iso815"                 }
 	, {      "ISO-8859-16", "ISO-8859-16"            }
 	, {      "ISO-8859-16", "ISO-IR-226"             }
 	, {      "ISO-8859-16", "ISO_8859-16"            }
@@ -217,41 +243,53 @@ __END__
 	, {           "CP1250", "CP1250"                 }
 	, {           "CP1250", "MS-EE"                  }
 	, {           "CP1250", "WINDOWS-1250"           }
+	, {           "CP1250", "cp1250"                 }
 	, {           "CP1251", "CP1251"                 }
 	, {           "CP1251", "MS-CYRL"                }
 	, {           "CP1251", "WINDOWS-1251"           }
+	, {           "CP1251", "cp1251"                 }
 	, {           "CP1252", "CP1252"                 }
 	, {           "CP1252", "MS-ANSI"                }
 	, {           "CP1252", "WINDOWS-1252"           }
+	, {           "CP1252", "cp1252"                 }
 	, {           "CP1253", "CP1253"                 }
 	, {           "CP1253", "MS-GREEK"               }
 	, {           "CP1253", "WINDOWS-1253"           }
+	, {           "CP1253", "cp1253"                 }
 	, {           "CP1254", "CP1254"                 }
 	, {           "CP1254", "MS-TURK"                }
 	, {           "CP1254", "WINDOWS-1254"           }
+	, {           "CP1254", "cp1254"                 }
 	, {           "CP1255", "CP1255"                 }
 	, {           "CP1255", "MS-HEBR"                }
 	, {           "CP1255", "WINDOWS-1255"           }
+	, {           "CP1255", "cp1255"                 }
 	, {           "CP1256", "CP1256"                 }
 	, {           "CP1256", "MS-ARAB"                }
 	, {           "CP1256", "WINDOWS-1256"           }
+	, {           "CP1256", "cp1256"                 }
 	, {           "CP1257", "CP1257"                 }
 	, {           "CP1257", "WINBALTRIM"             }
 	, {           "CP1257", "WINDOWS-1257"           }
+	, {           "CP1257", "cp1257"                 }
 	, {           "CP1258", "CP1258"                 }
 	, {           "CP1258", "WINDOWS-1258"           }
-	, {              "850", "850"                    }
-	, {              "850", "CP850"                  }
-	, {              "850", "IBM850"                 }
-	, {              "850", "CSPC850MULTILINGUAL"    }
-	, {              "862", "862"                    }
-	, {              "862", "CP862"                  }
-	, {              "862", "IBM862"                 }
-	, {              "862", "CSPC862LATINHEBREW"     }
-	, {              "866", "866"                    }
-	, {              "866", "CP866"                  }
-	, {              "866", "IBM866"                 }
-	, {              "866", "CSIBM866"               }
+	, {           "CP1258", "cp1258"                 }
+	, {            "CP850", "CP850"                  }
+	, {            "CP850", "850"                    }
+	, {            "CP850", "IBM850"                 }
+	, {            "CP850", "CSPC850MULTILINGUAL"    }
+	, {            "CP850", "cp850"                  }
+	, {            "CP862", "CP862"                  }
+	, {            "CP862", "862"                    }
+	, {            "CP862", "IBM862"                 }
+	, {            "CP862", "CSPC862LATINHEBREW"     }
+	, {            "CP862", "cp862"                  }
+	, {            "CP866", "CP866"                  }
+	, {            "CP866", "866"                    }
+	, {            "CP866", "IBM866"                 }
+	, {            "CP866", "CSIBM866"               }
+	, {            "CP866", "cp866"                  }
 	, {              "MAC", "MAC"                    }
 	, {              "MAC", "MACINTOSH"              }
 	, {              "MAC", "MACROMAN"               }
@@ -267,10 +305,11 @@ __END__
 	, {        "MACHEBREW", "MACHEBREW"              }
 	, {        "MACARABIC", "MACARABIC"              }
 	, {          "MACTHAI", "MACTHAI"                }
-	, {        "HP-ROMAN8", "HP-ROMAN8"              }
-	, {        "HP-ROMAN8", "R8"                     }
-	, {        "HP-ROMAN8", "ROMAN8"                 }
-	, {        "HP-ROMAN8", "CSHPROMAN8"             }
+	, {           "ROMAN8", "ROMAN8"                 }
+	, {           "ROMAN8", "HP-ROMAN8"              }
+	, {           "ROMAN8", "R8"                     }
+	, {           "ROMAN8", "CSHPROMAN8"             }
+	, {           "ROMAN8", "roma8"                  }
 	, {         "NEXTSTEP", "NEXTSTEP"               }
 	, {        "ARMSCII-8", "ARMSCII-8"              }
 	, { "GEORGIAN-ACADEMY", "GEORGIAN-ACADEMY"       }
@@ -286,8 +325,10 @@ __END__
 	, {       "ISO-IR-166", "TIS620.2529-1"          }
 	, {       "ISO-IR-166", "TIS620.2533-0"          }
 	, {       "ISO-IR-166", "TIS620.2533-1"          }
+	, {       "ISO-IR-166", "thai8"                  }
 	, {            "CP874", "CP874"                  }
 	, {            "CP874", "WINDOWS-874"            }
+	, {            "CP874", "cp874"                  }
 	, {           "VISCII", "VISCII"                 }
 	, {           "VISCII", "VISCII1.1-1"            }
 	, {           "VISCII", "CSVISCII"               }
@@ -327,6 +368,7 @@ __END__
 	, {          "CHINESE", "GB_2312-80"             }
 	, {          "CHINESE", "ISO-IR-58"              }
 	, {          "CHINESE", "CSISO58GB231280"        }
+	, {          "CHINESE", "hp15CN"                 }
 	, {   "CN-GB-ISOIR165", "CN-GB-ISOIR165"         }
 	, {   "CN-GB-ISOIR165", "ISO-IR-165"             }
 	, {       "ISO-IR-149", "ISO-IR-149"             }
@@ -339,11 +381,13 @@ __END__
 	, {           "EUC-JP", "EUCJP"                  }
 	, {           "EUC-JP", "EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE"}
 	, {           "EUC-JP", "CSEUCPKDFMTJAPANESE"    }
-	, {         "MS_KANJI", "MS_KANJI"               }
-	, {         "MS_KANJI", "SHIFT-JIS"              }
-	, {         "MS_KANJI", "SHIFT_JIS"              }
-	, {         "MS_KANJI", "SJIS"                   }
-	, {         "MS_KANJI", "CSSHIFTJIS"             }
+	, {           "EUC-JP", "eucJP"                  }
+	, {             "SJIS", "SJIS"                   }
+	, {             "SJIS", "MS_KANJI"               }
+	, {             "SJIS", "SHIFT-JIS"              }
+	, {             "SJIS", "SHIFT_JIS"              }
+	, {             "SJIS", "CSSHIFTJIS"             }
+	, {             "SJIS", "sjis"                   }
 	, {            "CP932", "CP932"                  }
 	, {      "ISO-2022-JP", "ISO-2022-JP"            }
 	, {      "ISO-2022-JP", "CSISO2022JP"            }
@@ -366,12 +410,14 @@ __END__
 	, {           "EUC-TW", "EUC-TW"                 }
 	, {           "EUC-TW", "EUCTW"                  }
 	, {           "EUC-TW", "CSEUCTW"                }
+	, {           "EUC-TW", "eucTW"                  }
 	, {            "BIG-5", "BIG-5"                  }
 	, {            "BIG-5", "BIG-FIVE"               }
 	, {            "BIG-5", "BIG5"                   }
 	, {            "BIG-5", "BIGFIVE"                }
 	, {            "BIG-5", "CN-BIG5"                }
 	, {            "BIG-5", "CSBIG5"                 }
+	, {            "BIG-5", "big5"                   }
 	, {            "CP950", "CP950"                  }
 	, {       "BIG5-HKSCS", "BIG5-HKSCS"             }
 	, {       "BIG5-HKSCS", "BIG5HKSCS"              }
@@ -391,7 +437,7 @@ __END__
 	 * The second element is whatever string is returned by nl_langinfo.  
 	 */
 	/* NetBSD */
-	, {   "ANSI_X3.4-1968", "646"                    }	/* NetBSD default */
+	, {         "US-ASCII", "646"                    }	/* NetBSD default */
 	/* other operating systems */
 	
 	/* no stopper row; add your own */

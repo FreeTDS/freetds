@@ -8,12 +8,12 @@
  * Alternative character set names are mapped to these canonical ones in 
  * alternative_character_sets.h and are accessed with canonical_charset();
  */
-		  {"ANSI_X3.4-1968", 	1, 1}
+		  {"US-ASCII",		1, 1}
 		, {"UTF-8", 		1, 4}
-		, {"ISO-10646-UCS-2", 	2, 2}
+		, {"UCS-2",		2, 2}
 		, {"UCS-2BE", 		2, 2}
 		, {"UCS-2LE", 		2, 2}
-		, {"ISO-10646-UCS-4", 	4, 4}
+		, {"UCS-4",		4, 4}
 		, {"UCS-4BE", 		4, 4}
 		, {"UCS-4LE", 		4, 4}
 		, {"UTF-16", 		2, 4}
@@ -22,22 +22,21 @@
 		, {"UTF-32", 		4, 4}
 		, {"UTF-32BE", 		4, 4}
 		, {"UTF-32LE", 		4, 4}
-		, {"UNICODE-1-1-UTF-7", 1, 4}
+		, {"UTF-7",		1, 4}
 		, {"UCS-2-INTERNAL", 	2, 2}
 		, {"UCS-2-SWAPPED", 	2, 2}
 		, {"UCS-4-INTERNAL", 	4, 4}
 		, {"UCS-4-SWAPPED", 	4, 4}
 		, {"C99", 		1, 1}
 		, {"JAVA", 		1, 1}
-		, {"CP819", 		1, 1}
 		, {"ISO-8859-1",	1, 1}
 		, {"ISO-8859-2", 	1, 1}
 		, {"ISO-8859-3", 	1, 1}
 		, {"ISO-8859-4", 	1, 1}
-		, {"CYRILLIC", 		1, 1}
-		, {"ARABIC", 		1, 1}
-		, {"ECMA-118", 		1, 1}
-		, {"HEBREW", 		1, 1}
+		, {"ISO-8859-5",	1, 1}
+		, {"ISO-8859-6",	1, 1}
+		, {"ISO-8859-7", 	1, 1}
+		, {"ISO-8859-8",	1, 1}
 		, {"ISO-8859-9", 	1, 1}
 		, {"ISO-8859-10", 	1, 1}
 		, {"ISO-8859-13", 	1, 1}
@@ -56,9 +55,9 @@
 		, {"CP1256", 		1, 1}
 		, {"CP1257", 		1, 1}
 		, {"CP1258", 		1, 1}
-		, {"850", 		1, 1}
-		, {"862", 		1, 1}
-		, {"866", 		1, 1}
+		, {"CP850", 		1, 1}
+		, {"CP862", 		1, 1}
+		, {"CP866", 		1, 1}
 		, {"MAC", 		1, 1}
 		, {"MACCENTRALEUROPE", 	1, 1}
 		, {"MACICELAND", 	1, 1}
@@ -71,7 +70,7 @@
 		, {"MACHEBREW", 	1, 1}
 		, {"MACARABIC", 	1, 1}
 		, {"MACTHAI", 		1, 1}
-		, {"HP-ROMAN8", 	1, 1}
+		, {"ROMAN8",		1, 1}
 		, {"NEXTSTEP", 		1, 1}
 		, {"ARMSCII-8", 	1, 1}
 		, {"GEORGIAN-ACADEMY", 	1, 1}
@@ -101,7 +100,7 @@
 		, {"CN-GB-ISOIR165", 	1, 1}
 		, {"ISO-IR-149", 	1, 1}
 		, {"EUC-JP", 		1, 1}
-		, {"MS_KANJI", 		1, 1}
+		, {"SJIS", 		1, 1}
 		, {"CP932", 		1, 1}
 		, {"ISO-2022-JP", 	1, 1}
 		, {"ISO-2022-JP-1", 	1, 1}
