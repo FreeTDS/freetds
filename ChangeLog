@@ -1,3 +1,7 @@
+Wed Jan 26 09:17:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds_ssl.html(added) doc/Makefile.am:
+	- add doc for mssql and encryption
+
 Tue Jan 25 09:51:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/msvc6/dblib.dsp(added) win32/msvc6/libTDS.dsp(added):
 	* include/replacements.h win32/msvc6/FreeTDS.dsp:
