@@ -5,9 +5,9 @@ Name: %{name}
 Version: %{version} 
 Release: 1 
 Vendor: www.freetds.org 
-Copyright: LGPL 
+License: LGPL 
 Group: System Environment/Libraries 
-Source: ftp://ftp.metalab.unc.edu/pub/Linux/ALPHA/freetds/%{name}-%{version}.tar.gz 
+Source: http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/%{name}-%{version}.tar.gz 
 BuildRoot: %{_tmppath}/%{name}-buildroot 
 Summary: FreeTDS is a free re-implementation of the TDS (Tabular DataStream) protocol that is used by Sybase and Microsoft for their database products. 
  
@@ -24,8 +24,8 @@ Requires: freetds = %{version}
 
 %package unixodbc
 Group: System Environment/Libraries
-Summary: Driver ODBC for unixODBC
-Requires: freetds = %{version}, unixODBC >= 2.0.0
+Summary: FreeTDS ODBC Driver for unixODBC
+Requires: unixODBC >= 2.0.0
 
 %package doc
 Group: Documentation
@@ -94,6 +94,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/doc/freetds-%{version}/userguide doc/images doc/doc/freetds-%{version}/reference
  
 %changelog 
+* Thu Sep 09 2004 Frediano Ziglio <freddy77@angelfire.com>
+- remove dependency from freetds-unixodbc
+- fix field name (Copyright instead of License)
+- updated URL
+
 * Sun Mar 30 2003 Frediano Ziglio <freddy77@angelfire.com>
 - add reference to doc package
 

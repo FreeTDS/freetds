@@ -1,3 +1,9 @@
+Thu Sep 09 14:27:20 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.spec.in:
+	- update download URL
+	- remove dependency from freetds-unixodbc
+	- fix typo
+
 Thu Sep 09 12:56:26 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/moreandcount.c:
 	* src/odbc/unittests/print.c:
