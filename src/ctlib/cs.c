@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.56 2005-02-09 16:15:12 jklowden Exp $";
+static char software_version[] = "$Id: cs.c,v 1.57 2005-02-11 13:15:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -268,35 +268,66 @@ CS_INT maxcp;
 			break;
 		}
 	}
-	/* CS_SET */
-	switch (property) {
-	case CS_MESSAGE_CB:
-		if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
-			cs_diag_clearmsg(ctx, CS_UNUSED);
+	if (action == CS_SET) {
+		switch (property) {
+		case CS_MESSAGE_CB:
+			if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
+				cs_diag_clearmsg(ctx, CS_UNUSED);
+			}
+			ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
+			ctx->cs_errhandletype = _CS_ERRHAND_CB;
+			return CS_SUCCEED;
+		case CS_USERDATA:
+			if (ctx->userdata)
+				free(ctx->userdata);
+	
+			if (buflen == CS_NULLTERM) {
+				maxcp = strlen(buffer) + 1;
+			} else {
+				maxcp = buflen;
+			}
+			ctx->userdata = (void *) malloc(maxcp);
+			if ( ctx->userdata == NULL) {
+				return CS_FAIL;
+			}
+			ctx->userdata_len = maxcp;
+	
+			if (buffer) {
+				memcpy(ctx->userdata, buffer, maxcp);
+			} else {
+				return CS_FAIL;
+			}
+			return CS_SUCCEED;
+	
+		case CS_EXTRA_INF:
+		case CS_LOC_PROP:
+		case CS_VERSION:
+			return CS_FAIL;
+			break;
 		}
-		ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
-		ctx->cs_errhandletype = _CS_ERRHAND_CB;
-		return CS_SUCCEED;
-	case CS_USERDATA:
-		if (ctx->userdata)
-			free(ctx->userdata);
-
-		if (buflen == CS_NULLTERM) {
-			maxcp = strlen(buffer) + 1;
-		} else {
-			maxcp = buflen;
+	}
+	if (action == CS_CLEAR) {
+		switch (property) {
+		case CS_MESSAGE_CB:
+			if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
+				cs_diag_clearmsg(ctx, CS_UNUSED);
+			}
+			ctx->_cslibmsg_cb = NULL;
+			ctx->cs_errhandletype = 0;
+			return CS_SUCCEED;
+		case CS_USERDATA:
+			if (ctx->userdata)
+				free(ctx->userdata);
+			ctx->userdata = NULL;
+	
+			return CS_SUCCEED;
+	
+		case CS_EXTRA_INF:
+		case CS_LOC_PROP:
+		case CS_VERSION:
+			return CS_FAIL;
+			break;
 		}
-		ctx->userdata = (void *) malloc(maxcp);
-		ctx->userdata_len = maxcp;
-
-		memcpy(ctx->userdata, buffer, maxcp);
-		return CS_SUCCEED;
-
-	case CS_EXTRA_INF:
-	case CS_LOC_PROP:
-	case CS_VERSION:
-		return CS_FAIL;
-		break;
 	}
 	return CS_FAIL;
 }

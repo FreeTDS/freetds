@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.4 2003-03-31 15:55:35 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.5 2005-02-11 13:15:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -48,6 +48,7 @@ main(int argc, char *argv[])
 
 	CS_INT datalength;
 	CS_SMALLINT nullind;
+	CS_SMALLINT notnullind;
 
 	CS_CHAR cmdbuf[4096];
 
@@ -162,6 +163,8 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	nullind    = -1;
+	notnullind = 0;
 	/*
 	 * ** Clear and setup the CS_DATAFMT structure, then pass
 	 * ** each of the parameters for the RPC.
@@ -175,9 +178,8 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_INT);
-	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & intvar, &datalength, &nullind)) != CS_SUCCEED) {
+	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & intvar, &datalength, &notnullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(int) failed");
 		return 1;
 	}
@@ -190,9 +192,8 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_SMALLINT);
-	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & smallintvar, &datalength, &nullind)) != CS_SUCCEED) {
+	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & smallintvar, &datalength, &notnullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(smallint) failed");
 		return 1;
 	}
@@ -205,9 +206,8 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_FLOAT);
-	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & floatvar, &datalength, &nullind)) != CS_SUCCEED) {
+	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & floatvar, &datalength, &notnullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(float) failed");
 		return 1;
 	}
@@ -221,9 +221,8 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	datalength = CS_SIZEOF(CS_MONEY);
-	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & moneyvar, &datalength, &nullind)) != CS_SUCCEED) {
+	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & moneyvar, &datalength, &notnullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(money) failed");
 		return 1;
 	}
@@ -241,7 +240,6 @@ main(int argc, char *argv[])
 	 */
 
 	datalength = 0;
-	nullind = -1;
 
 	if ((ret = ct_setparam(cmd, &datafmt, NULL, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(datetime4) failed");
@@ -256,7 +254,6 @@ main(int argc, char *argv[])
 
 
 	datalength = 0;
-	nullind = -1;
 
 	/*
 	 * ** The character string variable is filled in by the RPC so pass NULL
@@ -277,7 +274,7 @@ main(int argc, char *argv[])
 	datalength = CS_SIZEOF(CS_BINARY);
 	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & binaryvar, &datalength, &nullind)) != CS_SUCCEED) {
+	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & binaryvar, &datalength, &notnullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(binary) failed");
 		return 1;
 	}

@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.138 2005-02-09 19:46:23 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.139 2005-02-11 13:15:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -687,6 +687,7 @@ tds_alloc_login(void)
 		return NULL;
 	memset(tds_login, '\0', sizeof(TDSLOGIN));
 	tds_dstr_init(&tds_login->server_name);
+	tds_dstr_init(&tds_login->server_addr);
 	tds_dstr_init(&tds_login->language);
 	tds_dstr_init(&tds_login->server_charset);
 	tds_dstr_init(&tds_login->host_name);
@@ -707,6 +708,7 @@ tds_free_login(TDSLOGIN * login)
 		tds_dstr_zero(&login->password);
 		tds_dstr_free(&login->password);
 		tds_dstr_free(&login->server_name);
+		tds_dstr_free(&login->server_addr);
 		tds_dstr_free(&login->language);
 		tds_dstr_free(&login->server_charset);
 		tds_dstr_free(&login->host_name);

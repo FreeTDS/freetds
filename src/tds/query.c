@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.162 2005-02-09 16:15:18 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.163 2005-02-11 13:15:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -387,6 +387,7 @@ tds_next_placeholders_ucs2le(const char *start, const char *end)
 		case '[':
 			p = tds_skip_quoted_ucs2le(p, end);
 			break;
+		/* FIXME handle comments here */
 		case '?':
 			return p;
 		default:
@@ -1676,6 +1677,11 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_declare() cursor id = %d\n", cursor->cursor_id);
 
+	if (IS_TDS7_PLUS(tds)) {
+		cursor->srv_status |= TDS_CUR_ISTAT_DECLARED;
+		cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
+		cursor->srv_status |= TDS_CUR_ISTAT_RDONLY;
+	}
 
 	if (IS_TDS50(tds)) {
 		if (!*something_to_send) {
@@ -1811,6 +1817,12 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_setrows() cursor id = %d\n", cursor->cursor_id);
+
+	if (IS_TDS7_PLUS(tds)) {
+		cursor->srv_status &= ~TDS_CUR_ISTAT_DECLARED;
+		cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
+		cursor->srv_status |= TDS_CUR_ISTAT_ROWCNT;
+	}
 
 	if (IS_TDS50(tds)) {
 		if (!*something_to_send) {
@@ -1962,8 +1974,10 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
 		tds_put_int(tds, cursor->cursor_id);	/* cursor id returned by the server is available now */
 
-		if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED)
+		if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
 			tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
+			cursor->status.dealloc = TDS_CURSOR_STATE_SENT;
+		}
 		else
 			tds_put_byte(tds, 0x00);	/* Close option: TDS_CUR_COPT_UNUSED */
 
@@ -2034,8 +2048,14 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	 * here...
 	 */
 
-	if (IS_TDS7_PLUS(tds))
-		tds_free_cursor(tds, cursor);
+	if (IS_TDS7_PLUS(tds)) {
+		if (cursor->status.dealloc == TDS_CURSOR_STATE_SENT ||
+			cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
+			tdsdump_log(TDS_DBG_ERROR, "tds_cursor_dealloc(): freeing cursor \n");
+			tds_free_cursor(tds, cursor);
+		}
+	}
+	
 
 	return res;
 

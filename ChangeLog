@@ -1,3 +1,17 @@
+Fri Feb 11 14:12:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/cstypes.h include/ctlib.h:
+	* include/ctpublic.h include/tds.h src/ctlib/cs.c:
+	* src/ctlib/ct.c src/ctlib/unittests/ct_cursor.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	* src/tds/login.c src/tds/mem.c src/tds/query.c:
+	* src/tds/token.c src/ctlib/unittests/Makefile.am:
+	* src/ctlib/unittests/ct_dynamic.c(added):
+	- applied Bill Thompson patch:
+	 - extra cursor functionality
+	 - support for ct_dynamic()
+	 - full ct_cancel implementation
+	 - Alex Kiesel patch for CS_SERVERADDR etc.
+
 Wed Feb  9 20:44:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/unittests/dynamic1.c:
 	- better fix for leak on dynamics and Sybase

@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.139 2005-02-09 16:15:18 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.140 2005-02-11 13:15:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -113,6 +113,14 @@ tds_set_server(TDSLOGIN * tds_login, const char *server)
 		}
 	}
 	tds_dstr_copy(&tds_login->server_name, server);
+}
+
+void
+tds_set_server_addr(TDSLOGIN * tds_login, const char *server_addr)
+{
+	if (server_addr) {
+		tds_dstr_copy(&tds_login->server_addr, server_addr);
+	}
 }
 
 void
@@ -891,15 +899,16 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	TDS_CHAR crypt_flag;
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
+#define SET_UI16BE(i,n) do { buf[i] = ((n) >> 8); buf[i+1] = ((n) & 0xffu); } while(0)
 	TDS_UCHAR buf[] = {
 		/* netlib version */
 		0, UI16BE(START_POS), UI16BE(6),
 		/* encryption */
 		1, UI16BE(START_POS + 6), UI16BE(1),
 		/* instance */
-		2, UI16BE(START_POS + 6 + 1), UI16BE(instance_name_len),
+		2, UI16BE(START_POS + 6 + 1), UI16BE(0),
 		/* process id */
-		3, UI16BE(START_POS + 6 + 1 + instance_name_len), UI16BE(4),
+		3, UI16BE(0), UI16BE(4),
 		/* end */
 		0xff,
 		/* netlib value */
@@ -907,7 +916,11 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		/* encryption, normal */
 		0
 	};
+
 	TDS_UCHAR *p;
+
+	SET_UI16BE(13, instance_name_len);
+	SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
 
 	assert(sizeof(buf) == START_POS + 7);
 
@@ -968,7 +981,9 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tls_msg = "initializing tls";
 
 	/* FIXME place somewhere else, deinit at end */
-	ret = gnutls_global_init();
+	ret = 0;
+	if (!tls_initialized)
+		ret = gnutls_global_init();
 	if (ret == 0) {
 		tls_initialized = 1;
 

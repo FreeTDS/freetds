@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.286 2005-02-09 16:15:19 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.287 2005-02-11 13:15:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -631,6 +631,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 						cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
 						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d\n", 
 							    cursor->cursor_id);
+						cursor->srv_status &= ~TDS_CUR_ISTAT_CLOSED;
+						cursor->srv_status |= TDS_CUR_ISTAT_OPEN;
 					} 
 				}
 				if(tds->internal_sp_called == TDS_SP_PREPARE) {
@@ -756,12 +758,31 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			switch (tds->internal_sp_called ) {
 				case 0: 
 				case TDS_SP_PREPARE: 
+				case TDS_SP_EXECUTE: 
+				case TDS_SP_UNPREPARE: 
 					*result_type = TDS_DONEPROC_RESULT;
 					goto check_cancel;
 					break;
 				case TDS_SP_CURSOROPEN: 
 					*result_type       = TDS_DONE_RESULT;
 					tds->rows_affected = saved_rows_affected;
+					goto check_cancel;
+					break;
+				case TDS_SP_CURSORCLOSE:
+					tdsdump_log(TDS_DBG_FUNC, "TDS_SP_CURSORCLOSE\n");
+					if (tds->cur_cursor) {
+ 
+						TDSCURSOR  *cursor = tds->cur_cursor;
+ 
+						cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
+						cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
+						cursor->srv_status |= TDS_CUR_ISTAT_DECLARED;
+						if (cursor->status.dealloc == 2) {
+							tds_free_cursor(tds, cursor);
+						}
+					}
+					*result_type = TDS_NO_MORE_RESULTS;
+					rc = TDS_NO_MORE_RESULTS;
 					goto check_cancel;
 					break;
 				default:
@@ -775,6 +796,7 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 			rc = tds_process_end(tds, marker, done_flags);
 			if (tds->internal_sp_called == TDS_SP_CURSOROPEN  ||
 				tds->internal_sp_called == TDS_SP_CURSORFETCH ||
+				tds->internal_sp_called == TDS_SP_PREPARE ||
 				tds->internal_sp_called == TDS_SP_CURSORCLOSE ) {
 				if (tds->rows_affected != TDS_NO_COUNT) {
 					saved_rows_affected = tds->rows_affected;
@@ -3334,6 +3356,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	if (tds->cur_cursor) {
 		cursor = tds->cur_cursor; 
 		cursor->cursor_id = cursor_id;
+		cursor->srv_status = cursor_status;
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
 			tds_free_cursor(tds, cursor);
 	} 

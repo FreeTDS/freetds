@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.19 2004-12-05 20:05:08 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.20 2005-02-11 13:15:54 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -107,6 +107,10 @@ typedef struct _ct_colinfo
 }
 CT_COLINFO;
 
+typedef struct _cs_command_list CS_COMMAND_LIST;
+typedef struct _cs_dynamic CS_DYNAMIC_LIST;
+typedef struct _cs_dynamic CS_DYNAMIC;
+
 struct _cs_connection
 {
 	CS_CONTEXT *ctx;
@@ -117,6 +121,8 @@ struct _cs_connection
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;
+	CS_COMMAND_LIST *cmds;
+	CS_DYNAMIC_LIST *dynlist;
 };
 
 /*
@@ -158,37 +164,71 @@ typedef struct _csremote_proc
  * Added CSREMOTE_PROC *rpc to CS_COMMAND structure
  */
 
+typedef CS_PARAM CS_DYNAMIC_PARAM;
+
+struct _cs_dynamic
+{
+	char *id;
+	char *stmt;
+	CS_DYNAMIC_PARAM *param_list;
+	struct _cs_dynamic *next;
+}; 
+
 /* values for cs_command.results_state */
 
+#define _CS_RES_NONE            -1
 #define _CS_RES_INIT            0
 #define _CS_RES_RESULTSET_EMPTY 1
 #define _CS_RES_RESULTSET_ROWS  2
 #define _CS_RES_STATUS          3
 #define _CS_RES_CMD_DONE        4
 #define _CS_RES_CMD_SUCCEED     5
+#define _CS_RES_END_RESULTS     6
+#define _CS_RES_DESCRIBE_RESULT 7
+
+/* values for cs_command.command_state */
+
+#define _CS_COMMAND_IDLE        0
+#define _CS_COMMAND_BUILDING    1
+#define _CS_COMMAND_READY       2
+#define _CS_COMMAND_SENT        3
+
+/* values for cs_command.cancel_state */
+#define _CS_CANCEL_NOCANCEL     0
+#define _CS_CANCEL_PENDING      1
 
 struct _cs_command
 {
-	CS_CHAR *query;
-	CS_INT command_type;
+	CS_INT command_state;
+	CS_INT results_state;
+	CS_INT cancel_state;
+	CS_INT cursor_state;
 	CS_CONNECTION *con;
+	CS_INT command_type;
+	CS_CHAR *query;
 	short dynamic_cmd;
-	char *dyn_id;
+	CS_DYNAMIC *dyn;
 	int row_prefetched;
-	int results_state;
 	int curr_result_type;
-	/* Array Binding Code changes start here */
 	int bind_count;
-	/* Array Binding Code changes end here */
 	int get_data_item;
 	int get_data_bytes_returned;
 	CS_IODESC *iodesc;
 	CS_INT send_data_started;
 	CSREMOTE_PROC *rpc;
 	CS_PARAM *input_params;
+	CS_INT client_cursor_id;
 	TDSCURSOR *cursor;
+	void *userdata;
+	int userdata_len;
 };
 
+struct _cs_command_list
+{
+	struct _cs_command *cmd;
+	struct _cs_command_list *next;
+};
+ 
 struct _cs_blkdesc
 {
 	CS_CONNECTION *con;

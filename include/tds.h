@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.219 2005-02-09 19:46:24 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.220 2005-02-11 13:15:54 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -676,6 +676,7 @@ typedef union
 typedef struct tds_login
 {
 	DSTR server_name;
+	DSTR server_addr;
 	int port;
 	TDS_TINYINT major_version;	/* TDS version */
 	TDS_TINYINT minor_version;	/* TDS version */
@@ -971,9 +972,10 @@ typedef struct tds_upd_col
 } TDSUPDCOL;
 
 typedef enum {
-	  TDS_CURSOR_STATE_UNACTIONED = 0
+	  TDS_CURSOR_STATE_UNACTIONED = 0   /* initial value */
 	, TDS_CURSOR_STATE_REQUESTED = 1	/* called by ct_cursor */ 
-	, TDS_CURSOR_STATE_SENT = 2		/* sent to server and ack */
+	, TDS_CURSOR_STATE_SENT = 2		/* sent to server */
+	, TDS_CURSOR_STATE_ACTIONED = 3		/* acknowledged by server */
 } TDS_CURSOR_STATE;
 
 typedef struct _tds_cursor_status
@@ -1004,6 +1006,7 @@ typedef struct _tds_cursor
 	/*TDS_PARAM *param_list;	 cursor parameter */
 	TDSUPDCOL *cur_col_list;	/**< updatable column list */
 	TDS_CURSOR_STATUS status;
+	TDS_SMALLINT srv_status;
 	TDSRESULTINFO *res_info;
 } TDSCURSOR;
 
@@ -1212,6 +1215,7 @@ void tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled);
 void tds_set_user(TDSLOGIN * tds_login, const char *username);
 void tds_set_app(TDSLOGIN * tds_login, const char *application);
 void tds_set_host(TDSLOGIN * tds_login, const char *hostname);
+void tds_set_server_addr(TDSLOGIN * tds_login, const char *server_addr);
 void tds_set_library(TDSLOGIN * tds_login, const char *library);
 void tds_set_server(TDSLOGIN * tds_login, const char *server);
 void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);

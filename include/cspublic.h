@@ -20,8 +20,6 @@
 #ifndef _cspublic_h_
 #define _cspublic_h_
 
-#include "tds_sysdep_public.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -30,47 +28,23 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.53 2004-10-28 12:42:11 freddy77 Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.54 2005-02-11 13:15:53 freddy77 Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
-typedef int CS_RETCODE;
+#include <cstypes.h>
 
 #define CS_PUBLIC
 #define CS_STATIC static
 
-typedef tds_sysdep_int32_type CS_INT;
-typedef unsigned tds_sysdep_int32_type CS_UINT;
-typedef tds_sysdep_int16_type CS_SMALLINT;
-typedef unsigned char CS_TINYINT;
-typedef char CS_CHAR;
-typedef unsigned char CS_BYTE;
-typedef struct _cs_numeric
-{
-	unsigned char precision;
-	unsigned char scale;
-	unsigned char array[33];
-} CS_NUMERIC;
-typedef tds_sysdep_real32_type CS_REAL;
-typedef tds_sysdep_real64_type CS_FLOAT;
-typedef char CS_BOOL;
-typedef void CS_VOID;
-typedef struct _cs_varbinary
-{
-	CS_INT len;
-	CS_CHAR array[256];
-} CS_VARBINARY;
-typedef CS_NUMERIC CS_DECIMAL;
-typedef unsigned char CS_IMAGE;
-typedef unsigned char CS_TEXT;
-typedef unsigned char CS_LONGBINARY;
-typedef unsigned char CS_LONGCHAR;
-typedef tds_sysdep_int32_type CS_LONG;
-typedef unsigned char CS_BINARY;
-typedef unsigned tds_sysdep_int16_type CS_USHORT;
-typedef unsigned char CS_BIT;
 
 #define CS_FAIL	   0
 #define CS_SUCCEED 1
+#define CS_CANCELED -1	
+#define CS_PENDING 	-2
+#define CS_INTERRUPT 	-5
+#define CS_QUIET 	-6
+#define CS_TIMED_OUT 	-7
+
 #define CS_SIZEOF(x) sizeof(x)
 #define CS_NOMSG   -99
 
@@ -79,135 +53,16 @@ typedef unsigned char CS_BIT;
 #define CS_SEVERITY(x) (((x) >>  8) & 0xFF)
 #define CS_NUMBER(x)   ((x) & 0xFF)
 
-#define CS_OBJ_NAME 400		/* full name length */
-#define CS_TP_SIZE  16		/* text pointer */
-#define CS_TS_SIZE  8		/* length of timestamp */
-
 /* forward declarations */
-typedef struct _cs_config CS_CONFIG;
-typedef struct _cs_context CS_CONTEXT;
-typedef struct _cs_clientmsg CS_CLIENTMSG;
-typedef struct _cs_connection CS_CONNECTION;
-typedef struct _cs_servermsg CS_SERVERMSG;
-typedef struct _cs_locale CS_LOCALE;
-typedef struct _cs_command CS_COMMAND;
 typedef CS_RETCODE(*CS_CSLIBMSG_FUNC) (CS_CONTEXT *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENTMSG *);
 typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
 
 #define CS_IODATA          (CS_INT)1600
-
-typedef struct _cs_iodesc
-{
-	CS_INT iotype;
-	CS_INT datatype;
-	CS_LOCALE *locale;
-	CS_INT usertype;
-	CS_INT total_txtlen;
-	CS_INT offset;
-	CS_BOOL log_on_update;
-	CS_CHAR name[CS_OBJ_NAME];
-	CS_INT namelen;
-	CS_BYTE timestamp[CS_TS_SIZE];
-	CS_INT timestamplen;
-	CS_BYTE textptr[CS_TP_SIZE];
-	CS_INT textptrlen;
-} CS_IODESC;
-
-#define CS_MAX_MSG 1024
-#define CS_MAX_NAME 132
-#define CS_MAX_SCALE 77
-#define CS_MAX_PREC 77		/* used by php */
-#define CS_SQLSTATE_SIZE 8
-
-
 #define CS_SRC_VALUE   -2562
 
-typedef struct _cs_datafmt
-{
-	CS_CHAR name[CS_MAX_NAME];
-	CS_INT namelen;
-	CS_INT datatype;
-	CS_INT format;
-	CS_INT maxlength;
-	CS_INT scale;
-	CS_INT precision;
-	CS_INT status;
-	CS_INT count;
-	CS_INT usertype;
-	CS_LOCALE *locale;
-} CS_DATAFMT;
 
-typedef struct _cs_money
-{
-	CS_INT mnyhigh;
-	CS_UINT mnylow;
-} CS_MONEY;
-
-typedef struct _cs_money4
-{
-	CS_INT mny4;
-} CS_MONEY4;
-
-typedef struct _cs_datetime
-{
-	CS_INT dtdays;
-	CS_INT dttime;
-} CS_DATETIME;
-
-typedef struct _cs_datetime4
-{
-	CS_USHORT days;
-	CS_USHORT minutes;
-} CS_DATETIME4;
-
-typedef struct _cs_daterec
-{
-	CS_INT dateyear;
-	CS_INT datemonth;
-	CS_INT datedmonth;
-	CS_INT datedyear;
-	CS_INT datedweek;
-	CS_INT datehour;
-	CS_INT dateminute;
-	CS_INT datesecond;
-	CS_INT datemsecond;
-	CS_INT datetzone;
-} CS_DATEREC;
-
-typedef CS_INT CS_MSGNUM;
-
-struct _cs_clientmsg
-{
-	CS_INT severity;
-	CS_MSGNUM msgnumber;
-	CS_CHAR msgstring[CS_MAX_MSG];
-	CS_INT msgstringlen;
-	CS_INT osnumber;
-	CS_CHAR osstring[CS_MAX_MSG];
-	CS_INT osstringlen;
-	CS_INT status;
-	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
-	CS_INT sqlstatelen;
-};
-
-struct _cs_servermsg
-{
-	CS_MSGNUM msgnumber;
-	CS_INT state;
-	CS_INT severity;
-	CS_CHAR text[CS_MAX_MSG];
-	CS_INT textlen;
-	CS_CHAR svrname[CS_MAX_NAME];
-	CS_INT svrnlen;
-	CS_CHAR proc[CS_MAX_NAME];
-	CS_INT proclen;
-	CS_INT line;
-	CS_INT status;
-	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
-	CS_INT sqlstatelen;
-};
 
 /* status bits for CS_SERVERMSG */
 #define CS_HASEED 0x01
@@ -349,8 +204,10 @@ enum
 #define CS_VER_STRING CS_VER_STRING
 	CS_SERVERNAME,
 #define CS_SERVERNAME CS_SERVERNAME
-	CS_PORT
+	CS_PORT,
 #define CS_PORT CS_PORT
+	CS_SERVERADDR
+#define CS_SERVERADDR CS_SERVERADDR
 };
 
 /* Arbitrary precision math operators */
@@ -407,6 +264,25 @@ enum
 #define CS_CURSOR_DEALLOC  7
 #define CS_IMPLICIT_CURSOR 8
 #define CS_CURSOR_CLOSE    9
+
+#define CS_FOR_UPDATE   (CS_INT)0x1
+#define CS_READ_ONLY    (CS_INT)0x2
+#define CS_RESTORE_OPEN (CS_INT)0x8 
+
+
+#define CS_CURSTAT_NONE      (CS_INT)0x0
+#define CS_CURSTAT_DECLARED  (CS_INT)0x1
+#define CS_CURSTAT_OPEN      (CS_INT)0x2
+#define CS_CURSTAT_CLOSED    (CS_INT)0x4
+#define CS_CURSTAT_RDONLY    (CS_INT)0x8
+#define CS_CURSTAT_UPDATABLE (CS_INT)0x10
+#define CS_CURSTAT_ROWCOUNT  (CS_INT)0x20
+#define CS_CURSTAT_DEALLOC   (CS_INT)0x40
+
+#define CS_CUR_STATUS        (CS_INT)9126
+#define CS_CUR_ID            (CS_INT)9127
+#define CS_CUR_NAME          (CS_INT)9128
+#define CS_CUR_ROWCOUNT      (CS_INT)9129
 
 /* options accepted by ct_options() */
 #define CS_OPT_ANSINULL		1
@@ -503,16 +379,19 @@ enum
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
+#define CS_VERSION_110	18
 #define CS_GET		25
 #define CS_CON_STATUS 26
 #define CS_FORCE_CLOSE 27
 #define CS_SYNC_IO	29
+#define CS_ASYNC_IO	30
+#define CS_DEFER_IO	31
 #define CS_LC_ALL	37
 #define CS_SYB_LANG	38
 #define CS_SYB_CHARSET	39
-#define CS_SV_COMM_FAIL	41
 #define CS_BULK_LOGIN	42
 #define BLK_VERSION_100 CS_VERSION_100
+#define BLK_VERSION_110 CS_VERSION_100
 #define CS_BLK_IN	43
 #define CS_BLK_OUT	44
 #define CS_BLK_BATCH	45
@@ -540,6 +419,7 @@ enum
 #define CS_LOGIN_TIMEOUT	78
 #define CS_CAP_REQUEST	79
 #define CS_DESCRIBE_INPUT	80
+#define CS_DESCRIBE_OUTPUT	134
 #define CS_PREPARE	81
 #define CS_EXECUTE	82
 #define CS_DEALLOC	83
@@ -566,9 +446,7 @@ enum
 #define CS_TRAN_STMT_FAIL	110
 #define CS_TRAN_FAIL	111
 #define CS_TRAN_UNDEFINED	112
-#define CS_SV_RETRY_FAIL	114
 #define CS_TIMEOUT	115
-#define CS_CANCELED 	116
 #define CS_NO_RECOMPILE	117
 #define CS_COLUMN_DATA	118
 #define CS_SEND_DATA_CMD	119
@@ -579,6 +457,28 @@ enum
 #define CS_VERSION	9114
 #define CS_EXTRA_INF	9121
 #define CS_CUR_CMD 133
+
+/* to do support these */
+
+#define CS_DISABLE_POLL 9133
+#define CS_MAX_CONNECT  9118
+#define CS_TEXTLIMIT    9112
+#define CS_HIDDEN_KEYS  9113
+#define CS_STICKY_BINDS 9151
+#define CS_DIAG_TIMEOUT 9132
+#define CS_LOGIN_STATUS 9104
+#define CS_BLK_ARRAY_MAXLEN 0x1000
+#define CS_DEF_PREC     18
+
+/* Error Severities  */
+#define CS_SV_INFORM        (CS_INT)0
+#define CS_SV_API_FAIL      (CS_INT)1
+#define CS_SV_RETRY_FAIL    (CS_INT)2
+#define CS_SV_RESOURCE_FAIL (CS_INT)3
+#define CS_SV_CONFIG_FAIL   (CS_INT)4
+#define CS_SV_COMM_FAIL     (CS_INT)5
+#define CS_SV_INTERNAL_FAIL (CS_INT)6
+#define CS_SV_FATAL     (CS_INT)7
 
 /* result_types */
 #define CS_COMPUTE_RESULT	4045
@@ -592,35 +492,36 @@ enum
 #define CS_DESCRIBE_RESULT	4051
 
 /* bind types */
-#define CS_CHAR_TYPE	1
-#define CS_INT_TYPE	2
-#define CS_SMALLINT_TYPE	3
-#define CS_TINYINT_TYPE	4
-#define CS_MONEY_TYPE	5
-#define CS_DATETIME_TYPE	6
-#define CS_NUMERIC_TYPE	7
-#define CS_DECIMAL_TYPE	8
-#define CS_DATETIME4_TYPE	9
-#define CS_MONEY4_TYPE	10
-#define CS_IMAGE_TYPE	11
-#define CS_BINARY_TYPE	12
-#define CS_BIT_TYPE	13
-#define CS_REAL_TYPE	14
-#define CS_FLOAT_TYPE	15
-#define CS_TEXT_TYPE	16
-#define CS_VARCHAR_TYPE	17
-#define CS_VARBINARY_TYPE	18
-#define CS_LONGCHAR_TYPE	19
-#define CS_LONGBINARY_TYPE	20
-#define CS_LONG_TYPE	21
-#define CS_ILLEGAL_TYPE	22
-#define CS_SENSITIVITY_TYPE	23
-#define CS_BOUNDARY_TYPE	24
-#define CS_VOID_TYPE	25
-#define CS_USHORT_TYPE	26
-#define CS_UNIQUE_TYPE	27
-#define CS_UNICHAR_TYPE  28
+#define CS_ILLEGAL_TYPE     (CS_INT)(-1)
+#define CS_CHAR_TYPE        (CS_INT)0
+#define CS_BINARY_TYPE      (CS_INT)1
+#define CS_LONGCHAR_TYPE    (CS_INT)2
+#define CS_LONGBINARY_TYPE  (CS_INT)3
+#define CS_TEXT_TYPE        (CS_INT)4
+#define CS_IMAGE_TYPE       (CS_INT)5
+#define CS_TINYINT_TYPE     (CS_INT)6
+#define CS_SMALLINT_TYPE    (CS_INT)7
+#define CS_INT_TYPE         (CS_INT)8
+#define CS_REAL_TYPE        (CS_INT)9
+#define CS_FLOAT_TYPE       (CS_INT)10
+#define CS_BIT_TYPE         (CS_INT)11
+#define CS_DATETIME_TYPE    (CS_INT)12
+#define CS_DATETIME4_TYPE   (CS_INT)13
+#define CS_MONEY_TYPE       (CS_INT)14
+#define CS_MONEY4_TYPE      (CS_INT)15
+#define CS_NUMERIC_TYPE     (CS_INT)16
+#define CS_DECIMAL_TYPE     (CS_INT)17
+#define CS_VARCHAR_TYPE     (CS_INT)18
+#define CS_VARBINARY_TYPE   (CS_INT)19
+#define CS_LONG_TYPE        (CS_INT)20
+#define CS_SENSITIVITY_TYPE (CS_INT)21
+#define CS_BOUNDARY_TYPE    (CS_INT)22
+#define CS_VOID_TYPE        (CS_INT)23
+#define CS_USHORT_TYPE      (CS_INT)24
+#define CS_UNIQUE_TYPE	    (CS_INT)25
+#define CS_UNICHAR_TYPE     (CS_INT)26
 
+#define CS_USER_TYPE        (CS_INT)100
 /* cs_dt_info type values */
 enum
 {
@@ -752,7 +653,6 @@ enum
 #define CS_TRUE	1
 
 #define SRV_PROC	CS_VOID
-typedef struct _cs_blk_row CS_BLK_ROW;
 
 /* constants required for ct_diag (not jet implemented) */
 #define CS_INIT 36

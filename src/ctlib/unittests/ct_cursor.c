@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursor.c,v 1.2 2004-10-13 19:55:23 freddy77 Exp $";
+static char software_version[] = "$Id: ct_cursor.c,v 1.3 2005-02-11 13:15:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int update_second_table(CS_COMMAND * cmd2, char *value);
@@ -30,12 +30,13 @@ main(int argc, char **argv)
 	CS_DATAFMT datafmt;
 	CS_SMALLINT ind;
 	int verbose = 1;
-	CS_CHAR *name = "c1";
+	CS_CHAR name[3]; 
 	CS_CHAR col1[6];
 	CS_INT datalength;
 	CS_CHAR text[128];
 	CS_INT num_cols, i, j;
 	int is_return_status = 0;
+	CS_INT props_value;
 
 	fprintf(stdout, "%s: Testing ct_cursor()\n", __FILE__);
 
@@ -87,6 +88,7 @@ main(int argc, char **argv)
 	}
 
 	strcpy(text, "select col1 from #test_table where 1 = 1");
+	strcpy(name, "c1");
 
 	ret = ct_cursor(cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
 
@@ -124,6 +126,25 @@ main(int argc, char **argv)
 			break;
 
 		case CS_CURSOR_RESULT:
+
+			ret = ct_cmd_props(cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL); 
+			if (ret != CS_SUCCEED) {
+				fprintf(stderr, "ct_cmd_props() failed\n");
+				return 1;
+			}
+			if (props_value & CS_CURSTAT_DECLARED) {
+				fprintf(stderr, "ct_cmd_props claims cursor is in DECLARED state when it should be OPEN\n");
+				return 1;
+			}
+			if (!(props_value & CS_CURSTAT_OPEN)) {
+				fprintf(stderr, "ct_cmd_props claims cursor is not in OPEN state when it should be \n");
+				return 1;
+			}
+			if (props_value & CS_CURSTAT_CLOSED) {
+				fprintf(stderr, "ct_cmd_props claims cursor is in CLOSED state when it should be OPEN\n");
+				return 1;
+			}
+
 			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
 
 			if (ret != CS_SUCCEED) {
@@ -231,30 +252,17 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_results() returned BAD.\n");
 		return 1;
 	}
-#if 0
-	ret = ct_cursor(cmd, CS_CURSOR_DEALLOC, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
 
+	ret = ct_cmd_props(cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL); 
 	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(dealloc) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return ret;
-	}
-
-	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
-		if (result_type == CS_CMD_FAIL) {
-			fprintf(stderr, "ct_results(3) result_type CS_CMD_FAIL.\n");
-			return 1;
-		}
-	}
-	if (results_ret != CS_END_RESULTS) {
-		fprintf(stderr, "ct_results() returned BAD.\n");
+		fprintf(stderr, "ct_cmd_props() failed");
 		return 1;
 	}
-#endif
+
+	if (props_value != CS_CURSTAT_NONE) {
+		fprintf(stderr, "ct_cmd_props() CS_CUR_STATUS != CS_CURSTAT_NONE \n");
+		return 1;
+	}
 
 	if (verbose) {
 		fprintf(stdout, "Trying declare, rows, open one at a time \n");
@@ -267,6 +275,12 @@ main(int argc, char **argv)
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_cursor declare failed\n");
 		return 1;
+	}
+
+	ret = ct_send(cmd);
+
+	if (ret != CS_SUCCEED) {
+		fprintf(stderr, "ct_send failed\n");
 	}
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
@@ -286,6 +300,12 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	ret = ct_send(cmd);
+
+	if (ret != CS_SUCCEED) {
+		fprintf(stderr, "ct_send failed\n");
+	}
+
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
 			fprintf(stderr, "ct_results(5) result_type CS_CMD_FAIL.\n");
@@ -303,6 +323,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_cursor open failed\n");
 		return 1;
 	}
+
 	ret = ct_send(cmd);
 
 	if (ret != CS_SUCCEED) {
@@ -437,7 +458,6 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_send() failed\n");
 		return ret;
 	}
-
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
