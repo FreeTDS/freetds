@@ -28,7 +28,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.69 2002-09-28 12:53:03 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.70 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -559,7 +559,7 @@ char ci_flags[4];
 				bytes_read += 5+1;
 				break;
 			case 0: 
-				curcol->column_size = get_size_by_type(curcol->column_type);
+				curcol->column_size = tds_get_size_by_type(curcol->column_type);
 				bytes_read += 5+0;
 				break;
 		}
@@ -690,7 +690,7 @@ int remainder;
 		if (!is_fixed_type(curcol->column_type)) {
 			curcol->column_size = tds_get_byte(tds);
 		} else { 
-			curcol->column_size = get_size_by_type(curcol->column_type);
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 		}
 		curcol->column_offset = info->row_size;
 		info->row_size += curcol->column_size + 1;
@@ -741,7 +741,7 @@ int colnamelen;
 			curcol->column_size = tds_get_byte(tds);
 			break;
 		case 0: 
-			curcol->column_size = get_size_by_type(curcol->column_type);
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
 	}
 
@@ -859,7 +859,7 @@ int colnamelen;
 			curcol->column_size = tds_get_byte(tds);
 			break;
 		case 0: 
-			curcol->column_size = get_size_by_type(curcol->column_type);
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 			break;
 		/* FIXME can varint_size be 2 ?? */
 	}
@@ -948,7 +948,7 @@ unsigned char *dest;
 		if (!is_fixed_type(curcol->column_type)) {
 			colsize = tds_get_byte(tds);
 		} else {
-			colsize = get_size_by_type(curcol->column_type);
+			colsize = tds_get_size_by_type(curcol->column_type);
 		}
 		dest = &(info->current_row[curcol->column_offset]);
 		tds_get_n(tds,dest,colsize);
@@ -995,7 +995,7 @@ int len,colsize;
 			colsize = tds_get_byte(tds);
 			break;
 		case 0: 
-			colsize = get_size_by_type(curcol->column_type);
+			colsize = tds_get_size_by_type(curcol->column_type);
 			break;
 		default:
 			colsize = 0;
@@ -1301,7 +1301,7 @@ unsigned char *dest;
               if (!is_fixed_type(curcol->column_type)) {
                       colsize = tds_get_byte(tds);
               } else {
-                      colsize = get_size_by_type(curcol->column_type);
+                      colsize = tds_get_size_by_type(curcol->column_type);
               }
 		dest = &(info->current_row[curcol->column_offset]);
 		tds_get_n(tds,dest,colsize);
@@ -1663,7 +1663,7 @@ TDSDYNAMIC *dyn;
 		if (!is_fixed_type(curcol->column_type)) {
 			curcol->column_size = tds_get_byte(tds);
 		} else { 
-			curcol->column_size = get_size_by_type(curcol->column_type);
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 		}
 		tds_get_byte(tds);
 		/* fprintf(stderr,"elem %d coltype %d size %d\n",tds->cur_dyn_elem, curcol->column_type, curcol->column_size); */

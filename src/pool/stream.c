@@ -133,7 +133,7 @@ int pos = 1; /* skip marker */
 			}
 			colsize = buf[pos++];
 		} else {
-			colsize = get_size_by_type(curcol->column_type);
+			colsize = tds_get_size_by_type(curcol->column_type);
                 }
 		if (bytes_left(pmbr, buf, pos, maxlen, colsize)) {
 			*bytes_read = maxlen;
@@ -257,7 +257,7 @@ TDSSOCKET *tds = pmbr->tds;
 			}
 			curcol->column_size = buf[pos++];
 		} else {
-			curcol->column_size = get_size_by_type(curcol->column_type);
+			curcol->column_size = tds_get_size_by_type(curcol->column_type);
 		}
 	}
 

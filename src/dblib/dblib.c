@@ -40,7 +40,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.69 2002-09-30 15:31:58 castellano Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.70 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1094,7 +1094,7 @@ DBNUMERIC   *num;
           case SYBDATETIME:
           case SYBDATETIME4:
           case SYBUNIQUE:
-               ret = get_size_by_type(desttype);
+               ret = tds_get_size_by_type(desttype);
                memcpy(dest, src, ret);
                break;
 

@@ -35,7 +35,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.22 2002-09-27 03:09:55 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.23 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -259,10 +259,12 @@ int pos,have;
 	}
 	return dest;
 }
+
 /*
 ** Return the number of bytes needed by specified type.
 */
-int get_size_by_type(int servertype)
+int
+tds_get_size_by_type(int servertype)
 {
    switch(servertype)
    {
@@ -278,7 +280,7 @@ int get_size_by_type(int servertype)
       case SYBBITN:        return 1;  break;
       case SYBMONEY:       return 8;  break;
       case SYBMONEY4:      return 4;  break;
-	 case SYBUNIQUE:      return 16; break;
+      case SYBUNIQUE:      return 16; break;
       default:             return -1; break;
    }
 }

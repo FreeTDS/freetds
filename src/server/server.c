@@ -24,7 +24,7 @@
 #include <tds.h>
 #include "tdssrv.h"
 
-static char  software_version[]   = "$Id: server.c,v 1.7 2002-09-27 03:09:53 castellano Exp $";
+static char  software_version[]   = "$Id: server.c,v 1.8 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -291,7 +291,7 @@ int colsize, i;
 			tds_put_byte(tds, colsize);
 			tds_put_n(tds,&(resinfo->current_row[curcol->column_offset]), colsize);
 		} else {
-			tds_put_n(tds,&(resinfo->current_row[curcol->column_offset]), get_size_by_type(curcol->column_type));
+			tds_put_n(tds,&(resinfo->current_row[curcol->column_offset]), tds_get_size_by_type(curcol->column_type));
 		}
 	}
 }

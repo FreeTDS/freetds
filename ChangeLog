@@ -1,3 +1,10 @@
+Mon Sep 30 11:47:12 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* include/tds.h.in include/tdsutil.h src/dblib/bcp.c
+	  src/dblib/dblib.c src/pool/stream.c src/server/server.c
+	  src/tds/convert.c src/tds/read.c src/tds/token.c:
+	- Namespace cleanup, rename get_size_by_type() to
+	  tds_get_size_by_type().
+
 Mon Sep 30 11:30:29 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tdsutil.h src/apps/tsql.c src/dblib/dblib.c
 	  src/tds/config.c:

@@ -32,7 +32,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.84 2002-09-28 12:47:02 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.85 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -216,7 +216,7 @@ char hex2[3];
 	case SYBMONEY:
 	case SYBREAL:
 	case SYBFLT8:
-		cplen = get_size_by_type(desttype);
+		cplen = tds_get_size_by_type(desttype);
 		if (cplen <= srclen)
 			return binary_to_result(src, cplen, cr);
 		cr->ib = malloc(cplen);

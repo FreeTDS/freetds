@@ -48,7 +48,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.21 2002-09-27 16:45:47 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.22 2002-09-30 15:48:44 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -753,7 +753,7 @@ BYTE *coldata;
         /* Fixed Length data - this over-rides anything else specified */
 
         if (is_fixed_type(hostcol->datatype)) {
-            collen = get_size_by_type(hostcol->datatype);
+            collen = tds_get_size_by_type(hostcol->datatype);
         }
 
 
@@ -2322,7 +2322,7 @@ BYTE *dataptr;
         /* Fixed Length data - this over-rides anything else specified */
 
         if (is_fixed_type(hostcol->datatype)) {
-            collen = get_size_by_type(hostcol->datatype);
+            collen = tds_get_size_by_type(hostcol->datatype);
         }
 
 
