@@ -19,9 +19,12 @@
 
 #if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include "replacements.h"
 
 tds_sysdep_int64_type

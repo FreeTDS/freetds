@@ -1,3 +1,8 @@
+Tue Oct 15 08:40:06 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/atoll.c src/replacements/strtok_r.c
+	  src/replacements/vasprintf.c:
+	- More HAVE_* checks before including headers.
+
 Tue Oct 15 08:14:41 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/vasprintf.c:
 	- Restore missing close brace.

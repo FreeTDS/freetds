@@ -9,16 +9,28 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include <stdarg.h>
-#include <unistd.h>
+
+#if HAVE_STRING_H
 #include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #if HAVE_PATHS_H
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
+
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.8 2002-10-15 12:29:11 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.9 2002-10-15 12:41:20 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
