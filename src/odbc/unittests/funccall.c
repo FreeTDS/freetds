@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.7 2003-11-08 18:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.8 2004-01-09 20:28:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -80,6 +80,9 @@ main(int argc, char *argv[])
 
 	if (CommandWithResult(Statement, "drop proc simpleresult2") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
+
+	/* force cursor close */
+	SQLCloseCursor(Statement);
 
 	/* test output parameter */
 	Command(Statement,
