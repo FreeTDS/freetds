@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.87 2003-02-21 22:20:22 jklowden Exp $
+dnl $Id: configure.in,v 1.88 2003-03-05 15:46:30 mlilback Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -250,6 +250,18 @@ AM_CONDITIONAL(ODBC, test x$odbc = xtrue)
 AM_CONDITIONAL(UNIXODBC, test x$unixodbc = xtrue)
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
+
+AC_ARG_ENABLE(apps,
+	AC_HELP_STRING([--disable-apps], [skip build of src/apps (including tsql)]))
+AM_CONDITIONAL(INCAPPS, test "$enable_apps" != "no")
+
+AC_ARG_ENABLE(server,
+	AC_HELP_STRING([--disable-server], [skip build of src/server directory]))
+AM_CONDITIONAL(INCSERVER, test "$enable_server" != "no")
+
+AC_ARG_ENABLE(pool,
+	AC_HELP_STRING([--disable-pool], [skip build of src/pool directory]))
+ AM_CONDITIONAL(INCPOOL, test "$enable_pool" != "no")
 
 AC_ARG_ENABLE(msdblib,
   [  --enable-msdblib        for MS style dblib])

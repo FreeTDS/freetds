@@ -1,5 +1,6 @@
 Wed Mar 05 09:18:02 EST 2003  Mark Lilback <mark@lilback.com>
 	* src/ctlib/ct.c: ct_param returns CS_FAIL for non-rpc cases
+	* src/Makefile.am configure.in: added options to disable apps, server, pool
 
 Wed Mar 05 14:11:17 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_setparam.c (added):
