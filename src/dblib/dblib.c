@@ -30,7 +30,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.30 2002-08-06 04:32:01 jklowden Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.31 2002-08-09 02:55:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -398,6 +398,7 @@ RETCODE dbinit()
 	memset(g_dblib_ctx,'\0',sizeof(DBLIBCONTEXT));
 
 	g_dblib_ctx->tds_ctx = tds_alloc_context();
+	tds_ctx_set_parent(g_dblib_ctx->tds_ctx, g_dblib_ctx);
 
 	/* set the functions in the TDS layer to point to the correct info/err
 	* message handler functions */

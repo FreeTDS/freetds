@@ -48,7 +48,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: util.c,v 1.10 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: util.c,v 1.11 2002-08-09 02:55:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -59,15 +59,28 @@ static char *g_dump_filename;
 static int   write_dump = 0;      /* is TDS stream debug log turned on? */
 static FILE *dumpfile   = NULL;   /* file pointer for dump log          */
 
-void tds_set_parent(TDSSOCKET* tds, void* the_parent)
+void 
+tds_set_parent(TDSSOCKET *tds, void *the_parent)
 {
 	if (tds)
       		tds->parent = the_parent;
 }
 
-void* tds_get_parent(TDSSOCKET* tds)
+void *
+tds_get_parent(TDSSOCKET *tds)
 {
-      return( tds->parent);
+      return(tds->parent);
+}
+void 
+tds_ctx_set_parent(TDSCONTEXT *ctx, void* the_parent)
+{
+	if (ctx)
+      		ctx->parent = the_parent;
+}
+void *
+tds_ctx_get_parent(TDSCONTEXT *ctx)
+{
+      return(ctx->parent);
 }
 
 int tds_swap_bytes(unsigned char *buf, int bytes)

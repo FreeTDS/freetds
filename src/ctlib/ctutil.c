@@ -24,7 +24,7 @@
 /* #include "fortify.h" */
 
 
-static char  software_version[]   = "$Id: ctutil.c,v 1.6 2002-07-16 05:53:07 jklowden Exp $";
+static char  software_version[]   = "$Id: ctutil.c,v 1.7 2002-08-09 02:55:48 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -58,6 +58,7 @@ TDSSOCKET *tds = (TDSSOCKET *) tdsptr;
 TDSMSGINFO *msg = (TDSMSGINFO *) msgptr;
 CS_SERVERMSG errmsg;
 CS_CONNECTION *con = NULL;
+CS_CONTEXT *ctx = NULL;
 
 	if (tds && tds->parent) {
 		con = (CS_CONNECTION *)tds->parent;
@@ -77,7 +78,11 @@ CS_CONNECTION *con = NULL;
 		errmsg.proclen = strlen(msg->proc_name);
 		strncpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
 	}
+	/* if there is no connection, attempt to call the context handler */
 	if (!con) {
+		ctx = (CS_CONTEXT *) ctx_tds->parent;
+		if (ctx->_servermsg_cb) 
+			ctx->_servermsg_cb(con->ctx,con,&errmsg);
 		tds_reset_msg_info(msg);
 		return;
 	}

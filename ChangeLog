@@ -1,7 +1,15 @@
+Thu Aug  8 22:02:01 EDT 2002	Brian Bruns <camber@ais.org>
+	+ src/ctlib/cs.c: set context parent
+	+ src/ctlib/ctutil.c: call context handler if conn not set
+	+ src/dblib/dblib.c: set context parent
+	+ src/odbc/odbc.c: set context parent
+	+ src/tds/util.c: context parent convience functions	
+
 Thu Aug  8 00:13:30 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ include/tds.h.in	tdsmoney now a union of TDS_INT8 and TDS_OLD_MONEY
 	+ src/tds/convert.c	reinstituted numeric-based money handling.  
 	* src/odbc/Makefile.am	Remove glib library dependency from ODBC
+
 Tue Aug  6 00:16:34 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ include/tds.h.in	cosmetic changes
 	+ include/sybdb.h 	changed DBDEAD to dbdead; provided macro.  Aids binary compatibility.
@@ -9,6 +17,7 @@ Tue Aug  6 00:16:34 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ src/tds/convert.c	char->bit disallows <0
 				char->int allows embedded spaces
 				hex->int is more efficient
+
 Tue Jul 16 01:16:29 EDT 2002	JK Lowden <jklowden@schemamania.org>
 	+ src/tds/tds_willconvert.h added, to support dbwillconvert
 	+ src/tds/convert.c slightly modified to insert comments in tds_willconvert.h

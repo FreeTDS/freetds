@@ -53,7 +53,7 @@
 #include "convert_tds2sql.h"
 #include "prepare_query.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.38 2002-08-04 13:43:11 brianb Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.39 2002-08-09 02:55:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -541,6 +541,7 @@ struct _henv *env;
 
 	memset(env,'\0',sizeof(struct _henv));
 	env->tds_ctx = tds_alloc_context();
+	tds_ctx_set_parent(env->tds_ctx, env);
 	if (!env->tds_ctx->locale->date_fmt) {
 		env->tds_ctx->locale->date_fmt = strdup("%b %e %Y");
 	}

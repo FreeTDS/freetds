@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.31 2002-08-02 03:13:00 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.32 2002-08-09 02:55:49 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1201,6 +1201,9 @@ unsigned char *dest;
 ** tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
 ** for calling the CLI's message handling routine
 ** returns TDS_SUCCEED if informational, TDS_ERROR if error.
+**
+** Note: the called function is responsible for calling tds_reset_msg on the 
+** passed structure.
 */
 static int tds_process_msg(TDSSOCKET *tds,int marker)
 {
