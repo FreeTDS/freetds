@@ -1,3 +1,6 @@
+Thu Nov  7 14:21:38 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c: start to implement native_sql function
+
 Thu Nov  7 11:14:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/Makefile.am src/odbc/prepare_query.c src/odbc/native.c:
 	- split prepare_call in native.c (indented)

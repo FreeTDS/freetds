@@ -21,11 +21,15 @@
 #include <config.h>
 #endif
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include "tds.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
 
-static char software_version[] = "$Id: native.c,v 1.1 2002-11-07 10:15:13 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.2 2002-11-07 13:22:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -138,3 +142,84 @@ prepare_call(struct _hstmt *stmt)
 
 	return SQL_SUCCESS;
 }
+
+/* fucntion info */
+struct func_info {
+	const char *name;
+	int num_param;
+	const char *sql_name;
+	void *special;
+};
+
+#if 0 /* developing ...*/
+
+static const struct func_info funcs[] = {
+	/* string functions */
+	{ "ASCII", 1 },
+	{ "BIT_LENGTH", 1, "(8*OCTET_LENGTH", fn_parentheses },
+	{ "CHAR", 1 },
+	{ "CHAR_LENGTH" ,1 },
+	{ "CHARACTER_LENGTH", 1, "CHAR_LENGTH" },
+	{ "CONCAT", 2 , NULL, fn_concat }, /* a,b -> a+b*/
+	{ "DIFFERENCE", 2 },
+	{ "INSERT", 4, "STUFF" },
+	{ "LCASE", 1, "LOWER" },
+	{ "LEFT", 2, "SUBSTRING", fn_left },
+	{ "LENGTH", 1, "CHAR_LENGTH(RTRIM", fn_parentheses },
+	{ "LOCATE", 2, "CHARINDEX" },
+/* (SQLGetInfo should return third parameter not possible) */
+	{ "LTRIM" ,1 },
+	{ "OCTET_LENGTH", 1 },
+/*	 POSITION(character_exp IN character_exp) */
+	{ "REPEAT", 2, "REPLICATE" },
+/*	 REPLACE(string_exp1, string_exp2, string_exp3) */
+	{ "RIGHT", 2 },
+	{ "RTRIM", 1 },
+	{ "SOUNDEX", 1 },
+	{ "SPACE", 1 },
+	{ "SUBSTRING", 3 },
+	{ "UCASE", 1, "UPPER" },
+	
+	/* numeric functions */
+	{ "ABS", 1 },
+	{ "ACOS", 1 },
+	{ "ASIN", 1 },
+	{ "ATAN", 1 },
+	{ "ATAN2", 2, "ATN2" },
+	{ "CEILING", 1 },
+	{ "COS", 1 },
+	{ "COT", 1 },
+	{ "DEGREES", 1 },
+	{ "EXP", 1 },
+	{ "FLOOR", 1 },
+	{ "LOG", 1 },
+	{ "LOG10", 1 },
+	{ "MOD", 2, NULL, fn_mod }, /* mod(a,b) -> ((a)%(b))*/
+	{ "PI", 0 },
+	{ "POWER", 2 },
+	{ "RADIANS", 1 },
+	{ "RAND", -1 , "RAND", fn_rand }, /* accept 0 or 1 parameters */
+	{ "ROUND", 2 },
+	{ "SIGN", 1 },
+	{ "SIN", 1 },
+	{ "SQRT", 1 },
+	{ "TAN", 1 },
+/*	 TRUNCATE(numeric_exp, integer_exp) */
+	
+	/* system functions */
+	{ "DATABASE", 0, "DB_NAME" },
+/*	{ "IFNULL", 0 }, */ /* ?? NULLIF seem to not work correctly... */
+	{ "USER", 0, "USER_NAME" }
+	
+};
+
+/**
+ * Parse given sql and return converted sql
+ */
+int 
+native_sql(const char* odbc_sql, char** out)
+{
+	char *d;
+}
+
+#endif
