@@ -1,3 +1,6 @@
+Mon Jan  6 15:14:24 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/token.c added token name to marker value in log
+
 Sun Jan  5 16:48:41 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: cleanup
 	* src/odbc/odbc.c: do not set database (now useless)
