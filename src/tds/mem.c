@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.15 2002-08-14 10:14:43 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.16 2002-08-16 17:33:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -356,7 +356,11 @@ char *tdsver;
 }
 void tds_free_login(TDSLOGIN *login)
 {
-	if (login) free(login);
+	if (login) {
+		/* for security reason clear memory */
+		memset(login->password,0,sizeof(login->password));
+		free(login);
+	}
 }
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT *context, int bufsize)
 {
@@ -429,7 +433,11 @@ void tds_free_config(TDSCONFIGINFO *config)
 	if (config->host) free(config->host);
 	if (config->app_name) free(config->app_name);
 	if (config->user_name) free(config->user_name);
-	if (config->password) free(config->password);
+	if (config->password) {
+		/* for security reason clear memory */
+		memset(config->password,0,strlen(config->password));
+		free(config->password);
+	}
 	if (config->library) free(config->library);
 	/* !dnr */
 	TDS_ZERO_FREE(config);

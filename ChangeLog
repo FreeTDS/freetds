@@ -1,3 +1,8 @@
+Fri Aug 16 19:31:03 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/mem.c src/tds/config.c:
+	- clear password field before releasing memory
+	(help to prevent password on swap file)
+
 Fri Aug 16 19:09:43 CEST 2002   Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/login.c:
 	- finished trusted tds7 login

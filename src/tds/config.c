@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: config.c,v 1.18 2002-07-07 04:33:15 brianb Exp $";
+static char  software_version[]   = "$Id: config.c,v 1.19 2002-08-16 17:33:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -397,7 +397,11 @@ static void tds_config_login(TDSCONFIGINFO *config, TDSLOGIN *login)
 		config->user_name = strdup(login->user_name);
 	}
         if (login->password && strlen(login->password)) {
-		if (config->password) free(config->password);
+		if (config->password) {
+			/* for security reason clear memory */
+			memset(config->password,0,strlen(config->password));
+			free(config->password);
+		}
 		config->password = strdup(login->password);
 	}
         if (login->library && strlen(login->library)) {
