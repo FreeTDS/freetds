@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.61 2003-05-06 03:46:33 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.62 2003-05-06 09:53:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -57,7 +57,7 @@ static int bytes_per_char(TDS_ENCODING * charset);
 static char *lcid2charset(int lcid);
 static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, ICONV_CONST char **input, size_t * input_size);
 static int tds_charset_name_compare(const char *name1, const char *name2);
-static int tds_iconv_info_init(TDSICONVINFO *iconv_info, ICONV_CONST char *client_name, ICONV_CONST char *server_name);
+static int tds_iconv_info_init(TDSICONVINFO *iconv_info, const char *client_name, const char *server_name);
 
 /**
  * \ingroup libtds
@@ -136,7 +136,7 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 }
 
 static int
-tds_iconv_info_init(TDSICONVINFO *iconv_info, ICONV_CONST char *client_name, ICONV_CONST char *server_name)
+tds_iconv_info_init(TDSICONVINFO *iconv_info, const char *client_name, const char *server_name)
 {
 	TDS_ENCODING *client = &iconv_info->client_charset;
 	TDS_ENCODING *server = &iconv_info->server_charset;
@@ -518,7 +518,7 @@ lookup_charset_name(const CHARACTER_SET_ALIAS aliases[], const char *charset_nam
 	if (!charset_name || *charset_name == '\0')
 		return charset_name;
 
-	for (i = 0; i < aliases[i].alias; i++) {
+	for (i = 0; aliases[i].alias; ++i) {
 	
 		if (!reverse) {
 			if (0 == strcmp(charset_name, aliases[i].alias))

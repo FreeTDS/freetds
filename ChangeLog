@@ -1,3 +1,6 @@
+Tue May  6 11:53:11 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c: some small fixes
+
 Mon May  5 23:41:22 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* TODO corrections
 	* include/tds.h src/tds/iconv.c src/tds/mem.c
