@@ -34,11 +34,13 @@ AC_DEFUN([AM_ICONV],
   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
   dnl those with the standalone portable GNU libiconv installed).
 
+  save_LDFLAGS="$LDFLAGS"
+  LIBICONV=
   AC_ARG_WITH([libiconv-prefix],
 AC_HELP_STRING([--with-libiconv-prefix=DIR], [search for libiconv in DIR/include and DIR/lib]), [
     for dir in `echo "$withval" | tr : ' '`; do
       if test -d $dir/include; then CPPFLAGS="$CPPFLAGS -I$dir/include"; fi
-      if test -d $dir/lib; then LDFLAGS="$LDFLAGS -L$dir/lib"; fi
+      if test -d $dir/lib; then LDFLAGS="$LDFLAGS -L$dir/lib"; LIBICONV="-L$dir/lib"; fi
     done
    ])
 
@@ -88,10 +90,12 @@ size_t iconv();
     AC_DEFINE_UNQUOTED(ICONV_CONST, $am_cv_proto_iconv_arg1,
       [Define as const if the declaration of iconv() needs const.])
   fi
-  LIBICONV=
   if test "$am_cv_lib_iconv" = yes; then
-    LIBICONV="-liconv"
+    LIBICONV="$LIBICONV -liconv"
+  else
+    LIBICONV=
   fi
+  LDFLAGS="$save_LDFLAGS"
   AC_SUBST(LIBICONV)
 ])
 
@@ -171,7 +175,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: acinclude.m4,v 1.24 2003-12-29 22:37:31 freddy77 Exp $
+dnl @version $Id: acinclude.m4,v 1.24.4.1 2004-12-08 11:03:05 freddy77 Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq

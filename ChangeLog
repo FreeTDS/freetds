@@ -1,3 +1,12 @@
+Wed Dec 08 12:00:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4:
+	- do not put library dir in LDFLAGS
+	* src/apps/Makefile.am src/ctlib/Makefile.am src/dblib/Makefile.am:
+	* src/odbc/Makefile.am src/server/Makefile.am src/tds/Makefile.am:
+	- put library in order to search our dirs before (should fix 
+	  search order in NetBSD if previous version installed)
+	- filter libtds export (this fix problem with old Solaris)
+
 Thu Dec 03 09:37:32 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* autogen.sh: do not call autoheader if not needed
 	* configure.in: bump version
