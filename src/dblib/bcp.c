@@ -56,7 +56,7 @@
 
 extern const int tds_numeric_bytes_per_prec[];
 
-static char software_version[] = "$Id: bcp.c,v 1.52 2003-02-10 21:48:14 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.53 2003-02-12 06:14:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -469,7 +469,6 @@ TDSCOLINFO *curcol;
 BCP_HOSTCOLINFO *hostcol;
 BYTE *src;
 int srctype;
-long len;
 int buflen;
 int destlen;
 BYTE *outbuf;
