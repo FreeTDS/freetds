@@ -1,3 +1,7 @@
+Sat Nov 23 17:43:16 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c: return 0 if not TDS7+
+	+ src/tds/token.c: reuse code, save extended errors in param_info
+
 Sat Nov 23 15:11:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: 
 	- fix bug introduced token.c (output parameters not saved correctly)

@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.117 2002-11-23 14:12:09 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.118 2002-11-23 16:44:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -630,9 +630,7 @@ TDSRESULTINFO *info;
 		if (!head) head = cur;
 
 		cur->column_namelen = tds_get_byte(tds);
-		cur->column_name = (char *) malloc(cur->column_namelen+1);
-		tds_get_n(tds,cur->column_name, cur->column_namelen);
-		cur->column_name[cur->column_namelen]='\0';
+		cur->column_name = tds_alloc_get_string(tds, cur->column_namelen);
 		cur->next=NULL;
 
 		len += cur->column_namelen + 1;
@@ -1501,16 +1499,10 @@ tds_process_env_chg(TDSSOCKET *tds)
 	}
 
 	/* fetch the new value */
-	size = tds_get_byte(tds);
-	newval = (char *) malloc(size+1);
-	tds_get_string(tds,newval,size);
-	newval[size]='\0';
+	newval = tds_alloc_get_string(tds, tds_get_byte(tds));
 
 	/* fetch the old value */
-	size = tds_get_byte(tds);
-	oldval = (char *) malloc(size+1);
-	tds_get_string(tds,oldval,size);
-	oldval[size]='\0';
+	oldval = tds_alloc_get_string(tds, tds_get_byte(tds));
 
 	switch (type) {
 		case TDS_ENV_PACKSIZE:
@@ -1584,6 +1576,9 @@ TDSMSGINFO msg_info;
 		/* junk status and transaction state */
 		tds_get_byte(tds);
 		tds_get_smallint(tds);
+
+		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
+		tds->cur_dyn = NULL;
 	} 
 	else if (marker==TDS_MSG_TOKEN) {
 		msg_info.priv_msg_type = 0;
@@ -1818,46 +1813,46 @@ tds_get_token_size(int marker)
 	}
 }
 
-void tds_swap_datatype(int coltype, unsigned char *buf)
+void 
+tds_swap_datatype(int coltype, unsigned char *buf)
 {
 TDS_NUMERIC *num;
 
 	switch(coltype) {
-		case SYBINT2:
-			tds_swap_bytes(buf,2); break;
-		case SYBINT4:
-			tds_swap_bytes(buf,4); break;
-		case SYBINT8:
-			tds_swap_bytes(buf,8); break;
-		case SYBREAL:
-			tds_swap_bytes(buf,4); break;
-		case SYBFLT8:
-			tds_swap_bytes(buf,8); break;
-		case SYBMONEY4:
-			tds_swap_bytes(buf,4); break;
-		case SYBMONEY:
-			tds_swap_bytes(buf,4);
-			tds_swap_bytes(&buf[4],4); break;
-		case SYBDATETIME4:
-			tds_swap_bytes(buf,2);
-			tds_swap_bytes(&buf[2],2); break;
-		case SYBDATETIME:
-			tds_swap_bytes(buf,4);
-			tds_swap_bytes(&buf[4],4); break;
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			num = (TDS_NUMERIC *) buf;
-            /* swap the sign */
-            num->array[0] = (num->array[0] == 0) ? 1 : 0;
-            /* swap the data */
-            tds_swap_bytes(&(num->array[1]),
-                           tds_numeric_bytes_per_prec[num->precision] - 1); break;
-
-        case SYBUNIQUE:
-			tds_swap_bytes(buf,4);
-			tds_swap_bytes(&buf[4],2); 
-			tds_swap_bytes(&buf[6],2); break;
-
+	case SYBINT2:
+		tds_swap_bytes(buf,2);
+		break;
+	case SYBINT4:
+	case SYBMONEY4:
+	case SYBREAL:
+		tds_swap_bytes(buf,4);
+		break;
+	case SYBINT8:
+	case SYBFLT8:
+		tds_swap_bytes(buf,8);
+		break;
+	case SYBMONEY:
+	case SYBDATETIME:
+		tds_swap_bytes(buf,4);
+		tds_swap_bytes(&buf[4],4);
+		break;
+	case SYBDATETIME4:
+		tds_swap_bytes(buf,2);
+		tds_swap_bytes(&buf[2],2);
+		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		num = (TDS_NUMERIC *) buf;
+		/* swap the sign */
+		num->array[0] = (num->array[0] == 0) ? 1 : 0;
+		/* swap the data */
+		tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
+		break;
+	case SYBUNIQUE:
+		tds_swap_bytes(buf,4);
+		tds_swap_bytes(&buf[4],2);
+		tds_swap_bytes(&buf[6],2);
+		break;
 	}
 }
 

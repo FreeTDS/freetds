@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.2 2002-11-23 06:36:35 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.3 2002-11-23 16:44:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -84,8 +84,10 @@ main(int argc, char **argv)
 	dbcmd(dbproc, "create proc #t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
-		fprintf(stdout, "Failed to create proc #t0022.\n");
-		exit(1);
+		fprintf(stdout, "Failed to create proc #t0022. Wrong permission or not MSSQL.\n");
+		if (DBTDS(dbproc) == DBTDS_7_0 || DBTDS(dbproc) == DBTDS_8_0)
+			exit(1);
+		exit(0);
 	}
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

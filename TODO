@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.14 2002-11-22 13:25:47 freddy77 Exp $
+To Do List	$Id: TODO,v 1.15 2002-11-23 16:44:57 freddy77 Exp $
 ------------
 Broken:
 For 0.61 version:
@@ -37,6 +37,7 @@ For future versions:
 . Add missing constants needed for Gnome-DB and verify working 
 . Someone broke early binding in ODBC
 . Autodetect TDS protocol when connecting (and cache somewhere?)
+. support for VARIANT type
 
 (f77) Those was collected from ML...
 . ODBC: get a solid corpus of unittests for ODBC, and have it become a 
