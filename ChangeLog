@@ -1,3 +1,7 @@
+Sat Dec 11 09:30:31 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/rpc.c:
+	- improved, patch from Adrian Daley
+
 Thu Dec  9 13:51:41 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* configure.in rc5
 
