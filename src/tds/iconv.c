@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.118 2005-02-26 13:08:32 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.119 2005-02-27 08:49:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -251,6 +251,25 @@ tds_get_iconv_name(int charset)
 	iconv_names[charset] = "";
 }
 
+static void
+tds_iconv_reset(TDSICONV *conv)
+{
+	/*
+	 * (min|max)_bytes_per_char can be used to divide
+	 * so init to safe values
+	 */
+	conv->server_charset.min_bytes_per_char = 1;
+	conv->server_charset.max_bytes_per_char = 1;
+	conv->client_charset.min_bytes_per_char = 1;
+	conv->client_charset.max_bytes_per_char = 1;
+
+	conv->server_charset.name = conv->client_charset.name = "";
+	conv->to_wire = (iconv_t) - 1;
+	conv->to_wire2 = (iconv_t) - 1;
+	conv->from_wire = (iconv_t) - 1;
+	conv->from_wire2 = (iconv_t) - 1;
+}
+
 /**
  * Allocate iconv stuff
  * \return 0 for success
@@ -263,7 +282,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 
 	assert(!tds->char_convs);
 	if (!(tds->char_convs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_char_conv_count + 1))))
-		return 1;
+	return 1;
 	char_conv = (TDSICONV *) malloc(sizeof(TDSICONV) * initial_char_conv_count);
 	if (!char_conv) {
 		TDS_ZERO_FREE(tds->char_convs);
@@ -274,11 +293,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 
 	for (i = 0; i < initial_char_conv_count; ++i) {
 		tds->char_convs[i] = &char_conv[i];
-		char_conv[i].server_charset.name = char_conv[i].client_charset.name = "";
-		char_conv[i].to_wire = (iconv_t) - 1;
-		char_conv[i].to_wire2 = (iconv_t) - 1;
-		char_conv[i].from_wire = (iconv_t) - 1;
-		char_conv[i].from_wire2 = (iconv_t) - 1;
+		tds_iconv_reset(&char_conv[i]);
 	}
 
 	/* chardata is just a pointer to another iconv info */
@@ -939,11 +954,7 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 		memset(infos, 0, sizeof(TDSICONV) * CHUNK_ALLOC);
 		for (i = 0; i < CHUNK_ALLOC; ++i) {
 			tds->char_convs[i + tds->char_conv_count] = &infos[i];
-			infos[i].server_charset.name = infos[i].client_charset.name = "";
-			infos[i].to_wire = (iconv_t) - 1;
-			infos[i].to_wire2 = (iconv_t) - 1;
-			infos[i].from_wire = (iconv_t) - 1;
-			infos[i].from_wire2 = (iconv_t) - 1;
+			tds_iconv_reset(&infos[i]);
 		}
 	}
 	info = tds->char_convs[tds->char_conv_count++];
