@@ -91,7 +91,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.6 2005-01-20 16:19:01 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.7 2005-01-21 11:38:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -616,9 +616,8 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_buf[1] = final;
 	tds->out_buf[2] = (tds->out_pos) / 256u;
 	tds->out_buf[3] = (tds->out_pos) % 256u;
-	if (IS_TDS70(tds) || IS_TDS80(tds)) {
+	if (IS_TDS7_PLUS(tds))
 		tds->out_buf[6] = 0x01;
-	}
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 

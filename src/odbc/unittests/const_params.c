@@ -2,15 +2,18 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.1 2004-10-28 15:14:28 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.2 2005-01-21 11:38:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-#ifdef ENABLE_DEVELOPING
 	SQLINTEGER input, ind, ind2, ind3, output;
 	SQLINTEGER out1;
+
+#ifndef ENABLE_DEVELOPING
+	return 0;
+#endif
 
 	Connect();
 
@@ -88,6 +91,5 @@ main(int argc, char *argv[])
 	Disconnect();
 
 	printf("Done.\n");
-#endif
 	return 0;
 }

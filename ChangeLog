@@ -1,3 +1,9 @@
+Fri Jan 21 12:37:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/cancel.c: not developing anymore
+	* src/odbc/odbc.c: improve timeout
+	* src/odbc/unittests/const_params.c: compile check
+	* src/tds/net.c: small update
+
 Thu Jan 20 17:17:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO include/tds.h src/dblib/dblib.c src/odbc/odbc.c:
 	* src/tds/config.c src/tds/login.c src/tds/mem.c:
