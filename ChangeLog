@@ -1,3 +1,6 @@
+Mon May 26 16:05:58 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/freebcp.c: fix compile on QNX4
+
 Sun May 25 19:59:35 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/odbc/connectparams.c:
 	- autodetect odbc
