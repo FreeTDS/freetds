@@ -276,6 +276,13 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<term><Parameter>--enable-dbmfix
 					</Parameter></term>
 				<listitem><para>Force the function dbopen() in the dblib API to be renamed tdsdbopen().  This option is used to avoid a conflict with programs that link in both dblib and some flavor of DBM (ndbm, gdbm, etc...).  Note the application will have to be modified to call tdsdbopen() instead, see the <link linkend="php">PHP Section</link> for information on fixing this in PHP.</para>
+				
+				<para>With this option, <Parameter>dbopen()</Parameter> remains defined in <filename>sybdb.h</filename>, so modules can still call the real <Parameter>dbopen()</Parameter> directly.  
+<Note> <para><function>dbm</function> and <function>dblib</function> still cannot be compiled in the same object file (without undefining <Parameter>dbopen</Parameter> , and using <Parameter>tdsdbopen</Parameter> ), but they can be referenced in separate objects and linked together.  Which is what most people (perl,
+php) are looking for anyway.</para></note></para>
+				
+				
+				
 					</listitem>
 				</varlistentry>
 
