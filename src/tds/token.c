@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.15 2002-03-15 02:01:41 brianb Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.16 2002-03-28 05:10:11 mlilback Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -589,6 +589,7 @@ int col, num_cols;
 int colnamelen;
 TDSCOLINFO *curcol;
 TDSRESULTINFO *info;
+char ci_flags[4];
 
 	tds_free_all_results(tds);
 
@@ -605,8 +606,13 @@ TDSRESULTINFO *info;
 	for (col=0;col<num_cols;col++) {
 
 		curcol = info->columns[col];
-		tds_get_smallint(tds); /* ?  00 */
-		tds_get_smallint(tds); /* ?  01 */
+		/* Used to ignore next 4 bytes, now we'll actually parse (some of)
+			the data in them. (mlilback, 3/28/02) */
+		tds_get_n(tds, ci_flags, 4);
+		curcol->column_nullable = ci_flags[2] & 0x01;
+		curcol->column_writeable = (ci_flags[2] & 0x08) > 0;
+		curcol->column_identity = (ci_flags[2] & 0x10) > 0;
+		/* on with our regularly scheduled code (mlilback, 3/28/02) */
 		curcol->column_type = tds_get_byte(tds); 
 		
 		/* large types (2 byte size field) are the type + 128
